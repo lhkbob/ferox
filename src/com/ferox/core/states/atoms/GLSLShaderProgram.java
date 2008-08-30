@@ -1,0 +1,147 @@
+package com.ferox.core.states.atoms;
+
+import com.ferox.core.states.NullUnit;
+import com.ferox.core.states.StateAtom;
+import com.ferox.core.states.StateUnit;
+import com.ferox.core.util.io.InputChunk;
+import com.ferox.core.util.io.OutputChunk;
+
+/**
+ * ShaderProgram represents a glsl shader program (which is a collection of shader objects that
+ * replace the vertex and/or fragment portions of the fixed function rendering pipeline for gl).
+ * @author Michael Ludwig
+ *
+ */
+public class GLSLShaderProgram extends StateAtom {
+	private boolean fixedFunction;
+	private GLSLShaderObject[] shaders;
+	private boolean hasVertexShader;
+	private boolean hasFragmentShader;
+	private String infoLog;
+	
+	public GLSLShaderProgram() {
+		this(null);
+	}
+	
+	/**
+	 * Creates a shader program with the given shader objects.
+	 */
+	public GLSLShaderProgram(GLSLShaderObject[] shaders) {
+		super();
+		this.setShaders(shaders);
+	}
+
+	/**
+	 * Gets the info log returned by opengl after linking the shader objects, it is an empty string
+	 * if the linking was successful.
+	 */
+	public String getInfoLog() {
+		return this.infoLog;
+	}
+
+	/**
+	 * Get the shaders used for this program, any modification will not be reflected until the 
+	 * program has been updated via GLVisitor.  It is not recommended to modify the references within the actual array.
+	 * If you'd like to change the shaders, use setShaders() instead.
+	 */
+	public GLSLShaderObject[] getShaders() {
+		return this.shaders;
+	}
+
+	/**
+	 * Whether or not this shader program is fixed function.
+	 * @return
+	 */
+	public boolean isFixedFunction() {
+		return this.fixedFunction;
+	}
+
+	/**
+	 * Whether or not this shader program overrides gl's fragment fixed pipeline.
+	 * @return
+	 */
+	public boolean isFragmentShaderPresent() {
+		return this.hasFragmentShader;
+	}
+
+	/**
+	 * Sets the info log that results from linking the shader program in the graphics card.  Shouldn't be called directly,
+	 * it is the responsibility of the state atom peer to set this variable appropriately.
+	 */
+	public void setInfoLog(String log) {
+		this.infoLog = log;
+	}
+	
+	/**
+	 * Whether or not this shader program overrides gl's vertex fixed pipeline.
+	 */
+	public boolean isVertexShaderPresent() {
+		return this.hasVertexShader;
+	}
+
+	/**
+	 * Sets the shader objects for this program.  Ignores null shader object elements in the array.
+	 * If all shaders present are null (or if the array is null), then this program will behave as the fixed function
+	 * pipeline of opengl.
+	 */
+	public void setShaders(GLSLShaderObject[] shaders) {
+		if (this.shaders != null) {
+			for (int i = 0; i < this.shaders.length; i++)
+				this.shaders[i].unlinkFromProgram(this);
+		}
+		
+		if (shaders != null) {
+			int non_null_count = 0;
+			for (int i = 0; i < shaders.length; i++) 
+				if (shaders[i] != null)
+					non_null_count++;
+			this.shaders = (non_null_count > 0 ? new GLSLShaderObject[non_null_count] : null);
+			non_null_count = 0;
+			for (int i = 0; i < shaders.length; i++) 
+				if (shaders[i] != null && shaders[i].linkToProgram(this)) {
+					this.shaders[non_null_count++] = shaders[i];
+					this.hasVertexShader = this.hasVertexShader || shaders[i].getShaderType() == GLSLShaderObject.GLSLType.VERTEX;
+					this.hasFragmentShader = this.hasFragmentShader || shaders[i].getShaderType() == GLSLShaderObject.GLSLType.FRAGMENT;
+				}
+			this.fixedFunction = this.shaders == null;
+		} else {
+			this.fixedFunction = true;
+			this.hasVertexShader = false;
+			this.hasFragmentShader = false;
+			this.shaders = null;
+		}
+		this.updateStateAtom();
+	}
+	
+	@Override
+	public void readChunk(InputChunk in) {
+		super.readChunk(in);
+		
+		GLSLShaderObject[] shaders = new GLSLShaderObject[in.getInt("count")];
+		for (int i = 0; i < shaders.length; i++)
+			shaders[i] = (GLSLShaderObject)in.getObject("shader_" + i);
+		this.setShaders(shaders);
+	}
+	
+	@Override
+	public void writeChunk(OutputChunk out) {
+		super.writeChunk(out);
+		
+		if (this.shaders != null) {
+			out.setInt("count", this.shaders.length);
+			for (int i = 0; i < this.shaders.length; i++)
+				out.setObject("shader_" + i, this.shaders[i]);
+		} else
+			out.setInt("count", 0);
+	}
+
+	@Override
+	public Class<GLSLShaderProgram> getAtomType() {
+		return GLSLShaderProgram.class;
+	}
+
+	@Override
+	public boolean isValidUnit(StateUnit unit) {
+		return unit instanceof NullUnit;
+	}
+}
