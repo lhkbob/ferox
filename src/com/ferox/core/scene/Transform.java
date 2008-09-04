@@ -9,8 +9,7 @@ import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
 public class Transform implements Chunkable {
-	public static final Transform IDENTITY = new Transform();
-	
+	private static final Transform IDENTITY = new Transform();
 	private static final Vector3f temp = new Vector3f();
 	
 	private final Matrix3f rot;

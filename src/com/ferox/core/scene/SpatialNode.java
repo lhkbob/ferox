@@ -16,8 +16,7 @@ public abstract class SpatialNode implements Chunkable {
 	public static final int LOCK_TRANSFORM_BIT = 1 << 0;
 	public static final int LOCK_BOUNDS_BIT = 1 << 1;
 	
-	public static final Transform identity = Transform.IDENTITY;
-
+	private static final Transform identity = new Transform();
 	private static final Transform temp = new Transform();
 	
 	protected SpatialBranch parent;
