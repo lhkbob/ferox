@@ -137,7 +137,7 @@ public abstract class RenderContext {
 	
 	RenderManager manager;
 	
-	private RenderPassPeer<RenderPass> defaultPass; 
+	private RenderPassPeer<RenderPass> defaultPass;
 	// TODO: add render to texture render passes
 	
 	private StateManager[] stateRecord;
@@ -146,6 +146,11 @@ public abstract class RenderContext {
 	private DynamicStateTracker[] dynamicRecord;
 	private RenderAtom currAtom;
 	
+	/**
+	 * Register the given type of atom and return the dynamic type.  All state atoms and state managers
+	 * call this in their constructor.  If an atom type has already been registered, it returns the previously
+	 * assigned value.
+	 */
 	public static int registerStateAtomType(Class<? extends StateAtom> m) {
 		if (atomTypes.containsKey(m))
 			return atomTypes.get(m);
@@ -159,7 +164,6 @@ public abstract class RenderContext {
 	 * it is here to force subclasses to take DisplayOptions as arguments.  Subclasses must do there best to 
 	 * satisfy the requested options.  They are also responsible for instantiating the correct implementation of 
 	 * a RenderSurface.
-	 * @param options
 	 */
 	public RenderContext(DisplayOptions options) {
 		this.defaultPass = this.createDefaultRenderPassPeer();
@@ -244,6 +248,8 @@ public abstract class RenderContext {
 	public void beginAtom(RenderAtom atom) {
 		if (this.currAtom != null)
 			throw new FeroxException("Can't call beginAtom() after a previous beginAtom() call if endAtom() hasn't been called");
+		if (atom == null)
+			throw new NullPointerException("Can't call beginAtom() with a null atom");
 		this.currAtom = atom;
 		if (this.dynamicRecord != null)
 			for (int i = 0; i < this.dynamicRecord.length; i++)
@@ -257,6 +263,8 @@ public abstract class RenderContext {
 	 * The rest of the atom's states should have already been applied by the RenderAtomBin.
 	 */
 	public void endAtom(RenderAtom atom) {
+		if (atom != this.currAtom || this.currAtom == null)
+			throw new FeroxException("Can't call endAtom() with a different RenderAtom or not after beginAtom()");
 		if (this.dynamicRecord != null)
 			for (int i = 0; i < this.dynamicRecord.length; i++)
 				if (this.dynamicRecord[i] != null)
@@ -264,6 +272,7 @@ public abstract class RenderContext {
 		this.pushModelTransform(atom.getSpatialLink().getWorldTransform());
 		this.renderGeometry(atom.getGeometry());
 		this.popModelTransform();
+		this.currAtom = null;
 	}
 	
 	/**
@@ -315,6 +324,20 @@ public abstract class RenderContext {
 	 */
 	public abstract StateAtomPeer getStateAtomPeer(StateAtom atom);
 
+	/**
+	 * Update the texture data on the graphics card for the given texture and region, using the given slice of 
+	 * the buffer in as source data.  The region must be contained completely within the actual textures dimensions
+	 * at the given mipmap level (level >= 0).  It will throw an exception if the region is too large, if the 
+	 * mipmap level doesn't exist in the texture, or if the slice extends beyond the buffer's capacity, or if 
+	 * the slice isn't sized to fit the entire texture.  The buffer to update must be of the same format and type
+	 * of the texture (which might be compressed data).  Because of some driver issues, it may be necessary to 
+	 * reallocate the texture on the graphics card, which is why the source buffer must be sized for the texture.
+	 * It is then recommended to modify the in-memory nio buffer of the texture (in the given region) and then call
+	 * this method with that buffer, so that in the event of a reallocation instead of an update, you will not
+	 * lose your texture image.
+	 * 
+	 * The depth and z offset values of the region are ignored.
+	 */
 	public void setTextureRegion(Texture2D data, Block region, int level, Buffer in, Slice slice) {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), 1, 
@@ -324,6 +347,12 @@ public abstract class RenderContext {
 		this.setTextureData(data, region, null, level, in, slice);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * Equivalent to setTextureRegion(Texture2D, ... Buffer) but uses the BufferData as a source.  If the source BufferData
+	 * is not a vbo or if pixel buffer objects aren't supported, it is identical to the previous method (using the returned
+	 * nio buffer), otherwise it uses pixel buffers (not pbuffers) to use data transfer directly on the graphics
+	 * card (using the graphics card vbo data as a source).
+	 */
 	public void setTextureRegion(Texture2D data, Block region, int level, BufferData in, Slice slice) {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), 1, 
@@ -339,6 +368,9 @@ public abstract class RenderContext {
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * As before with a Texture2D argument, but the depth and z offset values must be valid.
+	 */
 	public void setTextureRegion(Texture3D data, Block region, int level, Buffer in, Slice slice) {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), data.getDepth(level), 
@@ -348,6 +380,9 @@ public abstract class RenderContext {
 		this.setTextureData(data, region, null, level, in, slice);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * See the Texture3D version with a Buffer and the Texture2D version with a BufferData.
+	 */
 	public void setTextureRegion(Texture3D data, Block region, int level, BufferData in, Slice slice) {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), data.getDepth(level), 
@@ -363,6 +398,10 @@ public abstract class RenderContext {
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * Just like the Texture2D call except that it takes a Face value to choose which face of the cube map to 
+	 * update.  Validation then works on the size of that 2D texture face.
+	 */
 	public void setTextureRegion(TextureCubeMap data, Block region, Face face, int level, Buffer in, Slice slice) {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getSideLength(level), data.getSideLength(level), 1, 
@@ -372,6 +411,9 @@ public abstract class RenderContext {
 		this.setTextureData(data, region, face, level, in, slice);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * See previous setTextureRegion docs.
+	 */
 	public void setTextureRegion(TextureCubeMap data, Block region, Face face, int level, BufferData in, Slice slice) {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getSideLength(level), data.getSideLength(level), 1, 
@@ -387,8 +429,19 @@ public abstract class RenderContext {
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * Implementations of a RenderContext must implement this method to set given region of the texture data and mipmap level.  Face is only 
+	 * non-null when a cube map is involved.  If the Buffer in is null, then the transfer should use pixel buffers to transfer the 
+	 * data.  Both the texture and possibly the pixel buffer will already have been applied to the 0th unit.
+	 */
 	protected abstract void setTextureData(TextureData data, Block region, Face face, int level, Buffer in, Slice slice);
 	
+	/**
+	 * Fetch the texture data from the graphics card into the given buffer for the given level.  It fetches
+	 * the entire image data, so the slice of the buffer must be fitted to the texture.  And, of course, the
+	 * slice must be contained within the entire buffer's capacity.  The fetched texture will be in the same
+	 * original texture format and type.
+	 */
 	public void getTexture(Texture2D data, int level, Buffer out, Slice slice) {
 		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
 		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
@@ -400,6 +453,12 @@ public abstract class RenderContext {
 		this.getTextureData(data, null, level, out, slice);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * Same as getTexture() but stores the texture data into the buffer data.  If isVBO is true for BufferData
+	 * it will store it on the graphics card.  If pixel buffers are available, there will be a direct transfer
+	 * and the in-memory data will not be updated.  If isVBO is true, and pixel buffers aren't supported, and
+	 * the client buffer has been set to null, then this will be a no-op.
+	 */
 	public void getTexture(Texture2D data, int level, BufferData out, Slice slice) {
 		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
 		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
@@ -411,12 +470,17 @@ public abstract class RenderContext {
 		BufferData pBD = (BufferData)this.push(out, BufferTarget.PIXEL_READ_BUFFER, BufferData.class);
 		if (out.isVBO() && RenderManager.getSystemCapabilities().arePixelBuffersSupported())
 			this.getTextureData(data, null, level, null, slice);
-		else if (out.getData() != null)
+		else if (out.getData() != null) {
 			this.getTextureData(data, null, level, out.getData(), slice);
+			out.updateNow(this.getRenderManager());
+		}
 		this.pop(out, pBD, BufferTarget.PIXEL_READ_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * As getTexture(Textur2D ...)
+	 */
 	public void getTexture(Texture3D data, int level, Buffer out, Slice slice) {
 		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
 		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
@@ -428,6 +492,9 @@ public abstract class RenderContext {
 		this.getTextureData(data, null, level, out, slice);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * As getTexture(Texture2D ...)
+	 */
 	public void getTexture(Texture3D data, int level, BufferData out, Slice slice) {
 		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
 		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
@@ -439,11 +506,16 @@ public abstract class RenderContext {
 		BufferData pBD = (BufferData)this.push(out, BufferTarget.PIXEL_READ_BUFFER, BufferData.class);
 		if (out.isVBO() && RenderManager.getSystemCapabilities().arePixelBuffersSupported())
 			this.getTextureData(data, null, level, null, slice);
-		else if (out.getData() != null)
+		else if (out.getData() != null) {
 			this.getTextureData(data, null, level, out.getData(), slice);
+			out.updateNow(this.getRenderManager());
+		}
 		this.pop(out, pBD, BufferTarget.PIXEL_READ_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * As getTexture(Textur2D ...) but you pick a cube map face to fetch.
+	 */
 	public void getTexture(TextureCubeMap data, Face face, int level, Buffer out, Slice slice) {
 		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
 		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
@@ -455,6 +527,9 @@ public abstract class RenderContext {
 		this.getTextureData(data, face, level, out, slice);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
+	/**
+	 * As getTexture(Textur2D ...) but you pick a cube map face to fetch.
+	 */
 	public void getTexture(TextureCubeMap data, Face face, int level, BufferData out, Slice slice) {
 		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
 		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
@@ -466,14 +541,27 @@ public abstract class RenderContext {
 		BufferData pBD = (BufferData)this.push(out, BufferTarget.PIXEL_READ_BUFFER, BufferData.class);
 		if (out.isVBO() && RenderManager.getSystemCapabilities().arePixelBuffersSupported())
 			this.getTextureData(data, face, level, null, slice);
-		else if (out.getData() != null)
+		else if (out.getData() != null) {
 			this.getTextureData(data, face, level, out.getData(), slice);
+			out.updateNow(this.getRenderManager());
+		}
 		this.pop(out, pBD, BufferTarget.PIXEL_READ_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * Implementations of RenderContext must fetch the data of the texture from the graphics card (and face
+	 * if the texture is a cube map) at the given mipmap level into the buffer.  If the buffer is null,
+	 * it should do a pixel buffer transfer.  The texture data and buffer are already applied.
+	 */
 	protected abstract void getTextureData(TextureData data, Face face, int level, Buffer out, Slice slice);
 	
+	/**
+	 * Copy the current contents of the active drawing buffer into the texture, given the region.  The region
+	 * must be contained within the whole texture's dimensions.  Fails if the region, offset by the screen
+	 * fetch coordinates (sx, sy) goes off screen.  This is an operation on the graphics card, no memory
+	 * is transfered back to the in-memory buffer of the texture.
+	 */
 	public void copyFramePixels(Texture2D data, Block region, int level, int sx, int sy) {
 		if (data.getDataFormat().isServerCompressed())
 			throw new IllegalArgumentException("copyFramePixels doesn't support compressed textures");
@@ -485,6 +573,10 @@ public abstract class RenderContext {
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * As copyFramePixels(Texture2D ...) except that in essence it copies the framebuffer into a slice of
+	 * the 3D texture (as specified by the region).  The depth value is ignored, and is set to 1 for the region.
+	 */
 	public void copyFramePixels(Texture3D data, Block region, int level, int sx, int sy) {
 		if (data.getDataFormat().isServerCompressed())
 			throw new IllegalArgumentException("copyFramePixels doesn't support compressed textures");
@@ -496,19 +588,34 @@ public abstract class RenderContext {
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
-	public void copyFramePixels(TextureCubeMap data, Block region, int level, int sx, int sy) {
+	/**
+	 * As copyFramePixels(Texture2D ...) except that the face argument chooses one of the 2d faces of the cube
+	 * map to update
+	 */
+	public void copyFramePixels(TextureCubeMap data, Block region, Face face, int level, int sx, int sy) {
 		if (data.getDataFormat().isServerCompressed())
 			throw new IllegalArgumentException("copyFramePixels doesn't support compressed textures");
 		validateMipmap(level, data.getNumMipmaps());
 		validateRegion(region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, data.getSideLength(level), data.getSideLength(level), 0);
 		validateRegion(sx, sy, 0, region.getWidth(), region.getHeight(), 1, this.getContextWidth(), this.getContextHeight(), 1);
 		TextureData prev = (TextureData)this.push(data, NumericUnit.get(0), TextureData.class);
-		this.copyTextureData(data, region, null, level, sx, sy);
+		this.copyTextureData(data, region, face, level, sx, sy);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
 	
+	/**
+	 * Implementations of RenderContext should override this to perform an actual copy operation from the active
+	 * drawing buffer to the given texture.  It should update region in the texture at the mipmap level, using the frame pixels
+	 * starting at (sx, sy).  Face is only valid/non-null when data is a cube map.
+	 */
 	protected abstract void copyTextureData(TextureData data, Block region, Face face, int level, int sx, int sy);
 	
+	/**
+	 * Read the current state of the frame buffer into the given buffer.  The pixels are grabbed from the 2D
+	 * region specified by region (depth and zoffset are ignored).  The pixel data is converted to the 
+	 * given type and format.  The in buffer's slice must be contained by the buffer and have the correct size
+	 * and type for an equivalently formatted texture.
+	 */
 	public void readFramePixels(Buffer in, Slice slice, TextureType type, TextureFormat format, Block region) {
 		if (!format.isTypeCompatible(type) || format.isServerCompressed())
 			throw new IllegalArgumentException("Invalid texture type and format");
@@ -518,6 +625,11 @@ public abstract class RenderContext {
 		
 		this.readPixels(in, slice, type, format, region);
 	}
+	/**
+	 * As readFramePixels(Buffer ...) except that if the BufferData is a vbo and pixel buffers are supported, then
+	 * it does a transfer completely on the graphics card (much faster).  Otherwise, it reads the pixel data into
+	 * the BufferData's backing buffer (if not null) and then updates the BufferData if necessary.
+	 */
 	public void readFramePixels(BufferData in, Slice slice, TextureType type, TextureFormat format, Block region) {
 		if (!format.isTypeCompatible(type) || format.isServerCompressed())
 			throw new IllegalArgumentException("Invalid texture type and format");
@@ -528,11 +640,18 @@ public abstract class RenderContext {
 		BufferData pBD = (BufferData)this.push(in, BufferTarget.PIXEL_READ_BUFFER, BufferData.class);
 		if (in.isVBO() && RenderManager.getSystemCapabilities().arePixelBuffersSupported())
 			this.readPixels(null, slice, type, format, region);
-		else if (in.getData() != null)
+		else if (in.getData() != null) {
 			this.readPixels(in.getData(), slice, type, format, region);
+			in.updateNow(this.getRenderManager());
+		}
 		this.pop(in, pBD, BufferTarget.PIXEL_READ_BUFFER);
 	}
 	
+	/**
+	 * Implementations of RenderContext must implement this method to read pixels (from the region) into the given buffer, and have
+	 * the internal context format it given the type and format.  If buffer is null, then use the already bound
+	 * pixel buffer (but it still must use the slice).
+	 */
 	protected abstract void readPixels(Buffer in, Slice slice, TextureType type, TextureFormat format, Block region);
 	
 	private static TextureFormat getServerCompressedFormat(TextureFormat f) {
@@ -641,22 +760,34 @@ public abstract class RenderContext {
 	 * Get the SystemCapabilities of this context, can't return null if isInitialized() returns true.
 	 */
 	public abstract SystemCapabilities getCapabilities();
+	
 	/**
 	 * Destroy the internal context resources for this context.
 	 */
 	public abstract void destroyContext();
+	
 	/**
 	 * Called by RenderManager to tell the context to begin the process of rendering.  When appropriate, the context
 	 * must then call notifyRenderFrame() on this context's manager.
 	 */
 	public abstract void render();
+	
 	/**
 	 * Whether or not this RenderContext is current on the calling thread, i.e. that its appropriate to call internal
 	 * resources or gl functions.
 	 */
 	public abstract boolean isCurrent();
+	
+	/**
+	 * Whether or not this RenderContext has been initialized.  After this returns true, the render context must
+	 * have computed and gathered a valid set of SystemCapabilities and have a valid underlying context.
+	 */
 	public abstract boolean isInitialized();
 	
+	/**
+	 * Sets the active state manager that was used to apply atoms of the given type.  Shouldn't be called
+	 * directly, instead use StateManager's apply().
+	 */
 	public void setActiveStateManager(StateManager man, Class<? extends StateAtom> type) {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
@@ -664,7 +795,13 @@ public abstract class RenderContext {
 		this.setActiveStateManager(man, index);
 	}
 	
+	/**
+	 * Sets the active state manager that was used to apply atoms with the given dynamic type.  Shouldn't be
+	 * called directly.
+	 */
 	public void setActiveStateManager(StateManager man, int type) {
+		if (man != null && man.getDynamicType() != type)
+			throw new IllegalArgumentException("A non-null state manager's dynamic type doesn't agree with the specified type");
 		if (this.stateRecord == null)
 			this.stateRecord = new StateManager[StateManager.NUM_CORE_STATES];
 		if (this.stateRecord.length <= type) {
@@ -675,6 +812,9 @@ public abstract class RenderContext {
 		this.stateRecord[type] = man;
 	}
 	
+	/**
+	 * Get the active state manager for the given type, which can't be null.
+	 */
 	public StateManager getActiveStateManager(Class<? extends StateAtom> type) {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
@@ -682,12 +822,20 @@ public abstract class RenderContext {
 		return this.getActiveStateManager(index);
 	}
 	
+	/**
+	 * Get the active state manager for the given dynamic type (>= 0).
+	 */
 	public StateManager getActiveStateManager(int dynamicType) {
 		if (this.stateRecord == null || dynamicType >= this.stateRecord.length)
 			return null;
 		return this.stateRecord[dynamicType];
 	}
 	
+	/**
+	 * Set the active state atom for the given class and unit.  This and its variant shouldn't be 
+	 * called directly, instead use the StateAtom's apply() method or restore() method (or RenderPass's
+	 * applyState() method).
+	 */
 	public void setActiveStateAtom(StateAtom atom, Class<? extends StateAtom> type, StateUnit unit) {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
@@ -697,7 +845,12 @@ public abstract class RenderContext {
 		this.setActiveStateAtom(atom, registerStateAtomType(type), unit.ordinal());
 	}
 	
+	/**
+	 * Set the active state atom for the given type and ordinal value (as returned by a StateUnit, >= 0).
+	 */
 	public void setActiveStateAtom(StateAtom atom, int type, int ordinal) {
+		if (atom != null && atom.getDynamicType() != type)
+			throw new IllegalArgumentException("A non-null state atom must have the same dynamic type");
 		if (this.atomRecord == null)
 			this.atomRecord = new StateAtomTracker[StateManager.NUM_CORE_STATES];
 		if (this.atomRecord.length <= type) {
@@ -720,6 +873,11 @@ public abstract class RenderContext {
 		st.stateRecord[ordinal] = atom;
 	}
 	
+	/**
+	 * Get the last applied state atom that is of the given atom type and at the state unit.
+	 * The StateUnit must be valid for the given type of atom.  Null implies that no previous 
+	 * state atom for that type has been applied.
+	 */
 	public StateAtom getActiveStateAtom(Class<? extends StateAtom> type, StateUnit unit) {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
@@ -729,20 +887,35 @@ public abstract class RenderContext {
 		return this.getActiveStateAtom(registerStateAtomType(type), unit.ordinal());
 	}
 	
+	/**
+	 * Get the last applied state atom that has the given dynamic type and ordinal ->
+	 * number returned by the appropriate StateUnit.  Null implies that no previous 
+	 * state atom for that type has been applied.
+	 */
 	public StateAtom getActiveStateAtom(int dynamicType, int ordinal) {
 		if (this.atomRecord == null || this.atomRecord.length <= dynamicType || this.atomRecord[dynamicType] == null || this.atomRecord[dynamicType].stateRecord.length <= ordinal)
 			return null;
 		return this.atomRecord[dynamicType].stateRecord[ordinal];
 	}
 	
+	/**
+	 * Get the RenderManager that is attached to this RenderContext
+	 */
 	public RenderManager getRenderManager() {
 		return this.manager;
 	}
 
+	/**
+	 * Get the default render pass peer suitable for use in a standard double/single buffered
+	 * setup
+	 */
 	public RenderPassPeer<RenderPass> getDefaultRenderPassPeer() {
 		return this.defaultPass;
 	}
 	
+	/**
+	 * Convenience method that throws an exception if the RenderContext isn't current
+	 */
 	protected void callValidate() {
 		if (!this.isCurrent())
 			throw new FeroxException("Method unavailable when RenderContext isn't current");
