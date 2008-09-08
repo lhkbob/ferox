@@ -7,9 +7,10 @@ import javax.media.opengl.GL;
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.NullUnit;
 import com.ferox.core.states.StateAtom;
+import com.ferox.core.states.StateUpdateException;
 import com.ferox.core.states.StateAtom.StateRecord;
+import com.ferox.core.states.atoms.GLSLShaderObject;
 import com.ferox.core.states.atoms.GLSLShaderProgram;
-import com.ferox.core.util.FeroxException;
 import com.ferox.impl.jsr231.JOGLRenderContext;
 import com.sun.opengl.util.BufferUtil;
 
@@ -25,9 +26,15 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 			gl.glUseProgram(0);
 	}
 
+	public void validateStateAtom(StateAtom atom) throws StateUpdateException {
+		if (RenderManager.getSystemCapabilities().areGLSLShadersSupported())
+			throw new StateUpdateException(atom, "GLSL is not supported on this device");
+	}
+	
 	public void cleanupStateAtom(StateRecord record) {
-		if (((GLSLProgramRecord)record).id > 0)
-			this.deleteProgram((GLSLProgramRecord)record, this.context.getGL());
+		GLSLProgramRecord p = (GLSLProgramRecord)record;
+		if (p.id > 0)
+			this.deleteProgram(p, this.context.getGL());
 	}
 
 	public StateRecord initializeStateAtom(StateAtom a) {
@@ -36,16 +43,15 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 		GL gl = this.context.getGL();
 		GLSLProgramRecord r = new GLSLProgramRecord();
 		
-		if (this.isPossiblyValid(atom)) {
-			r.id = gl.glCreateProgram();
-			this.linkAndCompile(r, atom, this.context);
-		} else {
+		if (atom.isFixedFunction()) {
 			r.id = 0;
 			r.compiled = false;
 			r.infoLog = "Fixed Function";
-			atom.setInfoLog("Program not compiled/linked, requies non-ff program and that glsl is supported");
+			atom.setCompiled(false, r.infoLog);
+		} else {
+			r.id = gl.glCreateProgram();
+			this.linkAndCompile(r, atom, this.context);
 		}
-		
 		return null;
 	}
 	
@@ -59,27 +65,22 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 		GLSLProgramRecord r = (GLSLProgramRecord)record;
 		
 		GL gl = this.context.getGL();
-		r.compiled = this.isPossiblyValid(atom);
 
-		if (r.compiled) {
-			if (r.id <= 0) 
+		if (r.compiled && atom.isFixedFunction()) {
+			this.deleteProgram(r, gl);
+			atom.setCompiled(false, "Fixed Function");
+		} else if (!atom.isFixedFunction()) {
+			if (r.id <= 0)
 				r.id = gl.glCreateProgram();
 			this.linkAndCompile(r, atom, this.context);
-		} else if (r.id > 0) {
-			this.deleteProgram(r, gl);
-			atom.setInfoLog("ShaderProgram destroyed");
 		}
-	}
-
-	private boolean isPossiblyValid(GLSLShaderProgram atom) {
-		return RenderManager.getSystemCapabilities().areGLSLShadersSupported() && !atom.isFixedFunction();
 	}
 	
 	private void deleteProgram(GLSLProgramRecord r, GL gl) {
 		gl.glDeleteProgram(r.id);
 		r.id = 0;
 		r.compiled = false;
-		r.infoLog = "ShaderProgram Destroyed";
+		r.infoLog = "";
 	}
 	
 	private void linkAndCompile(GLSLProgramRecord r, GLSLShaderProgram prog, JOGLRenderContext context) {
@@ -95,35 +96,46 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 					gl.glDetachShader(r.id, old_shaders[i]);
 		}
 		
-		for (int i = 0; i < prog.getShaders().length; i++) {
-			prog.getShaders()[i].applyState(context.getRenderManager(), NullUnit.get());
-			GLSLObjectRecord s = (GLSLObjectRecord)prog.getShaders()[i].getStateRecord(context.getRenderManager());
-			if (s.compiled)
-				gl.glAttachShader(r.id, s.id);
+		boolean valid = true;
+		GLSLShaderObject[] shaders = prog.getShaders();
+		for (int i = 0; i < shaders.length; i++) {
+			shaders[i].applyState(context.getRenderManager(), NullUnit.get());
+			GLSLObjectRecord s = (GLSLObjectRecord)shaders[i].getStateRecord(context.getRenderManager());
+			if (!s.compiled) {
+				valid = false;
+				break;
+			}
 		}
-		
-		gl.glLinkProgram(r.id);
-		
-		gl.glGetProgramiv(r.id, GL.GL_INFO_LOG_LENGTH, temp, 0);
-		ByteBuffer chars = BufferUtil.newByteBuffer(temp[0]);
-		gl.glGetProgramInfoLog(r.id, temp[0], null, chars);
-		
-		chars.rewind();
-		StringBuffer buff = new StringBuffer();
-		for (int i = 0; i < temp[0]; i++)
-			buff.append((char)chars.get(i));
-		r.infoLog = buff.toString();
-		
-		gl.glGetProgramiv(r.id, GL.GL_LINK_STATUS, temp, 0);
-		if (temp[0] == GL.GL_FALSE) {
-			r.infoLog = "Program failed to link, error msg: " + r.infoLog;
-			prog.setInfoLog(r.infoLog);
-			r.compiled = false;
-			throw new FeroxException("ShaderProgram failed to link correctly " + r.infoLog);
+		if (valid) {
+			for (int i = 0; i < shaders.length; i++) {
+				GLSLObjectRecord s = (GLSLObjectRecord)shaders[i].getStateRecord(context.getRenderManager());
+				gl.glAttachShader(r.id, s.id);
+			}
+			gl.glLinkProgram(r.id);
+			
+			gl.glGetProgramiv(r.id, GL.GL_INFO_LOG_LENGTH, temp, 0);
+			ByteBuffer chars = BufferUtil.newByteBuffer(temp[0]);
+			gl.glGetProgramInfoLog(r.id, temp[0], null, chars);
+			
+			chars.rewind();
+			StringBuffer buff = new StringBuffer();
+			for (int i = 0; i < temp[0]; i++)
+				buff.append((char)chars.get(i));
+			r.infoLog = buff.toString();
+			
+			gl.glGetProgramiv(r.id, GL.GL_LINK_STATUS, temp, 0);
+			if (temp[0] == GL.GL_FALSE) {
+				r.infoLog = "Program failed to link, error msg:\n" + r.infoLog;
+				r.compiled = false;
+			} else {
+				r.infoLog = "Program linked successfully";
+				r.compiled = true;
+			}
+			prog.setCompiled(r.compiled, r.infoLog);
 		} else {
-			r.infoLog = "Program linked successfully";
-			r.compiled = true;
-			prog.setInfoLog(r.infoLog);
+			r.compiled = false;
+			r.infoLog = "Uncompiled shaders";
+			prog.setCompiled(false, "GLSL shaders didn't compile, can't link program");
 		}
 	}
 }

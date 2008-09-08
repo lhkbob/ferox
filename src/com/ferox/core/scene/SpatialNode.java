@@ -47,7 +47,9 @@ public abstract class SpatialNode implements Chunkable {
 			parent.add(this);
 	}
 	
-	public void setCullMode(CullMode mode) {
+	public void setCullMode(CullMode mode) throws NullPointerException {
+		if (mode == null)
+			throw new NullPointerException("Cull mode can't be null");
 		this.cullMode = mode;
 	}
 	
@@ -67,7 +69,8 @@ public abstract class SpatialNode implements Chunkable {
 	public void setParent(SpatialBranch b) {
 		if (b != this.parent) {
 			this.detach();
-			b.add(this);
+			if (b != null)
+				b.add(this);
 		}
 	}
 	
@@ -84,7 +87,9 @@ public abstract class SpatialNode implements Chunkable {
 			this.updateBounds();
 	}
 	
-	public boolean submit(View view, RenderManager manager, RenderAtomBin queue, boolean initiator) {
+	public boolean submit(View view, RenderManager manager, RenderAtomBin queue, boolean initiator) throws NullPointerException {
+		if (view == null || manager == null || queue == null)
+			throw new NullPointerException("Arguments can't be null");
 		if (!initiator && this.parent != null && this.parent.visibility == View.INSIDE)
 			this.visibility = View.INSIDE;
 		else
@@ -92,7 +97,7 @@ public abstract class SpatialNode implements Chunkable {
 		return this.visibility != View.OUTSIDE;
 	}
 	
-	public int computeVisibility(View view) {	
+	public int computeVisibility(View view) throws FeroxException {	
 		switch(this.cullMode) {
 		case ALWAYS: this.visibility = View.OUTSIDE; break;
 		case NEVER: this.visibility = View.INSIDE; break;
@@ -154,7 +159,7 @@ public abstract class SpatialNode implements Chunkable {
 		return this.localToWorld(local, result, false);
 	}
 	
-	public Transform localToWorld(Transform local, Transform result, boolean fast) {
+	public Transform localToWorld(Transform local, Transform result, boolean fast) throws NullPointerException, IllegalArgumentException {
 		if (local == null)
 			throw new NullPointerException("Can't compute world transform from null local trans");
 		if (result == local || result == this.localTransform)
@@ -182,7 +187,7 @@ public abstract class SpatialNode implements Chunkable {
 		return this.worldToLocal(world, result, false);
 	}
 	
-	public Transform worldToLocal(Transform world, Transform result, boolean fast) {
+	public Transform worldToLocal(Transform world, Transform result, boolean fast) throws NullPointerException, IllegalArgumentException {
 		if (world == null)
 			throw new NullPointerException("Can't compute local transform from null world trans");
 		if (result == world || result == this.worldTransform)

@@ -134,7 +134,7 @@ public class RenderPass implements TaskExecutor {
 	 * Set the clear color, can't be null and must have 4 elements to it.  The elements should be arranged
 	 * by increasing index as: red, green, blue, alpha as per all color arrays used in Ferox.
 	 */
-	public void setClearedColor(float[] color) {
+	public void setClearedColor(float[] color) throws IllegalArgumentException {
 		if (color == null || color.length != 4)
 			throw new IllegalArgumentException("Clear color must be non-null and have 4 elements");
 		this.colorClearValue = color;

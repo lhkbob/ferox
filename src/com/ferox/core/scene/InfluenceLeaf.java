@@ -27,9 +27,9 @@ public class InfluenceLeaf extends SpatialNode {
 		this.setInfluence(new BoundingSphere());
 	}
 	
-	public void setState(SpatialState state) {
+	public void setState(SpatialState state) throws IllegalArgumentException {
 		if (state != null && state.leaf != null)
-			throw new IllegalArgumentException("SpatialStateManager cannot be used by another InfluenceLeaf");
+			throw new IllegalArgumentException("SpatialState already used by another InfluenceLeaf");
 		if (this.state != null)
 			this.state.leaf = null;
 		this.state = state;
@@ -41,7 +41,7 @@ public class InfluenceLeaf extends SpatialNode {
 		return this.state;
 	}
 	
-	public void setInfluence(BoundingVolume b) {
+	public void setInfluence(BoundingVolume b) throws NullPointerException {
 		if (b == null)
 			throw new NullPointerException("Can't have a null influence region");
 		this.influence = b;
@@ -52,14 +52,18 @@ public class InfluenceLeaf extends SpatialNode {
 	}
 	
 	public void addExcludedLeaf(SpatialLeaf leaf) {
-		this.exclude.put(leaf, true);
+		if (leaf != null)
+			this.exclude.put(leaf, true);
 	}
 	
 	public void removeExcludedLeaf(SpatialLeaf leaf) {
-		this.exclude.remove(leaf);
+		if (leaf != null)
+			this.exclude.remove(leaf);
 	}
 	
 	public boolean isLeafExcluded(SpatialLeaf leaf) {
+		if (leaf == null)
+			return false;
 		return this.exclude.containsKey(leaf);
 	}
 	
@@ -67,7 +71,9 @@ public class InfluenceLeaf extends SpatialNode {
 		this.exclude.clear();
 	}
 	
-	public boolean influencesSpatialLeaf(SpatialLeaf leaf) {
+	public boolean influencesSpatialLeaf(SpatialLeaf leaf) throws NullPointerException {
+		if (leaf == null)
+			throw new NullPointerException("Can't test influence on a null spatial leaf");
 		if (this.exclude.containsKey(leaf))
 			return false;
 		if (this.worldBounds == null || leaf.worldBounds == null)

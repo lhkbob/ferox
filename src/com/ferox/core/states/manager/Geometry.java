@@ -213,11 +213,11 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	 * Sets the vertex pointer, must not be null, must have element size of 2, 3, or 4,
 	 * must have a target of ARRAY_BUFFER.
 	 */
-	public void setVertices(VertexArray vertices) {
+	public void setVertices(VertexArray vertices) throws NullPointerException, IllegalArgumentException {
 		if (vertices == null)
 			throw new NullPointerException("Vertices aren't allowed to be null");
 		if (vertices != null && (vertices.getElementSize() != 2 && vertices.getElementSize() != 3 && vertices.getElementSize() != 4))
-			throw new FeroxException("A BufferDataAccessor intended for vertices specification must have an element size of 2, 3, or 4");
+			throw new IllegalArgumentException("A BufferDataAccessor intended for vertices specification must have an element size of 2, 3, or 4");
 		
 		this.vertices = vertices;
 		this.detectInterleavedType();
@@ -237,11 +237,11 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	 * must have a target of ARRAY_BUFFER, must have the same number of elements as the currently
 	 * bound vertex pointer.
 	 */
-	public void setNormals(VertexArray normals) {
+	public void setNormals(VertexArray normals) throws IllegalArgumentException {
 		if (normals != null && normals.getNumElements() != this.vertices.getNumElements())
-			throw new FeroxException("Normal element count doesn't match vertex element count");
+			throw new IllegalArgumentException("Normal element count doesn't match vertex element count");
 		if (normals != null && normals.getElementSize() != 3)
-			throw new FeroxException("A BufferDataAccessor intended for normals specification must have an element size of 3");
+			throw new IllegalArgumentException("A BufferDataAccessor intended for normals specification must have an element size of 3");
 		
 		this.normals = normals;
 		this.detectInterleavedType();
@@ -265,11 +265,11 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	 * bound vertex pointer.  Any tex coords with a unit over getMaxTextureCoordinates() will be ignored if a
 	 * valid max unit count is returned.
 	 */
-	public void setTexCoords(VertexArray texCoords, int unit) {
+	public void setTexCoords(VertexArray texCoords, int unit) throws IllegalArgumentException {
 		if (texCoords != null && texCoords.getNumElements() != this.vertices.getNumElements())
-			throw new FeroxException("Texture coord element count doesn't match vertex element count");
+			throw new IllegalArgumentException("Texture coord element count doesn't match vertex element count");
 		if (texCoords != null && (texCoords.getElementSize() != 1 && texCoords.getElementSize() != 2 && texCoords.getElementSize() != 3 && texCoords.getElementSize() != 4))
-			throw new FeroxException("A BufferDataAccessor intended for texCoords specification must have an element size of 1, 2, 3, or 4");
+			throw new IllegalArgumentException("A BufferDataAccessor intended for texCoords specification must have an element size of 1, 2, 3, or 4");
 				
 		if (unit < 0)
 			return;
@@ -318,11 +318,11 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	 * must have a target of ARRAY_BUFFER, must have the same number of elements as the currently
 	 * bound vertex pointer.  unit must be less than getMaxVertexAttributes() if that number is >= 0.
 	 */
-	public void setVertexAttributes(VertexArray vertAttribs, int unit) {
+	public void setVertexAttributes(VertexArray vertAttribs, int unit) throws IllegalArgumentException {
 		if (vertAttribs != null && vertAttribs.getNumElements() != this.vertices.getNumElements())
-			throw new FeroxException("Vertex attribute element count doesn't match vertex element count");
+			throw new IllegalArgumentException("Vertex attribute element count doesn't match vertex element count");
 		if (vertAttribs != null && (vertAttribs.getElementSize() != 1 && vertAttribs.getElementSize() != 2 && vertAttribs.getElementSize() != 3 && vertAttribs.getElementSize() != 4))
-			throw new FeroxException("A BufferDataAccessor intended for vertAttribs specification must have an element size of 1, 2, 3, or 4");
+			throw new IllegalArgumentException("A BufferDataAccessor intended for vertAttribs specification must have an element size of 1, 2, 3, or 4");
 		
 		if (unit < 0)
 			return;
@@ -365,11 +365,11 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	 * Set the indices pointer for this Geometry, if it's not null, it must have a target of
 	 * GL_ELEMENT_ARRAY_BUFFER.
 	 */
-	public void setIndices(VertexArray indices) {
+	public void setIndices(VertexArray indices) throws IllegalArgumentException {
 		if (indices != null && indices.getElementSize() != 1)
-			throw new FeroxException("Geometry indices must have an element size of 1");
+			throw new IllegalArgumentException("Geometry indices must have an element size of 1");
 		if (indices != null && indices.getStride() != 0)
-			throw new FeroxException("Geometry indices must have a stride of 0");
+			throw new IllegalArgumentException("Geometry indices must have a stride of 0");
 		
 		this.indices = indices;
 		this.invalidateAssociatedStateTrees();
@@ -531,7 +531,7 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	}
 	
 	@Override
-	protected void applyStateAtoms(StateManager prev, RenderManager manager, RenderPass pass) {
+	protected void applyStateAtoms(StateManager prev, RenderManager manager, RenderPass pass) throws FeroxException {
 		if (prev == this)
 			return;
 		Geometry previous = (Geometry)prev;

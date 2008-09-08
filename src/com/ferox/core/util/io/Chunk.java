@@ -42,7 +42,7 @@ abstract class Chunk {
 		return this.manager.computeRelativePath(path);
 	}
 	
-	protected Variable getVariable(String varName, byte type) {
+	protected Variable getVariable(String varName, byte type) throws ValueAccessException {
 		int hash = compressVarName(varName);
 		Variable c = this.compressedVars.get(hash);
 		if (c != null && (c.name == null || c.name.equals(varName))) {
@@ -66,7 +66,7 @@ abstract class Chunk {
 		throw new ValueAccessException("Variable doesn't exist");
 	}
 	
-	protected boolean setVariable(String varName, Object value, byte type) {
+	protected boolean setVariable(String varName, Object value, byte type) throws ValueAccessException {
 		int hash = compressVarName(varName);
 		Variable c = this.compressedVars.get(hash);
 		boolean compressed = true;

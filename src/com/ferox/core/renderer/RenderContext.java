@@ -14,6 +14,7 @@ import com.ferox.core.states.atoms.*;
 import com.ferox.core.states.atoms.BufferData.BufferTarget;
 import com.ferox.core.states.atoms.BufferData.DataType;
 import com.ferox.core.states.atoms.TextureCubeMap.Face;
+import com.ferox.core.states.atoms.TextureData.TextureCompression;
 import com.ferox.core.states.atoms.TextureData.TextureFormat;
 import com.ferox.core.states.atoms.TextureData.TextureType;
 import com.ferox.core.states.manager.Geometry;
@@ -245,7 +246,7 @@ public abstract class RenderContext {
 	 * spatial state record for use with this atom.  Throws an exception if called inside an existing
 	 * beginAtom() endAtom() pair of calls.
 	 */
-	public void beginAtom(RenderAtom atom) {
+	public void beginAtom(RenderAtom atom) throws NullPointerException, FeroxException {
 		if (this.currAtom != null)
 			throw new FeroxException("Can't call beginAtom() after a previous beginAtom() call if endAtom() hasn't been called");
 		if (atom == null)
@@ -338,7 +339,7 @@ public abstract class RenderContext {
 	 * 
 	 * The depth and z offset values of the region are ignored.
 	 */
-	public void setTextureRegion(Texture2D data, Block region, int level, Buffer in, Slice slice) {
+	public void setTextureRegion(Texture2D data, Block region, int level, Buffer in, Slice slice) throws IllegalArgumentException {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), 1, 
 					region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, level,
@@ -353,7 +354,7 @@ public abstract class RenderContext {
 	 * nio buffer), otherwise it uses pixel buffers (not pbuffers) to use data transfer directly on the graphics
 	 * card (using the graphics card vbo data as a source).
 	 */
-	public void setTextureRegion(Texture2D data, Block region, int level, BufferData in, Slice slice) {
+	public void setTextureRegion(Texture2D data, Block region, int level, BufferData in, Slice slice) throws IllegalArgumentException {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), 1, 
 					region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, level,
@@ -371,7 +372,7 @@ public abstract class RenderContext {
 	/**
 	 * As before with a Texture2D argument, but the depth and z offset values must be valid.
 	 */
-	public void setTextureRegion(Texture3D data, Block region, int level, Buffer in, Slice slice) {
+	public void setTextureRegion(Texture3D data, Block region, int level, Buffer in, Slice slice) throws IllegalArgumentException {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), data.getDepth(level), 
 					region.getXOffset(), region.getYOffset(), region.getZOffset(), region.getWidth(), region.getHeight(), region.getDepth(), level,
@@ -383,7 +384,7 @@ public abstract class RenderContext {
 	/**
 	 * See the Texture3D version with a Buffer and the Texture2D version with a BufferData.
 	 */
-	public void setTextureRegion(Texture3D data, Block region, int level, BufferData in, Slice slice) {
+	public void setTextureRegion(Texture3D data, Block region, int level, BufferData in, Slice slice) throws IllegalArgumentException {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), data.getDepth(level), 
 					region.getXOffset(), region.getYOffset(), region.getZOffset(), region.getWidth(), region.getHeight(), region.getDepth(), level,
@@ -392,8 +393,8 @@ public abstract class RenderContext {
 		BufferData pBD = (BufferData)this.push(in, BufferTarget.PIXEL_WRITE_BUFFER, BufferData.class);
 		if (in.isVBO() && RenderManager.getSystemCapabilities().arePixelBuffersSupported())
 			this.setTextureData(data, region, null, level, null, slice);
-		else
-			throw new NullPointerException("Can't set data from a non-vbo buffer data that has a null backing buffer");
+		else if (in.getData() != null)
+			this.setTextureData(data, region, null, level, in.getData(), slice);
 		this.pop(in, pBD, BufferTarget.PIXEL_WRITE_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
 	}
@@ -402,7 +403,7 @@ public abstract class RenderContext {
 	 * Just like the Texture2D call except that it takes a Face value to choose which face of the cube map to 
 	 * update.  Validation then works on the size of that 2D texture face.
 	 */
-	public void setTextureRegion(TextureCubeMap data, Block region, Face face, int level, Buffer in, Slice slice) {
+	public void setTextureRegion(TextureCubeMap data, Block region, Face face, int level, Buffer in, Slice slice) throws IllegalArgumentException {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getSideLength(level), data.getSideLength(level), 1, 
 					region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, level,
@@ -414,7 +415,7 @@ public abstract class RenderContext {
 	/**
 	 * See previous setTextureRegion docs.
 	 */
-	public void setTextureRegion(TextureCubeMap data, Block region, Face face, int level, BufferData in, Slice slice) {
+	public void setTextureRegion(TextureCubeMap data, Block region, Face face, int level, BufferData in, Slice slice) throws IllegalArgumentException {
 		validateAll(data.getDataType(), data.getDataFormat(), data.getNumMipmaps(),
 					data.getSideLength(level), data.getSideLength(level), 1, 
 					region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, level,
@@ -442,9 +443,9 @@ public abstract class RenderContext {
 	 * slice must be contained within the entire buffer's capacity.  The fetched texture will be in the same
 	 * original texture format and type.
 	 */
-	public void getTexture(Texture2D data, int level, Buffer out, Slice slice) {
-		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
-		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
+	public void getTexture(Texture2D data, int level, Buffer out, Slice slice) throws IllegalArgumentException {
+		TextureFormat f = getServerCompressedFormat(data.getDataFormat(), data.getDataCompression());
+		TextureType t = (TextureData.isServerCompressed(f, data.getDataCompression()) ? TextureType.UNSIGNED_BYTE : data.getDataType());
 		validateAll(t, f, data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), 1,
 					0, 0, 0, data.getWidth(level), data.getHeight(level), 1, level,
@@ -459,9 +460,9 @@ public abstract class RenderContext {
 	 * and the in-memory data will not be updated.  If isVBO is true, and pixel buffers aren't supported, and
 	 * the client buffer has been set to null, then this will be a no-op.
 	 */
-	public void getTexture(Texture2D data, int level, BufferData out, Slice slice) {
-		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
-		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
+	public void getTexture(Texture2D data, int level, BufferData out, Slice slice) throws IllegalArgumentException {
+		TextureFormat f = getServerCompressedFormat(data.getDataFormat(), data.getDataCompression());
+		TextureType t = (TextureData.isServerCompressed(f, data.getDataCompression()) ? TextureType.UNSIGNED_BYTE : data.getDataType());
 		validateAll(t, f, data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), 1,
 					0, 0, 0, data.getWidth(level), data.getHeight(level), 1, level,
@@ -472,7 +473,7 @@ public abstract class RenderContext {
 			this.getTextureData(data, null, level, null, slice);
 		else if (out.getData() != null) {
 			this.getTextureData(data, null, level, out.getData(), slice);
-			out.updateNow(this.getRenderManager());
+			out.update(this.getRenderManager());
 		}
 		this.pop(out, pBD, BufferTarget.PIXEL_READ_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
@@ -481,9 +482,9 @@ public abstract class RenderContext {
 	/**
 	 * As getTexture(Textur2D ...)
 	 */
-	public void getTexture(Texture3D data, int level, Buffer out, Slice slice) {
-		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
-		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
+	public void getTexture(Texture3D data, int level, Buffer out, Slice slice) throws IllegalArgumentException {
+		TextureFormat f = getServerCompressedFormat(data.getDataFormat(), data.getDataCompression());
+		TextureType t = (TextureData.isServerCompressed(f, data.getDataCompression()) ? TextureType.UNSIGNED_BYTE : data.getDataType());
 		validateAll(t, f, data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), data.getDepth(level),
 					0, 0, 0, data.getWidth(level), data.getHeight(level), data.getDepth(level), level,
@@ -495,9 +496,9 @@ public abstract class RenderContext {
 	/**
 	 * As getTexture(Texture2D ...)
 	 */
-	public void getTexture(Texture3D data, int level, BufferData out, Slice slice) {
-		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
-		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
+	public void getTexture(Texture3D data, int level, BufferData out, Slice slice) throws IllegalArgumentException {
+		TextureFormat f = getServerCompressedFormat(data.getDataFormat(), data.getDataCompression());
+		TextureType t = (TextureData.isServerCompressed(f, data.getDataCompression()) ? TextureType.UNSIGNED_BYTE : data.getDataType());
 		validateAll(t, f, data.getNumMipmaps(),
 					data.getWidth(level), data.getHeight(level), data.getDepth(level),
 					0, 0, 0, data.getWidth(level), data.getHeight(level), data.getDepth(level), level,
@@ -508,7 +509,7 @@ public abstract class RenderContext {
 			this.getTextureData(data, null, level, null, slice);
 		else if (out.getData() != null) {
 			this.getTextureData(data, null, level, out.getData(), slice);
-			out.updateNow(this.getRenderManager());
+			out.update(this.getRenderManager());
 		}
 		this.pop(out, pBD, BufferTarget.PIXEL_READ_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
@@ -516,9 +517,9 @@ public abstract class RenderContext {
 	/**
 	 * As getTexture(Textur2D ...) but you pick a cube map face to fetch.
 	 */
-	public void getTexture(TextureCubeMap data, Face face, int level, Buffer out, Slice slice) {
-		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
-		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
+	public void getTexture(TextureCubeMap data, Face face, int level, Buffer out, Slice slice) throws IllegalArgumentException {
+		TextureFormat f = getServerCompressedFormat(data.getDataFormat(), data.getDataCompression());
+		TextureType t = (TextureData.isServerCompressed(f, data.getDataCompression()) ? TextureType.UNSIGNED_BYTE : data.getDataType());
 		validateAll(t, f, data.getNumMipmaps(),
 					data.getSideLength(level), data.getSideLength(level), 1,
 					0, 0, 0, data.getSideLength(level), data.getSideLength(level), 1, level,
@@ -530,9 +531,9 @@ public abstract class RenderContext {
 	/**
 	 * As getTexture(Textur2D ...) but you pick a cube map face to fetch.
 	 */
-	public void getTexture(TextureCubeMap data, Face face, int level, BufferData out, Slice slice) {
-		TextureFormat f = getServerCompressedFormat(data.getDataFormat());
-		TextureType t = (f.isServerCompressed() ? TextureType.UNSIGNED_BYTE : data.getDataType());
+	public void getTexture(TextureCubeMap data, Face face, int level, BufferData out, Slice slice) throws IllegalArgumentException {
+		TextureFormat f = getServerCompressedFormat(data.getDataFormat(), data.getDataCompression());
+		TextureType t = (TextureData.isServerCompressed(f, data.getDataCompression()) ? TextureType.UNSIGNED_BYTE : data.getDataType());
 		validateAll(t, f, data.getNumMipmaps(),
 					data.getSideLength(level), data.getSideLength(level), 1,
 					0, 0, 0, data.getSideLength(level), data.getSideLength(level), 1, level,
@@ -543,7 +544,7 @@ public abstract class RenderContext {
 			this.getTextureData(data, face, level, null, slice);
 		else if (out.getData() != null) {
 			this.getTextureData(data, face, level, out.getData(), slice);
-			out.updateNow(this.getRenderManager());
+			out.update(this.getRenderManager());
 		}
 		this.pop(out, pBD, BufferTarget.PIXEL_READ_BUFFER);
 		this.pop(data, prev, NumericUnit.get(0));
@@ -562,8 +563,8 @@ public abstract class RenderContext {
 	 * fetch coordinates (sx, sy) goes off screen.  This is an operation on the graphics card, no memory
 	 * is transfered back to the in-memory buffer of the texture.
 	 */
-	public void copyFramePixels(Texture2D data, Block region, int level, int sx, int sy) {
-		if (data.getDataFormat().isServerCompressed())
+	public void copyFramePixels(Texture2D data, Block region, int level, int sx, int sy) throws IllegalArgumentException {
+		if (TextureData.isServerCompressed(data.getDataFormat(), data.getDataCompression()))
 			throw new IllegalArgumentException("copyFramePixels doesn't support compressed textures");
 		validateMipmap(level, data.getNumMipmaps());
 		validateRegion(region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, data.getWidth(level), data.getHeight(level), 1);
@@ -577,8 +578,8 @@ public abstract class RenderContext {
 	 * As copyFramePixels(Texture2D ...) except that in essence it copies the framebuffer into a slice of
 	 * the 3D texture (as specified by the region).  The depth value is ignored, and is set to 1 for the region.
 	 */
-	public void copyFramePixels(Texture3D data, Block region, int level, int sx, int sy) {
-		if (data.getDataFormat().isServerCompressed())
+	public void copyFramePixels(Texture3D data, Block region, int level, int sx, int sy) throws IllegalArgumentException {
+		if (TextureData.isServerCompressed(data.getDataFormat(), data.getDataCompression()))
 			throw new IllegalArgumentException("copyFramePixels doesn't support compressed textures");
 		validateMipmap(level, data.getNumMipmaps());
 		validateRegion(region.getXOffset(), region.getYOffset(), region.getZOffset(), region.getWidth(), region.getHeight(), 1, data.getWidth(level), data.getHeight(level), data.getDepth(level));
@@ -592,8 +593,8 @@ public abstract class RenderContext {
 	 * As copyFramePixels(Texture2D ...) except that the face argument chooses one of the 2d faces of the cube
 	 * map to update
 	 */
-	public void copyFramePixels(TextureCubeMap data, Block region, Face face, int level, int sx, int sy) {
-		if (data.getDataFormat().isServerCompressed())
+	public void copyFramePixels(TextureCubeMap data, Block region, Face face, int level, int sx, int sy) throws IllegalArgumentException {
+		if (TextureData.isServerCompressed(data.getDataFormat(), data.getDataCompression()))
 			throw new IllegalArgumentException("copyFramePixels doesn't support compressed textures");
 		validateMipmap(level, data.getNumMipmaps());
 		validateRegion(region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, data.getSideLength(level), data.getSideLength(level), 0);
@@ -616,8 +617,8 @@ public abstract class RenderContext {
 	 * given type and format.  The in buffer's slice must be contained by the buffer and have the correct size
 	 * and type for an equivalently formatted texture.
 	 */
-	public void readFramePixels(Buffer in, Slice slice, TextureType type, TextureFormat format, Block region) {
-		if (!format.isTypeCompatible(type) || format.isServerCompressed())
+	public void readFramePixels(Buffer in, Slice slice, TextureType type, TextureFormat format, Block region) throws IllegalArgumentException {
+		if (!format.isTypeCompatible(type) || format.isClientCompressed())
 			throw new IllegalArgumentException("Invalid texture type and format");
 		validateTypePrimitive(type, getBufferDataType(in));
 		validateRegion(region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, this.getContextWidth(), this.getContextHeight(), 1);
@@ -630,8 +631,8 @@ public abstract class RenderContext {
 	 * it does a transfer completely on the graphics card (much faster).  Otherwise, it reads the pixel data into
 	 * the BufferData's backing buffer (if not null) and then updates the BufferData if necessary.
 	 */
-	public void readFramePixels(BufferData in, Slice slice, TextureType type, TextureFormat format, Block region) {
-		if (!format.isTypeCompatible(type) || format.isServerCompressed())
+	public void readFramePixels(BufferData in, Slice slice, TextureType type, TextureFormat format, Block region) throws IllegalArgumentException {
+		if (!format.isTypeCompatible(type) || format.isClientCompressed())
 			throw new IllegalArgumentException("Invalid texture type and format");
 		validateTypePrimitive(type, in.getDataType());
 		validateRegion(region.getXOffset(), region.getYOffset(), 0, region.getWidth(), region.getHeight(), 1, this.getContextWidth(), this.getContextHeight(), 1);
@@ -642,7 +643,7 @@ public abstract class RenderContext {
 			this.readPixels(null, slice, type, format, region);
 		else if (in.getData() != null) {
 			this.readPixels(in.getData(), slice, type, format, region);
-			in.updateNow(this.getRenderManager());
+			in.update(this.getRenderManager());
 		}
 		this.pop(in, pBD, BufferTarget.PIXEL_READ_BUFFER);
 	}
@@ -654,18 +655,20 @@ public abstract class RenderContext {
 	 */
 	protected abstract void readPixels(Buffer in, Slice slice, TextureType type, TextureFormat format, Block region);
 	
-	private static TextureFormat getServerCompressedFormat(TextureFormat f) {
-		switch(f) {
-		case RGB_DXT1:
-			return TextureFormat.COMPRESSED_RGB_DXT1;
-		case RGBA_DXT1: case BGRA_DXT1:
-			return TextureFormat.COMPRESSED_RGBA_DXT1;
-		case RGBA_DXT3:
+	private static TextureFormat getServerCompressedFormat(TextureFormat f, TextureCompression c) {
+		switch(c) {
+		case DXT1:
+			if (f.getNumComponents() == 3)
+				return TextureFormat.COMPRESSED_RGB_DXT1;
+			else
+				return TextureFormat.COMPRESSED_RGBA_DXT1;
+		case DXT3:
 			return TextureFormat.COMPRESSED_RGBA_DXT3;
-		case RGBA_DXT5: case BGRA_DXT5:
+		case DXT5:
 			return TextureFormat.COMPRESSED_RGBA_DXT5;
+		default:
+			return f;
 		}
-		return f;
 	}
 	
 	private StateAtom push(StateAtom atom, StateUnit unit, Class<? extends StateAtom> type) {
@@ -788,7 +791,7 @@ public abstract class RenderContext {
 	 * Sets the active state manager that was used to apply atoms of the given type.  Shouldn't be called
 	 * directly, instead use StateManager's apply().
 	 */
-	public void setActiveStateManager(StateManager man, Class<? extends StateAtom> type) {
+	public void setActiveStateManager(StateManager man, Class<? extends StateAtom> type) throws NullPointerException {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
 		int index = (man != null ? man.getDynamicType() : registerStateAtomType(type));
@@ -799,7 +802,7 @@ public abstract class RenderContext {
 	 * Sets the active state manager that was used to apply atoms with the given dynamic type.  Shouldn't be
 	 * called directly.
 	 */
-	public void setActiveStateManager(StateManager man, int type) {
+	public void setActiveStateManager(StateManager man, int type) throws NullPointerException {
 		if (man != null && man.getDynamicType() != type)
 			throw new IllegalArgumentException("A non-null state manager's dynamic type doesn't agree with the specified type");
 		if (this.stateRecord == null)
@@ -815,7 +818,7 @@ public abstract class RenderContext {
 	/**
 	 * Get the active state manager for the given type, which can't be null.
 	 */
-	public StateManager getActiveStateManager(Class<? extends StateAtom> type) {
+	public StateManager getActiveStateManager(Class<? extends StateAtom> type) throws NullPointerException {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
 		int index = registerStateAtomType(type);
@@ -836,7 +839,7 @@ public abstract class RenderContext {
 	 * called directly, instead use the StateAtom's apply() method or restore() method (or RenderPass's
 	 * applyState() method).
 	 */
-	public void setActiveStateAtom(StateAtom atom, Class<? extends StateAtom> type, StateUnit unit) {
+	public void setActiveStateAtom(StateAtom atom, Class<? extends StateAtom> type, StateUnit unit) throws NullPointerException {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
 		if (unit == null)
@@ -848,7 +851,7 @@ public abstract class RenderContext {
 	/**
 	 * Set the active state atom for the given type and ordinal value (as returned by a StateUnit, >= 0).
 	 */
-	public void setActiveStateAtom(StateAtom atom, int type, int ordinal) {
+	public void setActiveStateAtom(StateAtom atom, int type, int ordinal) throws IllegalArgumentException {
 		if (atom != null && atom.getDynamicType() != type)
 			throw new IllegalArgumentException("A non-null state atom must have the same dynamic type");
 		if (this.atomRecord == null)
@@ -878,7 +881,7 @@ public abstract class RenderContext {
 	 * The StateUnit must be valid for the given type of atom.  Null implies that no previous 
 	 * state atom for that type has been applied.
 	 */
-	public StateAtom getActiveStateAtom(Class<? extends StateAtom> type, StateUnit unit) {
+	public StateAtom getActiveStateAtom(Class<? extends StateAtom> type, StateUnit unit) throws NullPointerException {
 		if (type == null)
 			throw new NullPointerException("Can't have a null type");
 		if (unit == null)
@@ -916,7 +919,7 @@ public abstract class RenderContext {
 	/**
 	 * Convenience method that throws an exception if the RenderContext isn't current
 	 */
-	protected void callValidate() {
+	protected void callValidate() throws FeroxException {
 		if (!this.isCurrent())
 			throw new FeroxException("Method unavailable when RenderContext isn't current");
 	}

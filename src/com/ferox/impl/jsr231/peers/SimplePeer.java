@@ -6,6 +6,7 @@ import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateAtomPeer;
 import com.ferox.core.states.StateManager;
 import com.ferox.core.states.StateUnit;
+import com.ferox.core.states.StateUpdateException;
 import com.ferox.core.states.StateAtom.StateRecord;
 import com.ferox.impl.jsr231.JOGLRenderContext;
 
@@ -48,6 +49,10 @@ abstract class SimplePeer<S extends StateAtom, R extends StateRecord> implements
 		// do nothing
 	}
 
+	public void validateStateAtom(StateAtom atom) throws StateUpdateException {
+		// do nothing
+	}
+	
 	protected abstract void applyState(S prevA, R prevR, S nextA, R nextR, GL gl);
 	protected abstract void restoreState(S cleanA, R cleanR, GL gl);
 }

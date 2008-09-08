@@ -9,51 +9,57 @@ public class Texture2D extends TextureData {
 	private Buffer[] data;
 	private int width;
 	private int height;
+	private boolean inited;
 	
 	public Texture2D(Buffer[] data, int width, int height, TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
 		super(dataType, dataFormat, min, mag);
 		this.setTextureData(data, width, height);
+		this.inited = true;
 	}
 	
 	public Texture2D(Buffer[] data, int width, int height, TextureType dataType, TextureFormat dataFormat, TexClamp clamp) {
 		super(dataType, dataFormat, clamp);
 		this.setTextureData(data, width, height);
+		this.inited = true;
 	}
 	
 	public Texture2D(Buffer[] data, int width, int height, TextureType dataType, TextureFormat dataFormat, TexClamp clamp, MinFilter min, MagFilter mag) {
 		super(dataType, dataFormat, clamp, min, mag);
 		this.setTextureData(data, width, height);
+		this.inited = true;
 	}
 	
-	public Texture2D(Buffer[] data, int width, int height, TextureType dataType, TextureFormat dataFormat, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
-		super(dataType, dataFormat, clampS, clampT, clampR, min, mag);
+	public Texture2D(Buffer[] data, int width, int height, TextureType dataType, TextureFormat dataFormat, TextureCompression comp, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
+		super(dataType, dataFormat, comp, clampS, clampT, clampR, min, mag);
 		this.setTextureData(data, width, height);
+		this.inited = true;
 	}
 	
-	public void setTexture(Buffer[] data, int width, int height, TextureFormat format, TextureType type) {
+	public void setTexture(Buffer[] data, int width, int height, TextureFormat format, TextureType type, TextureCompression comp) throws IllegalArgumentException {
 		TextureFormat oldFormat = this.getDataFormat();
 		TextureType oldType = this.getDataType();
+		TextureCompression oldComp = this.getDataCompression();
 		try {
-			this.setFormatAndType(format, type);
+			super.setTextureFormat(format, type, comp);
 			this.setTextureData(data, width, height);
 		} catch (RuntimeException e) {
-			this.setFormatAndType(oldFormat, oldType);
+			super.setTextureFormat(oldFormat, oldType, oldComp);
 			throw e;
 		}
-		
-		if (oldFormat != this.getDataFormat() || oldType != this.getDataType())
-			this.cleanupStateAtom();
 	}
 	
-	public void setTextureFormatAndType(TextureFormat format, TextureType type) {
-		this.setTexture(this.data, this.width, this.height, format, type);
+	public void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) {
+		if (this.inited)
+			this.setTexture(this.data, this.width, this.height, format, type, comp);
+		else
+			super.setTextureFormat(format, type, comp);
 	}
 	
 	public void setTextureData(Buffer[] data) {
 		this.setTextureData(data, this.width, this.height);
 	}
 	
-	public void setTextureData(Buffer[] data, int width, int height) {
+	public void setTextureData(Buffer[] data, int width, int height) throws IllegalArgumentException {
 		int oldWidth = this.width;
 		int oldHeight = this.height;
 		
@@ -80,13 +86,13 @@ public class Texture2D extends TextureData {
 				}
 			
 				for (int i = 0; i < this.data.length; i++) {
-					if (!TextureData.isBufferValid(this.getDataType(), this.getDataFormat(), width, height, this.data[i]))
+					if (!TextureData.isBufferValid(this.getDataType(), this.getDataFormat(), this.getDataCompression(), width, height, this.data[i]))
 						throw new IllegalArgumentException("Improper buffer data size at mipmap level: " + i);
 					width = Math.max(1, (width >> 1));
 					height = Math.max(1, (height >> 1));
 				}
 			} else {
-				if (this.getDataFormat().isServerCompressed())
+				if (this.getDataFormat().isClientCompressed() || this.getDataCompression() != TextureCompression.NONE)
 					throw new IllegalArgumentException("Headless texture can't be compressed");
 			
 				this.data = null;
@@ -103,10 +109,6 @@ public class Texture2D extends TextureData {
 			this.data = oldData;
 			throw e;
 		}
-		
-		// new texture data is valid, see if we need a new texture object (ie new size, everything else new is covered in peer)
-		if (oldWidth != this.width || oldHeight != this.height)
-			this.cleanupStateAtom();
 	}
 	
 	public boolean isDataInClientMemory() {

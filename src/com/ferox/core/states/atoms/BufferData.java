@@ -86,7 +86,7 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 		return this.hint;
 	}
 	
-	public void setBufferData(Buffer data, DataType dataType, int capacity) {
+	public void setBufferData(Buffer data, DataType dataType, int capacity) throws FeroxException {
 		Buffer oldData = this.data;
 		DataType oldType = this.dataType;
 		int oldCapacity = this.capacity;
@@ -106,9 +106,6 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 			this.byteSize = oldByteSize;
 			throw e;
 		}
-		
-		if (oldCapacity != this.capacity || oldType != this.dataType)
-			this.cleanupStateAtom();
 	}
 	
 	public void clearClientMemory() {
@@ -118,10 +115,6 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 	public void setVBO(boolean isVBO) {
 		if (isVBO != this.isVBO) {
 			this.isVBO = isVBO;
-			if (this.isVBO)
-				this.updateStateAtom();
-			else
-				this.cleanupStateAtom();
 		}
 	}
 	

@@ -54,11 +54,17 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 	
 	public void setMax(Vector3f m) {
-		this.worldMax.set(m);
+		if (m == null)
+			this.worldMax.set(0f, 0f, 0f);
+		else
+			this.worldMax.set(m);
 	}
 	
 	public void setMin(Vector3f m) { 
-		this.worldMin.set(m);
+		if (m == null)
+			this.worldMin.set(0f, 0f, 0f);
+		else
+			this.worldMin.set(m);
 	}
 	
 	public void setMax(float x, float y, float z) {
@@ -77,9 +83,12 @@ public class AxisAlignedBox extends BoundingVolume {
 		return this.worldMin;
 	}
 	
-	public void getCenter(Vector3f out) {
+	public Vector3f getCenter(Vector3f out) {
+		if (out == null)
+			out = new Vector3f();
 		out.add(this.worldMin, this.worldMax);
 		out.scale(.5f);
+		return out;
 	}
 	
 	@Override
@@ -88,7 +97,9 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 	
 	@Override
-	public void applyTransform(Transform trans) {
+	public void applyTransform(Transform trans) throws NullPointerException {
+		if (trans == null)
+			throw new NullPointerException("Can't apply a null transform");
 		Vector3f s = trans.getScale();
 		Vector3f t = trans.getTranslation();
 		this.worldMax.set(s.x * this.worldMax.x, s.y * this.worldMax.y, s.z * this.worldMax.z);
@@ -131,7 +142,9 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 
 	@Override
-	public void enclose(Geometry geom) {
+	public void enclose(Geometry geom) throws NullPointerException, IllegalArgumentException {
+		if (geom == null)
+			throw new NullPointerException("Cannot enclose a null geometry");
 		if (!geom.getVertices().getBufferData().isDataInClientMemory())
 			return;
 		
@@ -276,7 +289,9 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 
 	@Override
-	public void enclose(BoundingVolume child) {
+	public void enclose(BoundingVolume child) throws NullPointerException {
+		if (child == null)
+			throw new NullPointerException("Cannot enclose a null bounding volume");
 		switch (child.getBoundType()) {
 		case AA_BOX: this.mergeAABB((AxisAlignedBox)child); break;
 		case SPHERE: this.mergeSphere((BoundingSphere)child); break;
@@ -305,7 +320,7 @@ public class AxisAlignedBox extends BoundingVolume {
 		this.worldMin.z = Math.min(this.worldMin.z, c.z - r);
 	}
 
-	public void getMinMaxWorldVertices(Vector3f normal, Vector3f min, Vector3f max) {
+	private void getMinMaxWorldVertices(Vector3f normal, Vector3f min, Vector3f max) {
 		if (normal.x > 0) {
 			if (normal.y > 0) {
 				if (normal.z > 0) {
@@ -346,7 +361,9 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 	
 	@Override
-	public int testFrustum(View view, int planeState) {
+	public int testFrustum(View view, int planeState) throws NullPointerException {
+		if (view == null)
+			throw new NullPointerException("Cannot test a frustum with a null view");
 		Plane[] planes = view.getWorldFrustumPlanes();
 		
 		int result = View.INSIDE;
@@ -384,15 +401,25 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 
 	@Override
-	public void getClosestExtent(Vector3f dir, Vector3f out) {
+	public Vector3f getClosestExtent(Vector3f dir, Vector3f out) throws NullPointerException {
+		if (dir == null)
+			throw new NullPointerException("Can't compute extent with a null direction vector");
+		if (out == null)
+			out = new Vector3f();
 		this.getMinMaxWorldVertices(dir, min, max);
 		out.set(min);
+		return out;
 	}
 
 	@Override
-	public void getFurthestExtent(Vector3f dir, Vector3f out) {
+	public Vector3f getFurthestExtent(Vector3f dir, Vector3f out) throws NullPointerException {
+		if (dir == null)
+			throw new NullPointerException("Can't compute extent with a null direction vector");
+		if (out == null)
+			out = new Vector3f();
 		this.getMinMaxWorldVertices(dir, min, max);
 		out.set(max);
+		return out;
 	}
 
 	public void readChunk(InputChunk in) {
@@ -412,6 +439,8 @@ public class AxisAlignedBox extends BoundingVolume {
 
 	@Override
 	public boolean intersects(BoundingVolume other) {
+		if (other == null)
+			return false;
 		if (other.getBoundType() == BoundType.AA_BOX) {
 			AxisAlignedBox a = (AxisAlignedBox)other;
 			return ((a.worldMax.x >= this.worldMin.x && a.worldMax.x <= this.worldMax.x) || (a.worldMin.x >= this.worldMin.x && a.worldMin.x <= this.worldMax.x)) &&

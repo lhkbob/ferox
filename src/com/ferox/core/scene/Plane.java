@@ -112,7 +112,12 @@ public class Plane {
 	/**
 	 * Transforms this plane by Transform and stores the result in the given plane.
 	 */
-	public void transform(Transform trans, Plane result) {
+	public Plane transform(Transform trans, Plane result) throws NullPointerException, FeroxException {
+		if (trans == null)
+			throw new NullPointerException("Can't transform a plane by a null transform");
+		if (result == null)
+			result = new Plane();
+		
 		if (this.normal.z != 0)
 			temp.set(0f, 0f, -this.constant / this.normal.z);
 		else if (this.normal.y != 0)
@@ -124,6 +129,8 @@ public class Plane {
 		trans.transform(temp);
 		trans.getRotation().transform(this.normal, result.normal);
 		result.constant = -temp.dot(result.normal);
+		
+		return result;
 	}
 	
 	public void normalize() {
@@ -142,7 +149,12 @@ public class Plane {
 	/**
 	 * Transforms this plane by Matrix and stores the result in the given plane.
 	 */
-	public void transform(Matrix4f trans, Plane result) {
+	public Plane transform(Matrix4f trans, Plane result) throws NullPointerException, FeroxException {
+		if (trans == null)
+			throw new NullPointerException("Can't transform a plane by a null matrix");
+		if (result == null)
+			result = new Plane();
+		
 		if (this.normal.z != 0)
 			temp.set(0f, 0f, -this.constant / this.normal.z);
 		else if (this.normal.y != 0)
@@ -156,6 +168,8 @@ public class Plane {
 		temp.set(temp.x + trans.m03, temp.y + trans.m13, temp.z + trans.m23);
 		trans.transform(this.normal, result.normal);
 		result.constant = -temp.dot(result.normal);
+		
+		return result;
 	}
 	
 	@Override

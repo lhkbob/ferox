@@ -10,51 +10,57 @@ public class Texture3D extends TextureData {
 	private int width;
 	private int height;
 	private int depth;
+	private boolean inited;
 	
 	public Texture3D(Buffer[] data, int width, int height, int depth, TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
 		super(dataType, dataFormat, min, mag);
 		this.setTextureData(data, width, height, depth);
+		this.inited = true;
 	}
 	
 	public Texture3D(Buffer[] data, int width, int height, int depth, TextureType dataType, TextureFormat dataFormat, TexClamp clamp) {
 		super(dataType, dataFormat, clamp);
 		this.setTextureData(data, width, height, depth);
+		this.inited = true;
 	}
 	
 	public Texture3D(Buffer[] data, int width, int height, int depth, TextureType dataType, TextureFormat dataFormat, TexClamp clamp, MinFilter min, MagFilter mag) {
 		super(dataType, dataFormat, clamp, min, mag);
 		this.setTextureData(data, width, height, depth);
+		this.inited = true;
 	}
 	
-	public Texture3D(Buffer[] data, int width, int height, int depth, TextureType dataType, TextureFormat dataFormat, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
-		super(dataType, dataFormat, clampS, clampT, clampR, min, mag);
+	public Texture3D(Buffer[] data, int width, int height, int depth, TextureType dataType, TextureFormat dataFormat, TextureCompression comp, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
+		super(dataType, dataFormat, comp, clampS, clampT, clampR, min, mag);
 		this.setTextureData(data, width, height, depth);
+		this.inited = true;
 	}
 	
-	public void setTextureFormatAndType(TextureFormat format, TextureType type) {
-		this.setTexture(this.data, this.width, this.height, this.depth, format, type);
+	public void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) {
+		if (this.inited)
+			this.setTexture(this.data, this.width, this.height, this.depth, format, type, comp);
+		else
+			super.setTextureFormat(format, type, comp);
 	}
 	
-	public void setTexture(Buffer[] data, int width, int height, int depth, TextureFormat format, TextureType type) {
+	public void setTexture(Buffer[] data, int width, int height, int depth, TextureFormat format, TextureType type, TextureCompression comp) throws IllegalArgumentException {
 		TextureFormat oldFormat = this.getDataFormat();
 		TextureType oldType = this.getDataType();
+		TextureCompression oldComp = this.getDataCompression();
 		try {
-			this.setFormatAndType(format, type);
+			super.setTextureFormat(format, type, comp);
 			this.setTextureData(data, width, height, depth);
 		} catch (RuntimeException e) {
-			this.setFormatAndType(oldFormat, oldType);
+			this.setTextureFormat(oldFormat, oldType, oldComp);
 			throw e;
 		}
-		
-		if (oldFormat != this.getDataFormat() || oldType != this.getDataType())
-			this.cleanupStateAtom();
 	}
 	
 	public void setTextureData(Buffer[] data) {
 		this.setTextureData(data, this.width, this.height, this.depth);
 	}
 	
-	public void setTextureData(Buffer[] data, int width, int height, int depth) {
+	public void setTextureData(Buffer[] data, int width, int height, int depth) throws IllegalArgumentException {
 		int oldWidth = this.width;
 		int oldHeight = this.height;
 		int oldDepth = this.depth;
@@ -62,7 +68,7 @@ public class Texture3D extends TextureData {
 		Buffer[] oldData = this.data;
 		
 		try {
-			if (this.getDataFormat().isServerCompressed())
+			if (this.getDataFormat().isClientCompressed() || this.getDataCompression() != TextureCompression.NONE)
 				throw new IllegalArgumentException("Can't create a compressed 3D texture");
 			if (this.getDataFormat() == TextureFormat.DEPTH)
 				throw new IllegalArgumentException("Depth textures can only be 2D textures");
@@ -88,7 +94,7 @@ public class Texture3D extends TextureData {
 				}
 			
 				for (int i = 0; i < this.data.length; i++) {
-					if (!TextureData.isBufferValid(this.getDataType(), this.getDataFormat(), width, height, depth, this.data[i]))
+					if (!TextureData.isBufferValid(this.getDataType(), this.getDataFormat(), this.getDataCompression(), width, height, depth, this.data[i]))
 						throw new IllegalArgumentException("Improper buffer data size at mipmap level: " + i);
 					width = Math.max(1, (width >> 1));
 					height = Math.max(1, (height >> 1));
@@ -110,10 +116,6 @@ public class Texture3D extends TextureData {
 			this.data = oldData;
 			throw e;
 		}
-		
-		// new texture data is valid, see if we need a new texture object (ie new size, everything else new is covered in peer)
-		if (oldWidth != this.width || oldHeight != this.height || oldDepth != this.depth)
-			this.cleanupStateAtom();
 	}
 	
 	public boolean isDataInClientMemory() {

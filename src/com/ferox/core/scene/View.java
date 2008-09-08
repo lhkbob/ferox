@@ -564,7 +564,7 @@ public class View implements Chunkable {
 	/**
 	 * Updates the cached values for this view.
 	 */
-	private void updateCachedValues() {
+	private void updateCachedValues() throws FeroxException {
 		if (this.frustumLeft > this.frustumRight)
 			throw new FeroxException("Illegal frustum left and right values");
 		if (this.frustumBottom > this.frustumTop)

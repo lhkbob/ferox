@@ -46,7 +46,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 	
 	protected static SystemCapabilities joglCaps;
 	
-	private static int getGLConnectivity(Geometry.PolygonType conn) {
+	private static int getGLConnectivity(Geometry.PolygonType conn) throws FeroxException {
 		switch(conn) {
 		case POINTS: return GL.GL_POINTS;
 		case LINES: return GL.GL_LINES;
@@ -56,30 +56,30 @@ public abstract class JOGLRenderContext extends RenderContext {
 		case QUADS: return GL.GL_QUADS;
 		case QUAD_STRIP: return GL.GL_QUAD_STRIP;
 		default:
-			throw new FeroxException("Illegal geometry connectivity");
+			throw new FeroxException("Illegal geometry connectivity: " + conn);
 		}
 	}
-	private static int getGLTypeEnum(BufferData.DataType type) {
+	private static int getGLTypeEnum(BufferData.DataType type) throws FeroxException {
 		switch(type) {
 		case UNSIGNED_BYTE: return GL.GL_UNSIGNED_BYTE;
 		case UNSIGNED_INT: return GL.GL_UNSIGNED_INT;
 		case UNSIGNED_SHORT: return GL.GL_UNSIGNED_SHORT;
 		default:
-			throw new FeroxException("Illegal buffer data type");
+			throw new FeroxException("Illegal buffer data type: " + type);
 		}
 	}
 	
-	public static int getGLQuality(Quality qual) {
+	public static int getGLQuality(Quality qual) throws FeroxException {
 		switch(qual) {
 		case DONT_CARE: return GL.GL_DONT_CARE;
 		case FASTEST: return GL.GL_FASTEST;
 		case NICEST: return GL.GL_NICEST;
 		default:
-			throw new FeroxException("Illegal quality");
+			throw new FeroxException("Illegal quality: " + qual);
 		}
 	}
 	
-	public static int getGLFragmentTest(FragmentTest test) {
+	public static int getGLFragmentTest(FragmentTest test) throws FeroxException {
 		switch(test) {
 		case ALWAYS: return GL.GL_ALWAYS;
 		case EQUAL: return GL.GL_EQUAL;
@@ -90,7 +90,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 		case NEVER: return GL.GL_NEVER;
 		case NOT_EQUAL: return GL.GL_NOTEQUAL;
 		default:
-			throw new FeroxException("Illegal alpha test for an AlphaState");
+			throw new FeroxException("Illegal fragment test: " + test);
 		}
 	}
 	
@@ -255,7 +255,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 	}
 	
 	@Override
-	public void renderGeometry(Geometry geom) {
+	public void renderGeometry(Geometry geom) throws FeroxException {
 		this.callValidate();
 		VertexArray indices = geom.getIndices();
 		if (geom.getIndices() == null) 
@@ -302,7 +302,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 	}
 
 	@Override
-	public StateAtomPeer getStateAtomPeer(Class<? extends StateAtom> type) {
+	public StateAtomPeer getStateAtomPeer(Class<? extends StateAtom> type) throws RuntimeException {
 		StateAtomPeer peer = this.peerMap.get(type);
 		if (peer != null)
 			return peer;
@@ -321,7 +321,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 	}
 	
 	@Override
-	public StateAtomPeer getStateAtomPeer(StateAtom atom) {
+	public StateAtomPeer getStateAtomPeer(StateAtom atom) throws NullPointerException {
 		if (atom == null)
 			throw new NullPointerException("Atom can't be null");
 		int type = atom.getDynamicType();

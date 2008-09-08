@@ -7,6 +7,7 @@ import javax.media.opengl.GL;
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.atoms.TextureCubeMap;
 import com.ferox.core.states.atoms.TextureCubeMap.Face;
+import com.ferox.core.states.atoms.TextureData.TextureCompression;
 import com.ferox.core.states.atoms.TextureData.TextureFormat;
 import com.ferox.core.states.atoms.TextureData.TextureType;
 import com.ferox.core.util.TextureUtil;
@@ -15,30 +16,33 @@ import com.ferox.core.util.DataTransfer.Slice;
 import com.ferox.impl.jsr231.peers.JOGLTextureDataPeer.TextureTransfer;
 
 public class TextureCubeMapTransfer implements TextureTransfer<TextureCubeMap> {
-
-	public void submitData(TextureRecord t, TextureCubeMap texture, GL gl) {
-		int side = potCeil(texture.getSideLength());
+	public void validate(TextureCubeMap texture, GL gl) {
+		int side = JOGLTextureDataPeer.potCeil(texture.getSideLength());
 		int[] v = new int[1];
-		gl.glGetIntegerv(GL.GL_MAX_CUBE_MAP_TEXTURE_SIZE, v, 0);
-		int maxSide = v[0];
-		
-		if ((side != texture.getSideLength() && !RenderManager.getSystemCapabilities().areNpotTexturesSupported())
-			|| (texture.getSideLength() > maxSide)) {
-			// Rescale the texture because it's not npot or because it's too large (in which case, buffer allocation might
-			// cause a out-of-memory error anyway).
-			if (RenderManager.getSystemCapabilities().areNpotTexturesSupported())
+		gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, v, 0);
+		if ((!RenderManager.getSystemCapabilities().areNpotTexturesSupported() && (side != texture.getSideLength())) ||
+			(texture.getSideLength() > v[0])) {
+			if (RenderManager.getSystemCapabilities().areNpotTexturesSupported()) {
 				side = texture.getSideLength();
-			side = Math.min(maxSide, side);
+			}
+			side = Math.min(v[0], side);
 			
-			if (texture.getPositiveXMipmap(0) != null) {
-				Buffer[] nPX = new Buffer[texture.getNumMipmaps()];
-				Buffer[] nNX = new Buffer[texture.getNumMipmaps()];
-				Buffer[] nPY = new Buffer[texture.getNumMipmaps()];
-				Buffer[] nNY = new Buffer[texture.getNumMipmaps()];
-				Buffer[] nPZ = new Buffer[texture.getNumMipmaps()];
-				Buffer[] nNZ = new Buffer[texture.getNumMipmaps()];
-				
+			Buffer[] nPX = null;
+			Buffer[] nNX = null;
+			Buffer[] nPY = null;
+			Buffer[] nNY = null;
+			Buffer[] nPZ = null;
+			Buffer[] nNZ = null;
+			
+			if (texture.getMipmap(0, Face.PX) != null) {
 				int mS = side;
+				nPX = new Buffer[texture.getNumMipmaps()];
+				nNX = new Buffer[texture.getNumMipmaps()];
+				nPY = new Buffer[texture.getNumMipmaps()];
+				nNY = new Buffer[texture.getNumMipmaps()];
+				nPZ = new Buffer[texture.getNumMipmaps()];
+				nNZ = new Buffer[texture.getNumMipmaps()];
+				
 				for (int i = 0; i < nPX.length; i++) {
 					nPX[i] = TextureUtil.scaleImage2D(texture.getPositiveXMipmap(i), texture.getDataFormat(), texture.getDataType(), texture.getSideLength(), texture.getSideLength(), mS, mS);
 					nNX[i] = TextureUtil.scaleImage2D(texture.getNegativeXMipmap(i), texture.getDataFormat(), texture.getDataType(), texture.getSideLength(), texture.getSideLength(), mS, mS);
@@ -46,36 +50,29 @@ public class TextureCubeMapTransfer implements TextureTransfer<TextureCubeMap> {
 					nNY[i] = TextureUtil.scaleImage2D(texture.getNegativeYMipmap(i), texture.getDataFormat(), texture.getDataType(), texture.getSideLength(), texture.getSideLength(), mS, mS);
 					nPZ[i] = TextureUtil.scaleImage2D(texture.getPositiveZMipmap(i), texture.getDataFormat(), texture.getDataType(), texture.getSideLength(), texture.getSideLength(), mS, mS);
 					nNZ[i] = TextureUtil.scaleImage2D(texture.getNegativeZMipmap(i), texture.getDataFormat(), texture.getDataType(), texture.getSideLength(), texture.getSideLength(), mS, mS);
-					
+
 					mS = Math.max(1, mS >> 1);
 				}
-				
-				texture.setTextureData(nPX, nNX, nPY, nNY, nPZ, nNZ, side);
 			}
-		} else {
-			side = texture.getSideLength();
+			texture.setTextureData(nPX, nNX, nPY, nNY, nPZ, nNZ, side);
 		}
+	}
+	
+	public void submitData(TextureRecord t, TextureCubeMap texture, GL gl) {
+		int side = texture.getSideLength();
 		
 		for (int i = 0; i < texture.getNumMipmaps(); i++) {
 			if (!this.reallocateOnUpdate(side, side, texture.getNumMipmaps(), texture.getDataFormat()) || texture.getPositiveXMipmap(i) == null) {
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PX).clear());
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NX).clear());
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PY).clear());
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NY).clear());
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PZ).clear());
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NZ).clear());
 			}
 			side = Math.max(1, (side >> 1));
 		}
-		
 		this.updateData(t, texture, gl);
-	}
-
-	private static int potCeil(int num) {
-		int pot = 1;
-		while (pot < num)
-			pot *= 2;
-		return pot;
 	}
 	
 	public void updateData(TextureRecord t, TextureCubeMap texture, GL gl) {
@@ -182,7 +179,7 @@ public class TextureCubeMapTransfer implements TextureTransfer<TextureCubeMap> {
 			out.position(slice.getOffset());
 			out.limit(slice.getOffset() + slice.getLength());
 		
-			if (!data.getDataFormat().isServerCompressed())
+			if (!data.getDataFormat().isClientCompressed() && data.getDataCompression() == TextureCompression.NONE)
 				gl.glGetTexImage(target, level, r.srcFormat, r.dataType, out);
 			else
 				gl.glGetCompressedTexImage(target, level, out);
@@ -190,7 +187,7 @@ public class TextureCubeMapTransfer implements TextureTransfer<TextureCubeMap> {
 			out.limit(lim);
 			out.position(pos);
 		} else {
-			if (!data.getDataFormat().isServerCompressed())
+			if (!data.getDataFormat().isClientCompressed() && data.getDataCompression() == TextureCompression.NONE)
 				gl.glGetTexImage(target, level, r.srcFormat, r.dataType, slice.getOffset() * data.getDataType().getByteSize());
 			else
 				gl.glGetCompressedTexImage(target, level, slice.getOffset() * data.getDataType().getByteSize());

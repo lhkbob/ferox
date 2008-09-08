@@ -75,7 +75,7 @@ public class SpatialBranch extends SpatialNode {
 	}
 	
 	public boolean submit(View view, RenderManager manager, RenderAtomBin queue, boolean initiator) {
-		int ps = view.getPlaneState();
+		int ps = (view != null ? view.getPlaneState() : 0);
 		if (super.submit(view, manager, queue, initiator)) {
 			for (int i = 0; i < this.size; i++)
 				this.children[i].submit(view, manager, queue, false);
@@ -97,7 +97,9 @@ public class SpatialBranch extends SpatialNode {
 	 * Make sure that the SpatialBranch can hold at least size number of children, before having to update
 	 * its internal structures.
 	 */
-	public void ensureCapacity(int size) {
+	public void ensureCapacity(int size) throws IllegalArgumentException {
+		if (size <= 0)
+			throw new IllegalArgumentException("Must ensure capacity with a positive size: " + size);
 		if (this.children == null)
 			this.allocateChildren(size);
 		else if (size > this.children.length) {
@@ -141,6 +143,8 @@ public class SpatialBranch extends SpatialNode {
 	 * Checks to see if elem is contained within this SpatialBranch or in it's children.
 	 */
 	public boolean contains(SpatialNode elem) {
+		if (elem == null)
+			return false;
 		SpatialBranch parent = elem.parent;
 		while (parent != null) {
 			if (parent == this)
@@ -157,7 +161,7 @@ public class SpatialBranch extends SpatialNode {
 	 * Subclasses should not need to override this method, instead implement removeElement().
 	 */
 	public void remove(SpatialNode elem) {
-		if (elem != null && this.contains(elem)) {
+		if (this.contains(elem)) {
 			SpatialBranch parent = elem.parent;
 			int index = -1;
 			for (index = 0; index < this.size; index++) {

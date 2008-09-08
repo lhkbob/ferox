@@ -25,7 +25,7 @@ public class FogManager extends StateManager {
 	}
 
 	@Override
-	public StateManager merge(StateManager manager) {
+	public StateManager merge(StateManager manager) throws FeroxException {
 		FogManager man = (FogManager)manager;
 		
 		switch(this.getMergeMode()) {

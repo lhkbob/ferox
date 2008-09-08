@@ -41,6 +41,7 @@ import com.ferox.core.states.atoms.Texture.EnvMode;
 import com.ferox.core.states.atoms.TextureCubeMap.Face;
 import com.ferox.core.states.atoms.TextureData.MagFilter;
 import com.ferox.core.states.atoms.TextureData.MinFilter;
+import com.ferox.core.states.atoms.TextureData.TextureCompression;
 import com.ferox.core.states.atoms.TextureData.TextureFormat;
 import com.ferox.core.states.atoms.TextureData.TextureType;
 import com.ferox.core.states.manager.Geometry;
@@ -145,24 +146,21 @@ public class TextureCompressTest implements InitializationListener, FrameListene
 		
 		try {
 			this.base = TextureResourceManager.readTextureCubeMap(new File("src/data/textures/grace_cube.dds"), true, MinFilter.NEAREST_MIP_NEAREST, MagFilter.NEAREST);
-				
-			TextureFormat comp = this.base.getDataFormat();
-			if (comp == TextureFormat.RGB)
-				comp = TextureFormat.RGB_DXT1;
-			else if (comp == TextureFormat.RGBA)
-				comp = TextureFormat.RGBA_DXT5;
-			else if (comp == TextureFormat.BGRA)
-				comp = TextureFormat.BGRA_DXT5;
-			this.base.setTextureFormatAndType(comp, this.base.getDataType());
+			TextureCompression comp = TextureCompression.DXT1;
+			if (this.base.getDataFormat().getNumComponents() == 4)
+				comp = TextureCompression.DXT5;
 			
-			if (comp == TextureFormat.RGB_DXT1)
-				comp = TextureFormat.COMPRESSED_RGB_DXT1;
+			this.base.setTextureFormat(this.base.getDataFormat(), this.base.getDataType(), comp);
+			
+			TextureFormat c1;
+			if (comp == TextureCompression.DXT1)
+				c1 = TextureFormat.COMPRESSED_RGB_DXT1;
 			else 
-				comp = TextureFormat.COMPRESSED_RGBA_DXT5;
+				c1 = TextureFormat.COMPRESSED_RGBA_DXT5;
 						
-			this.compressed = new TextureCubeMap(makeDummyBuffers(comp, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(comp, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(comp, TextureType.UNSIGNED_BYTE, this.base.getSideLength()),
-												 makeDummyBuffers(comp, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(comp, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(comp, TextureType.UNSIGNED_BYTE, this.base.getSideLength()),
-												 this.base.getSideLength(), TextureType.UNSIGNED_BYTE, comp, MinFilter.LINEAR_MIP_LINEAR, MagFilter.LINEAR);
+			this.compressed = new TextureCubeMap(makeDummyBuffers(c1, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(c1, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(c1, TextureType.UNSIGNED_BYTE, this.base.getSideLength()),
+												 makeDummyBuffers(c1, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(c1, TextureType.UNSIGNED_BYTE, this.base.getSideLength()), makeDummyBuffers(c1, TextureType.UNSIGNED_BYTE, this.base.getSideLength()),
+												 this.base.getSideLength(), TextureType.UNSIGNED_BYTE, c1, MinFilter.LINEAR_MIP_LINEAR, MagFilter.LINEAR);
 		} catch(Exception e) {
 			e.printStackTrace();
 			System.exit(0);
@@ -189,8 +187,8 @@ public class TextureCompressTest implements InitializationListener, FrameListene
 		LightManager lm = new LightManager();
 		lm.setGlobalAmbientLight(new float[] {.5f, .5f, .5f, 1f});
 		lm.setLocalViewer(true);
-		sl1.addStateManager(lm);
-		sl2.addStateManager(lm);
+		//sl1.addStateManager(lm);
+		//sl2.addStateManager(lm);
 		
 		SpotLight light = new SpotLight(new Vector3f(0f, 0f, -1f), new float[] {1f, 1f, 1f, 1f});
 		//light.setSpotCutoffAngle(45);
@@ -332,7 +330,7 @@ public class TextureCompressTest implements InitializationListener, FrameListene
 
 	public void onInit(RenderManager manager) {
 		long now = System.currentTimeMillis();
-		this.base.initializeNow(manager);
+		this.base.update(manager);
 		System.out.println("base creation = " + (System.currentTimeMillis() - now));
 		now = System.currentTimeMillis();
 		for (int i = 0; i < this.compressed.getNumMipmaps(); i++) {
@@ -345,7 +343,7 @@ public class TextureCompressTest implements InitializationListener, FrameListene
 		}
 		System.out.println("fetch = " + (System.currentTimeMillis() - now));
 		now = System.currentTimeMillis();
-		this.compressed.initializeNow(manager);
+		this.compressed.update(manager);
 		System.out.println("compressed creation = " + (System.currentTimeMillis() - now));
 		
 		this.elapsedTime = System.currentTimeMillis();

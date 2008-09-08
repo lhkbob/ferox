@@ -73,7 +73,10 @@ public class BoundingSphere extends BoundingVolume {
 	}
 	
 	public void setCenter(Vector3f center) {
-		this.centerOffset.set(center);
+		if (center == null)
+			this.centerOffset.set(0f, 0f, 0f);
+		else
+			this.centerOffset.set(center);
 	}
 	
 	public void setCenter(float x, float y, float z) {
@@ -89,7 +92,9 @@ public class BoundingSphere extends BoundingVolume {
 	}
 	
 	@Override
-	public void applyTransform(Transform trans) {
+	public void applyTransform(Transform trans) throws NullPointerException {
+		if (trans == null)
+			throw new NullPointerException("Can't apply a null transform");
 		trans.transform(this.centerOffset);
 		Vector3f s = trans.getScale();
 		float max = Math.max(s.x, Math.max(s.y, s.z));
@@ -97,7 +102,9 @@ public class BoundingSphere extends BoundingVolume {
 	}
 
 	@Override
-	public void enclose(Geometry geom) {
+	public void enclose(Geometry geom) throws NullPointerException, IllegalArgumentException {
+		if (geom == null)
+			throw new NullPointerException("Can't enclose a null geometry");
 		if (!geom.getVertices().getBufferData().isDataInClientMemory())
 			return;
 		
@@ -309,7 +316,9 @@ public class BoundingSphere extends BoundingVolume {
 	}
 
 	@Override
-	public void enclose(BoundingVolume child) {
+	public void enclose(BoundingVolume child) throws NullPointerException {
+		if (child == null)
+			throw new NullPointerException("Can't enclose a null bounding volume");
 		switch(child.getBoundType()) {
 		case SPHERE: this.mergeSphere((BoundingSphere)child); break;
 		case AA_BOX: this.mergeAABB((AxisAlignedBox)child); break;
@@ -319,7 +328,7 @@ public class BoundingSphere extends BoundingVolume {
 	private void mergeAABB(AxisAlignedBox aabb) {
 		aabb.getCenter(diff);
 		diff.sub(this.centerOffset);
-		aabb.getMinMaxWorldVertices(diff, tempA, tempB);
+		aabb.getFurthestExtent(diff, tempB);
 		diff.sub(tempB, this.centerOffset);
 		float dist = diff.length();
 		
@@ -341,7 +350,9 @@ public class BoundingSphere extends BoundingVolume {
 	}
 
 	@Override
-	public int testFrustum(View view, int planeState) {
+	public int testFrustum(View view, int planeState) throws NullPointerException {
+		if (view == null)
+			throw new NullPointerException("Can't test a frustum of a null view");
 		if (this.radius < 0)
 			return View.INTERSECT;
 
@@ -351,19 +362,29 @@ public class BoundingSphere extends BoundingVolume {
 	}
 
 	@Override
-	public void getClosestExtent(Vector3f dir, Vector3f out) {
+	public Vector3f getClosestExtent(Vector3f dir, Vector3f out) throws NullPointerException {
+		if (dir == null)
+			throw new NullPointerException("Can't compute extent for a null direction");
+		if (out == null)
+			out = new Vector3f();
 		out.set(this.centerOffset);
 		out.x -= dir.x * this.radius;
 		out.y -= dir.y * this.radius;
 		out.z -= dir.z * this.radius;
+		return out;
 	}
 
 	@Override
-	public void getFurthestExtent(Vector3f dir, Vector3f out) {
+	public Vector3f getFurthestExtent(Vector3f dir, Vector3f out) throws NullPointerException {
+		if (dir == null)
+			throw new NullPointerException("Can't compute extent for a null direction");
+		if (out == null)
+			out = new Vector3f();
 		out.set(this.centerOffset);
 		out.x += dir.x * this.radius;
 		out.y += dir.y * this.radius;
 		out.z += dir.z * this.radius;
+		return out;
 	}
 
 	public void readChunk(InputChunk in) {
@@ -381,6 +402,8 @@ public class BoundingSphere extends BoundingVolume {
 
 	@Override
 	public boolean intersects(BoundingVolume other) {
+		if (other == null)
+			return false;
 		if (other.getBoundType() == BoundType.AA_BOX) {
 			return other.intersects(this);
 		} else if (other.getBoundType() == BoundType.SPHERE) {

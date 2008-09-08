@@ -54,7 +54,7 @@ public class SpatialLeaf extends SpatialNode {
 		return this.modelBounds;
 	}
 	
-	public void setModelBounds(BoundingVolume model) {
+	public void setModelBounds(BoundingVolume model) throws NullPointerException {
 		if (model == null)
 			throw new NullPointerException("Model bounds can't be null");
 		this.modelBounds = model;

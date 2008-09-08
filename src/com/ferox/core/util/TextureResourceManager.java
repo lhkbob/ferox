@@ -20,15 +20,11 @@ import com.ferox.core.states.atoms.TextureCubeMap;
 import com.ferox.core.states.atoms.TextureData;
 import com.ferox.core.states.atoms.TextureData.MagFilter;
 import com.ferox.core.states.atoms.TextureData.MinFilter;
+import com.ferox.core.states.atoms.TextureData.TextureCompression;
 import com.ferox.core.states.atoms.TextureData.TextureFormat;
 import com.ferox.core.states.atoms.TextureData.TextureType;
 //FIXME: make tga loader
 public class TextureResourceManager {
-	public static final int DXT1 = 1;
-	public static final int DXT3 = 3;
-	public static final int DXT5 = 5;
-	public static final int NO_DXT = 0;
-	
 	private static HashMap<String, TextureData> pathToTex = new HashMap<String, TextureData>();
 	private static HashMap<TextureData, String> texToPath = new HashMap<TextureData, String>();
 	
@@ -69,10 +65,10 @@ public class TextureResourceManager {
 	}
 	
 	public static Texture2D readTexture2D(File file, boolean useCache, MinFilter min, MagFilter mag) throws IOException {
-		return readTexture2D(file, useCache, min, mag, NO_DXT, false);
+		return readTexture2D(file, useCache, min, mag, TextureCompression.NONE, false);
 	}
 
-	public static Texture2D readTexture2D(File file, boolean useCache, MinFilter min, MagFilter mag, int dxt, boolean buildMips) throws IOException {
+	public static Texture2D readTexture2D(File file, boolean useCache, MinFilter min, MagFilter mag, TextureCompression dxt, boolean buildMips) throws IOException {
 		try {
 			if (useCache) {
 				Texture2D t = (Texture2D)getCachedTexture(file);
@@ -107,10 +103,10 @@ public class TextureResourceManager {
 	}
 	
 	public static TextureCubeMap readTextureCubeMap(File file, boolean useCache, MinFilter min, MagFilter mag) throws IOException {
-		return readTextureCubeMap(file, useCache, min, mag, NO_DXT, false);
+		return readTextureCubeMap(file, useCache, min, mag, TextureCompression.NONE, false);
 	}
 	
-	public static TextureCubeMap readTextureCubeMap(File file, boolean useCache, MinFilter min, MagFilter mag, int dxt, boolean buildMips) throws IOException {
+	public static TextureCubeMap readTextureCubeMap(File file, boolean useCache, MinFilter min, MagFilter mag, TextureCompression dxt, boolean buildMips) throws IOException {
 		try {
 			if (useCache) {
 				TextureCubeMap t = (TextureCubeMap)getCachedTexture(file);
@@ -177,7 +173,7 @@ public class TextureResourceManager {
 			return null;
 	}
 
-	public static Texture2D createTexture2DFromImage(BufferedImage image, int dxt, boolean buildMips, MinFilter min, MagFilter mag) {
+	public static Texture2D createTexture2DFromImage(BufferedImage image, TextureCompression dxt, boolean buildMips, MinFilter min, MagFilter mag) {
 		ColorModel cm = null;
 		WritableRaster sm = null;
 		
@@ -190,7 +186,7 @@ public class TextureResourceManager {
 			cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] {8, 8, 8, 0},
 					false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
 			sm = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, image.getWidth(), image.getHeight(), 3, null);
-			texFormat = (dxt != NO_DXT ? TextureFormat.RGB_DXT1 : TextureFormat.RGB);
+			texFormat = TextureFormat.RGB;
 			break;
 		case BufferedImage.TYPE_USHORT_GRAY:
 			cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY), new int[] {16},
@@ -212,20 +208,7 @@ public class TextureResourceManager {
 			cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] {8, 8, 8, 8},
 					true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
 			sm = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, image.getWidth(), image.getHeight(), 4, null);
-			switch(dxt) {
-			case DXT1:
-				texFormat = TextureFormat.RGBA_DXT1;
-				break;
-			case DXT3:
-				texFormat = TextureFormat.RGBA_DXT3;
-				break;
-			case DXT5:
-				texFormat = TextureFormat.RGBA_DXT5;
-				break;
-			default:
-				texFormat = TextureFormat.RGBA;
-				break;
-			}
+			texFormat = TextureFormat.RGBA;
 			break;
 		}
 		
@@ -251,13 +234,16 @@ public class TextureResourceManager {
 			data = s;
 		}
 		
+		Texture2D t2d;
 		if (buildMips)
-			return new Texture2D(new Buffer[] {data.rewind()}, image.getWidth(), image.getHeight(), texType, texFormat, min, mag);
+			t2d = new Texture2D(new Buffer[] {data.rewind()}, image.getWidth(), image.getHeight(), texType, texFormat, min, mag);
 		else
-			return new Texture2D(TextureUtil.buildMipmaps2D(data.rewind(), texFormat, texType, image.getWidth(), image.getHeight()), image.getWidth(), image.getHeight(), texType, texFormat, min, mag);
+			t2d = new Texture2D(TextureUtil.buildMipmaps2D(data.rewind(), texFormat, texType, image.getWidth(), image.getHeight()), image.getWidth(), image.getHeight(), texType, texFormat, min, mag);
+		t2d.setTextureFormat(t2d.getDataFormat(), t2d.getDataType(), dxt);
+		return t2d;
 	}
 	
-	public static TextureCubeMap createTextureCubeMapFromImage(BufferedImage image, int dxt, boolean buildMips, MinFilter min, MagFilter mag) {
+	public static TextureCubeMap createTextureCubeMapFromImage(BufferedImage image, TextureCompression dxt, boolean buildMips, MinFilter min, MagFilter mag) {
 		ColorModel cm = null;
 		WritableRaster sm = null;
 		
@@ -274,7 +260,7 @@ public class TextureResourceManager {
 			cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] {8, 8, 8, 0},
 					                     false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
 			sm = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, side, side, 3, null);
-			texFormat = (dxt != NO_DXT ? TextureFormat.RGB_DXT1 : TextureFormat.RGB);
+			texFormat = TextureFormat.RGB;
 			break;
 		case BufferedImage.TYPE_USHORT_GRAY:
 			cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY), new int[] {16},
@@ -296,20 +282,7 @@ public class TextureResourceManager {
 			cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] {8, 8, 8, 8},
 										 true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
 			sm = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, side, side, 4, null);
-			switch(dxt) {
-			case DXT1:
-				texFormat = TextureFormat.RGBA_DXT1;
-				break;
-			case DXT3:
-				texFormat = TextureFormat.RGBA_DXT3;
-				break;
-			case DXT5:
-				texFormat = TextureFormat.RGBA_DXT5;
-				break;
-			default:
-				texFormat = TextureFormat.RGBA;
-				break;
-			}
+			texFormat = TextureFormat.RGBA;
 			break;
 		}
 		
@@ -322,7 +295,9 @@ public class TextureResourceManager {
 		Buffer[] pz = createCubeMapFace(image, formatted, 4, texFormat, texType, buildMips);
 		Buffer[] nz = createCubeMapFace(image, formatted, 5, texFormat, texType, buildMips);
 		
-		return new TextureCubeMap(px, nx, py, ny, pz, nz, side, texType, texFormat, min, mag);
+		TextureCubeMap tcm = new TextureCubeMap(px, nx, py, ny, pz, nz, side, texType, texFormat, min, mag);
+		tcm.setTextureFormat(tcm.getDataFormat(), tcm.getDataType(), dxt);
+		return tcm;
 	}
 	
 	private static Buffer[] createCubeMapFace(BufferedImage fullImage, BufferedImage faceStore, int face, TextureFormat texFormat, TextureType texType, boolean buildMipmap) {

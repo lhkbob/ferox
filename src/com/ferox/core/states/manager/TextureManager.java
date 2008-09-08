@@ -212,7 +212,7 @@ public class TextureManager extends StateManager {
 	}
 
 	@Override
-	public StateManager merge(StateManager man) {
+	public StateManager merge(StateManager man) throws FeroxException {
 		if (getMaxTextureUnits() < 0)
 			throw new FeroxException("Can't merge texture states if the context hasn't created any capabilities");
 		TextureManager manager = (TextureManager)man;

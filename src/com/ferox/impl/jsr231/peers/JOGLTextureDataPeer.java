@@ -23,6 +23,7 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		void setData(TextureRecord t, T data, Block region, Face face, int level, Buffer in, Slice slice, GL gl);
 		void getData(TextureRecord t, T data, Face face, int level, Buffer out, Slice slice, GL gl);
 		void copyData(TextureRecord t, T data, Block region, Face face, int level, int sx, int sy, GL gl);
+		void validate(T data, GL gl);
 	}
 	
 	private Texture2DTransfer t2d;
@@ -225,22 +226,14 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 
 	public StateRecord initializeStateAtom(StateAtom a) {
 		TextureData atom = (TextureData)a;
-		GL gl = this.context.getGL();
 		TextureRecord t = new TextureRecord();
-		
+		this.initAtom(atom, t);
+		return t;
+	}
+
+	private void initAtom(TextureData atom, TextureRecord t) {
+		GL gl = this.context.getGL();
 		t.target = JOGLTexturePeer.getGLTarget(atom);
-		if (t.target == GL.GL_TEXTURE_3D && !RenderManager.getSystemCapabilities().is3DTexturingSupported()) {
-			t.texID = 0;
-			throw new FeroxException("Can't create a 3D texture when 3D textures aren't supported");
-		}
-		if (t.target == GL.GL_TEXTURE_CUBE_MAP && !RenderManager.getSystemCapabilities().isCubeMapTexturingSupported()) {
-			t.texID = 0;
-			throw new FeroxException("Can't create a cube map when cube maps aren't supported");
-		}
-		if (t.target == GL.GL_TEXTURE_RECTANGLE_ARB && !RenderManager.getSystemCapabilities().areRectangularTexturesSupported()) {
-			t.texID = 0;
-			throw new FeroxException("Can't create a rectangular textures when they aren't supported");
-		}
 		
 		t.texID = this.generateID(gl);
 		t.compareFunc = null;
@@ -254,8 +247,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		t.aniso = -1;
 		
 		setGLSrcTypeEnums(t, atom.getDataType(), atom.getDataFormat());
-		setGLDstEnum(t, atom.getDataType(), atom.getDataFormat());
-		
+		setGLDstEnum(t, atom.getDataType(), atom.getDataFormat(), atom.getDataCompression());
+		getTextureDimensions(t, atom);
 		this.bindTexture(gl, t.target, t.texID);
 		
 		UnpackPixelStore p = UnpackPixelStore.get(gl);
@@ -272,22 +265,15 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		if (t.dstFormat != v[0]) {
 			System.err.println("WARNING: Dst texture format was changed from: " + t.dstFormat + " to " + v[0]);
 			t.dstFormat = v[0];
-			if (t.srcFormat == -1)
-				System.err.println("WARNING: Texture unable to be correctly compressed");	
 		}
 		
 		this.bindTexture(gl, t.target, 0);
-		
-		return t;
 	}
-
+	
 	private static void setGLSrcTypeEnums(TextureRecord t, TextureType dataType, TextureFormat dataFormat) {
 		switch(dataType) {
 		case PACKED_INT_8888:
-			//FIXME: support server only compression better with types
-			if (dataFormat == TextureFormat.BGRA || dataFormat == TextureFormat.RGBA
-				|| dataFormat == TextureFormat.BGRA_DXT1 || dataFormat == TextureFormat.RGBA_DXT1
-				|| dataFormat == TextureFormat.BGRA_DXT5)
+			if (dataFormat == TextureFormat.BGRA || dataFormat == TextureFormat.RGBA)
 				t.dataType = GL.GL_UNSIGNED_INT_8_8_8_8_REV;
 			else
 				t.dataType = GL.GL_UNSIGNED_INT_8_8_8_8;
@@ -313,7 +299,7 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		case UNSIGNED_BYTE:
 			t.dataType = GL.GL_UNSIGNED_BYTE;
 			break;
-		case FLOAT:
+		case FLOAT: case UNCLAMPED_FLOAT:
 			t.dataType = GL.GL_FLOAT;
 			break;
 		case UNSIGNED_INT:
@@ -331,15 +317,13 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 			else
 				t.srcFormat = GL.GL_RGB;
 			break;
-		case BGRA: case ARGB: case BGRA_DXT1: case BGRA_DXT5:
+		case BGRA: case ARGB:
 			t.srcFormat = GL.GL_BGRA;
 			break;
-		case RGB: case RGB_DXT1:
+		case RGB:
 			t.srcFormat = GL.GL_RGB;
 			break;
-		case RGBA: case RGBA_DXT1:
-		case RGBA_DXT3: case RGBA_DXT5:
-		case ABGR:
+		case RGBA: case ABGR:
 			t.srcFormat = GL.GL_RGBA;
 			break;
 		case DEPTH:
@@ -356,55 +340,61 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 			break;
 		case COMPRESSED_RGB_DXT1: case COMPRESSED_RGBA_DXT1:
 		case COMPRESSED_RGBA_DXT3: case COMPRESSED_RGBA_DXT5:
-			if (!RenderManager.getSystemCapabilities().isS3TCSupported())
-				throw new FeroxException("Compressed textures aren't supported");
 			t.srcFormat = -1;
 			break;
 		}
 	}
 	
-	private static void setGLDstEnum(TextureRecord t, TextureType dataType, TextureFormat dataFormat) {
-		switch(dataFormat) {
-		case RGB_DXT1: case COMPRESSED_RGB_DXT1:
-			if (!RenderManager.getSystemCapabilities().isS3TCSupported())
-				throw new FeroxException("Compressed textures aren't supported");
-			t.dstFormat = GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-			break;
-		case RGBA_DXT1: case COMPRESSED_RGBA_DXT1: case BGRA_DXT1:
-			if (!RenderManager.getSystemCapabilities().isS3TCSupported())
-				throw new FeroxException("Compressed textures aren't supported");
-			t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-			break;
-		case RGBA_DXT3: case COMPRESSED_RGBA_DXT3:
-			if (!RenderManager.getSystemCapabilities().isS3TCSupported())
-				throw new FeroxException("Compressed textures aren't supported");
-			t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-			break;
-		case RGBA_DXT5: case COMPRESSED_RGBA_DXT5: case BGRA_DXT5:
-			if (!RenderManager.getSystemCapabilities().isS3TCSupported())
-				throw new FeroxException("Compressed textures aren't supported");
-			t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-			break;
-		case ALPHA:
-			t.dstFormat = pickDstAlpha(dataType);
-			break;
-		case LUMINANCE:
-			t.dstFormat = pickDstLum(dataType);
-			break;
-		case DEPTH:
-			t.dstFormat = pickDstDepth(dataType);
-			break;
-		case LUMINANCE_ALPHA:
-			t.dstFormat = pickDstLA(dataType);
-			break;
-		default:
-			if (dataFormat.getNumComponents() == 4) {
-				t.dstFormat = pickDstRGBA(dataType);
-			} else if (dataFormat.getNumComponents() == 3) {
-				t.dstFormat = pickDstRGB(dataType);
-			} else
-				throw new FeroxException("Unsupported texture format");
-			break;
+	private static void setGLDstEnum(TextureRecord t, TextureType dataType, TextureFormat dataFormat, TextureCompression dataComp) {
+		if (dataFormat.isClientCompressed() || dataComp == TextureCompression.NONE || !RenderManager.getSystemCapabilities().isS3TCSupported()) {
+			switch(dataFormat) {
+			case COMPRESSED_RGB_DXT1:
+				t.dstFormat = GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				break;
+			case COMPRESSED_RGBA_DXT1:
+				t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+				break;
+			case COMPRESSED_RGBA_DXT3:
+				t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				break;
+			case COMPRESSED_RGBA_DXT5:
+				t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				break;
+			case ALPHA:
+				t.dstFormat = pickDstAlpha(dataType);
+				break;
+			case LUMINANCE:
+				t.dstFormat = pickDstLum(dataType);
+				break;
+			case DEPTH:
+				t.dstFormat = pickDstDepth(dataType);
+				break;
+			case LUMINANCE_ALPHA:
+				t.dstFormat = pickDstLA(dataType);
+				break;
+			default:
+				if (dataFormat.getNumComponents() == 4) {
+					t.dstFormat = pickDstRGBA(dataType);
+				} else if (dataFormat.getNumComponents() == 3) {
+					t.dstFormat = pickDstRGB(dataType);
+				}
+				break;
+			}
+		} else {
+			switch(dataComp) {
+			case DXT1:
+				if (dataFormat.getNumComponents() == 4)
+					t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+				else 
+					t.dstFormat = GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+				break;
+			case DXT3:
+				t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				break;
+			case DXT5:
+				t.dstFormat = GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				break;
+			}
 		}
 	}
 	
@@ -417,6 +407,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		case UNSIGNED_INT:
 			return GL.GL_RGB16; 
 		case FLOAT:
+			return GL.GL_RGB;
+		case UNCLAMPED_FLOAT:
 			if (TextureData.areUnclampedFloatTexturesSupported())
 				return GL.GL_RGB32F_ARB;
 			else {
@@ -443,6 +435,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		case UNSIGNED_INT:
 			return GL.GL_RGBA16;
 		case FLOAT:
+			return GL.GL_RGBA;
+		case UNCLAMPED_FLOAT:
 			if (TextureData.areUnclampedFloatTexturesSupported())
 				return GL.GL_RGBA32F_ARB;
 			else {
@@ -463,6 +457,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		case UNSIGNED_INT:
 			return GL.GL_LUMINANCE16_ALPHA16;
 		case FLOAT:
+			return GL.GL_LUMINANCE_ALPHA;
+		case UNCLAMPED_FLOAT:
 			if (TextureData.areUnclampedFloatTexturesSupported())
 				return GL.GL_LUMINANCE_ALPHA32F_ARB;
 			else {
@@ -482,7 +478,7 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 			return GL.GL_DEPTH_COMPONENT16;
 		case UNSIGNED_INT:
 			return GL.GL_DEPTH_COMPONENT32;
-		case FLOAT:
+		case FLOAT: case UNCLAMPED_FLOAT:
 			return GL.GL_DEPTH_COMPONENT32;
 		case UNSIGNED_SHORT:
 			return GL.GL_DEPTH_COMPONENT24;
@@ -498,6 +494,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		case UNSIGNED_INT:
 			return GL.GL_LUMINANCE16; 
 		case FLOAT:
+			return GL.GL_LUMINANCE;
+		case UNCLAMPED_FLOAT:
 			if (TextureData.areUnclampedFloatTexturesSupported())
 				return GL.GL_LUMINANCE32F_ARB;
 			else {
@@ -518,6 +516,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		case UNSIGNED_INT:
 			return GL.GL_ALPHA16;
 		case FLOAT:
+			return GL.GL_ALPHA;
+		case UNCLAMPED_FLOAT:
 			if (TextureData.areUnclampedFloatTexturesSupported())
 				return GL.GL_ALPHA32F_ARB;
 			else {
@@ -531,6 +531,29 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		}
 	}
 
+	private static void getTextureDimensions(TextureRecord r, TextureData data) {
+		switch(data.getTarget()) {
+		case TEX2D:
+			Texture2D t2d = (Texture2D)data;
+			r.width = t2d.getWidth();
+			r.height = t2d.getHeight();
+			r.depth = 1;
+			break;
+		case TEX3D:
+			Texture3D t3d = (Texture3D)data;
+			r.width = t3d.getWidth();
+			r.height = t3d.getHeight();
+			r.depth = t3d.getDepth();
+			break;
+		case CUBEMAP:
+			TextureCubeMap tcm = (TextureCubeMap)data;
+			r.width = tcm.getSideLength();
+			r.height = tcm.getSideLength();
+			r.depth = 1;
+			break;
+		}
+	}
+	
 	protected void restoreState(TextureData cleanA, TextureRecord t, GL gl) {
 		this.bindTexture(gl, t.target, 0);
 	}
@@ -545,20 +568,30 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		}
 	}
 
-	public void updateStateAtom(StateAtom atom, StateRecord record) {
+	public void updateStateAtom(StateAtom a, StateRecord record) {
 		TextureRecord t = (TextureRecord)record;
+		TextureData atom = (TextureData)a;
 		GL gl = this.context.getGL();
+		TextureRecord temp = new TextureRecord();
+		setGLSrcTypeEnums(temp, atom.getDataType(), atom.getDataFormat());
+		setGLDstEnum(temp, atom.getDataType(), atom.getDataFormat(), atom.getDataCompression());
+		getTextureDimensions(temp, atom);
 		
-		if (t.texID == 0)
-			return;
-		
-		UnpackPixelStore p = UnpackPixelStore.get(gl);
-		UnpackPixelStore.setUseful(gl);
-		this.updateData(t, (TextureData)atom, gl);
-		p.set(gl);
+		if (t.needsInit(temp)) {
+			this.initAtom(atom, t);
+		} else {
+			UnpackPixelStore p = UnpackPixelStore.get(gl);
+			UnpackPixelStore.setUseful(gl);
+			
+			this.bindTexture(gl, t.target, t.texID);
+			this.updateData(t, (TextureData)atom, gl);
+			this.bindTexture(gl, t.target, 0);
+
+			p.set(gl);
+		}
 	}
 	
-	public void submitData(TextureRecord t, TextureData texture, GL gl) {
+	private void submitData(TextureRecord t, TextureData texture, GL gl) {
 		switch(t.target) {
 		case GL.GL_TEXTURE_2D: case GL.GL_TEXTURE_RECTANGLE_ARB:
 			this.t2d.submitData(t, (Texture2D)texture, gl);
@@ -574,7 +607,7 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		}
 	}
 	
-	public void updateData(TextureRecord t, TextureData texture, GL gl) {
+	private void updateData(TextureRecord t, TextureData texture, GL gl) {
 		switch(t.target) {
 		case GL.GL_TEXTURE_2D: case GL.GL_TEXTURE_RECTANGLE_ARB:
 			this.t2d.updateData(t, (Texture2D)texture, gl);
@@ -588,5 +621,49 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 		default:
 			throw new FeroxException("Unsupported texture target");
 		}
+	}
+	
+	public void validateStateAtom(StateAtom atom) {
+		TextureData t = (TextureData)atom;
+		int target = JOGLTexturePeer.getGLTarget(t);
+		if (target == GL.GL_TEXTURE_3D && !RenderManager.getSystemCapabilities().is3DTexturingSupported())
+			throw new StateUpdateException(atom, "Can't create a 3D texture when 3D textures aren't supported");
+		if (target == GL.GL_TEXTURE_CUBE_MAP && !RenderManager.getSystemCapabilities().isCubeMapTexturingSupported())
+			throw new StateUpdateException(atom, "Can't create a cube map when cube maps aren't supported");
+		if (target == GL.GL_TEXTURE_RECTANGLE_ARB && !RenderManager.getSystemCapabilities().areRectangularTexturesSupported())
+			throw new StateUpdateException(atom, "Can't create a rectangular textures when they aren't supported");
+		
+		if ((t.getTarget() == TextureTarget.TEX2D || t.getTarget() == TextureTarget.CUBEMAP) 
+			&& t.getDataFormat().isClientCompressed() && !RenderManager.getSystemCapabilities().areNpotTexturesSupported()) {
+			int s1 = (t.getTarget() == TextureTarget.TEX2D ? ((Texture2D)t).getWidth() : ((TextureCubeMap)t).getSideLength());
+			int s2 = (t.getTarget() == TextureTarget.TEX2D ? ((Texture2D)t).getHeight() : s1);
+			if (potCeil(s1) != s1 || potCeil(s2) != s2)
+				throw new StateUpdateException(atom, "NPOT textures aren't supported, can't rescale a client compressed texture to POT dimensions");
+		}
+		
+
+		if (!RenderManager.getSystemCapabilities().isS3TCSupported() && t.getDataFormat().isClientCompressed())
+			throw new StateUpdateException(atom, "Compressed textures aren't supported");
+		
+		switch(target) {
+		case GL.GL_TEXTURE_2D: case GL.GL_TEXTURE_RECTANGLE_ARB:
+			this.t2d.validate((Texture2D)t, this.context.getGL());
+			break;
+		case GL.GL_TEXTURE_CUBE_MAP:
+			this.tcm.validate((TextureCubeMap)t, this.context.getGL());
+			break;
+		case GL.GL_TEXTURE_3D:
+			this.t3d.validate((Texture3D)t, this.context.getGL());
+			break;
+		default:
+			throw new StateUpdateException(atom, "Unsupported texture target");
+		}
+	}
+	
+	static int potCeil(int num) {
+		int pot = 1;
+		while (pot < num)
+			pot *= 2;
+		return pot;
 	}
 }

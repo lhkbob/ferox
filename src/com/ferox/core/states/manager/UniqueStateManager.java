@@ -46,7 +46,7 @@ public abstract class UniqueStateManager<S extends StateAtom> extends StateManag
 		}
 	}
 	
-	public StateManager merge(StateManager manager) {
+	public StateManager merge(StateManager manager) throws FeroxException {
 		UniqueStateManager<S> pM = (UniqueStateManager<S>)manager;
 		
 		switch(this.getMergeMode()) {

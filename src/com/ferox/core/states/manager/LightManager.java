@@ -44,8 +44,8 @@ public class LightManager extends StateManager {
 		return this.ambientLight;
 	}
 	
-	public void setGlobalAmbientLight(float[] gl) {
-		if (gl == null || gl.length != this.ambientLight.length)
+	public void setGlobalAmbientLight(float[] gl) throws IllegalArgumentException {
+		if (gl == null || gl.length != 4)
 			throw new IllegalArgumentException("Incorrect number of color components");
 		this.ambientLight = gl;
 		this.invalidateAssociatedStateTrees();
@@ -74,7 +74,7 @@ public class LightManager extends StateManager {
 	}
 
 	@Override
-	public StateManager merge(StateManager manager) {
+	public StateManager merge(StateManager manager) throws FeroxException {
 		LightManager man = (LightManager)manager;
 		
 		switch(this.getMergeMode()) {

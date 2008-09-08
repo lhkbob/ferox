@@ -62,7 +62,7 @@ public class DisplayOptions {
 		return this.width;
 	}
 	
-	public void setWidth(int width) {
+	public void setWidth(int width) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.width = width;
 		else
@@ -73,7 +73,7 @@ public class DisplayOptions {
 		return this.height;
 	}
 	
-	public void setHeight(int height) {
+	public void setHeight(int height) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.height = height;
 		else
@@ -84,7 +84,7 @@ public class DisplayOptions {
 		return this.redBits;
 	}
 	
-	public void setRedBits(int redBits) {
+	public void setRedBits(int redBits) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.redBits = redBits;
 		else
@@ -95,7 +95,7 @@ public class DisplayOptions {
 		return this.greenBits;
 	}
 	
-	public void setGreenBits(int greenBits) {
+	public void setGreenBits(int greenBits) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.greenBits = greenBits;
 		else
@@ -106,7 +106,7 @@ public class DisplayOptions {
 		return this.blueBits;
 	}
 	
-	public void setBlueBits(int blueBits) {
+	public void setBlueBits(int blueBits) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.blueBits = blueBits;
 		else
@@ -117,7 +117,7 @@ public class DisplayOptions {
 		return this.alphaBits;
 	}
 	
-	public void setAlphaBits(int alphaBits) {
+	public void setAlphaBits(int alphaBits) throws UnsupportedOperationException {
 		if (!this.readOnly)	
 			this.alphaBits = alphaBits;
 		else
@@ -137,7 +137,7 @@ public class DisplayOptions {
 		return this.doubleBuffered;
 	}
 	
-	public void setDoubleBuffered(boolean doubleBuffered) {
+	public void setDoubleBuffered(boolean doubleBuffered) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.doubleBuffered = doubleBuffered;
 		else
@@ -148,7 +148,7 @@ public class DisplayOptions {
 		return this.multiSampleBuffers;
 	}
 	
-	public void setNumMultiSamples(int multiSamples) {
+	public void setNumMultiSamples(int multiSamples) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.multiSampleBuffers = multiSamples;
 		else
@@ -159,7 +159,7 @@ public class DisplayOptions {
 		return this.headless;
 	}
 	
-	public void setHeadless(boolean headless) {
+	public void setHeadless(boolean headless) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.headless = headless;
 		else
@@ -170,7 +170,7 @@ public class DisplayOptions {
 		return this.heavyweight;
 	}
 	
-	public void setHeavyweight(boolean heavyweight) {
+	public void setHeavyweight(boolean heavyweight) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.heavyweight = heavyweight;
 		else
@@ -181,14 +181,14 @@ public class DisplayOptions {
 		return this.stencilBits;
 	}
 	
-	public void setStencilBits(int bits) {
+	public void setStencilBits(int bits) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.stencilBits = bits;
 		else
 			throw new UnsupportedOperationException("Can't set on a read-only DisplayOptions");
 	}
 	
-	public void setDepthBits(int bits) {
+	public void setDepthBits(int bits) throws UnsupportedOperationException {
 		if (!this.readOnly)
 			this.depthBits = bits;
 		else

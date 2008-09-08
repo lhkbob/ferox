@@ -6,6 +6,7 @@ import javax.media.opengl.GL;
 
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.StateAtom;
+import com.ferox.core.states.StateUpdateException;
 import com.ferox.core.states.StateAtom.StateRecord;
 import com.ferox.core.states.atoms.GLSLShaderObject;
 import com.ferox.core.states.atoms.GLSLShaderObject.GLSLType;
@@ -47,17 +48,9 @@ public class JOGLGLSLShaderObjectPeer extends SimplePeer<GLSLShaderObject, GLSLO
 		GL gl = this.context.getGL();
 		GLSLObjectRecord r = new GLSLObjectRecord();
 		
-		if (this.isPossiblyValid(atom)) {
-			r.type = getGLShaderType(atom.getShaderType());
-			r.id = gl.glCreateShader(r.type);
-			this.attachSourceAndCompile(gl, r, atom);
-		} else {
-			r.type = 0;
-			r.id = 0;
-			r.compiled = false;
-			r.infoLog = "Not Compiled";
-			atom.setInfoLog("Not compiled, to use requires non-empty source and that glsl is supported");
-		}
+		r.type = getGLShaderType(atom.getShaderType());
+		r.id = gl.glCreateShader(r.type);
+		this.attachSourceAndCompile(gl, r, atom);
 		
 		return r;
 	}
@@ -70,21 +63,18 @@ public class JOGLGLSLShaderObjectPeer extends SimplePeer<GLSLShaderObject, GLSLO
 		GL gl = ((JOGLRenderContext)context).getGL();
 		GLSLObjectRecord r = (GLSLObjectRecord)record;
 		
-		r.compiled = this.isPossiblyValid(atom);
-		if (r.compiled) {
-			if (r.type <= 0 || r.id <= 0) {
-				r.type = getGLShaderType(atom.getShaderType());
-				r.id = gl.glCreateShader(r.type);
-			}
-			this.attachSourceAndCompile(gl, r, atom);
-		} else if (r.id > 0) {
-			this.destroyShader(gl, r);
-			atom.setInfoLog("Shader object destroyed");
+		if (r.type <= 0 || r.id <= 0) {
+			r.type = getGLShaderType(atom.getShaderType());
+			r.id = gl.glCreateShader(r.type);
 		}
+		this.attachSourceAndCompile(gl, r, atom);
 	}
 	
-	private boolean isPossiblyValid(GLSLShaderObject atom) {
-		return RenderManager.getSystemCapabilities().areGLSLShadersSupported() && atom.getSource() != null && atom.getSource().length > 0;
+	public void validateStateAtom(StateAtom atom) throws StateUpdateException {
+		if (RenderManager.getSystemCapabilities().areGLSLShadersSupported()) {
+			((GLSLShaderObject)atom).setCompiled(false, "GLSL isn't supported");
+			throw new StateUpdateException(atom, "GLSL is not supported on this device");
+		}
 	}
 	
 	private void destroyShader(GL gl, GLSLObjectRecord r) {
@@ -92,7 +82,7 @@ public class JOGLGLSLShaderObjectPeer extends SimplePeer<GLSLShaderObject, GLSLO
 		r.id = 0;
 		r.type = 0;
 		r.compiled = false;
-		r.infoLog = "Shader object destroyed";
+		r.infoLog = "";
 	}
 	
 	private void attachSourceAndCompile(GL gl, GLSLObjectRecord r, GLSLShaderObject atom) {
@@ -116,15 +106,13 @@ public class JOGLGLSLShaderObjectPeer extends SimplePeer<GLSLShaderObject, GLSLO
 		
 		gl.glGetShaderiv(r.id, GL.GL_COMPILE_STATUS, temp, 0);
 		if (temp[0] == GL.GL_FALSE) {
-			r.infoLog = "ShaderObject failed to compile, error msg: " + r.infoLog;
-			atom.setInfoLog(r.infoLog);
+			r.infoLog = "ShaderObject failed to compile, error msg:\n" + r.infoLog;
 			r.compiled = false;
-			throw new FeroxException("ShaderObject failed to compile, type=" + (r.type == GL.GL_VERTEX_SHADER ? "GL_VERTEX_SHADER" : "GL_FRAGMENT_SHADER") + ": \n" + r.infoLog);
 		} else {
-			r.infoLog = "ShaderObject compiled successfully, id="+ r.id + " type=" + (r.type == GL.GL_VERTEX_SHADER ? "GL_VERTEX_SHADER" : "GL_FRAGMENT_SHADER");
-			atom.setInfoLog(r.infoLog);
+			r.infoLog = "ShaderObject compiled successfully, id = "+ r.id + " type = " + (r.type == GL.GL_VERTEX_SHADER ? "GL_VERTEX_SHADER" : "GL_FRAGMENT_SHADER");
 			r.compiled = true;
 		}
+		atom.setCompiled(r.compiled, r.infoLog);
 	}
 }
 

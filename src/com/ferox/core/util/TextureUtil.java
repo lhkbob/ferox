@@ -3,6 +3,7 @@ package com.ferox.core.util;
 import java.nio.*;
 
 import com.ferox.core.states.atoms.TextureData;
+import com.ferox.core.states.atoms.TextureData.TextureCompression;
 import com.ferox.core.states.atoms.TextureData.TextureFormat;
 import com.ferox.core.states.atoms.TextureData.TextureType;
 
@@ -31,7 +32,7 @@ public class TextureUtil {
 	}
 	
 	public static Buffer[] buildMipmaps3D(Buffer data, TextureFormat format, TextureType type, int width, int height, int depth) {
-		if (!TextureData.isBufferValid(type, format, width, height, depth, data))
+		if (!TextureData.isBufferValid(type, format, TextureCompression.NONE, width, height, depth, data))
 			throw new IllegalArgumentException("Original image data is an invalid texture");
 		if (format.isClientCompressed())
 			throw new IllegalArgumentException("Can't scale a compressed image");
@@ -63,7 +64,7 @@ public class TextureUtil {
 	}
 	
 	public static Buffer scaleImage3D(Buffer data, TextureFormat format, TextureType type, int oldWidth, int oldHeight, int oldDepth, int newWidth, int newHeight, int newDepth) {
-		if (!TextureData.isBufferValid(type, format, oldWidth, oldHeight, oldDepth, data))
+		if (!TextureData.isBufferValid(type, format, TextureCompression.NONE, oldWidth, oldHeight, oldDepth, data))
 			throw new IllegalArgumentException("Original image data is an invalid texture");
 		if (format.isClientCompressed())
 			throw new IllegalArgumentException("Can't scale a compressed image");
@@ -91,9 +92,9 @@ public class TextureUtil {
 	}
 	
 	public static void scaleImage3D(Buffer data, TextureFormat format, TextureType type, int oldWidth, int oldHeight, int oldDepth, int newWidth, int newHeight, int newDepth, Buffer newImage) {
-		if (!TextureData.isBufferValid(type, format, oldWidth, oldHeight, oldDepth, data))
+		if (!TextureData.isBufferValid(type, format, TextureCompression.NONE, oldWidth, oldHeight, oldDepth, data))
 			throw new IllegalArgumentException("Original image data is an invalid texture");
-		if (!TextureData.isBufferValid(type, format, newWidth, newHeight, newDepth, newImage))
+		if (!TextureData.isBufferValid(type, format, TextureCompression.NONE, newWidth, newHeight, newDepth, newImage))
 			throw new IllegalArgumentException("New image data won't be a valid texture");
 		if (format.isClientCompressed())
 			throw new IllegalArgumentException("Can't scale a compressed image");

@@ -3,6 +3,7 @@ package com.ferox.core.states.atoms;
 import java.util.Iterator;
 import java.util.WeakHashMap;
 
+import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.NullUnit;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
@@ -28,22 +29,33 @@ public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator
 	private String[] source;
 	private GLSLType type;
 	private String infoLog;
+	private boolean compiled;
 	
 	/**
 	 * Creates a given glsl of type VERTEX_SHADER or FRAGMENT_SHADER with
 	 * the source code in the array of strings (source is concatentation of the elements, which
 	 * shouldn't be null strings).
 	 */
-	public GLSLShaderObject(String[] source, GLSLType type) throws IllegalArgumentException {
+	public GLSLShaderObject(String[] source, GLSLType type) {
 		this();
-		this.source = source;
+		this.setSource(source);
 		this.type = type;
 		this.infoLog = "";
+		this.compiled = false;
 	}
 	
 	private GLSLShaderObject() { 
 		super();
 		this.linkedPrograms = new WeakHashMap<GLSLShaderProgram, Boolean>();
+	}
+	
+	public boolean isCompiled() {
+		return this.compiled;
+	}
+	
+	public void setCompiled(boolean compiled, String msg) {
+		this.compiled = compiled;
+		this.infoLog = msg;
 	}
 	
 	/**
@@ -52,14 +64,6 @@ public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator
 	 */
 	public String getInfoLog() {
 		return this.infoLog;
-	}
-	
-	/**
-	 * Sets the info log to the given log, shouldn't be set by the user.  Instead, it should be used
-	 * by a shader atom peer to properly set the log after it is compiled on the graphics card.
-	 */
-	public void setInfoLog(String log) {
-		this.infoLog = log;
 	}
 	
 	/**
@@ -80,16 +84,31 @@ public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator
 	/**
 	 * Sets the source code for the shader, won't take affect until after an update.
 	 */
-	public void setSource(String[] source) {
-		this.source = source;
+	public void setSource(String[] source) throws NullPointerException {
+		if (source == null)
+			throw new NullPointerException("Can't create a glsl shader object with null source");
+		int nonNull = 0;
+		for (int i = 0; i < source.length; i++) 
+			if (source[i] != null)
+				nonNull++;
+		if (nonNull == 0)
+			throw new NullPointerException("Can't create a glsl shader object with null source");
+		this.source = new String[nonNull];
+		nonNull = 0;
+		for (int i = 0; i < source.length; i++) {
+			if (source[i] != null) {
+				this.source[nonNull] = source[i];
+				nonNull++;
+			}
+		}
 	}
 	
 	@Override
-	public void updateStateAtom() {
+	public void update(RenderManager manager) {
 		Iterator<GLSLShaderProgram> p = this.linkedPrograms.keySet().iterator();
 		while (p.hasNext()) 
-			p.next().updateStateAtom();
-		super.updateStateAtom();
+			p.next().update(manager);
+		super.update(manager);
 	}
 	
 	boolean linkToProgram(GLSLShaderProgram prog) {

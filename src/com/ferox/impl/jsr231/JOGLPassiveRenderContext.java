@@ -97,7 +97,7 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 		this.drawer.display();
 	}
 
-	public void display(GLAutoDrawable glAD) {		
+	public void display(GLAutoDrawable glAD) throws FeroxException {		
 		this.getRenderManager().notifyRenderFrame();
 		
 		int error = this.gl.glGetError();

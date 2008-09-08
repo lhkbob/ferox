@@ -3,6 +3,7 @@ package com.ferox.core.states;
 import com.ferox.core.states.StateAtom.StateRecord;
 
 public interface StateAtomPeer {
+	public void validateStateAtom(StateAtom atom) throws StateUpdateException;
 	public StateRecord initializeStateAtom(StateAtom atom);
 	public void updateStateAtom(StateAtom atom, StateRecord record);
 	public void cleanupStateAtom(StateRecord record);

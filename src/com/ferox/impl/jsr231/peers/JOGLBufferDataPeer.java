@@ -7,6 +7,7 @@ import javax.media.opengl.GL;
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
+import com.ferox.core.states.StateUpdateException;
 import com.ferox.core.states.StateAtom.StateRecord;
 import com.ferox.core.states.atoms.BufferData;
 import com.ferox.core.states.atoms.BufferData.BufferTarget;
@@ -65,17 +66,23 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 		dest.position(pos);
 	}*/
 	
+	public void validateStateAtom(StateAtom atom) throws StateUpdateException {
+		BufferData d = (BufferData)atom;
+		if (!RenderManager.getSystemCapabilities().areVertexBuffersSupported() && d.isVBO())
+			d.setVBO(false);
+	}
+	
 	protected void applyState(BufferData prevA, BufferRecord prevR, BufferData nextA, BufferRecord nextR, GL gl) {
 		if (prevR == null || prevR != nextR) {
-			if (prevR != null && !nextR.allocated && prevR.allocated)
+			if (prevR != null && nextR.byteCapacity <= 0 && prevR.byteCapacity > 0)
 				gl.glBindBufferARB(this.currentTarget, 0);
-			else if (nextR.allocated)
+			else if (nextR.byteCapacity > 0)
 				gl.glBindBufferARB(this.currentTarget, nextR.vboID);
 		}
 	}
 
 	public void cleanupStateAtom(StateRecord record) {
-		if (((BufferRecord)record).allocated)
+		if (((BufferRecord)record).byteCapacity > 0)
 			this.deleteBuffer(((BufferRecord)record).vboID, this.context.getGL());
 	}
 
@@ -83,11 +90,8 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 		BufferData atom = (BufferData)a;
 		
 		BufferRecord r = new BufferRecord();
-		r.allocated = false;
+		r.byteCapacity = -1;
 		r.vboID = 0;
-		
-		if (!RenderManager.getSystemCapabilities().areVertexBuffersSupported() && atom.isVBO())
-			atom.setVBO(false);
 		
 		if (atom.isVBO()) {
 			GL gl = this.context.getGL();
@@ -101,7 +105,7 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 	}
 
 	protected void restoreState(BufferData cleanA, BufferRecord r, GL gl) {
-		if (r.vboID != 0 && r.allocated)
+		if (r.vboID != 0 && r.byteCapacity > 0)
 			gl.glBindBufferARB(this.currentTarget, 0);
 	}
 
@@ -109,18 +113,22 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 		this.currentTarget = getGLTarget((BufferTarget)unit);
 	}
 
-	public void updateStateAtom(BufferData atom, StateRecord record) {
-		if (!RenderManager.getSystemCapabilities().areVertexBuffersSupported() && atom.isVBO()) {
-			atom.setVBO(false);
-			return;
-		}
+	public void updateStateAtom(StateAtom atom, StateRecord record) {
 		BufferRecord r = (BufferRecord)record;
-		if (r.vboID == 0) {
+		BufferData d = (BufferData)atom;
+		
+		if (d.isVBO() && r.byteCapacity > 0) {
+			if (d.getCapacity() * d.getByteSize() != r.byteCapacity)
+				r.byteCapacity = -1;
+			this.fillBuffer(d, r, this.context.getGL());
+		} else if (!d.isVBO() && r.byteCapacity > 0) {
+			this.deleteBuffer(r.vboID, this.context.getGL());
+		} else if (d.isVBO() && r.byteCapacity <= 0) {
 			int[] id = new int[1];
 			this.context.getGL().glGenBuffers(1, id, 0);
 			r.vboID = id[0];
+			this.fillBuffer(d, r, this.context.getGL());
 		}
-		this.fillBuffer(atom, r, this.context.getGL());
 	}
 	
 	private void fillBuffer(BufferData data, BufferRecord r, GL gl) {
@@ -155,11 +163,9 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 		
 		if (target == GL.GL_PIXEL_UNPACK_BUFFER_EXT || target == GL.GL_PIXEL_PACK_BUFFER_EXT) {
 			if (!RenderManager.getSystemCapabilities().arePixelBuffersSupported()) {
-				if (r.vboID > 0)
-					this.deleteBuffer(r.vboID, gl);
-				r.vboID = 0;
-				r.allocated = false;
-				return;
+				// make a normal array buffer instead, all the fetch operations in RenderContext will still work
+				target = GL.GL_ARRAY_BUFFER_ARB;
+				binding = GL.GL_ARRAY_BUFFER_BINDING_ARB;
 			}
 		}
 		
@@ -167,13 +173,15 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 		gl.glGetIntegerv(binding, prev, 0);
 		gl.glBindBufferARB(target, r.vboID);
 	
-		if (!r.allocated) {
+		if (r.byteCapacity <= 0) {
 			gl.glBufferDataARB(target, data.getCapacity() * data.getByteSize(), bd, getGLUsageHint(data.getUsageHint()));
 			if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
 				this.deleteBuffer(r.vboID, gl);
+				data.setVBO(false);
 				r.vboID = 0;
-			} else
-				r.allocated = true;
+				System.err.println("WARNING: out of memory, reverting to non-vbo BufferData");
+			} else 
+				r.byteCapacity = data.getCapacity() * data.getByteSize();
 		} else 
 			gl.glBufferSubDataARB(target, 0, data.getCapacity() * data.getByteSize(), bd);
 	
@@ -186,6 +194,7 @@ public class JOGLBufferDataPeer extends SimplePeer<BufferData, BufferRecord> {
 	}
 	
 	private void deleteBuffer(int vboID, GL gl) {
-		gl.glDeleteBuffersARB(1, new int[] {vboID}, 0);
+		if (vboID != 0)
+			gl.glDeleteBuffersARB(1, new int[] {vboID}, 0);
 	}
 }

@@ -29,10 +29,8 @@ public class RenderAtom  {
 	/**
 	 * Constructs a RenderAtom with the given Spatial and State leaves.  A RenderAtom can't have a null
 	 * SpatialLeaf, and its linked SpatialLeaf is final.
-	 * @param link
-	 * @param stateLink
 	 */
-	public RenderAtom(SpatialLeaf link, StateLeaf stateLink) {
+	public RenderAtom(SpatialLeaf link, StateLeaf stateLink) throws NullPointerException {
 		if (link == null)
 			throw new NullPointerException("Can't have a null spatial link");
 		

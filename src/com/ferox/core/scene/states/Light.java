@@ -47,8 +47,6 @@ public abstract class Light extends SpatialState {
 	public Light(float[] diff, float[] spec) {
 		super();
 			
-		this.diff = new float[4];
-		this.spec = new float[4];
 		this.amb = new float[] {.2f, .2f, .2f, 1f};
 		this.worldTransform = new Transform();
 		
@@ -93,15 +91,15 @@ public abstract class Light extends SpatialState {
 	/**
 	 * Sets the diffuse color, can't be null and must be of length 4.
 	 */
-	public void setDiffuseColor(float[] diff) {
-		if (diff == null || diff.length != this.diff.length) {
+	public void setDiffuseColor(float[] diff) throws IllegalArgumentException {
+		if (diff == null || diff.length != 4) {
 			throw new IllegalArgumentException("Diffuse color must have 4 elements to it");
 		}
 		this.diff = diff;
 	}
 	
-	public void setAmbientColor(float[] amb) {
-		if (amb == null || amb.length != this.amb.length) {
+	public void setAmbientColor(float[] amb) throws IllegalArgumentException {
+		if (amb == null || amb.length != 4) {
 			throw new IllegalArgumentException("Ambient color must have 4 elements to it");
 		}
 		this.amb = amb;
@@ -110,8 +108,8 @@ public abstract class Light extends SpatialState {
 	/**
 	 * Sets the specular color, can't be null and must be of length 4.
 	 */
-	public void setSpecularColor(float[] spec) {
-		if (spec == null || spec.length != this.spec.length) {
+	public void setSpecularColor(float[] spec) throws IllegalArgumentException {
+		if (spec == null || spec.length != 4) {
 			throw new IllegalArgumentException("Specular color must have 4 elements to it");
 		}
 		this.spec = spec;
@@ -147,7 +145,7 @@ public abstract class Light extends SpatialState {
 	
 	@Override
 	public boolean isValidUnit(StateUnit unit) {
-		if (!(unit instanceof NumericUnit))
+		if (unit == null || !(unit instanceof NumericUnit))
 			return false;
 		if (LightManager.getMaxNumLights() >= 0 && 
 			LightManager.getMaxNumLights() <= unit.ordinal())

@@ -116,7 +116,7 @@ public class Transform implements Chunkable {
 		return rot;
 	}
 	
-	public Transform mul(Transform t1, Transform t2) {
+	public Transform mul(Transform t1, Transform t2) throws NullPointerException {
 		if (t1 == null || t2 == null)
 			throw new NullPointerException("Can't multiply null transforms");
 		t1.transform(t2.trans, temp);
@@ -130,14 +130,14 @@ public class Transform implements Chunkable {
 		this.inverse(this);
 	}
 	
-	public Transform inverse(Transform t) {
+	public Transform inverse(Transform t) throws NullPointerException {
 		if (t == null)
 			throw new NullPointerException("Can't inverse a null transform");
 		this.inverseMul(t, Transform.IDENTITY);
 		return this;
 	}
 	
-	public Transform inverseMul(Transform ti, Transform tn) {
+	public Transform inverseMul(Transform ti, Transform tn) throws NullPointerException {
 		if (ti == null || tn == null)
 			throw new NullPointerException("Can't inverse multiply null transforms");
 		
@@ -153,6 +153,8 @@ public class Transform implements Chunkable {
 	}
 	
 	public Vector3f transform(Vector3f t, Vector3f result) {
+		if (t == null)
+			throw new NullPointerException("Can't transform a null vector");
 		if (result == null)
 			result = new Vector3f();
 		if (result == this.trans || result == this.scale)
@@ -169,7 +171,9 @@ public class Transform implements Chunkable {
 		this.inverseTransform(t, t);
 	}
 	
-	public Vector3f inverseTransform(Vector3f t, Vector3f result) {
+	public Vector3f inverseTransform(Vector3f t, Vector3f result) throws NullPointerException, IllegalArgumentException {
+		if (t == null)
+			throw new NullPointerException("Can't transform a null vector");
 		if (result == null)
 			result = new Vector3f();
 		if (result == this.trans || result == this.scale)

@@ -138,19 +138,19 @@ public class Texture extends StateAtom {
 		return this.planeT;
 	}
 	
-	public void setTexCoordGenPlaneR(float[] plane) {
+	public void setTexCoordGenPlaneR(float[] plane) throws IllegalArgumentException {
 		if (plane.length != 4)
 			throw new IllegalArgumentException("Plane needs 4 elements");
 		this.planeR = plane;
 	}
 	
-	public void setTexCoordGenPlaneS(float[] plane) {
+	public void setTexCoordGenPlaneS(float[] plane) throws IllegalArgumentException {
 		if (plane.length != 4)
 			throw new IllegalArgumentException("Plane needs 4 elements");
 		this.planeS = plane;
 	}
 	
-	public void setTexCoordGenPlaneT(float[] plane) {
+	public void setTexCoordGenPlaneT(float[] plane) throws IllegalArgumentException {
 		if (plane.length != 4)
 			throw new IllegalArgumentException("Plane needs 4 elements");
 		this.planeT = plane;

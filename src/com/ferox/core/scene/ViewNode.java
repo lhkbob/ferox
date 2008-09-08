@@ -18,7 +18,7 @@ public class ViewNode extends SpatialBranch {
 	}
 	
 	public ViewNode(View view, SpatialBranch parent) {
-		super(parent, 0);
+		super(parent, 1);
 		this.setView(view);
 	}
 	

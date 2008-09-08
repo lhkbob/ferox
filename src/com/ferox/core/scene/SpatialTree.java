@@ -3,6 +3,7 @@ package com.ferox.core.scene;
 import com.ferox.core.renderer.RenderAtomBin;
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.renderer.Updatable;
+import com.ferox.core.util.FeroxException;
 
 
 /**
@@ -56,10 +57,11 @@ public class SpatialTree implements Updatable {
 	 * RenderQueue and render each RenderAtom present in it.  Used internally, don't call by directly
 	 * (unless via super.prepareSpatialTree()).
 	 */
-	public void update() {
+	public void update() throws FeroxException {
 		if (this.rootNode == null)
 			return;
-		this.rootNode.detach();
+		if (this.rootNode.getParent() != null)
+			throw new FeroxException("A root node in a SpatialTree can't have a parent");
 		this.rootNode.update(true);
 	}
 	

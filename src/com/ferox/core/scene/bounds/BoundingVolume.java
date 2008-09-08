@@ -20,8 +20,8 @@ public abstract class BoundingVolume implements Chunkable {
 	public abstract BoundType getBoundType();
 	public abstract int testFrustum(View view, int planeState);
 		
-	public abstract void getFurthestExtent(Vector3f dir, Vector3f result);
-	public abstract void getClosestExtent(Vector3f dir, Vector3f result);
+	public abstract Vector3f getFurthestExtent(Vector3f dir, Vector3f result);
+	public abstract Vector3f getClosestExtent(Vector3f dir, Vector3f result);
 	
 	public BoundingVolume enclose(BoundingVolume toEnclose, BoundingVolume result) {
 		result = this.clone(result);

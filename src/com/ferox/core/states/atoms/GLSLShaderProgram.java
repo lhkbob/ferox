@@ -18,6 +18,7 @@ public class GLSLShaderProgram extends StateAtom {
 	private boolean hasVertexShader;
 	private boolean hasFragmentShader;
 	private String infoLog;
+	private boolean compiled;
 	
 	public GLSLShaderProgram() {
 		this(null);
@@ -28,6 +29,8 @@ public class GLSLShaderProgram extends StateAtom {
 	 */
 	public GLSLShaderProgram(GLSLShaderObject[] shaders) {
 		super();
+		this.compiled = false;
+		this.infoLog = "";
 		this.setShaders(shaders);
 	}
 
@@ -64,12 +67,13 @@ public class GLSLShaderProgram extends StateAtom {
 		return this.hasFragmentShader;
 	}
 
-	/**
-	 * Sets the info log that results from linking the shader program in the graphics card.  Shouldn't be called directly,
-	 * it is the responsibility of the state atom peer to set this variable appropriately.
-	 */
-	public void setInfoLog(String log) {
-		this.infoLog = log;
+	public boolean isCompiled() {
+		return this.compiled;
+	}
+	
+	public void setCompiled(boolean compiled, String msg) {
+		this.compiled = compiled;
+		this.infoLog = msg;
 	}
 	
 	/**
@@ -89,6 +93,9 @@ public class GLSLShaderProgram extends StateAtom {
 			for (int i = 0; i < this.shaders.length; i++)
 				this.shaders[i].unlinkFromProgram(this);
 		}
+
+		this.hasVertexShader = false;
+		this.hasFragmentShader = false;
 		
 		if (shaders != null) {
 			int non_null_count = 0;
@@ -106,11 +113,8 @@ public class GLSLShaderProgram extends StateAtom {
 			this.fixedFunction = this.shaders == null;
 		} else {
 			this.fixedFunction = true;
-			this.hasVertexShader = false;
-			this.hasFragmentShader = false;
 			this.shaders = null;
 		}
-		this.updateStateAtom();
 	}
 	
 	@Override

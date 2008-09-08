@@ -12,25 +12,30 @@ public class TextureCubeMap extends TextureData {
 	
 	private Buffer[] px, nx, py, ny, pz, nz;
 	private int side;
+	private boolean inited;
 	
 	public TextureCubeMap(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
 		super(dataType, dataFormat, min, mag);
 		this.setTextureData(px, nx, py, ny, pz, nz, side);
+		this.inited = true;
 	}
 	
 	public TextureCubeMap(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureType dataType, TextureFormat dataFormat, TexClamp clamp) {
 		super(dataType, dataFormat, clamp);
 		this.setTextureData(px, nx, py, ny, pz, nz, side);
+		this.inited = true;
 	}
 	
 	public TextureCubeMap(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureType dataType, TextureFormat dataFormat, TexClamp clamp, MinFilter min, MagFilter mag) {
 		super(dataType, dataFormat, clamp, min, mag);
 		this.setTextureData(px, nx, py, ny, pz, nz, side);
+		this.inited = true;
 	}
 	
-	public TextureCubeMap(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureType dataType, TextureFormat dataFormat, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
-		super(dataType, dataFormat, clampS, clampT, clampR, min, mag);
+	public TextureCubeMap(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureType dataType, TextureFormat dataFormat, TextureCompression comp, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
+		super(dataType, dataFormat, comp, clampS, clampT, clampR, min, mag);
 		this.setTextureData(px, nx, py, ny, pz, nz, side);
+		this.inited = true;
 	}
 	
 	private Buffer[] compressBuffer(Buffer[] data) {
@@ -51,38 +56,39 @@ public class TextureCubeMap extends TextureData {
 			return null;
 	}
 	
-	private void validateCubeFace(Buffer[] face, int side) {
+	private void validateCubeFace(Buffer[] face, int side) throws IllegalArgumentException {
 		for (int i = 0; i < face.length; i++) {
-			if (!TextureData.isBufferValid(this.getDataType(), this.getDataFormat(), side, side, face[i]))
+			if (!TextureData.isBufferValid(this.getDataType(), this.getDataFormat(), this.getDataCompression(), side, side, face[i]))
 				throw new IllegalArgumentException("Improper buffer data size at mipmap level: " + i);
 			side = Math.max(1, (side >> 1));
 		}
 	}
 
-	public void setTextureFormatAndType(TextureFormat format, TextureType type) {
-		this.setTexture(this.px, this.nx, this.py, this.ny, this.pz, this.nz, this.side, format, type);
+	public void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) {
+		if (this.inited)
+			this.setTexture(this.px, this.nx, this.py, this.ny, this.pz, this.nz, this.side, format, type, comp);
+		else
+			super.setTextureFormat(format, type, comp);
 	}
 	
-	public void setTexture(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureFormat format, TextureType type) {
+	public void setTexture(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureFormat format, TextureType type, TextureCompression comp) throws IllegalArgumentException {
 		TextureFormat oldFormat = this.getDataFormat();
 		TextureType oldType = this.getDataType();
+		TextureCompression oldComp = this.getDataCompression();
 		try {
-			this.setFormatAndType(format, type);
+			super.setTextureFormat(format, type, comp);
 			this.setTextureData(px, nx, py, ny, pz, nz, side);
 		} catch (RuntimeException e) {
-			this.setFormatAndType(oldFormat, oldType);
+			super.setTextureFormat(oldFormat, oldType, oldComp);
 			throw e;
 		}
-		
-		if (oldFormat != this.getDataFormat() || oldType != this.getDataType())
-			this.cleanupStateAtom();
 	}
 	
 	public void setTextureData(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz) {
 		this.setTextureData(px, nx, py, ny, pz, nz, this.side);
 	}
 	
-	public void setTextureData(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side) {
+	public void setTextureData(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side) throws IllegalArgumentException {
 		int oldSide = this.side;
 		Buffer[] oldPX = this.px;
 		Buffer[] oldNX = this.nx;
@@ -108,7 +114,7 @@ public class TextureCubeMap extends TextureData {
 				// assume we want a headless texture, the rest of the data must be null too
 				if (this.nx != null || this.py != null || this.ny != null || this.pz != null || this.nz != null)
 					throw new IllegalArgumentException("If using null buffers, all cube faces must be null");
-				if (this.getDataFormat().isServerCompressed())
+				if (this.getDataFormat().isClientCompressed() || this.getDataCompression() != TextureCompression.NONE)
 					throw new IllegalArgumentException("Headless texture can't be compressed");
 			} else {
 				if (this.nx == null || this.py == null || this.ny == null || this.pz == null || this.nz == null)
@@ -138,10 +144,6 @@ public class TextureCubeMap extends TextureData {
 			this.nz = oldNZ;
 			throw e;
 		}
-		
-		// new texture data is valid, see if we need a new texture object (ie new size, everything else new is covered in peer)
-		if (oldSide != this.side)
-			this.cleanupStateAtom();
 	}
 	
 	public Buffer getPositiveXMipmap(int level) {
@@ -168,6 +170,51 @@ public class TextureCubeMap extends TextureData {
 		return (this.nz == null ? null : this.nz[level]);
 	}
 
+	public Buffer getMipmap(int level, Face face) throws NullPointerException {
+		if (face == null)
+			throw new NullPointerException("Can't return a mipmap buffer for a null face");
+		switch(face) {
+		case NX:
+			return getNegativeXMipmap(level);
+		case PX:
+			return getPositiveXMipmap(level);
+		case NY:
+			return getNegativeYMipmap(level);
+		case PY:
+			return getPositiveYMipmap(level);
+		case NZ:
+			return getNegativeZMipmap(level);
+		case PZ:
+			return getPositiveZMipmap(level);
+		}
+		return null;
+	}
+	
+	public void setTextureData(Buffer[] data, Face face) throws IllegalArgumentException, NullPointerException {
+		if (face == null)
+			throw new NullPointerException("Can't set texture data for a null face");
+		switch(face) {
+		case PX:
+			this.setTextureData(data, this.nx, this.py, this.ny, this.pz, this.nz);
+			break;
+		case NX:
+			this.setTextureData(this.px, data, this.py, this.ny, this.pz, this.nz);
+			break;
+		case PY:
+			this.setTextureData(this.px, this.nx, data, this.ny, this.pz, this.nz);
+			break;
+		case NY:
+			this.setTextureData(this.px, this.nx, this.py, data, this.pz, this.nz);
+			break;
+		case PZ:
+			this.setTextureData(this.px, this.nx, this.py, this.ny, data, this.nz);
+			break;
+		case NZ:
+			this.setTextureData(this.px, this.nx, this.py, this.ny, this.pz, data);
+			break;
+		}
+	}
+	
 	public int getSideLength() {
 		return this.getSideLength(0);
 	}

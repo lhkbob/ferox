@@ -7,6 +7,7 @@ import javax.media.opengl.GL;
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.atoms.Texture2D;
 import com.ferox.core.states.atoms.TextureCubeMap.Face;
+import com.ferox.core.states.atoms.TextureData.TextureCompression;
 import com.ferox.core.states.atoms.TextureData.TextureFormat;
 import com.ferox.core.states.atoms.TextureData.TextureType;
 import com.ferox.core.util.TextureUtil;
@@ -15,58 +16,47 @@ import com.ferox.core.util.DataTransfer.Slice;
 import com.ferox.impl.jsr231.peers.JOGLTextureDataPeer.TextureTransfer;
 
 class Texture2DTransfer implements TextureTransfer<Texture2D> {
-	public void submitData(TextureRecord t, Texture2D texture, GL gl) {
-		int width = potCeil(texture.getWidth());
-		int height = potCeil(texture.getHeight());
+	public void validate(Texture2D texture, GL gl) {
+		int width = JOGLTextureDataPeer.potCeil(texture.getWidth());
+		int height = JOGLTextureDataPeer.potCeil(texture.getHeight());
 		int[] v = new int[1];
 		gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, v, 0);
-		int maxSide = v[0];
-		
-		if (((width != texture.getWidth() || height != texture.getHeight()) && !RenderManager.getSystemCapabilities().areNpotTexturesSupported())
-			|| (texture.getWidth() > maxSide || texture.getHeight() > maxSide)) {
-			// Rescale the texture because it's not npot or because it's too large (in which case, buffer allocation might
-			// cause a out-of-memory error anyway).
+		if ((!RenderManager.getSystemCapabilities().areNpotTexturesSupported() && (width != texture.getWidth() || height != texture.getHeight())) ||
+			(texture.getWidth() > v[0] || texture.getHeight() > v[0])) {
 			if (RenderManager.getSystemCapabilities().areNpotTexturesSupported()) {
 				width = texture.getWidth();
 				height = texture.getHeight();
 			}
+			width = Math.min(v[0], width);
+			height = Math.min(v[0], height);
 			
-			width = Math.min(maxSide, width);
-			height = Math.min(maxSide, height);
-			
-			if (texture.getMipmapLevel(0) != null) {
-				Buffer[] newData = new Buffer[texture.getNumMipmaps()];
-				
-				int mW = width;
-				int mH = height;
+			Buffer[] newData = null;
+			if (texture.getMipmaps() != null) {
+				int mw = width;
+				int mh = height;
+				newData = new Buffer[texture.getNumMipmaps()];
 				for (int i = 0; i < newData.length; i++) {
-					newData[i] = TextureUtil.scaleImage2D(texture.getMipmapLevel(i), texture.getDataFormat(), texture.getDataType(), texture.getWidth(), texture.getHeight(), mW, mH);
-					mW = Math.max(1, mW >> 1);
-					mH = Math.max(1, mH >> 1);
+					newData[i] = TextureUtil.scaleImage2D(texture.getMipmapLevel(i), texture.getDataFormat(), texture.getDataType(), texture.getWidth(), texture.getHeight(), mw, mh);
+					mw = Math.max(1, mw >> 1);
+					mh = Math.max(1, mh >> 1);
 				}
-				
-				texture.setTextureData(newData, width, height);
 			}
-		} else {
-			width = texture.getWidth();
-			height = texture.getHeight();
+			texture.setTextureData(newData, width, height);
 		}
+	}
+	
+	public void submitData(TextureRecord t, Texture2D texture, GL gl) {
+		int width = texture.getWidth();
+		int height = texture.getHeight();
 		
 		for (int i = 0; i < texture.getNumMipmaps(); i++) {
-			if (!reallocateOnUpdate(width, height, texture.getDataFormat()) || texture.getMipmapLevel(i) == null)
-				this.setTexImage(true, gl, t.target, i, 0, 0, width, height, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), null);
+			if (!this.reallocateOnUpdate(width, height, texture.getDataFormat()) || texture.getMipmapLevel(i) == null)
+				this.setTexImage(true, gl, t.target, i, 0, 0, width, height, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmapLevel(i).clear());
 			
 			width = Math.max(1, (width >> 1));
 			height = Math.max(1, (height >> 1));
 		}
 		this.updateData(t, texture, gl);
-	}
-
-	private static int potCeil(int num) {
-		int pot = 1;
-		while (pot < num)
-			pot *= 2;
-		return pot;
 	}
 	
 	public void updateData(TextureRecord t, Texture2D texture, GL gl) {		
@@ -135,16 +125,16 @@ class Texture2DTransfer implements TextureTransfer<Texture2D> {
 			out.clear();
 			out.position(slice.getOffset());
 			out.limit(slice.getOffset() + slice.getLength());
-		
-			if (!data.getDataFormat().isServerCompressed())
-				gl.glGetTexImage(r.target, level, r.srcFormat, r.dataType, out);
-			else
+				
+			if (data.getDataFormat().isClientCompressed() || data.getDataCompression() != TextureCompression.NONE)
 				gl.glGetCompressedTexImage(r.target, level, out);
+			else
+				gl.glGetTexImage(r.target, level, r.srcFormat, r.dataType, out);
 			
 			out.limit(lim);
 			out.position(pos);
 		} else {
-			if (!data.getDataFormat().isServerCompressed())
+			if (!data.getDataFormat().isClientCompressed() && data.getDataCompression() == TextureCompression.NONE)
 				gl.glGetTexImage(r.target, level, r.srcFormat, r.dataType, slice.getOffset() * data.getDataType().getByteSize());
 			else
 				gl.glGetCompressedTexImage(r.target, level, slice.getOffset() * data.getDataType().getByteSize());

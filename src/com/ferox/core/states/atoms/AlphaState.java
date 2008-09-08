@@ -32,9 +32,7 @@ public class AlphaState extends StateAtom {
 	}
 
 	public void setAlphaRefValue(float refValue) {
-		if (refValue < 0f || refValue > 1f)
-			throw new IllegalArgumentException("alpha reference value must be between 0 and 1");
-		this.refValue = refValue;
+		this.refValue = Math.max(0, Math.min(1f, refValue));
 	}
 
 	public boolean isAlphaEnabled() {

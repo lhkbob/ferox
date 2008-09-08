@@ -26,6 +26,7 @@ import com.ferox.core.states.manager.Geometry;
  *
  */
 public class RenderAtomBin implements Bin<RenderAtom> {	
+	//FIXME: turn this into some flexible structure that can handle any default type of atom
 	private static ZBuffer defaultZ = new ZBuffer();
 	private static DrawMode defaultDraw = new DrawMode();
 	private static AlphaState defaultAlpha = new AlphaState();

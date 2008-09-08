@@ -1,6 +1,7 @@
 package com.ferox.core.states;
 
 import com.ferox.core.renderer.Updatable;
+import com.ferox.core.util.FeroxException;
 
 
 
@@ -70,6 +71,8 @@ public class StateTree implements Updatable {
 	public void update() {
 		if (this.invalidated) {
 			this.queue.clear();
+			if (this.rootNode.getParent() != null)
+				throw new FeroxException("Root node of a tree can't have a parent");
 			if (this.rootNode != null)
 				this.rootNode.submit();
 			this.queue.optimize();

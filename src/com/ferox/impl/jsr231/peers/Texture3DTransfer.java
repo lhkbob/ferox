@@ -13,63 +13,51 @@ import com.ferox.core.util.DataTransfer.Slice;
 import com.ferox.impl.jsr231.peers.JOGLTextureDataPeer.TextureTransfer;
 
 public class Texture3DTransfer implements TextureTransfer<Texture3D> {
-	public void submitData(TextureRecord t, Texture3D texture, GL gl) {
-		int width = potCeil(texture.getWidth());
-		int height = potCeil(texture.getHeight());
-		int depth = potCeil(texture.getDepth());
+	public void validate(Texture3D texture, GL gl) {
+		int width = JOGLTextureDataPeer.potCeil(texture.getWidth());
+		int height = JOGLTextureDataPeer.potCeil(texture.getHeight());
+		int depth = JOGLTextureDataPeer.potCeil(texture.getDepth());
 		int[] v = new int[1];
-		gl.glGetIntegerv(GL.GL_MAX_3D_TEXTURE_SIZE, v, 0);
-		int maxSide = v[0];
-		
-		if (((width != texture.getWidth() || height != texture.getHeight() || depth != texture.getDepth()) && !RenderManager.getSystemCapabilities().areNpotTexturesSupported())
-			|| (texture.getWidth() > maxSide || texture.getHeight() > maxSide || texture.getDepth() > maxSide)) {
-			// Rescale the texture because it's not npot or because it's too large (in which case, buffer allocation might
-			// cause a out-of-memory error anyway).
+		gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, v, 0);
+		if ((!RenderManager.getSystemCapabilities().areNpotTexturesSupported() && (width != texture.getWidth() || height != texture.getHeight() || depth != texture.getDepth())) ||
+			(texture.getWidth() > v[0] || texture.getHeight() > v[0])) {
 			if (RenderManager.getSystemCapabilities().areNpotTexturesSupported()) {
 				width = texture.getWidth();
 				height = texture.getHeight();
 				depth = texture.getDepth();
 			}
+			width = Math.min(v[0], width);
+			height = Math.min(v[0], height);
+			depth = Math.min(v[0], depth);
 			
-			width = Math.min(maxSide, width);
-			height = Math.min(maxSide, height);
-			depth = Math.min(maxSide, depth);
-			
-			if (texture.getMipmapLevel(0) != null) {
-				Buffer[] newData = new Buffer[texture.getNumMipmaps()];
-				
-				int mW = width;
-				int mH = height;
-				int mD = depth;
+			Buffer[] newData = null;
+			if (texture.getMipmaps() != null) {
+				int mw = width;
+				int mh = height;
+				int md = depth;
+				newData = new Buffer[texture.getNumMipmaps()];
 				for (int i = 0; i < newData.length; i++) {
-					newData[i] = TextureUtil.scaleImage3D(texture.getMipmapLevel(i), texture.getDataFormat(), texture.getDataType(), texture.getWidth(), texture.getHeight(), texture.getDepth(), mW, mH, mD);
-					mW = Math.max(1, mW >> 1);
-					mH = Math.max(1, mH >> 1);
-					mD = Math.max(1, mD >> 1);
+					newData[i] = TextureUtil.scaleImage3D(texture.getMipmapLevel(i), texture.getDataFormat(), texture.getDataType(), texture.getWidth(), texture.getHeight(), texture.getDepth(), mw, mh, md);
+					mw = Math.max(1, mw >> 1);
+					mh = Math.max(1, mh >> 1);
+					md = Math.max(1, md >> 1);
 				}
-				
-				texture.setTextureData(newData, width, height, depth);
 			}
-		} else {
-			width = texture.getWidth();
-			height = texture.getHeight();
+			texture.setTextureData(newData, width, height, depth);
 		}
+	}
+	
+	public void submitData(TextureRecord t, Texture3D texture, GL gl) {
+		int width = texture.getWidth();
+		int height = texture.getHeight();
+		int depth = texture.getDepth();
 		
 		for (int i = 0; i < texture.getNumMipmaps(); i++) {	
-			gl.glTexImage3D(t.target, i, t.dstFormat, width, height, depth, 0, t.srcFormat, t.dataType, null);
+			gl.glTexImage3D(t.target, i, t.dstFormat, width, height, depth, 0, t.srcFormat, t.dataType, texture.getMipmapLevel(i).clear());
 			width = Math.max(1, (width >> 1));
 			height = Math.max(1, (height >> 1));
 			depth = Math.max(1, (depth >> 1));
 		}
-		
-		this.updateData(t, texture, gl);
-	}
-
-	private static int potCeil(int num) {
-		int pot = 1;
-		while (pot < num)
-			pot *= 2;
-		return pot;
 	}
 	
 	public void updateData(TextureRecord t, Texture3D texture, GL gl) {

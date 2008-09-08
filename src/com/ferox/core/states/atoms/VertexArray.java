@@ -53,7 +53,9 @@ public class VertexArray extends StateAtom implements ChunkableInstantiator {
 			return this.target.ordinal() + this.unit;
 		}
 		
-		public static VertexArrayUnit get(VertexArrayTarget target, int unit) {
+		public static VertexArrayUnit get(VertexArrayTarget target, int unit) throws NullPointerException {
+			if (target == null)
+				throw new NullPointerException();
 			switch(target) {
 			case VERTEX: return vt;
 			case NORMAL: return nm;
@@ -65,7 +67,7 @@ public class VertexArray extends StateAtom implements ChunkableInstantiator {
 				attCache = updateCache(target, unit, attCache);
 				return attCache[unit];
 			default: 
-				throw new IllegalArgumentException("Invalid vertex array target");
+				return null;
 			}
 		}
 		
@@ -102,7 +104,7 @@ public class VertexArray extends StateAtom implements ChunkableInstantiator {
 		this(data, elementSize, 0, 0);
 	}
 	
-	public VertexArray(BufferData data, int elementSize, int offset, int stride) {
+	public VertexArray(BufferData data, int elementSize, int offset, int stride) throws NullPointerException {
 		super();
 		if (data == null)
 			throw new NullPointerException("BufferData must be non-null");

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.ferox.core.scene.SpatialTree;
 import com.ferox.core.scene.View;
+import com.ferox.core.states.StateAtomResourceHandler;
 import com.ferox.core.system.RenderSurface;
 import com.ferox.core.system.SystemCapabilities;
 import com.ferox.core.tasks.Task;
@@ -26,19 +27,16 @@ import com.ferox.core.util.TimeSmoother;
  * @author Michael Ludwig
  *
  */
-public class RenderManager implements TaskExecutor {
-	public static final int AP_START_FRAME = 0;
-	public static final int AP_END_FRAME = 1;
-	
-	private static final int[] aPs = new int[] {AP_START_FRAME, AP_END_FRAME};
-	
+public class RenderManager {
 	private static int managerCounter = 0;
 	private static SystemCapabilities caps;
+	private static ArrayList<RenderManager> managers = new ArrayList<RenderManager>();
 	
 	private int id;
 	private ArrayList<RenderPass> passes;
 	
 	private ArrayList<Updatable> updates;
+	private StateAtomResourceHandler saR;
 	
 	private RenderContext renderContext;
 	private int oldWidth, oldHeight;
@@ -54,11 +52,8 @@ public class RenderManager implements TaskExecutor {
 	private TimeSmoother timer;
 	private long lastTime;
 	private FrameStatistics stats;
-	
-	private ArrayList<Task>[] taskStore;
-	private ArrayList<Task>[] tasks;
-	private ArrayList<TaskCompleteListener> listeners;
 
+	private Exception failure;
 	
 	/**
 	 * Creates a RenderManager with the given RenderContext.  An exception is thrown if the given
@@ -66,10 +61,12 @@ public class RenderManager implements TaskExecutor {
 	 * value).  The context can't be null, either.
 	 */
 	@SuppressWarnings("unchecked")
-	public RenderManager(RenderContext context) {
+	public RenderManager(RenderContext context) throws IllegalArgumentException, NullPointerException {
 		this.id = managerCounter++;
 		this.passes = new ArrayList<RenderPass>();
 		this.updates = new ArrayList<Updatable>();
+		
+		this.saR = new StateAtomResourceHandler();
 		
 		this.frameListeners = new ArrayList<FrameListener>();
 		this.initListeners = new ArrayList<InitializationListener>();
@@ -83,14 +80,6 @@ public class RenderManager implements TaskExecutor {
 		this.isRendering = false;
 		this.timer = new TimeSmoother();
 		
-		this.tasks = new ArrayList[2];
-		this.tasks[0] = new ArrayList<Task>();
-		this.tasks[1] = new ArrayList<Task>();
-		
-		this.taskStore = new ArrayList[2];
-		this.taskStore[0] = new ArrayList<Task>();
-		this.taskStore[1] = new ArrayList<Task>();
-		
 		if (context == null)
 			throw new NullPointerException("Can't create a manager with a null context");
 		if (context.manager != null)
@@ -100,6 +89,22 @@ public class RenderManager implements TaskExecutor {
 		
 		if (caps == null)
 			caps = this.renderContext.getCapabilities();
+		managers.add(this);
+	}
+	
+	/**
+	 * Returns a NEW list of all instantiated RenderManagers.
+	 */
+	public static ArrayList<RenderManager> getRenderManagers() {
+		return (ArrayList<RenderManager>)managers.clone();
+	}
+	
+	/**
+	 * Return the StateAtomResourceHandler used by this RenderManager to update and destroy
+	 * necessary state atoms.
+	 */
+	public StateAtomResourceHandler getStateAtomResourceHandler() {
+		return this.saR;
 	}
 	
 	/**
@@ -411,7 +416,7 @@ public class RenderManager implements TaskExecutor {
 	 * Must be called by this manager's context when the context is reshaped.
 	 * Not to be called by the application.
 	 */
-	public void notifyReshape() {
+	public void notifyReshape() throws FeroxException {
 		if (this.getRenderContext().isCurrent()) {
 			for (int i = this.reshapeListeners.size() - 1; i >= 0; i--) 
 				this.reshapeListeners.get(i).onReshape(this, this.getRenderContext().getContextWidth(), 
@@ -427,7 +432,7 @@ public class RenderManager implements TaskExecutor {
 	 * Must be called by this manager's context each time the context is initialized.
 	 * Not to be called by the application.
 	 */
-	public void notifyInitialization() {
+	public void notifyInitialization() throws FeroxException {
 		if (this.getRenderContext().isCurrent()) {
 			if (caps == null) {
 				caps = this.getRenderContext().getCapabilities();
@@ -447,98 +452,59 @@ public class RenderManager implements TaskExecutor {
 	 * Not to be called by the application, use render() instead.
 	 * 
 	 * Order of operations:
-	 * 1. Execute start frame tasks
-	 * 2. Execute any initialization listeners that were added after this manager's context was initialized.
-	 * 3. Execute any frame listeners start frame methods
-	 * 4. Update any registered Updatables
-	 * 5. Render each pass in order that it was added
-	 * 6. Execute any frame listeners end frame methods
-	 * 7. Execute end frame tasks
+	 * 1. Execute any initialization listeners that were added after this manager's context was initialized.
+	 * 2. Execute any frame listeners start frame methods
+	 * 3. Destroy any StateAtoms that were flagged for destroy (that weren't destroyed in a listener)
+	 * 4. Update any StateAtoms that were flagged for update (that weren't updated in a listener)
+	 * 5. Update any registered Updatables
+	 * 6. Render each pass in order that it was added
+	 * 7. Execute any frame listeners end frame methods
 	 */
-	public void notifyRenderFrame() {
-		if (this.getRenderContext().isCurrent()) {
-			ArrayList<Task>[] t = this.tasks;
-			this.tasks = this.taskStore;
-			this.taskStore = t;
-			
-			this.taskStore[0].clear();
-			this.taskStore[1].clear();
-			
-			if (this.tasks[AP_START_FRAME].size() > 0) {
-				Task task;
-				for (int i = 0; i < this.tasks[AP_START_FRAME].size(); i++) {
-					task = this.tasks[AP_START_FRAME].get(i);
-					task.performTask();
-					task.notifyTaskComplete(this);
-					for (int u = this.listeners.size() - 1; u >= 0; u--)
-						this.listeners.get(u).taskComplete(task, this);
+	public void notifyRenderFrame() throws FeroxException {
+		try {
+			if (this.getRenderContext().isCurrent()) {
+				if (this.tempInitListeners.size() > 0) {
+					for (int i = this.tempInitListeners.size() - 1; i >= 0; i--)
+						this.tempInitListeners.get(i).onInit(this);
+					this.tempInitListeners.clear();
 				}
-			}
-			
-			if (this.tempInitListeners.size() > 0) {
-				for (int i = this.tempInitListeners.size() - 1; i >= 0; i--)
-					this.tempInitListeners.get(i).onInit(this);
-				this.tempInitListeners.clear();
-			}
-			for (int i = this.frameListeners.size() - 1; i >= 0; i--) {
-				this.frameListeners.get(i).startFrame(this);
-			}
-			
-			for (int i = 0; i < this.updates.size(); i++)
-				this.updates.get(i).update();
-			for (int i = 0; i < this.passes.size(); i++) 
-				this.passes.get(i).renderPass(this);
-			
-			for (int i = this.frameListeners.size() - 1; i >= 0; i--)
-				this.frameListeners.get(i).endFrame(this);
-			
-			if (this.tasks[AP_END_FRAME].size() > 0) {
-				Task task;
-				for (int i = 0; i < this.tasks[AP_END_FRAME].size(); i++) {
-					task = this.tasks[AP_END_FRAME].get(i);
-					task.performTask();
-					task.notifyTaskComplete(this);
-					for (int u = this.listeners.size() - 1; u >= 0; u--)
-						this.listeners.get(u).taskComplete(task, this);
+				for (int i = this.frameListeners.size() - 1; i >= 0; i--) {
+					this.frameListeners.get(i).startFrame(this);
 				}
-			}
-		} else
-			throw new FeroxException("Can't notify a RenderManager to proceed with rendering if its context isn't current");
+				
+				this.saR.doDestroys(this);
+				this.saR.doUpdates(this);
+				
+				for (int i = 0; i < this.updates.size(); i++)
+					this.updates.get(i).update();
+				for (int i = 0; i < this.passes.size(); i++) 
+					this.passes.get(i).renderPass(this);
+				
+				for (int i = this.frameListeners.size() - 1; i >= 0; i--)
+					this.frameListeners.get(i).endFrame(this);
+			} else
+				throw new FeroxException("Can't notify a RenderManager to proceed with rendering if its context isn't current");
+		} catch (Exception e) {
+			this.failure = e;
+		}
 	}
-	
-	public void attachTask(Task task, int attachPoint) {
-		if (!this.taskStore[attachPoint].contains(task))
-			this.taskStore[attachPoint].add(task);
-	}
-	
-	public void addTaskCompleteListener(TaskCompleteListener l) {
-		if (this.listeners == null)
-			this.listeners = new ArrayList<TaskCompleteListener>();
-		
-		if (!this.listeners.contains(l))
-			this.listeners.add(l);
-	}
-	
-	public void removeTaskCompleteListener(TaskCompleteListener l) {
-		this.listeners.remove(l);
-		
-		if (this.listeners.size() == 0)
-			this.listeners = null;
-	}	
 	
 	/**
 	 * Renders a frame. Returns a new FrameStatistics object that stores the statistics about this frame.
 	 */
-	public FrameStatistics render() {
+	public FrameStatistics render() throws FeroxException, RuntimeException {
 		if (this.isDestroyed)
 			throw new FeroxException("Can't render a destroyed RenderManager");
 		this.stats = new FrameStatistics();
 		this.lastTime = System.nanoTime();
+		this.failure = null;
 		this.isRendering = true;
 		this.renderContext.render();
 		this.isRendering = false;
 		
 		this.stats.setDuration(System.nanoTime() - this.lastTime);
+		if (this.failure != null)
+			throw new RuntimeException(this.failure);
 		return this.stats;
 	}
 	
@@ -547,21 +513,6 @@ public class RenderManager implements TaskExecutor {
 	 */
 	public FrameStatistics getFrameStatistics() {
 		return this.stats;
-	}
-	
-	public int[] getAttachPoints() {
-		return aPs;
-	}
-	
-	public String getAttachPointDescriptor(int attachPoint) {
-		switch(attachPoint) {
-		case AP_END_FRAME:
-			return "End of a Frame";
-		case AP_START_FRAME:
-			return "Start of a Frame";
-		default:
-			return "Undefined attach point";
-		}
 	}
 	
 	/**

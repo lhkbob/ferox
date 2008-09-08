@@ -9,6 +9,10 @@ class TextureRecord extends StateRecord {
 	int validFrame;
 	int target; // gl int
 	
+	int width;
+	int height;
+	int depth;
+	
 	// dst format should be updated with actual format after texture image creation
 	// src format < 0 if src data is already compressed (use dstFormat instead)
 	int srcFormat; // gl int
@@ -25,4 +29,9 @@ class TextureRecord extends StateRecord {
 	TexClamp wrapT;
 	TexClamp wrapS;
 	float aniso;
+	
+	public boolean needsInit(TextureRecord nw) {
+		return nw.srcFormat != this.srcFormat || nw.dstFormat != this.dstFormat || nw.width != this.width
+			   || nw.height != this.height || nw.depth != this.depth;
+	}
 }

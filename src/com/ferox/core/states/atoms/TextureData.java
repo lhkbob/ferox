@@ -18,32 +18,46 @@ public abstract class TextureData extends StateAtom {
 		TEX2D, TEX3D, CUBEMAP
 	}
 	
-	public static enum TextureFormat {
-		RGBA(4, false, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		BGRA(4, false, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		ARGB(4, false, false, true, new TextureType[] {TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		ABGR(4, false, false, true, new TextureType[] {TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		BGRA_DXT1(4, false, true, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		BGRA_DXT5(4, false, true, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-
-		RGBA_DXT1(4, false, true, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		RGBA_DXT3(4, false, true, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		RGBA_DXT5(4, false, true, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
-		RGB_DXT1(3, false, true, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_565}),
-		COMPRESSED_RGBA_DXT1(4, true, true, true, new TextureType[] {TextureType.UNSIGNED_BYTE}),
-		COMPRESSED_RGBA_DXT3(4, true, true, true, new TextureType[] {TextureType.UNSIGNED_BYTE}),
-		COMPRESSED_RGBA_DXT5(4, true, true, true, new TextureType[] {TextureType.UNSIGNED_BYTE}),
-		COMPRESSED_RGB_DXT1(3, true, true, false, new TextureType[] {TextureType.UNSIGNED_BYTE}),
-		RGB(3, false, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_565}),
-		BGR(3, false, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.PACKED_SHORT_565}),
-		LUMINANCE_ALPHA(2, false, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT}),
-		LUMINANCE(1, false, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT}),
-		ALPHA(1, false, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT}),
-		DEPTH(1, false, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT});
+	public static enum TextureCompression {
+		NONE(null),
+		DXT1(new TextureFormat[] {TextureFormat.RGBA, TextureFormat.BGRA, TextureFormat.ARGB, TextureFormat.ABGR, TextureFormat.BGR, TextureFormat.RGB}), 
+		DXT3(new TextureFormat[] {TextureFormat.RGBA, TextureFormat.BGRA, TextureFormat.ARGB, TextureFormat.ABGR}), 
+		DXT5(new TextureFormat[] {TextureFormat.RGBA, TextureFormat.BGRA, TextureFormat.ARGB, TextureFormat.ABGR});
 		
-		private int numC; private boolean cComp, sComp, alpha; private TextureType[] cTypes;
-		private TextureFormat(int numC, boolean cComp, boolean sComp, boolean alpha, TextureType[] cTypes) {
-			this.numC = numC; this.cComp = cComp; this.sComp = sComp; this.alpha = alpha; this.cTypes = cTypes;
+		private TextureFormat[] comp;
+		private TextureCompression(TextureFormat[] compatible) {
+			this.comp = compatible;
+		}
+		
+		public boolean isCompatible(TextureFormat f) {
+			if (this.comp == null)
+				return true;
+			for (int i = 0; i < this.comp.length; i++)
+				if (this.comp[i] == f)
+					return true;
+			return false;
+		}
+	}
+	
+	public static enum TextureFormat {
+		RGBA(4, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
+		BGRA(4, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
+		ARGB(4, false, true, new TextureType[] {TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
+		ABGR(4, false, true, new TextureType[] {TextureType.PACKED_SHORT_5551, TextureType.PACKED_SHORT_4444, TextureType.PACKED_INT_8888}),
+		COMPRESSED_RGBA_DXT1(4, true, true, new TextureType[] {TextureType.UNSIGNED_BYTE}),
+		COMPRESSED_RGBA_DXT3(4, true, true, new TextureType[] {TextureType.UNSIGNED_BYTE}),
+		COMPRESSED_RGBA_DXT5(4, true, true, new TextureType[] {TextureType.UNSIGNED_BYTE}),
+		COMPRESSED_RGB_DXT1(3, true, false, new TextureType[] {TextureType.UNSIGNED_BYTE}),
+		RGB(3, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, TextureType.PACKED_SHORT_565}),
+		BGR(3, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, TextureType.PACKED_SHORT_565}),
+		LUMINANCE_ALPHA(2, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, }),
+		LUMINANCE(1, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, }),
+		ALPHA(1, false, true, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, }),
+		DEPTH(1, false, false, new TextureType[] {TextureType.UNSIGNED_INT, TextureType.UNSIGNED_SHORT, TextureType.UNSIGNED_BYTE, TextureType.FLOAT, TextureType.UNCLAMPED_FLOAT, });
+		
+		private int numC; private boolean cComp, alpha; private TextureType[] cTypes;
+		private TextureFormat(int numC, boolean cComp, boolean alpha, TextureType[] cTypes) {
+			this.numC = numC; this.cComp = cComp; this.alpha = alpha; this.cTypes = cTypes;
 		}
 		
 		public int getNumComponents() {
@@ -52,11 +66,12 @@ public abstract class TextureData extends StateAtom {
 		public boolean isClientCompressed() {
 			return this.cComp;
 		}
-		public boolean isServerCompressed() {
-			return this.sComp;
-		}
 		public boolean hasAlpha() {
 			return this.alpha;
+		}
+		
+		public boolean isValid(TextureType t, TextureCompression e) {
+			return this.isTypeCompatible(t) && e.isCompatible(this);
 		}
 		
 		public boolean isTypeCompatible(TextureType t) {
@@ -82,6 +97,7 @@ public abstract class TextureData extends StateAtom {
 		UNSIGNED_INT(IntBuffer.class, 1, BufferUtil.BYTESIZE_INT, true),
 		UNSIGNED_SHORT(ShortBuffer.class, 1, BufferUtil.BYTESIZE_SHORT, true),
 		UNSIGNED_BYTE(ByteBuffer.class, 1, BufferUtil.BYTESIZE_BYTE, true),
+		UNCLAMPED_FLOAT(FloatBuffer.class, 1, BufferUtil.BYTESIZE_FLOAT, true),
 		FLOAT(FloatBuffer.class, 1, BufferUtil.BYTESIZE_FLOAT, true),
 		PACKED_SHORT_565(ShortBuffer.class, 3, BufferUtil.BYTESIZE_SHORT, false),
 		PACKED_SHORT_5551(ShortBuffer.class, 4, BufferUtil.BYTESIZE_SHORT, false),
@@ -142,6 +158,7 @@ public abstract class TextureData extends StateAtom {
 	
 	private TextureType dataType;
 	private TextureFormat dataFormat;
+	private TextureCompression dataCompress;
 	
 	private TexClamp wrapR;
 	private TexClamp wrapS;
@@ -157,7 +174,7 @@ public abstract class TextureData extends StateAtom {
 	private float aniso;
 	
 	public TextureData(TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
-		this(dataType, dataFormat, TexClamp.MIRROR, TexClamp.MIRROR, TexClamp.MIRROR, min, mag);
+		this(dataType, dataFormat, TextureCompression.NONE, TexClamp.MIRROR, TexClamp.MIRROR, TexClamp.MIRROR, min, mag);
 	}
 	
 	public TextureData(TextureType dataType, TextureFormat dataFormat, TexClamp clamp) {
@@ -165,12 +182,12 @@ public abstract class TextureData extends StateAtom {
 	}
 	
 	public TextureData(TextureType dataType, TextureFormat dataFormat, TexClamp clamp, MinFilter min, MagFilter mag) {
-		this(dataType, dataFormat, clamp, clamp, clamp, min, mag);
+		this(dataType, dataFormat, TextureCompression.NONE, clamp, clamp, clamp, min, mag);
 	}
 	
-	public TextureData(TextureType dataType, TextureFormat dataFormat, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
+	public TextureData(TextureType dataType, TextureFormat dataFormat, TextureCompression comp, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
 		super();
-		this.setFormatAndType(dataFormat, dataType);
+		this.setTextureFormat(dataFormat, dataType, comp);
 		
 		this.aniso = 0f;
 		
@@ -210,9 +227,10 @@ public abstract class TextureData extends StateAtom {
 		this.aniso = Math.max(0f, Math.min(1f, l));
 	}
 	
-	protected void setFormatAndType(TextureFormat format, TextureType type) {
+	protected void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) {
 		this.dataType = type;
 		this.dataFormat = format;
+		this.dataCompress = comp;
 	}
 	
 	public TextureType getDataType() {
@@ -221,6 +239,10 @@ public abstract class TextureData extends StateAtom {
 
 	public TextureFormat getDataFormat() {
 		return this.dataFormat;
+	}
+	
+	public TextureCompression getDataCompression() {
+		return this.dataCompress;
 	}
 
 	public TexClamp getTexClampS() {
@@ -308,6 +330,7 @@ public abstract class TextureData extends StateAtom {
 		
 		this.dataFormat = in.getEnum("format", TextureFormat.class);
 		this.dataType = in.getEnum("type", TextureType.class);
+		this.dataCompress = in.getEnum("compress", TextureCompression.class);
 		this.wrapR = in.getEnum("wrapR", TexClamp.class);
 		this.wrapS = in.getEnum("wrapS", TexClamp.class);
 		this.wrapT = in.getEnum("wrapT", TexClamp.class);
@@ -326,6 +349,7 @@ public abstract class TextureData extends StateAtom {
 				
 		out.setEnum("format", this.dataFormat);
 		out.setEnum("type", this.dataType);
+		out.setEnum("compress", this.dataCompress);
 		out.setEnum("wrapR", this.wrapR);
 		out.setEnum("wrapS", this.wrapS);
 		out.setEnum("wrapT", this.wrapT);
@@ -338,20 +362,24 @@ public abstract class TextureData extends StateAtom {
 		out.setFloat("aniso", this.aniso);
 	}
 	
-	public static boolean isBufferValid(TextureType type, TextureFormat format, int width, int height, Buffer data) {
-		return isBufferValid(type, format, width, height, 1, data);
+	public static boolean isBufferValid(TextureType type, TextureFormat format, TextureCompression comp, int width, int height, Buffer data) {
+		return isBufferValid(type, format, comp, width, height, 1, data);
 	}
 	
-	public static boolean isBufferValid(TextureType type, TextureFormat format, int width, int height, int depth, Buffer data) {
-		if (format.isServerCompressed() && depth != 1)
+	public static boolean isBufferValid(TextureType type, TextureFormat format, TextureCompression comp, int width, int height, int depth, Buffer data) {
+		if ((format.isClientCompressed() || comp != TextureCompression.NONE) && depth != 1)
 			return false;
 		if (width <= 0 || height <= 0 || depth <= 0)
 			return false;
-		if (format.isTypeCompatible(type) 
+		if (format.isValid(type, comp) 
 			&& format.getBufferSize(type, width, height, depth) == data.capacity()) {
 			return type.isTypeValid(data);
 		}
 		return false;
+	}
+	
+	public static boolean isServerCompressed(TextureFormat f, TextureCompression c) {
+		return f.isClientCompressed() || c != TextureCompression.NONE;
 	}
 	
 	public static boolean isPowerOfTwo(int num) {

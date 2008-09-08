@@ -50,8 +50,6 @@ public class Fog extends SpatialState {
 	 */
 	public Fog(float[] color, float density, float start, float end, FogFunction equation, Quality quality) {
 		super();
-
-		this.color = new float[4];
 		
 		this.setFogColor(color);
 		this.setDensity(density);
@@ -114,7 +112,7 @@ public class Fog extends SpatialState {
 	 * Set the 4-element array for the fog color, throws an exception if the color.length != 4.
 	 */
 	public void setFogColor(float[] color) throws IllegalArgumentException {
-		if (color == null || color.length != this.color.length)
+		if (color == null || color.length != 4)
 			throw new IllegalArgumentException("Fog color must have 4 elements to it");
 		this.color = color;
 	}
