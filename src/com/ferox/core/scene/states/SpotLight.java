@@ -2,6 +2,7 @@ package com.ferox.core.scene.states;
 
 import org.openmali.vecmath.Vector3f;
 
+import com.ferox.core.scene.SpatialLeaf;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
@@ -15,6 +16,10 @@ import com.ferox.core.util.io.OutputChunk;
  *
  */
 public class SpotLight extends Light {
+	private static final float RAD_TO_DEGREES = 180f / (float)Math.PI;
+	private static final Vector3f dir = new Vector3f();
+	private static final Vector3f light = new Vector3f();
+	
 	private float constantAttenuation;
 	private float linearAttenuation;
 	private float quadAttenuation;
@@ -119,6 +124,21 @@ public class SpotLight extends Light {
 			cutoff = Math.max(0f, Math.min(cutoff, 90f));
 		}
 		this.spotCutoff = cutoff;
+	}
+	
+	public float getInfluence(SpatialLeaf leaf) {
+		dir.sub(leaf.getWorldTransform().getTranslation(), this.getWorldTransform().getTranslation());
+		float dist = dir.length();
+		if (this.spotCutoff != 180f) {
+			this.getWorldTransform().getRotation().transform(this.getLightDirection(), light);
+			
+			float ang = (float)Math.acos(dir.dot(light) / (dist * light.length())) * RAD_TO_DEGREES;
+			if (ang > this.spotCutoff)
+				return 0f;
+		}
+		
+		float color = super.getInfluence(leaf);
+		return color / (this.constantAttenuation + dist * this.linearAttenuation + dist * dist * this.quadAttenuation);
 	}
 	
 	@Override

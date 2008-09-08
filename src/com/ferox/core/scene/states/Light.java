@@ -134,8 +134,11 @@ public abstract class Light extends SpatialState {
 	}
 	
 	public float getInfluence(SpatialLeaf leaf) {
-		//TODO: implement
-		return 0;
+		return Math.max(.5f * getColorValue(this.amb), Math.max(.8f * getColorValue(this.diff), .85f * getColorValue(this.spec)));
+	}
+	
+	private static float getColorValue(float[] color) {
+		return color[0] + color[1] + color[2] + color[3];
 	}
 	
 	@Override
