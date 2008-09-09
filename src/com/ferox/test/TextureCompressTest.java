@@ -145,7 +145,7 @@ public class TextureCompressTest implements InitializationListener, FrameListene
 		this.compressed = null;
 		
 		try {
-			this.base = TextureResourceManager.readTextureCubeMap(new File("src/data/textures/grace_cube.dds"), true, MinFilter.NEAREST_MIP_NEAREST, MagFilter.NEAREST);
+			this.base = TextureResourceManager.readTextureCubeMap(new File("data/textures/grace_cube.dds"), true, MinFilter.NEAREST_MIP_NEAREST, MagFilter.NEAREST);
 			TextureCompression comp = TextureCompression.DXT1;
 			if (this.base.getDataFormat().getNumComponents() == 4)
 				comp = TextureCompression.DXT5;

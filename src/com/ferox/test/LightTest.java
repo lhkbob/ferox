@@ -102,7 +102,7 @@ public class LightTest {
 		
 		TextureCubeMap tcm = null;
 		try {
-			tcm = TextureResourceManager.readTextureCubeMap(new File("src/data/textures/mars.dds"), true, MinFilter.NEAREST, MagFilter.NEAREST);
+			tcm = TextureResourceManager.readTextureCubeMap(new File("data/textures/mars.dds"), true, MinFilter.NEAREST, MagFilter.NEAREST);
 			tcm.setTexClampSTR(TexClamp.MIRROR);
 		} catch (Exception e) {
 			e.printStackTrace();
