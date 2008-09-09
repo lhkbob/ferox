@@ -7,9 +7,6 @@ import com.ferox.core.scene.View;
 import com.ferox.core.states.StateAtomResourceHandler;
 import com.ferox.core.system.RenderSurface;
 import com.ferox.core.system.SystemCapabilities;
-import com.ferox.core.tasks.Task;
-import com.ferox.core.tasks.TaskCompleteListener;
-import com.ferox.core.tasks.TaskExecutor;
 import com.ferox.core.util.FeroxException;
 import com.ferox.core.util.TimeSmoother;
 

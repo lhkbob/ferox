@@ -1,14 +1,9 @@
 package com.ferox.core.renderer;
 
-import java.util.ArrayList;
-
 import com.ferox.core.scene.SpatialTree;
 import com.ferox.core.scene.View;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
-import com.ferox.core.tasks.Task;
-import com.ferox.core.tasks.TaskCompleteListener;
-import com.ferox.core.tasks.TaskExecutor;
 
 /**
  * A RenderPass renders a SpatialTree from a given View.  To be rendered, it must be added to a RenderManager 
@@ -25,12 +20,7 @@ import com.ferox.core.tasks.TaskExecutor;
  * @author Michael Ludwig
  *
  */
-public class RenderPass implements TaskExecutor {
-	public static final int AP_BEFORE_PASS_PREP = 0;
-	public static final int AP_AFTER_PASS_FINISH = 1;
-	
-	private static final int[] aPs = new int[] {AP_BEFORE_PASS_PREP, AP_AFTER_PASS_FINISH};
-	
+public class RenderPass {
 	private boolean stencilCleared;
 	private boolean depthCleared;
 	private boolean colorCleared;
@@ -43,10 +33,6 @@ public class RenderPass implements TaskExecutor {
 	private View view;
 	private RenderAtomMask raMask;
 	private StateAtomFilter saMask;
-	
-	private ArrayList<Task>[] taskStore;
-	private ArrayList<Task>[] tasks;
-	private ArrayList<TaskCompleteListener> listeners;
 	
 	private byte[] mask;
 	
@@ -71,15 +57,7 @@ public class RenderPass implements TaskExecutor {
 		
 		this.stencilClearValue = 0;
 		this.depthClearValue = 1f;
-		this.colorClearValue = new float[] {0f, 0f, 0f, 1f};;
-		
-		this.tasks = new ArrayList[2];
-		this.tasks[0] = new ArrayList<Task>();
-		this.tasks[1] = new ArrayList<Task>();
-		
-		this.taskStore = new ArrayList[2];
-		this.taskStore[0] = new ArrayList<Task>();
-		this.taskStore[1] = new ArrayList<Task>();									   
+		this.colorClearValue = new float[] {0f, 0f, 0f, 1f};								   
 	}
 	
 	/**
@@ -304,33 +282,15 @@ public class RenderPass implements TaskExecutor {
 
 	/**
 	 * Render the given pass to the manager's context if this pass has a spatial tree and view.
-	 * This method calls prepareRenderPass after any before tasks are executed, but before the enabled buffers are cleared.
-	 * It calls finalizeRenderPass after the rendering has completed, but before any end tasks are executed.
+	 * This method calls prepareRenderPass after any before any rendering or submitting begins, but before the enabled buffers are cleared.
+	 * It calls finalizeRenderPass after the rendering has completed.
 	 * This method clears the spatial tree's render atom bin and calls submit() on the tree.  It then renders the
 	 * contents of the bin.  The spatial tree's update() method should have been called before in the frame for
 	 * correct results.  Similarly, the state tree(s) used should also have been updated, it also recommended that
-	 * the spatial leaves in this scene only reference a single state tree.
+	 * all spatial leaves in this scene only reference StateLeaves from a single state tree.
 	 */
 	public void renderPass(RenderManager manager) {
 		if (this.isValid()) {
-			ArrayList<Task>[] t = this.tasks;
-			this.tasks = this.taskStore;
-			this.taskStore = t;
-			
-			this.taskStore[0].clear();
-			this.taskStore[1].clear();
-			
-			if (this.tasks[AP_BEFORE_PASS_PREP].size() > 0) {
-				Task task;
-				for (int i = 0; i < this.tasks[AP_BEFORE_PASS_PREP].size(); i++) {
-					task = this.tasks[AP_BEFORE_PASS_PREP].get(i);
-					task.performTask();
-					task.notifyTaskComplete(this);
-					for (int u = this.listeners.size() - 1; u >= 0; u--)
-						this.listeners.get(u).taskComplete(task, this);
-				}
-			}
-			
 			this.prepareRenderPass(manager);
 			
 			manager.getRenderContext().clearBuffers(this.colorCleared, this.colorClearValue, this.depthCleared, this.depthClearValue, this.stencilCleared, this.stencilClearValue);
@@ -341,17 +301,6 @@ public class RenderPass implements TaskExecutor {
 			this.scene.submit(this.view, manager);
 			this.scene.getRenderAtomBin().renderAtoms(manager, this);
 			this.finalizeRenderPass(manager);
-			
-			if (this.tasks[AP_AFTER_PASS_FINISH].size() > 0) {
-				Task task;
-				for (int i = 0; i < this.tasks[AP_AFTER_PASS_FINISH].size(); i++) {
-					task = this.tasks[AP_AFTER_PASS_FINISH].get(i);
-					task.performTask();
-					task.notifyTaskComplete(this);
-					for (int u = this.listeners.size() - 1; u >= 0; u--)
-						this.listeners.get(u).taskComplete(task, this);
-				}
-			}
 		}
 	}
 	
@@ -380,40 +329,5 @@ public class RenderPass implements TaskExecutor {
 	 */
 	protected void finalizeRenderPass(RenderManager manager) {
 		manager.getRenderContext().getDefaultRenderPassPeer().finishRenderPass(this, manager.getRenderContext());
-	}
-	
-	public int[] getAttachPoints() {
-		return aPs;
-	}
-	
-	public String getAttachPointDescriptor(int point) {
-		switch(point) {
-		case AP_AFTER_PASS_FINISH: 
-			return "After the RenderPass has ended";
-		case AP_BEFORE_PASS_PREP:
-			return "Before the RenderPass begins";
-		default:
-			return "Undefined attach point";
-		}
-	}
-	
-	public void attachTask(Task task, int attachPoint) {
-		if (!this.taskStore[attachPoint].contains(task))
-			this.taskStore[attachPoint].add(task);
-	}
-	
-	public void addTaskCompleteListener(TaskCompleteListener l) {
-		if (this.listeners == null)
-			this.listeners = new ArrayList<TaskCompleteListener>();
-		
-		if (!this.listeners.contains(l))
-			this.listeners.add(l);
-	}
-	
-	public void removeTaskCompleteListener(TaskCompleteListener l) {
-		this.listeners.remove(l);
-		
-		if (this.listeners.size() == 0)
-			this.listeners = null;
 	}
 }
