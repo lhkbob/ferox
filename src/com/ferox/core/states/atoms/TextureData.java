@@ -189,8 +189,7 @@ public abstract class TextureData extends StateAtom {
 		super();
 		this.setTextureFormat(dataFormat, dataType, comp);
 		
-		this.aniso = 0f;
-		
+		this.setAnisotropicFilterLevel(1f);
 		this.setTexClampSTR(clampS, clampR, clampT);
 		
 		this.setMinFilter(min);
@@ -227,7 +226,9 @@ public abstract class TextureData extends StateAtom {
 		this.aniso = Math.max(0f, Math.min(1f, l));
 	}
 	
-	protected void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) {
+	protected void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) throws NullPointerException {
+		if (format == null || type == null || comp == null)
+			throw new NullPointerException("Format, type, and compression can't be null: " + format + " " + type + " " + comp);
 		this.dataType = type;
 		this.dataFormat = format;
 		this.dataCompress = comp;
@@ -249,7 +250,9 @@ public abstract class TextureData extends StateAtom {
 		return this.wrapS;
 	}
 
-	public void setTexClampS(TexClamp s) {
+	public void setTexClampS(TexClamp s) throws NullPointerException {
+		if (s == null)
+			throw new NullPointerException("TexClamp can't be null");
 		this.wrapS = s;
 	}
 
@@ -257,7 +260,9 @@ public abstract class TextureData extends StateAtom {
 		return this.wrapT;
 	}
 
-	public void setTexClampT(TexClamp t) {
+	public void setTexClampT(TexClamp t) throws NullPointerException {
+		if (t == null)
+			throw new NullPointerException("TexClamp can't be null");
 		this.wrapT = t;
 	}
 	
@@ -265,7 +270,9 @@ public abstract class TextureData extends StateAtom {
 		return this.wrapR;
 	}
 
-	public void setTexClampR(TexClamp r) {
+	public void setTexClampR(TexClamp r) throws NullPointerException {
+		if (r == null)
+			throw new NullPointerException("TexClamp can't be null");
 		this.wrapR = r;
 	}
 	
@@ -283,7 +290,9 @@ public abstract class TextureData extends StateAtom {
 		return this.minFilter;
 	}
 
-	public void setMinFilter(MinFilter minFilter) {
+	public void setMinFilter(MinFilter minFilter) throws NullPointerException {
+		if (minFilter == null)
+			throw new NullPointerException("MinFilter can't be null");
 		this.minFilter = minFilter;
 	}
 
@@ -296,7 +305,9 @@ public abstract class TextureData extends StateAtom {
 		return this.magFilter;
 	}
 	
-	public void setMagFilter(MagFilter magFilter) {
+	public void setMagFilter(MagFilter magFilter) throws NullPointerException {
+		if (magFilter == null)
+			throw new NullPointerException("MagFilter can't be null");
 		this.magFilter = magFilter;
 	}
 
@@ -304,7 +315,9 @@ public abstract class TextureData extends StateAtom {
 		return this.depthMode;
 	}
 
-	public void setDepthMode(DepthMode depthMode) {
+	public void setDepthMode(DepthMode depthMode) throws NullPointerException {
+		if (depthMode == null)
+			throw new NullPointerException("DepthMode can't be null");
 		this.depthMode = depthMode;
 	}
 
@@ -312,7 +325,9 @@ public abstract class TextureData extends StateAtom {
 		return this.compareMode;
 	}
 
-	public void setCompareMode(DepthCompare compareMode) {
+	public void setCompareMode(DepthCompare compareMode) throws NullPointerException {
+		if (compareMode == null)
+			throw new NullPointerException("compare mode can't be null");
 		this.compareMode = compareMode;
 	}
 
@@ -320,7 +335,9 @@ public abstract class TextureData extends StateAtom {
 		return this.compareFunction;
 	}
 
-	public void setCompareFunction(FragmentTest compareFunction) {
+	public void setCompareFunction(FragmentTest compareFunction) throws NullPointerException {
+		if (compareFunction == null)
+			throw new NullPointerException("CompareFunction can't be null");
 		this.compareFunction = compareFunction;
 	}
 	
@@ -367,6 +384,8 @@ public abstract class TextureData extends StateAtom {
 	}
 	
 	public static boolean isBufferValid(TextureType type, TextureFormat format, TextureCompression comp, int width, int height, int depth, Buffer data) {
+		if (type == null || format == null || comp == null || data == null)
+			return false;
 		if ((format.isClientCompressed() || comp != TextureCompression.NONE) && depth != 1)
 			return false;
 		if (width <= 0 || height <= 0 || depth <= 0)

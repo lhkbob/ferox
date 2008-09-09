@@ -385,7 +385,9 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 	/**
 	 * Set the connectivity for this Geometry, see above for valid arguments.
 	 */
-	public void setConnectivity(PolygonType connectivity) {
+	public void setConnectivity(PolygonType connectivity) throws NullPointerException {
+		if (connectivity == null)
+			throw new NullPointerException("Can't have null connectivity");
 		this.connectivity = connectivity;
 	}
 	

@@ -36,7 +36,9 @@ public class DrawMode extends StateAtom {
 		return this.frontMode;
 	}
 
-	public void setFrontMode(DrawStyle frontMode) {
+	public void setFrontMode(DrawStyle frontMode) throws NullPointerException {
+		if (frontMode == null)
+			throw new NullPointerException("Draw style can't be null");
 		this.frontMode = frontMode;
 	}
 
@@ -44,7 +46,9 @@ public class DrawMode extends StateAtom {
 		return this.backMode;
 	}
 
-	public void setBackMode(DrawStyle backMode) {
+	public void setBackMode(DrawStyle backMode) throws NullPointerException {
+		if (backMode == null)
+			throw new NullPointerException("Draw style can't be null");
 		this.backMode = backMode;
 	}
 
@@ -52,7 +56,9 @@ public class DrawMode extends StateAtom {
 		return this.drawFace;
 	}
 
-	public void setDrawFace(DrawFace drawFace) {
+	public void setDrawFace(DrawFace drawFace) throws NullPointerException {
+		if (drawFace == null)
+			throw new NullPointerException("Draw face can't be null");
 		this.drawFace = drawFace;
 	}
 
@@ -60,14 +66,15 @@ public class DrawMode extends StateAtom {
 		return this.winding;
 	}
 
-	public void setWinding(Winding winding) {
+	public void setWinding(Winding winding) throws NullPointerException {
+		if (winding == null)
+			throw new NullPointerException("Winding can't be null");
 		this.winding = winding;
 	}
 	
 	@Override
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
-		
 		
 		this.backMode = in.getEnum("backMode", DrawStyle.class);
 		this.drawFace = in.getEnum("drawFace", DrawFace.class);

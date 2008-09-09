@@ -176,7 +176,9 @@ public class Texture extends StateAtom {
 		return this.combineRGBFunc;
 	}
 
-	public void setCombineRGBFunc(CombineRGBFunc combineRGBFunc) {
+	public void setCombineRGBFunc(CombineRGBFunc combineRGBFunc) throws NullPointerException {
+		if (combineRGBFunc == null)
+			throw new NullPointerException("combine func can't be null");
 		this.combineRGBFunc = combineRGBFunc;
 	}
 
@@ -184,7 +186,9 @@ public class Texture extends StateAtom {
 		return this.combineAlphaFunc;
 	}
 
-	public void setCombineAlphaFunc(CombineAlphaFunc combineAlphaFunc) {
+	public void setCombineAlphaFunc(CombineAlphaFunc combineAlphaFunc) throws NullPointerException {
+		if (combineAlphaFunc == null)
+			throw new NullPointerException("combine func can't be null");
 		this.combineAlphaFunc = combineAlphaFunc;
 	}
 	
@@ -192,7 +196,9 @@ public class Texture extends StateAtom {
 		return this.sourceRGB0;
 	}
 
-	public void setSourceRGB0(CombineSource sourceRGB0) {
+	public void setSourceRGB0(CombineSource sourceRGB0) throws NullPointerException {
+		if (sourceRGB0 == null)
+			throw new NullPointerException("Combine source can't be null");
 		this.sourceRGB0 = sourceRGB0;
 	}
 
@@ -200,7 +206,9 @@ public class Texture extends StateAtom {
 		return this.sourceRGB1;
 	}
 
-	public void setSourceRGB1(CombineSource sourceRGB1) {
+	public void setSourceRGB1(CombineSource sourceRGB1) throws NullPointerException {
+		if (sourceRGB1 == null)
+			throw new NullPointerException("Combine source can't be null");
 		this.sourceRGB1 = sourceRGB1;
 	}
 
@@ -208,7 +216,9 @@ public class Texture extends StateAtom {
 		return this.sourceRGB2;
 	}
 
-	public void setSourceRGB2(CombineSource sourceRGB2) {
+	public void setSourceRGB2(CombineSource sourceRGB2) throws NullPointerException {
+		if (sourceRGB2 == null)
+			throw new NullPointerException("Combine source can't be null");
 		this.sourceRGB2 = sourceRGB2;
 	}
 
@@ -216,7 +226,9 @@ public class Texture extends StateAtom {
 		return this.sourceAlpha0;
 	}
 
-	public void setSourceAlpha0(CombineSource sourceAlpha0) {
+	public void setSourceAlpha0(CombineSource sourceAlpha0) throws NullPointerException {
+		if (sourceAlpha0 == null)
+			throw new NullPointerException("Combine source can't be null");
 		this.sourceAlpha0 = sourceAlpha0;
 	}
 
@@ -224,7 +236,9 @@ public class Texture extends StateAtom {
 		return this.sourceAlpha1;
 	}
 
-	public void setSourceAlpha1(CombineSource sourceAlpha1) {
+	public void setSourceAlpha1(CombineSource sourceAlpha1) throws NullPointerException {
+		if (sourceAlpha1 == null)
+			throw new NullPointerException("Combine source can't be null");
 		this.sourceAlpha1 = sourceAlpha1;
 	}
 
@@ -232,7 +246,9 @@ public class Texture extends StateAtom {
 		return this.sourceAlpha2;
 	}
 
-	public void setSourceAlpha2(CombineSource sourceAlpha2) {
+	public void setSourceAlpha2(CombineSource sourceAlpha2) throws NullPointerException {
+		if (sourceAlpha2 == null)
+			throw new NullPointerException("Combine source can't be null");
 		this.sourceAlpha2 = sourceAlpha2;
 	}
 	
@@ -240,7 +256,9 @@ public class Texture extends StateAtom {
 		return this.operandRGB0;
 	}
 
-	public void setOperandRGB0(CombineOp operandRGB0) {
+	public void setOperandRGB0(CombineOp operandRGB0) throws NullPointerException {
+		if (operandRGB0 == null)
+			throw new NullPointerException("Combine op can't be null");
 		this.operandRGB0 = operandRGB0;
 	}
 
@@ -248,7 +266,9 @@ public class Texture extends StateAtom {
 		return this.operandRGB0;
 	}
 
-	public void setOperandRGB1(CombineOp operandRGB1) {
+	public void setOperandRGB1(CombineOp operandRGB1) throws NullPointerException {
+		if (operandRGB1 == null)
+			throw new NullPointerException("Combine op can't be null");
 		this.operandRGB1 = operandRGB1;
 	}
 
@@ -256,7 +276,9 @@ public class Texture extends StateAtom {
 		return this.operandRGB2;
 	}
 
-	public void setOperandRGB2(CombineOp operandRGB2) {
+	public void setOperandRGB2(CombineOp operandRGB2) throws NullPointerException {
+		if (operandRGB2 == null)
+			throw new NullPointerException("Combine op can't be null");
 		this.operandRGB2 = operandRGB2;
 	}
 
@@ -264,7 +286,9 @@ public class Texture extends StateAtom {
 		return this.operandAlpha0;
 	}
 
-	public void setOperandAlpha0(CombineOp operandAlpha0) {
+	public void setOperandAlpha0(CombineOp operandAlpha0) throws NullPointerException {
+		if (operandAlpha0 == null)
+			throw new NullPointerException("Combine op can't be null");
 		this.operandAlpha0 = operandAlpha0;
 	}
 
@@ -272,7 +296,9 @@ public class Texture extends StateAtom {
 		return this.operandAlpha1;
 	}
 
-	public void setOperandAlpha1(CombineOp operandAlpha1) {
+	public void setOperandAlpha1(CombineOp operandAlpha1) throws NullPointerException {
+		if (operandAlpha1 == null)
+			throw new NullPointerException("Combine op can't be null");
 		this.operandAlpha1 = operandAlpha1;
 	}
 
@@ -280,7 +306,9 @@ public class Texture extends StateAtom {
 		return this.operandAlpha2;
 	}
 
-	public void setOperandAlpha2(CombineOp operandAlpha2) {
+	public void setOperandAlpha2(CombineOp operandAlpha2) throws NullPointerException {
+		if (operandAlpha2 == null)
+			throw new NullPointerException("Combine op can't be null");
 		this.operandAlpha2 = operandAlpha2;
 	}
 	
@@ -312,7 +340,9 @@ public class Texture extends StateAtom {
 		return this.texEnvMode;
 	}
 
-	public void setTexEnvMode(EnvMode texEnvMode) {
+	public void setTexEnvMode(EnvMode texEnvMode) throws NullPointerException {
+		if (texEnvMode == null)
+			throw new NullPointerException("Env mode can't be null");
 		this.texEnvMode = texEnvMode;
 	}
 
@@ -320,7 +350,7 @@ public class Texture extends StateAtom {
 		return this.texEnvColor;
 	}
 
-	public void setTexEnvColor(float[] texEnvColor) {
+	public void setTexEnvColor(float[] texEnvColor) throws IllegalArgumentException {
 		if (texEnvColor.length != 4)
 			throw new IllegalArgumentException("Texture env color must have 4 elements"); 
 		this.texEnvColor = texEnvColor;
@@ -330,7 +360,9 @@ public class Texture extends StateAtom {
 		return this.rCoordGen;
 	}
 
-	public void setRCoordGen(AutoTCGen coordGen) {
+	public void setRCoordGen(AutoTCGen coordGen) throws NullPointerException {
+		if (coordGen == null)
+			throw new NullPointerException("AutoTCGen can't be null");
 		this.rCoordGen = coordGen;
 	}
 
@@ -338,7 +370,9 @@ public class Texture extends StateAtom {
 		return this.sCoordGen;
 	}
 
-	public void setSCoordGen(AutoTCGen coordGen) {
+	public void setSCoordGen(AutoTCGen coordGen) throws NullPointerException {
+		if (coordGen == null)
+			throw new NullPointerException("AutoTCGen can't be null");
 		this.sCoordGen = coordGen;
 	}
 
@@ -346,7 +380,9 @@ public class Texture extends StateAtom {
 		return this.tCoordGen;
 	}
 
-	public void setTCoordGen(AutoTCGen coordGen) {
+	public void setTCoordGen(AutoTCGen coordGen) throws NullPointerException {
+		if (coordGen == null)
+			throw new NullPointerException("AutoTCGen can't be null");
 		this.tCoordGen = coordGen;
 	}
 	

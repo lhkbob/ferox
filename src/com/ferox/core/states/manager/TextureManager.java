@@ -44,7 +44,9 @@ public class TextureManager extends StateManager {
 		return this.filter;
 	}
 	
-	public void setTextureFilterHint(Quality hint) {
+	public void setTextureFilterHint(Quality hint) throws NullPointerException {
+		if (hint == null)
+			throw new NullPointerException("Can't have a null quality");
 		if (hint != this.filter) {
 			this.filter = hint;
 			this.invalidateAssociatedStateTrees();

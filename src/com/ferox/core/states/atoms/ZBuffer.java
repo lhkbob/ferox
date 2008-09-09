@@ -21,7 +21,9 @@ public class ZBuffer extends StateAtom {
 		return this.zTestFunction;
 	}
 
-	public void setDepthTest(FragmentTest testFunction) {
+	public void setDepthTest(FragmentTest testFunction) throws NullPointerException {
+		if (testFunction == null)
+			throw new NullPointerException("FragmentTest can't be null");
 		this.zTestFunction = testFunction;
 	}
 

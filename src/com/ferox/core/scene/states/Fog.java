@@ -127,7 +127,9 @@ public class Fog extends SpatialState {
 	/**
 	 * Set the fog equation that calculates intermediate fog values between start and end depths.
 	 */
-	public void setFogEquation(FogFunction eq) {
+	public void setFogEquation(FogFunction eq) throws NullPointerException {
+		if (eq == null)
+			throw new NullPointerException("Can't have a null fog function");
 		this.eq = eq;
 	}
 
@@ -141,7 +143,9 @@ public class Fog extends SpatialState {
 	/**
 	 * Set the quality of the fog algorithm for the fog.
 	 */
-	public void setQuality(Quality qual) {
+	public void setQuality(Quality qual) throws NullPointerException {
+		if (qual == null)
+			throw new NullPointerException("Can't have a null quality");
 		this.qual = qual;
 	}
 	

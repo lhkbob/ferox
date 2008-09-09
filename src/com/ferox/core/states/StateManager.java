@@ -47,6 +47,8 @@ public abstract class StateManager implements Chunkable {
 	}
 	
 	public void setMergeMode(MergeMode mode) {
+		if (mode == null)
+			throw new NullPointerException("Merge mode can't be null");
 		this.mergeMode = mode;
 	}
 	

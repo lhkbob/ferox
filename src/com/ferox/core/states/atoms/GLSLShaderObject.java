@@ -36,8 +36,10 @@ public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator
 	 * the source code in the array of strings (source is concatentation of the elements, which
 	 * shouldn't be null strings).
 	 */
-	public GLSLShaderObject(String[] source, GLSLType type) {
+	public GLSLShaderObject(String[] source, GLSLType type) throws NullPointerException {
 		this();
+		if (type == null)
+			throw new NullPointerException("Can't have a null glsl shader object type");
 		this.setSource(source);
 		this.type = type;
 		this.infoLog = "";

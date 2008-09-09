@@ -32,7 +32,9 @@ public class BlendState extends StateAtom {
 		return this.blendFunc;
 	}
 
-	public void setBlendFunction(BlendFunction blendFunc) {
+	public void setBlendFunction(BlendFunction blendFunc) throws NullPointerException {
+		if (blendFunc == null)
+			throw new NullPointerException("Blend function can't be null");
 		this.blendFunc = blendFunc;
 	}
 
@@ -40,7 +42,9 @@ public class BlendState extends StateAtom {
 		return this.srcBlendFactor;
 	}
 
-	public void setSourceBlendFactor(BlendFactor srcBlendFactor) {
+	public void setSourceBlendFactor(BlendFactor srcBlendFactor) throws NullPointerException {
+		if (srcBlendFactor == null)
+			throw new NullPointerException("Source blend factor can't be null");
 		this.srcBlendFactor = srcBlendFactor;
 	}
 
@@ -48,7 +52,9 @@ public class BlendState extends StateAtom {
 		return this.dstBlendFactor;
 	}
 
-	public void setDestBlendFactor(BlendFactor dstBlendFactor) {
+	public void setDestBlendFactor(BlendFactor dstBlendFactor) throws NullPointerException {
+		if (dstBlendFactor == null)
+			throw new NullPointerException("Dest blend factor can't be null");
 		this.dstBlendFactor = dstBlendFactor;
 	}
 

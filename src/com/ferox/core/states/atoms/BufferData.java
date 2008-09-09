@@ -70,6 +70,10 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 	
 	public BufferData(Buffer data, DataType dataType, int capacity, BufferTarget expectedTarget, boolean isVBO, UsageHint usageHint) {
 		super();
+		if (usageHint == null)
+			usageHint = UsageHint.STATIC;
+		if (expectedTarget == null)
+			expectedTarget = BufferTarget.ARRAY_BUFFER;
 		this.hint = usageHint;
 		this.primaryTarget = expectedTarget;
 		this.setBufferData(data, dataType, capacity);
@@ -86,7 +90,7 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 		return this.hint;
 	}
 	
-	public void setBufferData(Buffer data, DataType dataType, int capacity) throws FeroxException {
+	public void setBufferData(Buffer data, DataType dataType, int capacity) throws IllegalArgumentException {
 		Buffer oldData = this.data;
 		DataType oldType = this.dataType;
 		int oldCapacity = this.capacity;
@@ -94,7 +98,7 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 		
 		try {
 			if (!BufferData.isBufferValid(data, dataType, capacity)) 
-				throw new FeroxException("Can't create an invalid buffer");
+				throw new IllegalArgumentException("Can't create an invalid buffer: " + dataType + " " + capacity);
 			this.data = data;
 			this.dataType = dataType;
 			this.byteSize = dataType.getByteSize();
@@ -148,6 +152,8 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 		if (data == null)
 			return true;
 		if (data.capacity() != capacity)
+			return false;
+		if (dataType == null)
 			return false;
 		return dataType.isTypeValid(data);
 	}

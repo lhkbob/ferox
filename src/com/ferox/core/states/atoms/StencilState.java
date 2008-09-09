@@ -51,7 +51,9 @@ public class StencilState extends StateAtom {
 		return this.stencilFunc;
 	}
 	
-	public void setStencilFunction(FragmentTest stencilFunc) {
+	public void setStencilFunction(FragmentTest stencilFunc) throws NullPointerException {
+		if (stencilFunc == null)
+			throw new NullPointerException("Stencil func can't be null");
 		this.stencilFunc = stencilFunc;
 	}
 
@@ -59,7 +61,9 @@ public class StencilState extends StateAtom {
 		return this.stencilFail;
 	}
 
-	public void setStencilFailOp(StencilOp stencilFail) {
+	public void setStencilFailOp(StencilOp stencilFail) throws NullPointerException {
+		if (stencilFail == null)
+			throw new NullPointerException("StencilOp can't be null");
 		this.stencilFail = stencilFail;
 	}
 
@@ -67,7 +71,9 @@ public class StencilState extends StateAtom {
 		return this.depthFail;
 	}
 
-	public void setDepthFailOp(StencilOp depthFail) {
+	public void setDepthFailOp(StencilOp depthFail) throws NullPointerException {
+		if (depthFail == null)
+			throw new NullPointerException("StencilOp can't be null");
 		this.depthFail = depthFail;
 	}
 
@@ -75,7 +81,9 @@ public class StencilState extends StateAtom {
 		return this.depthPass;
 	}
 
-	public void setDepthPassOp(StencilOp depthPass) {
+	public void setDepthPassOp(StencilOp depthPass) throws NullPointerException {
+		if (depthPass == null)
+			throw new NullPointerException("StencilOp can't be null");
 		this.depthPass = depthPass;
 	}
 

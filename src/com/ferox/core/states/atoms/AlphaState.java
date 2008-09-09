@@ -23,7 +23,9 @@ public class AlphaState extends StateAtom {
 		return this.alphaTest;
 	}
 
-	public void setAlphaTest(FragmentTest alphaTest) {
+	public void setAlphaTest(FragmentTest alphaTest) throws NullPointerException {
+		if (alphaTest == null)
+			throw new NullPointerException("Alpha test can't be null");
 		this.alphaTest = alphaTest;
 	}
 
