@@ -105,13 +105,13 @@ public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator
 		}
 	}
 	
-	@Override
-	public void update(RenderManager manager) {
+	//@Override
+	/*public void update(RenderManager manager) {
 		Iterator<GLSLShaderProgram> p = this.linkedPrograms.keySet().iterator();
 		while (p.hasNext()) 
 			p.next().update(manager);
 		super.update(manager);
-	}
+	}*/
 	
 	boolean linkToProgram(GLSLShaderProgram prog) {
 		if (this.linkedPrograms.containsKey(prog))

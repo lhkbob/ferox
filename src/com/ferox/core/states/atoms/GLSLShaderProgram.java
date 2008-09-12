@@ -1,5 +1,8 @@
 package com.ferox.core.states.atoms;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.ferox.core.states.NullUnit;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
@@ -17,8 +20,11 @@ public class GLSLShaderProgram extends StateAtom {
 	private GLSLShaderObject[] shaders;
 	private boolean hasVertexShader;
 	private boolean hasFragmentShader;
+	
 	private String infoLog;
 	private boolean compiled;
+	private Set<GLSLUniform> allUniforms;
+	private Set<GLSLAttribute> allAttrs;
 	
 	public GLSLShaderProgram() {
 		this(null);
@@ -29,8 +35,7 @@ public class GLSLShaderProgram extends StateAtom {
 	 */
 	public GLSLShaderProgram(GLSLShaderObject[] shaders) {
 		super();
-		this.compiled = false;
-		this.infoLog = "";
+		this.setCompiled(false, "");
 		this.setShaders(shaders);
 	}
 
@@ -74,6 +79,8 @@ public class GLSLShaderProgram extends StateAtom {
 	public void setCompiled(boolean compiled, String msg) {
 		this.compiled = compiled;
 		this.infoLog = msg;
+		if (!this.compiled)
+			this.allUniforms = null;
 	}
 	
 	/**
@@ -83,6 +90,48 @@ public class GLSLShaderProgram extends StateAtom {
 		return this.hasVertexShader;
 	}
 
+	public void setAvailableUniforms(Set<GLSLUniform> uniforms) {
+		if (uniforms == null)
+			this.allUniforms = null;
+		else
+			this.allUniforms = Collections.unmodifiableSet(uniforms);
+	}
+	
+	public Set<GLSLUniform> getAvailableUniforms() {
+		return this.allUniforms;
+	}
+	
+	public GLSLUniform getUniformByName(String name) {
+		if (name == null || this.allUniforms == null)
+			return null;
+		for (GLSLUniform u : this.allUniforms) {
+			if (u.getName().equals(name))
+				return u;
+		}
+		return null;
+	}
+	
+	public void setAvailableVertexAttributes(Set<GLSLAttribute> attrs) {
+		if (attrs == null)
+			this.allAttrs = null;
+		else
+			this.allAttrs = Collections.unmodifiableSet(attrs);
+	}
+	
+	public Set<GLSLAttribute> getAvailableVertexAttributes() {
+		return this.allAttrs;
+	}
+	
+	public GLSLAttribute getVertexAttributeByName(String name) {
+		if (name == null || this.allAttrs == null)
+			return null;
+		for (GLSLAttribute u : this.allAttrs) {
+			if (u.getName().equals(name))
+				return u;
+		}
+		return null;
+	}
+	
 	/**
 	 * Sets the shader objects for this program.  Ignores null shader object elements in the array.
 	 * If all shaders present are null (or if the array is null), then this program will behave as the fixed function

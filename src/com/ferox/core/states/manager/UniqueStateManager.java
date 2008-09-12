@@ -36,7 +36,7 @@ public abstract class UniqueStateManager<S extends StateAtom> extends StateManag
 		UniqueStateManager<S> pM = (UniqueStateManager<S>)previous;
 		if (previous != null)
 			prev = pM.state;
-		if (previous == this || prev == this.state)
+		if (previous == this)
 			return;
 		if (this.state != null) {
 			manager.getRenderContext().getStateAtomPeer(this.state).prepareManager(this, previous);

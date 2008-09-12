@@ -71,7 +71,7 @@ public class JOGLGLSLShaderObjectPeer extends SimplePeer<GLSLShaderObject, GLSLO
 	}
 	
 	public void validateStateAtom(StateAtom atom) throws StateUpdateException {
-		if (RenderManager.getSystemCapabilities().areGLSLShadersSupported()) {
+		if (!RenderManager.getSystemCapabilities().areGLSLShadersSupported()) {
 			((GLSLShaderObject)atom).setCompiled(false, "GLSL isn't supported");
 			throw new StateUpdateException(atom, "GLSL is not supported on this device");
 		}
