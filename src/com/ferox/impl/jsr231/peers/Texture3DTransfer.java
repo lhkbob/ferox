@@ -51,9 +51,13 @@ public class Texture3DTransfer implements TextureTransfer<Texture3D> {
 		int width = texture.getWidth();
 		int height = texture.getHeight();
 		int depth = texture.getDepth();
-		
+		Buffer data;
 		for (int i = 0; i < texture.getNumMipmaps(); i++) {	
-			gl.glTexImage3D(t.target, i, t.dstFormat, width, height, depth, 0, t.srcFormat, t.dataType, texture.getMipmapLevel(i).clear());
+			data = texture.getMipmapLevel(i);
+			if (data != null)
+				gl.glTexImage3D(t.target, i, t.dstFormat, width, height, depth, 0, t.srcFormat, t.dataType, data.clear());
+			else
+				gl.glTexImage3D(t.target, i, t.dstFormat, width, height, depth, 0, t.srcFormat, t.dataType, null);
 			width = Math.max(1, (width >> 1));
 			height = Math.max(1, (height >> 1));
 			depth = Math.max(1, (depth >> 1));

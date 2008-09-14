@@ -172,7 +172,7 @@ public class LightTest {
 		a1.addStateManager(geom);
 		a2.addStateManager(geom2);
 		
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10000; i++) {
 			SpatialLeaf spat_atom;
 			StateLeaf stat_atom;
 			double r = Math.random();

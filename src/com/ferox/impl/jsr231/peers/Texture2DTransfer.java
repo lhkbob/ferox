@@ -51,7 +51,7 @@ class Texture2DTransfer implements TextureTransfer<Texture2D> {
 		
 		for (int i = 0; i < texture.getNumMipmaps(); i++) {
 			if (!this.reallocateOnUpdate(width, height, texture.getDataFormat()) || texture.getMipmapLevel(i) == null)
-				this.setTexImage(true, gl, t.target, i, 0, 0, width, height, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmapLevel(i).clear());
+				this.setTexImage(true, gl, t.target, i, 0, 0, width, height, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmapLevel(i));
 			
 			width = Math.max(1, (width >> 1));
 			height = Math.max(1, (height >> 1));
@@ -68,7 +68,7 @@ class Texture2DTransfer implements TextureTransfer<Texture2D> {
 			data = texture.getMipmapLevel(i);
 			
 			if (data != null)
-				this.setTexImage(this.reallocateOnUpdate(width, height, texture.getDataFormat()), gl, t.target, i, 0, 0, width, height, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), data.clear());
+				this.setTexImage(this.reallocateOnUpdate(width, height, texture.getDataFormat()), gl, t.target, i, 0, 0, width, height, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), data);
 			
 			width = Math.max(1, (width >> 1));
 			height = Math.max(1, (height >> 1));
@@ -76,6 +76,8 @@ class Texture2DTransfer implements TextureTransfer<Texture2D> {
 	}
 	
 	private void setTexImage(boolean realloc, GL gl, int target, int level, int xOff, int yOff, int width, int height, int srcFormat, int dstFormat, int type, TextureFormat rFormat, Buffer data) {
+		if (data != null)
+			data.clear();
 		if (realloc) {
 			if (srcFormat < 0)
 				gl.glCompressedTexImage2D(target, level, dstFormat, width, height, 0, rFormat.getBufferSize(TextureType.UNSIGNED_BYTE, width, height), data);

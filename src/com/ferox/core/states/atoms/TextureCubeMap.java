@@ -12,6 +12,7 @@ public class TextureCubeMap extends TextureData {
 	
 	private Buffer[] px, nx, py, ny, pz, nz;
 	private int side;
+	private int numMips;
 	private boolean inited;
 	
 	public TextureCubeMap(Buffer[] px, Buffer[] nx, Buffer[] py, Buffer[] ny, Buffer[] pz, Buffer[] nz, int side, TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
@@ -131,6 +132,8 @@ public class TextureCubeMap extends TextureData {
 				this.validateCubeFace(this.nz, this.side);
 			}
 		
+			this.numMips = (this.px == null ? 1 : this.px.length);
+			
 			if (this.isMipmapped() && this.px.length != (int)(Math.log(this.side) / Math.log(2) + 1))
 				throw new IllegalArgumentException("Can't specify mipmaps using too few mipmap buffers");
 		} catch (RuntimeException e) {
@@ -228,16 +231,18 @@ public class TextureCubeMap extends TextureData {
 	}
 	
 	public void clearClientMemory() {
+		int oldMips = this.numMips;
 		this.setTextureData(null, null, null, null, null, null, this.side);
+		this.numMips = oldMips;
 	}
 	
 	public int getNumMipmaps() {
-		return (this.px == null ? 1 : this.px.length);
+		return this.numMips;
 	}
 	
 	@Override
 	public boolean isMipmapped() {
-		return this.px != null && this.px.length > 1;
+		return this.numMips > 1;
 	}
 
 	@Override

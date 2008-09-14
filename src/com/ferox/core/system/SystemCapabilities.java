@@ -10,6 +10,9 @@ public class SystemCapabilities {
 	private int maxTextureCoordinates;
 	private int maxRecommendedIndices;
 	private int maxRecommendedVertices;
+	
+	private int maxColorAttachments;
+	
 	private float maxAnisoLevel;
 	
 	private String glVersion;
@@ -33,7 +36,7 @@ public class SystemCapabilities {
 			int maxFragmentShaderTextureUnits, int maxCombinedTextureUnits,
 			int maxFFPTextureUnits,
 			int maxLights, int maxVertexAttributes,
-			int maxTextureCoordinates, int maxVertices, int maxIndices, float maxAnisoLevel,
+			int maxTextureCoordinates, int maxVertices, int maxIndices, int maxColor, float maxAnisoLevel,
 			String glVersion, float versionNumber,
 			boolean fboSupported, boolean glslSupported, boolean vboSupported,
 			boolean pboSupported, boolean multiTexSupported,
@@ -50,6 +53,7 @@ public class SystemCapabilities {
 		this.maxTextureCoordinates = maxTextureCoordinates;
 		this.maxRecommendedIndices = maxIndices;
 		this.maxRecommendedVertices = maxVertices;
+		this.maxColorAttachments = maxColor;
 		this.pboSupported = pboSupported;
 		this.glVersion = glVersion;
 		this.versionNumber = versionNumber;
@@ -64,6 +68,10 @@ public class SystemCapabilities {
 		this.npotTextures = npotTextures;
 		this.rectTextures = rectTextures;
 		this.s3tcTextures = s3tcTextures;
+	}
+	
+	public int getMaxColorAttachments() {
+		return this.maxColorAttachments;
 	}
 	
 	public boolean arePixelBuffersSupported() {

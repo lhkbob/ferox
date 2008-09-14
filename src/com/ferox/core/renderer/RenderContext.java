@@ -138,9 +138,6 @@ public abstract class RenderContext {
 	
 	RenderManager manager;
 	
-	private RenderPassPeer<RenderPass> defaultPass;
-	// TODO: add render to texture render passes
-	
 	private StateManager[] stateRecord;
 	private StateAtomTracker[] atomRecord;
 	
@@ -166,9 +163,7 @@ public abstract class RenderContext {
 	 * satisfy the requested options.  They are also responsible for instantiating the correct implementation of 
 	 * a RenderSurface.
 	 */
-	public RenderContext(DisplayOptions options) {
-		this.defaultPass = this.createDefaultRenderPassPeer();
-	}
+	public RenderContext(DisplayOptions options) { }
 	
 	/**
 	 * Get the RenderSurface that rendering goes to
@@ -231,15 +226,6 @@ public abstract class RenderContext {
 	 * buffers instead of the standard back buffer.
 	 */
 	public abstract void clearBuffers(boolean color, float[] clearColor, boolean depth, float clearDepth, boolean stencil, int clearStencil);
-	
-	/**
-	 * Get the number of auxiliary buffers present (ie GL_AUXi)
-	 */
-	public abstract int getNumAuxiliaryBuffers();
-	/**
-	 * Get the maximum number of draw buffers that are present.
-	 */
-	public abstract int getMaxDrawBuffers();
 	
 	/**
 	 * Method to be called to signal the beginning of a RenderAtom.  At the moment, it resets the dynamic
@@ -310,10 +296,10 @@ public abstract class RenderContext {
 	}
 	
 	/**
-	 * Get the RenderPassPeer impl for the default render pass.
+	 * Return a RenderPassPeer implementation suitable for the given type of RenderPass
+	 * (RenderPass or a subclass of it).
 	 */
-	public abstract RenderPassPeer<RenderPass> createDefaultRenderPassPeer();
-	//public RenderPassImpl<T> getRenderToTextureImpl();
+	public abstract RenderPassPeer getRenderPassPeer(Class<? extends RenderPass> type);
 	
 	/**
 	 * Get the StateAtomPeer implementation instance for the given class of StateAtom and this context
@@ -906,14 +892,6 @@ public abstract class RenderContext {
 	 */
 	public RenderManager getRenderManager() {
 		return this.manager;
-	}
-
-	/**
-	 * Get the default render pass peer suitable for use in a standard double/single buffered
-	 * setup
-	 */
-	public RenderPassPeer<RenderPass> getDefaultRenderPassPeer() {
-		return this.defaultPass;
 	}
 	
 	/**

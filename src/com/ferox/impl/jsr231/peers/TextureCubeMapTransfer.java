@@ -63,12 +63,12 @@ public class TextureCubeMapTransfer implements TextureTransfer<TextureCubeMap> {
 		
 		for (int i = 0; i < texture.getNumMipmaps(); i++) {
 			if (!this.reallocateOnUpdate(side, side, texture.getNumMipmaps(), texture.getDataFormat()) || texture.getPositiveXMipmap(i) == null) {
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PX).clear());
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NX).clear());
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PY).clear());
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NY).clear());
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PZ).clear());
-				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NZ).clear());
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PX));
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NX));
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PY));
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NY));
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.PZ));
+				this.setTexImage(true, gl, GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), texture.getMipmap(i, Face.NZ));
 			}
 			side = Math.max(1, (side >> 1));
 		}
@@ -110,12 +110,14 @@ public class TextureCubeMapTransfer implements TextureTransfer<TextureCubeMap> {
 				break;
 			}
 			if (data != null) 
-				this.setTexImage(this.reallocateOnUpdate(side, side, texture.getNumMipmaps(), texture.getDataFormat()), gl, face, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), data.clear());
+				this.setTexImage(this.reallocateOnUpdate(side, side, texture.getNumMipmaps(), texture.getDataFormat()), gl, face, i, 0, 0, side, side, t.srcFormat, t.dstFormat, t.dataType, texture.getDataFormat(), data);
 			side = Math.max(1, (side >> 1));
 		}
 	}
 	
 	private void setTexImage(boolean realloc, GL gl, int target, int level, int xOff, int yOff, int width, int height, int srcFormat, int dstFormat, int type, TextureFormat rFormat, Buffer data) {
+		if (data != null)
+			data.clear();
 		if (realloc) {
 			if (srcFormat < 0)
 				gl.glCompressedTexImage2D(target, level, dstFormat, width, height, 0, rFormat.getBufferSize(TextureType.UNSIGNED_BYTE, width, height), data);

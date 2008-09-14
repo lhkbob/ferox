@@ -4,7 +4,13 @@ import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLJPanel;
+import javax.media.opengl.GLPbuffer;
 
 import org.openmali.vecmath.AxisAngle4f;
 import org.openmali.vecmath.Vector3f;
@@ -37,7 +43,6 @@ import com.ferox.core.util.BufferUtil;
 import com.ferox.core.util.FeroxException;
 import com.ferox.core.util.DataTransfer.Block;
 import com.ferox.core.util.DataTransfer.Slice;
-import com.ferox.impl.jsr231.peers.JOGLDefaultRenderPassPeer;
 import com.ferox.impl.jsr231.peers.JOGLTextureDataPeer;
 import com.sun.opengl.util.GLUT;
 
@@ -101,6 +106,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 	private RenderSurface surface;
 	private double[] plane;
 	private HashMap<Class<? extends StateAtom>, StateAtomPeer> peerMap;
+	private HashMap<Class<? extends RenderPass>, RenderPassPeer> renderMap;
 	private StateAtomPeer[] peerCache;
 	
 	public JOGLRenderContext(DisplayOptions options) {
@@ -108,6 +114,7 @@ public abstract class JOGLRenderContext extends RenderContext {
 		
 		this.peerCache = null;
 		this.peerMap = new HashMap<Class<? extends StateAtom>, StateAtomPeer>();
+		this.renderMap = new HashMap<Class<? extends RenderPass>, RenderPassPeer>();
 		
 		this.matrix = BufferUtil.newFloatBuffer(16);
 		this.plane = new double[4];
@@ -295,14 +302,32 @@ public abstract class JOGLRenderContext extends RenderContext {
 		}
 		return joglCaps;
 	}
-
+	
 	@Override
-	public RenderPassPeer<RenderPass> createDefaultRenderPassPeer() {
-		return new JOGLDefaultRenderPassPeer();
+	public RenderPassPeer getRenderPassPeer(Class<? extends RenderPass> type) throws RuntimeException {
+		if (type == null)
+			throw new NullPointerException("Can't have a peer for a null type");
+		RenderPassPeer peer = this.renderMap.get(type);
+		if (peer != null)
+			return peer;
+		
+		String name = this.getClass().getPackage().getName() + ".peers.JOGL" + type.getSimpleName() + "Peer";
+		try {
+			peer = (RenderPassPeer)Class.forName(name).getDeclaredConstructor(JOGLRenderContext.class).newInstance(this);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		this.renderMap.put(type, peer);
+		return peer;
 	}
 
 	@Override
 	public StateAtomPeer getStateAtomPeer(Class<? extends StateAtom> type) throws RuntimeException {
+		if (type == null)
+			throw new NullPointerException("Can't have a peer for null type");
 		StateAtomPeer peer = this.peerMap.get(type);
 		if (peer != null)
 			return peer;

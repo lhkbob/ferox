@@ -32,7 +32,7 @@ class JOGLCapabilitiesFetcher implements GLEventListener {
 		boolean multiTexSupported = vNum >= 1.3f || gl.isExtensionAvailable("GL_ARB_multitexture");
 		boolean cubeMapSupport = vNum >= 1.3f || gl.isExtensionAvailable("GL_ARB_texture_cube_map");
 		boolean threeDSupport = vNum >= 1.2f;
-		boolean fboSupported = false;
+		boolean fboSupported = gl.isExtensionAvailable("GL_EXT_framebuffer_object");
 		boolean separateSpecularLightingSupported = vNum >= 1.2f;
 		
 		boolean npotTextures = vNum >= 2.0f || gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
@@ -88,10 +88,13 @@ class JOGLCapabilitiesFetcher implements GLEventListener {
 		
 		boolean pboSupport = gl.isExtensionAvailable("GL_EXT_pixel_buffer");
 		
+		gl.glGetIntegerv(GL.GL_MAX_COLOR_ATTACHMENTS_EXT, store, 0);
+		int maxColor = store[0];
+		
 		this.caps = new SystemCapabilities(maxVertexShaderTextureUnits,
 				maxFragmentShaderTextureUnits, maxCombinedTextureUnits, maxFFPTextureUnits,
 				maxLights, maxVertexAttributes,maxTextureCoordinates, 
-				maxVertices, maxIndices, maxAniso, version, vNum,
+				maxVertices, maxIndices, maxColor, maxAniso, version, vNum,
 				fboSupported, glslSupported, vboSupported, pboSupport, multiTexSupported,
 				separateSpecularLightingSupported, cubeMapSupport, threeDSupport,
 				fpTextures, npotTextures, rectTextures, s3tcTex);

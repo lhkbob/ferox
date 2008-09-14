@@ -307,7 +307,7 @@ public class RenderPass {
 	/**
 	 * Returns false if the scene is null or the view is null or the view's view node is not within the scene.
 	 */
-	private boolean isValid() {
+	public boolean isValid() {
 		if (this.scene == null || this.view == null)
 			return false;
 		return true;
@@ -319,7 +319,7 @@ public class RenderPass {
 	 * and submitting has begun.  Currently calls the default RenderPassPeer's prepare method.
 	 */
 	protected void prepareRenderPass(RenderManager manager) {
-		manager.getRenderContext().getDefaultRenderPassPeer().prepareRenderPass(this, manager.getRenderContext());
+		manager.getRenderContext().getRenderPassPeer(this.getClass()).prepareRenderPass(this);
 	}
 	
 	/**
@@ -328,6 +328,6 @@ public class RenderPass {
 	 * Currently calls the default RenderPassPeer's finish method.
 	 */
 	protected void finalizeRenderPass(RenderManager manager) {
-		manager.getRenderContext().getDefaultRenderPassPeer().finishRenderPass(this, manager.getRenderContext());
+		manager.getRenderContext().getRenderPassPeer(this.getClass()).finishRenderPass(this);
 	}
 }

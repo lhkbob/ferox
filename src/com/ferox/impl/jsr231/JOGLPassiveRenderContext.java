@@ -3,6 +3,8 @@ package com.ferox.impl.jsr231;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 
+import com.ferox.core.renderer.RenderPass;
+import com.ferox.core.renderer.RenderPassPeer;
 import com.ferox.core.system.DisplayOptions;
 import com.ferox.core.system.OnscreenRenderSurface;
 import com.ferox.core.system.RenderSurface;
@@ -18,9 +20,6 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 	
 	private int width;
 	private int height;
-	
-	private int maxDrawBuffers;
-	private int numAuxBuffers;
 
 	private boolean initialized;
 	
@@ -32,9 +31,6 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 		
 		this.gl = null;
 		this.version = -1;
-		
-		this.maxDrawBuffers = -1;
-		this.numAuxBuffers = -1;
 
 		this.initialized = false;
 		
@@ -60,16 +56,6 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 	@Override
 	public int getContextVersion() {
 		return this.version;
-	}
-
-	@Override
-	public int getMaxDrawBuffers() {
-		return this.maxDrawBuffers;
-	}
-
-	@Override
-	public int getNumAuxiliaryBuffers() {
-		return this.numAuxBuffers;
 	}
 
 	@Override
@@ -125,12 +111,8 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 		boolean doubleBuffered, stereo;
 		
 		int[] t = new int[1];
-		this.gl.glGetIntegerv(GL.GL_MAX_DRAW_BUFFERS, t, 0);
-		this.maxDrawBuffers = t[0];
 		this.gl.glGetIntegerv(GL.GL_SAMPLES, t, 0);
 		numMultiSamples = t[0];
-		this.gl.glGetIntegerv(GL.GL_AUX_BUFFERS, t, 0);
-		this.numAuxBuffers = t[0];
 		
 		this.gl.glDrawBuffer(GL.GL_BACK_LEFT);
 		doubleBuffered = this.gl.glGetError() == 0;

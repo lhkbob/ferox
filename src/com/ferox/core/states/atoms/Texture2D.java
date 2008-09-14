@@ -9,6 +9,7 @@ public class Texture2D extends TextureData {
 	private Buffer[] data;
 	private int width;
 	private int height;
+	private int numMips;
 	private boolean inited;
 	
 	public Texture2D(Buffer[] data, int width, int height, TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
@@ -98,6 +99,8 @@ public class Texture2D extends TextureData {
 				this.data = null;
 			}
 		
+			this.numMips = (this.data == null ? 1 : this.data.length);
+			
 			if (this.isMipmapped() && (this.width != this.height)) 
 				throw new IllegalArgumentException("Can't use mipmaps for rectangular textures");
 			if (this.isMipmapped() && this.data.length != (int)(Math.log(this.width) / Math.log(2) + 1))
@@ -116,7 +119,9 @@ public class Texture2D extends TextureData {
 	}
 	
 	public void clearClientMemory() {
+		int oldMips = this.numMips;
 		this.setTextureData(null, this.width, this.height);
+		this.numMips = oldMips;
 	}
 	
 	public Buffer getMipmapLevel(int level) {
@@ -128,7 +133,7 @@ public class Texture2D extends TextureData {
 	}
 	
 	public int getNumMipmaps() {
-		return (this.data == null ? 1 : this.data.length);
+		return this.numMips;
 	}
 	
 	public int getWidth() {
@@ -149,7 +154,7 @@ public class Texture2D extends TextureData {
 	
 	@Override
 	public boolean isMipmapped() {
-		return this.data != null && this.data.length > 1;
+		return this.numMips > 1;
 	}
 
 	@Override

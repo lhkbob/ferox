@@ -10,6 +10,7 @@ public class Texture3D extends TextureData {
 	private int width;
 	private int height;
 	private int depth;
+	private int numMips;
 	private boolean inited;
 	
 	public Texture3D(Buffer[] data, int width, int height, int depth, TextureType dataType, TextureFormat dataFormat, MinFilter min, MagFilter mag) {
@@ -104,6 +105,8 @@ public class Texture3D extends TextureData {
 				this.data = null;
 			}
 		
+			this.numMips = (this.data == null ? 1 : this.data.length);
+			
 			if (this.width != this.height) 
 				throw new IllegalArgumentException("2D slices of texture data must be square");
 			if (this.isMipmapped() && this.data.length != (int)(Math.log(this.width) / Math.log(2) + 1))
@@ -123,7 +126,9 @@ public class Texture3D extends TextureData {
 	}
 	
 	public void clearClientMemory() {
+		int oldMips = this.numMips;
 		this.setTextureData(null, this.width, this.height, this.depth);
+		this.numMips = oldMips;
 	}
 	
 	public Buffer getMipmapLevel(int level) {
@@ -135,12 +140,12 @@ public class Texture3D extends TextureData {
 	}
 	
 	public int getNumMipmaps() {
-		return (this.data == null ? 1 : this.data.length);
+		return this.numMips;
 	}
 	
 	@Override	
 	public boolean isMipmapped() {
-		return this.data != null && this.data.length > 1;
+		return this.numMips > 1;
 	}
 	
 	public int getWidth() {
