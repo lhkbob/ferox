@@ -25,7 +25,7 @@ public class JOGLRenderToTexturePassPeer extends JOGLRenderPassPeer {
 	public void prepareRenderPass(RenderPass pass) {
 		if (this.peer == null) {
 			if (RenderManager.getSystemCapabilities().isFBOSupported())
-				this.peer = new CopyTexturePeer();
+				this.peer = new FBOPeer();
 			else
 				this.peer = new CopyTexturePeer();
 		}

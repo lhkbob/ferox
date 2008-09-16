@@ -131,7 +131,7 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 			this.gl.glEnable(GL.GL_MULTISAMPLE);
 		this.gl.glEnable(GL.GL_SCISSOR_TEST);
 		this.gl.glEnable(GL.GL_RESCALE_NORMAL);
-		this.gl.glShadeModel(GL.GL_FLAT);
+		this.gl.glShadeModel(GL.GL_SMOOTH);
 		
 		int red, green, blue, alpha, stencil, depth;
 		this.gl.glGetIntegerv(GL.GL_RED_BITS, t, 0);

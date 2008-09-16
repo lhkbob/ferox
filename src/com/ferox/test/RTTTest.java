@@ -78,7 +78,9 @@ public class RTTTest implements FrameListener {
 	}
 	
 	private RTTTest() {
-		this.manager = new RenderManager(new JOGLPassiveRenderContext(new DisplayOptions()));
+		DisplayOptions op = new DisplayOptions();
+		//op.setNumMultiSamples(4);
+		this.manager = new RenderManager(new JOGLPassiveRenderContext(op));
 		
 		this.window = new JFrame("GLSLTest");
 		this.window.add((Component)((OnscreenRenderSurface)this.manager.getRenderingSurface()).getRenderSurface());
@@ -127,7 +129,7 @@ public class RTTTest implements FrameListener {
 	private SpatialTree buildRTTScene(RenderManager manager) {
 		Component c = (Component)((OnscreenRenderSurface)this.manager.getRenderingSurface()).getRenderSurface();
 		int min = Math.min(c.getWidth(), c.getHeight());
-		this.rttStore = new Texture2D(null, min, min, TextureType.UNSIGNED_BYTE, TextureFormat.RGB, TexClamp.CLAMP, MinFilter.LINEAR, MagFilter.LINEAR);
+		this.rttStore = new Texture2D(null, min, min, TextureType.UNCLAMPED_FLOAT, TextureFormat.RGB, TexClamp.CLAMP, MinFilter.LINEAR, MagFilter.LINEAR);
 		
 		SpatialBranch root = new SpatialBranch(null, 1);
 		Geometry cube = this.buildCube(1f);

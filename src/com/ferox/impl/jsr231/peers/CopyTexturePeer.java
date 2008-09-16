@@ -29,14 +29,18 @@ public class CopyTexturePeer implements RTTPeer {
 	}
 
 	private static void copyPixels(TextureData data, int slice, Face face, int width, int height, JOGLRenderContext context) {
-		//FIXME: center region onto the screen if the texture is smaller than the context dims.
-		Block region = new Block(0, 0, slice, Math.min(width, context.getContextWidth()), Math.min(height, context.getContextHeight()), 1);
+		width = Math.min(width, context.getContextWidth());
+		height = Math.min(height, context.getContextHeight());
+		int x = (context.getContextWidth() - width) / 2;
+		int y = (context.getContextHeight() - height) / 2;
+		
+		Block region = new Block(0, 0, slice, width, height, 1);
 		if (data.getTarget() == TextureTarget.TEX2D)
-			context.copyFramePixels((Texture2D)data, region, 0, 0, 0);
+			context.copyFramePixels((Texture2D)data, region, 0, x, y);
 		else if (data.getTarget() == TextureTarget.TEX3D)
-			context.copyFramePixels((Texture3D)data, region, 0, 0, 0);
+			context.copyFramePixels((Texture3D)data, region, 0, x, y);
 		else
-			context.copyFramePixels((TextureCubeMap)data, region, face, 0, 0, 0);
+			context.copyFramePixels((TextureCubeMap)data, region, face, 0, x, y);
 	}
 	
 	public void prepare(RenderToTexturePass pass, JOGLRenderContext context) {

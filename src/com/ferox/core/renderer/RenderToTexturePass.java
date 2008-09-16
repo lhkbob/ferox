@@ -38,6 +38,8 @@ public class RenderToTexturePass extends RenderPass {
 	private Attachment[] colorArray;
 	private Attachment depthAttach;
 	
+	private boolean useStencilBuffer;
+	
 	public RenderToTexturePass() {
 		this(null, null);
 	}
@@ -47,6 +49,15 @@ public class RenderToTexturePass extends RenderPass {
 		
 		this.colorArray = new Attachment[1];
 		this.depthAttach = new Attachment();
+		this.useStencilBuffer = false;
+	}
+	
+	public boolean isStencilBufferUsed() {
+		return this.useStencilBuffer;
+	}
+	
+	public void useStencilBuffer(boolean stencil) {
+		this.useStencilBuffer = stencil;
 	}
 	
 	public TextureData getDepthBinding() {
@@ -113,26 +124,44 @@ public class RenderToTexturePass extends RenderPass {
 	private static void validateColorFormat(TextureData data) throws IllegalArgumentException {
 		if (data != null && data.getDataFormat() == TextureFormat.DEPTH)
 			throw new IllegalArgumentException("Color attachment must have a non-depth format, not: " + data.getDataFormat());
+		if (data != null && !(data.getDataFormat().getNumComponents() == 4 || data.getDataFormat().getNumComponents() == 3))
+			throw new IllegalArgumentException("Color attachment must have a 3 or 4 component format");
 		if (data != null && (data.getDataFormat().isClientCompressed() || data.getDataCompression() != TextureCompression.NONE))
 			throw new IllegalArgumentException("Color attachment can't be compressed: " + data.getDataFormat() + " " + data.getDataCompression());
 	}
 	
 	public void setColorBinding(Texture2D data, int drawBuffer) throws IllegalArgumentException {
-		validateColorFormat(data);
-		this.ensureExistence(drawBuffer);
-		setAttachment(data, this.colorArray[drawBuffer]);
+		if (data == null || !this.isTexturePresent(data)) {
+			validateColorFormat(data);
+			this.ensureExistence(drawBuffer);
+			setAttachment(data, this.colorArray[drawBuffer]);
+		}
 	}
 	
 	public void setColorBinding(TextureCubeMap data, Face face, int drawBuffer) throws IllegalArgumentException {
-		validateColorFormat(data);
-		this.ensureExistence(drawBuffer);
-		setAttachment(data, face, this.colorArray[drawBuffer]);
+		if (data == null || !this.isTexturePresent(data)) {
+			validateColorFormat(data);
+			this.ensureExistence(drawBuffer);
+			setAttachment(data, face, this.colorArray[drawBuffer]);
+		}
 	}
 	
 	public void setColorBinding(Texture3D data, int slice, int drawBuffer) throws IllegalArgumentException {
-		validateColorFormat(data);
-		this.ensureExistence(drawBuffer);
-		setAttachment(data, slice, this.colorArray[drawBuffer]);
+		if (data == null || !this.isTexturePresent(data)) {
+			validateColorFormat(data);
+			this.ensureExistence(drawBuffer);
+			setAttachment(data, slice, this.colorArray[drawBuffer]);
+		}
+	}
+	
+	private boolean isTexturePresent(TextureData data) {
+		if (data == null)
+			return false;
+		for (int i = 0; i < this.colorArray.length; i++) {
+			if (this.colorArray[i] != null && this.colorArray[i].data == data)
+				return true;
+		}
+		return false;
 	}
 	
 	public int getWidth() {

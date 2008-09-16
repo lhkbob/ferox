@@ -3,6 +3,7 @@ package com.ferox.test;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
@@ -47,6 +48,7 @@ import com.ferox.core.system.OnscreenRenderSurface;
 import com.ferox.core.util.InputManager;
 import com.ferox.core.util.TextureResourceManager;
 import com.ferox.core.util.TimeSmoother;
+import com.ferox.core.util.io.IOManager;
 import com.ferox.impl.jsr231.JOGLPassiveRenderContext;
 import com.sun.opengl.util.BufferUtil;
 
@@ -148,31 +150,27 @@ public class LightTest {
 
 		Geometry geom = null;
 		Geometry geom2 = null;
-		/*try {
-			now = System.currentTimeMillis();
-			geom = (Geometry)com.ferox.util.io.IOManager.read(new File("dragon_4.ido2"));
-			System.out.println("total read/write time: " + (System.currentTimeMillis() - now));
+		try {
+			geom = (Geometry)IOManager.read(new File("data/models/dragon_2.ido2"));
 			System.out.println("geom verts: " + geom.getVertices().getNumElements() + " geom indices: " + geom.getIndices().getNumElements() + " polys: " + geom.getPolygonCount());
 		} catch(IOException ioe) {
 			System.out.println(ioe);
 			System.exit(1);
-		}*/
-		/*try {
-			now = System.currentTimeMillis();
-			geom2 = (Geometry)com.ferox.util.io.IOManager.read(new File("dragon_big.ido2"));
-			System.out.println("total read/write time: " + (System.currentTimeMillis() - now));
+		}
+		try {
+			geom2 = (Geometry)IOManager.read(new File("data/models/dragon_3.ido2"));
 			System.out.println("geom verts: " + geom.getVertices().getNumElements() + " geom indices: " + geom.getIndices().getNumElements() + " polys: " + geom.getPolygonCount());
 		} catch(IOException ioe) {
 			System.out.println(ioe);
 			System.exit(1);
-		}*/ 
-		geom = buildCube();
-		geom2 = geom;
+		}
+		//geom = buildCube();
+		//geom2 = geom;
 		
 		a1.addStateManager(geom);
 		a2.addStateManager(geom2);
 		
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 100; i++) {
 			SpatialLeaf spat_atom;
 			StateLeaf stat_atom;
 			double r = Math.random();

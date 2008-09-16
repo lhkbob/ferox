@@ -23,7 +23,7 @@ public class IOManager {
 		BufferData d = new BufferData(null, BufferData.DataType.FLOAT, 3);
 		VertexArray a = new VertexArray(d, 3);
 		Geometry g = new Geometry(a, null, Geometry.PolygonType.TRIANGLES);
-		GLSLShaderObject o = new GLSLShaderObject(null, GLSLShaderObject.GLSLType.VERTEX);
+		GLSLShaderObject o = new GLSLShaderObject(new String[] {""}, GLSLShaderObject.GLSLType.VERTEX);
 		
 		IOManager.registerInstantiator(d);
 		IOManager.registerInstantiator(a);
