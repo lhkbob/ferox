@@ -11,15 +11,18 @@ import com.ferox.core.states.atoms.BufferData.BufferTarget;
 import com.ferox.core.states.atoms.BufferData.DataType;
 import com.ferox.core.states.manager.Geometry;
 import com.ferox.core.util.BufferUtil;
+import com.ferox.core.util.IOUtil;
 import com.ferox.core.util.io.IOManager;
+import com.ferox.core.util.io.binary.BinaryExporter;
+import com.ferox.core.util.io.binary.BinaryImporter;
 
 public class PlyReader {
 	public static void main(String[] args) {
 		Geometry g = readPLYFile(new File("../../ply/dragon_vrip_res4.ply"));
 		System.out.println("done reading + converting");
 		try {
-			IOManager.write(new File("src/data/models/dragon_4.ido2"), g);
-			IOManager.read(new File("src/data/models/dragon_4.ido2"));
+			IOManager.write(new File("data/models/dragon_3.ido2"), g, new BinaryExporter());
+			IOManager.read(new File("data/models/dragon_3.ido2"), new BinaryImporter());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
