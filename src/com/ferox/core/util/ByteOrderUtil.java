@@ -2,7 +2,7 @@ package com.ferox.core.util;
 
 import java.io.IOException;
 
-public class ByteOrder {
+public class ByteOrderUtil {
 	public static int swapInt(int in) {
 		byte[] b = new byte[4];
 		IOUtil.convertInt(in, b, 0);

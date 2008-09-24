@@ -130,8 +130,8 @@ public class LightManager extends StateManager {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setBoolean("ss", this.seperateSpecular);
-		out.setBoolean("lv", this.localViewer);
-		out.setFloatArray("ambient", this.ambientLight);
+		out.set("ss", this.seperateSpecular);
+		out.set("lv", this.localViewer);
+		out.set("ambient", this.ambientLight);
 	}
 }

@@ -1,17 +1,20 @@
 package com.ferox.core.states.atoms;
 
-import java.nio.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
 import com.ferox.core.util.BufferUtil;
-import com.ferox.core.util.FeroxException;
 import com.ferox.core.util.io.Chunkable;
-import com.ferox.core.util.io.ChunkableInstantiator;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
-public class BufferData extends StateAtom implements ChunkableInstantiator {
+public class BufferData extends StateAtom {
 	public static enum DataType {
 		FLOAT(FloatBuffer.class, BufferUtil.BYTESIZE_FLOAT, false), 
 		DOUBLE(DoubleBuffer.class, BufferUtil.BYTESIZE_DOUBLE, false), 
@@ -176,20 +179,12 @@ public class BufferData extends StateAtom implements ChunkableInstantiator {
 	public void writeChunk(OutputChunk output) {
 		super.writeChunk(output);
 		
-		output.setEnum("dataType", this.dataType);
-		output.setInt("capacity", this.capacity);
-		output.setEnum("usageHint", this.hint);
-		output.setBoolean("isVBO", this.isVBO);
-		output.setBuffer("data", this.data);
-		output.setEnum("target", this.primaryTarget);
-	}
-
-	public Class<? extends Chunkable> getChunkableClass() {
-		return BufferData.class;
-	}
-
-	public Chunkable newInstance() {
-		return new BufferData();
+		output.set("dataType", this.dataType);
+		output.set("capacity", this.capacity);
+		output.set("usageHint", this.hint);
+		output.set("isVBO", this.isVBO);
+		output.set("data", this.data);
+		output.set("target", this.primaryTarget);
 	}
 
 	@Override

@@ -261,7 +261,8 @@ public class JOGLTextureDataPeer extends SimplePeer<TextureData, TextureRecord> 
 			gl.glGetTexLevelParameteriv(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL.GL_TEXTURE_INTERNAL_FORMAT, v, 0);
 		else
 			gl.glGetTexLevelParameteriv(t.target, 0, GL.GL_TEXTURE_INTERNAL_FORMAT, v, 0);
-		
+		System.out.println(t.dstFormat + " " + t.srcFormat);
+		System.out.println(GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT + " " + GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT);
 		if (t.dstFormat != v[0]) {
 			System.err.println("WARNING: Dst texture format was changed from: " + t.dstFormat + " to " + v[0]);
 			t.dstFormat = v[0];

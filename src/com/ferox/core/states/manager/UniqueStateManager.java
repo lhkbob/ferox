@@ -86,13 +86,13 @@ public abstract class UniqueStateManager<S extends StateAtom> extends StateManag
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		this.state = (S)in.getObject("state");
+		this.state = (S)in.getChunk("state");
 	}
 	
 	@Override
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setObject("state", this.state);
+		out.set("state", this.state);
 	}
 }

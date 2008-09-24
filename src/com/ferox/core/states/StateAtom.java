@@ -1,6 +1,6 @@
 package com.ferox.core.states;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import com.ferox.core.renderer.RenderContext;
 import com.ferox.core.renderer.RenderManager;
@@ -126,13 +126,13 @@ public abstract class StateAtom implements Chunkable {
 	}
 	
 	public void update() {
-		ArrayList<RenderManager> mans = RenderManager.getRenderManagers();
+		List<RenderManager> mans = RenderManager.getRenderManagers();
 		for (int i = 0; i < mans.size(); i++)
 			this.update(mans.get(i));
 	}
 	
 	public void destroy() {
-		ArrayList<RenderManager> mans = RenderManager.getRenderManagers();
+		List<RenderManager> mans = RenderManager.getRenderManagers();
 		for (int i = 0; i < mans.size(); i++)
 			this.destroy(mans.get(i));
 	}

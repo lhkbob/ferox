@@ -219,15 +219,15 @@ public abstract class SpatialNode implements Chunkable {
 		// parent will be set when this node is added to the parent
 		// similarly with scene
 		
-		out.setObject("transform", this.localTransform);
-		out.setEnum("cullMode", this.cullMode);
-		out.setInt("locks", this.locks);
+		out.set("transform", this.localTransform);
+		out.set("cullMode", this.cullMode);
+		out.set("locks", this.locks);
 	}
 	
 	public void readChunk(InputChunk in) {
 		// parent and scene are set later on
 		
-		this.setLocalTransform((Transform)in.getObject("transform"));
+		this.setLocalTransform((Transform)in.getChunk("transform"));
 		this.cullMode = in.getEnum("cullMode", CullMode.class);
 		this.locks = in.getInt("locks");
 	}

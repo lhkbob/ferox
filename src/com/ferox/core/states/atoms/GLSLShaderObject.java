@@ -1,14 +1,10 @@
 package com.ferox.core.states.atoms;
 
-import java.util.Iterator;
 import java.util.WeakHashMap;
 
-import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.states.NullUnit;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
-import com.ferox.core.util.io.Chunkable;
-import com.ferox.core.util.io.ChunkableInstantiator;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
@@ -19,7 +15,7 @@ import com.ferox.core.util.io.OutputChunk;
  * @author Michael Ludwig
  *
  */
-public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator {
+public class GLSLShaderObject extends StateAtom {
 	public static enum GLSLType {
 		VERTEX, FRAGMENT
 	}
@@ -123,29 +119,21 @@ public class GLSLShaderObject extends StateAtom implements ChunkableInstantiator
 	void unlinkFromProgram(GLSLShaderProgram prog) {
 		this.linkedPrograms.remove(prog);
 	}
-
-	public Class<? extends Chunkable> getChunkableClass() {
-		return GLSLShaderObject.class;
-	}
-
-	public Chunkable newInstance() {
-		return new GLSLShaderObject();
-	}
 	
 	@Override
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
 		this.type = in.getEnum("type", GLSLType.class);
-		this.source = in.getStringArray("source");
+		this.setSource(in.getStringArray("source"));
 	}
 	
 	@Override
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setEnum("type", this.type);
-		out.setStringArray("source", this.source);
+		out.set("type", this.type);
+		out.set("source", this.source);
 	}
 
 	@Override

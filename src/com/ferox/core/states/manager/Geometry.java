@@ -1,6 +1,9 @@
 package com.ferox.core.states.manager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 
 import com.ferox.core.renderer.RenderContext;
 import com.ferox.core.renderer.RenderManager;
@@ -17,8 +20,6 @@ import com.ferox.core.states.atoms.VertexArray.VertexArrayTarget;
 import com.ferox.core.states.atoms.VertexArray.VertexArrayUnit;
 import com.ferox.core.system.SystemCapabilities;
 import com.ferox.core.util.FeroxException;
-import com.ferox.core.util.io.Chunkable;
-import com.ferox.core.util.io.ChunkableInstantiator;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
@@ -31,7 +32,7 @@ import com.ferox.core.util.io.OutputChunk;
  * @author Michael Ludwig
  *
  */
-public class Geometry extends StateManager implements ChunkableInstantiator {
+public class Geometry extends StateManager {
 	public static enum PolygonType {
 		TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN, QUADS, QUAD_STRIP, POINTS, LINES
 	}
@@ -638,46 +639,38 @@ public class Geometry extends StateManager implements ChunkableInstantiator {
 		super.readChunk(in);
 		
 		this.connectivity = in.getEnum("connectivity", PolygonType.class);
-		this.setVertices((VertexArray)in.getObject("vertices"));
-		this.setNormals((VertexArray)in.getObject("normals"));
-		this.setIndices((VertexArray)in.getObject("indices"));
+		this.setVertices((VertexArray)in.getChunk("vertices"));
+		this.setNormals((VertexArray)in.getChunk("normals"));
+		this.setIndices((VertexArray)in.getChunk("indices"));
 		
 		int tc = in.getInt("tex_count");
 		for (int i = 0; i < tc; i++) 
-			this.setTexCoords((VertexArray)in.getObject("texture_" + i), in.getInt("tex_unit_" + i));
+			this.setTexCoords((VertexArray)in.getChunk("texture_" + i), in.getInt("tex_unit_" + i));
 		int va = in.getInt("va_count");
 		for (int i = 0; i < va; i++)
-			this.setVertexAttributes((VertexArray)in.getObject("va_" + i), in.getInt("va_unit_" + i));
+			this.setVertexAttributes((VertexArray)in.getChunk("va_" + i), in.getInt("va_unit_" + i));
 	}
 	
 	@Override
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setEnum("connectivity", this.connectivity);
-		out.setObject("vertices", this.vertices);
-		out.setObject("normals", this.normals);
-		out.setObject("indices", this.indices);
+		out.set("connectivity", this.connectivity);
+		out.set("vertices", this.vertices);
+		out.set("normals", this.normals);
+		out.set("indices", this.indices);
 		
-		out.setInt("tex_count", this.texCoords.size());
+		out.set("tex_count", this.texCoords.size());
 		for (int i = 0; i < this.texCoords.size(); i++) {
-			out.setInt("tex_unit_" + i, this.texCoords.get(i).logicalUnit);
-			out.setObject("texture_" + i, this.texCoords.get(i).buffer);
+			out.set("tex_unit_" + i, this.texCoords.get(i).logicalUnit);
+			out.set("texture_" + i, this.texCoords.get(i).buffer);
 		}
 		
-		out.setInt("va_count", this.vertAttribs.size());
+		out.set("va_count", this.vertAttribs.size());
 		for (int i = 0; i < this.vertAttribs.size(); i++) {
-			out.setInt("va_unit_" + i, this.vertAttribs.get(i).logicalUnit);
-			out.setObject("va_" + i, this.vertAttribs.get(i).buffer);
+			out.set("va_unit_" + i, this.vertAttribs.get(i).logicalUnit);
+			out.set("va_" + i, this.vertAttribs.get(i).buffer);
 		}
-	}
-
-	public Class<? extends Chunkable> getChunkableClass() {
-		return Geometry.class;
-	}
-
-	public Chunkable newInstance() {
-		return new Geometry();
 	}
 
 	@Override

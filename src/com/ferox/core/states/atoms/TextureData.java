@@ -186,7 +186,7 @@ public abstract class TextureData extends StateAtom {
 	}
 	
 	public TextureData(TextureType dataType, TextureFormat dataFormat, TextureCompression comp, TexClamp clampS, TexClamp clampT, TexClamp clampR, MinFilter min, MagFilter mag) {
-		super();
+		this();
 		this.setTextureFormat(dataFormat, dataType, comp);
 		
 		this.setAnisotropicFilterLevel(1f);
@@ -198,6 +198,10 @@ public abstract class TextureData extends StateAtom {
 		this.setDepthMode(DepthMode.LUMINANCE);
 		this.setCompareMode(DepthCompare.NONE);
 		this.setCompareFunction(FragmentTest.LEQUAL);
+	}
+	
+	protected TextureData() {
+		super();
 	}
 	
 	public abstract TextureTarget getTarget();
@@ -357,6 +361,7 @@ public abstract class TextureData extends StateAtom {
 		this.compareMode = in.getEnum("compMode", DepthCompare.class);;
 		this.compareFunction = in.getEnum("compFunc", FragmentTest.class);;
 		
+		System.out.println(this.dataFormat + " " + this.dataType + " " + this.dataCompress);
 		this.aniso = in.getFloat("aniso");
 	}
 	
@@ -364,19 +369,19 @@ public abstract class TextureData extends StateAtom {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 				
-		out.setEnum("format", this.dataFormat);
-		out.setEnum("type", this.dataType);
-		out.setEnum("compress", this.dataCompress);
-		out.setEnum("wrapR", this.wrapR);
-		out.setEnum("wrapS", this.wrapS);
-		out.setEnum("wrapT", this.wrapT);
-		out.setEnum("min", this.minFilter);
-		out.setEnum("mag", this.magFilter);
-		out.setEnum("depthMode", this.depthMode);
-		out.setEnum("compMode", this.compareMode);
-		out.setEnum("compFunc", this.compareFunction);
+		out.set("format", this.dataFormat);
+		out.set("type", this.dataType);
+		out.set("compress", this.dataCompress);
+		out.set("wrapR", this.wrapR);
+		out.set("wrapS", this.wrapS);
+		out.set("wrapT", this.wrapT);
+		out.set("min", this.minFilter);
+		out.set("mag", this.magFilter);
+		out.set("depthMode", this.depthMode);
+		out.set("compMode", this.compareMode);
+		out.set("compFunc", this.compareFunction);
 	
-		out.setFloat("aniso", this.aniso);
+		out.set("aniso", this.aniso);
 	}
 	
 	public static boolean isBufferValid(TextureType type, TextureFormat format, TextureCompression comp, int width, int height, Buffer data) {

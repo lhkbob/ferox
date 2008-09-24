@@ -49,9 +49,9 @@ public class AlphaState extends StateAtom {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setEnum("test", this.alphaTest);
-		out.setFloat("refValue", this.refValue);
-		out.setBoolean("aEnabled", this.alphaEnabled);
+		out.set("test", this.alphaTest);
+		out.set("refValue", this.refValue);
+		out.set("aEnabled", this.alphaEnabled);
 	}
 	
 	@Override

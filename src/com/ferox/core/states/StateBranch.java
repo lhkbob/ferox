@@ -1,5 +1,6 @@
 package com.ferox.core.states;
 
+import com.ferox.core.util.io.Chunkable;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
@@ -137,19 +138,19 @@ public class StateBranch extends StateNode {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setInt("numChildren", this.size);
-		for (int i = 0; i < this.size; i++) 
-			out.setObject("child_" + i, this.children[i]);
+		Chunkable[] children = new Chunkable[this.size];
+		System.arraycopy(this.children, 0, children, 0, this.size);
+		out.set("children", children);
 	}
 	
 	@Override
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		this.size = in.getInt("numChildren");
-		this.ensureCapacity(this.size);
+		Chunkable[] children = in.getChunkArray("children");
+		this.ensureCapacity(children.length);
 		
-		for (int i = 0; i < this.size; i++)
-			this.add((StateNode)in.getObject("child_" + i));
+		for (int i = 0; i < children.length; i++)
+			this.add((StateNode)children[i]);
 	}
 }

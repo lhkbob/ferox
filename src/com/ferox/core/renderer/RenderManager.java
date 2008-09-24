@@ -1,6 +1,8 @@
 package com.ferox.core.renderer;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import com.ferox.core.scene.SpatialTree;
 import com.ferox.core.scene.View;
@@ -92,8 +94,8 @@ public class RenderManager {
 	/**
 	 * Returns a NEW list of all instantiated RenderManagers.
 	 */
-	public static ArrayList<RenderManager> getRenderManagers() {
-		return (ArrayList<RenderManager>)managers.clone();
+	public static List<RenderManager> getRenderManagers() {
+		return Collections.unmodifiableList(managers);
 	}
 	
 	/**

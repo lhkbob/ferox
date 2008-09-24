@@ -70,10 +70,10 @@ public class BlendState extends StateAtom {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setEnum("bFunc", this.blendFunc);
-		out.setEnum("srcFactor", this.srcBlendFactor);
-		out.setEnum("dstFactor", this.dstBlendFactor);
-		out.setBoolean("bEnabled", this.blendEnabled);
+		out.set("bFunc", this.blendFunc);
+		out.set("srcFactor", this.srcBlendFactor);
+		out.set("dstFactor", this.dstBlendFactor);
+		out.set("bEnabled", this.blendEnabled);
 	}
 	
 	@Override

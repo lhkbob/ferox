@@ -3,12 +3,10 @@ package com.ferox.core.states.atoms;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
 import com.ferox.core.states.manager.Geometry;
-import com.ferox.core.util.io.Chunkable;
-import com.ferox.core.util.io.ChunkableInstantiator;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
-public class VertexArray extends StateAtom implements ChunkableInstantiator {
+public class VertexArray extends StateAtom {
 	public static final int MAX_SUPPORTED_TEXUNITS = 32;
 	
 	public static enum VertexArrayTarget {
@@ -157,20 +155,12 @@ public class VertexArray extends StateAtom implements ChunkableInstantiator {
 			return this.offset + element * this.accessor;
 		}
 	}
-
-	public Class<? extends Chunkable> getChunkableClass() {
-		return VertexArray.class;
-	}
-
-	public Chunkable newInstance() {
-		return new VertexArray();
-	}
 	
 	@Override
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		this.data = (BufferData)in.getObject("data");
+		this.data = (BufferData)in.getChunk("data");
 		int[] temp = in.getIntArray("params");
 		this.elementSize = temp[0];
 		this.offset = temp[1];
@@ -184,9 +174,9 @@ public class VertexArray extends StateAtom implements ChunkableInstantiator {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setObject("data", this.data);
+		out.set("data", this.data);
 		int[] temp = new int[] {this.elementSize, this.offset, this.stride};
-		out.setIntArray("params", temp);
+		out.set("params", temp);
 	}
 
 	@Override

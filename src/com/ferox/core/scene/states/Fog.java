@@ -168,11 +168,11 @@ public class Fog extends SpatialState {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setFloatArray("color", this.color);
+		out.set("color", this.color);
 		float[] temp = new float[] {this.density, this.end, this.start};
-		out.setFloatArray("params", temp);
-		out.setEnum("eq", this.eq);
-		out.setEnum("qual", this.qual);
+		out.set("params", temp);
+		out.set("eq", this.eq);
+		out.set("qual", this.qual);
 	}
 
 	@Override

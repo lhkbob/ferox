@@ -37,6 +37,11 @@ public class Texture3D extends TextureData {
 		this.inited = true;
 	}
 	
+	private Texture3D() {
+		super();
+		this.inited = true;
+	}
+	
 	public void setTextureFormat(TextureFormat format, TextureType type, TextureCompression comp) {
 		if (this.inited)
 			this.setTexture(this.data, this.width, this.height, this.depth, format, type, comp);
@@ -181,16 +186,15 @@ public class Texture3D extends TextureData {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setInt("width", this.width);
-		out.setInt("height", this.height);
-		out.setInt("depth", this.depth);
+		out.set("width", this.width);
+		out.set("height", this.height);
+		out.set("depth", this.depth);
+		out.set("numMipmaps", this.numMips);
 		
-		if (this.data == null) 
-			out.setInt("numMipmaps", 0);
-		else {
-			out.setInt("numMipmaps", this.data.length);
+		out.set("levels", (this.data == null ? 0 : this.data.length));
+		if (this.data != null) {
 			for (int i = 0; i < this.data.length; i++)
-				out.setBuffer("data_" + i, this.data[i]);
+				out.set("data_" + i, this.data[i]);
 		}
 	}
 	
@@ -201,11 +205,12 @@ public class Texture3D extends TextureData {
 		this.width = in.getInt("width");
 		this.height = in.getInt("height");
 		this.depth = in.getInt("depth");
+		this.numMips = in.getInt("numMipmaps");
 		
-		int numMipmaps = in.getInt("numMipmaps");
-		if (numMipmaps > 0) {
-			this.data = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+		int levels = in.getInt("levels");
+		if (levels > 0) {
+			this.data = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.data[i] = in.getBuffer("data_" + i);
 		} else 
 			this.data = null;

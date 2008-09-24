@@ -119,10 +119,10 @@ public class Material extends StateAtom {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setFloatArray("diff", this.diff);
-		out.setFloatArray("spec", this.spec);
-		out.setFloatArray("amb", this.amb);
-		out.setFloat("shininess", this.shininess);
+		out.set("diff", this.diff);
+		out.set("spec", this.spec);
+		out.set("amb", this.amb);
+		out.set("shininess", this.shininess);
 	}
 
 	@Override

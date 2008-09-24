@@ -1,8 +1,11 @@
 package com.ferox.core.states.atoms;
 
 import com.ferox.core.states.manager.Geometry;
+import com.ferox.core.util.io.Chunkable;
+import com.ferox.core.util.io.InputChunk;
+import com.ferox.core.util.io.OutputChunk;
 
-public class GLSLAttribute {
+public class GLSLAttribute implements Chunkable {
 	public static enum AttributeType {
 		FLOAT, VEC2F, VEC3F, VEC4F, MAT2F, MAT3F, MAT4F
 	}
@@ -50,5 +53,17 @@ public class GLSLAttribute {
 	
 	public int hashCode() {
 		return this.name.hashCode() ^ this.type.hashCode();
+	}
+
+	public void readChunk(InputChunk in) {
+		this.binding = in.getInt("binding");
+		this.name = in.getString("name");
+		this.type = in.getEnum("type", AttributeType.class);
+	}
+
+	public void writeChunk(OutputChunk out) {
+		out.set("binding", this.binding);
+		out.set("name", this.name);
+		out.set("type", this.type);
 	}
 }

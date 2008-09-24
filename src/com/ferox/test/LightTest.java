@@ -49,6 +49,7 @@ import com.ferox.core.util.InputManager;
 import com.ferox.core.util.TextureResourceManager;
 import com.ferox.core.util.TimeSmoother;
 import com.ferox.core.util.io.IOManager;
+import com.ferox.core.util.io.binary.BinaryImporter;
 import com.ferox.impl.jsr231.JOGLPassiveRenderContext;
 import com.sun.opengl.util.BufferUtil;
 
@@ -151,15 +152,15 @@ public class LightTest {
 		Geometry geom = null;
 		Geometry geom2 = null;
 		try {
-			geom = (Geometry)IOManager.read(new File("data/models/dragon_2.ido2"));
+			geom = (Geometry)IOManager.read(new File("data/models/dragon_2.ido2"), new BinaryImporter()).getPrimaryObject();
 			System.out.println("geom verts: " + geom.getVertices().getNumElements() + " geom indices: " + geom.getIndices().getNumElements() + " polys: " + geom.getPolygonCount());
 		} catch(IOException ioe) {
 			System.out.println(ioe);
 			System.exit(1);
 		}
 		try {
-			geom2 = (Geometry)IOManager.read(new File("data/models/dragon_3.ido2"));
-			System.out.println("geom verts: " + geom.getVertices().getNumElements() + " geom indices: " + geom.getIndices().getNumElements() + " polys: " + geom.getPolygonCount());
+			geom2 = (Geometry)IOManager.read(new File("data/models/dragon_3.ido2"), new BinaryImporter()).getPrimaryObject();
+			System.out.println("geom verts: " + geom2.getVertices().getNumElements() + " geom indices: " + geom2.getIndices().getNumElements() + " polys: " + geom2.getPolygonCount());
 		} catch(IOException ioe) {
 			System.out.println(ioe);
 			System.exit(1);

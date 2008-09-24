@@ -122,28 +122,28 @@ public class TextureUtil {
 		
 		switch(type) {
 		case UNSIGNED_BYTE:
-			s = new Samplers.ByteUnpackedSampler(data, width, height, depth, format.getNumComponents());
+			s = new TextureSamplers.ByteUnpackedSampler(data, width, height, depth, format.getNumComponents());
 			break;
 		case FLOAT:
-			s = new Samplers.FloatUnpackedSampler(data, width, height, depth, format.getNumComponents());
+			s = new TextureSamplers.FloatUnpackedSampler(data, width, height, depth, format.getNumComponents());
 			break;
 		case UNSIGNED_INT:
-			s = new Samplers.IntUnpackedSampler(data, width, height, depth, format.getNumComponents());
+			s = new TextureSamplers.IntUnpackedSampler(data, width, height, depth, format.getNumComponents());
 			break;
 		case UNSIGNED_SHORT:
-			s = new Samplers.ShortUnpackedSampler(data, width, height, depth, format.getNumComponents());
+			s = new TextureSamplers.ShortUnpackedSampler(data, width, height, depth, format.getNumComponents());
 			break;
 		case PACKED_INT_8888:
-			s = new Samplers.Int8888Sampler(data, width, height, depth);
+			s = new TextureSamplers.Int8888Sampler(data, width, height, depth);
 			break;
 		case PACKED_SHORT_4444:
-			s = new Samplers.Short4444Sampler(data, width, height, depth);
+			s = new TextureSamplers.Short4444Sampler(data, width, height, depth);
 			break;
 		case PACKED_SHORT_5551:
-			s = new Samplers.Short5551Sampler(data, width, height, depth);
+			s = new TextureSamplers.Short5551Sampler(data, width, height, depth);
 			break;
 		case PACKED_SHORT_565:
-			s = new Samplers.Short565Sampler(data, width, height, depth);
+			s = new TextureSamplers.Short565Sampler(data, width, height, depth);
 			break;
 		}
 		

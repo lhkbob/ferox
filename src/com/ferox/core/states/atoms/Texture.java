@@ -400,7 +400,7 @@ public class Texture extends StateAtom {
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		this.data = (TextureData)in.getObject("data");
+		this.data = (TextureData)in.getChunk("data");
 		
 		this.combineAlphaFunc = in.getEnum("comAF", CombineAlphaFunc.class);
 		this.combineRGBFunc = in.getEnum("comRGBF", CombineRGBFunc.class);
@@ -427,41 +427,41 @@ public class Texture extends StateAtom {
 		
 		this.texEnvColor = in.getFloatArray("color");
 		this.texEnvMode = in.getEnum("envmode", EnvMode.class);
-		this.texTrans = (Transform)in.getObject("trans");
+		this.texTrans = (Transform)in.getChunk("trans");
 	}
 	
 	@Override
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setObject("data", this.data);
+		out.set("data", this.data);
 		
-		out.setEnum("comAF", this.combineAlphaFunc);
-		out.setEnum("comRGBF", this.combineRGBFunc);
-		out.setEnum("opA0", this.operandAlpha0);
-		out.setEnum("opA1", this.operandAlpha1);
-		out.setEnum("opA2", this.operandAlpha2);
-		out.setEnum("opRGB0", this.operandRGB0);
-		out.setEnum("opRGB1", this.operandRGB1);
-		out.setEnum("opRGB2", this.operandRGB2);
-		out.setEnum("srcA0", this.sourceAlpha0);
-		out.setEnum("srcA1", this.sourceAlpha1);
-		out.setEnum("srcA2", this.sourceAlpha2);
-		out.setEnum("srcRGB0", this.sourceRGB0);
-		out.setEnum("srcRGB1", this.sourceRGB1);
-		out.setEnum("srcRGB2", this.sourceRGB2);
+		out.set("comAF", this.combineAlphaFunc);
+		out.set("comRGBF", this.combineRGBFunc);
+		out.set("opA0", this.operandAlpha0);
+		out.set("opA1", this.operandAlpha1);
+		out.set("opA2", this.operandAlpha2);
+		out.set("opRGB0", this.operandRGB0);
+		out.set("opRGB1", this.operandRGB1);
+		out.set("opRGB2", this.operandRGB2);
+		out.set("srcA0", this.sourceAlpha0);
+		out.set("srcA1", this.sourceAlpha1);
+		out.set("srcA2", this.sourceAlpha2);
+		out.set("srcRGB0", this.sourceRGB0);
+		out.set("srcRGB1", this.sourceRGB1);
+		out.set("srcRGB2", this.sourceRGB2);
 		
-		out.setFloatArray("planeR", this.planeR);
-		out.setFloatArray("planeS", this.planeS);
-		out.setFloatArray("planeT", this.planeT);
+		out.set("planeR", this.planeR);
+		out.set("planeS", this.planeS);
+		out.set("planeT", this.planeT);
 		
-		out.setEnum("rGen", this.rCoordGen);
-		out.setEnum("sGen", this.sCoordGen);
-		out.setEnum("tGen", this.tCoordGen);
+		out.set("rGen", this.rCoordGen);
+		out.set("sGen", this.sCoordGen);
+		out.set("tGen", this.tCoordGen);
 		
-		out.setFloatArray("color", this.texEnvColor);
-		out.setEnum("envmode", this.texEnvMode);
-		out.setObject("trans", this.texTrans);
+		out.set("color", this.texEnvColor);
+		out.set("envmode", this.texEnvMode);
+		out.set("trans", this.texTrans);
 	}
 
 	@Override

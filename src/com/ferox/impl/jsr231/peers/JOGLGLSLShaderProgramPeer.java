@@ -54,9 +54,18 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 			case VEC2F:	case VEC2I:	case VEC3F:	case VEC4F:	case MAT3F:	case MAT4F:
 			case FLOAT:	case INT: case BOOLEAN:
 				return this.lastValue == null || !this.lastValue.equals(value);
-			case VEC2F_ARRAY: case VEC3F_ARRAY: case VEC4F_ARRAY: case VEC2I_ARRAY:
-			case MAT3F_ARRAY: case MAT4F_ARRAY:
-				return Arrays.equals((Object[])this.lastValue, (Object[])value);
+			case VEC2F_ARRAY: 
+				return Arrays.equals((Vector2f[])this.lastValue, (Vector2f[])value);
+			case VEC3F_ARRAY:
+				return Arrays.equals((Vector3f[])this.lastValue, (Vector3f[])value);
+			case VEC4F_ARRAY: 
+				return Arrays.equals((Vector4f[])this.lastValue, (Vector4f[])value);
+			case VEC2I_ARRAY:
+				return Arrays.equals((Vector2i[])this.lastValue, (Vector2i[])value);
+			case MAT3F_ARRAY: 
+				return Arrays.equals((Matrix3f[])this.lastValue, (Matrix3f[])value);
+			case MAT4F_ARRAY:
+				return Arrays.equals((Matrix4f[])this.lastValue, (Matrix4f[])value);
 			case FLOAT_ARRAY:
 				return Arrays.equals((float[])this.lastValue, (float[])value);
 			case INT_ARRAY:

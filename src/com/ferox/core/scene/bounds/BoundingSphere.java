@@ -393,11 +393,11 @@ public class BoundingSphere extends BoundingVolume {
 	}
 
 	public void writeChunk(OutputChunk out) {
-		out.setFloat("center_x", this.centerOffset.x);
-		out.setFloat("center_y", this.centerOffset.y);
-		out.setFloat("center_z", this.centerOffset.z);
+		out.set("center_x", this.centerOffset.x);
+		out.set("center_y", this.centerOffset.y);
+		out.set("center_z", this.centerOffset.z);
 
-		out.setFloat("radius", this.radius);
+		out.set("radius", this.radius);
 	}
 
 	@Override

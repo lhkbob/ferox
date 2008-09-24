@@ -7,7 +7,11 @@ import org.openmali.vecmath.Vector2i;
 import org.openmali.vecmath.Vector3f;
 import org.openmali.vecmath.Vector4f;
 
-public class GLSLUniform {
+import com.ferox.core.util.io.Chunkable;
+import com.ferox.core.util.io.InputChunk;
+import com.ferox.core.util.io.OutputChunk;
+
+public class GLSLUniform implements Chunkable {
 	public static enum UniformType {
 		FLOAT(Float.class), INT(Integer.class), BOOLEAN(Boolean.class), 
 		VEC2F(Vector2f.class), VEC3F(Vector3f.class), VEC4F(Vector4f.class), 
@@ -68,5 +72,17 @@ public class GLSLUniform {
 	
 	public int hashCode() {
 		return this.name.hashCode() ^ this.type.hashCode();
+	}
+
+	public void readChunk(InputChunk in) {
+		this.name = in.getString("name");
+		this.type = in.getEnum("type", UniformType.class);
+		this.count = in.getInt("count");
+	}
+
+	public void writeChunk(OutputChunk out) {
+		out.set("name", this.name);
+		out.set("type", this.type);
+		out.set("count", this.count);
 	}
 }

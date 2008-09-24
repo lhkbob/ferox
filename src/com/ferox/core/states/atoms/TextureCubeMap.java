@@ -39,6 +39,11 @@ public class TextureCubeMap extends TextureData {
 		this.inited = true;
 	}
 	
+	private TextureCubeMap() {
+		super();
+		this.inited = true;
+	}
+	
 	private Buffer[] compressBuffer(Buffer[] data) {
 		int nonNullCount = 0;
 		if (data != null) {
@@ -254,24 +259,23 @@ public class TextureCubeMap extends TextureData {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setInt("side", this.side);
+		out.set("side", this.side);
+		out.set("numMipmaps", this.numMips);
 		
-		if (this.px == null) 
-			out.setInt("numMipmaps", 0);
-		else {
-			out.setInt("numMipmaps", this.px.length);
+		out.set("levels", (this.px == null ? 0 : this.px.length));
+		if (this.px != null) {
 			for (int i = 0; i < this.px.length; i++)
-				out.setBuffer("px_" + i, this.px[i]);
+				out.set("px_" + i, this.px[i]);
 			for (int i = 0; i < this.px.length; i++)
-				out.setBuffer("nx_" + i, this.nx[i]);
+				out.set("nx_" + i, this.nx[i]);
 			for (int i = 0; i < this.px.length; i++)
-				out.setBuffer("py_" + i, this.py[i]);
+				out.set("py_" + i, this.py[i]);
 			for (int i = 0; i < this.px.length; i++)
-				out.setBuffer("ny_" + i, this.ny[i]);
+				out.set("ny_" + i, this.ny[i]);
 			for (int i = 0; i < this.px.length; i++)
-				out.setBuffer("pz_" + i, this.pz[i]);
+				out.set("pz_" + i, this.pz[i]);
 			for (int i = 0; i < this.px.length; i++)
-				out.setBuffer("nz_" + i, this.nz[i]);
+				out.set("nz_" + i, this.nz[i]);
 		}
 	}
 	
@@ -280,26 +284,27 @@ public class TextureCubeMap extends TextureData {
 		super.readChunk(in);
 		
 		this.side = in.getInt("side");
+		this.numMips = in.getInt("numMipmaps");
 		
-		int numMipmaps = in.getInt("numMipmaps");
-		if (numMipmaps > 0) {
-			this.px = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+		int levels = in.getInt("levels");
+		if (levels > 0) {
+			this.px = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.px[i] = in.getBuffer("px_" + i);
-			this.nx = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+			this.nx = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.nx[i] = in.getBuffer("nx_" + i);
-			this.py = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+			this.py = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.py[i] = in.getBuffer("py_" + i);
-			this.ny = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+			this.ny = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.ny[i] = in.getBuffer("ny_" + i);
-			this.pz = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+			this.pz = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.pz[i] = in.getBuffer("pz_" + i);
-			this.nz = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+			this.nz = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.nz[i] = in.getBuffer("nz_" + i);
 		} else {
 			this.px = null;

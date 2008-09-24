@@ -1,11 +1,13 @@
 package com.ferox.core.states.atoms;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.ferox.core.states.NullUnit;
 import com.ferox.core.states.StateAtom;
 import com.ferox.core.states.StateUnit;
+import com.ferox.core.util.io.Chunkable;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
@@ -170,22 +172,33 @@ public class GLSLShaderProgram extends StateAtom {
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		GLSLShaderObject[] shaders = new GLSLShaderObject[in.getInt("count")];
-		for (int i = 0; i < shaders.length; i++)
-			shaders[i] = (GLSLShaderObject)in.getObject("shader_" + i);
+		Chunkable[] chunks = (Chunkable[])in.getChunkArray("shaders");
+		GLSLShaderObject[] shaders = new GLSLShaderObject[chunks.length];
+		System.arraycopy(chunks, 0, shaders, 0, shaders.length);
 		this.setShaders(shaders);
+		
+		HashSet<GLSLAttribute> attribs = new HashSet<GLSLAttribute>();
+		int count = in.getInt("attr_count");
+		for (int i = 0; i < count; i++) {
+			attribs.add((GLSLAttribute)in.getChunk("attrib_" + i));
+		}
+		this.setAvailableVertexAttributes(attribs);
 	}
 	
 	@Override
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		if (this.shaders != null) {
-			out.setInt("count", this.shaders.length);
-			for (int i = 0; i < this.shaders.length; i++)
-				out.setObject("shader_" + i, this.shaders[i]);
-		} else
-			out.setInt("count", 0);
+		Chunkable[] shaders = new Chunkable[this.shaders.length];
+		System.arraycopy(this.shaders, 0, shaders, 0, shaders.length);
+		out.set("shaders", shaders);
+		
+		out.set("attr_count", this.allAttrs.size());
+		int counter = 0;
+		for (GLSLAttribute at: this.allAttrs) {
+			out.set("attrib_" + counter, at);
+			counter++;
+		}
 	}
 
 	@Override

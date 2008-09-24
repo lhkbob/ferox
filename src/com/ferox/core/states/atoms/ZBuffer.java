@@ -47,8 +47,8 @@ public class ZBuffer extends StateAtom {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setEnum("zTest", this.zTestFunction);
-		out.setBoolean("zMask", this.zMask);
+		out.set("zTest", this.zTestFunction);
+		out.set("zMask", this.zMask);
 	}
 
 	@Override

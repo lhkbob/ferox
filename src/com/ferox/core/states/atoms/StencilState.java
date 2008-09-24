@@ -121,12 +121,12 @@ public class StencilState extends StateAtom {
 		super.writeChunk(out);
 		
 		int[] params = new int[] {this.reference, this.funcMask, this.writeMask};
-		out.setIntArray("stencil", params);
-		out.setEnum("sFunc", this.stencilFunc);
-		out.setEnum("sFail", this.stencilFail);
-		out.setEnum("dFail", this.depthFail);
-		out.setEnum("dPass", this.depthPass);
-		out.setBoolean("enabled", this.stencilEnabled);
+		out.set("stencil", params);
+		out.set("sFunc", this.stencilFunc);
+		out.set("sFail", this.stencilFail);
+		out.set("dFail", this.depthFail);
+		out.set("dPass", this.depthPass);
+		out.set("enabled", this.stencilEnabled);
 	}
 	
 	@Override

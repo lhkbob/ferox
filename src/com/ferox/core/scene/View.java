@@ -816,6 +816,7 @@ public class View implements Chunkable {
 	public void readChunk(InputChunk in) {
 		float[] frustum = in.getFloatArray("frustum");
 		float[] view = in.getFloatArray("view");
+		float[] trans = in.getFloatArray("trans");
 		
 		this.frustumBottom = frustum[0];
 		this.frustumTop = frustum[1];
@@ -828,6 +829,10 @@ public class View implements Chunkable {
 		this.viewTop = view[1];
 		this.viewLeft = view[2];
 		this.viewRight = view[3];
+		
+		this.up.set(trans[0], trans[1], trans[2]);
+		this.direction.set(trans[3], trans[4], trans[5]);
+		this.location.set(trans[6], trans[7], trans[8]);
 	}
 
 	public void writeChunk(OutputChunk out) {
@@ -836,7 +841,11 @@ public class View implements Chunkable {
 									   this.frustumFar, this.frustumNear};
 		float[] view = new float[] {this.viewBottom, this.viewTop,
 									this.viewLeft, this.viewRight};
-		out.setFloatArray("frustum", frustum);
-		out.setFloatArray("view", view);
+		float[] trans = new float[] {this.up.x, this.up.y, this.up.z,
+									 this.direction.x, this.direction.y, this.direction.z,
+									 this.location.x, this.location.y, this.location.z};
+		out.set("frustum", frustum);
+		out.set("view", view);
+		out.set("trans", trans);
 	}
 }

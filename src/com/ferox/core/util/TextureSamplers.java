@@ -4,7 +4,7 @@ import java.nio.*;
 
 import com.ferox.core.util.TextureUtil.Sampler;
 
-public class Samplers {
+public class TextureSamplers {
 	public static class FloatUnpackedSampler extends Sampler {
 		private static float lerpColor1 = 0;
 		private static float lerpColor2 = 0;

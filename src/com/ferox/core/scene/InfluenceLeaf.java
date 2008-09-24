@@ -1,13 +1,13 @@
 package com.ferox.core.scene;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import com.ferox.core.renderer.RenderAtomBin;
 import com.ferox.core.renderer.RenderManager;
 import com.ferox.core.scene.bounds.BoundingSphere;
 import com.ferox.core.scene.bounds.BoundingVolume;
+import com.ferox.core.util.io.Chunkable;
 import com.ferox.core.util.io.InputChunk;
 import com.ferox.core.util.io.OutputChunk;
 
@@ -99,27 +99,28 @@ public class InfluenceLeaf extends SpatialNode {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setObject("state", this.state);
-		out.setObject("bounds", this.influence);
+		out.set("state", this.state);
+		out.set("bounds", this.influence);
 		
-		Iterator<Entry<SpatialLeaf, Boolean>> it = this.exclude.entrySet().iterator();
+		Set<SpatialLeaf> excludes = this.exclude.keySet();
+		Chunkable[] allChunks = new Chunkable[excludes.size()];
 		int i = 0;
-		out.setInt("exlude_size", this.exclude.size());
-		while (it.hasNext()) {
-			out.setObject("exlude_" + i, it.next().getKey());
+		for (SpatialLeaf s: excludes) {
+			allChunks[i] = s;
 			i++;
 		}
+		out.set("excludes", allChunks);
 	}
 	
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		this.setState((SpatialState)in.getObject("state"));
-		this.setInfluence((BoundingVolume)in.getObject("bounds"));
+		this.setState((SpatialState)in.getChunk("state"));
+		this.setInfluence((BoundingVolume)in.getChunk("bounds"));
 		
-		int size = in.getInt("exclude_size");
-		for (int i = 0; i < size; i++) {
-			this.addExcludedLeaf((SpatialLeaf)in.getObject("exclude_" + i));
+		Chunkable[] allChunks = in.getChunkArray("excludes");
+		for (int i = 0; i < allChunks.length; i++) {
+			this.addExcludedLeaf((SpatialLeaf)allChunks[i]);
 		}
 	}
 }

@@ -307,15 +307,15 @@ public class Transform implements Chunkable {
 	public void writeChunk(OutputChunk out) {
 		float[] t = new float[3];
 		this.trans.get(t);
-		out.setFloatArray("trans", t);
+		out.set("trans", t);
 		float[] s = new float[3];
 		this.scale.get(s);
-		out.setFloatArray("scale", s);
+		out.set("scale", s);
 		float[] m = new float[4];
 		AxisAngle4f aa = new AxisAngle4f();
 		aa.set(this.rot);
 		aa.get(m);
-		out.setFloatArray("rot", m);
+		out.set("rot", m);
 	}
 	
 	public String toString() {

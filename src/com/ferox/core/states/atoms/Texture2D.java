@@ -36,6 +36,11 @@ public class Texture2D extends TextureData {
 		this.inited = true;
 	}
 	
+	private Texture2D() {
+		super();
+		this.inited = true;
+	}
+	
 	public void setTexture(Buffer[] data, int width, int height, TextureFormat format, TextureType type, TextureCompression comp) throws IllegalArgumentException {
 		TextureFormat oldFormat = this.getDataFormat();
 		TextureType oldType = this.getDataType();
@@ -166,15 +171,15 @@ public class Texture2D extends TextureData {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setInt("width", this.width);
-		out.setInt("height", this.height);
-		
-		if (this.data == null) 
-			out.setInt("numMipmaps", 0);
-		else {
-			out.setInt("numMipmaps", this.data.length);
+		out.set("width", this.width);
+		out.set("height", this.height);
+		out.set("numMipmaps", this.numMips);
+
+		out.set("levels", (this.data == null ? 0 : this.data.length));
+		if (this.data != null) {
+			out.set("levels", this.data.length);
 			for (int i = 0; i < this.data.length; i++)
-				out.setBuffer("data_" + i, this.data[i]);
+				out.set("data_" + i, this.data[i]);
 		}
 	}
 	
@@ -185,12 +190,14 @@ public class Texture2D extends TextureData {
 		this.width = in.getInt("width");
 		this.height = in.getInt("height");
 		
-		int numMipmaps = in.getInt("numMipmaps");
-		if (numMipmaps > 0) {
-			this.data = new Buffer[numMipmaps];
-			for (int i = 0; i < numMipmaps; i++)
+		this.numMips = in.getInt("numMipmaps");
+		int levels = in.getInt("levels");
+		if (levels > 0) {
+			this.data = new Buffer[levels];
+			for (int i = 0; i < levels; i++)
 				this.data[i] = in.getBuffer("data_" + i);
 		} else 
 			this.data = null;
+		System.out.println(this.width + " " + this.height + " " + this.getNumMipmaps() + " " + this.isDataInClientMemory());
 	}
 }

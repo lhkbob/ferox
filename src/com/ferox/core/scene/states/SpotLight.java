@@ -159,6 +159,6 @@ public class SpotLight extends Light {
 									this.quadAttenuation,
 									this.spotCutoff};
 		
-		out.setFloatArray("params", temp);
+		out.set("params", temp);
 	}
 }

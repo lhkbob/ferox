@@ -166,9 +166,9 @@ public abstract class Light extends SpatialState {
 	
 	@Override
 	public void writeChunk(OutputChunk out) {
-		out.setFloatArray("diffuse", this.diff);
-		out.setFloatArray("specular", spec);
-		out.setFloatArray("ambient", this.amb);
-		out.setFloatArray("direction", new float[] {this.lightDirection.x, this.lightDirection.y, this.lightDirection.z});
+		out.set("diffuse", this.diff);
+		out.set("specular", spec);
+		out.set("ambient", this.amb);
+		out.set("direction", new float[] {this.lightDirection.x, this.lightDirection.y, this.lightDirection.z});
 	}
 }

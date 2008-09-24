@@ -213,22 +213,29 @@ public abstract class StateNode implements Chunkable {
 	}
 	
 	public void writeChunk(OutputChunk out) {
-		out.setInt("numStates", this.numStates);
-		if (this.states == null)
+		if (this.states == null) {
+			out.set("states", (Chunkable[])null);
 			return;
+		}
 		int c = 0;
 		for (int i = 0; i < this.states.length; i++) {
-			if (this.states[i] != null) {
-				out.setObject("state_" + c, this.states[i]);
+			if (this.states[i] != null)
 				c++;
-			}
 		}
+		Chunkable[] states = new Chunkable[c];
+		c = 0;
+		for (int i = 0; i < this.states.length; i++) {
+			if (this.states[i] != null)
+				states[c++] = this.states[i];
+		}
+		out.set("states", states);
 	}
 	
 	public void readChunk(InputChunk in) {
-		int numStates = in.getInt("numStates");
-		
-		for (int i = 0; i < numStates; i++)
-			this.addStateManager((StateManager)in.getObject("state_" + i));
+		Chunkable[] states = in.getChunkArray("states");
+		if (states != null) {
+			for (int i = 0; i < states.length; i++)
+				this.addStateManager((StateManager)states[i]);
+		}
 	}
 }

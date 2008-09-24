@@ -489,27 +489,25 @@ public class DDSReader {
 	}
 	
 	private static Buffer createBuffer(TextureType type, byte[] image) throws IOException {
-		// DDS files are little endian.  A non-direct buffer is always big endian, so we always want to
-		// swap bytes, since we're making non-direct texture buffers
 		switch(type) {
 		case PACKED_INT_8888: case UNSIGNED_INT: {
-			IntBuffer data = BufferUtil.newIntBuffer(image.length / 4, true, false);
+			IntBuffer data = BufferUtil.newIntBuffer(image.length / 4, false, false);
 			for (int i = 0; i < data.capacity(); i++) 
-				data.put(i, ByteOrder.swapInt(IOUtil.unconvertInt(image, (i << 2))));
+				data.put(i, ByteOrderUtil.swapInt(IOUtil.unconvertInt(image, (i << 2))));
 			return data; }
 		case PACKED_SHORT_4444: case PACKED_SHORT_5551: case PACKED_SHORT_565:
 		case UNSIGNED_SHORT: {
-			ShortBuffer data = BufferUtil.newShortBuffer(image.length / 2, true, false);
+			ShortBuffer data = BufferUtil.newShortBuffer(image.length / 2, false, false);
 			for (int i = 0; i < data.capacity(); i++) 
-				data.put(i, ByteOrder.swapShort(IOUtil.unconvertShort(image, (i << 1))));
+				data.put(i, ByteOrderUtil.swapShort(IOUtil.unconvertShort(image, (i << 1))));
 			return data; }
 		case FLOAT:	{
-			FloatBuffer data = BufferUtil.newFloatBuffer(image.length / 4, true, false);
+			FloatBuffer data = BufferUtil.newFloatBuffer(image.length / 4, false, false);
 			for (int i = 0; i < data.capacity(); i++) 
-				data.put(i, ByteOrder.swapFloat(IOUtil.unconvertFloat(image, (i << 2))));
+				data.put(i, ByteOrderUtil.swapFloat(IOUtil.unconvertFloat(image, (i << 2))));
 			return data; }
 		case UNSIGNED_BYTE: {
-			ByteBuffer data = BufferUtil.newByteBuffer(image.length, true, false);
+			ByteBuffer data = BufferUtil.newByteBuffer(image.length, false, false);
 			data.put(image);
 			return data; }
 		}
@@ -562,44 +560,44 @@ public class DDSReader {
     private static DDSHeader loadHeader(InputStream in) throws IOException {
     	DDSHeader h = new DDSHeader();
     	
-    	h.magic = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.size = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.flags = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.height = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.width = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.linearSize = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.depth = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.mipmapCount = ByteOrder.swapInt(IOUtil.readInt(in));
+    	h.magic = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.size = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.flags = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.height = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.width = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.linearSize = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.depth = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.mipmapCount = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     	for (int i = 0; i < h.reserved1.length; i++)
-    		h.reserved1[i] = ByteOrder.swapInt(IOUtil.readInt(in));
+    		h.reserved1[i] = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     	
     	h.pixelFormat = new DDSPixelFormat();
-    	h.pixelFormat.size = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.flags = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.fourCC = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.rgbBitCount = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.rBitMask = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.gBitMask = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.bBitMask = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.pixelFormat.rgbAlphaBitMask = ByteOrder.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.size = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.flags = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.fourCC = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.rgbBitCount = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.rBitMask = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.gBitMask = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.bBitMask = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.pixelFormat.rgbAlphaBitMask = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     	
     	System.out.println(h.pixelFormat);
     	
-    	h.caps1 = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.caps2 = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.caps3 = ByteOrder.swapInt(IOUtil.readInt(in));
-    	h.caps4 = ByteOrder.swapInt(IOUtil.readInt(in));
+    	h.caps1 = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.caps2 = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.caps3 = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    	h.caps4 = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     	
-    	h.reserved2 = ByteOrder.swapInt(IOUtil.readInt(in));
+    	h.reserved2 = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     	
     	if (h.pixelFormat.fourCC == FOURCC_DX10) { // According to AMD, this is how we know if it's present
     		h.headerDX10 = new DDSHeader_DX10();
-    		int dxgi = ByteOrder.swapInt(IOUtil.readInt(in));
+    		int dxgi = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     		h.headerDX10.dxgiFormat = (dxgi < 0 || dxgi >= DXGIPixelFormat.values().length ? DXGIPixelFormat.values()[0] : DXGIPixelFormat.values()[dxgi]);
-    		h.headerDX10.resourceDimension = ByteOrder.swapInt(IOUtil.readInt(in));
-    		h.headerDX10.miscFlag = ByteOrder.swapInt(IOUtil.readInt(in));
-    		h.headerDX10.arraySize = ByteOrder.swapInt(IOUtil.readInt(in));
-    		h.headerDX10.reserved = ByteOrder.swapInt(IOUtil.readInt(in));
+    		h.headerDX10.resourceDimension = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    		h.headerDX10.miscFlag = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    		h.headerDX10.arraySize = ByteOrderUtil.swapInt(IOUtil.readInt(in));
+    		h.headerDX10.reserved = ByteOrderUtil.swapInt(IOUtil.readInt(in));
     	} else 
     		h.headerDX10 = null;
     	

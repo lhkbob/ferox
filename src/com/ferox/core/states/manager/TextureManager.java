@@ -266,7 +266,7 @@ public class TextureManager extends StateManager {
 		
 		int c = in.getInt("count");
 		for (int i = 0; i < c; i++) {
-			this.setTexture(in.getInt("unit_" + i), (Texture)in.getObject("tex_" + i));
+			this.setTexture(in.getInt("unit_" + i), (Texture)in.getChunk("tex_" + i));
 		}
 		this.filter = in.getEnum("hint", Quality.class);
 	}
@@ -274,11 +274,11 @@ public class TextureManager extends StateManager {
 	@Override
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
-		out.setEnum("hint", this.filter);
-		out.setInt("count", this.textures.size());
+		out.set("hint", this.filter);
+		out.set("count", this.textures.size());
 		for (int i = 0; i < this.textures.size(); i++) {
-			out.setInt("unit_" + i, this.textures.get(i).unit);
-			out.setObject("tex_" + i, this.textures.get(i).tex);
+			out.set("unit_" + i, this.textures.get(i).unit);
+			out.set("tex_" + i, this.textures.get(i).tex);
 		}
 	}
 }

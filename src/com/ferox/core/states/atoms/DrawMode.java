@@ -86,10 +86,10 @@ public class DrawMode extends StateAtom {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setEnum("backMode", this.backMode);
-		out.setEnum("frontMode", this.frontMode);
-		out.setEnum("drawFace", this.drawFace);
-		out.setEnum("winding", this.winding);
+		out.set("backMode", this.backMode);
+		out.set("frontMode", this.frontMode);
+		out.set("drawFace", this.drawFace);
+		out.set("winding", this.winding);
 	}
 
 	@Override

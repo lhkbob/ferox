@@ -10,6 +10,7 @@ public class IOUtil {
 	public static final byte TYPE_NULL = -1;
 	
 	public static final byte TYPE_OBJECT = 0;
+	public static final byte TYPE_OBJECT_ARRAY = 26;
 	
 	public static final byte TYPE_STRING = 1;
 	public static final byte TYPE_STRING_ARRAY = 2;

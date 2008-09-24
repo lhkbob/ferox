@@ -428,13 +428,13 @@ public class AxisAlignedBox extends BoundingVolume {
 	}
 
 	public void writeChunk(OutputChunk out) {
-		out.setFloat("max_x", this.worldMax.x);
-		out.setFloat("max_y", this.worldMax.y);
-		out.setFloat("max_z", this.worldMax.z);
+		out.set("max_x", this.worldMax.x);
+		out.set("max_y", this.worldMax.y);
+		out.set("max_z", this.worldMax.z);
 		
-		out.setFloat("min_x", this.worldMin.x);
-		out.setFloat("min_y", this.worldMin.y);
-		out.setFloat("min_z", this.worldMin.z);
+		out.set("min_x", this.worldMin.x);
+		out.set("min_y", this.worldMin.y);
+		out.set("min_z", this.worldMin.z);
 	}
 
 	@Override

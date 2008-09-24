@@ -76,15 +76,15 @@ public class SpatialLeaf extends SpatialNode {
 	public void writeChunk(OutputChunk out) {
 		super.writeChunk(out);
 		
-		out.setObject("state", this.state);
-		out.setObject("bounds", this.modelBounds);
+		out.set("state", this.state);
+		out.set("bounds", this.modelBounds);
 	}
 	
 	public void readChunk(InputChunk in) {
 		super.readChunk(in);
 		
-		this.setStates((StateLeaf)in.getObject("state"));
-		this.setModelBounds((BoundingVolume)in.getObject("bounds"));
+		this.setStates((StateLeaf)in.getChunk("state"));
+		this.setModelBounds((BoundingVolume)in.getChunk("bounds"));
 	}
 	
 	@Override
