@@ -46,7 +46,6 @@ public class BinaryExporter implements ChunkExporter {
 		
 		Collection<Variable> vars;
 		for (OutputChunk c: chunks) {
-			System.out.println("WRITE CHUNK: " + c.getID() + " " + this.typeIds.get(c.getChunkType()) + " " + c.getChunkType().getName());
 			IOUtil.write(out, this.typeIds.get(c.getChunkType()));
 			IOUtil.write(out, c.getID());
 			
@@ -68,7 +67,6 @@ public class BinaryExporter implements ChunkExporter {
 			IOUtil.write(out, managerCounter);
 			IOUtil.write(out, relPath);
 			IOUtil.write(out, iom.getImpl().getBaseClassname());
-			System.out.println("REFERENCE MANAGER: " + managerCounter + " " + relPath + " " + iom.getImpl().getBaseClassname());
 			managerCounter++;
 		}
 		
@@ -78,7 +76,6 @@ public class BinaryExporter implements ChunkExporter {
 			this.typeIds.put(type, typeCounter);
 			IOUtil.write(out, typeCounter);
 			IOUtil.write(out, type.getName());
-			System.out.println("CHUNK TYPE: " + typeCounter + " " + type.getName() + " " + type.getName());
 			typeCounter++;
 		}
 	}

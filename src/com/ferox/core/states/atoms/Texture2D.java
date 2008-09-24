@@ -198,6 +198,5 @@ public class Texture2D extends TextureData {
 				this.data[i] = in.getBuffer("data_" + i);
 		} else 
 			this.data = null;
-		System.out.println(this.width + " " + this.height + " " + this.getNumMipmaps() + " " + this.isDataInClientMemory());
 	}
 }

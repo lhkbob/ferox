@@ -361,7 +361,6 @@ public abstract class TextureData extends StateAtom {
 		this.compareMode = in.getEnum("compMode", DepthCompare.class);;
 		this.compareFunction = in.getEnum("compFunc", FragmentTest.class);;
 		
-		System.out.println(this.dataFormat + " " + this.dataType + " " + this.dataCompress);
 		this.aniso = in.getFloat("aniso");
 	}
 	

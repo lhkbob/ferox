@@ -41,7 +41,6 @@ public class JOGLBlendStatePeer extends SimplePeer<BlendState, NoRecord> {
 
 	protected void applyState(BlendState prev, NoRecord prevR, BlendState next, NoRecord nextR, GL gl) {
 		if (prev == null || prev.isBlendEnabled() != next.isBlendEnabled()) {
-			//System.out.println(next.isBlendEnabled());
 			if (next.isBlendEnabled())
 				gl.glEnable(GL.GL_BLEND);
 			else

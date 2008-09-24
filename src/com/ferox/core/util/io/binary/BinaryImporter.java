@@ -37,7 +37,6 @@ public class BinaryImporter implements ChunkImporter {
 	}
 
 	public InputChunk getPrimaryChunk() {
-		System.out.println(this.primaryChunkId);
 		return (InputChunk)this.manager.getChunk(this.manager, this.primaryChunkId);
 	}
 
@@ -60,7 +59,6 @@ public class BinaryImporter implements ChunkImporter {
 			
 			varCount = IOUtil.readInt(in);
 			vars = new ArrayList<Variable>(varCount);
-			System.out.println("READ CHUNK: " + id + " " + " " + type + " " + this.types.get(type));
 			for (int u = 0; u < varCount; u++)
 				vars.add(BinaryVariable.readVariable(in, this.manager));
 			nc.setVariables(vars);
@@ -78,7 +76,6 @@ public class BinaryImporter implements ChunkImporter {
 				id = IOUtil.readInt(in);
 				path = this.manager.computeCanonicalPath(IOUtil.readString(in));
 				impl = IOUtil.readString(in) + "Importer";
-				System.out.println("RERENCE MANAGER: " + id + " " + path + " " + impl);
 				try {
 					this.reffedManagers.put(id, IOManager.read(new File(path), (ChunkImporter)Class.forName(impl).newInstance(), !this.manager.getIgnoreCache(), this.manager.isManagerCached()));
 				} catch (Exception e) {
@@ -94,7 +91,6 @@ public class BinaryImporter implements ChunkImporter {
 			for (int i = 0; i < typeSize; i++) {
 				id = IOUtil.readInt(in);
 				name = IOUtil.readString(in);
-				System.out.println("CHUNK TYPE: " + id + " " + name);
 				try {
 					this.types.put(id, (Class<? extends Chunkable>)Class.forName(name));
 				} catch (Exception e) {
