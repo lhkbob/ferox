@@ -210,7 +210,7 @@ public class DDSReader {
 	}
 	
 	private static final DDPFMap[] pfRGB = new DDPFMap[] {
-		new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0, TextureFormat.BGR, TextureType.UNSIGNED_BYTE), //FIXME: do these two need to be swapped?
+		new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0, TextureFormat.BGR, TextureType.UNSIGNED_BYTE),
 		new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0, TextureFormat.RGB, TextureType.UNSIGNED_BYTE),
 		new DDPFMap(16, 0xf800, 0x7e0, 0x1f, 0, TextureFormat.BGR, TextureType.PACKED_SHORT_565),
 		new DDPFMap(16, 0x1f, 0x7e0, 0xf800, 0, TextureFormat.RGB, TextureType.PACKED_SHORT_565)
