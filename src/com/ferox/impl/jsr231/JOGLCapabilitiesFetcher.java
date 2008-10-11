@@ -17,12 +17,32 @@ class JOGLCapabilitiesFetcher implements GLEventListener {
 		// do nothing
 	}
 
+	private String formatVersion(String glv) {
+		glv = glv.trim();
+		char[] c = glv.toCharArray();
+		boolean dotFound = false;
+		char h;
+		String v = "";
+		for (int i = 0; i < c.length; i++) {
+			h = c[i];
+			if (!Character.isDigit(h)) {
+				if (dotFound || h != '.') {
+					break;
+				}
+				dotFound = true;
+			}
+			v += h;
+		}
+		
+		return v;
+	}
+	
 	public void init(GLAutoDrawable glAD) {
 		GL gl = glAD.getGL();
 		int[] store = new int[1];
 		
-		String version = gl.glGetString(GL.GL_VERSION);
-		float vNum = Float.parseFloat(version.substring(0, version.indexOf(" ")));
+		String version = this.formatVersion(gl.glGetString(GL.GL_VERSION));
+		float vNum = Float.parseFloat(version);
 		
 		boolean vboSupported = gl.isFunctionAvailable("glGenBuffersARB") && 
 							   gl.isFunctionAvailable("glBindBufferARB") &&
