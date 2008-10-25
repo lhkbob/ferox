@@ -70,11 +70,15 @@ public class LightTest {
 	private Material m1;
 	private BlendState blend;
 	
+	private long startMem;
+	
 	public static void main(String[] args) {
 		new LightTest().run();
 	}
 	
 	public LightTest() {
+		startMem = Runtime.getRuntime().totalMemory();
+		
 		frame = new JFrame("LightTest");
 		frame.setSize(640, 480);
 		
@@ -165,13 +169,13 @@ public class LightTest {
 			System.out.println(ioe);
 			System.exit(1);
 		}
-		//geom = buildCube();
-		//geom2 = geom;
+		geom = buildCube();
+		geom2 = geom;
 		
 		a1.addStateManager(geom);
 		a2.addStateManager(geom2);
 		
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10000; i++) {
 			SpatialLeaf spat_atom;
 			StateLeaf stat_atom;
 			double r = Math.random();
@@ -281,6 +285,11 @@ public class LightTest {
 		this.frame.setVisible(true);
 		paused = false;
 
+		Runtime runtime = Runtime.getRuntime();
+		
+		long lastMemTotal = runtime.totalMemory();
+		long lastMemFree = runtime.freeMemory();
+		
 		while (!quit) {
 			if (!paused) {
 				//System.out.println("frame start");
@@ -289,6 +298,15 @@ public class LightTest {
 			}
 			checkInput();
 	
+			long memT = runtime.totalMemory();
+			long memF = runtime.freeMemory();
+			
+			if (Math.abs(memT - lastMemTotal) > 100000 || Math.abs(memF - lastMemFree) > 100000) {
+				System.out.printf("%.2f Mb of %.2f Mb are free\n", memF / 1000000f, (memT - startMem) / 1000000f);
+				lastMemFree = memF;
+				lastMemTotal = memT;
+			}
+			
 			if (paused) {
 				try {
 					Thread.sleep(5);

@@ -26,7 +26,6 @@ public class FBOTest implements javax.media.opengl.GLEventListener {
 
 	public void displayChanged(GLAutoDrawable arg0, boolean arg1, boolean arg2) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public void init(GLAutoDrawable arg0) {
