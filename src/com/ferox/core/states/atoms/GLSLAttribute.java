@@ -29,7 +29,7 @@ public class GLSLAttribute implements Chunkable {
 	}
 
 	public void setBinding(int binding) {
-		this.binding = Math.max(0, binding);
+		this.binding = binding;
 		if (Geometry.getMaxVertexAttributes() > 0)
 			this.binding = Math.min(this.binding, Geometry.getMaxVertexAttributes());
 	}
@@ -52,7 +52,7 @@ public class GLSLAttribute implements Chunkable {
 	}
 	
 	public int hashCode() {
-		return this.name.hashCode() ^ this.type.hashCode();
+		return this.name.hashCode();
 	}
 
 	public void readChunk(InputChunk in) {

@@ -210,8 +210,10 @@ public abstract class SpatialNode implements Chunkable {
 	}
 	
 	public void setWorldTransform(Transform world) {
-		this.worldToLocal(world, temp, false);
-		this.localTransform.set(temp);
+		if (this.parent == null)
+			this.localTransform.set(world);
+		else
+			this.parent.worldToLocal(world, this.localTransform);
 		this.worldTransform.set(world);
 	}
 	

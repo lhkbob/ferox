@@ -87,6 +87,7 @@ public class StateBranch extends StateNode {
 			if (this.size == this.children.length)
 				this.ensureCapacity(this.size + ALLOCATION_INCREMENT);
 			this.children[this.size++] = elem;
+			elem.setStateTree(this.getStateTree());
 		} else
 			throw new IllegalArgumentException("Can't add a null StateNode or a StateNode that already has a parent");
 	}
@@ -131,6 +132,7 @@ public class StateBranch extends StateNode {
 			System.arraycopy(parent.children, index + 1, parent.children, index, parent.size - index - 1);
 			this.size--;
 			elem.setParentReal(null);
+			elem.setStateTree(null);
 		}
 	}
 	

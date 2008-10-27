@@ -231,8 +231,10 @@ public class JOGLTexturePeer extends SimplePeer<Texture, NoRecord> {
 			}
 		}
 		
-		if (prevA == null || prevA.getData() != nextA.getData())
+		if (prevA == null || prevA.getData() != nextA.getData()) {
+			//System.out.println("Bind texture: " + nextA.getData() + " " + this.texUnit);
 			nextA.getData().applyState(this.context.getRenderManager(), NumericUnit.get(this.texUnit));
+		}
 		
 		if (prevTarget == -1) {
 			// no previous texture on this unit

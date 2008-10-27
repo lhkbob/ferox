@@ -1,6 +1,7 @@
 package com.ferox.impl.jsr231.peers;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import javax.media.opengl.GL;
 
@@ -92,12 +93,11 @@ public class JOGLGLSLShaderObjectPeer extends SimplePeer<GLSLShaderObject, GLSLO
 			temp[i] = source[i].length();
 		gl.glShaderSource(r.id, source.length, source, temp, 0);
 		gl.glCompileShader(r.id);
-		
 		temp = new int[1];
 		gl.glGetShaderiv(r.id, GL.GL_INFO_LOG_LENGTH, temp, 0);
 		ByteBuffer chars = BufferUtil.newByteBuffer(temp[0]);
-		gl.glGetShaderInfoLog(r.id, temp[0], null, chars);
-		
+		if (temp[0] > 0)
+			gl.glGetShaderInfoLog(r.id, temp[0], null, chars);
 		chars.rewind();
 		StringBuffer buff = new StringBuffer();
 		for (int i = 0; i < temp[0]; i++)

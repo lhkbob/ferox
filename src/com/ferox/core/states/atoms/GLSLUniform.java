@@ -13,6 +13,7 @@ import com.ferox.core.util.io.OutputChunk;
 
 public class GLSLUniform implements Chunkable {
 	public static enum UniformType {
+		SAMPLER_2D(Integer.class), SAMPLER_3D(Integer.class), SAMPLER_CUBEMAP(Integer.class),
 		FLOAT(Float.class), INT(Integer.class), BOOLEAN(Boolean.class), 
 		VEC2F(Vector2f.class), VEC3F(Vector3f.class), VEC4F(Vector4f.class), 
 		VEC2I(Vector2i.class),

@@ -52,7 +52,7 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 			
 			switch(this.variable.getType()) {
 			case VEC2F:	case VEC2I:	case VEC3F:	case VEC4F:	case MAT3F:	case MAT4F:
-			case FLOAT:	case INT: case BOOLEAN:
+			case FLOAT:	case INT: case BOOLEAN: case SAMPLER_2D: case SAMPLER_3D: case SAMPLER_CUBEMAP:
 				return this.lastValue == null || !this.lastValue.equals(value);
 			case VEC2F_ARRAY: 
 				return Arrays.equals((Vector2f[])this.lastValue, (Vector2f[])value);
@@ -78,6 +78,7 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 		
 		public void setValue(Object value, GL gl) {
 			if (this.needsUpdate(value)) {
+				//System.out.println("Set value: " + this.location + " " + this.variable.getName() + " " + this.variable.getType() + " " + value);
 				switch(this.variable.getType()) {
 				case VEC2F: setUniform((Vector2f)value, this.location, gl); break;
 				case VEC3F: setUniform((Vector3f)value, this.location, gl); break;
@@ -86,7 +87,7 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 				case MAT3F: setUniform((Matrix3f)value, this.location, gl); break;
 				case MAT4F: setUniform((Matrix4f)value, this.location, gl); break;
 				case FLOAT: setUniform((Float)value, this.location, gl); break;
-				case INT: setUniform((Integer)value, this.location, gl); break;
+				case INT: case SAMPLER_2D: case SAMPLER_3D: case SAMPLER_CUBEMAP: setUniform((Integer)value, this.location, gl); break;
 				case BOOLEAN: setUniform((Boolean)value, this.location, gl); break;
 				
 				case VEC2F_ARRAY: setUniform((Vector2f[])value, this.location, Math.min(this.variable.getSize(), ((Vector2f[])value).length), gl); break;
@@ -328,9 +329,11 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 	
 	private void resetUniformRecord(GLSLShaderProgram prog) {
 		GLSLProgramRecord r = (GLSLProgramRecord)prog.getStateRecord(this.context.getRenderManager());
-		Set<GLSLUniform> vars = prog.getAvailableUniforms();
-		for (GLSLUniform ur : vars) {
-			this.uniforms[r.id].get(ur).lastValue = null;
+			if (r.compiled) {
+			Set<GLSLUniform> vars = prog.getAvailableUniforms();
+			for (GLSLUniform ur : vars) {
+				this.uniforms[r.id].get(ur).lastValue = null;
+			}
 		}
 	}
 	
@@ -375,7 +378,6 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 				for (int i = 0; i < old_shaders.length; i++)
 					gl.glDetachShader(r.id, old_shaders[i]);
 		}
-		
 		boolean valid = true;
 		GLSLShaderObject[] shaders = prog.getShaders();
 		for (int i = 0; i < shaders.length; i++) {
@@ -395,7 +397,8 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 			
 			gl.glGetProgramiv(r.id, GL.GL_INFO_LOG_LENGTH, temp, 0);
 			ByteBuffer chars = BufferUtil.newByteBuffer(temp[0]);
-			gl.glGetProgramInfoLog(r.id, temp[0], null, chars);
+			if (temp[0] > 0)
+				gl.glGetProgramInfoLog(r.id, temp[0], null, chars);
 			
 			chars.rewind();
 			StringBuffer buff = new StringBuffer();
@@ -412,6 +415,7 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 				r.infoLog = "Program linked successfully";
 				r.compiled = true;
 				this.detectUniforms(prog, r, gl);
+				this.detectAttrs(prog, r, gl);
 			}
 		} else {
 			r.compiled = false;
@@ -452,14 +456,15 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 			AttributeType t = getAttributeType(type[0]);
 			String name = buff.toString().trim();
 			if (t != null && name.indexOf("gl") != 0) {
-				u = new GLSLAttribute(name, t);
+				u = prog.getVertexAttributeByName(name);
+				if (u != null && u.getType() == t) {
+					usedBindings.add(u.getBinding());
+				} else {
+					u = new GLSLAttribute(name, t);
+					u.setBinding(-1);
+				}
 				AttributeRecord ar = new AttributeRecord();
 				ar.location = gl.glGetAttribLocation(r.id, u.getName());
-				u.setBinding(-1);
-				if (allAtt != null && allAtt.contains(u)) {
-					u = prog.getVertexAttributeByName(u.getName());
-					usedBindings.add(u.getBinding());
-				}
 				map.put(u, ar);
 			} else {
 				System.out.println("Ignored attribute " + name + " " + t + " " + type[0]);
@@ -470,8 +475,10 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 		allAtt = map.keySet();
 		ArrayList<GLSLAttribute> alphaSorted = new ArrayList<GLSLAttribute>();
 		for (GLSLAttribute a : allAtt) {
-			if (a.getBinding() < 0)
+			if (a.getBinding() < 0) {
 				alphaSorted.add(a);
+				System.out.println("Adding attr: " + a.getName());
+			}
 		}
 		
 		Collections.sort(alphaSorted, new Comparator<GLSLAttribute>() {
@@ -549,6 +556,7 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 				UniformRecord ur = new UniformRecord();
 				ur.lastValue = null;
 				ur.location = gl.glGetUniformLocation(r.id, u.getName());
+				System.out.println("New uniform: " + ur.location + " " + u.getName() + " " + u.getType());
 				ur.variable = u;
 				map.put(u, ur);
 			} else {
@@ -580,9 +588,10 @@ public class JOGLGLSLShaderProgramPeer extends SimplePeer<GLSLShaderProgram, GLS
 	private static UniformType getUniformType(int gl) {
 		switch(gl) {
 		case GL.GL_FLOAT: return UniformType.FLOAT;
-		case GL.GL_INT: case GL.GL_SAMPLER_2D:
-		case GL.GL_SAMPLER_3D: case GL.GL_SAMPLER_CUBE: case GL.GL_SAMPLER_2D_SHADOW:
-			return UniformType.INT;
+		case GL.GL_INT: return UniformType.INT;
+		case GL.GL_SAMPLER_3D: return UniformType.SAMPLER_3D;
+		case GL.GL_SAMPLER_CUBE: return UniformType.SAMPLER_CUBEMAP;
+		case GL.GL_SAMPLER_2D: return UniformType.SAMPLER_2D;
 		case GL.GL_BOOL: return UniformType.BOOLEAN;
 		case GL.GL_FLOAT_VEC2: return UniformType.VEC2F;
 		case GL.GL_FLOAT_VEC3: return UniformType.VEC3F;

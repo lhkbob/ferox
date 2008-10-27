@@ -50,6 +50,10 @@ public class SpatialLeaf extends SpatialNode {
 		this.atom.setStateLink(states);
 	}
 	
+	public StateLeaf getStates() {
+		return this.state;
+	}
+	
 	public BoundingVolume getModelBounds() {
 		return this.modelBounds;
 	}

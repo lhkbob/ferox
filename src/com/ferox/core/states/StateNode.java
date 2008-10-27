@@ -39,6 +39,7 @@ public abstract class StateNode implements Chunkable {
 		this.numStates = 0;
 		this.states = new StateManager[0];
 		this.merged = new StateManager[0];
+		this.invalidated = true;
 	}
 	
 	/**

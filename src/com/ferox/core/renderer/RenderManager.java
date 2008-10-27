@@ -467,15 +467,17 @@ public class RenderManager {
 						this.tempInitListeners.get(i).onInit(this);
 					this.tempInitListeners.clear();
 				}
-				for (int i = this.frameListeners.size() - 1; i >= 0; i--) {
-					this.frameListeners.get(i).startFrame(this);
-				}
 				
 				this.saR.doDestroys(this);
 				this.saR.doUpdates(this);
 				
 				for (int i = 0; i < this.updates.size(); i++)
 					this.updates.get(i).update();
+				
+				for (int i = this.frameListeners.size() - 1; i >= 0; i--) {
+					this.frameListeners.get(i).startFrame(this);
+				}
+				
 				for (int i = 0; i < this.passes.size(); i++) 
 					this.passes.get(i).renderPass(this);
 				
