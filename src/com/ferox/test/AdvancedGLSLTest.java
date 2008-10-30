@@ -44,6 +44,8 @@ import com.ferox.core.states.atoms.VertexArray;
 import com.ferox.core.states.atoms.GLSLAttribute.AttributeType;
 import com.ferox.core.states.atoms.GLSLShaderObject.GLSLType;
 import com.ferox.core.states.atoms.GLSLUniform.UniformType;
+import com.ferox.core.states.atoms.Texture.AutoTCGen;
+import com.ferox.core.states.atoms.Texture.EnvMode;
 import com.ferox.core.states.atoms.TextureData.MagFilter;
 import com.ferox.core.states.atoms.TextureData.MinFilter;
 import com.ferox.core.states.manager.GLSLShaderProgramManager;
@@ -128,10 +130,10 @@ public class AdvancedGLSLTest implements FrameListener, InitializationListener {
 		
 		this.light = new SpatialBranch(root, 2);
 		
-		SpotLight light = new SpotLight(new Vector3f(0f, 0f, 1f), new float[] {.8f, .8f, .8f, 1f}, new float[] {1f, .4f, .4f, 1f});
+		SpotLight light = new SpotLight(new Vector3f(0f, 0f, 1f), new float[] {1f, 1f, 1f, 1f}, new float[] {0f, 0f, 0f, 1f});
 		InfluenceLeaf inf = new InfluenceLeaf(this.light);
 		inf.setState(light);
-		inf.setInfluence(new BoundingSphere(25f));
+		inf.setInfluence(new BoundingSphere(10f));
 		
 		SpatialLeaf lightPos = new SpatialLeaf(this.light);
 		StateLeaf l1 = new StateLeaf();
@@ -166,9 +168,9 @@ public class AdvancedGLSLTest implements FrameListener, InitializationListener {
 		}
 		
 		TextureManager textures = new TextureManager();
-		textures.setTexture(0, new Texture(diffuse));
-		textures.setTexture(1, new Texture(normal));
-		textures.setTexture(2, new Texture(specular));
+		textures.setTexture(0, new Texture(diffuse));//, EnvMode.MODULATE, new float[4], AutoTCGen.OBJECT));
+		textures.setTexture(1, new Texture(normal));//, EnvMode.MODULATE, new float[4], AutoTCGen.OBJECT));
+		textures.setTexture(2, new Texture(specular));//, EnvMode.MODULATE, new float[4], AutoTCGen.OBJECT));
 
 		leaf.addStateManager(buildCube(4f));
 		leaf.addStateManager(textures);
@@ -189,20 +191,34 @@ public class AdvancedGLSLTest implements FrameListener, InitializationListener {
 			"attribute vec3 tangent;",
 			"attribute vec3 bitangent;",
 			
-			"varying mat3 to_eye_space;",
 			"varying vec3 half_vector;",
 			"varying vec3 light_dir;",
+			
+			"varying vec3 tan;",
+			"varying vec3 bitan;",
+			"varying vec3 nm;",
 				
+			"mat3 transpose(mat3 mat) {",
+				"return mat3(mat[0][0], mat[1][0], mat[2][0], mat[0][1], mat[1][1], mat[2][1], mat[0][2], mat[1][2], mat[2][2]);",
+			"}",
+			
 			"void main() {",
 				"gl_Position = gl_ModelViewMatrix * gl_Vertex;",
 				"gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;",
 
-				"mat3 tbnMatrix = mat3(tangent, bitangent, gl_Normal);",
-				"to_eye_space = gl_NormalMatrix * tbnMatrix;",
-				"light_dir = (gl_LightSource[0].position.xyz - gl_Position.xyz);",
+				//"mat3 tbnMatrix = mat3(tangent, bitangent, gl_Normal);",
+				//"mat3 to_eye_space = transpose(gl_NormalMatrix * tbnMatrix);",
+				//"light_dir = to_eye_space * (gl_LightSource[0].position.xyz - gl_Position.xyz);",
 				//"half_vector = CAMERA_POSITION;",
-				"half_vector = gl_LightSource[0].halfVector.xyz;",
+				//"half_vector = to_eye_space * gl_LightSource[0].halfVector.xyz;",
 
+				"tan = tangent;",
+				"bitan = bitangent;",
+				"nm = gl_Normal;",
+				
+				"light_dir = gl_LightSource[0].position.xyz - gl_Position.xyz;",
+				"half_vector = gl_LightSource[0].halfVector.xyz;",
+				
 				"gl_Position = gl_ProjectionMatrix * gl_Position;",
 			"}"
 		};
@@ -212,26 +228,28 @@ public class AdvancedGLSLTest implements FrameListener, InitializationListener {
 			"uniform sampler2D normal;",
 			"uniform sampler2D specular;", 
 			
-			"varying mat3 to_eye_space;",
 			"varying vec3 half_vector;",
 			"varying vec3 light_dir;",
 			
+			"varying vec3 tan;",
+			"varying vec3 bitan;",
+			"varying vec3 nm;",
+			
 			"void main() {",
-				"vec3 norm = to_eye_space * (texture2D(normal, gl_TexCoord[0].st).grb * 2.0 - 1.0);",
-				//"norm = to_eye_space * vec3(0.0, 0.0, 1.0);",
+				"mat3 to_eye = gl_NormalMatrix * mat3(tan, bitan, nm);",
+				"vec3 norm = to_eye * (texture2D(normal, gl_TexCoord[0].st).grb * 2.0 - 1.0);",
 				"vec3 baseColor = texture2D(diffuse, gl_TexCoord[0].st).rgb;",
-				//"float dist = length(lightvec);",
 				"vec3 lightVector = normalize(light_dir);",
-				"float nxDir = max(0.0, dot(norm, lightVector));",
+				"float nxDir = max(.1, dot(norm, lightVector));",
 				"vec4 diffuse = gl_LightSource[0].diffuse * nxDir;",
 				
 				"float specularPower = 0.0;",
-				"if (nxDir != 0.0) {",
-					"float nxHalf = max(0.0, dot(norm, half_vector));",
-					"specularPower = pow(nxHalf, gl_FrontMaterial.shininess);",
+				"if (nxDir > 0.0) {",
+					"lightVector = normalize(half_vector);",
+					"float nxHalf = max(0.0, dot(norm, lightVector));",
+					"specularPower = min(1.0, pow(nxHalf, gl_FrontMaterial.shininess));",
 				"}",
 				"vec4 spec = (gl_LightSource[0].specular * vec4(texture2D(specular, gl_TexCoord[0].st).rgb, 1.0)) * specularPower;",
-				//"gl_FragColor = spec;",
 				"gl_FragColor = (diffuse * vec4(baseColor.rgb, 1.0)) + spec;",
 			"}"
 		};
@@ -389,6 +407,22 @@ public class AdvancedGLSLTest implements FrameListener, InitializationListener {
 		computeTangentBiTangent(v, t, i, tan, btan);
 		cleanTangentBiTangent(n, tan, btan);
 		
+		i = new int[48];
+		for (int u = 0; u < 6; u++) {
+			int t1 = u * 4;
+			int t2 = u * 4 + 1;
+			int t3 = u * 4 + 2;
+			int t4 = u * 4 + 3;
+			
+			i[u * 6] = t1;
+			i[u * 6 + 1] = t2;
+			i[u * 6 + 2] = t4;
+			
+			i[u * 6 + 3] = t2;
+			i[u * 6 + 4] = t3;
+			i[u * 6 + 5] = t4;
+		}
+		
 		/*for (int u = 0; u < 6; u++) {
 			System.out.println("Polygon: " + u);
 			int i1 = i[u*4];
@@ -426,7 +460,7 @@ public class AdvancedGLSLTest implements FrameListener, InitializationListener {
 		
 		VertexArray iva = new VertexArray(ibd, 1);
 		
-		Geometry geom = new Geometry(new VertexArray(vbd, 3), new VertexArray(nbd, 3), iva, Geometry.PolygonType.QUADS);
+		Geometry geom = new Geometry(new VertexArray(vbd, 3), new VertexArray(nbd, 3), iva, Geometry.PolygonType.TRIANGLES);
 		geom.setTexCoords(new VertexArray(tbd, 2), 0);
 		geom.setTexCoords(geom.getTexCoords(0), 1);
 		geom.setTexCoords(geom.getTexCoords(0), 2);

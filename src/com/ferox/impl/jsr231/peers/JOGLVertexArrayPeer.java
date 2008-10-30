@@ -75,11 +75,13 @@ public class JOGLVertexArrayPeer extends SimplePeer<VertexArray, NoRecord> {
 					// TODO: figure out index locking
 					break;
 				case ATTRIB:
+					//System.out.println("vertex attrib set: " + this.unit.getUnit() + " " + data);
 					if (prevA == null)
 						gl.glEnableVertexAttribArray(this.unit.getUnit());
 					gl.glVertexAttribPointer(this.unit.getUnit(), nextA.getElementSize(), getGLTypeEnum(data.getDataType()), false, nextA.getStride() * data.getByteSize(), nextA.getOffset() * data.getByteSize());
 					break;
 				case TEXCOORD:
+					//System.out.println("texture coord set: " + this.unit.getUnit() + " " + data);
 					gl.glClientActiveTexture(GL.GL_TEXTURE0 + this.unit.getUnit());
 					if (prevA == null)
 						gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);

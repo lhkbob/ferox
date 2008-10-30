@@ -48,6 +48,18 @@ public class VertexArray extends StateAtom {
 		}
 		
 		public int ordinal() {
+			switch(this.target) {
+			case ATTRIB:
+				return 3 + MAX_SUPPORTED_TEXUNITS + this.unit;
+			case TEXCOORD:
+				return 3 + this.unit;
+			case NORMAL:
+				return 2;
+			case INDEX:
+				return 1;
+			case VERTEX:
+				return 0;
+			}
 			return this.target.ordinal() + this.unit;
 		}
 		

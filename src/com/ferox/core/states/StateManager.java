@@ -30,8 +30,8 @@ public abstract class StateManager implements Chunkable {
 		StateManager prev = manager.getRenderContext().getActiveStateManager(this.dynamicType);
 		
 		if (prev != this) {
-			this.applyStateAtoms(prev, manager, pass);
 			manager.getRenderContext().setActiveStateManager(this, this.dynamicType);
+			this.applyStateAtoms(prev, manager, pass);
 		}
 	}
 	

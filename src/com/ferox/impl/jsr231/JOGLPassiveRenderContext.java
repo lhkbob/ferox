@@ -159,7 +159,7 @@ public class JOGLPassiveRenderContext extends JOGLRenderContext implements GLEve
 		}
 		
 		//this.gl.setSwapInterval(1);
-		this.gl = new DebugGL(this.gl);
+		//this.gl = new TraceGL(new DebugGL(this.gl), System.err);
 		this.initialized = true;
 		this.context = this.drawer.getContext();
 		this.getRenderManager().notifyInitialization();
