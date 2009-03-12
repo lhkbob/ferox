@@ -45,7 +45,7 @@ public class JoglTextureStateDriver implements StateDriver {
 	
 	private MultiTexture singleUnit; // used to store a Texture that's in lastApplied or queuedTexture
 	private boolean lastAppliedDirty; // will be true if lastApplied == singleUnit && queuedTexture == singleUnit && singleUnit.0th is changed
-	
+		
 	private JoglSurfaceFactory factory;
 	
 	public JoglTextureStateDriver(JoglSurfaceFactory factory) {
@@ -71,6 +71,8 @@ public class JoglTextureStateDriver implements StateDriver {
 		if (this.lastApplied == this.singleUnit && this.queuedTexture != this.singleUnit)
 			this.singleUnit.setTexture(0, null); // clear reference here, since we don't need it anymore
 		this.lastApplied = this.queuedTexture;
+		
+		this.reset();
 	}
 
 	@Override
@@ -130,9 +132,9 @@ public class JoglTextureStateDriver implements StateDriver {
 				unit = tex.getUnit();
 				// must make sure it's a valid unit, and that it's a different Texture instance
 				if (unit < tr.textureUnits.length &&
-					(this.lastApplied == null || this.lastApplied.getTexture(unit) != tex.getData())) {
+					(this.lastApplied == null || this.lastAppliedDirty || this.lastApplied.getTexture(unit) != tex.getData())) {
 					// bind the texture
-					activeTex = applyTexture(gl, renderer, activeTex, unit, tr.textureUnits[unit], tex.getData());
+					activeTex = this.applyTexture(gl, renderer, activeTex, unit, tr.textureUnits[unit], tex.getData());
 				}
 			}
 		}
@@ -147,7 +149,7 @@ public class JoglTextureStateDriver implements StateDriver {
 				if (unit < tr.textureUnits.length
 				    && (toApply == null || next.getTexture(unit) == null)) {
 					// unbind the texture by passing in null
-					activeTex = applyTexture(gl, renderer, activeTex, unit, tr.textureUnits[unit], null);
+					activeTex = this.applyTexture(gl, renderer, activeTex, unit, tr.textureUnits[unit], null);
 				}
 			}
 		}
@@ -198,11 +200,11 @@ public class JoglTextureStateDriver implements StateDriver {
 			unit.isTextureMatrixIdentity = false;
 		}
 		// tc_s
-		setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
+		this.setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
 		// tc_t
-		setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
+		this.setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
 		// tc_r
-		setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
+		this.setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
 		
 		// env color
 		Color blend = tex.getTextureEnvColor();
@@ -235,7 +237,7 @@ public class JoglTextureStateDriver implements StateDriver {
 			unit.enableTarget = false;
 		}
 		
-		if (id != 0) {
+		if (glTarget > 0 && id > 0) {
 			if (!unit.enableTarget) {
 				gl.glEnable(glTarget);
 				unit.enabledTarget = glTarget;
@@ -252,7 +254,7 @@ public class JoglTextureStateDriver implements StateDriver {
 	 * GL_S/T/R, and boolMode would then be GL_TEXTURE_GEN_x, and tgr is the
 	 * matching record.  If genMode is NONE, generation is disabled, otherwise
 	 * its enabled and set, possibly resetting the texture plane. */
-	private static void setTexGen(GL gl, int coord, int boolMode, TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
+	private void setTexGen(GL gl, int coord, int boolMode, TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
 		if (genMode == TexCoordGen.NONE) {
 			// disable coordinate generation for this coord
 			if (tgr.enableTexGen) {
@@ -260,28 +262,29 @@ public class JoglTextureStateDriver implements StateDriver {
 				gl.glDisable(boolMode);
 			}
 		} else {
+			// possibly set the planes
+			if (genMode == TexCoordGen.EYE) {
+				// always push the eye-plane through
+				this.factory.getTransformDriver().loadMatrix(gl, this.factory.getCurrentView());
+				//gl.glLoadIdentity();
+				eyeOrObject.get(tgr.eyePlane);
+				gl.glTexGenfv(coord, GL.GL_EYE_PLANE, tgr.eyePlane, 0);
+			} else if (genMode == TexCoordGen.OBJECT) {
+				if (!eyeOrObject.equals(tgr.objectPlane)) {
+					eyeOrObject.get(tgr.objectPlane);
+					gl.glTexGenfv(coord, GL.GL_OBJECT_PLANE, tgr.objectPlane, 0);
+				}
+			}
 			// set the mode
 			int mode = EnumUtil.getGLTexGen(genMode);
 			if (mode != tgr.textureGenMode) {
-				gl.glTexEnvi(coord, GL.GL_TEXTURE_GEN_MODE, mode);
+				gl.glTexGeni(coord, GL.GL_TEXTURE_GEN_MODE, mode);
 				tgr.textureGenMode = mode;
 			}
 			// enable it
 			if (!tgr.enableTexGen) {
 				gl.glEnable(boolMode);
 				tgr.enableTexGen = true;
-			}
-			// possibly set the planes
-			if (genMode == TexCoordGen.EYE) {
-				if (!eyeOrObject.equals(tgr.eyePlane)) {
-					eyeOrObject.get(tgr.eyePlane);
-					gl.glTexEnvfv(coord, GL.GL_EYE_PLANE, tgr.eyePlane, 0);
-				}
-			} else if (genMode == TexCoordGen.OBJECT) {
-				if (!eyeOrObject.equals(tgr.objectPlane)) {
-					eyeOrObject.get(tgr.objectPlane);
-					gl.glTexEnvfv(coord, GL.GL_OBJECT_PLANE, tgr.objectPlane, 0);
-				}
 			}
 		}
 	}

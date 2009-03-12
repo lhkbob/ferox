@@ -252,7 +252,7 @@ public class TGATexture {
 	private static String validateHeader(Header h) {
 		if (h.idLength < 0 || h.idLength > 255)
 			return "Bad idLength value: " + h.idLength;
-		if (h.colorMapType != 0 || h.colorMapType != 1)
+		if (h.colorMapType != 0 && h.colorMapType != 1)
 			return "Bad color map type: " + h.colorMapType;
 		
 		switch(h.imageType) {
@@ -270,10 +270,10 @@ public class TGATexture {
 			if (h.colorMapLength < 0)
 				return "Bad number of color map entries: " + h.colorMapLength;
 			if (!h.isBlackAndWhite()) {
-				if (h.colorMapEntrySize != 16 || h.colorMapEntrySize != 24 || h.colorMapEntrySize != 32)
+				if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24 && h.colorMapEntrySize != 32)
 					return "Unsupported color map entry size: " + h.colorMapEntrySize;
 			}
-			if (h.pixelDepth != 8 || h.pixelDepth != 16)
+			if (h.pixelDepth != 8 && h.pixelDepth != 16)
 				return "Pixel depth doesn't have a valid value: " + h.pixelDepth;
 			if (h.hasColorMap() && h.colorMapType == 0)
 				return "Image type expects a color map, but one is not specified";
@@ -423,16 +423,17 @@ public class TGATexture {
 			readAll(dIn, rawBuf);
 			for (c = 0; c < this.header.width; c++)
 				swapRow[c] = (short) bytesToLittleEndianShort(rawBuf, c << 1);
-			
+
 			y = (this.header.isTopToBottom() ? this.header.height - i - 1 : i);
-			System.arraycopy(rawBuf, 0, tmpData, y * this.header.width, swapRow.length);
+			System.arraycopy(swapRow, 0, tmpData, y * this.header.width, swapRow.length);
 		}
 
 		this.data = new BufferData(tmpData, true);
 	}
 	
 	/* This assumes that the body is for a 24 bit or 32 bit for a
-	 * BGR and BGRA image respectively. */
+	 * BGR and BGRA image respectively. (really a ARGB image, but its
+	 * in LE order, but just using BGRA is faster) */
 	private void decodeTrueColor24_32(InputStream dIn) throws IOException {
 		int i;    // input row index
 		int y;    // output row index
@@ -466,8 +467,12 @@ public class TGATexture {
 		}
 	}
     
-    private static int bytesToLittleEndianShort(byte[] data, int offset) {
-    	return (data[offset] | (data[offset + 1] << 8));
+    private static int bytesToLittleEndianShort(byte[] b, int offset) {
+    	//return (data[offset] | (data[offset + 1] << 8));
+    	return (
+				 (b[offset + 0] & 0xff) |
+				((b[offset + 1] & 0xff) << 8)
+			   );
     }
     
     // read an short represented in little endian from the given input stream

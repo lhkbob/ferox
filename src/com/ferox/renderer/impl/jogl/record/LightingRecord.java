@@ -9,11 +9,17 @@ import javax.media.opengl.GL;
  *
  */
 public class LightingRecord {
-	/** State record for an individual light. */
+	/** State record for an individual light.
+	 * Certain lighting properties here, such as position
+	 * and direction are actually modified by the current
+	 * modelview matrix when set.  Because of this, the
+	 * values should not be taken as actual state, but are
+	 * an easy way of storing the data before passing into opengl. */
 	public static class LightRecord {
-		public final float[] ambient = {0f, 0f, 0f, 1f};
-		public final float[] diffuse = {.8f, .8f, .8f, 1f};
-		public final float[] specular = {0f, 0f, 0f, 1f};
+		/* Initial values for these are bogus, just to force a color change. */
+		public final float[] ambient = {-1f, -1f, -1f, -1f};
+		public final float[] diffuse = {-1f, -1f, -1f, 1f};
+		public final float[] specular = {0f, 0f, 0f, -1f};
 		public final float[] position = {0f, 0f, 1f, 0f};
 		
 		public float constantAttenuation = 1f;

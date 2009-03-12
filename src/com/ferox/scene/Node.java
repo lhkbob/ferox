@@ -294,8 +294,11 @@ public abstract class Node implements SceneElement {
 	
 	/** Adjusts this Node's local transform so that it looks at position (in world coordinates), and
 	 * its y-axis is aligned as closely as possible to up (not always exactly up because it has to
-	 * maintain orthogonality). */
-	public void lookAt(Vector3f position, Vector3f up) throws NullPointerException {
+	 * maintain orthogonality). 
+	 * 
+	 * Specify negateDirection = true if the node "faces" backwards.  This is especially useful
+	 * for view nodes, since a view looks down the negative z-axis. */
+	public void lookAt(Vector3f position, Vector3f up, boolean negateDirection) throws NullPointerException {
 		if (position == null || up == null)
 			throw new SceneException("Can't call lookAt() with null input vectors: " + position + " " + up);
 		
@@ -311,6 +314,9 @@ public abstract class Node implements SceneElement {
 		Vector3f upVec = Node.upVec.get();
 		
 		dirVec.sub(position, this.worldTransform.getTranslation()); dirVec.normalize();
+		if (negateDirection)
+			dirVec.scale(-1f);
+		
 		leftVec.cross(up, dirVec); leftVec.normalize();
 		upVec.cross(dirVec, leftVec); upVec.normalize();
 				

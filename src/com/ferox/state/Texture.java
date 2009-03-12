@@ -569,9 +569,12 @@ public class Texture implements State {
 
 	/** Set the texture coordinate generation policy for the r tex coord (third).
 	 * If null uses the default.  A value of NONE causes texture coordinates to come
-	 * from the rendered geometry. */
+	 * from the rendered geometry. 
+	 * 
+	 * SPHERE mapping isn't supported on the 3rd coordinate, so if SPHERE is given,
+	 * NONE is used instead. */
 	public void setTexCoordGenR(TexCoordGen coordGen) {
-		if (coordGen == null)
+		if (coordGen == null || coordGen == TexCoordGen.SPHERE)
 			coordGen = DEFAULT_COORD_GEN;
 		this.rCoordGen = coordGen;
 	}

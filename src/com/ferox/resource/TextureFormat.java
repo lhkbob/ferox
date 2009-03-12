@@ -103,7 +103,7 @@ public enum TextureFormat {
 	}
 	
 	private TextureFormat(DataType type, int pPerC, boolean alpha, boolean packed) {
-		this.type = type; this.pPerC = pPerC; this.hasAlpha = alpha;
+		this.type = type; this.pPerC = pPerC; this.hasAlpha = alpha; this.isPacked = packed;
 	}
 	
 	/** Return true if this format has its color components packed into

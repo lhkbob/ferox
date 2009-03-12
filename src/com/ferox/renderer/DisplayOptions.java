@@ -108,4 +108,9 @@ public final class DisplayOptions {
 	public AntiAliasMode getAntiAliasing() {
 		return this.aaMode;
 	}
+	
+	@Override
+	public String toString() {
+		return this.pixelFormat + " " + this.depthFormat + " " + this.stencilFormat + " " + this.aaMode;
+	}
 }

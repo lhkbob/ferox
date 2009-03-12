@@ -5,13 +5,16 @@ import java.awt.Frame;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.openmali.vecmath.Vector3f;
+
+import com.ferox.math.Color;
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
+import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.View;
-import com.ferox.renderer.WindowSurface;
 import com.ferox.renderer.util.BasicRenderPass;
 import com.ferox.renderer.util.StateSortingRenderQueue;
 import com.ferox.resource.BufferData;
@@ -37,7 +40,7 @@ import com.sun.opengl.util.BufferUtil;
  *
  */
 public abstract class BasicApplication extends ApplicationBase {
-	private WindowSurface window;
+	private OnscreenSurface window;
 	private RenderPass pass;
 	
 	private ViewNode view;
@@ -154,10 +157,16 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.scene = this.buildScene(renderer, this.view);
 		this.pass = new BasicRenderPass(this.scene, v, this.createQueue(), false);
 		
-		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, true, false);
+		this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
+		//this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, true, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
-				
+		this.window.setClearColor(new Color(.5f, .5f, .5f, 1f));
+		
+		System.out.println(this.window.getDisplayOptions());
+		System.out.println(this.window.getWidth() + " " + this.window.getHeight());
+		v.setPerspective(60f, (float) this.window.getWidth() / this.window.getHeight(), 1f, 1000f);
+		
 		// somewhat lame to get input working for now
 		Frame f = (Frame) this.window.getWindowImpl();
 		Component child = f.getComponent(0);
@@ -166,6 +175,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	
 	@Override
 	protected boolean update() {
+		this.view.lookAt(new Vector3f(), new Vector3f(0f, 1f, 0f), true);
 		this.scene.update(true);
 		return false;
 	}
@@ -175,8 +185,15 @@ public abstract class BasicApplication extends ApplicationBase {
 		if (this.window.isDestroyed())
 			return true;
 		
-		renderer.queueRender(this.window);
-		return super.render(renderer);
+		if (this.window.isVisible()) {
+			renderer.queueRender(this.window);
+			return super.render(renderer);
+		} else {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {}
+			return false;
+		}
 	}
 	
 	@Override

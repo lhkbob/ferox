@@ -19,10 +19,10 @@ public class TextureRecord {
 		public final float[] textureEnvColor = {0f, 0f, 0f, 0f};
 		public float textureLodBias = 0f;
 		
-		public final TextureGenRecord texGenR = new TextureGenRecord();
-		public final TextureGenRecord texGenS = new TextureGenRecord();
-		public final TextureGenRecord texGenT = new TextureGenRecord();
-		public final TextureGenRecord texGenQ = new TextureGenRecord();
+		public final TextureGenRecord texGenR = new TextureGenRecord(new float[] {0f, 0f, 0f, 0f});
+		public final TextureGenRecord texGenS = new TextureGenRecord(new float[] {1f, 0f, 0f, 0f});
+		public final TextureGenRecord texGenT = new TextureGenRecord(new float[] {0f, 1f, 0f, 0f});
+		public final TextureGenRecord texGenQ = new TextureGenRecord(new float[] {0f, 0f, 0f, 0f});
 
 		public int combineRgb = GL.GL_MODULATE;
 		public int combineAlpha = GL.GL_MODULATE;
@@ -58,11 +58,22 @@ public class TextureRecord {
 		public int texBinding = 0;
 	}
 	
+	/** The eyeplane is actually transformed by the current 
+	 * modelview matrix, so values stored in here cannot be
+	 * assumed to reflect the true eye plane.  It it instead
+	 * functions as a vessel to transport the plane to opengl. */
 	public static class TextureGenRecord {
 		public boolean enableTexGen;
-		public final float[] eyePlane = {};
-		public final float[] objectPlane = {};
+		public final float[] eyePlane = new float[4];
+		public final float[] objectPlane = new float[4];
 		public int textureGenMode = GL.GL_EYE_LINEAR;
+		
+		public TextureGenRecord(float[] plane) {
+			for (int i = 0; i < 4; i++) {
+				this.eyePlane[i] = plane[i];
+				this.objectPlane[i] = plane[i];
+			}
+		}
 	}
 	
 	/** For simplicity, activeTexture is valued 0 to maxUnits so it

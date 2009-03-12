@@ -48,9 +48,9 @@ public class BufferData {
 		SHORT(short[].class, BYTESIZE_SHORT, false), 
 		BYTE(byte[].class, BYTESIZE_BYTE, false),
 		
-		UNSIGNED_INT(int[].class, BYTESIZE_INT, false), 
-		UNSIGNED_SHORT(short[].class, BYTESIZE_SHORT, false),
-		UNSIGNED_BYTE(byte[].class, BYTESIZE_BYTE, false);
+		UNSIGNED_INT(int[].class, BYTESIZE_INT, true), 
+		UNSIGNED_SHORT(short[].class, BYTESIZE_SHORT, true),
+		UNSIGNED_BYTE(byte[].class, BYTESIZE_BYTE, true);
 		
 		private Class<?> classType; private int byteSize; private boolean unsigned;
 		private DataType(Class<?> type, int byteSize, boolean unsigned) {

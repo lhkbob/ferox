@@ -178,7 +178,7 @@ public class DDSTexture {
 		
 		public String toString() {
 			String first = "RGB (" + isFlagSet(this.flags, DDPF_RGB) + "), LUM (" + isFlagSet(this.flags, DDPF_LUMINANCE) + 
-							"), ALPHA (" + isFlagSet(this.flags, DDPF_ALPHA) + "), FourCC (" + isFlagSet(this.flags, DDPF_FOURCC) + ")";
+							"), ALPHA (" + isFlagSet(this.flags, DDPF_ALPHAPIXELS) + "), FourCC (" + isFlagSet(this.flags, DDPF_FOURCC) + ")";
 			String second;
 			if (isFlagSet(this.flags, DDPF_FOURCC))
 				second = "FourCC = " + unmakeFourCC(this.fourCC);
@@ -672,7 +672,7 @@ public class DDSTexture {
 	 * where the next byte read is the first byte in the texture data (header already read from stream). */
 	private void readData(InputStream in) throws IOException {
 		int width, height, depth, size;
-		System.out.println(this.target);
+		System.out.println(this.target + " " + this.format + " " + this.type);
 		System.out.println(this.header.pixelFormat);
 		System.out.println(this.mipmapCount + " " + this.width + " " + this.height);
 		
@@ -755,10 +755,11 @@ public class DDSTexture {
     }
     
     // as bytesToInt, but for shorts (converts 2 bytes instead of 4)
+    // assuming little endian
     private static short bytesToShort(byte[] in, int offset) {
 		return (short)(
-					    (in[offset + 1] & 0xff) |
-					   ((in[offset + 0] & 0xff) << 8)
+					    (in[offset + 0] & 0xff) |
+					   ((in[offset + 1] & 0xff) << 8)
 					  );
 	}
     
@@ -771,18 +772,7 @@ public class DDSTexture {
     // the bytes are ordered little endian.
     private static int bytesToInt(byte[] in, int offset) {
 		return (
-				 (in[offset + 3] & 0xff) |
-				((in[offset + 1] & 0xff) << 8) |
-				((in[offset + 1] & 0xff) << 16) |
-				((in[offset + 0] & 0xff) << 24)
-			   );
-	}
-    
-    // convert 4 bytes starting at offset into an integer, assuming
-    // the bytes are ordered little endian.
-    private static int littleEndianBytesToInt(byte[] in, int offset) {
-		return (
-				(in[offset] & 0xff) |
+				 (in[offset + 0] & 0xff) |
 				((in[offset + 1] & 0xff) << 8) |
 				((in[offset + 2] & 0xff) << 16) |
 				((in[offset + 3] & 0xff) << 24)
@@ -808,6 +798,6 @@ public class DDSTexture {
     private static int readLEInt(InputStream in) throws IOException {
 		byte[] b = new byte[4];
 		readAll(in, b);
-		return littleEndianBytesToInt(b, 0);
+		return bytesToInt(b, 0);
 	}    
 }

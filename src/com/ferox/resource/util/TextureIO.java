@@ -312,7 +312,7 @@ public class TextureIO {
 														  true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
 				this.data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
 				
-				this.type = DataType.BYTE;
+				this.type = DataType.UNSIGNED_BYTE;
 				this.format = TextureFormat.RGBA;
 				break;
 			}

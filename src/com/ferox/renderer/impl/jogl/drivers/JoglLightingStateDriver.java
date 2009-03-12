@@ -24,13 +24,26 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 	private static final int MAX_LIGHTS = 8;
 	
 	private final Transform cache;
+	private final Light[] appliedLights;
 	private Vector3f p;
 	
 	public JoglLightingStateDriver(JoglSurfaceFactory factory) {
 		super(null, Light.class, Math.min(MAX_LIGHTS, factory.getRenderer().getCapabilities().getMaxActiveLights()), factory);
 		this.cache = new Transform();
+		this.appliedLights = new Light[Math.min(MAX_LIGHTS, factory.getRenderer().getCapabilities().getMaxActiveLights())];
 	}
 
+	@Override
+	public void reset() {
+		super.reset();
+		
+		// reset the applied lights, since it's likely that the
+		// view transform has changed.
+		for (int i = 0; i < this.appliedLights.length; i++) {
+			this.appliedLights[i] = null;
+		}
+	}
+	
 	@Override
 	protected void apply(GL gl, JoglContext context, int unit, Light next) {
 		LightRecord lr = context.getStateRecord().lightRecord.lightUnits[unit];
@@ -49,31 +62,36 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 				gl.glEnable(glUnit);
 			}
 			
-			// set lighting colors
-			// ambient
-			Color c = next.getAmbient();
-			if (!c.equals(lr.ambient)) {
-				c.get(lr.ambient);
-				gl.glLightfv(glUnit, GL.GL_AMBIENT, lr.ambient, 0);
+			// only make the other changes if the light is different
+			if (this.appliedLights[unit] != next) {
+				this.appliedLights[unit] = next;
+				
+				// set lighting colors
+				// ambient
+				Color c = next.getAmbient();
+				if (!c.equals(lr.ambient)) {
+					c.get(lr.ambient);
+					gl.glLightfv(glUnit, GL.GL_AMBIENT, lr.ambient, 0);
+				}
+				// diffuse
+				c = next.getDiffuse();
+				if (!c.equals(lr.diffuse)) {
+					c.get(lr.diffuse);
+					gl.glLightfv(glUnit, GL.GL_DIFFUSE, lr.diffuse, 0);
+				}
+				// specular
+				c = next.getSpecular();
+				if (!c.equals(lr.specular)) {
+					c.get(lr.specular);
+					gl.glLightfv(glUnit, GL.GL_SPECULAR, lr.specular, 0);
+				}
+
+				// setup other properties
+				if (next instanceof SpotLight)
+					this.setupSpotLight(gl, lr, glUnit, (SpotLight) next);
+				else if (next instanceof DirectionLight)
+					this.setupDirectionLight(gl, lr, glUnit, (DirectionLight) next);
 			}
-			// diffuse
-			c = next.getDiffuse();
-			if (!c.equals(lr.diffuse)) {
-				c.get(lr.diffuse);
-				gl.glLightfv(glUnit, GL.GL_DIFFUSE, lr.diffuse, 0);
-			}
-			// specular
-			c = next.getSpecular();
-			if (!c.equals(lr.specular)) {
-				c.get(lr.specular);
-				gl.glLightfv(glUnit, GL.GL_SPECULAR, lr.specular, 0);
-			}
-			
-			// setup other properties
-			if (next instanceof SpotLight)
-				this.setupSpotLight(gl, lr, glUnit, (SpotLight) next);
-			else if (next instanceof DirectionLight)
-				this.setupDirectionLight(gl, lr, glUnit, (DirectionLight) next);
 			// else nothing we can do
 		}
 	}
@@ -128,11 +146,7 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		lr.position[3] = 0f;
 		
 		// setup of the direction
-		this.cache.setTranslation(0f, 0f, 0f);
-		this.cache.setRotation(light.getWorldTransform().getRotation());
-		this.cache.mul(this.factory.getCurrentView(), this.cache);
-		
-		// load computed modelview matrix onto stack
+		this.cache.mul(this.factory.getCurrentView(), light.getWorldTransform());		
 		this.factory.getTransformDriver().loadMatrix(gl, this.cache);
 		
 		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);		

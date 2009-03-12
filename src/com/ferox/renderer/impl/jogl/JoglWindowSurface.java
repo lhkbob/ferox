@@ -31,7 +31,7 @@ public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurf
 					Frame f = new Frame();
 					f.setResizable(resizable);
 					f.setUndecorated(undecorated);
-					
+
 					f.add(JoglWindowSurface.this.getGLCanvas());
 					f.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
 					f.setVisible(true);

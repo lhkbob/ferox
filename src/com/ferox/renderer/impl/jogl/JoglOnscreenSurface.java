@@ -34,6 +34,8 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	private DisplayOptions options;
 	private boolean finalizeOptions;
 	
+	private boolean iconified;
+	
 	private boolean enableVsync;
 	private boolean updateVsync;
 	
@@ -53,6 +55,8 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		
 		this.enableVsync = false;
 		this.updateVsync = true;
+		
+		this.iconified = false;
 	}
 	
 	/** Return the frame object that contains this surface's GLCanvas. */
@@ -154,15 +158,12 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	
 	@Override
 	public boolean isVisible() {
-		return !this.isDestroyed() && this.getFrame().isVisible();
+		return !this.isDestroyed() && !this.iconified;
 	}
 	
 	/** Do a half-cleanup and notify the factory that we've been destroyed. */
 	@Override
-	public void windowClosed(WindowEvent e) {
-		 // the factory will make sure everything is destroyed properly on the correct thread
-		this.getFactory().notifyOnscreenSurfaceZombie(this);
-	}
+	public void windowClosed(WindowEvent e) { }
 
 	/* Unfortunate consequences of being a window listener. */
 	
@@ -170,16 +171,23 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	public void windowActivated(WindowEvent e) { }
 	
 	@Override
-	public void windowClosing(WindowEvent e) { }
+	public void windowClosing(WindowEvent e) {
+		 // the factory will make sure everything is destroyed properly on the correct thread
+		this.getFactory().notifyOnscreenSurfaceZombie(this);
+	}
 
 	@Override
 	public void windowDeactivated(WindowEvent e) { }
 
 	@Override
-	public void windowDeiconified(WindowEvent e) { }
+	public void windowDeiconified(WindowEvent e) { 
+		this.iconified = false;
+	}
 
 	@Override
-	public void windowIconified(WindowEvent e) { }
+	public void windowIconified(WindowEvent e) { 
+		this.iconified = true;
+	}
 
 	@Override
 	public void windowOpened(WindowEvent e) { }

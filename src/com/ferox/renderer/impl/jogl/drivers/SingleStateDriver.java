@@ -51,6 +51,8 @@ public abstract class SingleStateDriver<T extends State> implements StateDriver 
 		} else if (this.lastAppliedState != null)
 			this.apply(this.factory.getGL(), this.factory.getCurrentContext(), this.defaultState);
 		this.lastAppliedState = this.queuedState;
+		
+		this.reset();
 	}
 
 	@Override

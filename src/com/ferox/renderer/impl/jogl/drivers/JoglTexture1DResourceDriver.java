@@ -5,8 +5,8 @@ import javax.media.opengl.GL;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
@@ -43,7 +43,7 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 	
 	@Override
 	public void cleanUp(Resource resource, ResourceData data) {
-		GL gl = this.factory.getCurrentContext().getContext().getGL();
+		GL gl = this.factory.getGL();
 		TextureHandle handle = (TextureHandle) data.getHandle();
 		
 		// a T_1D should always have a valid handle
@@ -52,11 +52,11 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 
 	@Override
 	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
-		JoglContext current = this.factory.getCurrentContext();
-
-		GL gl = current.getContext().getGL();
-		PackUnpackRecord pr = current.getStateRecord().packRecord;
-		TextureRecord tr = current.getStateRecord().textureRecord;
+		JoglStateRecord sr = this.factory.getCurrentContext().getStateRecord();
+		
+		GL gl = this.factory.getGL();
+		PackUnpackRecord pr = sr.packRecord;
+		TextureRecord tr = sr.textureRecord;
 
 		TextureHandle handle = (TextureHandle) data.getHandle();
 		Texture1D t1d = (Texture1D) resource;

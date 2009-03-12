@@ -2,7 +2,6 @@ package com.ferox.renderer.impl.jogl.drivers;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
@@ -109,13 +108,6 @@ public class TextureImageDriver {
 			pr.unpackAlignment = 1;
 			gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
 		}
-		
-		// set the byte ordering
-		boolean enableSwap = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-		if (pr.unpackSwapBytes != enableSwap) {
-			pr.unpackSwapBytes = enableSwap;
-			gl.glPixelStorei(GL.GL_UNPACK_SWAP_BYTES, (enableSwap ? GL.GL_TRUE : GL.GL_FALSE));
-		}
 	}
 
 	/** Convenience method to set all of the texture parameters on the given handle, based on 
@@ -136,7 +128,7 @@ public class TextureImageDriver {
 		
 		handle.setWrapS(gl, ti.getWrapS(), tdd.isTextureWrapDirty() || forceAll);
 		handle.setWrapT(gl, ti.getWrapT(), tdd.isTextureWrapDirty() || forceAll);
-		handle.setWrapT(gl, ti.getWrapT(), tdd.isTextureWrapDirty() || forceAll);
+		handle.setWrapR(gl, ti.getWrapR(), tdd.isTextureWrapDirty() || forceAll);
 		
 		handle.setDepthTest(gl, ti.getDepthCompareTest(), tdd.isDepthCompareDirty() || forceAll);
 		handle.setDepthMode(gl, ti.getDepthMode(), tdd.isDepthCompareDirty() || forceAll);

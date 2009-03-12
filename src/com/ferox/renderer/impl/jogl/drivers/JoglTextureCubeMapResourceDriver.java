@@ -6,8 +6,8 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
@@ -47,7 +47,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	
 	@Override
 	public void cleanUp(Resource resource, ResourceData data) {
-		GL gl = this.factory.getCurrentContext().getContext().getGL();
+		GL gl = this.factory.getGL();
 		TextureHandle handle = (TextureHandle) data.getHandle();
 		
 		if (handle != null) {
@@ -57,11 +57,11 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 
 	@Override
 	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
-		JoglContext current = this.factory.getCurrentContext();
+		JoglStateRecord sr = this.factory.getCurrentContext().getStateRecord();
 		
-		GL gl = current.getContext().getGL();
-		PackUnpackRecord pr = current.getStateRecord().packRecord;
-		TextureRecord tr = current.getStateRecord().textureRecord;
+		GL gl = this.factory.getGL();
+		PackUnpackRecord pr = sr.packRecord;
+		TextureRecord tr = sr.textureRecord;
 		
 		if (data.getStatus() != Status.ERROR) {
 			// only do an update if we haven't got an error
@@ -171,15 +171,15 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 			// proceed with glTexImage
 			this.imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, s, s);
 			if (handle.glSrcFormat > 0)
-				gl.glTexImage2D(handle.glTarget, level, handle.glDstFormat, s, s, 0, handle.glSrcFormat, handle.glType, this.imageDriver.wrap(bd));
+				gl.glTexImage2D(EnumUtil.getGLCubeFace(face), level, handle.glDstFormat, s, s, 0, handle.glSrcFormat, handle.glType, this.imageDriver.wrap(bd));
 			else
-				gl.glCompressedTexImage2D(handle.glTarget, level, handle.glDstFormat, s, s, 0, bd.getCapacity(), this.imageDriver.wrap(bd));
+				gl.glCompressedTexImage2D(EnumUtil.getGLCubeFace(face), level, handle.glDstFormat, s, s, 0, bd.getCapacity(), this.imageDriver.wrap(bd));
 		} else if (newTex) {
 			// we'll just allocate an empty image
 			if (handle.glSrcFormat > 0)
-				gl.glTexImage2D(handle.glTarget, level, handle.glDstFormat, s, s, 0, handle.glSrcFormat, handle.glType, null);
+				gl.glTexImage2D(EnumUtil.getGLCubeFace(face), level, handle.glDstFormat, s, s, 0, handle.glSrcFormat, handle.glType, null);
 			else
-				gl.glCompressedTexImage2D(handle.glTarget, level, handle.glDstFormat, s, s, 0, tex.getFormat().getBufferSize(s, s, 0), null);
+				gl.glCompressedTexImage2D(EnumUtil.getGLCubeFace(face), level, handle.glDstFormat, s, s, 0, tex.getFormat().getBufferSize(s, s, 0), null);
 		} // else .. ignore this layer
 	}
 	

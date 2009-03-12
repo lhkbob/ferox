@@ -20,6 +20,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.Threading;
+import javax.media.opengl.TraceGL;
 import javax.swing.SwingUtilities;
 
 import com.ferox.math.Color;
@@ -284,7 +285,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 			GL gl = this.currentGL;
 
 			Color clearColor = this.currentSurface.getClearColor();
-			if (record.clearColor.equals(clearColor)) {
+			if (!clearColor.equals(record.clearColor)) {
 				gl.glClearColor(clearColor.getRed(), clearColor.getGreen(), clearColor.getBlue(), clearColor.getAlpha());
 				clearColor.get(record.clearColor);
 			}
@@ -441,7 +442,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 				res = c.makeCurrent();
 			}
 			this.currentContext = context;
-			this.currentGL = (this.debugGL ? new DebugGL(c.getGL()) : c.getGL());
+			this.currentGL = (this.debugGL ? new TraceGL(new DebugGL(c.getGL()), System.out) : c.getGL());
 		}
 	}
 	
