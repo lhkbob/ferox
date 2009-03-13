@@ -22,7 +22,7 @@ import com.ferox.state.Texture.TexCoordGen;
 public class CubeTest extends BasicApplication {
 	public static final boolean DEBUG = false;
 	public static final boolean USE_VBO = true;
-	public static final boolean RANDOM_PLACEMENT = false;
+	public static final boolean RANDOM_PLACEMENT = true;
 	
 	public static final int NUM_CUBES = 10000;
 	public static final int BOUNDS = 100;

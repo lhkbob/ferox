@@ -157,8 +157,8 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.scene = this.buildScene(renderer, this.view);
 		this.pass = new BasicRenderPass(this.scene, v, this.createQueue(), false);
 		
-		this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
-		//this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, true, false);
+		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
+		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, true, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
 		this.window.setClearColor(new Color(.5f, .5f, .5f, 1f));

@@ -178,7 +178,7 @@ public class DDSTexture {
 		
 		public String toString() {
 			String first = "RGB (" + isFlagSet(this.flags, DDPF_RGB) + "), LUM (" + isFlagSet(this.flags, DDPF_LUMINANCE) + 
-							"), ALPHA (" + isFlagSet(this.flags, DDPF_ALPHAPIXELS) + "), FourCC (" + isFlagSet(this.flags, DDPF_FOURCC) + ")";
+							"), ALPHA (" + isFlagSet(this.flags, DDPF_ALPHA) + "), FourCC (" + isFlagSet(this.flags, DDPF_FOURCC) + ")";
 			String second;
 			if (isFlagSet(this.flags, DDPF_FOURCC))
 				second = "FourCC = " + unmakeFourCC(this.fourCC);

@@ -18,8 +18,6 @@ import org.openmali.vecmath.Vector3f;
  * @author Michael Ludwig
  *
  */
-// FIXME: we should switch this over to using Quaternions since it's lower memory footprint??
-// and we also need to implement our own math classes (which will be used by the physics engine !!!!)
 public class Transform {
 	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
 		protected Transform initialValue() {
