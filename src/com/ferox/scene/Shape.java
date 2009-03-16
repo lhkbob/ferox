@@ -78,13 +78,13 @@ public class Shape extends Leaf implements RenderAtom {
 	
 	/** Override visit to submit a render atom to the RenderQueue if necessary. */
 	@Override
-	public VisitResult visit(RenderQueue RenderQueue, View view, VisitResult parentResult) {
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
 		if (this.geom == null)
 			return VisitResult.FAIL;
 		
-		VisitResult sp = super.visit(RenderQueue, view, parentResult);
+		VisitResult sp = super.visit(renderQueue, view, parentResult);
 		if (sp != VisitResult.FAIL)
-			RenderQueue.add(this);
+			renderQueue.add(this);
 
 		return sp;
 	}

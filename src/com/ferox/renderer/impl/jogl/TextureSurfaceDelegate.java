@@ -1,6 +1,9 @@
 package com.ferox.renderer.impl.jogl;
 
+import javax.media.opengl.GLAutoDrawable;
+
 import com.ferox.renderer.DisplayOptions;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
@@ -38,15 +41,17 @@ public abstract class TextureSurfaceDelegate {
 		this.referenceCount = 0;
 	}
 	
-	public abstract JoglContext getContext();
+	public abstract JoglStateRecord getStateRecord();
 	
-	public abstract void onMakeCurrent(int layer);
+	public abstract GLAutoDrawable getGLAutoDrawable();
 	
-	public abstract void onRelease(JoglRenderSurface next);
+	public abstract void init();
 	
-	public abstract void onDestroySurface();
+	public abstract void preRenderAction(int layer);
 	
-	public abstract void swapBuffers();
+	public abstract void postRenderAction(JoglRenderSurface next);
+	
+	public abstract void destroySurface();
 	
 	public TextureImage getColorBuffer(int target) {
 		if (this.colors == null || target < 0 || target >= this.colors.length)

@@ -3,9 +3,9 @@ package com.ferox.renderer.impl.jogl.drivers;
 import javax.media.opengl.GL;
 
 import com.ferox.math.Color;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.ColoringRecord;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.LightingRecord;
 import com.ferox.state.Material;
 
@@ -24,11 +24,11 @@ public class JoglMaterialStateDriver extends SingleStateDriver<Material> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, Material nextState) {
+	protected void apply(GL gl, JoglStateRecord record, Material nextState) {
 		// we have to update lighting each time, since if the case is:
 		// <m1, no_lighting> then <m1, lighting>, the 2nd time, m1 will not
 		// be applied since it was "already applied"
-		LightingRecord lr = context.getStateRecord().lightRecord;
+		LightingRecord lr = record.lightRecord;
 
 		// shininess
 		float shiny = nextState.getShininess();
@@ -62,7 +62,7 @@ public class JoglMaterialStateDriver extends SingleStateDriver<Material> {
 		gl.glColor4f(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
 		
 		// set the smoothing
-		setSmoothingEnabled(gl, context.getStateRecord().colorRecord, nextState.isSmoothShaded());
+		setSmoothingEnabled(gl, record.colorRecord, nextState.isSmoothShaded());
 	}
 	
 	private static void setSmoothingEnabled(GL gl, ColoringRecord cr, boolean enabled) {

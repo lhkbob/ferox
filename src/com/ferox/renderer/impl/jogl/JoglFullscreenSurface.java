@@ -37,7 +37,7 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 					f.setResizable(false);
 					f.setUndecorated(true);
 					
-					f.add(JoglFullscreenSurface.this.getGLCanvas());
+					f.add(JoglFullscreenSurface.this.getGLAutoDrawable());
 					f.setVisible(true);
 					
 					JoglFullscreenSurface.this.frame = f;
@@ -89,7 +89,7 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 	}
 	
 	@Override
-	public void onDestroySurface() {
+	public void destroySurface() {
 		if (this.gDev.getFullScreenWindow() == this.frame)
 			this.gDev.setFullScreenWindow(null);
 		try {
@@ -108,7 +108,7 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 			throw new RenderException("Error hiding JoglFullscreenSurface", e);
 		}
 		
-		super.onDestroySurface();
+		super.destroySurface();
 	}
 
 	@Override

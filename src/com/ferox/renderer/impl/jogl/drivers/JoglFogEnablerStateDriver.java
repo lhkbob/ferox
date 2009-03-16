@@ -3,9 +3,9 @@ package com.ferox.renderer.impl.jogl.drivers;
 import javax.media.opengl.GL;
 
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.ColoringRecord;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.state.FogReceiver;
 
 /** This simple class enables or disables fog based on the presence of
@@ -20,8 +20,8 @@ public class JoglFogEnablerStateDriver extends SingleStateDriver<FogReceiver> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, FogReceiver nextState) {
-		ColoringRecord cr = context.getStateRecord().colorRecord;
+	protected void apply(GL gl, JoglStateRecord record, FogReceiver nextState) {
+		ColoringRecord cr = record.colorRecord;
 		setFogEnabled(gl, cr, nextState != null);
 		
 		if (nextState != null) {

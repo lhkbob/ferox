@@ -18,7 +18,7 @@ public interface TransformDriver {
 	/** Set the current view on the low-level graphics hardware.
 	 * For OpenGL like systems, this involves setting the projection
 	 * matrix and the view matrix.  It can be assumed that the view isn't null. */
-	public void setView(View view);
+	public void setView(View view, int width, int height);
 	
 	/** Set the model transform to use.  This must preserve the
 	 * projection matrix and the view transform.  The transform

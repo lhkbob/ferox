@@ -1,10 +1,7 @@
 package com.ferox.scene;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Color;
-import com.ferox.math.Transform;
 import com.ferox.renderer.InfluenceAtom;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
@@ -144,10 +141,10 @@ public class Fog extends Leaf implements State, InfluenceAtom {
 	}
 
 	@Override
-	public VisitResult visit(RenderQueue RenderQueue, View view, VisitResult parentResult) {
-		VisitResult sp = super.visit(RenderQueue, view, parentResult);
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
+		VisitResult sp = super.visit(renderQueue, view, parentResult);
 		if (sp != VisitResult.FAIL)
-			RenderQueue.add(this);
+			renderQueue.add(this);
 		return sp;
 	}
 	
@@ -175,33 +172,13 @@ public class Fog extends Leaf implements State, InfluenceAtom {
 	public float influences(RenderAtom atom) {
 		if (atom == null)
 			return 0f;
-		Transform at = atom.getTransform();
-		if (at == null)
-			return 0f;
 		BoundVolume ab = atom.getBounds();
 		if (ab == null)
 			return .5f;
 		else if (!ab.intersects(this.worldBounds))
 			return 0f;
 		
-		Vector3f p1 = at.getTranslation();
-		Vector3f p2 = this.worldTransform.getTranslation();
-		float dist = (float) Math.sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z));
-		float inf = 0f;
-		switch(this.eq) {
-		case EXP:
-			inf = (float) Math.exp(-this.density * dist);
-			break;
-		case EXP_SQUARED:
-			float mul = this.density * dist;
-			inf = (float) Math.exp(-mul * mul);
-			break;
-		case LINEAR:
-			inf = (this.end - dist) / (this.end - this.start);
-			break;
-		}
-		
-		return Math.max(0f, Math.min(inf, 1f));
+		return Math.min(this.density, 1f);
 	}
 
 	@Override

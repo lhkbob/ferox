@@ -138,11 +138,11 @@ public abstract class Node implements SceneElement {
 	/** Implements SceneElement visit(...) to follow contract of this Node's cull mode.  If the cull mode is DYNAMIC,
 	 * it will test for visibility with the current View in order to find the correct VisitResult. */
 	@Override
-	public VisitResult visit(RenderQueue RenderQueue, View view, VisitResult parentResult) {
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
 		switch(this.cullMode) {
 		case ALWAYS: return VisitResult.FAIL;
 		case NEVER: return VisitResult.SUCCESS_ALL;
-		case DYNAMIC: default:
+		case DYNAMIC:
 			if (parentResult == VisitResult.SUCCESS_ALL)
 				return VisitResult.SUCCESS_ALL;
 			else {
@@ -152,10 +152,10 @@ public abstract class Node implements SceneElement {
 				case INTERSECT: return VisitResult.SUCCESS_PARTIAL;
 				case OUTSIDE: return VisitResult.FAIL;
 				}
-				// shouldn't happen, but must please compiler
-				return VisitResult.SUCCESS_PARTIAL;
 			}
 		}
+		// shouldn't happen, but must please compiler
+		return VisitResult.SUCCESS_PARTIAL;
 	}
 	
 	/** If bounds are locked, then this Node's world bounds will not be updated each time update() is called.

@@ -3,9 +3,9 @@ package com.ferox.renderer.impl.jogl.drivers;
 import javax.media.opengl.GL;
 
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 import com.ferox.state.StencilTest;
 
@@ -23,9 +23,9 @@ public class JoglStencilTestStateDriver extends SingleStateDriver<StencilTest> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, StencilTest nextState) {
-		PixelOpRecord pr = context.getStateRecord().pixelOpRecord;
-		FramebufferRecord fr = context.getStateRecord().frameRecord;
+	protected void apply(GL gl, JoglStateRecord record, StencilTest nextState) {
+		PixelOpRecord pr =record.pixelOpRecord;
+		FramebufferRecord fr = record.frameRecord;
 		
 		if (nextState == null) {
 			// disable stencil testing

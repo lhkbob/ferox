@@ -39,4 +39,17 @@ public interface ContextRecordSurface extends RenderSurface {
 	 * 
 	 * Must not return null. */
 	public Object getStateRecord();
+	
+	/** This method assigns this surface a Runnable to be 
+	 * executed each time the surface is rendered.  This method
+	 * will properly handle flushing each of the surface's
+	 * render passes.
+	 * 
+	 * It is the surface's responsibility to properly clear its
+	 * buffers before executing this, and to perform any actions
+	 * afterwards necessary to display the results correctly.
+	 * 
+	 * This method will be called once right after the surface
+	 * is created. */
+	public void setRenderAction(Runnable action);
 }

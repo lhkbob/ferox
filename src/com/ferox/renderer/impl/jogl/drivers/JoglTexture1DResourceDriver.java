@@ -52,7 +52,7 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 
 	@Override
 	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
-		JoglStateRecord sr = this.factory.getCurrentContext().getStateRecord();
+		JoglStateRecord sr = this.factory.getRecord();
 		
 		GL gl = this.factory.getGL();
 		PackUnpackRecord pr = sr.packRecord;

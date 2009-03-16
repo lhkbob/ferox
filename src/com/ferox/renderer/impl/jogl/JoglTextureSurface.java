@@ -1,5 +1,7 @@
 package com.ferox.renderer.impl.jogl;
 
+import javax.media.opengl.GLAutoDrawable;
+
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
@@ -8,6 +10,7 @@ import com.ferox.renderer.DisplayOptions.AntiAliasMode;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.Texture1D;
 import com.ferox.resource.Texture2D;
 import com.ferox.resource.Texture3D;
@@ -72,9 +75,9 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	 * 
 	 * This will validate the input parameters and choose between an fbo or pbuffer surface.
 	 * It will throw a RenderException if it cannot create a valid surface. */
-	public JoglTextureSurface(JoglSurfaceFactory factory, int id, DisplayOptions options, TextureTarget target, 
-			  int width, int height, int depth, int layer, int numColorTargets, 
-			  boolean useDepthRenderBuffer) throws RenderException {
+	protected JoglTextureSurface(JoglSurfaceFactory factory, int id, DisplayOptions options, TextureTarget target, 
+								 int width, int height, int depth, int layer, int numColorTargets, 
+								 boolean useDepthRenderBuffer) throws RenderException {
 		super(factory, id);
 		RenderCapabilities caps = factory.getRenderer().getCapabilities();
 		SurfaceSpecifier s = new SurfaceSpecifier(options, target, width, height, depth, layer, numColorTargets, useDepthRenderBuffer);
@@ -88,8 +91,8 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 		createDepthTexture(s, caps);
 		
 		// create texture images and delegates of gfx card
-		updateTextureImages(s, factory);
-		this.delegate = constructDelegate(s, factory);
+		factory.renderFrame(JoglSurfaceFactory.EMPTY_LIST, new UpdateTextureImagesAction(s, factory));
+		factory.renderFrame(JoglSurfaceFactory.EMPTY_LIST, new ConstructDelegateAction(s, factory, this));
 		
 		// if we've gotten here, we're okay
 		this.layer = s.layer;
@@ -99,7 +102,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	/** Create a surface that shares the given texture surface's delegate.  This will
 	 * throw an exception if the layer argument is invalid.  It assumes the given
 	 * surface is valid, however. */
-	public JoglTextureSurface(JoglSurfaceFactory factory, int id, JoglTextureSurface shared, int layer) throws RenderException {
+	protected JoglTextureSurface(JoglSurfaceFactory factory, int id, JoglTextureSurface shared, int layer) throws RenderException {
 		super(factory, id);
 		// validate the layer argument
 		TextureTarget target = shared.delegate.getColorTarget();
@@ -118,32 +121,36 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	}
 	
 	@Override
-	public void onMakeCurrent() {
-		this.delegate.onMakeCurrent(this.layer);
+	public JoglStateRecord getStateRecord() {
+		return this.delegate.getStateRecord();
+	}
+
+	@Override
+	public void init() {
+		this.delegate.init();
 	}
 	
 	@Override
-	public void onRelease(JoglRenderSurface next) {
-		this.delegate.onRelease(next);
+	public void preRenderAction() {
+		this.delegate.preRenderAction(this.layer);
 	}
 	
 	@Override
-	public void swapBuffers() {
-		this.delegate.swapBuffers();
+	public void postRenderAction(JoglRenderSurface next) {
+		this.delegate.postRenderAction(next);
 	}
 	
 	@Override
-	public void onDestroySurface() {
+	public void destroySurface() {
 		this.delegate.removeReference();
 		if (this.delegate.getReferenceCount() <= 0)
-			this.delegate.onDestroySurface();
-		this.delegate = null;
-		super.onDestroySurface();
+			this.delegate.destroySurface();
+		super.destroySurface();
 	}
 	
 	@Override
-	public JoglContext getContext() {
-		return this.delegate.getContext();
+	public GLAutoDrawable getGLAutoDrawable() {
+		return this.delegate.getGLAutoDrawable();
 	}
 
 	@Override
@@ -371,62 +378,77 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 			s.depthBuffer = null;
 	}
 	
-	private static void updateTextureImages(SurfaceSpecifier s, JoglSurfaceFactory factory) throws RenderException {
-		boolean releaseOnFinish = factory.getCurrentSurface() == null;
-		if (releaseOnFinish)
-			factory.makeShadowContextCurrent();
+	/* Runnable action to create the textures on the shared context. */
+	private static class UpdateTextureImagesAction implements Runnable {
+		private JoglSurfaceFactory factory;
+		private SurfaceSpecifier s;
+	
+		private UpdateTextureImagesAction(SurfaceSpecifier s, JoglSurfaceFactory factory) {
+			this.factory = factory;
+			this.s = s;
+		}
 		
-		try {
-			if (s.colorBuffers != null) {
-				for (int i = 0; i < s.colorBuffers.length; i++) {
-					if (factory.getRenderer().doUpdate(s.colorBuffers[i], true, factory) == Status.ERROR) {
+		public void run() throws RenderException {
+			if (this.s.colorBuffers != null) {
+				for (int i = 0; i < this.s.colorBuffers.length; i++) {
+					if (this.factory.getRenderer().doUpdate(this.s.colorBuffers[i], true, this.factory) == Status.ERROR) {
 						// something is wrong, so we should fail
 						for (int j = 0; j <= i; j++)
-							factory.getRenderer().doCleanUp(s.colorBuffers[j], factory); // clean-up the textures
-						throw new RenderException("Requested options created an unsupported color texture, cannot construct the texture surface: " + s.options);
+							this.factory.getRenderer().doCleanUp(this.s.colorBuffers[j], this.factory); // clean-up the textures
+						throw new RenderException("Requested options created an unsupported color texture, cannot construct the texture surface: " + this.s.options);
 					}
 				}
 			}
-			if (s.depthBuffer != null) {
-				if (factory.getRenderer().doUpdate(s.depthBuffer, true, factory) == Status.ERROR) {
+			if (this.s.depthBuffer != null) {
+				if (this.factory.getRenderer().doUpdate(this.s.depthBuffer, true, this.factory) == Status.ERROR) {
 					// fail like before
-					if (s.colorBuffers != null) {
-						for (int i = 0; i < s.colorBuffers.length; i++)
-							factory.getRenderer().doCleanUp(s.colorBuffers[i], factory);
+					if (this.s.colorBuffers != null) {
+						for (int i = 0; i < this.s.colorBuffers.length; i++)
+							this.factory.getRenderer().doCleanUp(this.s.colorBuffers[i], this.factory);
 					}
-					factory.getRenderer().doCleanUp(s.depthBuffer, factory);
-					throw new RenderException("Requested options created an unsupported depth texture, cannot construct the texture surface: " + s.options);
+					this.factory.getRenderer().doCleanUp(this.s.depthBuffer, this.factory);
+					throw new RenderException("Requested options created an unsupported depth texture, cannot construct the texture surface: " + this.s.options);
 				}
 			}
-		} finally {
-			if (releaseOnFinish)
-				factory.release();
 		}
 	}
 	
-	private static TextureSurfaceDelegate constructDelegate(SurfaceSpecifier s, JoglSurfaceFactory factory) throws RenderException {
-		if (s.useFbo) {
-			return new FboDelegate(factory, s.options, s.colorTarget, s.depthTarget, s.width, s.height, s.colorBuffers, s.depthBuffer, s.useDepthRenderBuffer);
-		} else {
-			try {
-				TextureImage color = (s.colorBuffers == null ? null : s.colorBuffers[0]);
-				return new PbufferDelegate(factory, s.options, s.colorTarget, s.depthTarget, s.width, s.height, color, s.depthBuffer, s.useDepthRenderBuffer);
-			} catch (RuntimeException e) {
-				boolean releaseOnFinish = factory.getCurrentSurface() == null;
-				if (releaseOnFinish)
-					factory.makeShadowContextCurrent();
-				
-				// clean-up the textures
-				if (s.colorBuffers != null) {
-					for (int i = 0; i < s.colorBuffers.length; i++)
-						factory.getRenderer().doCleanUp(s.colorBuffers[i], factory);
+	/* Runnable to create the delegate.  Must be executed on the context so that it
+	 * can cleanup the textures if something goes wrong. */
+	private static class ConstructDelegateAction implements Runnable {
+		private JoglSurfaceFactory factory;
+		private SurfaceSpecifier s;
+		private JoglTextureSurface surface;
+		
+		private ConstructDelegateAction(SurfaceSpecifier s, JoglSurfaceFactory factory, JoglTextureSurface surface) {
+			this.factory = factory;
+			this.s = s;
+			this.surface = surface;
+		}
+
+		public void run() throws RenderException {
+			if (this.s.useFbo) {
+				this.surface.delegate = new FboDelegate(this.factory, this.s.options, this.s.colorTarget, this.s.depthTarget,
+														this.s.width, this.s.height, this.s.colorBuffers, this.s.depthBuffer, 
+														this.s.useDepthRenderBuffer);
+			} else {
+				try {
+					TextureImage color = (this.s.colorBuffers == null ? null : this.s.colorBuffers[0]);
+					this.surface.delegate = new PbufferDelegate(this.factory, this.s.options, this.surface,
+																this.s.colorTarget, this.s.depthTarget, 
+																this.s.width, this.s.height, color, this.s.depthBuffer, 
+																this.s.useDepthRenderBuffer);
+				} catch (RuntimeException e) {
+					// clean-up the textures
+					if (this.s.colorBuffers != null) {
+						for (int i = 0; i < this.s.colorBuffers.length; i++)
+							this.factory.getRenderer().doCleanUp(this.s.colorBuffers[i], this.factory);
+					}
+					if (this.s.depthBuffer != null)
+						this.factory.getRenderer().doCleanUp(this.s.depthBuffer, this.factory);
+					
+					throw new RenderException("Exception occurred while creating a pbuffer", e);
 				}
-				if (s.depthBuffer != null)
-					factory.getRenderer().doCleanUp(s.depthBuffer, factory);
-				
-				if (releaseOnFinish)
-					factory.release();
-				throw new RenderException("Exception occurred while creating a pbuffer", e);
 			}
 		}
 	}

@@ -5,8 +5,8 @@ import javax.media.opengl.GL;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
@@ -46,7 +46,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	
 	@Override
 	public void cleanUp(Resource resource, ResourceData data) {
-		GL gl = this.factory.getCurrentContext().getContext().getGL();
+		GL gl = this.factory.getGL();
 		TextureHandle handle = (TextureHandle) data.getHandle();
 		
 		if (handle != null) {
@@ -56,11 +56,11 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 
 	@Override
 	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
-		JoglContext current = this.factory.getCurrentContext();
+		JoglStateRecord sr = this.factory.getRecord();
 		
-		GL gl = current.getContext().getGL();
-		PackUnpackRecord pr = current.getStateRecord().packRecord;
-		TextureRecord tr = current.getStateRecord().textureRecord;
+		GL gl = this.factory.getGL();
+		PackUnpackRecord pr = sr.packRecord;
+		TextureRecord tr = sr.textureRecord;
 		
 		if (data.getStatus() != Status.ERROR) {
 			// only do an update if we haven't got an error

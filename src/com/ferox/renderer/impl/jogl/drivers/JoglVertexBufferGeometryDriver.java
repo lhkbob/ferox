@@ -51,7 +51,7 @@ public class JoglVertexBufferGeometryDriver implements GeometryDriver {
 	@SuppressWarnings("unchecked")
 	public int render(Geometry geom, ResourceData data) {
 		GL gl = this.factory.getGL();
-		VertexArrayRecord vr = this.factory.getCurrentContext().getStateRecord().vertexArrayRecord;
+		VertexArrayRecord vr = this.factory.getRecord().vertexArrayRecord;
 		AbstractRenderer renderer = this.factory.getRenderer();
 		
 		BufferedGeometryHandle<VertexBufferObject> toRender = (BufferedGeometryHandle<VertexBufferObject>) data.getHandle();
@@ -103,7 +103,7 @@ public class JoglVertexBufferGeometryDriver implements GeometryDriver {
 	public void reset() {
 		if (this.lastRendered != null) {
 			GL gl = this.factory.getGL();
-			VertexArrayRecord vr = this.factory.getCurrentContext().getStateRecord().vertexArrayRecord;
+			VertexArrayRecord vr = this.factory.getRecord().vertexArrayRecord;
 			disablePointers(gl, vr, this.lastRendered, null);
 
 			// reset buffer bindings so normal vertex array functions will work

@@ -4,8 +4,8 @@ import javax.media.opengl.GL;
 
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.StateDriver;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.state.State;
 
 /** A SingleStateDriver can be used by state drivers that only support
@@ -41,15 +41,15 @@ public abstract class SingleStateDriver<T extends State> implements StateDriver 
 	/** Make the state changes to the given gl necessary. 
 	 * This will be called with the queued state, or by the default
 	 * state supplied in the constructor. */
-	protected abstract void apply(GL gl, JoglContext context, T nextState);
+	protected abstract void apply(GL gl, JoglStateRecord record, T nextState);
 	
 	@Override
 	public void doApply() {
 		if (this.queuedState != null) {
 			if (this.queuedState != this.lastAppliedState)
-				this.apply(this.factory.getGL(), this.factory.getCurrentContext(), this.queuedState);
+				this.apply(this.factory.getGL(), this.factory.getRecord(), this.queuedState);
 		} else if (this.lastAppliedState != null)
-			this.apply(this.factory.getGL(), this.factory.getCurrentContext(), this.defaultState);
+			this.apply(this.factory.getGL(), this.factory.getRecord(), this.defaultState);
 		this.lastAppliedState = this.queuedState;
 		
 		this.reset();

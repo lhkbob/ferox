@@ -58,7 +58,7 @@ public class JoglVertexBufferObjectResourceDriver implements ResourceDriver {
 	@Override
 	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
 		GL gl = this.factory.getGL();
-		VertexArrayRecord vr = this.factory.getCurrentContext().getStateRecord().vertexArrayRecord;
+		VertexArrayRecord vr = this.factory.getRecord().vertexArrayRecord;
 		
 		VboHandle handle = (VboHandle) data.getHandle();
 		VertexBufferObject vbo = (VertexBufferObject) resource;

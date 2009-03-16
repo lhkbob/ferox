@@ -53,6 +53,7 @@ public class ApplicationBase {
 	protected void configureInputHandling(Component c, Transform mover) {
 		this.input = new InputManager(c);
 		this.input.setKeyBehavior(KeyEvent.VK_R, InputManager.INITIAL_PRESS);
+		this.input.setKeyBehavior(KeyEvent.VK_M, InputManager.INITIAL_PRESS);
 		this.input.setKeyBehavior(KeyEvent.VK_ESCAPE, InputManager.INITIAL_PRESS);
 		
 		this.toMove = mover;
@@ -64,6 +65,10 @@ public class ApplicationBase {
 			this.exiting = true;
 		if (input.isKeyPressed(KeyEvent.VK_R))
 			this.stats.reportStatistics(System.out);
+		if (input.isKeyPressed(KeyEvent.VK_M)) {
+			Runtime run = Runtime.getRuntime();
+			System.out.printf("Memory Usage | Heap Size: %.2f M Free: %.2f M\n", run.totalMemory() / 1e6f, run.freeMemory() / 1e6f);
+		}
 		
 		if (this.toMove != null) {
 			float t = dt * T_VEL;

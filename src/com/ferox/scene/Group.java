@@ -91,15 +91,15 @@ public class Group extends Node {
 
 	/** Override visit(...) to visit children if super.visit() didn't fail. */
 	@Override
-	public VisitResult visit(RenderQueue RenderQueue, View view, VisitResult parentResult) {
-		VisitResult sp = super.visit(RenderQueue, view, parentResult);
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
+		VisitResult sp = super.visit(renderQueue, view, parentResult);
 		if (sp == VisitResult.FAIL)
 			return VisitResult.FAIL;
 		
 		int planeState = view.getPlaneState();
 		
 		for (int i = 0; i < this.size; i++) {
-			this.children[i].visit(RenderQueue, view, sp);
+			this.children[i].visit(renderQueue, view, sp);
 			view.setPlaneState(planeState);
 		}
 		

@@ -22,8 +22,6 @@ public class FogReceiver implements State {
 	private FogCoordSource fogSource;
 	private Object renderData;
 	
-	
-	
 	/** Create a fog receiver with a fog
 	 * coordinate source of FRAGMENT_DEPTH. */
 	public FogReceiver() {

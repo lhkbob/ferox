@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers;
 import javax.media.opengl.GL;
 
 import com.ferox.math.Color;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.LightingRecord;
 import com.ferox.state.LightReceiver;
 
@@ -20,8 +20,8 @@ public class JoglGlobalLightingStateDriver extends SingleStateDriver<LightReceiv
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, LightReceiver nextState) {
-		LightingRecord lr = context.getStateRecord().lightRecord;
+	protected void apply(GL gl, JoglStateRecord record, LightReceiver nextState) {
+		LightingRecord lr = record.lightRecord;
 		
 		if (nextState == null) {
 			// just need to disable lighting

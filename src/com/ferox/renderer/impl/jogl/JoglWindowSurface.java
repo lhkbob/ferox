@@ -32,7 +32,7 @@ public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurf
 					f.setResizable(resizable);
 					f.setUndecorated(undecorated);
 
-					f.add(JoglWindowSurface.this.getGLCanvas());
+					f.add(JoglWindowSurface.this.getGLAutoDrawable());
 					f.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
 					f.setVisible(true);
 					
@@ -51,7 +51,7 @@ public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurf
 	}
 	
 	@Override
-	public void onDestroySurface() {
+	public void destroySurface() {
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {
@@ -68,7 +68,7 @@ public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurf
 			throw new RenderException("Error hiding JoglWindowSurface", e);
 		}
 		
-		super.onDestroySurface();
+		super.destroySurface();
 	}
 	
 	@Override

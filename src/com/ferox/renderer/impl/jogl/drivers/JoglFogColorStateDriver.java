@@ -4,10 +4,10 @@ import javax.media.opengl.GL;
 
 import com.ferox.math.Color;
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.ColoringRecord;
 import com.ferox.renderer.impl.jogl.record.HintRecord;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.scene.Fog;
 import com.ferox.scene.Fog.FogEquation;
 import com.ferox.state.State.Quality;
@@ -24,9 +24,9 @@ public class JoglFogColorStateDriver extends SingleStateDriver<Fog> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, Fog nextState) {
-		ColoringRecord cr = context.getStateRecord().colorRecord;
-		HintRecord hr = context.getStateRecord().hintRecord;
+	protected void apply(GL gl, JoglStateRecord record, Fog nextState) {
+		ColoringRecord cr = record.colorRecord;
+		HintRecord hr = record.hintRecord;
 		
 		// color
 		if (!nextState.getColor().equals(cr.fogColor)) {

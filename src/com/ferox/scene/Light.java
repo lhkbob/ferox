@@ -129,10 +129,10 @@ public abstract class Light extends Leaf implements State, InfluenceAtom {
 	}
 	
 	@Override
-	public VisitResult visit(RenderQueue RenderQueue, View view, VisitResult parentResult) {
-		VisitResult sp = super.visit(RenderQueue, view, parentResult);
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
+		VisitResult sp = super.visit(renderQueue, view, parentResult);
 		if (sp != VisitResult.FAIL)
-			RenderQueue.add(this);
+			renderQueue.add(this);
 		return sp;
 	}
 

@@ -18,50 +18,57 @@ import com.ferox.resource.TextureImage.TextureTarget;
 /** Provides GLPBuffer support for the JoglTextureSurface. */
 public class PbufferDelegate extends TextureSurfaceDelegate {
 	private GLPbuffer pbuffer;
-	private JoglContext context;
+	private JoglStateRecord record;
 	private JoglSurfaceFactory factory;
 	
 	private int swapBuffersLayer;
 	
-	public PbufferDelegate(JoglSurfaceFactory factory, DisplayOptions options, 
+	public PbufferDelegate(JoglSurfaceFactory factory, DisplayOptions options, JoglTextureSurface surface,
 						   TextureTarget colorTarget, TextureTarget depthTarget, int width, int height, 
 						   TextureImage color, TextureImage depth, boolean useDepthRenderBuffer) {
 		super(options, colorTarget, depthTarget, width, height, new TextureImage[] {color}, depth);
 		
 		GLCapabilities caps = chooseCapabilities(options, useDepthRenderBuffer);
 		this.pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(), 
-																	  width, height, factory.getShadowContext().getContext());
+																	  width, height, factory.getShadowContext());
+		this.pbuffer.addGLEventListener(surface);
+		
 		this.factory = factory;
-		this.context = new JoglContext(this.pbuffer.getContext(), new JoglStateRecord(factory.getRenderer().getCapabilities()));
+		this.record = new JoglStateRecord(factory.getRenderer().getCapabilities());
 	}
 	
 	@Override
-	public JoglContext getContext() {
-		return this.context;
+	public JoglStateRecord getStateRecord() {
+		return this.record;
+	}
+	
+	@Override
+	public GLPbuffer getGLAutoDrawable() {
+		return this.pbuffer;
 	}
 
 	@Override
-	public void onDestroySurface() {
+	public void destroySurface() {
 		this.pbuffer.destroy();
 	}
 
 	@Override
-	public void onMakeCurrent(int layer) {
+	public void preRenderAction(int layer) {
 		this.swapBuffersLayer = layer; // save for when swapBuffers is called
 	}
-
+	
 	@Override
-	public void onRelease(JoglRenderSurface next) {
+	public void init() {
 		// do nothing
 	}
 
 	@Override
-	public void swapBuffers() {
+	public void postRenderAction(JoglRenderSurface next) {
 		TextureImage color = this.getColorBuffer(0); // will be 1 color target at max
 		TextureImage depth = this.getDepthBuffer();
 		
 		GL gl = this.factory.getGL();
-		TextureRecord tr = this.factory.getCurrentContext().getStateRecord().textureRecord;
+		TextureRecord tr = this.factory.getRecord().textureRecord;
 		TextureUnit tu = tr.textureUnits[tr.activeTexture];
 		
 		int ct = -1;

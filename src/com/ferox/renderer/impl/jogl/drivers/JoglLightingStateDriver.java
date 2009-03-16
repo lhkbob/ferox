@@ -6,8 +6,8 @@ import org.openmali.vecmath.Vector3f;
 
 import com.ferox.math.Color;
 import com.ferox.math.Transform;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.LightingRecord.LightRecord;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Light;
@@ -45,8 +45,8 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 	}
 	
 	@Override
-	protected void apply(GL gl, JoglContext context, int unit, Light next) {
-		LightRecord lr = context.getStateRecord().lightRecord.lightUnits[unit];
+	protected void apply(GL gl, JoglStateRecord record, int unit, Light next) {
+		LightRecord lr = record.lightRecord.lightUnits[unit];
 		int glUnit = GL.GL_LIGHT0 + unit;
 		
 		if (next == null) {
@@ -108,7 +108,7 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		lr.spotDirection[1] = this.p.y; 
 		lr.spotDirection[2] = this.p.z; 
 		
-		this.cache.mul(this.factory.getCurrentView(), light.getWorldTransform());
+		this.cache.mul(this.factory.getViewTransform(), light.getWorldTransform());
 		this.factory.getTransformDriver().loadMatrix(gl, this.cache);
 		
 		// pos and dir
@@ -146,7 +146,7 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		lr.position[3] = 0f;
 		
 		// setup of the direction
-		this.cache.mul(this.factory.getCurrentView(), light.getWorldTransform());		
+		this.cache.mul(this.factory.getViewTransform(), light.getWorldTransform());		
 		this.factory.getTransformDriver().loadMatrix(gl, this.cache);
 		
 		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);		

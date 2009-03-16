@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers;
 import javax.media.opengl.GL;
 
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 import com.ferox.state.BlendMode;
 
@@ -20,8 +20,8 @@ public class JoglBlendModeStateDriver extends SingleStateDriver<BlendMode> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, BlendMode nextState) {
-		PixelOpRecord pr = context.getStateRecord().pixelOpRecord;
+	protected void apply(GL gl, JoglStateRecord record, BlendMode nextState) {
+		PixelOpRecord pr = record.pixelOpRecord;
 		
 		if (nextState == null) {
 			// disable blending

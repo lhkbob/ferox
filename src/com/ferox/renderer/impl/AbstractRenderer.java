@@ -81,7 +81,6 @@ public class AbstractRenderer implements Renderer {
 	private RenderState renderState;
 	private RenderCapabilities renderCaps;
 	
-	private RenderQueuedSurfacesAction renderQueueAction;
 	private ManageResourcesAction manageResourceAction;
 	
 	/* State management variables */
@@ -136,8 +135,7 @@ public class AbstractRenderer implements Renderer {
 		// misc ...
 		this.renderState = RenderState.WAITING_INIT;
 		
-		this.manageResourceAction = new ManageResourcesAction(this);
-		this.renderQueueAction = new RenderQueuedSurfacesAction(this);
+		this.manageResourceAction = new ManageResourcesAction();
 		
 		this.lastFrameTime = -1;
 		this.preparedPasses = new IdentityHashMap<RenderPass, View>();
@@ -313,89 +311,43 @@ public class AbstractRenderer implements Renderer {
 		return this;
 	}
 	
-	/* Class that performs all of the graphical execution in
-	 * the flushRenderer() method. */
-	private static class RenderQueuedSurfacesAction implements Runnable {
-		private AbstractRenderer renderer;
+	/* The render action for each created RenderSurface. */
+	private class RenderSurfaceAction implements Runnable {
+		private ContextRecordSurface surface;
 		
-		public RenderQueuedSurfacesAction(AbstractRenderer renderer) {
-			this.renderer = renderer;
+		public RenderSurfaceAction(ContextRecordSurface surface) {
+			this.surface = surface;
 		}
 		
 		@Override
 		public void run() {
-			try {
-				int numSurfaces = this.renderer.queuedSurfaces.size();
-				int numPasses;
-				
-				View view;
-				ContextRecordSurface surface;
-				List<RenderPass> passes;
-				RenderPass pass;
-				for (int i = 0; i < numSurfaces; i++) {
-					surface = this.renderer.queuedSurfaces.get(i);
-					this.renderer.factory.makeCurrent(surface);
-					if (i == 0)
-						this.renderer.manageResources();
-					this.renderer.factory.clearBuffers();
-					
-					passes = surface.getAllRenderPasses();
-					numPasses = passes.size();
-					for (int p = 0; p < numPasses; p++) {
-						pass = passes.get(p);
-						this.renderer.currentPass = pass;
-						view = this.renderer.preparedPasses.get(pass);
-						if (view != null) {
-							// render the pass
-							this.renderer.transform.setView(view);
-							pass.getRenderQueue().flush(this.renderer, view); // throws NullPointerException if there's no render queue
-							this.renderer.transform.resetView();
-						}
-					}
-					
-					// swap buffers and reset drivers
-					this.renderer.factory.swapBuffers();
-					this.renderer.resetForNextSurface();
+			List<RenderPass> passes = surface.getAllRenderPasses();
+			int numPasses = passes.size();
+			View view;
+			for (int p = 0; p < numPasses; p++) {
+				currentPass = passes.get(p);
+				view = preparedPasses.get(currentPass);
+				if (view != null) {
+					// render the pass
+					transform.setView(view, surface.getWidth(), surface.getHeight());
+					currentPass.getRenderQueue().flush(AbstractRenderer.this, view); // throws NullPointerException if there's no render queue
+					transform.resetView();
 				}
-				
-				this.renderer.factory.release();
-			} finally {
-				this.renderer.lastDriver = null;
-				for (int i = 0; i < this.renderer.stateTypeCounter; i++)
-					this.renderer.stateDrivers[i].reset();
 			}
+
+			// swap buffers and reset drivers
+			resetForNextSurface();	
 		}
-		
 	}
 	
 	/* Class that performs only the managing of resources during a 
-	 * frame.  This should only be used in the event that 
-	 * RenderQueuedSurfacesAction wouldn't be executed. */
-	private static class ManageResourcesAction implements Runnable {
-		private AbstractRenderer renderer;
-		
-		public ManageResourcesAction(AbstractRenderer renderer) {
-			this.renderer = renderer;
-		}
+	 * frame.  This is passed in as the 2nd argument to renderFrame()
+	 * of the surface factory. */
+	private class ManageResourcesAction implements Runnable {
 		
 		@Override
 		public void run() {
-			ContextRecordSurface candidate = null;
-			for (int i = 0; i < this.renderer.surfaces.length; i++) {
-				if (this.renderer.surfaces[i] != null) {
-					candidate = this.renderer.surfaces[i];
-					break;
-				}
-			}
-			
-			if (candidate == null)
-				this.renderer.factory.makeShadowContextCurrent();
-			else
-				this.renderer.factory.makeCurrent(candidate);
-			this.renderer.manageResources();
-
-			this.renderer.factory.release();
-
+			manageResources();
 		}
 	}
 	
@@ -419,27 +371,18 @@ public class AbstractRenderer implements Renderer {
 		else
 			this.frameStats.setIdleTime(now - this.lastFrameTime);
 		
-		long prepareStart = now;
-		// make sure all surfaces are valid
-		int numSurfaces = this.queuedSurfaces.size();
-		this.factory.startFrame(this.queuedSurfaces); // must be called now
-		
-		if (numSurfaces == 0) {
-			// just run the managers on the shadow context (or another surface)
-			try {
-				this.factory.runOnWorkerThread(this.manageResourceAction);
-				this.frameStats.setPrepareTime(System.nanoTime() - prepareStart);	
-			} finally {
-				this.lastFrameTime = System.nanoTime();
-			}
-		} else {
-			// we're rendering an entire frame now, resource managers will be done on 1st surface
-			for (int i = 0; i < numSurfaces; i++) {
-				if (this.validateSurface(this.queuedSurfaces.get(i)) == null)
-					throw new RenderException("Cannot render an invalid surface: " + this.queuedSurfaces.get(i));
-			}
-			
-			try {
+		try {
+			long prepareStart = now;
+			// make sure all surfaces are valid
+			int numSurfaces = this.queuedSurfaces.size();
+
+			if (numSurfaces > 0) {
+				// we're rendering an entire frame now, resource managers will be done on 1st surface
+				for (int i = 0; i < numSurfaces; i++) {
+					if (this.validateSurface(this.queuedSurfaces.get(i)) == null)
+						throw new RenderException("Cannot render an invalid surface: " + this.queuedSurfaces.get(i));
+				}
+
 				int numPasses;
 				List<RenderPass> passes;
 				RenderPass pass;
@@ -447,7 +390,7 @@ public class AbstractRenderer implements Renderer {
 				for (int i = 0; i < numSurfaces; i++) {
 					passes = this.queuedSurfaces.get(i).getAllRenderPasses();
 					numPasses = passes.size();
-					
+
 					for (int p = 0; p < numPasses; p++) {
 						pass = passes.get(p);
 						if (!this.preparedPasses.containsKey(pass))
@@ -456,24 +399,24 @@ public class AbstractRenderer implements Renderer {
 				}
 				now = System.nanoTime();
 				this.frameStats.setPrepareTime(now - prepareStart);
-				
-				long renderStart = now;
-				this.renderState = RenderState.PIPELINE;
-				
-				// render each surface, and the passes within it
-				this.factory.runOnWorkerThread(this.renderQueueAction);
-				
-				now = System.nanoTime();
-				this.frameStats.setRenderTime(now - renderStart);
-			} catch (Exception e) {
-				throw new RenderException("Exception occurred during flushRenderer()", e);
-			} finally {
-				// restore the state of the renderer and prepare for the next frame
-				this.currentPass = null;
-				this.renderState = RenderState.IDLE;
-				this.preparedPasses.clear();
-				this.lastFrameTime = now;
 			}
+
+			long renderStart = now;
+			this.renderState = RenderState.PIPELINE;
+
+			// if numSurfaces == 0, the resource action is still executed
+			this.factory.renderFrame(this.queuedSurfaces, this.manageResourceAction);
+
+			now = System.nanoTime();
+			this.frameStats.setRenderTime(now - renderStart);
+		} catch (Exception e) {
+			throw new RenderException("Exception occurred during flushRenderer()", e);
+		} finally {
+			// restore the state of the renderer and prepare for the next frame
+			this.currentPass = null;
+			this.renderState = RenderState.IDLE;
+			this.preparedPasses.clear();
+			this.lastFrameTime = now;
 		}
 		
 		// return the stats, since the frame is done
@@ -895,6 +838,8 @@ public class AbstractRenderer implements Renderer {
 			System.arraycopy(this.surfaces, 0, temp, 0, this.surfaces.length);
 			this.surfaces = temp;
 		}
+		
+		crs.setRenderAction(new RenderSurfaceAction(crs)); // set the action
 		this.surfaces[id] = crs;
 		// we're all good ...
 		return surface;

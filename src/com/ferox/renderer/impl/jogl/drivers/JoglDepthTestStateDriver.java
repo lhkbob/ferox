@@ -3,9 +3,9 @@ package com.ferox.renderer.impl.jogl.drivers;
 import javax.media.opengl.GL;
 
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 import com.ferox.state.DepthTest;
 
@@ -21,9 +21,9 @@ public class JoglDepthTestStateDriver extends SingleStateDriver<DepthTest> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, DepthTest nextState) {
-		PixelOpRecord pr = context.getStateRecord().pixelOpRecord;
-		FramebufferRecord fr = context.getStateRecord().frameRecord;
+	protected void apply(GL gl, JoglStateRecord record, DepthTest nextState) {
+		PixelOpRecord pr = record.pixelOpRecord;
+		FramebufferRecord fr = record.frameRecord;
 		
 		// func
 		int test = EnumUtil.getGLPixelTest(nextState.getTest());

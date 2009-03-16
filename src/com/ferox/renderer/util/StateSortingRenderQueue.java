@@ -137,8 +137,10 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 				this.reCache = true;
 			} // else nothing has changed for the system and atom
 		} else {
-			data = new StateRenderQueueData();
-			atom.setRenderQueueData(this, data);
+			if (data == null) {
+				data = new StateRenderQueueData();
+				atom.setRenderQueueData(this, data);
+			}
 			this.updateRenderAtom(data, a, sortKey);
 		}
 	}
@@ -151,7 +153,7 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 		
 		// now try to find the index
 		if (!this.reCache) {
-			Integer newIndex = (newApp == null ? 0 : this.sortIndexMap.get(newApp));
+			Integer newIndex = (newApp == null ? Integer.valueOf(0) : this.sortIndexMap.get(newApp));
 			if (newIndex != null) {
 				// update with the new index
 				data.sortIndex = newIndex.intValue();

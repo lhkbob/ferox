@@ -114,6 +114,7 @@ public class Color {
 		return this.red == color[0] && this.green == color[1] && this.blue == color[2] & this.alpha == color[3];
 	}
 	
+	@Override
 	public boolean equals(Object other) {
 		if (other == null || !(other instanceof Color))
 			return false;
@@ -123,11 +124,17 @@ public class Color {
 		return that.red == this.red && that.green == this.green && that.blue == this.blue && that.alpha == this.alpha;
 	}
 	
+	@Override
 	public int hashCode() {
 		int r = Float.floatToIntBits(this.red);
 		int g = Float.floatToIntBits(this.green);
 		int b = Float.floatToIntBits(this.blue);
 		int a = Float.floatToIntBits(this.alpha);
 		return r ^ g ^ b ^ a;
+	}
+	
+	@Override
+	public String toString() {
+		return "<" + this.red + ", " + this.green + ", " + this.blue + ", " + this.alpha + ">";
 	}
 }

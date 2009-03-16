@@ -3,7 +3,10 @@ package com.ferox.renderer.impl.jogl;
 import java.util.IdentityHashMap;
 import java.util.Map.Entry;
 
+import javax.media.opengl.GLAutoDrawable;
+
 import com.ferox.renderer.DisplayOptions;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
@@ -15,7 +18,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  */
 public class FboDelegate extends TextureSurfaceDelegate {
 	private JoglSurfaceFactory factory;
-	private IdentityHashMap<JoglContext, JoglFbo> fbos;
+	private IdentityHashMap<GLAutoDrawable, JoglFbo> fbos;
 	private boolean useDepthRB;
 	
 	/** A context must be current when this is created.  It will create the fbo
@@ -28,49 +31,54 @@ public class FboDelegate extends TextureSurfaceDelegate {
 					   TextureImage[] colors, TextureImage depth, boolean useDepthRenderBuffer) {
 		super(options, colorTarget, depthTarget, width, height, colors, depth);
 		this.factory = factory;
-		this.fbos = new IdentityHashMap<JoglContext, JoglFbo>();
+		this.fbos = new IdentityHashMap<GLAutoDrawable, JoglFbo>();
 		this.useDepthRB = useDepthRenderBuffer;
 	}
 
 	@Override
-	public JoglContext getContext() {
+	public GLAutoDrawable getGLAutoDrawable() {
 		return null;
+	}
+	
+	@Override
+	public JoglStateRecord getStateRecord() {
+		return this.factory.getRecord();
 	}
 
 	@Override
-	public void onDestroySurface() {
-		for (Entry<JoglContext, JoglFbo> e: this.fbos.entrySet()) {
+	public void destroySurface() {
+		for (Entry<GLAutoDrawable, JoglFbo> e: this.fbos.entrySet()) {
 			this.factory.notifyFboZombie(e.getKey(), e.getValue());
 		}
 	}
 
 	@Override
-	public void onMakeCurrent(int layer) {
-		JoglContext current = this.factory.getCurrentContext();
+	public void preRenderAction(int layer) {
+		GLAutoDrawable current = this.factory.getDisplayingDrawable();
 		JoglFbo fbo = this.fbos.get(current);
 		if (fbo == null) {
 			fbo = new JoglFbo(this.factory, this.getWidth(), this.getHeight(), this.getColorTarget(), this.getDepthTarget(),
 							  this.getColorBuffers(), this.getDepthBuffer(), layer, this.useDepthRB);
 			this.fbos.put(current, fbo);
 		}
-		fbo.bind(current, layer);
+		fbo.bind(this.factory.getGL(), this.factory.getRecord(), layer);
 	}
 
 	@Override
-	public void onRelease(JoglRenderSurface next) {
+	public void postRenderAction(JoglRenderSurface next) {
 		if (next != null) {
 			if (next instanceof JoglTextureSurface) {
 				TextureSurfaceDelegate ts = ((JoglTextureSurface) next).getDelegate();
 				if (ts instanceof FboDelegate)
-					return; // onMakeCurrent() will take care of everything
+					return; // preRenderAction() will take care of everything
 			}
-			JoglContext current = this.factory.getCurrentContext();
-			this.fbos.get(current).release(current);
+			GLAutoDrawable current = this.factory.getDisplayingDrawable();
+			this.fbos.get(current).release(this.factory.getGL(), this.factory.getRecord());
 		}
 	}
 
 	@Override
-	public void swapBuffers() {
+	public void init() {
 		// do nothing
 	}
 }

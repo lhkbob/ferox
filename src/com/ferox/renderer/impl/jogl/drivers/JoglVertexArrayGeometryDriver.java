@@ -49,7 +49,7 @@ public class JoglVertexArrayGeometryDriver implements GeometryDriver {
 	@SuppressWarnings("unchecked")
 	public int render(Geometry geom, ResourceData data) {
 		GL gl = this.factory.getGL();
-		VertexArrayRecord vr = this.factory.getCurrentContext().getStateRecord().vertexArrayRecord;
+		VertexArrayRecord vr = this.factory.getRecord().vertexArrayRecord;
 		
 		BufferedGeometryHandle<Buffer> toRender = (BufferedGeometryHandle<Buffer>) data.getHandle();
 
@@ -81,7 +81,7 @@ public class JoglVertexArrayGeometryDriver implements GeometryDriver {
 	public void reset() {
 		if (this.lastRendered != null) {
 			GL gl = this.factory.getGL();
-			VertexArrayRecord vr = this.factory.getCurrentContext().getStateRecord().vertexArrayRecord;
+			VertexArrayRecord vr = this.factory.getRecord().vertexArrayRecord;
 			disablePointers(gl, vr, this.lastRendered, null);
 			this.lastRendered = null;
 		}

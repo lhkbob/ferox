@@ -29,10 +29,9 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  */
 public abstract class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
 	private final GLCanvas canvas;
-	private JoglContext context;
+	private final JoglStateRecord record;
 	
 	private DisplayOptions options;
-	private boolean finalizeOptions;
 	
 	private boolean iconified;
 	
@@ -46,12 +45,12 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		super(factory, id);
 		if (optionsRequest == null)
 			optionsRequest = new DisplayOptions();
-		this.canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), factory.getShadowContext().getContext(), null);
-		this.canvas.setAutoSwapBufferMode(false);
-		this.context = new JoglContext(this.canvas.getContext(), new JoglStateRecord(factory.getRenderer().getCapabilities()));
+		this.canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), factory.getShadowContext(), null);
+		this.canvas.addGLEventListener(this);
 		
+		this.record = new JoglStateRecord(factory.getRenderer().getCapabilities());
+
 		this.options = optionsRequest;
-		this.finalizeOptions = true;
 		
 		this.enableVsync = false;
 		this.updateVsync = true;
@@ -64,27 +63,23 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	
 	/** Return the gl canvas that must be the sole child of the frame
 	 * returned by getFrame(). */
-	protected final GLCanvas getGLCanvas() {
+	@Override
+	public GLCanvas getGLAutoDrawable() {
 		return this.canvas;
 	}
 	
 	/** In addition, destroys the context of this surface's GLCanvas. */
 	@Override
-	public void onDestroySurface() {
+	public void destroySurface() {
 		this.canvas.getContext().destroy();
-		super.onDestroySurface();
+		super.destroySurface();
 	}
 	
 	/** Overridden to apply any vsync changes and to detect the actual DisplayOptions
 	 * the first time the surface is made current. */
 	@Override
-	public void onMakeCurrent() {
-		GL gl = this.canvas.getGL();
-		
-		if (this.finalizeOptions) {
-			this.options = detectOptions(gl);
-			this.finalizeOptions = false;
-		}
+	public void preRenderAction() {
+		GL gl = this.factory.getGL();
 		
 		if (this.updateVsync) {
 			if (this.enableVsync)
@@ -95,20 +90,20 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		}
 	}
 	
-	/** Overridden to properly swap the buffers of the gl canvas. */
 	@Override
-	public void swapBuffers() {
-		this.canvas.swapBuffers();
+	public JoglStateRecord getStateRecord() {
+		return this.record;
 	}
-	
+
 	@Override
-	public void onRelease(JoglRenderSurface s) {
+	public void init() {
+		// fetch the detected options
+		this.options = detectOptions(this.factory.getGL());
+	}
+
+	@Override
+	public void postRenderAction(JoglRenderSurface next) {
 		// do nothing
-	}
-	
-	@Override
-	public JoglContext getContext() {
-		return this.context;
 	}
 
 	@Override
@@ -173,7 +168,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	@Override
 	public void windowClosing(WindowEvent e) {
 		 // the factory will make sure everything is destroyed properly on the correct thread
-		this.getFactory().notifyOnscreenSurfaceZombie(this);
+		this.factory.notifyOnscreenSurfaceZombie(this);
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.Frame;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -12,18 +12,10 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.media.opengl.DebugGL;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCanvas;
-import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLPbuffer;
-import javax.media.opengl.Threading;
-import javax.media.opengl.TraceGL;
-import javax.swing.SwingUtilities;
 
-import com.ferox.math.Color;
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
@@ -35,9 +27,7 @@ import com.ferox.renderer.impl.AbstractRenderer;
 import com.ferox.renderer.impl.ContextRecordSurface;
 import com.ferox.renderer.impl.SurfaceFactory;
 import com.ferox.renderer.impl.jogl.drivers.JoglTransformDriver;
-import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 import com.ferox.resource.TextureImage.TextureTarget;
 
 /** The JoglSurfaceFactory provides an implementation of SurfaceFactory
@@ -56,36 +46,33 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * @author Michael Ludwig
  *
  */
-public class JoglSurfaceFactory implements SurfaceFactory {
-	private Queue<JoglOnscreenSurface> zombieWindowSurfaces;
-	private Map<JoglContext, Queue<JoglFbo>> zombieFbos;
+public class JoglSurfaceFactory implements SurfaceFactory {	
+	/** List to be passed into renderFrame() by methods needing custom resource actions executed. */
+	public static final List<ContextRecordSurface> EMPTY_LIST = Collections.unmodifiableList(new LinkedList<ContextRecordSurface>());
 	
-	private List<JoglRenderSurface> realizedSurfaces; // surfaces that own their gl contexts
+	/* Variables for the shadow context. */
+	private ShadowContext shadowContext;
 	
-	private JoglContext currentContext;
-	private JoglRenderSurface currentSurface;
-	private GL currentGL;
-	
-	private List<JoglRenderSurface> queuedSurfaces;
-	private int queuePosition;
-	
-	private AbstractRenderer renderer;
-	private JoglTransformDriver transformDriver;
-	
-	/* Variables for creating surfaces. */
-	private JoglContext shadowContext;
-	private GLPbuffer shadowPbuffer; // use this if pbuffers are supported
-	private GLCanvas shadowCanvas;
-	
-	private Frame shadowFrame; // only created if we're using the shadowCanvas and need to make the canvas current
-	private Runnable validateFrame;
-	private Runnable hideFrame;
-	
+	/* Variables for surfaces. */
 	private Set<Integer> usedIds;
 	private int windowCreatedCount;
 	private boolean fullscreenCreated;
 
+	private Queue<JoglOnscreenSurface> zombieWindowSurfaces;
+	private Map<GLAutoDrawable, Queue<JoglFbo>> zombieFbos;
+		
+	private List<JoglRenderSurface> realizedSurfaces;
+	
+	/* Misc variables. */
 	private boolean debugGL;
+	private AbstractRenderer renderer;
+	private JoglTransformDriver transformDriver;
+	
+	private List<AttachableSurfaceGLEventListener> queuedRenderActions;
+	
+	private GLAutoDrawable currentDrawable;
+	private JoglStateRecord currentRecord;
+	private GL currentGL;
 	
 	/** Construct a surface factory for the given renderer (this renderer
 	 * must use this surface factory or undefined results will happen).
@@ -94,56 +81,30 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 	public JoglSurfaceFactory(AbstractRenderer renderer, RenderCapabilities caps, boolean debug) throws RenderException {
 		if (renderer == null)
 			throw new RenderException("Cannot create a surface factory with a null renderer");
+
+		this.debugGL = debug;
 		this.renderer = renderer;
 		this.transformDriver = new JoglTransformDriver(this);
 		
 		this.windowCreatedCount = 0;
 		this.fullscreenCreated = false;
 		
-		// initialize the data structures
+		this.usedIds = new HashSet<Integer>();
+		
 		this.realizedSurfaces = new ArrayList<JoglRenderSurface>();
+		this.queuedRenderActions = new ArrayList<AttachableSurfaceGLEventListener>();
+		
+		// initialize the data structures
 		this.zombieWindowSurfaces = new LinkedList<JoglOnscreenSurface>();
-		this.zombieFbos = new HashMap<JoglContext, Queue<JoglFbo>>();
+		this.zombieFbos = new HashMap<GLAutoDrawable, Queue<JoglFbo>>();
 		
-		// set up the shadow context
-		GLCapabilities glCaps = new GLCapabilities();
-		glCaps.setDepthBits(0); 
-		glCaps.setDoubleBuffered(false);
-		
-		if (GLDrawableFactory.getFactory().canCreateGLPbuffer()) {
-			this.shadowPbuffer = GLDrawableFactory.getFactory().createGLPbuffer(glCaps, new DefaultGLCapabilitiesChooser(), 1, 1, null);
-			this.shadowCanvas = null;
-			this.shadowContext = new JoglContext(this.shadowPbuffer.getContext(), new JoglStateRecord(caps));
+		// create the shadow context
+		if (caps.getPbufferSupport()) {
+			this.shadowContext = new PbufferShadowContext(caps);
 		} else {
-			this.shadowPbuffer = null;
-			this.shadowCanvas = new GLCanvas(glCaps);
-			this.shadowContext = new JoglContext(this.shadowCanvas.getContext(), new JoglStateRecord(caps));
-			
-			this.validateFrame = new Runnable() {
-				public void run() {
-					if (JoglSurfaceFactory.this.shadowFrame == null) {
-						// create it
-						JoglSurfaceFactory.this.shadowFrame = new Frame();
-						JoglSurfaceFactory.this.shadowFrame.setBounds(0, 0, 1, 1);
-						JoglSurfaceFactory.this.shadowFrame.setUndecorated(true);
-						JoglSurfaceFactory.this.shadowFrame.add(JoglSurfaceFactory.this.shadowCanvas);
-					}
-					// make it visible
-					JoglSurfaceFactory.this.shadowFrame.setVisible(true);
-				}
-			};
-			this.hideFrame = new Runnable() {
-				public void run() {
-					JoglSurfaceFactory.this.shadowFrame.setVisible(false);
-				}
-			};
+			this.shadowContext = new OnscreenShadowContext(caps);
 		}
 		
-		this.debugGL = debug;
-		
-		this.currentSurface = null;
-		this.currentContext = null;
-		this.usedIds = new HashSet<Integer>();
 	}
 	
 	/** Get the renderer that uses this factory. */
@@ -166,7 +127,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 		}
 		
 		this.fullscreenCreated = true;
-		if (s.getContext() != null)
+		if (s.getGLAutoDrawable() != null)
 			this.realizedSurfaces.add(s);
 		return s;
 	}
@@ -187,7 +148,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 		}
 		
 		this.windowCreatedCount++;
-		if (s.getContext() != null)
+		if (s.getGLAutoDrawable() != null)
 			this.realizedSurfaces.add(s);
 		return s;
 	}
@@ -205,7 +166,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 			throw e;
 		}
 		
-		if (s.getContext() != null)
+		if (s.getGLAutoDrawable() != null)
 			this.realizedSurfaces.add(s);
 		return s;
 	}
@@ -222,7 +183,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 			throw e;
 		}
 		
-		if (s.getContext() != null)
+		if (s.getGLAutoDrawable() != null)
 			this.realizedSurfaces.add(s);
 		return s;
 	}
@@ -230,16 +191,13 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 	@Override
 	public void destroy(ContextRecordSurface surface) {
 		JoglRenderSurface d = (JoglRenderSurface) surface;
-		if (d == this.currentSurface)
-			this.release();
-		d.onDestroySurface();
+		d.destroySurface();
 		this.relinquishSurface(d);
 	}
 
 	@Override
 	public void destroy() {
 		this.processNotifiedSurfaces();
-		this.release(); // will hide the shadow frame if needed
 		
 		if (this.realizedSurfaces.size() > 0) {
 			// this shouldn't happen, but we don't want a memory leak
@@ -247,142 +205,71 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 				this.destroy(this.realizedSurfaces.get(i));
 		}
 		
-		if (this.shadowCanvas != null) {
-			if (this.shadowFrame != null) {
-				try {
-					SwingUtilities.invokeAndWait(new Runnable() {
-						public void run() {
-							JoglSurfaceFactory.this.shadowFrame.dispose();
-						}
-					});
-				} catch (Exception e) { /* Do nothing ?? */	}
-				this.shadowFrame = null;
-			}
-			this.shadowContext.getContext().destroy();
-		} else {
-			this.shadowPbuffer.destroy();
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public void startFrame(List<ContextRecordSurface> queuedSurfaces) {
-		this.processNotifiedSurfaces();
-		// This cast is okay, since this list will only have surfaces created by this factory
-		this.queuedSurfaces = (List<JoglRenderSurface>) (List) queuedSurfaces;
-		this.queuePosition = 0;
-	}
-
-	@Override
-	public JoglRenderSurface getCurrentSurface() {
-		return this.currentSurface;
+		this.shadowContext.destroy();
 	}
 	
 	@Override
-	public void clearBuffers() {
-		if (this.currentSurface != null) {
-			FramebufferRecord record = this.currentContext.getStateRecord().frameRecord;
-			GL gl = this.currentGL;
-
-			Color clearColor = this.currentSurface.getClearColor();
-			if (!clearColor.equals(record.clearColor)) {
-				gl.glClearColor(clearColor.getRed(), clearColor.getGreen(), clearColor.getBlue(), clearColor.getAlpha());
-				clearColor.get(record.clearColor);
-			}
-			float clearDepth = this.currentSurface.getClearDepth();
-			if (record.clearDepth != clearDepth) {
-				gl.glClearDepth(clearDepth);
-				record.clearDepth = clearDepth;
-			}
-			int clearStencil = this.currentSurface.getClearStencil();
-			if (record.clearStencil != clearStencil) {
-				gl.glClearStencil(clearStencil);
-				record.clearStencil = clearStencil;
-			}
-				
-			int clearBits = 0;
-			if (this.currentSurface.isColorBufferCleared())
-				clearBits |= GL.GL_COLOR_BUFFER_BIT;
-			if (this.currentSurface.isDepthBufferCleared())
-				clearBits |= GL.GL_DEPTH_BUFFER_BIT;
-			if (this.currentSurface.isStencilBufferCleared())
-				clearBits |= GL.GL_STENCIL_BUFFER_BIT;
-			
-			if (clearBits != 0)
-				gl.glClear(clearBits);
-			
-			// these aren't covered by any drivers at the moment, so make sure they're
-			// enabled correctly
-			PixelOpRecord pr = this.currentContext.getStateRecord().pixelOpRecord;
-			if (!pr.enableScissorTest) {
-				gl.glEnable(GL.GL_SCISSOR_TEST);
-				pr.enableScissorTest = true;
-			}
-			// this isn't part of the state record, but overhead should be minimal
-			gl.glEnable(GL.GL_RESCALE_NORMAL);
+	public void renderFrame(List<ContextRecordSurface> queuedSurfaces, Runnable resourceAction) {
+		int size = queuedSurfaces.size();
+		JoglRenderSurface s;
+		for (int i = 0; i < size; i++) {
+			s = (JoglRenderSurface) queuedSurfaces.get(i);
+			if (s.getGLAutoDrawable() != null)
+				this.queuedRenderActions.add(s);
 		}
-	}
+		
+		if (this.queuedRenderActions.size() == 0) {
+			// we don't have any displaying surfaces to use, so
+			// we use the shadow context
+			this.queuedRenderActions.add(this.shadowContext);
+		}
+		
+		// assign the resource action
+		this.queuedRenderActions.get(0).assignResourceAction(resourceAction);
+		
+		// attach all queued surfaces to the queued render actions
+		int raIndex = 0;
+		GLAutoDrawable queued;
+		GLAutoDrawable realized = this.queuedRenderActions.get(raIndex).getGLAutoDrawable();
 
-	@Override
-	public void swapBuffers() {
-		if (this.currentSurface != null)
-			this.currentSurface.swapBuffers();
+		for (int i = 0; i < size; i++) {
+			s = (JoglRenderSurface) queuedSurfaces.get(i);
+			queued = s.getGLAutoDrawable();
+			if (queued != null && queued != realized) {
+				// advance to next realized surface
+				raIndex++;
+				realized = this.queuedRenderActions.get(raIndex).getGLAutoDrawable();
+			}
+			
+			// attach s to the current realized surface
+			this.queuedRenderActions.get(raIndex).attachRenderSurface(s);
+		}
+		
+		try {
+			// render all the actions now
+			AttachableSurfaceGLEventListener renderAction;
+			size = this.queuedRenderActions.size();
+			for (int i = 0; i < size; i++) {
+				renderAction = this.queuedRenderActions.get(i);
+
+				this.currentDrawable = renderAction.getGLAutoDrawable();
+				this.currentRecord = renderAction.getStateRecord();
+				this.currentGL = (this.debugGL ? new DebugGL(this.currentDrawable.getGL()) : this.currentDrawable.getGL());
+
+				renderAction.render();
+			}
+		} finally {
+			// must clear the list even when an exception occurs
+			this.queuedRenderActions.clear();
+		}
 	}
 	
-	@Override
-	public void makeCurrent(ContextRecordSurface surface) throws RenderException {
-		if (this.currentSurface != surface) {
-			JoglRenderSurface next = (JoglRenderSurface) surface;
-			if (this.currentSurface != null)
-				this.currentSurface.onRelease(next);
-			
-			JoglContext context = next.getContext();
-			if (context == null) {
-				if (this.currentContext == null) {
-					if (this.queuedSurfaces != null) {
-						// try to find the next context that will be made current
-						int size = this.queuedSurfaces.size();
-						for (int i = this.queuePosition + 1; i < size; i++) {
-							context = this.queuedSurfaces.get(i).getContext();
-							if (context != null)
-								break;
-						}
-					}
-					
-					if (context == null) // didn't find anything before
-						context = (this.realizedSurfaces.size() > 0 ? this.realizedSurfaces.get(0).getContext() : this.shadowContext);
-				} else
-					context = this.currentContext;
-			}
-			
-			this.makeCurrent(context);
-			this.currentSurface = next;
-			next.onMakeCurrent();
-			
-			// update our position in the queue
-			if (this.queuedSurfaces != null) {
-				this.queuePosition++;
-				if (this.queuePosition == this.queuedSurfaces.size())
-					this.queuedSurfaces = null;
-			}
-		}
-	}
-
-	@Override
-	public void makeShadowContextCurrent() throws RenderException {
-		// we don't just call release, in case the current surface is using the shadow context
-		if (this.currentSurface != null)
-			this.currentSurface.onRelease(null);
-		this.currentSurface = null;
-		this.makeCurrent(this.shadowContext);
-	}
-
-	@Override
-	public void release() {
-		if (this.currentSurface != null)
-			this.currentSurface.onRelease(null);
-		this.currentSurface = null;
-		this.releaseContext();
+	/** Return the GLAutoDrawable that is currently executing its
+	 * GLEventListeners.  This is not necessarily associated with
+	 * the actual "current" surface, since fbos can be attached
+	 * to a drawable to get a valid context. */
+	public GLAutoDrawable getDisplayingDrawable() {
+		return this.currentDrawable;
 	}
 	
 	/** Return the transform driver used by this factory's renderer. */
@@ -394,74 +281,32 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 	 * the modelview matrix.  Because of the implementation
 	 * of JoglTransformDriver, this may not actually be reflected
 	 * in the opengl state.  See JoglTransformDriver for more details. */
-	public Transform getCurrentView() {
+	public Transform getViewTransform() {
 		return this.transformDriver.getCurrentViewTransform();
 	}
 	
-	/** Return the JoglContext that is current. */
-	public final JoglContext getCurrentContext() {
-		return this.currentContext;
+	/** Returns the current state record, which will only be not
+	 * null when a JoglRenderSurface is having its display() method
+	 * invoked. */
+	public JoglStateRecord getRecord() {
+		return this.currentRecord;
 	}
 	
 	/** Return the GL instance that is associated with the current
-	 * context.  Returns null if there is no current context. */
-	public final GL getGL() {
+	 * context.  This must only be called from within a method
+	 * in the stack of a display() call of a JoglRenderSurface. */
+	public GL getGL() {
 		return this.currentGL;
 	}
 	
 	/** Return the context that represents the shadow context
 	 * every realized surface must share its own context with. */
-	public final JoglContext getShadowContext() {
-		return this.shadowContext;
-	}
-	
-	private void makeCurrent(JoglContext context) {
-		if (this.currentContext != context) {
-			this.releaseContext();
-			
-			if (context == this.shadowContext && this.shadowCanvas != null) {
-				// make the shadow canvas's context ready for use
-				if (this.shadowFrame == null || !this.shadowFrame.isVisible()) {
-					this.shadowContext = new JoglContext(this.shadowCanvas.getContext(), new JoglStateRecord(this.renderer.getCapabilities()));
-					context = this.shadowContext;
-					try {
-						SwingUtilities.invokeAndWait(this.validateFrame);
-					} catch (Exception e) {
-						throw new RenderException("Error making shadow context current", e);
-					}
-				}
-			}
-			
-			// make the GLContext current on this thread
-			GLContext c = context.getContext();
-			int res = c.makeCurrent();
-			while (res == GLContext.CONTEXT_NOT_CURRENT) {
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException ie) { }
-				res = c.makeCurrent();
-			}
-			this.currentContext = context;
-			this.currentGL = (this.debugGL ? new TraceGL(new DebugGL(c.getGL()), System.out) : c.getGL());
-		}
-	}
-	
-	private void releaseContext() {
-		if (this.currentContext != null) {
-			GLContext c = this.currentContext.getContext();
-			while(GLContext.getCurrent() == c)
-				c.release();
-			
-			if (this.currentContext == this.shadowContext && this.shadowFrame != null)
-				SwingUtilities.invokeLater(this.hideFrame); // need to hide the shadow context now
-			
-			this.currentContext = null;
-			this.currentGL = null;
-		}
+	public GLContext getShadowContext() {
+		return this.shadowContext.getContext();
 	}
 	
 	private void relinquishSurface(JoglRenderSurface surface) {
-		JoglContext c = surface.getContext();
+		GLAutoDrawable c = surface.getGLAutoDrawable();
 		if (c != null) {
 			this.realizedSurfaces.remove(surface);
 			this.zombieFbos.remove(c); // the fbos are automatically destroyed
@@ -475,42 +320,48 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 		this.usedIds.remove(surface.getSurfaceId());
 	}
 	
+	/* Utility class to cleanup fbos for a given GLAutoDrawable. */
+	private class ZombieFboCleanupAction implements Runnable {
+		private Queue<JoglFbo> fbos;
+		
+		public ZombieFboCleanupAction(Queue<JoglFbo> toCleanup) {
+			this.fbos = toCleanup;
+		}
+		
+		@Override
+		public void run() {
+			while(!this.fbos.isEmpty())
+				this.fbos.poll().destroy(currentGL);
+		}
+	}
+	
 	private void processNotifiedSurfaces() {
 		int count = this.zombieWindowSurfaces.size();
 		if (count > 0) {
 			synchronized(this.zombieWindowSurfaces) {
-				this.release(); // don't want the surface to be current
 				JoglOnscreenSurface surface;
 				while (count > 0) {
 					surface = this.zombieWindowSurfaces.poll();
 					if (surface == null)
 						break;
 					
-					surface.onDestroySurface();
+					surface.destroySurface();
 					this.renderer.notifyOnscreenSurfaceClosed(surface);
 					this.relinquishSurface(surface);
 					count--;
 				}
 			}
 		}
-		
+			
 		// perform zombie fbos afterwards in case a notified window's
 		// context was in the zombieFbo map.
 		if (this.zombieFbos.size() > 0) {
-			this.release();
-			Queue<JoglFbo> toDestroy;
-			JoglContext current;
-			
-			for (Entry<JoglContext, Queue<JoglFbo>> e: this.zombieFbos.entrySet()) {
-				current = e.getKey();
-				this.makeCurrent(current);
-				toDestroy = e.getValue();
-				while(!toDestroy.isEmpty()) {
-					toDestroy.poll().destroy(current);
-				}
+			ZombieFboCleanupAction cleanup;
+			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e: this.zombieFbos.entrySet()) {
+				cleanup = new ZombieFboCleanupAction(e.getValue());
+				this.renderFrame(EMPTY_LIST, cleanup);
 			}
 			this.zombieFbos.clear();
-			this.release();
 		}
 	}
 	
@@ -526,7 +377,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 	 * scheduled for destruction.  At the next possible time,
 	 * the fbo will have its destroy() method called on the
 	 * owner context. */
-	void notifyFboZombie(JoglContext owner, JoglFbo fbo) {
+	void notifyFboZombie(GLAutoDrawable owner, JoglFbo fbo) {
 		Queue<JoglFbo> queue = this.zombieFbos.get(owner);
 		if (queue == null) {
 			queue = new LinkedList<JoglFbo>();
@@ -542,17 +393,9 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 	 * It is expected that this method is called from the AWT
 	 * thread, while event handling the closing window. */
 	void notifyOnscreenSurfaceZombie(JoglOnscreenSurface surface) {
-		surface.setDestroyed(); // flag it as destroyed so the Renderer won't use it
+		surface.markDestroyed(); // flag it as destroyed so the Renderer won't use it
 		synchronized(this.zombieWindowSurfaces) {
 			this.zombieWindowSurfaces.add(surface);
 		};
-	}
-
-	@Override
-	public void runOnWorkerThread(Runnable runner) {
-		if (Threading.isOpenGLThread())
-			runner.run();
-		else
-			Threading.invokeOnOpenGLThread(runner);
 	}
 }

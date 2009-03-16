@@ -4,8 +4,8 @@ import javax.media.opengl.GL;
 
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
@@ -29,8 +29,8 @@ public class JoglPointDrawStyleStateDriver extends SingleStateDriver<PointStyle>
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, PointStyle nextState) {
-		RasterizationRecord rr = context.getStateRecord().rasterRecord;
+	protected void apply(GL gl, JoglStateRecord record, PointStyle nextState) {
+		RasterizationRecord rr = record.rasterRecord;
 		
 		// size
 		if (rr.pointSize != nextState.getPointSize()) {
@@ -79,7 +79,7 @@ public class JoglPointDrawStyleStateDriver extends SingleStateDriver<PointStyle>
 		// point sprites
 		if (this.pointSpriteSupport) {
 			// only do this if point sprites are supported
-			TextureRecord tr = context.getStateRecord().textureRecord;
+			TextureRecord tr = record.textureRecord;
 			if (nextState.isPointSpriteEnabled()) {
 				// must enable it
 				if (!rr.enablePointSprite) {

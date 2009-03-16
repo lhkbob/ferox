@@ -11,7 +11,6 @@ import com.ferox.math.Color;
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.View;
@@ -40,8 +39,8 @@ import com.sun.opengl.util.BufferUtil;
  *
  */
 public abstract class BasicApplication extends ApplicationBase {
-	private OnscreenSurface window;
-	private RenderPass pass;
+	protected OnscreenSurface window;
+	protected BasicRenderPass pass;
 	
 	private ViewNode view;
 	private SceneElement scene;
@@ -154,8 +153,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		Transform viewTrans = this.view.getLocalTransform();
 		viewTrans.getTranslation().set(0f, 0f, 15f);
 		
-		this.scene = this.buildScene(renderer, this.view);
-		this.pass = new BasicRenderPass(this.scene, v, this.createQueue(), false);
+		this.pass = new BasicRenderPass(null, v, this.createQueue(), false);
 		
 		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
 		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, true, false);
@@ -166,6 +164,9 @@ public abstract class BasicApplication extends ApplicationBase {
 		System.out.println(this.window.getDisplayOptions());
 		System.out.println(this.window.getWidth() + " " + this.window.getHeight());
 		v.setPerspective(60f, (float) this.window.getWidth() / this.window.getHeight(), 1f, 1000f);
+		
+		this.scene = this.buildScene(renderer, this.view);
+		this.pass.setScene(this.scene);
 		
 		// somewhat lame to get input working for now
 		Frame f = (Frame) this.window.getWindowImpl();

@@ -2,8 +2,8 @@ package com.ferox.renderer.impl.jogl.drivers;
 
 import javax.media.opengl.GL;
 
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
 import com.ferox.state.LineStyle;
 
@@ -19,8 +19,8 @@ public class JoglLineDrawStyleStateDriver extends SingleStateDriver<LineStyle> {
 	}
 
 	@Override
-	protected void apply(GL gl, JoglContext context, LineStyle nextState) {
-		RasterizationRecord rr = context.getStateRecord().rasterRecord;
+	protected void apply(GL gl, JoglStateRecord record, LineStyle nextState) {
+		RasterizationRecord rr = record.rasterRecord;
 		
 		// width
 		float width = nextState.getLineWidth();

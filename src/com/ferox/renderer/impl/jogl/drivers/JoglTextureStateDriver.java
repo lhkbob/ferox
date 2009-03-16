@@ -11,8 +11,8 @@ import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.AbstractRenderer;
 import com.ferox.renderer.impl.StateDriver;
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureGenRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
@@ -63,9 +63,9 @@ public class JoglTextureStateDriver implements StateDriver {
 		// apply the MultiTexture if there were changes
 		if (this.queuedTexture != null) {
 			if (this.lastAppliedDirty || this.queuedTexture != this.lastApplied)
-				this.apply(this.factory.getRenderer(), this.factory.getCurrentContext(), this.queuedTexture);
+				this.apply(this.factory.getRenderer(), this.factory.getRecord(), this.queuedTexture);
 		} else if (this.lastApplied != null)
-			this.apply(this.factory.getRenderer(), this.factory.getCurrentContext(), null);
+			this.apply(this.factory.getRenderer(), this.factory.getRecord(), null);
 		
 		// clear single unit if possible
 		if (this.lastApplied == this.singleUnit && this.queuedTexture != this.singleUnit)
@@ -112,9 +112,9 @@ public class JoglTextureStateDriver implements StateDriver {
 	
 	/* Modify the given context so that its TextureRecord matches the given MultiTexture.
 	 * If next is null, all texturing will be disabled instead. */
-	private void apply(AbstractRenderer renderer, JoglContext context, MultiTexture next) {
+	private void apply(AbstractRenderer renderer, JoglStateRecord record, MultiTexture next) {
 		GL gl = this.factory.getGL();
-		TextureRecord tr = context.getStateRecord().textureRecord;
+		TextureRecord tr = record.textureRecord;
 		int activeTex = tr.activeTexture;
 		
 		List<Unit<Texture>> toApply = (next == null ? null : next.getTextures());
@@ -265,7 +265,7 @@ public class JoglTextureStateDriver implements StateDriver {
 			// possibly set the planes
 			if (genMode == TexCoordGen.EYE) {
 				// always push the eye-plane through
-				this.factory.getTransformDriver().loadMatrix(gl, this.factory.getCurrentView());
+				this.factory.getTransformDriver().loadMatrix(gl, this.factory.getViewTransform());
 				//gl.glLoadIdentity();
 				eyeOrObject.get(tgr.eyePlane);
 				gl.glTexGenfv(coord, GL.GL_EYE_PLANE, tgr.eyePlane, 0);

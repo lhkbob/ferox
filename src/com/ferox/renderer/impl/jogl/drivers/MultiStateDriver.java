@@ -4,8 +4,8 @@ import javax.media.opengl.GL;
 
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.StateDriver;
-import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.state.State;
 
 /** The MultiStateDriver is suitable for state types that support more than
@@ -68,7 +68,7 @@ public abstract class MultiStateDriver<T extends State> implements StateDriver {
 		this.queueSize = 0;
 	}
 	
-	protected abstract void apply(GL gl, JoglContext context, int unit, T next);
+	protected abstract void apply(GL gl, JoglStateRecord record, int unit, T next);
 	
 	@Override
 	public void doApply() {
@@ -118,18 +118,18 @@ public abstract class MultiStateDriver<T extends State> implements StateDriver {
 		}
 		
 		// apply states with priority >= 0, restore others
-		JoglContext context = this.factory.getCurrentContext();
+		JoglStateRecord record = this.factory.getRecord();
 		GL gl = this.factory.getGL();
 		for (i = 0; i < maxUnits; i++) {
 			o = this.apply[i];
 			if (o.priority != INVALID_PRIORTY) {
 				if (o.priority != NOCHNGE_PRIORITY)
-					this.apply(gl, context, i, o.state); // apply new state
+					this.apply(gl, record, i, o.state); // apply new state
 				// else ... no change on unit, so just mark it as invalid again
 				o.priority = INVALID_PRIORTY;
 			} else if (o.state != null) {
 				// no more state on unit, so apply the "default"
-				this.apply(gl, context, i, this.dfltState);
+				this.apply(gl, record, i, this.dfltState);
 				o.state = null;
 			}
 		}

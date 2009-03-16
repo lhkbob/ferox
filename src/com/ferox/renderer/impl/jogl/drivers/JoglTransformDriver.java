@@ -11,7 +11,6 @@ import org.openmali.vecmath.Vector3f;
 import com.ferox.math.Transform;
 import com.ferox.renderer.View;
 import com.ferox.renderer.impl.TransformDriver;
-import com.ferox.renderer.impl.jogl.JoglRenderSurface;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.sun.opengl.util.BufferUtil;
 
@@ -77,11 +76,10 @@ public class JoglTransformDriver implements TransformDriver {
 	}
 
 	@Override
-	public void setView(View view) {
+	public void setView(View view, int width, int height) {
 		GL gl = this.factory.getGL();
-		JoglRenderSurface current = this.factory.getCurrentSurface();
 		// setup the viewport
-		setViewport(gl, view.getViewLeft(), view.getViewRight(), view.getViewTop(), view.getViewBottom(), current.getWidth(), current.getHeight());
+		setViewport(gl, view.getViewLeft(), view.getViewRight(), view.getViewTop(), view.getViewBottom(), width, height);
 		
 		// set the projection matrix
 		gl.glMatrixMode(GL.GL_PROJECTION);
