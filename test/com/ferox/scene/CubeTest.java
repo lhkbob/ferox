@@ -71,7 +71,6 @@ public class CubeTest extends BasicApplication {
 		
 		spotLight.setLocalBounds(new BoundSphere(BOUNDS));
 		spotLight.getLocalTransform().getTranslation().set(0f, 0f, 0f);
-		
 		view.add(spotLight);
 		
 		Light directionLight = new DirectionLight(new Vector3f(-1f, -1f, -1f));
@@ -179,8 +178,6 @@ public class CubeTest extends BasicApplication {
 		this.window.removeRenderPass(this.pass);
 		this.window.addRenderPass(new BasicRenderPass(colorShape, ortho));
 		this.window.addRenderPass(new BasicRenderPass(depthShape, ortho));
-		
-		this.window.setVSyncEnabled(true);
 		
 		return sceneDepth;
 	}
