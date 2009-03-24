@@ -19,16 +19,6 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 	protected JoglFullscreenSurface(JoglSurfaceFactory factory,	int id, DisplayOptions optionsRequest, int width, int height) {
 		super(factory, id, optionsRequest);
 		
-		// get target device parameters
-		this.gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-		if (this.gDev.isFullScreenSupported()) {
-			if (this.gDev.isDisplayChangeSupported())
-				this.mode = chooseBestMode(this.gDev.getDisplayModes(), optionsRequest, width, height);
-			else
-				this.mode = this.gDev.getDisplayMode();	
-		} else
-			this.mode = this.gDev.getDisplayMode();
-		
 		// create the frame to use
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
@@ -48,10 +38,18 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 		}
 		this.frame.addWindowListener(this);
 		
-		// set it to be the fullscreen window and change the display mode
+		// get target device parameters and set the display mode
+		this.gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		this.gDev.setFullScreenWindow(this.frame);
-		if (this.mode != this.gDev.getDisplayMode())
-			this.gDev.setDisplayMode(this.mode);
+		
+		if (this.gDev.isFullScreenSupported()) {
+			if (this.gDev.isDisplayChangeSupported()) {
+				this.mode = chooseBestMode(this.gDev.getDisplayModes(), optionsRequest, width, height);
+				this.gDev.setDisplayMode(this.mode);
+			} else
+				this.mode = this.gDev.getDisplayMode();	
+		} else
+			this.mode = this.gDev.getDisplayMode();
 	}
 
 	private static DisplayMode chooseBestMode(DisplayMode[] modes, DisplayOptions options, int width, int height) {
