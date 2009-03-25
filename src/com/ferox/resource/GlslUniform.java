@@ -1,11 +1,5 @@
 package com.ferox.resource;
 
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Matrix4f;
-import org.openmali.vecmath.Vector2f;
-import org.openmali.vecmath.Vector2i;
-import org.openmali.vecmath.Vector3f;
-import org.openmali.vecmath.Vector4f;
 
 /** GlslUniform represents a "static" variable that is assigned
  * values from outside the execution of its owning GlslProgram.
@@ -34,26 +28,67 @@ public class GlslUniform implements Resource {
 	 * 
 	 * SAMPLER_x refer to Texture accessors.  The values
 	 * for sampler variables are the texture units with which
-	 * to access a texture from. 
+	 * to access a texture from.  Textures bound to these units
+	 * should be colored textures.
 	 * 
-	 * The given types may also be used in a GlslProgram as
-	 * an array.  This difference is determined by the GlslUniform
-	 * based on its length value. */
+	 * SHADOW_SAMPLER_x are like samplers, except they are
+	 * intended to be used with depth textures.
+	 * 
+	 * BOOL_x types use int[], except that 0 is treated as false,
+	 * and anything else is treated like true.
+	 * 
+	 * For simplicity, all values assigned to a GlslUniform with
+	 * a GlslShader are arrays of primitive types (float[], or int[]). 
+	 * A single-valued uniform should just use an array of length 1.  
+	 * Vector or matrix types will use consecutive
+	 * primitives to form one uniform element within the array. 
+	 * 
+	 * Matrices are specified in column major order. */
 	public static enum UniformType {
-		SAMPLER_1D, 		/** Must use int, Integer, or int[]. */ 
-		SAMPLER_2D, 		/** Must use int, Integer, or int[]. */ 
-		SAMPLER_3D, 		/** Must use int, Integer, or int[]. */ 
-		SAMPLER_CUBEMAP, 	/** Must use int, Integer, or int[]. */ 
-		SAMPLER_RECT, 		/** Must use int, Integer, or int[]. */ 
-		FLOAT,			    /** Must use float, Float, or float[]. */ 
-		INT, 				/** Must use int, Integer, or int[]. */ 
-		BOOLEAN,          	/** Must use boolean, Boolean, or boolean[]. */  
-		VEC2F,    			/** Must use Vector2f or Vector2f[]. */  
-		VEC3F,    			/** Must use Vector3f or Vector3f[]. */   
-		VEC4F,    			/** Must use Vector4f or Vector4f[]. */  
-		VEC2I,    			/** Must use Vector2i or Vector2i[]. */  
-		MAT3F,    			/** Must use Matrix3f or Matrix3f[]. */  
-		MAT4F,    			/** Must use Matrix4f or Matrix4f[]. */  
+		SAMPLER_1D(1, int[].class), 
+		SAMPLER_2D(1, int[].class),	
+		SAMPLER_3D(1, int[].class),
+		SAMPLER_CUBEMAP(1, int[].class), 
+		SAMPLER_RECT(1, int[].class), 
+		SAMPLER_1D_SHADOW(1, int[].class), 
+		SAMPLER_2D_SHADOW(1, int[].class), 
+		SAMPLER_RECT_SHADOW(1, int[].class),
+		
+		FLOAT(1, float[].class), 
+		FLOAT_VEC2(2, float[].class),
+		FLOAT_VEC3(3, float[].class), 
+		FLOAT_VEC4(4, float[].class),
+		
+		INT(1, int[].class), 
+		INT_VEC2(2, int[].class),
+		INT_VEC3(3, int[].class),
+		INT_VEC4(4, int[].class),
+		
+		BOOL(1, int[].class),
+		BOOL_VEC2(2, int[].class),
+		BOOL_VEC3(3, int[].class),
+		BOOL_VEC4(4, int[].class),
+		
+		FLOAT_MAT2(4, float[].class),
+		FLOAT_MAT3(9, float[].class), 
+		FLOAT_MAT4(16, float[].class);
+		
+		private int primitiveCount;
+		private Class<?> type;
+		private UniformType(int primitiveCount, Class<?> type) { 
+			this.primitiveCount = primitiveCount; 
+			this.type = type;
+		}
+		
+		/** Return the class type of variables that can be assigned
+		 * to the GlslUniform of this type.  All of these types are
+		 * primitive arrays. */
+		public Class<?> getVariableType() { return this.type; }
+		
+		/** Return the number of primitive elements that are used in
+		 * each uniform.  For example, FLOAT_MAT3 requires 9 float primitives
+		 * per each matrix. */
+		public int getPrimitiveCount() { return this.primitiveCount; }
 	}
 	
 	/** To make the updates of a GlslUniform's value as fast as possible,
@@ -160,40 +195,15 @@ public class GlslUniform implements Resource {
 		if (value == null)
 			return false;
 		
-		if (this.length > 1) {
-			switch(this.type) {
-			case BOOLEAN: return (value instanceof boolean[]) && ((boolean[]) value).length == this.length;
-			
-			case INT: case SAMPLER_1D: case SAMPLER_2D: case SAMPLER_3D: case SAMPLER_CUBEMAP: case SAMPLER_RECT:
-				return (value instanceof int[]) && ((int[]) value).length == this.length;
-				
-			case FLOAT: return (value instanceof float[]) && ((float[]) value).length == this.length;
-			
-			case MAT3F: return (value instanceof Matrix3f[]) && ((Matrix3f[]) value).length == this.length;
-			case MAT4F: return (value instanceof Matrix4f[]) && ((Matrix4f[]) value).length == this.length;
-			
-			case VEC2F: return (value instanceof Vector2f[]) && ((Vector2f[]) value).length == this.length;
-			case VEC2I: return (value instanceof Vector2i[]) && ((Vector2i[]) value).length == this.length;
-			case VEC3F: return (value instanceof Vector3f[]) && ((Vector3f[]) value).length == this.length;
-			case VEC4F: return (value instanceof Vector4f[]) && ((Vector4f[]) value).length == this.length;
-			}
-		} else {
-			switch(this.type) {
-			case BOOLEAN: return value instanceof Boolean;
-			
-			case INT: case SAMPLER_1D: case SAMPLER_2D: case SAMPLER_3D: case SAMPLER_CUBEMAP: case SAMPLER_RECT:
-				return value instanceof Integer;
-				
-			case FLOAT: return value instanceof Float;
-			
-			case MAT3F: return value instanceof Matrix3f;
-			case MAT4F: return value instanceof Matrix4f;
-			
-			case VEC2F: return value instanceof Vector2f;
-			case VEC2I: return value instanceof Vector2i;
-			case VEC3F: return value instanceof Vector3f;
-			case VEC4F: return value instanceof Vector4f;
-			}
+		Class<?> expectedType = this.type.getVariableType();
+		if (!value.getClass().equals(expectedType)) 
+			return false;
+		
+		int expectedLength = this.length * this.type.getPrimitiveCount();
+		if (expectedType.equals(float[].class)) {
+			return ((float[]) value).length == expectedLength;
+		} else if (expectedType.equals(int[].class)) {
+			return ((int[]) value).length == expectedLength;
 		}
 		
 		return false;

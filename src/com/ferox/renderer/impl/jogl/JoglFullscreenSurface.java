@@ -65,15 +65,17 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 		float weight;
 		for (int i = 1; i < modes.length; i++) {
 			weight = getWeight(modes[i], desiredBitDepth, width, height);
-			if (weight > bestWeight) {
+
+			if (weight < bestWeight) {
 				bestWeight = weight;
 				best = modes[i];
+				System.out.println(weight + " " + best.getBitDepth() + " " + best.getWidth() + " " + best.getHeight() + " " + best.getRefreshRate());
 			}
 		}
-		
 		return best;
 	}
 	
+	// closer to 0 represents better match
 	private static float getWeight(DisplayMode candidate, int bits, int width, int height) {
 		int w = candidate.getWidth();
 		int h = candidate.getHeight();

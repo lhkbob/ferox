@@ -367,9 +367,9 @@ public abstract class BufferedGeometry<T> implements Geometry {
 			if (accessor.getElementSize() != 1 && accessor.getElementSize() != 2 && accessor.getElementSize() != 3 && accessor.getElementSize() != 4)
 				throw new IllegalArgumentException("VertexArray can only have an element size of 1, 2, 3, or 4; not: " + accessor.getElementSize());
 
-			this.texCoords.setItem(unit, new GeometryArray<T>(vas, this.getEffectiveDataType(vas, false), accessor, this.getNumElements(vas, accessor)));
+			this.vertexAttribs.setItem(unit, new GeometryArray<T>(vas, this.getEffectiveDataType(vas, false), accessor, this.getNumElements(vas, accessor)));
 		} else {
-			this.texCoords.setItem(unit, null);
+			this.vertexAttribs.setItem(unit, null);
 		}
 	}
 	

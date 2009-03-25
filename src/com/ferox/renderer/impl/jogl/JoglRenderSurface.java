@@ -185,7 +185,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 	public void displaySurface(JoglRenderSurface next) {
 		if (!this.renderedOnce) {
 			this.init();
-			this.renderedOnce = false;
+			this.renderedOnce = true;
 		}
 		
 		this.preRenderAction();

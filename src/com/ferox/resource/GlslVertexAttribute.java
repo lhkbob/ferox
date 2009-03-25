@@ -20,7 +20,13 @@ public class GlslVertexAttribute {
 	 * matrix types use 2, 3, or 4 consecutive attribute 
 	 * slots to fill all values of the attribute. */
 	public static enum AttributeType {
-		FLOAT, VEC2F, VEC3F, VEC4F, MAT2F, MAT3F, MAT4F
+		FLOAT(1), VEC2F(1), VEC3F(1), VEC4F(1), MAT2F(2), MAT3F(3), MAT4F(4);
+		
+		private int slotCount;
+		private AttributeType(int slotCount) { this.slotCount = slotCount; }
+		
+		/** Return the number of adjacent slots that an attribute uses up. */
+		public int getSlotCount() { return this.slotCount; }
 	}
 	
 	private final AttributeType type;

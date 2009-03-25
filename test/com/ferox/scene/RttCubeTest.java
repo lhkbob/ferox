@@ -38,7 +38,7 @@ import com.ferox.state.Texture.EnvMode;
 import com.ferox.state.Texture.TexCoordGen;
 import com.sun.opengl.util.BufferUtil;
 
-public class CubeTest extends BasicApplication {
+public class RttCubeTest extends BasicApplication {
 	public static final boolean DEBUG = false;
 	public static final boolean USE_VBO = true;
 	public static final boolean RANDOM_PLACEMENT = true;
@@ -52,16 +52,16 @@ public class CubeTest extends BasicApplication {
 	protected TextureSurface sceneDepth;
 	
 	public static void main(String[] args) {
-		new CubeTest(DEBUG).run();
+		new RttCubeTest(DEBUG).run();
 	}
 	
-	public CubeTest(boolean debug) {
+	public RttCubeTest(boolean debug) {
 		super(debug);
 	}
 
 	@Override
 	protected SceneElement buildScene(Renderer renderer, ViewNode view) {
-		view.getView().setPerspective(60f, 1f, 1f, 100f);
+		view.getView().setPerspective(60f, this.window.getWidth() / (float) this.window.getHeight(), 1f, 300f);
 		view.getLocalTransform().getTranslation().z = 2f * BOUNDS;
 		
 		Group root = new Group();
@@ -77,7 +77,7 @@ public class CubeTest extends BasicApplication {
 		directionLight.setLocalBounds(new BoundSphere(BOUNDS));
 		root.add(directionLight);
 		
-		Fog fog = new Fog(bgColor, 10f, view.getView().getFrustumFar(), 1f, FogEquation.LINEAR, Quality.BEST);
+		Fog fog = new Fog(bgColor, 10f, 300f, 1f, FogEquation.LINEAR, Quality.BEST);
 		fog.setLocalBounds(new BoundSphere(BOUNDS));
 		root.add(fog);
 		

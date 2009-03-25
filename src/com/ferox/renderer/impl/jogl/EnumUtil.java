@@ -6,6 +6,8 @@ import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.BufferedGeometry.PolygonType;
+import com.ferox.resource.GlslUniform.UniformType;
+import com.ferox.resource.GlslVertexAttribute.AttributeType;
 import com.ferox.resource.TextureImage.DepthMode;
 import com.ferox.resource.TextureImage.Filter;
 import com.ferox.resource.TextureImage.TextureTarget;
@@ -33,6 +35,58 @@ import com.ferox.state.Texture.TexCoordGen;
  *
  */
 public class EnumUtil {
+	/** Return the UniformType enum value associated with the returned GL enum
+	 * for uniform variable type.  Returns null if there's no matching UniformType. */
+	public static UniformType getUniformType(int type) {
+		switch(type) {
+		case GL.GL_FLOAT: return UniformType.FLOAT;
+		case GL.GL_FLOAT_VEC2: return UniformType.FLOAT_VEC2;
+		case GL.GL_FLOAT_VEC3: return UniformType.FLOAT_VEC3;
+		case GL.GL_FLOAT_VEC4: return UniformType.FLOAT_VEC4;
+		
+		case GL.GL_FLOAT_MAT2: return UniformType.FLOAT_MAT2;
+		case GL.GL_FLOAT_MAT3: return UniformType.FLOAT_MAT3;
+		case GL.GL_FLOAT_MAT4: return UniformType.FLOAT_MAT4;
+		
+		case GL.GL_INT: return UniformType.INT;
+		case GL.GL_INT_VEC2: return UniformType.INT_VEC2;
+		case GL.GL_INT_VEC3: return UniformType.INT_VEC3;
+		case GL.GL_INT_VEC4: return UniformType.INT_VEC4;
+		
+		case GL.GL_BOOL: return UniformType.BOOL;
+		case GL.GL_BOOL_VEC2: return UniformType.BOOL_VEC2;
+		case GL.GL_BOOL_VEC3: return UniformType.BOOL_VEC3;
+		case GL.GL_BOOL_VEC4: return UniformType.BOOL_VEC4;
+		
+		case GL.GL_SAMPLER_1D: return UniformType.SAMPLER_1D;
+		case GL.GL_SAMPLER_2D: return UniformType.SAMPLER_2D;
+		case GL.GL_SAMPLER_3D: return UniformType.SAMPLER_3D;
+		case GL.GL_SAMPLER_CUBE: return UniformType.SAMPLER_CUBEMAP;
+		case GL.GL_SAMPLER_2D_RECT_ARB: return UniformType.SAMPLER_RECT;
+		case GL.GL_SAMPLER_2D_SHADOW: return UniformType.SAMPLER_2D_SHADOW;
+		case GL.GL_SAMPLER_1D_SHADOW: return UniformType.SAMPLER_1D_SHADOW;
+		case GL.GL_SAMPLER_2D_RECT_SHADOW_ARB: return UniformType.SAMPLER_RECT_SHADOW;
+		}
+
+		return null;
+	}
+	
+	/** Return the AttributeType enum value associated with the returned GL enum
+	 * for attribute variable type.  Returns null if there's no matching AttributeType. */
+	public static AttributeType getAttributeType(int type) {
+		switch(type) {
+		case GL.GL_FLOAT: return AttributeType.FLOAT;
+		case GL.GL_FLOAT_VEC2: return AttributeType.VEC2F;
+		case GL.GL_FLOAT_VEC3: return AttributeType.VEC3F;
+		case GL.GL_FLOAT_VEC4: return AttributeType.VEC4F;
+		case GL.GL_FLOAT_MAT2: return AttributeType.MAT2F;
+		case GL.GL_FLOAT_MAT3: return AttributeType.MAT3F;
+		case GL.GL_FLOAT_MAT4: return AttributeType.MAT4F;
+		}
+
+		return null;
+	}
+	
 	/** Type can't be null. */
 	public static int getGLPolygonConnectivity(PolygonType type) {
 		switch(type) {

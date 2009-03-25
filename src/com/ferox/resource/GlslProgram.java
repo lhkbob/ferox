@@ -1,5 +1,6 @@
 package com.ferox.resource;
 
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,22 +17,24 @@ import com.ferox.resource.GlslVertexAttribute.AttributeType;
  * GlslPrograms are a fairly complicated resource for the Renderer
  * to deal with.  Here are a few guidelines:
  * - If either shader fails to compile, it should have a status of ERROR
- * - If it fails to link, it has a status of ERROR
- * - If valid, bound GlslVertexAttributes overlap attribute slots, it should
- *   have a status of ERROR
- * - Invalid attributes must be unbound
- * - Invalid GlslUniforms must be left attached, unless they conflict with the
- *   name of a valid uniform
+ * - Overlapping attribute slots cause a status of ERROR.
+ * - If it fails to link, it has a status of ERROR.  Uniforms and attributes
+ *   are left attached (uniforms status should be changed, though)
+ * - If it does link, uniforms and attributes not declared in the code
+ *   should be detached and cleaned-up
  * - Attributes and uniforms declared in the glsl code should be bound/attached
- *   on a success if they aren't already.
- * - Attached uniforms must have a status of ERROR if the program failed to
- *   link.
- * - Attached uniforms should be automatically updated and cleaned-up whenever the program
- *   is updated/cleaned-up.
+ *   on a success if they aren't already attached, when successfully linked.
+ *   
+ * Care should be given when using the uniforms and attributes attached
+ * to a program.  If the program undergoes significant source code change, it
+ * is likely that the uniforms will have been detached.  Only attach a Uniform
+ * or attribute if you know that they are present in the code (even with compile errors);
+ * if not, use the automatically attached uniforms after a successful update.
  * 
  * @author Michael Ludwig
  *
  */
+// FIXME: vertex attributes should start at 1, not 0
 public class GlslProgram implements Resource {
 	/** The dirty descriptor used by instances of GlslProgram. */
 	public static class GlslProgramDirtyDescriptor {
@@ -62,18 +65,15 @@ public class GlslProgram implements Resource {
 	
 	private final Map<String, GlslUniform> attachedUniforms;
 	private final Map<String, GlslVertexAttribute> boundAttrs;
-	
+	private final BitSet usedAttributeSlots;
+
 	private final Map<String, GlslUniform> readOnlyUniforms;
 	private final Map<String, GlslVertexAttribute> readOnlyAttrs;
+	
 	
 	private final GlslProgramDirtyDescriptor dirty;
 	
 	private Object renderData;
-	
-	/** Create a new GlslProgram with empty source code. */
-	public GlslProgram() {
-		this(null, null);
-	}
 	
 	/** Create a new GlslProgram with the given vertex and fragment
 	 * shaders.  These string arrays will be passed directly into
@@ -89,13 +89,13 @@ public class GlslProgram implements Resource {
 		this.readOnlyUniforms = Collections.unmodifiableMap(this.attachedUniforms);
 		this.readOnlyAttrs = Collections.unmodifiableMap(this.boundAttrs);
 		
-		this.setVertexShader(vertex);
-		this.setFragmentShader(fragment);
+		this.usedAttributeSlots = new BitSet();
+		
+		this.setShaderCode(vertex, fragment);
 	}
 	
 	/** Functions identically to attachUniform() except that it is for GlslVertexAttributes.
-	 * This method does not check for overlap in binding slots, but if there is any overlap
-	 * at the time of a Renderer update(), this program must have its status set to ERROR. 
+	 * This also fails if the requested attribute cannot fit within the available slots.
 	 * 
 	 * Instead of length, however, bindingSlot is used for the attribute.  See GlslVertexAttribute
 	 * for how the binding slot is used. */
@@ -109,6 +109,17 @@ public class GlslProgram implements Resource {
 		else
 			u = new GlslVertexAttribute(name, type, bindingSlot, this); // throws IllegalArgumentException/NullPointerException
 		
+		// check if they're used
+		int maxSlot = bindingSlot + type.getSlotCount();
+		for (int i = bindingSlot; i < maxSlot; i++) {
+			if (this.usedAttributeSlots.get(i))
+				throw new IllegalStateException("Requested attribute does not have enough room at the given slot: " + bindingSlot);
+		}
+		
+		// mark slots as used
+		for (int i = bindingSlot; i < maxSlot; i++)
+			this.usedAttributeSlots.set(i, true);
+		
 		this.boundAttrs.put(name, u);
 		this.dirty.attrsDirty = true;
 		return u;
@@ -120,14 +131,20 @@ public class GlslProgram implements Resource {
 	 * 
 	 * Because a GlslVertexAttribute is not a resource, and is only 
 	 * a convenient packaging for the binding of glsl attributes, a Renderer
-	 * will unbind any attribute that is invalid. */
+	 * will unbind any attribute that is invalid (don't unbind if the
+	 * shader doesn't compile, since the attribute may be "valid"). */
 	public GlslVertexAttribute unbindAttribute(String name) {
 		if (name == null)
 			return null;
 		
 		GlslVertexAttribute a = this.boundAttrs.remove(name);
-		if (a != null)
+		if (a != null) {
+			// mark the used slots as unused
+			int maxSlot = a.getBindingSlot() + a.getType().getSlotCount();
+			for (int i = a.getBindingSlot(); i < maxSlot; i++)
+				this.usedAttributeSlots.set(i, false);
 			this.dirty.attrsDirty = true;
+		}
 		
 		return a;
 	}
@@ -141,7 +158,7 @@ public class GlslProgram implements Resource {
 	/** Attach a new GlslUniform instance to this GlslProgram so that it will
 	 * be automatically updated and cleaned-up with this program instance.
 	 * 
-	 * It is possible for programmers to manually attach the uniforms, to 
+	 * It is allowed for programmers to manually attach the uniforms, to 
 	 * use the instances sooner, or they may let the Renderer attach all
 	 * uniforms detected by the glsl compiler.
 	 * 
@@ -152,9 +169,7 @@ public class GlslProgram implements Resource {
 	 * 
 	 * When a glsl program is updated, if it links successfully, it should
 	 * attach any uniform that is present in the code, that's not already
-	 * been attached.  It should not detach invalid uniforms unless they
-	 * conflict with the name of a valid uniform.  In either case, invalid
-	 * uniforms must have their status set to ERROR.
+	 * been attached.  It will detach and clean-up unvalid uniforms. 
 	 * 
 	 * If a program is not linked successfully, all attached uniforms
 	 * must have a status of ERROR. */
@@ -180,15 +195,13 @@ public class GlslProgram implements Resource {
 	 * This allows the given name to be used in an attachUniform()
 	 * call without having to worry about an IllegalStateException.
 	 * 
-	 * The uniform will be auto-matically cleaned-up the next time
-	 * the program is updated or cleaned-up and should no longer be
-	 * used in GlslShaders.  After that clean-up, its status will no
-	 * longer be updated by the program's.
-	 * 
 	 * The purpose of this method is to allow programmers to detach
 	 * uniforms that have a status of ERROR, or the for the Renderer
 	 * to remove erroneous uniforms conflicting with valid uniforms of
-	 * the same name. */
+	 * the same name.
+	 * 
+	 * When a uniform is detached, the detacher is responsible
+	 * for cleaning it up with the renderer. */
 	public GlslUniform detachUniform(String name) {
 		if (name == null)
 			return null;
@@ -226,60 +239,25 @@ public class GlslProgram implements Resource {
 		return this.fragmentShader;
 	}
 	
-	/** Set the glsl code that executes during the vertex stage of the pipeline.
-	 * If source is null, or (after ignoring null elements) there are no source
-	 * lines, getVertexShader() will return an array of length 0.
+	/** Set the glsl code that executes during the vertex and fragment
+	 * stages of the pipeline.
 	 * 
-	 * If not, then all non-null elements will be copied into a new array.
-	 * This is to prevent accidental tampering, and to allow programmers to
-	 * assume that all String elements in the returned array will not be null. */
-	public void setVertexShader(String[] source) {
-		if (source == null) {
-			this.vertexShader = new String[0];
-		} else {
-			int nonNullCount = 0;
-			for (int i = 0; i < source.length; i++) {
-				if (source[i] != null)
-					nonNullCount++;
-			}
-			
-			this.vertexShader = new String[nonNullCount];
-			nonNullCount = 0;
-			for (int i = 0; i < source.length; i++) {
-				if (source[i] != null) {
-					this.vertexShader[nonNullCount++] = source[i];
-				}
-			}
-		}
+	 * This method will copy each of the arrays over into new arrays,
+	 * removing any null elements.  A null input array is treated like
+	 * a String[0].  
+	 * 
+	 * If after copying, both vertex and fragment shaders sources have
+	 * a length of 0, then an exception is thrown: at least one portion
+	 * of the pipeline must be replaced by the shader. */
+	public void setShaderCode(String[] vertex, String[] fragment) throws IllegalArgumentException {
+		vertex = compress(vertex);
+		fragment = compress(fragment);
 		
-		this.dirty.glslDirty = true;
-	}
-	
-	/** Set the glsl code that executes during the fragment stage of the pipeline.
-	 * If source is null, or (after ignoring null elements) there are no source
-	 * lines, getFragmentShader() will return an array of length 0.
-	 * 
-	 * If not, then all non-null elements will be copied into a new array.
-	 * This is to prevent accidental tampering, and to allow programmers to
-	 * assume that all String elements in the returned array will not be null. */
-	public void setFragmentShader(String[] source) {
-		if (source == null) {
-			this.fragmentShader = new String[0];
-		} else {
-			int nonNullCount = 0;
-			for (int i = 0; i < source.length; i++) {
-				if (source[i] != null)
-					nonNullCount++;
-			}
-			
-			this.fragmentShader = new String[nonNullCount];
-			nonNullCount = 0;
-			for (int i = 0; i < source.length; i++) {
-				if (source[i] != null) {
-					this.fragmentShader[nonNullCount++] = source[i];
-				}
-			}
-		}
+		if (vertex.length == 0 && fragment.length == 0)
+			throw new IllegalArgumentException("Must specify at least one non-empty shader source");
+		
+		this.vertexShader = vertex;
+		this.fragmentShader = fragment;
 		
 		this.dirty.glslDirty = true;
 	}
@@ -309,5 +287,28 @@ public class GlslProgram implements Resource {
 	@Override
 	public void setResourceData(Object data) {
 		this.renderData = data;
+	}
+	
+	/* Utility to remove null strings from the source. */
+	private static String[] compress(String[] source) {
+		if (source == null) {
+			return new String[0];
+		} else {
+			int nonNullCount = 0;
+			for (int i = 0; i < source.length; i++) {
+				if (source[i] != null)
+					nonNullCount++;
+			}
+			
+			String[] res = new String[nonNullCount];
+			nonNullCount = 0;
+			for (int i = 0; i < source.length; i++) {
+				if (source[i] != null) {
+					res[nonNullCount++] = source[i];
+				}
+			}
+			
+			return res;
+		}
 	}
 }

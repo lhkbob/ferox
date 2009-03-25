@@ -26,6 +26,7 @@ public class JoglStateRecord {
 	public final PackUnpackRecord packRecord;
 	public final PixelOpRecord pixelOpRecord;
 	public final RasterizationRecord rasterRecord;
+	public final GlslShaderRecord shaderRecord;
 	public final TextureRecord textureRecord;
 	public final VertexArrayRecord vertexArrayRecord;
 	
@@ -39,6 +40,7 @@ public class JoglStateRecord {
 		this.pixelOpRecord = new PixelOpRecord();
 		this.packRecord = new PackUnpackRecord();
 		this.rasterRecord = new RasterizationRecord();
+		this.shaderRecord = new GlslShaderRecord();
 		
 		int maxTU = Math.max(caps.getMaxFixedPipelineTextures(), Math.max(caps.getMaxVertexShaderTextures(), caps.getMaxFragmentShaderTextures()));
 		this.textureRecord = new TextureRecord(maxTU);

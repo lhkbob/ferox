@@ -26,7 +26,9 @@ import com.ferox.state.State;
  *
  */
 public class Fog extends Leaf implements State, InfluenceAtom {
-	/** Equation used to compute the amount of fog between start and end distances. */
+	/** Equation used to compute the amount of fog between start and end distances. 
+	 * The exact coloring of LINEAR fog depends on the start and end values,
+	 * for EXP and EXP_SQUARED, density effects the coloring. */
 	public static enum FogEquation {
 		EXP, EXP_SQUARED, LINEAR
 	}

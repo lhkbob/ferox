@@ -1,6 +1,5 @@
 package com.ferox;
 
-import java.awt.Component;
 import java.awt.Frame;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -132,6 +131,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		}
 	}
 	
+	/** Called after window has been configured with pass. */
 	protected abstract SceneElement buildScene(Renderer renderer, ViewNode view);
 		
 	/** Return a RenderQueue that will be used with this application's
@@ -156,7 +156,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.pass = new BasicRenderPass(null, v, this.createQueue(), false);
 		
 		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
-		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, true, false);
+		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, false, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
 		this.window.setClearColor(new Color(.5f, .5f, .5f, 1f));
@@ -170,8 +170,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		
 		// somewhat lame to get input working for now
 		Frame f = (Frame) this.window.getWindowImpl();
-		Component child = f.getComponent(0);
-		this.configureInputHandling(child, viewTrans);
+		this.configureInputHandling(f, viewTrans);
 	}
 	
 	@Override
