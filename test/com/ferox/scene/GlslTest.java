@@ -184,6 +184,10 @@ public class GlslTest extends BasicApplication {
 		return program;
 	}
 	
+	/*
+	 * Junky code to build a cube with extra vertex attributes.
+	 */
+	
 	private Geometry buildCube(float side) {
 		float[] v = new float[72];
 		float[] n = new float[72];
