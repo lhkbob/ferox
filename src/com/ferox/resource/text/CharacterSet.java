@@ -25,6 +25,11 @@ import com.ferox.resource.text.RectanglePacker.Rectangle;
  * rendered with.  It provides mappings to access the
  * locations of specific characters within its Texture2D.
  * 
+ * The generated Texture2D can be configured to be a power-of-two
+ * texture or not.  This should be chosen based on the hardware
+ * constraints.  If supported, a npot texture may provide a more
+ * efficient use of space.
+ * 
  * Each character in a CharacterSet has a Glyph representing
  * its tex-coord location within it, as well as its local
  * coordinates to aid in generating vertex coordinates for
@@ -37,6 +42,9 @@ import com.ferox.resource.text.RectanglePacker.Rectangle;
  *
  */
 public class CharacterSet {
+	public static final String DEFAULT_CHAR_SET;
+	public static final int CHAR_PADDING = 4;
+	
 	static {
 		StringBuilder b = new StringBuilder();
 		for (int i = 32; i < 128; i++)
@@ -44,28 +52,26 @@ public class CharacterSet {
 		DEFAULT_CHAR_SET = b.toString();
 	}
 	
-	public static final String DEFAULT_CHAR_SET;
-	public static final int CHAR_PADDING = 4;
-	
 	private Texture2D characters;
 	private Font font;
 	private FontRenderContext context;
 	private boolean antiAlias;
+	private boolean useNpotTexture;
 	
 	private Glyph[] metrics;
 	private int metricOffset;
 	
 	/** Create a CharacterSet using the Font "Arial-PLAIN-12"
 	 * and DEFAULT_CHAR_SET. */
-	public CharacterSet(boolean antiAlias) {
-		this(null, antiAlias);
+	public CharacterSet(boolean antiAlias, boolean useNpotTexture) {
+		this(null, antiAlias, useNpotTexture);
 	}
 	
 	/** Create a CharacterSet usint the given font and 
 	 * DEFAULT_CHAR_SET.  If the font is null, then
 	 * Arial-PLAIN-12 is used instead. */
-	public CharacterSet(Font font, boolean antiAlias) {
-		this(font, null, antiAlias);
+	public CharacterSet(Font font, boolean antiAlias, boolean useNpotTexture) {
+		this(font, null, antiAlias, useNpotTexture);
 	}
 	
 	/** Create a CharacterSet using the given font and
@@ -73,7 +79,7 @@ public class CharacterSet {
 	 * is used.  If the characterSet is null, DEFAULT_CHAR_SET
 	 * is used.  All duplicate characters are removed from the
 	 * character set.  */
-	public CharacterSet(Font font, String characterSet, boolean antiAlias) {
+	public CharacterSet(Font font, String characterSet, boolean antiAlias, boolean useNpotTexture) {
 		if (font == null)
 			font = Font.decode("Arial-PLAIN-12");
 		if (characterSet == null)
@@ -81,6 +87,7 @@ public class CharacterSet {
 		
 		this.font = font;
 		this.antiAlias = antiAlias;
+		this.useNpotTexture = useNpotTexture;
 		this.buildCharacterSet(characterSet);
 	}
 	
@@ -151,12 +158,15 @@ public class CharacterSet {
 		}
 		g2d.dispose(); // dispose of dummy image
 		
+		int width = (!this.useNpotTexture ? ceilPot(rp.getWidth()) : rp.getWidth());
+		int height = (!this.useNpotTexture ? ceilPot(rp.getHeight()) : rp.getHeight());
+		
 		// compute a Glyph for each character and render it into the image
-		charSet = new BufferedImage(rp.getWidth(), rp.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		charSet = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		g2d = charSet.createGraphics();
 		// clear the image
 		g2d.setColor(new Color(0f, 0f, 0f, 0f));
-		g2d.fillRect(0, 0, rp.getWidth(), rp.getHeight());
+		g2d.fillRect(0, 0, width, height);
 		
 		// prepare the text to be rendered as white,
 		g2d.setColor(Color.WHITE);
@@ -166,7 +176,7 @@ public class CharacterSet {
 
 		// and flipped, so glyph dimensions make sense in openGL coord system
 		g2d.scale(1, -1);
-		g2d.translate(0, -rp.getHeight());
+		g2d.translate(0, -height);
 		
 		Rectangle r;
 		Rectangle2D glyphBounds;
@@ -178,8 +188,8 @@ public class CharacterSet {
 			glyphBounds = g.getBounds2D();
 
 			glyph = new Glyph(g.getAdvance(), // advance
-							  (float) r.getX() / rp.getWidth(), (float) (r.getX() + r.getWidth()) / rp.getWidth(), // left-right
-							  (float) (rp.getHeight() - r.getY()) / rp.getHeight(), (float) (rp.getHeight() - r.getY() - r.getHeight()) / rp.getHeight(), // top-bottom
+							  (float) r.getX() / width, (float) (r.getX() + r.getWidth()) / width, // left-right
+							  (float) (height - r.getY()) / height, (float) (height - r.getY() - r.getHeight()) / height, // top-bottom
 							  (float) glyphBounds.getX(), (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // x-y
 							  (float) glyphBounds.getWidth() + CHAR_PADDING * 2, (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
 			this.metrics[characters[i]] = glyph;
@@ -191,7 +201,7 @@ public class CharacterSet {
 		// create the texture
 		int[] data = ((DataBufferInt) charSet.getRaster().getDataBuffer()).getData();
 		BufferData[] imageData = {new BufferData(data, true)};
-		this.characters = new Texture2D(imageData, rp.getWidth(), rp.getHeight(), TextureFormat.ARGB_8888, DataType.UNSIGNED_INT, Filter.LINEAR);
+		this.characters = new Texture2D(imageData, width, height, TextureFormat.ARGB_8888, DataType.UNSIGNED_INT, Filter.LINEAR);
 	}
 	
 	/* Create the array to hold the Glyphs. */
@@ -233,5 +243,13 @@ public class CharacterSet {
 		}
 		
 		return characters;
+	}
+	
+	// Return smallest POT >= num
+	private static int ceilPot(int num) {
+		int pot = 1;
+		while(pot < num)
+			pot = pot << 1;
+		return pot;
 	}
 }

@@ -180,7 +180,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.scene = this.buildScene(renderer, this.view);
 		this.pass.setScene(this.scene);
 		
-		CharacterSet charSet = new CharacterSet(Font.decode("FranklinGothic-Book-Medium-16"), true);
+		CharacterSet charSet = new CharacterSet(Font.decode("FranklinGothic-Book-Medium-16"), true, false);
 		this.fpsText = new Text(charSet, "FPS: \nMeshes: \nPolygons: \nUsed: \nFree: ");
 		
 		System.out.println(this.fpsText.getTextHeight() + " " + this.fpsText.getTextWidth());

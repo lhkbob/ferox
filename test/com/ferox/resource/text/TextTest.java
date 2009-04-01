@@ -39,7 +39,7 @@ public class TextTest extends BasicApplication {
 		for (Font f: fonts) {
 			System.out.println(f.getName() + " " + f.getStyle());
 		}
-		CharacterSet charSet = new CharacterSet(Font.decode("Times-Roman-Plain-32"), true);
+		CharacterSet charSet = new CharacterSet(Font.decode("Times-Roman-Plain-32"), true, true);
 		Texture2D sheet = charSet.getCharacterSet();
 		sheet.setFilter(Filter.LINEAR);
 		sheet.setAnisotropicFiltering(1f);

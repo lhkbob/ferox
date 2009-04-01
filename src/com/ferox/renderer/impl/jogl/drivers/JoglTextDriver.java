@@ -71,6 +71,7 @@ public class JoglTextDriver implements GeometryDriver {
 		}
 		
 		// render it
+		gl.glNormal3f(0f, 0f, 1f);
 		gl.glDrawArrays(GL.GL_QUADS, 0, toRender.numVerts);
 		return toRender.numVerts >> 2; // verts / 4 to get quad count
 	}

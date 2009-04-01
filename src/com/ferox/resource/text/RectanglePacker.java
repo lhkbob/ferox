@@ -1,6 +1,32 @@
 package com.ferox.resource.text;
 
+/** RectanglePacker provides a simple algorithm for packing
+ * smaller rectangles into a larger rectangle.  The algorithm
+ * will expand the containing rectangle's dimensions as necessary
+ * to contain new entries.
+ * 
+ * The algorithm is a java port of the C++ implementation described here:
+ * <http://www.blackpawn.com/texts/lightmaps/default.html>
+ * 
+ * with modifications to allow the top-level rectangle to expand as
+ * more items are added in.  Although the entire rectangle will
+ * grow, items placed at rectangles will not be moved or resized.
+ * 
+ * Its primary purpose is to provide Glyph packing for CharacterSets
+ * but it could prove useful in other contexts.
+ * 
+ * @author Michael Ludwig
+ *
+ */
 public class RectanglePacker<T> {
+	/** A simple Rectangle class that has no dependencies.
+	 * It performs no logic checking, so it is possible for
+	 * Rectangles to have negative dimensions, if they
+	 * were created as such.
+	 * 
+	 * Although not publicly modifiable, RectanglePacker
+	 * may modify Rectangles that represent the top-level
+	 * container. */
 	public static class Rectangle {
 		private int x, y;
 		private int width, height;
@@ -12,12 +38,19 @@ public class RectanglePacker<T> {
 			this.height = height;
 		}
 		
+		/** Methods to get the location and dimensions
+		 * of the contained rectangle. 
+		 * 
+		 * The actual rectangle is represented by the 
+		 * four vertices created by getX(), getY(),
+		 * (getX() + getWidth()), and (getY() + getHeight()). */
 		public int getX() { return this.x; }
 		public int getY() { return this.y; }
 		public int getWidth() { return this.width; }
 		public int getHeight() { return this.height; }
 	}
 	
+	// as per the algorithm described above
 	private static class Node<T> {
 		private Rectangle rc;
 		private Node<T> child1;
@@ -90,33 +123,64 @@ public class RectanglePacker<T> {
 	
 	private Node<T> root;
 	
-	public RectanglePacker(int startWidth, int startHeight) {
+	/** Create a RectanglePacker with the initial sizes for the
+	 * top-level container rectangle.
+	 * 
+	 * Throws an IllegalArgumentException if they aren't positive. */
+	public RectanglePacker(int startWidth, int startHeight) throws IllegalArgumentException {
 		if (startWidth <= 0 || startHeight <= 0)
 			throw new IllegalArgumentException("Starting dimensions must be positive: " + startWidth + " " + startHeight);
-		startWidth = ceilPot(startWidth);
-		startHeight = ceilPot(startHeight);
 		
 		Rectangle rootBounds = new Rectangle(0, 0, startWidth, startHeight);
 		this.root = new Node<T>();
 		this.root.rc = rootBounds;
 	}
 	
+	/** Return the current width of the top-level container. */
 	public int getWidth() {
 		return this.root.rc.width;
 	}
 	
+	/** Return the current height of the top-level container. */
 	public int getHeight() {
 		return this.root.rc.height;
 	}
 	
+	/** Return the Rectangle that was previously returned
+	 * by a call to insert(data) for this instance.
+	 * If data has been inserted more than once, it is
+	 * undefined which Rectangle will be returned, since
+	 * it is still technically stored in multiple places.
+	 * 
+	 * Returns null if data is null, or if there is no
+	 * Rectangle associated with it. */
 	public Rectangle get(T data) {
+		if (data == null)
+			return null;
+		
 		Node<T> n = this.root.get(data);
 		return (n == null ? null : n.rc);
 	}
 	
-	public Rectangle insert(T data, int width, int height) {
-		Node<T> n = null;
+	/** Insert the given object, that requires a rectangle
+	 * with the given dimensions.  The containing rectangle
+	 * will be enlarged if necessary to contain it.
+	 * 
+	 * This does nothing if data is null.  If data has already
+	 * been inserted, then this packer will contain multiple
+	 * rectangles referencing the given object.  This results
+	 * in undefined behavior with get(data) and should be avoided
+	 * if get() is necessary. 
+	 * 
+	 * If the dimensions are not > 0, then an IllegalArgumentException
+	 * is thrown. */
+	public Rectangle insert(T data, int width, int height) throws IllegalArgumentException {
+		if (width <= 0 || height <= 0)
+			throw new IllegalArgumentException("Dimensions must be > 0, " + width + "x" + height);
+		if (data == null)
+			return null;
 		
+		Node<T> n = null;
 		while((n = this.root.insert(data, width, height)) == null) {
 			// we must expand it, choose the option that keeps
 			// the dimension smallest
@@ -131,11 +195,12 @@ public class RectanglePacker<T> {
 		return n.rc;
 	}
 	
+	// internal method to expand the width of the top-level
+	// container by dw.
 	private void expandWidth(int dw) {
 		Rectangle oldBounds = this.root.rc;
 		
 		int newW = oldBounds.width + dw;
-		newW = ceilPot(newW);
 
 		if (this.root.isLeaf() && this.root.data == null) {
 			// just expand the rectangle
@@ -152,12 +217,13 @@ public class RectanglePacker<T> {
 			this.root = n;
 		}
 	}
-	
+
+	// internal method to expand the height of the top-level
+	// container by dh.
 	private void expandHeight(int dh) {
 		Rectangle oldBounds = this.root.rc;
 		
 		int newH = oldBounds.height + dh;
-		newH = ceilPot(newH);
 		
 		if (this.root.isLeaf() && this.root.data == null) {
 			// just expand the rectangle
@@ -173,13 +239,5 @@ public class RectanglePacker<T> {
 
 			this.root = n;
 		}
-	}
-	
-	// Return smallest POT >= num
-	private static int ceilPot(int num) {
-		int pot = 1;
-		while(pot < num)
-			pot = pot << 1;
-		return pot;
 	}
 }
