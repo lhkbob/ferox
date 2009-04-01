@@ -25,21 +25,31 @@ public class JoglDepthTestStateDriver extends SingleStateDriver<DepthTest> {
 		PixelOpRecord pr = record.pixelOpRecord;
 		FramebufferRecord fr = record.frameRecord;
 		
-		// func
 		int test = EnumUtil.getGLPixelTest(nextState.getTest());
-		if (pr.depthFunc != test) {
-			pr.depthFunc = test;
-			gl.glDepthFunc(test);
+		if (test == GL.GL_ALWAYS) {
+			// just disable the depth test
+			if (pr.enableDepthTest) {
+				pr.enableDepthTest = false;
+				gl.glDisable(GL.GL_DEPTH_TEST);
+			}
+		} else {
+			// func
+			if (pr.depthFunc != test) {
+				pr.depthFunc = test;
+				gl.glDepthFunc(test);
+			}
+			
+			// enable
+			if (!pr.enableDepthTest) {
+				pr.enableDepthTest = true;
+				gl.glEnable(GL.GL_DEPTH_TEST);
+			}
 		}
+		
 		// writing
 		if (nextState.isWriteEnabled() != fr.depthWriteMask) {
 			fr.depthWriteMask = nextState.isWriteEnabled();
 			gl.glDepthMask(fr.depthWriteMask);
-		}
-		// enable
-		if (!pr.enableDepthTest) {
-			pr.enableDepthTest = true;
-			gl.glEnable(GL.GL_DEPTH_TEST);
 		}
 	}
 }

@@ -154,6 +154,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 			throw new RenderException("Cannot render a surface that must be attached to GL context");
 		
 		this.helper.render(gd);
+		gd.getGL().glFlush();
 	}
 
 	@Override

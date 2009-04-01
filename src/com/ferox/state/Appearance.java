@@ -32,7 +32,7 @@ public class Appearance {
 	
 	/** Create an appearance with no attached states. */
 	public Appearance() {
-		this((State)null);
+		this(new State[0]);
 	}
 	
 	/** Add the given state to this appearance.  Does nothing if state is null.

@@ -1,5 +1,6 @@
 package com.ferox;
 
+import java.awt.Font;
 import java.awt.Frame;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -23,8 +24,15 @@ import com.ferox.resource.VertexBufferGeometry;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.BufferedGeometry.PolygonType;
 import com.ferox.resource.VertexBufferObject.UsageHint;
+import com.ferox.resource.text.CharacterSet;
+import com.ferox.resource.text.Text;
+import com.ferox.scene.Group;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.Shape;
 import com.ferox.scene.ViewNode;
+import com.ferox.scene.Node.CullMode;
+import com.ferox.state.DepthTest;
+import com.ferox.state.State.PixelTest;
 import com.sun.opengl.util.BufferUtil;
 
 /** BasicApplication extends ApplicationBase and imposes
@@ -38,11 +46,17 @@ import com.sun.opengl.util.BufferUtil;
  *
  */
 public abstract class BasicApplication extends ApplicationBase {
+	public static final long UPDATE_TIME = 100; // ms between updates of fps text
+	
 	protected OnscreenSurface window;
 	protected BasicRenderPass pass;
+	protected BasicRenderPass fpsPass;
+	protected Text fpsText;
 	
 	private ViewNode view;
 	private SceneElement scene;
+	
+	private long lastFpsUpdate;
 	
 	public BasicApplication(boolean debug) {
 		super(debug);
@@ -156,21 +170,45 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.pass = new BasicRenderPass(null, v, this.createQueue(), false);
 		
 		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
-		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, false, false);
+		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 1024, 768, false, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
-		this.window.setClearColor(new Color(.5f, .5f, .5f, 1f));
 		
-		System.out.println(this.window.getDisplayOptions());
 		System.out.println(this.window.getWidth() + " " + this.window.getHeight());
 		v.setPerspective(60f, (float) this.window.getWidth() / this.window.getHeight(), 1f, 1000f);
 		
 		this.scene = this.buildScene(renderer, this.view);
 		this.pass.setScene(this.scene);
 		
+		CharacterSet charSet = new CharacterSet(Font.decode("FranklinGothic-Book-Medium-16"), true);
+		this.fpsText = new Text(charSet, "FPS: \nMeshes: \nPolygons: \nUsed: \nFree: ");
+		
+		System.out.println(this.fpsText.getTextHeight() + " " + this.fpsText.getTextWidth());
+		renderer.requestUpdate(charSet.getCharacterSet(), true);
+		renderer.requestUpdate(this.fpsText, true);
+		
+		Shape fpsNode = new Shape(this.fpsText, this.fpsText.createAppearance(new Color(.8f, .8f, .8f)));
+		fpsNode.setCullMode(CullMode.NEVER);
+		fpsNode.getLocalTransform().getTranslation().set(0f, this.fpsText.getTextHeight(), 0f);
+		DepthTest dt = new DepthTest();
+		dt.setTest(PixelTest.ALWAYS);
+		fpsNode.getAppearance().addState(dt);
+		
+		Group g = new Group();
+		g.add(fpsNode);
+		
+		View ortho = new View();
+		ortho.setOrthogonalProjection(true);
+		ortho.setFrustum(0, this.window.getWidth(), 0, this.window.getHeight(), -1, 1);
+		this.fpsPass = new BasicRenderPass(g, ortho);
+		this.fpsPass.setSceneUpdated(true);
+		this.window.addRenderPass(this.fpsPass);
+		
 		// somewhat lame to get input working for now
 		Frame f = (Frame) this.window.getWindowImpl();
 		this.configureInputHandling(f, viewTrans);
+		
+		this.lastFpsUpdate = 0;
 	}
 	
 	@Override
@@ -187,7 +225,17 @@ public abstract class BasicApplication extends ApplicationBase {
 		
 		if (this.window.isVisible()) {
 			renderer.queueRender(this.window);
-			return super.render(renderer);
+			boolean res = super.render(renderer);
+			
+			if (System.currentTimeMillis() - this.lastFpsUpdate > UPDATE_TIME) {
+				this.lastFpsUpdate = System.currentTimeMillis();
+				Runtime run = Runtime.getRuntime();
+				this.fpsText.setText("FPS: " + this.stats.getFramesPerSecond() + "\nMeshes: " + this.stats.getMeshCount() + "\nPolygons: " + this.stats.getPolygonCount() 
+									 + "\nUsed: " + run.totalMemory() / 1e6f + " M\nFree: " + run.freeMemory() / 1e6f + " M");
+				renderer.requestUpdate(this.fpsText, true);
+			}
+			
+			return res;
 		} else {
 			try {
 				Thread.sleep(50);
@@ -198,6 +246,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	
 	@Override
 	protected void destroy(Renderer renderer) {
+		System.out.println(this.window.getDisplayOptions());
 		if (!this.window.isDestroyed())
 			renderer.destroy(this.window);
 		super.destroy(renderer);

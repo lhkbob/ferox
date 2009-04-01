@@ -77,8 +77,7 @@ public class Group extends Node {
 	
 	/** Override update(...) to be more efficient with updating bounds and transforms.  
 	 * Updates this group's transform, then updates each child, then updates this group's bounds.
-	 * Still obeys transform and bounds locks.
-	 */
+	 * Still obeys transform and bounds locks. */
 	@Override
 	public void update(boolean initiator) {
 		if (!this.isTransformLocked())
