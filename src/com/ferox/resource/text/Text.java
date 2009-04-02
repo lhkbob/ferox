@@ -18,6 +18,14 @@ import com.ferox.state.State.PixelTest;
  * text based on a CharacterSet.  It assumes that the text
  * is laid-out left to right and Unicode-16 is untested.
  * 
+ * Text treats \t as TAB_SPACE_COUNT spaces in a row.  \n and
+ * \r are interpreted as well, causing a newline to appear if
+ * the layout encounters: \n, \r, or \n\r.  Spaces are not
+ * placed at the beginning of a new line, so that text is justified
+ * to the left-edge (this is ignored for the 1st line).
+ * The layout policy attempts to make a reasonably
+ * attractive block of text, suitable for a text area, etc.
+ * 
  * Text requires that a specific type of Appearance be used:
  * 1. Has a Texture or MultiTexture with the CharacterSet's Texture2D
  * on the 0th texture unit.
@@ -47,6 +55,9 @@ import com.ferox.state.State.PixelTest;
  *
  */
 public class Text implements Geometry {
+	/** Number of spaces a tab represents. */
+	public static final int TAB_SPACE_COUNT = 4;
+	
 	private CharacterSet charSet;
 	private String text;
 	
@@ -88,14 +99,11 @@ public class Text implements Geometry {
 	}
 	
 	/** Utility method to generate a Appearance suitable for displaying
-	 * the Text with the given color for the text.  If the CharacterSet
-	 * was anti-aliased, it uses a BlendMode, otherwise it uses an AlphaTest
-	 * to present only the correct pixels.
+	 * the Text with the given color for the text.
 	 * 
-	 * When the BlendMode is used, it also sets an AlphaTest to discard all
-	 * completely transparent pixels.  This helps to prevent awkward z-fighting
-	 * between letters in the Text for certain fonts where the character
-	 * boundaries overlap.  
+	 * It uses a BlendMode so that anti-aliased text and small text (even
+	 * when not with AA) looks nice.  It also adds an AlphaTest to reduce
+	 * z-fighting, that discards all pixels with an alpha of 0.
 	 * 
 	 * If possible, a better solution would be to add a DepthTest to the
 	 * returned Appearance that disables depth testing.  This depend on
@@ -104,18 +112,14 @@ public class Text implements Geometry {
 		Material m = new Material(textColor);
 		Texture chars = new Texture(this.charSet.getCharacterSet());
 		
-		AlphaTest at = new AlphaTest();
-		Appearance a = new Appearance(m, chars, at);
+		BlendMode bm = new BlendMode();
 		
-		if (this.charSet.isAntiAliased()) {
-			// must set it this way, so inter-poly 
-			// depth testing doesn't get goofed up
-			at.setTest(PixelTest.GREATER);
-			at.setReferenceValue(0f);
-			
-			BlendMode bm = new BlendMode();
-			a.addState(bm);
-		}
+		// minor hack to prevent z-fighting
+		AlphaTest at = new AlphaTest();
+		at.setTest(PixelTest.GREATER);
+		at.setReferenceValue(0f);
+		
+		Appearance a = new Appearance(m, chars, bm, at);
 		
 		return a;
 	}
@@ -156,7 +160,12 @@ public class Text implements Geometry {
 	 * The coordinates represent interleaved data, where
 	 * it goes a 2-valued texture coordinate, then a 3-valued
 	 * vertex.  Each batch of four complete 5 values represent
-	 * a quad in counter-clockwise order. */
+	 * a quad in counter-clockwise order. 
+	 * 
+	 * The returned array should be deemed read-only, or there
+	 * will be undefined results.  The array may be larger
+	 * than getVertexCount() * 5, so only the elements from
+	 * 0 to getVertexCount() * 5 have valid coordinates. */
 	public float[] getInterleavedCoordinates() {
 		return this.coords;
 	}
@@ -245,7 +254,7 @@ public class Text implements Geometry {
 		this.width = tl.getMaxWidth();
 		this.height = tl.getMaxHeight();
 
-		this.numCoords = this.text.length() * 4;
+		this.numCoords = tl.getNumGlyphs() * 4;
 		this.layoutDirty = false;
 		
 		// reset the bound caches
@@ -323,8 +332,9 @@ public class Text implements Geometry {
 		private float ascent, descent;
 		
 		private float maxWidth;
-		
 		private float wrapWidth;
+		
+		private int numGlyphs;
 		
 		private CharacterSet charSet;
 				
@@ -338,7 +348,6 @@ public class Text implements Geometry {
 			this.descent = lm.getDescent();
 			
 			this.wrapWidth = wrapWidth;
-			
 			this.charSet = charSet;
 		}
 		
@@ -354,64 +363,113 @@ public class Text implements Geometry {
 			return this.maxWidth;
 		}
 		
+		/** Return the number of placed glyphs after the last layout. */
+		public int getNumGlyphs() {
+			return this.numGlyphs;
+		}
+		
 		/** Layout out the given text, using coords as the storage for the T2F_V3F
 		 * coordinates.  Returns the float[] actually holding the coords (this creates
 		 * a new one if coords is too small). */
-		public float[] doLayout(String text, float[] coords) {			
-			int numPrims = text.length() * 20;
-			if (coords == null || numPrims > coords.length)
-				coords = new float[numPrims];
-			
-			this.layout(text, coords);
-			return coords;
-		}
-		
-		/* Reset the position, and layout each word. */
-		private void layout(String text, float[] coords) {
-			this.maxWidth = this.leftEdge; // reset this, too
+		public float[] doLayout(String text, float[] coords) {
+			// reset values for the layout
+			this.maxWidth = this.leftEdge;
 			
 			this.cursorX = this.leftEdge;
 			this.cursorY = -this.ascent;
 			
-			String[] words = text.split("\\b");
-			int charIndex = 0;
-			for (int i = 1; i < words.length; i++) {
-				charIndex = this.placeWord(words[i], coords, charIndex);
+			// we're being conservative here, but memory is cheap
+			int len = text.length();
+			int numPrims = len * 20;
+			if (coords == null || numPrims > coords.length)
+				coords = new float[numPrims];
+			
+			int coordIndex = 0;
+			StringBuilder currentWord = new StringBuilder();
+			boolean wordIsBlank = false; // blank implies whitespace or '-'
+			char c;
+			for (int i = 0; i < len; i++) {
+				c = text.charAt(i);
+				
+				if (Character.isWhitespace(c) || c == '-') {
+					// always start a new word
+					coordIndex = placeWord(currentWord, coords, coordIndex);
+					wordIsBlank = true;
+				} else if (wordIsBlank) {
+					// we're starting a real word, so add in the prior white-space
+					coordIndex = placeWord(currentWord, coords, coordIndex);
+					wordIsBlank = false;
+				}
+				
+				currentWord.append(c);
 			}
-			// must update one more, for the last line that never had newline() called.
+			// add in last word, if needed
+			coordIndex = placeWord(currentWord, coords, coordIndex);
+			
 			this.maxWidth = Math.max(this.maxWidth, this.cursorX);
+			this.numGlyphs = coordIndex / 20;
+			
+			return coords;
 		}
 		
 		/* Possibly move to a newline, and then place each char within the
-		 * word.  Return the index for the next character. */
-		private int placeWord(String word, float[] coords, int index) {
+		 * word.  Return the index for the next character. 
+		 * 
+		 * Does nothing if word is empty, resets the word afterwards. */
+		private int placeWord(StringBuilder word, float[] coords, int index) {
+			if (word.length() == 0)
+				return index;
+			
 			if (this.wrapWidth > 0) {
+				// check if we need to move the word down
+				// char-by-char wrapping happens in placeChars
 				float wordWidth = this.getWordWidth(word);
 				if (wordWidth < this.wrapWidth 
 					&& (wordWidth + this.cursorX) > this.wrapWidth) {
 					this.newline();
 				} 
 			}
-				
-			return this.placeChars(word.toCharArray(), coords, index);
+			
+			index = this.placeChars(word, coords, index);
+			word.setLength(0);
+			
+			return index;
 		}
 		
 		/* Place all chars within c, moving to a newline if they can't fit.
 		 * Returns the index for the next character after all of c have
 		 * been placed. */
-		private int placeChars(char[] c, float[] coords, int index) {
+		private int placeChars(StringBuilder c, float[] coords, int index) {
 			Glyph g;
-			for (int i = 0; i < c.length; i++) {
-				// check for newline and carriage return chars
-				if (c[i] == '\n') {
-					this.newline();
-				} else if (c[i] == '\r') {
-					// only move to a newline if the previous char wasn't '\n'
-					if (i == 0 || c[i - 1] != '\n')
+			int len = c.length();
+			char chr;
+			
+			for (int i = 0; i < len; i++) {
+				chr = c.charAt(i);
+				
+				switch(chr) {
+				case '\n': 
+					this.newline(); 
+					break;
+				case '\r':
+					if (i == 0 || c.charAt(i - 1) != '\n')
 						this.newline();
-				} else {
+					break;
+				case '\t':
+					// advance TAB_SPACE_COUNT spaces, but don't place anything
+					g = this.charSet.getGlyph(' ');
+					this.cursorX += TAB_SPACE_COUNT * g.getAdvance();
+					break;
+				case ' ':
+					// just advance the space width, but don't place glyphs
+					// only place space if we've moved off of left edge
+					g = this.charSet.getGlyph(' ');
+					if (this.cursorX > this.leftEdge || this.cursorY == -this.ascent)
+						this.cursorX += g.getAdvance();
+					break;
+				default:
 					// place a glyph for the char
-					g = this.charSet.getGlyph(c[i]);
+					g = this.charSet.getGlyph(chr);
 					
 					if (this.wrapWidth > 0f) {
 						// place a newline if the char can't fit on this line
@@ -422,6 +480,7 @@ public class Text implements Geometry {
 						}
 					}
 					index = this.placeGlyph(g, coords, index);
+					break;
 				}
 			}
 			
@@ -477,11 +536,24 @@ public class Text implements Geometry {
 		
 		/* Calculate the width of an un-split word, based off 
 		 * the advances of all Glyphs present in the word. */
-		private float getWordWidth(String word) {
+		private float getWordWidth(StringBuilder word) {
 			float width = 0f;
 			int l = word.length();
+			char c;
 			for (int i = 0; i < l; i++) {
-				width += this.charSet.getGlyph(word.charAt(i)).getAdvance();
+				c = word.charAt(i);
+				switch(c) {
+				case '\n': case '\r':
+					// do nothing, since they only change the line position
+					break;
+				case '\t':
+					width += TAB_SPACE_COUNT * this.charSet.getGlyph(' ').getAdvance();
+					break;
+				default:
+					// this works for spaces, too
+					width += this.charSet.getGlyph(word.charAt(i)).getAdvance();
+					break;
+				}
 			}
 			
 			return width;

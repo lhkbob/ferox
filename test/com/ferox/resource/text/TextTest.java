@@ -39,7 +39,7 @@ public class TextTest extends BasicApplication {
 		for (Font f: fonts) {
 			System.out.println(f.getName() + " " + f.getStyle());
 		}
-		CharacterSet charSet = new CharacterSet(Font.decode("Times-Roman-Plain-32"), true, true);
+		CharacterSet charSet = new CharacterSet(Font.decode("Times-Roman-Plain-64"), true, true);
 		Texture2D sheet = charSet.getCharacterSet();
 		sheet.setFilter(Filter.LINEAR);
 		sheet.setAnisotropicFiltering(1f);
@@ -50,18 +50,18 @@ public class TextTest extends BasicApplication {
 		Group root = new Group();
 		root.add(view);
 		
-		Text text = new Text(charSet, "Hello World! This is my text renderer, how awesome is that. \n\rMy name isé Michael Ludwig.");
-		text.setWrapWidth(this.window.getWidth());
+		Text text = new Text(charSet, "Hello World! This is my text renderer, \thow awesome is that? \n\rMy name isé Michael Ludwig.");
+		text.setWrapWidth(this.window.getWidth() / 1f);
 		renderer.requestUpdate(text, true);
 
 		Shape t = new Shape(text, text.createAppearance(new Color(1f, 0f, 0f)));
-		
 		PolygonStyle ps = new PolygonStyle();
 		ps.setBackStyle(DrawStyle.SOLID);
 		t.getAppearance().addState(ps);
 		
 		t.setLocalBounds(new BoundSphere());
 		t.getLocalTransform().getTranslation().set(0f, 0f, 0f);
+		t.getLocalTransform().setScale(.3f);
 		root.add(t);
 		
 		view.getLocalTransform().setTranslation(0f, 0f, 50f);

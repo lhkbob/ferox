@@ -206,6 +206,7 @@ public class RttCubeTest extends BasicApplication {
 		if (i % 2 == 0) {
 			lr = new LightReceiver();
 			m.setSmoothShaded(true);
+			lr.setSeparateSpecular(true);
 		} {
 			fr = new FogReceiver();
 			fr.setFogCoordinateSource(FogCoordSource.FRAGMENT_DEPTH);

@@ -174,16 +174,15 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
 		
-		System.out.println(this.window.getWidth() + " " + this.window.getHeight());
 		v.setPerspective(60f, (float) this.window.getWidth() / this.window.getHeight(), 1f, 1000f);
 		
 		this.scene = this.buildScene(renderer, this.view);
 		this.pass.setScene(this.scene);
 		
-		CharacterSet charSet = new CharacterSet(Font.decode("FranklinGothic-Book-Medium-16"), true, false);
+		CharacterSet charSet = new CharacterSet(Font.decode("Arial-Bold-16"), true, false);
 		this.fpsText = new Text(charSet, "FPS: \nMeshes: \nPolygons: \nUsed: \nFree: ");
 		
-		System.out.println(this.fpsText.getTextHeight() + " " + this.fpsText.getTextWidth());
+		System.out.println(charSet.getCharacterSet().getWidth(0) + " " + charSet.getCharacterSet().getHeight(0));
 		renderer.requestUpdate(charSet.getCharacterSet(), true);
 		renderer.requestUpdate(this.fpsText, true);
 		
