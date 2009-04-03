@@ -1,16 +1,19 @@
 package com.ferox.scene;
 
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.BasicApplication;
-import com.ferox.math.AxisAlignedBox;
+import com.ferox.InputManager;
 import com.ferox.math.BoundSphere;
 import com.ferox.math.Color;
+import com.ferox.math.Transform;
 import com.ferox.renderer.Renderer;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.GlslProgram;
@@ -34,6 +37,9 @@ import com.sun.opengl.util.BufferUtil;
 public class GlslTest extends BasicApplication {
 	public static final boolean DEBUG = false;
 	
+	private Group light;
+	private Shape cube;
+	
 	public static void main(String[] args) {
 		new GlslTest(DEBUG).run();
 	}
@@ -53,22 +59,24 @@ public class GlslTest extends BasicApplication {
 		renderer.requestUpdate(cube, true);
 		Appearance app = this.createGlslAppearance(renderer);
 		
-		Shape s = new Shape(cube, app);
-		s.setLocalBounds(new AxisAlignedBox());
-		root.add(s);
+		this.cube = new Shape(cube, app);
+		root.add(this.cube);
 		
-		SpotLight light = new SpotLight(new Color(1f, 1f, 1f), new Color(1f, 0f, 0f), new Color());
+		SpotLight light = new SpotLight(new Color(.5f, .5f, .5f), new Color(1f, 1f, 1f), new Color());
 		light.setLocalBounds(new BoundSphere(20f));
-		light.getLocalTransform().getTranslation().set(-4f, 4f, 10f);
-		root.add(light);
 
 		Shape lightCube = new Shape(buildCube(renderer, .5f, false), 
 				new Appearance(new Material(light.getDiffuse())));
-		lightCube.setLocalTransform(light.getLocalTransform());
-		lightCube.setLocalBounds(new BoundSphere());
-		root.add(lightCube);
 
-		this.window.setVSyncEnabled(true);
+		this.light = new Group(2);
+		this.light.getLocalTransform().getTranslation().set(-4f, 4f, 10f);
+		this.light.add(light);
+		this.light.add(lightCube);
+		
+		root.add(this.light);
+		
+		this.window.setVSyncEnabled(false);
+		
 		return root;
 	}
 	
@@ -146,7 +154,7 @@ public class GlslTest extends BasicApplication {
 
 			"void main() {",
 				"mat3 to_eye = gl_NormalMatrix * mat3(tan, bitan, nm);",
-				"vec3 norm = to_eye * (texture2D(normal, gl_TexCoord[0].st).grb * 2.0 - 1.0);",
+				"vec3 norm = to_eye * (texture2D(normal, gl_TexCoord[0].st).rgb * 2.0 - 1.0);",
 				"vec3 baseColor = texture2D(diffuse, gl_TexCoord[0].st).rgb;",
 				"vec3 lightVector = normalize(light_dir);",
 				"float nxDir = max(.1, dot(norm, lightVector));",
@@ -183,6 +191,73 @@ public class GlslTest extends BasicApplication {
 		}
 
 		return program;
+	}
+	
+	@Override
+	protected void handleInput(InputManager input, float dt) {
+		super.handleInput(input, dt);
+		boolean leftPressed = input.isMousePressed(InputManager.leftClick);
+		boolean rightPressed = input.isMousePressed(InputManager.rightClick) || (leftPressed && input.isKeyPressed(KeyEvent.VK_CONTROL));		
+
+		int x = input.getMouseXChange();
+		int y = input.getMouseYChange();
+
+		if (rightPressed) {
+			this.adjustTranslation(this.light, x, y);
+		} else if (leftPressed) {
+			this.adjustRotation(this.cube, x, y);
+		}
+	}
+	
+	static Transform identity = new Transform();
+	static Matrix3f mx = new Matrix3f();
+	static Matrix3f my = new Matrix3f();
+	private void adjustRotation(Node node, int x, int y) {
+		Transform world = new Transform();
+		node.localToWorld(identity, world, false);		
+		world.mul(this.view.getView().getViewTransform(), world);
+	
+		int pixelWidth = this.window.getWidth();
+		float cameraWidth = this.view.getView().getFrustumRight() - this.view.getView().getFrustumLeft();
+		float sx = cameraWidth * x / pixelWidth;
+		sx = (float)Math.atan(sx / this.view.getView().getFrustumNear()) * 3;
+		
+		int pixelHeight = this.window.getHeight();
+		float cameraHeight = this.view.getView().getFrustumTop() - this.view.getView().getFrustumBottom();
+		float sy = cameraHeight * y / pixelHeight;
+		sy = (float)Math.atan(sy / this.view.getView().getFrustumNear()) * 3;
+		
+		mx.rotX(sy);
+		my.rotY(sx);
+		mx.mul(my);
+		world.getRotation().mul(mx, world.getRotation());
+		
+		world.inverseMul(this.view.getView().getViewTransform(), world);		
+		node.setWorldTransform(world);
+	}
+	
+	private void adjustTranslation(Node node, int x, int y) {
+		Transform world = new Transform();
+		node.localToWorld(identity, world, false);		
+		world.mul(this.view.getView().getViewTransform(), world);
+		
+		Vector3f trans = world.getTranslation();
+
+		int pixelWidth = this.window.getWidth();
+		float cameraWidth = this.view.getView().getFrustumRight() - this.view.getView().getFrustumLeft();
+		float sx = cameraWidth * x / pixelWidth;
+		sx = sx * trans.z / this.view.getView().getFrustumNear();
+		
+		int pixelHeight = this.window.getHeight();
+		float cameraHeight = this.view.getView().getFrustumTop() - this.view.getView().getFrustumBottom();
+		float sy = cameraHeight * y / pixelHeight;
+		sy = sy * trans.z / this.view.getView().getFrustumNear();
+		
+		trans.x = trans.x - sx;
+		trans.y = trans.y + sy;
+		
+		world.inverseMul(this.view.getView().getViewTransform(), world);
+		node.setWorldTransform(world);
 	}
 	
 	/*

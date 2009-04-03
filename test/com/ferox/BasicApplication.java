@@ -53,8 +53,8 @@ public abstract class BasicApplication extends ApplicationBase {
 	protected BasicRenderPass fpsPass;
 	protected Text fpsText;
 	
-	private ViewNode view;
-	private SceneElement scene;
+	protected ViewNode view;
+	protected SceneElement scene;
 	
 	private long lastFpsUpdate;
 	
@@ -182,7 +182,6 @@ public abstract class BasicApplication extends ApplicationBase {
 		CharacterSet charSet = new CharacterSet(Font.decode("Arial-Bold-16"), true, false);
 		this.fpsText = new Text(charSet, "FPS: \nMeshes: \nPolygons: \nUsed: \nFree: ");
 		
-		System.out.println(charSet.getCharacterSet().getWidth(0) + " " + charSet.getCharacterSet().getHeight(0));
 		renderer.requestUpdate(charSet.getCharacterSet(), true);
 		renderer.requestUpdate(this.fpsText, true);
 		
@@ -205,7 +204,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		
 		// somewhat lame to get input working for now
 		Frame f = (Frame) this.window.getWindowImpl();
-		this.configureInputHandling(f, viewTrans);
+		this.configureInputHandling(f.getComponent(0), viewTrans);
 		
 		this.lastFpsUpdate = 0;
 	}

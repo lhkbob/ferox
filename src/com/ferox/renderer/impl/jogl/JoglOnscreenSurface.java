@@ -46,7 +46,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		if (optionsRequest == null)
 			optionsRequest = new DisplayOptions();
 		this.canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), factory.getShadowContext(), null);
-		this.canvas.setFocusable(false); // to make sure input doesn't get stolen
+		//this.canvas.setFocusable(false); // to make sure input doesn't get stolen
 		this.canvas.addGLEventListener(this);
 		
 		this.record = new JoglStateRecord(factory.getRenderer().getCapabilities());
