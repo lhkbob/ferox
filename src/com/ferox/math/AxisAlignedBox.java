@@ -206,27 +206,27 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 				if (normal.z > 0) {
 					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
 				} else {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMax.z;
 				}
 			} else {
 				if (normal.z > 0) {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMin.x; min.y = this.worldMax.y; min.z = this.worldMin.z;
 				} else {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMin.x; min.y = this.worldMax.y; min.z = this.worldMax.z;
 				}
 			}
 		} else {
 			if (normal.y > 0) {
 				if (normal.z > 0) {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMax.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
 				} else {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMax.x; min.y = this.worldMin.y; min.z = this.worldMax.z;
 				}
 			} else {
 				if (normal.z > 0) {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMax.x; min.y = this.worldMax.y; min.z = this.worldMin.z;
 				} else {
-					min.x = this.worldMin.x; min.y = this.worldMin.y; min.z = this.worldMin.z;
+					min.x = this.worldMax.x; min.y = this.worldMax.y; min.z = this.worldMax.z;
 				}
 			}
 		}
@@ -238,27 +238,27 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 				if (normal.z > 0) {
 					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
 				} else {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMin.z;
 				}
 			} else {
 				if (normal.z > 0) {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMax.x; max.y = this.worldMin.y; max.z = this.worldMax.z;
 				} else {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMax.x; max.y = this.worldMin.y; max.z = this.worldMin.z;
 				}
 			}
 		} else {
 			if (normal.y > 0) {
 				if (normal.z > 0) {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMin.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
 				} else {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMin.x; max.y = this.worldMax.y; max.z = this.worldMin.z;
 				}
 			} else {
 				if (normal.z > 0) {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMin.x; max.y = this.worldMin.y; max.z = this.worldMax.z;
 				} else {
-					max.x = this.worldMax.x; max.y = this.worldMax.y; max.z = this.worldMax.z;
+					max.x = this.worldMin.x; max.y = this.worldMin.y; max.z = this.worldMin.z;
 				}
 			}
 		}

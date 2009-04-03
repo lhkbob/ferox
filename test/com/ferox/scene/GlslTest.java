@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.BasicApplication;
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.BoundSphere;
 import com.ferox.math.Color;
 import com.ferox.renderer.Renderer;
@@ -53,7 +54,7 @@ public class GlslTest extends BasicApplication {
 		Appearance app = this.createGlslAppearance(renderer);
 		
 		Shape s = new Shape(cube, app);
-		s.setLocalBounds(new BoundSphere());
+		s.setLocalBounds(new AxisAlignedBox());
 		root.add(s);
 		
 		SpotLight light = new SpotLight(new Color(1f, 1f, 1f), new Color(1f, 0f, 0f), new Color());

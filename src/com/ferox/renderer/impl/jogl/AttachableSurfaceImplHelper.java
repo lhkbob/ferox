@@ -74,6 +74,9 @@ public class AttachableSurfaceImplHelper {
 					next = (i < size ? this.attachedSurfaces.get(i) : null);
 				}
 			}
+			
+			// flush everything that has been issued
+			drawable.getGL().glFlush();
 		} catch (Exception e) {
 			this.caughtEDTException = e;
 			return;
