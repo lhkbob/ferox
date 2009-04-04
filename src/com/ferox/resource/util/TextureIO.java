@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import javax.imageio.ImageIO;
 
@@ -40,20 +41,55 @@ import com.ferox.resource.BufferData.DataType;
  *
  */
 public class TextureIO {
-	/** Read and create a new TextureImage from the given file.  Throws
-	 * an exception if the file is null, or if it's not readable, or if
-	 * it's doesn't represent a valid image format.
+	/** Read the texture from the given file, functions identically
+	 * to readTexture(stream). */
+	public static TextureImage readTexture(File file) throws IOException {
+		if (file == null)
+			throw new IOException("Cannot load a texture image from a null file");
+		
+		InputStream stream = new FileInputStream(file);
+		TextureImage image;
+		try {
+			image = readTexture(stream);
+		} finally {
+			stream.close();
+		}
+		
+		return image;
+	}
+	
+	/** Read the texture from the given URL, functions identically
+	 * to readTexture(stream). */
+	public static TextureImage readTexture(URL url) throws IOException {
+		if (url == null)
+			throw new IOException("Cannot read from a null URL");
+		InputStream urlStream = url.openStream();
+		TextureImage image;
+		try {
+			image = readTexture(url.openStream());
+		} finally {
+			urlStream.close();
+		}
+		
+		return image;
+	}
+	
+	/** Read a texture from the given stream.  This assumes that the
+	 * texture begins with the next bytes read from the stream, and that
+	 * the stream is already opened. Throws an exception if the stream 
+	 * is null, or if its not a recognizable image.
 	 * 
 	 * For standard images (e.g. jpg, png, gif, etc.) Texture2D is used.
 	 * If a TextureRectangle is desired, use convertToRectangle(). 
 	 * 
-	 * Throws an IOException if a problem occurred while loading the file. */
-	public static TextureImage readTexture(File file) throws IOException {
-		if (file == null || !file.isFile() || !file.canRead())
-			throw new IOException("Cannot load a texture image from a null file, a file not pointing to a file-system file, or an unreadable file: " + file);
-		
-		InputStream stream = new BufferedInputStream(new FileInputStream(file));
+	 * This method does not close the stream, in case it's to be used
+	 * later on. */
+	public static TextureImage readTexture(InputStream stream) throws IOException {
 		try {
+			// make sure we're buffered
+			if (!(stream instanceof BufferedInputStream))
+				stream = new BufferedInputStream(stream);
+			
 			// load the file
 			TextureImage t;
 			
@@ -64,7 +100,7 @@ public class TextureIO {
 			else {
 				BufferedImage i = ImageIO.read(stream);
 				if (i == null)
-					throw new IOException("Unsupported file format, cannot load the given file: " + file);
+					throw new IOException("Unsupported file format");
 				if (i.getHeight() == 1)
 					t = createTexture1D(i);
 				else
@@ -73,10 +109,7 @@ public class TextureIO {
 			// return the result
 			return t;
 		} catch (Exception io) {
-			throw new IOException("Exception occurred while loading TextureImage from file: " + file, io);
-		} finally {
-			// must close the stream
-			stream.close();
+			throw new IOException(io);
 		}
 	}
 	

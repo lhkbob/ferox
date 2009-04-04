@@ -14,5 +14,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Ferox2/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="data/ferox-textures.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

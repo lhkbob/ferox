@@ -1,7 +1,6 @@
 package com.ferox.scene;
 
 import java.awt.event.KeyEvent;
-import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -91,14 +90,15 @@ public class GlslTest extends BasicApplication {
 		program.getUniforms().get("normal").setValueUpdatePolicy(ValueUpdatePolicy.MANUAL);
 		shader.setUniform(program.getUniforms().get("normal"), new int[] {2});
 		
+		
 		TextureImage diffuse = null;
 		TextureImage specular = null;
 		TextureImage normal = null;
 		
-		try {
-			diffuse = TextureIO.readTexture(new File("data/textures/wall_diffuse.png"));
-			specular = TextureIO.readTexture(new File("data/textures/wall_specular.png"));
-			normal = TextureIO.readTexture(new File("data/textures/wall_normal.png"));
+		try{
+			diffuse = TextureIO.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_diffuse.png"));
+			specular = TextureIO.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_specular.png"));
+			normal = TextureIO.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_normal.png"));
 			
 			renderer.requestUpdate(diffuse, true);
 			renderer.requestUpdate(specular, true);
