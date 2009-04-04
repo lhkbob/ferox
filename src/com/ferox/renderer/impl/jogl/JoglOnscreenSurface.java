@@ -12,6 +12,7 @@ import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.OnscreenSurface;
+import com.ferox.renderer.RenderException;
 import com.ferox.renderer.DisplayOptions.AntiAliasMode;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
@@ -28,7 +29,9 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  *
  */
 public abstract class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
-	private final GLCanvas canvas;
+	protected final GLCanvas canvas;
+	protected final Frame frame;
+	
 	private final JoglStateRecord record;
 	
 	private DisplayOptions options;
@@ -41,27 +44,43 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	/** The given options is used to identify the GLCapabilities for the
 	 * constructed GLCanvas.  The GLCanvas shares with the given factory's 
 	 * shadow context. */
-	protected JoglOnscreenSurface(JoglSurfaceFactory factory, int id, DisplayOptions optionsRequest) {
+	protected JoglOnscreenSurface(JoglSurfaceFactory factory, int id, DisplayOptions optionsRequest,
+								  final int x, final int y, final int width, final int height, 
+								  final boolean resizable, final  boolean undecorated) {
 		super(factory, id);
 		if (optionsRequest == null)
 			optionsRequest = new DisplayOptions();
 		this.canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), factory.getShadowContext(), null);
-		//this.canvas.setFocusable(false); // to make sure input doesn't get stolen
+		this.frame = new Frame();
+		
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					frame.setResizable(resizable);
+					frame.setUndecorated(undecorated);
+					frame.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
+
+					frame.add(canvas);
+					
+					frame.setVisible(true);
+					canvas.requestFocusInWindow();
+				}
+			});
+		} catch (Exception e) {
+			throw new RenderException("Error creating JoglOnscreenSurface", e);
+		}
+		
 		this.canvas.addGLEventListener(this);
+		this.frame.addWindowListener(this);
 		
 		this.record = new JoglStateRecord(factory.getRenderer().getCapabilities());
-
 		this.options = optionsRequest;
 		
 		this.enableVsync = false;
 		this.updateVsync = true;
-		
 		this.iconified = false;
 	}
-	
-	/** Return the frame object that contains this surface's GLCanvas. */
-	protected abstract Frame getFrame();
-	
+		
 	/** Return the gl canvas that must be the sole child of the frame
 	 * returned by getFrame(). */
 	@Override
@@ -72,6 +91,19 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	/** In addition, destroys the context of this surface's GLCanvas. */
 	@Override
 	public void destroySurface() {
+		this.frame.removeWindowListener(JoglOnscreenSurface.this);
+
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					frame.setVisible(false);
+					frame.dispose();
+				}
+			});
+		} catch (Exception e) {
+			throw new RenderException("Error hiding JoglWindowSurface", e);
+		}
+		
 		this.canvas.getContext().destroy();
 		super.destroySurface();
 	}
@@ -109,7 +141,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 
 	@Override
 	public Object getWindowImpl() {
-		return this.getFrame();
+		return this.frame;
 	}
 	
 	@Override
@@ -140,14 +172,14 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	
 	@Override
 	public String getTitle() {
-		return this.getFrame().getTitle();
+		return this.frame.getTitle();
 	}
 
 	@Override
 	public void setTitle(final String title) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				JoglOnscreenSurface.this.getFrame().setTitle(title == null ? "" : title);
+				JoglOnscreenSurface.this.frame.setTitle(title == null ? "" : title);
 			}
 		});
 	}

@@ -5,7 +5,6 @@ import java.awt.Frame;
 import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.DisplayOptions;
-import com.ferox.renderer.RenderException;
 import com.ferox.renderer.WindowSurface;
 
 /** The Jogl implementation of a WindowSurface.  It uses a Frame that has a single
@@ -22,53 +21,9 @@ public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurf
 	 * 
 	 * Makes sure that the created window is at least 1x1, wherever the window was created. */
 	protected JoglWindowSurface(JoglSurfaceFactory factory,	int id, DisplayOptions optionsRequest, 
-								final int x, final int y, final int width, final int height, 
-								final boolean resizable,final  boolean undecorated) {
-		super(factory, id, optionsRequest);
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					Frame f = new Frame();
-					f.setResizable(resizable);
-					f.setUndecorated(undecorated);
-
-					f.add(JoglWindowSurface.this.getGLAutoDrawable());
-					f.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
-					f.setVisible(true);
-					
-					JoglWindowSurface.this.frame = f;
-				}
-			});
-		} catch (Exception e) {
-			throw new RenderException("Error creating JoglWindowSurface", e);
-		}
+								int x, int y, int width, int height, boolean resizable, boolean undecorated) {
+		super(factory, id, optionsRequest, x, y, width, height, resizable, undecorated);
 		
-		this.frame.addWindowListener(this);
-	}
-
-	protected Frame getFrame() {
-		return this.frame;
-	}
-	
-	@Override
-	public void destroySurface() {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					Frame f = JoglWindowSurface.this.frame;
-					
-					f.removeWindowListener(JoglWindowSurface.this);
-					f.setVisible(false);
-					f.dispose();
-					
-					JoglWindowSurface.this.frame = null;
-				}
-			});
-		} catch (Exception e) {
-			throw new RenderException("Error hiding JoglWindowSurface", e);
-		}
-		
-		super.destroySurface();
 	}
 	
 	@Override

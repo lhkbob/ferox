@@ -5,11 +5,8 @@ import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
-import javax.swing.SwingUtilities;
-
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
-import com.ferox.renderer.RenderException;
 
 public class JoglFullscreenSurface extends JoglOnscreenSurface implements FullscreenSurface {
 	private Frame frame;
@@ -17,27 +14,8 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 	private GraphicsDevice gDev;
 	
 	protected JoglFullscreenSurface(JoglSurfaceFactory factory,	int id, DisplayOptions optionsRequest, int width, int height) {
-		super(factory, id, optionsRequest);
-		
-		// create the frame to use
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					Frame f = new Frame();
-					f.setResizable(false);
-					f.setUndecorated(true);
-					
-					f.add(JoglFullscreenSurface.this.getGLAutoDrawable());
-					f.setVisible(true);
-					
-					JoglFullscreenSurface.this.frame = f;
-				}
-			});
-		} catch (Exception e) {
-			throw new RenderException("Error creating JoglWindowSurface", e);
-		}
-		this.frame.addWindowListener(this);
-		
+		super(factory, id, optionsRequest, 0, 0, width, height, false, true);
+	
 		// get target device parameters and set the display mode
 		this.gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		this.gDev.setFullScreenWindow(this.frame);
@@ -92,27 +70,6 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 	public void destroySurface() {
 		if (this.gDev.getFullScreenWindow() == this.frame)
 			this.gDev.setFullScreenWindow(null);
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					Frame f = JoglFullscreenSurface.this.frame;
-					
-					f.removeWindowListener(JoglFullscreenSurface.this);
-					f.setVisible(false);
-					f.dispose();
-					
-					JoglFullscreenSurface.this.frame = null;
-				}
-			});
-		} catch (Exception e) {
-			throw new RenderException("Error hiding JoglFullscreenSurface", e);
-		}
-		
 		super.destroySurface();
-	}
-
-	@Override
-	protected Frame getFrame() {
-		return this.frame;
 	}
 }
