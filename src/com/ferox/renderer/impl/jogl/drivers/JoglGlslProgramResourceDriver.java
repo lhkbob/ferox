@@ -12,14 +12,14 @@ import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.EnumUtil;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
-import com.ferox.resource.GlslProgram;
-import com.ferox.resource.GlslUniform;
-import com.ferox.resource.GlslVertexAttribute;
 import com.ferox.resource.Resource;
-import com.ferox.resource.GlslProgram.GlslProgramDirtyDescriptor;
-import com.ferox.resource.GlslUniform.UniformType;
-import com.ferox.resource.GlslVertexAttribute.AttributeType;
 import com.ferox.resource.Resource.Status;
+import com.ferox.resource.glsl.GlslProgram;
+import com.ferox.resource.glsl.GlslUniform;
+import com.ferox.resource.glsl.GlslVertexAttribute;
+import com.ferox.resource.glsl.GlslProgram.GlslProgramDirtyDescriptor;
+import com.ferox.resource.glsl.GlslUniform.UniformType;
+import com.ferox.resource.glsl.GlslVertexAttribute.AttributeType;
 
 public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	/* Handle subclass used for GlslPrograms. */

@@ -7,7 +7,7 @@ import com.ferox.renderer.FullscreenSurface;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.WindowSurface;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** SurfaceFactory is one of the major backbones of
  * an AbstractRenderer subclass. It provides a more specific

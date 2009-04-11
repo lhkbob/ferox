@@ -3,7 +3,7 @@ package com.ferox.state;
 import com.ferox.math.Color;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.texture.TextureImage;
 
 /**
  * A Texture wraps a TextureImage a provides information on how

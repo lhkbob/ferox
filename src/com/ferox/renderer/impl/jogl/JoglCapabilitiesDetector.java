@@ -14,6 +14,7 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.CapabilitiesDetector;
 
 public class JoglCapabilitiesDetector implements CapabilitiesDetector {
+	private static final boolean FORCE_NO_FBO = false;
 	private static final boolean FORCE_NO_PBUFFER = false;
 	
 	private RenderCapabilities capabilities;
@@ -105,8 +106,8 @@ public class JoglCapabilitiesDetector implements CapabilitiesDetector {
 		
 		boolean pointSpriteSupported = gl.isExtensionAvailable("GL_ARB_point_sprite") || vNum >= 2f;
 		boolean glslSupported = gl.isExtensionAvailable("GL_ARB_shading_language_100") || vNum >= 2f;
-		boolean fboSupported = gl.isExtensionAvailable("GL_EXT_framebuffer_object");
-		boolean pbufferSupported = GLDrawableFactory.getFactory().canCreateGLPbuffer();
+		boolean fboSupported = !FORCE_NO_FBO && gl.isExtensionAvailable("GL_EXT_framebuffer_object");
+		boolean pbufferSupported = !FORCE_NO_PBUFFER && GLDrawableFactory.getFactory().canCreateGLPbuffer();
 		
 		boolean multiTexSupported = vNum >= 1.3f || gl.isExtensionAvailable("GL_ARB_multitexture");
 		boolean npotTextures = vNum >= 2.0f || gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");

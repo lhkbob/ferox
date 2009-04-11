@@ -12,8 +12,8 @@ import com.ferox.renderer.impl.jogl.drivers.TextureHandle;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** Provides GLPBuffer support for the JoglTextureSurface. */
 public class PbufferDelegate extends TextureSurfaceDelegate {
@@ -96,13 +96,13 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 			gl.glCopyTexSubImage1D(handle.glTarget, 0, 0, 0, 0, this.getWidth());
 			break;
 		case GL.GL_TEXTURE_2D: case GL.GL_TEXTURE_RECTANGLE_ARB:
-			gl.glCopyTexImage2D(handle.glTarget, 0, 0, 0, 0, 0, this.getWidth(), this.getHeight());
+			gl.glCopyTexSubImage2D(handle.glTarget, 0, 0, 0, 0, 0, this.getWidth(), this.getHeight());
 			break;
 		case GL.GL_TEXTURE_CUBE_MAP:	
 			int face = EnumUtil.getGLCubeFace(this.swapBuffersLayer);
 			gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, this.getWidth(), this.getHeight());
 		case GL.GL_TEXTURE_3D:
-			gl.glCopyTexSubImage3D(handle.glTarget, 0, 0, this.swapBuffersLayer, 0, 0, 0, this.getWidth(), this.getHeight());
+			gl.glCopyTexSubImage3D(handle.glTarget, 0, 0, 0, this.swapBuffersLayer, 0, 0, this.getWidth(), this.getHeight());
 			break;
 		}
 	}

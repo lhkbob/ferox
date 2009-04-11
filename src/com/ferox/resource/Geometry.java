@@ -17,6 +17,10 @@ import com.ferox.math.Boundable;
  * Geometry provides no additional methods to Boundable 
  * and Resource.
  * 
+ * See com.ferox.resource.geometry package for some basic shapes
+ * and general implementations that should prove sufficient for more
+ * needs.  com.ferox.resource.text also has a useful Geometry implementation.
+ * 
  * @author Michael Ludwig
  *
  */

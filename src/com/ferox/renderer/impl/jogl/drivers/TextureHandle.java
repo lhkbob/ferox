@@ -4,9 +4,9 @@ import javax.media.opengl.GL;
 
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.resource.TextureImage.DepthMode;
-import com.ferox.resource.TextureImage.Filter;
-import com.ferox.resource.TextureImage.TextureWrap;
+import com.ferox.resource.texture.TextureImage.DepthMode;
+import com.ferox.resource.texture.TextureImage.Filter;
+import com.ferox.resource.texture.TextureImage.TextureWrap;
 import com.ferox.state.State.PixelTest;
 
 /** All ResourceDrivers for any of the TextureImage subclasses must use 

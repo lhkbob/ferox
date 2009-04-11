@@ -7,11 +7,11 @@ import javax.media.opengl.GL;
 
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.EnumUtil;
-import com.ferox.resource.BufferedGeometry;
-import com.ferox.resource.VertexArray;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.BufferedGeometry.GeometryArray;
 import com.ferox.resource.UnitList.Unit;
+import com.ferox.resource.geometry.BufferedGeometry;
+import com.ferox.resource.geometry.VertexArray;
+import com.ferox.resource.geometry.BufferedGeometry.GeometryArray;
 
 /** BufferedGeometryDriver provides some utility functions
  * that will be common for any GeometryDriver implemented
@@ -225,11 +225,11 @@ public class BufferedGeometryDriver<D, T extends BufferedGeometry<D>> {
 		}
 		
 		// check the data types of all present arrays, they must be FLOAT
-		if (normals != null && normals.getEffectiveType() != DataType.FLOAT)
+		if (normals != null && normals.getType() != DataType.FLOAT)
 			return -1;
-		if (texCoords != null && texCoords.getEffectiveType() != DataType.FLOAT)
+		if (texCoords != null && texCoords.getType() != DataType.FLOAT)
 			return -1;
-		if (vertices.getEffectiveType() != DataType.FLOAT)
+		if (vertices.getType() != DataType.FLOAT)
 			return -1;
 				
 		// check if the element sizes, offset and strides make sense
@@ -242,7 +242,7 @@ public class BufferedGeometryDriver<D, T extends BufferedGeometry<D>> {
 				VertexArray v = vertices.getAccessor();
 				
 				if (n.getElementSize() == 3 && t.getElementSize() == 2 && v.getElementSize() == 3) {
-					if (t.getOffset() == 0 && n.getOffset() == 2 && t.getOffset() == 5) {
+					if (t.getOffset() == 0 && n.getOffset() == 2 && v.getOffset() == 5) {
 						if (t.getStride() == 6 && n.getStride() == 5 && v.getStride() == 5)
 							return GL.GL_T2F_N3F_V3F;
 					}

@@ -16,10 +16,10 @@ import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.VertexArrayRecord;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Resource;
-import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.VertexBufferObject.VboDirtyDescriptor;
+import com.ferox.resource.geometry.VertexBufferObject;
+import com.ferox.resource.geometry.VertexBufferObject.VboDirtyDescriptor;
 
 /** JoglVertexBufferObjectResourceDriver implements the necessary opengl
  * operations to allocate, update and clean-up vbos on the graphics card.

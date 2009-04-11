@@ -27,9 +27,9 @@ import com.ferox.renderer.util.DefaultResourceManager;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Resource;
 import com.ferox.resource.ResourceManager;
-import com.ferox.resource.TextureImage;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 import com.ferox.state.Appearance;
 import com.ferox.state.DepthTest;
 import com.ferox.state.Material;
@@ -63,8 +63,7 @@ public class AbstractRenderer implements Renderer {
 	public static enum RenderState {
 		WAITING_INIT, /** State of the renderer before init() is called */
 		IDLE,		  /** State of the renderer when it's not doing anything */
-		RESOURCE,	  /** State of the renderer when it's managing resources or creating surfaces */
-		PIPELINE,	  /** State of the renderer when it's okay to call applyInfluence and renderAtom */ 
+		RENDERING,    /** State of the renderer when it's in flushRenderer(). */
 		DESTROYED 	  /** State of the renderer after destroy() is called */
 	}
 	

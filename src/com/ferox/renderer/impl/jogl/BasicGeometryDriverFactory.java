@@ -10,7 +10,8 @@ import com.ferox.resource.Geometry;
  * drivers for a Geometry if there's an implementation of GeometryDriver
  * matching this pattern:
  *		com.ferox.renderer.impl.jogl.drivers.Jogl<GeometrySimpleClassName>Driver
- * 
+ * If no class is found, it will search for drivers matching the geometry's superclasses.
+ *  
  * It will load that class, make sure it implements GeometryDriver and return one
  * instance of that class per factory lifetime.  The GeometryDriver must declare a 
  * constructor that takes a JoglSurfaceFactory as an argument.
@@ -27,13 +28,25 @@ public class BasicGeometryDriverFactory implements DriverFactory<Class<? extends
 		this.factory = factory;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public GeometryDriver getDriver(Class<? extends Geometry> type) {
 		if (type != null) {
-			GeometryDriver driver = this.loadedDrivers.get(type);
-			if (driver == null)
-				driver = this.loadNewDriver(type);
-			return driver;
+			while(true) {
+				GeometryDriver driver = this.loadedDrivers.get(type);
+				if (driver == null) // try to load the type
+					driver = this.loadNewDriver(type);
+				
+				if (driver == null) {
+					// move type to super-class
+					Class<?> spr = type.getSuperclass();
+					if (Geometry.class.isAssignableFrom(spr))
+						type = (Class<? extends Geometry>) spr;
+					else
+						return null;
+				} else
+					return driver;
+			}		
 		}
 		
 		return null;

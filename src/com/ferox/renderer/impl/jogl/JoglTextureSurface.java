@@ -11,16 +11,16 @@ import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.Texture1D;
-import com.ferox.resource.Texture2D;
-import com.ferox.resource.Texture3D;
-import com.ferox.resource.TextureCubeMap;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureRectangle;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.Texture1D;
+import com.ferox.resource.texture.Texture2D;
+import com.ferox.resource.texture.Texture3D;
+import com.ferox.resource.texture.TextureCubeMap;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureRectangle;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** JoglTextureSurface provides the ability to render into either pbuffers or
  * fbos, depending on the support of the current hardware.  This functionality

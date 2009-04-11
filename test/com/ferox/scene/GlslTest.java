@@ -2,8 +2,6 @@ package com.ferox.scene;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
@@ -14,24 +12,25 @@ import com.ferox.math.BoundSphere;
 import com.ferox.math.Color;
 import com.ferox.math.Transform;
 import com.ferox.renderer.Renderer;
+import com.ferox.resource.BufferData;
 import com.ferox.resource.Geometry;
-import com.ferox.resource.GlslProgram;
-import com.ferox.resource.GlslUniform;
-import com.ferox.resource.GlslVertexAttribute;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.VertexArray;
-import com.ferox.resource.VertexArrayGeometry;
-import com.ferox.resource.BufferedGeometry.PolygonType;
-import com.ferox.resource.GlslUniform.ValueUpdatePolicy;
-import com.ferox.resource.GlslVertexAttribute.AttributeType;
-import com.ferox.resource.util.TextureIO;
+import com.ferox.resource.geometry.Box;
+import com.ferox.resource.geometry.VertexArray;
+import com.ferox.resource.geometry.VertexArrayGeometry;
+import com.ferox.resource.geometry.BufferedGeometry.PolygonType;
+import com.ferox.resource.glsl.GlslProgram;
+import com.ferox.resource.glsl.GlslUniform;
+import com.ferox.resource.glsl.GlslVertexAttribute;
+import com.ferox.resource.glsl.GlslUniform.ValueUpdatePolicy;
+import com.ferox.resource.glsl.GlslVertexAttribute.AttributeType;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.loader.TextureLoader;
 import com.ferox.state.Appearance;
 import com.ferox.state.GlslShader;
 import com.ferox.state.LightReceiver;
 import com.ferox.state.Material;
 import com.ferox.state.MultiTexture;
 import com.ferox.state.Texture;
-import com.sun.opengl.util.BufferUtil;
 
 public class GlslTest extends BasicApplication {
 	public static final boolean DEBUG = false;
@@ -64,9 +63,9 @@ public class GlslTest extends BasicApplication {
 		SpotLight light = new SpotLight(new Color(.5f, .5f, .5f), new Color(1f, 1f, 1f), new Color());
 		light.setLocalBounds(new BoundSphere(20f));
 
-		Shape lightCube = new Shape(buildCube(renderer, .5f, false), 
-				new Appearance(new Material(light.getDiffuse())));
-
+		Shape lightCube = new Shape(new VertexArrayGeometry(new Box(.5f)), new Appearance(new Material(light.getDiffuse())));
+		renderer.requestUpdate(lightCube.getGeometry(), true);
+		
 		this.light = new Group(2);
 		this.light.getLocalTransform().getTranslation().set(-4f, 4f, 10f);
 		this.light.add(light);
@@ -96,9 +95,9 @@ public class GlslTest extends BasicApplication {
 		TextureImage normal = null;
 		
 		try{
-			diffuse = TextureIO.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_diffuse.png"));
-			specular = TextureIO.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_specular.png"));
-			normal = TextureIO.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_normal.png"));
+			diffuse = TextureLoader.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_diffuse.png"));
+			specular = TextureLoader.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_specular.png"));
+			normal = TextureLoader.readTexture(this.getClass().getClassLoader().getResource("data/textures/wall_normal.png"));
 			
 			renderer.requestUpdate(diffuse, true);
 			renderer.requestUpdate(specular, true);
@@ -329,19 +328,13 @@ public class GlslTest extends BasicApplication {
 			i[u * 6 + 5] = t4;
 		}
 		
-		FloatBuffer vb = BufferUtil.newFloatBuffer(v.length);
-		vb.put(v).rewind();
-		FloatBuffer nb = BufferUtil.newFloatBuffer(n.length);
-		nb.put(n).rewind();
-		FloatBuffer tb = BufferUtil.newFloatBuffer(t.length);
-		tb.put(t).rewind();
-		FloatBuffer tanb = BufferUtil.newFloatBuffer(tan.length);
-		tanb.put(tan).rewind();
-		FloatBuffer btanb = BufferUtil.newFloatBuffer(btan.length);
-		btanb.put(btan).rewind();
+		BufferData vb = new BufferData(v, false);
+		BufferData nb = new BufferData(n, false);
+		BufferData tb =new BufferData(t, false);
+		BufferData tanb = new BufferData(tan, false);
+		BufferData btanb = new BufferData(btan, false);
 		
-		IntBuffer ib = BufferUtil.newIntBuffer(i.length);
-		ib.put(i).rewind();
+		BufferData ib = new BufferData(i, true);
 		
 		VertexArrayGeometry geom = new VertexArrayGeometry(vb, new VertexArray(3), ib, new VertexArray(1), PolygonType.TRIANGLES);
 		geom.setNormals(nb, new VertexArray(3));

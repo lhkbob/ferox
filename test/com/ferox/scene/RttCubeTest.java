@@ -1,9 +1,6 @@
 package com.ferox.scene;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import org.openmali.vecmath.Vector3f;
 
@@ -18,28 +15,30 @@ import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.util.BasicRenderPass;
 import com.ferox.resource.Geometry;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.VertexArray;
-import com.ferox.resource.VertexArrayGeometry;
-import com.ferox.resource.BufferedGeometry.PolygonType;
-import com.ferox.resource.TextureImage.TextureTarget;
-import com.ferox.resource.util.TextureIO;
+import com.ferox.resource.geometry.Box;
+import com.ferox.resource.geometry.Square;
+import com.ferox.resource.geometry.VertexArrayGeometry;
+import com.ferox.resource.geometry.VertexBufferGeometry;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
+import com.ferox.resource.texture.loader.TextureLoader;
 import com.ferox.scene.Fog.FogEquation;
 import com.ferox.state.Appearance;
 import com.ferox.state.DepthTest;
 import com.ferox.state.FogReceiver;
 import com.ferox.state.LightReceiver;
 import com.ferox.state.Material;
+import com.ferox.state.PolygonStyle;
 import com.ferox.state.Texture;
 import com.ferox.state.FogReceiver.FogCoordSource;
+import com.ferox.state.PolygonStyle.DrawStyle;
 import com.ferox.state.State.PixelTest;
 import com.ferox.state.State.Quality;
 import com.ferox.state.Texture.EnvMode;
 import com.ferox.state.Texture.TexCoordGen;
-import com.sun.opengl.util.BufferUtil;
 
 public class RttCubeTest extends BasicApplication {
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 	public static final boolean USE_VBO = true;
 	public static final boolean RANDOM_PLACEMENT = true;
 	
@@ -82,7 +81,17 @@ public class RttCubeTest extends BasicApplication {
 		root.add(fog);
 		
 		Appearance[] apps = this.createAppearances(renderer);
-		this.geom = buildCube(renderer, 2f, USE_VBO);
+		PolygonStyle ps = new PolygonStyle();
+		ps.setFrontStyle(DrawStyle.SOLID);
+		ps.setBackStyle(DrawStyle.NONE);
+		for (Appearance a: apps)
+			a.addState(ps);
+		
+		if (USE_VBO)
+			this.geom = new VertexBufferGeometry(new Box(2f).requestVboUpdate(renderer, true));
+		else
+			this.geom = new VertexArrayGeometry(new Box(2f));
+		renderer.requestUpdate(this.geom, true);
 		
 		// vars for regular gridding
 		int sideCubeCount = (int) (Math.ceil(Math.pow(NUM_CUBES, 1.0 / 3.0)));
@@ -133,28 +142,22 @@ public class RttCubeTest extends BasicApplication {
 	}
 	
 	private Geometry buildSquare(Renderer renderer, float left, float right, float bottom, float top) {
-		// make a cube face
-		FloatBuffer verts = BufferUtil.newFloatBuffer(8).put( new float[] {left, bottom,
-						 												   right, bottom,
-						 												   right, top,
-						 												   left, top});
-		FloatBuffer tcs = BufferUtil.newFloatBuffer(8).put( new float[] {0f, 0f,
-																		 1f, 0f,
-																		 1f, 1f,
-																		 0f, 1f});
-		IntBuffer ibs = BufferUtil.newIntBuffer(4).put(new int[] {0, 1, 2, 3});
+		Square sq = new Square(left, right, bottom, top);
 		
-		VertexArrayGeometry square = new VertexArrayGeometry(verts, new VertexArray(2), ibs, new VertexArray(1), PolygonType.QUADS);
-		square.setTextureCoordinates(0, tcs, new VertexArray(2));
-		renderer.requestUpdate(square, false);
-		
-		return square;
+		if (USE_VBO) {
+			VertexBufferGeometry vbo = new VertexBufferGeometry(sq.requestVboUpdate(renderer, true));
+			renderer.requestUpdate(vbo, true);
+			return vbo;
+		} else {
+			VertexArrayGeometry var = new VertexArrayGeometry(sq);
+			renderer.requestUpdate(var, true);
+			return var;
+		}		
 	}
 	
 	private TextureSurface setupSceneDepthSurface(Renderer renderer, SceneElement root, View view) {
 		TextureSurface sceneDepth = renderer.createTextureSurface(new DisplayOptions(PixelFormat.RGB_24BIT, DepthFormat.DEPTH_24BIT), TextureTarget.T_2D, 
 																				     this.window.getWidth(), this.window.getHeight(), 1, 0, 0, false);
-		
 		sceneDepth.setClearColor(bgColor);
 		
 		BasicRenderPass depthPass = new BasicRenderPass(root, view);		
@@ -167,7 +170,7 @@ public class RttCubeTest extends BasicApplication {
 		DepthTest dt = new DepthTest();
 		dt.setTest(PixelTest.ALWAYS);
 		
-		Shape depthShape = new Shape(this.buildSquare(renderer, 0, 128, 0, 128), new Appearance(new Texture(depthTex), dt));
+		Shape depthShape = new Shape(this.buildSquare(renderer, this.window.getWidth() - 128, this.window.getWidth(), 0, 128), new Appearance(new Texture(depthTex), dt));
 		Shape colorShape = new Shape(this.buildSquare(renderer, 0, this.window.getWidth(), 0, this.window.getHeight()), 
 													  new Appearance(new Texture(colorTex), dt));	
 		
@@ -216,7 +219,7 @@ public class RttCubeTest extends BasicApplication {
 		
 		if (i < max / 2) {
 			try {
-				TextureImage image = TextureIO.readTexture(new File("data/textures/squiggles.tga"));
+				TextureImage image = TextureLoader.readTexture(this.getClass().getClassLoader().getResource("data/textures/squiggles.tga"));
 				renderer.requestUpdate(image, false);
 				t = new Texture(image, EnvMode.MODULATE, new Color(), TexCoordGen.NONE);
 			} catch (IOException io) {
@@ -224,7 +227,7 @@ public class RttCubeTest extends BasicApplication {
 			}
 		} else {
 			try {
-				TextureImage image = TextureIO.readTexture(new File("data/textures/grace_cube.dds"));
+				TextureImage image = TextureLoader.readTexture(this.getClass().getClassLoader().getResource("data/textures/grace_cube.dds"));
 				renderer.requestUpdate(image, false);
 				t = new Texture(image, EnvMode.MODULATE, new Color(), TexCoordGen.OBJECT);
 			} catch (IOException io) {

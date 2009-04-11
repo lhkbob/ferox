@@ -7,10 +7,10 @@ import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.EnumUtil;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
-import com.ferox.resource.GlslUniform;
 import com.ferox.resource.Resource;
-import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.Resource.Status;
+import com.ferox.resource.glsl.GlslUniform;
+import com.ferox.resource.glsl.GlslUniform.UniformType;
 
 /** JoglGlslUniformResourceDriver detects a uniform's index within
  * its owning GlslProgram and verifies that its type and length are

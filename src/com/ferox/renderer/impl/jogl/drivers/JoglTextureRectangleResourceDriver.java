@@ -12,11 +12,11 @@ import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Resource;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.TextureRectangle;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.TextureImage.MipmapDirtyRegion;
-import com.ferox.resource.TextureRectangle.TextureRectangleDirtyDescriptor;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.TextureRectangle;
+import com.ferox.resource.texture.TextureImage.MipmapDirtyRegion;
+import com.ferox.resource.texture.TextureRectangle.TextureRectangleDirtyDescriptor;
 
 /** JoglTextureRectangleResourceDriver provides the functionality to load
  * and delete TextureRectangle instances in the graphics card.

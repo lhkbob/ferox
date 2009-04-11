@@ -15,12 +15,12 @@ import com.ferox.renderer.impl.jogl.drivers.BufferedGeometryDriver.PointerType;
 import com.ferox.renderer.impl.jogl.record.VertexArrayRecord;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Resource;
-import com.ferox.resource.VertexArray;
-import com.ferox.resource.VertexBufferGeometry;
-import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.BufferedGeometry.GeometryArray;
 import com.ferox.resource.Resource.Status;
+import com.ferox.resource.geometry.VertexArray;
+import com.ferox.resource.geometry.VertexBufferGeometry;
+import com.ferox.resource.geometry.VertexBufferObject;
+import com.ferox.resource.geometry.BufferedGeometry.GeometryArray;
 
 /** JoglVertexBufferGeometryDriver handles the rendering of VertexBufferGeometries.
  * It is somewhat liberal in its assumptions about the state record.  To be
@@ -90,7 +90,7 @@ public class JoglVertexBufferGeometryDriver implements GeometryDriver {
 				gl.glBindBufferARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, vr.elementBufferBinding);
 			}
 			
-			DataType type = indices.getEffectiveType();
+			DataType type = indices.getType();
 			int byteOffset = indices.getAccessor().getOffset() * type.getByteSize();
 			gl.glDrawRangeElements(toRender.glPolyType, 0, toRender.vertexCount, indices.getElementCount(), 
 							       EnumUtil.getGLType(type), byteOffset);
@@ -295,7 +295,7 @@ public class JoglVertexBufferGeometryDriver implements GeometryDriver {
 			if (vbo == null)
 				return false; // abort
 			
-			type = ap.array.getEffectiveType();
+			type = ap.array.getType();
 			
 			va = ap.array.getAccessor();
 			byteStride = va.getStride() * type.getByteSize();

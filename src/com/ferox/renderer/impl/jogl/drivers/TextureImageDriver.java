@@ -12,9 +12,9 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.jogl.EnumUtil;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.resource.BufferData;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureDirtyDescriptor;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureDirtyDescriptor;
 
 /** TextureImageDriver is a class that provides common functionality
  * and utilities that will be useful to any TextureImage driver (of any target type).

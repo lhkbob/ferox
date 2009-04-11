@@ -13,12 +13,12 @@ import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Resource;
-import com.ferox.resource.TextureCubeMap;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.TextureCubeMap.TextureCubeMapDirtyDescriptor;
-import com.ferox.resource.TextureImage.MipmapDirtyRegion;
-import com.ferox.resource.util.TextureConverter;
+import com.ferox.resource.texture.TextureCubeMap;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.TextureCubeMap.TextureCubeMapDirtyDescriptor;
+import com.ferox.resource.texture.TextureImage.MipmapDirtyRegion;
+import com.ferox.resource.texture.converter.TextureConverter;
 
 /** JoglTextureCubeMapResourceDriver provides the functionality to load
  * and delete TextureCubeMap instances in the graphics card.  It will

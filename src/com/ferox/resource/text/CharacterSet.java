@@ -16,11 +16,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.ferox.resource.BufferData;
-import com.ferox.resource.Texture2D;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.TextureImage.Filter;
 import com.ferox.resource.text.RectanglePacker.Rectangle;
+import com.ferox.resource.texture.Texture2D;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.TextureImage.Filter;
 
 /** CharacterSet represents a packed character sheet
  * for a set of characters and a Font that they are

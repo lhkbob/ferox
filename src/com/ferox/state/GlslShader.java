@@ -6,8 +6,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ferox.resource.GlslProgram;
-import com.ferox.resource.GlslUniform;
+import com.ferox.resource.glsl.GlslProgram;
+import com.ferox.resource.glsl.GlslUniform;
 
 /** GlslShader wraps a single GlslProgram and provides the
  * functionality to bind uniforms with values.  The GlslProgram

@@ -12,12 +12,12 @@ import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Resource;
-import com.ferox.resource.Texture2D;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Texture2D.Texture2DDirtyDescriptor;
-import com.ferox.resource.TextureImage.MipmapDirtyRegion;
-import com.ferox.resource.util.TextureConverter;
+import com.ferox.resource.texture.Texture2D;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.Texture2D.Texture2DDirtyDescriptor;
+import com.ferox.resource.texture.TextureImage.MipmapDirtyRegion;
+import com.ferox.resource.texture.converter.TextureConverter;
 
 /** JoglTexture2DResourceDriver provides the functionality to load
  * and delete Texture2D instances in the graphics card.  It will

@@ -7,8 +7,8 @@ import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** Provides fbo support for JoglTextureSurface.  These should only
  * be instantiated when fbo support is available.

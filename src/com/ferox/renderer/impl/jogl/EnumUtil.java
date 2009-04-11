@@ -2,17 +2,17 @@ package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.GL;
 
-import com.ferox.resource.TextureCubeMap;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.BufferedGeometry.PolygonType;
-import com.ferox.resource.GlslUniform.UniformType;
-import com.ferox.resource.GlslVertexAttribute.AttributeType;
-import com.ferox.resource.TextureImage.DepthMode;
-import com.ferox.resource.TextureImage.Filter;
-import com.ferox.resource.TextureImage.TextureTarget;
-import com.ferox.resource.TextureImage.TextureWrap;
-import com.ferox.resource.VertexBufferObject.UsageHint;
+import com.ferox.resource.geometry.BufferedGeometry.PolygonType;
+import com.ferox.resource.geometry.VertexBufferObject.UsageHint;
+import com.ferox.resource.glsl.GlslUniform.UniformType;
+import com.ferox.resource.glsl.GlslVertexAttribute.AttributeType;
+import com.ferox.resource.texture.TextureCubeMap;
+import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.texture.TextureImage.DepthMode;
+import com.ferox.resource.texture.TextureImage.Filter;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage.TextureWrap;
 import com.ferox.scene.Fog.FogEquation;
 import com.ferox.state.BlendMode.BlendEquation;
 import com.ferox.state.BlendMode.BlendFactor;

@@ -4,8 +4,8 @@ import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** Provide a flexible implementation for rendering-to-texture.
  * Implementations of this will be instantiated by JoglTextureSurface.

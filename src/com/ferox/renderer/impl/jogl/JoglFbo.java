@@ -6,9 +6,9 @@ import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.jogl.drivers.TextureHandle;
 import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.TextureCubeMap;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureCubeMap;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** A wrapper around framebuffer object functionality to make it slightly easier
  * to use with FboDelegate.

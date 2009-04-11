@@ -28,7 +28,7 @@ import com.ferox.renderer.impl.ContextRecordSurface;
 import com.ferox.renderer.impl.SurfaceFactory;
 import com.ferox.renderer.impl.jogl.drivers.JoglTransformDriver;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** The JoglSurfaceFactory provides an implementation of SurfaceFactory
  * for use with jogl based renderers.  Its internals with context management

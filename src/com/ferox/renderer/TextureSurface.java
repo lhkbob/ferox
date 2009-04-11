@@ -1,7 +1,7 @@
 package com.ferox.renderer;
 
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.texture.TextureImage.TextureTarget;
 
 /** A TextureSurface represents a surface that renders its content
  * directly into multiple, usable textures.  This can be used for a variety

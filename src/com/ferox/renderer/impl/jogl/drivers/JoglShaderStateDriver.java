@@ -9,7 +9,7 @@ import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
 import com.ferox.renderer.impl.jogl.record.GlslShaderRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.GlslUniform;
+import com.ferox.resource.glsl.GlslUniform;
 import com.ferox.state.GlslShader;
 import com.ferox.state.GlslShader.UniformBinding;
 

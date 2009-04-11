@@ -10,6 +10,7 @@ import com.ferox.resource.Resource;
  * drivers for a Resource if there's an implementation of ResourceDriver
  * matching this pattern:
  *		com.ferox.renderer.impl.jogl.drivers.Jogl<ResourceSimpleClassName>ResourceDriver
+ * If no class is found, it will search for drivers matching the resource's superclasses.
  *
  * It will load that class, make sure it implements ResourceDriver and return one
  * instance of that class per factory lifetime.  The ResourceDriver must declare
@@ -27,13 +28,25 @@ public class BasicResourceDriverFactory implements DriverFactory<Class<? extends
 		this.factory = factory;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public ResourceDriver getDriver(Class<? extends Resource> type) {
 		if (type != null) {
-			ResourceDriver driver = this.loadedDrivers.get(type);
-			if (driver == null)
-				driver = this.loadNewDriver(type);
-			return driver;
+			while(true) {
+				ResourceDriver driver = this.loadedDrivers.get(type);
+				if (driver == null) // try to load the type
+					driver = this.loadNewDriver(type);
+				
+				if (driver == null) {
+					// move type to super-class
+					Class<?> spr = type.getSuperclass();
+					if (Resource.class.isAssignableFrom(spr))
+						type = (Class<? extends Resource>) spr;
+					else
+						return null;
+				} else
+					return driver;
+			}	
 		}
 		
 		return null;
