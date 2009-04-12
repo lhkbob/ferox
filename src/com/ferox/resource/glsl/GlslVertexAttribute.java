@@ -45,8 +45,8 @@ public class GlslVertexAttribute {
 		if (owner == null)
 			throw new NullPointerException("GlslProgram cannot be null");
 		
-		if (bindingSlot < 0)
-			throw new IllegalArgumentException("BindingSlot must be >= 0: " + bindingSlot);
+		if (bindingSlot < 1)
+			throw new IllegalArgumentException("BindingSlot must be >= 1: " + bindingSlot);
 		if (name.startsWith("gl"))
 			throw new IllegalArgumentException("Name cannot start with 'gl': " + name + ", that is reserved");
 		

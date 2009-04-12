@@ -2,12 +2,11 @@ package com.ferox.resource.geometry;
 
 import java.util.List;
 
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.BoundSphere;
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Boundable;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Geometry;
+import com.ferox.resource.GeometryBoundsCache;
 import com.ferox.resource.UnitList;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.UnitList.Unit;
@@ -102,8 +101,7 @@ public abstract class BufferedGeometry<T> implements Geometry {
 		}
 	}
 	
-	private BoundSphere sphereCache;
-	private AxisAlignedBox axisCache;
+	private final GeometryBoundsCache boundsCache;
 	
 	private GeometryArray<T> vertices;
 	private GeometryArray<T> normals;
@@ -137,6 +135,7 @@ public abstract class BufferedGeometry<T> implements Geometry {
 	protected BufferedGeometry() {
 		this.texCoords = new UnitList<GeometryArray<T>>();
 		this.vertexAttribs = new UnitList<GeometryArray<T>>();
+		this.boundsCache = new GeometryBoundsCache(this);
 	}
 	
 	/*
@@ -438,25 +437,12 @@ public abstract class BufferedGeometry<T> implements Geometry {
 		return this.polyCount;
 	}
 	
-	/** Force the bound volume caches to be re-updated,
-	 * possibly before a call to getBounds().  It is recommended
-	 * to call this before prior to clearing the client memory
-	 * for the vertices. */
-	public void computeBoundsCache() {
-		this.axisCache = new AxisAlignedBox();
-		this.axisCache.enclose(this);
-		
-		this.sphereCache = new BoundSphere();
-		this.sphereCache.enclose(this);
-	}
-	
 	/** Clear the cached bounding volumes.  The next time
 	 * getBounds is called with either a AxisAlignedBox,
 	 * or BoundSphere, the cached bounds for that type will
 	 * be re-computed from scratch. */
 	public void clearBoundsCache() {
-		this.axisCache = null;
-		this.sphereCache = null;
+		this.boundsCache.setCacheDirty();
 	}
 	
 	/*
@@ -505,22 +491,7 @@ public abstract class BufferedGeometry<T> implements Geometry {
 	
 	@Override
 	public void getBounds(BoundVolume result) {
-		if (result != null) {
-			if (result instanceof AxisAlignedBox) {
-				if (this.axisCache == null) {
-					this.axisCache = new AxisAlignedBox();
-					this.axisCache.enclose(this);
-				}
-				this.axisCache.clone(result);
-			} else if (result instanceof BoundSphere) {
-				if (this.sphereCache == null) {
-					this.sphereCache = new BoundSphere();
-					this.sphereCache.enclose(this);
-				}
-				this.sphereCache.clone(result);
-			} else
-				result.enclose(this);
-		}
+		this.boundsCache.getBounds(result);
 	}
 
 	@Override

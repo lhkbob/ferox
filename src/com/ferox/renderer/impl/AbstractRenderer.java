@@ -63,6 +63,8 @@ public class AbstractRenderer implements Renderer {
 	public static enum RenderState {
 		WAITING_INIT, /** State of the renderer before init() is called */
 		IDLE,		  /** State of the renderer when it's not doing anything */
+		PIPELINE,
+		RESOURCE,
 		RENDERING,    /** State of the renderer when it's in flushRenderer(). */
 		DESTROYED 	  /** State of the renderer after destroy() is called */
 	}

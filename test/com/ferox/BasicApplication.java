@@ -2,6 +2,7 @@ package com.ferox;
 
 import java.awt.Font;
 import java.awt.Frame;
+import java.util.Formatter;
 
 import org.openmali.vecmath.Vector3f;
 
@@ -36,7 +37,7 @@ import com.ferox.state.State.PixelTest;
  */
 public abstract class BasicApplication extends ApplicationBase {
 	public static final long UPDATE_TIME = 100; // ms between updates of fps text
-	
+		
 	protected OnscreenSurface window;
 	protected BasicRenderPass pass;
 	protected BasicRenderPass fpsPass;
@@ -46,6 +47,9 @@ public abstract class BasicApplication extends ApplicationBase {
 	protected SceneElement scene;
 	
 	private long lastFpsUpdate;
+	
+	private StringBuilder fpsStringBuilder;
+	private Formatter fpsFormatter;
 	
 	public BasicApplication(boolean debug) {
 		super(debug);
@@ -75,8 +79,8 @@ public abstract class BasicApplication extends ApplicationBase {
 		
 		this.pass = new BasicRenderPass(null, v, this.createQueue(), false);
 		
-		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 800, 600);
-		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 1024, 768, false, false);
+		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 1024, 768);
+		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, false, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
 		
@@ -86,7 +90,9 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.pass.setScene(this.scene);
 		
 		CharacterSet charSet = new CharacterSet(Font.decode("Arial-Bold-16"), true, false);
-		this.fpsText = new Text(charSet, "FPS: \nMeshes: \nPolygons: \nUsed: \nFree: ");
+		this.fpsText = new Text(charSet, "FPS: \nMeshes: \nPolygons: \nUsed: ");
+		this.fpsStringBuilder = new StringBuilder();
+		this.fpsFormatter = new Formatter(this.fpsStringBuilder);
 		
 		renderer.requestUpdate(charSet.getCharacterSet(), true);
 		renderer.requestUpdate(this.fpsText, true);
@@ -115,9 +121,11 @@ public abstract class BasicApplication extends ApplicationBase {
 		this.lastFpsUpdate = 0;
 	}
 	
+	private static Vector3f origin = new Vector3f();
+	private static Vector3f up = new Vector3f(0f, 1f, 0f);
 	@Override
 	protected boolean update() {
-		this.view.lookAt(new Vector3f(), new Vector3f(0f, 1f, 0f), true);
+		this.view.lookAt(origin, up, true);
 		this.scene.update(true);
 		return false;
 	}
@@ -134,8 +142,13 @@ public abstract class BasicApplication extends ApplicationBase {
 			if (System.currentTimeMillis() - this.lastFpsUpdate > UPDATE_TIME) {
 				this.lastFpsUpdate = System.currentTimeMillis();
 				Runtime run = Runtime.getRuntime();
-				this.fpsText.setText("FPS: " + this.stats.getFramesPerSecond() + "\nMeshes: " + this.stats.getMeshCount() + "\nPolygons: " + this.stats.getPolygonCount() 
-									 + "\nUsed: " + run.totalMemory() / 1e6f + " M\nFree: " + run.freeMemory() / 1e6f + " M");
+				this.fpsStringBuilder.setLength(0);
+				this.fpsFormatter.format("FPS: %.2f\nMeshes: %d\nPolygons: %d\nUsed: %.2f / %.2f M", this.stats.getFramesPerSecond(), 
+																									 this.stats.getMeshCount(),
+																									 this.stats.getPolygonCount(),
+																									 (run.totalMemory() - run.freeMemory()) / 1e6f,
+																									 run.totalMemory() / 1e6f);
+				this.fpsText.setText(this.fpsStringBuilder.toString());
 				renderer.requestUpdate(this.fpsText, true);
 			}
 			

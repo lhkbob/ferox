@@ -67,9 +67,6 @@ public class JoglTextureStateDriver implements StateDriver {
 		} else if (this.lastApplied != null)
 			this.apply(this.factory.getRenderer(), this.factory.getRecord(), null);
 		
-		// clear single unit if possible
-		if (this.lastApplied == this.singleUnit && this.queuedTexture != this.singleUnit)
-			this.singleUnit.setTexture(0, null); // clear reference here, since we don't need it anymore
 		this.lastApplied = this.queuedTexture;
 		
 		this.reset();
@@ -107,7 +104,6 @@ public class JoglTextureStateDriver implements StateDriver {
 		this.queuedTexture = null;
 		this.queuedInfluence = -1f;
 		this.lastAppliedDirty = false;
-		// we can't reset singleUnit here because it may be in use in lastAppliedState
 	}
 	
 	/* Modify the given context so that its TextureRecord matches the given MultiTexture.

@@ -2,11 +2,10 @@ package com.ferox.resource.text;
 
 import java.awt.font.LineMetrics;
 
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.BoundSphere;
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Color;
 import com.ferox.resource.Geometry;
+import com.ferox.resource.GeometryBoundsCache;
 import com.ferox.state.AlphaTest;
 import com.ferox.state.Appearance;
 import com.ferox.state.BlendMode;
@@ -70,8 +69,7 @@ public class Text implements Geometry {
 	private float[] coords; // it is interleaved T2F_V3F
 	private int numCoords;
 	
-	private AxisAlignedBox cacheBox;
-	private BoundSphere cacheSphere;
+	private final GeometryBoundsCache boundsCache;
 	
 	private Object renderData;
 	
@@ -92,6 +90,8 @@ public class Text implements Geometry {
 			throw new NullPointerException("Must provide a non-null CharacterSet");
 		
 		this.charSet = charSet;
+		this.boundsCache = new GeometryBoundsCache(this);
+		
 		this.setText(text);
 		this.setWrapWidth(-1f);
 		
@@ -257,29 +257,12 @@ public class Text implements Geometry {
 		this.numCoords = tl.getNumGlyphs() * 4;
 		this.layoutDirty = false;
 		
-		// reset the bound caches
-		this.cacheBox = null;
-		this.cacheSphere = null;
+		this.boundsCache.setCacheDirty();
 	}
 
 	@Override
 	public void getBounds(BoundVolume result) {
-		if (result != null) {
-			if (result instanceof AxisAlignedBox) {
-				if (this.cacheBox == null) {
-					this.cacheBox = new AxisAlignedBox();
-					this.cacheBox.enclose(this);
-				}
-				this.cacheBox.clone(result);
-			} else if (result instanceof BoundSphere) {
-				if (this.cacheSphere == null) {
-					this.cacheSphere = new BoundSphere();
-					this.cacheSphere.enclose(this);
-				}
-				this.cacheSphere.clone(result);
-			} else
-				result.enclose(this);
-		}
+		this.boundsCache.getBounds(result);
 	}
 
 	@Override

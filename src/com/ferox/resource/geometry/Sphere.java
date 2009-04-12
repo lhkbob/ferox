@@ -43,19 +43,23 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 	}
 	
 	public Sphere(float radius, int zSamples, int radialSamples) {
-		this(null, radius, zSamples, radialSamples, SphereTextureMode.ORIGINAL);
+		this(radius, zSamples, radialSamples, SphereTextureMode.ORIGINAL);
+	}
+	
+	public Sphere(float radius, int zSamples, int radialSamples, SphereTextureMode mode) {
+		this(null, radius, zSamples, radialSamples, mode);
 	}
 	
 	public Sphere(Vector3f center, float radius, int zSamples, int radialSamples, SphereTextureMode mode) {
 		if (zSamples < 0 || radialSamples <= 0)
 			throw new IllegalArgumentException("zSamples and radialSamples must be > 0");
 		
-		int vertexCount = (this.zSamples - 2) * (this.radialSamples + 1) + 2;
+		int vertexCount = (zSamples - 2) * (radialSamples + 1) + 2;
 		this.vertices = new float[vertexCount * 3];
 		this.normals = new float[vertexCount * 3];
 		this.texCoords = new float[vertexCount * 2];
 		
-		int triCount = 6 * this.radialSamples * (this.zSamples - 2);
+		int triCount = 6 * radialSamples * (zSamples - 2);
 		this.indices = new int[triCount];
 
 		this.center = new Vector3f();

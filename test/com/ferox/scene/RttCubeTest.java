@@ -38,7 +38,7 @@ import com.ferox.state.Texture.EnvMode;
 import com.ferox.state.Texture.TexCoordGen;
 
 public class RttCubeTest extends BasicApplication {
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	public static final boolean USE_VBO = true;
 	public static final boolean RANDOM_PLACEMENT = true;
 	
@@ -209,7 +209,6 @@ public class RttCubeTest extends BasicApplication {
 		if (i % 2 == 0) {
 			lr = new LightReceiver();
 			m.setSmoothShaded(true);
-			lr.setSeparateSpecular(true);
 		} {
 			fr = new FogReceiver();
 			fr.setFogCoordinateSource(FogCoordSource.FRAGMENT_DEPTH);
