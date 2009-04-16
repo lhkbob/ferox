@@ -368,7 +368,7 @@ public abstract class BufferedGeometry<T> implements Geometry {
 	 * must be in consecutive units.
 	 * 
 	 * If these rules aren't met, then an exception is thrown. 
-	 * Also, if unit is < 0, then an exception is thrown. */
+	 * Also, if unit is < 1, then an exception is thrown. */
 	public void setVertexAttributes(int unit, T vas, VertexArray accessor) throws NullPointerException, IllegalArgumentException {
 		if (vas != null) {
 			if (accessor == null)
@@ -376,7 +376,9 @@ public abstract class BufferedGeometry<T> implements Geometry {
 			
 			if (accessor.getElementSize() != 1 && accessor.getElementSize() != 2 && accessor.getElementSize() != 3 && accessor.getElementSize() != 4)
 				throw new IllegalArgumentException("VertexArray can only have an element size of 1, 2, 3, or 4; not: " + accessor.getElementSize());
-
+			if (unit < 1)
+				throw new IllegalArgumentException("Vertex attributes are numbered from 1+, not: " + unit);
+			
 			this.vertexAttribs.setItem(unit, new GeometryArray<T>(vas, this.getData(vas).getType(), accessor, this.getNumElements(vas, accessor)));
 		} else {
 			this.vertexAttribs.setItem(unit, null);
@@ -488,6 +490,11 @@ public abstract class BufferedGeometry<T> implements Geometry {
 	/*
 	 * The implementation of Geometry and Boundable
 	 */
+	
+	@Override
+	public boolean isAppearanceIgnored() {
+		return false;
+	}
 	
 	@Override
 	public void getBounds(BoundVolume result) {

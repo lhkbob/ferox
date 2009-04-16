@@ -25,5 +25,9 @@ import com.ferox.math.Boundable;
  *
  */
 public interface Geometry extends Boundable, Resource {
-	
+	/** Return true if the Appearance used in a RenderAtom that's
+	 * rendering this Geometry should be ignored.  This is useful
+	 * if the Geometry has a clearly defined, required Appearance
+	 * that Renderer must use. */
+	public boolean isAppearanceIgnored();
 }

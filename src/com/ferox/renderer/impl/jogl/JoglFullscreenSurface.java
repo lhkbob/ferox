@@ -1,7 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.awt.DisplayMode;
-import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
@@ -9,17 +8,16 @@ import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
 
 public class JoglFullscreenSurface extends JoglOnscreenSurface implements FullscreenSurface {
-	private Frame frame;
 	private DisplayMode mode;
 	private GraphicsDevice gDev;
 	
-	protected JoglFullscreenSurface(JoglSurfaceFactory factory,	int id, DisplayOptions optionsRequest, int width, int height) {
+	protected JoglFullscreenSurface(JoglSurfaceFactory factory,	int id, DisplayOptions optionsRequest, final int width, final int height) {
 		super(factory, id, optionsRequest, 0, 0, width, height, false, true);
-	
+		
 		// get target device parameters and set the display mode
 		this.gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		this.gDev.setFullScreenWindow(this.frame);
-		
+
 		if (this.gDev.isFullScreenSupported()) {
 			if (this.gDev.isDisplayChangeSupported()) {
 				this.mode = chooseBestMode(this.gDev.getDisplayModes(), optionsRequest, width, height);
@@ -47,7 +45,6 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 			if (weight < bestWeight) {
 				bestWeight = weight;
 				best = modes[i];
-				System.out.println(weight + " " + best.getBitDepth() + " " + best.getWidth() + " " + best.getHeight() + " " + best.getRefreshRate());
 			}
 		}
 		return best;

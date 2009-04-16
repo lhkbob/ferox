@@ -2,6 +2,7 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.AbstractRenderer;
+import com.ferox.renderer.impl.jogl.drivers.JoglDisplayListGeometryDriver;
 
 /** Provides a full implementation of Renderer that is based on
  * the functionality provided by AbstractRenderer.
@@ -35,10 +36,12 @@ public class BasicJoglRenderer extends AbstractRenderer {
 
 		JoglSurfaceFactory factory = new JoglSurfaceFactory(this, detector.detect(), debugGL);
 		
+		JoglDisplayListGeometryDriver compiler = new JoglDisplayListGeometryDriver(factory);
+		
 		BasicGeometryDriverFactory gdf = new BasicGeometryDriverFactory(factory);
 		BasicResourceDriverFactory rdf = new BasicResourceDriverFactory(factory);
 		BasicStateDriverFactory sdf = new BasicStateDriverFactory(factory);	
 		
-		this.init(factory, factory.getTransformDriver(), gdf, rdf, sdf, detector);
+		this.init(factory, factory.getTransformDriver(), compiler, gdf, rdf, sdf, detector);
 	}
 }

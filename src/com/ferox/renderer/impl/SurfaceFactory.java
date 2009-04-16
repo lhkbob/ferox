@@ -105,6 +105,6 @@ public interface SurfaceFactory {
 	public void renderFrame(List<ContextRecordSurface> queuedSurfaces, Runnable resourceAction);
 	
 	
-	/** Get the surface that is current.  Return null if no surface is current. */
-	//public ContextRecordSurface getCurrentSurface();
+	/** Return true if the calling thread can have low-level graphics operations invoked on it. */
+	public boolean isGraphicsThread();
 }

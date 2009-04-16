@@ -264,6 +264,11 @@ public class Text implements Geometry {
 	public void getBounds(BoundVolume result) {
 		this.boundsCache.getBounds(result);
 	}
+	
+	@Override
+	public boolean isAppearanceIgnored() {
+		return false;
+	}
 
 	@Override
 	public float getVertex(int index, int coord) throws IllegalArgumentException {

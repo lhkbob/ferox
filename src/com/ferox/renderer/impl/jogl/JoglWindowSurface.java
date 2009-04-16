@@ -1,7 +1,5 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.Frame;
-
 import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.DisplayOptions;
@@ -14,8 +12,6 @@ import com.ferox.renderer.WindowSurface;
  *
  */
 public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurface {
-	private Frame frame;
-	
 	/** Expects as arguments, the factory that is currently handling a createWindowSurface()
 	 * call, as well as the identically named arguments to that call. 
 	 * 
@@ -23,7 +19,6 @@ public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurf
 	protected JoglWindowSurface(JoglSurfaceFactory factory,	int id, DisplayOptions optionsRequest, 
 								int x, int y, int width, int height, boolean resizable, boolean undecorated) {
 		super(factory, id, optionsRequest, x, y, width, height, resizable, undecorated);
-		
 	}
 	
 	@Override

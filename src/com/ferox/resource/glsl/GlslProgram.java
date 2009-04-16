@@ -35,7 +35,6 @@ import com.ferox.resource.glsl.GlslVertexAttribute.AttributeType;
  * @author Michael Ludwig
  *
  */
-// FIXME: vertex attributes should start at 1, not 0
 public class GlslProgram implements Resource {
 	/** The dirty descriptor used by instances of GlslProgram. */
 	public static class GlslProgramDirtyDescriptor {

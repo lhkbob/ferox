@@ -1,5 +1,8 @@
 package com.ferox.renderer;
 
+import java.util.List;
+
+import com.ferox.resource.Geometry;
 import com.ferox.resource.Resource;
 import com.ferox.resource.ResourceManager;
 import com.ferox.resource.Resource.Status;
@@ -137,6 +140,28 @@ public interface Renderer {
 	 * idle, if it's destroyed, or if it can't create the surface for any other reason. */
 	public TextureSurface createTextureSurface(TextureSurface share, int layer) throws RenderException;
 	
+	/** Return a single Geometry instance that represents the list of render atoms.  If
+	 * submitted with renderAtom(), this rendered Geometry will represent the what would
+	 * be rendered if the list of atoms were submitted to renderAtom() in order (accounting
+	 * for the current viewport and transform).
+	 * 
+	 * Because the returned Geometry uses the Appearances stored in atoms, it must return
+	 * true from isAppearanceIgnored().
+	 * If the specified list is empty, return null.
+	 * 
+	 * The returned Geometry can usually be rendered much faster than if the list were
+	 * rendered.  It is intended for static atom's, and because of this, updating the returned
+	 * geometry has no effect (it must still be cleaned-up, but subsequent updates will then
+	 * fail).  
+	 * 
+	 * Implementations do not need to provide a useful implementation of getVertex(), so
+	 * programmers should use getBounds() instead of bounds.enclose() to get the BoundVolume
+	 * for this Geometry.
+	 * 
+	 * Throw an exception if atoms is null, any atom would cause an exception to be thrown
+	 * if it were rendered normally, if the renderer isn't idle, or if it's been destroyed. */
+	public Geometry compile(List<RenderAtom> atoms) throws RenderException;
+	
 	/** Destroy the given RenderSurface.  After a call to this method, the
 	 * surface can no longer be used for calls to queueRender() and its
 	 * isDestroyed() method will return true.  The behavior of other methods
@@ -229,18 +254,18 @@ public interface Renderer {
 	 * many low-level context switches.  In the worst case, each TextureSurface will require
 	 * a context switch, just like each OnscreenSurface.
 	 * 
-	 * If a surface is queued multiple times, the subsequent queues will be ignored.
+	 * If a surface is queued multiple times or has been destroyed, it will be ignored.
 	 * Return this Renderer object so queue requests can be chained together.
 	 * 
 	 * Throw an exception if the renderer is destroyed, the renderer isn't idle,
-	 * the surface is destroyed, or the surface wasn't created by this renderer. */
+	 * or the surface wasn't created by this renderer. */
 	public Renderer queueRender(RenderSurface surface) throws RenderException;
 	
 	/** Render a single frame.  The renderer must invoke manage() on
 	 * its default ResourceManager and then any custom managers.  After the 
 	 * managers are processed, the renderer should, for each queued surface,
 	 * clear the surface based on its settings and render each attached 
-	 * render pass.
+	 * render pass.  Queued surfaces that have been destroyed should be ignored.
 	 * 
 	 * The resource managers must be processed even if there are no queued
 	 * render surfaces.
@@ -260,8 +285,7 @@ public interface Renderer {
 	 * 
 	 * Return store (or the new instance if store is null).
 	 * 
-	 * Throw an exception if the renderer is destroyed, it's not idle, if any
-	 * queued surfaces have been destroyed after being enqueued, if render passes
+	 * Throw an exception if the renderer is destroyed, it's not idle, or  if render passes
 	 * return a null RenderQueue.  Throw a RenderException that wraps any
 	 * exception that happened to occur while rendering. 
 	 * 
@@ -381,6 +405,9 @@ public interface Renderer {
 	 *  	as created by those state's default constructors.
 	 *  2. If any other state isn't present, that state type should not effect the rendering of the atom,
 	 *  	unless there is a special contract with an implementation of the renderer.
+	 *  
+	 * If the Geometry to be rendered returns true from isAppearanceIgnored(), only the default Appearance
+	 * should be used.
 	 * 
 	 * This method should not be called directly, instead it is to be used by RenderQueue implementations.
 	 * The render atom will not be rendered if it has a null geometry or null transform.  However, influences

@@ -10,6 +10,7 @@ import com.ferox.renderer.DisplayOptions.AntiAliasMode;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
+import com.ferox.renderer.impl.AbstractRenderer;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Resource.Status;
@@ -91,8 +92,8 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 		createDepthTexture(s, caps);
 		
 		// create texture images and delegates of gfx card
-		factory.renderFrame(JoglSurfaceFactory.EMPTY_LIST, new UpdateTextureImagesAction(s, factory));
-		factory.renderFrame(JoglSurfaceFactory.EMPTY_LIST, new ConstructDelegateAction(s, factory, this));
+		factory.renderFrame(AbstractRenderer.EMPTY_LIST, new UpdateTextureImagesAction(s, factory));
+		factory.renderFrame(AbstractRenderer.EMPTY_LIST, new ConstructDelegateAction(s, factory, this));
 		
 		// if we've gotten here, we're okay
 		this.layer = s.layer;

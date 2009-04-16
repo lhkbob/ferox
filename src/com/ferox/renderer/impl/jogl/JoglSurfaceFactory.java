@@ -1,7 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -15,6 +14,7 @@ import javax.media.opengl.DebugGL;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.Threading;
 
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
@@ -47,9 +47,6 @@ import com.ferox.resource.texture.TextureImage.TextureTarget;
  *
  */
 public class JoglSurfaceFactory implements SurfaceFactory {	
-	/** List to be passed into renderFrame() by methods needing custom resource actions executed. */
-	public static final List<ContextRecordSurface> EMPTY_LIST = Collections.unmodifiableList(new LinkedList<ContextRecordSurface>());
-	
 	/* Variables for the shadow context. */
 	private ShadowContext shadowContext;
 	
@@ -264,6 +261,11 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 		}
 	}
 	
+	@Override
+	public boolean isGraphicsThread() {
+		return !Threading.isSingleThreaded() || Threading.isOpenGLThread();
+	}
+	
 	/** Return the GLAutoDrawable that is currently executing its
 	 * GLEventListeners.  This is not necessarily associated with
 	 * the actual "current" surface, since fbos can be attached
@@ -359,7 +361,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 			ZombieFboCleanupAction cleanup;
 			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e: this.zombieFbos.entrySet()) {
 				cleanup = new ZombieFboCleanupAction(e.getValue());
-				this.renderFrame(EMPTY_LIST, cleanup);
+				this.renderFrame(AbstractRenderer.EMPTY_LIST, cleanup);
 			}
 			this.zombieFbos.clear();
 		}

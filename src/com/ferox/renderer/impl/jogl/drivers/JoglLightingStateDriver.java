@@ -23,13 +23,12 @@ import com.ferox.scene.SpotLight;
 public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 	private static final int MAX_LIGHTS = 8;
 	
-	private final Transform cache;
 	private final Light[] appliedLights;
 	private Vector3f p;
 	
 	public JoglLightingStateDriver(JoglSurfaceFactory factory) {
 		super(null, Light.class, Math.min(MAX_LIGHTS, factory.getRenderer().getCapabilities().getMaxActiveLights()), factory);
-		this.cache = new Transform();
+		new Transform();
 		this.appliedLights = new Light[Math.min(MAX_LIGHTS, factory.getRenderer().getCapabilities().getMaxActiveLights())];
 	}
 
@@ -106,10 +105,9 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		
 		lr.spotDirection[0] = this.p.x; 
 		lr.spotDirection[1] = this.p.y; 
-		lr.spotDirection[2] = this.p.z; 
+		lr.spotDirection[2] = this.p.z;
 		
-		this.cache.mul(this.factory.getViewTransform(), light.getWorldTransform());
-		this.factory.getTransformDriver().loadMatrix(gl, this.cache);
+		this.factory.getTransformDriver().pushMatrix(gl, light.getWorldTransform());
 		
 		// pos and dir
 		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
@@ -135,6 +133,8 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 			lr.quadraticAttenuation = light.getQuadraticAttenuation();
 			gl.glLightf(glUnit, GL.GL_QUADRATIC_ATTENUATION, lr.quadraticAttenuation);
 		}
+		
+		gl.glPopMatrix();
 	}
 	
 	private void setupDirectionLight(GL gl, LightRecord lr, int glUnit, DirectionLight light) {
@@ -146,9 +146,8 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		lr.position[3] = 0f;
 		
 		// setup of the direction
-		this.cache.mul(this.factory.getViewTransform(), light.getWorldTransform());		
-		this.factory.getTransformDriver().loadMatrix(gl, this.cache);
-		
-		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);		
+		this.factory.getTransformDriver().pushMatrix(gl, light.getWorldTransform());
+		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
+		gl.glPopMatrix();
 	}
 }

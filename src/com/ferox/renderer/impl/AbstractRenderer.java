@@ -1,8 +1,10 @@
 package com.ferox.renderer.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -23,6 +25,7 @@ import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.View;
 import com.ferox.renderer.WindowSurface;
 import com.ferox.renderer.impl.ResourceData.Handle;
+import com.ferox.renderer.util.BasicRenderPass;
 import com.ferox.renderer.util.DefaultResourceManager;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Resource;
@@ -58,13 +61,14 @@ import com.ferox.state.State.Role;
  * @author Michael Ludwig
  *
  */
+// TODO: remove currentPass == null/frameStates == null checks and when necessary just
+// assign them dummy values so that they still function.
+// TODO: in compile() make sure there is better default state before calling the driver
 public class AbstractRenderer implements Renderer {
 	/** Represents all possible states of an AbstractRenderer. */
 	public static enum RenderState {
 		WAITING_INIT, /** State of the renderer before init() is called */
 		IDLE,		  /** State of the renderer when it's not doing anything */
-		PIPELINE,
-		RESOURCE,
 		RENDERING,    /** State of the renderer when it's in flushRenderer(). */
 		DESTROYED 	  /** State of the renderer after destroy() is called */
 	}
@@ -75,6 +79,9 @@ public class AbstractRenderer implements Renderer {
 		StateDriver driver;
 		int typeId;
 	}
+	
+	/** List to be passed into renderFrame() by methods needing custom resource actions executed. */
+	public static final List<ContextRecordSurface> EMPTY_LIST = Collections.unmodifiableList(new LinkedList<ContextRecordSurface>());
 	
 	private static AbstractRenderer instance = null;
 	
@@ -100,7 +107,7 @@ public class AbstractRenderer implements Renderer {
 	private Map<Class<? extends Resource>, ResourceDriver> resourceDrivers;
 	private IdentityHashMap<Resource, Integer> resourceLocks;
 	
-	private DefaultResourceManager dfltManager; // dfltManager is 0th child of resourceManagers
+	private DefaultResourceManager dfltManager; // dfltManager is 0th element in resourceManagers
 	private List<ResourceManager> resourceManagers;
 	private Stack<Resource> resourceProcessStack;
 	
@@ -120,6 +127,7 @@ public class AbstractRenderer implements Renderer {
 	private IdentityHashMap<RenderPass, View> preparedPasses;
 	private List<ContextRecordSurface> queuedSurfaces;
 	private TransformDriver transform;
+	private CompiledGeometryDriver compiler;
 	
 	/** Create a new AbstractRenderer.  This constructor does not completely configure
 	 * the renderer for use.  Subclasses must also invoke init() before their constructor
@@ -304,8 +312,11 @@ public class AbstractRenderer implements Renderer {
 	public final Renderer queueRender(RenderSurface surface) throws RenderException {
 		this.ensure(RenderState.IDLE);
 		ContextRecordSurface s = this.validateSurface(surface);
-		if (s == null)
+		if (s == null) {
+			if (surface != null && surface.isDestroyed() && surface.getRenderer() == this)
+				return this; // just ignore it
 			throw new RenderException("Surface is invalid and cannot be queued: " + surface);
+		}
 		
 		if (!this.queuedSurfaces.contains(s)) // avoid duplicates
 			this.queuedSurfaces.add(s);
@@ -344,11 +355,12 @@ public class AbstractRenderer implements Renderer {
 	/* Class that performs only the managing of resources during a 
 	 * frame.  This is passed in as the 2nd argument to renderFrame()
 	 * of the surface factory. */
-	private class ManageResourcesAction implements Runnable {
-		
+	private class ManageResourcesAction implements Runnable {	
 		@Override
 		public void run() {
-			manageResources();
+			int numManagers = resourceManagers.size();
+			for (int i = 0; i < numManagers; i++)
+				resourceManagers.get(i).manage(AbstractRenderer.this);
 		}
 	}
 	
@@ -374,16 +386,24 @@ public class AbstractRenderer implements Renderer {
 		
 		try {
 			long prepareStart = now;
+			this.renderState = RenderState.RENDERING;
+
 			// make sure all surfaces are valid
+			ContextRecordSurface s;
+			for (int i = this.queuedSurfaces.size() - 1; i >= 0; i--) {
+				s = this.validateSurface(this.queuedSurfaces.get(i));
+				if (s == null) {
+					if (s != null && s.isDestroyed() && s.getRenderer() == this) {
+						// remove it from the list
+						this.queuedSurfaces.remove(i);
+					} else
+						throw new RenderException("Cannot render an invalid surface: " + this.queuedSurfaces.get(i));
+				}
+			}
 			int numSurfaces = this.queuedSurfaces.size();
 
 			if (numSurfaces > 0) {
 				// we're rendering an entire frame now, resource managers will be done on 1st surface
-				for (int i = 0; i < numSurfaces; i++) {
-					if (this.validateSurface(this.queuedSurfaces.get(i)) == null)
-						throw new RenderException("Cannot render an invalid surface: " + this.queuedSurfaces.get(i));
-				}
-
 				int numPasses;
 				List<RenderPass> passes;
 				RenderPass pass;
@@ -403,8 +423,6 @@ public class AbstractRenderer implements Renderer {
 			}
 
 			long renderStart = now;
-			this.renderState = RenderState.PIPELINE;
-
 			// if numSurfaces == 0, the resource action is still executed
 			this.factory.renderFrame(this.queuedSurfaces, this.manageResourceAction);
 
@@ -494,21 +512,69 @@ public class AbstractRenderer implements Renderer {
 	
 	@Override
 	public final Status update(Resource resource, boolean forceFullUpdate) throws RenderException {
-		this.ensure(RenderState.RESOURCE);
+		this.ensure(RenderState.RENDERING);
 		return this.doUpdate(resource, forceFullUpdate, this.factory);
 	}
 	
 	@Override
 	public final void cleanUp(Resource resource) throws RenderException {
-		this.ensure(RenderState.RESOURCE);
+		this.ensure(RenderState.RENDERING);
 		this.doCleanUp(resource, this.factory);
+	}
+	
+	/* Used to run the compile() task on the graphics thread. */
+	private class CompileGeometryResourceAction implements Runnable {
+		private Geometry compiledGeom;
+		private final List<RenderAtom> atoms;
+		
+		public CompileGeometryResourceAction(List<RenderAtom> atoms) {
+			this.atoms = atoms;
+		}
+		
+		@Override
+		public void run() {
+			ResourceData data = new ResourceData(AbstractRenderer.this, compiler.getDriver());
+			// setup the default state
+			transform.setView(null, 0, 0);
+			setAppearance(null);
+			this.compiledGeom = compiler.compile(this.atoms, data);
+			this.compiledGeom.setResourceData(data);
+		}
+	}
+	
+	@Override
+	public final Geometry compile(List<RenderAtom> atoms) throws RenderException {
+		this.ensure(RenderState.IDLE);
+		if (atoms == null)
+			throw new RenderException("Atoms list cannot be null");
+		
+		if (atoms.size() > 0) {
+			try {
+				this.renderState = RenderState.RENDERING;
+				
+				// set some dummy values
+				this.frameStats = new FrameStatistics();
+				this.currentPass = new BasicRenderPass(null, null);
+				
+				CompileGeometryResourceAction compile = new CompileGeometryResourceAction(atoms);
+				this.factory.renderFrame(EMPTY_LIST, compile);
+				return compile.compiledGeom;
+			} catch(Exception e) {
+				throw new RenderException("Exception occurred while compiling geometry", e);
+			} finally {
+				this.renderState = RenderState.IDLE;
+				this.frameStats = null;
+				this.currentPass = null;
+			}
+		} else
+			return null;
 	}
 	
 	/* Rendering operations. */
 	
 	@Override
 	public final void applyInfluence(InfluenceAtom atom, float influence) throws RenderException {
-		this.ensure(RenderState.PIPELINE);
+		this.ensure(RenderState.RENDERING);
 		if (atom == null)
 			throw new RenderException("Cannot call applyInfluence with a null InfluenceAtom");
 		
@@ -522,9 +588,11 @@ public class AbstractRenderer implements Renderer {
 	
 	@Override
 	public final void renderAtom(RenderAtom atom) throws RenderException {
-		this.ensure(RenderState.PIPELINE);
+		this.ensure(RenderState.RENDERING);
 		if (atom == null)
 			throw new RenderException("Cannot call renderAtom with a null RenderAtom");
+		if (!this.factory.isGraphicsThread())
+			throw new RenderException("renderAtom() cannot be invoked on this thread");
 		
 		Transform model = atom.getTransform();
 		Geometry geom = atom.getGeometry();
@@ -539,7 +607,7 @@ public class AbstractRenderer implements Renderer {
 
 			this.queueAppearance(this.dfltAppearance);
 			Appearance app = atom.getAppearance();
-			if (app != null) {
+			if (app != null && !geom.isAppearanceIgnored()) {
 				this.queueAppearance(app);
 			} // else... no queuing implies use default state
 
@@ -579,6 +647,7 @@ public class AbstractRenderer implements Renderer {
 	 * object from its detect() method. */
 	protected final void init(SurfaceFactory surfaceFactory,
 							  TransformDriver transformDriver,
+							  CompiledGeometryDriver compiledGeomDriver,
 							  DriverFactory<Class<? extends Geometry>, GeometryDriver> geomDrivers,
 							  DriverFactory<Class<? extends Resource>, ResourceDriver> resourceDrivers,
 							  DriverFactory<Role, StateDriver> stateDrivers,
@@ -593,6 +662,8 @@ public class AbstractRenderer implements Renderer {
 		
 		if (transformDriver == null)
 			throw new RenderException("Must pass in a non-null TransformDriver");
+		if (compiledGeomDriver == null)
+			throw new RenderException("Must pass in a non-null CompiledGeometryDriver");
 		if (geomDrivers == null)
 			throw new RenderException("Must pass in a non-null geometry driver factory");
 		if (resourceDrivers == null)
@@ -606,6 +677,7 @@ public class AbstractRenderer implements Renderer {
 		
 		this.factory = surfaceFactory;
 		this.transform = transformDriver;
+		this.compiler = compiledGeomDriver;
 		this.geomFactory = geomDrivers;
 		this.resourceFactory = resourceDrivers;
 		this.stateFactory = stateDrivers;
@@ -649,6 +721,8 @@ public class AbstractRenderer implements Renderer {
 	 * about to be rendered to or have resources managed). */
 	public final Status doUpdate(Resource resource, boolean forceFullUpdate, SurfaceFactory key) throws RenderException {
 		this.ensure(null); // must make sure it's still okay to call
+		if (!this.factory.isGraphicsThread())
+			throw new RenderException("doUpdate() cannot be invoked on this thread");
 		
 		if (key != this.factory)
 			throw new RenderException("Illegal to call this method without the correct surface factory: " + key);
@@ -670,6 +744,8 @@ public class AbstractRenderer implements Renderer {
 	/** As doUpdate(), but mirroring the cleanUp() method. */
 	public final void doCleanUp(Resource resource, SurfaceFactory key) throws RenderException {
 		this.ensure(null); // must make sure it's still okay to call
+		if (!this.factory.isGraphicsThread())
+			throw new RenderException("doCleanUp() cannot be invoked on this thread");
 		
 		if (key != this.factory)
 			throw new RenderException("Illegal to call this method without the correct surface factory: " + key);
@@ -712,11 +788,49 @@ public class AbstractRenderer implements Renderer {
 	 * the surface has already had its references cleaned.  It is imperative that this method
 	 * is only called at the appropriate times because it causes the given surface to become
 	 * unusable as an argument to any of the renderer's methods. */
-	public void notifyOnscreenSurfaceClosed(OnscreenSurface surface) {
+	public final void notifyOnscreenSurfaceClosed(OnscreenSurface surface) {
 		if (surface != null && surface.getRenderer() == this) {
 			ContextRecordSurface target = (ContextRecordSurface) surface;
 			if (this.surfaces[target.getSurfaceId()] == surface)
 				this.surfaces[target.getSurfaceId()] = null; // clean-up old reference to it
+		}
+	}
+	
+	/** Adjust the current record so that the given Appearance
+	 * is active.  If a is null, the record is set to be the
+	 * default appearance used when rendering atoms.
+	 * 
+	 * This will ignore any queued influence atoms.
+	 * 
+	 * This can only be called when the renderer is in the
+	 * RENDERING state and from the gl thread. */
+	public final void setAppearance(Appearance a) {
+		this.ensure(RenderState.RENDERING);
+		if (!this.factory.isGraphicsThread())
+			throw new RenderException("renderAtom() cannot be invoked on this thread");
+		
+		// reset, so we're on a clean slate
+		for (int i = 0; i < this.stateTypeCounter; i++)
+			this.stateDrivers[i].reset();
+		
+		this.queueAppearance(this.dfltAppearance);
+		if (a != null)
+			this.queueAppearance(a);
+
+		// apply the queued appearances
+		for (int i = 0; i < this.stateTypeCounter; i++)
+			this.stateDrivers[i].doApply();
+	}
+	
+	/** To be used by CompiledGeometryDrivers to forcibly reset the
+	 * geometry driver when they're done compiling.  All other
+	 * methods are ok to call outside of flushRenderer() for a pass,
+	 * but it is necessary to call this so that geometry state is
+	 * reset. */
+	public final void resetGeometryDriver() {
+		if (this.lastDriver != null) {
+			this.lastDriver.reset();
+			this.lastDriver = null;
 		}
 	}
 	
@@ -737,26 +851,9 @@ public class AbstractRenderer implements Renderer {
 		}
 	}
 	
-	// Expects there to be a current context when this is called
-	// (either a surface or the shadow context).  Otherwise, this method
-	// properly sets the render state and processes all resource managers.
-	private void manageResources() {
-		RenderState old = this.renderState;
-		try {
-			this.renderState = RenderState.RESOURCE;
-			int numManagers = this.resourceManagers.size();
-			for (int i = 0; i < numManagers; i++)
-				this.resourceManagers.get(i).manage(this);
-		} finally {
-			this.renderState = old;
-		}
-	}
-	
 	// Reset the state and geometry drivers for the next surface
 	private void resetForNextSurface() {
-		if (this.lastDriver != null)
-			this.lastDriver.reset();
-		this.lastDriver = null;
+		this.resetGeometryDriver();
 		for (int i = 0; i < this.stateTypeCounter; i++) {
 			this.stateDrivers[i].reset();
 			this.stateDrivers[i].doApply(); // now make sure everything is the "default"

@@ -30,7 +30,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  */
 public abstract class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
 	protected final GLCanvas canvas;
-	protected final Frame frame;
+	protected Frame frame; // final
 	
 	private final JoglStateRecord record;
 	
@@ -44,7 +44,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	/** The given options is used to identify the GLCapabilities for the
 	 * constructed GLCanvas.  The GLCanvas shares with the given factory's 
 	 * shadow context. */
-	protected JoglOnscreenSurface(JoglSurfaceFactory factory, int id, DisplayOptions optionsRequest,
+	protected JoglOnscreenSurface(JoglSurfaceFactory factory, int id, DisplayOptions optionsRequest, 
 								  final int x, final int y, final int width, final int height, 
 								  final boolean resizable, final  boolean undecorated) {
 		super(factory, id);
@@ -52,7 +52,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 			optionsRequest = new DisplayOptions();
 		this.canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), factory.getShadowContext(), null);
 		this.frame = new Frame();
-		
+
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {
@@ -61,7 +61,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 					frame.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
 
 					frame.add(canvas);
-					
+
 					frame.setVisible(true);
 					canvas.requestFocusInWindow();
 				}
@@ -69,9 +69,11 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		} catch (Exception e) {
 			throw new RenderException("Error creating JoglOnscreenSurface", e);
 		}
+
+		this.frame.addWindowListener(this);
 		
 		this.canvas.addGLEventListener(this);
-		this.frame.addWindowListener(this);
+		this.canvas.setIgnoreRepaint(true);
 		
 		this.record = new JoglStateRecord(factory.getRenderer().getCapabilities());
 		this.options = optionsRequest;

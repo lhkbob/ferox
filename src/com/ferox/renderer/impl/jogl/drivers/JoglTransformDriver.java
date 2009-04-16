@@ -35,8 +35,7 @@ public class JoglTransformDriver implements TransformDriver {
 	private final FloatBuffer matrix;
 	
 	private final Transform currentView;
-	private final Transform modelView;
-	
+	private boolean modelPushed;
 	private JoglSurfaceFactory factory;
 	
 	public JoglTransformDriver(JoglSurfaceFactory factory) {
@@ -44,7 +43,7 @@ public class JoglTransformDriver implements TransformDriver {
 		this.matrix = BufferUtil.newFloatBuffer(16);
 		
 		this.currentView = new Transform();
-		this.modelView = new Transform();
+		this.modelPushed = false;
 	}
 	
 	/** Returns the current "view" portion of the modelview
@@ -62,37 +61,57 @@ public class JoglTransformDriver implements TransformDriver {
 		gl.glLoadMatrixf(this.matrix);
 	}
 	
+	/** Push and then multiply the current stack by t. 
+	 * Should be paired with gl.glPopMatrix(). */
+	public void pushMatrix(GL gl, Transform t) {
+		gl.glPushMatrix();
+		getOpenGLMatrix(t, this.matrix);
+		gl.glMultMatrixf(this.matrix);
+	}
+	
 	@Override
 	public void setModelTransform(Transform transform) {
-		GL gl = this.factory.getGL();
-			
-		this.modelView.mul(this.currentView, transform);
-		this.loadMatrix(gl, this.modelView);
+		if (!this.modelPushed) {
+			this.pushMatrix(this.factory.getGL(), transform);
+			this.modelPushed = true;
+		} else 
+			this.loadMatrix(this.factory.getGL(), transform);
 	}
 	
 	@Override
 	public void resetModel() {
-		// do nothing
+		if (this.modelPushed) {
+			this.factory.getGL().glPopMatrix();
+			this.modelPushed = false;
+		}
 	}
 
 	@Override
 	public void setView(View view, int width, int height) {
 		GL gl = this.factory.getGL();
-		// setup the viewport
-		setViewport(gl, view.getViewLeft(), view.getViewRight(), view.getViewTop(), view.getViewBottom(), width, height);
 		
-		// set the projection matrix
-		gl.glMatrixMode(GL.GL_PROJECTION);
-		getOpenGLMatrix(view.getProjectionMatrix(), (FloatBuffer) this.matrix.rewind());
-		gl.glLoadMatrixf(this.matrix);
-		
-		// set the view portion of the modelview matrix
-		gl.glMatrixMode(GL.GL_MODELVIEW);
-		this.currentView.set(view.getViewTransform());
+		this.resetModel();
+		if (view != null) {
+			// setup the viewport
+			setViewport(gl, view.getViewLeft(), view.getViewRight(), view.getViewTop(), view.getViewBottom(), width, height);
+
+			// set the projection matrix
+			gl.glMatrixMode(GL.GL_PROJECTION);
+			getOpenGLMatrix(view.getProjectionMatrix(), (FloatBuffer) this.matrix.rewind());
+			gl.glLoadMatrixf(this.matrix);
+
+			// set the view portion of the modelview matrix
+			gl.glMatrixMode(GL.GL_MODELVIEW);
+			this.loadMatrix(gl, view.getViewTransform());
+			this.currentView.set(view.getViewTransform());
+		} else {
+			this.resetView();
+		}
 	}
 
 	@Override
 	public void resetView() {
+		this.factory.getGL().glLoadIdentity();
 		this.currentView.setIdentity();
 	}
 	
