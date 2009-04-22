@@ -158,12 +158,21 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 	@Override
 	public BoundVolume clone(BoundVolume result) {
-		if (result == null || !(result instanceof AxisAlignedBox))
-			result = new AxisAlignedBox();
-		AxisAlignedBox b = (AxisAlignedBox)result;
-		b.worldMax.set(this.worldMax);
-		b.worldMin.set(this.worldMin);
-		return b;
+		if (result instanceof AxisAlignedBox) {
+			AxisAlignedBox b = (AxisAlignedBox) result;
+			b.worldMax.set(this.worldMax);
+			b.worldMin.set(this.worldMin);
+			return b;
+		} else if (result instanceof BoundSphere) {
+			BoundSphere s = (BoundSphere) result;
+			Vector3f c = s.getCenter();
+			c.sub(this.worldMax, this.worldMin);
+			s.setRadius(c.length() / 2f);
+			this.getCenter(c);
+			
+			return s;
+		} else
+			return this.clone(new AxisAlignedBox());
 	}
 
 	@Override
@@ -338,13 +347,47 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 				   ((a.worldMax.y >= this.worldMin.y && a.worldMax.y <= this.worldMax.y) || (a.worldMin.y >= this.worldMin.y && a.worldMin.y <= this.worldMax.y)) &&
 				   ((a.worldMax.z >= this.worldMin.z && a.worldMax.z <= this.worldMax.z) || (a.worldMin.z >= this.worldMin.z && a.worldMin.z <= this.worldMax.z));
 		} else if (other instanceof BoundSphere) {
-			Vector3f c = AxisAlignedBox.c.get();
+			/*Vector3f c = AxisAlignedBox.c.get();
 			BoundSphere s = (BoundSphere)other;
 			this.getCenter(c);
 			c.sub(s.getCenter());
 			this.getExtent(c, true, c);
 			c.sub(s.getCenter());
-			return c.lengthSquared() <= s.getRadius() * s.getRadius();
+			return c.lengthSquared() <= s.getRadius() * s.getRadius();*/
+			// Idea taken from "Simple Intersection Tests for Games" by Miguel Gomez - Gamasutra
+			BoundSphere s = (BoundSphere) other;
+			Vector3f sphereCenter = s.getCenter();
+			float totalDistance = 0;
+			
+			float borderDistance;
+			// x (or i == 0)
+			if (sphereCenter.x < this.worldMin.x) {
+				borderDistance = this.worldMin.x - sphereCenter.x;
+				totalDistance += borderDistance * borderDistance;
+			} else if (sphereCenter.x > this.worldMax.x) {
+				borderDistance = sphereCenter.x - this.worldMax.x;
+				totalDistance += borderDistance * borderDistance;
+			}
+			
+			// y (or i == 1)
+			if (sphereCenter.y < this.worldMin.y) {
+				borderDistance = this.worldMin.y - sphereCenter.y;
+				totalDistance += borderDistance * borderDistance;
+			} else if (sphereCenter.y > this.worldMax.y) {
+				borderDistance = sphereCenter.y - this.worldMax.y;
+				totalDistance += borderDistance * borderDistance;
+			}
+			
+			// z (or i == 2)
+			if (sphereCenter.z < this.worldMin.z) {
+				borderDistance = this.worldMin.z - sphereCenter.z;
+				totalDistance += borderDistance * borderDistance;
+			} else if (sphereCenter.z > this.worldMax.z) {
+				borderDistance = sphereCenter.z - this.worldMax.z;
+				totalDistance += borderDistance * borderDistance;
+			}
+			
+			return totalDistance <= s.getRadius() * s.getRadius();
 		} else
 			throw new UnsupportedOperationException("Unable to compute intersection for type: " + other);
 	}
@@ -360,16 +403,8 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		this.worldMax.set(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
 		this.worldMin.set(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 		
-		float fourth, invFourth;
-		for (int i = 0; i < vertexCount; i++) {
-			fourth = vertices.getVertex(i, 3);
-			if (Math.abs(1f - fourth) < .0001f) {
-				this.enclosePoint(vertices.getVertex(i, 0), vertices.getVertex(i, 1), vertices.getVertex(i, 2));
-			} else {
-				invFourth = 1 / fourth;
-				this.enclosePoint(vertices.getVertex(i, 0) * invFourth, vertices.getVertex(i, 1) * invFourth, vertices.getVertex(i, 2) * invFourth);
-			}
-		}
+		for (int i = 0; i < vertexCount; i++)
+			this.enclosePoint(vertices.getVertex(i, 0), vertices.getVertex(i, 1), vertices.getVertex(i, 2));
 	}
 	
 	private void enclosePoint(float x, float y, float z) {

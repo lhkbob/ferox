@@ -16,14 +16,14 @@ public class BoundSphere extends AbstractBoundVolume {
 	private static final float radiusEpsilon = 1.00001f;
 	
 	private float radius;
-	private final Vector3f centerOffset;
+	private final Vector3f center;
 	private int lastFailedPlane;
 	
 	/** Create a sphere with 1 radius at the origin. */
 	public BoundSphere() {
 		super();
 		this.radius = 1;
-		this.centerOffset = new Vector3f();
+		this.center = new Vector3f();
 		this.lastFailedPlane = -1;
 	}
 	
@@ -49,12 +49,20 @@ public class BoundSphere extends AbstractBoundVolume {
 	
 	@Override
 	public BoundVolume clone(BoundVolume result) {
-		if (result == null || !(result instanceof BoundSphere))
-			result = new BoundSphere();
-		BoundSphere s = (BoundSphere)result;
-		s.radius = this.radius;
-		s.centerOffset.set(this.centerOffset);
-		return s;
+		if (result instanceof BoundSphere) {
+			BoundSphere s = (BoundSphere) result;
+			s.radius = this.radius;
+			s.center.set(this.center);
+			
+			return s;
+		} else if (result instanceof AxisAlignedBox) {
+			AxisAlignedBox b = (AxisAlignedBox) result;
+			b.setMin(this.center.x - this.radius, this.center.y - this.radius, this.center.z - this.radius);
+			b.setMax(this.center.x + this.radius, this.center.y + this.radius, this.center.z + this.radius);
+			
+			return b;
+		} else
+			return this.clone(new BoundSphere());
 	}
 	
 	/** Set the radius, clamps it to be above .00001. */
@@ -65,19 +73,19 @@ public class BoundSphere extends AbstractBoundVolume {
 	/** Copy the vector into the center location.  If center is null, sets it to the origin. */
 	public void setCenter(Vector3f center) {
 		if (center == null)
-			this.centerOffset.set(0f, 0f, 0f);
+			this.center.set(0f, 0f, 0f);
 		else
-			this.centerOffset.set(center);
+			this.center.set(center);
 	}
 	
 	/** Set the center location of the sphere. */
 	public void setCenter(float x, float y, float z) {
-		this.centerOffset.set(x, y, z);
+		this.center.set(x, y, z);
 	}
 	
 	/** Get the center location of the sphere. */
 	public Vector3f getCenter() {
-		return this.centerOffset;
+		return this.center;
 	}
 	
 	/** Get the radius of the sphere. */
@@ -89,7 +97,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	public void applyTransform(Transform trans) {
 		if (trans == null)
 			return;
-		trans.transform(this.centerOffset);
+		trans.transform(this.center);
 		float s = trans.getScale();
 		this.radius *= s;
 	}
@@ -105,31 +113,39 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	private void mergeAABB(AxisAlignedBox aabb) {
-		Vector3f diff = BoundSphere.tempA.get();
-		Vector3f tempB = BoundSphere.tempB.get();
+		// tempA is used in merge()
+		Vector3f center = BoundSphere.tempB.get();
+		Vector3f extents = BoundSphere.tempC.get();
 		
-		aabb.getCenter(diff);
-		diff.sub(this.centerOffset);
-		aabb.getExtent(diff, false, tempB);
-		diff.sub(tempB, this.centerOffset);
-		float dist = diff.length();
-		
-		if (dist > this.radius) {
-			float or = this.radius;
-			this.radius = (dist + or) / 2f;
-			this.centerOffset.scaleAdd((this.radius - or) / dist, diff, this.centerOffset);
-		}
+		aabb.getCenter(center);
+		extents.sub(aabb.getMax(), aabb.getMin());
+		this.merge(center, extents.length() / 2f);
 	}
 	
 	private void mergeSphere(BoundSphere sphere) {
+		this.merge(sphere.center, sphere.radius);
+	}
+	
+	private void merge(Vector3f center, float radius) {
 		Vector3f diff = BoundSphere.tempA.get();
 		
-		diff.sub(this.centerOffset, sphere.centerOffset);
+		diff.sub(center, this.center);
 		float dist = diff.length();
 		
-		if (dist + sphere.radius > this.radius) {
-			this.radius = (dist + sphere.radius + this.radius) / 2f;
-			this.centerOffset.scaleAdd((this.radius - sphere.radius) / dist, diff, sphere.centerOffset);
+		if (dist != 0f) {
+			if (radius > this.radius + dist) {
+				// this sphere is inside other sphere
+				this.radius = radius;
+				this.center.set(center);
+			} else if (dist + radius > this.radius) {
+				// other sphere is at least partially outside of us
+				float or = this.radius;
+				this.radius = (dist + radius + this.radius) / 2f;
+				this.center.scaleAdd((this.radius - or) / dist, diff, this.center);
+			} // else we already enclose it, so do nothing
+		} else {
+			// don't need to move the center, just take the largest radius
+			this.radius = Math.max(radius, this.radius);
 		}
 	}
 
@@ -155,7 +171,7 @@ public class BoundSphere extends AbstractBoundVolume {
 				plane = i;
 
 			if ((planeState & (1 << plane)) == 0) {
-				dist = view.getWorldPlane(plane).signedDistance(this.centerOffset);
+				dist = view.getWorldPlane(plane).signedDistance(this.center);
 
 				if (dist < -this.radius) {
 					view.setPlaneState(planeState);
@@ -178,7 +194,7 @@ public class BoundSphere extends AbstractBoundVolume {
 			throw new NullPointerException("Can't compute extent for a null direction");
 		if (result == null)
 			result = new Vector3f();
-		result.set(this.centerOffset);
+		result.set(this.center);
 
 		if (reverse) {
 			result.x -= dir.x * this.radius;
@@ -205,7 +221,7 @@ public class BoundSphere extends AbstractBoundVolume {
 			Vector3f cross = BoundSphere.tempA.get();
 			
 			BoundSphere s = (BoundSphere)other;
-			cross.sub(this.centerOffset, s.centerOffset);
+			cross.sub(this.center, s.center);
 			return cross.lengthSquared() <= (this.radius + s.radius) * (this.radius + s.radius);
 		} else
 			throw new UnsupportedOperationException("Unable to compute intersection between the given type: " + other);
@@ -231,11 +247,11 @@ public class BoundSphere extends AbstractBoundVolume {
 		 switch (b) {
 	        case 0:
 	            this.radius = 0;
-	            this.centerOffset.set(0f, 0f, 0f);
+	            this.center.set(0f, 0f, 0f);
 	            break;
 	        case 1:
 	            this.radius = 1f - radiusEpsilon;
-	            populateFromArray(this.centerOffset, points, ap - 1);
+	            populateFromArray(this.center, points, ap - 1);
 	            break;
 	        case 2:
 	            populateFromArray(tempA, points, ap - 1);
@@ -258,9 +274,9 @@ public class BoundSphere extends AbstractBoundVolume {
 	        }
 	        for (int i = 0; i < p; i++) {
 	            populateFromArray(tempA, points, i + ap);
-	            float d = ((tempA.x - this.centerOffset.x) * (tempA.x - this.centerOffset.x) + 
-		            	   (tempA.y - this.centerOffset.y) * (tempA.y - this.centerOffset.y) +  
-		            	   (tempA.z - this.centerOffset.z) * (tempA.z - this.centerOffset.z));
+	            float d = ((tempA.x - this.center.x) * (tempA.x - this.center.x) + 
+		            	   (tempA.y - this.center.y) * (tempA.y - this.center.y) +  
+		            	   (tempA.z - this.center.z) * (tempA.z - this.center.z));
 	            if (d - (this.radius * this.radius) > radiusEpsilon - 1f) {
 	            	for (int j = i; j > 0; j--) {
 	                    populateFromArray(tempB, points, j + ap);
@@ -304,7 +320,7 @@ public class BoundSphere extends AbstractBoundVolume {
 		
 		float denom = 2.0f * (tA.x * (tB.y * tC.z - tC.y * tB.z) - tB.x * (tA.y * tC.z - tC.y * tA.z) + tC.x * (tA.y * tB.z - tB.y * tA.z));
 		if (denom == 0) {
-			this.centerOffset.set(0f, 0f, 0f);
+			this.center.set(0f, 0f, 0f);
 			this.radius = 0f;
 		} else {
 			cross.cross(tA, tB); cross.scale(tC.lengthSquared());
@@ -313,7 +329,7 @@ public class BoundSphere extends AbstractBoundVolume {
 			cross.scale(1f / denom);
 
 	        this.radius = cross.length() * radiusEpsilon;
-	        this.centerOffset.add(o, cross);
+	        this.center.add(o, cross);
 		}
 	}
 
@@ -331,7 +347,7 @@ public class BoundSphere extends AbstractBoundVolume {
 		float denom = 2f * cross.lengthSquared();
 
 		if (denom == 0) {
-			this.centerOffset.set(0f, 0f, 0f);
+			this.center.set(0f, 0f, 0f);
 			this.radius = 0f;
 		} else {
 			tC.cross(cross, tA); tC.scale(tB.lengthSquared());
@@ -339,33 +355,24 @@ public class BoundSphere extends AbstractBoundVolume {
 			tC.add(tD); tC.scale(1f / denom);
 
 			this.radius = tC.length() * radiusEpsilon;
-			this.centerOffset.add(o, tC);
+			this.center.add(o, tC);
 		}
 	}
 
 	private void setSphere(Vector3f o, Vector3f a) {
 		this.radius = (float)Math.sqrt(((a.x - o.x) * (a.x - o.x) + (a.y - o.y) * (a.y - o.y) + (a.z - o.z) * (a.z - o.z)) / 4f) + radiusEpsilon - 1f;
 	    
-		this.centerOffset.scale(.5f, o);
-	    this.centerOffset.scaleAdd(.5f, a, this.centerOffset);
+		this.center.scale(.5f, o);
+	    this.center.scaleAdd(.5f, a, this.center);
 	}
 
 	private static void fillPointsArray(float[] points, Boundable verts) {
 		int vertexCount = verts.getVertexCount();
 		
-		float fourth, invFourth;
 		for (int i = 0; i < vertexCount; i++) {
-			fourth = verts.getVertex(i, 3);
-			if (Math.abs(1f - fourth) < .0001f) {
-				points[i * 3] = verts.getVertex(i, 0);
-				points[i * 3 + 1] = verts.getVertex(i, 1);
-				points[i * 3 + 2] = verts.getVertex(i, 2);
-			} else {
-				invFourth = 1 / fourth;
-				points[i * 3] = verts.getVertex(i, 0) * invFourth;
-				points[i * 3 + 1] = verts.getVertex(i, 1) * invFourth;
-				points[i * 3 + 2] = verts.getVertex(i, 2) * invFourth;
-			}
+			points[i * 3] = verts.getVertex(i, 0);
+			points[i * 3 + 1] = verts.getVertex(i, 1);
+			points[i * 3 + 2] = verts.getVertex(i, 2);
 		}
 	}
 

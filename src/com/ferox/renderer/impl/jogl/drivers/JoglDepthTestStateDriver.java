@@ -19,6 +19,27 @@ public class JoglDepthTestStateDriver extends SingleStateDriver<DepthTest> {
 	public JoglDepthTestStateDriver(JoglSurfaceFactory factory) {
 		super(new DepthTest(), DepthTest.class, factory);
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		PixelOpRecord pr = record.pixelOpRecord;
+		FramebufferRecord fr = record.frameRecord;
+		
+		if (pr.enableDepthTest) {
+			pr.enableDepthTest = false;
+			gl.glDisable(GL.GL_DEPTH_TEST);
+		}
+		
+		if (pr.depthFunc != GL.GL_LESS) {
+			pr.depthFunc = GL.GL_LESS;
+			gl.glDepthFunc(GL.GL_LESS);
+		}
+		
+		if (!fr.depthWriteMask) {
+			fr.depthWriteMask = true;
+			gl.glDepthMask(true);
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, DepthTest nextState) {

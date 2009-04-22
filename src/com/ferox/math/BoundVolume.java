@@ -14,8 +14,8 @@ import com.ferox.renderer.View.FrustumIntersection;
  *
  */
 public interface BoundVolume {
-	/** Clone this BoundVolume into result.  If result is not the same type, or is null, create a new instance of the correct type
-	 * and return that. */
+	/** Clone this BoundVolume into result.  If result is of an unsupported type or null, create a new BoundVolume
+	 * of this volume's type to store the clone. */
 	public BoundVolume clone(BoundVolume result);
 	
 	/** Grow this BoundVolume to completely enclose the given BoundVolume. Should throw an exception if it doesn't know how to

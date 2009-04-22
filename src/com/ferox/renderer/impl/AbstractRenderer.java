@@ -61,9 +61,6 @@ import com.ferox.state.State.Role;
  * @author Michael Ludwig
  *
  */
-// TODO: remove currentPass == null/frameStates == null checks and when necessary just
-// assign them dummy values so that they still function.
-// TODO: in compile() make sure there is better default state before calling the driver
 public class AbstractRenderer implements Renderer {
 	/** Represents all possible states of an AbstractRenderer. */
 	public static enum RenderState {
@@ -536,7 +533,7 @@ public class AbstractRenderer implements Renderer {
 			ResourceData data = new ResourceData(AbstractRenderer.this, compiler.getDriver());
 			// setup the default state
 			transform.setView(null, 0, 0);
-			setAppearance(null);
+			restoreDefaultState(null);
 			this.compiledGeom = compiler.compile(this.atoms, data);
 			this.compiledGeom.setResourceData(data);
 		}
@@ -587,7 +584,7 @@ public class AbstractRenderer implements Renderer {
 	}
 	
 	@Override
-	public final void renderAtom(RenderAtom atom) throws RenderException {
+	public final int renderAtom(RenderAtom atom) throws RenderException {
 		this.ensure(RenderState.RENDERING);
 		if (atom == null)
 			throw new RenderException("Cannot call renderAtom with a null RenderAtom");
@@ -617,10 +614,11 @@ public class AbstractRenderer implements Renderer {
 
 			// set the model transform and render
 			this.transform.setModelTransform(model); 
-			this.frameStats.add(1, geom.getVertexCount(), driver.render(geom, gd)); // update stats
+			int polyCount = driver.render(geom, gd);
+			this.frameStats.add(1, geom.getVertexCount(), polyCount); // update stats
 			this.transform.resetModel();
 			
-			return; // end now
+			return polyCount; // end now
 		}
 		
 		if (this.getResourceDriver(geom.getClass()) == null)
@@ -629,6 +627,8 @@ public class AbstractRenderer implements Renderer {
 			// reset the influence atoms for the next render atom
 			for (int i = 0; i < this.stateTypeCounter; i++)
 				this.stateDrivers[i].reset();
+			
+			return 0;
 		}
 	}
 	
@@ -796,30 +796,32 @@ public class AbstractRenderer implements Renderer {
 		}
 	}
 	
-	/** Adjust the current record so that the given Appearance
-	 * is active.  If a is null, the record is set to be the
-	 * default appearance used when rendering atoms.
+	/** Restore all state modified by the drivers of the given Roles, so
+	 * that they are completely back to the default state.  
 	 * 
-	 * This will ignore any queued influence atoms.
+	 * If the Roles[] array is null, then all currently used drivers
+	 * will be restored to their defaults.
 	 * 
 	 * This can only be called when the renderer is in the
 	 * RENDERING state and from the gl thread. */
-	public final void setAppearance(Appearance a) {
+	public final void restoreDefaultState(Role[] roles) {
 		this.ensure(RenderState.RENDERING);
 		if (!this.factory.isGraphicsThread())
 			throw new RenderException("renderAtom() cannot be invoked on this thread");
-		
-		// reset, so we're on a clean slate
-		for (int i = 0; i < this.stateTypeCounter; i++)
-			this.stateDrivers[i].reset();
-		
-		this.queueAppearance(this.dfltAppearance);
-		if (a != null)
-			this.queueAppearance(a);
 
-		// apply the queued appearances
-		for (int i = 0; i < this.stateTypeCounter; i++)
-			this.stateDrivers[i].doApply();
+		if (roles == null) {
+			// do it for all roles
+			for (int i = 0; i < this.stateTypeCounter; i++)
+				this.stateDrivers[i].restoreDefaults();
+		} else {
+			// only restore defaults for roles we recognize in the array
+			Integer index;
+			for (int i = 0; i < roles.length; i++) {
+				index = this.stateTypeIdMap.get(roles[i]);
+				if (index != null) // we have a driver for this
+					this.stateDrivers[index.intValue()].restoreDefaults();
+			}
+		}
 	}
 	
 	/** To be used by CompiledGeometryDrivers to forcibly reset the

@@ -19,8 +19,17 @@ import com.ferox.state.Material;
  *
  */
 public class JoglMaterialStateDriver extends SingleStateDriver<Material> {
+	private final Material restoredMaterial;
+	
 	public JoglMaterialStateDriver(JoglSurfaceFactory factory) {
 		super(new Material(), Material.class, factory);
+		// this is different than the default state for the Renderer
+		this.restoredMaterial = new Material(new Color(.2f, .2f, .2f, 1f), new Color(0f, 0f, 0f, 1f), new Color(.8f, .8f, .8f, 1f), 0f);
+	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		this.apply(gl, record, this.restoredMaterial);
 	}
 
 	@Override

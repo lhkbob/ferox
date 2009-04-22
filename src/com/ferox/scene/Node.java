@@ -1,10 +1,13 @@
 package com.ferox.scene;
 
+import java.util.List;
+
 import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Transform;
+import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;
@@ -158,6 +161,17 @@ public abstract class Node implements SceneElement {
 		return VisitResult.SUCCESS_PARTIAL;
 	}
 	
+	/** Utility method to add all render atoms of the scene into the
+	 * given list (in many ways it functions like visit() where everything
+	 * is inside the view frustum).  This list can then be used in
+	 * a Renderer's compile() method.
+	 * 
+	 * The scene should be updated before this method is called, to get
+	 * correct results.
+	 * 
+	 * If atoms is null, a new list should be created and returned. */
+	public abstract List<RenderAtom> compile(List<RenderAtom> atoms);
+			
 	/** If bounds are locked, then this Node's world bounds will not be updated each time update() is called.
 	 * This also means that when locked, the bounds will not reflect any changes in the world transform of the Node. */
 	public boolean isBoundsLocked() {

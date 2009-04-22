@@ -1,10 +1,13 @@
 package com.ferox.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Transform;
-import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.RenderAtom;
+import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 import com.ferox.renderer.util.RenderQueueDataCache;
 import com.ferox.resource.Geometry;
@@ -87,6 +90,15 @@ public class Shape extends Leaf implements RenderAtom {
 			renderQueue.add(this);
 
 		return sp;
+	}
+	
+	@Override
+	public List<RenderAtom> compile(List<RenderAtom> atoms) {
+		if (atoms == null)
+			atoms = new ArrayList<RenderAtom>();
+		if (this.getCullMode() != CullMode.ALWAYS)
+			atoms.add(this);
+		return atoms;
 	}
 	
 	/** Override to store the geometry's bounds into local.  Only do it if flag is set 

@@ -24,8 +24,9 @@ public interface RenderQueue {
 	 * Repeated calls to flush() without intermittent calls to clear() should perform the
 	 * same operations on the Renderer as the first call to flush().
 	 * 
-	 * Do nothing if renderer or view are null. */
-	public void flush(Renderer renderer, View view) throws RenderException;
+	 * Do nothing if renderer or view are null.
+	 * Return the total number of polygons rendered. */
+	public int flush(Renderer renderer, View view) throws RenderException;
 	
 	/** Add the given atom to be rendered by this RenderQueue.  If an atom is added twice, then 
 	 * that atom will be rendered twice. It is the user of a RenderQueue's responsibility to

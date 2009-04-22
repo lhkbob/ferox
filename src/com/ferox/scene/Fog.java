@@ -1,5 +1,8 @@
 package com.ferox.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Color;
 import com.ferox.renderer.InfluenceAtom;
@@ -140,6 +143,14 @@ public class Fog extends Leaf implements State, InfluenceAtom {
 		if (qual == null)
 			qual = Quality.DONT_CARE;
 		this.qual = qual;
+	}
+	
+	@Override
+	public List<RenderAtom> compile(List<RenderAtom> atoms) {
+		if (atoms == null)
+			atoms = new ArrayList<RenderAtom>();
+		// don't add any atoms
+		return atoms;
 	}
 
 	@Override

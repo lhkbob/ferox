@@ -43,6 +43,16 @@ public abstract class SingleStateDriver<T extends State> implements StateDriver 
 	 * state supplied in the constructor. */
 	protected abstract void apply(GL gl, JoglStateRecord record, T nextState);
 	
+	/** Perform actions to satify the requirements of restoreDefaults(). */
+	protected abstract void restore(GL gl, JoglStateRecord record);
+	
+	@Override
+	public void restoreDefaults() {
+		this.restore(this.factory.getGL(), this.factory.getRecord());
+		this.lastAppliedState = null;
+		this.reset();
+	}
+	
 	@Override
 	public void doApply() {
 		if (this.queuedState != null) {

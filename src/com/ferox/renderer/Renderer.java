@@ -143,16 +143,26 @@ public interface Renderer {
 	/** Return a single Geometry instance that represents the list of render atoms.  If
 	 * submitted with renderAtom(), this rendered Geometry will represent the what would
 	 * be rendered if the list of atoms were submitted to renderAtom() in order (accounting
-	 * for the current viewport and transform).
-	 * 
-	 * Because the returned Geometry uses the Appearances stored in atoms, it must return
-	 * true from isAppearanceIgnored().
-	 * If the specified list is empty, return null.
+	 * for the current viewport and transform).  Any subsequent changes to the appearances,
+	 * positions, or geometries will not be visible in the returned Geometry.
 	 * 
 	 * The returned Geometry can usually be rendered much faster than if the list were
 	 * rendered.  It is intended for static atom's, and because of this, updating the returned
 	 * geometry has no effect (it must still be cleaned-up, but subsequent updates will then
 	 * fail).  
+	 * 
+	 * If the specified list is empty, return null.
+	 * 
+	 * Because the returned Geometry uses the Appearances stored in atoms, it must return
+	 * true from isAppearanceIgnored().  Depending on what is submitted to the Renderer,
+	 * influence atoms can still affect the rendering.  If a state's role is never used during
+	 * the compile process, it will not be ignored.
+	 * 
+	 * Depending on the implementation, there may be undefined results with states that rely,
+	 * implicitly on the View's current view transform (such as individual lights, or EYE
+	 * texture coord generation).  This is because the low-level operations apply the current
+	 * view transform when the call is executed.  Thus changes to the view will not be visible
+	 * in the returned Geometry's appearances.
 	 * 
 	 * Implementations do not need to provide a useful implementation of getVertex(), so
 	 * programmers should use getBounds() instead of bounds.enclose() to get the BoundVolume
@@ -413,7 +423,9 @@ public interface Renderer {
 	 * The render atom will not be rendered if it has a null geometry or null transform.  However, influences
 	 * must still be cleared in this case.
 	 * 
+	 * Return the number of polygons rendered for this atom.
+	 * 
 	 * Throw an exception if the renderer is destroyed, if it's not rendering render passes, if
 	 * atom is null, or if any geometries, resources or states used by the atom are unsupported. */
-	public void renderAtom(RenderAtom atom) throws RenderException;
+	public int renderAtom(RenderAtom atom) throws RenderException;
 }

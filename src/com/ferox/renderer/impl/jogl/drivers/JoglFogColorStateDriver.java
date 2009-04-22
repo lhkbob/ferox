@@ -19,8 +19,18 @@ import com.ferox.state.State.Quality;
  *
  */
 public class JoglFogColorStateDriver extends SingleStateDriver<Fog> {
+	private static final Color DEFAULT_COLOR = new Color(0f, 0f, 0f, 0f);
+	
 	public JoglFogColorStateDriver(JoglSurfaceFactory factory) {
 		super(new Fog(new Color(), 0, 1, 1, FogEquation.EXP, Quality.DONT_CARE), Fog.class, factory);
+	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		ColoringRecord cr = record.colorRecord;
+		HintRecord hr = record.hintRecord;
+		
+		this.setRecord(gl, cr, hr, DEFAULT_COLOR, 1f, 0f, 1f, GL.GL_EXP, GL.GL_DONT_CARE);
 	}
 
 	@Override
@@ -28,42 +38,42 @@ public class JoglFogColorStateDriver extends SingleStateDriver<Fog> {
 		ColoringRecord cr = record.colorRecord;
 		HintRecord hr = record.hintRecord;
 		
+		this.setRecord(gl, cr, hr, nextState.getColor(), nextState.getDensity(), 
+					   nextState.getStartDistance(), nextState.getEndDistance(), 
+					   EnumUtil.getGLFogMode(nextState.getEquation()), 
+					   EnumUtil.getGLHint(nextState.getQuality()));
+	}
+	
+	private void setRecord(GL gl, ColoringRecord cr, HintRecord hr, Color color, float density, float start, float end, int mode, int hint) {
 		// color
-		if (!nextState.getColor().equals(cr.fogColor)) {
-			nextState.getColor().get(cr.fogColor);
+		if (!color.equals(cr.fogColor)) {
+			color.get(cr.fogColor);
 			gl.glFogfv(GL.GL_FOG_COLOR, cr.fogColor, 0);
 		}
 		// density
-		if (nextState.getDensity() != cr.fogDensity) {
-			cr.fogDensity = nextState.getDensity();
+		if (density != cr.fogDensity) {
+			cr.fogDensity = density;
 			gl.glFogf(GL.GL_FOG_DENSITY, cr.fogDensity);
 		}
 		// start
-		if (nextState.getStartDistance() != cr.fogStart) {
-			cr.fogStart = nextState.getStartDistance();
+		if (start != cr.fogStart) {
+			cr.fogStart = start;
 			gl.glFogf(GL.GL_FOG_START, cr.fogStart);
 		}
 		// end
-		if (nextState.getEndDistance() != cr.fogEnd) {
-			cr.fogEnd = nextState.getEndDistance();
+		if (end != cr.fogEnd) {
+			cr.fogEnd = end;
 			gl.glFogf(GL.GL_FOG_END, cr.fogEnd);
 		}
 		// mode
-		int mode = EnumUtil.getGLFogMode(nextState.getEquation());
 		if (mode != cr.fogMode) {
 			cr.fogMode = mode;
 			gl.glFogi(GL.GL_FOG_MODE, mode);
 		}
 		// hint
-		int hint = EnumUtil.getGLHint(nextState.getQuality());
 		if (hint != hr.fogHint) {
 			hr.fogHint = hint;
 			gl.glHint(GL.GL_FOG_HINT, hint);
-		}
-		// fog src
-		if (cr.fogCoordSrc != GL.GL_FRAGMENT_DEPTH) {
-			cr.fogCoordSrc = GL.GL_FRAGMENT_DEPTH;
-			gl.glFogi(GL.GL_FOG_COORD_SRC, GL.GL_FRAGMENT_DEPTH);
 		}
 	}
 }

@@ -16,10 +16,9 @@ public class LightingRecord {
 	 * values should not be taken as actual state, but are
 	 * an easy way of storing the data before passing into opengl. */
 	public static class LightRecord {
-		/* Initial values for these are bogus, just to force a color change. */
-		public final float[] ambient = {-1f, -1f, -1f, -1f};
-		public final float[] diffuse = {-1f, -1f, -1f, 1f};
-		public final float[] specular = {0f, 0f, 0f, -1f};
+		public final float[] ambient = {0f, 0f, 0f, 1f};
+		public final float[] diffuse = {0f, 0f, 0f, 1f};
+		public final float[] specular = {0f, 0f, 0f, 1f};
 		public final float[] position = {0f, 0f, 1f, 0f};
 		
 		public float constantAttenuation = 1f;
@@ -64,7 +63,20 @@ public class LightingRecord {
 	
 	public LightingRecord(int maxLights) {
 		this.lightUnits = new LightRecord[maxLights];
-		for (int i = 0; i < this.lightUnits.length; i++) 
+		for (int i = 0; i < this.lightUnits.length; i++) {
 			this.lightUnits[i] = new LightRecord();
+			if (i == 0) {
+				// must adjust diffuse and specular color
+				this.lightUnits[i].diffuse[0] = 1f;
+				this.lightUnits[i].diffuse[1] = 1f;
+				this.lightUnits[i].diffuse[2] = 1f;
+				this.lightUnits[i].diffuse[3] = 1f;
+
+				this.lightUnits[i].specular[0] = 1f;
+				this.lightUnits[i].specular[1] = 1f;
+				this.lightUnits[i].specular[2] = 1f;
+				this.lightUnits[i].specular[3] = 1f;
+			}
+		}
 	}
 }

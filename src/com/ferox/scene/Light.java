@@ -1,5 +1,8 @@
 package com.ferox.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.math.BoundVolume;
@@ -115,6 +118,14 @@ public abstract class Light extends Leaf implements State, InfluenceAtom {
 		if (direction == null)
 			direction = new Vector3f(0f, 0f, 1f);
 		this.direction = direction;
+	}
+	
+	@Override
+	public List<RenderAtom> compile(List<RenderAtom> atoms) {
+		if (atoms == null)
+			atoms = new ArrayList<RenderAtom>();
+		// don't add any atoms
+		return atoms;
 	}
 
 	@Override

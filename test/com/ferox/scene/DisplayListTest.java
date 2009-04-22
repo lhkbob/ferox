@@ -1,27 +1,24 @@
 package com.ferox.scene;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.BasicApplication;
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.BoundSphere;
-import com.ferox.math.BoundVolume;
 import com.ferox.math.Color;
-import com.ferox.math.Transform;
-import com.ferox.renderer.RenderAtom;
-import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.util.RenderQueueDataCache;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.geometry.Box;
+import com.ferox.resource.geometry.Sphere;
 import com.ferox.resource.geometry.VertexArrayGeometry;
 import com.ferox.resource.geometry.VertexBufferGeometry;
+import com.ferox.resource.geometry.Sphere.SphereTextureMode;
 import com.ferox.resource.texture.TextureImage;
 import com.ferox.resource.texture.loader.TextureLoader;
 import com.ferox.scene.Fog.FogEquation;
+import com.ferox.scene.Node.CullMode;
 import com.ferox.state.Appearance;
 import com.ferox.state.FogReceiver;
 import com.ferox.state.LightReceiver;
@@ -35,14 +32,14 @@ import com.ferox.state.Texture.EnvMode;
 import com.ferox.state.Texture.TexCoordGen;
 
 public class DisplayListTest extends BasicApplication {
-	public static final boolean DEBUG = true;
-	public static final boolean USE_VBO = true;
+	public static final boolean DEBUG = false;
+	public static final boolean USE_VBO = false;
 	public static final boolean RANDOM_PLACEMENT = true;
 	
 	public static final int NUM_CUBES = 10000;
 	public static final int BOUNDS = 100;
 	
-	public static final Color bgColor = new Color(0f, 0f, 0f);
+	public static final Color bgColor = new Color(.5f, .2f, .2f);
 	
 	protected Geometry displayList;
 	
@@ -56,32 +53,9 @@ public class DisplayListTest extends BasicApplication {
 
 	@Override
 	protected SceneElement buildScene(Renderer renderer, ViewNode view) {
+		this.window.setClearColor(bgColor);
 		view.getView().setPerspective(60f, this.window.getWidth() / (float) this.window.getHeight(), 1f, 300f);
 		view.getLocalTransform().getTranslation().z = 2f * BOUNDS;
-		
-		Group root = new Group();
-		root.add(view);
-		
-		Light spotLight = new SpotLight();
-		
-		spotLight.setLocalBounds(new BoundSphere(BOUNDS));
-		spotLight.getLocalTransform().getTranslation().set(0f, 0f, 0f);
-		view.add(spotLight);
-		
-		Light directionLight = new DirectionLight(new Vector3f(-1f, -1f, -1f));
-		directionLight.setLocalBounds(new BoundSphere(BOUNDS));
-		root.add(directionLight);
-		
-		Fog fog = new Fog(bgColor, 10f, 300f, 1f, FogEquation.LINEAR, Quality.BEST);
-		fog.setLocalBounds(new BoundSphere(BOUNDS));
-		root.add(fog);
-		
-		Appearance[] apps = this.createAppearances(renderer);
-		PolygonStyle ps = new PolygonStyle();
-		ps.setFrontStyle(DrawStyle.SOLID);
-		ps.setBackStyle(DrawStyle.NONE);
-		for (Appearance a: apps)
-			a.addState(ps);
 		
 		Geometry cube;
 		if (USE_VBO)
@@ -89,7 +63,6 @@ public class DisplayListTest extends BasicApplication {
 		else
 			cube = new VertexArrayGeometry(new Box(2f));
 		renderer.requestUpdate(cube, true);
-		renderer.flushRenderer(null);
 		
 		// vars for regular gridding
 		int sideCubeCount = (int) (Math.ceil(Math.pow(NUM_CUBES, 1.0 / 3.0)));
@@ -98,9 +71,12 @@ public class DisplayListTest extends BasicApplication {
 		int y = 0;
 		int z = 0;
 		
-		List<RenderAtom> compiledList = new ArrayList<RenderAtom>();
+		Appearance[] apps = this.createAppearances(renderer);
+		Group compiledScene = new Group(NUM_CUBES);
 		for (int i = 0; i < NUM_CUBES; i++) {
-			Vector3f pos = new Vector3f();
+			Shape shape = new Shape(cube, apps[i % apps.length]);
+			shape.setLocalBounds(new BoundSphere());
+			Vector3f pos = shape.getLocalTransform().getTranslation();
 			
 			if (RANDOM_PLACEMENT) {
 				if (i != 0) {
@@ -124,12 +100,51 @@ public class DisplayListTest extends BasicApplication {
 					}
 				}
 			}
-			compiledList.add(new DisplayListRenderAtom(cube, apps[(int) ((float) i / NUM_CUBES * apps.length)], pos));
+			
+			compiledScene.add(shape);
 		}
-		this.displayList = renderer.compile(compiledList);
+		
+		renderer.flushRenderer(null);
+		compiledScene.update(true);
+		this.displayList = renderer.compile(compiledScene.compile(null));
+		
+		Group root = new Group();
+		root.add(view);
+		
+		Light spotLight = new SpotLight();
+		
+		spotLight.setLocalBounds(new BoundSphere(BOUNDS));
+		spotLight.getLocalTransform().getTranslation().set(0f, 0f, 0f);
+		view.add(spotLight);
+		
+		Light directionLight = new DirectionLight(new Vector3f(-1f, -1f, -1f));
+		directionLight.setLocalBounds(new BoundSphere(BOUNDS));
+		root.add(directionLight);
+		
+		Fog fog = new Fog(bgColor, 10f, 300f, 1f, FogEquation.LINEAR, Quality.BEST);
+		fog.setLocalBounds(new BoundSphere(BOUNDS));
+		root.add(fog);
+		
+		BoundSphere b = new BoundSphere();
+		this.displayList.getBounds(b);
+		
+		VertexArrayGeometry dlBounds = new VertexArrayGeometry(new Sphere(b.getCenter(), b.getRadius(), 32, 32, SphereTextureMode.ORIGINAL));
+		renderer.requestUpdate(dlBounds, true);
+		Shape dlBoundsShape = new Shape(dlBounds, new Appearance(new Material(new Color(1f, 0f, 0f)), new PolygonStyle(DrawStyle.LINE, DrawStyle.NONE)));
+		dlBoundsShape.setCullMode(CullMode.NEVER);
+		root.add(dlBoundsShape);
+		
+		AxisAlignedBox aabb = new AxisAlignedBox();
+		this.displayList.getBounds(aabb);
+		dlBounds = new VertexArrayGeometry(new Box(aabb.getMin(), aabb.getMax()));
+		renderer.requestUpdate(dlBounds, true);
+		dlBoundsShape = new Shape(dlBounds, new Appearance(new Material(new Color(1f, 0f, 0f)), new PolygonStyle(DrawStyle.LINE, DrawStyle.NONE)));
+		dlBoundsShape.setCullMode(CullMode.NEVER);
+		root.add(dlBoundsShape);
 		
 		root.add(new Shape(this.displayList, null));
 		
+		this.window.setVSyncEnabled(true);
 		return root;
 	}
 	
@@ -156,6 +171,7 @@ public class DisplayListTest extends BasicApplication {
 		FogReceiver fr = null;
 		if (i % 2 == 0) {
 			lr = new LightReceiver();
+			lr.setSeparateSpecular(true);
 			m.setSmoothShaded(true);
 		} {
 			fr = new FogReceiver();
@@ -183,54 +199,5 @@ public class DisplayListTest extends BasicApplication {
 		}
 		
 		return new Appearance(m, lr, t, fr);
-	}
-	
-	private static class DisplayListRenderAtom implements RenderAtom {
-		private Appearance apperance;
-		private BoundVolume bounds;
-		private Geometry geometry;
-		private Transform transform;
-		private RenderQueueDataCache cache;
-		
-		public DisplayListRenderAtom(Geometry geom, Appearance app, Vector3f location) {
-			this.geometry = geom;
-			this.apperance = app;
-			
-			this.bounds = new BoundSphere();
-			geom.getBounds(this.bounds);
-			
-			this.transform = new Transform(location);
-			this.cache = new RenderQueueDataCache();
-		}
-		
-		@Override
-		public Appearance getAppearance() {
-			return this.apperance;
-		}
-
-		@Override
-		public BoundVolume getBounds() {
-			return this.bounds;
-		}
-
-		@Override
-		public Geometry getGeometry() {
-			return this.geometry;
-		}
-
-		@Override
-		public Object getRenderQueueData(RenderQueue pipe) {
-			return this.cache.getRenderQueueData(pipe);
-		}
-
-		@Override
-		public Transform getTransform() {
-			return this.transform;
-		}
-
-		@Override
-		public void setRenderQueueData(RenderQueue pipe, Object data) {
-			this.cache.setRenderQueueData(pipe, this);
-		}
 	}
 }

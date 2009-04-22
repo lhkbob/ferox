@@ -251,6 +251,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 
 				this.currentDrawable = renderAction.getGLAutoDrawable();
 				this.currentRecord = renderAction.getStateRecord();
+				//this.currentGL = (this.debugGL ? new TraceGL(new DebugGL(this.currentDrawable.getGL()), System.out) : this.currentDrawable.getGL());
 				this.currentGL = (this.debugGL ? new DebugGL(this.currentDrawable.getGL()) : this.currentDrawable.getGL());
 
 				renderAction.render();

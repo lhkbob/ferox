@@ -21,10 +21,25 @@ public class JoglStencilTestStateDriver extends SingleStateDriver<StencilTest> {
 	public JoglStencilTestStateDriver(JoglSurfaceFactory factory) {
 		super(null, StencilTest.class, factory);
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		PixelOpRecord pr = record.pixelOpRecord;
+		FramebufferRecord fr = record.frameRecord;
+		
+		if (pr.enableStencilTest) {
+			pr.enableStencilTest = false;
+			gl.glDisable(GL.GL_STENCIL_TEST);
+		}
+		
+		this.setWriteMask(gl, fr, FULL_MASK);
+		this.setStencilOp(gl, pr, GL.GL_KEEP, GL.GL_KEEP, GL.GL_KEEP);
+		this.setStencilFunc(gl, pr, GL.GL_ALWAYS, 0, FULL_MASK);
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, StencilTest nextState) {
-		PixelOpRecord pr =record.pixelOpRecord;
+		PixelOpRecord pr = record.pixelOpRecord;
 		FramebufferRecord fr = record.frameRecord;
 		
 		if (nextState == null) {
@@ -34,11 +49,7 @@ public class JoglStencilTestStateDriver extends SingleStateDriver<StencilTest> {
 				gl.glDisable(GL.GL_STENCIL_TEST);
 			}
 			// we must reset the mask so stencil clearing works properly
-			if (fr.stencilWriteMask != FULL_MASK || fr.stencilBackWriteMask != FULL_MASK) {
-				fr.stencilBackWriteMask = FULL_MASK;
-				fr.stencilWriteMask = FULL_MASK;
-				gl.glStencilMask(~0);
-			}
+			this.setWriteMask(gl, fr, FULL_MASK);
 		} else {
 			// enable, make sure the stencil record is correct
 			if (!pr.enableStencilTest) {
@@ -46,34 +57,49 @@ public class JoglStencilTestStateDriver extends SingleStateDriver<StencilTest> {
 				gl.glEnable(GL.GL_STENCIL_TEST);
 			}
 			
+			// set the stencil write mask
+			this.setWriteMask(gl, fr, nextState.getWriteMask());
+			
 			// set the stencil function
-			int func = EnumUtil.getGLPixelTest(nextState.getTest());
-			int ref = nextState.getReferenceValue();
-			int mask = nextState.getTestMask();
-			if ((func != pr.stencilFunc || ref != pr.stencilRef || ref != pr.stencilValueMask) ||
-				(func != pr.stencilBackFunc || ref != pr.stencilBackRef || ref != pr.stencilBackValueMask)) {
-				// update the record
-				pr.stencilFunc = func; pr.stencilBackFunc = func;
-				pr.stencilRef = ref; pr.stencilBackRef = ref;
-				pr.stencilValueMask = mask;	pr.stencilBackValueMask = mask;
-				
-				gl.glStencilFunc(func, ref, mask);
-			}
+			this.setStencilFunc(gl, pr, EnumUtil.getGLPixelTest(nextState.getTest()), nextState.getReferenceValue(), nextState.getTestMask());
 			
 			// set the stencil operations
-			int sfail = EnumUtil.getGLStencilOp(nextState.getStencilFailOp());
-			int dfail = EnumUtil.getGLStencilOp(nextState.getDepthFailOp());
-			int dpass = EnumUtil.getGLStencilOp(nextState.getDepthPassOp());
-			if (sfail != pr.stencilFail || sfail != pr.stencilBackFail ||
-			    dfail != pr.stencilPassDepthFail || dfail != pr.stencilBackPassDepthFail ||
-			    dpass != pr.stencilPassDepthPass || dpass != pr.stencilBackPassDepthPass) {
-				// update the record
-				pr.stencilFail = sfail; pr.stencilBackFail = sfail;
-				pr.stencilPassDepthFail = dfail; pr.stencilBackPassDepthFail = dfail;
-				pr.stencilPassDepthPass = dpass; pr.stencilBackPassDepthPass = dpass;
-				
-				gl.glStencilOp(sfail, dfail, dpass);
-			}
+			this.setStencilOp(gl, pr, EnumUtil.getGLStencilOp(nextState.getStencilFailOp()), 
+									  EnumUtil.getGLStencilOp(nextState.getDepthFailOp()), 
+									  EnumUtil.getGLStencilOp(nextState.getDepthPassOp()));
+		}
+	}
+	
+	private void setWriteMask(GL gl, FramebufferRecord fr, int writeMask) {
+		if (fr.stencilWriteMask != writeMask || fr.stencilBackWriteMask != writeMask) {
+			fr.stencilBackWriteMask = writeMask;
+			fr.stencilWriteMask = writeMask;
+			gl.glStencilMask(writeMask);
+		}
+	}
+	
+	private void setStencilOp(GL gl, PixelOpRecord pr, int sfail, int dfail, int dpass) {
+		if (sfail != pr.stencilFail || sfail != pr.stencilBackFail ||
+				dfail != pr.stencilPassDepthFail || dfail != pr.stencilBackPassDepthFail ||
+				dpass != pr.stencilPassDepthPass || dpass != pr.stencilBackPassDepthPass) {
+			// update the record
+			pr.stencilFail = sfail; pr.stencilBackFail = sfail;
+			pr.stencilPassDepthFail = dfail; pr.stencilBackPassDepthFail = dfail;
+			pr.stencilPassDepthPass = dpass; pr.stencilBackPassDepthPass = dpass;
+
+			gl.glStencilOp(sfail, dfail, dpass);
+		}
+	}
+	
+	private void setStencilFunc(GL gl, PixelOpRecord pr, int func, int ref, int mask) {
+		if ((func != pr.stencilFunc || ref != pr.stencilRef || ref != pr.stencilValueMask) ||
+				(func != pr.stencilBackFunc || ref != pr.stencilBackRef || ref != pr.stencilBackValueMask)) {
+			// update the record
+			pr.stencilFunc = func; pr.stencilBackFunc = func;
+			pr.stencilRef = ref; pr.stencilBackRef = ref;
+			pr.stencilValueMask = mask;	pr.stencilBackValueMask = mask;
+
+			gl.glStencilFunc(func, ref, mask);
 		}
 	}
 }

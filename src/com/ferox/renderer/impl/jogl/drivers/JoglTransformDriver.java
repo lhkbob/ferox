@@ -21,12 +21,11 @@ import com.sun.opengl.util.BufferUtil;
  * set back to MODELVIEW before this driver is used again,
  * or errors will occur.
  * 
- * To minimize the amount of gl operations (including
- * removing extraneous glPush and glPopMatrix() calls), the
- * modelview stack is effectively not used.  Instead, the current
- * view is multipled to the desired world transform, and then
- * a glLoadMatrixf() call should be used.  Compared to the overhead
- * of executing the jni gl call, the matrix multiplication is free.
+ * When applying the transform state, this uses the push-pop
+ * mechanism.  The view portion of the modelview matrix is
+ * set, and then each model transform is pushed on top of that.
+ * Thus when states are applied, the view transform will be the
+ * current modelview matrix.
  * 
  * @author Michael Ludwig
  *

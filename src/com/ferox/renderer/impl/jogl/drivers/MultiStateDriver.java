@@ -68,7 +68,24 @@ public abstract class MultiStateDriver<T extends State> implements StateDriver {
 		this.queueSize = 0;
 	}
 	
+	protected abstract void restore(GL gl, JoglStateRecord record, int unit);
+	
 	protected abstract void apply(GL gl, JoglStateRecord record, int unit, T next);
+	
+	@Override
+	public void restoreDefaults() {
+		GL gl = this.factory.getGL();
+		JoglStateRecord r = this.factory.getRecord();
+		// reset everything
+		for (int i = 0; i < this.apply.length; i++) {
+			this.apply[i].priority = INVALID_PRIORTY;
+			this.apply[i].state = null;
+			
+			// perform changes
+			this.restore(gl, r, i);
+		}
+		this.reset();
+	}
 	
 	@Override
 	public void doApply() {

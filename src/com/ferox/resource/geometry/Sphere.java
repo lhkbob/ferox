@@ -39,7 +39,7 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 	private final int[] indices;
 	
 	public Sphere(float radius) {
-		this(radius, 8, 8);
+		this(radius, 16, 16);
 	}
 	
 	public Sphere(float radius, int zSamples, int radialSamples) {

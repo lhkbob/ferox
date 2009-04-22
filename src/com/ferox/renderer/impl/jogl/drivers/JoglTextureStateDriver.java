@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl.jogl.drivers;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.media.opengl.GL;
@@ -20,6 +21,11 @@ import com.ferox.resource.UnitList.Unit;
 import com.ferox.state.MultiTexture;
 import com.ferox.state.State;
 import com.ferox.state.Texture;
+import com.ferox.state.Texture.CombineAlpha;
+import com.ferox.state.Texture.CombineOperand;
+import com.ferox.state.Texture.CombineRgb;
+import com.ferox.state.Texture.CombineSource;
+import com.ferox.state.Texture.EnvMode;
 import com.ferox.state.Texture.TexCoordGen;
 
 /** JoglTextureStateDriver provides support for the TEXTURE role
@@ -39,6 +45,12 @@ import com.ferox.state.Texture.TexCoordGen;
  *
  */
 public class JoglTextureStateDriver implements StateDriver {
+	private static final float[] DEF_PLANE_S = {1f, 0f, 0f, 0f};
+	private static final float[] DEF_PLANE_T = {0f, 1f, 0f, 0f};
+	private static final float[] DEF_PLANE_RQ = {0f, 0f, 0f, 0f};
+	
+	private Texture defaultEnv;
+	
 	private MultiTexture lastApplied;
 	private MultiTexture queuedTexture;
 	private float queuedInfluence;
@@ -56,6 +68,21 @@ public class JoglTextureStateDriver implements StateDriver {
 		this.queuedTexture = null;
 		this.lastAppliedDirty = false;
 		this.queuedInfluence = -1f;		
+		
+		this.defaultEnv = new Texture();
+		
+		this.defaultEnv.setTextureEnvMode(EnvMode.MODULATE);
+		this.defaultEnv.setTextureEnvColor(new Color(0f, 0f, 0f, 0f));
+		
+		this.defaultEnv.setTextureTransform(null);
+		this.defaultEnv.setTexCoordGenSTR(TexCoordGen.NONE);
+		
+		this.defaultEnv.setCombineAlphaEquation(CombineAlpha.MODULATE);
+		this.defaultEnv.setCombineRgbEquation(CombineRgb.MODULATE);
+		this.defaultEnv.setSourceRgb(CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.BLEND_COLOR);
+		this.defaultEnv.setSourceAlpha(CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.BLEND_COLOR);
+		this.defaultEnv.setOperandRgb(CombineOperand.COLOR, CombineOperand.COLOR, CombineOperand.ALPHA);
+		this.defaultEnv.setOperandAlpha(CombineOperand.ALPHA, CombineOperand.ALPHA, CombineOperand.ALPHA);
 	}
 	
 	@Override
@@ -68,7 +95,6 @@ public class JoglTextureStateDriver implements StateDriver {
 			this.apply(this.factory.getRenderer(), this.factory.getRecord(), null);
 		
 		this.lastApplied = this.queuedTexture;
-		
 		this.reset();
 	}
 
@@ -104,6 +130,35 @@ public class JoglTextureStateDriver implements StateDriver {
 		this.queuedTexture = null;
 		this.queuedInfluence = -1f;
 		this.lastAppliedDirty = false;
+	}
+	
+	@Override
+	public void restoreDefaults() {
+		this.reset();
+		this.lastApplied = null;
+		
+		GL gl = this.factory.getGL();
+		TextureRecord tr = this.factory.getRecord().textureRecord;
+		
+		TextureUnit tu;
+		for (int i = 0; i < tr.textureUnits.length; i++) {
+			gl.glActiveTexture(GL.GL_TEXTURE0 + i);
+			
+			tu = tr.textureUnits[i];
+			// sets all env except for the combine mode, and texgen
+			this.setTexEnv(gl, tu, this.defaultEnv);
+			// force combine mode to be set
+			setCombineEnv(gl, tu, this.defaultEnv);
+			// at this point, texgen is disabled, but must reset other values
+			setDefaultTexGen(gl, GL.GL_S, tu.texGenS, DEF_PLANE_S);
+			setDefaultTexGen(gl, GL.GL_T, tu.texGenT, DEF_PLANE_T);
+			setDefaultTexGen(gl, GL.GL_R, tu.texGenR, DEF_PLANE_RQ);
+			
+			// unbind the texture
+			bindTexture(gl, tu, -1, 0);
+		}
+		gl.glActiveTexture(GL.GL_TEXTURE0);
+		tr.activeTexture = 0;
 	}
 	
 	/* Modify the given context so that its TextureRecord matches the given MultiTexture.
@@ -166,6 +221,10 @@ public class JoglTextureStateDriver implements StateDriver {
 		if (nextH == null) {
 			// disable the texture
 			bindTexture(gl, tu, -1, 0); // unbind the bound object
+			// disable tex-gen, too
+			setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, tu.texGenS, TexCoordGen.NONE, null);
+			setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, tu.texGenT, TexCoordGen.NONE, null);
+			setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, tu.texGenR, TexCoordGen.NONE, null);
 		} else {
 			// enable the texture
 			bindTexture(gl, tu, nextH.glTarget, nextH.id);
@@ -196,11 +255,11 @@ public class JoglTextureStateDriver implements StateDriver {
 			unit.isTextureMatrixIdentity = false;
 		}
 		// tc_s
-		this.setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
+		setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
 		// tc_t
-		this.setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
+		setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
 		// tc_r
-		this.setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
+		setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
 		
 		// env color
 		Color blend = tex.getTextureEnvColor();
@@ -246,11 +305,30 @@ public class JoglTextureStateDriver implements StateDriver {
 		}
 	}
 	
+	/* Set the defaults for the given record, it changes the mode to eye linear,
+	 * and sets the object and eye planes to the given array. */
+	private static void setDefaultTexGen(GL gl, int coord, TextureGenRecord tgr, float[] plane) {
+		if (tgr.textureGenMode != GL.GL_EYE_LINEAR) {
+			tgr.textureGenMode = GL.GL_EYE_LINEAR;
+			gl.glTexGeni(coord, GL.GL_TEXTURE_GEN_MODE, GL.GL_EYE_LINEAR);
+		}
+		
+		if (!Arrays.equals(tgr.eyePlane, plane)) {
+			System.arraycopy(plane, 0, tgr.eyePlane, 0, plane.length);
+			gl.glTexGenfv(coord, GL.GL_EYE_PLANE, plane, 0);
+		}
+		
+		if (!Arrays.equals(tgr.objectPlane, plane)) {
+			System.arraycopy(plane, 0, tgr.objectPlane, 0, plane.length);
+			gl.glTexGenfv(coord, GL.GL_OBJECT_PLANE, plane, 0);
+		}
+	}
+	
 	/* Set the texture gen for the given coordinate.  coord should be one of
 	 * GL_S/T/R, and boolMode would then be GL_TEXTURE_GEN_x, and tgr is the
 	 * matching record.  If genMode is NONE, generation is disabled, otherwise
 	 * its enabled and set, possibly resetting the texture plane. */
-	private void setTexGen(GL gl, int coord, int boolMode, TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
+	private static void setTexGen(GL gl, int coord, int boolMode, TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
 		if (genMode == TexCoordGen.NONE) {
 			// disable coordinate generation for this coord
 			if (tgr.enableTexGen) {
@@ -261,8 +339,6 @@ public class JoglTextureStateDriver implements StateDriver {
 			// possibly set the planes
 			if (genMode == TexCoordGen.EYE) {
 				// always push the eye-plane through
-				this.factory.getTransformDriver().loadMatrix(gl, this.factory.getViewTransform());
-				//gl.glLoadIdentity();
 				eyeOrObject.get(tgr.eyePlane);
 				gl.glTexGenfv(coord, GL.GL_EYE_PLANE, tgr.eyePlane, 0);
 			} else if (genMode == TexCoordGen.OBJECT) {

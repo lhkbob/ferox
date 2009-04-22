@@ -3,7 +3,6 @@ package com.ferox.resource.geometry;
 import java.util.List;
 
 import com.ferox.math.BoundVolume;
-import com.ferox.math.Boundable;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.GeometryBoundsCache;
@@ -505,16 +504,14 @@ public abstract class BufferedGeometry<T> implements Geometry {
 	public float getVertex(int index, int coord) throws IllegalArgumentException {
 		if (index < 0 || index >= this.getVertexCount())
 			throw new IllegalArgumentException("Illegal vertex index: " + index + " must be in [0, " + this.getVertexCount() + "]");
-		if (coord < 0 || coord > 3)
-			throw new IllegalArgumentException("Illegal vertex coordinate: " + coord + " must be in [0, 3]");
+		if (coord < 0 || coord > 2)
+			throw new IllegalArgumentException("Illegal vertex coordinate: " + coord + " must be in [0, 2]");
 		
 		int vertexSize = this.vertices.accessor.getElementSize();
 		
 		if (coord >= vertexSize) {
-			if (coord == Boundable.Z_COORD)
-				return 0f; // missing z
-			else
-				return 1f; // missing w
+			// missing z
+			return 0f; 
 		} else {
 			// coord is present in this geometry, so we can access the value directly
 			return this.get(this.getData(this.vertices.data), this.vertices.accessor.getIndex(index) + coord);

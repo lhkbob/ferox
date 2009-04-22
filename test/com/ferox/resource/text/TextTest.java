@@ -66,6 +66,7 @@ public class TextTest extends BasicApplication {
 		
 		view.getLocalTransform().setTranslation(0f, 0f, 50f);
 		
+		this.window.setClearColor(bgColor);
 		return root;
 	}
 }

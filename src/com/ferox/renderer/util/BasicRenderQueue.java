@@ -65,13 +65,15 @@ public class BasicRenderQueue implements RenderQueue {
 	}
 
 	@Override
-	public void flush(Renderer renderer, View view) throws RenderException {
+	public int flush(Renderer renderer, View view) throws RenderException {
 		if (renderer == null || view == null)
-			return;
+			return 0;
 		
 		if (this.cleared) // only optimize the order once
 			this.optimizeOrder(view, this.renderAtoms, this.raCount);
 		this.cleared = false;
+		
+		int polyCount = 0;
 		
 		RenderAtom atom;
 		InfluenceAtom iAtom;
@@ -89,8 +91,10 @@ public class BasicRenderQueue implements RenderQueue {
 					renderer.applyInfluence(iAtom, influence);
 			}
 			
-			renderer.renderAtom(atom);
+			polyCount += renderer.renderAtom(atom);
 		}
+		
+		return polyCount;
 	}
 
 	/** To be efficient between frames, BasicRenderQueue internally stores

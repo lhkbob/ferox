@@ -15,7 +15,7 @@ import com.ferox.renderer.impl.jogl.BasicJoglRenderer;
  *
  */
 public class ApplicationBase {
-	public static final float T_VEL = 20f;
+	public static final float T_VEL = 40f;
 	
 	protected FrameStatistics stats;
 	private Renderer renderer;

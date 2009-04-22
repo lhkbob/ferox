@@ -18,6 +18,31 @@ public class JoglBlendModeStateDriver extends SingleStateDriver<BlendMode> {
 	public JoglBlendModeStateDriver(JoglSurfaceFactory factory) {
 		super(null, BlendMode.class, factory);
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		PixelOpRecord pr = record.pixelOpRecord;
+		
+		if (pr.enableBlend) {
+			pr.enableBlend = false;
+			gl.glDisable(GL.GL_BLEND);
+		}
+		
+		if (pr.blendEquationAlpha != GL.GL_FUNC_ADD || pr.blendEquationRgb != GL.GL_FUNC_ADD) {
+			pr.blendEquationAlpha = GL.GL_FUNC_ADD;
+			pr.blendEquationRgb = GL.GL_FUNC_ADD;
+			gl.glBlendEquation(GL.GL_FUNC_ADD);
+		}
+		
+		if (pr.blendDstAlpha != GL.GL_ZERO || pr.blendDstRgb != GL.GL_ZERO ||
+			pr.blendSrcAlpha != GL.GL_ONE || pr.blendSrcRgb != GL.GL_ONE) {
+			pr.blendDstAlpha = GL.GL_ZERO;
+			pr.blendDstRgb = GL.GL_ZERO;
+			pr.blendSrcAlpha = GL.GL_ZERO;
+			pr.blendSrcRgb = GL.GL_ZERO;
+			gl.glBlendFunc(GL.GL_ONE, GL.GL_ZERO);
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, BlendMode nextState) {
@@ -58,6 +83,4 @@ public class JoglBlendModeStateDriver extends SingleStateDriver<BlendMode> {
 			// we don't have to bother checking or updating the blend color
 		}
 	}
-	
-	
 }

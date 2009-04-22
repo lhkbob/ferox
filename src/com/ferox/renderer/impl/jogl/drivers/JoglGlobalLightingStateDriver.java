@@ -15,8 +15,22 @@ import com.ferox.state.LightReceiver;
  *
  */
 public class JoglGlobalLightingStateDriver extends SingleStateDriver<LightReceiver> {
+	private static final Color DEFAULT_AMB = new Color(.2f, .2f, .2f, 1f);
+	
 	public JoglGlobalLightingStateDriver(JoglSurfaceFactory factory) {
 		super(null, LightReceiver.class, factory);
+	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		LightingRecord lr = record.lightRecord;
+		
+		if (lr.enableLighting) {
+			lr.enableLighting = false;
+			gl.glDisable(GL.GL_LIGHTING);
+		}
+		
+		this.setLightModel(gl, lr, DEFAULT_AMB, false, GL.GL_SINGLE_COLOR, false);
 	}
 
 	@Override
@@ -36,28 +50,32 @@ public class JoglGlobalLightingStateDriver extends SingleStateDriver<LightReceiv
 				gl.glEnable(GL.GL_LIGHTING);
 			}
 			
-			// ambient color
-			Color c = nextState.getGlobalAmbient();
-			if (!c.equals(lr.lightModelAmbient)) {
-				c.get(lr.lightModelAmbient);
-				gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, lr.lightModelAmbient, 0);
-			}
-			// local viewer
-			if (nextState.isLocalViewer() != lr.lightModelLocalViewer) {
-				lr.lightModelLocalViewer = nextState.isLocalViewer();
-				gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, (lr.lightModelLocalViewer ? GL.GL_TRUE : GL.GL_FALSE));
-			}
-			// separate specular
-			int control = (nextState.getSeparateSpecular() ? GL.GL_SEPARATE_SPECULAR_COLOR : GL.GL_SINGLE_COLOR);
-			if (control != lr.lightModelColorControl) {
-				lr.lightModelColorControl = control;
-				gl.glLightModeli(GL.GL_LIGHT_MODEL_COLOR_CONTROL, control);
-			}
-			// two-sided lighting
-			if (nextState.getTwoSidedLighting() != lr.lightModelTwoSided) {
-				lr.lightModelTwoSided = nextState.getTwoSidedLighting();
-				gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, (lr.lightModelTwoSided ? GL.GL_TRUE : GL.GL_FALSE));
-			}
+			this.setLightModel(gl, lr, nextState.getGlobalAmbient(), nextState.isLocalViewer(), 
+							   (nextState.getSeparateSpecular() ? GL.GL_SEPARATE_SPECULAR_COLOR : GL.GL_SINGLE_COLOR),
+							   nextState.getTwoSidedLighting());
+		}
+	}
+	
+	private void setLightModel(GL gl, LightingRecord lr, Color ambient, boolean localViewer, int colorControl, boolean twoSided) {
+		// ambient color
+		if (!ambient.equals(lr.lightModelAmbient)) {
+			ambient.get(lr.lightModelAmbient);
+			gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, lr.lightModelAmbient, 0);
+		}
+		// local viewer
+		if (localViewer != lr.lightModelLocalViewer) {
+			lr.lightModelLocalViewer = localViewer;
+			gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, (lr.lightModelLocalViewer ? GL.GL_TRUE : GL.GL_FALSE));
+		}
+		// separate specular
+		if (colorControl != lr.lightModelColorControl) {
+			lr.lightModelColorControl = colorControl;
+			gl.glLightModeli(GL.GL_LIGHT_MODEL_COLOR_CONTROL, colorControl);
+		}
+		// two-sided lighting
+		if (twoSided != lr.lightModelTwoSided) {
+			lr.lightModelTwoSided = twoSided;
+			gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, (lr.lightModelTwoSided ? GL.GL_TRUE : GL.GL_FALSE));
 		}
 	}
 }

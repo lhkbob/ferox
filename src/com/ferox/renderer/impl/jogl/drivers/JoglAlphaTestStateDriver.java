@@ -18,6 +18,21 @@ public class JoglAlphaTestStateDriver extends SingleStateDriver<AlphaTest> {
 	public JoglAlphaTestStateDriver(JoglSurfaceFactory factory) {
 		super(null, AlphaTest.class, factory);
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		PixelOpRecord pr = record.pixelOpRecord;
+		
+		if (pr.enableAlphaTest) {
+			pr.enableAlphaTest = false;
+			gl.glDisable(GL.GL_ALPHA_TEST);
+		}
+		if (pr.alphaTestFunc != GL.GL_ALWAYS || pr.alphaTestRef != 0f) {
+			pr.alphaTestFunc = GL.GL_ALWAYS;
+			pr.alphaTestRef = 0f;
+			gl.glAlphaFunc(GL.GL_ALWAYS, 0f);
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, AlphaTest nextState) {

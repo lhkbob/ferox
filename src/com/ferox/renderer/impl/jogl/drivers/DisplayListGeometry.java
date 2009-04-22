@@ -44,17 +44,11 @@ public class DisplayListGeometry implements Geometry {
 		if (bounds instanceof AxisAlignedBox) {
 			this.box = (AxisAlignedBox) bounds;
 			this.sphere = new BoundSphere();
-
-			this.sphere.setCenter(this.box.getCenter(null));
-			this.sphere.setRadius(0f);
-			this.sphere.enclose(this.box);
+			this.box.clone(this.sphere);
 		} else if (bounds instanceof BoundSphere) {
 			this.sphere = (BoundSphere) bounds;
 			this.box = new AxisAlignedBox();
-
-			this.box.setMax(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
-			this.box.setMin(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
-			this.box.enclose(this.sphere);
+			this.sphere.clone(this.box);
 		} else {
 			// use default bounds
 			this.sphere = new BoundSphere();
@@ -82,7 +76,7 @@ public class DisplayListGeometry implements Geometry {
 
 	@Override
 	public float getVertex(int index, int coord) throws IllegalArgumentException {
-		return 0f;
+		throw new UnsupportedOperationException("getVertex() not implemented for compiled geometry");
 	}
 
 	@Override

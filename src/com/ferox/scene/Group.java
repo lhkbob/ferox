@@ -1,6 +1,10 @@
 package com.ferox.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.ferox.math.BoundVolume;
+import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 
@@ -105,6 +109,17 @@ public class Group extends Node {
 		return sp;
 	}
 	
+	@Override
+	public List<RenderAtom> compile(List<RenderAtom> atoms) {
+		if (atoms == null)
+			atoms = new ArrayList<RenderAtom>(this.size);
+		if (this.getCullMode() != CullMode.ALWAYS) {
+			for (int i = 0; i < this.size; i++)
+				this.children[i].compile(atoms);
+		}
+		return atoms;
+	}
+	
 	private void allocateChildren(int size) {
 		Node[] temp = new Node[size];
 		if (this.children != null)
@@ -125,7 +140,7 @@ public class Group extends Node {
 	}
 	
 	/** Get the number of immediate children for this Group. */
-	public int getNumChildNodes() {
+	public int getNumChildren() {
 		return this.size;
 	}
 	
@@ -146,7 +161,7 @@ public class Group extends Node {
 	}
 	
 	/** Get the child Node at the given index.  Fails if index is less than 0, or greater than numChildren() - 1. */
-	public Node getNodeAtIndex(int index) throws SceneException {
+	public Node getChild(int index) throws SceneException {
 		if (index >= 0 && index < this.size)
 			return this.children[index];
 		else
@@ -155,7 +170,7 @@ public class Group extends Node {
 	
 	/** Determine the index of the given Node instance, such that getNodeAtIndex(getIndexOfNode(node)) == node is true.
 	 * Returns -1 if this Group doesn't own the Node or if the Node is null. */
-	public int getIndexOfNode(Node node) {
+	public int indexOf(Node node) {
 		if (node == null || !this.owns(node))
 			return -1;
 		for (int i = 0; i < this.size; i++)
@@ -190,7 +205,7 @@ public class Group extends Node {
 	 * elem is successfully removed and true is returned.  It's a no-op is elem is null.*/
 	public boolean remove(Node elem) {
 		if (this.owns(elem)) {
-			int index = this.getIndexOfNode(elem);
+			int index = this.indexOf(elem);
 			this.remove(index);
 			return true;
 		}
@@ -201,7 +216,7 @@ public class Group extends Node {
 	/** Removes the node at the given index, adjusting the other node's indices afterwards.  Fails if index < 0
 	 * or if index >= getNumChildNodes(). Returns the Node that was removed. */
 	public Node remove(int index) {
-		Node elem = this.getNodeAtIndex(index); // fails if index is bad
+		Node elem = this.getChild(index); // fails if index is bad
 		
 		System.arraycopy(this.children, index + 1, this.children, index, this.size - index - 1);
 		this.size--;

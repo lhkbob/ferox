@@ -167,7 +167,7 @@ public class GlslTest extends BasicApplication {
 				"}",
 
 				"vec4 spec = (gl_LightSource[0].specular * vec4(texture2D(specular, gl_TexCoord[0].st).rgb, 1.0)) * specularPower;",
-				"gl_FragColor = (diffuse * vec4(baseColor.rgb, 1.0)) + spec;",
+				"gl_FragColor = (diffuse * vec4(baseColor.rgb, 1.0));",// + spec;",
 			"}"
 		};
 

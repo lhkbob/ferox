@@ -274,11 +274,8 @@ public class Text implements Geometry {
 	public float getVertex(int index, int coord) throws IllegalArgumentException {
 		if (index < 0 || index >= this.getVertexCount())
 			throw new IllegalArgumentException("Illegal vertex index: " + index + " must be in [0, " + this.getVertexCount() + "]");
-		if (coord < 0 || coord > 3)
-			throw new IllegalArgumentException("Illegal vertex coordinate: " + coord + " must be in [0, 3]");
-		
-		if (coord == 3)
-			return 1f; // we don't have a 4th coordinate
+		if (coord < 0 || coord > 2)
+			throw new IllegalArgumentException("Illegal vertex coordinate: " + coord + " must be in [0, 2]");
 		
 		int bIndex = 2 + index * 5;
 		return this.coords[bIndex + coord];

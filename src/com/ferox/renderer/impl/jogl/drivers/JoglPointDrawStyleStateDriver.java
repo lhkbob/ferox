@@ -19,6 +19,8 @@ import com.ferox.state.PointStyle.PointSpriteOrigin;
  *
  */
 public class JoglPointDrawStyleStateDriver extends SingleStateDriver<PointStyle> {
+	private static final Vector3f DEFAULT_DIST_AT = new Vector3f(1f, 0f, 0f);
+	
 	private boolean glslSupport;
 	private boolean pointSpriteSupport;
 	
@@ -27,55 +29,38 @@ public class JoglPointDrawStyleStateDriver extends SingleStateDriver<PointStyle>
 		this.glslSupport = factory.getRenderer().getCapabilities().getGlslSupport();
 		this.pointSpriteSupport = factory.getRenderer().getCapabilities().getPointSpriteSupport();
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		RasterizationRecord rr = record.rasterRecord;
+		setPoint(gl, rr, 1f, DEFAULT_DIST_AT, 0f, Float.MAX_VALUE, false);
+		this.setVertexShaderEnabled(gl, rr, false);
+
+		// point sprites
+		if (this.pointSpriteSupport) {
+			if (rr.enablePointSprite) {
+				rr.enablePointSprite = false;
+				gl.glDisable(GL.GL_POINT_SPRITE_ARB);
+			}
+			setPointSpriteOrigin(gl, rr, PointSpriteOrigin.UPPER_LEFT);
+			enableCoordReplace(gl, record.textureRecord, -1);
+			
+			if (record.textureRecord.activeTexture != 0) {
+				gl.glActiveTexture(GL.GL_TEXTURE0);
+				record.textureRecord.activeTexture = 0;
+			}
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, PointStyle nextState) {
 		RasterizationRecord rr = record.rasterRecord;
 		
-		// size
-		if (rr.pointSize != nextState.getPointSize()) {
-			rr.pointSize = nextState.getPointSize();
-			gl.glPointSize(rr.pointSize);
-		}
-		// distance atten.
-		Vector3f at = nextState.getDistanceAttenuation();
-		if (at.x != rr.pointDistanceAttenuation[0] || at.y != rr.pointDistanceAttenuation[1] ||
-		    at.z != rr.pointDistanceAttenuation[2]) {
-			at.get(rr.pointDistanceAttenuation);
-			gl.glPointParameterfv(GL.GL_POINT_DISTANCE_ATTENUATION, rr.pointDistanceAttenuation, 0);
-		}
-		// maximum
-		if (nextState.getPointSizeMax() != rr.pointSizeMax) {
-			rr.pointSizeMax = nextState.getPointSizeMax();
-			gl.glPointParameterf(GL.GL_POINT_SIZE_MAX, rr.pointSizeMax);
-		}
-		// minimum and fade threshold
-		float min = nextState.getPointSizeMin();
-		if (min != rr.pointSizeMin) {
-			rr.pointSizeMin = min;
-			gl.glPointParameterf(GL.GL_POINT_SIZE_MIN, min);
-		}
-		if (min != rr.pointFadeThresholdSize) {
-			rr.pointFadeThresholdSize = min;
-			gl.glPointParameterf(GL.GL_POINT_FADE_THRESHOLD_SIZE, min);
-		}
-		// smoothing
-		if (nextState.isSmoothingEnabled() != rr.enablePointSmooth) {
-			rr.enablePointSmooth = nextState.isSmoothingEnabled();
-			if (rr.enablePointSmooth)
-				gl.glEnable(GL.GL_POINT_SMOOTH);
-			else
-				gl.glDisable(GL.GL_POINT_SMOOTH);
-		}
-		// vertex shader
-		if (this.glslSupport && nextState.isVertexShaderSizingEnabled() != rr.enableVertexShaderSize) {
-			// only do this if glsl is supported
-			rr.enableVertexShaderSize = nextState.isVertexShaderSizingEnabled();
-			if (rr.enableVertexShaderSize)
-				gl.glEnable(GL.GL_VERTEX_PROGRAM_POINT_SIZE);
-			else
-				gl.glDisable(GL.GL_VERTEX_PROGRAM_POINT_SIZE);
-		}
+		setPoint(gl, rr, nextState.getPointSize(), nextState.getDistanceAttenuation(), nextState.getPointSizeMin(), 
+				 nextState.getPointSizeMax(), nextState.isSmoothingEnabled());
+
+		this.setVertexShaderEnabled(gl, rr, nextState.isVertexShaderSizingEnabled());
+		
 		// point sprites
 		if (this.pointSpriteSupport) {
 			// only do this if point sprites are supported
@@ -98,6 +83,55 @@ public class JoglPointDrawStyleStateDriver extends SingleStateDriver<PointStyle>
 				}
 				enableCoordReplace(gl, tr, -1);
 			}
+		}
+	}
+	
+	private void setVertexShaderEnabled(GL gl, RasterizationRecord rr, boolean enable) {
+		// vertex shader
+		if (this.glslSupport && enable != rr.enableVertexShaderSize) {
+			// only do this if glsl is supported
+			rr.enableVertexShaderSize = enable;
+			if (rr.enableVertexShaderSize)
+				gl.glEnable(GL.GL_VERTEX_PROGRAM_POINT_SIZE);
+			else
+				gl.glDisable(GL.GL_VERTEX_PROGRAM_POINT_SIZE);
+		}
+	}
+	
+	private static void setPoint(GL gl, RasterizationRecord rr, float pointSize, Vector3f distance, float min, float max, boolean smoothing) {
+		// size
+		if (rr.pointSize != pointSize) {
+			rr.pointSize = pointSize;
+			gl.glPointSize(rr.pointSize);
+		}
+		// distance atten.
+		Vector3f at = distance;
+		if (at.x != rr.pointDistanceAttenuation[0] || at.y != rr.pointDistanceAttenuation[1] ||
+		    at.z != rr.pointDistanceAttenuation[2]) {
+			at.get(rr.pointDistanceAttenuation);
+			gl.glPointParameterfv(GL.GL_POINT_DISTANCE_ATTENUATION, rr.pointDistanceAttenuation, 0);
+		}
+		// maximum
+		if (max != rr.pointSizeMax) {
+			rr.pointSizeMax = max;
+			gl.glPointParameterf(GL.GL_POINT_SIZE_MAX, rr.pointSizeMax);
+		}
+		// minimum and fade threshold
+		if (min != rr.pointSizeMin) {
+			rr.pointSizeMin = min;
+			gl.glPointParameterf(GL.GL_POINT_SIZE_MIN, min);
+		}
+		if (min != rr.pointFadeThresholdSize) {
+			rr.pointFadeThresholdSize = min;
+			gl.glPointParameterf(GL.GL_POINT_FADE_THRESHOLD_SIZE, min);
+		}
+		// smoothing
+		if (smoothing != rr.enablePointSmooth) {
+			rr.enablePointSmooth = smoothing;
+			if (rr.enablePointSmooth)
+				gl.glEnable(GL.GL_POINT_SMOOTH);
+			else
+				gl.glDisable(GL.GL_POINT_SMOOTH);
 		}
 	}
 	

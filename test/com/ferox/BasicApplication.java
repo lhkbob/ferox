@@ -79,7 +79,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		
 		this.pass = new BasicRenderPass(null, v, this.createQueue(), false);
 		
-		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 1024, 768);
+		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 1440, 900);
 		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, false, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());

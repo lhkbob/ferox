@@ -39,13 +39,13 @@ import com.ferox.state.Texture.TexCoordGen;
 
 public class RttCubeTest extends BasicApplication {
 	public static final boolean DEBUG = false;
-	public static final boolean USE_VBO = true;
-	public static final boolean RANDOM_PLACEMENT = true;
+	public static final boolean USE_VBO = false;
+	public static final boolean RANDOM_PLACEMENT = false;
 	
 	public static final int NUM_CUBES = 10000;
 	public static final int BOUNDS = 100;
 	
-	public static final Color bgColor = new Color(0f, 0f, 0f);
+	public static final Color bgColor = new Color(.5f, .5f, .5f);
 	
 	protected Geometry geom;
 	protected TextureSurface sceneDepth;
@@ -60,6 +60,7 @@ public class RttCubeTest extends BasicApplication {
 
 	@Override
 	protected SceneElement buildScene(Renderer renderer, ViewNode view) {
+		//this.window.setClearColor(bgColor);
 		view.getView().setPerspective(60f, this.window.getWidth() / (float) this.window.getHeight(), 1f, 300f);
 		view.getLocalTransform().getTranslation().z = 2f * BOUNDS;
 		
@@ -102,7 +103,6 @@ public class RttCubeTest extends BasicApplication {
 		
 		for (int i = 0; i < NUM_CUBES; i++) {
 			Shape shape = new Shape(geom, apps[i % apps.length]);
-			shape.setLocalBounds(new BoundSphere());
 			Vector3f pos = shape.getLocalTransform().getTranslation();
 			
 			if (RANDOM_PLACEMENT) {
@@ -208,6 +208,7 @@ public class RttCubeTest extends BasicApplication {
 		FogReceiver fr = null;
 		if (i % 2 == 0) {
 			lr = new LightReceiver();
+			lr.setSeparateSpecular(true);
 			m.setSmoothShaded(true);
 		} {
 			fr = new FogReceiver();

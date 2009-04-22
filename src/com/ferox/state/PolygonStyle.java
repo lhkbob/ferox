@@ -43,8 +43,14 @@ public class PolygonStyle implements State {
 	
 	/** Creates a polygon style with default settings. */
 	public PolygonStyle() {
-		this.setBackStyle(null);
-		this.setFrontStyle(null);
+		this(null, null);
+	}
+	
+	/** Creates a polygon style with the given front and back styles,
+	 * and default settings for everything else. */
+	public PolygonStyle(DrawStyle front, DrawStyle back) {
+		this.setBackStyle(back);
+		this.setFrontStyle(front);
 		this.setWinding(null);
 		this.setDepthOffset(0f);
 		this.setSmoothingEnabled(false);
@@ -93,7 +99,7 @@ public class PolygonStyle implements State {
 	 * then anything rendered with this mode will only show the back shell
 	 * (assuming that that's not NONE either). If front == null, uses default. */
 	public void setFrontStyle(DrawStyle front) {
-		if (frontMode == null)
+		if (front == null)
 			front = DEFAULT_FRONT_STYLE;
 		this.frontMode = front;
 	}

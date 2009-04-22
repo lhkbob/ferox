@@ -20,6 +20,32 @@ public class JoglPolygonDrawStyleStateDriver extends SingleStateDriver<PolygonSt
 	public JoglPolygonDrawStyleStateDriver(JoglSurfaceFactory factory) {
 		super(new PolygonStyle(), PolygonStyle.class, factory);
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		RasterizationRecord rr = record.rasterRecord;
+		
+		setSmoothingEnabled(gl, rr, false);
+		setPointOffsetEnabled(gl, rr, false);
+		setLineOffsetEnabled(gl, rr, false);
+		setFillOffsetEnabled(gl, rr, false);
+		
+		setCullingEnabled(gl, rr, false);
+		setFrontFace(gl, rr, GL.GL_CCW);
+		if (rr.cullFaceMode != GL.GL_BACK) {
+			rr.cullFaceMode = GL.GL_BACK;
+			gl.glCullFace(GL.GL_BACK);
+		}
+		
+		setFrontStyle(gl, rr, DrawStyle.SOLID);
+		setBackStyle(gl, rr, DrawStyle.SOLID);
+		
+		if (rr.polygonOffsetFactor != 0f || rr.polygonOffsetUnits != 0f) {
+			rr.polygonOffsetFactor = 0f;
+			rr.polygonOffsetUnits = 0f;
+			gl.glPolygonOffset(0f, 0f);
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, PolygonStyle nextState) {
@@ -70,9 +96,9 @@ public class JoglPolygonDrawStyleStateDriver extends SingleStateDriver<PolygonSt
 				setFillOffsetEnabled(gl, rr, false);
 			} else {
 				// enable offsetting
-				setPointOffsetEnabled(gl, rr, false);
-				setLineOffsetEnabled(gl, rr, false);
-				setFillOffsetEnabled(gl, rr, false);
+				setPointOffsetEnabled(gl, rr, true);
+				setLineOffsetEnabled(gl, rr, true);
+				setFillOffsetEnabled(gl, rr, true);
 				
 				// set the offset
 				if (rr.polygonOffsetFactor != offset || rr.polygonOffsetUnits != 0) {

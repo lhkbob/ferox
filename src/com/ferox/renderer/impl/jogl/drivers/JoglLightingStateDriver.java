@@ -23,6 +23,9 @@ import com.ferox.scene.SpotLight;
 public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 	private static final int MAX_LIGHTS = 8;
 	
+	private static final Color DEFAULT_L0_DIFF_SPEC = new Color(1f, 1f, 1f, 1f);
+	private static final Color DEFAULT_Li_COLOR = new Color(0f, 0f, 0f, 1f);
+	
 	private final Light[] appliedLights;
 	private Vector3f p;
 	
@@ -41,6 +44,27 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		for (int i = 0; i < this.appliedLights.length; i++) {
 			this.appliedLights[i] = null;
 		}
+	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record, int unit) {
+		LightRecord lr = record.lightRecord.lightUnits[unit];
+		int glUnit = GL.GL_LIGHT0 + unit;
+		
+		if (lr.enabled) {
+			lr.enabled = false;
+			gl.glDisable(glUnit);
+		}
+		
+		this.setLightColors(gl, lr, glUnit, DEFAULT_Li_COLOR, (unit == 0 ? DEFAULT_L0_DIFF_SPEC : DEFAULT_Li_COLOR), 
+							(unit == 0 ? DEFAULT_L0_DIFF_SPEC : DEFAULT_Li_COLOR));
+		this.setSpotParameters(gl, lr, glUnit, 180f, 1f, 0f, 0f);
+		
+		lr.spotDirection[0] = 0f; lr.spotDirection[1] = 0f; lr.spotDirection[2] = -1f;
+		gl.glLightfv(glUnit, GL.GL_SPOT_DIRECTION, lr.spotDirection, 0);
+		
+		lr.position[0] = 0f; lr.position[1] = 0f; lr.position[2] = 1f; lr.position[3] = 0f;
+		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
 	}
 	
 	@Override
@@ -66,24 +90,7 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 				this.appliedLights[unit] = next;
 				
 				// set lighting colors
-				// ambient
-				Color c = next.getAmbient();
-				if (!c.equals(lr.ambient)) {
-					c.get(lr.ambient);
-					gl.glLightfv(glUnit, GL.GL_AMBIENT, lr.ambient, 0);
-				}
-				// diffuse
-				c = next.getDiffuse();
-				if (!c.equals(lr.diffuse)) {
-					c.get(lr.diffuse);
-					gl.glLightfv(glUnit, GL.GL_DIFFUSE, lr.diffuse, 0);
-				}
-				// specular
-				c = next.getSpecular();
-				if (!c.equals(lr.specular)) {
-					c.get(lr.specular);
-					gl.glLightfv(glUnit, GL.GL_SPECULAR, lr.specular, 0);
-				}
+				this.setLightColors(gl, lr, glUnit, next.getAmbient(), next.getDiffuse(), next.getSpecular());
 
 				// setup other properties
 				if (next instanceof SpotLight)
@@ -92,6 +99,47 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 					this.setupDirectionLight(gl, lr, glUnit, (DirectionLight) next);
 			}
 			// else nothing we can do
+		}
+	}
+	
+	private void setLightColors(GL gl, LightRecord lr, int glUnit, Color amb, Color diff, Color spec) {
+		// ambient
+		if (!amb.equals(lr.ambient)) {
+			amb.get(lr.ambient);
+			gl.glLightfv(glUnit, GL.GL_AMBIENT, lr.ambient, 0);
+		}
+		// diffuse
+		if (!diff.equals(lr.diffuse)) {
+			diff.get(lr.diffuse);
+			gl.glLightfv(glUnit, GL.GL_DIFFUSE, lr.diffuse, 0);
+		}
+		// specular
+		if (!spec.equals(lr.specular)) {
+			spec.get(lr.specular);
+			gl.glLightfv(glUnit, GL.GL_SPECULAR, lr.specular, 0);
+		}
+	}
+	
+	private void setSpotParameters(GL gl, LightRecord lr, int glUnit, float spotCutoff, float constant, float linear, float quad) {
+		// spotCutoff
+		if (lr.spotCutoff != spotCutoff) {
+			lr.spotCutoff = spotCutoff;
+			gl.glLightf(glUnit, GL.GL_SPOT_CUTOFF, lr.spotCutoff);
+		}
+		// constant att.
+		if (lr.constantAttenuation != constant) {
+			lr.constantAttenuation = constant;
+			gl.glLightf(glUnit, GL.GL_CONSTANT_ATTENUATION, lr.constantAttenuation);
+		}
+		// linear att.
+		if (lr.linearAttenuation != linear) {
+			lr.linearAttenuation = linear;
+			gl.glLightf(glUnit, GL.GL_LINEAR_ATTENUATION, lr.linearAttenuation);
+		}
+		// quadratic att.
+		if (lr.quadraticAttenuation != quad) {
+			lr.quadraticAttenuation = quad;
+			gl.glLightf(glUnit, GL.GL_QUADRATIC_ATTENUATION, lr.quadraticAttenuation);
 		}
 	}
 	
@@ -113,26 +161,8 @@ public class JoglLightingStateDriver extends MultiStateDriver<Light> {
 		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
 		gl.glLightfv(glUnit, GL.GL_SPOT_DIRECTION, lr.spotDirection, 0);
 		
-		// spotCutoff
-		if (lr.spotCutoff != light.getSpotCutoff()) {
-			lr.spotCutoff = light.getSpotCutoff();
-			gl.glLightf(glUnit, GL.GL_SPOT_CUTOFF, lr.spotCutoff);
-		}
-		// constant att.
-		if (lr.constantAttenuation != light.getConstantAttenuation()) {
-			lr.constantAttenuation = light.getConstantAttenuation();
-			gl.glLightf(glUnit, GL.GL_CONSTANT_ATTENUATION, lr.constantAttenuation);
-		}
-		// linear att.
-		if (lr.linearAttenuation != light.getLinearAttenuation()) {
-			lr.linearAttenuation = light.getLinearAttenuation();
-			gl.glLightf(glUnit, GL.GL_LINEAR_ATTENUATION, lr.linearAttenuation);
-		}
-		// quadratic att.
-		if (lr.quadraticAttenuation != light.getQuadraticAttenuation()) {
-			lr.quadraticAttenuation = light.getQuadraticAttenuation();
-			gl.glLightf(glUnit, GL.GL_QUADRATIC_ATTENUATION, lr.quadraticAttenuation);
-		}
+		this.setSpotParameters(gl, lr, glUnit, light.getSpotCutoff(), light.getConstantAttenuation(), 
+							   light.getLinearAttenuation(), light.getQuadraticAttenuation());
 		
 		gl.glPopMatrix();
 	}

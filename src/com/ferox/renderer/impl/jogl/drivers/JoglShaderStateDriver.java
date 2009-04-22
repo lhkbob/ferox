@@ -28,6 +28,16 @@ public class JoglShaderStateDriver extends SingleStateDriver<GlslShader> {
 		// although it's really just each surface
 		this.perFrameUniforms.clear();
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		GlslShaderRecord sr = record.shaderRecord;
+		
+		if (sr.glslProgramBinding != 0) {
+			sr.glslProgramBinding = 0;
+			gl.glUseProgram(0);
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, GlslShader nextState) {

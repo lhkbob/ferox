@@ -74,6 +74,17 @@ public interface StateDriver {
 	 * provide a means by which to get at this information. */
 	public void doApply();
 	
+	/** Perform a similar operation to doApply() except it must guarantee that all
+	 * state modified this driver has been reset to the defaults (not just perform
+	 * the same operations as the default).
+	 * 
+	 * This should ignore and reset any queud States, and can perform low-level
+	 * operations.
+	 * 
+	 * It is primarily used for compiling and rendering compiled geometries, which
+	 * need a very predictable state record to function correctly. */
+	public void restoreDefaults();
+	
 	/** Clear any queued states that weren't used by a call to doApply().
 	 * This could be called because of an end of the frame, or because
 	 * a render atom is ignored, or to clean-up after an exception was thrown.

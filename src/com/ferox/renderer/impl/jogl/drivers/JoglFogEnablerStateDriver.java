@@ -18,6 +18,16 @@ public class JoglFogEnablerStateDriver extends SingleStateDriver<FogReceiver> {
 	public JoglFogEnablerStateDriver(JoglSurfaceFactory factory) {
 		super(null, FogReceiver.class, factory);
 	}
+	
+	@Override
+	protected void restore(GL gl, JoglStateRecord record) {
+		ColoringRecord cr = record.colorRecord;
+		setFogEnabled(gl, cr, false);
+		if (cr.fogCoordSrc != GL.GL_FRAGMENT_DEPTH) {
+			cr.fogCoordSrc = GL.GL_FRAGMENT_DEPTH;
+			gl.glFogi(GL.GL_FOG_COORD_SRC, GL.GL_FRAGMENT_DEPTH);
+		}
+	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, FogReceiver nextState) {
