@@ -310,9 +310,8 @@ public abstract class Node implements SceneElement {
 	 * its y-axis is aligned as closely as possible to up (not always exactly up because it has to
 	 * maintain orthogonality). 
 	 * 
-	 * Specify negateDirection = true if the node "faces" backwards.  This is especially useful
-	 * for view nodes, since a view looks down the negative z-axis. */
-	public void lookAt(Vector3f position, Vector3f up, boolean negateDirection) throws NullPointerException {
+	 * The z-axis of the rotation matrix is assumed to be the facing direction. */
+	public void lookAt(Vector3f position, Vector3f up) throws NullPointerException {
 		if (position == null || up == null)
 			throw new SceneException("Can't call lookAt() with null input vectors: " + position + " " + up);
 		
@@ -328,8 +327,6 @@ public abstract class Node implements SceneElement {
 		Vector3f upVec = Node.upVec.get();
 		
 		dirVec.sub(position, this.worldTransform.getTranslation()); dirVec.normalize();
-		if (negateDirection)
-			dirVec.scale(-1f);
 		
 		leftVec.cross(up, dirVec); leftVec.normalize();
 		upVec.cross(dirVec, leftVec); upVec.normalize();

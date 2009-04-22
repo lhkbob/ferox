@@ -4,7 +4,7 @@ import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 
 /** Common interface that all scene elements must implement. Only current implementations are 
- * Node-based classes.
+ * Node-based classes.  To match View, it is assumed that we use a right-handed coordinate system.
  * 
  * @author Michael Ludwig
  *

@@ -125,7 +125,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	private static Vector3f up = new Vector3f(0f, 1f, 0f);
 	@Override
 	protected boolean update() {
-		this.view.lookAt(origin, up, true);
+		this.view.lookAt(origin, up);
 		this.scene.update(true);
 		return false;
 	}

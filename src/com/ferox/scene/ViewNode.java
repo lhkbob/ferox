@@ -38,7 +38,7 @@ public class ViewNode extends Group {
 		if (this.view != null) {
 			this.view.setLocation(this.worldTransform.getTranslation());
 			Matrix3f b = this.worldTransform.getRotation();
-			this.view.getDirection().set(-b.m02, -b.m12, -b.m22);
+			this.view.getDirection().set(b.m02, b.m12, b.m22);
 			this.view.getUp().set(b.m01, b.m11, b.m21);
 		}
 	}

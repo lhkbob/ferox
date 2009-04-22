@@ -11,8 +11,10 @@ import com.ferox.math.Transform;
  * View represents the camera that a scene is rendered through.  It holds onto the
  * type and specifics of the projection, and its location and orientation.  The
  * visible region of a View is a 3D frustum.  It provides functionality to get the
- * planes of the frustum, in camera and world space, and to test BoundVolumes for
- * intersection with the frustum.
+ * planes of the frustum in world space.
+ * 
+ * The View uses a right-handed coordinate system that looks down its negative,
+ * local z-axis.
  * 
  * @author Michael Ludwig
  *
