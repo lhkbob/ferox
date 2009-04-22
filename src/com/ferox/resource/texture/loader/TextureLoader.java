@@ -18,8 +18,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-
-import javax.imageio.ImageIO;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.ferox.resource.BufferData;
 import com.ferox.resource.BufferData.DataType;
@@ -29,18 +29,55 @@ import com.ferox.resource.texture.TextureCubeMap;
 import com.ferox.resource.texture.TextureFormat;
 import com.ferox.resource.texture.TextureImage;
 import com.ferox.resource.texture.TextureRectangle;
+import com.ferox.resource.texture.converter.TextureConverter.Encoder;
 
 /** TextureIO provides functionality to load image files
  * as TextureImage objects.  It provides some utilities to generate
  * a TextureImage from a BufferedImage.
  * 
- * TextureIO supports the DDS texture format (via DDSTexture) and
- * any file format supported by javax.imageio.ImageIO.
+ * By default, the DDS, TGA and ImageIO image file loaders are
+ * registered.
  * 
  * @author Michael Ludwig
  *
  */
 public class TextureLoader {
+	private static List<ImageFileLoader> loaders = new ArrayList<ImageFileLoader>();
+	
+	// register some default loaders
+	static {
+		registerLoader(new ImageIOImageFileLoader());
+		registerLoader(new TGAImageFileLoader());
+		registerLoader(new DDSImageFileLoader());
+	}
+	
+	/** Register the given loader, so that it can be used in subsequent 
+	 * readTexture() calls.  The newer loaders are favored when resolving
+	 * conflicts between loaders that are capable of loading the same file.
+	 * 
+	 * Does nothing if e is null.  If e has already been registered,
+	 * then e becomes the "newest" with regards to resolving conflicts. */
+	public static void registerLoader(ImageFileLoader e) {
+		synchronized(loaders) {
+			if (e != null) {
+				int index = loaders.indexOf(e);
+				if (index >= 0)
+					loaders.remove(index);
+				loaders.add(e);
+			}
+		}
+	}
+	
+	/** Remove the given loader.  Does nothing if it's
+	 * null or was never registered.  After a call to this method,
+	 * that loader instance will not be used in calls to readTexture(). */
+	public static void unregisterLoader(Encoder e) {
+		synchronized(loaders) {
+			if (e != null)
+				loaders.remove(e);
+		}
+	}
+	
 	/** Read the texture from the given file, functions identically
 	 * to readTexture(stream). */
 	public static TextureImage readTexture(File file) throws IOException {
@@ -93,21 +130,15 @@ public class TextureLoader {
 			// load the file
 			TextureImage t;
 			
-			if (DDSTexture.isDDSTexture(stream)) // we're a DDS texture
-				t = DDSTexture.readTexture(stream);
-			else if (TGATexture.isTGATexture(stream)) // we should be a TGA texture
-				t = TGATexture.readTexture(stream);
-			else {
-				BufferedImage i = ImageIO.read(stream);
-				if (i == null)
-					throw new IOException("Unsupported file format");
-				if (i.getHeight() == 1)
-					t = createTexture1D(i);
-				else
-					t = createTexture2D(i);
+			synchronized(loaders) {
+				for (int i = loaders.size() - 1; i >= 0; i--) {
+					t = loaders.get(i).readImage(stream);
+					if (t != null)
+						return t; // we've loaded it
+				}
 			}
-			// return the result
-			return t;
+			
+			throw new IOException("Unable to load the given texture, no registered loader with support");
 		} catch (Exception io) {
 			throw new IOException(io);
 		}
@@ -122,16 +153,17 @@ public class TextureLoader {
 	 * 
 	 * Throws an exception if texture is null. */
 	public static TextureRectangle convertToRectangle(Texture2D texture) throws NullPointerException {
-		TextureRectangle tr = null;
-		if (texture != null) {
-			tr = new TextureRectangle(texture.getData(0), texture.getWidth(0), texture.getHeight(0), texture.getFormat(), texture.getType());
-			
-			tr.setDepthCompareEnabled(texture.isDepthCompareEnabled());
-			tr.setDepthCompareTest(texture.getDepthCompareTest());
-			tr.setDepthMode(texture.getDepthMode());
-			tr.setFilter(texture.getFilter());
-			tr.setWrapSTR(texture.getWrapS(), texture.getWrapT(), texture.getWrapT());
-		}
+		if (texture == null)
+			throw new NullPointerException("Cannot convert a null texture");
+		
+		TextureRectangle tr = new TextureRectangle(texture.getData(0), texture.getWidth(0), texture.getHeight(0), texture.getFormat(), texture.getType());
+
+		tr.setDepthCompareEnabled(texture.isDepthCompareEnabled());
+		tr.setDepthCompareTest(texture.getDepthCompareTest());
+		tr.setDepthMode(texture.getDepthMode());
+		tr.setFilter(texture.getFilter());
+		tr.setWrapSTR(texture.getWrapS(), texture.getWrapT(), texture.getWrapT());
+
 		return tr;
 	}
 	
