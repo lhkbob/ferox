@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.Threading;
+import javax.swing.SwingUtilities;
 
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
@@ -306,6 +308,29 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 	 * every realized surface must share its own context with. */
 	public GLContext getShadowContext() {
 		return this.shadowContext.getContext();
+	}
+	
+	/** Utility method to invoke a Runnable on the AWT event dispatch
+	 * thread (e.g. for modifying AWT and Swing components). 
+	 * 
+	 * This will throw an runtime exception if a problem occurs.
+	 * It works properly if called from the AWT thread. 
+	 * 
+	 * This should be used when EventQueue.invokeAndWait() or
+	 * SwingUtilities.invokeAndWait() would be used, except that
+	 * this is thread safe. */
+	public static void invokeOnAwtThread(Runnable r) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			r.run();
+		} else {
+			try {
+				SwingUtilities.invokeAndWait(r);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			} catch (InvocationTargetException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	private void relinquishSurface(JoglRenderSurface surface) {

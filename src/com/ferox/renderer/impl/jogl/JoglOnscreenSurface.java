@@ -12,7 +12,6 @@ import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.RenderException;
 import com.ferox.renderer.DisplayOptions.AntiAliasMode;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
@@ -53,26 +52,23 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		this.canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), factory.getShadowContext(), null);
 		this.frame = new Frame();
 
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					frame.setResizable(resizable);
-					frame.setUndecorated(undecorated);
-					frame.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
+		JoglSurfaceFactory.invokeOnAwtThread(new Runnable() {
+			public void run() {
+				frame.setResizable(resizable);
+				frame.setUndecorated(undecorated);
+				frame.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
 
-					frame.add(canvas);
+				frame.add(canvas);
 
-					frame.setVisible(true);
-					canvas.requestFocusInWindow();
-				}
-			});
-		} catch (Exception e) {
-			throw new RenderException("Error creating JoglOnscreenSurface", e);
-		}
+				frame.setVisible(true);
+				canvas.requestFocusInWindow();
+			}
+		});
 
 		this.frame.addWindowListener(this);
 		
 		this.canvas.addGLEventListener(this);
+		this.frame.setIgnoreRepaint(true);
 		this.canvas.setIgnoreRepaint(true);
 		
 		this.record = new JoglStateRecord(factory.getRenderer().getCapabilities());
@@ -95,16 +91,12 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	public void destroySurface() {
 		this.frame.removeWindowListener(JoglOnscreenSurface.this);
 
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					frame.setVisible(false);
-					frame.dispose();
-				}
-			});
-		} catch (Exception e) {
-			throw new RenderException("Error hiding JoglWindowSurface", e);
-		}
+		JoglSurfaceFactory.invokeOnAwtThread(new Runnable() {
+			public void run() {
+				frame.setVisible(false);
+				frame.dispose();
+			}
+		});
 		
 		this.canvas.getContext().destroy();
 		super.destroySurface();

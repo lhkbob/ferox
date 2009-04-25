@@ -39,8 +39,8 @@ import com.ferox.state.Texture.TexCoordGen;
 
 public class RttCubeTest extends BasicApplication {
 	public static final boolean DEBUG = false;
-	public static final boolean USE_VBO = false;
-	public static final boolean RANDOM_PLACEMENT = false;
+	public static final boolean USE_VBO = true;
+	public static final boolean RANDOM_PLACEMENT = true;
 	
 	public static final int NUM_CUBES = 10000;
 	public static final int BOUNDS = 100;
@@ -88,9 +88,9 @@ public class RttCubeTest extends BasicApplication {
 		for (Appearance a: apps)
 			a.addState(ps);
 		
-		if (USE_VBO)
+		if (USE_VBO) {
 			this.geom = new VertexBufferGeometry(new Box(2f).requestVboUpdate(renderer, true));
-		else
+		} else
 			this.geom = new VertexArrayGeometry(new Box(2f));
 		renderer.requestUpdate(this.geom, true);
 		
@@ -181,6 +181,9 @@ public class RttCubeTest extends BasicApplication {
 		this.window.removeRenderPass(this.pass);
 		this.window.addRenderPass(new BasicRenderPass(colorShape, ortho));
 		this.window.addRenderPass(new BasicRenderPass(depthShape, ortho));
+		
+		this.window.setColorBufferCleared(false);
+		this.window.setDepthBufferCleared(false);
 		
 		return sceneDepth;
 	}

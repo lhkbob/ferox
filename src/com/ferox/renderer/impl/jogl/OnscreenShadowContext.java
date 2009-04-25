@@ -5,7 +5,6 @@ import java.awt.Frame;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLContext;
-import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
@@ -70,11 +69,7 @@ public class OnscreenShadowContext extends AbstractShadowContext {
 	public void render() throws RenderException {
 		// must make the frame visible so that the context is valid
 		// for gl execution (instead of just context sharing)
-		try {
-			SwingUtilities.invokeAndWait(this.showFrame);
-		} catch (Exception e) {
-			throw new RenderException("Unable to make a frame visible for shadow context", e);
-		}
+		JoglSurfaceFactory.invokeOnAwtThread(this.showFrame);
 		
 		this.record = new JoglStateRecord(this.caps);
 		
@@ -82,23 +77,19 @@ public class OnscreenShadowContext extends AbstractShadowContext {
 			super.render();
 		} finally {
 			// must always hide the frame, even when an exception is thrown
-			try {
-				SwingUtilities.invokeAndWait(this.hideFrame);
-			} catch (Exception e) { /* Do nothing ?? */}
+			JoglSurfaceFactory.invokeOnAwtThread(this.hideFrame);
 		}
 	}
 	
 	@Override
 	public void destroy() {
 		if (this.frame != null) {
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					public void run() {
-						OnscreenShadowContext.this.frame.setVisible(false);
-						OnscreenShadowContext.this.frame.dispose();
-					}
-				});
-			} catch (Exception e) { /* Do nothing ?? */	}
+			JoglSurfaceFactory.invokeOnAwtThread(new Runnable() {
+				public void run() {
+					OnscreenShadowContext.this.frame.setVisible(false);
+					OnscreenShadowContext.this.frame.dispose();
+				}
+			});
 			this.frame = null;
 		}
 		

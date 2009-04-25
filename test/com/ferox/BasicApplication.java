@@ -47,6 +47,8 @@ public abstract class BasicApplication extends ApplicationBase {
 	protected SceneElement scene;
 	
 	private long lastFpsUpdate;
+	private int fpsCount;
+	private float avgFps;
 	
 	private StringBuilder fpsStringBuilder;
 	private Formatter fpsFormatter;
@@ -79,7 +81,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		
 		this.pass = new BasicRenderPass(null, v, this.createQueue(), false);
 		
-		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 1440, 900);
+		//this.window = renderer.createFullscreenSurface(new DisplayOptions(), 640, 480);
 		this.window = renderer.createWindowSurface(this.createOptions(), 10, 10, 640, 480, false, false);
 		this.window.addRenderPass(this.pass);
 		this.window.setTitle(this.getClass().getSimpleName());
@@ -139,17 +141,23 @@ public abstract class BasicApplication extends ApplicationBase {
 			renderer.queueRender(this.window);
 			boolean res = super.render(renderer);
 			
+			this.fpsCount++;
+			this.avgFps += this.stats.getFramesPerSecond();
+			
 			if (System.currentTimeMillis() - this.lastFpsUpdate > UPDATE_TIME) {
 				this.lastFpsUpdate = System.currentTimeMillis();
 				Runtime run = Runtime.getRuntime();
 				this.fpsStringBuilder.setLength(0);
-				this.fpsFormatter.format("FPS: %.2f\nMeshes: %d\nPolygons: %d\nUsed: %.2f / %.2f M", this.stats.getFramesPerSecond(), 
+				this.fpsFormatter.format("FPS: %.2f\nMeshes: %d\nPolygons: %d\nUsed: %.2f / %.2f M", this.avgFps / this.fpsCount, 
 																									 this.stats.getMeshCount(),
 																									 this.stats.getPolygonCount(),
 																									 (run.totalMemory() - run.freeMemory()) / 1e6f,
 																									 run.totalMemory() / 1e6f);
 				this.fpsText.setText(this.fpsStringBuilder.toString());
 				renderer.requestUpdate(this.fpsText, true);
+				
+				this.fpsCount = 0;
+				this.avgFps = 0;
 			}
 			
 			return res;

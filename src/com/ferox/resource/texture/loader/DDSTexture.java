@@ -662,10 +662,6 @@ public class DDSTexture {
 	 * where the next byte read is the first byte in the texture data (header already read from stream). */
 	private void readData(InputStream in) throws IOException {
 		int width, height, depth, size;
-		System.out.println(this.target + " " + this.format + " " + this.type);
-		System.out.println(this.header.pixelFormat);
-		System.out.println(this.mipmapCount + " " + this.width + " " + this.height);
-		
 		int arrayCount = 1;
 		if (this.target == TextureTarget.T_CUBEMAP)
 			arrayCount = 6; // faces are ordered px, nx, py, ny, pz, nz

@@ -8,7 +8,6 @@ import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
-import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.CapabilitiesDetector;
@@ -31,32 +30,28 @@ public class JoglCapabilitiesDetector implements CapabilitiesDetector {
 				pbuffer.destroy();
 			} else {
 				// quick make a frame visible to get a GLCanvas
-				try {
-					SwingUtilities.invokeAndWait(new Runnable() {
-						@Override
-						public void run() {
-							// setup
-							GLCanvas canvas = new GLCanvas();
-							
-							Frame frame = new Frame();
-							frame.add(canvas);
-							frame.setSize(1, 1);
-							
-							// detect
-							frame.setVisible(true);
-							canvas.getContext().makeCurrent();
-							JoglCapabilitiesDetector.this.queryCapabilities(canvas.getGL());
-							canvas.getContext().release();
-							
-							// clean-up
-							frame.setVisible(false);
-							canvas.getContext().destroy();
-							frame.dispose();
-						}
-					});
-				} catch (Exception e) {
-					throw new RuntimeException("Unnable to detect RenderCapabilities", e);
-				}
+				JoglSurfaceFactory.invokeOnAwtThread(new Runnable() {
+					@Override
+					public void run() {
+						// setup
+						GLCanvas canvas = new GLCanvas();
+
+						Frame frame = new Frame();
+						frame.add(canvas);
+						frame.setSize(1, 1);
+
+						// detect
+						frame.setVisible(true);
+						canvas.getContext().makeCurrent();
+						JoglCapabilitiesDetector.this.queryCapabilities(canvas.getGL());
+						canvas.getContext().release();
+
+						// clean-up
+						frame.setVisible(false);
+						canvas.getContext().destroy();
+						frame.dispose();
+					}
+				});
 			}
 		}
 		
