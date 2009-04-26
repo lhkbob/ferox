@@ -38,7 +38,7 @@ public interface RenderQueue {
 	 * @param view The current View that represents the viewing location for all
 	 *            rendered atoms
 	 */
-	public int flush(Renderer renderer, View view) throws RenderException;
+	public int flush(Renderer renderer, View view);
 
 	/**
 	 * Add the given atom to be rendered by this RenderQueue. If an atom is

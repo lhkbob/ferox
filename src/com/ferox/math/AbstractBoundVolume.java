@@ -23,11 +23,4 @@ public abstract class AbstractBoundVolume implements BoundVolume {
 		result.enclose(toEnclose);
 		return result;
 	}
-
-	@Override
-	public BoundVolume enclose(Boundable vertices, BoundVolume result) {
-		result = this.clone(result);
-		result.enclose(vertices);
-		return result;
-	}
 }

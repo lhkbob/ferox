@@ -7,6 +7,13 @@ import com.ferox.util.texture.converter.TextureConverter.DataBlock;
 import com.ferox.util.texture.converter.TextureConverter.Decoder;
 import com.ferox.util.texture.converter.TextureConverter.Encoder;
 
+/**
+ * Provides an Encoder and Decoder implementation for the TextureFormats BGR_565
+ * and RGB_565
+ * 
+ * @author Michael Ludwig
+ * 
+ */
 public class PackedShort565Converter implements Decoder, Encoder {
 	private static final int C1_MASK = 0xF800;
 	private static final int C2_MASK = 0x07E0;
@@ -23,7 +30,7 @@ public class PackedShort565Converter implements Decoder, Encoder {
 	@Override
 	public boolean canEncode(DataType type, TextureFormat format) {
 		return type == DataType.UNSIGNED_SHORT
-						&& (format == TextureFormat.BGR_565 || format == TextureFormat.RGB_565);
+				&& (format == TextureFormat.BGR_565 || format == TextureFormat.RGB_565);
 	}
 
 	@Override
@@ -33,17 +40,19 @@ public class PackedShort565Converter implements Decoder, Encoder {
 		int z = (int) w * data.getDepth();
 
 		int index = x + y * data.getWidth() + z * data.getWidth()
-						* data.getHeight();
+					* data.getHeight();
 		short val = ((short[]) data.getData().getData())[index];
 
 		switch (data.getFormat()) {
 		case BGR_565:
 			store.set(((val & C3_MASK) >> 0) / MAX_RB, ((val & C2_MASK) >> 5)
-							/ MAX_G, ((val & C1_MASK) >> 11) / MAX_RB, 1f);
+														/ MAX_G,
+						((val & C1_MASK) >> 11) / MAX_RB, 1f);
 			break;
 		case RGB_565:
 			store.set(((val & C1_MASK) >> 11) / MAX_RB, ((val & C2_MASK) >> 5)
-							/ MAX_G, ((val & C3_MASK) >> 0) / MAX_RB, 1f);
+														/ MAX_G,
+						((val & C3_MASK) >> 0) / MAX_RB, 1f);
 			break;
 		}
 	}
@@ -51,7 +60,7 @@ public class PackedShort565Converter implements Decoder, Encoder {
 	@Override
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
 		int index = x + y * data.getWidth() + z * data.getWidth()
-						* data.getHeight();
+					* data.getHeight();
 
 		float alpha = color.getAlpha();
 

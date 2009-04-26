@@ -146,9 +146,9 @@ public class View {
 	 * @param plane The requested plane
 	 * @return The Plane instance for the requested plane, in world coordinates
 	 * 
-	 * @throws ArrayIndexOutOfBoundsException if plane isn't in [0, 5]
+	 * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
 	 */
-	public Plane getWorldPlane(int plane) throws ArrayIndexOutOfBoundsException {
+	public Plane getWorldPlane(int plane) {
 		return worldPlanes[plane];
 	}
 
@@ -298,8 +298,7 @@ public class View {
 	 *             far, or if near <= 0
 	 * 
 	 */
-	public void setPerspective(float fov, float aspect, float near, float far)
-					throws IllegalArgumentException, IllegalStateException {
+	public void setPerspective(float fov, float aspect, float near, float far) {
 		float h = (float) Math.tan(Math.toRadians(fov)) * near * .5f;
 		float w = h * aspect;
 		this.useOrtho = false;
@@ -389,7 +388,7 @@ public class View {
 	 *             far, or near <= 0 when the view isn't orthographic
 	 */
 	public void setFrustum(float left, float right, float bottom, float top,
-					float near, float far) throws IllegalArgumentException {
+					float near, float far) {
 		if (left > right || bottom > top || near > far) {
 			throw new IllegalArgumentException(
 							"Frustum values would create an invalid frustum: "
@@ -430,8 +429,7 @@ public class View {
 	 * @throws IllegalStateException if ortho is false and the near frustum
 	 *             plane is <= 0
 	 */
-	public void setOrthogonalProjection(boolean ortho)
-					throws IllegalStateException {
+	public void setOrthogonalProjection(boolean ortho) {
 		if (!ortho && frustumNear <= 0) {
 			throw new IllegalStateException(
 							"Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
@@ -496,8 +494,7 @@ public class View {
 	 * @throws IllegalArgumentException if any value is outside of [0, 1], or if
 	 *             top < bottom, or if left > right.
 	 */
-	public void setViewPort(float left, float right, float bottom, float top)
-					throws IllegalArgumentException {
+	public void setViewPort(float left, float right, float bottom, float top) {
 		if (left < 0 || left > 1) {
 			throw new IllegalArgumentException(
 							"Illegal value for left viewport edge: " + left);

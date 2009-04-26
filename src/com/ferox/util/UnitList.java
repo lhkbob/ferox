@@ -31,12 +31,20 @@ public class UnitList<T> {
 			this.unit = unit;
 		}
 
-		/** Get the item bound to the given unit. */
+		/**
+		 * Get the item bound to the given unit.
+		 * 
+		 * @return The T bound to getUnit()
+		 */
 		public T getData() {
 			return this.data;
 		}
 
-		/** Get the unit index for this Unit. */
+		/**
+		 * Get the unit index for this Unit.
+		 * 
+		 * @return The unit that getData() is bound to
+		 */
 		public int getUnit() {
 			return this.unit;
 		}
@@ -63,14 +71,17 @@ public class UnitList<T> {
 	 * Set the item on the given unit. If item is null, makes it so that there
 	 * is no item bound on the given unit.
 	 * 
-	 * If unit is less than 0, then this method fails.
+	 * @param unit The unit to bind item to
+	 * @param item The new item bound to unit
+	 * 
+	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
 	@SuppressWarnings("unchecked")
-	public void setItem(int unit, T item) throws IllegalArgumentException {
+	public void setItem(int unit, T item) {
 		if (unit < 0) {
-			throw new IllegalArgumentException(
-							"Invalid unit, units cannot be less than 0: "
-											+ unit);
+			throw new IndexOutOfBoundsException(
+												"Invalid unit, units cannot be less than 0: "
+														+ unit);
 		}
 
 		int nuIndex = -1;
@@ -129,17 +140,21 @@ public class UnitList<T> {
 		} else {
 			if (this.useRandomAccess) {
 				if (minUnit != this.raUnitOffset
-								|| maxUnit != (this.raUnitOffset
-												+ this.randomAccessData.length - 1)) {
+					|| maxUnit != (this.raUnitOffset
+									+ this.randomAccessData.length - 1)) {
 					// we need an update
 					T[] newTex = (T[]) new Object[maxUnit - minUnit + 1];
-					System.arraycopy(this.randomAccessData, Math.max(0, minUnit
-									- this.raUnitOffset), newTex, Math.max(0,
-									this.raUnitOffset - minUnit), Math.min(
-									this.randomAccessData.length
+					System
+							.arraycopy(
+										this.randomAccessData,
+										Math
+											.max(0, minUnit - this.raUnitOffset),
+										newTex, Math.max(0, this.raUnitOffset
+															- minUnit),
+										Math.min(this.randomAccessData.length
 													+ this.raUnitOffset,
-									maxUnit + 1)
-									- this.raUnitOffset);
+													maxUnit + 1)
+												- this.raUnitOffset);
 					this.randomAccessData = newTex;
 					this.raUnitOffset = minUnit;
 				}
@@ -164,18 +179,21 @@ public class UnitList<T> {
 	 * Get the item currently set for the given unit. A return value of null
 	 * signifies that there is no item bound to that unit.
 	 * 
-	 * Fails if unit is less than 0.
+	 * @param unit The unit that the returned item is bound to
+	 * @return The item bound to unit, or null if there was no binding
+	 * 
+	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
-	public T getItem(int unit) throws IllegalArgumentException {
+	public T getItem(int unit) {
 		if (unit < 0) {
-			throw new IllegalArgumentException(
-							"Invalid unit, units cannot be less than 0: "
-											+ unit);
+			throw new IndexOutOfBoundsException(
+												"Invalid unit, units cannot be less than 0: "
+														+ unit);
 		}
 
 		if (this.useRandomAccess) {
 			if (unit < this.raUnitOffset
-							|| unit >= (this.raUnitOffset + this.randomAccessData.length)) {
+				|| unit >= (this.raUnitOffset + this.randomAccessData.length)) {
 				return null;
 			}
 			return this.randomAccessData[unit - this.raUnitOffset];
@@ -197,13 +215,17 @@ public class UnitList<T> {
 	 * Return a list of all bounds units. Unit values not present have no item
 	 * bound to them.
 	 * 
-	 * The list is unmodifiable.
+	 * @return An unmodifiable list of all non-null bindings to units
 	 */
 	public List<Unit<T>> getItems() {
 		return this.readOnlyUnits;
 	}
 
-	/** Return the number of items in this UnitList. */
+	/**
+	 * Return the number of items in this UnitList.
+	 * 
+	 * @return The number of bound items
+	 */
 	public int size() {
 		return this.units.size();
 	}

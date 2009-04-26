@@ -32,8 +32,7 @@ public interface BoundVolume {
 	 * @throws UnsupportedOperationException if toEnclose is an unsupported
 	 *             BoundVolume implementation
 	 */
-	public void enclose(BoundVolume toEnclose)
-					throws UnsupportedOperationException;
+	public void enclose(BoundVolume toEnclose);
 
 	/**
 	 * Test for intersection between this and another BoundVolume. Return false
@@ -43,8 +42,7 @@ public interface BoundVolume {
 	 * @throws UnsupportedOperationException if other is an unsupported
 	 *             BoundVolume implementation
 	 */
-	public boolean intersects(BoundVolume other)
-					throws UnsupportedOperationException;
+	public boolean intersects(BoundVolume other);
 
 	/**
 	 * Apply the given transform to this BoundVolume. This effectively changes
@@ -64,8 +62,7 @@ public interface BoundVolume {
 	 * 
 	 * @throws NullPointerException if view is null
 	 */
-	public FrustumIntersection testFrustum(View view)
-					throws NullPointerException;
+	public FrustumIntersection testFrustum(View view);
 
 	/**
 	 * Compute the farthest extent of this volume along the given direction
@@ -81,8 +78,7 @@ public interface BoundVolume {
 	 * 
 	 * @throws NullPointerException if dir is null
 	 */
-	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result)
-					throws NullPointerException;
+	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result);
 
 	/**
 	 * As enclose(toEnclose) but this BoundVolume is unmodified and the output

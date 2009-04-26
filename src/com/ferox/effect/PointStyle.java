@@ -253,8 +253,7 @@ public class PointStyle extends AbstractEffect {
 	 * 
 	 * @throws IllegalArgumentException if min > max
 	 */
-	public void setMinMaxPointSize(float min, float max)
-					throws IllegalArgumentException {
+	public void setMinMaxPointSize(float min, float max) {
 		if (min > max) {
 			throw new IllegalArgumentException(
 							"Cannot specify a minimum point distance that's less than the max: "

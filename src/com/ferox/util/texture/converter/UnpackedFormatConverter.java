@@ -20,6 +20,8 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	/**
 	 * SupportedType is the single type that this decoder and encoder knows how
 	 * to read. It determines the type of array passed into get() and set().
+	 * 
+	 * @param supportedType The DataType supported by the sub-class
 	 */
 	protected UnpackedFormatConverter(DataType supportedType) {
 		validType = supportedType;
@@ -39,28 +41,28 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
 		int index = numC
-						* (x + y * data.getWidth() + z * data.getHeight()
-										* data.getWidth());
+					* (x + y * data.getWidth() + z * data.getHeight()
+													* data.getWidth());
 		Object array = data.getData().getData();
 
 		switch (data.getFormat()) {
 		case BGRA:
-			store.set(get(array, index + 2), get(array, index + 1), get(array,
-							index + 0), get(array, index + 3));
+			store.set(get(array, index + 2), get(array, index + 1),
+						get(array, index + 0), get(array, index + 3));
 			break;
 		case BGR:
-			store.set(get(array, index + 2), get(array, index + 1), get(array,
-							index + 0), 1f);
+			store.set(get(array, index + 2), get(array, index + 1),
+						get(array, index + 0), 1f);
 			break;
 		case RGBA:
 		case RGBA_FLOAT:
-			store.set(get(array, index + 0), get(array, index + 1), get(array,
-							index + 2), get(array, index + 3));
+			store.set(get(array, index + 0), get(array, index + 1),
+						get(array, index + 2), get(array, index + 3));
 			break;
 		case RGB:
 		case RGB_FLOAT:
-			store.set(get(array, index + 0), get(array, index + 1), get(array,
-							index + 2), 1f);
+			store.set(get(array, index + 0), get(array, index + 1),
+						get(array, index + 2), 1f);
 			break;
 		case ALPHA:
 		case ALPHA_FLOAT:
@@ -92,8 +94,8 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
 		int index = numC
-						* (x + y * data.getWidth() + z * data.getHeight()
-										* data.getWidth());
+					* (x + y * data.getWidth() + z * data.getHeight()
+													* data.getWidth());
 		Object array = data.getData().getData();
 
 		switch (data.getFormat()) {
@@ -131,16 +133,16 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 			break;
 		case LUMINANCE_ALPHA:
 		case LUMINANCE_ALPHA_FLOAT: {
-			set(array, index, (color.getRed() + color.getGreen() + color
-							.getBlue()) / 3f);
+			set(array, index,
+				(color.getRed() + color.getGreen() + color.getBlue()) / 3f);
 			set(array, index + 1, color.getAlpha());
 			break;
 		}
 		case DEPTH:
 		case LUMINANCE:
 		case LUMINANCE_FLOAT: {
-			set(array, index, (color.getRed() + color.getGreen() + color
-							.getBlue()) / 3f);
+			set(array, index,
+				(color.getRed() + color.getGreen() + color.getBlue()) / 3f);
 			break;
 		}
 		}
@@ -150,18 +152,26 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	 * Set the given array value at index to the floating point value. This will
 	 * likely involve scaling and casting the value. This value will be between
 	 * 0 and 1.
+	 * 
+	 * @param array The data array to store the incoming color value
+	 * @param index The array index to set to value
+	 * @param value The color component value, in [0, 1]
 	 */
 	protected abstract void set(Object array, int index, float value);
 
 	/**
 	 * Return a floating point value that represents the final color value, as
 	 * if it were converted into a texture in the graphics card.
+	 * 
+	 * @param array The data array to return a color component value from at
+	 *            index
+	 * @param index The index used to access array
 	 */
 	protected abstract float get(Object array, int index);
 
 	private boolean supported(DataType type, TextureFormat format) {
 		return type == validType && !format.isCompressed()
-						&& !format.isPackedFormat();
+				&& !format.isPackedFormat();
 	}
 
 }

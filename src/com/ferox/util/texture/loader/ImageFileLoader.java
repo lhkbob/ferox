@@ -27,7 +27,11 @@ public interface ImageFileLoader {
 	 * 
 	 * If null is returned, the stream should not have its position modified.
 	 * 
-	 * Throw an IOException if there are any problems.
+	 * @param stream The InputStream to attempt to read an image from
+	 * @return The read TextureImage, or null if this stream doesn't match a
+	 *         supported format
+	 * 
+	 * @throws IOException if there are any problems reading the texture
 	 */
 	public TextureImage readImage(InputStream stream) throws IOException;
 }

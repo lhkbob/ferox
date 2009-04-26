@@ -105,7 +105,7 @@ public class GlslShader extends AbstractEffect {
 	 * @param program GlslProgram that this shader uses when rendering
 	 * @throws NullPointerException if program is null
 	 */
-	public GlslShader(GlslProgram program) throws NullPointerException {
+	public GlslShader(GlslProgram program) {
 		if (program == null) {
 			throw new NullPointerException("Program cannot be null");
 		}
@@ -146,8 +146,7 @@ public class GlslShader extends AbstractEffect {
 	 * @throws IllegalArgumentException if the uniform isn't owned by this
 	 *             shader's program
 	 */
-	public void setUniform(GlslUniform uniform, Object value)
-					throws IllegalArgumentException, NullPointerException {
+	public void setUniform(GlslUniform uniform, Object value) {
 		if (uniform == null) {
 			throw new NullPointerException("Uniform cannot be null");
 		}

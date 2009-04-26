@@ -42,7 +42,7 @@ public class BasicRenderQueue implements RenderQueue {
 	}
 
 	@Override
-	public int flush(Renderer renderer, View view) throws RenderException {
+	public int flush(Renderer renderer, View view) {
 		if (renderer == null || view == null) {
 			return 0;
 		}

@@ -48,7 +48,7 @@ public class Color {
 	 * @param other Color whose values are copied
 	 * @throws NullPointerException if other is null
 	 */
-	public Color(Color other) throws NullPointerException {
+	public Color(Color other) {
 		this(other.red, other.green, other.blue, other.alpha);
 	}
 

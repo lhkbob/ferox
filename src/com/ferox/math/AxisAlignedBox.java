@@ -238,7 +238,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	}
 
 	@Override
-	public void enclose(BoundVolume child) throws UnsupportedOperationException {
+	public void enclose(BoundVolume child) {
 		if (child == null) {
 			return;
 		}
@@ -371,8 +371,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	}
 
 	@Override
-	public FrustumIntersection testFrustum(View view)
-					throws NullPointerException {
+	public FrustumIntersection testFrustum(View view) {
 		if (view == null) {
 			throw new NullPointerException(
 							"Cannot test a frustum with a null view");
@@ -425,8 +424,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	}
 
 	@Override
-	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f out)
-					throws NullPointerException {
+	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f out) {
 		if (dir == null) {
 			throw new NullPointerException(
 							"Can't find extent along a null direction vector");
@@ -449,8 +447,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	 * BoundSpheres.
 	 */
 	@Override
-	public boolean intersects(BoundVolume other)
-					throws UnsupportedOperationException {
+	public boolean intersects(BoundVolume other) {
 		if (other == null) {
 			return false;
 		}
@@ -506,35 +503,6 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 			throw new UnsupportedOperationException(
 							"Unable to compute intersection for type: " + other);
 		}
-	}
-
-	@Override
-	public void enclose(Boundable vertices) {
-		if (vertices == null) {
-			return;
-		}
-		int vertexCount = vertices.getVertexCount();
-		if (vertexCount == 0) {
-			return;
-		}
-
-		worldMax.set(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
-		worldMin.set(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
-
-		for (int i = 0; i < vertexCount; i++) {
-			enclosePoint(vertices.getVertex(i, 0), vertices.getVertex(i, 1),
-							vertices.getVertex(i, 2));
-		}
-	}
-
-	private void enclosePoint(float x, float y, float z) {
-		worldMax.x = Math.max(worldMax.x, x);
-		worldMax.y = Math.max(worldMax.y, y);
-		worldMax.z = Math.max(worldMax.z, z);
-
-		worldMin.x = Math.min(worldMin.x, x);
-		worldMin.y = Math.min(worldMin.y, y);
-		worldMin.z = Math.min(worldMin.z, z);
 	}
 	
 	@Override

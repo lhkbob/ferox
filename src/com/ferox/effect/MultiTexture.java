@@ -56,10 +56,9 @@ public class MultiTexture extends AbstractEffect {
 	 * @param unit Texture unit texture is assigned to
 	 * @param texture Texture object to use, null breaks old binding
 	 * 
-	 * @throws IllegalArgumentException if unit < 0
+	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
-	public void setTexture(int unit, Texture texture)
-					throws IllegalArgumentException {
+	public void setTexture(int unit, Texture texture) {
 		units.setItem(unit, texture);
 	}
 
@@ -70,9 +69,9 @@ public class MultiTexture extends AbstractEffect {
 	 * @param unit Texture unit to query bound texture
 	 * @return Texture bound to unit, null means no binding
 	 * 
-	 * @throws IllegalArgumentException if unit < 0
+	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
-	public Texture getTexture(int unit) throws IllegalArgumentException {
+	public Texture getTexture(int unit) {
 		return units.getItem(unit);
 	}
 

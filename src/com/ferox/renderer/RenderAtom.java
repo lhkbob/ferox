@@ -70,8 +70,7 @@ public final class RenderAtom {
 	 * @throws NullPointerException if t is null
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
-	public void setTransform(Transform t, Object key)
-					throws IllegalArgumentException, NullPointerException {
+	public void setTransform(Transform t, Object key) {
 		if (this.key == null || key == this.key) {
 			if (t == null) {
 				throw new NullPointerException("Transform cannot be null");
@@ -91,8 +90,7 @@ public final class RenderAtom {
 	 * 
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
-	public void setEffects(EffectSet a, Object key)
-					throws IllegalArgumentException {
+	public void setEffects(EffectSet a, Object key) {
 		if (this.key == null || key == this.key) {
 			effects = a;
 		} else {
@@ -110,8 +108,7 @@ public final class RenderAtom {
 	 * @throws NullPointerException if g is null
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
-	public void setGeometry(Geometry g, Object key)
-					throws IllegalArgumentException, NullPointerException {
+	public void setGeometry(Geometry g, Object key) {
 		if (this.key == null || key == this.key) {
 			if (g == null) {
 				throw new NullPointerException("Geometry cannot be null");

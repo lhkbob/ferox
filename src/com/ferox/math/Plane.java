@@ -61,8 +61,7 @@ public class Plane {
 	 * @throws NullPointerException if normal is null
 	 * @throws ArithmeticException if setPlane() fails
 	 */
-	public void setNormal(Vector3f normal) throws NullPointerException,
-					ArithmeticException {
+	public void setNormal(Vector3f normal) {
 		if (normal == null) {
 			throw new NullPointerException("Normal vector can't be null");
 		}
@@ -79,8 +78,7 @@ public class Plane {
 	 * 
 	 * @throws ArithmeticException if |<a, b, c>| == 0.
 	 */
-	public void setPlane(float a, float b, float c, float d)
-					throws ArithmeticException {
+	public void setPlane(float a, float b, float c, float d) {
 		float dist = (float) Math.sqrt(a * a + b * b + c * c);
 		if (dist == 0) {
 			throw new ArithmeticException("Invalid plane input: " + a + " " + b
@@ -142,7 +140,7 @@ public class Plane {
 	 * 
 	 * @throws NullPointerException if v is null
 	 */
-	public float signedDistance(Vector3f v) throws NullPointerException {
+	public float signedDistance(Vector3f v) {
 		float num = a * v.x + b * v.y + c * v.z + d;
 		if (len == 1f) {
 			return num;
@@ -157,7 +155,7 @@ public class Plane {
 	 * @param trans The transform to adjust this plane with
 	 * @throws NullPointerException if trans is null
 	 */
-	public void transform(Transform trans) throws NullPointerException {
+	public void transform(Transform trans) {
 		this.transform(this, trans);
 	}
 
@@ -170,8 +168,7 @@ public class Plane {
 	 * @return this
 	 * @throws NullPointerException if p or trans are null
 	 */
-	public Plane transform(Plane p, Transform trans)
-					throws NullPointerException {
+	public Plane transform(Plane p, Transform trans) {
 		if (trans == null || p == null) {
 			throw new NullPointerException("Can't have null input: " + trans
 							+ " " + p);
@@ -226,7 +223,7 @@ public class Plane {
 	 * @return this
 	 * @throws NullPointerException if p or trans are null
 	 */
-	public Plane transform(Plane p, Matrix4f trans) throws NullPointerException {
+	public Plane transform(Plane p, Matrix4f trans) {
 		if (trans == null || p == null) {
 			throw new NullPointerException("Can't have null input: " + trans
 							+ " " + p);

@@ -38,8 +38,7 @@ public interface Boundable {
 	 *            Z_COORD
 	 * 
 	 * @return Float value for requested vertex and coordinate.
-	 * @throws IllegalArgumentException if coord or index are out of range
+	 * @throws IndexOutOfBoundsException if coord or index are out of range
 	 */
-	public float getVertex(int index, int coord)
-					throws IllegalArgumentException;
+	public float getVertex(int index, int coord);
 }

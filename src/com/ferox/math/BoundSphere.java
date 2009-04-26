@@ -186,7 +186,7 @@ public class BoundSphere extends AbstractBoundVolume {
 				float or = this.radius;
 				this.radius = (dist + radius + this.radius) / 2f;
 				this.center.scaleAdd((this.radius - or) / dist, diff,
-								this.center);
+						this.center);
 			} // else we already enclose it, so do nothing
 		} else {
 			// don't need to move the center, just take the largest radius
@@ -199,11 +199,10 @@ public class BoundSphere extends AbstractBoundVolume {
 	 * view's sphere classifier to quickly test for frustum intersection.
 	 */
 	@Override
-	public FrustumIntersection testFrustum(View view)
-					throws NullPointerException {
+	public FrustumIntersection testFrustum(View view) {
 		if (view == null) {
 			throw new NullPointerException(
-							"Cannot test a frustum with a null view");
+					"Cannot test a frustum with a null view");
 		}
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
@@ -213,7 +212,7 @@ public class BoundSphere extends AbstractBoundVolume {
 
 		for (int i = View.NUM_PLANES; i >= 0; i--) {
 			if (i == lastFailedPlane
-							|| (i == View.NUM_PLANES && lastFailedPlane < 0)) {
+					|| (i == View.NUM_PLANES && lastFailedPlane < 0)) {
 				continue;
 			}
 
@@ -243,11 +242,10 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	@Override
-	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result)
-					throws NullPointerException {
+	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result) {
 		if (dir == null) {
 			throw new NullPointerException(
-							"Can't compute extent for a null direction");
+					"Can't compute extent for a null direction");
 		}
 		if (result == null) {
 			result = new Vector3f();
@@ -269,8 +267,7 @@ public class BoundSphere extends AbstractBoundVolume {
 
 	/** When intersecting an AxisAlignedBox, it calls other.intersects(this). */
 	@Override
-	public boolean intersects(BoundVolume other)
-					throws UnsupportedOperationException {
+	public boolean intersects(BoundVolume other) {
 		if (other == null) {
 			return false;
 		}
@@ -283,25 +280,12 @@ public class BoundSphere extends AbstractBoundVolume {
 			BoundSphere s = (BoundSphere) other;
 			cross.sub(center, s.center);
 			return cross.lengthSquared() <= (radius + s.radius)
-							* (radius + s.radius);
+					* (radius + s.radius);
 		} else {
 			throw new UnsupportedOperationException(
-							"Unable to compute intersection between the given type: "
-											+ other);
+					"Unable to compute intersection between the given type: "
+							+ other);
 		}
-	}
-
-	@Override
-	public void enclose(Boundable vertices) {
-		if (vertices == null || vertices.getVertexCount() == 0) {
-			return;
-		}
-
-		float[] points = new float[vertices.getVertexCount() * 3];
-		fillPointsArray(points, vertices);
-
-		recurseMini(points, points.length / 3, 0, 0); // thanks to jME for
-		// algorithm, adapted to use float arrays
 	}
 
 	@Override
@@ -309,157 +293,7 @@ public class BoundSphere extends AbstractBoundVolume {
 		return "(BoundSphere center: " + center + " radius: " + radius + ")";
 	}
 
-	private void recurseMini(float[] points, int p, int b, int ap) {
-		Vector3f tempA = BoundSphere.tempA.get();
-		Vector3f tempB = BoundSphere.tempB.get();
-		Vector3f tempC = BoundSphere.tempC.get();
-		Vector3f tempD = BoundSphere.tempD.get();
-
-		switch (b) {
-		case 0:
-			radius = 0;
-			center.set(0f, 0f, 0f);
-			break;
-		case 1:
-			radius = 1f - radiusEpsilon;
-			populateFromArray(center, points, ap - 1);
-			break;
-		case 2:
-			populateFromArray(tempA, points, ap - 1);
-			populateFromArray(tempB, points, ap - 2);
-			this.setSphere(tempA, tempB);
-			break;
-		case 3:
-			populateFromArray(tempA, points, ap - 1);
-			populateFromArray(tempB, points, ap - 2);
-			populateFromArray(tempC, points, ap - 3);
-			this.setSphere(tempA, tempB, tempC);
-			break;
-		case 4:
-			populateFromArray(tempA, points, ap - 1);
-			populateFromArray(tempB, points, ap - 2);
-			populateFromArray(tempC, points, ap - 3);
-			populateFromArray(tempD, points, ap - 4);
-			this.setSphere(tempA, tempB, tempC, tempD);
-			return;
-		}
-		for (int i = 0; i < p; i++) {
-			populateFromArray(tempA, points, i + ap);
-			float d = ((tempA.x - center.x) * (tempA.x - center.x)
-							+ (tempA.y - center.y) * (tempA.y - center.y) + (tempA.z - center.z)
-							* (tempA.z - center.z));
-			if (d - (radius * radius) > radiusEpsilon - 1f) {
-				for (int j = i; j > 0; j--) {
-					populateFromArray(tempB, points, j + ap);
-					populateFromArray(tempC, points, j - 1 + ap);
-					setInArray(tempC, points, j + ap);
-					setInArray(tempB, points, j - 1 + ap);
-				}
-				recurseMini(points, i, b + 1, ap + 1);
-			}
-		}
-	}
-
-	private static void populateFromArray(Vector3f p, float[] points, int index) {
-		p.x = points[index * 3];
-		p.y = points[index * 3 + 1];
-		p.z = points[index * 3 + 2];
-	}
-
-	private static void setInArray(Vector3f p, float[] points, int index) {
-		if (p == null) {
-			points[index * 3] = 0f;
-			points[index * 3 + 1] = 0f;
-			points[index * 3 + 2] = 0f;
-		} else {
-			points[index * 3] = p.x;
-			points[index * 3 + 1] = p.y;
-			points[index * 3 + 2] = p.z;
-		}
-	}
-
-	private void setSphere(Vector3f o, Vector3f a, Vector3f b, Vector3f c) {
-		Vector3f tA = BoundSphere.tA.get();
-		Vector3f tB = BoundSphere.tB.get();
-		Vector3f tC = BoundSphere.tC.get();
-		Vector3f tD = BoundSphere.tD.get();
-		Vector3f cross = BoundSphere.cross.get();
-
-		tA.sub(a, o);
-		tB.sub(b, o);
-		tC.sub(c, o);
-
-		float denom = 2.0f * (tA.x * (tB.y * tC.z - tC.y * tB.z) - tB.x
-						* (tA.y * tC.z - tC.y * tA.z) + tC.x
-						* (tA.y * tB.z - tB.y * tA.z));
-		if (denom == 0) {
-			center.set(0f, 0f, 0f);
-			radius = 0f;
-		} else {
-			cross.cross(tA, tB);
-			cross.scale(tC.lengthSquared());
-			tD.cross(tC, tA);
-			tD.scale(tB.lengthSquared());
-			cross.add(tD);
-			tD.cross(tB, tC);
-			tD.scale(tA.lengthSquared());
-			cross.add(tD);
-			cross.scale(1f / denom);
-
-			radius = cross.length() * radiusEpsilon;
-			center.add(o, cross);
-		}
-	}
-
-	private void setSphere(Vector3f o, Vector3f a, Vector3f b) {
-		Vector3f tA = BoundSphere.tA.get();
-		Vector3f tB = BoundSphere.tB.get();
-		Vector3f tC = BoundSphere.tC.get();
-		Vector3f tD = BoundSphere.tD.get();
-		Vector3f cross = BoundSphere.cross.get();
-
-		tA.sub(a, o);
-		tB.sub(b, o);
-		cross.cross(tA, tB);
-
-		float denom = 2f * cross.lengthSquared();
-
-		if (denom == 0) {
-			center.set(0f, 0f, 0f);
-			radius = 0f;
-		} else {
-			tC.cross(cross, tA);
-			tC.scale(tB.lengthSquared());
-			tD.cross(tB, cross);
-			tD.scale(tA.lengthSquared());
-			tC.add(tD);
-			tC.scale(1f / denom);
-
-			radius = tC.length() * radiusEpsilon;
-			center.add(o, tC);
-		}
-	}
-
-	private void setSphere(Vector3f o, Vector3f a) {
-		radius = (float) Math.sqrt(((a.x - o.x) * (a.x - o.x) + (a.y - o.y)
-						* (a.y - o.y) + (a.z - o.z) * (a.z - o.z)) / 4f)
-						+ radiusEpsilon - 1f;
-
-		center.scale(.5f, o);
-		center.scaleAdd(.5f, a, center);
-	}
-
-	private static void fillPointsArray(float[] points, Boundable verts) {
-		int vertexCount = verts.getVertexCount();
-
-		for (int i = 0; i < vertexCount; i++) {
-			points[i * 3] = verts.getVertex(i, 0);
-			points[i * 3 + 1] = verts.getVertex(i, 1);
-			points[i * 3 + 2] = verts.getVertex(i, 2);
-		}
-	}
-
-	// used in recurseMini and a few other places
+	// used in enclose
 	private static final ThreadLocal<Vector3f> tempA = new ThreadLocal<Vector3f>() {
 		@Override
 		protected Vector3f initialValue() {
@@ -473,46 +307,6 @@ public class BoundSphere extends AbstractBoundVolume {
 		}
 	};
 	private static final ThreadLocal<Vector3f> tempC = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tempD = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-
-	// used exclusively in setSphere methods
-	private static final ThreadLocal<Vector3f> tA = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tB = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tC = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tD = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-
-	// used in setSphere
-	private static final ThreadLocal<Vector3f> cross = new ThreadLocal<Vector3f>() {
 		@Override
 		protected Vector3f initialValue() {
 			return new Vector3f();

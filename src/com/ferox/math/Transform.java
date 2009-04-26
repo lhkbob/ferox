@@ -66,8 +66,7 @@ public class Transform {
 	 * 
 	 * @throws IllegalArgumentException if scale < .0001
 	 */
-	public Transform(Vector3f trans, float scale)
-					throws IllegalArgumentException {
+	public Transform(Vector3f trans, float scale) {
 		this();
 		setTranslation(trans);
 		setScale(scale);
@@ -95,8 +94,7 @@ public class Transform {
 	 * 
 	 * @throws IllegalArgumentException if scale < .0001
 	 */
-	public Transform(Vector3f trans, Matrix3f rot, float scale)
-					throws IllegalArgumentException {
+	public Transform(Vector3f trans, Matrix3f rot, float scale) {
 		this();
 		setTranslation(trans);
 		setScale(scale);
@@ -164,7 +162,7 @@ public class Transform {
 	 * 
 	 * @throws IllegalArgumentException if scale < .0001
 	 */
-	public void setScale(float scale) throws IllegalArgumentException {
+	public void setScale(float scale) {
 		if (scale < .0001f) {
 			throw new IllegalArgumentException(
 							"Can't set a scale smaller than .0001: " + scale);
@@ -253,8 +251,7 @@ public class Transform {
 	 * 
 	 * @throws NullPointerException if t1 or t2 are null
 	 */
-	public Transform mul(Transform t1, Transform t2)
-					throws NullPointerException {
+	public Transform mul(Transform t1, Transform t2) {
 		if (t1 == null || t2 == null) {
 			throw new NullPointerException("Can't multiply null transforms");
 		}
@@ -279,7 +276,7 @@ public class Transform {
 	 * 
 	 * @throws NullPointerException if t is null
 	 */
-	public Transform inverse(Transform t) throws NullPointerException {
+	public Transform inverse(Transform t) {
 		if (t == null) {
 			throw new NullPointerException("Can't inverse a null transform");
 		}
@@ -295,8 +292,7 @@ public class Transform {
 	 * @return This transform
 	 * @throws NullPointerException if ti or tn are null
 	 */
-	public Transform inverseMul(Transform ti, Transform tn)
-					throws NullPointerException {
+	public Transform inverseMul(Transform ti, Transform tn) {
 		if (ti == null || tn == null) {
 			throw new NullPointerException(
 							"Can't inverse multiply null transforms");
@@ -318,8 +314,7 @@ public class Transform {
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
 	 */
-	public void transform(Vector3f t) throws NullPointerException,
-					IllegalArgumentException {
+	public void transform(Vector3f t) {
 		this.transform(t, t);
 	}
 
@@ -339,8 +334,7 @@ public class Transform {
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
 	 */
-	public Vector3f transform(Vector3f t, Vector3f result)
-					throws NullPointerException, IllegalArgumentException {
+	public Vector3f transform(Vector3f t, Vector3f result) {
 		if (t == null) {
 			throw new NullPointerException("Can't transform a null vector");
 		}
@@ -368,8 +362,7 @@ public class Transform {
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
 	 */
-	public void inverseTransform(Vector3f t) throws NullPointerException,
-					IllegalArgumentException {
+	public void inverseTransform(Vector3f t) {
 		this.inverseTransform(t, t);
 	}
 
@@ -389,8 +382,7 @@ public class Transform {
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
 	 */
-	public Vector3f inverseTransform(Vector3f t, Vector3f result)
-					throws NullPointerException, IllegalArgumentException {
+	public Vector3f inverseTransform(Vector3f t, Vector3f result) {
 		if (t == null) {
 			throw new NullPointerException("Can't transform a null vector");
 		}

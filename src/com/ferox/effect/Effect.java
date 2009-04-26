@@ -1,6 +1,6 @@
 package com.ferox.effect;
 
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.RendererAware;
 
 /**
  * Designates that a class that describes or effects how a RenderAtom is
@@ -21,32 +21,7 @@ import com.ferox.renderer.Renderer;
  * @author Michael Ludwig
  * 
  */
-public interface Effect {
-	/**
-	 * Get the renderer specific data that has been assigned to this Effect.
-	 * This object should not be modified unless it's by the Renderer that
-	 * created it.
-	 * 
-	 * Undefined behavior occurs if it's changed.
-	 * 
-	 * @param renderer Renderer to fetch data for, will not be null
-	 * @return The previously assigned data for the renderer, or null
-	 */
-	public Object getRenderData(Renderer renderer);
-
-	/**
-	 * Assign the renderer specific data for this object. This should not be
-	 * called directly, it is to be used by renderers to attach implementation
-	 * specific information needed for successful operation.
-	 * 
-	 * Undefined behavior occurs if this is set by something other than the
-	 * Renderer.
-	 * 
-	 * @param renderer Renderer to assign data to
-	 * @param data Object to return from getRenderData
-	 */
-	public void setRenderData(Renderer renderer, Object data);
-
+public interface Effect extends RendererAware {
 	/**
 	 * A common enum to describe the quality state effects when rendering.
 	 * DONT_CARE allows implementation to choose.

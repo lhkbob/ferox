@@ -86,8 +86,7 @@ public interface Renderer {
 	 */
 	public WindowSurface createWindowSurface(DisplayOptions options, int x,
 					int y, int width, int height, boolean resizable,
-					boolean undecorated) throws SurfaceCreationException,
-					RenderStateException;
+					boolean undecorated);
 
 	/**
 	 * Create a surface that puts the application into exclusive fullscreen
@@ -113,8 +112,7 @@ public interface Renderer {
 	 *             renderer is destroyed
 	 */
 	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
-					int width, int height) throws SurfaceCreationException,
-					RenderStateException;
+					int width, int height);
 
 	/**
 	 * Create a texture surface that can be used to render into textures. The
@@ -189,8 +187,7 @@ public interface Renderer {
 	 */
 	public TextureSurface createTextureSurface(DisplayOptions options,
 					TextureTarget target, int width, int height, int depth,
-					int layer, int numColorTargets, boolean useDepthRenderBuffer)
-					throws SurfaceCreationException, RenderStateException;
+					int layer, int numColorTargets, boolean useDepthRenderBuffer);
 
 	/**
 	 * Create a texture surface that uses the exact same textures as the given
@@ -217,8 +214,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the renderer isn't idle or if it's been
 	 *             destroyed
 	 */
-	public TextureSurface createTextureSurface(TextureSurface share, int layer)
-					throws SurfaceCreationException, RenderStateException;
+	public TextureSurface createTextureSurface(TextureSurface share, int layer);
 
 	/**
 	 * Destroy the given RenderSurface. After a call to this method, the surface
@@ -238,8 +234,7 @@ public interface Renderer {
 	 * @throws RenderStateException if this renderer isn't idle or if it's been
 	 *             destroyed
 	 */
-	public void destroy(RenderSurface surface) throws NullPointerException,
-					IllegalArgumentException, RenderStateException;
+	public void destroy(RenderSurface surface);
 
 	/**
 	 * Destroy all remaining, undestroyed RenderSurfaces created by this
@@ -256,7 +251,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle, or if it's
 	 *             already been destroyed
 	 */
-	public void destroy() throws RenderStateException;
+	public void destroy();
 
 	/**
 	 * Add the given ResourceManager to the Renderer's list of ResourceManagers.
@@ -276,8 +271,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public void addResourceManager(ResourceManager manager)
-					throws RenderStateException;
+	public void addResourceManager(ResourceManager manager);
 
 	/**
 	 * Remove the given ResourceManager from the Renderer's list of managers.
@@ -289,8 +283,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public void removeResourceManager(ResourceManager manager)
-					throws RenderStateException;
+	public void removeResourceManager(ResourceManager manager);
 
 	/**
 	 * Request the given resource to be updated. If forceFullUpdate is true,
@@ -322,8 +315,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public void requestUpdate(Resource resource, boolean forceFullUpdate)
-					throws RenderStateException, NullPointerException;
+	public void requestUpdate(Resource resource, boolean forceFullUpdate);
 
 	/**
 	 * Request the given resource to be cleaned up. This is the counterpart to
@@ -338,8 +330,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public void requestCleanUp(Resource resource) throws RenderStateException,
-					NullPointerException;
+	public void requestCleanUp(Resource resource);
 
 	/**
 	 * Queue the given RenderSurface to be rendered during the next call to
@@ -365,8 +356,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public Renderer queueRender(RenderSurface surface)
-					throws RenderStateException, IllegalArgumentException;
+	public Renderer queueRender(RenderSurface surface);
 
 	/**
 	 * Render a single frame. The renderer must invoke manage() on its default
@@ -396,8 +386,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public FrameStatistics flushRenderer(FrameStatistics store)
-					throws RenderException, RenderStateException;
+	public FrameStatistics flushRenderer(FrameStatistics store);
 
 	/* Anytime operations. */
 
@@ -413,7 +402,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public Status getStatus(Resource resource) throws RenderStateException;
+	public Status getStatus(Resource resource);
 
 	/**
 	 * Get a Renderer status message that is more informative about the given
@@ -426,8 +415,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public String getStatusMessage(Resource resource)
-					throws RenderStateException;
+	public String getStatusMessage(Resource resource);
 
 	/**
 	 * Get the capabilities of this Renderer.
@@ -437,7 +425,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public RenderCapabilities getCapabilities() throws RenderStateException;
+	public RenderCapabilities getCapabilities();
 
 	/* Resource operations. */
 
@@ -482,9 +470,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public Status update(Resource resource, boolean forceFullUpdate)
-					throws RenderStateException, UnsupportedResourceException,
-					NullPointerException, RenderException;
+	public Status update(Resource resource, boolean forceFullUpdate);
 
 	/**
 	 * Cleanup the low-level, graphics hardware related data for the given
@@ -515,9 +501,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
-	public void cleanUp(Resource resource) throws RenderStateException,
-					UnsupportedResourceException, NullPointerException,
-					RenderException, IllegalArgumentException;
+	public void cleanUp(Resource resource);
 
 	/* Rendering operations. */
 
@@ -549,7 +533,5 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't prepared to render
 	 *             atoms from this thread
 	 */
-	public int renderAtom(RenderAtom atom) throws RenderStateException,
-					NullPointerException, UnsupportedResourceException,
-					UnsupportedEffectException;
+	public int renderAtom(RenderAtom atom);
 }

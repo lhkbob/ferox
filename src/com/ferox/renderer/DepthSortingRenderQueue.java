@@ -62,8 +62,7 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 	 * @param forwardBack True if atoms are sorted so that closer atoms are
 	 *            rendered first
 	 */
-	public DepthSortingRenderQueue(boolean forwardBack)
-					throws NullPointerException {
+	public DepthSortingRenderQueue(boolean forwardBack) {
 		sorter = new DepthSorter(forwardBack);
 	}
 

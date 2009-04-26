@@ -150,7 +150,7 @@ public class FrameStatistics {
 	 * @param out The PrintStream that will display the stats summary
 	 * @throws NullPointerException if out is null
 	 */
-	public void reportStatistics(PrintStream out) throws NullPointerException {
+	public void reportStatistics(PrintStream out) {
 		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n",
 						getTotalTime() / 1e6f, getIdleTime() / 1e6f);
 		out.printf("                     in prepare: %.6f ms,\n",

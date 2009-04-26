@@ -97,8 +97,7 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 	 * @param sortPriority Sort priority to use when sorting by effect
 	 * @throws NullPointerException if any element in sortPriority is null
 	 */
-	public StateSortingRenderQueue(Role[] sortPriority)
-					throws NullPointerException {
+	public StateSortingRenderQueue(Role[] sortPriority) {
 		if (sortPriority == null) { // use a default sort order
 			sortPriority = new Role[] { Role.SHADER, Role.TEXTURE,
 							Role.MATERIAL, Role.BLEND_MODE,
