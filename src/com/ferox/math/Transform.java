@@ -6,35 +6,25 @@ import org.openmali.vecmath.Quat4f;
 import org.openmali.vecmath.Vector3f;
 
 /**
+ * <p>
  * Describes a translation, rotation, and scale that effectively create a 4x4
  * matrix transform from one basis to another (e.g. a given Transform is the
  * transform from its identity space to standard space (or parent space if in a
  * hierarchy)).
- * 
+ * </p>
+ * <p>
  * Whenever mentioned in this class, the rotation matrix must be an orthogonal
  * matrix representing a rotation, there should be no skewing or scaling
  * incorporated within it (scaling is handled elsewhere).
- * 
+ * </p>
+ * <p>
  * Only uniform scaling is supported (things are scaled along all 3 axis
  * equally).
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class Transform {
-	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
-		@Override
-		protected Transform initialValue() {
-			return new Transform();
-		}
-	};
-	private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-
 	private final Matrix3f rot;
 	private final Vector3f trans;
 	private float scale;
@@ -63,7 +53,6 @@ public class Transform {
 	 * 
 	 * @param trans The translation vector to use
 	 * @param scale Uniform scale to use
-	 * 
 	 * @throws IllegalArgumentException if scale < .0001
 	 */
 	public Transform(Vector3f trans, float scale) {
@@ -91,7 +80,6 @@ public class Transform {
 	 * @param trans The translation vector to use
 	 * @param rot The 3x3 matrix representing the orientation
 	 * @param scale Uniform scale to use
-	 * 
 	 * @throws IllegalArgumentException if scale < .0001
 	 */
 	public Transform(Vector3f trans, Matrix3f rot, float scale) {
@@ -137,11 +125,10 @@ public class Transform {
 	 * @param t New translation vector, if null uses <0, 0, 0>
 	 */
 	public void setTranslation(Vector3f t) {
-		if (t == null) {
+		if (t == null)
 			trans.set(0f, 0f, 0f);
-		} else {
+		else
 			trans.set(t);
-		}
 	}
 
 	/**
@@ -159,14 +146,12 @@ public class Transform {
 	 * Sets this transform's scale factor.
 	 * 
 	 * @param scale The uniform scaling
-	 * 
 	 * @throws IllegalArgumentException if scale < .0001
 	 */
 	public void setScale(float scale) {
-		if (scale < .0001f) {
+		if (scale < .0001f)
 			throw new IllegalArgumentException(
-							"Can't set a scale smaller than .0001: " + scale);
-		}
+					"Can't set a scale smaller than .0001: " + scale);
 		this.scale = scale;
 	}
 
@@ -176,11 +161,10 @@ public class Transform {
 	 * @param rot The rotation matrix to copy, null implies the identity matrix
 	 */
 	public void setRotation(Matrix3f rot) {
-		if (rot == null) {
+		if (rot == null)
 			this.rot.setIdentity();
-		} else {
+		else
 			this.rot.set(rot);
-		}
 	}
 
 	/**
@@ -189,11 +173,10 @@ public class Transform {
 	 * @param rot Quaternion rotation to use, null implies identity
 	 */
 	public void setRotation(Quat4f rot) {
-		if (rot == null) {
+		if (rot == null)
 			this.rot.setIdentity();
-		} else {
+		else
 			this.rot.set(rot);
-		}
 	}
 
 	/**
@@ -202,11 +185,10 @@ public class Transform {
 	 * @param rot Axis angle rotation to use, null implies identity
 	 */
 	public void setRotation(AxisAngle4f rot) {
-		if (rot == null) {
+		if (rot == null)
 			this.rot.setIdentity();
-		} else {
+		else
 			this.rot.set(rot);
-		}
 	}
 
 	/**
@@ -217,9 +199,8 @@ public class Transform {
 	 * @return Rotation as a quaternion, rot or a new Quat4f if rot was null
 	 */
 	public Quat4f getRotation(Quat4f rot) {
-		if (rot == null) {
+		if (rot == null)
 			rot = new Quat4f();
-		}
 		rot.set(this.rot);
 		return rot;
 	}
@@ -233,9 +214,8 @@ public class Transform {
 	 *         null
 	 */
 	public AxisAngle4f getRotation(AxisAngle4f rot) {
-		if (rot == null) {
+		if (rot == null)
 			rot = new AxisAngle4f();
-		}
 		rot.set(this.rot);
 		return rot;
 	}
@@ -246,15 +226,12 @@ public class Transform {
 	 * 
 	 * @param t1 Left-hand transform in multiplication
 	 * @param t2 Right-hand transform in multiplication
-	 * 
 	 * @param This transform
-	 * 
 	 * @throws NullPointerException if t1 or t2 are null
 	 */
 	public Transform mul(Transform t1, Transform t2) {
-		if (t1 == null || t2 == null) {
+		if (t1 == null || t2 == null)
 			throw new NullPointerException("Can't multiply null transforms");
-		}
 		Vector3f t = temp.get();
 		t1.transform(t2.trans, t);
 		trans.set(t);
@@ -273,13 +250,11 @@ public class Transform {
 	 * 
 	 * @param t Transform to invert
 	 * @return This transform
-	 * 
 	 * @throws NullPointerException if t is null
 	 */
 	public Transform inverse(Transform t) {
-		if (t == null) {
+		if (t == null)
 			throw new NullPointerException("Can't inverse a null transform");
-		}
 		return inverseMul(t, IDENTITY.get());
 	}
 
@@ -288,15 +263,13 @@ public class Transform {
 	 * 
 	 * @param ti Inverse is used in left-hand of multiplication
 	 * @param tn Right-hand transform in multiplication
-	 * 
 	 * @return This transform
 	 * @throws NullPointerException if ti or tn are null
 	 */
 	public Transform inverseMul(Transform ti, Transform tn) {
-		if (ti == null || tn == null) {
+		if (ti == null || tn == null)
 			throw new NullPointerException(
-							"Can't inverse multiply null transforms");
-		}
+					"Can't inverse multiply null transforms");
 		Vector3f t = temp.get();
 		ti.inverseTransform(tn.trans, t);
 		trans.set(t);
@@ -309,7 +282,6 @@ public class Transform {
 	 * Calls transform(t, t), but doesn't return anything.
 	 * 
 	 * @param t Vector to be transformed by this Transform
-	 * 
 	 * @throws NullPointerException if t is null
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
@@ -321,30 +293,25 @@ public class Transform {
 	/**
 	 * Transforms the vector t by this transform (e.g. [this] X t, t as a column
 	 * matrix, 4th component is a 1). Stores result into the result vector,
-	 * leaving t unchanged unless result = t. If result = null, create a new
-	 * instance to store the result.
+	 * leaving t unchanged unless result = t. <br>
+	 * If result = null, create a new instance to store the result.
 	 * 
 	 * @param t Vector to be transformed
 	 * @param result Vector to store transformed t
-	 * 
 	 * @return Return transformed vector, result or new Vector3f if result was
 	 *         null
-	 * 
 	 * @throws NullPointerException if t was null
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
 	 */
 	public Vector3f transform(Vector3f t, Vector3f result) {
-		if (t == null) {
+		if (t == null)
 			throw new NullPointerException("Can't transform a null vector");
-		}
-		if (result == trans) {
+		if (result == trans)
 			throw new IllegalArgumentException(
-							"Can't use this transform's vectors as a result");
-		}
-		if (result == null) {
+					"Can't use this transform's vectors as a result");
+		if (result == null)
 			result = new Vector3f();
-		}
 
 		result.scale(scale, t);
 		rot.transform(result);
@@ -357,7 +324,6 @@ public class Transform {
 	 * Calls this.inverseTransform(t, t), but doesn't return the result.
 	 * 
 	 * @param t Vector to be transformed by the inverse of this
-	 * 
 	 * @throws NullPointerException if t is null
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
@@ -369,39 +335,31 @@ public class Transform {
 	/**
 	 * Transforms the vector t by the inverse of this transform (e.g. [this]^-1
 	 * X t, t as a column matrix, 4th row = 1). Stores result into the result
-	 * vector, t is unchanged unless result = t. If result = null, creates a new
-	 * instance to store the result.
+	 * vector, t is unchanged unless result = t. <br>
+	 * If result = null, creates a new instance to store the result.
 	 * 
 	 * @param t Vector to be transformed by the inverse of this Transform
 	 * @param result Vector to store transformed t
-	 * 
 	 * @return Return transformed vector, result or new Vector3f if result was
 	 *         null
-	 * 
 	 * @throws NullPointerException if t was null
 	 * @throws IllegalArgumentException if t is this Transform's translation
 	 *             vector
 	 */
 	public Vector3f inverseTransform(Vector3f t, Vector3f result) {
-		if (t == null) {
+		if (t == null)
 			throw new NullPointerException("Can't transform a null vector");
-		}
-		if (result == trans) {
+		if (result == trans)
 			throw new IllegalArgumentException(
-							"Can't use this transform's vectors as a result");
-		}
-		if (result == null) {
+					"Can't use this transform's vectors as a result");
+		if (result == null)
 			result = new Vector3f();
-		}
 
 		result.sub(t, trans);
 		result.set(
-						rot.m00 * result.x + rot.m10 * result.y + rot.m20
-										* result.z, rot.m01 * result.x
-										+ rot.m11 * result.y + rot.m21
-										* result.z, rot.m02 * result.x
-										+ rot.m12 * result.y + rot.m22
-										* result.z);
+				rot.m00 * result.x + rot.m10 * result.y + rot.m20 * result.z,
+				rot.m01 * result.x + rot.m11 * result.y + rot.m21 * result.z,
+				rot.m02 * result.x + rot.m12 * result.y + rot.m22 * result.z);
 		result.scale(1f / scale);
 
 		return result;
@@ -413,9 +371,9 @@ public class Transform {
 	 * @param t Transform to copy into this transform, null = identity
 	 */
 	public void set(Transform t) {
-		if (t == null) {
+		if (t == null)
 			setIdentity();
-		} else {
+		else {
 			rot.set(t.rot);
 			scale = t.scale;
 			trans.set(t.trans);
@@ -431,11 +389,23 @@ public class Transform {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other == null || !(other instanceof Transform)) {
+		if (other == null || !(other instanceof Transform))
 			return false;
-		}
 		Transform that = (Transform) other;
 		return trans.equals(that.trans) && scale == that.scale
-						&& rot.equals(that.rot);
+				&& rot.equals(that.rot);
 	}
+
+	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
+		@Override
+		protected Transform initialValue() {
+			return new Transform();
+		}
+	};
+	private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 }

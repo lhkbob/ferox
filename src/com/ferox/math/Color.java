@@ -153,15 +153,13 @@ public class Color {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other == null || !(other instanceof Color)) {
+		if (other == null || !(other instanceof Color))
 			return false;
-		}
-		if (other == this) {
+		if (other == this)
 			return true;
-		}
 		Color that = (Color) other;
 		return that.red == red && that.green == green && that.blue == blue
-						&& that.alpha == alpha;
+				&& that.alpha == alpha;
 	}
 
 	@Override
@@ -175,6 +173,7 @@ public class Color {
 
 	@Override
 	public String toString() {
-		return "(Color " + red + ", " + green + ", " + blue + ", " + alpha + ")";
+		return "(Color " + red + ", " + green + ", " + blue + ", " + alpha
+				+ ")";
 	}
 }

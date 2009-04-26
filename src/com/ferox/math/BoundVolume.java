@@ -93,8 +93,8 @@ public interface BoundVolume {
 	public BoundVolume enclose(BoundVolume toEnclose, BoundVolume result);
 
 	/**
-	 * As applyTransform(trans) but this BoundVolume is unmodified and the output
-	 * is stored in result (or a new instance).
+	 * As applyTransform(trans) but this BoundVolume is unmodified and the
+	 * output is stored in result (or a new instance).
 	 * 
 	 * @see clone()
 	 * @see applyTransform()

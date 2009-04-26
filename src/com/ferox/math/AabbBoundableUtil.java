@@ -21,13 +21,11 @@ public class AabbBoundableUtil {
 	 * @param box The AxisAlignedBox who will hold the computed results
 	 */
 	public static void getBounds(Boundable vertices, AxisAlignedBox box) {
-		if (vertices == null || box == null) {
+		if (vertices == null || box == null)
 			return;
-		}
 		int vertexCount = vertices.getVertexCount();
-		if (vertexCount == 0) {
+		if (vertexCount == 0)
 			return;
-		}
 
 		Vector3f worldMax = box.getMax();
 		Vector3f worldMin = box.getMin();
@@ -35,10 +33,9 @@ public class AabbBoundableUtil {
 		worldMax.set(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
 		worldMin.set(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
 
-		for (int i = 0; i < vertexCount; i++) {
+		for (int i = 0; i < vertexCount; i++)
 			enclosePoint(worldMin, worldMax, vertices.getVertex(i, 0), vertices
 					.getVertex(i, 1), vertices.getVertex(i, 2));
-		}
 	}
 
 	private static void enclosePoint(Vector3f worldMin, Vector3f worldMax,

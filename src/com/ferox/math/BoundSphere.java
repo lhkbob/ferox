@@ -78,11 +78,10 @@ public class BoundSphere extends AbstractBoundVolume {
 	 * @param center New center location, null = origin
 	 */
 	public void setCenter(Vector3f center) {
-		if (center == null) {
+		if (center == null)
 			this.center.set(0f, 0f, 0f);
-		} else {
+		else
 			this.center.set(center);
-		}
 	}
 
 	/**
@@ -129,16 +128,14 @@ public class BoundSphere extends AbstractBoundVolume {
 			b.setMax(center.x + radius, center.y + radius, center.z + radius);
 
 			return b;
-		} else {
+		} else
 			return this.clone(new BoundSphere());
-		}
 	}
 
 	@Override
 	public void applyTransform(Transform trans) {
-		if (trans == null) {
+		if (trans == null)
 			return;
-		}
 		trans.transform(center);
 		float s = trans.getScale();
 		radius *= s;
@@ -146,14 +143,12 @@ public class BoundSphere extends AbstractBoundVolume {
 
 	@Override
 	public void enclose(BoundVolume child) {
-		if (child == null) {
+		if (child == null)
 			return;
-		}
-		if (child instanceof BoundSphere) {
+		if (child instanceof BoundSphere)
 			mergeSphere((BoundSphere) child);
-		} else if (child instanceof AxisAlignedBox) {
+		else if (child instanceof AxisAlignedBox)
 			mergeAABB((AxisAlignedBox) child);
-		}
 	}
 
 	private void mergeAABB(AxisAlignedBox aabb) {
@@ -188,10 +183,9 @@ public class BoundSphere extends AbstractBoundVolume {
 				this.center.scaleAdd((this.radius - or) / dist, diff,
 						this.center);
 			} // else we already enclose it, so do nothing
-		} else {
+		} else
 			// don't need to move the center, just take the largest radius
 			this.radius = Math.max(radius, this.radius);
-		}
 	}
 
 	/**
@@ -200,10 +194,9 @@ public class BoundSphere extends AbstractBoundVolume {
 	 */
 	@Override
 	public FrustumIntersection testFrustum(View view) {
-		if (view == null) {
+		if (view == null)
 			throw new NullPointerException(
 					"Cannot test a frustum with a null view");
-		}
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
 		int planeState = view.getPlaneState();
@@ -212,15 +205,13 @@ public class BoundSphere extends AbstractBoundVolume {
 
 		for (int i = View.NUM_PLANES; i >= 0; i--) {
 			if (i == lastFailedPlane
-					|| (i == View.NUM_PLANES && lastFailedPlane < 0)) {
+					|| (i == View.NUM_PLANES && lastFailedPlane < 0))
 				continue;
-			}
 
-			if (i == View.NUM_PLANES) {
+			if (i == View.NUM_PLANES)
 				plane = lastFailedPlane;
-			} else {
+			else
 				plane = i;
-			}
 
 			if ((planeState & (1 << plane)) == 0) {
 				dist = view.getWorldPlane(plane).signedDistance(center);
@@ -229,11 +220,10 @@ public class BoundSphere extends AbstractBoundVolume {
 					view.setPlaneState(planeState);
 					lastFailedPlane = plane;
 					return FrustumIntersection.OUTSIDE;
-				} else if (dist < radius) {
+				} else if (dist < radius)
 					result = FrustumIntersection.INTERSECT;
-				} else {
+				else
 					planeState |= (1 << plane);
-				}
 			}
 		}
 
@@ -243,13 +233,11 @@ public class BoundSphere extends AbstractBoundVolume {
 
 	@Override
 	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result) {
-		if (dir == null) {
+		if (dir == null)
 			throw new NullPointerException(
 					"Can't compute extent for a null direction");
-		}
-		if (result == null) {
+		if (result == null)
 			result = new Vector3f();
-		}
 		result.set(center);
 
 		if (reverse) {
@@ -268,24 +256,22 @@ public class BoundSphere extends AbstractBoundVolume {
 	/** When intersecting an AxisAlignedBox, it calls other.intersects(this). */
 	@Override
 	public boolean intersects(BoundVolume other) {
-		if (other == null) {
+		if (other == null)
 			return false;
-		}
 
-		if (other instanceof AxisAlignedBox) {
+		if (other instanceof AxisAlignedBox)
 			return other.intersects(this);
-		} else if (other instanceof BoundSphere) {
+		else if (other instanceof BoundSphere) {
 			Vector3f cross = BoundSphere.tempA.get();
 
 			BoundSphere s = (BoundSphere) other;
 			cross.sub(center, s.center);
 			return cross.lengthSquared() <= (radius + s.radius)
 					* (radius + s.radius);
-		} else {
+		} else
 			throw new UnsupportedOperationException(
 					"Unable to compute intersection between the given type: "
 							+ other);
-		}
 	}
 
 	@Override

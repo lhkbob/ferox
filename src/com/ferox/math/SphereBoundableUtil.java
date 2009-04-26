@@ -23,9 +23,8 @@ public class SphereBoundableUtil {
 	 * @param sphere The BoundSphere who will hold the computed results
 	 */
 	public static void getBounds(Boundable vertices, BoundSphere sphere) {
-		if (vertices == null || vertices.getVertexCount() == 0) {
+		if (vertices == null || vertices.getVertexCount() == 0)
 			return;
-		}
 
 		float[] points = new float[vertices.getVertexCount() * 3];
 		fillPointsArray(points, vertices);
