@@ -1,6 +1,7 @@
 package com.ferox.effect;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -75,6 +76,17 @@ public class GlslShader extends AbstractEffect {
 		 */
 		public GlslUniform getUniform() {
 			return variable;
+		}
+
+		@Override
+		public String toString() {
+			return "<"
+							+ variable
+							+ " = "
+							+ (value instanceof int[] ? Arrays
+											.toString((int[]) value) : Arrays
+											.toString((float[]) value))
+							+ ", dirty: " + isDirty + ">";
 		}
 	}
 
@@ -217,5 +229,10 @@ public class GlslShader extends AbstractEffect {
 		for (int i = 0; i < size; i++) {
 			indexMap.put(uniforms.get(i).variable, Integer.valueOf(i));
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "(GlslShader bindings: " + uniforms + ")";
 	}
 }

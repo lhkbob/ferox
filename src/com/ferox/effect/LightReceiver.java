@@ -147,4 +147,11 @@ public class LightReceiver extends AbstractEffect {
 		}
 		this.globalAmb = globalAmb;
 	}
+
+	@Override
+	public String toString() {
+		return "(LightReceiver ambient: " + globalAmb + " separateSpec: "
+						+ separateSpec + " local: " + localViewer
+						+ " twoSided: " + useTwoSidedLighting + ")";
+	}
 }

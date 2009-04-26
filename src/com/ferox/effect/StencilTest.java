@@ -195,4 +195,13 @@ public class StencilTest extends AbstractEffect {
 	public void setWriteMask(int writeMask) {
 		this.writeMask = writeMask;
 	}
+
+	@Override
+	public String toString() {
+		return "(StencilTest test: " + stencilFunc + " stencilFail: "
+						+ stencilFail + " depthFail: " + depthFail
+						+ " depthPass: " + depthPass + " reference: "
+						+ reference + " testMask: " + funcMask + " writeMask: "
+						+ writeMask + ")";
+	}
 }

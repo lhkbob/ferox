@@ -263,4 +263,9 @@ public class PointStyle extends AbstractEffect {
 		pointSizeMin = Math.max(1f, min);
 		pointSizeMax = Math.max(1f, max);
 	}
+	
+	@Override
+	public String toString() {
+		return "(" + super.toString() + " size: " + pointSize + ")";
+	}
 }

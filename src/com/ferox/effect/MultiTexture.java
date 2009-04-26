@@ -106,4 +106,10 @@ public class MultiTexture extends AbstractEffect {
 	public void clearTextures() {
 		units.clear();
 	}
+
+	@Override
+	public String toString() {
+		return "(" + super.toString() + " numTextures: " + getNumTextures()
+						+ ")";
+	}
 }

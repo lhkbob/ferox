@@ -138,4 +138,12 @@ public class LineStyle extends AbstractEffect {
 	public void setLineWidth(float lineWidth) {
 		this.lineWidth = Math.max(1f, lineWidth);
 	}
+
+	@Override
+	public String toString() {
+		return "(LineStyle width: " + lineWidth + " smoothed: "
+						+ enableSmoothing + " stippled: " + enableStippling
+						+ " pattern: " + Integer.toHexString(stipplePattern)
+						+ " factor: " + stippleFactor + ")";
+	}
 }

@@ -178,4 +178,11 @@ public class PolygonStyle extends AbstractEffect {
 		}
 		this.winding = winding;
 	}
+
+	@Override
+	public String toString() {
+		return "(PolygonStyle front: " + frontMode + " back: " + backMode
+						+ " winding: " + winding + " offset: " + offset
+						+ " smoothed: " + enableSmoothing + ")";
+	}
 }

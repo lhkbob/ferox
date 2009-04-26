@@ -853,4 +853,9 @@ public class Texture extends AbstractEffect {
 		setTexCoordGenT(t);
 		setTexCoordGenR(r);
 	}
+	
+	@Override
+	public String toString() {
+		return "(" + super.toString() + " envMode: " + texEnvMode + ")";
+	}
 }

@@ -73,4 +73,9 @@ public class DepthTest extends AbstractEffect {
 	public void setWriteEnabled(boolean writeDepth) {
 		enableWrite = writeDepth;
 	}
+
+	@Override
+	public String toString() {
+		return "(DepthTest test: " + depthTest + " write: " + enableWrite + ")";
+	}
 }

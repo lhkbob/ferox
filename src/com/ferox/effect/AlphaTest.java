@@ -63,4 +63,10 @@ public class AlphaTest extends AbstractEffect {
 	public void setReferenceValue(float refValue) {
 		this.refValue = Math.max(0, Math.min(1f, refValue));
 	}
+
+	@Override
+	public String toString() {
+		return "(AlphaTest test: " + alphaTest + " reference: " + refValue
+						+ ")";
+	}
 }

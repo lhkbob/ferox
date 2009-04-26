@@ -100,4 +100,10 @@ public class BlendMode extends AbstractEffect {
 		}
 		this.dstBlendFactor = dstBlendFactor;
 	}
+
+	@Override
+	public String toString() {
+		return "(BlendMode blendFunc: " + blendFunc + " src: " + srcBlendFactor
+						+ " dst:" + dstBlendFactor + ")";
+	}
 }

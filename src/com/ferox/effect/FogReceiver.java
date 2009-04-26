@@ -60,4 +60,9 @@ public class FogReceiver extends AbstractEffect {
 		}
 		this.fogSource = fogSource;
 	}
+
+	@Override
+	public String toString() {
+		return "(FogReceiver coord: " + fogSource + ")";
+	}
 }
