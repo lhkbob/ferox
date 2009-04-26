@@ -152,14 +152,14 @@ public class FrameStatistics {
 	 */
 	public void reportStatistics(PrintStream out) {
 		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n",
-						getTotalTime() / 1e6f, getIdleTime() / 1e6f);
+				getTotalTime() / 1e6f, getIdleTime() / 1e6f);
 		out.printf("                     in prepare: %.6f ms,\n",
-						getPrepareTime() / 1e6f);
+				getPrepareTime() / 1e6f);
 		out.printf("                     in render: %.6f ms)\n",
-						getRenderTime() / 1e6f);
+				getRenderTime() / 1e6f);
 		out.printf("Frame/sec: %.4f fps, Poly/sec: %.4f\n",
-						getFramesPerSecond(), getPolygonsPerSecond());
+				getFramesPerSecond(), getPolygonsPerSecond());
 		out.printf("Mesh count: %d, Polygon count: %d Vertex count: %d\n",
-						getMeshCount(), getPolygonCount(), getVertexCount());
+				getMeshCount(), getPolygonCount(), getVertexCount());
 	}
 }

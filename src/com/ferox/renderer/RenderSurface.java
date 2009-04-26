@@ -5,18 +5,20 @@ import java.util.List;
 import com.ferox.math.Color;
 
 /**
+ * <p>
  * Represents a two dimensional surface that stores a collection of logical and
  * color buffers holding the final rendering from a Renderer. These surfaces
  * could be offscreen surfaces, in that they have no visible monitor region
  * associated with their rendered pixels, or they could be a window or
  * fullscreen.
- * 
+ * </p>
+ * <p>
  * The exact representation is dependent on the renderer's implementations,
  * however some possibilities include surfaces that use framebuffer objects to
  * render directly into a set of textures.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public interface RenderSurface {
 	/**
@@ -45,11 +47,14 @@ public interface RenderSurface {
 	public boolean hasColorBuffer();
 
 	/**
+	 * <p>
 	 * Return whether or not the surface has been destroyed.
-	 * 
+	 * </p>
+	 * <p>
 	 * Destruction could be because of an explicit call to destroy() or
 	 * destroy(surface), or because implementations provide a way for them to be
 	 * implicitly destroyed (such as a WindowSurface being closed by the user).
+	 * </p>
 	 * 
 	 * @return True if this surface is no longer usable by its creating
 	 *         Renderer.
@@ -73,24 +78,30 @@ public interface RenderSurface {
 	public int getHeight();
 
 	/**
+	 * <p>
 	 * Get the display options that describe the size and type of surface that
 	 * was created. May not be the same as the options requested when the
 	 * surface was created.
-	 * 
+	 * </p>
+	 * <p>
 	 * If the options can't be determined right away, return the requested
 	 * options until the correct options are determined.
+	 * </p>
 	 * 
 	 * @return The DisplayOptions of this surface
 	 */
 	public DisplayOptions getDisplayOptions();
 
 	/**
+	 * <p>
 	 * Add the given render pass to this surface. It should be a no-op if pass
 	 * is null or if this surface already has the given pass in it.
-	 * 
+	 * </p>
+	 * <p>
 	 * The given pass should be at the last index of the list returned by
 	 * getAllRenderPasses() (until another pass is added, then it's the 2nd last
 	 * pass, etc).
+	 * </p>
 	 * 
 	 * @param pass The RenderPass to add to this surface
 	 */
@@ -201,7 +212,7 @@ public interface RenderSurface {
 	/**
 	 * Set the background color to use when the color buffer is cleared for this
 	 * surface. A non-one alpha value may be treated as one if the render
-	 * surface can't hold onto alpha pixel data. 
+	 * surface can't hold onto alpha pixel data.
 	 * 
 	 * @param color New clear color to use, if null use black
 	 */

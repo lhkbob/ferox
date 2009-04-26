@@ -1,13 +1,15 @@
 package com.ferox.renderer;
 
 /**
+ * <p>
  * A render surface that has a visible element, either because of a window or
  * it's fullscreen.
- * 
+ * </p>
+ * <p>
  * This provides common functionalities available to all onscreen windows.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public interface OnscreenSurface extends RenderSurface {
 	/**
@@ -47,21 +49,24 @@ public interface OnscreenSurface extends RenderSurface {
 	public void setTitle(String title);
 
 	/**
+	 * <p>
 	 * Return the actual object corresponding to the window displayed by the
 	 * windowing system. This is dependent on the Renderer that was used to
 	 * create the surface, but could be something such as java.awt.Frame or
 	 * javax.swing.JFrame.
-	 * 
+	 * </p>
+	 * <p>
 	 * Return null if there is no actual object that is returnable for the
 	 * window impl.
-	 * 
+	 * </p>
+	 * <p>
 	 * Renderers must document the return class of this method for
 	 * WindowSurfaces and FullscreenSurfaces.
-	 * 
-	 * It's deprecated since it's unrecommended to depend on this method.
+	 * </p>
 	 * 
 	 * @return An implementation dependent object representing the displayed
 	 *         window
+	 * @deprecated Because it's unrecommended to depend on this method.
 	 */
 	@Deprecated
 	public Object getWindowImpl();

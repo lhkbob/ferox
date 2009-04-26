@@ -1,12 +1,10 @@
 package com.ferox.renderer;
 
-
 /**
  * The simplest of implementation of RenderQueue, that accumulates atoms, but
  * performs no sorting.
  * 
  * @author Michael Ludwig
- * 
  */
 public class BasicRenderQueue implements RenderQueue {
 	private static final int ALLOCATION_INCREMENT = 16;
@@ -26,7 +24,7 @@ public class BasicRenderQueue implements RenderQueue {
 		if (atom != null) {
 			if (raCount >= renderAtoms.length) {
 				RenderAtom[] temp = new RenderAtom[raCount
-								+ ALLOCATION_INCREMENT];
+						+ ALLOCATION_INCREMENT];
 				System.arraycopy(renderAtoms, 0, temp, 0, renderAtoms.length);
 				renderAtoms = temp;
 			}
@@ -43,30 +41,30 @@ public class BasicRenderQueue implements RenderQueue {
 
 	@Override
 	public int flush(Renderer renderer, View view) {
-		if (renderer == null || view == null) {
+		if (renderer == null || view == null)
 			return 0;
-		}
 
-		if (cleared) {
+		if (cleared)
 			optimizeOrder(view, renderAtoms, raCount);
-		}
 		cleared = false;
 
 		int polyCount = 0;
-		for (int i = 0; i < raCount; i++) {
+		for (int i = 0; i < raCount; i++)
 			polyCount += renderer.renderAtom(renderAtoms[i]);
-		}
 
 		return polyCount;
 	}
 
 	/**
+	 * <p>
 	 * To be efficient between frames, BasicRenderQueue internally stores the
 	 * atoms in arrays. It doesn't clear the arrays in clear(), just resets the
 	 * counts so it is possible for atoms to stay within the array longer than
 	 * intended.
-	 * 
+	 * </p>
+	 * <p>
 	 * This method resets the arrays, allowing atoms to be garbage collected.
+	 * </p>
 	 */
 	public void clearInternalResources() {
 		clear();
@@ -85,7 +83,7 @@ public class BasicRenderQueue implements RenderQueue {
 	 * @param raCount Index of first invalid render atom in renderAtoms
 	 */
 	protected void optimizeOrder(View view, RenderAtom[] renderAtoms,
-					int raCount) {
+			int raCount) {
 		// do nothing in base class
 	}
 }

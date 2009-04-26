@@ -1,16 +1,19 @@
 package com.ferox.renderer;
 
 /**
+ * <p>
  * DisplayOptions represents a set of configurable surface parameters used when
  * creating render surfaces.
- * 
+ * </p>
+ * <p>
  * When creating a surface, these values should be deemed as a request and the
  * renderer must satisfy them as best as possible.
- * 
+ * </p>
+ * <p>
  * DisplayOptions are immutable after they are created.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public final class DisplayOptions {
 	/**
@@ -18,50 +21,60 @@ public final class DisplayOptions {
 	 * float options are only available for texture surfaces.
 	 */
 	public static enum PixelFormat {
-		RGB_16BIT, /**
-		 * Red, green, and blue pixels will be packed together in a
-		 * 5/6/5 bit scheme.
-		 */
-		RGB_24BIT, /**
-		 * Red, green, and blue pixels are packed in a 8/8/8 bit
+		/**
+		 * Red, green, and blue pixels will be packed together in a 5/6/5 bit
 		 * scheme.
 		 */
-		RGBA_32BIT, /**
-		 * Red, green, blue, and alpha pixels are packed in a
-		 * 8/8/8/8 scheme.
+		RGB_16BIT,
+		/**
+		 * Red, green, and blue pixels are packed in a 8/8/8 bit scheme.
 		 */
-		RGB_FLOAT, /**
-		 * Red, green and blue components are each stored as 32 bit,
+		RGB_24BIT,
+		/**
+		 * Red, green, blue, and alpha pixels are packed in a 8/8/8/8 scheme.
+		 */
+		RGBA_32BIT,
+		/**
+		 * Red, green and blue components are each stored as 32 bit, unclamped
+		 * floating point values.
+		 */
+		RGB_FLOAT,
+		/**
+		 * Red, green, blue and alpha components are each stored as 32 bit,
 		 * unclamped floating point values.
 		 */
-		RGBA_FLOAT, /**
-		 * Red, green, blue and alpha components are each stored as
-		 * 32 bit, unclamped floating point values.
-		 */
-		NONE
+		RGBA_FLOAT,
 		/**
 		 * There should be no color data associated with the surface. Only valid
 		 * for texture surfaces.
 		 */
+		NONE
 	}
 
 	/** The format for the depth component of the surface fragment. */
 	public static enum DepthFormat {
-		DEPTH_16BIT, /** Use 16 bits to store depth information. */
-		DEPTH_24BIT, /** Use 24 bits to store depth information. */
-		DEPTH_32BIT, /** Use 32 bits to store depth information. */
-		NONE
+		/** Use 16 bits to store depth information. */
+		DEPTH_16BIT,
+		/** Use 24 bits to store depth information. */
+		DEPTH_24BIT,
+		/** Use 32 bits to store depth information. */
+		DEPTH_32BIT,
 		/** There should be no depth buffer. */
+		NONE
 	}
 
-	/** The format for the stencil buffer fo the surface. */
+	/** The format for the stencil buffer of the surface. */
 	public static enum StencilFormat {
-		STENCIL_16BIT, /** Use 16 bits for each fragment. */
-		STENCIL_8BIT, /** Use 8 bits for each fragment. */
-		STENCIL_4BIT, /** Use 4 bits for each fragment. */
-		STENCIL_1BIT, /** Use only 1 bit for each fragment. */
-		NONE
+		/** Use 16 bits for each fragment. */
+		STENCIL_16BIT,
+		/** Use 8 bits for each fragment. */
+		STENCIL_8BIT,
+		/** Use 4 bits for each fragment. */
+		STENCIL_4BIT,
+		/** Use only 1 bit for each fragment. */
+		STENCIL_1BIT,
 		/** There shouldn't be any stencil buffer. */
+		NONE
 	}
 
 	/**
@@ -129,7 +142,7 @@ public final class DisplayOptions {
 	 * @param aa The AntiAliasMode to use, null = NONE
 	 */
 	public DisplayOptions(PixelFormat pixels, DepthFormat depth,
-					StencilFormat stencil, AntiAliasMode aa) {
+			StencilFormat stencil, AntiAliasMode aa) {
 		pixelFormat = (pixels == null ? DEFAULT_PF : pixels);
 		depthFormat = (depth == null ? DEFAULT_DF : depth);
 		stencilFormat = (stencil == null ? DEFAULT_SF : stencil);
@@ -175,6 +188,6 @@ public final class DisplayOptions {
 	@Override
 	public String toString() {
 		return "(DisplayOptions " + pixelFormat + " " + depthFormat + " "
-						+ stencilFormat + " " + aaMode + ")";
+				+ stencilFormat + " " + aaMode + ")";
 	}
 }

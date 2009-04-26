@@ -11,23 +11,26 @@ import com.ferox.effect.Effect;
 import com.ferox.scene.Appearance;
 
 /**
+ * <p>
  * This is a complex render queue that tracks Appearances. It maintains a set of
  * appearances that it has ordered in an optimal manner (based on an optional
  * priority of state types).
- * 
+ * </p>
+ * <p>
  * If it detects changes to any appearances that will be used for a frame, or if
  * there are new appearances that haven't been cached, it will re-order the
  * appearances. If these operations are not necessary, the render atoms can be
  * quickly sorted based on their appearance's computed sort index.
- * 
+ * </p>
+ * <p>
  * The caching of appearances within the render queue doesn't use weak
  * references, so a call to clearInternalResources is necessary. The render
  * queue data for each RenderAtom processed does use weak references so it is
  * not necessary to set each atom's queue data to null when an Appearance should
  * be garbage collected.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class StateSortingRenderQueue extends BasicRenderQueue {
 	/*
@@ -60,16 +63,14 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 				if (s1 != null && s2 != null) {
 					h1 = s1.hashCode();
 					h2 = s2.hashCode();
-					if (h1 < h2) {
+					if (h1 < h2)
 						return -1;
-					} else if (h1 > h2) {
+					else if (h1 > h2)
 						return 1;
-					}
-				} else if (s1 != null) {
+				} else if (s1 != null)
 					return 1;
-				} else if (s2 != null) {
+				else if (s2 != null)
 					return -1;
-				}
 			}
 			return 0;
 		}
@@ -98,21 +99,17 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 	 * @throws NullPointerException if any element in sortPriority is null
 	 */
 	public StateSortingRenderQueue(Role[] sortPriority) {
-		if (sortPriority == null) { // use a default sort order
+		if (sortPriority == null)
 			sortPriority = new Role[] { Role.SHADER, Role.TEXTURE,
-							Role.MATERIAL, Role.BLEND_MODE,
-							Role.POLYGON_DRAW_STYLE, Role.LINE_DRAW_STYLE,
-							Role.POINT_DRAW_STYLE, Role.STENCIL_TEST,
-							Role.DEPTH_TEST, Role.ALPHA_TEST };
-		} else {
+					Role.MATERIAL, Role.BLEND_MODE, Role.POLYGON_DRAW_STYLE,
+					Role.LINE_DRAW_STYLE, Role.POINT_DRAW_STYLE,
+					Role.STENCIL_TEST, Role.DEPTH_TEST, Role.ALPHA_TEST };
+		else
 			// validate the list
-			for (int i = 0; i < sortPriority.length; i++) {
-				if (sortPriority[i] == null) {
+			for (int i = 0; i < sortPriority.length; i++)
+				if (sortPriority[i] == null)
 					throw new NullPointerException(
-									"It is invalid to pass in a null class for sortPriority");
-				}
-			}
-		}
+							"It is invalid to pass in a null class for sortPriority");
 
 		queueVersion = 0;
 		sortIndexMap = new IdentityHashMap<Appearance, Integer>();
@@ -129,24 +126,23 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 
 	@Override
 	public void add(RenderAtom atom) {
-		if (atom == null) {
+		if (atom == null)
 			return;
-		}
 		super.add(atom);
 
 		Appearance a = atom.getAppearance();
 		int sortKey = (a == null ? 0 : a.sortKey());
 		StateRenderQueueData data = (StateRenderQueueData) atom
-						.getRenderQueueData(this);
+				.getRenderQueueData(this);
 
 		if (data != null && !reCache) {
 			// validate the atom's appearance against the old
 			Appearance old = (data.lastAppearance == null ? null
-							: data.lastAppearance.get());
-			if (a != old || data.version != queueVersion) {
+					: data.lastAppearance.get());
+			if (a != old || data.version != queueVersion)
 				// new appearance or old atom, so we need to update it
 				updateRenderAtom(data, a, sortKey);
-			} else if (sortKey != data.lastSortKey) {
+			else if (sortKey != data.lastSortKey) {
 				// update sort key and invalidate all sort indices
 				data.lastSortKey = sortKey;
 				reCache = true;
@@ -162,24 +158,23 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 
 	// Looks for the new index, and updates the data version
 	private void updateRenderAtom(StateRenderQueueData data, Appearance newApp,
-					int sortKey) {
+			int sortKey) {
 		// update the appearance fields
 		data.lastAppearance = (newApp == null ? null
-						: new WeakReference<Appearance>(newApp));
+				: new WeakReference<Appearance>(newApp));
 		data.lastSortKey = sortKey;
 
 		// now try to find the index
 		if (!reCache) {
 			Integer newIndex = (newApp == null ? Integer.valueOf(0)
-							: sortIndexMap.get(newApp));
+					: sortIndexMap.get(newApp));
 			if (newIndex != null) {
 				// update with the new index
 				data.sortIndex = newIndex.intValue();
 				data.version = queueVersion; // update the version for later
-			} else {
+			} else
 				// unknown appearance, flag a recache
 				reCache = true;
-			}
 		}
 	}
 
@@ -189,9 +184,8 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 			cacheSortIndex(atoms, count);
 			reCache = false;
 		}
-		if (count > 1) {
+		if (count > 1)
 			quickSort(atoms, 0, count);
-		}
 	}
 
 	private void cacheSortIndex(RenderAtom[] atoms, int count) {
@@ -204,28 +198,25 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 			data = (StateRenderQueueData) atoms[i].getRenderQueueData(this);
 			data.version = queueVersion; // update the version for cached atoms
 			a = (data.lastAppearance == null ? null : data.lastAppearance.get());
-			if (a != null) {
+			if (a != null)
 				cache.put(a, true);
-			}
 		}
 
 		Appearance[] cacheArray = cache.keySet().toArray(
-						new Appearance[cache.keySet().size()]);
+				new Appearance[cache.keySet().size()]);
 		Arrays.sort(cacheArray, appSorter);
 
 		sortIndexMap.clear();
-		for (int i = 0; i < cacheArray.length; i++) {
+		for (int i = 0; i < cacheArray.length; i++)
 			sortIndexMap.put(cacheArray[i], i);
-		}
 
 		for (int i = 0; i < count; i++) {
 			data = (StateRenderQueueData) atoms[i].getRenderQueueData(this);
 			a = (data.lastAppearance == null ? null : data.lastAppearance.get());
-			if (a != null) {
+			if (a != null)
 				data.sortIndex = sortIndexMap.get(a);
-			} else {
+			else
 				data.sortIndex = 0;
-			}
 		}
 	}
 
@@ -248,20 +239,17 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 		int s; // temp variable
 		while (true) {
 			while (b <= c && (s = sortIndex(x[b])) <= v) {
-				if (s == v) {
+				if (s == v)
 					swap(x, a++, b);
-				}
 				b++;
 			}
 			while (c >= b && (s = sortIndex(x[c])) >= v) {
-				if (s == v) {
+				if (s == v)
 					swap(x, c, d--);
-				}
 				c--;
 			}
-			if (b > c) {
+			if (b > c)
 				break;
-			}
 			swap(x, b++, c--);
 		}
 
@@ -271,12 +259,10 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 		s = Math.min(d - c, n - d - 1);
 		vecswap(x, b, n - s, s);
 
-		if ((s = b - a) > 1) {
+		if ((s = b - a) > 1)
 			quickSort(x, off, s);
-		}
-		if ((s = d - c) > 1) {
+		if ((s = d - c) > 1)
 			quickSort(x, n - s, s);
-		}
 	}
 
 	private int sortIndex(RenderAtom a) {
@@ -289,13 +275,12 @@ public class StateSortingRenderQueue extends BasicRenderQueue {
 		int sc = sortIndex(x[c]);
 
 		return (sa < sb ? (sb < sc ? b : (sa < sc ? c : a)) : (sb > sc ? b
-						: (sa > sc ? c : a)));
+				: (sa > sc ? c : a)));
 	}
 
 	private static void vecswap(RenderAtom x[], int a, int b, int n) {
-		for (int i = 0; i < n; i++, a++, b++) {
+		for (int i = 0; i < n; i++, a++, b++)
 			swap(x, a, b);
-		}
 	}
 
 	private static void swap(RenderAtom[] x, int a, int b) {

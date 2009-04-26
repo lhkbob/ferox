@@ -27,30 +27,26 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 			Vector3f t2 = ra2.getTransform().getTranslation();
 
 			float d = distanceSquared(pointOfReference, t1)
-							- distanceSquared(pointOfReference, t2);
+					- distanceSquared(pointOfReference, t2);
 
 			if (forwardBack) {
-				if (d < 0) {
+				if (d < 0)
 					return -1;
-				} else if (d > 0) {
+				else if (d > 0)
 					return 1;
-				} else {
+				else
 					return 0;
-				}
-			} else {
-				if (d < 0) {
-					return 1;
-				} else if (d > 0) {
-					return -1;
-				} else {
-					return 0;
-				}
-			}
+			} else if (d < 0)
+				return 1;
+			else if (d > 0)
+				return -1;
+			else
+				return 0;
 		}
 
 		private static float distanceSquared(Vector3f v1, Vector3f v2) {
 			return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y)
-							* (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
+					* (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
 		}
 	}
 

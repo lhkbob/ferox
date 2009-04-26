@@ -1,15 +1,17 @@
 package com.ferox.renderer;
 
 /**
+ * <p>
  * RenderCapabilities holds onto a set of different parameters describing more
  * advanced features that the baseline hardware may not support.
- * 
+ * </p>
+ * <p>
  * Because Ferox was designed to be implemented with an OpenGL system, the
  * capabilities here reflect that and allow for lower-level inspection of the
  * current hardware.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class RenderCapabilities {
 	// texture properties
@@ -59,19 +61,17 @@ public class RenderCapabilities {
 	 * and fill each value with a meaningful number, etc.
 	 */
 	public RenderCapabilities(int maxVertexShaderTextures,
-					int maxFragmentShaderTextures,
-					int maxFixedPipelineTextures, int maxCombinedTextures,
-					float maxAnisoLevel, int maxTextureSize,
-					int maxTextureRectSize, int maxTextureCubeMapSize,
-					int maxTexture3DSize, int maxRenderbufferSize,
-					boolean fpTextures, boolean npotTextures,
-					boolean rectTextures, boolean s3tcTextures,
-					int maxVertexAttributes, int maxTextureCoordinates,
-					int maxRecommendedIndices, int maxRecommendedVertices,
-					boolean vboSupported, int maxActiveLights,
-					boolean pointSpriteSupport, boolean glslSupported,
-					boolean fboSupported, boolean pbuffersSupported,
-					int maxColorTargets, String vendor, float version) {
+			int maxFragmentShaderTextures, int maxFixedPipelineTextures,
+			int maxCombinedTextures, float maxAnisoLevel, int maxTextureSize,
+			int maxTextureRectSize, int maxTextureCubeMapSize,
+			int maxTexture3DSize, int maxRenderbufferSize, boolean fpTextures,
+			boolean npotTextures, boolean rectTextures, boolean s3tcTextures,
+			int maxVertexAttributes, int maxTextureCoordinates,
+			int maxRecommendedIndices, int maxRecommendedVertices,
+			boolean vboSupported, int maxActiveLights,
+			boolean pointSpriteSupport, boolean glslSupported,
+			boolean fboSupported, boolean pbuffersSupported,
+			int maxColorTargets, String vendor, float version) {
 		this.maxVertexShaderTextures = maxVertexShaderTextures;
 		this.maxFragmentShaderTextures = maxFragmentShaderTextures;
 		this.maxFixedPipelineTextures = maxFixedPipelineTextures;

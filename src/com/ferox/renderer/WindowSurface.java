@@ -8,7 +8,6 @@ package com.ferox.renderer;
  * surface is implicitly destroyed (just as if it were passed into destroy() ).
  * 
  * @author Michael Ludwig
- * 
  */
 public interface WindowSurface extends OnscreenSurface {
 	/**
@@ -45,15 +44,19 @@ public interface WindowSurface extends OnscreenSurface {
 	public int getY();
 
 	/**
+	 * <p>
 	 * Set the dimensions of the window to the given width and height. It will
 	 * extend these values, in pixels, down and to the right.
-	 * 
+	 * </p>
+	 * <p>
 	 * This will affect the values returned by getWidth() and getHeight().
 	 * However, they may not be the same. These dimensions represent the size of
 	 * the window (possibly including a frame), while getWidth/Height() return
 	 * the size of the actual drawable area of the surface.
-	 * 
+	 * </p>
+	 * <p>
 	 * If width or height are <= 0, the method does nothing.
+	 * </p>
 	 * 
 	 * @param width Width of the window, may not represent the drawable width
 	 * @param height Height of the window, may not represent the drawable height

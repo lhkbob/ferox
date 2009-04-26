@@ -13,7 +13,6 @@ import com.ferox.resource.ResourceManager;
  * use with its requestUpdate() and requestCleanUp() methods.
  * 
  * @author Michael Ludwig
- * 
  */
 public class DefaultResourceManager implements ResourceManager {
 	private static abstract class PendingAction {
@@ -51,31 +50,33 @@ public class DefaultResourceManager implements ResourceManager {
 	public void manage(Renderer renderer) {
 		int numActions = pendingActions.size();
 		if (numActions > 0) {
-			for (int i = 0; i < numActions; i++) {
+			for (int i = 0; i < numActions; i++)
 				pendingActions.get(i).doAction(renderer);
-			}
 			pendingActions.clear();
 			pendingResources.clear();
 		}
 	}
 
 	/**
+	 * <p>
 	 * Store the given request so that it manage() will call update() on the
 	 * given resource. This will override any other request on the given
 	 * resource that is pending the next call to manage().
-	 * 
+	 * </p>
+	 * <p>
 	 * This should not be called from within the manage() method because the
 	 * resource request will be ignored.
-	 * 
+	 * </p>
+	 * <p>
 	 * Does nothing if resource is null.
+	 * </p>
 	 * 
 	 * @param resource Resource to that has a requested update
 	 * @param forceFullUpdate Whether or not the update should be full
 	 */
 	public void requestUpdate(Resource resource, boolean forceFullUpdate) {
-		if (resource == null) {
+		if (resource == null)
 			return;
-		}
 
 		UpdateAction a = new UpdateAction();
 		a.res = resource;
@@ -84,19 +85,22 @@ public class DefaultResourceManager implements ResourceManager {
 	}
 
 	/**
-	 * Equivalent to requestUpdate() but for cleaning-up the given resource.
-	 * 
+	 * <p>
+	 * As requestUpdate() but for cleaning-up the given resource.
+	 * </p>
+	 * <p>
 	 * It shouldn't be called within the manage() method because the resource
 	 * request will be ignored.
-	 * 
+	 * </p>
+	 * <p>
 	 * Does nothing if resource is null.
+	 * </p>
 	 * 
 	 * @param resource The Resource that has a requested clean-up
 	 */
 	public void requestCleanup(Resource resource) {
-		if (resource == null) {
+		if (resource == null)
 			return;
-		}
 
 		CleanupAction a = new CleanupAction();
 		a.res = resource;
@@ -106,9 +110,8 @@ public class DefaultResourceManager implements ResourceManager {
 	// Override any old action, add a's resource to the pending
 	// resource set and add the action to the list.
 	private void addAction(PendingAction a) {
-		if (!overrideResource(a.res)) {
+		if (!overrideResource(a.res))
 			pendingResources.put(a.res, true);
-		}
 		pendingActions.add(a);
 	}
 

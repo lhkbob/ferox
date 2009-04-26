@@ -5,19 +5,21 @@ import com.ferox.math.Transform;
 import com.ferox.resource.Geometry;
 
 /**
+ * <p>
  * A RenderAtom represents a visual object on the screen that can be rendered by
  * a Renderer implementation. This is subject to the renderer's support for the
  * geometry, effects, and resources referenced by the atom.
- * 
+ * </p>
+ * <p>
  * RenderAtom's have the ability to be locked by whoever constructs them, so
  * that it is possible to force them to be read-only (instances returned by
  * methods can still be modified, though). When constructed, a key can be
  * specified. If the key is not null, this instance must be passed in to each
  * setX() call or an exception will be thrown. If the specified key is null,
  * then anyone can set the instances of the render atom.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public final class RenderAtom {
 	private Transform transform;
@@ -33,7 +35,6 @@ public final class RenderAtom {
 	 * @param t The Transform to use
 	 * @param a The set of Effects that this atom will be rendered with
 	 * @param g The Geometry that will be used by this atom
-	 * 
 	 * @throws NullPointerException if t or g are null
 	 */
 	public RenderAtom(Transform t, EffectSet a, Geometry g) {
@@ -48,9 +49,7 @@ public final class RenderAtom {
 	 * @param t The Transform to use
 	 * @param a The set of Effects that this atom will be rendered with
 	 * @param g The Geometry that will be used by this atom
-	 * 
 	 * @param key The key required for all setX() calls, if it's not null
-	 * 
 	 * @throws NullPointerException if t or g are null
 	 */
 	public RenderAtom(Transform t, EffectSet a, Geometry g, Object key) {
@@ -66,20 +65,17 @@ public final class RenderAtom {
 	 * 
 	 * @param t The new transform instance to use
 	 * @param key The key to allow the set to proceed
-	 * 
 	 * @throws NullPointerException if t is null
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
 	public void setTransform(Transform t, Object key) {
 		if (this.key == null || key == this.key) {
-			if (t == null) {
+			if (t == null)
 				throw new NullPointerException("Transform cannot be null");
-			}
 			transform = t;
-		} else {
+		} else
 			throw new IllegalArgumentException(
-							"Incorrect key specified, cannot set transform");
-		}
+					"Incorrect key specified, cannot set transform");
 	}
 
 	/**
@@ -87,16 +83,14 @@ public final class RenderAtom {
 	 * 
 	 * @param a The new effect set instance to use
 	 * @param key The key to allow the set to proceed
-	 * 
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
 	public void setEffects(EffectSet a, Object key) {
-		if (this.key == null || key == this.key) {
+		if (this.key == null || key == this.key)
 			effects = a;
-		} else {
+		else
 			throw new IllegalArgumentException(
-							"Incorrect key specified, cannot set effects");
-		}
+					"Incorrect key specified, cannot set effects");
 	}
 
 	/**
@@ -104,20 +98,17 @@ public final class RenderAtom {
 	 * 
 	 * @param g The new geometry instance to use
 	 * @param key The key to allow the set to proceed
-	 * 
 	 * @throws NullPointerException if g is null
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
 	public void setGeometry(Geometry g, Object key) {
 		if (this.key == null || key == this.key) {
-			if (g == null) {
+			if (g == null)
 				throw new NullPointerException("Geometry cannot be null");
-			}
 			geometry = g;
-		} else {
+		} else
 			throw new IllegalArgumentException(
-							"Incorrect key specified, cannot set geometry");
-		}
+					"Incorrect key specified, cannot set geometry");
 	}
 
 	/**
@@ -131,12 +122,15 @@ public final class RenderAtom {
 	}
 
 	/**
+	 * <p>
 	 * Get the effects of the render atom. Essentially an atom is a vehicle for
 	 * delivering the effects to the renderer, along with a transform for
 	 * positioning the effects on a render surface.
-	 * 
+	 * </p>
+	 * <p>
 	 * If this method returns null, the atom will be rendered with the default
 	 * effects.
+	 * </p>
 	 * 
 	 * @return The effect set to use, may be null
 	 */

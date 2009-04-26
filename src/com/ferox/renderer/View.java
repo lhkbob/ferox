@@ -8,15 +8,17 @@ import com.ferox.math.Plane;
 import com.ferox.math.Transform;
 
 /**
+ * <p>
  * View represents the camera that a scene is rendered through. It holds onto
  * the type and specifics of the projection, and its location and orientation.
  * The visible region of a View is a 3D frustum. It provides functionality to
  * get the planes of the frustum in world space.
- * 
+ * </p>
+ * <p>
  * The View uses a right-handed coordinate system.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class View {
 	/** Result of a frustum test against a BoundVolume. */
@@ -119,11 +121,14 @@ public class View {
 	}
 
 	/**
+	 * <p>
 	 * Return the transform that converts from "world" coordinates into view
 	 * coordinates. This instance should not be modified.
-	 * 
+	 * </p>
+	 * <p>
 	 * This will be stale if the location, direction, and up vectors or the
 	 * projection matrix are changed without a subsequent call to updateView().
+	 * </p>
 	 * 
 	 * @return The Transform instance going from world coordinates to view
 	 *         coordinates
@@ -133,19 +138,18 @@ public class View {
 	}
 
 	/**
+	 * <p>
 	 * Return a plane representing the given plane of the view frustum, in world
 	 * coordinates. This plane should not be modified.
-	 * 
-	 * Throws an exception if plane isn't one of the defined PLANE constants
-	 * (which are 0 - 5).
-	 * 
+	 * </p>
+	 * <p>
 	 * This will be stale if the location, direction, and up vectors or the
 	 * projection matrix are changed without a subsequent call to updateView().
 	 * It may return null if it is stale.
+	 * </p>
 	 * 
 	 * @param plane The requested plane
 	 * @return The Plane instance for the requested plane, in world coordinates
-	 * 
 	 * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
 	 */
 	public Plane getWorldPlane(int plane) {
@@ -153,15 +157,19 @@ public class View {
 	}
 
 	/**
+	 * <p>
 	 * Update the Transform returned by getViewTransform() and the Planes
 	 * returned by getWorldPlane() to reflect any changes to the View's
 	 * location, direction, up vector and projection matrix.
-	 * 
-	 * This also resets the view's plane state to 0 (or all planes must be
+	 * </p>
+	 * <p>
+	 * This also resets the view's plane state to 0 (so all planes must be
 	 * tested in the frustum).
-	 * 
+	 * </p>
+	 * <p>
 	 * This must be called before the view is used by a render pass in the
 	 * renderer.
+	 * </p>
 	 */
 	public void updateView() {
 		Vector3f r = View.r.get();
@@ -185,11 +193,10 @@ public class View {
 
 		// convert the ATM camera planes into world space
 		computeCameraPlanes();
-		for (int i = 0; i < worldPlanes.length; i++) {
+		for (int i = 0; i < worldPlanes.length; i++)
 			// at this point, viewTrans is actual viewTrans^-1 (or the world
 			// transform)
 			worldPlanes[i].transform(viewTrans);
-		}
 
 		// invert the world transform to get the view transform
 		viewTrans.inverse();
@@ -213,11 +220,10 @@ public class View {
 	 * @param loc New location for the view, null == origin
 	 */
 	public void setLocation(Vector3f loc) {
-		if (loc == null) {
+		if (loc == null)
 			location.set(0f, 0f, 0f);
-		} else {
+		else
 			location.set(loc);
-		}
 	}
 
 	/**
@@ -237,19 +243,21 @@ public class View {
 	 * @param up The new up vector for this view, null == <0, 1, 0>
 	 */
 	public void setUp(Vector3f up) {
-		if (up == null) {
+		if (up == null)
 			this.up.set(0f, 1f, 0f);
-		} else {
+		else
 			this.up.set(up);
-		}
 	}
 
 	/**
+	 * <p>
 	 * Get the direction vector of this view, in world space. Together up and
 	 * direction form a right-handed coordinate system.
-	 * 
+	 * </p>
+	 * <p>
 	 * The view transform actually uses the negative of this because in OpenGL,
 	 * the camera looks down its local negative z-axis
+	 * </p>
 	 * 
 	 * @return The current direction that this camera is pointing
 	 */
@@ -264,11 +272,10 @@ public class View {
 	 * @param dir The new direction for the view, null == <0, 0, 1>
 	 */
 	public void setDirection(Vector3f dir) {
-		if (dir == null) {
+		if (dir == null)
 			direction.set(0f, 0f, 1f);
-		} else {
+		else
 			direction.set(dir);
-		}
 	}
 
 	/**
@@ -286,22 +293,20 @@ public class View {
 	 * Widths and heights are calculated using the assumed aspect ration and
 	 * near and far values. Because perspective transforms only make sense for
 	 * non-orthographic projections, it also sets this view to be
-	 * non-orthographic. Fails if near > far or if near <= 0.
+	 * non-orthographic.
 	 * 
 	 * @param fov The field of view
 	 * @param aspect The aspect ratio of the view region (width / height)
 	 * @param near The distance from the view's location to the near camera
 	 *            plane
 	 * @param far The distance from the view's location to the far camera plane
-	 * 
 	 * @throws IllegalArgumentException if left > right, bottom > top, or near >
 	 *             far, or if near <= 0
-	 * 
 	 */
 	public void setPerspective(float fov, float aspect, float near, float far) {
 		float h = (float) Math.tan(Math.toRadians(fov)) * near * .5f;
 		float w = h * aspect;
-		this.useOrtho = false;
+		useOrtho = false;
 		setFrustum(-w, w, -h, h, near, far);
 	}
 
@@ -383,24 +388,20 @@ public class View {
 	 * @param top The top edge of the near frustum plane
 	 * @param near The distance to the near frustum plane
 	 * @param far The distance to the far frustum plane
-	 * 
 	 * @throws IllegalArgumentException if left > right, bottom > top, near >
 	 *             far, or near <= 0 when the view isn't orthographic
 	 */
 	public void setFrustum(float left, float right, float bottom, float top,
-					float near, float far) {
-		if (left > right || bottom > top || near > far) {
+			float near, float far) {
+		if (left > right || bottom > top || near > far)
 			throw new IllegalArgumentException(
-							"Frustum values would create an invalid frustum: "
-											+ left + " " + right + " x "
-											+ bottom + " " + top + " x " + near
-											+ " " + far);
-		}
-		if (near <= 0 && !useOrtho) {
+					"Frustum values would create an invalid frustum: " + left
+							+ " " + right + " x " + bottom + " " + top + " x "
+							+ near + " " + far);
+		if (near <= 0 && !useOrtho)
 			throw new IllegalArgumentException(
-							"Illegal value for near frustum when using perspective projection: "
-											+ near);
-		}
+					"Illegal value for near frustum when using perspective projection: "
+							+ near);
 
 		frustumLeft = left;
 		frustumRight = right;
@@ -425,15 +426,13 @@ public class View {
 	 * Set whether or not to use orthogonal projection.
 	 * 
 	 * @param ortho Whether or not to use an orthographic projection
-	 * 
-	 * @throws IllegalStateException if ortho is false and the near frustum
-	 *             plane is <= 0
+	 * @throws IllegalStateException if ortho is false and the near frustum plane
+	 *             is <= 0
 	 */
 	public void setOrthogonalProjection(boolean ortho) {
-		if (!ortho && frustumNear <= 0) {
+		if (!ortho && frustumNear <= 0)
 			throw new IllegalStateException(
-							"Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
-		}
+					"Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
 
 		if (useOrtho != ortho) {
 			useOrtho = ortho;
@@ -490,31 +489,25 @@ public class View {
 	 * @param right The right edge of the viewport
 	 * @param bottom The bottom edge of the viewport
 	 * @param top The bottom edge of the viewport
-	 * 
 	 * @throws IllegalArgumentException if any value is outside of [0, 1], or if
 	 *             top < bottom, or if left > right.
 	 */
 	public void setViewPort(float left, float right, float bottom, float top) {
-		if (left < 0 || left > 1) {
+		if (left < 0 || left > 1)
 			throw new IllegalArgumentException(
-							"Illegal value for left viewport edge: " + left);
-		}
-		if (right < 0 || right > 1) {
+					"Illegal value for left viewport edge: " + left);
+		if (right < 0 || right > 1)
 			throw new IllegalArgumentException(
-							"Illegal value for right viewport edge: " + right);
-		}
-		if (bottom < 0 || bottom > 1) {
+					"Illegal value for right viewport edge: " + right);
+		if (bottom < 0 || bottom > 1)
 			throw new IllegalArgumentException(
-							"Illegal value for bottom viewport edge: " + bottom);
-		}
-		if (top < 0 || top > 1) {
+					"Illegal value for bottom viewport edge: " + bottom);
+		if (top < 0 || top > 1)
 			throw new IllegalArgumentException(
-							"Illegal value for top viewport edge: " + top);
-		}
-		if (left > right || bottom > top) {
+					"Illegal value for top viewport edge: " + top);
+		if (left > right || bottom > top)
 			throw new IllegalArgumentException("Viewport edges are invalid: "
-							+ left + " " + right + " x " + bottom + " " + top);
-		}
+					+ left + " " + right + " x " + bottom + " " + top);
 		viewBottom = bottom;
 		viewLeft = left;
 		viewRight = right;
@@ -524,46 +517,39 @@ public class View {
 	// compute the projection matrix
 	private void computeProjectionMatrix() {
 		projection.setZero();
-		if (useOrtho) {
+		if (useOrtho)
 			orthoMatrix(frustumRight, frustumLeft, frustumTop, frustumBottom,
-							frustumNear, frustumFar, projection);
-		} else {
+					frustumNear, frustumFar, projection);
+		else
 			projMatrix(frustumRight, frustumLeft, frustumTop, frustumBottom,
-							frustumNear, frustumFar, projection);
-		}
+					frustumNear, frustumFar, projection);
 	}
 
 	// store the camera-space frustum planes into worldPlanes
 	private void computeCameraPlanes() {
 		setWorldPlane(RIGHT_PLANE, projection.m30 - projection.m00,
-						projection.m31 - projection.m01, projection.m32
-										- projection.m02, projection.m33
-										- projection.m03);
+				projection.m31 - projection.m01, projection.m32
+						- projection.m02, projection.m33 - projection.m03);
 
 		setWorldPlane(LEFT_PLANE, projection.m30 + projection.m00,
-						projection.m31 + projection.m01, projection.m32
-										+ projection.m02, projection.m33
-										+ projection.m03);
+				projection.m31 + projection.m01, projection.m32
+						+ projection.m02, projection.m33 + projection.m03);
 
 		setWorldPlane(TOP_PLANE, projection.m30 - projection.m10,
-						projection.m31 - projection.m11, projection.m32
-										- projection.m12, projection.m33
-										- projection.m13);
+				projection.m31 - projection.m11, projection.m32
+						- projection.m12, projection.m33 - projection.m13);
 
 		setWorldPlane(BOTTOM_PLANE, projection.m30 + projection.m10,
-						projection.m31 + projection.m11, projection.m32
-										+ projection.m12, projection.m33
-										+ projection.m13);
+				projection.m31 + projection.m11, projection.m32
+						+ projection.m12, projection.m33 + projection.m13);
 
 		setWorldPlane(FAR_PLANE, projection.m30 - projection.m20,
-						projection.m31 - projection.m21, projection.m32
-										- projection.m22, projection.m33
-										- projection.m23);
+				projection.m31 - projection.m21, projection.m32
+						- projection.m22, projection.m33 - projection.m23);
 
 		setWorldPlane(NEAR_PLANE, projection.m30 + projection.m20,
-						projection.m31 + projection.m21, projection.m32
-										+ projection.m22, projection.m33
-										+ projection.m23);
+				projection.m31 + projection.m21, projection.m32
+						+ projection.m22, projection.m33 + projection.m23);
 	}
 
 	// set the world plane at index plane, with the given values and normalize
@@ -573,15 +559,14 @@ public class View {
 		if (cp == null) {
 			cp = new Plane(a, b, c, d);
 			worldPlanes[plane] = cp;
-		} else {
+		} else
 			cp.setPlane(a, b, c, d);
-		}
 		cp.normalize();
 	}
 
 	// computes an orthogonal projection matrix given the frustum values.
 	private static void orthoMatrix(float fr, float fl, float ft, float fb,
-					float fn, float ff, Matrix4f out) {
+			float fn, float ff, Matrix4f out) {
 		out.m00 = 2f / (fr - fl);
 		out.m11 = 2f / (ft - fb);
 		out.m22 = 2f / (fn - ff);
@@ -594,7 +579,7 @@ public class View {
 
 	// computes a perspective projection matrix given the frustum values.
 	private static void projMatrix(float fr, float fl, float ft, float fb,
-					float fn, float ff, Matrix4f out) {
+			float fn, float ff, Matrix4f out) {
 		out.m00 = 2f * fn / (fr - fl);
 		out.m11 = 2f * fn / (ft - fb);
 

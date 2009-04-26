@@ -9,7 +9,6 @@ import java.util.WeakHashMap;
  * implementations.
  * 
  * @author Michael Ludwig
- * 
  */
 public class RenderDataCache {
 	private static WeakReference<Renderer> frequentContext = null;
@@ -25,18 +24,20 @@ public class RenderDataCache {
 	}
 
 	/**
+	 * <p>
 	 * Set the Renderer specific data for this RenderDataCache, overwriting any
 	 * previous value.
-	 * 
+	 * </p>
+	 * <p>
 	 * Does nothing if the Renderer is null.
+	 * </p>
 	 * 
 	 * @param render The Renderer key that data is associated with
 	 * @param data The new object assigned to render
 	 */
 	public void setRenderData(Renderer render, Object data) {
-		if (render == null) {
+		if (render == null)
 			return;
-		}
 
 		int id = getId(render);
 		if (id >= renderData.length) {
@@ -48,31 +49,31 @@ public class RenderDataCache {
 	}
 
 	/**
+	 * <p>
 	 * Get the Renderer specific data for this RenderDataCache Returns null if
 	 * the Renderer never set any data, or if it set null.
-	 * 
+	 * </p>
+	 * <p>
 	 * Returns null if the Renderer is null.
+	 * </p>
 	 * 
 	 * @param render The Renderer to request its assigned data object
 	 * @return Object cached for render
 	 */
 	public Object getRenderData(Renderer render) {
-		if (render == null) {
+		if (render == null)
 			return null;
-		}
 
 		int id = getId(render);
-		if (id >= renderData.length) {
+		if (id >= renderData.length)
 			return null;
-		}
 		return renderData[id];
 	}
 
 	// internally manage and retrieve Renderer ids, assumes Renderer isn't null
 	private static int getId(Renderer renderer) {
-		if (frequentContext != null && frequentContext.get() == renderer) {
+		if (frequentContext != null && frequentContext.get() == renderer)
 			return frequentId;
-		}
 
 		Integer id = idMap.get(renderer);
 		if (id == null) {

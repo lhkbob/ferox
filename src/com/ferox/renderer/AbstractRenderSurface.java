@@ -47,9 +47,8 @@ public abstract class AbstractRenderSurface implements RenderSurface {
 
 	@Override
 	public void setClearColor(Color color) {
-		if (color == null) {
+		if (color == null)
 			color = new Color(DEFAULT_CLEAR_COLOR);
-		}
 		clearColor = color;
 	}
 
@@ -105,9 +104,8 @@ public abstract class AbstractRenderSurface implements RenderSurface {
 
 	@Override
 	public void addRenderPass(RenderPass pass) {
-		if (!passes.contains(pass)) {
+		if (!passes.contains(pass))
 			passes.add(pass);
-		}
 	}
 
 	@Override
