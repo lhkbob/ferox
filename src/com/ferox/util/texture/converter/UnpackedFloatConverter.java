@@ -1,13 +1,13 @@
-package com.ferox.resource.texture.converter;
+package com.ferox.util.texture.converter;
 
 import com.ferox.resource.BufferData.DataType;
 
-/** An encoder and decoder that works with all uncompressed
- * and unpacked texture formats (including _FLOAT) that
- * have a data type of FLOAT.
+/**
+ * An encoder and decoder that works with all uncompressed and unpacked texture
+ * formats (including _FLOAT) that have a data type of FLOAT.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class UnpackedFloatConverter extends UnpackedFormatConverter {
 	public UnpackedFloatConverter() {
@@ -23,5 +23,5 @@ public class UnpackedFloatConverter extends UnpackedFormatConverter {
 	protected final void set(Object array, int index, float value) {
 		((float[]) array)[index] = value;
 	}
-	
+
 }

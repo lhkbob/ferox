@@ -1,18 +1,19 @@
-package com.ferox.resource.texture.converter;
+package com.ferox.util.texture.converter;
 
 import com.ferox.resource.BufferData.DataType;
 
-/** An encoder and decoder that works with all uncompressed
- * and unpacked texture formats that have a data type of 
- * UNSIGNED_INT.
+/**
+ * An encoder and decoder that works with all uncompressed and unpacked texture
+ * formats that have a data type of UNSIGNED_INT.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class UnpackedIntConverter extends UnpackedFormatConverter {
 	private static final long MASK = 0xffffffffL;
-	private static final double MAX_VALUE = (double) Integer.MAX_VALUE - (double) Integer.MIN_VALUE;
-	
+	private static final double MAX_VALUE = (double) Integer.MAX_VALUE
+					- (double) Integer.MIN_VALUE;
+
 	public UnpackedIntConverter() {
 		super(DataType.UNSIGNED_INT);
 	}
