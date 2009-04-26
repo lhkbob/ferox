@@ -15,10 +15,9 @@ import com.ferox.resource.texture.TextureImage;
 public class TGAImageFileLoader implements ImageFileLoader {
 	@Override
 	public TextureImage readImage(InputStream stream) throws IOException {
-		if (TGATexture.isTGATexture(stream)) {
+		if (TGATexture.isTGATexture(stream))
 			return TGATexture.readTexture(stream);
-		} else {
+		else
 			return null;
-		}
 	}
 }

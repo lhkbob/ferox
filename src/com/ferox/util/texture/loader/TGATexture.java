@@ -9,17 +9,20 @@ import com.ferox.resource.texture.Texture2D;
 import com.ferox.resource.texture.TextureFormat;
 
 /**
+ * <p>
  * The TGATexture class can be used to load in TGA (or Targa) images as
  * Texture2D's.
- * 
+ * </p>
+ * <p>
  * It is recommended to use TextureIO, since it will delegate to TGATexture when
  * needed.
- * 
+ * </p>
+ * <p>
  * This was based heavily off of the code in
  * com.sun.opengl.util.texture.spi.TGAImage.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 @SuppressWarnings("unused")
 public class TGATexture {
@@ -28,54 +31,54 @@ public class TGATexture {
 	private BufferData data;
 
 	/**
+	 * <p>
 	 * Load in a Targa image from the given stream as a Texture2D. This loader
 	 * supports true color and color maps with pixel depths of 16, 24, and 32
 	 * bits. The image will be flipped if necessary.
-	 * 
+	 * </p>
+	 * <p>
 	 * It does not support runlength compressed images, black and white images,
 	 * or images that go right to left. The tga footer present in newer tga
 	 * files is ignored.
+	 * </p>
 	 * 
 	 * @param stream The InputStream to read the tga texture from
 	 * @return The read Texture2D
-	 * 
-	 * @throws IOException if there was an IO error or if the tga file is
-	 *             invalid or unsupported
+	 * @throws IOException if there was an IO error or if the tga file is invalid
+	 *             or unsupported
 	 */
 	public static Texture2D readTexture(InputStream stream) throws IOException {
-		if (stream == null) {
+		if (stream == null)
 			throw new IOException("Cannot read from a null stream");
-		}
 		TGATexture res = new TGATexture(stream);
 		return new Texture2D(new BufferData[] { res.data }, res.header.width,
-								res.header.height, res.format,
-								res.data.getType());
+				res.header.height, res.format, res.data.getType());
 	}
 
 	/**
+	 * <p>
 	 * Non-destructively read the header from the given stream and determine if
 	 * it's a valid header. This checks the different byte offsets against
 	 * expected values, and it is assumed that if everything checks out that it
 	 * is a valid tga file (we need this assumption since the Targa format
 	 * doesn't come with a magic number at the beginning).
-	 * 
+	 * </p>
+	 * <p>
 	 * Returns false if it's invalid or an IOException occurred while checking.
+	 * </p>
 	 * 
 	 * @param stream The InputStream to check format type
 	 * @return Whether or not this stream is a tga file, doesn't check if it's
 	 *         valid or supported
-	 * 
 	 * @throws NullPointerException if stream is null
 	 */
 	public static boolean isTGATexture(InputStream stream) {
-		if (stream == null) {
+		if (stream == null)
 			throw new NullPointerException("Cannot test a null stream");
-		}
 
-		if (!(stream instanceof BufferedInputStream)) {
+		if (!(stream instanceof BufferedInputStream))
 			stream = new BufferedInputStream(stream); // this way marking is
-			// supported
-		}
+		// supported
 		Header header;
 		try {
 			stream.mark(18);
@@ -96,13 +99,11 @@ public class TGATexture {
 	private TGATexture(InputStream stream) throws IOException {
 		header = new Header(stream, true);
 		String msg = validateHeader(header);
-		if (msg != null) {
+		if (msg != null)
 			throw new IOException("TGA header failed validation with: " + msg);
-		}
 		msg = checkHeaderSupported(header);
-		if (msg != null) {
+		if (msg != null)
 			throw new IOException("TGA image is unsupported, because: " + msg);
-		}
 		// we should be supported now, so decode the image
 		decodeImage(stream);
 	}
@@ -139,11 +140,12 @@ public class TGATexture {
 	private final static int I_TWOWAY = 1;
 	private final static int I_FOURWAY = 2;
 
-	/**
+	/*
 	 * This class reads in all of the TGA image header in addition it also reads
 	 * in the imageID field as it is convenient to handle that here.
 	 * 
 	 * @author Robin Luiten
+	 * 
 	 * @author Michael Ludwig
 	 */
 	private static class Header {
@@ -190,9 +192,8 @@ public class TGATexture {
 				byte[] imageIDbuf = new byte[idLength];
 				readAll(in, imageIDbuf);
 				imageID = new String(imageIDbuf, "US-ASCII");
-			} else {
+			} else
 				imageID = "";
-			}
 		}
 
 		/* bitfields in imageDescriptor */
@@ -248,7 +249,7 @@ public class TGATexture {
 		}
 	}
 
-	/**
+	/*
 	 * Class that stores the color map information for the image types that need
 	 * color maps.
 	 */
@@ -277,21 +278,16 @@ public class TGATexture {
 	 * supported. This assumes that the header has already been validated.
 	 */
 	private static String checkHeaderSupported(Header h) {
-		if (h.isBlackAndWhite()) {
+		if (h.isBlackAndWhite())
 			return "Cannot load black and white image data";
-		}
-		if (h.isRightToLeft()) {
+		if (h.isRightToLeft())
 			return "Cannot load image data that goes right-to-left";
-		}
-		if (h.isCompressed()) {
+		if (h.isCompressed())
 			return "Cannot load images with runlength encoding";
-		}
-		if (h.imageType == TYPE_NO_IMAGE) {
+		if (h.imageType == TYPE_NO_IMAGE)
 			return "Cannot load an image with no image data";
-		}
-		if (h.getInterleavedType() != 0) {
+		if (h.getInterleavedType() != 0)
 			return "Interleaved image data is not supported";
-		}
 
 		// we're supported
 		return null;
@@ -301,12 +297,10 @@ public class TGATexture {
 	 * Return the error message if header is invalid; null if it's valid.
 	 */
 	private static String validateHeader(Header h) {
-		if (h.idLength < 0 || h.idLength > 255) {
+		if (h.idLength < 0 || h.idLength > 255)
 			return "Bad idLength value: " + h.idLength;
-		}
-		if (h.colorMapType != 0 && h.colorMapType != 1) {
+		if (h.colorMapType != 0 && h.colorMapType != 1)
 			return "Bad color map type: " + h.colorMapType;
-		}
 
 		switch (h.imageType) {
 		case TYPE_BLACKWHITE:
@@ -324,60 +318,48 @@ public class TGATexture {
 		}
 
 		if (h.hasColorMap()) {
-			if (h.firstEntryIndex < 0) {
+			if (h.firstEntryIndex < 0)
 				return "Bad first entry index for a color map: "
 						+ h.firstEntryIndex;
-			}
-			if (h.colorMapLength < 0) {
+			if (h.colorMapLength < 0)
 				return "Bad number of color map entries: " + h.colorMapLength;
-			}
-			if (!h.isBlackAndWhite()) {
+			if (!h.isBlackAndWhite())
 				if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24
-					&& h.colorMapEntrySize != 32) {
+						&& h.colorMapEntrySize != 32)
 					return "Unsupported color map entry size: "
 							+ h.colorMapEntrySize;
-				}
-			}
-			if (h.pixelDepth != 8 && h.pixelDepth != 16) {
+			if (h.pixelDepth != 8 && h.pixelDepth != 16)
 				return "Pixel depth doesn't have a valid value: "
 						+ h.pixelDepth;
-			}
-			if (h.hasColorMap() && h.colorMapType == 0) {
+			if (h.hasColorMap() && h.colorMapType == 0)
 				return "Image type expects a color map, but one is not specified";
-			}
-		} else if (!h.isBlackAndWhite()) {
+		} else if (!h.isBlackAndWhite())
 			switch (h.pixelDepth) {
 			case 16:
-				if (h.getAttribsPerPixel() != 1) {
+				if (h.getAttribsPerPixel() != 1)
 					return "Bad attribs pixel count, must be 1 for 16 bit colors: "
 							+ h.getAttribsPerPixel();
-				}
 				break;
 			case 24:
-				if (h.getAttribsPerPixel() != 0) {
+				if (h.getAttribsPerPixel() != 0)
 					return "Bad attribs pixel count, must be 0 for 24 bit colors: "
 							+ h.getAttribsPerPixel();
-				}
 				break;
 			case 32:
-				if (h.getAttribsPerPixel() != 8) {
+				if (h.getAttribsPerPixel() != 8)
 					return "Bad attribs pixel count, must be 8 for 32 bit colors: "
 							+ h.getAttribsPerPixel();
-				}
 				break;
 			default:
 				return "Unsupported pixel depth: " + h.pixelDepth;
 			}
-		}
 
 		// ignore the x and y origins of the image (pertain only to screen
 		// location)
-		if (h.width < 0) {
+		if (h.width < 0)
 			return "Bad width, must be positive: " + h.width;
-		}
-		if (h.height < 0) {
+		if (h.height < 0)
 			return "Bad height, must be positive: " + h.height;
-		}
 
 		// we should be valid
 		return null;
@@ -391,21 +373,19 @@ public class TGATexture {
 		switch (header.imageType) {
 		case TYPE_COLORMAP:
 			// load the color map
-			ColorMap cm = (header.hasColorMap()	? new ColorMap(header, in)
-												: null);
+			ColorMap cm = (header.hasColorMap() ? new ColorMap(header, in)
+					: null);
 
-			if (cm.elementByteCount == 2) {
+			if (cm.elementByteCount == 2)
 				decodeColorMap16(cm, in);
-			} else {
+			else
 				decodeColorMap24_32(cm, in);
-			}
 			break;
 		case TYPE_TRUECOLOR:
-			if (header.pixelDepth == 16) {
+			if (header.pixelDepth == 16)
 				decodeTrueColor16(in);
-			} else {
+			else
 				decodeTrueColor24_32(in);
-			}
 			break;
 		default:
 			throw new IOException("Unsupported image type: " + header.imageType);
@@ -417,14 +397,14 @@ public class TGATexture {
 	 * map has a bit depth of 16.
 	 */
 	private void decodeColorMap16(ColorMap cm, InputStream dIn)
-																throws IOException {
+			throws IOException {
 		int i; // input row index
 		int y; // output row index
 		int c; // column index
 		short[] tmpData = new short[header.width * header.height];
 
-		format = (cm.elementByteCount == 3	? TextureFormat.BGR
-											: TextureFormat.BGRA);
+		format = (cm.elementByteCount == 3 ? TextureFormat.BGR
+				: TextureFormat.BGRA);
 		if (header.pixelDepth == 8) {
 			// indices use 2 bytes
 			byte[] rawIndices = new byte[header.width << 1];
@@ -436,8 +416,7 @@ public class TGATexture {
 				for (c = 0; c < header.width; c++) {
 					index = bytesToLittleEndianShort(rawIndices, c << 1);
 					tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
-																						cm.colorMapData,
-																						index);
+							cm.colorMapData, index);
 				}
 			}
 		} else {
@@ -451,8 +430,7 @@ public class TGATexture {
 				for (c = 0; c < header.width; c++) {
 					index = rawIndices[c];
 					tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
-																						cm.colorMapData,
-																						index);
+							cm.colorMapData, index);
 				}
 			}
 		}
@@ -465,7 +443,7 @@ public class TGATexture {
 	 * map has bit depth of 24 or 32.
 	 */
 	private void decodeColorMap24_32(ColorMap cm, InputStream dIn)
-																	throws IOException {
+			throws IOException {
 		int i; // input row index
 		int y; // output row index
 		int c; // column index
@@ -473,8 +451,8 @@ public class TGATexture {
 		// color row
 		byte[] tmpData = new byte[rawWidth * header.height];
 
-		format = (cm.elementByteCount == 3	? TextureFormat.BGR
-											: TextureFormat.BGRA);
+		format = (cm.elementByteCount == 3 ? TextureFormat.BGR
+				: TextureFormat.BGRA);
 		if (header.pixelDepth == 8) {
 			// indices use 2 bytes
 			byte[] rawIndices = new byte[header.width << 1];
@@ -485,9 +463,9 @@ public class TGATexture {
 
 				for (c = 0; c < header.width; c++) {
 					index = bytesToLittleEndianShort(rawIndices, c << 1);
-					System.arraycopy(cm.colorMapData, index, tmpData,
-										y * rawWidth + c * cm.elementByteCount,
-										cm.elementByteCount);
+					System.arraycopy(cm.colorMapData, index, tmpData, y
+							* rawWidth + c * cm.elementByteCount,
+							cm.elementByteCount);
 				}
 			}
 		} else {
@@ -497,11 +475,10 @@ public class TGATexture {
 				readAll(dIn, rawIndices);
 				y = (header.isTopToBottom() ? header.height - i - 1 : i);
 
-				for (c = 0; c < header.width; c++) {
-					System.arraycopy(cm.colorMapData, rawIndices[c], tmpData,
-										y * rawWidth + c * cm.elementByteCount,
-										cm.elementByteCount);
-				}
+				for (c = 0; c < header.width; c++)
+					System.arraycopy(cm.colorMapData, rawIndices[c], tmpData, y
+							* rawWidth + c * cm.elementByteCount,
+							cm.elementByteCount);
 			}
 		}
 
@@ -521,13 +498,12 @@ public class TGATexture {
 		format = TextureFormat.ARGB_1555;
 		for (i = 0; i < header.height; i++) {
 			readAll(dIn, rawBuf);
-			for (c = 0; c < header.width; c++) {
+			for (c = 0; c < header.width; c++)
 				swapRow[c] = (short) bytesToLittleEndianShort(rawBuf, c << 1);
-			}
 
 			y = (header.isTopToBottom() ? header.height - i - 1 : i);
 			System.arraycopy(swapRow, 0, tmpData, y * header.width,
-								swapRow.length);
+					swapRow.length);
 		}
 
 		data = new BufferData(tmpData, true);
@@ -546,8 +522,8 @@ public class TGATexture {
 		byte[] rawBuf = new byte[rawWidth];
 		byte[] tmpData = new byte[rawWidth * header.height];
 
-		format = (header.pixelDepth == 24	? TextureFormat.BGR
-											: TextureFormat.BGRA);
+		format = (header.pixelDepth == 24 ? TextureFormat.BGR
+				: TextureFormat.BGRA);
 		for (i = 0; i < header.height; i++) {
 			readAll(dIn, rawBuf);
 			y = (header.isTopToBottom() ? header.height - i - 1 : i);
@@ -560,15 +536,14 @@ public class TGATexture {
 	// read bytes from the given stream until the array is full
 	// fails if the end-of-stream happens before the array is full
 	private static void readAll(InputStream in, byte[] array)
-																throws IOException {
+			throws IOException {
 		int remaining = array.length;
 		int offset = 0;
 		int read = 0;
 		while (remaining > 0) {
 			read = in.read(array, offset, remaining);
-			if (read < 0) {
+			if (read < 0)
 				throw new IOException("Unexpected end of stream");
-			}
 			offset += read;
 			remaining -= read;
 		}
@@ -588,9 +563,8 @@ public class TGATexture {
 
 	private static int readUnsignedByte(InputStream in) throws IOException {
 		int ch = in.read();
-		if (ch < 0) {
+		if (ch < 0)
 			throw new IOException("Unexpected end of stream");
-		}
 		return ch;
 	}
 }

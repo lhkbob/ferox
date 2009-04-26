@@ -9,19 +9,22 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.texture.TextureFormat;
 
 /**
+ * <p>
  * TextureConverter provides utilities to register decoders and encoders of
  * texture data, as well as provide a utility methods that will convert formats
  * and scale dimensions.
- * 
+ * </p>
+ * <p>
  * There are default encoders and decoders supported all TextureFormats (with
  * valid types) except for the DXT_x formats, that have already been registered.
- * 
+ * </p>
+ * <p>
  * This utility is not intended to be an efficient imaging processor, but is
  * instead meant to be flexible, allowing for many formats to be converted and
  * scaled.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class TextureConverter {
 	/**
@@ -34,7 +37,7 @@ public class TextureConverter {
 		private TextureFormat format;
 
 		protected DataBlock(BufferData data, int width, int height, int depth,
-							TextureFormat format) {
+				TextureFormat format) {
 			this.data = data;
 			this.width = width;
 			this.height = height;
@@ -96,15 +99,18 @@ public class TextureConverter {
 	 */
 	public static interface Encoder {
 		/**
+		 * <p>
 		 * Set the given color on the data block at the texel <x,y,z>. It can be
 		 * assumed that x, y, and z are within the dimensions of the data block.
 		 * The data block and color will not be null.
-		 * 
+		 * </p>
+		 * <p>
 		 * If the Encoder doesn't support an alpha channel, the stored color
 		 * components should be pre-multiplied by the alpha of color. If the
 		 * Encoder represents a non-standard format, it must provide a
 		 * reasonable implementation of extracting those values from the RGBA
 		 * color.
+		 * </p>
 		 * 
 		 * @param data The DataBlock representing the texture image being
 		 *            converted
@@ -121,7 +127,6 @@ public class TextureConverter {
 		 * 
 		 * @param type The DataType of a texture image
 		 * @param format The TextureFormat of an image
-		 * 
 		 * @return True if the type and format are supported
 		 */
 		public boolean canEncode(DataType type, TextureFormat format);
@@ -133,19 +138,23 @@ public class TextureConverter {
 	 */
 	public static interface Decoder {
 		/**
+		 * <p>
 		 * Get the given color on the data block at the point <u,v,w>. It can be
 		 * assumed that u, v, and w are in [0, 1], representing normalized
 		 * texture coordinates across the valid dimensions. The data block and
 		 * store will not be null. store must hold the color result.
-		 * 
+		 * </p>
+		 * <p>
 		 * If the Decoder's format doesn't support an alpha channel, the stored
 		 * alpha value should be set 1. The decoder can decide how to compute
 		 * the final color, either using some form of filtering or just
 		 * nearest-neighbor.
-		 * 
+		 * </p>
+		 * <p>
 		 * If the Decoder represents a non-standard format, it must provide a
 		 * reasonable implementation for determining rgba colors. For example,
 		 * luminance and depth may store that value in the RGB components.
+		 * </p>
 		 * 
 		 * @param data The DataBlock representing the texture image being
 		 *            converted
@@ -155,7 +164,7 @@ public class TextureConverter {
 		 * @param color The color value to hold the read color from data
 		 */
 		public void getColor(DataBlock data, float u, float v, float w,
-								Color store);
+				Color store);
 
 		/**
 		 * Determine if this decoder can convert the given type and format. It
@@ -163,7 +172,6 @@ public class TextureConverter {
 		 * 
 		 * @param type The DataType of a texture image
 		 * @param format The TextureFormat of an image
-		 * 
 		 * @return True if the type and format are supported
 		 */
 		public boolean canDecode(DataType type, TextureFormat format);
@@ -173,20 +181,25 @@ public class TextureConverter {
 	private static List<Decoder> decoders = new ArrayList<Decoder>();
 
 	/**
+	 * <p>
 	 * This method will re-scale and change the data type and format of a single
 	 * mipmap layer of a texture image. This image can be 2d or 3d (if it's 2d,
 	 * the depth should be 1).
-	 * 
+	 * </p>
+	 * <p>
 	 * If the result BufferData is null, doesn't match newType, or doesn't have
 	 * the correct size, a new BufferData is used. Otherwise, its data array is
 	 * used to store the converted image (which may have to be allocated if it
 	 * is null), and result will be returned.
-	 * 
+	 * </p>
+	 * <p>
 	 * If the backing array behind result is null, then a new one is created. If
 	 * a data's backing array is null, an empty BufferData is created with an
 	 * array sized appropriately for the requested type, format and dimensions.
-	 * 
+	 * </p>
+	 * <p>
 	 * Returns the BufferData holding the converted image.
+	 * </p>
 	 * 
 	 * @param data The original data that will be converted, can't be null
 	 * @param oldFormat The TextureFormat of data, can't be null
@@ -194,7 +207,6 @@ public class TextureConverter {
 	 * @param oldHeight The height of the image held by data
 	 * @param oldDepth The depth of the image held by data (1 if there's no 3rd
 	 *            dimension)
-	 * 
 	 * @param result The BufferData result to hold converted image, if it's not
 	 *            null, it must be compatible with newFormat and new dimensions
 	 * @param newFormat The TextureFormat for the converted image
@@ -202,13 +214,11 @@ public class TextureConverter {
 	 * @param newWidth The width dimension of the new image
 	 * @param newHeight The height dimension of the new image
 	 * @param newDepth The depth dimension of the new image
-	 * 
 	 * @return The converted image, either in result or a new BufferData if
 	 *         result was null or didn't match the requirements for the
 	 *         converted image
-	 * 
-	 * @throws NullPointerException if data, oldFormat, newFormat, or newType
-	 *             are null
+	 * @throws NullPointerException if data, oldFormat, newFormat, or newType are
+	 *             null
 	 * @throws IllegalArgumentException if the oldFormat and old dimensions
 	 *             don't match with data, or if newFormat and newType and the
 	 *             new dimensions are invalid
@@ -216,59 +226,45 @@ public class TextureConverter {
 	 *             or Decoders to handle the conversion
 	 */
 	public static BufferData convert(BufferData data, TextureFormat oldFormat,
-										int oldWidth, int oldHeight,
-										int oldDepth, BufferData result,
-										TextureFormat newFormat,
-										DataType newType, int newWidth,
-										int newHeight, int newDepth) {
+			int oldWidth, int oldHeight, int oldDepth, BufferData result,
+			TextureFormat newFormat, DataType newType, int newWidth,
+			int newHeight, int newDepth) {
 		// validate input parameters that involve the source data
-		if (data == null || oldFormat == null) {
+		if (data == null || oldFormat == null)
 			throw new NullPointerException(
-											"data and oldFormat cannot be null: "
-													+ data + " " + oldFormat);
-		}
-		if (!oldFormat.isTypeValid(data.getType())) {
+					"data and oldFormat cannot be null: " + data + " "
+							+ oldFormat);
+		if (!oldFormat.isTypeValid(data.getType()))
 			throw new IllegalArgumentException(
-												"data's type must be supported for the given oldFormat: "
-														+ data.getType() + " "
-														+ oldFormat);
-		}
+					"data's type must be supported for the given oldFormat: "
+							+ data.getType() + " " + oldFormat);
 		if (oldFormat.getBufferSize(oldWidth, oldHeight, oldDepth) != data
-																			.getCapacity()) {
+				.getCapacity())
 			throw new IllegalArgumentException(
-												"data's capacity doesn't match expected size, based on old dimensions");
-		}
+					"data's capacity doesn't match expected size, based on old dimensions");
 
 		// validate input parameters for the dst data
-		if (newFormat == null || newType == null) {
+		if (newFormat == null || newType == null)
 			throw new NullPointerException(
-											"newFormat and newType cannot be null: "
-													+ newFormat + " " + newType);
-		}
-		if (!newFormat.isTypeValid(newType)) {
+					"newFormat and newType cannot be null: " + newFormat + " "
+							+ newType);
+		if (!newFormat.isTypeValid(newType))
 			throw new IllegalArgumentException(
-												"newType is not supported by newFormat: "
-														+ newType + " "
-														+ newFormat);
-		}
+					"newType is not supported by newFormat: " + newType + " "
+							+ newFormat);
 
 		int newCapacity = newFormat
-									.getBufferSize(newWidth, newHeight,
-													newDepth);
-		if (newCapacity < 0) {
+				.getBufferSize(newWidth, newHeight, newDepth);
+		if (newCapacity < 0)
 			throw new IllegalArgumentException(
-												"new dimensions are invalid for newFormat: "
-														+ newWidth + "x"
-														+ newHeight + "x"
-														+ newDepth + " "
-														+ newFormat);
-		}
+					"new dimensions are invalid for newFormat: " + newWidth
+							+ "x" + newHeight + "x" + newDepth + " "
+							+ newFormat);
 
 		// make a new BufferData if needed
 		if (result == null || result.getCapacity() != newCapacity
-			|| result.getType() != newType) {
+				|| result.getType() != newType)
 			result = new BufferData(newCapacity, newType);
-		}
 		// make sure its data array is not null
 		if (result.getData() == null) {
 			Object array = newArray(newCapacity, newType);
@@ -278,27 +274,20 @@ public class TextureConverter {
 		if (data.getData() != null) {
 			// actually convert the old image data
 			Decoder decoder = getDecoder(data.getType(), oldFormat);
-			if (decoder == null) {
+			if (decoder == null)
 				throw new UnsupportedOperationException(
-														"There is no registered Decoder supporting "
-																+ data
-																		.getType()
-																+ " and "
-																+ oldFormat);
-			}
+						"There is no registered Decoder supporting "
+								+ data.getType() + " and " + oldFormat);
 			DataBlock src = new DataBlock(data, oldWidth, oldHeight, oldDepth,
-											oldFormat);
+					oldFormat);
 
 			Encoder encoder = getEncoder(newType, newFormat);
-			if (encoder == null) {
+			if (encoder == null)
 				throw new UnsupportedOperationException(
-														"There is no registered Encoder supporting "
-																+ newType
-																+ " and "
-																+ newFormat);
-			}
+						"There is no registered Encoder supporting " + newType
+								+ " and " + newFormat);
 			DataBlock dst = new DataBlock(result, newWidth, newHeight,
-											newDepth, newFormat);
+					newDepth, newFormat);
 
 			float uScale = 1f / newWidth;
 			float vScale = 1f / newHeight;
@@ -329,12 +318,15 @@ public class TextureConverter {
 	}
 
 	/**
+	 * <p>
 	 * Register the given encoder, so that it can be used in subsequent
 	 * convert() calls. If multiple registered encoders return true from
 	 * canEncode(), the newest added encoder is used.
-	 * 
+	 * </p>
+	 * <p>
 	 * Does nothing if e is null. If e has already been registered, then e
 	 * becomes the "newest" with regards to resolving conflicts.
+	 * </p>
 	 * 
 	 * @param e The Encoder to register for use
 	 */
@@ -342,9 +334,8 @@ public class TextureConverter {
 		synchronized (encoders) {
 			if (e != null) {
 				int index = encoders.indexOf(e);
-				if (index >= 0) {
+				if (index >= 0)
 					encoders.remove(index);
-				}
 				encoders.add(e);
 			}
 		}
@@ -359,19 +350,21 @@ public class TextureConverter {
 	 */
 	public static void unregisterEncoder(Encoder e) {
 		synchronized (encoders) {
-			if (e != null) {
+			if (e != null)
 				encoders.remove(e);
-			}
 		}
 	}
 
 	/**
+	 * <p>
 	 * Register the given decoder, so that it can be used in subsequent
 	 * convert() calls. If multiple registered decoders return true from
 	 * canDecode(), the newest added decoder is used.
-	 * 
+	 * </p>
+	 * <p>
 	 * Does nothing if d is null. If d has already been registered, then d
 	 * becomes the "newest" with regards to resolving conflicts.
+	 * </p>
 	 * 
 	 * @param d The Decoder to register
 	 */
@@ -379,9 +372,8 @@ public class TextureConverter {
 		synchronized (decoders) {
 			if (d != null) {
 				int index = decoders.indexOf(d);
-				if (index >= 0) {
+				if (index >= 0)
 					decoders.remove(index);
-				}
 				decoders.add(d);
 			}
 		}
@@ -396,9 +388,8 @@ public class TextureConverter {
 	 */
 	public static void unregisterDecoder(Decoder d) {
 		synchronized (decoders) {
-			if (d != null) {
+			if (d != null)
 				decoders.remove(d);
-			}
 		}
 	}
 
@@ -410,12 +401,11 @@ public class TextureConverter {
 	private static Encoder getEncoder(DataType type, TextureFormat format) {
 		Encoder e = null;
 		synchronized (encoders) {
-			for (int i = encoders.size() - 1; i >= 0; i--) {
+			for (int i = encoders.size() - 1; i >= 0; i--)
 				if (encoders.get(i).canEncode(type, format)) {
 					e = encoders.get(i);
 					break;
 				}
-			}
 		}
 
 		return e;
@@ -429,12 +419,11 @@ public class TextureConverter {
 	private static Decoder getDecoder(DataType type, TextureFormat format) {
 		Decoder d = null;
 		synchronized (decoders) {
-			for (int i = decoders.size() - 1; i >= 0; i--) {
+			for (int i = decoders.size() - 1; i >= 0; i--)
 				if (decoders.get(i).canDecode(type, format)) {
 					d = decoders.get(i);
 					break;
 				}
-			}
 		}
 
 		return d;

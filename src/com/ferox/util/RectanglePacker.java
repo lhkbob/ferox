@@ -1,28 +1,32 @@
 package com.ferox.util;
 
 /**
+ * <p>
  * RectanglePacker provides a simple algorithm for packing smaller rectangles
  * into a larger rectangle. The algorithm will expand the containing rectangle's
  * dimensions as necessary to contain new entries.
- * 
+ * </p>
+ * <p>
  * The algorithm is a java port of the C++ implementation described here:
- * <http://www.blackpawn.com/texts/lightmaps/default.html>
- * 
+ * <http://www.blackpawn.com/texts/lightmaps/default.html><br>
  * with modifications to allow the top-level rectangle to expand as more items
  * are added in. Although the entire rectangle will grow, items placed at
  * rectangles will not be moved or resized.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class RectanglePacker<T> {
 	/**
+	 * <p>
 	 * A simple Rectangle class that has no dependencies. It performs no logic
 	 * checking, so it is possible for Rectangles to have negative dimensions,
 	 * if they were created as such.
-	 * 
+	 * </p>
+	 * <p>
 	 * Although not publicly modifiable, RectanglePacker may modify Rectangles
 	 * that represent the top-level container.
+	 * </p>
 	 */
 	public static class Rectangle {
 		private final int x, y;
@@ -83,17 +87,15 @@ public class RectanglePacker<T> {
 
 		public Node<T> get(T data) {
 			// check if we match
-			if (this.data == data) {
+			if (this.data == data)
 				return this;
-			}
 
 			Node<T> n = null;
 			if (!this.isLeaf()) {
 				// we're not a leaf, so check children
 				n = this.child1.get(data);
-				if (n == null) {
+				if (n == null)
 					n = this.child2.get(data);
-				}
 			}
 
 			return n;
@@ -103,23 +105,19 @@ public class RectanglePacker<T> {
 			if (!this.isLeaf()) {
 				// test first child
 				Node<T> n = this.child1.insert(data, width, height);
-				if (n == null) {
+				if (n == null)
 					n = this.child2.insert(data, width, height);
-				}
 				return n;
 			} else {
-				if (this.data != null) {
+				if (this.data != null)
 					return null; // already filled up
-				}
 
-				if (this.rc.width < width || this.rc.height < height) {
+				if (this.rc.width < width || this.rc.height < height)
 					return null; // we're too small
-				}
 
 				// check if we fit perfectly
-				if (this.rc.width == width && this.rc.height == height) {
+				if (this.rc.width == width && this.rc.height == height)
 					return this;
-				}
 
 				// split this node, to form two children
 				this.child1 = new Node<T>();
@@ -159,15 +157,13 @@ public class RectanglePacker<T> {
 	 * 
 	 * @param startWidth Starting width of the top rectangle
 	 * @param startHeight Starting height of the rectangle
-	 * 
 	 * @throws IllegalArgumentException if startWidth or startHeight <= 0
 	 */
 	public RectanglePacker(int startWidth, int startHeight) {
-		if (startWidth <= 0 || startHeight <= 0) {
+		if (startWidth <= 0 || startHeight <= 0)
 			throw new IllegalArgumentException(
 					"Starting dimensions must be positive: " + startWidth + " "
 							+ startHeight);
-		}
 
 		Rectangle rootBounds = new Rectangle(0, 0, startWidth, startHeight);
 		this.root = new Node<T>();
@@ -193,63 +189,62 @@ public class RectanglePacker<T> {
 	}
 
 	/**
+	 * <p>
 	 * Return the Rectangle that was previously returned by a call to
 	 * insert(data) for this instance. If data has been inserted more than once,
 	 * it is undefined which Rectangle will be returned, since it is still
 	 * technically stored in multiple places.
-	 * 
+	 * </p>
+	 * <p>
 	 * This uses == equality, not equals().
+	 * </p>
 	 * 
 	 * @param data Instance to search for in already packed rectangles
 	 * @return Rectangle assigned to data, or null if data hasn't been packed
 	 *         yet
 	 */
 	public Rectangle get(T data) {
-		if (data == null) {
+		if (data == null)
 			return null;
-		}
 
 		Node<T> n = this.root.get(data);
 		return (n == null ? null : n.rc);
 	}
 
 	/**
+	 * <p>
 	 * Insert the given object, that requires a rectangle with the given
 	 * dimensions. The containing rectangle will be enlarged if necessary to
 	 * contain it.
-	 * 
+	 * </p>
+	 * <p>
 	 * This does nothing if data is null. If data has already been inserted,
 	 * then this packer will contain multiple rectangles referencing the given
 	 * object. This results in undefined behavior with get(data) and should be
 	 * avoided if get() is necessary.
+	 * </p>
 	 * 
 	 * @param data The object to pack into this rectangle container
 	 * @param width Width required for the packed rectangle
 	 * @param height Height required for the packed rectangle
-	 * 
 	 * @param The rectangle representing the location of the packed data object.
-	 * 
 	 * @throws IllegalArgumentException if width or height <= 0
 	 */
 	public Rectangle insert(T data, int width, int height) {
-		if (width <= 0 || height <= 0) {
+		if (width <= 0 || height <= 0)
 			throw new IllegalArgumentException("Dimensions must be > 0, "
 					+ width + "x" + height);
-		}
-		if (data == null) {
+		if (data == null)
 			return null;
-		}
 
 		Node<T> n = null;
-		while ((n = this.root.insert(data, width, height)) == null) {
+		while ((n = this.root.insert(data, width, height)) == null)
 			// we must expand it, choose the option that keeps
 			// the dimension smallest
-			if (this.root.rc.width + width <= this.root.rc.height + height) {
+			if (this.root.rc.width + width <= this.root.rc.height + height)
 				this.expandWidth(width);
-			} else {
+			else
 				this.expandHeight(height);
-			}
-		}
 
 		// assign the data and return
 		n.data = data;
@@ -263,10 +258,10 @@ public class RectanglePacker<T> {
 
 		int newW = oldBounds.width + dw;
 
-		if (this.root.isLeaf() && this.root.data == null) {
+		if (this.root.isLeaf() && this.root.data == null)
 			// just expand the rectangle
 			this.root.rc.width = newW;
-		} else {
+		else {
 			// create a new root node
 			Node<T> n = new Node<T>();
 			n.rc = new Rectangle(0, 0, newW, oldBounds.height);
@@ -288,10 +283,10 @@ public class RectanglePacker<T> {
 
 		int newH = oldBounds.height + dh;
 
-		if (this.root.isLeaf() && this.root.data == null) {
+		if (this.root.isLeaf() && this.root.data == null)
 			// just expand the rectangle
 			this.root.rc.height = newH;
-		} else {
+		else {
 			// create a new root node
 			Node<T> n = new Node<T>();
 			n.rc = new Rectangle(0, 0, oldBounds.width, newH);

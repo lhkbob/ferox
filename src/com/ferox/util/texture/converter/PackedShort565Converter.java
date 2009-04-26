@@ -40,19 +40,17 @@ public class PackedShort565Converter implements Decoder, Encoder {
 		int z = (int) w * data.getDepth();
 
 		int index = x + y * data.getWidth() + z * data.getWidth()
-					* data.getHeight();
+				* data.getHeight();
 		short val = ((short[]) data.getData().getData())[index];
 
 		switch (data.getFormat()) {
 		case BGR_565:
 			store.set(((val & C3_MASK) >> 0) / MAX_RB, ((val & C2_MASK) >> 5)
-														/ MAX_G,
-						((val & C1_MASK) >> 11) / MAX_RB, 1f);
+					/ MAX_G, ((val & C1_MASK) >> 11) / MAX_RB, 1f);
 			break;
 		case RGB_565:
 			store.set(((val & C1_MASK) >> 11) / MAX_RB, ((val & C2_MASK) >> 5)
-														/ MAX_G,
-						((val & C3_MASK) >> 0) / MAX_RB, 1f);
+					/ MAX_G, ((val & C3_MASK) >> 0) / MAX_RB, 1f);
 			break;
 		}
 	}
@@ -60,7 +58,7 @@ public class PackedShort565Converter implements Decoder, Encoder {
 	@Override
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
 		int index = x + y * data.getWidth() + z * data.getWidth()
-					* data.getHeight();
+				* data.getHeight();
 
 		float alpha = color.getAlpha();
 

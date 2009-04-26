@@ -5,17 +5,20 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * <p>
  * A UnitList is meant to store the list of <unit, item> intersection, often
  * when using textures.
- * 
+ * </p>
+ * <p>
  * The UnitList supports units >= 0, with no maximum limit. It will dynamically
  * change between array access and list access to maximize storage size and
  * search time.
- * 
+ * </p>
+ * <p>
  * In most cases, access should just be an array access.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class UnitList<T> {
 	/**
@@ -73,16 +76,13 @@ public class UnitList<T> {
 	 * 
 	 * @param unit The unit to bind item to
 	 * @param item The new item bound to unit
-	 * 
 	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
 	@SuppressWarnings("unchecked")
 	public void setItem(int unit, T item) {
-		if (unit < 0) {
+		if (unit < 0)
 			throw new IndexOutOfBoundsException(
-												"Invalid unit, units cannot be less than 0: "
-														+ unit);
-		}
+					"Invalid unit, units cannot be less than 0: " + unit);
 
 		int nuIndex = -1;
 
@@ -96,21 +96,17 @@ public class UnitList<T> {
 			}
 		}
 
-		if (nuIndex < 0 && item == null) {
+		if (nuIndex < 0 && item == null)
 			return; // no change necessary
-		}
 
 		if (nuIndex < 0) {
 			this.units.add(new Unit<T>(item, unit));
 			count++;
-		} else {
-			if (item == null) {
-				this.units.remove(nuIndex);
-				count--;
-			} else {
-				this.units.get(nuIndex).data = item;
-			}
-		}
+		} else if (item == null) {
+			this.units.remove(nuIndex);
+			count--;
+		} else
+			this.units.get(nuIndex).data = item;
 
 		if (this.units.isEmpty()) { // no more textures left, so reset the ra
 			// record
@@ -123,54 +119,45 @@ public class UnitList<T> {
 		int maxUnit = Integer.MIN_VALUE;
 		for (int i = 0; i < count; i++) {
 			tu = this.units.get(i);
-			if (tu.unit < minUnit) {
+			if (tu.unit < minUnit)
 				minUnit = tu.unit;
-			}
-			if (tu.unit > maxUnit) {
+			if (tu.unit > maxUnit)
 				maxUnit = tu.unit;
-			}
 		}
 
 		boolean useRa = (maxUnit - minUnit) < MAX_UNIT_DISPARITY
-						|| ((float) count) / (maxUnit - minUnit) > MIN_UNIT_USAGE;
+				|| ((float) count) / (maxUnit - minUnit) > MIN_UNIT_USAGE;
 
-		if (!useRa) {
+		if (!useRa)
 			// no longer need random access, so clear it
 			this.resetRandomAccess();
-		} else {
-			if (this.useRandomAccess) {
-				if (minUnit != this.raUnitOffset
+		else if (this.useRandomAccess) {
+			if (minUnit != this.raUnitOffset
 					|| maxUnit != (this.raUnitOffset
-									+ this.randomAccessData.length - 1)) {
-					// we need an update
-					T[] newTex = (T[]) new Object[maxUnit - minUnit + 1];
-					System
-							.arraycopy(
-										this.randomAccessData,
-										Math
-											.max(0, minUnit - this.raUnitOffset),
-										newTex, Math.max(0, this.raUnitOffset
-															- minUnit),
-										Math.min(this.randomAccessData.length
-													+ this.raUnitOffset,
-													maxUnit + 1)
-												- this.raUnitOffset);
-					this.randomAccessData = newTex;
-					this.raUnitOffset = minUnit;
-				}
-
-				// update the ra record
-				this.randomAccessData[unit - this.raUnitOffset] = item;
-			} else {
-				this.useRandomAccess = true;
-				this.randomAccessData = (T[]) new Object[maxUnit - minUnit + 1];
+							+ this.randomAccessData.length - 1)) {
+				// we need an update
+				T[] newTex = (T[]) new Object[maxUnit - minUnit + 1];
+				System.arraycopy(this.randomAccessData, Math.max(0, minUnit
+						- this.raUnitOffset), newTex, Math.max(0,
+						this.raUnitOffset - minUnit), Math.min(
+						this.randomAccessData.length + this.raUnitOffset,
+						maxUnit + 1)
+						- this.raUnitOffset);
+				this.randomAccessData = newTex;
 				this.raUnitOffset = minUnit;
+			}
 
-				// fill the ra record
-				for (int i = 0; i < count; i++) {
-					tu = this.units.get(i);
-					this.randomAccessData[tu.unit - this.raUnitOffset] = tu.data;
-				}
+			// update the ra record
+			this.randomAccessData[unit - this.raUnitOffset] = item;
+		} else {
+			this.useRandomAccess = true;
+			this.randomAccessData = (T[]) new Object[maxUnit - minUnit + 1];
+			this.raUnitOffset = minUnit;
+
+			// fill the ra record
+			for (int i = 0; i < count; i++) {
+				tu = this.units.get(i);
+				this.randomAccessData[tu.unit - this.raUnitOffset] = tu.data;
 			}
 		}
 	}
@@ -181,30 +168,25 @@ public class UnitList<T> {
 	 * 
 	 * @param unit The unit that the returned item is bound to
 	 * @return The item bound to unit, or null if there was no binding
-	 * 
 	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
 	public T getItem(int unit) {
-		if (unit < 0) {
+		if (unit < 0)
 			throw new IndexOutOfBoundsException(
-												"Invalid unit, units cannot be less than 0: "
-														+ unit);
-		}
+					"Invalid unit, units cannot be less than 0: " + unit);
 
 		if (this.useRandomAccess) {
 			if (unit < this.raUnitOffset
-				|| unit >= (this.raUnitOffset + this.randomAccessData.length)) {
+					|| unit >= (this.raUnitOffset + this.randomAccessData.length))
 				return null;
-			}
 			return this.randomAccessData[unit - this.raUnitOffset];
 		} else {
 			int numTex = this.units.size();
 			Unit<T> tu;
 			for (int i = 0; i < numTex; i++) {
 				tu = this.units.get(i);
-				if (unit == tu.unit) {
+				if (unit == tu.unit)
 					return tu.data;
-				}
 			}
 
 			return null;

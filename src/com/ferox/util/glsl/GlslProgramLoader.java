@@ -24,13 +24,16 @@ public class GlslProgramLoader {
 	 * vertex shader is used by the program. Similarly if fragmentShader is
 	 * null, no fragment shader is used for the GlslProgram.
 	 * 
-	 * Throws an IOException if any I/O problem occurs while loading.
+	 * @throws IOException if there are any I/O problems when loading the text
+	 *             files
+	 * @throws IllegalArgumentException if the read-in files would create an
+	 *             invalid GlslProgram
 	 */
 	public static GlslProgram load(File vertexShader, File fragmentShader)
-					throws IOException {
+			throws IOException {
 		String[] vCode = (vertexShader == null ? null : readAll(vertexShader));
 		String[] fCode = (fragmentShader == null ? null
-						: readAll(fragmentShader));
+				: readAll(fragmentShader));
 
 		return new GlslProgram(vCode, fCode);
 	}
@@ -41,15 +44,14 @@ public class GlslProgramLoader {
 	 */
 	private static String[] readAll(File file) throws IOException {
 		InputStreamReader stream = new InputStreamReader(new FileInputStream(
-						file));
+				file));
 		BufferedReader reader = new BufferedReader(stream);
 
 		List<String> lines = new ArrayList<String>();
 		String line;
-		while ((line = reader.readLine()) != null) {
+		while ((line = reader.readLine()) != null)
 			// read each line and add it to the list
 			lines.add(line);
-		}
 
 		reader.close();
 		return lines.toArray(new String[lines.size()]);

@@ -12,7 +12,7 @@ import com.ferox.resource.BufferData.DataType;
 public class UnpackedIntConverter extends UnpackedFormatConverter {
 	private static final long MASK = 0xffffffffL;
 	private static final double MAX_VALUE = (double) Integer.MAX_VALUE
-					- (double) Integer.MIN_VALUE;
+			- (double) Integer.MIN_VALUE;
 
 	public UnpackedIntConverter() {
 		super(DataType.UNSIGNED_INT);

@@ -15,10 +15,9 @@ import com.ferox.resource.texture.TextureImage;
 public class DDSImageFileLoader implements ImageFileLoader {
 	@Override
 	public TextureImage readImage(InputStream stream) throws IOException {
-		if (DDSTexture.isDDSTexture(stream)) {
+		if (DDSTexture.isDDSTexture(stream))
 			return DDSTexture.readTexture(stream);
-		} else {
+		else
 			return null;
-		}
 	}
 }

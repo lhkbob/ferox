@@ -31,13 +31,15 @@ import com.ferox.resource.texture.TextureImage;
 import com.ferox.resource.texture.TextureRectangle;
 
 /**
+ * <p>
  * TextureIO provides functionality to load image files as TextureImage objects.
  * It provides some utilities to generate a TextureImage from a BufferedImage.
- * 
+ * </p>
+ * <p>
  * By default, the DDS, TGA and ImageIO image file loaders are registered.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class TextureLoader {
 	private static List<ImageFileLoader> loaders = new ArrayList<ImageFileLoader>();
@@ -50,12 +52,15 @@ public class TextureLoader {
 	}
 
 	/**
+	 * <p>
 	 * Register the given loader, so that it can be used in subsequent
 	 * readTexture() calls. The newer loaders are favored when resolving
 	 * conflicts between loaders that are capable of loading the same file.
-	 * 
+	 * </p>
+	 * <p>
 	 * Does nothing if e is null. If e has already been registered, then e
 	 * becomes the "newest" with regards to resolving conflicts.
+	 * </p>
 	 * 
 	 * @param e An ImageFileLoader to register for use
 	 */
@@ -63,9 +68,8 @@ public class TextureLoader {
 		synchronized (loaders) {
 			if (e != null) {
 				int index = loaders.indexOf(e);
-				if (index >= 0) {
+				if (index >= 0)
 					loaders.remove(index);
-				}
 				loaders.add(e);
 			}
 		}
@@ -80,9 +84,8 @@ public class TextureLoader {
 	 */
 	public static void unregisterLoader(ImageFileLoader e) {
 		synchronized (loaders) {
-			if (e != null) {
+			if (e != null)
 				loaders.remove(e);
-			}
 		}
 	}
 
@@ -92,14 +95,12 @@ public class TextureLoader {
 	 * 
 	 * @param file The File to read a texture from
 	 * @return The read TextureImage
-	 * 
 	 * @throws IOException if the file can't be read, if it's unsupported, etc.
 	 */
 	public static TextureImage readTexture(File file) throws IOException {
-		if (file == null) {
+		if (file == null)
 			throw new IOException(
 					"Cannot load a texture image from a null file");
-		}
 
 		InputStream stream = new FileInputStream(file);
 		TextureImage image;
@@ -118,14 +119,12 @@ public class TextureLoader {
 	 * 
 	 * @param url The URL representing the TextureImage
 	 * @return The read TextureImage
-	 * 
 	 * @throws IOException if the texture couldn't be read, if it's unsupported
 	 *             or invalid, etc.
 	 */
 	public static TextureImage readTexture(URL url) throws IOException {
-		if (url == null) {
+		if (url == null)
 			throw new IOException("Cannot read from a null URL");
-		}
 		InputStream urlStream = url.openStream();
 		TextureImage image;
 		try {
@@ -138,21 +137,23 @@ public class TextureLoader {
 	}
 
 	/**
+	 * <p>
 	 * Read a texture from the given stream. This assumes that the texture
 	 * begins with the next bytes read from the stream, and that the stream is
-	 * already opened. Throws an exception if the stream is null, or if its not
-	 * a recognizable image.
-	 * 
+	 * already opened.
+	 * </p>
+	 * <p>
 	 * For standard images (e.g. jpg, png, gif, etc.) Texture2D is used. If a
 	 * TextureRectangle is desired, use convertToRectangle().
-	 * 
+	 * </p>
+	 * <p>
 	 * This method does not close the stream, in case it's to be used later on.
+	 * </p>
 	 * 
 	 * @param stream The InputStream to read the texture from
 	 * @return The read TextureImage, will be a Texture1D, Texture2D,
 	 *         TextureCubeMap or Texture3D (2d images use Texture2D by default,
 	 *         see convertToRectangle())
-	 * 
 	 * @throws IOException if the stream can't be read from, it represents an
 	 *             invalid or unsupported texture type, etc.
 	 */
@@ -160,9 +161,8 @@ public class TextureLoader {
 			throws IOException {
 		try {
 			// make sure we're buffered
-			if (!(stream instanceof BufferedInputStream)) {
+			if (!(stream instanceof BufferedInputStream))
 				stream = new BufferedInputStream(stream);
-			}
 
 			// load the file
 			TextureImage t;
@@ -170,9 +170,8 @@ public class TextureLoader {
 			synchronized (loaders) {
 				for (int i = loaders.size() - 1; i >= 0; i--) {
 					t = loaders.get(i).readImage(stream);
-					if (t != null) {
+					if (t != null)
 						return t; // we've loaded it
-					}
 				}
 			}
 
@@ -184,23 +183,24 @@ public class TextureLoader {
 	}
 
 	/**
+	 * <p>
 	 * Utility function to convert a Textur2D into a TextureRectangle. This can
 	 * be useful because TextureIO always uses Texture2D's, but it may be
 	 * necessary or desired to use a TextureRectangle.
-	 * 
+	 * </p>
+	 * <p>
 	 * All this does is grab the first mipmap layer, dimensions and texture
 	 * parameters and set them on a new instance. No loading is performed.
+	 * </p>
 	 * 
 	 * @param texture The Texture2D that is used to create a similar
 	 *            TextureRectangle
 	 * @return A TextureRectangle holding onto texture's 0th mipmap level
-	 * 
 	 * @throws NullPointerException if texture is null
 	 */
 	public static TextureRectangle convertToRectangle(Texture2D texture) {
-		if (texture == null) {
+		if (texture == null)
 			throw new NullPointerException("Cannot convert a null texture");
-		}
 
 		TextureRectangle tr = new TextureRectangle(texture.getData(0), texture
 				.getWidth(0), texture.getHeight(0), texture.getFormat(),
@@ -223,20 +223,17 @@ public class TextureLoader {
 	 * 
 	 * @param image The BufferedImage to convert into a Texture1D
 	 * @return The converted Texture1D
-	 * 
 	 * @throws NullPointerException if image is null
 	 * @throws IllegalArgumentException if image doesn't have a height of 1
 	 */
 	public static Texture1D createTexture1D(BufferedImage image) {
-		if (image == null) {
+		if (image == null)
 			throw new NullPointerException(
 					"Cannot convert a null BufferedImage");
-		}
-		if (image.getHeight() != 1) {
+		if (image.getHeight() != 1)
 			throw new IllegalArgumentException(
 					"A BufferedImage can only be converted to a Texture1D with height == 1, not: "
 							+ image.getHeight());
-		}
 
 		RasterImage im = new RasterImage(image.getType(), image.getWidth(), 1);
 
@@ -270,15 +267,13 @@ public class TextureLoader {
 	 * 
 	 * @param image The BufferedImage to convert into a Texture2D
 	 * @return The converted buffered image as a Texture2D
-	 * 
 	 * @throws NullPointerException if image is null
 	 */
 	public static Texture2D createTexture2D(BufferedImage image)
 			throws NullPointerException {
-		if (image == null) {
+		if (image == null)
 			throw new NullPointerException(
 					"Cannot convert a null BufferedImage");
-		}
 
 		RasterImage im = new RasterImage(image.getType(), image.getWidth(),
 				image.getHeight());
@@ -308,33 +303,43 @@ public class TextureLoader {
 	}
 
 	/**
+	 * <p>
 	 * Like createTexture2D(), except it identifies 6 faces from the cube map as
 	 * if the cube were unfolded to lie flat on a rectangle (so the rectangular
 	 * image must have room for 4 cube faces along its width, and 3 faces on its
 	 * height).
-	 * 
+	 * </p>
+	 * <p>
+	 * The image is layed out like so:<br>
+	 * ¥----¥----¥----¥----¥<br>
+	 * | -- | NZ | -- | -- |<br>
+	 * ¥----¥----¥----¥----¥<br>
+	 * | NX | NY | PX | PY |<br>
+	 * ¥----¥----¥----¥----¥<br>
+	 * | -- | PZ | -- | -- |<br>
+	 * ¥----¥----¥----¥----¥<br>
+	 * </p>
+	 * <p>
 	 * Because of this, the specified image must have an aspect ration of 4/3
 	 * for the creation to work. Other than this, the creation process functions
 	 * like createTexture2D().
+	 * </p>
 	 * 
 	 * @param image The BufferedImage to interpret as a cube map
 	 * @return The converted image as a TextureCubeMap
-	 * 
 	 * @throws NullPointerException if image is null
 	 * @throws IllegalArgumentException if image.getWidth() / 4 !=
 	 *             image.getHeight() / 3
 	 */
 	public static TextureCubeMap createTextureCubeMap(BufferedImage image) {
-		if (image == null) {
+		if (image == null)
 			throw new NullPointerException(
 					"Cannot create a cube map from a null BufferedImage");
-		}
 
 		int side = image.getWidth() / 4;
-		if (side * 4 != image.getWidth() || side * 3 != image.getHeight()) {
+		if (side * 4 != image.getWidth() || side * 3 != image.getHeight())
 			throw new IllegalArgumentException(
 					"Base image doesn't have the 4x3 aspect ration necessary for a cube map");
-		}
 
 		RasterImage im = new RasterImage(image.getType(), side, side);
 		BufferedImage formatted = new BufferedImage(im.colorModel, im.data,

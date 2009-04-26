@@ -12,7 +12,7 @@ import com.ferox.resource.BufferData.DataType;
 public class UnpackedShortConverter extends UnpackedFormatConverter {
 	private static final int MASK = 0xffff;
 	private static final float MAX_VALUE = (float) Short.MAX_VALUE
-					- (float) Short.MIN_VALUE;
+			- (float) Short.MIN_VALUE;
 
 	public UnpackedShortConverter() {
 		super(DataType.UNSIGNED_SHORT);

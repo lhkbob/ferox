@@ -31,9 +31,9 @@ public class PackedShort4444Converter implements Decoder, Encoder {
 	@Override
 	public boolean canEncode(DataType type, TextureFormat format) {
 		return type == DataType.UNSIGNED_SHORT
-						&& (format == TextureFormat.ABGR_4444
-										|| format == TextureFormat.BGRA_4444
-										|| format == TextureFormat.ARGB_4444 || format == TextureFormat.RGBA_4444);
+				&& (format == TextureFormat.ABGR_4444
+						|| format == TextureFormat.BGRA_4444
+						|| format == TextureFormat.ARGB_4444 || format == TextureFormat.RGBA_4444);
 	}
 
 	@Override
@@ -43,33 +43,29 @@ public class PackedShort4444Converter implements Decoder, Encoder {
 		int z = (int) w * data.getDepth();
 
 		int index = x + y * data.getWidth() + z * data.getWidth()
-						* data.getHeight();
+				* data.getHeight();
 		short val = ((short[]) data.getData().getData())[index];
 
 		switch (data.getFormat()) {
 		case ABGR_4444:
 			store.set(((val & C4_MASK) >> 0) / MAX_VALUE,
-							((val & C3_MASK) >> 4) / MAX_VALUE,
-							((val & C2_MASK) >> 8) / MAX_VALUE,
-							((val & C1_MASK) >> 12) / MAX_VALUE);
+					((val & C3_MASK) >> 4) / MAX_VALUE, ((val & C2_MASK) >> 8)
+							/ MAX_VALUE, ((val & C1_MASK) >> 12) / MAX_VALUE);
 			break;
 		case ARGB_4444:
 			store.set(((val & C2_MASK) >> 8) / MAX_VALUE,
-							((val & C3_MASK) >> 4) / MAX_VALUE,
-							((val & C4_MASK) >> 0) / MAX_VALUE,
-							((val & C1_MASK) >> 12) / MAX_VALUE);
+					((val & C3_MASK) >> 4) / MAX_VALUE, ((val & C4_MASK) >> 0)
+							/ MAX_VALUE, ((val & C1_MASK) >> 12) / MAX_VALUE);
 			break;
 		case BGRA_4444:
 			store.set(((val & C3_MASK) >> 4) / MAX_VALUE,
-							((val & C2_MASK) >> 8) / MAX_VALUE,
-							((val & C1_MASK) >> 12) / MAX_VALUE,
-							((val & C4_MASK) >> 0) / MAX_VALUE);
+					((val & C2_MASK) >> 8) / MAX_VALUE, ((val & C1_MASK) >> 12)
+							/ MAX_VALUE, ((val & C4_MASK) >> 0) / MAX_VALUE);
 			break;
 		case RGBA_4444:
 			store.set(((val & C1_MASK) >> 12) / MAX_VALUE,
-							((val & C2_MASK) >> 8) / MAX_VALUE,
-							((val & C3_MASK) >> 4) / MAX_VALUE,
-							((val & C4_MASK) >> 0) / MAX_VALUE);
+					((val & C2_MASK) >> 8) / MAX_VALUE, ((val & C3_MASK) >> 4)
+							/ MAX_VALUE, ((val & C4_MASK) >> 0) / MAX_VALUE);
 			break;
 		}
 	}
@@ -77,7 +73,7 @@ public class PackedShort4444Converter implements Decoder, Encoder {
 	@Override
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
 		int index = x + y * data.getWidth() + z * data.getWidth()
-						* data.getHeight();
+				* data.getHeight();
 
 		int red = (int) (color.getRed() * MAX_VALUE);
 		int green = (int) (color.getGreen() * MAX_VALUE);
@@ -90,19 +86,19 @@ public class PackedShort4444Converter implements Decoder, Encoder {
 		switch (data.getFormat()) {
 		case ABGR_4444:
 			val = (short) (((red << 0) & C4_MASK) | ((green << 4) & C3_MASK)
-							| ((blue << 8) & C2_MASK) | ((alpha << 12) & C1_MASK));
+					| ((blue << 8) & C2_MASK) | ((alpha << 12) & C1_MASK));
 			break;
 		case ARGB_4444:
 			val = (short) (((red << 8) & C2_MASK) | ((green << 4) & C3_MASK)
-							| ((blue << 0) & C4_MASK) | ((alpha << 12) & C1_MASK));
+					| ((blue << 0) & C4_MASK) | ((alpha << 12) & C1_MASK));
 			break;
 		case BGRA_4444:
 			val = (short) (((red << 4) & C3_MASK) | ((green << 8) & C2_MASK)
-							| ((blue << 12) & C1_MASK) | ((alpha << 0) & C4_MASK));
+					| ((blue << 12) & C1_MASK) | ((alpha << 0) & C4_MASK));
 			break;
 		case RGBA_4444:
 			val = (short) (((red << 12) & C1_MASK) | ((green << 8) & C2_MASK)
-							| ((blue << 4) & C3_MASK) | ((alpha << 0) & C4_MASK));
+					| ((blue << 4) & C3_MASK) | ((alpha << 0) & C4_MASK));
 			break;
 		}
 
