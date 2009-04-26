@@ -2,132 +2,164 @@ package com.ferox.renderer;
 
 import java.io.PrintStream;
 
-/** Holds timings and counts for a single frame of rendering.
+/**
+ * Holds timings and counts for a single frame of rendering.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class FrameStatistics {
 	private int totalMeshCount;
 	private int totalVertexCount;
 	private int totalPolygonCount;
-	
+
 	private long waitTime;
 	private long prepareTime;
 	private long renderTime;
-	
+
 	public FrameStatistics() {
-		this.reset();
+		reset();
 	}
-	
-	/** Add the given counts of meshes, vertices, and polygons to this FrameStatistic's totals.
-	 * Expects values > 0 (inaccurate/misleading results if not positive). */
+
+	/**
+	 * Add the given counts of meshes, vertices, and polygons to this
+	 * FrameStatistic's totals. Expects values > 0 (inaccurate/misleading
+	 * results if not positive).
+	 * 
+	 * @param meshCount The number of meshes to increase counts by
+	 * @param vertCount The number of vertices to increase counts by
+	 * @param polyCount The number of polygons to increase counts by
+	 */
 	public void add(int meshCount, int vertCount, int polyCount) {
-		this.totalPolygonCount += polyCount;
-		this.totalMeshCount += meshCount;
-		this.totalVertexCount += vertCount;
+		totalPolygonCount += polyCount;
+		totalMeshCount += meshCount;
+		totalVertexCount += vertCount;
 	}
-	
-	/** The total duration (ns) of this frame. */
+
+	/**
+	 * The total duration (ns) of this frame.
+	 * 
+	 * @return Total frame time in ns
+	 */
 	public long getFrameTime() {
-		return this.prepareTime + this.renderTime;
+		return prepareTime + renderTime;
 	}
-	
-	/** Get the total time from the end of last frame to the end of this frame. */
+
+	/**
+	 * Get the total time from the end of last frame to the end of this frame.
+	 * 
+	 * @return Total time in ns
+	 */
 	public long getTotalTime() {
-		return this.getFrameTime() + this.waitTime;
+		return getFrameTime() + waitTime;
 	}
-	
-	/** The total time (ns) spent preparing the render passes. */
+
+	/**
+	 * The total time (ns) spent preparing the render passes.
+	 * 
+	 * @return Time spent preparing render passes in ns
+	 */
 	public long getPrepareTime() {
-		return this.prepareTime;
+		return prepareTime;
 	}
-	
-	/** The total time (ns) spent rendering the previously updated/visited scenes. */
+
+	/**
+	 * The total time (ns) spent rendering the previously updated/visited
+	 * scenes.
+	 * 
+	 * @return Time spent flusing render queues in ns
+	 */
 	public long getRenderTime() {
-		return this.renderTime;
+		return renderTime;
 	}
-	
-	/** The time (ns) spent outside of the Renderer, e.g. time spent between frames. */
+
+	/**
+	 * The time (ns) spent outside of the Renderer, e.g. time spent between
+	 * frames.
+	 * 
+	 * @return Time spent between end of the last frame and before this frame
+	 *         started
+	 */
 	public long getIdleTime() {
-		return this.waitTime;
+		return waitTime;
 	}
-	
-	/** The frames/sec of this frame, including time spent external to rendering. */
+
+	/**
+	 * The frames/sec of this frame, including time spent external to rendering.
+	 * 
+	 * @return The fps at this instance in time
+	 */
 	public float getFramesPerSecond() {
-		return 1e9f / this.getTotalTime();
+		return 1e9f / getTotalTime();
 	}
 
-	/** The polygon/sec of this frame, including time spent external to rendering. */
+	/**
+	 * The polygon/sec of this frame, including time spent external to
+	 * rendering.
+	 * 
+	 * @return The polys/s at this instance in time
+	 */
 	public float getPolygonsPerSecond() {
-		return this.getFramesPerSecond() * this.totalPolygonCount;
+		return getFramesPerSecond() * totalPolygonCount;
 	}
 
-	/** The total number of polygons rendered in this frame */
+	/**
+	 * The total number of polygons rendered in this frame.
+	 * 
+	 * @return Number of polygons rendered
+	 */
 	public int getPolygonCount() {
-		return this.totalPolygonCount;
+		return totalPolygonCount;
 	}
 
-	/** The number of objects rendered in this frame. */
+	/**
+	 * The number of objects rendered in this frame.
+	 * 
+	 * @return Number of meshes rendered
+	 */
 	public int getMeshCount() {
-		return this.totalMeshCount;
+		return totalMeshCount;
 	}
 
-	/** The number of vertices rendered in this frame. */
+	/**
+	 * The number of vertices rendered in this frame.
+	 * 
+	 * @return Number of vertices rendered
+	 */
 	public int getVertexCount() {
-		return this.totalVertexCount;
+		return totalVertexCount;
 	}
 
 	/**
 	 * Resets the values in FrameStatistics back to 0.
 	 */
 	public void reset() {
-		this.totalPolygonCount = 0;
-		this.totalVertexCount = 0;
-		this.totalMeshCount = 0;
-		
-		this.prepareTime = 0;
-		this.renderTime = 0;
-		this.waitTime = 0;
-	}
-	
-	/** Set the time (ns) spent prepareing the render passes this frame. */
-	public void setPrepareTime(long prepareTime) {
-		this.prepareTime = prepareTime;
-	}
-	
-	/** Set the time (ns) spent rendering the scenes this frame. */
-	public void setRenderTime(long renderTime) {
-		this.renderTime = renderTime;
-	}
-	
-	/** Set the time (ns) spent between this frame and the last. */
-	public void setIdleTime(long waitTime) {
-		this.waitTime = waitTime;
+		totalPolygonCount = 0;
+		totalVertexCount = 0;
+		totalMeshCount = 0;
+
+		prepareTime = 0;
+		renderTime = 0;
+		waitTime = 0;
 	}
 
-	/** Set the total number of polygons rendered. Expects value >= 0. */
-	public void setPolygonCount(int polyCount) {
-		this.totalPolygonCount = polyCount;
-	}
-	
-	/** Set the total number of spatial atoms rendered. Expects value >= 0. */
-	public void setMeshCount(int meshCount) {
-		this.totalMeshCount = meshCount;
-	}
-	
-	/** Set the total number of vertices rendered. Expects value >= 0. */
-	public void setVertexCount(int vertexCount) {
-		this.totalVertexCount = vertexCount;
-	}
-	
-	/** Print a formatted block of lines summarizing this FrameStatistics 
-	 * object to the given PrintStream. */
-	public void reportStatistics(PrintStream out) {
-		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n", this.getTotalTime() / 1e6f, this.getIdleTime() / 1e6f);
-		out.printf("                     in prepare: %.6f ms,\n", this.getPrepareTime() / 1e6f);
-		out.printf("                     in render: %.6f ms)\n", this.getRenderTime() / 1e6f);
-		out.printf("Frame/sec: %.4f fps, Poly/sec: %.4f\n", this.getFramesPerSecond(), this.getPolygonsPerSecond());
-		out.printf("Mesh count: %d, Polygon count: %d Vertex count: %d\n", this.getMeshCount(), this.getPolygonCount(), this.getVertexCount());
+	/**
+	 * Print a formatted block of lines summarizing this FrameStatistics object
+	 * to the given PrintStream.
+	 * 
+	 * @param out The PrintStream that will display the stats summary
+	 * @throws NullPointerException if out is null
+	 */
+	public void reportStatistics(PrintStream out) throws NullPointerException {
+		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n",
+						getTotalTime() / 1e6f, getIdleTime() / 1e6f);
+		out.printf("                     in prepare: %.6f ms,\n",
+						getPrepareTime() / 1e6f);
+		out.printf("                     in render: %.6f ms)\n",
+						getRenderTime() / 1e6f);
+		out.printf("Frame/sec: %.4f fps, Poly/sec: %.4f\n",
+						getFramesPerSecond(), getPolygonsPerSecond());
+		out.printf("Mesh count: %d, Polygon count: %d Vertex count: %d\n",
+						getMeshCount(), getPolygonCount(), getVertexCount());
 	}
 }
