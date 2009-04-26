@@ -3,15 +3,17 @@ package com.ferox.effect;
 import org.openmali.vecmath.Vector3f;
 
 /**
+ * <p>
  * A PointStyle controls the aspects of how all point primitives are rendered.
  * This includes polygons or lines rendered as points.
- * 
+ * </p>
+ * <p>
  * Although PointStyle provides properties for vertex shader size and point
  * sprite control, these properties will be ignored if the hardware cannot
  * support that feature.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class PointStyle extends AbstractEffect {
 	public static enum PointSpriteOrigin {
@@ -58,14 +60,17 @@ public class PointStyle extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Set whether or not to use a vertex shader specified point size (e.g. by
 	 * the gl_PointSize variable inside the glsl program).
-	 * 
+	 * </p>
+	 * <p>
 	 * If there is no vertex shader active, this has no effect. If there is a
 	 * vertex shader active, then: - true: Vertex shader must compute the
 	 * derived_size (see setPointSize()). This must be above 0, or undefined
 	 * results will occur. - false: This style's point size is used, but no
 	 * distance attenuation is performed on the point size.
+	 * </p>
 	 * 
 	 * @param enable True if shader assigns point size
 	 */
@@ -84,21 +89,25 @@ public class PointStyle extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Set the starting size of a rasterized point. This point will be affected
 	 * by distance attenuation and the minimum and maximum sizes.
-	 * 
 	 * Implementations also have a maximum supported size, and points will be
 	 * implicitly clamped to be below that. pointSize is clamped to be >= 1f.
-	 * 
+	 * </p>
+	 * <p>
 	 * The final point size is computed as follows: - Let d = distance from
 	 * vertex to eye. - Let a, b, and c = 3 components of the distance att.
 	 * vector. - Let size = requested point size.
-	 * 
+	 * </p>
+	 * <p>
 	 * derived_size = clamp(size * sqrt(1 / (a + b*d + c*d*d))). where clamp()
 	 * clamps size between the min and max point sizes.
-	 * 
+	 * </p>
+	 * <p>
 	 * Also, if smoothing is enabled, the point's alpha will be faded if the
 	 * multi-sampled size would go below the minimum size.
+	 * </p>
 	 * 
 	 * @param pointSize Unmodified point size, clamped to be above 1
 	 */
@@ -125,9 +134,8 @@ public class PointStyle extends AbstractEffect {
 	 * @param Distance attenuation <a, b, c> to use, null = <1, 0, 0>
 	 */
 	public void setDistanceAttenuation(Vector3f distanceAttenuation) {
-		if (distanceAttenuation == null) {
+		if (distanceAttenuation == null)
 			distanceAttenuation = new Vector3f(1f, 0f, 0f);
-		}
 
 		this.distanceAttenuation = distanceAttenuation;
 	}
@@ -165,13 +173,10 @@ public class PointStyle extends AbstractEffect {
 
 	/**
 	 * Set whether or not to render points as standard points or as bill-boarded
-	 * quads that face the viewer.
-	 * 
-	 * If true, then texture coordinates will be generated for each corner based
-	 * on the value returned by getPointSpriteOrigin().
-	 * 
-	 * Point-sprites may not be supported on all hardware. If point sprites are
-	 * enabled, then point smoothing is ignored.
+	 * quads that face the viewer. If true, then texture coordinates will be
+	 * generated for each corner based on the value returned by
+	 * getPointSpriteOrigin(). Point-sprites may not be supported on all
+	 * hardware. If point sprites are enabled, then point smoothing is ignored.
 	 * 
 	 * @param enablePointSprite Whether or not point sprites are used
 	 */
@@ -195,18 +200,15 @@ public class PointStyle extends AbstractEffect {
 	 * @param pointSpriteOrigin Origin for point sprites, null = UPPER_LEFT
 	 */
 	public void setPointSpriteOrigin(PointSpriteOrigin pointSpriteOrigin) {
-		if (pointSpriteOrigin == null) {
+		if (pointSpriteOrigin == null)
 			pointSpriteOrigin = PointSpriteOrigin.UPPER_LEFT;
-		}
 		this.pointSpriteOrigin = pointSpriteOrigin;
 	}
 
 	/**
 	 * Return whether or not points will be anti-aliased. If they are
 	 * anti-aliased, the actual size may be smaller than requested. The size
-	 * will also be affected by the point fade threshold.
-	 * 
-	 * Default is false.
+	 * will also be affected by the point fade threshold. Default is false.
 	 * 
 	 * @return True if points are smoothed
 	 */
@@ -250,19 +252,17 @@ public class PointStyle extends AbstractEffect {
 	 * @see setPointSize()
 	 * @param min Minimum point size, clamped to be above 1
 	 * @param max Maximum point size, clamped to be above 1
-	 * 
 	 * @throws IllegalArgumentException if min > max
 	 */
 	public void setMinMaxPointSize(float min, float max) {
-		if (min > max) {
+		if (min > max)
 			throw new IllegalArgumentException(
-							"Cannot specify a minimum point distance that's less than the max: "
-											+ min + " " + max);
-		}
+					"Cannot specify a minimum point distance that's less than the max: "
+							+ min + " " + max);
 		pointSizeMin = Math.max(1f, min);
 		pointSizeMax = Math.max(1f, max);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "(" + super.toString() + " size: " + pointSize + ")";

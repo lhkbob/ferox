@@ -11,14 +11,18 @@ import com.ferox.resource.glsl.GlslProgram;
 import com.ferox.resource.glsl.GlslUniform;
 
 /**
+ * <p>
  * GlslShader wraps a single GlslProgram and provides the functionality to bind
  * uniforms with values. The GlslProgram cannot be null and a shader's program
  * will not change during its lifetime.
+ * </p>
  * 
+ * <p>
  * It is highly recommended that declared uniforms in a program always have a
  * set value in the GlslShader. If a uniform is not set in the shader, the
  * program will use the last set value for the uniform, which is undetermined
  * when rendering.
+ * </p>
  * 
  * @author Michael Ludwig
  * 
@@ -45,11 +49,15 @@ public class GlslShader extends AbstractEffect {
 		}
 
 		/**
+		 * <p>
 		 * Set whether or not the value in this uniform is dirty. As above, it's
 		 * only used if the uniform's policy is MANUAL.
+		 * </p>
 		 * 
+		 * <p>
 		 * This should be set to false after a Renderer updates the value of the
 		 * uniform.
+		 * </p>
 		 * 
 		 * @param dirty Set return value for isDirty()
 		 */
@@ -81,12 +89,11 @@ public class GlslShader extends AbstractEffect {
 		@Override
 		public String toString() {
 			return "<"
-							+ variable
-							+ " = "
-							+ (value instanceof int[] ? Arrays
-											.toString((int[]) value) : Arrays
-											.toString((float[]) value))
-							+ ", dirty: " + isDirty + ">";
+					+ variable
+					+ " = "
+					+ (value instanceof int[] ? Arrays.toString((int[]) value)
+							: Arrays.toString((float[]) value)) + ", dirty: "
+					+ isDirty + ">";
 		}
 	}
 
@@ -106,9 +113,8 @@ public class GlslShader extends AbstractEffect {
 	 * @throws NullPointerException if program is null
 	 */
 	public GlslShader(GlslProgram program) {
-		if (program == null) {
+		if (program == null)
 			throw new NullPointerException("Program cannot be null");
-		}
 
 		indexMap = new IdentityHashMap<GlslUniform, Integer>();
 		uniforms = new ArrayList<UniformBinding>();
@@ -128,16 +134,20 @@ public class GlslShader extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Set the value to be used for the given uniform in this GlslShader. If the
 	 * uniform is null, a NullPointerException is thrown. If the uniform's owner
 	 * isn't this GlslShader's program, then an IllegalArgumentException is
 	 * thrown. Also, one is thrown if the value isn't value as determined by
 	 * uniform's isValid() method.
+	 * </p>
 	 * 
+	 * <p>
 	 * If value is null, then this removes any previous UniformBinding for the
 	 * given uniform. If it isn't, the value is stored in a UniformBinding for
 	 * the uniform (possibly re-using an existing instance). The binding is
 	 * marked as dirty so that MANUAL uniforms will be updated accordingly.
+	 * </p>
 	 * 
 	 * @param uniform Uniform to assign the value binding to
 	 * @param value Value assigned to uniform when this shader is used
@@ -147,14 +157,12 @@ public class GlslShader extends AbstractEffect {
 	 *             shader's program
 	 */
 	public void setUniform(GlslUniform uniform, Object value) {
-		if (uniform == null) {
+		if (uniform == null)
 			throw new NullPointerException("Uniform cannot be null");
-		}
-		if (uniform.getOwner() != program) {
+		if (uniform.getOwner() != program)
 			throw new IllegalArgumentException(
-							"Can only set uniforms that match this shader's GlslProgram, not: "
-											+ uniform.getOwner());
-		}
+					"Can only set uniforms that match this shader's GlslProgram, not: "
+							+ uniform.getOwner());
 
 		Integer index = indexMap.get(uniform);
 
@@ -165,18 +173,16 @@ public class GlslShader extends AbstractEffect {
 				updateIndexMap();
 			}
 		} else {
-			if (!uniform.isValid(value)) {
+			if (!uniform.isValid(value))
 				throw new IllegalArgumentException(
-								"Value is not valid for the given uniform: "
-												+ uniform.getName() + " "
-												+ value);
-			}
+						"Value is not valid for the given uniform: "
+								+ uniform.getName() + " " + value);
 			// set the value, and mark it as dirty
 			UniformBinding binding;
-			if (index != null) {
+			if (index != null)
 				// re-use existing binding object
 				binding = uniforms.get(index.intValue());
-			} else {
+			else {
 				// need a new binding
 				binding = new UniformBinding();
 				binding.variable = uniform;
@@ -198,9 +204,8 @@ public class GlslShader extends AbstractEffect {
 	 * @return UniformBinding for uniform, set with setUniform(). May be null.
 	 */
 	public UniformBinding getUniform(GlslUniform uniform) {
-		if (uniform == null || uniform.getOwner() != program) {
+		if (uniform == null || uniform.getOwner() != program)
 			return null;
-		}
 
 		Integer i = indexMap.get(uniform);
 		return (i == null ? null : uniforms.get(i.intValue()));
@@ -225,9 +230,8 @@ public class GlslShader extends AbstractEffect {
 	private void updateIndexMap() {
 		indexMap.clear();
 		int size = uniforms.size();
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < size; i++)
 			indexMap.put(uniforms.get(i).variable, Integer.valueOf(i));
-		}
 	}
 
 	@Override

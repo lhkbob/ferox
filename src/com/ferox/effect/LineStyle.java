@@ -3,9 +3,8 @@ package com.ferox.effect;
 /**
  * LineStyle controls how line segments are rendered. These lines could have
  * been produced by geometry that directly renders lines, or because a
- * PolygonStyle was set to render certain faces as lines.
- * 
- * It can control width, stippling, and anti-aliasing of lines.
+ * PolygonStyle was set to render certain faces as lines. It can control width,
+ * stippling, and anti-aliasing of lines.
  * 
  * @author Michael Ludwig
  * 
@@ -81,16 +80,20 @@ public class LineStyle extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Set the stipple pattern to use when rendering lines of this style. It
 	 * will have no effect until stippling is also enabled with
 	 * setStipplingEnabled(true).
-	 * 
+	 * </p>
+	 * <p>
 	 * When rendering a line, each pixel on the line has an associated value, s,
 	 * representing it's position (starting at 0). A pixel on the line is
 	 * visible if the (floor(s / factor) % 16)th bit of pattern is a 1.
-	 * 
+	 * </p>
+	 * <p>
 	 * Therefore all 1s and a factor of 1 is the same result as disabling
 	 * stippling.
+	 * </p>
 	 * 
 	 * @param stipplePattern Bit-wise stipple pattern for lines
 	 */
@@ -142,8 +145,8 @@ public class LineStyle extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(LineStyle width: " + lineWidth + " smoothed: "
-						+ enableSmoothing + " stippled: " + enableStippling
-						+ " pattern: " + Integer.toHexString(stipplePattern)
-						+ " factor: " + stippleFactor + ")";
+				+ enableSmoothing + " stippled: " + enableStippling
+				+ " pattern: " + Integer.toHexString(stipplePattern)
+				+ " factor: " + stippleFactor + ")";
 	}
 }

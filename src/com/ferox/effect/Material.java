@@ -3,19 +3,24 @@ package com.ferox.effect;
 import com.ferox.math.Color;
 
 /**
+ * <p>
  * A material represents the surface color properties of an appearance. The
  * default material has an ambient of <.2, .2, .2, 1> (dark gray), a diffuse of
  * <.8, .8, .8, 1> (light gray) and a white specular, with low shininess.
- * 
+ * </p>
+ * <p>
  * Whenever colors are used, they are stored by reference, so any changes to the
  * color object will be immediately reflected in the scene and in any material
  * object that uses that color object.
- * 
+ * </p>
+ * <p>
  * Materials support alpha values, but it is likely that for values < 1, you
  * will only get correct results if it is combined with a blend mode state.
- * 
+ * </p>
+ * <p>
  * A material affects both the front side and back side of something rendered
  * equally. Different surface materials may be added later on.
+ * </p>
  * 
  * @author Michael Ludwig
  * 
@@ -140,9 +145,8 @@ public class Material extends AbstractEffect {
 	 * @param diff Diffuse color, null = <.8, .8, .8, 1>
 	 */
 	public void setDiffuse(Color diff) {
-		if (diff == null) {
+		if (diff == null)
 			diff = new Color(DEFAULT_DIFFUSE);
-		}
 		this.diff = diff;
 	}
 
@@ -153,9 +157,8 @@ public class Material extends AbstractEffect {
 	 * @param amb Ambient color, null = <.2, .2, .2, 1>
 	 */
 	public void setAmbient(Color amb) {
-		if (amb == null) {
+		if (amb == null)
 			amb = new Color(DEFAULT_AMBIENT);
-		}
 		this.amb = amb;
 	}
 
@@ -174,16 +177,15 @@ public class Material extends AbstractEffect {
 	 * @param spec Specular color, null = <1, 1, 1, 1>
 	 */
 	public void setSpecular(Color spec) {
-		if (spec == null) {
+		if (spec == null)
 			spec = new Color(DEFAULT_SPEC);
-		}
 		this.spec = spec;
 	}
 
 	@Override
 	public String toString() {
 		return "(Material ambient: " + amb + " diffuse: " + diff
-						+ " specular: " + spec + " shininess: " + shininess
-						+ " smoothed: " + smooth + ")";
+				+ " specular: " + spec + " shininess: " + shininess
+				+ " smoothed: " + smooth + ")";
 	}
 }

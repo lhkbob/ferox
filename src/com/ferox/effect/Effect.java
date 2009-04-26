@@ -3,20 +3,26 @@ package com.ferox.effect;
 import com.ferox.renderer.RendererAware;
 
 /**
+ * <p>
  * Designates that a class that describes or effects how a RenderAtom is
  * rendered. This could be things such as material color, lighting, or
  * texturing. Those all effect the coloring of the rendered geometry. Other
  * options, such as depth test, stencil test, or alpha testing, affect what
  * pixels are actually rendered to with a geometry.
+ * </p>
  * 
+ * <p>
  * Renderers are not required to support all implementations of Effect, although
  * it is recommended that they support all default implementations in the
  * com.ferox.effect package.
+ * </p>
  * 
+ * <p>
  * Implementations should strive to not overlap responsibilities or roles in how
  * a geometry is modified. A Renderer may not be able to reliably support both
  * implementations. In other cases, it may be quite convenient, such as with
  * Textures and MultiTextures.
+ * </p>
  * 
  * @author Michael Ludwig
  * 

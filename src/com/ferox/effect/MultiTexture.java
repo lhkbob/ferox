@@ -6,22 +6,26 @@ import com.ferox.util.UnitList;
 import com.ferox.util.UnitList.Unit;
 
 /**
+ * <p>
  * MultiTexture allows for combining multiple textures onto an Appearance,
  * allowing for multi-texturing and more advanced texture effects (if used in
  * conjunction with ShaderPrograms).
- * 
+ * </p>
+ * <p>
  * MultiTexture imposes no limit to the number of textures allowed, but most
  * renderers have some limit (depending on mode of operation and hardware). If
  * textures are in units beyond a renderer's limits, then those textures will be
  * ignored when rendering anything.
- * 
+ * </p>
+ * <p>
  * Realistic limits tend to be between 4 and 16 for modern hardware.
- * 
+ * </p>
+ * <p>
  * When referring to texture units, units start at unit 0 and increase by 1 for
  * each subsequent unit.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class MultiTexture extends AbstractEffect {
 	private final UnitList<Texture> units;
@@ -41,21 +45,17 @@ public class MultiTexture extends AbstractEffect {
 	public MultiTexture(Texture... textures) {
 		units = new UnitList<Texture>();
 
-		for (int i = 0; i < textures.length; i++) {
+		for (int i = 0; i < textures.length; i++)
 			setTexture(i, textures[i]);
-		}
 	}
 
 	/**
 	 * Set the texture on the given unit. If texture is null, makes it so that
-	 * there is no texture on the given unit.
-	 * 
-	 * There is a hardware maximum unit, and if a Texture is bound to a unit
-	 * above this, it will be ignored.
+	 * there is no texture on the given unit. There is a hardware maximum unit,
+	 * and if a Texture is bound to a unit above this, it will be ignored.
 	 * 
 	 * @param unit Texture unit texture is assigned to
 	 * @param texture Texture object to use, null breaks old binding
-	 * 
 	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
 	public void setTexture(int unit, Texture texture) {
@@ -68,7 +68,6 @@ public class MultiTexture extends AbstractEffect {
 	 * 
 	 * @param unit Texture unit to query bound texture
 	 * @return Texture bound to unit, null means no binding
-	 * 
 	 * @throws IndexOutOfBoundsException if unit < 0
 	 */
 	public Texture getTexture(int unit) {
@@ -77,14 +76,11 @@ public class MultiTexture extends AbstractEffect {
 
 	/**
 	 * Get an unmodifiable list of all the textures on this MultiTexture object.
-	 * 
 	 * For each TextureUnit in the list, the following will hold:
 	 * getTexture(tu.getUnit()) == tu.getTexture(). tu.getTexture() will not be
-	 * null.
-	 * 
-	 * Note: the texture units may not be in order of unit and it is possible to
-	 * have multiple texture's with disparate unit values (e.g. a unit for 0 and
-	 * 8, but no others).
+	 * null. Note: the texture units may not be in order of unit and it is
+	 * possible to have multiple texture's with disparate unit values (e.g. a
+	 * unit for 0 and 8, but no others).
 	 * 
 	 * @return Unmodifiable list of all bound textures and their units
 	 */
@@ -109,6 +105,6 @@ public class MultiTexture extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(" + super.toString() + " numTextures: " + getNumTextures()
-						+ ")";
+				+ ")";
 	}
 }

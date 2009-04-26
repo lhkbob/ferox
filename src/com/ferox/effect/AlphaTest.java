@@ -1,12 +1,16 @@
 package com.ferox.effect;
 
 /**
+ * <p>
  * If attached to an appearance, pixels will only be rendered (for that
  * appearance) if a pixel's alpha value satisfies the pixel test when compared
  * to the alpha reference value.
+ * </p>
  * 
+ * <p>
  * If not attached, renderers should not use alpha testing unless the default
  * appearance has it overridden.
+ * </p>
  * 
  * @author Michael Ludwig
  * 
@@ -39,9 +43,8 @@ public class AlphaTest extends AbstractEffect {
 	 * @param alphaTest The pixel test to use
 	 */
 	public void setTest(PixelTest alphaTest) {
-		if (alphaTest == null) {
+		if (alphaTest == null)
 			alphaTest = DEFAULT_PIXELTEST;
-		}
 		this.alphaTest = alphaTest;
 	}
 
@@ -67,6 +70,6 @@ public class AlphaTest extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(AlphaTest test: " + alphaTest + " reference: " + refValue
-						+ ")";
+				+ ")";
 	}
 }

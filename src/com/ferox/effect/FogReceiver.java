@@ -46,18 +46,21 @@ public class FogReceiver extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Set the fog coordinate source that is used for a rendered object with
 	 * this FogReceiver, when it is affected by fog.
+	 * </p>
 	 * 
+	 * <p>
 	 * If null is given, it defaults to FRAGMENT_DEPTH. FOG_COORDINATE should
 	 * only be used if the rendered object has fog coordinates to supply.
+	 * </p>
 	 * 
 	 * @param fogSource New fog coord source
 	 */
 	public void setFogCoordinateSource(FogCoordSource fogSource) {
-		if (fogSource == null) {
+		if (fogSource == null)
 			fogSource = FogCoordSource.FRAGMENT_DEPTH;
-		}
 		this.fogSource = fogSource;
 	}
 

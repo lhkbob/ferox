@@ -1,16 +1,18 @@
 package com.ferox.effect;
 
 /**
+ * <p>
  * PolygonStyle describes how a geometry's polygons are rendered. It gives the
  * ability to designate polygon winding and to set which faces to draw (and how
  * to draw them), and control polygon offset and anti-aliasing.
- * 
+ * </p>
+ * <p>
  * When controlling how a polygon is rendered, if a face is set to render with
  * lines or points, the rendering of those lines and points are controlled by
  * LineStyle and PointStyle states respectively.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class PolygonStyle extends AbstractEffect {
 	/**
@@ -63,12 +65,15 @@ public class PolygonStyle extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Enable or disable anti-aliasing on polygons faces that have a style of
 	 * SOLID. For complex polygon surfaces, this may produce unusual results
 	 * because of aliasing between edges of adjacent polygons.
-	 * 
+	 * </p>
+	 * <p>
 	 * To control anti-aliasing for polygons rendered as points or lines, you'll
 	 * need to use a LineStyle or PointStyle state.
+	 * </p>
 	 * 
 	 * @param smooth If polygon edges are anti-aliased
 	 */
@@ -98,11 +103,13 @@ public class PolygonStyle extends AbstractEffect {
 	}
 
 	/**
+	 * <p>
 	 * Return the depth offset that adjusts the depths of all pixels rendered
 	 * with this polygon style. This defaults to 0.
-	 * 
-	 * This can be used to properly overlay decals on other polygons without
-	 * z-fighting.
+	 * </p>
+	 * <p>
+	 * This can be used to overlay decals on other polygons without z-fighting.
+	 * </p>
 	 * 
 	 * @return The current depth offset
 	 */
@@ -127,9 +134,8 @@ public class PolygonStyle extends AbstractEffect {
 	 * @param front DrawStyle for front facing polygons, null = SOLID
 	 */
 	public void setFrontStyle(DrawStyle front) {
-		if (front == null) {
+		if (front == null)
 			front = DEFAULT_FRONT_STYLE;
-		}
 		frontMode = front;
 	}
 
@@ -150,9 +156,8 @@ public class PolygonStyle extends AbstractEffect {
 	 * @param back DrawStyle for back facing polygons, null = NONE
 	 */
 	public void setBackStyle(DrawStyle back) {
-		if (back == null) {
+		if (back == null)
 			back = DEFAULT_BACK_STYLE;
-		}
 		backMode = back;
 	}
 
@@ -173,16 +178,15 @@ public class PolygonStyle extends AbstractEffect {
 	 *            COUNTER_CLOCKWISE
 	 */
 	public void setWinding(Winding winding) {
-		if (winding == null) {
+		if (winding == null)
 			winding = DEFAULT_WINDING;
-		}
 		this.winding = winding;
 	}
 
 	@Override
 	public String toString() {
 		return "(PolygonStyle front: " + frontMode + " back: " + backMode
-						+ " winding: " + winding + " offset: " + offset
-						+ " smoothed: " + enableSmoothing + ")";
+				+ " winding: " + winding + " offset: " + offset + " smoothed: "
+				+ enableSmoothing + ")";
 	}
 }

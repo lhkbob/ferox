@@ -3,14 +3,18 @@ package com.ferox.effect;
 import com.ferox.math.Color;
 
 /**
+ * <p>
  * In order for lighting to be applied to a scene element, it must have a light
  * receiver state added to its appearance.
+ * </p>
  * 
+ * <p>
  * If not, it will be rendered as solid colors even if it intersects a light
  * node in the scene. Light receiver allows for the control of the specular
  * highlight computation (separate and/or from a local viewpoint) for more
  * accuracy at the expense of speed. Also controls the global ambient light
  * applied to a scene element.
+ * </p>
  * 
  * @author Michael Ludwig
  * 
@@ -54,7 +58,7 @@ public class LightReceiver extends AbstractEffect {
 	 *            sides of a polygon
 	 */
 	public LightReceiver(Color globalAmbient, boolean separateSpecular,
-					boolean useLocalViewer, boolean twoSided) {
+			boolean useLocalViewer, boolean twoSided) {
 		setSeparateSpecular(separateSpecular);
 		setLocalViewer(useLocalViewer);
 		setTwoSidedLighting(twoSided);
@@ -142,16 +146,15 @@ public class LightReceiver extends AbstractEffect {
 	 * @param globalAmb Color to use, null defaults to black
 	 */
 	public void setGlobalAmbient(Color globalAmb) {
-		if (globalAmb == null) {
+		if (globalAmb == null)
 			globalAmb = new Color(DEFAULT_AMBIENT);
-		}
 		this.globalAmb = globalAmb;
 	}
 
 	@Override
 	public String toString() {
 		return "(LightReceiver ambient: " + globalAmb + " separateSpec: "
-						+ separateSpec + " local: " + localViewer
-						+ " twoSided: " + useTwoSidedLighting + ")";
+				+ separateSpec + " local: " + localViewer + " twoSided: "
+				+ useTwoSidedLighting + ")";
 	}
 }

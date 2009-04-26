@@ -1,22 +1,25 @@
 package com.ferox.effect;
 
 /**
+ * <p>
  * A stencil test allows the discarding of pixels based on testing against the
  * "stencil" buffer. This can be used for a number of fancy effects, such as
  * rendering only to an oddly shaped region, do shadow volumes and things like
  * that.
- * 
- * NOTE: not all render surfaces will allocate a stencil buffer unless
+ * </p>
+ * <p>
+ * <b>NOTE:</b> not all render surfaces will allocate a stencil buffer unless
  * requested. Without a stencil buffer, stencil tests will do nothing, so if
  * using these, make sure to enable stencil buffers when getting surfaces.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class StencilTest extends AbstractEffect {
 	/** Operation to perform on the stencil buffer under certain conditions. */
 	public static enum StencilOp {
-		KEEP, ZERO, REPLACE, INCREMENT, DECREMENT, INVERT, INCREMENT_WRAP, DECREMENT_WRAP
+		KEEP, ZERO, REPLACE, INCREMENT, DECREMENT, INVERT, INCREMENT_WRAP,
+		DECREMENT_WRAP
 	}
 
 	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.ALWAYS;
@@ -62,9 +65,8 @@ public class StencilTest extends AbstractEffect {
 	 * @param stencilFunc PixelTest used for stencil testing, null = ALWAYS
 	 */
 	public void setTest(PixelTest stencilFunc) {
-		if (stencilFunc == null) {
+		if (stencilFunc == null)
 			stencilFunc = DEFAULT_PIXELTEST;
-		}
 		this.stencilFunc = stencilFunc;
 	}
 
@@ -85,9 +87,8 @@ public class StencilTest extends AbstractEffect {
 	 * @param stencilFail StencilOp to use for failed stencil tests, null = KEEP
 	 */
 	public void setStencilFailOp(StencilOp stencilFail) {
-		if (stencilFail == null) {
+		if (stencilFail == null)
 			this.stencilFail = DEFAULT_STENCIL_OP;
-		}
 		this.stencilFail = stencilFail;
 	}
 
@@ -106,9 +107,8 @@ public class StencilTest extends AbstractEffect {
 	 * @param depthFail StencilOp used for failed depth tests, null = KEEP
 	 */
 	public void setDepthFailOp(StencilOp depthFail) {
-		if (depthFail == null) {
+		if (depthFail == null)
 			depthFail = DEFAULT_STENCIL_OP;
-		}
 		this.depthFail = depthFail;
 	}
 
@@ -127,9 +127,8 @@ public class StencilTest extends AbstractEffect {
 	 * @param depthPass StencilOp for when depth testing passes, null = KEEP
 	 */
 	public void setDepthPassOp(StencilOp depthPass) {
-		if (depthPass == null) {
+		if (depthPass == null)
 			depthPass = DEFAULT_STENCIL_OP;
-		}
 		this.depthPass = depthPass;
 	}
 
@@ -199,9 +198,8 @@ public class StencilTest extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(StencilTest test: " + stencilFunc + " stencilFail: "
-						+ stencilFail + " depthFail: " + depthFail
-						+ " depthPass: " + depthPass + " reference: "
-						+ reference + " testMask: " + funcMask + " writeMask: "
-						+ writeMask + ")";
+				+ stencilFail + " depthFail: " + depthFail + " depthPass: "
+				+ depthPass + " reference: " + reference + " testMask: "
+				+ funcMask + " writeMask: " + writeMask + ")";
 	}
 }
