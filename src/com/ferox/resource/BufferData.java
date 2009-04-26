@@ -1,33 +1,38 @@
 package com.ferox.resource;
 
 /**
+ * <p>
  * BufferData represents an abstract block of data. Internally it relies on
  * primitive arrays of floats, ints, shorts, or bytes to store the actual data.
  * A null array is allowed, but it must have a special interpretation by the
  * Renderer that needs to use BufferData's.
- * 
+ * </p>
+ * <p>
  * BufferData itself is not a Resource, but instead many resources will rely on
  * BufferData to perform type and size checking for it. To make things simpler,
  * a BufferData's type and capacity cannot be changed after it is constructed.
  * Only the contents of the buffer data may be modified or reassigned.
- * 
+ * </p>
+ * <p>
  * If a BufferData is constructed with a null array, and an associated resource
  * is updated before a non-null array is assigned, then the Renderer should
  * allocate space without changing any of the values (which could be old
  * garbage).
- * 
+ * </p>
+ * <p>
  * If a BufferData is later set to have a null array, and an associated resource
  * is updated, Renderers should not modify already allocated space. Essentially,
  * a null data array implies Renderers must make sure the space is there, but
  * otherwise not change the contents.
- * 
+ * </p>
+ * <p>
  * Because of this, care should be given when using null arrays and BufferDatas.
  * One reasonably safe scenario is to update a resource using a BufferData, and
  * then on a success, nullify the BufferData's array to clear up client memory.
  * It is necessary to reload the array before any more updates.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class BufferData {
 	public static final int BYTESIZE_BYTE = 1;
@@ -36,14 +41,17 @@ public class BufferData {
 	public static final int BYTESIZE_FLOAT = 4;
 
 	/**
+	 * <p>
 	 * DataType represents one of the data types common to game-related graphics
 	 * applications. It does not allow for double, long or char types because
 	 * they are not likely to be used in games to represent large blocks of
 	 * data.
-	 * 
+	 * </p>
+	 * <p>
 	 * DataType allows for the distinction between signed and unsigned types. If
 	 * a type is unsigned, the primitives are not treated as two's complement
 	 * integers.
+	 * </p>
 	 */
 	public static enum DataType {
 		/** Use float[] for the data. */
@@ -101,13 +109,16 @@ public class BufferData {
 		}
 
 		/**
+		 * <p>
 		 * Determine the DataType based on the given object and whether or not
 		 * is unsigned. Returns null if array is null or if the object is not a
 		 * valid primitive array.
-		 * 
+		 * </p>
+		 * <p>
 		 * unsigned is ignored for float[] arrays. For int[], short[], and
 		 * byte[] arrays, unsigned distinguishes between returning X or
 		 * UNSIGNED_X.
+		 * </p>
 		 * 
 		 * @param array Object to detect its DataType
 		 * @param unsigned Whether or not to treat array as unsigned, if
@@ -115,29 +126,24 @@ public class BufferData {
 		 * @return The matching data type, or null if array doesn't match
 		 */
 		public static DataType getDataType(Object array, boolean unsigned) {
-			if (array == null) {
+			if (array == null)
 				return null;
-			}
 
-			if (array instanceof float[]) {
+			if (array instanceof float[])
 				return DataType.FLOAT;
-			} else if (unsigned) {
-				if (array instanceof int[]) {
+			else if (unsigned) {
+				if (array instanceof int[])
 					return DataType.UNSIGNED_INT;
-				} else if (array instanceof short[]) {
+				else if (array instanceof short[])
 					return DataType.UNSIGNED_SHORT;
-				} else if (array instanceof byte[]) {
+				else if (array instanceof byte[])
 					return DataType.UNSIGNED_BYTE;
-				}
-			} else {
-				if (array instanceof int[]) {
-					return DataType.INT;
-				} else if (array instanceof short[]) {
-					return DataType.SHORT;
-				} else if (array instanceof byte[]) {
-					return DataType.BYTE;
-				}
-			}
+			} else if (array instanceof int[])
+				return DataType.INT;
+			else if (array instanceof short[])
+				return DataType.SHORT;
+			else if (array instanceof byte[])
+				return DataType.BYTE;
 
 			return null;
 		}
@@ -148,31 +154,31 @@ public class BufferData {
 	private Object data;
 
 	/**
+	 * <p>
 	 * Create a BufferData object wrapping the given primitive array. data must
 	 * not be null and be a valid primitive array (byte[], short[], int[], or
 	 * float[]).
-	 * 
+	 * </p>
+	 * <p>
 	 * This constructor identifies the capacity as the length of the array, and
 	 * determines the DataType as per getDataType(data, unsigned).
+	 * </p>
 	 * 
 	 * @param data The primitive array used by this BufferData
 	 * @param unsigned Whether or not this data is to be unsigned
-	 * 
 	 * @throws NullPointerException if data is null
 	 * @throws IllegalArgumentException if data doesn't match a DataType
 	 */
 	public BufferData(Object data, boolean unsigned) {
-		if (data == null) {
+		if (data == null)
 			throw new NullPointerException(
 					"Constructor expects a non-null primitive array");
-		}
 
 		type = DataType.getDataType(data, unsigned);
-		if (type == null) {
+		if (type == null)
 			throw new IllegalArgumentException(
 					"Data must be a valid data type, according to DataType: "
 							+ data);
-		}
 
 		this.data = data;
 		capacity = capacity(data);
@@ -184,18 +190,15 @@ public class BufferData {
 	 * 
 	 * @param capacity Number of primitives that this BufferData will hold
 	 * @param type The DataType to use for this BufferData
-	 * 
 	 * @throws NullPointerException if type is null
 	 * @throws IllegalArgumentException if capacity < 0
 	 */
 	public BufferData(int capacity, DataType type) {
-		if (type == null) {
+		if (type == null)
 			throw new NullPointerException("Must specify a non-null DataType");
-		}
-		if (capacity < 0) {
+		if (capacity < 0)
 			throw new IllegalArgumentException(
 					"Must specifiy a capacity >= 0, not: " + capacity);
-		}
 
 		this.capacity = capacity;
 		this.type = type;
@@ -245,39 +248,35 @@ public class BufferData {
 	 * type and capacity remain unchanged.
 	 * 
 	 * @param obj The new data array to use for this BufferData, may be null
-	 * 
 	 * @throws IllegalArgumentException if obj doesn't have a matching type or
 	 *             size (only matters when obj != null)
 	 */
 	public void setData(Object obj) throws IllegalArgumentException {
 		if (obj != null) {
 			DataType t = DataType.getDataType(obj, type.isUnsigned());
-			if (t != type) {
+			if (t != type)
 				throw new IllegalArgumentException(
 						"Data object does not match BufferData's type.  Expected: "
 								+ type + " but was: " + t);
-			}
 			int size = capacity(obj);
-			if (size != capacity) {
+			if (size != capacity)
 				throw new IllegalArgumentException(
 						"Data object must have a length matching this BufferData's capacity. Expected: "
 								+ capacity + " but was: " + size);
-			}
 		}
 		// obj is valid, so we can assign it now
 		data = obj;
 	}
 
 	private static int capacity(Object array) {
-		if (array instanceof float[]) {
+		if (array instanceof float[])
 			return ((float[]) array).length;
-		} else if (array instanceof int[]) {
+		else if (array instanceof int[])
 			return ((int[]) array).length;
-		} else if (array instanceof short[]) {
+		else if (array instanceof short[])
 			return ((short[]) array).length;
-		} else if (array instanceof byte[]) {
+		else if (array instanceof byte[])
 			return ((byte[]) array).length;
-		}
 
 		return 0;
 	}

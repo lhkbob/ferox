@@ -3,43 +3,46 @@ package com.ferox.resource;
 import com.ferox.renderer.RendererAware;
 
 /**
+ * <p>
  * Interface that represents some type of data stored on the graphics card. A
  * resource is fairly abstract so there many things can be represented (assuming
  * there is some hardware capabilities supporting it). The only paradigm is that
  * changes are made to the resource, a resource manager tells the renderer to
  * update it, and then the resource is used during the rest of the rendering.
- * 
+ * </p>
+ * <p>
  * If a resource is updated, used, then changed and used again before it is
  * updated, then those changes will not be visible.
- * 
- * Resources should not be States. The pattern to use is to have a state wrap a
+ * </p>
+ * <p>
+ * Resources should not be Effects. The pattern to use is to have a state wrap a
  * resource, allowing for some dynamic property changes: texture wraps texture
  * image, providing environment variables.
- * 
+ * </p>
+ * <p>
  * Changes to variables/attributes of implementations will not be visible by the
  * Renderer until they have been updated (either by using the renderer's default
  * resource manager, or an application specific one). Related to this, a
  * resource cannot be used, and will not be implicitly updated, if it's
  * referenced by a state.
- * 
- * Ex: if an Appearance has a [Multi]Texture state, all of the associated
- * texture images must have been updated. If not, those texture units will
- * behave as if there is no texture bound.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public interface Resource extends RendererAware {
 	/**
+	 * <p>
 	 * Return an object that describes what regions of the resource are dirty.
 	 * Implementations should document what type of object is returned. The
 	 * returned dirty descriptor must be an immutable object (according to its
 	 * public interface).
-	 * 
+	 * </p>
+	 * <p>
 	 * If null is returned, then Renderers should assume that the entire
 	 * Resource is dirty, for lack of a better alternative. The descriptor is
 	 * the minimal set of values needed to be updated. Renderers should not
 	 * update less than what is described by the object.
+	 * </p>
 	 * 
 	 * @return Implementations specific object describing what parts of the
 	 *         Resource are dirty

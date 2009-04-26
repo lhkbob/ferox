@@ -3,22 +3,25 @@ package com.ferox.resource;
 import com.ferox.math.Boundable;
 
 /**
+ * <p>
  * A Geometry represents an abstract representation of something on the screen.
  * A Geometry is the union of a boundable and a resource. By being a boundable,
  * it allows bounding volumes to be created around it. By extending a resource,
  * creating and modifying the geometry must follow the same process as any other
  * resource, allowing optimizations to be performed.
- * 
+ * </p>
+ * <p>
  * There are two implementations of Geometry available that a Renderer must
  * support: PolygonGeometry and IndexArrayGeometry. Instead of implementing more
  * types of Geometry, programmers should sub-class one of those two and
  * automatically configure them.
- * 
+ * </p>
+ * <p>
  * Renderers should ignore RenderAtoms that use Geometries with a status equal
  * to ERROR.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public interface Geometry extends Boundable, Resource {
 	/**

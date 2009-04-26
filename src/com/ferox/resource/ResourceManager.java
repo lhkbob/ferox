@@ -3,17 +3,19 @@ package com.ferox.resource;
 import com.ferox.renderer.Renderer;
 
 /**
+ * <p>
  * A ResourceManager can be used to have application specific control over how
  * resources and geometries are updated and cleaned. It provides much greater
  * flexibility than just using the Renderer's requestUpdate() and
  * requestCleanUp() methods.
- * 
+ * </p>
+ * <p>
  * Multiple resource managers can be used in conjunction, perhaps one specific
  * to a type. It is theoretically possible to implement a streaming system with
  * the control that the resource manager gives you.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public interface ResourceManager {
 	/**

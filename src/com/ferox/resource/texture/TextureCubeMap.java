@@ -2,177 +2,267 @@ package com.ferox.resource.texture;
 
 import com.ferox.resource.BufferData;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.state.StateException;
-import com.ferox.state.State.PixelTest;
 
-/** Represents a square two-dimensional image.  The texture data
- * is accessed by normalized texture coordinates.  The dimensions
- * are not required to be power-of-two textures, but a Renderer
- * will likely re-scale the image if they aren't supported.
- * 
- * Even if they are supported, power-of-two textures likely have
- * better performance.
- * 
- * Besides the arguments present in TextureImage's constructors,
- * TextureCubeMap adds the additional parameters BufferData[] data and 
- * int side.  side represents the pixel dimension of one side of the
- * square image.  data is the array of all mipmaps for the image.  If
- * the data is null, all elements are null, or if it has a length of one,
- * then the texture is not mipmapped.
- * 
- * The constructors will additionally throw exceptions if side or the 
- * data array are not valid.  Here are the rules:
- * 1. side must be positive.
- * 2. If data isn't null, then all elements must be null, or all
- * 	  must not be null.
- * 3. A data array with non-null elements and a length > 1 is considered
- * 	  mipmapped.  All mipmaps must be present in this layer, based on
- *    the expected number from side.
- * 4. Every mipmap layer (including the 0th layer) must be sized correctly
- * 	  based on the layer's dimension, format and type.
- * 5. All non-null BufferData's must have the same data type as passed 
- *    into the constructor.
- * 
+/**
+ * <p>
+ * Represents a square two-dimensional image. The texture data is accessed by
+ * normalized texture coordinates. The dimensions are not required to be
+ * power-of-two textures, but a Renderer will likely re-scale the image if they
+ * aren't supported.
+ * <p>
+ * <p>
+ * Even if they are supported, power-of-two textures likely have better
+ * performance.
+ * <p>
+ * <p>
+ * Besides the arguments present in TextureImage's constructors, TextureCubeMap
+ * adds the additional parameters BufferData[] data and int side. side
+ * represents the pixel dimension of one side of the square image. data is the
+ * array of all mipmaps for the image. If the data is null, all elements are
+ * null, or if it has a length of one, then the texture is not mipmapped.
+ * <p>
+ * <p>
+ * The constructors will additionally throw exceptions if side or the data array
+ * are not valid. Here are the rules:
+ * <ol>
+ * <li>Side must be positive.</li>
+ * <li>If data isn't null, then all elements must be null, or all must not be
+ * null.</li>
+ * <li>A data array with non-null elements and a length > 1 is considered
+ * mipmapped. All mipmaps must be present in this layer, based on the expected
+ * number from side.</li>
+ * <li>Every mipmap layer (including the 0th layer) must be sized correctly
+ * based on the layer's dimension, format and type.</li>
+ * <li>All non-null BufferData's must have the same data type as passed into the
+ * constructor.</li>
+ * </ol>
+ * <p>
+ * <p>
  * TextureCubeMap provides methods to mark regions of the texture's mipmap
- * levels as dirty.  These commands will always be clamped to the
- * valid regions of the texture.  They will also update the dirty descriptor
- * regardless of the null status of any buffer data's, or the data's
- * arrays.  It is the Renderer's job to make sure that null data's or arrays
- * are treated correctly regardless of what the dirty descriptor declares.
+ * levels as dirty. These commands will always be clamped to the valid regions
+ * of the texture. They will also update the dirty descriptor regardless of the
+ * null status of any buffer data's, or the data's arrays. It is the Renderer's
+ * job to make sure that null data's or arrays are treated correctly regardless
+ * of what the dirty descriptor declares.
+ * <p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class TextureCubeMap extends TextureImage {
+	/** Constant specifying the positive x cube map face. */
 	public static final int PX = 0;
+	/** Constant specifying the positive y cube map face. */
 	public static final int PY = 1;
+	/** Constant specifying the positive z cube map face. */
 	public static final int PZ = 2;
+	/** Constant specifying the negative x cube map face. */
 	public static final int NX = 3;
+	/** Constant specifying the negative y cube map face. */
 	public static final int NY = 4;
+	/** Constant specifying the negative z cube map face. */
 	public static final int NZ = 5;
-	
-	/** The dirty descriptor class that is used by TextureCubeMap.  Calls to
-	 * getDirtyDescriptor() for texture cubemaps's will return objects of this class. */
-	public static class TextureCubeMapDirtyDescriptor extends TextureDirtyDescriptor {
+
+	/**
+	 * The dirty descriptor class that is used by TextureCubeMap. Calls to
+	 * getDirtyDescriptor() for texture cubemaps's will return objects of this
+	 * class.
+	 */
+	public static class TextureCubeMapDirtyDescriptor extends
+			TextureDirtyDescriptor {
 		private MipmapDirtyRegion[] drPX, drPY, drPZ, drNX, drNY, drNZ;
-		
+
 		private MipmapDirtyRegion[] getRegion(int face) {
-			switch(face) {
-			case PX: return this.drPX;
-			case PY: return this.drPY;
-			case PZ: return this.drPZ;
-			case NX: return this.drNX;
-			case NY: return this.drNY;
-			case NZ: return this.drNZ;
-			default: return null;
+			switch (face) {
+			case PX:
+				return drPX;
+			case PY:
+				return drPY;
+			case PZ:
+				return drPZ;
+			case NX:
+				return drNX;
+			case NY:
+				return drNY;
+			case NZ:
+				return drNZ;
+			default:
+				return null;
 			}
 		}
-		
+
 		private void setRegion(int face, MipmapDirtyRegion[] region) {
-			switch(face) {
-			case PX: this.drPX = region; break;
-			case PY: this.drPY = region; break;
-			case PZ: this.drPZ = region; break;
-			case NX: this.drNX = region; break;
-			case NY: this.drNY = region; break;
-			case NZ: this.drNZ = region; break;
+			switch (face) {
+			case PX:
+				drPX = region;
+				break;
+			case PY:
+				drPY = region;
+				break;
+			case PZ:
+				drPZ = region;
+				break;
+			case NX:
+				drNX = region;
+				break;
+			case NY:
+				drNY = region;
+				break;
+			case NZ:
+				drNZ = region;
+				break;
 			}
 		}
-		
-		/** True if there is a non-null MipmapDirtyRegion
-		 * for the associated mipmap level. If face or level
-		 * are invalid, then false is returned. */
-		public boolean isDataDirty(int face, int level) { 
-			MipmapDirtyRegion[] dirtyRegions = this.getRegion(face);
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
+
+		/**
+		 * @param face Cube face to check, one of PX, PY, PZ, NX, NY, NZ
+		 * @param level Mipmap level to check
+		 * @return True if there is a non-null MipmapDirtyRegion for the
+		 *         associated mipmap level. If face or level are invalid, then
+		 *         false is returned.
+		 */
+		public boolean isDataDirty(int face, int level) {
+			MipmapDirtyRegion[] dirtyRegions = getRegion(face);
+			if (dirtyRegions == null || level < 0
+					|| level >= dirtyRegions.length)
 				return false;
 			return dirtyRegions[level] != null;
 		}
-		
-		/** Get the MipmapDirtyRegion for the given mipmap level.
-		 * If face or level are invalid, or if the face and level aren't dirty,
-		 * then null is returned.
+
+		/**
+		 * Get the MipmapDirtyRegion for the given mipmap level. If face or
+		 * level are invalid, or if the face and level aren't dirty, then null
+		 * is returned. The returned region will be constrained to be in the
+		 * dimensions of the mipmap level.
 		 * 
-		 * The returned region will be constrained to be in the dimensions
-		 * of the mipmap level. */
+		 * @param face Cube face to check, one of PX, PY, PZ, NX, NY, NZ
+		 * @param level Mipmap level to check
+		 * @return The dirty region for the cube face at level
+		 */
 		public MipmapDirtyRegion getDirtyRegion(int face, int level) {
-			MipmapDirtyRegion[] dirtyRegions = this.getRegion(face);
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
+			MipmapDirtyRegion[] dirtyRegions = getRegion(face);
+			if (dirtyRegions == null || level < 0
+					|| level >= dirtyRegions.length)
 				return null;
 			return dirtyRegions[level];
 		}
-		
-		/** Return true if at least one mipmap region is not null. 
-		 * If face isn't one of PX, PY, PZ, NX, NY, or NZ returns false. */
+
+		/**
+		 * @param face One of PX, PY, PZ, NX, NY, NZ
+		 * @return True if at least one mipmap region is not null. If face isn't
+		 *         one of PX, PY, PZ, NX, NY, or NZ returns false.
+		 */
 		public boolean areMipmapsDirty(int face) {
-			return this.getRegion(face) != null;
+			return getRegion(face) != null;
 		}
-		
-		/** Return true if any mipmap region of any face of the cubemap is dirty. */
+
+		/**
+		 * Return true if any mipmap region of any face of the cubemap is dirty.
+		 */
 		public boolean areMipmapsDirty() {
-			return this.drPX != null || this.drPY != null || this.drPZ != null || this.drNX != null || this.drNY != null || this.drNZ != null;
+			return drPX != null || drPY != null || drPZ != null || drNX != null
+					|| drNY != null || drNZ != null;
 		}
-		
+
 		@Override
 		protected void clearDescriptor() {
 			super.clearDescriptor();
-			this.drPX = null; this.drPY = null; this.drPZ = null;
-			this.drNX = null; this.drNY = null; this.drNZ = null;
+			drPX = null;
+			drPY = null;
+			drPZ = null;
+			drNX = null;
+			drNY = null;
+			drNZ = null;
 		}
 	}
-	
+
 	private BufferData[] px, py, pz, nx, ny, nz;
 	private int side;
 	private int numMipmaps;
-	
-	/** Creates a texture image with the given format and type, default other values.
-	 * Fails like super(format, type), or if the dimensions and data array are invalid. */
-	public TextureCubeMap(BufferData[] px, BufferData[] py, BufferData[] pz, BufferData[] nx, BufferData[] ny, BufferData[] nz, int side, TextureFormat format, DataType type) throws NullPointerException, IllegalArgumentException {
+
+	/**
+	 * Creates a texture image with the given format and type, default other
+	 * values.
+	 * 
+	 * @param px Mipmaps for the px face
+	 * @param py Mipmaps for the py face
+	 * @param pz Mipmaps for the pz face
+	 * @param nx Mipmaps for the nx face
+	 * @param ny Mipmaps for the ny face
+	 * @param nz Mipmaps for the nz face
+	 * @param side Side length of a cube face
+	 * @param format
+	 * @param type
+	 * @throws NullPointerException if format or type are null
+	 * @throws IllegalArgumentException if the cube faces, side length, format
+	 *             and type would create an invalid cube map
+	 */
+	public TextureCubeMap(BufferData[] px, BufferData[] py, BufferData[] pz,
+			BufferData[] nx, BufferData[] ny, BufferData[] nz, int side,
+			TextureFormat format, DataType type) {
 		super(format, type);
-		this.setData(px, py, pz, nx, ny, nz, side);
+		setData(px, py, pz, nx, ny, nz, side);
 	}
-	
-	/** Creates a texture image with the given type, format and filter, default other values.
-	 * Fails like super(format, type, filter), or if the dimensions and data array are invalid.*/
-	public TextureCubeMap(BufferData[] px, BufferData[] py, BufferData[] pz, BufferData[] nx, BufferData[] ny, BufferData[] nz, int side, TextureFormat format,  DataType type, Filter filter) throws StateException {
-		super(format, type, filter);
-		this.setData(px, py, pz, nx, ny, nz, side);
+
+	/**
+	 * Create a texture image with the given format, type, filter, wrap mode for
+	 * all coordinates, depth mode and test, and depth comparison is disabled.
+	 * 
+	 * @param px Mipmaps for the px face
+	 * @param py Mipmaps for the py face
+	 * @param pz Mipmaps for the pz face
+	 * @param nx Mipmaps for the nx face
+	 * @param ny Mipmaps for the ny face
+	 * @param nz Mipmaps for the nz face
+	 * @param side Side length of a cube face
+	 * @param format
+	 * @param type
+	 * @param filter
+	 * @param wrapAll
+	 * @throws NullPointerException if format or type are null
+	 * @throws IllegalArgumentException if the cube faces, side length, format
+	 *             and type would create an invalid cube map
+	 */
+	public TextureCubeMap(BufferData[] px, BufferData[] py, BufferData[] pz,
+			BufferData[] nx, BufferData[] ny, BufferData[] nz, int side,
+			TextureFormat format, DataType type, Filter filter,
+			TextureWrap wrapAll) {
+		super(format, type, filter, wrapAll, null, null);
+		setData(px, py, pz, nx, ny, nz, side);
 	}
-	
-	/** Create a texture image with the given format, type, filter, wrap mode for all coordinates,
-	 * depth mode and test, and depth comparison is disabled. 
-	 * Fails like super(format, type, filter, wrap, mode, test), or if the dimensions and data array are invalid. */
-	public TextureCubeMap(BufferData[] px, BufferData[] py, BufferData[] pz, BufferData[] nx, BufferData[] ny, BufferData[] nz, int side, TextureFormat format, DataType type, Filter filter, TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest) throws StateException {
-		super(format, type, filter, wrapAll, depthMode, depthTest);
-		this.setData(px, py, pz, nx, ny, nz, side);
-	}
-	
+
 	/* Internal method used to validate the BufferData[] and dimensions. */
-	private void setData(BufferData[] px, BufferData[] py, BufferData[] pz, BufferData[] nx, BufferData[] ny, BufferData[] nz, int side) throws IllegalArgumentException {
-		TextureFormat format = this.getFormat();
-		DataType type = this.getType();
-		
-		if (format == TextureFormat.DEPTH) 
-			throw new IllegalArgumentException("CubeMaps do not support the DEPTH format");
-		
+	private void setData(BufferData[] px, BufferData[] py, BufferData[] pz,
+			BufferData[] nx, BufferData[] ny, BufferData[] nz, int side)
+			throws IllegalArgumentException {
+		TextureFormat format = getFormat();
+		DataType type = getType();
+
+		if (format == TextureFormat.DEPTH)
+			throw new IllegalArgumentException(
+					"CubeMaps do not support the DEPTH format");
+
 		px = validateFace(px, side, format, type);
 		py = validateFace(py, side, format, type);
 		pz = validateFace(pz, side, format, type);
 		nx = validateFace(nx, side, format, type);
 		ny = validateFace(ny, side, format, type);
 		nz = validateFace(nz, side, format, type);
-		
+
 		int numMipmaps;
 		if (px == null) {
-			if (py != null || pz != null || nx != null || ny != null || nz != null)
-				throw new IllegalArgumentException("All faces of cube must be considered headless, all must be complete");
+			if (py != null || pz != null || nx != null || ny != null
+					|| nz != null)
+				throw new IllegalArgumentException(
+						"All faces of cube must be considered headless, all must be complete");
 			numMipmaps = 1;
 		} else {
-			if (py == null || pz == null || nx == null || ny == null || nz == null)
-				throw new IllegalArgumentException("All faces of cube must be considered headless, all must be complete");
+			if (py == null || pz == null || nx == null || ny == null
+					|| nz == null)
+				throw new IllegalArgumentException(
+						"All faces of cube must be considered headless, all must be complete");
 			numMipmaps = px.length;
 		}
-		
+
 		// everything is valid up to this point, so we can update our values
 		this.side = side;
 		this.numMipmaps = numMipmaps;
@@ -182,68 +272,93 @@ public class TextureCubeMap extends TextureImage {
 		this.nx = nx;
 		this.ny = ny;
 		this.nz = nz;
-		
+
 		this.markDirty();
 	}
-	
+
 	/* Do validation of a single face. */
-	private static BufferData[] validateFace(BufferData[] data, int side, TextureFormat format, DataType type) {
-		int numMipmaps = TextureImage.calculateMipmapCount(side, side, 1); // expected mipmap count, if data.length > 1
-		
+	private static BufferData[] validateFace(BufferData[] data, int side,
+			TextureFormat format, DataType type) {
+		// expected mipmap count if data.length > 1
+		int numMipmaps = TextureImage.calculateMipmapCount(side, side, 1);
+
 		BufferData[] realData = null;
 		if (data != null) {
-			if (data.length != 1 && data.length != numMipmaps) // check the mipmap count
-				throw new IllegalArgumentException("If more than one BufferData is given, must provide all mipmap levels");
+			if (data.length != 1 && data.length != numMipmaps)
+				throw new IllegalArgumentException(
+						"If more than one BufferData is given, must provide all mipmap levels");
 			numMipmaps = data.length;
-			
+
 			int nonNullCount = 0;
-			for (int i = 0; i < data.length; i++) {
+			for (int i = 0; i < data.length; i++)
 				if (data[i] != null)
 					nonNullCount++;
-			}
 			if (nonNullCount == 0) {
 				// do nothing, it should be a headless texture
 			} else if (nonNullCount == data.length) {
-				realData = new BufferData[data.length]; // make a new array to hold the buffers, so it can't be tampered with later.
-				System.arraycopy(data, 0, realData, 0, Math.min(data.length, realData.length));
-			} else {
-				throw new IllegalArgumentException("Cannot pass in an array with some values null.  Array length: " + data.length + ", but has only " + nonNullCount + " non-null buffers.");
-			}
+				// make a new array to hold the buffers, so it can't be tampered
+				// with later
+				realData = new BufferData[data.length];
+				System.arraycopy(data, 0, realData, 0, Math.min(data.length,
+						realData.length));
+			} else
+				throw new IllegalArgumentException(
+						"Cannot pass in an array with some values null.  Array length: "
+								+ data.length + ", but has only "
+								+ nonNullCount + " non-null buffers.");
 		}
-		
+
 		if (realData != null) {
 			int s = side;
 			for (int i = 0; i < realData.length; i++) {
 				if (realData[i].getType() != type)
-					throw new IllegalArgumentException("BufferData doesn't have a matching type for the texture, expected: " + type + ", but was: " + realData[i].getType());
+					throw new IllegalArgumentException(
+							"BufferData doesn't have a matching type for the texture, expected: "
+									+ type + ", but was: "
+									+ realData[i].getType());
 				if (realData[i].getCapacity() != format.getBufferSize(s, s, 1))
-					throw new IllegalArgumentException("Buffer at mipmap level: " + i + " is does not have the correct size, expected: " + format.getBufferSize(s, s, 1) + ", but was: " + realData[i].getCapacity());
+					throw new IllegalArgumentException(
+							"Buffer at mipmap level: "
+									+ i
+									+ " is does not have the correct size, expected: "
+									+ format.getBufferSize(s, s, 1)
+									+ ", but was: " + realData[i].getCapacity());
 				s = Math.max(1, s >> 1);
 			}
-			
+
 			numMipmaps = realData.length;
 		} else {
 			if (format.isCompressed())
-				throw new StateException("Headless TextureCubeMap cannot have a client compressed texture: " + format);
+				throw new IllegalArgumentException(
+						"Headless TextureCubeMap cannot have a client compressed texture: "
+								+ format);
 			numMipmaps = 1;
 		}
-		
+
 		return realData;
 	}
-	
-	/** Mark the given mipmap level region dirty.  If the level
-	 * is outside of [0, numMipmaps - 1], this command does nothing.
-	 * Does nothing if face isn't PX, PY, PZ, NX, NY, or NZ. 
+
+	/**
+	 * Mark the given mipmap level region dirty. If the level is outside of [0,
+	 * numMipmaps - 1], this command does nothing. Does nothing if face isn't
+	 * PX, PY, PZ, NX, NY, or NZ. The x, y offsets and width and height will be
+	 * clamped to be within the valid region of the given mipmap.
 	 * 
-	 * The x, y offsets and width and height will be clamped to be
-	 * within the valid region of the given mipmap. */
-	public void markDirty(int x, int y, int width, int height, int face, int level) {
-		if (level < 0 || level >= (this.numMipmaps - 1))
+	 * @param x X offset of region for face and level
+	 * @param y Y offset of region for face and level
+	 * @param width Width of the dirty region
+	 * @param height Height of the dirty region
+	 * @param face Cube face affected, one of PX, PY, PZ, NX, NY, NZ
+	 * @param level Mipmap level of the cube face
+	 */
+	public void markDirty(int x, int y, int width, int height, int face,
+			int level) {
+		if (level < 0 || level >= (numMipmaps - 1))
 			return; // invalid level option
 		if (face < 0 || face > 5)
 			return; // invalid face
-		
-		TextureCubeMapDirtyDescriptor dirty = (TextureCubeMapDirtyDescriptor) this.getDirtyDescriptor();
+
+		TextureCubeMapDirtyDescriptor dirty = (TextureCubeMapDirtyDescriptor) getDirtyDescriptor();
 		MipmapDirtyRegion[] dirtyRegions = dirty.getRegion(face);
 		if (dirtyRegions == null || dirtyRegions.length <= level) {
 			MipmapDirtyRegion[] temp = new MipmapDirtyRegion[level + 1];
@@ -252,100 +367,126 @@ public class TextureCubeMap extends TextureImage {
 			dirtyRegions = temp;
 			dirty.setRegion(face, dirtyRegions);
 		}
-		
-		int levelSide = this.getWidth(level);
+
+		int levelSide = getWidth(level);
 		MipmapDirtyRegion r = dirtyRegions[level];
 		if (r == null) {
-			r = new MipmapDirtyRegion(x, y, 0, width, height, 0, 
-									  levelSide, levelSide, 0);
+			r = new MipmapDirtyRegion(x, y, 0, width, height, 0, levelSide,
+					levelSide, 0);
 			dirtyRegions[level] = r;
 		} else
-			r.merge(x, y, 0, width, height, 0,
-					levelSide, levelSide, 0);
+			r.merge(x, y, 0, width, height, 0, levelSide, levelSide, 0);
 	}
-	
-	/** Mark the entire mipmap level dirty.  Does nothing if
-	 * level isn't within [0, numMipmaps - 1] or if
-	 * face isn't PX, PY, PZ, NX, NY, or NZ. */
+
+	/**
+	 * Mark the entire mipmap level dirty. Does nothing if level isn't within
+	 * [0, numMipmaps - 1] or if face isn't PX, PY, PZ, NX, NY, or NZ.
+	 * 
+	 * @param face The cube face that's marked dirty
+	 * @param level The mipmap level of face that becomes dirty
+	 */
 	public void markDirty(int face, int level) {
-		this.markDirty(0, 0, this.getWidth(level), this.getHeight(level), face, level);
+		this.markDirty(0, 0, getWidth(level), getHeight(level), face, level);
 	}
-	
-	/** Mark a whole texture face as dirty. Does nothing if
-	 * face isn't PX, PY, PZ, NX, NY, or NZ. */
+
+	/**
+	 * Mark a whole texture face as dirty. Does nothing if face isn't PX, PY,
+	 * PZ, NX, NY, or NZ.
+	 * 
+	 * @param face The cube face that has all mipmaps marked dirty
+	 */
 	public void markDirty(int face) {
 		if (face < 0 || face > 5)
 			return; // don't want to create the array now
-		
-		TextureCubeMapDirtyDescriptor dirty = (TextureCubeMapDirtyDescriptor) this.getDirtyDescriptor();
-		// create the whole array now for efficiency.  It's okay to ignore old array because
+
+		TextureCubeMapDirtyDescriptor dirty = (TextureCubeMapDirtyDescriptor) getDirtyDescriptor();
+		// create the whole array now for efficiency. It's okay to ignore old
+		// array because
 		// the new regions will take up the whole level.
-		dirty.setRegion(face, new MipmapDirtyRegion[this.numMipmaps]);
-		for (int i = 0; i < this.numMipmaps; i++)
+		dirty.setRegion(face, new MipmapDirtyRegion[numMipmaps]);
+		for (int i = 0; i < numMipmaps; i++)
 			this.markDirty(face, i);
 	}
-	
+
 	/** Mark the entire cubemap as dirty. */
 	public void markDirty() {
 		for (int i = 0; i < 6; i++)
 			this.markDirty(i);
 	}
-	
+
 	@Override
 	public int getDepth(int level) {
-		if (level < 0 || level >= this.numMipmaps)
+		if (level < 0 || level >= numMipmaps)
 			return -1;
 		return 1;
 	}
 
 	@Override
 	public int getHeight(int level) {
-		return this.getWidth(level);
+		return getWidth(level);
 	}
 
 	@Override
 	public int getNumMipmaps() {
-		return this.numMipmaps;
+		return numMipmaps;
 	}
 
 	@Override
 	public int getWidth(int level) {
-		if (level < 0 || level >= this.numMipmaps)
+		if (level < 0 || level >= numMipmaps)
 			return -1;
-		return Math.max(1, this.side >> level);
+		return Math.max(1, side >> level);
 	}
-	
+
 	@Override
 	public final TextureTarget getTarget() {
 		return TextureTarget.T_CUBEMAP;
 	}
 
-	/** Get the buffer for the given level.  Fails if the
-	 * level is < 0 or >= the number of mipmaps. Also fails
-	 * if face isn't one of PX, PY, PZ, NX, NY, or NZ (0 - 5).
+	/**
+	 * Get the buffer for the given level. Fails if the level is < 0 or >= the
+	 * number of mipmaps. Also fails if face isn't one of PX, PY, PZ, NX, NY, or
+	 * NZ (0 - 5). Returns null if the data isn't in client memory (most likely
+	 * in the graphics card).
 	 * 
-	 * Returns null if the data isn't in client memory (most likely
-	 * in the graphics card). */
-	public BufferData getData(int face, int level) throws IllegalArgumentException {
-		if (level < 0 || level >= this.numMipmaps)
-			throw new IllegalArgumentException("Buffer data doesn't exist beyond mipmap levels, illegal level: " + level);
-		if (this.px == null)
+	 * @param face Cube face whose buffer data is retreived
+	 * @param level Mipmap level of face
+	 * @return BufferData associated with face's mipmap level
+	 * @throws IllegalArgumentException if face or level are invalid
+	 */
+	public BufferData getData(int face, int level) {
+		if (level < 0 || level >= numMipmaps)
+			throw new IllegalArgumentException(
+					"Buffer data doesn't exist beyond mipmap levels, illegal level: "
+							+ level);
+		if (px == null)
 			return null; // all we can return at this point
-		
-		switch(face) {
-		case PX: return this.px[level];
-		case PY: return this.py[level];
-		case PZ: return this.pz[level];
-		case NX: return this.nx[level];
-		case NY: return this.ny[level];
-		case NZ: return this.nz[level];
+
+		switch (face) {
+		case PX:
+			return px[level];
+		case PY:
+			return py[level];
+		case PZ:
+			return pz[level];
+		case NX:
+			return nx[level];
+		case NY:
+			return ny[level];
+		case NZ:
+			return nz[level];
 		default:
 			throw new IllegalArgumentException("Invalid face option: " + face);
 		}
 	}
 
 	@Override
-	protected TextureDirtyDescriptor createTextureDirtyDescriptor() {
+	protected TextureCubeMapDirtyDescriptor createTextureDirtyDescriptor() {
 		return new TextureCubeMapDirtyDescriptor();
+	}
+
+	@Override
+	public TextureCubeMapDirtyDescriptor getDirtyDescriptor() {
+		return (TextureCubeMapDirtyDescriptor) super.getDirtyDescriptor();
 	}
 }
