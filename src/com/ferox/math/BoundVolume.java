@@ -6,52 +6,105 @@ import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;
 
 /**
- * A BoundVolume represents a partitioning of space into what's outside and 
- * what's inside the BoundVolume.  Its main purpose is used for efficient view
+ * A BoundVolume represents a partitioning of space into what's outside and
+ * what's inside the BoundVolume. Its main purpose is used for efficient view
  * culling and picking, as well as spatial queries.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public interface BoundVolume {
-	/** Clone this BoundVolume into result.  If result is of an unsupported type or null, create a new BoundVolume
-	 * of this volume's type to store the clone. */
+	/**
+	 * Clone this BoundVolume into result. If result is of an unsupported type
+	 * or null, create a new BoundVolume of this volume's type to store the
+	 * clone.
+	 * 
+	 * @param result Storage for clone of this BoundVolume
+	 * @return Clone stored in result, or new BoundVolume holding clone
+	 */
 	public BoundVolume clone(BoundVolume result);
-	
-	/** Grow this BoundVolume to completely enclose the given BoundVolume. Should throw an exception if it doesn't know how to
-	 * enclose the volume. Do nothing if toEnclose is null, or if it has no vertices, preserving previous bounds. */
-	public void enclose(BoundVolume toEnclose) throws UnsupportedOperationException;
-	
-	/** Enclose the given set of vertices.  For most cases, one should use Boundable.getBounds() because the boundable
-	 * may cache computations for faster results, but this method can be used by Boundables or to compute an enclosure
-	 * from scratch. Do nothing if vertices is null. */
-	public void enclose(Boundable vertices);
-	
-	/** Test for intersection between this and another BoundVolume.  Should throw an exception if it can't
-	 * compute an intersection. Return false if other is null. */
-	public boolean intersects(BoundVolume other) throws UnsupportedOperationException;
-	
-	/** Apply the given transform to this BoundVolume.  Do nothing if trans is null. */
+
+	/**
+	 * Grow this BoundVolume to completely enclose the given BoundVolume. Do
+	 * nothing if toEnclose is null, preserving previous bounds.
+	 * 
+	 * @param toEnclose BoundVolume to merge into this
+	 * @throws UnsupportedOperationException if toEnclose is an unsupported
+	 *             BoundVolume implementation
+	 */
+	public void enclose(BoundVolume toEnclose)
+					throws UnsupportedOperationException;
+
+	/**
+	 * Test for intersection between this and another BoundVolume. Return false
+	 * if other is null.
+	 * 
+	 * @return True if other intersects this BoundVolume
+	 * @throws UnsupportedOperationException if other is an unsupported
+	 *             BoundVolume implementation
+	 */
+	public boolean intersects(BoundVolume other)
+					throws UnsupportedOperationException;
+
+	/**
+	 * Apply the given transform to this BoundVolume. This effectively changes
+	 * the coordinate space of the BoundVolume. Do nothing if trans is null.
+	 * 
+	 * @param trans Transform to apply to this BoundVolume
+	 */
 	public void applyTransform(Transform trans);
-	
-	/** Test this BoundVolume against the view frustum.  Should fail if the view is null.
-	 * Implementations can assume that the view's world cache's are up-to-date. */
-	public FrustumIntersection testFrustum(View view) throws NullPointerException;
-	
-	/** Compute the farthest extent of this volume along the given direction vector and store it in result.  
-	 * If reverse is true, instead find the extent in the opposite direction of dir.
-	 * Fail if dir is null.  If result is null, create a new instance, should return result. */
-	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result) throws NullPointerException;
-		
-	/** Compute the enclosure of this and toEnclose and store it in result.  If result is of the wrong type or is null, create a new
-	 * instance of the correct type and return that. Store itself in result if toEnclose is null. */
+
+	/**
+	 * Test this BoundVolume against the view frustum. view must have had
+	 * updateView() called before this is invoked. Implementations can assume
+	 * that the view's plane state is valid and can modify the plane state.
+	 * 
+	 * @param view View to check frustum intersection
+	 * @return FrustumIntersection result
+	 * 
+	 * @throws NullPointerException if view is null
+	 */
+	public FrustumIntersection testFrustum(View view)
+					throws NullPointerException;
+
+	/**
+	 * Compute the farthest extent of this volume along the given direction
+	 * vector and store it in result. If reverse is true, instead find the
+	 * extent in the opposite direction of dir.
+	 * 
+	 * @param dir Direction to compute the extent along
+	 * @param reverse Whether or not dir should be effectively negated
+	 * @param result Storage of the extent
+	 * 
+	 * @return Computed extent, either result or a new Vector3f if result is
+	 *         null
+	 * 
+	 * @throws NullPointerException if dir is null
+	 */
+	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result)
+					throws NullPointerException;
+
+	/**
+	 * As enclose(toEnclose) but this BoundVolume is unmodified and the output
+	 * is stored in result (or a new instance).
+	 * 
+	 * @see clone()
+	 * @see enclose()
+	 * @param toEnclose BoundVolume to enclose with this BoundVolume
+	 * @param result BoundVolume to hold computed enclosure of this and
+	 *            toEnclose
+	 */
 	public BoundVolume enclose(BoundVolume toEnclose, BoundVolume result);
-	
-	/** Store the transformation of this bound volume into result.  If result is of the wrong type or is null, create a new
-	 * instance of the correct type and return that.  Store itself in result if trans is null. */
+
+	/**
+	 * As applyTransform(trans) but this BoundVolume is unmodified and the output
+	 * is stored in result (or a new instance).
+	 * 
+	 * @see clone()
+	 * @see applyTransform()
+	 * @param trans Transform applied to this BoundVolume
+	 * @param result BoundVolume to hold computed enclosure of this and
+	 *            toEnclose
+	 */
 	public BoundVolume applyTransform(Transform trans, BoundVolume result);
-	
-	/** Store the enclosure of this and vertices into result.  If result is the wrong type or is null, create a new
-	 * instance of the correct type and return that.  Store itself in result if vertices is null. */
-	public BoundVolume enclose(Boundable vertices, BoundVolume result);
 }

@@ -1,15 +1,15 @@
 package com.ferox.math;
 
-
-/** 
- * Provides implementations of applyTransform(trans, result), enclose(bv, result), 
- * enclose(va, result) so that subclasses have to implement three less methods.
+/**
+ * Provides implementations of applyTransform(trans, result), enclose(bv,
+ * result), enclose(va, result) so that subclasses have to implement three less
+ * methods.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public abstract class AbstractBoundVolume implements BoundVolume {
-	
+
 	@Override
 	public BoundVolume applyTransform(Transform trans, BoundVolume result) {
 		result = this.clone(result);
@@ -23,7 +23,7 @@ public abstract class AbstractBoundVolume implements BoundVolume {
 		result.enclose(toEnclose);
 		return result;
 	}
-	
+
 	@Override
 	public BoundVolume enclose(Boundable vertices, BoundVolume result) {
 		result = this.clone(result);
