@@ -7,37 +7,46 @@ import com.ferox.resource.Resource;
 import com.ferox.resource.BufferData.DataType;
 
 /**
+ * <p>
  * A TextureImage represents the actual data behind a texture (since textures
  * can be re-used and combined in various independent ways, this provides a nice
  * separation of responsibilities).
- * 
+ * </p>
+ * <p>
  * TextureImages use the BufferData class to store there data. Subclasses must
  * hold to this convention and make sure that supplied BufferData's have valid
  * types for the TextureFormat used.
- * 
+ * </p>
+ * <p>
  * To make textures simpler to use, the format and BufferData reference used by
  * the image are immutable. The data within the image's BufferData's may be
  * changed but nothing else. To maintain this rule, subclasses must guarantee
  * that the texture dimensions are also immutable.
- * 
+ * </p>
+ * <p>
  * Renderers using TextureImages that provide null references to BufferData
  * should treat that just as if a non-null BufferData were used with a null
  * array. The reason for allowing null buffer data's is to let texture surfaces
  * hide the data that is stored on the graphics card. It simplifies the update
  * process for textures attached to surfaces, since the only thing that will be
  * updated are the mutable texture parameters.
- * 
+ * </p>
+ * <p>
  * When accessing or manipulating textures, it should be assumed that (0, 0, 0)
  * is the bottom left back corner of the image. Horizontal pixels go left to
  * right, Vertical pixels are indexed bottom to top, and depth pixels are back
  * to front. If a TextureImage only has a subset of the 3 dimensions, then the
  * extra dimensions can be ignored.
- * 
- * Default values for null texture parameters: TextureWrap = MIRROR Filter =
- * MIPMAP_LINEAR DepthMode = LUMINANCE DepthCompare = GREATER
+ * </p>
+ * <p>
+ * Default values for null texture parameters: <br>
+ * TextureWrap = MIRROR <br>
+ * Filter = MIPMAP_LINEAR <br>
+ * DepthMode = LUMINANCE <br>
+ * DepthCompare = GREATER
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public abstract class TextureImage implements Resource {
 	/**
@@ -92,15 +101,19 @@ public abstract class TextureImage implements Resource {
 	}
 
 	/**
+	 * <p>
 	 * Class that represents a region on a mipmap that is dirty. It provides
 	 * access to three dimensions. For textures that don't have a given
 	 * dimension, the extra dims. can be ignored.
-	 * 
+	 * </p>
+	 * <p>
 	 * When requesting the offsets and lengths, it is guaranteed that the region
 	 * will be within the constraints of the mipmap in question.
-	 * 
+	 * </p>
+	 * <p>
 	 * (0, 0, 0) starts in the lower-left corner and extends up by the dirty
 	 * dimensions in question.
+	 * </p>
 	 */
 	public static class MipmapDirtyRegion {
 		private int x, y, z, width, height, depth;
@@ -235,7 +248,6 @@ public abstract class TextureImage implements Resource {
 	 * 
 	 * @param format The TextureFormat for this TextureImage
 	 * @param type The DataType for this image
-	 * 
 	 * @throws NullPointerException if format or type are null
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
@@ -252,7 +264,6 @@ public abstract class TextureImage implements Resource {
 	 * @param type The DataType for this image
 	 * @param filter The Filter that is used when magnifying and minifying the
 	 *            image during rendering
-	 * 
 	 * @throws NullPointerException if format or type are null
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
@@ -275,7 +286,6 @@ public abstract class TextureImage implements Resource {
 	 * @param wrapAll The TextureWrap to use for the s/t/r coordinates
 	 * @param depthMode The DepthMode to use if format is DEPTH
 	 * @param depthTest The test to use if depth comparison is enabled
-	 * 
 	 * @throws NullPointerException if format or type are null
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
@@ -450,11 +460,14 @@ public abstract class TextureImage implements Resource {
 	}
 
 	/**
+	 * <p>
 	 * Get the filter applied to the texture when magnifying and minifying
 	 * texels (when a texel is bigger/smaller than 1 pixel).
-	 * 
+	 * </p>
+	 * <p>
 	 * If filter was set to one of the MIPMAP_X variety and this texture has a
 	 * mipmap count of 0, then X is returned instead.
+	 * </p>
 	 * 
 	 * @return The filter to use, will only be MIPMAP_X if getNumMipmaps > 1
 	 */
@@ -562,12 +575,15 @@ public abstract class TextureImage implements Resource {
 	public abstract int getWidth(int level);
 
 	/**
+	 * <p>
 	 * Get the height of the texture for the given mipmap level. If level isn't
 	 * present as a mipmap, less than 0, or above the number of mipmaps-1,
 	 * return -1. Level 0 represents the largest mipmap.
-	 * 
+	 * </p>
+	 * <p>
 	 * For textures without a 2nd dimension, this should return 1 if level was a
 	 * valid level.
+	 * </p>
 	 * 
 	 * @param level The mipmap level whose height is requested
 	 * @return The mipmap height, or -1 if level was invalid
@@ -575,12 +591,15 @@ public abstract class TextureImage implements Resource {
 	public abstract int getHeight(int level);
 
 	/**
+	 * <p>
 	 * Get the depth of the texture for the given mipmap level. If level isn't
 	 * present as a mipmap, less than 0, or above the number of mipmaps-1,
 	 * return -1. Level 0 represents the largest mipmap.
-	 * 
+	 * </p>
+	 * <p>
 	 * For textures without a third dimension, this should return 1 if level was
 	 * a valid level.
+	 * </p>
 	 * 
 	 * @param level The mipmap level whose depth is requested
 	 * @return The mipmap depth, or -1 if level was invalid
@@ -621,16 +640,18 @@ public abstract class TextureImage implements Resource {
 	protected abstract TextureDirtyDescriptor createTextureDirtyDescriptor();
 
 	/**
+	 * <p>
 	 * A utility method that will calculate the number of mipmaps for the given
 	 * texture dimensions. This will still give the expected result for
 	 * non-power-of-two and rectangular textures.
-	 * 
+	 * </p>
+	 * <p>
 	 * Returns -1 if any of the dimensions are <= 0.
+	 * </p>
 	 * 
 	 * @param width Width of the 0th mipmap level
 	 * @param height Height of the 0th mipmap level
 	 * @param depth Depth of the 0th mipmap level
-	 * 
 	 * @return The number of mipmaps that are needed for a complete texture of
 	 *         the given dimensions, or -1 if the dimensions are invalid
 	 */

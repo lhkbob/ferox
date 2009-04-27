@@ -3,54 +3,71 @@ package com.ferox.resource.texture;
 import com.ferox.resource.BufferData.DataType;
 
 /**
+ * <p>
  * Describes all of the supported texture formats. Some of the formats are only
  * available on newer hardware, such as RGBA_FLOAT. In cases such as this the
  * Renderer is allowed to change the type of texture, in which case the image
  * should be flagged as DIRTY.
- * 
+ * </p>
+ * <p>
  * The name of the format describes the layout of the data, and possibly the
  * primitive type required.
- * 
- * Named formatting: XYZ: Formats such as this list their components in order of
- * increasing index in the data array. Each component uses one primitive value
- * (ex. RGBA uses a total of four primitives). All unsigned discrete-valued
- * types are supported, as well as FLOAT. XYZ_123: Formats have component
- * ordering just as above, but all components are packed into a single primitive
- * element. The type of primitive is returned by getSupportedType(). The
- * component packing is described by the list of numbers following XYZ_ (ex.
- * RGBA_8888 has all four values packed into a 32 bit unsigned integer. Bits
- * 31-24 are red, 23-16 are green, 15-8 are blue, 7-0 are alpha). XYZ_DXT?: The
- * format represents texture data in a specific DXT compression algorithm. At
- * the moment, only DXT1, DXT3 and DXT5 formats are supported for RGB and RGBA
- * textures. The data type must be UNSIGNED_BYTE and have dimensions a multiple
- * of 4. XYZ_FLOAT: Formats with this are treated identically to the equivalent
+ * </p>
+ * <p>
+ * <b>Named formatting:</b>
+ * <ul>
+ * <li>XYZ: Formats such as this list their components in order of increasing
+ * index in the data array. Each component uses one primitive value (ex. RGBA
+ * uses a total of four primitives). All unsigned discrete-valued types are
+ * supported, as well as FLOAT.</li>
+ * <li>XYZ_123: Formats have component ordering just as above, but all
+ * components are packed into a single primitive element. The type of primitive
+ * is returned by getSupportedType(). The component packing is described by the
+ * list of numbers following XYZ_ (ex. RGBA_8888 has all four values packed into
+ * a 32 bit unsigned integer. Bits 31-24 are red, 23-16 are green, 15-8 are
+ * blue, 7-0 are alpha).</li>
+ * <li>XYZ_DXT?: The format represents texture data in a specific DXT
+ * compression algorithm. At the moment, only DXT1, DXT3 and DXT5 formats are
+ * supported for RGB and RGBA textures. The data type must be UNSIGNED_BYTE and
+ * have dimensions a multiple of 4.</li>
+ * <li>XYZ_FLOAT: Formats with this are treated identically to the equivalent
  * XYZ with a required type of FLOAT, except that when stored on the graphics
  * cards, the floating point values are NOT clamped.
- * 
- * Type conversion: For now, all textures are internal represented as floating
- * point textures with color values in the range [0.0, 1.0]. Non-fp types are
- * scaled to the range [0.0, 1.0] by dividing the UNSIGNED component value by
- * (2^N - 1), where N is the number of bits used to represent that component.
- * For formats of XYZ, this is the bitcount of the primitive type. For XYZ_123,
- * the packed number of bits per component is used (ex. red and blue values in
- * RGB_565 are divided by 31 and green values are divided by 63). Formats using
- * data with type FLOAT will be clamped to [0.0, 1.0] with one exception:
- * 
+ * <ul>
+ * </p>
+ * <p>
+ * <b>Type conversion: </b><br>
+ * For now, all textures are internally represented as floating point textures
+ * with color values in the range [0.0, 1.0]. Non-fp types are scaled to the
+ * range [0.0, 1.0] by dividing the UNSIGNED component value by (2^N - 1), where
+ * N is the number of bits used to represent that component.
+ * </p>
+ * <p>
+ * For formats of XYZ, this is the bitcount of the primitive type. <br>
+ * For XYZ_123, the packed number of bits per component is used (ex. red and
+ * blue values in RGB_565 are divided by 31 and green values are divided by 63).
+ * </p>
+ * <p>
+ * Formats using data with type FLOAT will be clamped to [0.0, 1.0] with one
+ * exception: <br>
  * If the format is XYZ_FLOAT, the renderer must attempt to leverage unclamped
  * floating-point textures. This is only available on newer hardware. If it's
  * not available, the renderer may decide to use normal clamped float values.
- * 
- * An important note about formats: the unclamped formats are only available if
- * a RenderCapabilities returns true in its getUnclampedTextureSupport().
+ * </p>
+ * <p>
+ * <b>An important note about formats:</b> the unclamped formats are only
+ * available if a RenderCapabilities returns true in its
+ * getUnclampedTextureSupport(). <br>
  * Similarly, the DXT_n options are only available if
- * getS3TCTextureCompression() is true. The DEPTH format is only usable in
- * Textur1D, Texture2D and TextureRectangle. TextureSurfaces created for the
- * other target types will not have a depth image of the same target (since
- * that's not available, a 2d image will be used instead).
+ * getS3TCTextureCompression() is true. <br>
+ * The DEPTH format is only usable in Textur1D, Texture2D and TextureRectangle.
+ * TextureSurfaces created for the other target types will not have a depth
+ * image of the same target (since that's not available, a 2d image will be used
+ * instead).
+ * </p>
  * 
  * @author Michael Ludwig
- * 
- * */
+ */
 public enum TextureFormat {
 	RGBA(null, 4, true), RGBA_4444(DataType.UNSIGNED_SHORT, 1, true, true),
 	RGBA_8888(DataType.UNSIGNED_INT, 1, true, true), RGBA_5551(
@@ -172,24 +189,26 @@ public enum TextureFormat {
 	}
 
 	/**
+	 * <p>
 	 * Compute the size of a texture, in primitive elements, for this format and
 	 * the given dimensions. For one-dimensional or two-dimensional textures
 	 * that don't need a dimension, a value of 1 should be used.
-	 * 
+	 * </p>
+	 * <p>
 	 * For formats that are compressed, the depth value is ignored because they
 	 * are currently only supported for two-dimensional textures.
-	 * 
+	 * </p>
+	 * <p>
 	 * Returns -1 if any of the dimensions are <= 0, or if width and height
 	 * aren't multiples of 4 for compressed textures (the exceptions are if the
 	 * values are 1 or 2, which are also allowed).
+	 * </p>
 	 * 
 	 * @param width The width of the texture image
 	 * @param height The height of the texture image
 	 * @param depth The depth of the texture image
-	 * 
 	 * @return The number of primitives required to hold all texture data for a
 	 *         texture of the given dimensions with this format
-	 * 
 	 */
 	public int getBufferSize(int width, int height, int depth) {
 		if (width <= 0 || height <= 0 || depth <= 0)
