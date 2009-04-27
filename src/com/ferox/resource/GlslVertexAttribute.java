@@ -1,4 +1,4 @@
-package com.ferox.resource.glsl;
+package com.ferox.resource;
 
 /**
  * <p>

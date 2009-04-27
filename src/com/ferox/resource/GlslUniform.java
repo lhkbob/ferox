@@ -1,8 +1,7 @@
-package com.ferox.resource.glsl;
+package com.ferox.resource;
 
 import com.ferox.renderer.RenderDataCache;
 import com.ferox.renderer.Renderer;
-import com.ferox.resource.Resource;
 
 /**
  * <p>

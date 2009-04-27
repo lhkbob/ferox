@@ -1,7 +1,6 @@
-package com.ferox.resource.texture;
+package com.ferox.resource;
 
 import com.ferox.effect.Effect.PixelTest;
-import com.ferox.resource.BufferData;
 import com.ferox.resource.BufferData.DataType;
 
 /**

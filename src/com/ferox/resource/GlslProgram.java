@@ -1,4 +1,4 @@
-package com.ferox.resource.glsl;
+package com.ferox.resource;
 
 import java.util.BitSet;
 import java.util.Collections;
@@ -7,9 +7,8 @@ import java.util.Map;
 
 import com.ferox.renderer.RenderDataCache;
 import com.ferox.renderer.Renderer;
-import com.ferox.resource.Resource;
-import com.ferox.resource.glsl.GlslUniform.UniformType;
-import com.ferox.resource.glsl.GlslVertexAttribute.AttributeType;
+import com.ferox.resource.GlslUniform.UniformType;
+import com.ferox.resource.GlslVertexAttribute.AttributeType;
 
 /**
  * <p>
