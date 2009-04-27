@@ -14,16 +14,66 @@ import com.ferox.resource.texture.TextureImage;
  * accessing the texture.
  * </p>
  * <p>
- * If attached directly to an Appearance, only one texture will be active. To
- * allow for multiple textures, use a MultiTexture. There can only be one of
- * MultiTexture or Texture attached to a given appearance. When a texture is
- * used, it is equivalent to using a MultiTexture with the texture set to unit
- * 0.
+ * If using multiple textures in an EffectSet, it is recommended to use
+ * MultiTexture. When a Texture is used, it is equivalent to a MultiTexture with
+ * the Texture at unit 0.
  * </p>
  * <p>
  * Texture's also allow for advanced combinations when the EnvMode COMBINE is
- * used. The EnvModes and combine operations are modelled directly after the
+ * used. The EnvModes and combine operations are modeled directly after the
  * texture environment options in OpenGL.
+ * </p>
+ * <p>
+ * Texture's also allow for advanced combinations when the EnvMode COMBINE is
+ * used.<br>
+ * Summary of EnvMode operations:<br>
+ * Cv = final rgb color Av = final alpha<br>
+ * Cs = rgb of this texture As = alpha of this tex<br>
+ * Cp = rgb of prev. color Ap = alpha of prev. color<br>
+ * <br>
+ * <code>
+ * Format		| REPLACE 	| MODULATE	| DECAL					| BLEND					| Add
+ * Alpha		| Cv = Cp	| Cv = Cp	| --					| Cv = Cp				| Cv = Cp
+ * 				  Av = As	  Av = ApAs 						  Av = ApAs			 	  Av = ApAs
+ * Luminance	| Cv = Cs	| Cv = CpCs	| --					| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
+ * 				  Av = Ap 	  Av = Ap							  Av = Ap				  Av = Ap
+ * Lum. Alpha	| Cv = Cs	| Cv = CpCs	| --					| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
+ * 				  Av = As	  Av = ApAs							  Av = ApAs				  Av = ApAs
+ * RGB			| Cv = Cs	| Cv = CpCs	| Cv = Cs				| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
+ * 				  Av = Ap	  Av = Ap	  Av = Ap				  Av = Ap				  Av = Ap
+ * RGBA			| Cv = Cs	| Cv = CpCs	| Cv = Cp(1-As)+CsAs	| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
+ * 				  Av = As	  Av = ApAs	  Av = Ap				  Av = ApAs				  Av = ApAs
+ * <code>
+ * </p>
+ * <p>
+ * Operations on colors are done component wise. Cs for Luminance is (L, L, L),
+ * As for Lum. is L Cs for LA is (L, L, L), As for LA is A
+ * </p>
+ * <p>
+ * Summary of Combine operation:<br>
+ * In the table below, opX is a function applied to either a color(per
+ * component) or an alpha value as defined in CombineOperand. srcX is the input
+ * and is designated with CombineSource In the DOT3_x varieties, rN, gN, and bN
+ * represent the red, green, and blue values of opN(srcN).<br>
+ * <br>
+ * <code>
+ * CombineRgb 	|	Rgb Result
+ * REPLACE		|	op0(src0)
+ * MODULATE		|	op0(src0) * op1(src1)
+ * ADD			|	op0(src0) + op1(src1)
+ * ADD_SIGNED	|	op0(src0) + op1(src1) - .5
+ * INTERPOLATE	| 	op0(src0) * op2(src2) + op1(src1) * (1 - op2(src2))
+ * SUBTRACT		| 	op0(src0) - op1(src1)
+ * DOT3_RGB		| 	4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
+ * DOT3_RGBA	|	4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
+ * </code>
+ * </p>
+ * <p>
+ * CombineAlpha is computed in exactly the same way, except that there are no
+ * DOT3_x options. In CombineRgb, DOT3_RGBA ignores the result of CombineAlpha.
+ * The combine operations, SRC_COLOR and ONE_MINUS_SRC_COLOR are meaningless for
+ * CombineAlpha, so they are mapped to SRC_ALPHA and ONE_MINUS_SRC_ALPHA when
+ * specified.
  * </p>
  * <p>
  * Defaults:<br>
