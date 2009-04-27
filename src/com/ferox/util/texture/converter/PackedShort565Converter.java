@@ -1,8 +1,8 @@
 package com.ferox.util.texture.converter;
 
 import com.ferox.math.Color;
+import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.texture.TextureFormat;
 
 /**
  * Provides an Encoder and Decoder implementation for the TextureFormats BGR_565

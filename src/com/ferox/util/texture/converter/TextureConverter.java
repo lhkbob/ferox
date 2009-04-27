@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.ferox.math.Color;
 import com.ferox.resource.BufferData;
+import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.texture.TextureFormat;
 
 /**
  * <p>

@@ -1,7 +1,7 @@
 package com.ferox.util.texture.converter;
 
 import com.ferox.resource.BufferData;
-import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.TextureFormat;
 
 /**
  * A DataBlock is a TextureImage agnostic way of handling a single layer in

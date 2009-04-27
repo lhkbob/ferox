@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.ferox.resource.BufferData;
+import com.ferox.resource.Texture2D;
+import com.ferox.resource.Texture3D;
+import com.ferox.resource.TextureCubeMap;
+import com.ferox.resource.TextureFormat;
+import com.ferox.resource.TextureImage;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.texture.Texture2D;
-import com.ferox.resource.texture.Texture3D;
-import com.ferox.resource.texture.TextureCubeMap;
-import com.ferox.resource.texture.TextureFormat;
-import com.ferox.resource.texture.TextureImage;
-import com.ferox.resource.texture.TextureImage.TextureTarget;
+import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>

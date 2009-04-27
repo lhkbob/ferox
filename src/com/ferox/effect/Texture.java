@@ -3,7 +3,7 @@ package com.ferox.effect;
 import com.ferox.math.Color;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
-import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.TextureImage;
 
 /**
  * <p>

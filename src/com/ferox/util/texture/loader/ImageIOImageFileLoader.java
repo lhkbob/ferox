@@ -6,7 +6,7 @@ import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
-import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.TextureImage;
 
 /**
  * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files

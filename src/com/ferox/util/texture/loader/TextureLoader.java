@@ -22,13 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ferox.resource.BufferData;
+import com.ferox.resource.Texture1D;
+import com.ferox.resource.Texture2D;
+import com.ferox.resource.TextureCubeMap;
+import com.ferox.resource.TextureFormat;
+import com.ferox.resource.TextureImage;
+import com.ferox.resource.TextureRectangle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.texture.Texture1D;
-import com.ferox.resource.texture.Texture2D;
-import com.ferox.resource.texture.TextureCubeMap;
-import com.ferox.resource.texture.TextureFormat;
-import com.ferox.resource.texture.TextureImage;
-import com.ferox.resource.texture.TextureRectangle;
 
 /**
  * <p>

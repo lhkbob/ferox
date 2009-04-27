@@ -1,7 +1,7 @@
 package com.ferox.renderer;
 
-import com.ferox.resource.texture.TextureImage;
-import com.ferox.resource.texture.TextureImage.TextureTarget;
+import com.ferox.resource.TextureImage;
+import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>

@@ -3,7 +3,7 @@ package com.ferox.renderer;
 import com.ferox.resource.Resource;
 import com.ferox.resource.ResourceManager;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.texture.TextureImage.TextureTarget;
+import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>

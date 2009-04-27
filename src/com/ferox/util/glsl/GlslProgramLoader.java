@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ferox.resource.glsl.GlslProgram;
+import com.ferox.resource.GlslProgram;
 
 /**
  * This is a very simple utility that loads a GlslProgram from two input text

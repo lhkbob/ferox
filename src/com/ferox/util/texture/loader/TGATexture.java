@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.ferox.resource.BufferData;
-import com.ferox.resource.texture.Texture2D;
-import com.ferox.resource.texture.TextureFormat;
+import com.ferox.resource.Texture2D;
+import com.ferox.resource.TextureFormat;
 
 /**
  * <p>

@@ -3,7 +3,7 @@ package com.ferox.util.texture.loader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.ferox.resource.texture.TextureImage;
+import com.ferox.resource.TextureImage;
 
 /**
  * <p>
