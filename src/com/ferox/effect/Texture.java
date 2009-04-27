@@ -31,19 +31,21 @@ import com.ferox.resource.texture.TextureImage;
  * Cs = rgb of this texture As = alpha of this tex<br>
  * Cp = rgb of prev. color Ap = alpha of prev. color<br>
  * <br>
- * <code>
- * Format		| REPLACE 	| MODULATE	| DECAL					| BLEND					| Add
- * Alpha		| Cv = Cp	| Cv = Cp	| --					| Cv = Cp				| Cv = Cp
- * 				  Av = As	  Av = ApAs 						  Av = ApAs			 	  Av = ApAs
- * Luminance	| Cv = Cs	| Cv = CpCs	| --					| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
- * 				  Av = Ap 	  Av = Ap							  Av = Ap				  Av = Ap
- * Lum. Alpha	| Cv = Cs	| Cv = CpCs	| --					| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
- * 				  Av = As	  Av = ApAs							  Av = ApAs				  Av = ApAs
- * RGB			| Cv = Cs	| Cv = CpCs	| Cv = Cs				| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
- * 				  Av = Ap	  Av = Ap	  Av = Ap				  Av = Ap				  Av = Ap
- * RGBA			| Cv = Cs	| Cv = CpCs	| Cv = Cp(1-As)+CsAs	| Cv = Cp(1-Cs)+CcCs	| Cv = Cp+Cs
- * 				  Av = As	  Av = ApAs	  Av = Ap				  Av = ApAs				  Av = ApAs
- * <code>
+ * 
+ * <pre>
+ * Format       | REPLACE   | MODULATE  | DECAL                | BLEND                | Add
+ * Alpha        | Cv = Cp   | Cv = Cp   | --                   | Cv = Cp              | Cv = Cp
+ *                Av = As     Av = ApAs                          Av = ApAs              Av = ApAs
+ * Luminance    | Cv = Cs   | Cv = CpCs| --                    | Cv = Cp(1-Cs)+CcCs   | Cv = Cp+Cs
+ *                Av = Ap     Av = Ap                            Av = Ap                Av = Ap
+ * Lum. Alpha   | Cv = Cs   | Cv = CpCs| --                    | Cv = Cp(1-Cs)+CcCs   | Cv = Cp+Cs
+ *                Av = As     Av = ApAs                          Av = ApAs              Av = ApAs
+ * RGB          | Cv = Cs   | Cv = CpCs| Cv = Cs               | Cv = Cp(1-Cs)+CcCs   | Cv = Cp+Cs
+ *                Av = Ap     Av = Ap    Av = Ap                 Av = Ap                Av = Ap
+ * RGBA         | Cv = Cs   | Cv = CpCs| Cv = Cp(1-As)+CsAs    | Cv = Cp(1-Cs)+CcCs   | Cv = Cp+Cs
+ *                Av = As     Av = ApAs  Av = Ap                 Av = ApAs              Av = ApAs
+ * </pre>
+ * 
  * </p>
  * <p>
  * Operations on colors are done component wise. Cs for Luminance is (L, L, L),
@@ -56,17 +58,19 @@ import com.ferox.resource.texture.TextureImage;
  * and is designated with CombineSource In the DOT3_x varieties, rN, gN, and bN
  * represent the red, green, and blue values of opN(srcN).<br>
  * <br>
- * <code>
- * CombineRgb 	|	Rgb Result
- * REPLACE		|	op0(src0)
- * MODULATE		|	op0(src0) * op1(src1)
- * ADD			|	op0(src0) + op1(src1)
- * ADD_SIGNED	|	op0(src0) + op1(src1) - .5
- * INTERPOLATE	| 	op0(src0) * op2(src2) + op1(src1) * (1 - op2(src2))
- * SUBTRACT		| 	op0(src0) - op1(src1)
- * DOT3_RGB		| 	4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
- * DOT3_RGBA	|	4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
- * </code>
+ * 
+ * <pre>
+ * CombineRgb   |   Rgb Result
+ * REPLACE      |   op0(src0)
+ * MODULATE     |   op0(src0) * op1(src1)
+ * ADD          |   op0(src0) + op1(src1)
+ * ADD_SIGNED   |   op0(src0) + op1(src1) - .5
+ * INTERPOLATE  |   op0(src0) * op2(src2) + op1(src1) * (1 - op2(src2))
+ * SUBTRACT     |   op0(src0) - op1(src1)
+ * DOT3_RGB     |   4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
+ * DOT3_RGBA    |   4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
+ * </pre>
+ * 
  * </p>
  * <p>
  * CombineAlpha is computed in exactly the same way, except that there are no
