@@ -175,7 +175,7 @@ public enum TextureFormat {
 	 * Whether or not the given type is supported by this format. Returns false
 	 * if type is null.
 	 * 
-	 * @see getSupportedType()
+	 * @see #getSupportedType()
 	 * @param type The DataType to check for support by this format
 	 * @return True if this format can be used with type
 	 */

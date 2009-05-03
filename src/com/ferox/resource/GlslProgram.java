@@ -217,15 +217,9 @@ public class GlslProgram implements Resource {
 	 * automatically updated and cleaned-up with this program instance.
 	 * <p>
 	 * <p>
-	 * It is allowed for programmers to manually attach the uniforms, to use the
-	 * instances sooner, or they may let the Renderer attach all uniforms
+	 * It is allowed for programmers to manually attach the uniforms to use the
+	 * instances sooner, or they wait to let the Renderer attach all uniforms
 	 * detected by the glsl compiler.
-	 * </p>
-	 * <p>
-	 * This method will fail if name or type is null, if length < 0, or if there
-	 * is an already attached uniform of the same name as requested. That
-	 * uniform must be detached before a successful, new attach may be
-	 * performed.
 	 * </p>
 	 * <p>
 	 * When a glsl program is updated, if it links successfully, it should

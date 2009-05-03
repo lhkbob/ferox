@@ -483,7 +483,7 @@ public abstract class TextureImage implements Resource {
 	/**
 	 * Set the filter to be applied when magnifying and minifying texels.
 	 * 
-	 * @see getFilter()
+	 * @see #getFilter()
 	 * @param filter The new filter to use, null = LINEAR
 	 */
 	public void setFilter(Filter filter) {
