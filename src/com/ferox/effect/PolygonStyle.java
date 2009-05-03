@@ -1,5 +1,7 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
+
 /**
  * <p>
  * PolygonStyle describes how a geometry's polygons are rendered. It gives the
@@ -14,6 +16,7 @@ package com.ferox.effect;
  * 
  * @author Michael Ludwig
  */
+@EffectType({Type.POLYGON_FACING, Type.POLYGON_RENDER})
 public class PolygonStyle extends AbstractEffect {
 	/**
 	 * Represents the style of drawing to use. Depending on the primitive type

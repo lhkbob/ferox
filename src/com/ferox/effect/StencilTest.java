@@ -1,5 +1,7 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
+
 /**
  * <p>
  * A stencil test allows the discarding of pixels based on testing against the
@@ -15,6 +17,7 @@ package com.ferox.effect;
  * 
  * @author Michael Ludwig
  */
+@EffectType({Type.STENCIL_TEST, Type.STENCIL_WRITE})
 public class StencilTest extends AbstractEffect {
 	/** Operation to perform on the stencil buffer under certain conditions. */
 	public static enum StencilOp {

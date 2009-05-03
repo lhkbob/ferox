@@ -1,25 +1,24 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
 import com.ferox.math.Color;
 
 /**
  * <p>
- * In order for lighting to be applied to a scene element, it must have a light
- * receiver state added to its appearance.
+ * GlobalLighting controls the various parameters that affect all Lights used in
+ * an EffectSet. If a GlobalLight is not present, than any Lights will be
+ * ignored (in essence the GlobalLight Effect enables lighting).
  * </p>
- * 
  * <p>
- * If not, it will be rendered as solid colors even if it intersects a light
- * node in the scene. Light receiver allows for the control of the specular
- * highlight computation (separate and/or from a local viewpoint) for more
- * accuracy at the expense of speed. Also controls the global ambient light
- * applied to a scene element.
+ * Because the GlobalLighting Effect is fairly simple, and likely the same
+ * parameters will be used for a pass, GlobalLighting instances should be shared
+ * whenever possible.
  * </p>
  * 
  * @author Michael Ludwig
- * 
  */
-public class LightReceiver extends AbstractEffect {
+@EffectType( { Type.GLOBAL_LIGHTING })
+public class GlobalLighting extends AbstractEffect {
 	private static final Color DEFAULT_AMBIENT = new Color(0f, 0f, 0f, 1f);
 
 	private boolean separateSpec;
@@ -28,36 +27,36 @@ public class LightReceiver extends AbstractEffect {
 	private Color globalAmb;
 
 	/**
-	 * Creates a LightReceiver that doesn't use separate specular or local
+	 * Creates a GlobalLighting that doesn't use separate specular or local
 	 * viewing, and uses the default global ambient color, and no two-sided
 	 * lighting.
 	 */
-	public LightReceiver() {
+	public GlobalLighting() {
 		this(null);
 	}
 
 	/**
-	 * Creates a LightReceiver that uses the given color for ambient lighting,
+	 * Creates a GlobalLighting that uses the given color for ambient lighting,
 	 * with no local viewing, separate specular or two-sided lighting.
 	 * 
 	 * @param globalAmbient Global ambient color to use
 	 */
-	public LightReceiver(Color globalAmbient) {
+	public GlobalLighting(Color globalAmbient) {
 		this(null, false, false, false);
 	}
 
 	/**
-	 * Creates a LightReceiver with the given parameters. If globalAmbient is
+	 * Creates a GlobalLighting with the given parameters. If globalAmbient is
 	 * null, uses the default.
 	 * 
 	 * @param globalAmbient Ambient color to use
 	 * @param separateSpecular Whether or not specular is computed separately
 	 * @param useLocalViewer Whether or not specular is computed from local or
 	 *            infinite viewers
-	 * @param twoSides Whether or not lighting is computed separately for two
+	 * @param twoSided Whether or not lighting is computed separately for two
 	 *            sides of a polygon
 	 */
-	public LightReceiver(Color globalAmbient, boolean separateSpecular,
+	public GlobalLighting(Color globalAmbient, boolean separateSpecular,
 			boolean useLocalViewer, boolean twoSided) {
 		setSeparateSpecular(separateSpecular);
 		setLocalViewer(useLocalViewer);
@@ -71,7 +70,7 @@ public class LightReceiver extends AbstractEffect {
 	 * nicer. It should be set to false if the back face isn't ever showing
 	 * since it'll be wasted effort then.
 	 * 
-	 * @param Use if two-sided lighting is to be used
+	 * @param use If two-sided lighting is to be used
 	 */
 	public void setTwoSidedLighting(boolean use) {
 		useTwoSidedLighting = use;
@@ -153,7 +152,7 @@ public class LightReceiver extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(LightReceiver ambient: " + globalAmb + " separateSpec: "
+		return "(GlobalLighting ambient: " + globalAmb + " separateSpec: "
 				+ separateSpec + " local: " + localViewer + " twoSided: "
 				+ useTwoSidedLighting + ")";
 	}

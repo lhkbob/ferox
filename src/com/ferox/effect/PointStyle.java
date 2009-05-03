@@ -2,6 +2,8 @@ package com.ferox.effect;
 
 import org.openmali.vecmath.Vector3f;
 
+import com.ferox.effect.EffectType.Type;
+
 /**
  * <p>
  * A PointStyle controls the aspects of how all point primitives are rendered.
@@ -15,6 +17,7 @@ import org.openmali.vecmath.Vector3f;
  * 
  * @author Michael Ludwig
  */
+@EffectType({Type.POINT_RENDER, Type.POINT_SIZE})
 public class PointStyle extends AbstractEffect {
 	public static enum PointSpriteOrigin {
 		UPPER_LEFT, LOWER_LEFT
@@ -81,7 +84,7 @@ public class PointStyle extends AbstractEffect {
 	/**
 	 * Return the base, unmodified size of a rasterized point. Default is 1.
 	 * 
-	 * @see setPointSize()
+	 * @see #setPointSize(float)
 	 * @return Size of rendered points
 	 */
 	public float getPointSize() {
@@ -119,7 +122,7 @@ public class PointStyle extends AbstractEffect {
 	 * Get the distance attenuation that is applied to the requested point size.
 	 * Default is <1, 0, 0>.
 	 * 
-	 * @see setPointSize()
+	 * @see #setPointSize(float)
 	 * @return The 3 distance attenuation factors, not null
 	 */
 	public Vector3f getDistanceAttenuation() {
@@ -130,8 +133,8 @@ public class PointStyle extends AbstractEffect {
 	 * Set the distance attenuation that is applied to the base point size. See
 	 * setPointSize() for how the final point size is computed.
 	 * 
-	 * @see setPointSize()
-	 * @param Distance attenuation <a, b, c> to use, null = <1, 0, 0>
+	 * @see #setPointSize(float)
+	 * @param distanceAttenuation Distance attenuation <a, b, c> to use, null = <1, 0, 0>
 	 */
 	public void setDistanceAttenuation(Vector3f distanceAttenuation) {
 		if (distanceAttenuation == null)
@@ -249,7 +252,7 @@ public class PointStyle extends AbstractEffect {
 	/**
 	 * Set the minimum and maximum point sizes for a rendered point.
 	 * 
-	 * @see setPointSize()
+	 * @see #setPointSize(float)
 	 * @param min Minimum point size, clamped to be above 1
 	 * @param max Maximum point size, clamped to be above 1
 	 * @throws IllegalArgumentException if min > max

@@ -1,5 +1,7 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
+
 /**
  * <p>
  * BlendMode controls the blending of source and destination pixels when
@@ -11,8 +13,8 @@ package com.ferox.effect;
  * </p>
  * 
  * @author Michael Ludwig
- * 
  */
+@EffectType({Type.BLENDING})
 public class BlendMode extends AbstractEffect {
 	private static final BlendEquation DEFAULT_BLEND_EQ = BlendEquation.ADD;
 	private static final BlendFactor DEFAULT_SRC_FACTOR = BlendFactor.SRC_ALPHA;

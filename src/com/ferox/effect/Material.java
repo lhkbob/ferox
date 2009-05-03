@@ -1,5 +1,6 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
 import com.ferox.math.Color;
 
 /**
@@ -23,8 +24,8 @@ import com.ferox.math.Color;
  * </p>
  * 
  * @author Michael Ludwig
- * 
  */
+@EffectType({Type.MATERIAL})
 public class Material extends AbstractEffect {
 	private static final Color DEFAULT_AMBIENT = new Color(.2f, .2f, .2f);
 	private static final Color DEFAULT_DIFFUSE = new Color(.8f, .8f, .8f);

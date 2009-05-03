@@ -1,5 +1,7 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
+
 /**
  * LineStyle controls how line segments are rendered. These lines could have
  * been produced by geometry that directly renders lines, or because a
@@ -7,8 +9,8 @@ package com.ferox.effect;
  * stippling, and anti-aliasing of lines.
  * 
  * @author Michael Ludwig
- * 
  */
+@EffectType({Type.LINE_RENDER, Type.LINE_SIZE})
 public class LineStyle extends AbstractEffect {
 	private boolean enableSmoothing;
 	private boolean enableStippling;
@@ -52,7 +54,7 @@ public class LineStyle extends AbstractEffect {
 	 * Return whether or not lines rendered with this style will be stippled,
 	 * based on the pattern and factor.
 	 * 
-	 * @see setStipplePattern()
+	 * @see #setStipplePattern(short)
 	 * @return If the line is stippled or not
 	 */
 	public boolean isStipplingEnabled() {
@@ -114,7 +116,7 @@ public class LineStyle extends AbstractEffect {
 	 * Set the stipple factor to use when stippling. This is clamped to be in
 	 * [1, 256].
 	 * 
-	 * @see seeStipplePattern()
+	 * @see #setStipplePattern(short)
 	 * @param stippleRepeat Stippling factor, clamped in [1, 256]
 	 */
 	public void setStippleFactor(int stippleRepeat) {

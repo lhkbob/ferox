@@ -2,6 +2,7 @@ package com.ferox.effect;
 
 import java.util.List;
 
+import com.ferox.effect.EffectType.Type;
 import com.ferox.util.UnitList;
 import com.ferox.util.UnitList.Unit;
 
@@ -27,6 +28,7 @@ import com.ferox.util.UnitList.Unit;
  * 
  * @author Michael Ludwig
  */
+@EffectType({Type.TEXTURE_ENV})
 public class MultiTexture extends AbstractEffect {
 	private final UnitList<Texture> units;
 

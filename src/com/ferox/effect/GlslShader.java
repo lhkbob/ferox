@@ -7,6 +7,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.ferox.effect.EffectType.Type;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
 
@@ -16,7 +17,6 @@ import com.ferox.resource.GlslUniform;
  * uniforms with values. The GlslProgram cannot be null and a shader's program
  * will not change during its lifetime.
  * </p>
- * 
  * <p>
  * It is highly recommended that declared uniforms in a program always have a
  * set value in the GlslShader. If a uniform is not set in the shader, the
@@ -25,8 +25,8 @@ import com.ferox.resource.GlslUniform;
  * </p>
  * 
  * @author Michael Ludwig
- * 
  */
+@EffectType({Type.SHADER})
 public class GlslShader extends AbstractEffect {
 	/**
 	 * UniformBinding is the union of a GlslUniform and its set value for a
@@ -53,7 +53,6 @@ public class GlslShader extends AbstractEffect {
 		 * Set whether or not the value in this uniform is dirty. As above, it's
 		 * only used if the uniform's policy is MANUAL.
 		 * </p>
-		 * 
 		 * <p>
 		 * This should be set to false after a Renderer updates the value of the
 		 * uniform.
@@ -141,7 +140,6 @@ public class GlslShader extends AbstractEffect {
 	 * thrown. Also, one is thrown if the value isn't value as determined by
 	 * uniform's isValid() method.
 	 * </p>
-	 * 
 	 * <p>
 	 * If value is null, then this removes any previous UniformBinding for the
 	 * given uniform. If it isn't, the value is stored in a UniformBinding for
@@ -151,7 +149,6 @@ public class GlslShader extends AbstractEffect {
 	 * 
 	 * @param uniform Uniform to assign the value binding to
 	 * @param value Value assigned to uniform when this shader is used
-	 * 
 	 * @throws NullPointerException if uniform is null
 	 * @throws IllegalArgumentException if the uniform isn't owned by this
 	 *             shader's program

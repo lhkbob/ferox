@@ -1,5 +1,6 @@
 package com.ferox.effect;
 
+import com.ferox.effect.EffectType.Type;
 import com.ferox.math.Color;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
@@ -14,9 +15,8 @@ import com.ferox.resource.TextureImage;
  * accessing the texture.
  * </p>
  * <p>
- * If using multiple textures in an EffectSet, it is recommended to use
- * MultiTexture. When a Texture is used, it is equivalent to a MultiTexture with
- * the Texture at unit 0.
+ * Texture isn't an Effect, it is to be used in conjunction with MultiTexture,
+ * which describes which integer unit a Texture is applied to.
  * </p>
  * <p>
  * Texture's also allow for advanced combinations when the EnvMode COMBINE is
@@ -103,6 +103,7 @@ import com.ferox.resource.TextureImage;
  * 
  * @author Michael Ludwig
  */
+@EffectType({Type.TEXTURE_COORD_GEN, Type.TEXTURE_ENV})
 public class Texture extends AbstractEffect {
 	/** Describes how texels are combined with other textures and colors. */
 	public static enum EnvMode {
@@ -416,7 +417,7 @@ public class Texture extends AbstractEffect {
 	/**
 	 * Set the texture image data used for this texture.
 	 * 
-	 * @param TextureImage to use, can be null
+	 * @param data TextureImage to use, can be null
 	 */
 	public void setTexture(TextureImage data) {
 		this.data = data;
@@ -458,7 +459,7 @@ public class Texture extends AbstractEffect {
 	 * Set the equation used to combine alpha values when the texture
 	 * environment mode is COMBINE.
 	 * 
-	 * @param combineAlpha CombineAlpha to use, null uses default
+	 * @param combineAlphaFunc CombineAlpha to use, null uses default
 	 */
 	public void setCombineAlphaEquation(CombineAlpha combineAlphaFunc) {
 		if (combineAlphaFunc == null)
