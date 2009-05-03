@@ -313,7 +313,7 @@ public class View {
 	/**
 	 * Get the left edge of the near frustum plane.
 	 * 
-	 * @see setFrustum()
+	 * @see #setFrustum(float, float, float, float, float, float)
 	 * @return The left edge of the near frustum plane
 	 */
 	public float getFrustumLeft() {
@@ -323,7 +323,7 @@ public class View {
 	/**
 	 * Get the right edge of the near frustum plane.
 	 * 
-	 * @see setFrustum()
+	 * @see #setFrustum(float, float, float, float, float, float)
 	 * @return The right edge of the near frustum plane
 	 */
 	public float getFrustumRight() {
@@ -333,7 +333,7 @@ public class View {
 	/**
 	 * Get the top edge of the near frustum plane.
 	 * 
-	 * @see setFrustum()
+	 * @see #setFrustum(float, float, float, float, float, float)
 	 * @return The top edge of the near frustum plane
 	 */
 	public float getFrustumTop() {
@@ -343,7 +343,7 @@ public class View {
 	/**
 	 * Get the bottom edge of the near frustum plane.
 	 * 
-	 * @see setFrustum()
+	 * @see #setFrustum(float, float, float, float, float, float)
 	 * @return The bottom edge of the near frustum plane
 	 */
 	public float getFrustumBottom() {
@@ -354,7 +354,7 @@ public class View {
 	 * Get the distance to the near frustum plane from the origin, in camera
 	 * coords.
 	 * 
-	 * @see setFrustum()
+	 * @see #setFrustum(float, float, float, float, float, float)
 	 * @return The distance to the near frustum plane
 	 */
 	public float getFrustumNear() {
@@ -365,7 +365,7 @@ public class View {
 	 * Get the distance to the far frustum plane from the origin, in camera
 	 * coords.
 	 * 
-	 * @see setFrustum()
+	 * @see #setFrustum(float, float, float, float, float, float)
 	 * @return The distance to the far frustum plane
 	 */
 	public float getFrustumFar() {

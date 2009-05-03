@@ -1,5 +1,6 @@
 package com.ferox.renderer;
 
+import com.ferox.renderer.RequiresState.RenderState;
 import com.ferox.resource.Resource;
 import com.ferox.resource.ResourceManager;
 import com.ferox.resource.Resource.Status;
@@ -95,6 +96,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle, or if the
 	 *             renderer is destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public WindowSurface createWindowSurface(DisplayOptions options, int x,
 			int y, int width, int height, boolean resizable, boolean undecorated);
 
@@ -124,6 +126,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle, or if the
 	 *             renderer is destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
 			int width, int height);
 
@@ -198,7 +201,7 @@ public interface Renderer {
 	 *            surface. Only used if target is T_CUBEMAP or T_3D
 	 * @param numColorTargets The requested number of color texture images to
 	 *            render into simultaneously
-	 * @param userDepthRenderBuffer If no depth image is used, true signals to
+	 * @param useDepthRenderBuffer If no depth image is used, true signals to
 	 *            store depth information outside of a texture
 	 * @throws SurfaceCreationException if the TextureSurface can't be created,
 	 *             because dimensions were invalid for the target, the layer was
@@ -206,6 +209,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the renderer isn't idle or if it's
 	 *             destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public TextureSurface createTextureSurface(DisplayOptions options,
 			TextureTarget target, int width, int height, int depth, int layer,
 			int numColorTargets, boolean useDepthRenderBuffer);
@@ -238,6 +242,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the renderer isn't idle or if it's been
 	 *             destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public TextureSurface createTextureSurface(TextureSurface share, int layer);
 
 	/**
@@ -260,6 +265,7 @@ public interface Renderer {
 	 * @throws RenderStateException if this renderer isn't idle or if it's been
 	 *             destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public void destroy(RenderSurface surface);
 
 	/**
@@ -281,6 +287,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle, or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public void destroy();
 
 	/**
@@ -305,6 +312,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public void addResourceManager(ResourceManager manager);
 
 	/**
@@ -317,6 +325,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public void removeResourceManager(ResourceManager manager);
 
 	/**
@@ -346,7 +355,7 @@ public interface Renderer {
 	 * the requirements for the actual update() method.
 	 * </p>
 	 * 
-	 * @see update()
+	 * @see #update(Resource, boolean)
 	 * @param resource The resource that's to be updated next frame
 	 * @param forceFullUpdate Whether or not the resource should have a complete
 	 *            update
@@ -354,6 +363,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public void requestUpdate(Resource resource, boolean forceFullUpdate);
 
 	/**
@@ -361,13 +371,14 @@ public interface Renderer {
 	 * requestUpdate() and functions similarly, except it will eventually clean
 	 * the resource instead of update it.
 	 * 
-	 * @see cleanUp()
+	 * @see #cleanUp(Resource)
 	 * @param resource The resource that should have internal resources cleaned
 	 *            up
 	 * @throws NullPointerException if resource is null
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public void requestCleanUp(Resource resource);
 
 	/**
@@ -397,6 +408,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public Renderer queueRender(RenderSurface surface);
 
 	/**
@@ -430,6 +442,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.WAITING)
 	public FrameStatistics flushRenderer(FrameStatistics store);
 
 	/* Anytime operations. */
@@ -517,6 +530,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.RENDERING)
 	public Status update(Resource resource, boolean forceFullUpdate);
 
 	/**
@@ -552,6 +566,7 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
+	@RequiresState(RenderState.RENDERING)
 	public void cleanUp(Resource resource);
 
 	/* Rendering operations. */
@@ -569,7 +584,7 @@ public interface Renderer {
 	 * appearance: if an Effect isn't present in the atom's EffectSet, then it
 	 * should be rendered as if an Effect was created with the default
 	 * constructor (for continuous modifiers such as Material) or as if it were
-	 * disabled and not used (such as BlendMode or LightReceiver.
+	 * disabled and not used (such as BlendMode or GlobalLighting.
 	 * </p>
 	 * <p>
 	 * This method should not be called directly, instead it is to be used by
@@ -587,5 +602,6 @@ public interface Renderer {
 	 * @throws RenderStateException if the Renderer isn't prepared to render
 	 *             atoms from this thread
 	 */
+	@RequiresState(RenderState.RENDERING)
 	public int renderAtom(RenderAtom atom);
 }

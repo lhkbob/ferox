@@ -16,7 +16,7 @@ public interface OnscreenSurface extends RenderSurface {
 	 * Return true if the surface should have its update rate limited to the
 	 * refresh rate of the monitor.
 	 * 
-	 * @see setVSyncEnabled()
+	 * @see #setVSyncEnabled(boolean)
 	 * @return True if rendering is limited to refresh rate
 	 */
 	public boolean isVSyncEnabled();

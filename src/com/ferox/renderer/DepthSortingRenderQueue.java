@@ -15,19 +15,33 @@ import org.openmali.vecmath.Vector3f;
  */
 public class DepthSortingRenderQueue extends BasicRenderQueue {
 	private static class DepthSorter implements Comparator<RenderAtom> {
-		private Vector3f pointOfReference;
+		private Vector3f position;
+		private Vector3f direction;
+		private float dirLen;
+		
+		private final Vector3f temp;
 		private final boolean forwardBack;
 
 		public DepthSorter(boolean forwardBack) {
 			this.forwardBack = forwardBack;
+			temp = new Vector3f();
+		}
+		
+		private void prepare(View view) {
+			position = view.getLocation();
+			direction = view.getDirection();
+			dirLen = direction.length();
 		}
 
 		public int compare(RenderAtom ra1, RenderAtom ra2) {
 			Vector3f t1 = ra1.getTransform().getTranslation();
 			Vector3f t2 = ra2.getTransform().getTranslation();
-
-			float d = distanceSquared(pointOfReference, t1)
-					- distanceSquared(pointOfReference, t2);
+			
+			temp.sub(t1, position);
+			float d = temp.dot(direction);
+			temp.sub(t2, position);
+			d -= temp.dot(direction);
+			d /= dirLen;
 
 			if (forwardBack) {
 				if (d < 0)
@@ -42,11 +56,6 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 				return -1;
 			else
 				return 0;
-		}
-
-		private static float distanceSquared(Vector3f v1, Vector3f v2) {
-			return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y)
-					* (v1.y - v2.y) + (v1.z - v2.z) * (v1.z - v2.z);
 		}
 	}
 
@@ -64,8 +73,7 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 
 	@Override
 	protected void optimizeOrder(View view, RenderAtom[] atoms, int count) {
-		sorter.pointOfReference = view.getLocation();
+		sorter.prepare(view);
 		Arrays.sort(atoms, 0, count, sorter);
-		sorter.pointOfReference = null;
 	}
 }

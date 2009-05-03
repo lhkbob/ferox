@@ -1,5 +1,7 @@
 package com.ferox.renderer;
 
+import com.ferox.renderer.RequiresState.RenderState;
+
 /**
  * <p>
  * A RenderPass describes a view from which it is rendered and provides a
@@ -21,18 +23,29 @@ package com.ferox.renderer;
 public interface RenderPass {
 	/**
 	 * <p>
-	 * Get the unique RenderQueue for this RenderPass. Renderers may assume this
-	 * uniqueness, so any RenderPass that breaks this contract may have
-	 * undefined behavior.
+	 * Render the prepared pass. The preparation and rendering is split into
+	 * separate phases because a RenderPass may be used in multiple
+	 * RenderSurfaces, requiring that it is rendered more than once, but
+	 * preparing is required just once.
 	 * </p>
 	 * <p>
-	 * This method should not return null, or the renderer will throw an
-	 * exception.
+	 * This method is responsible for invoking renderAtom(atom) as necessary on
+	 * renderer. A convenient way of achieving this is to use a RenderQueue.
+	 * </p>
+	 * <p>
+	 * Implementations can assume that this method is called appropriately and
+	 * after a method call to preparePass(renderer). Also, renderer and view can
+	 * be assumed to be non-null.
 	 * </p>
 	 * 
-	 * @return The unique RenderQueue associated with this pass
+	 * @see #preparePass(Renderer)
+	 * @param renderer The Renderer that is actively rendering on the calling
+	 *            Thread
+	 * @param view The View that was returned by the last call to
+	 *            preparePass(renderer) for the given renderer
 	 */
-	public RenderQueue getRenderQueue();
+	@RequiresState(RenderState.RENDERING)
+	public void render(Renderer renderer, View view);
 
 	/**
 	 * <p>
@@ -47,8 +60,9 @@ public interface RenderPass {
 	 * application programmer.
 	 * </p>
 	 * <p>
-	 * preparePass() is responsible for clearing and filling the pass's
-	 * RenderQueue. This method must not flush the RenderQueue object.
+	 * If the RenderPass implementation relies on a RenderQueue for rendering
+	 * atoms, this method is responsible for clearing and filling the
+	 * RenderQueue; it should not flush the queue.
 	 * </p>
 	 * <p>
 	 * Return the View object to use for the rendering of the pass. If null is

@@ -111,7 +111,7 @@ public class RenderCapabilities {
 	 * Return whether or not points can actually be rendered as point sprites on
 	 * the current hardware.
 	 * 
-	 * @return
+	 * @return True if points can be rendered as point sprites
 	 */
 	public boolean getPointSpriteSupport() {
 		return pointSpriteSupport;
@@ -120,7 +120,7 @@ public class RenderCapabilities {
 	/**
 	 * Return the maximum side length of a Texture1D or Texture2D.
 	 * 
-	 * @return
+	 * @return Maximum size of a 1d or 2d texture
 	 */
 	public int getMaxTextureSize() {
 		return maxTextureSize;
@@ -129,7 +129,7 @@ public class RenderCapabilities {
 	/**
 	 * Return the maximum side length of a TextureRectangle.
 	 * 
-	 * @return
+	 * @return Maximum size of a rectangular texture
 	 */
 	public int getMaxTextureRectangleSize() {
 		return maxTextureRectSize;
@@ -138,7 +138,7 @@ public class RenderCapabilities {
 	/**
 	 * Return the maximum side length of a Texture3D.
 	 * 
-	 * @return
+	 * @return Maximum size of a 3d texture
 	 */
 	public int getMaxTexture3DSize() {
 		return maxTexture3DSize;
@@ -147,7 +147,7 @@ public class RenderCapabilities {
 	/**
 	 * Return the maximum side length of a face of a TextureCubeMap.
 	 * 
-	 * @return
+	 * @return Maximum size of a cube map
 	 */
 	public int getMaxTextureCubeMapSize() {
 		return maxTextureCubeMapSize;
@@ -156,7 +156,7 @@ public class RenderCapabilities {
 	/**
 	 * Return the maximum side length of a texture used with a TextureSurface.
 	 * 
-	 * @return
+	 * @return Maximum dimension of a TextureSurface
 	 */
 	public int getMaxRenderbufferSize() {
 		return maxRenderbufferSize;
@@ -166,7 +166,7 @@ public class RenderCapabilities {
 	 * Return the maximum number of color buffers that can be rendered into
 	 * simultaneously with a GLSL program.
 	 * 
-	 * @return
+	 * @return Number of color targets allowed for TextureSurfaces
 	 */
 	public int getMaxColorTargets() {
 		return maxColorTargets;
@@ -177,7 +177,7 @@ public class RenderCapabilities {
 	 * program. Should be set to 0 if glsl programs aren't allowed, otherwise >=
 	 * 0.
 	 * 
-	 * @return
+	 * @return Number of textures allowed in a vertex shader
 	 */
 	public int getMaxVertexShaderTextures() {
 		return maxVertexShaderTextures;
@@ -188,7 +188,7 @@ public class RenderCapabilities {
 	 * program. Should be set to 0 if glsl programs aren't allowed, otherwise >=
 	 * 0.
 	 * 
-	 * @return
+	 * @return Number of textures allowed in a fragment shader
 	 */
 	public int getMaxFragmentShaderTextures() {
 		return maxFragmentShaderTextures;
@@ -199,7 +199,7 @@ public class RenderCapabilities {
 	 * enabled. Textures beyond this will be ignored when no glsl program is
 	 * bound.
 	 * 
-	 * @return
+	 * @return Total number of textures usable in fixed-function
 	 */
 	public int getMaxFixedPipelineTextures() {
 		return maxFixedPipelineTextures;
@@ -209,7 +209,7 @@ public class RenderCapabilities {
 	 * Get the max number of textures allowed in an entire shader program. Each
 	 * reference to a texture increases the total for a given program.
 	 * 
-	 * @return
+	 * @return Total number of texture samplers in a shader
 	 */
 	public int getMaxCombinedTextures() {
 		return maxCombinedTextures;
@@ -219,7 +219,7 @@ public class RenderCapabilities {
 	 * Get the max supported level of anisotropic filtering for textures. Should
 	 * be >= 0.
 	 * 
-	 * @return
+	 * @return Maximum level of anistropic filtering
 	 */
 	public float getMaxAnisotropicLevel() {
 		return maxAnisoLevel;
@@ -229,7 +229,7 @@ public class RenderCapabilities {
 	 * Whether or not unclamped floating point textures are supported. If false,
 	 * float texture values are clamped to be within 0 to 1.
 	 * 
-	 * @return
+	 * @return If full floating point textures can be stored
 	 */
 	public boolean getUnclampedFloatTextureSupport() {
 		return fpTextures;
@@ -238,7 +238,8 @@ public class RenderCapabilities {
 	/**
 	 * Whether or not non-power of two dimensions are supported for textures.
 	 * 
-	 * @return
+	 * @return If NPOT texturing is available for 1d, 2d, 3d and cube map
+	 *         textures
 	 */
 	public boolean getNpotTextureSupport() {
 		return npotTextures;
@@ -249,7 +250,7 @@ public class RenderCapabilities {
 	 * must be squares). Rectangular textures and square textures use different
 	 * texture coordinates for access.
 	 * 
-	 * @return
+	 * @return If the rectangular texture target is allowed
 	 */
 	public boolean getRectangularTextureSupport() {
 		return rectTextures;
@@ -259,7 +260,7 @@ public class RenderCapabilities {
 	 * Whether or not the S3TC extension is present. This allows for DXT1, DXT3,
 	 * and DXT5 texture compression on the graphics card.
 	 * 
-	 * @return
+	 * @return If DXT texture compression is supported
 	 */
 	public boolean getS3TextureCompression() {
 		return s3tcTextures;
@@ -269,7 +270,7 @@ public class RenderCapabilities {
 	 * Get the maximum vertex attributes allowed on each vertex rendered. Should
 	 * be >= 0.
 	 * 
-	 * @return
+	 * @return Number of vertex attributes
 	 */
 	public int getMaxVertexAttributes() {
 		return maxVertexAttributes;
@@ -280,7 +281,7 @@ public class RenderCapabilities {
 	 * be different then the allowed number of textures in fixed RenderQueue or
 	 * graphics card.
 	 * 
-	 * @return
+	 * @return Number of texture coordinates
 	 */
 	public int getMaxTextureCoordinates() {
 		return maxTextureCoordinates;
@@ -291,7 +292,7 @@ public class RenderCapabilities {
 	 * than this are supported, but they may suffer performance issues (not as
 	 * optimized).
 	 * 
-	 * @return
+	 * @return Recommended index size for vbo geometry
 	 */
 	public int getMaxRecommendedIndices() {
 		return maxRecommendedIndices;
@@ -302,17 +303,16 @@ public class RenderCapabilities {
 	 * than this are supported, but they may suffer from less
 	 * optimization/caching.
 	 * 
-	 * @return
+	 * @return Recommended vertex size for vbo geometry
 	 */
 	public int getMaxRecommendedVertices() {
 		return maxRecommendedVertices;
 	}
 
 	/**
-	 * Whether or not vertex buffers are supported. If not supported,
-	 * VertexBufferObjects and VertexBufferGeometries will result in errors.
+	 * Whether or not vertex buffers are supported.
 	 * 
-	 * @return
+	 * @return True if the VBO compile option will work
 	 */
 	public boolean getVertexBufferSupport() {
 		return vboSupported;
@@ -322,7 +322,7 @@ public class RenderCapabilities {
 	 * Get the maximum number of lights that can affect a rendered object at one
 	 * time.
 	 * 
-	 * @return
+	 * @return Total number of simultaneous lights
 	 */
 	public int getMaxActiveLights() {
 		return maxActiveLights;
@@ -331,7 +331,7 @@ public class RenderCapabilities {
 	/**
 	 * Whether or not GLSL shaders are supported.
 	 * 
-	 * @return
+	 * @return True if shaders can be used
 	 */
 	public boolean getGlslSupport() {
 		return glslSupported;
@@ -342,7 +342,7 @@ public class RenderCapabilities {
 	 * objects, significantly faster (especially when true context sharing is
 	 * used).
 	 * 
-	 * @return
+	 * @return True if fbos can be used
 	 */
 	public boolean getFboSupport() {
 		return fboSupported;
@@ -353,7 +353,7 @@ public class RenderCapabilities {
 	 * offscreen surfaces. Pbuffers are slower than fbos but are sometimes
 	 * necessary when no other context is available.
 	 * 
-	 * @return
+	 * @return True if pbuffers can be used
 	 */
 	public boolean getPbufferSupport() {
 		return pbuffersSupported;
@@ -363,7 +363,7 @@ public class RenderCapabilities {
 	 * Get the vendor returned string that describes the opengl drivers on
 	 * installed on the computer.
 	 * 
-	 * @return
+	 * @return Implementation vendor description
 	 */
 	public String getVendor() {
 		return vendor;
@@ -372,7 +372,7 @@ public class RenderCapabilities {
 	/**
 	 * Get the opengl version present on the computer.
 	 * 
-	 * @return
+	 * @return Version to one decimal point
 	 */
 	public float getVersion() {
 		return version;

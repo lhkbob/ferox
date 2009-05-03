@@ -1,5 +1,7 @@
 package com.ferox.renderer;
 
+import com.ferox.renderer.RequiresState.RenderState;
+
 /**
  * <p>
  * A RenderQueue keeps track of the information to render the visible objects of
@@ -35,15 +37,12 @@ public interface RenderQueue {
 	 * Repeated calls to flush() without intermittent calls to clear() should
 	 * perform the same operations on the Renderer as the first call to flush().
 	 * </p>
-	 * <p>
-	 * Do nothing if renderer or view are null. Return the total number of
-	 * polygons rendered.
-	 * </p>
 	 * 
 	 * @param renderer The Renderer that will be rendered into
 	 * @param view The current View that represents the viewing location for all
 	 *            rendered atoms
 	 */
+	@RequiresState(RenderState.RENDERING)
 	public int flush(Renderer renderer, View view);
 
 	/**
