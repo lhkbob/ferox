@@ -122,7 +122,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	/**
 	 * Set the max value of this aa box.
 	 * 
-	 * @see setMax(m)
+	 * @see #setMax(Vector3f)
 	 */
 	public void setMax(float x, float y, float z) {
 		worldMax.set(x, y, z);
@@ -131,7 +131,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	/**
 	 * Set the min value of this aa box.
 	 * 
-	 * @see setMin(m)
+	 * @see #setMin(Vector3f)
 	 * */
 	public void setMin(float x, float y, float z) {
 		worldMin.set(x, y, z);

@@ -212,7 +212,7 @@ public class Plane {
 	 * Transforms the plane by trans and stores it in this plane.
 	 * 
 	 * @param p The plane that is transformed
-	 * @param trand The matrix that transforms this plane
+	 * @param trans The matrix that transforms this plane
 	 * 
 	 * @return this
 	 * @throws NullPointerException if p or trans are null

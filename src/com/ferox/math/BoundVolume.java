@@ -84,8 +84,8 @@ public interface BoundVolume {
 	 * As enclose(toEnclose) but this BoundVolume is unmodified and the output
 	 * is stored in result (or a new instance).
 	 * 
-	 * @see clone()
-	 * @see enclose()
+	 * @see #clone(BoundVolume)
+	 * @see #enclose(BoundVolume)
 	 * @param toEnclose BoundVolume to enclose with this BoundVolume
 	 * @param result BoundVolume to hold computed enclosure of this and
 	 *            toEnclose
@@ -96,8 +96,8 @@ public interface BoundVolume {
 	 * As applyTransform(trans) but this BoundVolume is unmodified and the
 	 * output is stored in result (or a new instance).
 	 * 
-	 * @see clone()
-	 * @see applyTransform()
+	 * @see #clone(BoundVolume)
+	 * @see #applyTransform(Transform)
 	 * @param trans Transform applied to this BoundVolume
 	 * @param result BoundVolume to hold computed enclosure of this and
 	 *            toEnclose

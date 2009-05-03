@@ -226,7 +226,7 @@ public class Transform {
 	 * 
 	 * @param t1 Left-hand transform in multiplication
 	 * @param t2 Right-hand transform in multiplication
-	 * @param This transform
+	 * @return This transform
 	 * @throws NullPointerException if t1 or t2 are null
 	 */
 	public Transform mul(Transform t1, Transform t2) {
