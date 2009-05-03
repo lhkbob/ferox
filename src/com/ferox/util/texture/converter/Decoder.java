@@ -35,7 +35,7 @@ public interface Decoder {
 	 * @param u The x coordinate to access, from 0 to 1
 	 * @param v The y coordinate to access, from 0 to 1
 	 * @param w The z coordinate to access, from 0 to 1
-	 * @param color The color value to hold the read color from data
+	 * @param store The color value to hold the read color from data
 	 */
 	public void getColor(DataBlock data, float u, float v, float w,
 			Color store);

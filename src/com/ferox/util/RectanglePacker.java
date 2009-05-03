@@ -227,7 +227,9 @@ public class RectanglePacker<T> {
 	 * @param data The object to pack into this rectangle container
 	 * @param width Width required for the packed rectangle
 	 * @param height Height required for the packed rectangle
-	 * @param The rectangle representing the location of the packed data object.
+	 * 
+	 * @return The rectangle representing the location of the packed data object.
+	 * 
 	 * @throws IllegalArgumentException if width or height <= 0
 	 */
 	public Rectangle insert(T data, int width, int height) {
