@@ -4,60 +4,56 @@ import org.openmali.vecmath.Vector2f;
 import org.openmali.vecmath.Vector3f;
 
 /**
+ * <p>
  * TangentGenerator is a utility to generate arrays of tangent and bitangent
- * vectors from a set vertices, texture coordinates and indices.
- * 
- * For the moment, it only supports triangles and floating-point
- * vertices/texcoords.
+ * vectors from a set vertices, texture coordinates and indices. For the moment,
+ * it only supports triangles and floating-point vertices/texcoords.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class TangentGenerator {
 	/**
+	 * <p>
 	 * Fill the tangents and bitangents arrays with appropriate values based on
 	 * the given vertices, texture coordinates, and an indices array to access
 	 * them. This index array is also used to access the tangents and bitangents
 	 * arrays.
-	 * 
+	 * </p>
+	 * <p>
 	 * All arguments must be non-null. tangents and bitangents must have the
 	 * same length as vertices.
-	 * 
+	 * </p>
+	 * <p>
 	 * It is assumed that vertices are packed together, every 3 primitives being
 	 * a vertex. Similarly, every 2 primitives in texCoords is a texture
 	 * coordinate. Every 3 ints in indices represent the 3 coordinates of a
 	 * triangle.
+	 * </p>
 	 * 
 	 * @param vertices The vertex coordinates for the triangles
 	 * @param texCoords The texture coordinates for the triangles
 	 * @param indices The indices that describe the triangles
-	 * 
 	 * @param tangents The array storage for computed tangent vectors
 	 * @param bitangents The array storage for the computed bitangent vectors
-	 * 
 	 * @throws NullPointerException if any parameter is null
 	 * @throws IllegalArgumentException if the element counts in vertices,
 	 *             texCoords, tangent, and bitangents don't match
 	 */
 	public static void generate(float[] vertices, float[] texCoords,
-			int[] indices, float[] tangents, float[] bitangents)
-			throws IllegalArgumentException, NullPointerException {
+			int[] indices, float[] tangents, float[] bitangents) {
 		if (vertices == null || texCoords == null || indices == null
-				|| tangents == null || bitangents == null) {
+				|| tangents == null || bitangents == null)
 			throw new NullPointerException("All arguments must be non-null");
-		}
-		if (texCoords.length / 2 != vertices.length / 3) {
+		if (texCoords.length / 2 != vertices.length / 3)
 			throw new IllegalArgumentException(
 					"Tex coords don't have same number of elements as vertices");
-		}
-		if (tangents.length != vertices.length) {
+		if (tangents.length != vertices.length)
 			throw new IllegalArgumentException(
 					"Tangents array doesn't have the same length as vertices");
-		}
-		if (bitangents.length != vertices.length) {
+		if (bitangents.length != vertices.length)
 			throw new IllegalArgumentException(
 					"Bitangents array doesn't have the same length as vertices");
-		}
 
 		Vector3f tangent = new Vector3f();
 		Vector3f bitangent = new Vector3f();

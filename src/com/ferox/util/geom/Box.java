@@ -2,161 +2,120 @@ package com.ferox.util.geom;
 
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.resource.geometry.AbstractBufferedGeometryDescriptor;
-import com.ferox.resource.geometry.BufferedGeometry;
-import com.ferox.resource.geometry.BufferedGeometry.PolygonType;
+import com.ferox.resource.IndexedArrayGeometry;
 
 /**
+ * <p>
  * A Box represents a 6 sided rectangular prism.
- * 
- * This code was ported from the identically named Box in com.jme.scene.shapes.
+ * </p>
+ * <p>
+ * This code was ported from com.jme.scene.shapes.Box
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
-public class Box extends AbstractBufferedGeometryDescriptor {
+public class Box extends IndexedArrayGeometry {
 	private final Vector3f center = new Vector3f();
 	private float xExtent, yExtent, zExtent;
 
-	private final float[] vertices;
-	private final float[] normals;
-	private final float[] texCoords;
+	/**
+	 * Construct a box centered on its origin, with the given side length. So,
+	 * Box(1f) creates a unit cube. Uses CompileType.NONE.
+	 * 
+	 * @param side The side length of the created cube
+	 */
+	public Box(float side) {
+		this(side, CompileType.VERTEX_ARRAY);
+	}
 
-	private int[] indices;
+	/**
+	 * Construct a new Box with the given minimum and maximum points. These
+	 * points are opposite corners of the box. Uses CompileType.NONE.
+	 * 
+	 * @param min Minimum corner of the box
+	 * @param max Maximum corner of the box
+	 * @throws NullPointerException if min or max are null
+	 */
+	public Box(Vector3f min, Vector3f max) {
+		this(min, max, CompileType.VERTEX_ARRAY);
+	}
 
 	/**
 	 * Construct a box centered on its origin, with the given side length. So,
 	 * Box(1f) creates a unit cube.
+	 * 
+	 * @param side The side length of the created cube
+	 * @param type The compile type to use for the Box
 	 */
-	public Box(float side) {
-		this(new Vector3f(), side / 2f, side / 2f, side / 2f);
+	public Box(float side, CompileType type) {
+		this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), new Vector3f(
+				side / 2f, side / 2f, side / 2f), type);
 	}
 
 	/**
 	 * Construct a new Box with the given minimum and maximum points. These
 	 * points are opposite corners of the box.
 	 * 
-	 * See setData(min, max).
+	 * @param min Minimum corner of the box
+	 * @param max Maximum corner of the box
+	 * @param type The compile type to use for the Box
+	 * @throws NullPointerException if min or max are null
 	 */
-	public Box(Vector3f min, Vector3f max) throws NullPointerException {
-		// allocate arrays as needed
-		vertices = new float[72];
-		normals = new float[72];
-		texCoords = new float[48];
-
+	public Box(Vector3f min, Vector3f max, CompileType type) {
+		super(type);
+		// set the data, this will set vertices, normals, etc.
+		// as needed in super-class
 		setData(min, max);
-	}
-
-	/**
-	 * Constructs a new box. The box has the given center and extends in the x,
-	 * y, and z out from the center (+ and -) by the given amounts. So, for
-	 * example, a box with extent of .5 would be the unit cube.
-	 * 
-	 * See setData(center, x, y, z).
-	 */
-	public Box(Vector3f center, float xExtent, float yExtent, float zExtent)
-					throws NullPointerException {
-		vertices = new float[72];
-		normals = new float[72];
-		texCoords = new float[48];
-		indices = new int[36];
-
-		setData(center, xExtent, yExtent, zExtent);
 	}
 
 	/**
 	 * Returns the current center of this box, in local space. The result is
 	 * stored within store. If store is null, a new vector is created.
+	 * 
+	 * @param store The vector to hold the center
+	 * @return store, or a new Vector3f holding the center
 	 */
 	public Vector3f getCenter(Vector3f store) {
-		if (store == null) {
+		if (store == null)
 			store = new Vector3f();
-		}
 		store.set(center);
 		return store;
 	}
 
 	/**
+	 * <p>
 	 * Changes the data of the box so that the two opposite corners are minPoint
 	 * and maxPoint. The other corners are created from those two points.
-	 * 
+	 * </p>
+	 * <p>
 	 * This assumes that minPoint represents the minimum coordinate point of the
 	 * box, and maxPoint is the max. If this isn't true, results are undefined.
+	 * </p>
 	 * 
-	 * Throws a NullPointerException if minPoint or maxPoint are null.
+	 * @param minPoint Minimum corner of the box
+	 * @param maxPoint Maximum corner of the box
+	 * @throws NullPointerException if minPoint or maxPoint are null
 	 */
-	public void setData(Vector3f minPoint, Vector3f maxPoint)
-					throws NullPointerException {
-		if (minPoint == null || maxPoint == null) {
+	public void setData(Vector3f minPoint, Vector3f maxPoint) {
+		if (minPoint == null || maxPoint == null)
 			throw new NullPointerException(
-							"minPoint and maxPoint cannot be null");
-		}
+					"minPoint and maxPoint cannot be null");
 
 		center.add(minPoint, maxPoint);
 		center.scale(.5f);
 
-		float x = maxPoint.x - center.x;
-		float y = maxPoint.y - center.y;
-		float z = maxPoint.z - center.z;
-		this.setData(center, x, y, z);
-	}
-
-	/**
-	 * Changes the data of the box so that its center is at center and it
-	 * extends in the x, y, and z directions by the given extent. Note that the
-	 * actual sides will be 2x the given extent values because the box extends
-	 * in + & - from the center for each extent.
-	 * 
-	 * This assumes that the extents are positive, if they aren't then resuls
-	 * are undefined.
-	 * 
-	 * Throws a NullPointerException if center is null.
-	 */
-	public void setData(Vector3f center, float xExtent, float yExtent,
-					float zExtent) {
-		if (center == null) {
-			throw new NullPointerException("Center cannot be null");
-		} else {
-			this.center.set(center);
-		}
-
-		this.xExtent = xExtent;
-		this.yExtent = yExtent;
-		this.zExtent = zExtent;
+		this.xExtent = maxPoint.x - center.x;
+		this.yExtent = maxPoint.y - center.y;
+		this.zExtent = maxPoint.z - center.z;
 
 		updateData();
 	}
 
-	@Override
-	public PolygonType getPolygonType() {
-		return PolygonType.TRIANGLES;
-	}
-
-	@Override
-	protected float[] internalVertices() {
-		return vertices;
-	}
-
-	@Override
-	protected float[] internalNormals() {
-		return normals;
-	}
-
-	@Override
-	protected float[] internalTexCoords() {
-		return texCoords;
-	}
-
-	@Override
-	protected int[] internalIndices() {
-		return indices;
-	}
-
-	/* Set all of the BufferedGeometry's fields to be valid. */
+	/* Set all of the IndexedArrayGeometry's fields to be valid. */
 	private void updateData() {
-		float[] v = vertices;
-		float[] n = normals;
-		float[] t = texCoords;
+		float[] v = new float[72];
+		float[] n = new float[72];
+		float[] t = new float[48];
 
 		float minX = center.x - xExtent;
 		float maxX = center.x + xExtent;
@@ -374,11 +333,16 @@ public class Box extends AbstractBufferedGeometryDescriptor {
 		v[vi++] = minZ;
 
 		// indices
-		indices = new int[] { 2, 1, 0, 3, 2, 0, // back
-						6, 5, 4, 7, 6, 4, // right
-						10, 9, 8, 11, 10, 8, // front
-						14, 13, 12, 15, 14, 12, // left
-						18, 17, 16, 19, 18, 16, // top
-						22, 21, 20, 23, 22, 20 }; // bottom
+		int[] indices = new int[] { 2, 1, 0, 3, 2, 0, // back
+				6, 5, 4, 7, 6, 4, // right
+				10, 9, 8, 11, 10, 8, // front
+				14, 13, 12, 15, 14, 12, // left
+				18, 17, 16, 19, 18, 16, // top
+				22, 21, 20, 23, 22, 20 }; // bottom
+
+		this.setVertices(v);
+		this.setIndices(indices, PolygonType.TRIANGLES);
+		this.setNormals(n);
+		this.setTextureCoordinates(0, new VectorBuffer(t, 2));
 	}
 }

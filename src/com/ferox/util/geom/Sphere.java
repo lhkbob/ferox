@@ -3,20 +3,19 @@ package com.ferox.util.geom;
 import org.openmali.FastMath;
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.resource.geometry.AbstractBufferedGeometryDescriptor;
-import com.ferox.resource.geometry.BufferedGeometry;
-import com.ferox.resource.geometry.BufferedGeometry.PolygonType;
+import com.ferox.resource.IndexedArrayGeometry;
 
 /**
+ * <p>
  * A Sphere represents, well, a sphere.
- * 
- * This code was ported from the identically named Sphere in
- * com.jme.scene.shapes.
+ * </p>
+ * <p>
+ * This code was ported from com.jme.scene.shapes.Sphere.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
-public class Sphere extends AbstractBufferedGeometryDescriptor {
+public class Sphere extends IndexedArrayGeometry {
 	/**
 	 * Enum describing how texture coordinates are generated for a sphere.
 	 */
@@ -33,87 +32,147 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 	private float radius;
 
 	// how tesselated the sphere is
-	private final int zSamples;
-	private final int radialSamples;
+	private int zSamples;
+	private int radialSamples;
 
 	private SphereTextureMode mode;
 
-	private final float[] vertices;
-	private final float[] normals;
-	private final float[] texCoords;
-	private final int[] indices;
-
+	/**
+	 * Create a sphere with the given radius, and 16 radial and zSamples with
+	 * original texture mode, compiled as vertex arrays.
+	 * 
+	 * @param radius The radius of the sphere
+	 * @throws IllegalArgumentException if radius <= 0
+	 */
 	public Sphere(float radius) {
 		this(radius, 16, 16);
 	}
 
+	/**
+	 * Create a sphere with the given radius, and samples with original texture
+	 * mode, compiled as vertex arrays.
+	 * 
+	 * @param radius The radius of the sphere
+	 * @param zSamples The number of bands in the sphere
+	 * @param radialSamples The number of slices in the sphere
+	 * @throws IllegalArgumentException if radius, zSamples, or radialSamples <=
+	 *             0
+	 */
 	public Sphere(float radius, int zSamples, int radialSamples) {
-		this(radius, zSamples, radialSamples, SphereTextureMode.ORIGINAL);
+		this(radius, zSamples, radialSamples, SphereTextureMode.ORIGINAL,
+				CompileType.VERTEX_ARRAY);
 	}
 
+	/**
+	 * Create a sphere with the given radius, samples, textured mode and compile
+	 * type.
+	 * 
+	 * @param radius The radius of the sphere
+	 * @param zSamples The number of bands in the sphere
+	 * @param radialSamples The number of slices in the sphere
+	 * @param mode The texture mode used to generate texture coordinates
+	 * @param type The compile type to use
+	 * @throws IllegalArgumentException if radius, zSamples, or radialSamples <=
+	 *             0
+	 */
 	public Sphere(float radius, int zSamples, int radialSamples,
-					SphereTextureMode mode) {
-		this(null, radius, zSamples, radialSamples, mode);
+			SphereTextureMode mode, CompileType type) {
+		this(null, radius, zSamples, radialSamples, mode, type);
 	}
 
+	/**
+	 * Create a sphere with the given radius, samples, textured mode and compile
+	 * type. It is centered at the given vector, if null it uses the local
+	 * origin.
+	 * 
+	 * @param radius The radius of the sphere
+	 * @param zSamples The number of bands in the sphere
+	 * @param radialSamples The number of slices in the sphere
+	 * @param mode The texture mode used to generate texture coordinates
+	 * @param type The compile type to use
+	 * @throws IllegalArgumentException if radius, zSamples, or radialSamples <=
+	 *             0
+	 */
 	public Sphere(Vector3f center, float radius, int zSamples,
-					int radialSamples, SphereTextureMode mode) {
-		if (zSamples < 0 || radialSamples <= 0) {
-			throw new IllegalArgumentException(
-							"zSamples and radialSamples must be > 0");
-		}
-
-		int vertexCount = (zSamples - 2) * (radialSamples + 1) + 2;
-		vertices = new float[vertexCount * 3];
-		normals = new float[vertexCount * 3];
-		texCoords = new float[vertexCount * 2];
-
-		int triCount = 6 * radialSamples * (zSamples - 2);
-		indices = new int[triCount];
+			int radialSamples, SphereTextureMode mode, CompileType type) {
+		super(type);
 
 		this.center = new Vector3f();
-		this.zSamples = zSamples;
-		this.radialSamples = radialSamples;
-		setData(center, radius, mode);
+		setData(center, radius, zSamples, radialSamples, mode);
 	}
 
-	public void setData(Vector3f center, float radius, SphereTextureMode mode) {
-		if (radius <= 0f) {
+	/**
+	 * Update the Sphere's data so it's a sphere with the given radius, samples,
+	 * textured mode and compile type. It is centered at the given vector, if
+	 * null it uses the local origin.
+	 * 
+	 * @param radius The radius of the sphere
+	 * @param zSamples The number of bands in the sphere
+	 * @param radialSamples The number of slices in the sphere
+	 * @param mode The texture mode used to generate texture coordinates
+	 * @param type The compile type to use
+	 * @throws IllegalArgumentException if radius, zSamples, or radialSamples <=
+	 *             0
+	 */
+	public void setData(Vector3f center, float radius, int zSamples,
+			int radialSamples, SphereTextureMode mode) {
+		if (radius <= 0f)
 			throw new IllegalArgumentException("Radius must be > 0");
-		}
+		if (zSamples <= 0 || radialSamples <= 0)
+			throw new IllegalArgumentException(
+					"zSamples and radialSamples must be > 0");
 
-		if (center != null) {
+		if (center != null)
 			this.center.set(center);
-		} else {
+		else
 			this.center.set(0f, 0f, 0f);
-		}
 
+		this.zSamples = zSamples;
+		this.radialSamples = radialSamples;
 		this.radius = radius;
 		this.mode = (mode == null ? SphereTextureMode.ORIGINAL : mode);
 		setGeometryData();
 		setIndexData();
 	}
 
+	/**
+	 * @return The radius of the sphere
+	 */
 	public float getRadius() {
 		return radius;
 	}
 
+	/**
+	 * Returns the current center of this sphere, in local space. The result is
+	 * stored within store. If store is null, a new vector is created.
+	 * 
+	 * @param store The vector to hold the center
+	 * @return store, or a new Vector3f holding the center
+	 */
 	public Vector3f getCenter(Vector3f store) {
-		if (store == null) {
+		if (store == null)
 			store = new Vector3f();
-		}
 		store.set(center);
 		return store;
 	}
 
+	/**
+	 * @return The texture mode used to generate tex coords
+	 */
 	public SphereTextureMode getSphereTextureMode() {
 		return mode;
 	}
 
+	/**
+	 * @return The number bands in the tesselated sphere
+	 */
 	public int getZSamples() {
 		return zSamples;
 	}
 
+	/**
+	 * @return The number or radial slices in the tesselated sphere
+	 */
 	public int getRadialSamples() {
 		return radialSamples;
 	}
@@ -123,6 +182,11 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 	 * sphere.
 	 */
 	private void setGeometryData() {
+		int vertexCount = (zSamples - 2) * (radialSamples + 1) + 2;
+		float[] vertices = new float[vertexCount * 3];
+		float[] normals = new float[vertexCount * 3];
+		float[] texCoords = new float[vertexCount * 2];
+
 		// generate geometry
 		float fInvRS = 1.0f / radialSamples;
 		float fZFactor = 2.0f / (zSamples - 1);
@@ -152,7 +216,7 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 
 			// compute radius of slice
 			float fSliceRadius = FastMath.sqrt(Math.abs(radius * radius - fZ
-							* fZ));
+					* fZ));
 
 			// compute slice vertices with duplication at end point
 			Vector3f kNormal;
@@ -171,7 +235,7 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 
 				// normals
 				tempVa.set(vertices[i * 3], vertices[i * 3 + 1],
-								vertices[i * 3 + 2]);
+						vertices[i * 3 + 2]);
 				kNormal = tempVa;
 				kNormal.sub(center);
 				kNormal.normalize();
@@ -186,8 +250,8 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 				} else { // PROJECTED
 					texCoords[i * 2 + 0] = fRadialFraction;
 					texCoords[i * 2 + 1] = (FastMath.PI_HALF + FastMath
-									.asin(fZFraction))
-									/ FastMath.PI;
+							.asin(fZFraction))
+							/ FastMath.PI;
 				}
 
 				i++;
@@ -207,8 +271,8 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 			} else { // PROJECTED
 				texCoords[i * 2 + 0] = 1f;
 				texCoords[i * 2 + 1] = (FastMath.PI_HALF + FastMath
-								.asin(fZFraction))
-								/ FastMath.PI;
+						.asin(fZFraction))
+						/ FastMath.PI;
 			}
 
 			i++;
@@ -238,6 +302,10 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 
 		texCoords[i * 2 + 0] = .5f;
 		texCoords[i * 2 + 1] = 0f;
+
+		this.setVertices(vertices);
+		this.setNormals(normals);
+		this.setTextureCoordinates(0, new VectorBuffer(texCoords, 2));
 	}
 
 	/*
@@ -245,6 +313,9 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 	 * after setGeometryData().
 	 */
 	private void setIndexData() {
+		int triCount = 6 * radialSamples * (zSamples - 2);
+		int[] indices = new int[triCount];
+
 		// generate connectivity
 		int index = 0;
 		for (int iZ = 0, iZStart = 0; iZ < (zSamples - 3); iZ++) {
@@ -268,7 +339,7 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 		// south pole triangles
 		for (int i = 0; i < radialSamples; i++) {
 			indices[index + 0] = i;
-			indices[index + 1] = vertices.length / 3 - 2;
+			indices[index + 1] = getVertexCount() - 2;
 			indices[index + 2] = i + 1;
 
 			index += 3;
@@ -279,34 +350,11 @@ public class Sphere extends AbstractBufferedGeometryDescriptor {
 		for (int i = 0; i < radialSamples; i++) {
 			indices[index + 0] = i + iOffset;
 			indices[index + 1] = i + iOffset + 1;
-			indices[index + 2] = vertices.length / 3 - 1;
+			indices[index + 2] = getVertexCount() - 1;
 
 			index += 3;
 		}
-	}
 
-	@Override
-	public PolygonType getPolygonType() {
-		return PolygonType.TRIANGLES;
-	}
-
-	@Override
-	protected float[] internalVertices() {
-		return vertices;
-	}
-
-	@Override
-	protected float[] internalNormals() {
-		return normals;
-	}
-
-	@Override
-	protected float[] internalTexCoords() {
-		return texCoords;
-	}
-
-	@Override
-	protected int[] internalIndices() {
-		return indices;
+		this.setIndices(indices, PolygonType.TRIANGLES);
 	}
 }
