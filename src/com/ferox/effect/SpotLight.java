@@ -162,7 +162,7 @@ public class SpotLight extends Light {
 	/**
 	 * Set the quadratic attenuation factor for this spot light. C
 	 * 
-	 * @return Quadratic attenuation, camped above 0
+	 * @param quadAtt Quadratic attenuation, camped above 0
 	 */
 	public void setQuadraticAttenuation(float quadAtt) {
 		this.quadAtt = Math.max(0f, quadAtt);
