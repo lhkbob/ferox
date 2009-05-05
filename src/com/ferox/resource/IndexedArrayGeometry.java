@@ -199,7 +199,7 @@ public class IndexedArrayGeometry implements Geometry {
 	 * completes.
 	 */
 	protected IndexedArrayGeometry(CompileType compileType) {
-		this.compileType = compileType;
+		this.compileType = (compileType == null ? CompileType.NONE : compileType);
 
 		texCoords = new UnitList<VectorBuffer>();
 		vertexAttribs = new UnitList<VectorBuffer>();
