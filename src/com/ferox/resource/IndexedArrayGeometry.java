@@ -2,10 +2,6 @@ package com.ferox.resource;
 
 import java.util.List;
 
-import com.ferox.math.BoundVolume;
-import com.ferox.math.BoundsCache;
-import com.ferox.renderer.RenderDataCache;
-import com.ferox.renderer.Renderer;
 import com.ferox.util.UnitList;
 import com.ferox.util.UnitList.Unit;
 
@@ -37,7 +33,7 @@ import com.ferox.util.UnitList.Unit;
  * 
  * @author Michael Ludwig
  */
-public class IndexedArrayGeometry implements Geometry {
+public class IndexedArrayGeometry extends AbstractGeometry {
 	/**
 	 * Represents how consecutive elements in the geometry's indices form
 	 * polygons.
@@ -150,9 +146,7 @@ public class IndexedArrayGeometry implements Geometry {
 		}
 	}
 
-	private final BoundsCache boundsCache;
-	private final RenderDataCache renderCache;
-	private final CompileType compileType;
+	
 
 	private float[] vertices;
 	private float[] normals;
@@ -199,13 +193,10 @@ public class IndexedArrayGeometry implements Geometry {
 	 * completes.
 	 */
 	protected IndexedArrayGeometry(CompileType compileType) {
-		this.compileType = (compileType == null ? CompileType.NONE : compileType);
+		super(compileType);
 
 		texCoords = new UnitList<VectorBuffer>();
 		vertexAttribs = new UnitList<VectorBuffer>();
-
-		boundsCache = new BoundsCache(this);
-		renderCache = new RenderDataCache();
 	}
 
 	/**
@@ -441,24 +432,6 @@ public class IndexedArrayGeometry implements Geometry {
 		return polyCount;
 	}
 
-	/**
-	 * Clear the cached bounding volumes. The next time getBounds is called with
-	 * either a AxisAlignedBox, or BoundSphere, the cached bounds for that type
-	 * will be re-computed from scratch.
-	 */
-	public void clearBoundsCache() {
-		boundsCache.setCacheDirty();
-	}
-
-	/*
-	 * The implementation of Geometry and Boundable
-	 */
-
-	@Override
-	public void getBounds(BoundVolume result) {
-		boundsCache.getBounds(result);
-	}
-
 	@Override
 	public float getVertex(int index, int coord) {
 		if (index < 0 || index >= getVertexCount())
@@ -474,31 +447,5 @@ public class IndexedArrayGeometry implements Geometry {
 	@Override
 	public int getVertexCount() {
 		return vertexCount;
-	}
-
-	/** Returns null by default. */
-	@Override
-	public Object getDirtyDescriptor() {
-		return null;
-	}
-
-	@Override
-	public void clearDirtyDescriptor() {
-		// do nothing in base class
-	}
-
-	@Override
-	public Object getRenderData(Renderer renderer) {
-		return renderCache.getRenderData(renderer);
-	}
-
-	@Override
-	public void setRenderData(Renderer renderer, Object data) {
-		renderCache.setRenderData(renderer, data);
-	}
-
-	@Override
-	public CompileType getCompileType() {
-		return compileType;
 	}
 }
