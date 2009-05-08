@@ -103,7 +103,7 @@ import com.ferox.resource.TextureImage;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.TEXTURE_COORD_GEN, Type.TEXTURE_ENV})
+@EffectType( { Type.TEXTURE_COORD_GEN, Type.TEXTURE_ENV })
 public class Texture extends AbstractEffect {
 	/** Describes how texels are combined with other textures and colors. */
 	public static enum EnvMode {
@@ -198,19 +198,29 @@ public class Texture extends AbstractEffect {
 	}
 
 	private static final CombineRgb DEFAULT_COMBINE_RGB = CombineRgb.MODULATE;
-	private static final CombineAlpha DEFAULT_COMBINE_ALPHA = CombineAlpha.MODULATE;
-	private static final CombineSource DEFAULT_SOURCE_RGB0 = CombineSource.PREV_TEX;
-	private static final CombineSource DEFAULT_SOURCE_RGB1 = CombineSource.CURR_TEX;
-	private static final CombineSource DEFAULT_SOURCE_RGB2 = CombineSource.VERTEX_COLOR;
-	private static final CombineSource DEFAULT_SOURCE_ALPHA0 = CombineSource.PREV_TEX;
-	private static final CombineSource DEFAULT_SOURCE_ALPHA1 = CombineSource.CURR_TEX;
-	private static final CombineSource DEFAULT_SOURCE_ALPHA2 = CombineSource.VERTEX_COLOR;
+	private static final CombineAlpha DEFAULT_COMBINE_ALPHA =
+		CombineAlpha.MODULATE;
+	private static final CombineSource DEFAULT_SOURCE_RGB0 =
+		CombineSource.PREV_TEX;
+	private static final CombineSource DEFAULT_SOURCE_RGB1 =
+		CombineSource.CURR_TEX;
+	private static final CombineSource DEFAULT_SOURCE_RGB2 =
+		CombineSource.VERTEX_COLOR;
+	private static final CombineSource DEFAULT_SOURCE_ALPHA0 =
+		CombineSource.PREV_TEX;
+	private static final CombineSource DEFAULT_SOURCE_ALPHA1 =
+		CombineSource.CURR_TEX;
+	private static final CombineSource DEFAULT_SOURCE_ALPHA2 =
+		CombineSource.VERTEX_COLOR;
 	private static final CombineOperand DEFAULT_OP_RGB0 = CombineOperand.COLOR;
 	private static final CombineOperand DEFAULT_OP_RGB1 = CombineOperand.COLOR;
 	private static final CombineOperand DEFAULT_OP_RGB2 = CombineOperand.ALPHA;
-	private static final CombineOperand DEFAULT_OP_ALPHA0 = CombineOperand.ALPHA;
-	private static final CombineOperand DEFAULT_OP_ALPHA1 = CombineOperand.ALPHA;
-	private static final CombineOperand DEFAULT_OP_ALPHA2 = CombineOperand.ALPHA;
+	private static final CombineOperand DEFAULT_OP_ALPHA0 =
+		CombineOperand.ALPHA;
+	private static final CombineOperand DEFAULT_OP_ALPHA1 =
+		CombineOperand.ALPHA;
+	private static final CombineOperand DEFAULT_OP_ALPHA2 =
+		CombineOperand.ALPHA;
 	private static final EnvMode DEFAULT_ENV_MODE = EnvMode.MODULATE;
 	private static final TexCoordGen DEFAULT_COORD_GEN = TexCoordGen.NONE;
 
@@ -281,7 +291,7 @@ public class Texture extends AbstractEffect {
 	 * @param texCoord Texture coordinate generation mode for STR coordinates
 	 */
 	public Texture(TextureImage data, EnvMode mode, Color envColor,
-			TexCoordGen texCoord) {
+		TexCoordGen texCoord) {
 		this();
 		setTexture(data);
 		setTextureEnvMode(mode);
@@ -733,7 +743,7 @@ public class Texture extends AbstractEffect {
 	 * @param a2 CombineOperand for setOperandAlpha2()
 	 */
 	public void setOperandAlpha(CombineOperand a0, CombineOperand a1,
-			CombineOperand a2) {
+		CombineOperand a2) {
 		setOperandAlpha0(a0);
 		setOperandAlpha1(a1);
 		setOperandAlpha2(a2);
@@ -748,7 +758,7 @@ public class Texture extends AbstractEffect {
 	 * @param r2 CombineOperand for setOperandRgb2()
 	 */
 	public void setOperandRgb(CombineOperand r0, CombineOperand r1,
-			CombineOperand r2) {
+		CombineOperand r2) {
 		setOperandRgb0(r0);
 		setOperandRgb1(r1);
 		setOperandRgb2(r2);
@@ -763,7 +773,7 @@ public class Texture extends AbstractEffect {
 	 * @param a2 CombineSource for setSourceAlpha2()
 	 */
 	public void setSourceAlpha(CombineSource a0, CombineSource a1,
-			CombineSource a2) {
+		CombineSource a2) {
 		setSourceAlpha0(a0);
 		setSourceAlpha1(a1);
 		setSourceAlpha2(a2);
@@ -778,7 +788,7 @@ public class Texture extends AbstractEffect {
 	 * @param r2 CombineSource for setSourceRgb2()
 	 */
 	public void setSourceRgb(CombineSource r0, CombineSource r1,
-			CombineSource r2) {
+		CombineSource r2) {
 		setSourceRgb0(r0);
 		setSourceRgb1(r1);
 		setSourceRgb2(r2);

@@ -26,7 +26,7 @@ import com.ferox.resource.GlslUniform;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.SHADER})
+@EffectType( { Type.SHADER })
 public class GlslShader extends AbstractEffect {
 	/**
 	 * UniformBinding is the union of a GlslUniform and its set value for a
@@ -88,11 +88,11 @@ public class GlslShader extends AbstractEffect {
 		@Override
 		public String toString() {
 			return "<"
-					+ variable
-					+ " = "
-					+ (value instanceof int[] ? Arrays.toString((int[]) value)
-							: Arrays.toString((float[]) value)) + ", dirty: "
-					+ isDirty + ">";
+				+ variable
+				+ " = "
+				+ (value instanceof int[] ? Arrays.toString((int[]) value)
+					: Arrays.toString((float[]) value)) + ", dirty: " + isDirty
+				+ ">";
 		}
 	}
 
@@ -158,8 +158,8 @@ public class GlslShader extends AbstractEffect {
 			throw new NullPointerException("Uniform cannot be null");
 		if (uniform.getOwner() != program)
 			throw new IllegalArgumentException(
-					"Can only set uniforms that match this shader's GlslProgram, not: "
-							+ uniform.getOwner());
+				"Can only set uniforms that match this shader's GlslProgram, not: "
+					+ uniform.getOwner());
 
 		Integer index = indexMap.get(uniform);
 
@@ -172,8 +172,8 @@ public class GlslShader extends AbstractEffect {
 		} else {
 			if (!uniform.isValid(value))
 				throw new IllegalArgumentException(
-						"Value is not valid for the given uniform: "
-								+ uniform.getName() + " " + value);
+					"Value is not valid for the given uniform: "
+						+ uniform.getName() + " " + value);
 			// set the value, and mark it as dirty
 			UniformBinding binding;
 			if (index != null)

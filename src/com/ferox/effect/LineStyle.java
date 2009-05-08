@@ -10,7 +10,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.LINE_RENDER, Type.LINE_SIZE})
+@EffectType( { Type.LINE_RENDER, Type.LINE_SIZE })
 public class LineStyle extends AbstractEffect {
 	private boolean enableSmoothing;
 	private boolean enableStippling;
@@ -147,8 +147,8 @@ public class LineStyle extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(LineStyle width: " + lineWidth + " smoothed: "
-				+ enableSmoothing + " stippled: " + enableStippling
-				+ " pattern: " + Integer.toHexString(stipplePattern)
-				+ " factor: " + stippleFactor + ")";
+			+ enableSmoothing + " stippled: " + enableStippling + " pattern: "
+			+ Integer.toHexString(stipplePattern) + " factor: " + stippleFactor
+			+ ")";
 	}
 }

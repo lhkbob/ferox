@@ -15,7 +15,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.ALPHA_TEST})
+@EffectType( { Type.ALPHA_TEST })
 public class AlphaTest extends AbstractEffect {
 	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.GEQUAL;
 	private static final float DEFAULT_REF_VALUE = 1f;
@@ -71,6 +71,6 @@ public class AlphaTest extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(AlphaTest test: " + alphaTest + " reference: " + refValue
-				+ ")";
+			+ ")";
 	}
 }

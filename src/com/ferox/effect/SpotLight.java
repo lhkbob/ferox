@@ -69,7 +69,7 @@ public class SpotLight extends Light {
 	 * @param ambient
 	 */
 	public SpotLight(Vector3f position, Color diffuse, Color specular,
-			Color ambient) {
+		Color ambient) {
 		this(position, diffuse, specular, ambient, null);
 	}
 
@@ -84,7 +84,7 @@ public class SpotLight extends Light {
 	 * @param direction
 	 */
 	public SpotLight(Vector3f position, Color diffuse, Color specular,
-			Color ambient, Vector3f direction) {
+		Color ambient, Vector3f direction) {
 		super(diffuse, specular, ambient, direction);
 		setPosition(position);
 

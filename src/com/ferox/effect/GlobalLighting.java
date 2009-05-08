@@ -57,7 +57,7 @@ public class GlobalLighting extends AbstractEffect {
 	 *            sides of a polygon
 	 */
 	public GlobalLighting(Color globalAmbient, boolean separateSpecular,
-			boolean useLocalViewer, boolean twoSided) {
+		boolean useLocalViewer, boolean twoSided) {
 		setSeparateSpecular(separateSpecular);
 		setLocalViewer(useLocalViewer);
 		setTwoSidedLighting(twoSided);
@@ -153,7 +153,7 @@ public class GlobalLighting extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(GlobalLighting ambient: " + globalAmb + " separateSpec: "
-				+ separateSpec + " local: " + localViewer + " twoSided: "
-				+ useTwoSidedLighting + ")";
+			+ separateSpec + " local: " + localViewer + " twoSided: "
+			+ useTwoSidedLighting + ")";
 	}
 }

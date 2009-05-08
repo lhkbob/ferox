@@ -17,7 +17,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.POINT_RENDER, Type.POINT_SIZE})
+@EffectType( { Type.POINT_RENDER, Type.POINT_SIZE })
 public class PointStyle extends AbstractEffect {
 	public static enum PointSpriteOrigin {
 		UPPER_LEFT, LOWER_LEFT
@@ -134,7 +134,8 @@ public class PointStyle extends AbstractEffect {
 	 * setPointSize() for how the final point size is computed.
 	 * 
 	 * @see #setPointSize(float)
-	 * @param distanceAttenuation Distance attenuation <a, b, c> to use, null = <1, 0, 0>
+	 * @param distanceAttenuation Distance attenuation <a, b, c> to use, null =
+	 *            <1, 0, 0>
 	 */
 	public void setDistanceAttenuation(Vector3f distanceAttenuation) {
 		if (distanceAttenuation == null)
@@ -260,8 +261,8 @@ public class PointStyle extends AbstractEffect {
 	public void setMinMaxPointSize(float min, float max) {
 		if (min > max)
 			throw new IllegalArgumentException(
-					"Cannot specify a minimum point distance that's less than the max: "
-							+ min + " " + max);
+				"Cannot specify a minimum point distance that's less than the max: "
+					+ min + " " + max);
 		pointSizeMin = Math.max(1f, min);
 		pointSizeMax = Math.max(1f, max);
 	}

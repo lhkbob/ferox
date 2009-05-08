@@ -28,7 +28,7 @@ import com.ferox.util.UnitList.Unit;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.TEXTURE_ENV})
+@EffectType( { Type.TEXTURE_ENV })
 public class MultiTexture extends AbstractEffect {
 	private final UnitList<Texture> units;
 
@@ -107,6 +107,6 @@ public class MultiTexture extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(" + super.toString() + " numTextures: " + getNumTextures()
-				+ ")";
+			+ ")";
 	}
 }

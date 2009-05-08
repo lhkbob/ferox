@@ -14,11 +14,12 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.BLENDING})
+@EffectType( { Type.BLENDING })
 public class BlendMode extends AbstractEffect {
 	private static final BlendEquation DEFAULT_BLEND_EQ = BlendEquation.ADD;
 	private static final BlendFactor DEFAULT_SRC_FACTOR = BlendFactor.SRC_ALPHA;
-	private static final BlendFactor DEFAULT_DST_FACTOR = BlendFactor.ONE_MINUS_SRC_ALPHA;
+	private static final BlendFactor DEFAULT_DST_FACTOR =
+		BlendFactor.ONE_MINUS_SRC_ALPHA;
 
 	public static enum BlendEquation {
 		ADD, SUBTRACT, REVERSE_SUBTRACT, MIN, MAX
@@ -106,6 +107,6 @@ public class BlendMode extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(BlendMode blendFunc: " + blendFunc + " src: " + srcBlendFactor
-				+ " dst:" + dstBlendFactor + ")";
+			+ " dst:" + dstBlendFactor + ")";
 	}
 }

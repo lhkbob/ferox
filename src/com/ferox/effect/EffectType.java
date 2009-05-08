@@ -38,7 +38,7 @@ public @interface EffectType {
 	 * @return All Types that an Effect implementation represents.
 	 */
 	Type[] value();
-	
+
 	/**
 	 * <p>
 	 * An enum describing all low-level modifications to a RenderAtom. Highly
@@ -129,7 +129,7 @@ public @interface EffectType {
 		}
 
 		private Type(boolean mul) {
-			this.multiple = mul;
+			multiple = mul;
 		}
 
 		/**
@@ -140,7 +140,7 @@ public @interface EffectType {
 		 *         with each other.
 		 */
 		public boolean getMultipleEffects() {
-			return this.multiple;
+			return multiple;
 		}
 	}
 }

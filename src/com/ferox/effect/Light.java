@@ -84,7 +84,7 @@ public abstract class Light extends AbstractEffect {
 	 * @param direction The initial direction that the light is shining
 	 */
 	public Light(Color diffuse, Color specular, Color ambient,
-			Vector3f direction) {
+		Vector3f direction) {
 		setAmbient(ambient);
 		setDiffuse(diffuse);
 		setSpecular(specular);

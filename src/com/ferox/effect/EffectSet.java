@@ -13,8 +13,8 @@ import com.ferox.effect.EffectType.Type;
  * @author Michael Ludwig
  */
 public class EffectSet {
-	private List<Effect> listEffects;
-	private List<Effect> lockedEffects;
+	private final List<Effect> listEffects;
+	private final List<Effect> lockedEffects;
 
 	/** Default constructor, sets up an empty EffectSet. */
 	public EffectSet() {
@@ -34,11 +34,10 @@ public class EffectSet {
 			// only add if if it's not already present,
 			// and now check for conflicts with old Effects
 			int numEffects = listEffects.size();
-			for (int j = 0; j < numEffects; j++) {
+			for (int j = 0; j < numEffects; j++)
 				if (inConflict(e, listEffects.get(j)))
 					throw new IllegalStateException("Cannot add Effect " + e
-							+ ", it's in conflict with " + listEffects.get(j));
-			}
+						+ ", it's in conflict with " + listEffects.get(j));
 
 			// if we've gotten here, it's okay to add the effect
 			listEffects.add(e);
@@ -84,16 +83,13 @@ public class EffectSet {
 		Type[] type1 = e1.getTypes();
 		Type[] type2 = e2.getTypes();
 
-		for (int i = 0; i < type1.length; i++) {
-			if (!type1[i].getMultipleEffects()) {
+		for (int i = 0; i < type1.length; i++)
+			if (!type1[i].getMultipleEffects())
 				// only check further if we can't have multiples
-				for (int j = 0; j < type2.length; j++) {
+				for (int j = 0; j < type2.length; j++)
 					if (!type2[j].getMultipleEffects()
-							&& type1[i].equals(type2[j]))
+						&& type1[i].equals(type2[j]))
 						return true;
-				}
-			}
-		}
 
 		// we've gotten here, so no common Types, or the Types all allow
 		// multiple effects

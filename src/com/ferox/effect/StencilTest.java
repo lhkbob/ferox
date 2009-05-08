@@ -17,7 +17,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType({Type.STENCIL_TEST, Type.STENCIL_WRITE})
+@EffectType( { Type.STENCIL_TEST, Type.STENCIL_WRITE })
 public class StencilTest extends AbstractEffect {
 	/** Operation to perform on the stencil buffer under certain conditions. */
 	public static enum StencilOp {
@@ -201,8 +201,8 @@ public class StencilTest extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(StencilTest test: " + stencilFunc + " stencilFail: "
-				+ stencilFail + " depthFail: " + depthFail + " depthPass: "
-				+ depthPass + " reference: " + reference + " testMask: "
-				+ funcMask + " writeMask: " + writeMask + ")";
+			+ stencilFail + " depthFail: " + depthFail + " depthPass: "
+			+ depthPass + " reference: " + reference + " testMask: " + funcMask
+			+ " writeMask: " + writeMask + ")";
 	}
 }

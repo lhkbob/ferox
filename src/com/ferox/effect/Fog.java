@@ -2,7 +2,6 @@ package com.ferox.effect;
 
 import com.ferox.effect.EffectType.Type;
 import com.ferox.math.Color;
-import com.ferox.scene.SceneException;
 
 /**
  * <p>
@@ -55,6 +54,8 @@ public class Fog extends AbstractEffect {
 	/**
 	 * Creates a fog with the given color, default equation and quality, range
 	 * between .1 to 10, and a density of 1.
+	 * 
+	 * @param color The color to use
 	 */
 	public Fog(Color color) {
 		this(color, DEFAULT_START, DEFAULT_END, DEFAULT_DENSITY);
@@ -63,19 +64,32 @@ public class Fog extends AbstractEffect {
 	/**
 	 * Creates a fog with the given color, fog range and density, and the
 	 * default equation and quality.
+	 * 
+	 * @param color The color to use
+	 * @param start The start distance
+	 * @param end The ending distance (distance at which fog is densest)
+	 * @param density The density of the fog
+	 * @throws IllegalArgumentException if start > end
 	 */
-	public Fog(Color color, float start, float end, float density)
-			throws IllegalArgumentException {
+	public Fog(Color color, float start, float end, float density) {
 		this(color, start, end, density, null, null);
 	}
 
 	/**
 	 * Creates a fog with the given color, fog range, density, equation and
 	 * quality. If any of color, eq, or qual are null, then that value will be
-	 * set to the default. Fails if start > end, or if start < 0.
+	 * set to the default.
+	 * 
+	 * @param color The color to use
+	 * @param start The start distance
+	 * @param end The ending distance (distance at which fog is densest)
+	 * @param density The density of the fog
+	 * @param eq The FogEquation to use
+	 * @param qual The quality of the rendered fog
+	 * @throws IllegalArgumentException if start > end
 	 */
 	public Fog(Color color, float start, float end, float density,
-			FogEquation eq, Quality qual) throws SceneException {
+		FogEquation eq, Quality qual) {
 		setFogRange(start, end);
 		setDensity(density);
 		setEquation(eq);
@@ -83,7 +97,9 @@ public class Fog extends AbstractEffect {
 		setColor(color);
 	}
 
-	/** Get the fog color. Will not be null. */
+	/**
+	 * @return The Color instance storing the color of this Fog
+	 */
 	public Color getColor() {
 		return color;
 	}
@@ -91,6 +107,8 @@ public class Fog extends AbstractEffect {
 	/**
 	 * Set the fog color. If color is null, the fog color is set to the default
 	 * color.
+	 * 
+	 * @param color The new color to use
 	 */
 	public void setColor(Color color) {
 		if (color == null)
@@ -100,7 +118,9 @@ public class Fog extends AbstractEffect {
 
 	/**
 	 * Get the starting distance, in eye space, of the fog. Objects closer than
-	 * this value to the eye will not be fogged.
+	 * this value to the eye will not be fogged. This only affects a linear fog.
+	 * 
+	 * @return The start distance
 	 */
 	public float getStartDistance() {
 		return start;
@@ -108,35 +128,48 @@ public class Fog extends AbstractEffect {
 
 	/**
 	 * Get the ending distance, in eye space, of the fog. Eyes farther away than
-	 * this distance will be completely fogged.
+	 * this distance will be completely fogged. This only affects a linear fog
+	 * 
+	 * @return The ending distance of the fog
 	 */
 	public float getEndDistance() {
 		return end;
 	}
 
 	/**
-	 * Set the start and end distances for this fog. Fails if start > end, or if
-	 * start < 0.
+	 * Set the start and end distances for this fog.
+	 * 
+	 * @see #getEndDistance()
+	 * @see #getStartDistance()
+	 * @param start The new start distance
+	 * @param end The new ending distance
+	 * @throws IllegalArgumentException if start > end, or start < 0
 	 */
-	public void setFogRange(float start, float end) throws SceneException {
+	public void setFogRange(float start, float end) {
 		if (start < 0 || start > end)
-			throw new SceneException("Illegal valus for fog range: " + start
-					+ " - " + end);
+			throw new IllegalArgumentException("Illegal valus for fog range: "
+				+ start + " - " + end);
 		this.start = start;
 		this.end = end;
 	}
 
-	/** Get the fog density, a value greater than or equal to 0 */
+	/**
+	 * @return The fog density, a value greater than or equal to 0
+	 */
 	public float getDensity() {
 		return density;
 	}
 
-	/** Set the fog density, it will be clamped to be above 0. */
+	/**
+	 * Set the fog density, it will be clamped to be above 0.
+	 * 
+	 * @param density The new density value
+	 */
 	public void setDensity(float density) {
 		this.density = Math.max(0f, density);
 	}
 
-	/** Get the fog equation used by this fog. */
+	/** @return The fog equation used by this fog. */
 	public FogEquation getEquation() {
 		return eq;
 	}
@@ -144,6 +177,8 @@ public class Fog extends AbstractEffect {
 	/**
 	 * Set the fog equation used by this fog. If eq is null, the equation is set
 	 * to the default.
+	 * 
+	 * @param eq The new fog equation
 	 */
 	public void setEquation(FogEquation eq) {
 		if (eq == null)
@@ -151,7 +186,9 @@ public class Fog extends AbstractEffect {
 		this.eq = eq;
 	}
 
-	/** Get the quality of fog computation. */
+	/**
+	 * @return The quality of fog computation.
+	 */
 	public Quality getQuality() {
 		return qual;
 	}
@@ -159,6 +196,8 @@ public class Fog extends AbstractEffect {
 	/**
 	 * Set the quality of fog computation. If qual is null, the quality is set
 	 * to the default.
+	 * 
+	 * @param qual The new fog rendering quality
 	 */
 	public void setQuality(Quality qual) {
 		if (qual == null)
