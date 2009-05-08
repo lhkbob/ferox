@@ -11,7 +11,6 @@ import com.ferox.renderer.View.FrustumIntersection;
  * stays aligned to the xyz axis of world space.
  * 
  * @author Michael Ludwig
- * 
  */
 public class AxisAlignedBox extends AbstractBoundVolume {
 	private static final ThreadLocal<Vector3f> c = new ThreadLocal<Vector3f>() {
@@ -76,7 +75,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	 * @param maxZ Maximum z coordinate of the box
 	 */
 	public AxisAlignedBox(float minX, float minY, float minZ, float maxX,
-			float maxY, float maxZ) {
+		float maxY, float maxZ) {
 		this();
 		this.setMin(minX, minY, minZ);
 		this.setMax(maxX, maxY, maxZ);
@@ -132,7 +131,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	 * Set the min value of this aa box.
 	 * 
 	 * @see #setMin(Vector3f)
-	 * */
+	 */
 	public void setMin(float x, float y, float z) {
 		worldMin.set(x, y, z);
 	}
@@ -242,7 +241,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 			mergeSphere((BoundSphere) child);
 		else
 			throw new UnsupportedOperationException(
-					"Unabled to merge given bound volume: " + child);
+				"Unabled to merge given bound volume: " + child);
 	}
 
 	private void mergeAABB(AxisAlignedBox aabb) {
@@ -355,7 +354,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	public FrustumIntersection testFrustum(View view) {
 		if (view == null)
 			throw new NullPointerException(
-					"Cannot test a frustum with a null view");
+				"Cannot test a frustum with a null view");
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
 		int planeState = view.getPlaneState();
@@ -369,7 +368,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		Plane p;
 		for (int i = View.NUM_PLANES; i >= 0; i--) {
 			if (i == lastFailedPlane
-					|| (i == View.NUM_PLANES && lastFailedPlane < 0))
+				|| (i == View.NUM_PLANES && lastFailedPlane < 0))
 				continue;
 
 			if (i == View.NUM_PLANES)
@@ -404,7 +403,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f out) {
 		if (dir == null)
 			throw new NullPointerException(
-					"Can't find extent along a null direction vector");
+				"Can't find extent along a null direction vector");
 		if (out == null)
 			out = new Vector3f();
 
@@ -428,8 +427,8 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		if (other instanceof AxisAlignedBox) {
 			AxisAlignedBox a = (AxisAlignedBox) other;
 			return ((a.worldMax.x >= worldMin.x && a.worldMax.x <= worldMax.x) || (a.worldMin.x >= worldMin.x && a.worldMin.x <= worldMax.x))
-					&& ((a.worldMax.y >= worldMin.y && a.worldMax.y <= worldMax.y) || (a.worldMin.y >= worldMin.y && a.worldMin.y <= worldMax.y))
-					&& ((a.worldMax.z >= worldMin.z && a.worldMax.z <= worldMax.z) || (a.worldMin.z >= worldMin.z && a.worldMin.z <= worldMax.z));
+				&& ((a.worldMax.y >= worldMin.y && a.worldMax.y <= worldMax.y) || (a.worldMin.y >= worldMin.y && a.worldMin.y <= worldMax.y))
+				&& ((a.worldMax.z >= worldMin.z && a.worldMax.z <= worldMax.z) || (a.worldMin.z >= worldMin.z && a.worldMin.z <= worldMax.z));
 		} else if (other instanceof BoundSphere) {
 			/*
 			 * Vector3f c = AxisAlignedBox.c.get(); BoundSphere s =
@@ -474,7 +473,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 			return totalDistance <= s.getRadius() * s.getRadius();
 		} else
 			throw new UnsupportedOperationException(
-					"Unable to compute intersection for type: " + other);
+				"Unable to compute intersection for type: " + other);
 	}
 
 	@Override

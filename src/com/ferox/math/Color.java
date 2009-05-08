@@ -6,7 +6,6 @@ package com.ferox.math;
  * be within [0, 1].
  * 
  * @author Michael Ludwig
- * 
  */
 public class Color {
 	private float red;
@@ -159,7 +158,7 @@ public class Color {
 			return true;
 		Color that = (Color) other;
 		return that.red == red && that.green == green && that.blue == blue
-				&& that.alpha == alpha;
+			&& that.alpha == alpha;
 	}
 
 	@Override
@@ -174,6 +173,6 @@ public class Color {
 	@Override
 	public String toString() {
 		return "(Color " + red + ", " + green + ", " + blue + ", " + alpha
-				+ ")";
+			+ ")";
 	}
 }

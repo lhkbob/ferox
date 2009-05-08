@@ -5,7 +5,6 @@ package com.ferox.math;
  * method for retrieving those bounds into a result BoundVolume.
  * 
  * @author Michael Ludwig
- * 
  */
 public interface Boundable {
 	public static final int X_COORD = 0;
@@ -36,7 +35,6 @@ public interface Boundable {
 	 *            - 1
 	 * @param coord Coordinate of the vertex to return; X_COORD, Y_COORD, or
 	 *            Z_COORD
-	 * 
 	 * @return Float value for requested vertex and coordinate.
 	 * @throws IndexOutOfBoundsException if coord or index are out of range
 	 */

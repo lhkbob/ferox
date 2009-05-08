@@ -6,7 +6,6 @@ package com.ferox.math;
  * methods.
  * 
  * @author Michael Ludwig
- * 
  */
 public abstract class AbstractBoundVolume implements BoundVolume {
 

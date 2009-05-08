@@ -10,7 +10,6 @@ import com.ferox.renderer.View.FrustumIntersection;
  * of the center location.
  * 
  * @author Michael Ludwig
- * 
  */
 public class BoundSphere extends AbstractBoundVolume {
 	private static final float radiusEpsilon = 1.00001f;
@@ -181,7 +180,7 @@ public class BoundSphere extends AbstractBoundVolume {
 				float or = this.radius;
 				this.radius = (dist + radius + this.radius) / 2f;
 				this.center.scaleAdd((this.radius - or) / dist, diff,
-						this.center);
+					this.center);
 			} // else we already enclose it, so do nothing
 		} else
 			// don't need to move the center, just take the largest radius
@@ -196,7 +195,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	public FrustumIntersection testFrustum(View view) {
 		if (view == null)
 			throw new NullPointerException(
-					"Cannot test a frustum with a null view");
+				"Cannot test a frustum with a null view");
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
 		int planeState = view.getPlaneState();
@@ -205,7 +204,7 @@ public class BoundSphere extends AbstractBoundVolume {
 
 		for (int i = View.NUM_PLANES; i >= 0; i--) {
 			if (i == lastFailedPlane
-					|| (i == View.NUM_PLANES && lastFailedPlane < 0))
+				|| (i == View.NUM_PLANES && lastFailedPlane < 0))
 				continue;
 
 			if (i == View.NUM_PLANES)
@@ -235,7 +234,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result) {
 		if (dir == null)
 			throw new NullPointerException(
-					"Can't compute extent for a null direction");
+				"Can't compute extent for a null direction");
 		if (result == null)
 			result = new Vector3f();
 		result.set(center);
@@ -267,11 +266,11 @@ public class BoundSphere extends AbstractBoundVolume {
 			BoundSphere s = (BoundSphere) other;
 			cross.sub(center, s.center);
 			return cross.lengthSquared() <= (radius + s.radius)
-					* (radius + s.radius);
+				* (radius + s.radius);
 		} else
 			throw new UnsupportedOperationException(
-					"Unable to compute intersection between the given type: "
-							+ other);
+				"Unable to compute intersection between the given type: "
+					+ other);
 	}
 
 	@Override
@@ -280,22 +279,25 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	// used in enclose
-	private static final ThreadLocal<Vector3f> tempA = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tempB = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tempC = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
+	private static final ThreadLocal<Vector3f> tempA =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
+	private static final ThreadLocal<Vector3f> tempB =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
+	private static final ThreadLocal<Vector3f> tempC =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
 }

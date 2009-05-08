@@ -151,7 +151,7 @@ public class Transform {
 	public void setScale(float scale) {
 		if (scale < .0001f)
 			throw new IllegalArgumentException(
-					"Can't set a scale smaller than .0001: " + scale);
+				"Can't set a scale smaller than .0001: " + scale);
 		this.scale = scale;
 	}
 
@@ -269,7 +269,7 @@ public class Transform {
 	public Transform inverseMul(Transform ti, Transform tn) {
 		if (ti == null || tn == null)
 			throw new NullPointerException(
-					"Can't inverse multiply null transforms");
+				"Can't inverse multiply null transforms");
 		Vector3f t = temp.get();
 		ti.inverseTransform(tn.trans, t);
 		trans.set(t);
@@ -309,7 +309,7 @@ public class Transform {
 			throw new NullPointerException("Can't transform a null vector");
 		if (result == trans)
 			throw new IllegalArgumentException(
-					"Can't use this transform's vectors as a result");
+				"Can't use this transform's vectors as a result");
 		if (result == null)
 			result = new Vector3f();
 
@@ -351,15 +351,15 @@ public class Transform {
 			throw new NullPointerException("Can't transform a null vector");
 		if (result == trans)
 			throw new IllegalArgumentException(
-					"Can't use this transform's vectors as a result");
+				"Can't use this transform's vectors as a result");
 		if (result == null)
 			result = new Vector3f();
 
 		result.sub(t, trans);
 		result.set(
-				rot.m00 * result.x + rot.m10 * result.y + rot.m20 * result.z,
-				rot.m01 * result.x + rot.m11 * result.y + rot.m21 * result.z,
-				rot.m02 * result.x + rot.m12 * result.y + rot.m22 * result.z);
+			rot.m00 * result.x + rot.m10 * result.y + rot.m20 * result.z,
+			rot.m01 * result.x + rot.m11 * result.y + rot.m21 * result.z,
+			rot.m02 * result.x + rot.m12 * result.y + rot.m22 * result.z);
 		result.scale(1f / scale);
 
 		return result;
@@ -393,19 +393,21 @@ public class Transform {
 			return false;
 		Transform that = (Transform) other;
 		return trans.equals(that.trans) && scale == that.scale
-				&& rot.equals(that.rot);
+			&& rot.equals(that.rot);
 	}
 
-	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
-		@Override
-		protected Transform initialValue() {
-			return new Transform();
-		}
-	};
-	private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
+	private static final ThreadLocal<Transform> IDENTITY =
+		new ThreadLocal<Transform>() {
+			@Override
+			protected Transform initialValue() {
+				return new Transform();
+			}
+		};
+	private static final ThreadLocal<Vector3f> temp =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
 }

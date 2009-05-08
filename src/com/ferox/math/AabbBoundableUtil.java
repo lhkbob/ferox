@@ -9,7 +9,6 @@ import org.openmali.vecmath.Vector3f;
  * getVertexCount() methods.
  * 
  * @author Michael Ludwig
- * 
  */
 public class AabbBoundableUtil {
 	/**
@@ -35,11 +34,11 @@ public class AabbBoundableUtil {
 
 		for (int i = 0; i < vertexCount; i++)
 			enclosePoint(worldMin, worldMax, vertices.getVertex(i, 0), vertices
-					.getVertex(i, 1), vertices.getVertex(i, 2));
+				.getVertex(i, 1), vertices.getVertex(i, 2));
 	}
 
 	private static void enclosePoint(Vector3f worldMin, Vector3f worldMax,
-			float x, float y, float z) {
+		float x, float y, float z) {
 		worldMax.x = Math.max(worldMax.x, x);
 		worldMax.y = Math.max(worldMax.y, y);
 		worldMax.z = Math.max(worldMax.z, z);

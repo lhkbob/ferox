@@ -11,7 +11,6 @@ import com.ferox.renderer.View.FrustumIntersection;
  * culling and picking, as well as spatial queries.
  * 
  * @author Michael Ludwig
- * 
  */
 public interface BoundVolume {
 	/**
@@ -59,7 +58,6 @@ public interface BoundVolume {
 	 * 
 	 * @param view View to check frustum intersection
 	 * @return FrustumIntersection result
-	 * 
 	 * @throws NullPointerException if view is null
 	 */
 	public FrustumIntersection testFrustum(View view);
@@ -72,10 +70,8 @@ public interface BoundVolume {
 	 * @param dir Direction to compute the extent along
 	 * @param reverse Whether or not dir should be effectively negated
 	 * @param result Storage of the extent
-	 * 
 	 * @return Computed extent, either result or a new Vector3f if result is
 	 *         null
-	 * 
 	 * @throws NullPointerException if dir is null
 	 */
 	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result);
