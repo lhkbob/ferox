@@ -1,113 +1,153 @@
 package com.ferox.scene;
 
-import java.util.List;
-
 import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.math.BoundVolume;
 import com.ferox.math.Transform;
-import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;
 
-/** 
- * Node represents the primary superclass for any element of a scene.  It is highly unlikely
- * that implementing SceneElement without extending Node allows interaction with Node based classes.
- * It is plausible to implement a different SceneElement hierarchy for use by the renderer.
- * 
- * It provides local and world transforms, world bound caching, and default
- * implementations of update() and visit().
+/**
+ * <p>
+ * Node represents the superclass for any element of a scene. It provides local
+ * and world transforms, world bounds and can keep track of the lights and fog
+ * affecting it.
+ * </p>
+ * <p>
+ * A scene (built up of Nodes in a tree) goes through two phases before
+ * rendering: updating and then visiting. To guarantee that a Node's world
+ * transform, bounds, lights and fog stats are consistent, the scene must be
+ * updated. After a scene is updated, each node can be visited with a View and
+ * RenderQueue to add any required render atoms. After visiting is completed,
+ * the render queue is prepared for flushing to a Renderer.
+ * </p>
  * 
  * @author Michael Ludwig
- *
  */
-// TODO: add general bound volume tests (shouldn't be in scene element because it's specific to nodes, etc.)
-public abstract class Node implements SceneElement {
-	/** Represents the culling mode for when a Node is visited. See getCullMode(). */
+// TODO: add general bound volume tests (shouldn't be in scene element because
+// it's specific to nodes, etc.)
+public abstract class Node {
+	/**
+	 * Represents the culling mode for when a Node is visited. See
+	 * getCullMode().
+	 */
 	public static enum CullMode {
-		NEVER, ALWAYS, DYNAMIC
+		NEVER, ALWAYS, FRUSTUM
 	}
-	
-	private static final CullMode DEFAULT_CULLMODE = CullMode.DYNAMIC;
-	
+
+	/**
+	 * Represents the different outcomes of a Node's visit() method.
+	 */
+	public static enum VisitResult {
+		FAIL, SUCCESS_PARTIAL, SUCCESS_ALL
+	}
+
+	private static final CullMode DEFAULT_CULLMODE = CullMode.FRUSTUM;
+
 	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
+		@Override
 		protected Transform initialValue() {
 			return new Transform();
 		}
 	};
 	private static final ThreadLocal<Vector3f> dirVec = new ThreadLocal<Vector3f>() {
+		@Override
 		protected Vector3f initialValue() {
 			return new Vector3f();
 		}
 	};
 	private static final ThreadLocal<Vector3f> upVec = new ThreadLocal<Vector3f>() {
+		@Override
 		protected Vector3f initialValue() {
 			return new Vector3f();
 		}
 	};
 	private static final ThreadLocal<Vector3f> leftVec = new ThreadLocal<Vector3f>() {
+		@Override
 		protected Vector3f initialValue() {
 			return new Vector3f();
 		}
 	};
-	
+
 	// package-level so that Group can modify it during add() and remove()
 	Group parent;
-	
+
 	/** Represents the world transform of this Node */
 	protected final Transform worldTransform;
-	
-	/** Represents the local transform of this Node (transform relative to its parent) */
-	protected final Transform localTransform;
-	
-	/** Represents the world bounds of this Node.  If non-null after updateBounds(), view intersections
-	 * will assume intersection with frustum. */
-	protected BoundVolume worldBounds;
-		
-	private CullMode cullMode;
-	
-	private boolean lockTransform;
-	private boolean lockBounds;
-	
-	/** Cull mode is by default DYNAMIC, nothing is locked and world bounds are null.  No parent. */
-	public Node() {
-		this.worldTransform = new Transform();
-		this.localTransform = new Transform();
-		
-		this.worldBounds = null;
 
-		this.lockTransform = false;
-		this.lockBounds = false;
-		
-		this.setCullMode(null);
-		this.parent = null;
+	/**
+	 * Represents the local transform of this Node (transform relative to its
+	 * parent)
+	 */
+	protected final Transform localTransform;
+
+	/**
+	 * Represents the world bounds of this Node.
+	 */
+	protected BoundVolume worldBounds;
+
+	private CullMode cullMode;
+
+	/**
+	 * Create a Node with default state: identity transforms, no bounds, and the
+	 * default cull mode.
+	 */
+	public Node() {
+		worldTransform = new Transform();
+		localTransform = new Transform();
+
+		worldBounds = null;
+
+		setCullMode(null);
+		parent = null;
 	}
-	
-	/** Sets this Node's cull mode, if null it is set to default. */
-	public void setCullMode(CullMode mode) throws SceneException {
+
+	/**
+	 * Sets this Node's cull mode, which is used to determine which nodes are
+	 * processed during visit().
+	 * 
+	 * @param mode The cull mode to use, null = FRUSTUM
+	 */
+	public void setCullMode(CullMode mode) {
 		if (mode == null)
 			mode = DEFAULT_CULLMODE;
-		this.cullMode = mode;
-	}
-	
-	/** Cull mode determines the culling policy used when being visited.
-	 * DYNAMIC = test its bounds against the View.
-	 * NEVER = process this Node, and all of its children (unless a given child has cull = ALWAYS).
-	 * ALWAYS = don't process this Node or any of its children. */
-	public CullMode getCullMode() {
-		return this.cullMode;
-	}
-	
-	/** See SceneElement.getParent() */
-	public Group getParent() {
-		return this.parent;
+		cullMode = mode;
 	}
 
-	/** Sets this Node's parent to be the given Group.  If this Node already has a parent, it 
-	 * removes itself from that Group first.  If the new Group isn't null, it then adds
-	 * itself to the new Group. */
+	/**
+	 * Cull mode determines the culling policy used when a Node is processed in
+	 * visit(). If the cull mode is FRUSTUM, it is process if its world bounds
+	 * intersect the View's frustum. If it is NEVER, the Node (or any of its
+	 * children) will not be processed. If it's ALWAYS, then this Node (and all
+	 * of its children) will be processed. Nodes with a cull mode of ALWAYS
+	 * still require that their parents were successfully processed.
+	 * 
+	 * @return The CullMode to use for this Node
+	 */
+	public CullMode getCullMode() {
+		return cullMode;
+	}
+
+	/**
+	 * Get the parent of this Node in the tree hierarchy of the scene. If null
+	 * is returned, then this Node is the root of its tree.
+	 * 
+	 * @return The parent of this Node
+	 */
+	public Group getParent() {
+		return parent;
+	}
+
+	/**
+	 * Sets this Node's parent to be the given Group. If this Node already has a
+	 * parent, it removes itself from that Group first. If the new Group isn't
+	 * null, it then adds itself to the new Group, otherwise it becomes the root
+	 * of a newly detached tree.
+	 * 
+	 * @param parent The Group that will be this Node's new parent
+	 */
 	public void setParent(Group parent) {
 		if (parent != this.parent) {
 			if (this.parent != null)
@@ -116,230 +156,311 @@ public abstract class Node implements SceneElement {
 				parent.add(this); // this.parent == parent
 		}
 	}
-	
-	/** Updates this node's world transform to reflect changes in its local transform. This update occurs
-	 * whether or not transforms have been locked (only update(...) respects those).
-	 * fast has the same behavior as in localToWorld and worldToLocal. */
+
+	/**
+	 * Updates this node's world transform to reflect changes in its local
+	 * transform. fast has the same behavior as in localToWorld().
+	 * 
+	 * @see #localToWorld(Transform, Transform, boolean)
+	 * @param fast If true, it assumes that this Node's parent's world transform
+	 *            is valid
+	 */
 	public void updateTransform(boolean fast) {
-		this.localToWorld(IDENTITY.get(), this.worldTransform, fast);
+		localToWorld(IDENTITY.get(), worldTransform, fast);
 	}
-	
-	/** Re-compute this node's world bounds.  When called, it should be after the world
-	 * transform has been updated. Must ensure that worldBounds isn't null. 
-	 * This method should perform the update even if isBoundsLocked() is true, since only update(...) respects that boolean. */
+
+	/**
+	 * Re-compute this node's world bounds. This should only be called after a
+	 * valid and consistent world transform is guaranteed.
+	 */
 	public abstract void updateBounds();
-	
-	/** Implements SceneElement.update(...), updates the world transform and bounds of this Node if they aren't locked. */
-	@Override
-	public void update(boolean initiator) {
-		if (!this.isTransformLocked())
-			this.updateTransform(!initiator);
-		if (!this.isBoundsLocked())
-			this.updateBounds();
+
+	/**
+	 * <p>
+	 * Update this Node's world transform, world bounds, and detect any
+	 * LightNode's and FogNode's that affect it. After this method is called,
+	 * the Node's world state is valid.
+	 * </p>
+	 */
+	public void update() {
+		update(true);
 	}
-	
-	/** Implements SceneElement visit(...) to follow contract of this Node's cull mode.  If the cull mode is DYNAMIC,
-	 * it will test for visibility with the current View in order to find the correct VisitResult. */
-	@Override
-	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
-		switch(this.cullMode) {
-		case ALWAYS: return VisitResult.FAIL;
-		case NEVER: return VisitResult.SUCCESS_ALL;
-		case DYNAMIC:
+
+	/**
+	 * Actually perform the execution required for update().
+	 * 
+	 * @see #update()
+	 * @param initiator True if this Node is first invocation in a chain of
+	 *            updates necessary to get the scene tree updated.
+	 */
+	protected void update(boolean initiator) {
+		updateTransform(!initiator);
+		updateBounds();
+	}
+
+	/**
+	 * <p>
+	 * This method recursively goes through the scene tree, rooted at this Node,
+	 * and adds any render atoms to renderQueue that are necessary to properly
+	 * render the scene.
+	 * </p>
+	 * <p>
+	 * The default implementation just returns a VisitResult that respects the
+	 * Node's cull mode (performing frustum intersection tests if necessary).
+	 * Sub-classes should override this method to actually add atoms to
+	 * renderQueue.
+	 * </p>
+	 * 
+	 * @param renderQueue The RenderQueue that should be filled with RenderAtoms
+	 *            representing this scene
+	 * @param view The View that will be used to render renderQueue
+	 * @param parentResult The VisitResult returned by this Node's parent its
+	 *            visit() call, or null if this Node is the first to be visited.
+	 */
+	public VisitResult visit(RenderQueue renderQueue, View view,
+			VisitResult parentResult) {
+		switch (cullMode) {
+		case ALWAYS:
+			return VisitResult.FAIL;
+		case NEVER:
+			return VisitResult.SUCCESS_ALL;
+		case FRUSTUM:
 			if (parentResult == VisitResult.SUCCESS_ALL)
 				return VisitResult.SUCCESS_ALL;
 			else {
-				FrustumIntersection test = (this.worldBounds == null ? FrustumIntersection.INTERSECT : this.worldBounds.testFrustum(view));
-				switch(test) {
-				case INSIDE: return VisitResult.SUCCESS_ALL;
-				case INTERSECT: return VisitResult.SUCCESS_PARTIAL;
-				case OUTSIDE: return VisitResult.FAIL;
+				FrustumIntersection test = (worldBounds == null ? FrustumIntersection.INTERSECT
+						: worldBounds.testFrustum(view));
+				switch (test) {
+				case INSIDE:
+					return VisitResult.SUCCESS_ALL;
+				case INTERSECT:
+					return VisitResult.SUCCESS_PARTIAL;
+				case OUTSIDE:
+					return VisitResult.FAIL;
 				}
 			}
 		}
 		// shouldn't happen, but must please compiler
 		return VisitResult.SUCCESS_PARTIAL;
 	}
-	
-	/** Utility method to add all render atoms of the scene into the
-	 * given list (in many ways it functions like visit() where everything
-	 * is inside the view frustum).  This list can then be used in
-	 * a Renderer's compile() method.
+
+	/**
+	 * <p>
+	 * Get the BoundVolume that stores the world bounds of this Node. The
+	 * returned value may be null or stale if updateBounds() hasn't been called
+	 * after modification to this Node's children or transforms.
+	 * </p>
+	 * <p>
+	 * If this returns null after an update(), and if its cull mode is FRUSTUM,
+	 * then it is assumed to intersect the view.
+	 * </p>
 	 * 
-	 * The scene should be updated before this method is called, to get
-	 * correct results.
-	 * 
-	 * If atoms is null, a new list should be created and returned. */
-	public abstract List<RenderAtom> compile(List<RenderAtom> atoms);
-			
-	/** If bounds are locked, then this Node's world bounds will not be updated each time update() is called.
-	 * This also means that when locked, the bounds will not reflect any changes in the world transform of the Node. */
-	public boolean isBoundsLocked() {
-		return this.lockBounds;
-	}
-	
-	/** If lock is true, it updates the bounds before locking bounds.  It is recommended
-	 * that the transforms are updated before calling this, or the bounds may not be accurate.
-	 * If lock = isBoundsLocked(), this call is a no-op. */
-	public void lockBounds(boolean lock) {
-		if (lock != this.lockBounds) {
-			if (lock) {
-				this.updateTransform(false);
-				this.updateBounds();
-				this.lockBounds = true;
-			} else
-				this.lockBounds = false;
-		}
-	}
-	
-	/** If transforms are locked, then this Node's world transform will not be updated to reflect changes in its local transform
-	 * or parent's world transform. */
-	public boolean isTransformLocked() {
-		return this.lockTransform;
-	}
-	
-	/** If lock is true, it updates this Node's transform (fast = false) before locking transforms. */
-	public void lockTransform(boolean lock) {
-		if (lock != this.lockTransform) {
-			if (lock) {
-				this.updateTransform(false);
-				this.lockTransform = true;
-			} else
-				this.lockTransform = false;
-		}
-	}
-	
-	/** Get the BoundVolume that stores the world bounds of this Node.  The returned value may be null or stale
-	 * if updateBounds() hasn't been called after modification to this Node's children or transforms. 
-	 * 
-	 * If this returns null after an update(), and if its cull mode is DYNAMIC, then it is assumed to intersect the view. */
+	 * @return The BoundVolume instance holding this Node's bounds
+	 */
 	public BoundVolume getWorldBounds() {
-		return this.worldBounds;
+		return worldBounds;
 	}
-	
-	/** Get the world transform instance for this Node.  Changes to this instance will only be visible if the transforms are
-	 * locked, otherwise this is used as a cache for computing the world transform based off of this node's local transform. */
+
+	/**
+	 * Get the world transform instance for this Node. Changes made to this
+	 * transform will be overwritten by the proper world transform when the
+	 * Node's transforms are updated. The proper world transform is considered
+	 * to be the concatentation of this Node's parent's world transform and this
+	 * Node's local transform.
+	 * 
+	 * @return The Transform instance holding this Node's world transform.
+	 */
 	public Transform getWorldTransform() {
-		return this.worldTransform;
+		return worldTransform;
 	}
-	
-	/** Get the local transform instance of this Node.  Changes to this instance will only be visible in the world transform 
-	 * if the transforms aren't locked and/or updateTransform() is called. */
+
+	/**
+	 * Get the local transform instance of this Node. Changes to this instance
+	 * will be visible in the world transform after a call to
+	 * updateTransform(boolean) or update().
+	 * 
+	 * @return The Transform instance holding this Node's local transform
+	 */
 	public Transform getLocalTransform() {
-		return this.localTransform;
+		return localTransform;
 	}
-	
-	/** Computes the appropriate world transform for the given transform (local).  local is relative to this Node's identity space.
-	 * If this node's transforms are locked, then this method relies on the cached world transform for this node.
-	 * Otherwise it computes its parent's world transform in two ways, then concatenates it with its own local transform:
-	 *   1. If fast is true, uses this node's parent's cached world transform
-	 *   2  If fast is false, computes this node's parent's guaranteed world transform (identical to 1 during an update() traversal).
+
+	/**
+	 * <p>
+	 * Computes the appropriate world transform for the given transform (local).
+	 * local is relative to this Node's identity space. The result of the
+	 * computation is stored in result. If result is null, a new instace is
+	 * created.
+	 * </p>
+	 * <p>
+	 * Because the Node's parent's world transform may be in an invalid state,
+	 * this method offers the boolean parameter 'fast'. If fast is true, then it
+	 * is assumed that this Node's parent's world transform is valid and can be
+	 * used directly. If it is false, the parent's world transform is recomputed
+	 * from scratch and is guaranteed to be correct. It is recommended to
+	 * specify fast = false when the updated state of a Node is unknown.
+	 * </p>
 	 * 
-	 * Once this node's world transform has been computed, concatenates local and world together for the result.
-	 * 
-	 * The result of the computation is stored in result.  If result is null, a new instance is used.  If result is local or the same
-	 * instance as this node's local transform, because attempted computation would result in numeric errors.  Also fails if local = null.
-	 * 
-	 * Returns result. */
-	public Transform localToWorld(Transform local, Transform result, boolean fast) throws SceneException {
+	 * @param local The transform that is to be converted to world space
+	 * @param result The transform that will hold the converted local transform
+	 * @param fast True if this Node's parent's world transform is valid and
+	 *            up-to-date
+	 * @return result, or a new Transform if result was null
+	 * @throws NullPointerException if local is null
+	 * @throws IllegalArgumentException if result is local, or this Node's local
+	 *             transform
+	 */
+	public Transform localToWorld(Transform local, Transform result,
+			boolean fast) {
 		if (local == null)
-			throw new SceneException("Can't compute world transform from null local trans");
-		if (result == local || result == this.localTransform)
-			throw new SceneException("Can't use this node's local transform or local as result");
+			throw new NullPointerException(
+					"Can't compute world transform from null local trans");
+		if (result == local || result == localTransform)
+			throw new IllegalArgumentException(
+					"Can't use this node's local transform or local as result");
 		if (result == null)
 			result = new Transform();
-		
-		if (!this.isTransformLocked()) {
-			if (this.parent != null) {
-				if (fast)
-					result.set(this.parent.worldTransform);
-				else
-					this.parent.localToWorld(IDENTITY.get(), result, false);
-			} else 
-				result.setIdentity();
-			result.mul(result, this.localTransform);
+
+		if (parent != null) {
+			if (fast)
+				result.set(parent.worldTransform);
+			else
+				parent.localToWorld(IDENTITY.get(), result, false);
 		} else
-			result.set(this.worldTransform);
+			result.setIdentity();
+		result.mul(result, localTransform);
 		result.mul(result, local);
-		
+
 		return result;
 	}
-	
-	/** Computes the transform (local to this node's identity space) that is equivalent to the given world transform. 
-	 * result stores the answer and then returns it.  If result is null, a new instance is created.  
-	 * If fast is true, it uses this node's cached world transform, otherwise it calculates the guaranteed world transform
-	 * (they're the same during an update() traversal).
+
+	/**
+	 * <p>
+	 * Computes the local transform, relative to this Node's coordinate space,
+	 * based on the given Transform, world. The computed transform is stored in
+	 * result, or a new instance if result is null.
+	 * </p>
+	 * <p>
+	 * worldToLocal() uses a 'fast' parameter just like localToWorld(), but
+	 * there is a subtle difference. With worldToLocal(), if fast is true, it
+	 * assumes that this Node's world transform is valid (compapred to
+	 * localToWorld(), which assumed that this Node's parent's world transform
+	 * was valid).
+	 * </p>
 	 * 
-	 * If result is the same instance as world, this node's world cache, or local cache, it will fail because otherwise numeric errors
-	 * would occur.  If world is null, it also throws an exception. */
-	public Transform worldToLocal(Transform world, Transform result, boolean fast) throws SceneException {
+	 * @param world The transform that should be converted into this Node's
+	 *            local space
+	 * @param result The transform that will hold onto the result
+	 * @return result, or a new Transform if result was null
+	 * @throws NullPointerException if world is null
+	 * @throws IllegalArgumentException if result is world or this Node's world
+	 *             transform instance.
+	 */
+	public Transform worldToLocal(Transform world, Transform result,
+			boolean fast) {
 		if (world == null)
-			throw new SceneException("Can't compute local transform from null world trans");
-		if (result == world || result == this.worldTransform)
-			throw new SceneException("Can't use this node's world transform or world as result");
+			throw new NullPointerException(
+					"Can't compute local transform from null world trans");
+		if (result == world || result == worldTransform)
+			throw new IllegalArgumentException(
+					"Can't use this node's world transform or world as result");
 		if (result == null)
 			result = new Transform();
-		
+
 		if (fast)
-			result.set(this.worldTransform);
+			result.set(worldTransform);
 		else
-			this.localToWorld(IDENTITY.get(), result, false);
+			localToWorld(IDENTITY.get(), result, false);
 		result.inverseMul(result, world);
-		
+
 		return result;
 	}
-	
-	/** Utility method to copy the given local transform into this node's local transform and to store the correct
-	 * new world transform into this node's cache. */
-	public void setLocalTransform(Transform local) {
-		this.localTransform.set(local);
-		this.localToWorld(IDENTITY.get(), this.worldTransform, false);
-	}
-	
-	/** Utility method to copy the given world transform into this node's world transform and to store the correct
-	 * new local transform into this node's cache. */
-	public void setWorldTransform(Transform world) {
-		if (this.parent == null)
-			this.localTransform.set(world);
-		else
-			this.parent.worldToLocal(world, this.localTransform, false);
-		this.worldTransform.set(world);
-	}
-	
-	/** Adjusts this Node's local transform so that it looks at position (in world coordinates), and
-	 * its y-axis is aligned as closely as possible to up (not always exactly up because it has to
-	 * maintain orthogonality). 
+
+	/**
+	 * Copy the transform values held in local into this Node's local transform
+	 * instance. It will be necessary to call updateTransform() (directly or
+	 * during the update process) to see these changes reflected in the Node's
+	 * world transform.
 	 * 
-	 * The z-axis of the rotation matrix is assumed to be the facing direction. */
-	public void lookAt(Vector3f position, Vector3f up) throws NullPointerException {
+	 * @param local The transform to copy, null == identity
+	 */
+	public void setLocalTransform(Transform local) {
+		localTransform.set(local);
+	}
+
+	/**
+	 * <p>
+	 * Compute the local transform necessary for this Node to have the given
+	 * world position. The computed result is stored in this Node's local
+	 * transform instance.
+	 * </p>
+	 * <p>
+	 * It is safe to call this method with this Node's world transform method.
+	 * This just have the affect of updating the Node's local transform so that
+	 * the values in the world transform are preserved (assuming that the
+	 * transforms in any of this Node's parents are not changed later).
+	 * </p>
+	 * 
+	 * @param world The world transform that is used in computing an appropriate
+	 *            local transform
+	 * @throws NullPointerException if world is null
+	 */
+	public void setWorldTransform(Transform world) {
+		if (parent == null) {
+			// fail here, to be consistent with worldToLocal()'s
+			// NullPointerException
+			if (world == null)
+				throw new NullPointerException(
+						"Cannot set a null world transform");
+			localTransform.set(world);
+		} else
+			parent.worldToLocal(world, localTransform, false);
+		worldTransform.set(world);
+	}
+
+	/**
+	 * <p>
+	 * Adjusts this Node's local transform so that it looks at position (in
+	 * world coordinates), and its y-axis is aligned as closely as possible to
+	 * up (not always exactly up because it has to maintain orthogonality).
+	 * </p>
+	 * 
+	 * @param position The position that is being pointed at
+	 * @param up The desired vertical vector (e.g. local y axis) of this node
+	 * @throws NullPointerException if position or up are null
+	 */
+	public void lookAt(Vector3f position, Vector3f up) {
 		if (position == null || up == null)
-			throw new SceneException("Can't call lookAt() with null input vectors: " + position + " " + up);
-		
-		if (this.parent != null) {
-			this.parent.updateTransform(false);
-			this.worldTransform.mul(this.parent.worldTransform, this.localTransform);
-		} else {
-			this.worldTransform.set(this.localTransform);
-		}
-		
+			throw new NullPointerException(
+					"Can't call lookAt() with null input vectors: " + position
+							+ " " + up);
+
+		if (parent != null) {
+			parent.updateTransform(false);
+			worldTransform.mul(parent.worldTransform, localTransform);
+		} else
+			worldTransform.set(localTransform);
+
 		Vector3f dirVec = Node.dirVec.get();
 		Vector3f leftVec = Node.leftVec.get();
 		Vector3f upVec = Node.upVec.get();
-		
-		dirVec.sub(position, this.worldTransform.getTranslation()); dirVec.normalize();
-		
-		leftVec.cross(up, dirVec); leftVec.normalize();
-		upVec.cross(dirVec, leftVec); upVec.normalize();
-				
-		Matrix3f rot = this.worldTransform.getRotation();
+
+		dirVec.sub(position, worldTransform.getTranslation());
+		dirVec.normalize();
+
+		leftVec.cross(up, dirVec);
+		leftVec.normalize();
+		upVec.cross(dirVec, leftVec);
+		upVec.normalize();
+
+		Matrix3f rot = worldTransform.getRotation();
 		rot.setColumn(0, leftVec);
 		rot.setColumn(1, upVec);
 		rot.setColumn(2, dirVec);
-		
-		if (this.parent != null) {
-			this.parent.worldToLocal(this.worldTransform, this.localTransform, true);
-		} else {
-			this.localTransform.set(this.worldTransform);
-		}
+
+		if (parent != null)
+			parent.worldToLocal(worldTransform, localTransform, true);
+		else
+			localTransform.set(worldTransform);
 	}
 }
