@@ -7,7 +7,6 @@ import com.ferox.resource.BufferData.DataType;
  * formats (including _FLOAT) that have a data type of FLOAT.
  * 
  * @author Michael Ludwig
- * 
  */
 public class UnpackedFloatConverter extends UnpackedFormatConverter {
 	public UnpackedFloatConverter() {

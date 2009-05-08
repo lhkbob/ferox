@@ -93,7 +93,7 @@ public class Text extends IndexedArrayGeometry {
 	 */
 	public Text(CharacterSet charSet, String text, CompileType type) {
 		super(type);
-		
+
 		setCharacterSet(charSet);
 		setText(text);
 		setWrapWidth(-1f);
@@ -293,30 +293,31 @@ public class Text extends IndexedArrayGeometry {
 	 * </p>
 	 */
 	public void layoutText() {
-		LineMetrics lm = charSet.getFont().getLineMetrics(text,
+		LineMetrics lm =
+			charSet.getFont().getLineMetrics(text,
 				charSet.getFontRenderContext());
 		TextLayout tl = new TextLayout(charSet, lm, maxTextWidth);
 		float[] it2v3 = tl.doLayout(text);
-		
+
 		// extract individual arrays from interleaved array
 		float[] v = new float[it2v3.length / 5 * 3];
 		float[] t = new float[it2v3.length / 5 * 2];
 		int[] i = new int[it2v3.length / 5];
-		
+
 		for (int j = 0; j < i.length; j++) {
 			// tex
 			t[j * 2 + 0] = it2v3[j * 5 + 0];
 			t[j * 2 + 0] = it2v3[j * 5 + 1];
-			
+
 			// coord
 			v[j * 3 + 0] = it2v3[j * 5 + 2];
 			v[j * 3 + 1] = it2v3[j * 5 + 3];
 			v[j * 3 + 2] = it2v3[j * 5 + 4];
-			
+
 			// index
 			i[j] = j;
 		}
-		
+
 		setVertices(v);
 		setTextureCoordinates(0, new VectorBuffer(t, 2));
 		setIndices(i, PolygonType.QUADS);
@@ -382,8 +383,8 @@ public class Text extends IndexedArrayGeometry {
 		}
 
 		/*
-		 * Layout out the given text, returning an array of coords with
-		 * a usage pattern of T2F_V3F
+		 * Layout out the given text, returning an array of coords with a usage
+		 * pattern of T2F_V3F
 		 */
 		public float[] doLayout(String text) {
 			// reset values for the layout
@@ -492,7 +493,7 @@ public class Text extends IndexedArrayGeometry {
 						// and it wasn't the first char for the line (we always
 						// put 1 char)
 						if (cursorX > leftEdge
-								&& cursorX + g.getAdvance() > wrapWidth)
+							&& cursorX + g.getAdvance() > wrapWidth)
 							newline();
 					index = placeGlyph(g, coords, index);
 					break;
@@ -581,8 +582,8 @@ public class Text extends IndexedArrayGeometry {
 					// do nothing, since they only change the line position
 					break;
 				case '\t':
-					width += TAB_SPACE_COUNT
-							* charSet.getGlyph(' ').getAdvance();
+					width +=
+						TAB_SPACE_COUNT * charSet.getGlyph(' ').getAdvance();
 					break;
 				default:
 					// this works for spaces, too

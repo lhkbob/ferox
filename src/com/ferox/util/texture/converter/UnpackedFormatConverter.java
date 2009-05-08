@@ -9,7 +9,6 @@ import com.ferox.resource.BufferData.DataType;
  * involving formats that don't pack their data or compress it in any other way.
  * 
  * @author Michael Ludwig
- * 
  */
 public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	private final DataType validType;
@@ -37,29 +36,30 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
-		int index = numC
+		int index =
+			numC
 				* (x + y * data.getWidth() + z * data.getHeight()
-						* data.getWidth());
+					* data.getWidth());
 		Object array = data.getData().getData();
 
 		switch (data.getFormat()) {
 		case BGRA:
 			store.set(get(array, index + 2), get(array, index + 1), get(array,
-					index + 0), get(array, index + 3));
+				index + 0), get(array, index + 3));
 			break;
 		case BGR:
 			store.set(get(array, index + 2), get(array, index + 1), get(array,
-					index + 0), 1f);
+				index + 0), 1f);
 			break;
 		case RGBA:
 		case RGBA_FLOAT:
 			store.set(get(array, index + 0), get(array, index + 1), get(array,
-					index + 2), get(array, index + 3));
+				index + 2), get(array, index + 3));
 			break;
 		case RGB:
 		case RGB_FLOAT:
 			store.set(get(array, index + 0), get(array, index + 1), get(array,
-					index + 2), 1f);
+				index + 2), 1f);
 			break;
 		case ALPHA:
 		case ALPHA_FLOAT:
@@ -90,9 +90,10 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
-		int index = numC
+		int index =
+			numC
 				* (x + y * data.getWidth() + z * data.getHeight()
-						* data.getWidth());
+					* data.getWidth());
 		Object array = data.getData().getData();
 
 		switch (data.getFormat()) {
@@ -131,7 +132,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 		case LUMINANCE_ALPHA:
 		case LUMINANCE_ALPHA_FLOAT: {
 			set(array, index, (color.getRed() + color.getGreen() + color
-					.getBlue()) / 3f);
+				.getBlue()) / 3f);
 			set(array, index + 1, color.getAlpha());
 			break;
 		}
@@ -139,7 +140,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 		case LUMINANCE:
 		case LUMINANCE_FLOAT: {
 			set(array, index, (color.getRed() + color.getGreen() + color
-					.getBlue()) / 3f);
+				.getBlue()) / 3f);
 			break;
 		}
 		}
@@ -168,7 +169,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 
 	private boolean supported(DataType type, TextureFormat format) {
 		return type == validType && !format.isCompressed()
-				&& !format.isPackedFormat();
+			&& !format.isPackedFormat();
 	}
 
 }

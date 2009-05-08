@@ -9,7 +9,6 @@ import com.ferox.resource.BufferData.DataType;
  * and RGB_565
  * 
  * @author Michael Ludwig
- * 
  */
 public class PackedShort565Converter implements Decoder, Encoder {
 	private static final int C1_MASK = 0xF800;
@@ -27,7 +26,7 @@ public class PackedShort565Converter implements Decoder, Encoder {
 	@Override
 	public boolean canEncode(DataType type, TextureFormat format) {
 		return type == DataType.UNSIGNED_SHORT
-				&& (format == TextureFormat.BGR_565 || format == TextureFormat.RGB_565);
+			&& (format == TextureFormat.BGR_565 || format == TextureFormat.RGB_565);
 	}
 
 	@Override
@@ -36,26 +35,26 @@ public class PackedShort565Converter implements Decoder, Encoder {
 		int y = (int) v * data.getHeight();
 		int z = (int) w * data.getDepth();
 
-		int index = x + y * data.getWidth() + z * data.getWidth()
-				* data.getHeight();
+		int index =
+			x + y * data.getWidth() + z * data.getWidth() * data.getHeight();
 		short val = ((short[]) data.getData().getData())[index];
 
 		switch (data.getFormat()) {
 		case BGR_565:
 			store.set(((val & C3_MASK) >> 0) / MAX_RB, ((val & C2_MASK) >> 5)
-					/ MAX_G, ((val & C1_MASK) >> 11) / MAX_RB, 1f);
+				/ MAX_G, ((val & C1_MASK) >> 11) / MAX_RB, 1f);
 			break;
 		case RGB_565:
 			store.set(((val & C1_MASK) >> 11) / MAX_RB, ((val & C2_MASK) >> 5)
-					/ MAX_G, ((val & C3_MASK) >> 0) / MAX_RB, 1f);
+				/ MAX_G, ((val & C3_MASK) >> 0) / MAX_RB, 1f);
 			break;
 		}
 	}
 
 	@Override
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
-		int index = x + y * data.getWidth() + z * data.getWidth()
-				* data.getHeight();
+		int index =
+			x + y * data.getWidth() + z * data.getWidth() * data.getHeight();
 
 		float alpha = color.getAlpha();
 
@@ -68,10 +67,12 @@ public class PackedShort565Converter implements Decoder, Encoder {
 		// pack the color into a short
 		switch (data.getFormat()) {
 		case BGR_565:
-			val = (short) (((red << 0) & C3_MASK) | ((green << 5) & C2_MASK) | ((blue << 11) & C1_MASK));
+			val =
+				(short) (((red << 0) & C3_MASK) | ((green << 5) & C2_MASK) | ((blue << 11) & C1_MASK));
 			break;
 		case RGB_565:
-			val = (short) (((red << 11) & C1_MASK) | ((green << 5) & C2_MASK) | ((blue << 0) & C3_MASK));
+			val =
+				(short) (((red << 11) & C1_MASK) | ((green << 5) & C2_MASK) | ((blue << 0) & C3_MASK));
 			break;
 		}
 

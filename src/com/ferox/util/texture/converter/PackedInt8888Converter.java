@@ -10,7 +10,6 @@ import com.ferox.resource.BufferData.DataType;
  * UNSIGNED_INT.
  * 
  * @author Michael Ludwig
- * 
  */
 public class PackedInt8888Converter implements Decoder, Encoder {
 	private static final long C1_MASK = 0xff000000;
@@ -28,9 +27,9 @@ public class PackedInt8888Converter implements Decoder, Encoder {
 	@Override
 	public boolean canEncode(DataType type, TextureFormat format) {
 		return type == DataType.UNSIGNED_INT
-				&& (format == TextureFormat.ABGR_8888
-						|| format == TextureFormat.BGRA_8888
-						|| format == TextureFormat.ARGB_8888 || format == TextureFormat.RGBA_8888);
+			&& (format == TextureFormat.ABGR_8888
+				|| format == TextureFormat.BGRA_8888
+				|| format == TextureFormat.ARGB_8888 || format == TextureFormat.RGBA_8888);
 	}
 
 	@Override
@@ -39,39 +38,38 @@ public class PackedInt8888Converter implements Decoder, Encoder {
 		int y = (int) v * data.getHeight();
 		int z = (int) w * data.getDepth();
 
-		int index = x + y * data.getWidth() + z * data.getWidth()
-				* data.getHeight();
+		int index =
+			x + y * data.getWidth() + z * data.getWidth() * data.getHeight();
 		int val = ((int[]) data.getData().getData())[index];
 
 		switch (data.getFormat()) {
 		case ABGR_4444:
 			store.set(((val & C4_MASK) >> 0) / MAX_VALUE,
-					((val & C3_MASK) >> 8) / MAX_VALUE, ((val & C2_MASK) >> 16)
-							/ MAX_VALUE, ((val & C1_MASK) >> 24) / MAX_VALUE);
+				((val & C3_MASK) >> 8) / MAX_VALUE, ((val & C2_MASK) >> 16)
+					/ MAX_VALUE, ((val & C1_MASK) >> 24) / MAX_VALUE);
 			break;
 		case ARGB_4444:
 			store.set(((val & C2_MASK) >> 16) / MAX_VALUE,
-					((val & C3_MASK) >> 8) / MAX_VALUE, ((val & C4_MASK) >> 0)
-							/ MAX_VALUE, ((val & C1_MASK) >> 24) / MAX_VALUE);
+				((val & C3_MASK) >> 8) / MAX_VALUE, ((val & C4_MASK) >> 0)
+					/ MAX_VALUE, ((val & C1_MASK) >> 24) / MAX_VALUE);
 			break;
 		case BGRA_4444:
 			store.set(((val & C3_MASK) >> 8) / MAX_VALUE,
-					((val & C2_MASK) >> 16) / MAX_VALUE,
-					((val & C1_MASK) >> 24) / MAX_VALUE, ((val & C4_MASK) >> 0)
-							/ MAX_VALUE);
+				((val & C2_MASK) >> 16) / MAX_VALUE, ((val & C1_MASK) >> 24)
+					/ MAX_VALUE, ((val & C4_MASK) >> 0) / MAX_VALUE);
 			break;
 		case RGBA_4444:
 			store.set(((val & C1_MASK) >> 24) / MAX_VALUE,
-					((val & C2_MASK) >> 16) / MAX_VALUE, ((val & C3_MASK) >> 8)
-							/ MAX_VALUE, ((val & C4_MASK) >> 0) / MAX_VALUE);
+				((val & C2_MASK) >> 16) / MAX_VALUE, ((val & C3_MASK) >> 8)
+					/ MAX_VALUE, ((val & C4_MASK) >> 0) / MAX_VALUE);
 			break;
 		}
 	}
 
 	@Override
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
-		int index = x + y * data.getWidth() + z * data.getWidth()
-				* data.getHeight();
+		int index =
+			x + y * data.getWidth() + z * data.getWidth() * data.getHeight();
 
 		int red = (int) (color.getRed() * MAX_VALUE);
 		int green = (int) (color.getGreen() * MAX_VALUE);
@@ -83,19 +81,23 @@ public class PackedInt8888Converter implements Decoder, Encoder {
 		// pack the color into a int
 		switch (data.getFormat()) {
 		case ABGR_4444:
-			val = (int) (((red << 0) & C4_MASK) | ((green << 8) & C3_MASK)
+			val =
+				(int) (((red << 0) & C4_MASK) | ((green << 8) & C3_MASK)
 					| ((blue << 16) & C2_MASK) | ((alpha << 24) & C1_MASK));
 			break;
 		case ARGB_4444:
-			val = (int) (((red << 16) & C2_MASK) | ((green << 8) & C3_MASK)
+			val =
+				(int) (((red << 16) & C2_MASK) | ((green << 8) & C3_MASK)
 					| ((blue << 0) & C4_MASK) | ((alpha << 24) & C1_MASK));
 			break;
 		case BGRA_4444:
-			val = (int) (((red << 8) & C3_MASK) | ((green << 16) & C2_MASK)
+			val =
+				(int) (((red << 8) & C3_MASK) | ((green << 16) & C2_MASK)
 					| ((blue << 24) & C1_MASK) | ((alpha << 0) & C4_MASK));
 			break;
 		case RGBA_4444:
-			val = (int) (((red << 24) & C1_MASK) | ((green << 16) & C2_MASK)
+			val =
+				(int) (((red << 24) & C1_MASK) | ((green << 16) & C2_MASK)
 					| ((blue << 8) & C3_MASK) | ((alpha << 0) & C4_MASK));
 			break;
 		}

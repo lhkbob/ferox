@@ -44,15 +44,15 @@ public class TGATexture {
 	 * 
 	 * @param stream The InputStream to read the tga texture from
 	 * @return The read Texture2D
-	 * @throws IOException if there was an IO error or if the tga file is invalid
-	 *             or unsupported
+	 * @throws IOException if there was an IO error or if the tga file is
+	 *             invalid or unsupported
 	 */
 	public static Texture2D readTexture(InputStream stream) throws IOException {
 		if (stream == null)
 			throw new IOException("Cannot read from a null stream");
 		TGATexture res = new TGATexture(stream);
 		return new Texture2D(new BufferData[] { res.data }, res.header.width,
-				res.header.height, res.format, res.data.getType());
+			res.header.height, res.format, res.data.getType());
 	}
 
 	/**
@@ -320,17 +320,17 @@ public class TGATexture {
 		if (h.hasColorMap()) {
 			if (h.firstEntryIndex < 0)
 				return "Bad first entry index for a color map: "
-						+ h.firstEntryIndex;
+					+ h.firstEntryIndex;
 			if (h.colorMapLength < 0)
 				return "Bad number of color map entries: " + h.colorMapLength;
 			if (!h.isBlackAndWhite())
 				if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24
-						&& h.colorMapEntrySize != 32)
+					&& h.colorMapEntrySize != 32)
 					return "Unsupported color map entry size: "
-							+ h.colorMapEntrySize;
+						+ h.colorMapEntrySize;
 			if (h.pixelDepth != 8 && h.pixelDepth != 16)
 				return "Pixel depth doesn't have a valid value: "
-						+ h.pixelDepth;
+					+ h.pixelDepth;
 			if (h.hasColorMap() && h.colorMapType == 0)
 				return "Image type expects a color map, but one is not specified";
 		} else if (!h.isBlackAndWhite())
@@ -338,17 +338,17 @@ public class TGATexture {
 			case 16:
 				if (h.getAttribsPerPixel() != 1)
 					return "Bad attribs pixel count, must be 1 for 16 bit colors: "
-							+ h.getAttribsPerPixel();
+						+ h.getAttribsPerPixel();
 				break;
 			case 24:
 				if (h.getAttribsPerPixel() != 0)
 					return "Bad attribs pixel count, must be 0 for 24 bit colors: "
-							+ h.getAttribsPerPixel();
+						+ h.getAttribsPerPixel();
 				break;
 			case 32:
 				if (h.getAttribsPerPixel() != 8)
 					return "Bad attribs pixel count, must be 8 for 32 bit colors: "
-							+ h.getAttribsPerPixel();
+						+ h.getAttribsPerPixel();
 				break;
 			default:
 				return "Unsupported pixel depth: " + h.pixelDepth;
@@ -373,8 +373,8 @@ public class TGATexture {
 		switch (header.imageType) {
 		case TYPE_COLORMAP:
 			// load the color map
-			ColorMap cm = (header.hasColorMap() ? new ColorMap(header, in)
-					: null);
+			ColorMap cm =
+				(header.hasColorMap() ? new ColorMap(header, in) : null);
 
 			if (cm.elementByteCount == 2)
 				decodeColorMap16(cm, in);
@@ -397,14 +397,14 @@ public class TGATexture {
 	 * map has a bit depth of 16.
 	 */
 	private void decodeColorMap16(ColorMap cm, InputStream dIn)
-			throws IOException {
+		throws IOException {
 		int i; // input row index
 		int y; // output row index
 		int c; // column index
 		short[] tmpData = new short[header.width * header.height];
 
-		format = (cm.elementByteCount == 3 ? TextureFormat.BGR
-				: TextureFormat.BGRA);
+		format =
+			(cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
 		if (header.pixelDepth == 8) {
 			// indices use 2 bytes
 			byte[] rawIndices = new byte[header.width << 1];
@@ -415,8 +415,8 @@ public class TGATexture {
 
 				for (c = 0; c < header.width; c++) {
 					index = bytesToLittleEndianShort(rawIndices, c << 1);
-					tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
-							cm.colorMapData, index);
+					tmpData[y * header.width + c] =
+						(short) bytesToLittleEndianShort(cm.colorMapData, index);
 				}
 			}
 		} else {
@@ -429,8 +429,8 @@ public class TGATexture {
 
 				for (c = 0; c < header.width; c++) {
 					index = rawIndices[c];
-					tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
-							cm.colorMapData, index);
+					tmpData[y * header.width + c] =
+						(short) bytesToLittleEndianShort(cm.colorMapData, index);
 				}
 			}
 		}
@@ -443,7 +443,7 @@ public class TGATexture {
 	 * map has bit depth of 24 or 32.
 	 */
 	private void decodeColorMap24_32(ColorMap cm, InputStream dIn)
-			throws IOException {
+		throws IOException {
 		int i; // input row index
 		int y; // output row index
 		int c; // column index
@@ -451,8 +451,8 @@ public class TGATexture {
 		// color row
 		byte[] tmpData = new byte[rawWidth * header.height];
 
-		format = (cm.elementByteCount == 3 ? TextureFormat.BGR
-				: TextureFormat.BGRA);
+		format =
+			(cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
 		if (header.pixelDepth == 8) {
 			// indices use 2 bytes
 			byte[] rawIndices = new byte[header.width << 1];
@@ -464,8 +464,8 @@ public class TGATexture {
 				for (c = 0; c < header.width; c++) {
 					index = bytesToLittleEndianShort(rawIndices, c << 1);
 					System.arraycopy(cm.colorMapData, index, tmpData, y
-							* rawWidth + c * cm.elementByteCount,
-							cm.elementByteCount);
+						* rawWidth + c * cm.elementByteCount,
+						cm.elementByteCount);
 				}
 			}
 		} else {
@@ -477,8 +477,8 @@ public class TGATexture {
 
 				for (c = 0; c < header.width; c++)
 					System.arraycopy(cm.colorMapData, rawIndices[c], tmpData, y
-							* rawWidth + c * cm.elementByteCount,
-							cm.elementByteCount);
+						* rawWidth + c * cm.elementByteCount,
+						cm.elementByteCount);
 			}
 		}
 
@@ -503,7 +503,7 @@ public class TGATexture {
 
 			y = (header.isTopToBottom() ? header.height - i - 1 : i);
 			System.arraycopy(swapRow, 0, tmpData, y * header.width,
-					swapRow.length);
+				swapRow.length);
 		}
 
 		data = new BufferData(tmpData, true);
@@ -522,8 +522,8 @@ public class TGATexture {
 		byte[] rawBuf = new byte[rawWidth];
 		byte[] tmpData = new byte[rawWidth * header.height];
 
-		format = (header.pixelDepth == 24 ? TextureFormat.BGR
-				: TextureFormat.BGRA);
+		format =
+			(header.pixelDepth == 24 ? TextureFormat.BGR : TextureFormat.BGRA);
 		for (i = 0; i < header.height; i++) {
 			readAll(dIn, rawBuf);
 			y = (header.isTopToBottom() ? header.height - i - 1 : i);
@@ -536,7 +536,7 @@ public class TGATexture {
 	// read bytes from the given stream until the array is full
 	// fails if the end-of-stream happens before the array is full
 	private static void readAll(InputStream in, byte[] array)
-			throws IOException {
+		throws IOException {
 		int remaining = array.length;
 		int offset = 0;
 		int read = 0;

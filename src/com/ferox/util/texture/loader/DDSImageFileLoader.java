@@ -10,7 +10,6 @@ import com.ferox.resource.TextureImage;
  * files.
  * 
  * @author Michael Ludwig
- * 
  */
 public class DDSImageFileLoader implements ImageFileLoader {
 	@Override

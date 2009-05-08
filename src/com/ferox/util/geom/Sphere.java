@@ -60,7 +60,7 @@ public class Sphere extends IndexedArrayGeometry {
 	 */
 	public Sphere(float radius, int zSamples, int radialSamples) {
 		this(radius, zSamples, radialSamples, SphereTextureMode.ORIGINAL,
-				CompileType.VERTEX_ARRAY);
+			CompileType.VERTEX_ARRAY);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class Sphere extends IndexedArrayGeometry {
 	 *             0
 	 */
 	public Sphere(float radius, int zSamples, int radialSamples,
-			SphereTextureMode mode, CompileType type) {
+		SphereTextureMode mode, CompileType type) {
 		this(null, radius, zSamples, radialSamples, mode, type);
 	}
 
@@ -94,7 +94,7 @@ public class Sphere extends IndexedArrayGeometry {
 	 *             0
 	 */
 	public Sphere(Vector3f center, float radius, int zSamples,
-			int radialSamples, SphereTextureMode mode, CompileType type) {
+		int radialSamples, SphereTextureMode mode, CompileType type) {
 		super(type);
 
 		this.center = new Vector3f();
@@ -115,12 +115,12 @@ public class Sphere extends IndexedArrayGeometry {
 	 *             0
 	 */
 	public void setData(Vector3f center, float radius, int zSamples,
-			int radialSamples, SphereTextureMode mode) {
+		int radialSamples, SphereTextureMode mode) {
 		if (radius <= 0f)
 			throw new IllegalArgumentException("Radius must be > 0");
 		if (zSamples <= 0 || radialSamples <= 0)
 			throw new IllegalArgumentException(
-					"zSamples and radialSamples must be > 0");
+				"zSamples and radialSamples must be > 0");
 
 		if (center != null)
 			this.center.set(center);
@@ -215,8 +215,8 @@ public class Sphere extends IndexedArrayGeometry {
 			kSliceCenter.z += fZ;
 
 			// compute radius of slice
-			float fSliceRadius = FastMath.sqrt(Math.abs(radius * radius - fZ
-					* fZ));
+			float fSliceRadius =
+				FastMath.sqrt(Math.abs(radius * radius - fZ * fZ));
 
 			// compute slice vertices with duplication at end point
 			Vector3f kNormal;
@@ -235,7 +235,7 @@ public class Sphere extends IndexedArrayGeometry {
 
 				// normals
 				tempVa.set(vertices[i * 3], vertices[i * 3 + 1],
-						vertices[i * 3 + 2]);
+					vertices[i * 3 + 2]);
 				kNormal = tempVa;
 				kNormal.sub(center);
 				kNormal.normalize();
@@ -249,8 +249,8 @@ public class Sphere extends IndexedArrayGeometry {
 					texCoords[i * 2 + 1] = .5f * (fZFraction + 1f);
 				} else { // PROJECTED
 					texCoords[i * 2 + 0] = fRadialFraction;
-					texCoords[i * 2 + 1] = (FastMath.PI_HALF + FastMath
-							.asin(fZFraction))
+					texCoords[i * 2 + 1] =
+						(FastMath.PI_HALF + FastMath.asin(fZFraction))
 							/ FastMath.PI;
 				}
 
@@ -270,8 +270,8 @@ public class Sphere extends IndexedArrayGeometry {
 				texCoords[i * 2 + 1] = .5f * (fZFraction + 1f);
 			} else { // PROJECTED
 				texCoords[i * 2 + 0] = 1f;
-				texCoords[i * 2 + 1] = (FastMath.PI_HALF + FastMath
-						.asin(fZFraction))
+				texCoords[i * 2 + 1] =
+					(FastMath.PI_HALF + FastMath.asin(fZFraction))
 						/ FastMath.PI;
 			}
 
@@ -303,9 +303,9 @@ public class Sphere extends IndexedArrayGeometry {
 		texCoords[i * 2 + 0] = .5f;
 		texCoords[i * 2 + 1] = 0f;
 
-		this.setVertices(vertices);
-		this.setNormals(normals);
-		this.setTextureCoordinates(0, new VectorBuffer(texCoords, 2));
+		setVertices(vertices);
+		setNormals(normals);
+		setTextureCoordinates(0, new VectorBuffer(texCoords, 2));
 	}
 
 	/*
@@ -355,6 +355,6 @@ public class Sphere extends IndexedArrayGeometry {
 			index += 3;
 		}
 
-		this.setIndices(indices, PolygonType.TRIANGLES);
+		setIndices(indices, PolygonType.TRIANGLES);
 	}
 }

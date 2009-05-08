@@ -15,7 +15,6 @@ import com.ferox.resource.GlslProgram;
  * files that store the glsl code for the program.
  * 
  * @author Michael Ludwig
- * 
  */
 public class GlslProgramLoader {
 	/**
@@ -30,10 +29,10 @@ public class GlslProgramLoader {
 	 *             invalid GlslProgram
 	 */
 	public static GlslProgram load(File vertexShader, File fragmentShader)
-			throws IOException {
+		throws IOException {
 		String[] vCode = (vertexShader == null ? null : readAll(vertexShader));
-		String[] fCode = (fragmentShader == null ? null
-				: readAll(fragmentShader));
+		String[] fCode =
+			(fragmentShader == null ? null : readAll(fragmentShader));
 
 		return new GlslProgram(vCode, fCode);
 	}
@@ -43,8 +42,8 @@ public class GlslProgramLoader {
 	 * strings.
 	 */
 	private static String[] readAll(File file) throws IOException {
-		InputStreamReader stream = new InputStreamReader(new FileInputStream(
-				file));
+		InputStreamReader stream =
+			new InputStreamReader(new FileInputStream(file));
 		BufferedReader reader = new BufferedReader(stream);
 
 		List<String> lines = new ArrayList<String>();

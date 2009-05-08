@@ -13,7 +13,6 @@ import com.ferox.resource.TextureImage;
  * (this depends on the ImageIO loaders present on a given system).
  * 
  * @author Michael Ludwig
- * 
  */
 public class ImageIOImageFileLoader implements ImageFileLoader {
 	@Override

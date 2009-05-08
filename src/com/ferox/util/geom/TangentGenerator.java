@@ -41,19 +41,19 @@ public class TangentGenerator {
 	 *             texCoords, tangent, and bitangents don't match
 	 */
 	public static void generate(float[] vertices, float[] texCoords,
-			int[] indices, float[] tangents, float[] bitangents) {
+		int[] indices, float[] tangents, float[] bitangents) {
 		if (vertices == null || texCoords == null || indices == null
-				|| tangents == null || bitangents == null)
+			|| tangents == null || bitangents == null)
 			throw new NullPointerException("All arguments must be non-null");
 		if (texCoords.length / 2 != vertices.length / 3)
 			throw new IllegalArgumentException(
-					"Tex coords don't have same number of elements as vertices");
+				"Tex coords don't have same number of elements as vertices");
 		if (tangents.length != vertices.length)
 			throw new IllegalArgumentException(
-					"Tangents array doesn't have the same length as vertices");
+				"Tangents array doesn't have the same length as vertices");
 		if (bitangents.length != vertices.length)
 			throw new IllegalArgumentException(
-					"Bitangents array doesn't have the same length as vertices");
+				"Bitangents array doesn't have the same length as vertices");
 
 		Vector3f tangent = new Vector3f();
 		Vector3f bitangent = new Vector3f();
@@ -102,7 +102,7 @@ public class TangentGenerator {
 	// modifies v and t vectors, but that's okay since they aren't used after
 	// this method is called
 	private static void computeTriangleTangentSpace(Vector3f tangent,
-			Vector3f bitangent, Vector3f v[], Vector2f t[]) {
+		Vector3f bitangent, Vector3f v[], Vector2f t[]) {
 		Vector3f edge1 = v[1];
 		edge1.sub(v[0]);
 		Vector3f edge2 = v[2];

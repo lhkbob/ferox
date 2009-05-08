@@ -59,7 +59,7 @@ public class Rectangle extends IndexedArrayGeometry {
 	 * @throws IllegalArgumentException if left > right or bottom > top
 	 */
 	public Rectangle(Vector3f xAxis, Vector3f yAxis, float left, float right,
-			float bottom, float top) {
+		float bottom, float top) {
 		super(CompileType.NONE);
 		this.yAxis = new Vector3f();
 		this.xAxis = new Vector3f();
@@ -143,10 +143,10 @@ public class Rectangle extends IndexedArrayGeometry {
 	 * @throws IllegalArgumentException if left > right or bottom > top
 	 */
 	public void setData(Vector3f xAxis, Vector3f yAxis, float left,
-			float right, float bottom, float top) {
+		float right, float bottom, float top) {
 		if (left > right || bottom > top)
 			throw new IllegalArgumentException(
-					"Side positions of the square are incorrect");
+				"Side positions of the square are incorrect");
 
 		if (xAxis == null)
 			this.xAxis.set(1f, 0f, 0f);

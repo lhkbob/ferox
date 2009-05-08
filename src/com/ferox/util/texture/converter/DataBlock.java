@@ -4,8 +4,8 @@ import com.ferox.resource.BufferData;
 import com.ferox.resource.TextureFormat;
 
 /**
- * A DataBlock is a TextureImage agnostic way of handling a single layer in
- * an image. It has three dimensions, but height and depth may be 1.
+ * A DataBlock is a TextureImage agnostic way of handling a single layer in an
+ * image. It has three dimensions, but height and depth may be 1.
  * 
  * @author Michael Ludwig
  */
@@ -15,7 +15,7 @@ public class DataBlock {
 	private TextureFormat format;
 
 	protected DataBlock(BufferData data, int width, int height, int depth,
-			TextureFormat format) {
+		TextureFormat format) {
 		this.data = data;
 		this.width = width;
 		this.height = height;
@@ -52,16 +52,16 @@ public class DataBlock {
 	/**
 	 * Get the BufferData that is the texture data for this DataBlock.
 	 * 
-	 * @return The BufferData for the block, it and its data array will not
-	 *         be null
+	 * @return The BufferData for the block, it and its data array will not be
+	 *         null
 	 */
 	public BufferData getData() {
 		return data;
 	}
 
 	/**
-	 * Get the TextureFormat for this data block. It will be compatible with
-	 * the type of the BufferData.
+	 * Get the TextureFormat for this data block. It will be compatible with the
+	 * type of the BufferData.
 	 * 
 	 * @return The TextureFormat that describes the colors stored in this
 	 *         block's BufferData

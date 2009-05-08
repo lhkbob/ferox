@@ -110,7 +110,7 @@ public class CharacterSet {
 	 * @param useNpotTexture Whether or not an NPOT Texture2D can be used
 	 */
 	public CharacterSet(Font font, String characterSet, boolean antiAlias,
-			boolean useNpotTexture) {
+		boolean useNpotTexture) {
 		if (font == null)
 			font = Font.decode("Arial-PLAIN-12");
 		if (characterSet == null)
@@ -195,16 +195,17 @@ public class CharacterSet {
 	private void buildCharacterSet(String characterSet) {
 		char[] characters = getCharArray(characterSet);
 
-		BufferedImage charSet = new BufferedImage(1, 1,
-				BufferedImage.TYPE_INT_ARGB);
+		BufferedImage charSet =
+			new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2d = charSet.createGraphics();
 		context = g2d.getFontRenderContext();
 
 		// pack all the glyphs
-		RectanglePacker<GlyphMetrics> rp = new RectanglePacker<GlyphMetrics>(
-				64, 64);
-		GlyphVector v = font.layoutGlyphVector(context, characters, 0,
-				characters.length, Font.LAYOUT_LEFT_TO_RIGHT);
+		RectanglePacker<GlyphMetrics> rp =
+			new RectanglePacker<GlyphMetrics>(64, 64);
+		GlyphVector v =
+			font.layoutGlyphVector(context, characters, 0, characters.length,
+				Font.LAYOUT_LEFT_TO_RIGHT);
 		GlyphMetrics g;
 
 		GlyphMetrics[] glyphs = new GlyphMetrics[characters.length];
@@ -212,15 +213,15 @@ public class CharacterSet {
 		for (int i = 0; i < characters.length; i++) {
 			g = v.getGlyphMetrics(i);
 			glyphs[i] = g;
-			glyphRectangles[i] = rp.insert(g, (int) g.getBounds2D().getWidth()
-					+ CHAR_PADDING * 2, (int) g.getBounds2D().getHeight()
-					+ CHAR_PADDING * 2);
+			glyphRectangles[i] =
+				rp.insert(g, (int) g.getBounds2D().getWidth() + CHAR_PADDING
+					* 2, (int) g.getBounds2D().getHeight() + CHAR_PADDING * 2);
 		}
 		g2d.dispose(); // dispose of dummy image
 
 		int width = (!useNpotTexture ? ceilPot(rp.getWidth()) : rp.getWidth());
-		int height = (!useNpotTexture ? ceilPot(rp.getHeight()) : rp
-				.getHeight());
+		int height =
+			(!useNpotTexture ? ceilPot(rp.getHeight()) : rp.getHeight());
 
 		// compute a Glyph for each character and render it into the image
 		charSet = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -232,9 +233,9 @@ public class CharacterSet {
 		// prepare the text to be rendered as white,
 		g2d.setColor(Color.WHITE);
 		g2d.setFont(font);
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-				(antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-						: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, (antiAlias
+			? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+			: RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
 
 		// and flipped, so glyph dimensions make sense in openGL coord system
 		g2d.scale(1, -1);
@@ -249,7 +250,8 @@ public class CharacterSet {
 			r = glyphRectangles[i];
 			glyphBounds = g.getBounds2D();
 
-			glyph = new Glyph(
+			glyph =
+				new Glyph(
 					g.getAdvance(), // advance
 					(float) r.getX() / width,
 					(float) (r.getX() + r.getWidth()) / width, // left-right
@@ -262,17 +264,18 @@ public class CharacterSet {
 			metrics.put(Character.valueOf(characters[i]), glyph);
 
 			g2d.drawChars(characters, i, 1, r.getX() - (int) glyphBounds.getX()
-					+ CHAR_PADDING, r.getY() - (int) glyphBounds.getY()
-					+ CHAR_PADDING);
+				+ CHAR_PADDING, r.getY() - (int) glyphBounds.getY()
+				+ CHAR_PADDING);
 		}
 		g2d.dispose();
 
 		// create the texture
-		int[] data = ((DataBufferInt) charSet.getRaster().getDataBuffer())
-				.getData();
+		int[] data =
+			((DataBufferInt) charSet.getRaster().getDataBuffer()).getData();
 		BufferData[] imageData = { new BufferData(data, true) };
-		this.characters = new Texture2D(imageData, width, height,
-				TextureFormat.ARGB_8888, DataType.UNSIGNED_INT, Filter.LINEAR);
+		this.characters =
+			new Texture2D(imageData, width, height, TextureFormat.ARGB_8888,
+				DataType.UNSIGNED_INT, Filter.LINEAR);
 	}
 
 	/*

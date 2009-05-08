@@ -49,7 +49,7 @@ public class Box extends IndexedArrayGeometry {
 	 */
 	public Box(float side, CompileType type) {
 		this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), new Vector3f(
-				side / 2f, side / 2f, side / 2f), type);
+			side / 2f, side / 2f, side / 2f), type);
 	}
 
 	/**
@@ -99,14 +99,14 @@ public class Box extends IndexedArrayGeometry {
 	public void setData(Vector3f minPoint, Vector3f maxPoint) {
 		if (minPoint == null || maxPoint == null)
 			throw new NullPointerException(
-					"minPoint and maxPoint cannot be null");
+				"minPoint and maxPoint cannot be null");
 
 		center.add(minPoint, maxPoint);
 		center.scale(.5f);
 
-		this.xExtent = maxPoint.x - center.x;
-		this.yExtent = maxPoint.y - center.y;
-		this.zExtent = maxPoint.z - center.z;
+		xExtent = maxPoint.x - center.x;
+		yExtent = maxPoint.y - center.y;
+		zExtent = maxPoint.z - center.z;
 
 		updateData();
 	}
@@ -334,15 +334,15 @@ public class Box extends IndexedArrayGeometry {
 
 		// indices
 		int[] indices = new int[] { 2, 1, 0, 3, 2, 0, // back
-				6, 5, 4, 7, 6, 4, // right
-				10, 9, 8, 11, 10, 8, // front
-				14, 13, 12, 15, 14, 12, // left
-				18, 17, 16, 19, 18, 16, // top
-				22, 21, 20, 23, 22, 20 }; // bottom
+			6, 5, 4, 7, 6, 4, // right
+			10, 9, 8, 11, 10, 8, // front
+			14, 13, 12, 15, 14, 12, // left
+			18, 17, 16, 19, 18, 16, // top
+			22, 21, 20, 23, 22, 20 }; // bottom
 
-		this.setVertices(v);
-		this.setIndices(indices, PolygonType.TRIANGLES);
-		this.setNormals(n);
-		this.setTextureCoordinates(0, new VectorBuffer(t, 2));
+		setVertices(v);
+		setIndices(indices, PolygonType.TRIANGLES);
+		setNormals(n);
+		setTextureCoordinates(0, new VectorBuffer(t, 2));
 	}
 }

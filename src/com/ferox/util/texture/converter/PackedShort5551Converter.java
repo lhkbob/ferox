@@ -10,7 +10,6 @@ import com.ferox.resource.BufferData.DataType;
  * UNSIGNED_SHORT.
  * 
  * @author Michael Ludwig
- * 
  */
 public class PackedShort5551Converter implements Decoder, Encoder {
 	// used for RGBA and BGRA
@@ -35,9 +34,9 @@ public class PackedShort5551Converter implements Decoder, Encoder {
 	@Override
 	public boolean canEncode(DataType type, TextureFormat format) {
 		return type == DataType.UNSIGNED_SHORT
-				&& (format == TextureFormat.ABGR_1555
-						|| format == TextureFormat.BGRA_5551
-						|| format == TextureFormat.ARGB_1555 || format == TextureFormat.RGBA_5551);
+			&& (format == TextureFormat.ABGR_1555
+				|| format == TextureFormat.BGRA_5551
+				|| format == TextureFormat.ARGB_1555 || format == TextureFormat.RGBA_5551);
 	}
 
 	@Override
@@ -46,40 +45,40 @@ public class PackedShort5551Converter implements Decoder, Encoder {
 		int y = (int) v * data.getHeight();
 		int z = (int) w * data.getDepth();
 
-		int index = x + y * data.getWidth() + z * data.getWidth()
-				* data.getHeight();
+		int index =
+			x + y * data.getWidth() + z * data.getWidth() * data.getHeight();
 		short val = ((short[]) data.getData().getData())[index];
 
 		switch (data.getFormat()) {
 		case ABGR_1555:
 			store.set(((val & C4_REV_MASK) >> 0) / MAX_VALUE,
-					((val & C3_REV_MASK) >> 5) / MAX_VALUE,
-					((val & C2_REV_MASK) >> 10) / MAX_VALUE,
-					(val & C1_REV_MASK) != 0 ? 1f : 0f);
+				((val & C3_REV_MASK) >> 5) / MAX_VALUE,
+				((val & C2_REV_MASK) >> 10) / MAX_VALUE,
+				(val & C1_REV_MASK) != 0 ? 1f : 0f);
 			break;
 		case ARGB_1555:
 			store.set(((val & C2_REV_MASK) >> 10) / MAX_VALUE,
-					((val & C3_REV_MASK) >> 5) / MAX_VALUE,
-					((val & C4_REV_MASK) >> 0) / MAX_VALUE,
-					(val & C1_REV_MASK) != 0 ? 1f : 0f);
+				((val & C3_REV_MASK) >> 5) / MAX_VALUE,
+				((val & C4_REV_MASK) >> 0) / MAX_VALUE,
+				(val & C1_REV_MASK) != 0 ? 1f : 0f);
 			break;
 		case BGRA_5551:
 			store.set(((val & C3_MASK) >> 1) / MAX_VALUE,
-					((val & C2_MASK) >> 6) / MAX_VALUE, ((val & C1_MASK) >> 11)
-							/ MAX_VALUE, (val & C4_MASK) != 0 ? 1f : 0f);
+				((val & C2_MASK) >> 6) / MAX_VALUE, ((val & C1_MASK) >> 11)
+					/ MAX_VALUE, (val & C4_MASK) != 0 ? 1f : 0f);
 			break;
 		case RGBA_5551:
 			store.set(((val & C1_MASK) >> 11) / MAX_VALUE,
-					((val & C2_MASK) >> 6) / MAX_VALUE, ((val & C3_MASK) >> 1)
-							/ MAX_VALUE, (val & C4_MASK) != 0 ? 1f : 0f);
+				((val & C2_MASK) >> 6) / MAX_VALUE, ((val & C3_MASK) >> 1)
+					/ MAX_VALUE, (val & C4_MASK) != 0 ? 1f : 0f);
 			break;
 		}
 	}
 
 	@Override
 	public void setColor(DataBlock data, int x, int y, int z, Color color) {
-		int index = x + y * data.getWidth() + z * data.getWidth()
-				* data.getHeight();
+		int index =
+			x + y * data.getWidth() + z * data.getWidth() * data.getHeight();
 
 		int red = (int) (color.getRed() * MAX_VALUE);
 		int green = (int) (color.getGreen() * MAX_VALUE);
@@ -91,21 +90,25 @@ public class PackedShort5551Converter implements Decoder, Encoder {
 		// pack the color into a short
 		switch (data.getFormat()) {
 		case ABGR_1555:
-			val = (short) (((red << 0) & C4_REV_MASK)
+			val =
+				(short) (((red << 0) & C4_REV_MASK)
 					| ((green << 5) & C3_REV_MASK)
 					| ((blue << 10) & C2_REV_MASK) | ((alpha << 15) & C1_REV_MASK));
 			break;
 		case ARGB_1555:
-			val = (short) (((red << 10) & C2_REV_MASK)
+			val =
+				(short) (((red << 10) & C2_REV_MASK)
 					| ((green << 5) & C3_REV_MASK)
 					| ((blue << 0) & C4_REV_MASK) | ((alpha << 15) & C1_REV_MASK));
 			break;
 		case BGRA_5551:
-			val = (short) (((red << 1) & C3_MASK) | ((green << 6) & C2_MASK)
+			val =
+				(short) (((red << 1) & C3_MASK) | ((green << 6) & C2_MASK)
 					| ((blue << 11) & C1_MASK) | ((alpha << 0) & C4_MASK));
 			break;
 		case RGBA_5551:
-			val = (short) (((red << 11) & C1_MASK) | ((green << 6) & C2_MASK)
+			val =
+				(short) (((red << 11) & C1_MASK) | ((green << 6) & C2_MASK)
 					| ((blue << 1) & C3_MASK) | ((alpha << 0) & C4_MASK));
 			break;
 		}

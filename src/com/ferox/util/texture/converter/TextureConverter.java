@@ -67,8 +67,8 @@ public class TextureConverter {
 	 * @return The converted image, either in result or a new BufferData if
 	 *         result was null or didn't match the requirements for the
 	 *         converted image
-	 * @throws NullPointerException if data, oldFormat, newFormat, or newType are
-	 *             null
+	 * @throws NullPointerException if data, oldFormat, newFormat, or newType
+	 *             are null
 	 * @throws IllegalArgumentException if the oldFormat and old dimensions
 	 *             don't match with data, or if newFormat and newType and the
 	 *             new dimensions are invalid
@@ -76,44 +76,42 @@ public class TextureConverter {
 	 *             or Decoders to handle the conversion
 	 */
 	public static BufferData convert(BufferData data, TextureFormat oldFormat,
-			int oldWidth, int oldHeight, int oldDepth, BufferData result,
-			TextureFormat newFormat, DataType newType, int newWidth,
-			int newHeight, int newDepth) {
+		int oldWidth, int oldHeight, int oldDepth, BufferData result,
+		TextureFormat newFormat, DataType newType, int newWidth, int newHeight,
+		int newDepth) {
 		// validate input parameters that involve the source data
 		if (data == null || oldFormat == null)
 			throw new NullPointerException(
-					"data and oldFormat cannot be null: " + data + " "
-							+ oldFormat);
+				"data and oldFormat cannot be null: " + data + " " + oldFormat);
 		if (!oldFormat.isTypeValid(data.getType()))
 			throw new IllegalArgumentException(
-					"data's type must be supported for the given oldFormat: "
-							+ data.getType() + " " + oldFormat);
+				"data's type must be supported for the given oldFormat: "
+					+ data.getType() + " " + oldFormat);
 		if (oldFormat.getBufferSize(oldWidth, oldHeight, oldDepth) != data
-				.getCapacity())
+			.getCapacity())
 			throw new IllegalArgumentException(
-					"data's capacity doesn't match expected size, based on old dimensions");
+				"data's capacity doesn't match expected size, based on old dimensions");
 
 		// validate input parameters for the dst data
 		if (newFormat == null || newType == null)
 			throw new NullPointerException(
-					"newFormat and newType cannot be null: " + newFormat + " "
-							+ newType);
+				"newFormat and newType cannot be null: " + newFormat + " "
+					+ newType);
 		if (!newFormat.isTypeValid(newType))
 			throw new IllegalArgumentException(
-					"newType is not supported by newFormat: " + newType + " "
-							+ newFormat);
+				"newType is not supported by newFormat: " + newType + " "
+					+ newFormat);
 
-		int newCapacity = newFormat
-				.getBufferSize(newWidth, newHeight, newDepth);
+		int newCapacity =
+			newFormat.getBufferSize(newWidth, newHeight, newDepth);
 		if (newCapacity < 0)
 			throw new IllegalArgumentException(
-					"new dimensions are invalid for newFormat: " + newWidth
-							+ "x" + newHeight + "x" + newDepth + " "
-							+ newFormat);
+				"new dimensions are invalid for newFormat: " + newWidth + "x"
+					+ newHeight + "x" + newDepth + " " + newFormat);
 
 		// make a new BufferData if needed
 		if (result == null || result.getCapacity() != newCapacity
-				|| result.getType() != newType)
+			|| result.getType() != newType)
 			result = new BufferData(newCapacity, newType);
 		// make sure its data array is not null
 		if (result.getData() == null) {
@@ -126,18 +124,18 @@ public class TextureConverter {
 			Decoder decoder = getDecoder(data.getType(), oldFormat);
 			if (decoder == null)
 				throw new UnsupportedOperationException(
-						"There is no registered Decoder supporting "
-								+ data.getType() + " and " + oldFormat);
-			DataBlock src = new DataBlock(data, oldWidth, oldHeight, oldDepth,
-					oldFormat);
+					"There is no registered Decoder supporting "
+						+ data.getType() + " and " + oldFormat);
+			DataBlock src =
+				new DataBlock(data, oldWidth, oldHeight, oldDepth, oldFormat);
 
 			Encoder encoder = getEncoder(newType, newFormat);
 			if (encoder == null)
 				throw new UnsupportedOperationException(
-						"There is no registered Encoder supporting " + newType
-								+ " and " + newFormat);
-			DataBlock dst = new DataBlock(result, newWidth, newHeight,
-					newDepth, newFormat);
+					"There is no registered Encoder supporting " + newType
+						+ " and " + newFormat);
+			DataBlock dst =
+				new DataBlock(result, newWidth, newHeight, newDepth, newFormat);
 
 			float uScale = 1f / newWidth;
 			float vScale = 1f / newHeight;
