@@ -2,7 +2,6 @@ package com.ferox.resource;
 
 import com.ferox.resource.BufferData.DataType;
 
-
 /**
  * <p>
  * Describes all of the supported texture formats. Some of the formats are only
@@ -72,36 +71,36 @@ import com.ferox.resource.BufferData.DataType;
 public enum TextureFormat {
 	RGBA(null, 4, true), RGBA_4444(DataType.UNSIGNED_SHORT, 1, true, true),
 	RGBA_8888(DataType.UNSIGNED_INT, 1, true, true), RGBA_5551(
-			DataType.UNSIGNED_SHORT, 1, true, true), RGBA_FLOAT(DataType.FLOAT,
-			4, true),
+		DataType.UNSIGNED_SHORT, 1, true, true), RGBA_FLOAT(DataType.FLOAT, 4,
+		true),
 
 	RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, true), RGBA_DXT3(
-			DataType.UNSIGNED_BYTE, -1, true), RGBA_DXT5(
-			DataType.UNSIGNED_BYTE, -1, true),
+		DataType.UNSIGNED_BYTE, -1, true), RGBA_DXT5(DataType.UNSIGNED_BYTE,
+		-1, true),
 
 	BGRA(null, 4, true), BGRA_4444(DataType.UNSIGNED_SHORT, 1, true, true),
 	BGRA_8888(DataType.UNSIGNED_INT, 1, true, true), BGRA_5551(
-			DataType.UNSIGNED_SHORT, 1, true, true),
+		DataType.UNSIGNED_SHORT, 1, true, true),
 
 	ARGB_4444(DataType.UNSIGNED_SHORT, 1, true, true), ARGB_1555(
-			DataType.UNSIGNED_SHORT, 1, true, true), ARGB_8888(
-			DataType.UNSIGNED_INT, 1, true, true),
+		DataType.UNSIGNED_SHORT, 1, true, true), ARGB_8888(
+		DataType.UNSIGNED_INT, 1, true, true),
 
 	ABGR_4444(DataType.UNSIGNED_SHORT, 1, true, true), ABGR_1555(
-			DataType.UNSIGNED_SHORT, 1, true, true), ABGR_8888(
-			DataType.UNSIGNED_INT, 1, true, true),
+		DataType.UNSIGNED_SHORT, 1, true, true), ABGR_8888(
+		DataType.UNSIGNED_INT, 1, true, true),
 
 	RGB(null, 3, false), RGB_565(DataType.UNSIGNED_SHORT, 1, false, true),
 	RGB_FLOAT(DataType.FLOAT, 3, false), RGB_DXT1(DataType.UNSIGNED_BYTE, -1,
-			false),
+		false),
 
 	BGR(null, 3, false), BGR_565(DataType.UNSIGNED_SHORT, 1, false, true),
 
 	LUMINANCE_ALPHA(null, 2, true), LUMINANCE(null, 1, false), ALPHA(null, 1,
-			true),
+		true),
 
 	LUMINANCE_ALPHA_FLOAT(DataType.FLOAT, 2, true), LUMINANCE_FLOAT(
-			DataType.FLOAT, 1, false), ALPHA_FLOAT(DataType.FLOAT, 1, true),
+		DataType.FLOAT, 1, false), ALPHA_FLOAT(DataType.FLOAT, 1, true),
 
 	DEPTH(null, 1, false);
 
@@ -114,7 +113,7 @@ public enum TextureFormat {
 	}
 
 	private TextureFormat(DataType type, int pPerC, boolean alpha,
-			boolean packed) {
+		boolean packed) {
 		this.type = type;
 		this.pPerC = pPerC;
 		hasAlpha = alpha;
@@ -221,7 +220,7 @@ public enum TextureFormat {
 
 		if (isCompressed())
 			return (int) ((this == RGBA_DXT1 || this == RGB_DXT1 ? 8 : 16)
-					* Math.ceil(width / 4f) * Math.ceil(height / 4f));
+				* Math.ceil(width / 4f) * Math.ceil(height / 4f));
 		else
 			return width * height * depth * getPrimitivesPerColor();
 	}

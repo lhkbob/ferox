@@ -122,7 +122,7 @@ public abstract class TextureImage implements Resource {
 		 * the size of the mipmap in question.
 		 */
 		protected MipmapDirtyRegion(int x, int y, int z, int width, int height,
-				int depth, int maxWidth, int maxHeight, int maxDepth) {
+			int depth, int maxWidth, int maxHeight, int maxDepth) {
 			this.x = this.y = this.z = Integer.MAX_VALUE;
 			this.width = this.height = this.depth = Integer.MIN_VALUE;
 			merge(x, y, z, width, height, depth, maxWidth, maxHeight, maxDepth);
@@ -157,7 +157,7 @@ public abstract class TextureImage implements Resource {
 		 * the size of the mipmap in question.
 		 */
 		protected void merge(int x, int y, int z, int width, int height,
-				int depth, int maxWidth, int maxHeight, int maxDepth) {
+			int depth, int maxWidth, int maxHeight, int maxDepth) {
 			// extents of the dirty region, constrained to valid region
 			int maxX = Math.min(x + width, maxWidth);
 			int maxY = Math.min(y + height, maxHeight);
@@ -267,7 +267,7 @@ public abstract class TextureImage implements Resource {
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
 	public TextureImage(TextureFormat format, DataType type, Filter filter)
-			throws IllegalArgumentException, NullPointerException {
+		throws IllegalArgumentException, NullPointerException {
 		this(format, type, filter, null, null, null);
 	}
 
@@ -289,22 +289,22 @@ public abstract class TextureImage implements Resource {
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
 	public TextureImage(TextureFormat format, DataType type, Filter filter,
-			TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest)
-			throws IllegalArgumentException, NullPointerException {
+		TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest)
+		throws IllegalArgumentException, NullPointerException {
 		if (format == null || type == null)
 			throw new NullPointerException(
-					"Can't specify a null TextureFormat or DataType: " + format
-							+ " " + type);
+				"Can't specify a null TextureFormat or DataType: " + format
+					+ " " + type);
 		if (!format.isTypeValid(type))
 			throw new IllegalArgumentException(
-					"Type and format are not valid: " + format + " " + type);
+				"Type and format are not valid: " + format + " " + type);
 		this.format = format;
 		this.type = type;
 
 		dirty = createTextureDirtyDescriptor();
 		if (dirty == null)
 			throw new NullPointerException(
-					"Can't return a null TextureDirtyDescriptor from createTextureDirtyDescriptor()");
+				"Can't return a null TextureDirtyDescriptor from createTextureDirtyDescriptor()");
 
 		renderData = new RenderDataCache();
 
@@ -658,8 +658,8 @@ public abstract class TextureImage implements Resource {
 		if (width <= 0 || height <= 0 || depth <= 0)
 			return -1;
 		return (int) Math.floor(Math.log(Math.max(width, Math
-				.max(height, depth)))
-				/ Math.log(2)) + 1;
+			.max(height, depth)))
+			/ Math.log(2)) + 1;
 	}
 
 	@Override

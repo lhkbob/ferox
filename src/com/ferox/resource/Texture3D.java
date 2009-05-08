@@ -2,7 +2,6 @@ package com.ferox.resource;
 
 import com.ferox.resource.BufferData.DataType;
 
-
 /**
  * <p>
  * Represents a texture that is a three-dimensional block of texture
@@ -73,7 +72,7 @@ public class Texture3D extends TextureImage {
 		 */
 		public boolean isDataDirty(int level) {
 			if (dirtyRegions == null || level < 0
-					|| level >= dirtyRegions.length)
+				|| level >= dirtyRegions.length)
 				return false;
 			return dirtyRegions[level] != null;
 		}
@@ -89,7 +88,7 @@ public class Texture3D extends TextureImage {
 		 */
 		public MipmapDirtyRegion getDirtyRegion(int level) {
 			if (dirtyRegions == null || level < 0
-					|| level >= dirtyRegions.length)
+				|| level >= dirtyRegions.length)
 				return null;
 			return dirtyRegions[level];
 		}
@@ -125,7 +124,7 @@ public class Texture3D extends TextureImage {
 	 *             would create an invalid texture
 	 */
 	public Texture3D(BufferData[] data, int width, int height, int depth,
-			TextureFormat format, DataType type) {
+		TextureFormat format, DataType type) {
 		super(format, type);
 		setData(data, width, height, depth);
 	}
@@ -146,31 +145,30 @@ public class Texture3D extends TextureImage {
 	 *             would create an invalid texture
 	 */
 	public Texture3D(BufferData[] data, int width, int height, int depth,
-			TextureFormat format, DataType type, Filter filter,
-			TextureWrap wrapAll) {
+		TextureFormat format, DataType type, Filter filter, TextureWrap wrapAll) {
 		super(format, type, filter, wrapAll, null, null);
 		setData(data, width, height, depth);
 	}
 
 	/* Internal method used to validate the BufferData[] and dimensions. */
 	private void setData(BufferData[] data, int width, int height, int depth)
-			throws IllegalArgumentException {
+		throws IllegalArgumentException {
 		// expected mipmap count if data.length > 1
-		int numMipmaps = TextureImage
-				.calculateMipmapCount(width, height, depth);
+		int numMipmaps =
+			TextureImage.calculateMipmapCount(width, height, depth);
 		TextureFormat format = getFormat();
 		DataType type = getType();
 
 		if (format == TextureFormat.DEPTH || format.isCompressed())
 			throw new IllegalArgumentException(
-					"The texture format cannot be compressed or be of type DEPTH for a Texture3D: "
-							+ format);
+				"The texture format cannot be compressed or be of type DEPTH for a Texture3D: "
+					+ format);
 
 		BufferData[] realData = null;
 		if (data != null) {
 			if (data.length != 1 && data.length != numMipmaps)
 				throw new IllegalArgumentException(
-						"If more than one BufferData is given, must provide all mipmap levels");
+					"If more than one BufferData is given, must provide all mipmap levels");
 			numMipmaps = data.length;
 
 			int nonNullCount = 0;
@@ -184,12 +182,12 @@ public class Texture3D extends TextureImage {
 				// with later
 				realData = new BufferData[data.length];
 				System.arraycopy(data, 0, realData, 0, Math.min(data.length,
-						realData.length));
+					realData.length));
 			} else
 				throw new IllegalArgumentException(
-						"Cannot pass in an array with some values null.  Array length: "
-								+ data.length + ", but has only "
-								+ nonNullCount + " non-null buffers.");
+					"Cannot pass in an array with some values null.  Array length: "
+						+ data.length + ", but has only " + nonNullCount
+						+ " non-null buffers.");
 		}
 
 		if (realData != null) {
@@ -199,16 +197,14 @@ public class Texture3D extends TextureImage {
 			for (int i = 0; i < realData.length; i++) {
 				if (realData[i].getType() != type)
 					throw new IllegalArgumentException(
-							"BufferData doesn't have a matching type for the texture, expected: "
-									+ type + ", but was: "
-									+ realData[i].getType());
+						"BufferData doesn't have a matching type for the texture, expected: "
+							+ type + ", but was: " + realData[i].getType());
 				if (realData[i].getCapacity() != format.getBufferSize(w, h, d))
 					throw new IllegalArgumentException(
-							"Buffer at mipmap level: "
-									+ i
-									+ " is does not have the correct size, expected: "
-									+ format.getBufferSize(w, h, d)
-									+ ", but was: " + realData[i].getCapacity());
+						"Buffer at mipmap level: " + i
+							+ " is does not have the correct size, expected: "
+							+ format.getBufferSize(w, h, d) + ", but was: "
+							+ realData[i].getCapacity());
 				w = Math.max(1, w >> 1);
 				h = Math.max(1, h >> 1);
 				d = Math.max(1, d >> 1);
@@ -244,16 +240,16 @@ public class Texture3D extends TextureImage {
 	 *            apply to
 	 */
 	public void markDirty(int x, int y, int z, int width, int height,
-			int depth, int level) {
+		int depth, int level) {
 		if (level < 0 || level >= (numMipmaps - 1))
 			return; // invalid level option
 
-		Texture3DDirtyDescriptor dirty = (Texture3DDirtyDescriptor) getDirtyDescriptor();
+		Texture3DDirtyDescriptor dirty = getDirtyDescriptor();
 		if (dirty.dirtyRegions == null || dirty.dirtyRegions.length <= level) {
 			MipmapDirtyRegion[] temp = new MipmapDirtyRegion[level + 1];
 			if (dirty.dirtyRegions != null)
 				System.arraycopy(dirty.dirtyRegions, 0, temp, 0,
-						dirty.dirtyRegions.length);
+					dirty.dirtyRegions.length);
 			dirty.dirtyRegions = temp;
 		}
 
@@ -262,12 +258,13 @@ public class Texture3D extends TextureImage {
 		int levelDepth = getDepth(level);
 		MipmapDirtyRegion r = dirty.dirtyRegions[level];
 		if (r == null) {
-			r = new MipmapDirtyRegion(x, y, z, width, height, depth,
+			r =
+				new MipmapDirtyRegion(x, y, z, width, height, depth,
 					levelWidth, levelHeight, levelDepth);
 			dirty.dirtyRegions[level] = r;
 		} else
 			r.merge(x, y, 0, width, height, depth, levelWidth, levelHeight,
-					levelDepth);
+				levelDepth);
 	}
 
 	/**
@@ -278,12 +275,12 @@ public class Texture3D extends TextureImage {
 	 */
 	public void markDirty(int level) {
 		this.markDirty(0, 0, 0, getWidth(level), getHeight(level),
-				getDepth(level), level);
+			getDepth(level), level);
 	}
 
 	/** Mark the entire texture image as dirty. */
 	public void markDirty() {
-		Texture3DDirtyDescriptor dirty = (Texture3DDirtyDescriptor) getDirtyDescriptor();
+		Texture3DDirtyDescriptor dirty = getDirtyDescriptor();
 		// create the whole array now for efficiency. It's okay to ignore old
 		// array because
 		// the new regions will take up the whole level.
@@ -335,8 +332,8 @@ public class Texture3D extends TextureImage {
 	public BufferData getData(int level) {
 		if (level < 0 || level >= numMipmaps)
 			throw new IllegalArgumentException(
-					"Buffer data doesn't exist beyond mipmap levels, illegal level: "
-							+ level);
+				"Buffer data doesn't exist beyond mipmap levels, illegal level: "
+					+ level);
 		if (data == null)
 			return null; // all we can return at this point
 		return data[level];

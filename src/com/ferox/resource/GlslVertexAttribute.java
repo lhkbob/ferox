@@ -49,13 +49,13 @@ public class GlslVertexAttribute {
 	 * @param type The type of the attribute
 	 * @param bindingSlot The generic vertex attribute slot to bind to
 	 * @param owner The GlslProgram that this uniform should be declared in
-	 * @throws IllegalArgumentException if bindingSlot < 1 or if name starts with
-	 *             'gl'
+	 * @throws IllegalArgumentException if bindingSlot < 1 or if name starts
+	 *             with 'gl'
 	 * @throws NullPointerException if any arguments are null
 	 */
 	protected GlslVertexAttribute(String name, AttributeType type,
-			int bindingSlot, GlslProgram owner)
-			throws IllegalArgumentException, NullPointerException {
+		int bindingSlot, GlslProgram owner) throws IllegalArgumentException,
+		NullPointerException {
 		if (name == null)
 			throw new NullPointerException("Name cannot be null");
 		if (type == null)
@@ -65,10 +65,10 @@ public class GlslVertexAttribute {
 
 		if (bindingSlot < 1)
 			throw new IllegalArgumentException("BindingSlot must be >= 1: "
-					+ bindingSlot);
+				+ bindingSlot);
 		if (name.startsWith("gl"))
 			throw new IllegalArgumentException("Name cannot start with 'gl': "
-					+ name + ", that is reserved");
+				+ name + ", that is reserved");
 
 		this.type = type;
 		this.name = name;

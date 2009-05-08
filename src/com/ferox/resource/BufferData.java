@@ -172,13 +172,13 @@ public class BufferData {
 	public BufferData(Object data, boolean unsigned) {
 		if (data == null)
 			throw new NullPointerException(
-					"Constructor expects a non-null primitive array");
+				"Constructor expects a non-null primitive array");
 
 		type = DataType.getDataType(data, unsigned);
 		if (type == null)
 			throw new IllegalArgumentException(
-					"Data must be a valid data type, according to DataType: "
-							+ data);
+				"Data must be a valid data type, according to DataType: "
+					+ data);
 
 		this.data = data;
 		capacity = capacity(data);
@@ -198,7 +198,7 @@ public class BufferData {
 			throw new NullPointerException("Must specify a non-null DataType");
 		if (capacity < 0)
 			throw new IllegalArgumentException(
-					"Must specifiy a capacity >= 0, not: " + capacity);
+				"Must specifiy a capacity >= 0, not: " + capacity);
 
 		this.capacity = capacity;
 		this.type = type;
@@ -256,13 +256,13 @@ public class BufferData {
 			DataType t = DataType.getDataType(obj, type.isUnsigned());
 			if (t != type)
 				throw new IllegalArgumentException(
-						"Data object does not match BufferData's type.  Expected: "
-								+ type + " but was: " + t);
+					"Data object does not match BufferData's type.  Expected: "
+						+ type + " but was: " + t);
 			int size = capacity(obj);
 			if (size != capacity)
 				throw new IllegalArgumentException(
-						"Data object must have a length matching this BufferData's capacity. Expected: "
-								+ capacity + " but was: " + size);
+					"Data object must have a length matching this BufferData's capacity. Expected: "
+						+ capacity + " but was: " + size);
 		}
 		// obj is valid, so we can assign it now
 		data = obj;

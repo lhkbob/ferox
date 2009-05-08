@@ -119,13 +119,13 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 		public VectorBuffer(float[] buffer, int elementSize) {
 			if (elementSize < 1 || elementSize > 4)
 				throw new IllegalArgumentException(
-						"Illegal element size, must be in [1, 4], not: "
-								+ elementSize);
+					"Illegal element size, must be in [1, 4], not: "
+						+ elementSize);
 			if (buffer == null)
 				throw new NullPointerException("Buffer cannot be null");
 			if (buffer.length % elementSize != 0)
 				throw new IllegalArgumentException(
-						"Buffer length is not divisible by elementSize");
+					"Buffer length is not divisible by elementSize");
 
 			this.elementSize = elementSize;
 			this.buffer = buffer;
@@ -145,8 +145,6 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 			return buffer;
 		}
 	}
-
-	
 
 	private float[] vertices;
 	private float[] normals;
@@ -179,7 +177,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	 * @throws NullPointerException if indices or vertices are null
 	 */
 	public IndexedArrayGeometry(float[] vertices, float[] normals,
-			int[] indices, PolygonType type, CompileType compileType) {
+		int[] indices, PolygonType type, CompileType compileType) {
 		this(compileType);
 		setVertices(vertices);
 		setNormals(normals);
@@ -222,7 +220,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	public void setVertices(float[] vertices) {
 		if (vertices == null)
 			throw new NullPointerException(
-					"Cannot have have a IndexedArrayGeometry with a null vertices");
+				"Cannot have have a IndexedArrayGeometry with a null vertices");
 
 		this.vertices = vertices;
 		vertexCount = vertices.length / 3;
@@ -304,7 +302,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	public void setTextureCoordinates(int unit, VectorBuffer data) {
 		if (data != null && data.elementSize == 4)
 			throw new IllegalArgumentException(
-					"Texture coordinates cannot be 4-element vectors");
+				"Texture coordinates cannot be 4-element vectors");
 		texCoords.setItem(unit, data);
 	}
 
@@ -337,7 +335,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	public VectorBuffer getVertexAttributes(int unit) {
 		if (unit < 1)
 			throw new IllegalArgumentException(
-					"Glsl attributes start at 1, unit is invalid: " + unit);
+				"Glsl attributes start at 1, unit is invalid: " + unit);
 		return vertexAttribs.getItem(unit);
 	}
 
@@ -405,10 +403,10 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	public void setIndices(int[] indices, PolygonType polyType) {
 		if (indices == null)
 			throw new NullPointerException(
-					"Cannot have have a IndexedArrayGeometry with a null indices");
+				"Cannot have have a IndexedArrayGeometry with a null indices");
 		if (polyType == null)
 			throw new NullPointerException(
-					"Must specify a non-null polygon type");
+				"Must specify a non-null polygon type");
 
 		this.indices = indices;
 		type = polyType;
@@ -436,10 +434,10 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	public float getVertex(int index, int coord) {
 		if (index < 0 || index >= getVertexCount())
 			throw new IllegalArgumentException("Illegal vertex index: " + index
-					+ " must be in [0, " + getVertexCount() + "]");
+				+ " must be in [0, " + getVertexCount() + "]");
 		if (coord < 0 || coord > 2)
 			throw new IllegalArgumentException("Illegal vertex coordinate: "
-					+ coord + " must be in [0, 2]");
+				+ coord + " must be in [0, 2]");
 
 		return vertices[index * 3 + coord];
 	}

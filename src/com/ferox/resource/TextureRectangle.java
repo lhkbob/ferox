@@ -57,7 +57,7 @@ public class TextureRectangle extends TextureImage {
 	 * class.
 	 */
 	public static class TextureRectangleDirtyDescriptor extends
-			TextureDirtyDescriptor {
+		TextureDirtyDescriptor {
 		private MipmapDirtyRegion dirtyRegions;
 
 		/** True if the only mipmap for the texture rectangle is dirty. */
@@ -90,8 +90,8 @@ public class TextureRectangle extends TextureImage {
 	 * array are invalid.
 	 */
 	public TextureRectangle(BufferData data, int width, int height,
-			TextureFormat format, DataType type) throws NullPointerException,
-			IllegalArgumentException {
+		TextureFormat format, DataType type) throws NullPointerException,
+		IllegalArgumentException {
 		super(format, type);
 		setData(data, width, height);
 	}
@@ -102,8 +102,8 @@ public class TextureRectangle extends TextureImage {
 	 * dimensions and data array are invalid.
 	 */
 	public TextureRectangle(BufferData data, int width, int height,
-			TextureFormat format, DataType type, Filter filter)
-			throws NullPointerException, IllegalArgumentException {
+		TextureFormat format, DataType type, Filter filter)
+		throws NullPointerException, IllegalArgumentException {
 		super(format, type, filter);
 		setData(data, width, height);
 	}
@@ -115,33 +115,33 @@ public class TextureRectangle extends TextureImage {
 	 * dimensions and data array are invalid.
 	 */
 	public TextureRectangle(BufferData data, int width, int height,
-			TextureFormat format, DataType type, Filter filter,
-			TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest)
-			throws NullPointerException, IllegalArgumentException {
+		TextureFormat format, DataType type, Filter filter,
+		TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest)
+		throws NullPointerException, IllegalArgumentException {
 		super(format, type, filter, wrapAll, depthMode, depthTest);
 		setData(data, width, height);
 	}
 
 	/* Internal method used to validate the BufferData[] and dimensions. */
 	private void setData(BufferData data, int width, int height)
-			throws IllegalArgumentException {
+		throws IllegalArgumentException {
 		TextureFormat format = getFormat();
 		DataType type = getType();
 
 		if (data != null) {
 			if (data.getType() != type)
 				throw new IllegalArgumentException(
-						"BufferData doesn't have a matching type for the texture, expected: "
-								+ type + ", but was: " + data.getType());
+					"BufferData doesn't have a matching type for the texture, expected: "
+						+ type + ", but was: " + data.getType());
 			if (data.getCapacity() != format.getBufferSize(width, height, 1))
 				throw new IllegalArgumentException(
-						"Buffer does not have the correct size, expected: "
-								+ format.getBufferSize(width, height, 1)
-								+ ", but was: " + data.getCapacity());
+					"Buffer does not have the correct size, expected: "
+						+ format.getBufferSize(width, height, 1)
+						+ ", but was: " + data.getCapacity());
 		} else if (format.isCompressed())
 			throw new IllegalArgumentException(
-					"Headless TextureRectangle cannot have a client compressed texture: "
-							+ format);
+				"Headless TextureRectangle cannot have a client compressed texture: "
+					+ format);
 
 		// everything is valid up to this point, so we can update our values
 		this.width = width;
@@ -157,14 +157,16 @@ public class TextureRectangle extends TextureImage {
 	 * layer.
 	 */
 	public void markDirty(int x, int y, int width, int height) {
-		TextureRectangleDirtyDescriptor dirty = (TextureRectangleDirtyDescriptor) getDirtyDescriptor();
+		TextureRectangleDirtyDescriptor dirty =
+			(TextureRectangleDirtyDescriptor) getDirtyDescriptor();
 
 		if (dirty.dirtyRegions == null)
-			dirty.dirtyRegions = new MipmapDirtyRegion(x, y, 0, width, height,
-					0, this.width, this.height, 0);
+			dirty.dirtyRegions =
+				new MipmapDirtyRegion(x, y, 0, width, height, 0, this.width,
+					this.height, 0);
 		else
 			dirty.dirtyRegions.merge(x, y, 0, width, height, 0, this.width,
-					this.height, 0);
+				this.height, 0);
 	}
 
 	/** Mark the entire texture image as dirty. */
