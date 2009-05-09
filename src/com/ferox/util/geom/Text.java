@@ -2,10 +2,9 @@ package com.ferox.util.geom;
 
 import java.awt.font.LineMetrics;
 
-import com.ferox.effect.AlphaTest;
-import com.ferox.effect.BlendMode;
-import com.ferox.effect.Material;
 import com.ferox.effect.Texture;
+import com.ferox.effect.BlendMode.BlendEquation;
+import com.ferox.effect.BlendMode.BlendFactor;
 import com.ferox.effect.Effect.PixelTest;
 import com.ferox.math.Color;
 import com.ferox.resource.IndexedArrayGeometry;
@@ -122,18 +121,12 @@ public class Text extends IndexedArrayGeometry {
 	 *         given text color
 	 */
 	public Appearance createAppearance(Color textColor) {
-		Material m = new Material(textColor);
 		Texture chars = new Texture(charSet.getCharacterSet());
 
-		BlendMode bm = new BlendMode();
-
-		// minor hack to prevent z-fighting
-		AlphaTest at = new AlphaTest();
-		at.setTest(PixelTest.GREATER);
-		at.setReferenceValue(0f);
-
-		Appearance a = new Appearance(m, chars, bm, at);
-
+		Appearance a = new Appearance();
+		a.setAlphaTest(PixelTest.GREATER, 0f).setBlendMode(BlendEquation.ADD,
+			BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
+			.setTextures(chars).setMaterial(textColor, new Color());
 		return a;
 	}
 

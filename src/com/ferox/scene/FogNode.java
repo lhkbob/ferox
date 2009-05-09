@@ -1,5 +1,7 @@
 package com.ferox.scene;
 
+import java.util.List;
+
 import com.ferox.effect.Fog;
 import com.ferox.effect.Effect.Quality;
 import com.ferox.effect.Fog.FogEquation;
@@ -190,5 +192,16 @@ public class FogNode extends Leaf {
 	 */
 	public void setQuality(Quality qual) {
 		fog.setQuality(qual);
+	}
+	
+	@Override
+	protected void prepareLightsAndFog(List<LightNode<?>> lights, List<FogNode> fogs) {
+		super.prepareLightsAndFog(lights, fogs);
+		fogs.add(this);
+	}
+	
+	@Override
+	protected void updateFog(FogNode fog) {
+		// do nothing
 	}
 }

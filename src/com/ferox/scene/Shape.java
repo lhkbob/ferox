@@ -3,138 +3,207 @@ package com.ferox.scene;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ferox.effect.Effect;
+import com.ferox.effect.EffectSet;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.BoundVolume;
-import com.ferox.math.Transform;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
-import com.ferox.renderer.util.RenderQueueDataCache;
 import com.ferox.resource.Geometry;
-import com.ferox.state.Appearance;
 
-/** A Shape represents the basic visual element of a scene, the union
- * of a Geometry and an Appearance (describing how the Geometry is colored).
- * 
- * Shape provides the functionality to auto-compute its local bounds based
- * off of its geometry.  If local bounds is never set, or set to null, and
- * its re-computing, then it will create an AxisAlignedBox for its use.
- * 
- * Appearances and geometry should be shared whenever possible to minimize state changes
- * and geometry updates.
+/**
+ * <p>
+ * A Shape represents the basic visual element of a scene, the union of a
+ * Geometry and an Appearance (describing how the Geometry is rendered).
+ * </p>
+ * <p>
+ * Shape provides the functionality to auto-compute its local bounds based off
+ * of its geometry. If local bounds is never set, or set to null, and its
+ * auto-computing, then it will create an AxisAlignedBox for its use.
+ * </p>
+ * <p>
+ * Appearances and geometry should be shared whenever possible to minimize state
+ * changes and geometry updates.
+ * </p>
  * 
  * @author Michael Ludwig
- *
  */
-public class Shape extends Leaf implements RenderAtom {
+public class Shape extends Leaf {
+	private static final Object renderAtomKey = new Object();
+
 	private boolean autoBound;
-	private final RenderQueueDataCache cache;
-	private Appearance appearance;
+
 	private Geometry geom;
-	
-	/** Construct a shape with the given appearance and geometry, and set to
-	 * automatically compute bounds. */
+	private Appearance appearance;
+	private EffectSet effects;
+
+	private RenderAtom renderAtom;
+
+	/**
+	 * Construct a shape with the given appearance and geometry, and set to
+	 * automatically compute bounds.
+	 * 
+	 * @param geom The Geometry to use, if it's null then this Shape will not be
+	 *            rendered
+	 * @param app The Appearance to use, if null then this Shape will be
+	 *            rendered with the default appearance for a Renderer
+	 */
 	public Shape(Geometry geom, Appearance app) {
-		this.cache = new RenderQueueDataCache();
+		// enable lighting
+		lights = new ArrayList<LightNode<?>>();
 		
-		this.setAppearance(app);
-		this.setGeometry(geom);
-		this.setAutoComputeBounds(true);
+		setAppearance(app);
+		setGeometry(geom);
+		setAutoComputeBounds(true);
 	}
-	
-	/** Set the appearance to use for this shape. If app is null, the default
-	 * appearance is used when rendering. */
+
+	/**
+	 * Set the appearance to use for this shape. If app is null, the default
+	 * appearance is used when rendering.
+	 * 
+	 * @param app The new Appearance
+	 */
 	public void setAppearance(Appearance app) {
-		this.appearance = app;
+		appearance = app;
 	}
-	
-	/** Get the appearance used by this Shape (and what's used as a RenderAtom). */
-	@Override
+
+	/**
+	 * @return The appearance used by this Shape
+	 */
 	public Appearance getAppearance() {
-		return this.appearance;
+		return appearance;
 	}
-	
-	/** Set whether or not to compute local bounds based on
-	 * the Shape's appearance's renderable. */
+
+	/**
+	 * Set whether or not to compute local bounds based on the Shape's assigned
+	 * geometry when being updated.
+	 * 
+	 * @param auto The auto-compute policy for this Shape
+	 */
 	public void setAutoComputeBounds(boolean auto) {
-		this.autoBound = auto;
+		autoBound = auto;
 	}
-	
-	/** Set the Geometry that is rendered as this Shape.  If null, the shape
-	 * will not submit its render atom to the RenderQueue. */
+
+	/**
+	 * Set the Geometry that is rendered as this Shape. If null, the shape will
+	 * not submit a render atom to the RenderQueue.
+	 * 
+	 * @param geom The Geometry to use
+	 */
 	public void setGeometry(Geometry geom) {
 		this.geom = geom;
 	}
-	
-	/** Get the geometry used by this Shape. */
-	@Override
+
+	/**
+	 * @return The geometry used by this Shape.
+	 */
 	public Geometry getGeometry() {
-		return this.geom;
+		return geom;
 	}
-	
-	/** Returns whether or not this Shape's local bounds are updated to
-	 * enclose the Shape's geometry.  If false, the local bounds are kept at whatever they
-	 * were last set to. */
+
+	/**
+	 * Returns whether or not this Shape's local bounds are updated to enclose
+	 * the Shape's geometry. If false, the local bounds are kept at whatever
+	 * they were last set to.
+	 * 
+	 * @return The auto complete policy for this Shape
+	 */
 	public boolean getAutoComputeBounds() {
-		return this.autoBound;
+		return autoBound;
 	}
-	
-	/** Override visit to submit a render atom to the RenderQueue if necessary. */
+
+	/** 
+	 * Override visit to submit a render atom to the RenderQueue if necessary. */
 	@Override
-	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
-		if (this.geom == null)
+	public VisitResult visit(RenderQueue renderQueue, View view,
+		VisitResult parentResult) {
+		if (geom == null)
 			return VisitResult.FAIL;
-		
+
 		VisitResult sp = super.visit(renderQueue, view, parentResult);
-		if (sp != VisitResult.FAIL)
-			renderQueue.add(this);
+		if (sp != VisitResult.FAIL) {
+			// make sure the render atom isn't null and
+			// assign the geometry
+			if (renderAtom == null)
+				renderAtom =
+					new RenderAtom(worldTransform, null, geom, renderAtomKey);
+			else
+				renderAtom.setGeometry(geom, renderAtomKey);
+
+			// update the atom's effect set based on appearance, lights, and fog
+			updateEffectSet();
+
+			// finally add it to the queue
+			renderQueue.add(renderAtom);
+		}
 
 		return sp;
 	}
-	
+
+	/**
+	 * Overridden to clean up old references of lights and fogs in the Shape's
+	 * EffectSet.
+	 * 
+	 * @param lights
+	 * @param fogs
+	 */
 	@Override
-	public List<RenderAtom> compile(List<RenderAtom> atoms) {
-		if (atoms == null)
-			atoms = new ArrayList<RenderAtom>();
-		if (this.getCullMode() != CullMode.ALWAYS)
-			atoms.add(this);
-		return atoms;
+	protected void prepareLightsAndFog(List<LightNode<?>> sceneLights,
+		List<FogNode> fogs) {
+		// clean up fog and lights first
+		if (fog != null)
+			effects.remove(fog.getFog());
+		
+		int size = lights.size();
+		for (int i = 0; i < size; i++)
+			effects.remove(lights.get(i).getLight());
+		
+		// now continue preparing
+		super.prepareLightsAndFog(sceneLights, fogs);
 	}
-	
-	/** Override to store the geometry's bounds into local.  Only do it if flag is set 
-	 * and has a non-null geometry present. If local is null and we're auto-updating, create a 
-	 * new bound volume to store the bounds in. */
+
+	/*
+	 * Internal method to make sure that effectSet has the correct Effects added
+	 * to it.
+	 */
+	private void updateEffectSet() {
+		if (appearance != null) {
+			renderAtom.setEffects(effects, renderAtomKey);
+			
+			List<Effect> appEffects = appearance.getEffects();
+			effects.clear();
+			
+			int size = appEffects.size();
+			for (int i = 0; i < size; i++)
+				effects.add(appEffects.get(i));
+			
+			if (appearance.getFogEnabled() && fog != null)
+				effects.add(fog.getFog());
+
+			if (appearance.getGlobalLighting() != null) {
+				size = lights.size();
+				for (int i = 0; i < size; i++)
+					effects.add(lights.get(i).getLight());
+			}
+		} else
+			renderAtom.setEffects(null, renderAtomKey);
+	}
+
+	/**
+	 * Override to store the geometry's bounds into local. Only do it if flag is
+	 * set and has a non-null geometry present. If local is null and we're
+	 * auto-updating, create a new bound volume to store the bounds in.
+	 * 
+	 * @param local
+	 */
 	@Override
 	protected BoundVolume adjustLocalBounds(BoundVolume local) {
-		if (this.autoBound && this.geom != null) {
+		if (autoBound && geom != null) {
 			if (local == null)
 				local = new AxisAlignedBox();
-			this.geom.getBounds(local);
+			geom.getBounds(local);
 		}
 		return local;
-	}
-	
-	@Override
-	public Object getRenderQueueData(RenderQueue pipe) {
-		return this.cache.getRenderQueueData(pipe);
-	}
-	
-	@Override
-	public void setRenderQueueData(RenderQueue pipe, Object data) {
-		this.cache.setRenderQueueData(pipe, data);
-	}
-
-	/** Return the world bounds of this Shape (used as RenderAtom). 
-	 * Do not modify. */
-	@Override
-	public BoundVolume getBounds() {
-		return this.worldBounds;
-	}
-
-	/** Return the world transform of this Shape (used as RenderAtom).
-	 * Do not modify. */
-	@Override
-	public Transform getTransform() {
-		return this.worldTransform;
 	}
 }

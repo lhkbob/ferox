@@ -1,5 +1,7 @@
 package com.ferox.scene;
 
+import java.util.List;
+
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.Light;
@@ -167,5 +169,16 @@ public class LightNode<T extends Light> extends Leaf {
 
 		Vector3f worldDir = light.getDirection();
 		worldTransform.getRotation().transform(localDirection, worldDir);
+	}
+	
+	@Override
+	protected void prepareLightsAndFog(List<LightNode<?>> lights, List<FogNode> fogs) {
+		super.prepareLightsAndFog(lights, fogs);
+		lights.add(this);
+	}
+	
+	@Override
+	protected void updateFog(FogNode fog) {
+		// do nothing
 	}
 }

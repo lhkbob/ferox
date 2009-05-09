@@ -221,6 +221,34 @@ public class Transform {
 	}
 
 	/**
+	 * Compute the distance between this Transform's translation and the other's
+	 * translation.
+	 * 
+	 * @param other The Transform to compute distance between
+	 * @return The distance between other and this's translation vectors
+	 * @throws NullPointerException if other is null
+	 */
+	public float distance(Transform other) {
+		return (float) Math.sqrt(distanceSquared(other));
+	}
+
+	/**
+	 * Compute the square of the distance between this Transform's translation
+	 * and the other's translation.
+	 * 
+	 * @param other The Transform to compute distance between
+	 * @return The distance squared between other and this's translation vectors
+	 * @throws NullPointerException if other is null
+	 */
+	public float distanceSquared(Transform other) {
+		float dx = trans.x - other.trans.x;
+		float dy = trans.y - other.trans.y;
+		float dz = trans.z - other.trans.z;
+
+		return dx * dx + dy * dy + dz * dz;
+	}
+
+	/**
 	 * Stores t1 X t2 into this transform (order is as in conventional matrix
 	 * math). It is safe to call with t1 or t2 as this transform.
 	 * 

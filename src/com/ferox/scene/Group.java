@@ -1,5 +1,7 @@
 package com.ferox.scene;
 
+import java.util.List;
+
 import com.ferox.math.BoundVolume;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
@@ -62,11 +64,36 @@ public class Group extends Node {
 	}
 
 	@Override
-	protected void update(boolean initiator) {
+	protected void updateTransformAndBounds(boolean initiator) {
 		updateTransform(!initiator);
 		for (int i = 0; i < size; i++)
-			children[i].update(false);
+			children[i].updateTransformAndBounds(false);
 		updateBounds();
+	}
+	
+	@Override
+	protected void prepareLightsAndFog(List<LightNode<?>> lights, List<FogNode> fogs) {
+		super.prepareLightsAndFog(lights, fogs);
+		for (int i = 0; i < size; i++)
+			children[i].prepareLightsAndFog(lights, fogs);
+	}
+	
+	@Override
+	protected void updateLight(LightNode<?> light) {
+		// just visit children, if this light intersects our bounds
+		if (light.worldBounds == null || worldBounds == null || worldBounds.intersects(light.worldBounds)) {
+			for (int i = 0; i < size; i++)
+				children[i].updateLight(light);
+		}
+	}
+	
+	@Override
+	protected void updateFog(FogNode fog) {
+		// just visit children, if this fog intersects our bounds
+		if (fog.worldBounds == null || worldBounds == null || worldBounds.intersects(fog.worldBounds)) {
+			for (int i = 0; i < size; i++)
+				children[i].updateFog(fog);
+		}
 	}
 
 	@Override

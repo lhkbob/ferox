@@ -1,5 +1,8 @@
 package com.ferox.scene;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
 
@@ -26,8 +29,6 @@ import com.ferox.renderer.View.FrustumIntersection;
  * 
  * @author Michael Ludwig
  */
-// TODO: add general bound volume tests (shouldn't be in scene element because
-// it's specific to nodes, etc.)
 public abstract class Node {
 	/**
 	 * Represents the culling mode for when a Node is visited. See
@@ -46,30 +47,7 @@ public abstract class Node {
 
 	private static final CullMode DEFAULT_CULLMODE = CullMode.FRUSTUM;
 
-	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
-		@Override
-		protected Transform initialValue() {
-			return new Transform();
-		}
-	};
-	private static final ThreadLocal<Vector3f> dirVec = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> upVec = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> leftVec = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
+	private CullMode cullMode;
 
 	// package-level so that Group can modify it during add() and remove()
 	Group parent;
@@ -88,7 +66,18 @@ public abstract class Node {
 	 */
 	protected BoundVolume worldBounds;
 
-	private CullMode cullMode;
+	/**
+	 * Closest FogNode to this Node. Null implies no fog intersection. If a Node
+	 * implementation doesn't desire attached fogs, they should override
+	 * updateFog() or ignore this value.
+	 */
+	protected FogNode fog;
+
+	/**
+	 * A list of all LightNodes that intersect this Node. If this list is null,
+	 * then LightNodes will not be attached during updateLight().
+	 */
+	protected List<LightNode<?>> lights;
 
 	/**
 	 * Create a Node with default state: identity transforms, no bounds, and the
@@ -176,24 +165,129 @@ public abstract class Node {
 	public abstract void updateBounds();
 
 	/**
-	 * <p>
 	 * Update this Node's world transform, world bounds, and detect any
 	 * LightNode's and FogNode's that affect it. After this method is called,
 	 * the Node's world state is valid.
-	 * </p>
 	 */
 	public void update() {
-		update(true);
+		updateTransformAndBounds(true);
+
+		List<LightNode<?>> lights = sceneLights.get();
+		List<FogNode> fogs = sceneFogs.get();
+
+		// reset the list
+		lights.clear();
+		fogs.clear();
+		// fill the list
+		prepareLightsAndFog(lights, fogs);
+		
+		// update this node for all detected lights
+		int size = lights.size();
+		for (int i = 0; i < size; i++)
+			updateLight(lights.get(i));
+		
+		// update this node for all detected fogs
+		size = fogs.size();
+		for (int i = 0; i < size; i++)
+			updateFog(fogs.get(i));
 	}
 
 	/**
-	 * Actually perform the execution required for update().
+	 * <p>
+	 * Signal to a Node that it should prepare itself for upcoming updateLight()
+	 * and updateFog() calls.
+	 * </p>
+	 * <p>
+	 * The default implementation resets the attached FogNodes and LightNodes
+	 * (for LightNodes, the Node's lights list is only cleared if it's not
+	 * null).
+	 * </p>
+	 * <p>
+	 * Subclasses with children should invoke this method on each child. Groups
+	 * or other branch nodes should not update sceneLights or sceneFogs, it is
+	 * the responsibility of LightNode and FogNode to add themselves to these
+	 * lists when this method is called.
+	 * </p>
+	 * 
+	 * @param sceneLights A list that will accumulate all LightNodes in a scene
+	 *            tree
+	 * @param sceneFogs A list that will accumulate all FogNodes in a scene tree
+	 */
+	protected void prepareLightsAndFog(List<LightNode<?>> sceneLights,
+		List<FogNode> sceneFogs) {
+		// always reset fog
+		fog = null;
+
+		// reset the lights list if it's not null
+		if (lights != null)
+			lights.clear();
+	}
+
+	/**
+	 * <p>
+	 * Potentially attach the given LightNode to this Node. The current
+	 * implementation will not attach the light if its lights list is set to
+	 * null. Even if the list is null, subclasses that contain children should
+	 * still invoke updateLight() on all children if necessary.
+	 * </p>
+	 * <p>
+	 * The light is only attached if its bounds intersect with this Node's world
+	 * bounds. If either light's or this Node's world bounds are null, then it
+	 * is assumed to intersect.
+	 * </p>
+	 * 
+	 * @param light The light that could be attached, assume not null
+	 */
+	protected void updateLight(LightNode<?> light) {
+		if (lights != null) {
+			BoundVolume lightBounds = light.getWorldBounds();
+			if (lightBounds == null || worldBounds == null
+				|| worldBounds.intersects(lightBounds)) {
+				lights.add(light);
+			}
+		}
+	}
+
+	/**
+	 * <p>
+	 * Perform the identical operation as in updateLight(light), but for
+	 * FogNodes. The only additional rule is that if a FogNode is already
+	 * attached, the closest fog node should be chosen.
+	 * </p>
+	 * <p>
+	 * Also there is no signal such as setting the lights list to null to
+	 * disable the updating of Fogs. If subclasses do not want to hold onto a
+	 * reference, they must override this method to not call
+	 * super.updateFog(fog).
+	 * </p>
+	 * 
+	 * @param fog The fog that could be attached, assume not null
+	 */
+	protected void updateFog(FogNode fog) {
+		BoundVolume fogBounds = fog.getWorldBounds();
+		if (fogBounds == null || worldBounds == null
+			|| worldBounds.intersects(fogBounds)) {
+			if (this.fog != null) {
+				if (worldTransform.distanceSquared(this.fog.worldTransform) > worldTransform
+					.distanceSquared(fog.worldTransform))
+					this.fog = fog;
+			} else {
+				// just attach the fog
+				this.fog = fog;
+			}
+		}
+	}
+
+	/**
+	 * Actually perform the operations required for the transform and bounds
+	 * portion of update(). If this Node has children, it should not call
+	 * update(), but use updateTransformAndBounds(false).
 	 * 
 	 * @see #update()
 	 * @param initiator True if this Node is first invocation in a chain of
 	 *            updates necessary to get the scene tree updated.
 	 */
-	protected void update(boolean initiator) {
+	protected void updateTransformAndBounds(boolean initiator) {
 		updateTransform(!initiator);
 		updateBounds();
 	}
@@ -218,7 +312,7 @@ public abstract class Node {
 	 *            visit() call, or null if this Node is the first to be visited.
 	 */
 	public VisitResult visit(RenderQueue renderQueue, View view,
-			VisitResult parentResult) {
+		VisitResult parentResult) {
 		switch (cullMode) {
 		case ALWAYS:
 			return VisitResult.FAIL;
@@ -228,7 +322,8 @@ public abstract class Node {
 			if (parentResult == VisitResult.SUCCESS_ALL)
 				return VisitResult.SUCCESS_ALL;
 			else {
-				FrustumIntersection test = (worldBounds == null ? FrustumIntersection.INTERSECT
+				FrustumIntersection test =
+					(worldBounds == null ? FrustumIntersection.INTERSECT
 						: worldBounds.testFrustum(view));
 				switch (test) {
 				case INSIDE:
@@ -311,13 +406,13 @@ public abstract class Node {
 	 *             transform
 	 */
 	public Transform localToWorld(Transform local, Transform result,
-			boolean fast) {
+		boolean fast) {
 		if (local == null)
 			throw new NullPointerException(
-					"Can't compute world transform from null local trans");
+				"Can't compute world transform from null local trans");
 		if (result == local || result == localTransform)
 			throw new IllegalArgumentException(
-					"Can't use this node's local transform or local as result");
+				"Can't use this node's local transform or local as result");
 		if (result == null)
 			result = new Transform();
 
@@ -357,13 +452,13 @@ public abstract class Node {
 	 *             transform instance.
 	 */
 	public Transform worldToLocal(Transform world, Transform result,
-			boolean fast) {
+		boolean fast) {
 		if (world == null)
 			throw new NullPointerException(
-					"Can't compute local transform from null world trans");
+				"Can't compute local transform from null world trans");
 		if (result == world || result == worldTransform)
 			throw new IllegalArgumentException(
-					"Can't use this node's world transform or world as result");
+				"Can't use this node's world transform or world as result");
 		if (result == null)
 			result = new Transform();
 
@@ -411,7 +506,7 @@ public abstract class Node {
 			// NullPointerException
 			if (world == null)
 				throw new NullPointerException(
-						"Cannot set a null world transform");
+					"Cannot set a null world transform");
 			localTransform.set(world);
 		} else
 			parent.worldToLocal(world, localTransform, false);
@@ -432,8 +527,8 @@ public abstract class Node {
 	public void lookAt(Vector3f position, Vector3f up) {
 		if (position == null || up == null)
 			throw new NullPointerException(
-					"Can't call lookAt() with null input vectors: " + position
-							+ " " + up);
+				"Can't call lookAt() with null input vectors: " + position
+					+ " " + up);
 
 		if (parent != null) {
 			parent.updateTransform(false);
@@ -463,4 +558,51 @@ public abstract class Node {
 		else
 			localTransform.set(worldTransform);
 	}
+
+	/* Internal variables used for computations. */
+
+	private static final ThreadLocal<List<LightNode<?>>> sceneLights =
+		new ThreadLocal<List<LightNode<?>>>() {
+			@Override
+			protected List<LightNode<?>> initialValue() {
+				return new ArrayList<LightNode<?>>();
+			}
+		};
+
+	private static final ThreadLocal<List<FogNode>> sceneFogs =
+		new ThreadLocal<List<FogNode>>() {
+			@Override
+			protected List<FogNode> initialValue() {
+				return new ArrayList<FogNode>();
+			}
+		};
+
+	private static final ThreadLocal<Transform> IDENTITY =
+		new ThreadLocal<Transform>() {
+			@Override
+			protected Transform initialValue() {
+				return new Transform();
+			}
+		};
+	private static final ThreadLocal<Vector3f> dirVec =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
+	private static final ThreadLocal<Vector3f> upVec =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
+	private static final ThreadLocal<Vector3f> leftVec =
+		new ThreadLocal<Vector3f>() {
+			@Override
+			protected Vector3f initialValue() {
+				return new Vector3f();
+			}
+		};
 }
