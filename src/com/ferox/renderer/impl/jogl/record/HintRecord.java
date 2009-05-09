@@ -2,12 +2,12 @@ package com.ferox.renderer.impl.jogl.record;
 
 import javax.media.opengl.GL;
 
-/** A record that holds onto the allowed hints that can be set for a 
- * context.  Not all of these hints are actively used, but they are 
- * included for completion.
+/**
+ * A record that holds onto the allowed hints that can be set for a context. Not
+ * all of these hints are actively used, but they are included for completion.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class HintRecord {
 	public int perspectiveCorrectionHint = GL.GL_DONT_CARE;

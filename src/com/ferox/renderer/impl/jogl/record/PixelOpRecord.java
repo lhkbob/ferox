@@ -2,22 +2,23 @@ package com.ferox.renderer.impl.jogl.record;
 
 import javax.media.opengl.GL;
 
-/** Class that encapsulates the state for the different
- * pixel operations and tests.
+/**
+ * Class that encapsulates the state for the different pixel operations and
+ * tests.
  * 
- * The actual box for the scissor's test is not included because
- * tracking it would be too difficult.
+ * The actual box for the scissor's test is not included because tracking it
+ * would be too difficult.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class PixelOpRecord {
 	public boolean enableScissorTest = false;
-	
+
 	public boolean enableAlphaTest = false;
 	public int alphaTestFunc = GL.GL_ALWAYS;
 	public float alphaTestRef = 0f;
-	
+
 	public boolean enableStencilTest = false;
 	public int stencilFunc = GL.GL_ALWAYS;
 	public int stencilValueMask = ~0;
@@ -41,8 +42,8 @@ public class PixelOpRecord {
 	public int blendSrcAlpha = GL.GL_ONE;
 	public int blendDstRgb = GL.GL_ZERO;
 	public int blendDstAlpha = GL.GL_ZERO;
-	
+
 	public int blendEquationRgb = GL.GL_FUNC_ADD;
 	public int blendEquationAlpha = GL.GL_FUNC_ADD;
-	public final float[] blendColor = {0f, 0f, 0f, 0f};
+	public final float[] blendColor = { 0f, 0f, 0f, 0f };
 }
