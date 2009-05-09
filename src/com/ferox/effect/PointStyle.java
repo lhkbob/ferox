@@ -17,7 +17,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.POINT_RENDER, Type.POINT_SIZE })
+@EffectType(Type.POINT)
 public class PointStyle extends AbstractEffect {
 	public static enum PointSpriteOrigin {
 		UPPER_LEFT, LOWER_LEFT

@@ -49,26 +49,20 @@ public final class ResourceData {
 	private Status status;
 	private String statusMessage;
 
-	// used directly by AbstractRenderer to manage resources
-	final AbstractRenderer renderer;
 	final ResourceDriver driver;
 
 	/**
-	 * Construct a new ResourceData for the given AbstractRenderer that will use
-	 * the specified driver.
+	 * Construct a new ResourceData that will use the given resource driver.
 	 * 
-	 * @param renderer The AbstractRenderer involved
 	 * @param driver The ResourceDriver that will be used for this data's
 	 *            Resource for all future operations
-	 * @throws NullPointerException if renderer or driver are null
+	 * @throws NullPointerException if driver is null
 	 */
-	public ResourceData(AbstractRenderer renderer, ResourceDriver driver) {
-		if (renderer == null || driver == null)
+	public ResourceData(ResourceDriver driver) {
+		if (driver == null)
 			throw new NullPointerException(
-				"Constructor arguments cannot be null: " + renderer + " "
-					+ driver);
+				"Constructor arguments cannot be null: " + driver);
 
-		this.renderer = renderer;
 		this.driver = driver;
 		isGeometry = driver instanceof GeometryDriver;
 

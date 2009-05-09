@@ -6,8 +6,8 @@ import java.io.PrintStream;
  * Holds timings and counts for a single frame of rendering.
  * 
  * @author Michael Ludwig
- * 
  */
+// FIXME: add back setTiming methods
 public class FrameStatistics {
 	private int totalMeshCount;
 	private int totalVertexCount;
@@ -34,6 +34,37 @@ public class FrameStatistics {
 		totalPolygonCount += polyCount;
 		totalMeshCount += meshCount;
 		totalVertexCount += vertCount;
+	}
+
+	/**
+	 * Set the amount of nanoseconds that this Renderer has been idle. This will
+	 * be the value returned by getIdleTime() and should not be negative.
+	 * 
+	 * @param ns The idle time, in nanoseconds
+	 */
+	public void setIdleTime(long ns) {
+		waitTime = ns;
+	}
+
+	/**
+	 * Set the amount of nanoseconds that this Renderer has been spent preparing
+	 * for rendering. This will be the value returned by getPrepareTime() and
+	 * should not be negative.
+	 * 
+	 * @param ns The prepare time, in nanoseconds
+	 */
+	public void setPrepareTime(long ns) {
+		waitTime = ns;
+	}
+
+	/**
+	 * Set the amount of nanoseconds that this Renderer spend rendering This
+	 * will be the value returned by getRenderTime() and should not be negative.
+	 * 
+	 * @param ns The render time, in nanoseconds
+	 */
+	public void setRenderTime(long ns) {
+		waitTime = ns;
 	}
 
 	/**
@@ -152,14 +183,14 @@ public class FrameStatistics {
 	 */
 	public void reportStatistics(PrintStream out) {
 		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n",
-				getTotalTime() / 1e6f, getIdleTime() / 1e6f);
+			getTotalTime() / 1e6f, getIdleTime() / 1e6f);
 		out.printf("                     in prepare: %.6f ms,\n",
-				getPrepareTime() / 1e6f);
+			getPrepareTime() / 1e6f);
 		out.printf("                     in render: %.6f ms)\n",
-				getRenderTime() / 1e6f);
+			getRenderTime() / 1e6f);
 		out.printf("Frame/sec: %.4f fps, Poly/sec: %.4f\n",
-				getFramesPerSecond(), getPolygonsPerSecond());
+			getFramesPerSecond(), getPolygonsPerSecond());
 		out.printf("Mesh count: %d, Polygon count: %d Vertex count: %d\n",
-				getMeshCount(), getPolygonCount(), getVertexCount());
+			getMeshCount(), getPolygonCount(), getVertexCount());
 	}
 }

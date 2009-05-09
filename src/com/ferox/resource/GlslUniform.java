@@ -1,6 +1,5 @@
 package com.ferox.resource;
 
-import com.ferox.renderer.RenderDataCache;
 import com.ferox.renderer.Renderer;
 
 /**

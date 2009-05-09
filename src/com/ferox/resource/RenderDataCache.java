@@ -1,7 +1,9 @@
-package com.ferox.renderer;
+package com.ferox.resource;
 
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
+
+import com.ferox.renderer.Renderer;
 
 /**
  * Utility class implementing fast caching for the setRenderData() in Effect,

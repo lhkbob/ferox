@@ -103,7 +103,7 @@ import com.ferox.resource.TextureImage;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.TEXTURE_COORD_GEN, Type.TEXTURE_ENV })
+@EffectType(Type.TEXTURE)
 public class Texture extends AbstractEffect {
 	/** Describes how texels are combined with other textures and colors. */
 	public static enum EnvMode {

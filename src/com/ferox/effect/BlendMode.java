@@ -14,7 +14,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.BLENDING })
+@EffectType(Type.BLEND)
 public class BlendMode extends AbstractEffect {
 	private static final BlendEquation DEFAULT_BLEND_EQ = BlendEquation.ADD;
 	private static final BlendFactor DEFAULT_SRC_FACTOR = BlendFactor.SRC_ALPHA;

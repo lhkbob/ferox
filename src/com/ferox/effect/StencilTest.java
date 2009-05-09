@@ -17,7 +17,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.STENCIL_TEST, Type.STENCIL_WRITE })
+@EffectType(Type.STENCIL)
 public class StencilTest extends AbstractEffect {
 	/** Operation to perform on the stencil buffer under certain conditions. */
 	public static enum StencilOp {

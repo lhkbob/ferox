@@ -80,19 +80,9 @@ public class EffectSet {
 	 * types.
 	 */
 	private static boolean inConflict(Effect e1, Effect e2) {
-		Type[] type1 = e1.getTypes();
-		Type[] type2 = e2.getTypes();
-
-		for (int i = 0; i < type1.length; i++)
-			if (!type1[i].getMultipleEffects())
-				// only check further if we can't have multiples
-				for (int j = 0; j < type2.length; j++)
-					if (!type2[j].getMultipleEffects()
-						&& type1[i].equals(type2[j]))
-						return true;
-
-		// we've gotten here, so no common Types, or the Types all allow
-		// multiple effects
-		return false;
+		Type t1 = e1.getType();
+		Type t2 = e2.getType();
+		
+		return t1 == t2 && !t1.getMultipleEffects();
 	}
 }

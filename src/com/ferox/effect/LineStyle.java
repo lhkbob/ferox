@@ -10,7 +10,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.LINE_RENDER, Type.LINE_SIZE })
+@EffectType(Type.LINE)
 public class LineStyle extends AbstractEffect {
 	private boolean enableSmoothing;
 	private boolean enableStippling;

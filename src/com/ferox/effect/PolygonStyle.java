@@ -16,7 +16,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.POLYGON_FACING, Type.POLYGON_RENDER })
+@EffectType(Type.POLYGON)
 public class PolygonStyle extends AbstractEffect {
 	/**
 	 * Represents the style of drawing to use. Depending on the primitive type

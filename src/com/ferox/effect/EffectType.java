@@ -20,11 +20,11 @@ import java.lang.annotation.Target;
  * RenderAtom, it's clear that it modifies the material color. It doesn't make
  * sense to allow an atom to be affected by that class and a Material. By having
  * both classes annotated by @EffectType(MATERIAL), it is easily understand that
- * they achieve the same effect and shouldn't be used together.
+ * they achieve the same end result and should not be used together.
  * </p>
  * <p>
- * All Effect implementations must have an EffectType annotation somewhere in
- * its class hierarchy.
+ * All Effect implementations must have an EffectType annotation attached
+ * somewhere in its class hierarchy.
  * </p>
  * 
  * @author Michael Ludwig
@@ -35,92 +35,90 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface EffectType {
 	/**
-	 * @return All Types that an Effect implementation represents.
+	 * @return The Type that this Effect represents
 	 */
-	Type[] value();
+	Type value();
 
 	/**
 	 * <p>
-	 * An enum describing all low-level modifications to a RenderAtom. Highly
-	 * related parameters (such as diffuse vs. specular colors) have been merged
-	 * into one Type for clarity.
-	 * </p>
-	 * <p>
-	 * The Type values are intended to be all-inclusive of the types of
-	 * modifications allowed by low-level graphics system. If ever new options
-	 * become available, or something in existence isn't described by a Type,
-	 * then this might change.
+	 * An enum describing the possible end effects allowed by most current
+	 * graphics hardware. This is highly based off of fixed-function rendering
+	 * pipelines in low-level graphics apis. Many related operations have been
+	 * gathered together into one effect type for simplicity. If ever new types
+	 * should become available, this enum may change.
 	 * </p>
 	 * <p>
 	 * Each Type has a boolean parameter controlling whether or not multiple
-	 * Effects of that Type can be used in the same EffectSet. When declaring
-	 * the Types used by an Effect, you should not mix single and multiple
-	 * Types, as the Effect will then only be used as if it were a single Type.
+	 * Effects of that Type can be used in the same EffectSet.
 	 * </p>
 	 * <p>
-	 * The concept of multiple effects may be confusing. For example,
-	 * TEXTURE_ENV and TEXTURE_COORD_GEN are not multiple effects, but low-level
-	 * graphics libraries let you use multi-texturing. This is because each
-	 * texture also has a specific unit attached to it; the active textures are
-	 * then a list and not a set. Lights however are multiple effects because
-	 * all lights applied to a RenderAtom can be represented as a set.
+	 * The concept of multiple effects may be confusing. For example, TEXTURE is
+	 * not a Type allowing multiple Effects, but low-level graphics libraries
+	 * let you use multi-texturing. This is because each texture has a specific
+	 * unit attached to it; the active textures are then a list and not a set.
+	 * Lights however are multiple effects because all lights applied to a
+	 * RenderAtom can be represented as a set.
 	 * </p>
 	 */
 	public static enum Type {
-		/** Controls pixel visibility based on alpha values. */
-		ALPHA_TEST,
+		/**
+		 * Controls aspects related to a pixel's alpha value and its visibility
+		 */
+		ALPHA,
 		/**
 		 * Controls final pixel color by blending it with previously rendered
 		 * pixels.
 		 */
-		BLENDING,
-		/** Controls pixel visibility based on the depth of the pixel. */
-		DEPTH_TEST,
-		/** Controls the writing of depth values into a RenderSurface. */
-		DEPTH_WRITE,
-		/** Controls the application of programmable shaders. */
+		BLEND,
+		/**
+		 * Controls aspects of depth testing and the depth buffer
+		 */
+		DEPTH,
+		/**
+		 * Controls the application of programmable shaders.
+		 */
 		SHADER,
-		/** Controls the parameters of the global lighting effects. */
+		/**
+		 * Controls the parameters of the global lighting effects.
+		 */
 		GLOBAL_LIGHTING,
-		/** Controls the parameters of individual lights. */
-		LIGHTS(true),
-		/** Controls the coloring and type of fog. */
+		/**
+		 * Controls the parameters of individual lights.
+		 */
+		LIGHT(true),
+		/**
+		 * Controls the coloring and type of fog.
+		 */
 		FOG,
-		/** Controls the material color of a polygon used when rendering. */
+		/**
+		 * Controls the material color of a polygon used when rendering.
+		 */
 		MATERIAL,
-		/** Controls the texture environment used to modify the color of pixels. */
-		TEXTURE_ENV,
 		/**
-		 * Controls the automatic generation of texture coordinates for
-		 * RenderAtoms.
+		 * Controls the texture environment used to modify the color of pixels.
 		 */
-		TEXTURE_COORD_GEN,
-		/** Controls the sizing of rendered points. */
-		POINT_SIZE,
+		TEXTURE,
 		/**
-		 * Controls how points are rendered, such as smoothing or point sprites.
+		 * Controls all aspects of the rendering style of points.
 		 */
-		POINT_RENDER,
-		/** Controls the size of rendered lines. */
-		LINE_SIZE,
-		/** Controls how lines are rendered, such as smoothing or stippling. */
-		LINE_RENDER,
+		POINT,
+		/**
+		 * Controls all aspects of the rendering style of lines.
+		 */
+		LINE,
 		/**
 		 * Controls the different facing aspects of rendered polygons, such as
 		 * winding and draw mode.
 		 */
-		POLYGON_FACING,
+		POLYGON,
 		/**
-		 * Controls how polygons are rendered, such as smoothing, stippling and
-		 * depth offsetting.
+		 * Controls stencil testing and writing to a stencil buffer.
 		 */
-		POLYGON_RENDER,
-		/** Controls the pixel visibility based on the stencil buffer. */
-		STENCIL_TEST,
-		/** Controls the writing and updates to the stencil buffer. */
-		STENCIL_WRITE,
-		/** Controls the writing of color values. */
-		COLOR_WRITE;
+		STENCIL,
+		/**
+		 * Controls the masking of color values written to the color buffer.
+		 */
+		COLOR_MASK;
 
 		private boolean multiple;
 

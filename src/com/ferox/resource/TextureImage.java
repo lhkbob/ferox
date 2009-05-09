@@ -1,7 +1,6 @@
 package com.ferox.resource;
 
 import com.ferox.effect.Effect.PixelTest;
-import com.ferox.renderer.RenderDataCache;
 import com.ferox.renderer.Renderer;
 import com.ferox.resource.BufferData.DataType;
 

@@ -17,7 +17,7 @@ import com.ferox.resource.Resource;
  * </p>
  * <p>
  * Also, when a resource is cleaned up, it should be assumed that the cleaning
- * cleans up everything for all surfaces. It is the SurfaceFactory's
+ * cleans up everything for all surfaces. It is the ContextManager's
  * responsibility to make sure that these assumptions are met when it creates
  * new surfaces.
  * </p>

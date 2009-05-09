@@ -42,20 +42,8 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 			Effect e;
 			for (int i = 0; i < size; i++) {
 				e = effects.get(i);
-				key = modifyKey(key, System.identityHashCode(e), e.getTypes());
+				key ^= typeKey(System.identityHashCode(e), e.getType());
 			}
-		}
-
-		return key;
-	}
-
-	/*
-	 * Modify the existing key, based off of hash and types and return the new
-	 * key.
-	 */
-	private int modifyKey(int key, int hash, Type[] types) {
-		for (int i = 0; i < types.length; i++) {
-			key ^= typeKey(hash, types[i]);
 		}
 
 		return key;
@@ -69,21 +57,15 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 		int comp;
 
 		switch (t) {
-		case TEXTURE_COORD_GEN:
-		case TEXTURE_ENV:
-		case ALPHA_TEST:
-		case DEPTH_TEST:
-		case COLOR_WRITE:
-		case DEPTH_WRITE:
-		case STENCIL_TEST:
-		case STENCIL_WRITE:
-		case LIGHTS:
-		case LINE_RENDER:
-		case LINE_SIZE:
-		case POINT_RENDER:
-		case POINT_SIZE:
-		case POLYGON_FACING:
-		case POLYGON_RENDER:
+		case TEXTURE:
+		case ALPHA:
+		case DEPTH:
+		case COLOR_MASK:
+		case STENCIL:
+		case LIGHT:
+		case LINE:
+		case POINT:
+		case POLYGON:
 			comp = (hash & 0xff);
 			break;
 		default:
@@ -96,14 +78,13 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 		case SHADER:
 			return comp << 28;
 			// bits 20 - 27
-		case TEXTURE_COORD_GEN:
-		case TEXTURE_ENV:
+		case TEXTURE:
 			return comp << 20;
 			// bits 12 - 19
-		case LIGHTS:
+		case LIGHT:
 			return comp << 12;
 			// bits 8 - 11
-		case BLENDING:
+		case BLEND:
 		case MATERIAL:
 		case GLOBAL_LIGHTING:
 		case FOG:

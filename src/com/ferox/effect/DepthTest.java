@@ -24,7 +24,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.DEPTH_TEST, Type.DEPTH_WRITE })
+@EffectType(Type.DEPTH)
 public class DepthTest extends AbstractEffect {
 	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.LEQUAL;
 

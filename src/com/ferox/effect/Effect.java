@@ -1,7 +1,6 @@
 package com.ferox.effect;
 
 import com.ferox.effect.EffectType.Type;
-import com.ferox.renderer.RendererAware;
 
 /**
  * <p>
@@ -25,16 +24,14 @@ import com.ferox.renderer.RendererAware;
  * @see EffectType </p>
  * @author Michael Ludwig
  */
-public interface Effect extends RendererAware {
+public interface Effect {
 	/**
-	 * Return the array of Type that is present in the Effect's attached
-	 * EffectType annotation. This method should return the same array each
-	 * time, to avoid the object creation that would result in always invoking
-	 * value() in EffectType.
+	 * Return the Type of this Effect, this must match the Type specified in the
+	 * Effect's attached EffectType annotation
 	 * 
-	 * @return The Type array, do not modify or results are undefined.
+	 * @return The Type of this Effect
 	 */
-	public Type[] getTypes();
+	public Type getType();
 
 	/**
 	 * A common enum to describe the quality state effects when rendering.

@@ -21,8 +21,8 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * called while the Renderer is processing its resource managers.
  * </p>
  * <p>
- * All methods will through an exception if the Renderer is not in an
- * appropriate state to execute the method.
+ * All methods will throw an exception if the Renderer is not in an appropriate
+ * state to execute the method.
  * </p>
  * <p>
  * There are three primary interfaces that Renderer's rely on to describe the
@@ -39,17 +39,14 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * efficient caching and bookkeeping, these interfaces also provide methods
  * allowing a Renderer to associate internal object with specific instances.
  * <b>UNDER NO CIRCUMSTANCES SHOULD THESE METHODS BE CALLED OR USED EXTERNALLY
- * TO RENDERER IMPLS.</b>
+ * OF RENDERER IMPLEMENTATIONS.</b>
  * </p>
  * <p>
- * Another consequence of the get/set[Resource/Effect]() methods is that there
- * should only be one Renderer at a time. Otherwise, the renderers may compete
- * and overwrite the objects attached to the resources and states. If this is
- * the case, there very well might be memory leaks or extraneous low-level
- * graphics objects created (in effect wiping out its cache-effectiveness).
- * Renderer implementations that "wrap" actual renderers to provide some extra
- * functionality (such as logging or multi-threading) are acceptable if they
- * don't modify the attached, internal objects.
+ * Although the get/setRenderData() methods in Resource allow for multiple
+ * simultaneous renderers, it is highly recommended that only one Renderer be
+ * used for efficiency purposes. It is unlikely that there should ever be a need
+ * for multiple distinct renderers. One exception would be if a Renderer
+ * implementation wrapped an actual renderer to provide extra functionality.
  * </p>
  * 
  * @author Michael Ludwig
@@ -98,7 +95,7 @@ public interface Renderer {
 	 */
 	@RequiresState(RenderState.WAITING)
 	public WindowSurface createWindowSurface(DisplayOptions options, int x,
-			int y, int width, int height, boolean resizable, boolean undecorated);
+		int y, int width, int height, boolean resizable, boolean undecorated);
 
 	/**
 	 * <p>
@@ -128,7 +125,7 @@ public interface Renderer {
 	 */
 	@RequiresState(RenderState.WAITING)
 	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
-			int width, int height);
+		int width, int height);
 
 	/**
 	 * <p>
@@ -211,8 +208,8 @@ public interface Renderer {
 	 */
 	@RequiresState(RenderState.WAITING)
 	public TextureSurface createTextureSurface(DisplayOptions options,
-			TextureTarget target, int width, int height, int depth, int layer,
-			int numColorTargets, boolean useDepthRenderBuffer);
+		TextureTarget target, int width, int height, int depth, int layer,
+		int numColorTargets, boolean useDepthRenderBuffer);
 
 	/**
 	 * <p>
@@ -257,11 +254,15 @@ public interface Renderer {
 	 * a FullscreenSurface is destroyed, the monitor should be restored to the
 	 * original resolution when the surface was first created.
 	 * </p>
+	 * <p>
+	 * Invoking destroy(surface) on already destroyed surfaces should be a
+	 * no-op.
+	 * </p>
 	 * 
 	 * @param surface The RenderSurface to destroy
 	 * @throws NullPointerException if surface is null
-	 * @throws IllegalArgumentException if the surface is already destroyed or
-	 *             wasn't created by this Renderer
+	 * @throws IllegalArgumentException if the surface wasn't created by this
+	 *             Renderer
 	 * @throws RenderStateException if this renderer isn't idle or if it's been
 	 *             destroyed
 	 */
@@ -438,7 +439,8 @@ public interface Renderer {
 	 * @param store The FrameStatistics instance to use for stats accumulation
 	 * @return The stats for this frame (in store, or a new instance if store
 	 *         was null).
-	 * @throws RenderException wrapping any exception that occurs while rendering
+	 * @throws RenderException wrapping any exception that occurs while
+	 *             rendering
 	 * @throws RenderStateException if the Renderer isn't idle or if it's
 	 *             already been destroyed
 	 */
@@ -458,8 +460,7 @@ public interface Renderer {
 	 * 
 	 * @param resource The Resource whose status is requested
 	 * @return The Status of resource
-	 * @throws RenderStateException if the Renderer isn't idle or if it's already
-	 *             been destroyed
+	 * @throws RenderStateException if the Renderer has been destroyed
 	 */
 	public Status getStatus(Resource resource);
 
@@ -470,8 +471,7 @@ public interface Renderer {
 	 * 
 	 * @param resource The Resource whose status message is requested
 	 * @return The status message for resource
-	 * @throws RenderStateException if the Renderer isn't idle or if it's already
-	 *             been destroyed
+	 * @throws RenderStateException if the Renderer has been destroyed
 	 */
 	public String getStatusMessage(Resource resource);
 
@@ -479,12 +479,11 @@ public interface Renderer {
 	 * Get the capabilities of this Renderer.
 	 * 
 	 * @return The RenderCapabilities for this Renderer, will not be null
-	 * @throws RenderStateException if the Renderer isn't idle or if it's already
-	 *             been destroyed
+	 * @throws RenderStateException if the Renderer has been destroyed
 	 */
 	public RenderCapabilities getCapabilities();
 
-	/* Resource operations. */
+	/* Rendering operations. */
 
 	/**
 	 * <p>
@@ -527,7 +526,7 @@ public interface Renderer {
 	 *             unsupported by this Renderer
 	 * @throws RenderException if this is called from within the stack of a
 	 *             cleanUp() or update() call already processing resource
-	 * @throws RenderStateException if the Renderer isn't idle or if it's
+	 * @throws RenderStateException if the Renderer isn't rendering or if it's
 	 *             already been destroyed
 	 */
 	@RequiresState(RenderState.RENDERING)
@@ -563,13 +562,11 @@ public interface Renderer {
 	 *             unsupported by this Renderer
 	 * @throws RenderException if this is called from within the stack of a
 	 *             cleanUp() or update() call already processing resource
-	 * @throws RenderStateException if the Renderer isn't idle or if it's
+	 * @throws RenderStateException if the Renderer isn't rendering or if it's
 	 *             already been destroyed
 	 */
 	@RequiresState(RenderState.RENDERING)
 	public void cleanUp(Resource resource);
-
-	/* Rendering operations. */
 
 	/**
 	 * <p>

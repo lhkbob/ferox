@@ -26,7 +26,7 @@ import com.ferox.resource.GlslUniform;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.SHADER })
+@EffectType(Type.SHADER)
 public class GlslShader extends AbstractEffect {
 	/**
 	 * UniformBinding is the union of a GlslUniform and its set value for a

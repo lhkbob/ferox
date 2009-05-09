@@ -28,7 +28,7 @@ import com.ferox.util.UnitList.Unit;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.TEXTURE_ENV })
+@EffectType(Type.TEXTURE)
 public class MultiTexture extends AbstractEffect {
 	private final UnitList<Texture> units;
 

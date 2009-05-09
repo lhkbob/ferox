@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ferox.renderer.RenderDataCache;
 import com.ferox.renderer.Renderer;
 import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.GlslVertexAttribute.AttributeType;

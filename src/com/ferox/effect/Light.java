@@ -17,7 +17,7 @@ import com.ferox.math.Color;
  * space of the RenderAtoms that are affected by it.
  * </p>
  * <p>
- * Because Light has an EffectType of LIGHTS, multiple Lights may be added to an
+ * Because Light has an EffectType of LIGHT, multiple Lights may be added to an
  * EffectSet. There is likely to be a Renderer imposed limit on the actual
  * number of Lights that affect a rendered atom.
  * </p>
@@ -33,7 +33,7 @@ import com.ferox.math.Color;
  * 
  * @author Michael Ludwig
  */
-@EffectType( { Type.LIGHTS })
+@EffectType(Type.LIGHT)
 public abstract class Light extends AbstractEffect {
 	private static final Color DEFAULT_AMBIENT = new Color(.2f, .2f, .2f);
 	private static final Color DEFAULT_DIFFUSE = new Color(.8f, .8f, .8f);

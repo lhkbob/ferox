@@ -2,7 +2,6 @@ package com.ferox.resource;
 
 import com.ferox.math.BoundVolume;
 import com.ferox.math.BoundsCache;
-import com.ferox.renderer.RenderDataCache;
 import com.ferox.renderer.Renderer;
 
 /**
