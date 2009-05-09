@@ -24,8 +24,8 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * 
 	 * @param position
 	 */
-	public SpotLightNode(Vector3f position) {
-		super(new SpotLight(position));
+	public SpotLightNode() {
+		super(new SpotLight(new Vector3f()));
 	}
 
 	/**
@@ -34,8 +34,8 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param position
 	 * @param diffuse
 	 */
-	public SpotLightNode(Vector3f position, Color diffuse) {
-		super(new SpotLight(position, diffuse));
+	public SpotLightNode(Color diffuse) {
+		super(new SpotLight(new Vector3f(), diffuse));
 	}
 
 	/**
@@ -46,9 +46,9 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param specular
 	 * @param ambient
 	 */
-	public SpotLightNode(Vector3f position, Color diffuse, Color specular,
+	public SpotLightNode(Color diffuse, Color specular,
 		Color ambient) {
-		super(new SpotLight(position, diffuse, specular, ambient));
+		super(new SpotLight(new Vector3f(), diffuse, specular, ambient));
 	}
 
 	/**
@@ -60,9 +60,9 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param ambient
 	 * @param direction
 	 */
-	public SpotLightNode(Vector3f position, Color diffuse, Color specular,
+	public SpotLightNode(Color diffuse, Color specular,
 		Color ambient, Vector3f direction) {
-		super(new SpotLight(position, diffuse, specular, ambient, direction));
+		super(new SpotLight(new Vector3f(), diffuse, specular, ambient, direction));
 	}
 
 	/**
