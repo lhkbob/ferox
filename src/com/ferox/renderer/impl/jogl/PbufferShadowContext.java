@@ -10,43 +10,45 @@ import javax.media.opengl.GLPbuffer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 
-/** Is a shadow context that uses 1x1 pbuffer so that everything
- * is still offscreen, even when executing the resource action. 
- * This is the recommended shadow context to use, assuming that pbuffers
- * are supported.
+/**
+ * Is a shadow context that uses 1x1 pbuffer so that everything is still
+ * offscreen, even when executing the resource action. This is the recommended
+ * shadow context to use, assuming that pbuffers are supported.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class PbufferShadowContext extends AbstractShadowContext {
-	private GLPbuffer pbuffer;
-	private JoglStateRecord record;
-	
+	private final GLPbuffer pbuffer;
+	private final JoglStateRecord record;
+
 	/** Assumes that pbuffers are supported on the current hardware. */
 	public PbufferShadowContext(RenderCapabilities caps) {
-		this.pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(new GLCapabilities(), new DefaultGLCapabilitiesChooser(), 1, 1, null);
-		this.pbuffer.addGLEventListener(this);
-		
-		this.record = new JoglStateRecord(caps);
+		pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(
+				new GLCapabilities(), new DefaultGLCapabilitiesChooser(), 1, 1,
+				null);
+		pbuffer.addGLEventListener(this);
+
+		record = new JoglStateRecord(caps);
 	}
-	
+
 	@Override
 	public void destroy() {
-		this.pbuffer.destroy();
+		pbuffer.destroy();
 	}
 
 	@Override
 	public GLContext getContext() {
-		return this.pbuffer.getContext();
+		return pbuffer.getContext();
 	}
 
 	@Override
 	public GLAutoDrawable getGLAutoDrawable() {
-		return this.pbuffer;
+		return pbuffer;
 	}
 
 	@Override
 	public JoglStateRecord getStateRecord() {
-		return this.record;
+		return record;
 	}
 }

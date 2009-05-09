@@ -11,144 +11,154 @@ import org.openmali.vecmath.Vector3f;
 import com.ferox.math.Transform;
 import com.ferox.renderer.View;
 import com.ferox.renderer.impl.TransformDriver;
-import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.sun.opengl.util.BufferUtil;
 
-/** Provides a simple implementation of TransformDriver for
- * use with the BasicJoglRenderer.
+/**
+ * Provides a simple implementation of TransformDriver for use with the
+ * BasicJoglRenderer.
  * 
- * Drivers that change the matrix mode must ensure that it is
- * set back to MODELVIEW before this driver is used again,
- * or errors will occur.
+ * Drivers that change the matrix mode must ensure that it is set back to
+ * MODELVIEW before this driver is used again, or errors will occur.
  * 
- * When applying the transform state, this uses the push-pop
- * mechanism.  The view portion of the modelview matrix is
- * set, and then each model transform is pushed on top of that.
- * Thus when states are applied, the view transform will be the
- * current modelview matrix.
+ * When applying the transform state, this uses the push-pop mechanism. The view
+ * portion of the modelview matrix is set, and then each model transform is
+ * pushed on top of that. Thus when states are applied, the view transform will
+ * be the current modelview matrix.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public class JoglTransformDriver implements TransformDriver {
 	private final FloatBuffer matrix;
-	
+
 	private final Transform currentView;
 	private boolean modelPushed;
-	private JoglSurfaceFactory factory;
-	
-	public JoglTransformDriver(JoglSurfaceFactory factory) {
+	private final JoglContextManager factory;
+
+	public JoglTransformDriver(JoglContextManager factory) {
 		this.factory = factory;
-		this.matrix = BufferUtil.newFloatBuffer(16);
-		
-		this.currentView = new Transform();
-		this.modelPushed = false;
+		matrix = BufferUtil.newFloatBuffer(16);
+
+		currentView = new Transform();
+		modelPushed = false;
 	}
-	
-	/** Returns the current "view" portion of the modelview
-	 * matrix.  This is useful state drivers that submit data
-	 * that is effected by the current modelview matrix. */
+
+	/**
+	 * Returns the current "view" portion of the modelview matrix. This is
+	 * useful state drivers that submit data that is effected by the current
+	 * modelview matrix.
+	 */
 	public Transform getCurrentViewTransform() {
-		return this.currentView;
+		return currentView;
 	}
-	
-	/** Load the given matrix onto the current matrix
-	 * stack, as determined by the given gl's matrix mode. */
+
+	/**
+	 * Load the given matrix onto the current matrix stack, as determined by the
+	 * given gl's matrix mode.
+	 */
 	public void loadMatrix(GL gl, Transform t) {
-		this.matrix.rewind();
-		getOpenGLMatrix(t, this.matrix);
-		gl.glLoadMatrixf(this.matrix);
+		matrix.rewind();
+		getOpenGLMatrix(t, matrix);
+		gl.glLoadMatrixf(matrix);
 	}
-	
-	/** Push and then multiply the current stack by t. 
-	 * Should be paired with gl.glPopMatrix(). */
+
+	/**
+	 * Push and then multiply the current stack by t. Should be paired with
+	 * gl.glPopMatrix().
+	 */
 	public void pushMatrix(GL gl, Transform t) {
 		gl.glPushMatrix();
-		getOpenGLMatrix(t, this.matrix);
-		gl.glMultMatrixf(this.matrix);
+		getOpenGLMatrix(t, matrix);
+		gl.glMultMatrixf(matrix);
 	}
-	
+
 	@Override
 	public void setModelTransform(Transform transform) {
-		if (!this.modelPushed) {
-			this.pushMatrix(this.factory.getGL(), transform);
-			this.modelPushed = true;
-		} else 
-			this.loadMatrix(this.factory.getGL(), transform);
+		if (!modelPushed) {
+			pushMatrix(factory.getGL(), transform);
+			modelPushed = true;
+		} else
+			loadMatrix(factory.getGL(), transform);
 	}
-	
+
 	@Override
 	public void resetModel() {
-		if (this.modelPushed) {
-			this.factory.getGL().glPopMatrix();
-			this.modelPushed = false;
+		if (modelPushed) {
+			factory.getGL().glPopMatrix();
+			modelPushed = false;
 		}
 	}
 
 	@Override
 	public void setView(View view, int width, int height) {
-		GL gl = this.factory.getGL();
-		
-		this.resetModel();
+		GL gl = factory.getGL();
+
+		resetModel();
 		if (view != null) {
 			// setup the viewport
-			setViewport(gl, view.getViewLeft(), view.getViewRight(), view.getViewTop(), view.getViewBottom(), width, height);
+			setViewport(gl, view.getViewLeft(), view.getViewRight(), view
+					.getViewTop(), view.getViewBottom(), width, height);
 
 			// set the projection matrix
 			gl.glMatrixMode(GL.GL_PROJECTION);
-			getOpenGLMatrix(view.getProjectionMatrix(), (FloatBuffer) this.matrix.rewind());
-			gl.glLoadMatrixf(this.matrix);
+			getOpenGLMatrix(view.getProjectionMatrix(), (FloatBuffer) matrix
+					.rewind());
+			gl.glLoadMatrixf(matrix);
 
 			// set the view portion of the modelview matrix
 			gl.glMatrixMode(GL.GL_MODELVIEW);
-			this.loadMatrix(gl, view.getViewTransform());
-			this.currentView.set(view.getViewTransform());
-		} else {
-			this.resetView();
-		}
+			loadMatrix(gl, view.getViewTransform());
+			currentView.set(view.getViewTransform());
+		} else
+			resetView();
 	}
 
 	@Override
 	public void resetView() {
-		this.factory.getGL().glLoadIdentity();
-		this.currentView.setIdentity();
+		factory.getGL().glLoadIdentity();
+		currentView.setIdentity();
 	}
-	
-	/** Store the given transform into the float buffer, suitable for use
-	 * with OpenGL calls.  It loads the transform in at ogl's current position.
-	 * It does not modify the position, and assumes that there are at least 16 
-	 * elements left in the buffer. */
+
+	/**
+	 * Store the given transform into the float buffer, suitable for use with
+	 * OpenGL calls. It loads the transform in at ogl's current position. It
+	 * does not modify the position, and assumes that there are at least 16
+	 * elements left in the buffer.
+	 */
 	public static void getOpenGLMatrix(Transform transform, FloatBuffer ogl) {
 		int pos = ogl.position();
 		Matrix3f rot = transform.getRotation();
 		Vector3f trans = transform.getTranslation();
 		float scale = transform.getScale();
-		
+
 		ogl.put(pos + 0, rot.m00 * scale);
 		ogl.put(pos + 1, rot.m10 * scale);
 		ogl.put(pos + 2, rot.m20 * scale);
 		ogl.put(pos + 3, 0f);
-		
+
 		ogl.put(pos + 4, rot.m01 * scale);
 		ogl.put(pos + 5, rot.m11 * scale);
 		ogl.put(pos + 6, rot.m21 * scale);
 		ogl.put(pos + 7, 0f);
-		
+
 		ogl.put(pos + 8, rot.m02 * scale);
 		ogl.put(pos + 9, rot.m12 * scale);
 		ogl.put(pos + 10, rot.m22 * scale);
 		ogl.put(pos + 11, 0f);
-		
+
 		ogl.put(pos + 12, trans.x);
 		ogl.put(pos + 13, trans.y);
 		ogl.put(pos + 14, trans.z);
 		ogl.put(pos + 15, 1f);
 	}
-	
-	/** Store the given 4x4 matrix into the float buffer, suitable for use
-	 * with OpenGL calls.  It loads the matrix in at ogl's current position.
-	 * It does not modify the position, and assumes that there are at least 16 
-	 * elements left in the buffer. */
+
+	/**
+	 * Store the given 4x4 matrix into the float buffer, suitable for use with
+	 * OpenGL calls. It loads the matrix in at ogl's current position. It does
+	 * not modify the position, and assumes that there are at least 16 elements
+	 * left in the buffer.
+	 */
 	public static void getOpenGLMatrix(Matrix4f matrix, FloatBuffer ogl) {
 		int pos = ogl.position();
 
@@ -172,9 +182,16 @@ public class JoglTransformDriver implements TransformDriver {
 		ogl.put(pos + 14, matrix.m23);
 		ogl.put(pos + 15, matrix.m33);
 	}
-	
-	private static void setViewport(GL gl, float left, float right, float top, float bottom, int width, int height) {
-		gl.glViewport((int) (left * width), (int) (bottom * height), (int)((right - left) * width), (int)((top - bottom) * height));
-		gl.glScissor((int) (left * width), (int) (bottom * height), (int)((right - left) * width), (int)((top - bottom) * height));
+
+	private static void setViewport(GL gl, float left, float right, float top,
+			float bottom, int width, int height) {
+		gl
+				.glViewport((int) (left * width), (int) (bottom * height),
+						(int) ((right - left) * width),
+						(int) ((top - bottom) * height));
+		gl
+				.glScissor((int) (left * width), (int) (bottom * height),
+						(int) ((right - left) * width),
+						(int) ((top - bottom) * height));
 	}
 }

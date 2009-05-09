@@ -4,102 +4,103 @@ import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
-import com.ferox.resource.texture.TextureImage;
-import com.ferox.resource.texture.TextureImage.TextureTarget;
+import com.ferox.resource.TextureImage;
+import com.ferox.resource.TextureImage.TextureTarget;
 
-/** Provide a flexible implementation for rendering-to-texture.
- * Implementations of this will be instantiated by JoglTextureSurface.
+/**
+ * Provide a flexible implementation for rendering-to-texture. Implementations
+ * of this will be instantiated by JoglTextureSurface.
  * 
  * @author Michael Ludwig
- *
+ * 
  */
 public abstract class TextureSurfaceDelegate {
-	private TextureImage[] colors;
-	private TextureImage depth;
-	
-	private int width; 
-	private int height;
-	
-	private DisplayOptions options;
-	private TextureTarget colorTarget;
-	private TextureTarget depthTarget;
-	
+	private final TextureImage[] colors;
+	private final TextureImage depth;
+
+	private final int width;
+	private final int height;
+
+	private final DisplayOptions options;
+	private final TextureTarget colorTarget;
+	private final TextureTarget depthTarget;
+
 	private int referenceCount;
-	
-	public TextureSurfaceDelegate(DisplayOptions options, TextureTarget colorTarget, TextureTarget depthTarget,
-								  int width, int height,
-								  TextureImage[] colors, TextureImage depth) {
+
+	public TextureSurfaceDelegate(DisplayOptions options,
+			TextureTarget colorTarget, TextureTarget depthTarget, int width,
+			int height, TextureImage[] colors, TextureImage depth) {
 		this.options = options;
 		this.colorTarget = colorTarget;
 		this.depthTarget = depthTarget;
-		
+
 		this.width = width;
 		this.height = height;
-		
+
 		this.colors = colors;
 		this.depth = depth;
-		this.referenceCount = 0;
+		referenceCount = 0;
 	}
-	
+
 	public abstract JoglStateRecord getStateRecord();
-	
+
 	public abstract GLAutoDrawable getGLAutoDrawable();
-	
+
 	public abstract void init();
-	
+
 	public abstract void preRenderAction(int layer);
-	
+
 	public abstract void postRenderAction(JoglRenderSurface next);
-	
+
 	public abstract void destroySurface();
-	
+
 	public TextureImage getColorBuffer(int target) {
-		if (this.colors == null || target < 0 || target >= this.colors.length)
+		if (colors == null || target < 0 || target >= colors.length)
 			return null;
-		return this.colors[target];
+		return colors[target];
 	}
-	
+
 	protected TextureImage[] getColorBuffers() {
-		return this.colors;
+		return colors;
 	}
 
 	public TextureImage getDepthBuffer() {
-		return this.depth;
+		return depth;
 	}
 
 	public int getNumColorTargets() {
-		return (this.colors == null ? 0 : this.colors.length);
+		return (colors == null ? 0 : colors.length);
 	}
-	
+
 	public int getReferenceCount() {
-		return this.referenceCount;
+		return referenceCount;
 	}
-	
+
 	public void addReference() {
-		this.referenceCount++;
+		referenceCount++;
 	}
-	
+
 	public void removeReference() {
-		this.referenceCount--;
+		referenceCount--;
 	}
 
 	public TextureTarget getColorTarget() {
-		return this.colorTarget;
+		return colorTarget;
 	}
-	
+
 	public TextureTarget getDepthTarget() {
-		return this.depthTarget;
+		return depthTarget;
 	}
 
 	public DisplayOptions getDisplayOptions() {
-		return this.options;
+		return options;
 	}
 
 	public int getHeight() {
-		return this.height;
+		return height;
 	}
 
 	public int getWidth() {
-		return this.width;
+		return width;
 	}
 }

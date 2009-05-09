@@ -2,50 +2,26 @@ package com.ferox.renderer.impl.jogl.drivers;
 
 import javax.media.opengl.GL;
 
-import com.ferox.renderer.impl.jogl.JoglSurfaceFactory;
+import com.ferox.effect.LineStyle;
+import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
-import com.ferox.state.LineStyle;
 
-/** This state driver provides a basic implementation for the LINE_DRAW_STYLE
+/**
+ * This state driver provides a basic implementation for the LINE_DRAW_STYLE
  * role by using the LineStyle state class.
  * 
  * @author Michael Ludwig
- *
  */
-public class JoglLineDrawStyleStateDriver extends SingleStateDriver<LineStyle> {
-	private static final short DEFAULT_PATTERN = (short) ~0;
-	
-	public JoglLineDrawStyleStateDriver(JoglSurfaceFactory factory) {
+public class JoglLineStyleEffectDriver extends SingleStateDriver<LineStyle> {
+	public JoglLineStyleEffectDriver(JoglContextManager factory) {
 		super(new LineStyle(), LineStyle.class, factory);
-	}
-	
-	@Override
-	protected void restore(GL gl, JoglStateRecord record) {
-		RasterizationRecord rr = record.rasterRecord;
-		
-		setSmoothingEnabled(gl, rr, false);
-		if (rr.enableLineStipple) {
-			rr.enableLineStipple = false;
-			gl.glDisable(GL.GL_LINE_STIPPLE);
-		}
-		
-		if (rr.lineStipplePattern != DEFAULT_PATTERN || rr.lineStippleRepeat != 1) {
-			rr.lineStipplePattern = DEFAULT_PATTERN;
-			rr.lineStippleRepeat = 1;
-			gl.glLineStipple(1, DEFAULT_PATTERN);
-		}
-		
-		if (rr.lineWidth != 1f) {
-			rr.lineWidth = 1f;
-			gl.glLineWidth(1f);
-		}
 	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, LineStyle nextState) {
 		RasterizationRecord rr = record.rasterRecord;
-		
+
 		// width
 		float width = nextState.getLineWidth();
 		if (rr.lineWidth != width) {
@@ -61,24 +37,24 @@ public class JoglLineDrawStyleStateDriver extends SingleStateDriver<LineStyle> {
 				rr.enableLineStipple = true;
 				gl.glEnable(GL.GL_LINE_STIPPLE);
 			}
-			
+
 			short pattern = nextState.getStipplePattern();
 			int repeat = nextState.getStippleFactor();
-			if (rr.lineStipplePattern != pattern || rr.lineStippleRepeat != repeat) {
+			if (rr.lineStipplePattern != pattern
+				|| rr.lineStippleRepeat != repeat) {
 				rr.lineStipplePattern = pattern;
 				rr.lineStippleRepeat = repeat;
 				gl.glLineStipple(repeat, pattern);
 			}
-		} else {
-			// disable it
-			if (rr.enableLineStipple) {
-				rr.enableLineStipple = false;
-				gl.glDisable(GL.GL_LINE_STIPPLE);
-			}
+		} else // disable it
+		if (rr.enableLineStipple) {
+			rr.enableLineStipple = false;
+			gl.glDisable(GL.GL_LINE_STIPPLE);
 		}
 	}
-	
-	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr, boolean enable) {
+
+	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr,
+		boolean enable) {
 		if (rr.enableLineSmooth != enable) {
 			rr.enableLineSmooth = enable;
 			if (enable)
