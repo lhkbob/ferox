@@ -110,7 +110,6 @@ public class Sphere extends IndexedArrayGeometry {
 	 * @param zSamples The number of bands in the sphere
 	 * @param radialSamples The number of slices in the sphere
 	 * @param mode The texture mode used to generate texture coordinates
-	 * @param type The compile type to use
 	 * @throws IllegalArgumentException if radius, zSamples, or radialSamples <=
 	 *             0
 	 */

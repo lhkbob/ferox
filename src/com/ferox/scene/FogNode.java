@@ -86,7 +86,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getColor().
 	 * 
-	 * @see Fog.#getColor()
 	 * @return The Color instance used for the fog color
 	 */
 	public Color getColor() {
@@ -96,7 +95,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getDensity().
 	 * 
-	 * @see Fog.#getDensity()
 	 * @return The density used for this node's fog
 	 */
 	public float getDensity() {
@@ -106,7 +104,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getStartDistance().
 	 * 
-	 * @see Fog.#getStartDistance()
 	 * @return The start distance used for this node's fog
 	 */
 	public float getStartDistance() {
@@ -116,7 +113,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getEndDistance().
 	 * 
-	 * @see Fog.#getEndDistance()
 	 * @return The end distance used for this node's fog
 	 */
 	public float getEndDistance() {
@@ -126,7 +122,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getEquation().
 	 * 
-	 * @see Fog.#getEquation()
 	 * @return The fog equation used for this node's fog
 	 */
 	public FogEquation getEquation() {
@@ -136,7 +131,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getQuality().
 	 * 
-	 * @see Fog.#getQuality()
 	 * @return The quality used for this node's fog
 	 */
 	public Quality getQuality() {
@@ -146,7 +140,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's setColor(color).
 	 * 
-	 * @see Fog.#setColor(Color)
 	 * @param color The new fog color
 	 */
 	public void setColor(Color color) {
@@ -156,7 +149,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's setDensity(density).
 	 * 
-	 * @see Fog.#setDensity(float)
 	 * @param density The new start distance
 	 */
 	public void setDensity(float density) {
@@ -166,7 +158,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's setFogRange(start, end)
 	 * 
-	 * @see Fog.#setFogRange(float, float)
 	 * @param start The start distance
 	 * @param end The end distance
 	 */
@@ -177,7 +168,6 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's setEquation(eq)
 	 * 
-	 * @see Fog.#setEquation(FogEquation)
 	 * @param eq The new fog equation
 	 */
 	public void setEquation(FogEquation eq) {
@@ -187,8 +177,7 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's setQuality(qual)
 	 * 
-	 * @see Fog.#setQuality(Quality)
-	 * @param color The new fog quality
+	 * @param qual The new fog quality
 	 */
 	public void setQuality(Quality qual) {
 		fog.setQuality(qual);

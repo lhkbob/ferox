@@ -70,7 +70,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 		 * Compute the number of polygons, based on the number of indices. This
 		 * assumes that numVertices > 0.
 		 * 
-		 * @param The number of indices that build a shape with this
+		 * @param numIndices The number of indices that build a shape with this
 		 *            PolygonType.
 		 * @return The polygon count
 		 */

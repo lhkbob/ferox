@@ -22,7 +22,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Create a SpotLightNode with a SpotLight created with the given arguments.
 	 * 
-	 * @param position
 	 */
 	public SpotLightNode() {
 		super(new SpotLight(new Vector3f()));
@@ -31,7 +30,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Create a SpotLightNode with a SpotLight created with the given arguments.
 	 * 
-	 * @param position
 	 * @param diffuse
 	 */
 	public SpotLightNode(Color diffuse) {
@@ -41,7 +39,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Create a SpotLightNode with a SpotLight created with the given arguments.
 	 * 
-	 * @param position
 	 * @param diffuse
 	 * @param specular
 	 * @param ambient
@@ -54,7 +51,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Create a SpotLightNode with a SpotLight created with the given arguments.
 	 * 
-	 * @param position
 	 * @param diffuse
 	 * @param specular
 	 * @param ambient
@@ -68,7 +64,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's getConstantAttenuation().
 	 * 
-	 * @see SpotLight.#getConstantAttenuation()
 	 * @return This light's constant attenuation
 	 */
 	public float getConstantAttenutation() {
@@ -78,7 +73,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's getLinearAttenuation().
 	 * 
-	 * @see SpotLight.#getLinearAttenuation()
 	 * @return This light's linear attenuation
 	 */
 	public float getLinearAttenuation() {
@@ -88,7 +82,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's getQuadraticAttenuation().
 	 * 
-	 * @see SpotLight.#getQuadraticAttenuation()
 	 * @return This light's quadratic attenuation
 	 */
 	public float getQuadraticAttenuation() {
@@ -98,7 +91,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's getSpotCutoff().
 	 * 
-	 * @see SpotLight.#getSpotCutoff()
 	 * @return This light's spot cutoff angle
 	 */
 	public float getSpotCutoff() {
@@ -108,7 +100,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's setConstantAttenuation(float).
 	 * 
-	 * @see SpotLight.#setConstantAttenuation(float)
 	 * @param constAtt The light's constant attenuation to use
 	 */
 	public void setConstantAttenuation(float constAtt) {
@@ -118,7 +109,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's setLinearAttenuation(float).
 	 * 
-	 * @see SpotLight.#setLinearAttenuation(float)
 	 * @param linAtt The light's linear attenuation to use
 	 */
 	public void setLinearAttenuation(float linAtt) {
@@ -128,7 +118,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's setQuadraticAttenuation(float).
 	 * 
-	 * @see SpotLight.#setQuadraticAttenuation(float)
 	 * @param quadAtt The light's quadratic attenuation to use
 	 */
 	public void setQuadraticAttenuation(float quadAtt) {
@@ -138,7 +127,6 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Identical operation to SpotLight's setSpotCutoff(float).
 	 * 
-	 * @see SpotLight.#setSpotCutoff(float)
 	 * @param spotCutoff The light's spotlight cutoff angle to use
 	 */
 	public void setSpotCutoff(float spotCutoff) {

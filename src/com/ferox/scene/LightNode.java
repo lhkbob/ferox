@@ -71,7 +71,6 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's getAmbient().
 	 * 
-	 * @see Light.#getAmbient()
 	 * @return Color instance used for the light's ambient color
 	 */
 	public Color getAmbient() {
@@ -81,7 +80,6 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's getDiffuse().
 	 * 
-	 * @see Light.#getDiffuse()
 	 * @return Color instance used for the light's diffuse color
 	 */
 	public Color getDiffuse() {
@@ -91,7 +89,6 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's getSpecular().
 	 * 
-	 * @see Light.#getSpecular()
 	 * @return Color instance used for the light's specular color
 	 */
 	public Color getSpecular() {
@@ -112,7 +109,6 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's setAmbient(color).
 	 * 
-	 * @see Light.#setAmbient(Color)
 	 * @param ambient The ambient color to use
 	 */
 	public void setAmbient(Color ambient) {
@@ -122,7 +118,6 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's setDiffuse(color).
 	 * 
-	 * @see Light.#setDiffuse(Color)
 	 * @param diffuse The diffuse color to use
 	 */
 	public void setDiffuse(Color diffuse) {
@@ -132,7 +127,6 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's setSpecular(color).
 	 * 
-	 * @see Light.#setSpecular(Color)
 	 * @param specular The specular color to use
 	 */
 	public void setSpecular(Color specular) {

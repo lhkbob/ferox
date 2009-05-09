@@ -391,7 +391,7 @@ public class Appearance {
 	 * Convenience method to create a new StencilTest with the given properties
 	 * and assign it to this Appearance.
 	 * 
-	 * @param test The stencil test to use
+	 * @param stencilTest The stencil test to use
 	 * @param reference The stencil value used to determine stencil test failure
 	 * @param stencilFail The operation that occurs on stencil failure
 	 * @param depthFail The operation that occurs on depth test failure
@@ -494,7 +494,7 @@ public class Appearance {
 	 * If global is not null, then nodes using this Appearance will be affected
 	 * by intersecting LightNodes in the scene tree.
 	 * 
-	 * @param alpha The AlphaTest instance
+	 * @param global The GlobalLighting instance
 	 * @return This Appearance for chaining purposes
 	 */
 	public Appearance setGlobalLighting(GlobalLighting global) {

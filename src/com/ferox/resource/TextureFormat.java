@@ -32,8 +32,8 @@ import com.ferox.resource.BufferData.DataType;
  * have dimensions a multiple of 4.</li>
  * <li>XYZ_FLOAT: Formats with this are treated identically to the equivalent
  * XYZ with a required type of FLOAT, except that when stored on the graphics
- * cards, the floating point values are NOT clamped.
- * <ul>
+ * cards, the floating point values are NOT clamped.</li>
+ * </ul>
  * </p>
  * <p>
  * <b>Type conversion: </b><br>

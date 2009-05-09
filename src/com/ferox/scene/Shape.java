@@ -145,7 +145,7 @@ public class Shape extends Leaf {
 	 * Overridden to clean up old references of lights and fogs in the Shape's
 	 * EffectSet.
 	 * 
-	 * @param lights
+	 * @param sceneLights
 	 * @param fogs
 	 */
 	@Override

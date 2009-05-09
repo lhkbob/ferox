@@ -35,7 +35,9 @@ public interface RenderPass {
 	 * <p>
 	 * Implementations can assume that this method is called appropriately and
 	 * after a method call to preparePass(renderer). Also, renderer and view can
-	 * be assumed to be non-null.
+	 * be assumed to be non-null. The specified view will be applied, so that
+	 * atoms rendered via renderer.renderAtom() will be correcly rendered from
+	 * that view point and projection.
 	 * </p>
 	 * 
 	 * @see #preparePass(Renderer)
