@@ -33,8 +33,8 @@ import com.ferox.util.texture.loader.TextureLoader;
 
 public class RttCubeTest extends BasicApplication {
 	public static final boolean DEBUG = false;
-	public static final boolean USE_VBO = true;
-	public static final boolean RANDOM_PLACEMENT = true;
+	public static final boolean USE_VBO = false;
+	public static final boolean RANDOM_PLACEMENT = false;
 
 	public static final int NUM_CUBES = 10000;
 	public static final int BOUNDS = 100;
@@ -82,7 +82,7 @@ public class RttCubeTest extends BasicApplication {
 			a.setPolygonStyle(ps);
 		}
 		
-		geom = new Box(2f, (USE_VBO ? CompileType.VBO_STATIC : CompileType.VERTEX_ARRAY));
+		geom = new Box(2f, (USE_VBO ? CompileType.DISPLAY_LIST : CompileType.NONE));
 		renderer.requestUpdate(geom, true);
 
 		// vars for regular gridding

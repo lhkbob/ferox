@@ -8,7 +8,6 @@ import javax.media.opengl.GLPbuffer;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
-import com.ferox.renderer.impl.jogl.drivers.TextureHandle;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;

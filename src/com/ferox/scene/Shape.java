@@ -52,6 +52,7 @@ public class Shape extends Leaf {
 	public Shape(Geometry geom, Appearance app) {
 		// enable lighting
 		lights = new ArrayList<LightNode<?>>();
+		effects = new EffectSet();
 		
 		setAppearance(app);
 		setGeometry(geom);

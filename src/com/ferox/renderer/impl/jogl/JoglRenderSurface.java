@@ -163,8 +163,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 	}
 
 	/** Requirement of the ContextManager */
-	@SuppressWarnings("unused")
-	private void setRenderAction(Runnable action) {
+	public void setRenderAction(Runnable action) {
 		renderAction = action;
 	}
 

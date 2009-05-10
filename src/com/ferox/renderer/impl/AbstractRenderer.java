@@ -833,7 +833,12 @@ public abstract class AbstractRenderer implements Renderer {
 		try {
 			setRenderAction =
 				surface.getClass().getMethod("setRenderAction", Runnable.class);
+			boolean priv = setRenderAction.isAccessible();
+			setRenderAction.setAccessible(true);
+			
 			setRenderAction.invoke(surface, new RenderSurfaceAction(surface));
+			
+			setRenderAction.setAccessible(priv);
 		} catch (Exception e) {
 			throw new SurfaceCreationException(
 				"Exception occured when setting new surface's render action", e);

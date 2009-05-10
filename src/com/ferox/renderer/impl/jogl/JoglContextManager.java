@@ -199,7 +199,7 @@ public class JoglContextManager implements ContextManager {
 	@Override
 	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces,
 			Runnable resourceAction) {
-		int size = queuedSurfaces.size();
+		int size = (queuedSurfaces == null ? 0 : queuedSurfaces.size());
 		JoglRenderSurface s;
 		for (int i = 0; i < size; i++) {
 			s = (JoglRenderSurface) queuedSurfaces.get(i);

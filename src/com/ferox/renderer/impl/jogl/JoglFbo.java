@@ -3,7 +3,7 @@ package com.ferox.renderer.impl.jogl;
 import javax.media.opengl.GL;
 
 import com.ferox.renderer.RenderException;
-import com.ferox.renderer.impl.jogl.drivers.TextureHandle;
+import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.TextureCubeMap;
@@ -63,9 +63,9 @@ public class JoglFbo {
 
 		if (depth != null) {
 			// attach the depth texture
-			TextureHandle h = (TextureHandle) factory.getRenderer().getHandle(
+			Handle h = factory.getRenderer().getHandle(
 					depth, factory);
-			attachImage(gl, glDepthTarget, h.id, layer,
+			attachImage(gl, glDepthTarget, h.getId(), layer,
 					GL.GL_DEPTH_ATTACHMENT_EXT);
 
 			renderBufferId = 0;
@@ -93,12 +93,12 @@ public class JoglFbo {
 		if (colors != null && colors.length > 0) {
 			// attach all of the images
 			colorImageIds = new int[colors.length];
-			TextureHandle h;
+			Handle h;
 			for (int i = 0; i < colors.length; i++) {
-				h = (TextureHandle) factory.getRenderer().getHandle(colors[i], factory);
-				attachImage(gl, glColorTarget, h.id, layer,
+				h = factory.getRenderer().getHandle(colors[i], factory);
+				attachImage(gl, glColorTarget, h.getId(), layer,
 						GL.GL_COLOR_ATTACHMENT0_EXT + i);
-				colorImageIds[i] = h.id;
+				colorImageIds[i] = h.getId();
 			}
 		} else
 			colorImageIds = null;
