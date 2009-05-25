@@ -53,7 +53,7 @@ public class GlslTest extends BasicApplication {
 		view.getLocalTransform().getTranslation().z = 20f;
 		root.add(view);
 
-		Geometry cube = build(new Teapot(3f, CompileType.VBO_STATIC));
+		Geometry cube = build(new Teapot(3f, CompileType.DISPLAY_LIST));
 		renderer.requestUpdate(cube, true);
 		Appearance app = createGlslAppearance(renderer);
 

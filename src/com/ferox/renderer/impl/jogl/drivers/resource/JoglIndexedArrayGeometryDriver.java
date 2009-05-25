@@ -22,6 +22,14 @@ import com.ferox.resource.Resource.Status;
 import com.ferox.util.UnitList.Unit;
 import com.sun.opengl.util.BufferUtil;
 
+/**
+ * JoglIndexedArrayGeometryDriver provides a GeometryDriver implementation for
+ * IndexedArrayGeometries and supports all compile types, as well as fall-backs
+ * for vbos if they don't have support, or if there isn't enough graphics card
+ * memory to allocate them.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	private static final int PT_VERTICES = 0;
 	private static final int PT_NORMALS = 1;
@@ -232,6 +240,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 			// we update it for vertex array so that we can render it,
 			// and we don't need to create vbos for it
 			updateForVertexArray(geom, handle);
+			handle.compile = CompileType.VERTEX_ARRAY;
 
 			if (handle.dlId == 0) {
 				// make a new list id
@@ -243,6 +252,9 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 			reset();
 			gl.glEndList();
 
+			// reset compile type after rendering
+			handle.compile = CompileType.DISPLAY_LIST;
+			
 			// we don't need these structures anymore
 			handle.compiledPointers.clear();
 			handle.indices = null;
@@ -251,19 +263,21 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 			// delegate to this method to allocate and set data
 			if (!updateForVbo(gl, factory.getRecord().vertexArrayRecord, geom,
 				handle)) {
-				// FIXME: we should fall back to Vertex arrays instead, if we
-				// set the
-				// vbo ids to 0 in the handler, then they'll just be unbound.
-				// Also,
-				// the setArrays (etc.) just relies on a null check, not a
-				// compile option check
-				// so we should just be able to delete the vbos and set the
-				// status to dirty
-				// also must make sure to reset the size of the vbos after
-				// they're deleted,
-				// this allows next updates to try to use complete vbo's
-				data.setStatus(Status.ERROR);
-				data.setStatusMessage("Not enough memory to allocate VBOs");
+				// delete the vbos and reset the ids and sizes
+				gl.glDeleteBuffersARB(2, new int[] { handle.elementVbo,
+					handle.arrayVbo }, 0);
+				handle.elementVbo = 0;
+				handle.arrayVbo = 0;
+				handle.elementVboSize = 0;
+				handle.arrayVboSize = 0;
+				// now just set up everything as if it were a vertex array
+				// geometry
+				updateForVertexArray(geom, handle);
+
+				// modify status and finish
+				data.setStatus(Status.DIRTY);
+				data
+					.setStatusMessage("Not enough memory to allocate VBOs, falling back to vertex arrays");
 				return;
 			}
 		} else {

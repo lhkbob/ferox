@@ -143,7 +143,7 @@ public final class ResourceData {
 	 * Return the status message to be used in conjunction with the driver's set
 	 * status. The default value is the empty string and will never be null.
 	 * 
-	 * @param The current status message
+	 * @return The current status message
 	 */
 	public String getStatusMessage() {
 		return statusMessage;
