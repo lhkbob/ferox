@@ -40,6 +40,7 @@ public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
 	
 	private void setFogEnabled(GL gl, ColoringRecord cr, boolean enable) {
 		if (cr.enableFog != enable) {
+			cr.enableFog = enable;
 			if (enable)
 				gl.glEnable(GL.GL_FOG);
 			else

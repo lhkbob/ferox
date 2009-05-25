@@ -51,7 +51,6 @@ public class BasicRenderQueue implements RenderQueue {
 		int polyCount = 0;
 		for (int i = 0; i < raCount; i++)
 			polyCount += renderer.renderAtom(renderAtoms[i]);
-
 		return polyCount;
 	}
 

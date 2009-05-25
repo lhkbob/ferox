@@ -130,10 +130,9 @@ public class SceneRenderPass implements RenderPass {
 			return null;
 		renderQueue.clear();
 		view.updateView();
-
+		
 		if (updateScene)
 			scene.update();
-
 		scene.visit(renderQueue, view, null);
 		return view;
 	}

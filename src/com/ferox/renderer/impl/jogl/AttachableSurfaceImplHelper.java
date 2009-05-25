@@ -35,7 +35,7 @@ public class AttachableSurfaceImplHelper {
 	private static final int RENDER_MODE_AWT_WAIT = 1;
 	private static final int RENDER_MODE_ACTIVE = 2;
 
-	private static final int renderMode = RENDER_MODE_JOGL_STANDARD;
+	private static final int renderMode = RENDER_MODE_ACTIVE;
 
 	/* Variables used for each render mode. */
 	private final List<JoglRenderSurface> attachedSurfaces;

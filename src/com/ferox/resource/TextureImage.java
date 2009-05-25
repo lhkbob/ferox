@@ -296,7 +296,7 @@ public abstract class TextureImage implements Resource {
 					+ " " + type);
 		if (!format.isTypeValid(type))
 			throw new IllegalArgumentException(
-				"Type and format are not valid: " + format + " " + type);
+				"EffectType and format are not valid: " + format + " " + type);
 		this.format = format;
 		this.type = type;
 

@@ -160,7 +160,7 @@ public class JoglUtil {
 		return null;
 	}
 
-	/** Type can't be null. */
+	/** EffectType can't be null. */
 	public static int getGLPolygonConnectivity(PolygonType type) {
 		switch (type) {
 		case LINES:
@@ -540,7 +540,7 @@ public class JoglUtil {
 		return -1;
 	}
 
-	/** Type must not be null. This shouldn't be used for packed data types. */
+	/** EffectType must not be null. This shouldn't be used for packed data types. */
 	public static int getGLType(DataType type) {
 		switch (type) {
 		case BYTE:

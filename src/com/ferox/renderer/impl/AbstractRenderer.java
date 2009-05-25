@@ -11,7 +11,7 @@ import com.ferox.effect.Effect;
 import com.ferox.effect.EffectSet;
 import com.ferox.effect.Material;
 import com.ferox.effect.PolygonStyle;
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.EffectType;
 import com.ferox.renderer.DefaultResourceManager;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FrameStatistics;
@@ -78,7 +78,7 @@ public abstract class AbstractRenderer implements Renderer {
 	private TransformDriver transform;
 	private ContextManager contextManager;
 
-	private Type[] supportedEffects;
+	private EffectType[] supportedEffects;
 
 	/* Resource management variables */
 	private final ManageResourcesAction manageResourceAction;
@@ -111,10 +111,7 @@ public abstract class AbstractRenderer implements Renderer {
 		preparedPasses = new IdentityHashMap<RenderPass, View>();
 		queuedSurfaces = new ArrayList<RenderSurface>();
 
-		dfltAppearance = new EffectSet();
-		dfltAppearance.add(new DepthTest());
-		dfltAppearance.add(new Material());
-		dfltAppearance.add(new PolygonStyle());
+		dfltAppearance = new DefaultEffectSet();
 
 		dfltManager = new DefaultResourceManager();
 		resourceManagers = new ArrayList<ResourceManager>();
@@ -530,7 +527,7 @@ public abstract class AbstractRenderer implements Renderer {
 	 */
 	protected void init(ContextManager surfaceFactory,
 		TransformDriver transformDriver, RenderCapabilities renderCaps,
-		Type[] supportedEffects) throws RenderException {
+		EffectType[] supportedEffects) throws RenderException {
 		if (renderState != RenderState.WAITING_INIT)
 			throw new RenderStateException(
 				"Method init() cannot be called more than once in AbstractRenderer");
@@ -545,7 +542,8 @@ public abstract class AbstractRenderer implements Renderer {
 			throw new NullPointerException(
 				"Cannot specify a non-null RenderCapabilities");
 		if (supportedEffects == null)
-			throw new NullPointerException("Must pass in a non-null Type array");
+			throw new NullPointerException(
+				"Must pass in a non-null EffectType array");
 
 		this.renderCaps = renderCaps;
 		this.supportedEffects = supportedEffects;
@@ -749,26 +747,23 @@ public abstract class AbstractRenderer implements Renderer {
 	 * possible.
 	 * </p>
 	 * 
-	 * @param effectType The Type that all Effects used with the returned
+	 * @param effectType The EffectType that all Effects used with the returned
 	 *            EffectDriver will be
 	 * @return The EffectDriver associated with effectType
 	 * @throws UnsupportedEffectException if no driver is available for the
 	 *             given effectType
 	 */
-	protected abstract EffectDriver getEffectDriver(Type effectType);
+	protected abstract EffectDriver getEffectDriver(EffectType effectType);
 
 	/* Internal operations. */
 
 	private void queueAppearance(EffectSet app) {
 		// queue states present in the appearance
-		List<Effect> effects = app.getAll();
-		int size = effects.size();
-
 		Effect e;
-		for (int i = 0; i < size; i++) {
-			e = effects.get(i);
+		app.reset();
+
+		while ((e = app.next()) != null)
 			getEffectDriver(e.getType()).queueEffect(e);
-		}
 	}
 
 	// Locks the surface's texture buffers so they won't be updated or cleaned.
@@ -835,9 +830,9 @@ public abstract class AbstractRenderer implements Renderer {
 				surface.getClass().getMethod("setRenderAction", Runnable.class);
 			boolean priv = setRenderAction.isAccessible();
 			setRenderAction.setAccessible(true);
-			
+
 			setRenderAction.invoke(surface, new RenderSurfaceAction(surface));
-			
+
 			setRenderAction.setAccessible(priv);
 		} catch (Exception e) {
 			throw new SurfaceCreationException(
@@ -860,5 +855,60 @@ public abstract class AbstractRenderer implements Renderer {
 			throw new RenderStateException(
 				"Method call expected the Renderer to be in state: " + expected
 					+ ", but it was in state: " + renderState);
+	}
+	
+	/* Used to make setting the default appearance easier. */
+	private static class DefaultEffectSet implements EffectSet {
+		private DepthTest depth;
+		private Material material;
+		private PolygonStyle poly;
+
+		private int pos;
+
+		public DefaultEffectSet() {
+			depth = new DepthTest();
+			material = new Material();
+			poly = new PolygonStyle();
+
+			pos = 0;
+		}
+
+		@Override
+		public Effect next() {
+			Effect e = null;
+			switch (pos) {
+			case 0:
+				e = depth;
+				break;
+			case 1:
+				e = material;
+				break;
+			case 2:
+				e = poly;
+				break;
+			}
+
+			if (e != null)
+				pos++;
+			return e;
+		}
+
+		@Override
+		public int position() {
+			return pos;
+		}
+
+		@Override
+		public void position(int pos) {
+			if (pos < 0 || pos > 2)
+				pos = 0;
+			this.pos = pos;
+		}
+
+		@Override
+		public void reset() {
+			position(0);
+		}
+
 	}
 }

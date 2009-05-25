@@ -300,7 +300,7 @@ public class Text extends IndexedArrayGeometry {
 		for (int j = 0; j < i.length; j++) {
 			// tex
 			t[j * 2 + 0] = it2v3[j * 5 + 0];
-			t[j * 2 + 0] = it2v3[j * 5 + 1];
+			t[j * 2 + 1] = it2v3[j * 5 + 1];
 
 			// coord
 			v[j * 3 + 0] = it2v3[j * 5 + 2];

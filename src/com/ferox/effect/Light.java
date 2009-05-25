@@ -2,7 +2,7 @@ package com.ferox.effect;
 
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
 import com.ferox.math.Color;
 
 /**
@@ -17,7 +17,7 @@ import com.ferox.math.Color;
  * space of the RenderAtoms that are affected by it.
  * </p>
  * <p>
- * Because Light has an EffectType of LIGHT, multiple Lights may be added to an
+ * Because Light has an Type of LIGHT, multiple Lights may be added to an
  * EffectSet. There is likely to be a Renderer imposed limit on the actual
  * number of Lights that affect a rendered atom.
  * </p>
@@ -33,7 +33,7 @@ import com.ferox.math.Color;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.LIGHT)
+@Type(EffectType.LIGHT)
 public abstract class Light extends AbstractEffect {
 	private static final Color DEFAULT_AMBIENT = new Color(.2f, .2f, .2f);
 	private static final Color DEFAULT_DIFFUSE = new Color(.8f, .8f, .8f);

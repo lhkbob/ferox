@@ -2,7 +2,8 @@ package com.ferox.effect;
 
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * <p>
@@ -17,7 +18,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.POINT)
+@Type(EffectType.POINT)
 public class PointStyle extends AbstractEffect {
 	public static enum PointSpriteOrigin {
 		UPPER_LEFT, LOWER_LEFT

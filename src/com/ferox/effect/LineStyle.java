@@ -1,6 +1,7 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * LineStyle controls how line segments are rendered. These lines could have
@@ -10,7 +11,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.LINE)
+@Type(EffectType.LINE)
 public class LineStyle extends AbstractEffect {
 	private boolean enableSmoothing;
 	private boolean enableStippling;

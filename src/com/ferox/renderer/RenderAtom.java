@@ -29,35 +29,22 @@ public final class RenderAtom {
 	private final Object key;
 
 	/**
-	 * Create a render atom with the given transform, effects, and geometry that
-	 * isn't locked.
-	 * 
-	 * @param t The Transform to use
-	 * @param a The set of Effects that this atom will be rendered with
-	 * @param g The Geometry that will be used by this atom
-	 * @throws NullPointerException if t or g are null
-	 */
-	public RenderAtom(Transform t, EffectSet a, Geometry g) {
-		this(t, a, g, null);
-	}
-
-	/**
-	 * Create a render atom with the given transform, effects, and geometry that
-	 * is locked by the given key object. If key is null, this atom is not
+	 * Create a render atom with the given transform, geometry, and effect map that
+	 * will be locked by the given key object. If key is null, this atom is not
 	 * locked.
 	 * 
 	 * @param t The Transform to use
-	 * @param a The set of Effects that this atom will be rendered with
 	 * @param g The Geometry that will be used by this atom
+	 * @param e The EffectSet that is initially used
 	 * @param key The key required for all setX() calls, if it's not null
 	 * @throws NullPointerException if t or g are null
 	 */
-	public RenderAtom(Transform t, EffectSet a, Geometry g, Object key) {
+	public RenderAtom(Transform t, Geometry g, EffectSet e, Object key) {
 		this.key = key;
 
 		setTransform(t, key);
-		setEffects(a, key);
 		setGeometry(g, key);
+		setEffects(e, key);
 	}
 
 	/**
@@ -79,15 +66,15 @@ public final class RenderAtom {
 	}
 
 	/**
-	 * Set the effect instance to use.
+	 * Set the EffectSet instance to use.
 	 * 
-	 * @param a The new effect set instance to use
+	 * @param e The new effect map instance to use
 	 * @param key The key to allow the set to proceed
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
-	public void setEffects(EffectSet a, Object key) {
+	public void setEffects(EffectSet e, Object key) {
 		if (this.key == null || key == this.key)
-			effects = a;
+			effects = e;
 		else
 			throw new IllegalArgumentException(
 					"Incorrect key specified, cannot set effects");
@@ -132,7 +119,7 @@ public final class RenderAtom {
 	 * effects.
 	 * </p>
 	 * 
-	 * @return The effect set to use, may be null
+	 * @return The effect map to use, may be null
 	 */
 	public EffectSet getEffects() {
 		return effects;

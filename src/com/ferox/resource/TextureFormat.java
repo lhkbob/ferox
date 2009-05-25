@@ -36,7 +36,7 @@ import com.ferox.resource.BufferData.DataType;
  * </ul>
  * </p>
  * <p>
- * <b>Type conversion: </b><br>
+ * <b>EffectType conversion: </b><br>
  * For now, all textures are internally represented as floating point textures
  * with color values in the range [0.0, 1.0]. Non-fp types are scaled to the
  * range [0.0, 1.0] by dividing the UNSIGNED component value by (2^N - 1), where

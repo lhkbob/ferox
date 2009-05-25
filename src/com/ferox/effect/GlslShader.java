@@ -7,7 +7,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
 
@@ -26,7 +26,7 @@ import com.ferox.resource.GlslUniform;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.SHADER)
+@Type(EffectType.SHADER)
 public class GlslShader extends AbstractEffect {
 	/**
 	 * UniformBinding is the union of a GlslUniform and its set value for a

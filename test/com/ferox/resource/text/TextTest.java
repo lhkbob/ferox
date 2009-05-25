@@ -57,8 +57,8 @@ public class TextTest extends BasicApplication {
 		Text text =
 			new Text(
 				charSet,
-				"Hello World! This is my text renderer, \thow awesome is that? \n\rMy name isé Michael Ludwig.",
-				CompileType.VBO_STATIC);
+				"Hello World! This is my text renderer, \thow awesome is that? \n\rMy name is? Michael Ludwig.",
+				CompileType.VERTEX_ARRAY);
 		text.setWrapWidth(window.getWidth() / 1f);
 		renderer.requestUpdate(text, true);
 

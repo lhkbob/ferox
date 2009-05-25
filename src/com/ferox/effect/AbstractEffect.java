@@ -1,23 +1,22 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
 
 /**
- * Basic implementation that caches the Type returned by a sub-classes EffectType
+ * Basic implementation that caches the EffectType returned by a sub-classes Type
  * annotation, so its constructor will fail unless the class is properly
  * annotated.
  * 
  * @author Michael Ludwig
  */
 public abstract class AbstractEffect implements Effect {
-	private final Type type;
+	private final EffectType type;
 
 	public AbstractEffect() {
-		type = getClass().getAnnotation(EffectType.class).value();
+		type = getClass().getAnnotation(Type.class).value();
 	}
 
 	@Override
-	public Type getType() {
+	public EffectType getType() {
 		return type;
 	}
 }

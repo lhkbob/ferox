@@ -9,6 +9,7 @@ import java.util.Queue;
 import java.util.Map.Entry;
 
 import javax.media.opengl.DebugGL;
+import javax.media.opengl.TraceGL;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
@@ -29,24 +30,29 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
- * <p>The JoglContextManager provides an implementation of ContextManager for use
+ * <p>
+ * The JoglContextManager provides an implementation of ContextManager for use
  * with jogl based renderers. Its internals with context management are
- * inherently not thread safe and should not be used from multiple threads.</p>
- * 
- * <p>This was chosen because it greatly simplified implementation and a surface
+ * inherently not thread safe and should not be used from multiple threads.
+ * </p>
+ * <p>
+ * This was chosen because it greatly simplified implementation and a surface
  * factory should only be used internally by an AbstractRenderer, which imposes
- * single threadedness anyway.</p>
- * 
- * <p>This class is public so that new jogl based renderers can be more easily
+ * single threadedness anyway.
+ * </p>
+ * <p>
+ * This class is public so that new jogl based renderers can be more easily
  * developed (e.g. to replace the drivers being used by implementing smarter
  * driver factories). Even so, it should only be created inside a constructor of
  * a renderer implementation and used only be that renderer. Otherwise undefined
- * and dangerous behavior WILL occur.</p>
+ * and dangerous behavior WILL occur.
+ * </p>
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglContextManager implements ContextManager {
+	private static final boolean TRACE = true;
+
 	/* Variables for the shadow context. */
 	private ShadowContext shadowContext;
 
@@ -57,7 +63,7 @@ public class JoglContextManager implements ContextManager {
 
 	private final Map<GLAutoDrawable, Queue<JoglFbo>> zombieFbos;
 	private final Object destroyLock = new Object();
-	
+
 	private final List<JoglRenderSurface> realizedSurfaces;
 
 	/* Misc variables. */
@@ -73,15 +79,14 @@ public class JoglContextManager implements ContextManager {
 
 	/**
 	 * Construct a surface factory for the given renderer (this renderer must
-	 * use this surface factory or undefined results will happen).
-	 * 
-	 * If debug is true, opengl errors will be checked after each opengl call.
+	 * use this surface factory or undefined results will happen). If debug is
+	 * true, opengl errors will be checked after each opengl call.
 	 */
 	public JoglContextManager(AbstractRenderer renderer,
-			RenderCapabilities caps, boolean debug) {
+		RenderCapabilities caps, boolean debug) {
 		if (renderer == null)
 			throw new NullPointerException(
-					"Cannot create a surface factory with a null renderer");
+				"Cannot create a surface factory with a null renderer");
 
 		debugGL = debug;
 		this.renderer = renderer;
@@ -112,15 +117,15 @@ public class JoglContextManager implements ContextManager {
 
 	@Override
 	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
-			int width, int height) {
+		int width, int height) {
 		if (windowCreatedCount > 0)
 			throw new SurfaceCreationException(
-					"Cannot create a FullscreenSurface when there are created WindowSurfaces");
+				"Cannot create a FullscreenSurface when there are created WindowSurfaces");
 
 		JoglFullscreenSurface s = null;
 		s = new JoglFullscreenSurface(this, options, width, height);
 		activeSurfaces.add(s);
-		
+
 		fullscreenCreated = true;
 		if (s.getGLAutoDrawable() != null)
 			realizedSurfaces.add(s);
@@ -129,16 +134,17 @@ public class JoglContextManager implements ContextManager {
 
 	@Override
 	public WindowSurface createWindowSurface(DisplayOptions options, int x,
-			int y, int width, int height, boolean resizable, boolean undecorated) {
+		int y, int width, int height, boolean resizable, boolean undecorated) {
 		if (fullscreenCreated)
 			throw new SurfaceCreationException(
-					"Cannot create a WindowSurface when there is already a FullscreenSurface");
+				"Cannot create a WindowSurface when there is already a FullscreenSurface");
 
 		JoglWindowSurface s = null;
-		s = new JoglWindowSurface(this, options, x, y, width, height,
-			resizable, undecorated);
+		s =
+			new JoglWindowSurface(this, options, x, y, width, height,
+				resizable, undecorated);
 		activeSurfaces.add(s);
-		
+
 		windowCreatedCount++;
 		if (s.getGLAutoDrawable() != null)
 			realizedSurfaces.add(s);
@@ -147,14 +153,15 @@ public class JoglContextManager implements ContextManager {
 
 	@Override
 	public TextureSurface createTextureSurface(DisplayOptions options,
-			TextureTarget target, int width, int height, int depth, int layer,
-			int numColorTargets, boolean useDepthRenderBuffer) {
+		TextureTarget target, int width, int height, int depth, int layer,
+		int numColorTargets, boolean useDepthRenderBuffer) {
 		JoglTextureSurface s = null;
 
-		s = new JoglTextureSurface(this, options, target, width,
-			height, depth, layer, numColorTargets, useDepthRenderBuffer);
+		s =
+			new JoglTextureSurface(this, options, target, width, height, depth,
+				layer, numColorTargets, useDepthRenderBuffer);
 		activeSurfaces.add(s);
-		
+
 		if (s.getGLAutoDrawable() != null)
 			realizedSurfaces.add(s);
 		return s;
@@ -162,13 +169,12 @@ public class JoglContextManager implements ContextManager {
 
 	@Override
 	public TextureSurface createTextureSurface(TextureSurface share, int layer)
-			throws RenderException {
+		throws RenderException {
 		JoglTextureSurface s = null;
 
-		s = new JoglTextureSurface(this, (JoglTextureSurface) share,
-			layer);
+		s = new JoglTextureSurface(this, (JoglTextureSurface) share, layer);
 		activeSurfaces.add(s);
-		
+
 		if (s.getGLAutoDrawable() != null)
 			realizedSurfaces.add(s);
 		return s;
@@ -198,7 +204,7 @@ public class JoglContextManager implements ContextManager {
 
 	@Override
 	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces,
-			Runnable resourceAction) {
+		Runnable resourceAction) {
 		int size = (queuedSurfaces == null ? 0 : queuedSurfaces.size());
 		JoglRenderSurface s;
 		for (int i = 0; i < size; i++) {
@@ -218,8 +224,8 @@ public class JoglContextManager implements ContextManager {
 		// attach all queued surfaces to the queued render actions
 		int raIndex = 0;
 		GLAutoDrawable queued;
-		GLAutoDrawable realized = queuedRenderActions.get(raIndex)
-				.getGLAutoDrawable();
+		GLAutoDrawable realized =
+			queuedRenderActions.get(raIndex).getGLAutoDrawable();
 
 		for (int i = 0; i < size; i++) {
 			s = (JoglRenderSurface) queuedSurfaces.get(i);
@@ -243,7 +249,10 @@ public class JoglContextManager implements ContextManager {
 
 				currentDrawable = renderAction.getGLAutoDrawable();
 				currentRecord = renderAction.getStateRecord();
-				currentGL = (debugGL ? new DebugGL(currentDrawable.getGL())
+
+				currentGL =
+					(debugGL ? (TRACE ? new TraceGL(currentDrawable.getGL(),
+						System.out) : new DebugGL(currentDrawable.getGL()))
 						: currentDrawable.getGL());
 
 				renderAction.render();
@@ -258,7 +267,7 @@ public class JoglContextManager implements ContextManager {
 	public boolean isGraphicsThread() {
 		return GLContext.getCurrent() != null;
 	}
-	
+
 	@Override
 	public List<RenderSurface> getActiveSurfaces() {
 		return activeSurfaces;
@@ -348,7 +357,7 @@ public class JoglContextManager implements ContextManager {
 		if (zombieFbos.size() > 0) {
 			ZombieFboCleanupAction cleanup;
 			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e : zombieFbos
-					.entrySet()) {
+				.entrySet()) {
 				cleanup = new ZombieFboCleanupAction(e.getValue());
 				runOnGraphicsThread(null, cleanup);
 			}

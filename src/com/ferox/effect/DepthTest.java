@@ -1,17 +1,15 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * <p>
  * DepthTest controls the various depth testing performed on a pixel's screen
  * space depth value. It passes the test if the new pixel's depth passes the
- * test function when compared to the previous pixel's depth (possibly an old
- * pixel if the depth buffer wasn't cleared).
- * </p>
- * <p>
- * If an Appearance has no DepthTest and the default appearance of a renderer
- * doesn't either, then there should be no depth testing.
+ * test function when compared to the previous pixel's depth (most likely an old
+ * pixel if the depth buffer wasn't cleared).  If a pixel passes the depth test
+ * it will be rendered (subsequent to other tests passing, too).
  * </p>
  * <p>
  * This class also provides the ability to disable writing to the depth buffer
@@ -24,7 +22,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.DEPTH)
+@Type(EffectType.DEPTH)
 public class DepthTest extends AbstractEffect {
 	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.LEQUAL;
 

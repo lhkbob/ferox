@@ -1,6 +1,6 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
 import com.ferox.math.Color;
 
 /**
@@ -19,7 +19,7 @@ import com.ferox.math.Color;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.FOG)
+@Type(EffectType.FOG)
 public class Fog extends AbstractEffect {
 	/**
 	 * Equation used to compute the amount of fog between start and end

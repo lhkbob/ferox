@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.EffectType;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.UnsupportedResourceException;
 import com.ferox.renderer.impl.AbstractRenderer;
@@ -20,9 +20,9 @@ import com.ferox.renderer.impl.jogl.drivers.effect.JoglPointStyleEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglPolygonStyleEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglStencilTestEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglTextureEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.geom.JoglIndexedArrayGeometryDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglGlslProgramResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglGlslUniformResourceDriver;
+import com.ferox.renderer.impl.jogl.drivers.resource.JoglIndexedArrayGeometryDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTexture1DResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTexture2DResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTexture3DResourceDriver;
@@ -87,13 +87,13 @@ public final class BasicJoglRenderer extends AbstractRenderer {
 
 		JoglContextManager factory =
 			new JoglContextManager(this, caps, debugGL);
-		init(factory, factory.getTransformDriver(), caps, Type.values());
+		init(factory, factory.getTransformDriver(), caps, EffectType.values());
 		buildEffectDrivers(factory);
 		buildResourceDrivers(factory);
 	}
 
 	private void buildEffectDrivers(JoglContextManager factory) {
-		Type[] values = Type.values();
+		EffectType[] values = EffectType.values();
 		effectDrivers = new EffectDriver[values.length];
 		for (int i = 0; i < values.length; i++) {
 			switch (values[i]) {
@@ -157,7 +157,7 @@ public final class BasicJoglRenderer extends AbstractRenderer {
 	}
 
 	@Override
-	protected EffectDriver getEffectDriver(Type effectType) {
+	protected EffectDriver getEffectDriver(EffectType effectType) {
 		return effectDrivers[effectType.ordinal()];
 	}
 

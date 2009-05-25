@@ -1,6 +1,7 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * <p>
@@ -16,7 +17,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.POLYGON)
+@Type(EffectType.POLYGON)
 public class PolygonStyle extends AbstractEffect {
 	/**
 	 * Represents the style of drawing to use. Depending on the primitive type

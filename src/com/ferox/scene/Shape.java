@@ -34,28 +34,29 @@ public class Shape extends Leaf {
 
 	private boolean autoBound;
 
-	private Geometry geom;
 	private Appearance appearance;
-	private EffectSet effects;
-
-	private RenderAtom renderAtom;
+	private final EffectSet effects;
+	private final RenderAtom renderAtom;
 
 	/**
 	 * Construct a shape with the given appearance and geometry, and set to
 	 * automatically compute bounds.
 	 * 
-	 * @param geom The Geometry to use, if it's null then this Shape will not be
-	 *            rendered
+	 * @param geom The Geometry to use, cannot be null
 	 * @param app The Appearance to use, if null then this Shape will be
 	 *            rendered with the default appearance for a Renderer
+	 * @throws NullPointerException if geom is null
 	 */
 	public Shape(Geometry geom, Appearance app) {
+		effects = new ShapeEffectSet();
 		// enable lighting
 		lights = new ArrayList<LightNode<?>>();
-		effects = new EffectSet();
-		
+
+		// will fail here if geom is null
+		renderAtom =
+			new RenderAtom(worldTransform, geom, effects, renderAtomKey);
+
 		setAppearance(app);
-		setGeometry(geom);
 		setAutoComputeBounds(true);
 	}
 
@@ -87,20 +88,20 @@ public class Shape extends Leaf {
 	}
 
 	/**
-	 * Set the Geometry that is rendered as this Shape. If null, the shape will
-	 * not submit a render atom to the RenderQueue.
+	 * Set the Geometry that is rendered as this Shape.
 	 * 
 	 * @param geom The Geometry to use
+	 * @throws NullPointerException if geom is null
 	 */
 	public void setGeometry(Geometry geom) {
-		this.geom = geom;
+		renderAtom.setGeometry(geom, renderAtomKey);
 	}
 
 	/**
 	 * @return The geometry used by this Shape.
 	 */
 	public Geometry getGeometry() {
-		return geom;
+		return renderAtom.getGeometry();
 	}
 
 	/**
@@ -114,81 +115,19 @@ public class Shape extends Leaf {
 		return autoBound;
 	}
 
-	/** 
-	 * Override visit to submit a render atom to the RenderQueue if necessary. */
+	/**
+	 * Override visit to submit a render atom to the RenderQueue if necessary.
+	 */
 	@Override
 	public VisitResult visit(RenderQueue renderQueue, View view,
 		VisitResult parentResult) {
-		if (geom == null)
-			return VisitResult.FAIL;
-
 		VisitResult sp = super.visit(renderQueue, view, parentResult);
 		if (sp != VisitResult.FAIL) {
-			// make sure the render atom isn't null and
-			// assign the geometry
-			if (renderAtom == null)
-				renderAtom =
-					new RenderAtom(worldTransform, null, geom, renderAtomKey);
-			else
-				renderAtom.setGeometry(geom, renderAtomKey);
-
-			// update the atom's effect set based on appearance, lights, and fog
-			updateEffectSet();
-
 			// finally add it to the queue
 			renderQueue.add(renderAtom);
 		}
 
 		return sp;
-	}
-
-	/**
-	 * Overridden to clean up old references of lights and fogs in the Shape's
-	 * EffectSet.
-	 * 
-	 * @param sceneLights
-	 * @param fogs
-	 */
-	@Override
-	protected void prepareLightsAndFog(List<LightNode<?>> sceneLights,
-		List<FogNode> fogs) {
-		// clean up fog and lights first
-		if (fog != null)
-			effects.remove(fog.getFog());
-		
-		int size = lights.size();
-		for (int i = 0; i < size; i++)
-			effects.remove(lights.get(i).getLight());
-		
-		// now continue preparing
-		super.prepareLightsAndFog(sceneLights, fogs);
-	}
-
-	/*
-	 * Internal method to make sure that effectSet has the correct Effects added
-	 * to it.
-	 */
-	private void updateEffectSet() {
-		if (appearance != null) {
-			renderAtom.setEffects(effects, renderAtomKey);
-			
-			List<Effect> appEffects = appearance.getEffects();
-			effects.clear();
-			
-			int size = appEffects.size();
-			for (int i = 0; i < size; i++)
-				effects.add(appEffects.get(i));
-			
-			if (appearance.getFogEnabled() && fog != null)
-				effects.add(fog.getFog());
-
-			if (appearance.getGlobalLighting() != null) {
-				size = lights.size();
-				for (int i = 0; i < size; i++)
-					effects.add(lights.get(i).getLight());
-			}
-		} else
-			renderAtom.setEffects(null, renderAtomKey);
 	}
 
 	/**
@@ -200,11 +139,95 @@ public class Shape extends Leaf {
 	 */
 	@Override
 	protected BoundVolume adjustLocalBounds(BoundVolume local) {
-		if (autoBound && geom != null) {
+		if (autoBound) {
 			if (local == null)
 				local = new AxisAlignedBox();
-			geom.getBounds(local);
+			getGeometry().getBounds(local);
 		}
 		return local;
+	}
+	
+	/*
+	 * EffectSet implementation that dynamically merges the List<Effect>
+	 * returned from the current appearance, the list of lights and the fog of
+	 * the Shape.
+	 */
+	private class ShapeEffectSet implements EffectSet {
+		private int pos;
+		
+		public ShapeEffectSet() {
+			pos = 0;
+		}
+
+		private Effect getAppearanceEffect(int pos) {
+			if (appearance != null) {
+				List<Effect> app = appearance.getEffects();
+				if (pos < app.size())
+					return app.get(pos);
+			}
+			
+			return null;
+		}
+		
+		private Effect getFogEffect(int pos) {
+			if (fog != null) {
+				if (appearance != null) {
+					if (pos == appearance.getEffects().size())
+						return fog.getFog();
+				} else if (pos == 0)
+					return fog.getFog();
+			}
+			
+			return null;
+		}
+		
+		private Effect getLightEffect(int pos) {
+			if (fog != null)
+				pos--;
+			if (appearance != null)
+				pos -= appearance.getEffects().size();
+			
+			if (pos >= 0 && pos < lights.size())
+				return lights.get(pos).getLight();
+			else
+				return null;
+		}
+		
+		@Override
+		public Effect next() {
+			Effect e = getAppearanceEffect(pos);
+			if (e == null)
+				e = getFogEffect(pos);
+			if (e == null)
+				e = getLightEffect(pos);
+			
+			if (e != null)
+				pos++;
+			
+			return e;
+		}
+
+		@Override
+		public int position() {
+			return pos;
+		}
+
+		@Override
+		public void position(int pos) {
+			int size = lights.size();
+			if (appearance != null)
+				size += appearance.getEffects().size();
+			if (fog != null)
+				size += 1;
+
+			if (pos < 0 || pos >= size)
+				pos = 0;
+			this.pos = pos;
+		}
+
+		@Override
+		public void reset() {
+			position(0);
+		}
 	}
 }

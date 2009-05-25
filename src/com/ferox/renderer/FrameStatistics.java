@@ -7,7 +7,6 @@ import java.io.PrintStream;
  * 
  * @author Michael Ludwig
  */
-// FIXME: add back setTiming methods
 public class FrameStatistics {
 	private int totalMeshCount;
 	private int totalVertexCount;
@@ -54,7 +53,7 @@ public class FrameStatistics {
 	 * @param ns The prepare time, in nanoseconds
 	 */
 	public void setPrepareTime(long ns) {
-		waitTime = ns;
+		prepareTime = ns;
 	}
 
 	/**
@@ -64,7 +63,7 @@ public class FrameStatistics {
 	 * @param ns The render time, in nanoseconds
 	 */
 	public void setRenderTime(long ns) {
-		waitTime = ns;
+		renderTime = ns;
 	}
 
 	/**

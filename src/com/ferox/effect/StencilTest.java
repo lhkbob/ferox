@@ -1,6 +1,7 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * <p>
@@ -17,7 +18,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.STENCIL)
+@Type(EffectType.STENCIL)
 public class StencilTest extends AbstractEffect {
 	/** Operation to perform on the stencil buffer under certain conditions. */
 	public static enum StencilOp {

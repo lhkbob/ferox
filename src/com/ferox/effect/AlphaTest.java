@@ -1,6 +1,7 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * <p>
@@ -15,7 +16,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.ALPHA)
+@Type(EffectType.ALPHA)
 public class AlphaTest extends AbstractEffect {
 	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.GEQUAL;
 	private static final float DEFAULT_REF_VALUE = 1f;

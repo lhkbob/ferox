@@ -155,7 +155,11 @@ public abstract class Node {
 	 *            is valid
 	 */
 	public void updateTransform(boolean fast) {
-		localToWorld(IDENTITY.get(), worldTransform, fast);
+		//localToWorld(IDENTITY.get(), worldTransform, fast);
+		if (parent != null)
+			worldTransform.mul(localTransform, parent.worldTransform);
+		else
+			worldTransform.set(localTransform);
 	}
 
 	/**
@@ -180,7 +184,7 @@ public abstract class Node {
 		fogs.clear();
 		// fill the list
 		prepareLightsAndFog(lights, fogs);
-		
+
 		// update this node for all detected lights
 		int size = lights.size();
 		for (int i = 0; i < size; i++)

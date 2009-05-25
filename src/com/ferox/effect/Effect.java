@@ -1,6 +1,12 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 
 /**
  * <p>
@@ -18,21 +24,54 @@ import com.ferox.effect.EffectType.Type;
  * <p>
  * To prevent Effects of overlapping responsibilities being used at the same
  * time while rendering, all Effect implementations must annotate themselves
- * with the EffectType annotation. If they're not annotated, they can't be used
+ * with the Type annotation. If they're not annotated, they can't be used
  * in an EffectSet.
  * 
- * @see EffectType </p>
+ * @see Type </p>
  * @author Michael Ludwig
  */
 public interface Effect {
 	/**
-	 * Return the Type of this Effect, this must match the Type specified in the
-	 * Effect's attached EffectType annotation
+	 * Return the EffectType of this Effect, this must match the EffectType specified in the
+	 * Effect's attached Type annotation
 	 * 
-	 * @return The Type of this Effect
+	 * @return The EffectType of this Effect
 	 */
-	public Type getType();
+	public EffectType getType();
 
+	/**
+	 * <p>
+	 * The Type annotation specifies what an Effect modifies when its applied
+	 * to a RenderAtom. It also defines the EffectType enum, which specifies the different
+	 * abstract effects available for a Renderer. Although Effect implementations
+	 * are not final, it makes sense to declare the available types of effects.
+	 * </p>
+	 * <p>
+	 * There is no other, reasonable solution to avoid conflicts between effects.
+	 * For example, if there is an implementation that describes the color of the
+	 * RenderAtom, it's clear that it modifies the material color. It doesn't make
+	 * sense to allow an atom to be affected by that class and a Material. By having
+	 * both classes annotated by @Type(MATERIAL), it is easily understand that
+	 * they achieve the same end result and should not be used together.
+	 * </p>
+	 * <p>
+	 * All Effect implementations must have an Type annotation attached
+	 * somewhere in its class hierarchy.
+	 * </p>
+	 * 
+	 * @author Michael Ludwig
+	 */
+	@Inherited
+	@Documented
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.TYPE)
+	public @interface Type {
+		/**
+		 * @return The EffectType that this Effect represents
+		 */
+		EffectType value();
+	}
+	
 	/**
 	 * A common enum to describe the quality state effects when rendering.
 	 * DONT_CARE allows implementation to choose.

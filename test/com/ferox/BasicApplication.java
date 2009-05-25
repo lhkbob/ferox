@@ -163,9 +163,9 @@ public abstract class BasicApplication extends ApplicationBase {
 					"FPS: %.2f\nMeshes: %d\nPolygons: %d\nUsed: %.2f / %.2f M",
 					avgFps / fpsCount, stats.getMeshCount(), stats
 						.getPolygonCount(), (run.totalMemory() - run
-						.freeMemory()) / 1e6f, run.totalMemory() / 1e6f);
+						.freeMemory()) / (1024f * 1024f), run.totalMemory() / (1024f * 1024f));
 				fpsText.setText(fpsStringBuilder.toString());
-				renderer.requestUpdate(fpsText, true);
+				fpsText.layoutText();
 
 				fpsCount = 0;
 				avgFps = 0;

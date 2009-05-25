@@ -1,10 +1,8 @@
 package com.ferox.renderer;
 
-import java.util.List;
-
 import com.ferox.effect.Effect;
 import com.ferox.effect.EffectSet;
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.EffectType;
 
 /**
  * EffectSortingRenderQueue can be used to order queued RenderAtoms by the
@@ -20,6 +18,7 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 	@Override
 	protected void optimizeOrder(View view, RenderAtom[] atoms, int raCount) {
 		if (raCount > 1) {
+			// make sure we have enough indices
 			if (effectSortKeys == null || effectSortKeys.length < raCount)
 				effectSortKeys = new int[raCount];
 
@@ -33,27 +32,27 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 	/* Compute the sorting key for the given render atom. */
 	private int computeSortKey(RenderAtom atom) {
 		EffectSet set = atom.getEffects();
-		int key = 0;
 
 		if (set != null) {
-			List<Effect> effects = set.getAll();
-			int size = effects.size();
-
 			Effect e;
-			for (int i = 0; i < size; i++) {
-				e = effects.get(i);
+			int key = 0;
+
+			set.reset();
+			while ((e = set.next()) != null) {
 				key ^= typeKey(System.identityHashCode(e), e.getType());
 			}
-		}
 
-		return key;
+			// store it for later
+			return key;
+		} else
+			return 0;
 	}
 
 	/*
 	 * Return the bit key for hash and type based on a hardcoded bit layout
 	 * pattern for the different types.
 	 */
-	private int typeKey(int hash, Type t) {
+	private int typeKey(int hash, EffectType t) {
 		int comp;
 
 		switch (t) {

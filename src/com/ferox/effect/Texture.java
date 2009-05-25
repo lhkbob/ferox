@@ -1,6 +1,6 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
 import com.ferox.math.Color;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
@@ -103,7 +103,7 @@ import com.ferox.resource.TextureImage;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.TEXTURE)
+@Type(EffectType.TEXTURE)
 public class Texture extends AbstractEffect {
 	/** Describes how texels are combined with other textures and colors. */
 	public static enum EnvMode {

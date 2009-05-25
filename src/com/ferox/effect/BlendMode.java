@@ -1,6 +1,7 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
+
 
 /**
  * <p>
@@ -14,7 +15,7 @@ import com.ferox.effect.EffectType.Type;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.BLEND)
+@Type(EffectType.BLEND)
 public class BlendMode extends AbstractEffect {
 	private static final BlendEquation DEFAULT_BLEND_EQ = BlendEquation.ADD;
 	private static final BlendFactor DEFAULT_SRC_FACTOR = BlendFactor.SRC_ALPHA;

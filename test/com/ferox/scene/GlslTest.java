@@ -26,6 +26,7 @@ import com.ferox.resource.Geometry.CompileType;
 import com.ferox.resource.GlslUniform.ValueUpdatePolicy;
 import com.ferox.resource.GlslVertexAttribute.AttributeType;
 import com.ferox.resource.IndexedArrayGeometry.VectorBuffer;
+import com.ferox.resource.TextureImage.TextureWrap;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.TangentGenerator;
 import com.ferox.util.geom.Teapot;
@@ -52,7 +53,7 @@ public class GlslTest extends BasicApplication {
 		view.getLocalTransform().getTranslation().z = 20f;
 		root.add(view);
 
-		Geometry cube = build(new Teapot(3f));
+		Geometry cube = build(new Teapot(3f, CompileType.VBO_STATIC));
 		renderer.requestUpdate(cube, true);
 		Appearance app = createGlslAppearance(renderer);
 
@@ -65,7 +66,7 @@ public class GlslTest extends BasicApplication {
 		light.setEffectRadius(20f);
 
 		Shape lightCube =
-			new Shape(new Box(.5f, CompileType.VERTEX_ARRAY), new Appearance()
+			new Shape(new Box(.5f, CompileType.NONE), new Appearance()
 				.setMaterial(new Material(light.getDiffuse())));
 		renderer.requestUpdate(lightCube.getGeometry(), true);
 
@@ -105,12 +106,16 @@ public class GlslTest extends BasicApplication {
 			diffuse =
 				TextureLoader.readTexture(this.getClass().getClassLoader()
 					.getResource("data/textures/wall_diffuse.png"));
+			diffuse.setWrapSTR(TextureWrap.REPEAT);
+			
 			specular =
 				TextureLoader.readTexture(this.getClass().getClassLoader()
 					.getResource("data/textures/wall_specular.png"));
+			specular.setWrapSTR(TextureWrap.REPEAT);
 			normal =
 				TextureLoader.readTexture(this.getClass().getClassLoader()
 					.getResource("data/textures/wall_normal.png"));
+			normal.setWrapSTR(TextureWrap.REPEAT);
 
 			renderer.requestUpdate(diffuse, true);
 			renderer.requestUpdate(specular, true);

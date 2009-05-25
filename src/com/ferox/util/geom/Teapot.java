@@ -9,7 +9,7 @@ import com.ferox.resource.IndexedArrayGeometry;
  * coordinates (on the 0th unit), as well as indices.
  * </p>
  * <p>
- * If you're texturing the Teapot, you should use WRAP for the s and t
+ * If you're texturing the Teapot, you should use REPEAT for the s and t
  * coordinates.
  * </p>
  * 

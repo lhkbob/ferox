@@ -1,6 +1,6 @@
 package com.ferox.effect;
 
-import com.ferox.effect.EffectType.Type;
+import com.ferox.effect.Effect.Type;
 import com.ferox.math.Color;
 
 /**
@@ -17,7 +17,7 @@ import com.ferox.math.Color;
  * 
  * @author Michael Ludwig
  */
-@EffectType(Type.GLOBAL_LIGHTING)
+@Type(EffectType.GLOBAL_LIGHTING)
 public class GlobalLighting extends AbstractEffect {
 	private static final Color DEFAULT_AMBIENT = new Color(0f, 0f, 0f, 1f);
 
