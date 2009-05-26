@@ -4,7 +4,7 @@ import com.ferox.resource.Resource.Status;
 
 /**
  * <p>
- * Each Resource object that is used by an AbstractRenderer has an associated
+ * Each Resource object that is used by an AbstractFramework has an associated
  * ResourceData object. This class provides some internal bookkeeping for the
  * renderer and allows ResourceDrivers to store there own information associated
  * with a Resource instance.
@@ -28,7 +28,7 @@ public final class ResourceData {
 		 * Return the integer handle that is usable for low-level graphics
 		 * calls. This integer is only valid if it has a status of OK or DIRTY
 		 * and it is not a Geometry. It is recommended that drivers relying on
-		 * this should call getHandle() in AbstractRenderer, which checks these
+		 * this should call getHandle() in AbstractFramework, which checks these
 		 * conditions.
 		 * </p>
 		 * <p>
@@ -123,8 +123,8 @@ public final class ResourceData {
 	}
 
 	/**
-	 * Set the status to be returned by an AbstractRenderer's getStatus()
-	 * methods if the status shouldn't be CLEANED. AbstractRenderer will manage
+	 * Set the status to be returned by an AbstractFramework's getStatus()
+	 * methods if the status shouldn't be CLEANED. AbstractFramework will manage
 	 * the returning of a CLEANED status.
 	 * 
 	 * @param status The new Status to use, if null it uses OK

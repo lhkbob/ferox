@@ -6,7 +6,7 @@ import com.ferox.resource.BufferData.DataType;
  * <p>
  * Describes all of the supported texture formats. Some of the formats are only
  * available on newer hardware, such as RGBA_FLOAT. In cases such as this the
- * Renderer is allowed to change the type of texture, in which case the image
+ * Framework is allowed to change the type of texture, in which case the image
  * should be flagged as DIRTY.
  * </p>
  * <p>

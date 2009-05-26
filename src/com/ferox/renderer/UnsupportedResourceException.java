@@ -2,7 +2,7 @@ package com.ferox.renderer;
 
 /**
  * An exception that should be thrown whenever a Resource (or Geometry) is used
- * that the Renderer can't handle.
+ * that the Framework can't handle.
  * 
  * @author Michael Ludwig
  * 

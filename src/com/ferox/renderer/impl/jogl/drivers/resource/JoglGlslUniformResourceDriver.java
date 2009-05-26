@@ -2,6 +2,7 @@ package com.ferox.renderer.impl.jogl.drivers.resource;
 
 import javax.media.opengl.GL;
 
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.ResourceData.Handle;
@@ -35,16 +36,16 @@ public class JoglGlslUniformResourceDriver implements ResourceDriver {
 
 	public JoglGlslUniformResourceDriver(JoglContextManager factory) {
 		this.factory = factory;
-		glslSupport = factory.getRenderer().getCapabilities().getGlslSupport();
+		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
 	}
 
 	@Override
-	public void cleanUp(Resource resource, ResourceData data) {
+	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
 		// nothing to clean-up
 	}
 
 	@Override
-	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
+	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
 		GL gl = factory.getGL();
 
 		GlslUniformHandle handle = (GlslUniformHandle) data.getHandle();
@@ -61,7 +62,7 @@ public class JoglGlslUniformResourceDriver implements ResourceDriver {
 		}
 
 		GlslUniform uniform = (GlslUniform) resource;
-		Handle program = factory.getRenderer().getHandle(uniform.getOwner(), factory);
+		Handle program = factory.getFramework().getHandle(uniform.getOwner(), factory);
 
 		if (program == null) {
 			// program is bad, so all uniforms are invalid

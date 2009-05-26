@@ -121,11 +121,10 @@ public class SceneRenderPass implements RenderPass {
 	 * will return the view object. If either of the view or scene are null,
 	 * then null is returned (effectively the pass will be ignored).
 	 * 
-	 * @param renderer
 	 * @return View returned by getView(), or null if getScene() returns null
 	 */
 	@Override
-	public View preparePass(Renderer renderer) {
+	public View preparePass() {
 		if (scene == null || view == null)
 			return null;
 		renderQueue.clear();

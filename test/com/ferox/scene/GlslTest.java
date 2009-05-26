@@ -15,7 +15,7 @@ import com.ferox.effect.MultiTexture;
 import com.ferox.effect.Texture;
 import com.ferox.math.Color;
 import com.ferox.math.Transform;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
@@ -47,7 +47,7 @@ public class GlslTest extends BasicApplication {
 	}
 
 	@Override
-	protected Node buildScene(Renderer renderer, ViewNode view) {
+	protected Node buildScene(Framework renderer, ViewNode view) {
 		Group root = new Group();
 
 		view.getLocalTransform().getTranslation().z = 20f;
@@ -82,7 +82,7 @@ public class GlslTest extends BasicApplication {
 		return root;
 	}
 
-	private Appearance createGlslAppearance(Renderer renderer) {
+	private Appearance createGlslAppearance(Framework renderer) {
 		GlslProgram program = createProgram(renderer);
 
 		GlslShader shader = new GlslShader(program);
@@ -133,7 +133,7 @@ public class GlslTest extends BasicApplication {
 			new GlobalLighting()).setGlslShader(shader);
 	}
 
-	private GlslProgram createProgram(Renderer renderer) {
+	private GlslProgram createProgram(Framework renderer) {
 		String[] vertexShader =
 			{
 				"attribute vec3 tangent;",
@@ -197,7 +197,7 @@ public class GlslTest extends BasicApplication {
 		program.bindAttribute("bitangent", AttributeType.VEC3F, 2);
 
 		renderer.requestUpdate(program, true);
-		renderer.flushRenderer(null);
+		renderer.renderFrame(null);
 
 		System.out.println(renderer.getStatus(program));
 		System.out.println(renderer.getStatusMessage(program));

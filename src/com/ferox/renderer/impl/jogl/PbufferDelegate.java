@@ -37,7 +37,7 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 		pbuffer.addGLEventListener(surface);
 
 		this.factory = factory;
-		record = new JoglStateRecord(factory.getRenderer().getCapabilities());
+		record = new JoglStateRecord(factory.getFramework().getCapabilities());
 	}
 
 	@Override
@@ -79,14 +79,14 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 
 		if (color != null) {
 			TextureHandle handle =
-				(TextureHandle) factory.getRenderer().getHandle(color, factory);
+				(TextureHandle) factory.getFramework().getHandle(color, factory);
 			gl.glBindTexture(handle.glTarget, handle.id);
 			copySubImage(gl, handle);
 			ct = handle.glTarget;
 		}
 		if (depth != null) {
 			TextureHandle handle =
-				(TextureHandle) factory.getRenderer().getHandle(depth, factory);
+				(TextureHandle) factory.getFramework().getHandle(depth, factory);
 			gl.glBindTexture(handle.glTarget, handle.id);
 			copySubImage(gl, handle);
 			dt = handle.glTarget;

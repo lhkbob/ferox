@@ -2,7 +2,7 @@ package com.ferox.renderer;
 
 /**
  * An exception that should be thrown whenever an Effect is used that the
- * Renderer can't handle.
+ * Framework can't handle.
  * 
  * @author Michael Ludwig
  * 

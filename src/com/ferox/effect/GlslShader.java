@@ -54,7 +54,7 @@ public class GlslShader extends AbstractEffect {
 		 * only used if the uniform's policy is MANUAL.
 		 * </p>
 		 * <p>
-		 * This should be set to false after a Renderer updates the value of the
+		 * This should be set to false after a Framework updates the value of the
 		 * uniform.
 		 * </p>
 		 * 

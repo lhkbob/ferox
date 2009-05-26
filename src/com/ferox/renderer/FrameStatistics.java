@@ -36,7 +36,7 @@ public class FrameStatistics {
 	}
 
 	/**
-	 * Set the amount of nanoseconds that this Renderer has been idle. This will
+	 * Set the amount of nanoseconds that this Framework has been idle. This will
 	 * be the value returned by getIdleTime() and should not be negative.
 	 * 
 	 * @param ns The idle time, in nanoseconds
@@ -46,7 +46,7 @@ public class FrameStatistics {
 	}
 
 	/**
-	 * Set the amount of nanoseconds that this Renderer has been spent preparing
+	 * Set the amount of nanoseconds that this Framework has been spent preparing
 	 * for rendering. This will be the value returned by getPrepareTime() and
 	 * should not be negative.
 	 * 
@@ -57,7 +57,7 @@ public class FrameStatistics {
 	}
 
 	/**
-	 * Set the amount of nanoseconds that this Renderer spend rendering This
+	 * Set the amount of nanoseconds that this Framework spend rendering This
 	 * will be the value returned by getRenderTime() and should not be negative.
 	 * 
 	 * @param ns The render time, in nanoseconds
@@ -104,7 +104,7 @@ public class FrameStatistics {
 	}
 
 	/**
-	 * The time (ns) spent outside of the Renderer, e.g. time spent between
+	 * The time (ns) spent outside of the Framework, e.g. time spent between
 	 * frames.
 	 * 
 	 * @return Time spent between end of the last frame and before this frame

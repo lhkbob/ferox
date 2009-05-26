@@ -3,7 +3,7 @@ package com.ferox.renderer;
 /**
  * <p>
  * An exception that represents the requested action or method call on the
- * Renderer can't be executed because the renderer isn't in the appropriate
+ * Framework can't be executed because the renderer isn't in the appropriate
  * state to handle the request.
  * </p>
  * <p>

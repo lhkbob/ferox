@@ -44,7 +44,7 @@ public class Shape extends Leaf {
 	 * 
 	 * @param geom The Geometry to use, cannot be null
 	 * @param app The Appearance to use, if null then this Shape will be
-	 *            rendered with the default appearance for a Renderer
+	 *            rendered with the default appearance for a Framework
 	 * @throws NullPointerException if geom is null
 	 */
 	public Shape(Geometry geom, Appearance app) {

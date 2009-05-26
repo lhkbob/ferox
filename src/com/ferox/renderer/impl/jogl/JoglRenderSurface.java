@@ -7,7 +7,7 @@ import com.ferox.math.Color;
 import com.ferox.renderer.AbstractRenderSurface;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderSurface;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
@@ -138,8 +138,8 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 	}
 
 	@Override
-	public Renderer getRenderer() {
-		return factory.getRenderer();
+	public Framework getRenderer() {
+		return factory.getFramework();
 	}
 
 	@Override

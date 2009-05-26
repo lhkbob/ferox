@@ -1,7 +1,5 @@
 package com.ferox.renderer;
 
-import com.ferox.renderer.RequiresState.RenderState;
-
 /**
  * <p>
  * A RenderQueue keeps track of the information to render the visible objects of
@@ -30,19 +28,19 @@ public interface RenderQueue {
 	 * submitted atoms will be rendered.
 	 * </p>
 	 * <p>
-	 * This method should only be called when it's allowed to also call
+	 * This method must only be invoked when it's acceptable to call
 	 * renderAtom() on the given Renderer.
 	 * </p>
 	 * <p>
 	 * Repeated calls to flush() without intermittent calls to clear() should
-	 * perform the same operations on the Renderer as the first call to flush().
+	 * perform the same operations on the Framework as the first call to
+	 * flush().
 	 * </p>
 	 * 
 	 * @param renderer The Renderer that will be rendered into
 	 * @param view The current View that represents the viewing location for all
 	 *            rendered atoms
 	 */
-	@RequiresState(RenderState.RENDERING)
 	public int flush(Renderer renderer, View view);
 
 	/**

@@ -8,7 +8,7 @@ import com.ferox.renderer.View;
  * A ViewNode allows the updating of a View's location based on the node's
  * position in a scene. If the node doesn't have a view attached to it, it
  * functions as any other group. If multiple view node's use the same view
- * object, there are undefined results because of possible Renderer,
+ * object, there are undefined results because of possible Framework,
  * out-of-order execution and contention for being the last view node to modify
  * the view's location.
  * 

@@ -396,7 +396,7 @@ public class Texture extends AbstractEffect {
 	/**
 	 * Set the texture transform that is applied to each texture coordinate
 	 * before accessing the texture. This value may be null (if it is,
-	 * Renderer's should treat it as an identity transform).
+	 * Framework's should treat it as an identity transform).
 	 * 
 	 * @param trans Transform applied to all texture coordinates before image
 	 *            access

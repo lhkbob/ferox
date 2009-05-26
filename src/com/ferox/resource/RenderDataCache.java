@@ -3,7 +3,7 @@ package com.ferox.resource;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 
 /**
  * Utility class implementing fast caching for the setRenderData() in Effect,
@@ -13,10 +13,10 @@ import com.ferox.renderer.Renderer;
  * @author Michael Ludwig
  */
 public class RenderDataCache {
-	private static WeakReference<Renderer> frequentContext = null;
+	private static WeakReference<Framework> frequentContext = null;
 	private static int frequentId = -1;
 
-	private static WeakHashMap<Renderer, Integer> idMap = new WeakHashMap<Renderer, Integer>();
+	private static WeakHashMap<Framework, Integer> idMap = new WeakHashMap<Framework, Integer>();
 	private static int idCounter = 0;
 
 	private Object[] renderData;
@@ -27,17 +27,17 @@ public class RenderDataCache {
 
 	/**
 	 * <p>
-	 * Set the Renderer specific data for this RenderDataCache, overwriting any
+	 * Set the Framework specific data for this RenderDataCache, overwriting any
 	 * previous value.
 	 * </p>
 	 * <p>
-	 * Does nothing if the Renderer is null.
+	 * Does nothing if the Framework is null.
 	 * </p>
 	 * 
-	 * @param render The Renderer key that data is associated with
+	 * @param render The Framework key that data is associated with
 	 * @param data The new object assigned to render
 	 */
-	public void setRenderData(Renderer render, Object data) {
+	public void setRenderData(Framework render, Object data) {
 		if (render == null)
 			return;
 
@@ -52,17 +52,17 @@ public class RenderDataCache {
 
 	/**
 	 * <p>
-	 * Get the Renderer specific data for this RenderDataCache Returns null if
-	 * the Renderer never set any data, or if it set null.
+	 * Get the Framework specific data for this RenderDataCache Returns null if
+	 * the Framework never set any data, or if it set null.
 	 * </p>
 	 * <p>
-	 * Returns null if the Renderer is null.
+	 * Returns null if the Framework is null.
 	 * </p>
 	 * 
-	 * @param render The Renderer to request its assigned data object
+	 * @param render The Framework to request its assigned data object
 	 * @return Object cached for render
 	 */
-	public Object getRenderData(Renderer render) {
+	public Object getRenderData(Framework render) {
 		if (render == null)
 			return null;
 
@@ -72,8 +72,8 @@ public class RenderDataCache {
 		return renderData[id];
 	}
 
-	// internally manage and retrieve Renderer ids, assumes Renderer isn't null
-	private static int getId(Renderer renderer) {
+	// internally manage and retrieve Framework ids, assumes Framework isn't null
+	private static int getId(Framework renderer) {
 		if (frequentContext != null && frequentContext.get() == renderer)
 			return frequentId;
 
@@ -83,7 +83,7 @@ public class RenderDataCache {
 			idMap.put(renderer, id);
 		}
 
-		frequentContext = new WeakReference<Renderer>(renderer);
+		frequentContext = new WeakReference<Framework>(renderer);
 		frequentId = id;
 		return id;
 	}

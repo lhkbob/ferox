@@ -7,7 +7,7 @@ import com.ferox.resource.Geometry;
 /**
  * <p>
  * A RenderAtom represents a visual object on the screen that can be rendered by
- * a Renderer implementation. This is subject to the renderer's support for the
+ * a Framework implementation. This is subject to the renderer's support for the
  * geometry, effects, and resources referenced by the atom.
  * </p>
  * <p>

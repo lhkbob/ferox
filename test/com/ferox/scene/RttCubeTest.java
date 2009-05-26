@@ -18,7 +18,7 @@ import com.ferox.effect.Texture.EnvMode;
 import com.ferox.effect.Texture.TexCoordGen;
 import com.ferox.math.Color;
 import com.ferox.renderer.DisplayOptions;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.View;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
@@ -53,7 +53,7 @@ public class RttCubeTest extends BasicApplication {
 	}
 
 	@Override
-	protected Node buildScene(Renderer renderer, ViewNode view) {
+	protected Node buildScene(Framework renderer, ViewNode view) {
 		this.window.setClearColor(bgColor);
 		view.getView().setPerspective(60f,
 						window.getWidth() / (float) window.getHeight(), 1f,
@@ -127,19 +127,19 @@ public class RttCubeTest extends BasicApplication {
 	}
 
 	@Override
-	public boolean render(Renderer renderer) {
+	public boolean render(Framework renderer) {
 		renderer.queueRender(sceneDepth);
 		return super.render(renderer);
 	}
 
-	private Geometry buildSquare(Renderer renderer, float left, float right,
+	private Geometry buildSquare(Framework renderer, float left, float right,
 					float bottom, float top) {
 		Rectangle sq = new Rectangle(left, right, bottom, top);
 		renderer.requestUpdate(sq, true);
 		return sq;
 	}
 
-	private TextureSurface setupSceneDepthSurface(Renderer renderer,
+	private TextureSurface setupSceneDepthSurface(Framework renderer,
 					Node root, View view) {
 		TextureSurface sceneDepth = renderer.createTextureSurface(
 						new DisplayOptions(PixelFormat.RGB_24BIT,
@@ -179,7 +179,7 @@ public class RttCubeTest extends BasicApplication {
 		return sceneDepth;
 	}
 
-	private Appearance[] createAppearances(Renderer renderer) {
+	private Appearance[] createAppearances(Framework renderer) {
 		Appearance[] apps = new Appearance[4];
 		for (int i = 0; i < apps.length; i++) {
 			apps[i] = createAppearance(renderer, i, apps.length);
@@ -187,7 +187,7 @@ public class RttCubeTest extends BasicApplication {
 		return apps;
 	}
 
-	private Appearance createAppearance(Renderer renderer, int i, int max) {
+	private Appearance createAppearance(Framework renderer, int i, int max) {
 		float percent = (float) i / max;
 		
 		Appearance a = new Appearance();

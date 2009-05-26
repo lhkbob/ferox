@@ -27,7 +27,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * </p>
  * <p>
  * Attached textures should be deemed immutable. Any changes made to them will
- * be ignored, and update requests to the Renderer will throw exceptions.
+ * be ignored, and update requests to the Framework will throw exceptions.
  * </p>
  * 
  * @author Michael Ludwig
@@ -42,7 +42,7 @@ public interface TextureSurface extends RenderSurface {
 	 * </p>
 	 * <p>
 	 * The BufferData associated with the texture is null, but internally the
-	 * Renderer will update the low-level texture image each time the surface is
+	 * Framework will update the low-level texture image each time the surface is
 	 * rendered.
 	 * </p>
 	 * 

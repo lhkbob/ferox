@@ -13,12 +13,12 @@ import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>
- * ContextManager is one of the major backbones of an AbstractRenderer subclass.
+ * ContextManager is one of the major backbones of an AbstractFramework subclass.
  * It provides a more specific interface for creating surfaces, as well as
  * providing some high-level method calls to allow their use when rendering.
  * </p>
  * <p>
- * The resource model of AbstractRenderer assumes that all created surfaces can
+ * The resource model of AbstractFramework assumes that all created surfaces can
  * share the created resource objects (even if the surfaces have different state
  * records). A surface factory implementation must guarantee this, or throw an
  * exception when a surface creation would break the contract. Each surface
@@ -31,7 +31,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * thread.
  * </p>
  * <p>
- * The relationship between ContextManager and AbstractRenderer is 1-1, the
+ * The relationship between ContextManager and AbstractFramework is 1-1, the
  * renderer must only have one factory and the factory can only be in use by one
  * renderer; their lifecycles are inextricably tied.
  * </p>
@@ -62,7 +62,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * 
  * If they do not, exceptions will be thrown when the renderer creates a surface
  * using this ContextManager. The setRenderAction() should be private,
- * AbstractRenderer will use reflection to invoke it and get around the
+ * AbstractFramework will use reflection to invoke it and get around the
  * protections.
  * </p>
  * 
@@ -70,62 +70,62 @@ import com.ferox.resource.TextureImage.TextureTarget;
  */
 public interface ContextManager {
 	/**
-	 * This method must implement the identically named method in Renderer, with
+	 * This method must implement the identically named method in Framework, with
 	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractRenderer has already made sure
+	 * method. It can be assumed that the AbstractFramework has already made sure
 	 * it's idle, so the ContextManager only needs to throw
 	 * SurfaceCreationExceptions.
 	 * 
-	 * @param options The options originally passed to the Renderer
-	 * @param x The x originally passed to the Renderer
-	 * @param y The y originally passed to the Renderer
-	 * @param width The width originally passed to the Renderer
-	 * @param height The height originally passed to the Renderer
-	 * @param resizable The resizable boolean passed to the Renderer
-	 * @param undecorated The undecorated boolean passed to the Renderer
+	 * @param options The options originally passed to the Framework
+	 * @param x The x originally passed to the Framework
+	 * @param y The y originally passed to the Framework
+	 * @param width The width originally passed to the Framework
+	 * @param height The height originally passed to the Framework
+	 * @param resizable The resizable boolean passed to the Framework
+	 * @param undecorated The undecorated boolean passed to the Framework
 	 * @return A concrete implementation of WindowSurface
 	 * @throws SurfaceCreationException for any of the reasons specified in
-	 *             Renderer
+	 *             Framework
 	 */
 	public WindowSurface createWindowSurface(DisplayOptions options, int x,
 		int y, int width, int height, boolean resizable, boolean undecorated);
 
 	/**
-	 * This method must implement the identically named method in Renderer, with
+	 * This method must implement the identically named method in Framework, with
 	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractRenderer has already made sure
+	 * method. It can be assumed that the AbstractFramework has already made sure
 	 * it's idle, so the ContextManager only needs to throw
 	 * SurfaceCreationExceptions.
 	 * 
-	 * @param options The options originally passed to the Renderer
-	 * @param width The width originally passed to the Renderer
-	 * @param height The height originally passed to the Renderer
+	 * @param options The options originally passed to the Framework
+	 * @param width The width originally passed to the Framework
+	 * @param height The height originally passed to the Framework
 	 * @return A concrete implementation of FullscreenSurface
 	 * @throws SurfaceCreationException for any of the reasons specified in
-	 *             Renderer
+	 *             Framework
 	 */
 	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
 		int width, int height) throws RenderException;
 
 	/**
-	 * This method must implement the identically named method in Renderer, with
+	 * This method must implement the identically named method in Framework, with
 	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractRenderer has already made sure
+	 * method. It can be assumed that the AbstractFramework has already made sure
 	 * it's idle, so the ContextManager only needs to throw
 	 * SurfaceCreationExceptions.
 	 * 
-	 * @param options The options originally passed to the Renderer
-	 * @param target The target originally passed to the Renderer
-	 * @param width The width originally passed to the Renderer
-	 * @param height The height originally passed to the Renderer
-	 * @param depth The depth originally passed to the Renderer
-	 * @param layer The layer passed to the Renderer
-	 * @param numColorTargets The numColorTargets value passed to the Renderer
+	 * @param options The options originally passed to the Framework
+	 * @param target The target originally passed to the Framework
+	 * @param width The width originally passed to the Framework
+	 * @param height The height originally passed to the Framework
+	 * @param depth The depth originally passed to the Framework
+	 * @param layer The layer passed to the Framework
+	 * @param numColorTargets The numColorTargets value passed to the Framework
 	 * @param useDepthRenderBuffer The useDepthRenderBuffer boolean passed to
-	 *            the Renderer
+	 *            the Framework
 	 * @return A concrete implementation of TextureSurface
 	 * @throws SurfaceCreationException for any of the reasons specified in
-	 *             Renderer
+	 *             Framework
 	 */
 	public TextureSurface createTextureSurface(DisplayOptions options,
 		TextureTarget target, int width, int height, int depth, int layer,
@@ -134,14 +134,14 @@ public interface ContextManager {
 
 	/**
 	 * <p>
-	 * This method must implement the identically named method in Renderer, with
+	 * This method must implement the identically named method in Framework, with
 	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractRenderer has already made sure
+	 * method. It can be assumed that the AbstractFramework has already made sure
 	 * it's idle, so the ContextManager only needs to throw
 	 * SurfaceCreationExceptions.
 	 * </p>
 	 * <p>
-	 * Additionally, share has already been validated by the AbstractRenderer.
+	 * Additionally, share has already been validated by the AbstractFramework.
 	 * </p>
 	 * 
 	 * @param share The TextureSurface to share with, it has already been
@@ -149,7 +149,7 @@ public interface ContextManager {
 	 * @param layer The layer to use for the new TextureSurface
 	 * @return A concrete implementation of TextureSurface
 	 * @throws SurfaceCreationException for any of the reasons specified in
-	 *             Renderer
+	 *             Framework
 	 */
 	public TextureSurface createTextureSurface(TextureSurface share, int layer)
 		throws RenderException;
@@ -179,13 +179,13 @@ public interface ContextManager {
 	/**
 	 * <p>
 	 * Destroy the shadow context that is holding onto all of the resources.
-	 * This method will only be called in response to the AbstractRenderer's
+	 * This method will only be called in response to the AbstractFramework's
 	 * destroy() method. Afterwards, no other methods of the surface factory
 	 * will be called.
 	 * </p>
 	 * <p>
 	 * It can be assumed that all other surfaces have been destroyed by the
-	 * AbstractRenderer before this call.
+	 * AbstractFramework before this call.
 	 * </p>
 	 */
 	public void destroy();

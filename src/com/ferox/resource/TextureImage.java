@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
 import com.ferox.effect.Effect.PixelTest;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.resource.BufferData.DataType;
 
 /**
@@ -662,12 +662,12 @@ public abstract class TextureImage implements Resource {
 	}
 
 	@Override
-	public Object getRenderData(Renderer renderer) {
+	public Object getRenderData(Framework renderer) {
 		return renderData.getRenderData(renderer);
 	}
 
 	@Override
-	public void setRenderData(Renderer renderer, Object data) {
+	public void setRenderData(Framework renderer, Object data) {
 		renderData.setRenderData(renderer, data);
 	}
 

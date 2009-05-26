@@ -44,10 +44,10 @@ import com.ferox.scene.Appearance;
  * </p>
  * <p>
  * If the Text's compile type is not NONE, it must also be updated with a
- * Renderer, since Text is a geometry. Renderers must layout the text if
+ * Framework, since Text is a geometry. Renderers must layout the text if
  * isLayoutDirty() returns true when updating Text. After making changes that
  * cause isLayoutDirty() to return true, the Text should be updated with the
- * Renderer.
+ * Framework.
  * </p>
  * <p>
  * It is HIGHLY recommended that CharacterSets are shared by multiple instances
@@ -224,7 +224,7 @@ public class Text extends IndexedArrayGeometry {
 
 	/**
 	 * Return the text that should be rendered by this geometry, assuming that
-	 * it's layout is not dirty, and that it's up-to-date with the Renderer
+	 * it's layout is not dirty, and that it's up-to-date with the Framework
 	 * (depending on the compile type, of course).
 	 * 
 	 * @return The text that will be rendered
@@ -282,7 +282,7 @@ public class Text extends IndexedArrayGeometry {
 	 * </p>
 	 * <p>
 	 * If the compile type of this Text is not NONE, then it must be updated by
-	 * a Renderer, too, before the newly laid out text is visible in rendering.
+	 * a Framework, too, before the newly laid out text is visible in rendering.
 	 * </p>
 	 */
 	public void layoutText() {

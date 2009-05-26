@@ -26,9 +26,9 @@ public class JoglPointStyleEffectDriver extends
 
 	public JoglPointStyleEffectDriver(JoglContextManager factory) {
 		super(new PointStyle(), PointStyle.class, factory);
-		glslSupport = factory.getRenderer().getCapabilities().getGlslSupport();
+		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
 		pointSpriteSupport =
-			factory.getRenderer().getCapabilities().getPointSpriteSupport();
+			factory.getFramework().getCapabilities().getPointSpriteSupport();
 	}
 
 	@Override

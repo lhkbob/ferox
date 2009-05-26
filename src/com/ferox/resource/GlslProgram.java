@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.GlslVertexAttribute.AttributeType;
 
@@ -17,7 +17,7 @@ import com.ferox.resource.GlslVertexAttribute.AttributeType;
  * geometry shaders become more common, they will likely be added in.
  * </p>
  * <p>
- * GlslPrograms are a fairly complicated resource for the Renderer to deal with.
+ * GlslPrograms are a fairly complicated resource for the Framework to deal with.
  * Here are a few guidelines: - If either shader fails to compile, it should
  * have a status of ERROR - Overlapping attribute slots cause a status of ERROR.
  * - If it fails to link, it has a status of ERROR. Uniforms and attributes are
@@ -176,7 +176,7 @@ public class GlslProgram implements Resource {
 	 * </p>
 	 * <p>
 	 * Because a GlslVertexAttribute is not a resource, and is only a convenient
-	 * packaging for the binding of glsl attributes, a Renderer will unbind any
+	 * packaging for the binding of glsl attributes, a Framework will unbind any
 	 * attribute that is invalid (don't unbind if the shader doesn't compile,
 	 * since the attribute may be "valid").
 	 * </p>
@@ -217,7 +217,7 @@ public class GlslProgram implements Resource {
 	 * <p>
 	 * <p>
 	 * It is allowed for programmers to manually attach the uniforms to use the
-	 * instances sooner, or they wait to let the Renderer attach all uniforms
+	 * instances sooner, or they wait to let the Framework attach all uniforms
 	 * detected by the glsl compiler.
 	 * </p>
 	 * <p>
@@ -266,7 +266,7 @@ public class GlslProgram implements Resource {
 	 * </p>
 	 * <p>
 	 * The purpose of this method is to allow programmers to detach uniforms
-	 * that have a status of ERROR, or the for the Renderer to remove erroneous
+	 * that have a status of ERROR, or the for the Framework to remove erroneous
 	 * uniforms conflicting with valid uniforms of the same name.
 	 * </p>
 	 * <p>
@@ -392,12 +392,12 @@ public class GlslProgram implements Resource {
 	}
 
 	@Override
-	public Object getRenderData(Renderer renderer) {
+	public Object getRenderData(Framework renderer) {
 		return renderData.getRenderData(renderer);
 	}
 
 	@Override
-	public void setRenderData(Renderer renderer, Object data) {
+	public void setRenderData(Framework renderer, Object data) {
 		renderData.setRenderData(renderer, data);
 	}
 

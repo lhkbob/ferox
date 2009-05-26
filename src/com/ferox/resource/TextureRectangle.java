@@ -19,7 +19,7 @@ import com.ferox.resource.BufferData.DataType;
  * <p>
  * TextureRectangles are not supported on all hardware, but because texture
  * coordinate access is different, there is no automatic fallback that a
- * Renderer can use. Support should be checked before texture rectangles are
+ * Framework can use. Support should be checked before texture rectangles are
  * used, otherwise updates may result in a status of ERROR.
  * </p>
  * <p>
@@ -43,7 +43,7 @@ import com.ferox.resource.BufferData.DataType;
  * TextureRectangle provides methods to mark regions of the texture's image as
  * dirty. These commands will always be clamped to the valid regions of the
  * texture. They will also update the dirty descriptor regardless of the null
- * status of any buffer data's, or the data's arrays. It is the Renderer's job
+ * status of any buffer data's, or the data's arrays. It is the Framework's job
  * to make sure that null data's or arrays are treated correctly regardless of
  * what the dirty descriptor declares.
  * </p>

@@ -41,7 +41,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			}
 		} else {
 			// bind the GlslProgram and set variables as needed
-			Handle p = factory.getRenderer().getHandle(nextState.getProgram(), factory);
+			Handle p = factory.getFramework().getHandle(nextState.getProgram(), factory);
 			if (p == null) {
 				// the program can't be used
 				if (sr.glslProgramBinding != 0) {
@@ -91,7 +91,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 	}
 
 	private void setUniformValue(GL gl, GlslUniform uniform, Object value) {
-		Handle h = factory.getRenderer().getHandle(uniform, factory);
+		Handle h = factory.getFramework().getHandle(uniform, factory);
 		if (h != null)
 			switch (uniform.getType()) {
 			case BOOL:

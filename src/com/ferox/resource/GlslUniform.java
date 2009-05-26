@@ -1,6 +1,6 @@
 package com.ferox.resource;
 
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 
 /**
  * <p>
@@ -109,7 +109,7 @@ public class GlslUniform implements Resource {
 	/**
 	 * <p>
 	 * To make the updates of a GlslUniform's value as fast as possible, a
-	 * Renderer is not expected to remember each uniform's last set value and
+	 * Framework is not expected to remember each uniform's last set value and
 	 * update that only when necessary.
 	 * </p>
 	 * <p>
@@ -287,12 +287,12 @@ public class GlslUniform implements Resource {
 	}
 
 	@Override
-	public Object getRenderData(Renderer renderer) {
+	public Object getRenderData(Framework renderer) {
 		return renderData.getRenderData(renderer);
 	}
 
 	@Override
-	public void setRenderData(Renderer renderer, Object data) {
+	public void setRenderData(Framework renderer, Object data) {
 		renderData.setRenderData(renderer, data);
 	}
 }

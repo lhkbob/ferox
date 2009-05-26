@@ -17,7 +17,7 @@ import com.sun.opengl.util.BufferUtil;
 /**
  * <p>
  * Provides a simple implementation of TransformDriver for use with the
- * BasicJoglRenderer.
+ * JoglFramework.
  * </p>
  * <p>
  * Drivers that change the matrix mode must ensure that it is set back to

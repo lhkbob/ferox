@@ -2,7 +2,7 @@ package com.ferox.resource;
 
 import com.ferox.math.BoundVolume;
 import com.ferox.math.BoundsCache;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 
 /**
  * AbstractGeometry provides implementations for many of the methods of
@@ -57,12 +57,12 @@ public abstract class AbstractGeometry implements Geometry {
 	}
 
 	@Override
-	public Object getRenderData(Renderer renderer) {
+	public Object getRenderData(Framework renderer) {
 		return renderCache.getRenderData(renderer);
 	}
 
 	@Override
-	public void setRenderData(Renderer renderer, Object data) {
+	public void setRenderData(Framework renderer, Object data) {
 		renderCache.setRenderData(renderer, data);
 	}
 }

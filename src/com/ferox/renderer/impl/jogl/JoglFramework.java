@@ -3,7 +3,7 @@ package com.ferox.renderer.impl.jogl;
 import com.ferox.effect.EffectType;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.UnsupportedResourceException;
-import com.ferox.renderer.impl.AbstractRenderer;
+import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.EffectDriver;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglAlphaTestEffectDriver;
@@ -40,13 +40,13 @@ import com.ferox.resource.TextureRectangle;
 
 /**
  * <p>
- * Provides a full implementation of Renderer that is based on the functionality
- * provided by AbstractRenderer and the JOGL binding of OpenGL. OnscreenSurfaces
- * created by this Renderer will return Frame objects from their getWindowImpl()
+ * Provides a full implementation of Framework that is based on the functionality
+ * provided by AbstractFramework and the JOGL binding of OpenGL. OnscreenSurfaces
+ * created by this Framework will return Frame objects from their getWindowImpl()
  * methods.
  * </p>
  * <p>
- * This Renderer is strictly single-threaded and undefined results will occur if
+ * This Framework is strictly single-threaded and undefined results will occur if
  * any of its methods are called outside of the thread it was created in.
  * Because of this requirement, it must not be created or used in the AWT event
  * threads.
@@ -54,7 +54,7 @@ import com.ferox.resource.TextureRectangle;
  * 
  * @author Michael Ludwig
  */
-public final class BasicJoglRenderer extends AbstractRenderer {
+public final class JoglFramework extends AbstractFramework {
 	private EffectDriver[] effectDrivers;
 
 	// resource drivers
@@ -70,7 +70,7 @@ public final class BasicJoglRenderer extends AbstractRenderer {
 	private JoglIndexedArrayGeometryDriver geomDriver;
 
 	/** Construct a renderer that does no debugging. */
-	public BasicJoglRenderer() {
+	public JoglFramework() {
 		this(false);
 	}
 
@@ -82,7 +82,7 @@ public final class BasicJoglRenderer extends AbstractRenderer {
 	 * 
 	 * @param debugGL Whether or not to debug each OpenGL call
 	 */
-	public BasicJoglRenderer(boolean debugGL) {
+	public JoglFramework(boolean debugGL) {
 		RenderCapabilities caps = new JoglCapabilitiesDetector().detect();
 
 		JoglContextManager factory =

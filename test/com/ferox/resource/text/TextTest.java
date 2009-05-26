@@ -7,7 +7,7 @@ import com.ferox.BasicApplication;
 import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.math.BoundSphere;
 import com.ferox.math.Color;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture2D;
 import com.ferox.resource.Geometry.CompileType;
@@ -36,7 +36,7 @@ public class TextTest extends BasicApplication {
 	}
 
 	@Override
-	protected Node buildScene(Renderer renderer, ViewNode view) {
+	protected Node buildScene(Framework renderer, ViewNode view) {
 		Font[] fonts =
 			GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
 		for (Font f : fonts) {

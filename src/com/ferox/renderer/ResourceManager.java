@@ -1,12 +1,11 @@
-package com.ferox.resource;
+package com.ferox.renderer;
 
-import com.ferox.renderer.Renderer;
 
 /**
  * <p>
  * A ResourceManager can be used to have application specific control over how
  * resources and geometries are updated and cleaned. It provides much greater
- * flexibility than just using the Renderer's requestUpdate() and
+ * flexibility than just using the Framework's requestUpdate() and
  * requestCleanUp() methods.
  * </p>
  * <p>

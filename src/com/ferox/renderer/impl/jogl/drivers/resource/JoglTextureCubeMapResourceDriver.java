@@ -3,6 +3,7 @@ package com.ferox.renderer.impl.jogl.drivers.resource;
 import javax.media.opengl.GL;
 
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.jogl.JoglUtil;
@@ -40,7 +41,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	private final boolean hasS3tcCompression;
 
 	public JoglTextureCubeMapResourceDriver(JoglContextManager factory) {
-		RenderCapabilities caps = factory.getRenderer().getCapabilities();
+		RenderCapabilities caps = factory.getFramework().getCapabilities();
 
 		this.factory = factory;
 		imageDriver = new TextureImageDriver(caps);
@@ -48,7 +49,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	}
 
 	@Override
-	public void cleanUp(Resource resource, ResourceData data) {
+	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
 		GL gl = factory.getGL();
 		TextureHandle handle = (TextureHandle) data.getHandle();
 
@@ -57,7 +58,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	}
 
 	@Override
-	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
+	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
 		JoglStateRecord sr = factory.getRecord();
 
 		GL gl = factory.getGL();

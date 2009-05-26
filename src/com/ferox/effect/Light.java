@@ -18,7 +18,7 @@ import com.ferox.math.Color;
  * </p>
  * <p>
  * Because Light has an Type of LIGHT, multiple Lights may be added to an
- * EffectSet. There is likely to be a Renderer imposed limit on the actual
+ * EffectSet. There is likely to be a Framework imposed limit on the actual
  * number of Lights that affect a rendered atom.
  * </p>
  * <p>

@@ -5,7 +5,7 @@ package com.ferox.resource;
  * BufferData represents an abstract block of data. Internally it relies on
  * primitive arrays of floats, ints, shorts, or bytes to store the actual data.
  * A null array is allowed, but it must have a special interpretation by the
- * Renderer that needs to use BufferData's.
+ * Framework that needs to use BufferData's.
  * </p>
  * <p>
  * BufferData itself is not a Resource, but instead many resources will rely on
@@ -15,7 +15,7 @@ package com.ferox.resource;
  * </p>
  * <p>
  * If a BufferData is constructed with a null array, and an associated resource
- * is updated before a non-null array is assigned, then the Renderer should
+ * is updated before a non-null array is assigned, then the Framework should
  * allocate space without changing any of the values (which could be old
  * garbage).
  * </p>
@@ -219,7 +219,7 @@ public class BufferData {
 
 	/**
 	 * Return the capacity of this buffer data. If getData() is not null, it
-	 * will have a length of getCapacity(). If it is null, the Renderer must
+	 * will have a length of getCapacity(). If it is null, the Framework must
 	 * allocate space of the given capacity to be filled later.
 	 * 
 	 * @return The length of the data array, if it's not null

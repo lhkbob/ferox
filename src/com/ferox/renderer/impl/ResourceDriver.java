@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.Renderer;
 import com.ferox.resource.Resource;
 
 /**
@@ -8,7 +9,7 @@ import com.ferox.resource.Resource;
  * operations that can be performed on resources: updating and cleaning.
  * </p>
  * <p>
- * A Resource can only have three existing states from the AbstractRenderer's
+ * A Resource can only have three existing states from the AbstractFramework's
  * perspective: destroyed, ready-to-go, or error'ed. There is no need for
  * resource drivers to worry about pending operations or multiple contexts. It
  * should be assumed that the AbstractRenderers using the drivers are able to
@@ -53,11 +54,12 @@ public interface ResourceDriver {
 	 * left unmodified.
 	 * </p>
 	 * 
+	 * @param renderer The Renderer that originally had update() invoked
 	 * @param resource The Resource to be updated
 	 * @param data The resource's associated ResourceData instance
 	 * @param fullUpdate True if the resource's dirty descriptor is ignored
 	 */
-	public void update(Resource resource, ResourceData data, boolean fullUpdate);
+	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate);
 
 	/**
 	 * <p>
@@ -71,8 +73,9 @@ public interface ResourceDriver {
 	 * after a call to this method.
 	 * </p>
 	 * 
+	 * @param renderer The Renderer that originally had cleanUp() invoked
 	 * @param resource The Resource to be cleaned up
 	 * @param data The resource's associated ResourceData instance
 	 */
-	public void cleanUp(Resource resource, ResourceData data);
+	public void cleanUp(Renderer renderer, Resource resource, ResourceData data);
 }

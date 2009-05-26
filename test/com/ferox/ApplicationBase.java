@@ -5,12 +5,12 @@ import java.awt.event.KeyEvent;
 
 import com.ferox.math.Transform;
 import com.ferox.renderer.FrameStatistics;
-import com.ferox.renderer.Renderer;
-import com.ferox.renderer.impl.jogl.BasicJoglRenderer;
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.impl.jogl.JoglFramework;
 
 /**
  * ApplicationBase provides a common, simple framework for tests to build off
- * of. It uses the BasicJoglRenderer.
+ * of. It uses the JoglFramework.
  * 
  * @author Michael Ludwig
  */
@@ -18,7 +18,7 @@ public class ApplicationBase {
 	public static final float T_VEL = 40f;
 
 	protected FrameStatistics stats;
-	private final Renderer renderer;
+	private final Framework renderer;
 
 	private InputManager input;
 	private Transform toMove;
@@ -28,7 +28,7 @@ public class ApplicationBase {
 	public ApplicationBase(boolean debug) {
 		stats = new FrameStatistics();
 		input = null;
-		renderer = new BasicJoglRenderer(debug);
+		renderer = new JoglFramework(debug);
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class ApplicationBase {
 	 * Perform initial setup with the given renderer, which will be used later
 	 * on.
 	 */
-	protected void init(Renderer renderer) {
+	protected void init(Framework renderer) {
 		// do nothing
 	}
 
@@ -124,8 +124,8 @@ public class ApplicationBase {
 	 * returns false. Subclasses should queue surfaces before calling super().
 	 * Return true if the application should exit.
 	 */
-	protected boolean render(Renderer renderer) {
-		renderer.flushRenderer(stats);
+	protected boolean render(Framework renderer) {
+		renderer.renderFrame(stats);
 		return false;
 	}
 
@@ -133,7 +133,7 @@ public class ApplicationBase {
 	 * Clean-up things. This implementation calls destroy() on the given
 	 * renderer, so overridden methods must call super() at the end.
 	 */
-	protected void destroy(Renderer renderer) {
+	protected void destroy(Framework renderer) {
 		renderer.destroy();
 	}
 }

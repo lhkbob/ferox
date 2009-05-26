@@ -22,7 +22,9 @@ import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderStateException;
 import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer;
+import com.ferox.renderer.ResourceManager;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.UnsupportedEffectException;
@@ -32,43 +34,42 @@ import com.ferox.renderer.WindowSurface;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Resource;
-import com.ferox.resource.ResourceManager;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>
- * AbstractRenderer implements all of the Renderer interface assuming an
+ * AbstractFramework implements all of the Framework interface assuming an
  * OpenGL-like system. All a subclass requires are implementations of various
  * Drivers to perform low-level graphics calls and a ContextManager.
  * </p>
  * <p>
  * Subclasses must not set the render data on Geometries or Resources, because
- * AbstractRenderer relies on them for its functionality. AbstractRenderer
+ * AbstractFramework relies on them for its functionality. AbstractFramework
  * attempts to implement all higher-level functionality and bookkeeping of the
- * Renderer interface. Most low-level operations should be possible using the
+ * Framework interface. Most low-level operations should be possible using the
  * defined interfaces for Effect, Resource and Geometry drivers.
  * </p>
  * <p>
- * The methods implemented by AbstractRenderer are not thread-safe, so
- * programmers should use sub-classes of AbstractRenderer on a single thread.
+ * The methods implemented by AbstractFramework are not thread-safe, so
+ * programmers should use sub-classes of AbstractFramework on a single thread.
  * With careful use, the internal drivers of the renderer may be multi-threaded.
  * </p>
  * 
  * @author Michael Ludwig
  */
 
-public abstract class AbstractRenderer implements Renderer {
-	/* Represents all possible states of an AbstractRenderer. */
+public abstract class AbstractFramework implements Framework {
+	/* Represents all possible states of an AbstractFramework. */
 	private static enum RenderState {
-		/** Effect of the renderer before init() is called */
+		/** State of the renderer before init() is called */
 		WAITING_INIT,
-		/** Effect of the renderer when it's not doing anything */
+		/** State of the renderer when it's not doing anything */
 		IDLE,
-		/** Effect of the renderer when it's in flushRenderer(). */
+		/** State of the renderer when it's in flushRenderer(). */
 		RENDERING,
-		/** Effect of the renderer after destroy() is called */
+		/** State of the renderer after destroy() is called */
 		DESTROYED
 	}
 
@@ -89,29 +90,28 @@ public abstract class AbstractRenderer implements Renderer {
 	private final Stack<Resource> resourceProcessStack;
 
 	/* Rendering frame variables */
-	private final EffectSet dfltAppearance;
+	private final RendererImpl renderer;
 
 	private final IdentityHashMap<RenderPass, View> preparedPasses;
 	private final List<RenderSurface> queuedSurfaces;
 
-	private GeometryDriver lastGeometryDriver;
 	private long lastFrameTime;
 	private FrameStatistics frameStats;
 
 	/**
-	 * Create a new AbstractRenderer. This constructor does not completely
+	 * Create a new AbstractFramework. This constructor does not completely
 	 * configure the renderer for use. Subclasses must also invoke init() before
 	 * their constructor completes and before they call any other methods in
-	 * AbstractRenderer.
+	 * AbstractFramework.
 	 */
-	protected AbstractRenderer() {
+	protected AbstractFramework() {
 		renderState = RenderState.WAITING_INIT;
 
 		lastFrameTime = -1;
 		preparedPasses = new IdentityHashMap<RenderPass, View>();
 		queuedSurfaces = new ArrayList<RenderSurface>();
 
-		dfltAppearance = new DefaultEffectSet();
+		renderer = new RendererImpl();
 
 		dfltManager = new DefaultResourceManager();
 		resourceManagers = new ArrayList<ResourceManager>();
@@ -254,7 +254,7 @@ public abstract class AbstractRenderer implements Renderer {
 	 */
 
 	@Override
-	public Renderer queueRender(RenderSurface surface) {
+	public Framework queueRender(RenderSurface surface) {
 		ensure(RenderState.IDLE);
 
 		if (surface != null && !surface.isDestroyed()) {
@@ -269,70 +269,8 @@ public abstract class AbstractRenderer implements Renderer {
 		return this;
 	}
 
-	/* The render action for each created RenderSurface. */
-	private class RenderSurfaceAction implements Runnable {
-		private final RenderSurface surface;
-
-		public RenderSurfaceAction(RenderSurface surface) {
-			this.surface = surface;
-		}
-
-		@Override
-		public void run() {
-			List<RenderPass> passes = surface.getAllRenderPasses();
-			int numPasses = passes.size();
-			View view;
-			RenderPass currentPass;
-
-			try {
-				for (int p = 0; p < numPasses; p++) {
-					currentPass = passes.get(p);
-					view = preparedPasses.get(currentPass);
-					if (view != null) {
-						// render the pass
-						transform.setView(view, surface.getWidth(), surface
-							.getHeight());
-						currentPass.render(AbstractRenderer.this, view);
-						transform.resetView();
-					}
-				}
-			} finally {
-				resetForNextSurface();
-			}
-		}
-
-		// Reset the state and geometry drivers for the next surface
-		private void resetForNextSurface() {
-			if (lastGeometryDriver != null) {
-				lastGeometryDriver.reset();
-				lastGeometryDriver = null;
-			}
-
-			EffectDriver d;
-			for (int i = 0; i < supportedEffects.length; i++) {
-				d = getEffectDriver(supportedEffects[i]);
-				d.reset();
-				d.doApply();
-			}
-		}
-	}
-
-	/*
-	 * Class that performs only the managing of resources during a frame. This
-	 * is passed in as the 2nd argument to renderFrame() of the surface
-	 * contextManager.
-	 */
-	private class ManageResourcesAction implements Runnable {
-		@Override
-		public void run() {
-			int numManagers = resourceManagers.size();
-			for (int i = 0; i < numManagers; i++)
-				resourceManagers.get(i).manage(AbstractRenderer.this);
-		}
-	}
-
 	@Override
-	public FrameStatistics flushRenderer(FrameStatistics store) {
+	public FrameStatistics renderFrame(FrameStatistics store) {
 		ensure(RenderState.IDLE);
 
 		// reset the frame statistics
@@ -373,7 +311,7 @@ public abstract class AbstractRenderer implements Renderer {
 					for (int p = 0; p < numPasses; p++) {
 						pass = passes.get(p);
 						if (!preparedPasses.containsKey(pass))
-							preparedPasses.put(pass, pass.preparePass(this));
+							preparedPasses.put(pass, pass.preparePass());
 					}
 				}
 				now = System.nanoTime();
@@ -436,123 +374,7 @@ public abstract class AbstractRenderer implements Renderer {
 		return renderCaps;
 	}
 
-	/* Resource operations. */
-
-	@Override
-	public Status update(Resource resource, boolean forceFullUpdate) {
-		ensure(RenderState.RENDERING);
-		return doUpdate(resource, forceFullUpdate, contextManager);
-	}
-
-	@Override
-	public void cleanUp(Resource resource) {
-		ensure(RenderState.RENDERING);
-		doCleanUp(resource, contextManager);
-	}
-
-	/* Rendering operations. */
-
-	@Override
-	public int renderAtom(RenderAtom atom) throws RenderException {
-		ensure(RenderState.RENDERING);
-		if (atom == null)
-			throw new NullPointerException(
-				"Cannot call renderAtom with a null RenderAtom");
-		if (!contextManager.isGraphicsThread())
-			throw new RenderStateException(
-				"renderAtom() cannot be invoked on this thread");
-
-		Geometry geom = atom.getGeometry();
-		ResourceData gd = (ResourceData) geom.getRenderData(this);
-		if (gd == null) {
-			// haven't seen it before, so do an update and then get
-			// the resource data again
-			update(geom, true);
-			gd = (ResourceData) geom.getRenderData(this);
-		}
-
-		if (gd.getStatus() != Status.ERROR) {
-			// configure the next geom to render, since geom is for sure valid
-			GeometryDriver driver = (GeometryDriver) gd.driver;
-			if (lastGeometryDriver != null && lastGeometryDriver != driver)
-				lastGeometryDriver.reset();
-			lastGeometryDriver = driver;
-
-			// queue up the effects
-			queueAppearance(dfltAppearance);
-			EffectSet appearance = atom.getEffects();
-			if (appearance != null)
-				queueAppearance(appearance);
-
-			// perform queued state changes
-			for (int i = 0; i < supportedEffects.length; i++)
-				getEffectDriver(supportedEffects[i]).doApply();
-
-			// set the model transform and render
-			transform.setModelTransform(atom.getTransform());
-			int polyCount = driver.render(geom, gd);
-			frameStats.add(1, geom.getVertexCount(), polyCount); // update stats
-			transform.resetModel();
-
-			return polyCount; // end now
-		}
-
-		return 0;
-	}
-
 	/* New method hooks. */
-
-	/**
-	 * <p>
-	 * Configure the rest of the internal structures of the AbstractRenderer.
-	 * This method must be called within the constructor of a subclass. It is
-	 * not done within AbstractRenderer's constructor to allow for subclasses to
-	 * detect and configure themselves.
-	 * </p>
-	 * <p>
-	 * After this method is returned, the methods of of AbstractRenderer may be
-	 * used, and the renderer is put in the IDLE state.
-	 * </p>
-	 * 
-	 * @param surfaceFactory The ContextManager to use for rendering and surface
-	 *            creation
-	 * @param transformDriver The TransformDriver that controls matrix
-	 *            transforms
-	 * @param renderCaps The RenderCapabilities of this renderer
-	 * @param supportedEffects An array of Types that are supported by
-	 *            getEffectDriver(), should not contain any null elements
-	 * @throws NullPointerException if any of the arguments are null
-	 * @throws RenderStateException if this renderer isn't in the WAITING_INIT
-	 *             state.
-	 */
-	protected void init(ContextManager surfaceFactory,
-		TransformDriver transformDriver, RenderCapabilities renderCaps,
-		EffectType[] supportedEffects) throws RenderException {
-		if (renderState != RenderState.WAITING_INIT)
-			throw new RenderStateException(
-				"Method init() cannot be called more than once in AbstractRenderer");
-
-		if (surfaceFactory == null)
-			throw new NullPointerException(
-				"Must pass in a non-null ContextManager");
-		if (transformDriver == null)
-			throw new NullPointerException(
-				"Must pass in a non-null TransformDriver");
-		if (renderCaps == null)
-			throw new NullPointerException(
-				"Cannot specify a non-null RenderCapabilities");
-		if (supportedEffects == null)
-			throw new NullPointerException(
-				"Must pass in a non-null EffectType array");
-
-		this.renderCaps = renderCaps;
-		this.supportedEffects = supportedEffects;
-
-		contextManager = surfaceFactory;
-		transform = transformDriver;
-
-		renderState = RenderState.IDLE;
-	}
 
 	/**
 	 * <p>
@@ -602,12 +424,12 @@ public abstract class AbstractRenderer implements Renderer {
 
 	/**
 	 * <p>
-	 * Identical to the method update() except it has relaxed status
-	 * requirements (it just can't be DESTROYED or WAITING_INIT). However, it
-	 * will throw an exception if the given ContextManager is not the
-	 * ContextManager for this renderer. This is to prevent anyone from using
-	 * this method; it is intended as a method hook to allow ContextManager's
-	 * the ability to update resources outside of the RESOURCE state.
+	 * Identical to the method update() in Renderer except it doesn't require a
+	 * Renderer to achieve it. It will throw an exception if the given
+	 * ContextManager is not the ContextManager for this renderer. This is to
+	 * prevent anyone from using this method; it is intended as a method hook to
+	 * allow ContextManager's the ability to update resources outside of the
+	 * standard Renderer paradigm.
 	 * </p>
 	 * <p>
 	 * When a ContextManager uses this, they should pass themselves into it.
@@ -618,7 +440,7 @@ public abstract class AbstractRenderer implements Renderer {
 	 * 
 	 * @param resource The Resource to be updated
 	 * @param forceFullUpdate True if resource's dirty descriptor is ignored
-	 * @param key Must be the ContextManager used by this AbstractRenderer
+	 * @param key Must be the ContextManager used by this AbstractFramework
 	 * @return The new Status of resource
 	 * @throws NullPointerException if resource is null
 	 * @throws IllegalArgumentException if key is incorrect
@@ -627,7 +449,7 @@ public abstract class AbstractRenderer implements Renderer {
 	 * @throws RenderException if resource is already being updated in the call
 	 *             stack
 	 * @throws RenderStateException if the calling thread can't perform graphics
-	 *             operations
+	 *             operations, or if the the framework is destroyed
 	 */
 	public Status doUpdate(Resource resource, boolean forceFullUpdate,
 		ContextManager key) throws RenderException {
@@ -657,7 +479,7 @@ public abstract class AbstractRenderer implements Renderer {
 
 		try {
 			resourceProcessStack.push(resource);
-			data.driver.update(resource, data, forceFullUpdate);
+			data.driver.update(renderer, resource, data, forceFullUpdate);
 			return data.getStatus();
 		} finally {
 			resourceProcessStack.pop();
@@ -674,7 +496,8 @@ public abstract class AbstractRenderer implements Renderer {
 	 *             is locked by a TextureSurface
 	 * @throws RenderException if this resource is being cleaned in the
 	 *             call-stack
-	 * @throws RenderStateException if this isn't the graphics thread
+	 * @throws RenderStateException if this isn't the graphics thread or if it's
+	 *             destroyed
 	 * @throws UnsupportedResourceException if resource is unsupported
 	 */
 	public void doCleanUp(Resource resource, ContextManager key)
@@ -704,7 +527,7 @@ public abstract class AbstractRenderer implements Renderer {
 		if (data != null) {
 			try {
 				resourceProcessStack.push(resource);
-				data.driver.cleanUp(resource, data);
+				data.driver.cleanUp(renderer, resource, data);
 			} finally {
 				resourceProcessStack.pop();
 				resource.setRenderData(this, null);
@@ -713,6 +536,58 @@ public abstract class AbstractRenderer implements Renderer {
 			// call getResourceDriver() to make sure it's supported
 			getResourceDriver(resource.getClass());
 		}
+	}
+
+	/**
+	 * <p>
+	 * Configure the rest of the internal structures of the AbstractFramework.
+	 * This method must be called within the constructor of a subclass. It is
+	 * not done within AbstractFramework's constructor to allow for subclasses to
+	 * detect and configure themselves.
+	 * </p>
+	 * <p>
+	 * After this method is returned, the methods of of AbstractFramework may be
+	 * used, and the renderer is put in the IDLE state.
+	 * </p>
+	 * 
+	 * @param surfaceFactory The ContextManager to use for rendering and surface
+	 *            creation
+	 * @param transformDriver The TransformDriver that controls matrix
+	 *            transforms
+	 * @param renderCaps The RenderCapabilities of this renderer
+	 * @param supportedEffects An array of Types that are supported by
+	 *            getEffectDriver(), should not contain any null elements
+	 * @throws NullPointerException if any of the arguments are null
+	 * @throws RenderStateException if this renderer isn't in the WAITING_INIT
+	 *             state.
+	 */
+	protected final void init(ContextManager surfaceFactory,
+		TransformDriver transformDriver, RenderCapabilities renderCaps,
+		EffectType[] supportedEffects) throws RenderException {
+		if (renderState != RenderState.WAITING_INIT)
+			throw new RenderStateException(
+				"Method init() cannot be called more than once in AbstractFramework");
+
+		if (surfaceFactory == null)
+			throw new NullPointerException(
+				"Must pass in a non-null ContextManager");
+		if (transformDriver == null)
+			throw new NullPointerException(
+				"Must pass in a non-null TransformDriver");
+		if (renderCaps == null)
+			throw new NullPointerException(
+				"Cannot specify a non-null RenderCapabilities");
+		if (supportedEffects == null)
+			throw new NullPointerException(
+				"Must pass in a non-null EffectType array");
+
+		this.renderCaps = renderCaps;
+		this.supportedEffects = supportedEffects;
+
+		contextManager = surfaceFactory;
+		transform = transformDriver;
+
+		renderState = RenderState.IDLE;
 	}
 
 	/**
@@ -756,15 +631,6 @@ public abstract class AbstractRenderer implements Renderer {
 	protected abstract EffectDriver getEffectDriver(EffectType effectType);
 
 	/* Internal operations. */
-
-	private void queueAppearance(EffectSet app) {
-		// queue states present in the appearance
-		Effect e;
-		app.reset();
-
-		while ((e = app.next()) != null)
-			getEffectDriver(e.getType()).queueEffect(e);
-	}
 
 	// Locks the surface's texture buffers so they won't be updated or cleaned.
 	// Expects a valid, non-null surface and assumes the surface's textures
@@ -849,14 +715,169 @@ public abstract class AbstractRenderer implements Renderer {
 		if (renderState == RenderState.WAITING_INIT
 			|| renderState == RenderState.DESTROYED)
 			throw new RenderStateException(
-				"Method call invalid when Renderer is in state: " + renderState);
+				"Method call invalid when Framework is in state: "
+					+ renderState);
 
 		if (expected != null && expected != renderState)
 			throw new RenderStateException(
-				"Method call expected the Renderer to be in state: " + expected
-					+ ", but it was in state: " + renderState);
+				"Method call expected the Framework to be in state: "
+					+ expected + ", but it was in state: " + renderState);
 	}
-	
+
+	/* The render action for each created RenderSurface. */
+	private class RenderSurfaceAction implements Runnable {
+		private final RenderSurface surface;
+
+		public RenderSurfaceAction(RenderSurface surface) {
+			this.surface = surface;
+		}
+
+		@Override
+		public void run() {
+			List<RenderPass> passes = surface.getAllRenderPasses();
+			int numPasses = passes.size();
+			View view;
+			RenderPass currentPass;
+
+			try {
+				// reset at the beginning so each renderAtom() doesn't have
+				// to queue up the default appearance, too
+				renderer.resetEffects();
+
+				for (int p = 0; p < numPasses; p++) {
+					currentPass = passes.get(p);
+					view = preparedPasses.get(currentPass);
+					if (view != null) {
+						// render the pass
+						transform.setView(view, surface.getWidth(), surface
+							.getHeight());
+						currentPass.render(renderer, view);
+						transform.resetView();
+					}
+				}
+			} finally {
+				// just reset the geometry driver
+				renderer.resetGeometry();
+			}
+		}
+	}
+
+	/*
+	 * Class that performs only the managing of resources during a frame. This
+	 * is passed in as the 2nd argument to renderFrame() of the surface
+	 * contextManager.
+	 */
+	private class ManageResourcesAction implements Runnable {
+		@Override
+		public void run() {
+			int numManagers = resourceManagers.size();
+			for (int i = 0; i < numManagers; i++)
+				resourceManagers.get(i).manage(renderer);
+
+			// restore state if someone invoked renderAtom(), too
+			renderer.resetEffects();
+			renderer.resetGeometry();
+		}
+	}
+
+	/* Internal implementation of Renderer */
+	private class RendererImpl implements Renderer {
+		private final EffectSet dfltAppearance;
+		private GeometryDriver lastGeometryDriver;
+
+		public RendererImpl() {
+			dfltAppearance = new DefaultEffectSet();
+		}
+
+		@Override
+		public Status update(Resource resource, boolean forceFullUpdate) {
+			return doUpdate(resource, forceFullUpdate, contextManager);
+		}
+
+		@Override
+		public void cleanUp(Resource resource) {
+			doCleanUp(resource, contextManager);
+		}
+
+		@Override
+		public int renderAtom(RenderAtom atom) {
+			if (atom == null)
+				throw new NullPointerException(
+					"Cannot call renderAtom with a null RenderAtom");
+			if (!contextManager.isGraphicsThread())
+				throw new RenderStateException(
+					"renderAtom() cannot be invoked on this thread");
+
+			Geometry geom = atom.getGeometry();
+			ResourceData gd =
+				(ResourceData) geom.getRenderData(AbstractFramework.this);
+			if (gd == null) {
+				// haven't seen it before, so do an update and then get
+				// the resource data again
+				update(geom, true);
+				gd = (ResourceData) geom.getRenderData(AbstractFramework.this);
+			}
+
+			if (gd.getStatus() != Status.ERROR) {
+				// configure the next geom to render, since geom is for sure
+				// valid
+				GeometryDriver driver = (GeometryDriver) gd.driver;
+				if (lastGeometryDriver != null && lastGeometryDriver != driver)
+					lastGeometryDriver.reset();
+				lastGeometryDriver = driver;
+
+				// queue up the effects
+				setAppearance(atom.getEffects());
+
+				// set the model transform and render
+				transform.setModelTransform(atom.getTransform());
+				int polyCount = driver.render(geom, gd);
+				frameStats.add(1, geom.getVertexCount(), polyCount);
+				transform.resetModel();
+
+				return polyCount; // end now
+			}
+
+			return 0;
+		}
+
+		@Override
+		public Framework getFramework() {
+			return AbstractFramework.this;
+		}
+
+		// Reset the geometry drivers for the next surface
+		private void resetGeometry() {
+			if (lastGeometryDriver != null) {
+				lastGeometryDriver.reset();
+				lastGeometryDriver = null;
+			}
+		}
+
+		// Reset the effect state to that of the dflt appearance
+		private void resetEffects() {
+			setAppearance(dfltAppearance);
+		}
+
+		// Must only use this method for setting the active effect set
+		private void setAppearance(EffectSet app) {
+			// queue states present in the appearance
+			if (app != null) {
+				Effect e;
+				app.reset();
+
+				while ((e = app.next()) != null)
+					getEffectDriver(e.getType()).queueEffect(e);
+			}
+
+			// perform queued state changes, anything not queued
+			// above will be reset (assuming setAppearance is the
+			// only source of effect changes
+			for (int i = 0; i < supportedEffects.length; i++)
+				getEffectDriver(supportedEffects[i]).doApply();
+		}
+	}
+
 	/* Used to make setting the default appearance easier. */
 	private static class DefaultEffectSet implements EffectSet {
 		private DepthTest depth;
@@ -909,6 +930,5 @@ public abstract class AbstractRenderer implements Renderer {
 		public void reset() {
 			position(0);
 		}
-
 	}
 }

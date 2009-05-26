@@ -292,7 +292,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	 * <p>
 	 * There is a maximum supported texture unit, depending on the current
 	 * hardware. If unit is larger than this, it is stored in the Geometry, but
-	 * it should be ignored by the Renderer.
+	 * it should be ignored by the Framework.
 	 * </p>
 	 * 
 	 * @param unit The texture unit that will hold onto data
@@ -364,7 +364,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	 * <p>
 	 * There is a maximum supported attribute unit, depending on the current
 	 * hardware. If unit is larger than this, it is stored in the Geometry, but
-	 * it should be ignored by the Renderer.
+	 * it should be ignored by the Framework.
 	 * </p>
 	 * 
 	 * @param unit The attribute unit that will hold onto data

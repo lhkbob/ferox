@@ -7,7 +7,7 @@ import com.ferox.math.Color;
 /**
  * <p>
  * Represents a two dimensional surface that stores a collection of logical and
- * color buffers holding the final rendering from a Renderer. These surfaces
+ * color buffers holding the final rendering from a Framework. These surfaces
  * could be offscreen surfaces, in that they have no visible monitor region
  * associated with their rendered pixels, or they could be a window or
  * fullscreen.
@@ -57,7 +57,7 @@ public interface RenderSurface {
 	 * </p>
 	 * 
 	 * @return True if this surface is no longer usable by its creating
-	 *         Renderer.
+	 *         Framework.
 	 */
 	public boolean isDestroyed();
 
@@ -128,9 +128,9 @@ public interface RenderSurface {
 	/**
 	 * Get the renderer that created this surface.
 	 * 
-	 * @return The Renderer that created this surface, must not be null
+	 * @return The Framework that created this surface, must not be null
 	 */
-	public Renderer getRenderer();
+	public Framework getRenderer();
 
 	/**
 	 * True if the color buffer of the render surface is cleared before any

@@ -8,6 +8,7 @@ import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.AlphaTest;
 import com.ferox.effect.BlendMode;
+import com.ferox.effect.ColorMask;
 import com.ferox.effect.DepthTest;
 import com.ferox.effect.Effect;
 import com.ferox.effect.GlobalLighting;
@@ -42,6 +43,7 @@ public class Appearance {
 	// effect instances that are supported by an Appearance
 	private AlphaTest alphaTest;
 	private BlendMode blendMode;
+	private ColorMask colorMask;
 	private DepthTest depthTest;
 	private GlobalLighting globalLighting;
 	private GlslShader shader;
@@ -113,6 +115,21 @@ public class Appearance {
 		blend.setDestFactor(dst);
 
 		return setBlendMode(blend);
+	}
+	
+	/**
+	 * Convenience method to create a new ColorMask with the given
+	 * parameters and assign it to this Appearance.
+	 * 
+	 * @param red The red mask boolean
+	 * @param green The green mask boolean
+	 * @param blue The blue mask boolean
+	 * @param alpha The alpha mask boolean
+	 * @return The Appearance for chaining purposes
+	 */
+	public Appearance setColorMask(boolean red, boolean green, boolean blue, boolean alpha) {
+		ColorMask cm = new ColorMask(red, green, blue, alpha);
+		return setColorMask(cm);
 	}
 
 	/**
@@ -464,6 +481,28 @@ public class Appearance {
 	 */
 	public BlendMode getBlendMode() {
 		return blendMode;
+	}
+	
+	/** Set the ColorMask instance to use, null breaks any previous binding.
+	 * 
+	 * @param mask The ColorMask instance
+	 * @return This Appearance for chaining purposes
+	 */
+	public Appearance setColorMask(ColorMask mask) {
+		if (colorMask != null)
+			effects.remove(colorMask);
+		colorMask = mask;
+		if (colorMask != null)
+			effects.add(mask);
+		
+		return this;
+	}
+	
+	/**
+	 * @return The ColorMask attached to this Appearance, may be null
+	 */
+	public ColorMask getColorMask() {
+		return colorMask;
 	}
 
 	/**

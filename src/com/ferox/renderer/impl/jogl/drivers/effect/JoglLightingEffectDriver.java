@@ -28,11 +28,11 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 	private Vector3f p;
 
 	public JoglLightingEffectDriver(JoglContextManager factory) {
-		super(null, Light.class, Math.min(MAX_LIGHTS, factory.getRenderer()
+		super(null, Light.class, Math.min(MAX_LIGHTS, factory.getFramework()
 			.getCapabilities().getMaxActiveLights()), factory);
 		new Transform();
 		appliedLights =
-			new Light[Math.min(MAX_LIGHTS, factory.getRenderer()
+			new Light[Math.min(MAX_LIGHTS, factory.getFramework()
 				.getCapabilities().getMaxActiveLights())];
 	}
 

@@ -13,7 +13,7 @@ import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.EffectSortingRenderQueue;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.RenderQueue;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.View;
 import com.ferox.resource.Geometry.CompileType;
 import com.ferox.scene.Group;
@@ -56,7 +56,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	}
 
 	/** Called after window has been configured with pass. */
-	protected abstract Node buildScene(Renderer renderer, ViewNode view);
+	protected abstract Node buildScene(Framework renderer, ViewNode view);
 
 	/**
 	 * Return a RenderQueue that will be used with this application's single
@@ -74,7 +74,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	}
 
 	@Override
-	protected void init(Renderer renderer) {
+	protected void init(Framework renderer) {
 		View v = new View();
 		view = new ViewNode(v);
 		Transform viewTrans = view.getLocalTransform();
@@ -143,7 +143,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	}
 
 	@Override
-	protected boolean render(Renderer renderer) {
+	protected boolean render(Framework renderer) {
 		if (window.isDestroyed()) {
 			return true;
 		}
@@ -182,7 +182,7 @@ public abstract class BasicApplication extends ApplicationBase {
 	}
 
 	@Override
-	protected void destroy(Renderer renderer) {
+	protected void destroy(Framework renderer) {
 		System.out.println(window.getDisplayOptions());
 		if (!window.isDestroyed()) {
 			renderer.destroy(window);

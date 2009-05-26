@@ -78,7 +78,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements
 		frame.setIgnoreRepaint(true);
 		canvas.setIgnoreRepaint(true);
 
-		record = new JoglStateRecord(factory.getRenderer().getCapabilities());
+		record = new JoglStateRecord(factory.getFramework().getCapabilities());
 		options = optionsRequest;
 
 		enableVsync = false;

@@ -10,8 +10,8 @@ import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.ResourceData.Handle;
-import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
 import com.ferox.resource.GlslVertexAttribute;
@@ -64,13 +64,13 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 
 	public JoglGlslProgramResourceDriver(JoglContextManager factory) {
 		this.factory = factory;
-		glslSupport = factory.getRenderer().getCapabilities().getGlslSupport();
-		maxAttributes = factory.getRenderer().getCapabilities()
+		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
+		maxAttributes = factory.getFramework().getCapabilities()
 				.getMaxVertexAttributes();
 	}
 
 	@Override
-	public void cleanUp(Resource resource, ResourceData data) {
+	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
 		GL gl = factory.getGL();
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 
@@ -87,7 +87,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	}
 
 	@Override
-	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
+	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
 		GL gl = factory.getGL();
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 		GlslProgram program = (GlslProgram) resource;
@@ -99,7 +99,6 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 				data
 						.setStatusMessage("GLSL shader programs aren't supported on this hardware");
 
-				Renderer renderer = factory.getRenderer();
 				for (GlslUniform u : program.getUniforms().values())
 					// this will set status to ERROR, too
 					renderer.update(u, fullUpdate);
@@ -190,7 +189,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 				// iterate through bound uniforms and update them
 				// to set their status to ERROR
 				for (Entry<String, GlslUniform> e: program.getUniforms().entrySet()) {
-					factory.getRenderer().update(e.getValue(), false);
+					renderer.update(e.getValue(), false);
 				}
 			}
 		}
@@ -200,7 +199,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		if ((fullUpdate || dirty.getGlslCodeDirty() || dirty.getUniformsDirty())
 				&& data.getStatus() != Status.ERROR)
 			// have to update the uniforms
-			detectUniforms(gl, factory.getRenderer(), program, handle);
+			detectUniforms(gl, renderer, program, handle);
 
 		if ((fullUpdate || dirty.getGlslCodeDirty() || dirty
 				.getAttributesDirty())

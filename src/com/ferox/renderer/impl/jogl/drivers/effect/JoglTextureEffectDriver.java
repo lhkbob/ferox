@@ -12,7 +12,7 @@ import com.ferox.math.Color;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
 import com.ferox.renderer.UnsupportedEffectException;
-import com.ferox.renderer.impl.AbstractRenderer;
+import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.EffectDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
@@ -67,9 +67,9 @@ public class JoglTextureEffectDriver implements EffectDriver {
 		// apply the MultiTexture if there were changes
 		if (queuedTexture != null) {
 			if (lastAppliedDirty || queuedTexture != lastApplied)
-				apply(factory.getRenderer(), factory.getRecord(), queuedTexture);
+				apply(factory.getFramework(), factory.getRecord(), queuedTexture);
 		} else if (lastApplied != null)
-			apply(factory.getRenderer(), factory.getRecord(), null);
+			apply(factory.getFramework(), factory.getRecord(), null);
 
 		lastApplied = queuedTexture;
 		reset();
@@ -104,7 +104,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * Modify the given context so that its TextureRecord matches the given
 	 * MultiTexture. If next is null, all texturing will be disabled instead.
 	 */
-	private void apply(AbstractRenderer renderer, JoglStateRecord record,
+	private void apply(AbstractFramework renderer, JoglStateRecord record,
 		MultiTexture next) {
 		GL gl = factory.getGL();
 		TextureRecord tr = record.textureRecord;
@@ -163,7 +163,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * environment. Returns the new active unit. If texture is null, the texture
 	 * bindings on the desiredUnit are broken.
 	 */
-	private int applyTexture(GL gl, AbstractRenderer renderer, int activeUnit,
+	private int applyTexture(GL gl, AbstractFramework renderer, int activeUnit,
 		int desiredUnit, TextureUnit tu, Texture next) {
 		TextureHandle nextH =
 			(next == null ? null : (TextureHandle) renderer.getHandle(next

@@ -8,7 +8,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 
 /**
  * Provides a slightly more extended interface to support the surface paradigm
- * of the Renderer interface.
+ * of the Framework interface.
  * 
  * @author Michael Ludwig
  * 

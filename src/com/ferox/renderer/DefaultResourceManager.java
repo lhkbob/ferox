@@ -5,11 +5,10 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import com.ferox.resource.Resource;
-import com.ferox.resource.ResourceManager;
 
 /**
  * DefaultResourceManager provides an implementation of ResourceManager that
- * meets the requirements of the implicit resource manager that a Renderer will
+ * meets the requirements of the implicit resource manager that a Framework will
  * use with its requestUpdate() and requestCleanUp() methods.
  * 
  * @author Michael Ludwig

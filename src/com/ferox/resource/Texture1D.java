@@ -11,7 +11,7 @@ import com.ferox.resource.BufferData.DataType;
  * </p>
  * <p>
  * Like Texture2D and Texture3D, only newer hardware supports non-power of two
- * dimensions. If necessary, a Renderer should rescale an image so that it is
+ * dimensions. If necessary, a Framework should rescale an image so that it is
  * still usable. Even if they are supported, power-of-two textures likely have
  * better performance.
  * </p>
@@ -45,7 +45,7 @@ import com.ferox.resource.BufferData.DataType;
  * Texture1D provides methods to mark regions of the texture's mipmap levels as
  * dirty. These commands will always be clamped to the valid regions of the
  * texture. They will also update the dirty descriptor regardless of the null
- * status of any buffer data's, or the data's arrays. It is the Renderer's job
+ * status of any buffer data's, or the data's arrays. It is the Framework's job
  * to make sure that null data's or arrays are treated correctly regardless of
  * what the dirty descriptor declares.
  * </p>

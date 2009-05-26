@@ -24,7 +24,7 @@ import com.ferox.renderer.View.FrustumIntersection;
  * transform, bounds, lights and fog stats are consistent, the scene must be
  * updated. After a scene is updated, each node can be visited with a View and
  * RenderQueue to add any required render atoms. After visiting is completed,
- * the render queue is prepared for flushing to a Renderer.
+ * the render queue is prepared for flushing to a Framework.
  * </p>
  * 
  * @author Michael Ludwig

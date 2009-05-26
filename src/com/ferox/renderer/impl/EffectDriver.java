@@ -5,12 +5,12 @@ import com.ferox.effect.Effect;
 /**
  * <p>
  * EffectDriver's provide low-level implementations for a specific type of
- * Effect. It is a Renderer's responsibility to provide EffectDrivers that
+ * Effect. It is a Framework's responsibility to provide EffectDrivers that
  * confict with one-another.
  * </p>
  * <p>
  * For a given effect type, there will only ever be one driver object for an
- * AbstractRenderer. When an AbstractRenderer uses an EffectDriver returned by a
+ * AbstractFramework. When an AbstractFramework uses an EffectDriver returned by a
  * valid state driver factory, it is guaranteed that the Effect objects passed
  * in as arguments to the methods below will return the expected type in their
  * getType() method.
@@ -27,7 +27,7 @@ import com.ferox.effect.Effect;
 public interface EffectDriver {
 	/**
 	 * <p>
-	 * Invoked by an AbstractRenderer to queue a effect of this driver's
+	 * Invoked by an AbstractFramework to queue a effect of this driver's
 	 * expected type.
 	 * </p>
 	 * If multiple calls to queueEffect() are issued, the retention policy
@@ -50,9 +50,10 @@ public interface EffectDriver {
 	 * If no states have been queued since the last call of doApply(), this call
 	 * should modify the current state record so that rendered geometry will
 	 * appear to be rendered with the default state associated with this
-	 * driver's expected Effect type. This does imply that all modified state
-	 * must be restored to their defaults. After a queued Effect has been
-	 * applied, it should no longer be considered queued until it is passed into
+	 * driver's expected Effect type (not necessarily the default state of the
+	 * underlying graphics device). This does imply that all modified state must
+	 * be restored to their defaults. After a queued Effect has been applied, it
+	 * should no longer be considered queued until it is passed into
 	 * queueEffect() later on.
 	 * </p>
 	 * <p>

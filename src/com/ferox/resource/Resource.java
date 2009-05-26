@@ -1,6 +1,6 @@
 package com.ferox.resource;
 
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.Framework;
 
 /**
  * <p>
@@ -21,7 +21,7 @@ import com.ferox.renderer.Renderer;
  * </p>
  * <p>
  * Changes to variables/attributes of implementations will not be visible by the
- * Renderer until they have been updated (either by using the renderer's default
+ * Framework until they have been updated (either by using the renderer's default
  * resource manager, or an application specific one). Related to this, a
  * resource cannot be used, and will not be implicitly updated, if it's
  * referenced by a state.
@@ -33,17 +33,17 @@ public interface Resource {
 	/**
 	 * <p>
 	 * Get the renderer specific data that has been assigned to this Effect.
-	 * This object should not be modified unless it's by the Renderer that
+	 * This object should not be modified unless it's by the Framework that
 	 * created it.
 	 * </p>
 	 * <p>
 	 * Undefined behavior occurs if it's changed.
 	 * </p>
 	 * 
-	 * @param renderer Renderer to fetch data for, will not be null
+	 * @param renderer Framework to fetch data for, will not be null
 	 * @return The previously assigned data for the renderer, or null
 	 */
-	public Object getRenderData(Renderer renderer);
+	public Object getRenderData(Framework renderer);
 	
 	/**
 	 * <p>
@@ -53,13 +53,13 @@ public interface Resource {
 	 * </p>
 	 * <p>
 	 * Undefined behavior occurs if this is set by something other than the
-	 * Renderer.
+	 * Framework.
 	 * </p>
 	 * 
-	 * @param renderer Renderer to assign data to
+	 * @param renderer Framework to assign data to
 	 * @param data Object to return from getRenderData
 	 */
-	public void setRenderData(Renderer renderer, Object data);
+	public void setRenderData(Framework renderer, Object data);
 	
 	/**
 	 * <p>
@@ -90,7 +90,7 @@ public interface Resource {
 	/**
 	 * Each resource will have a status with the active renderer. A Resource is
 	 * usable if it has a status of OK or DIRTY. It is likely to be ignored by
-	 * ERROR or CLEANED (or some other Renderer dependent way of handling
+	 * ERROR or CLEANED (or some other Framework dependent way of handling
 	 * ignored resources).
 	 */
 	public static enum Status {

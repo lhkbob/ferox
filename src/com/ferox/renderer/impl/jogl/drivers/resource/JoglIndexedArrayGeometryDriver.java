@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.media.opengl.GL;
 
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.GeometryDriver;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceData.Handle;
@@ -124,11 +125,11 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	public JoglIndexedArrayGeometryDriver(JoglContextManager factory) {
 		this.factory = factory;
 		vboSupported =
-			factory.getRenderer().getCapabilities().getVertexBufferSupport();
+			factory.getFramework().getCapabilities().getVertexBufferSupport();
 		maxTextureCoordinates =
-			factory.getRenderer().getCapabilities().getMaxTextureCoordinates();
+			factory.getFramework().getCapabilities().getMaxTextureCoordinates();
 		maxVertexAttribs =
-			factory.getRenderer().getCapabilities().getMaxVertexAttributes();
+			factory.getFramework().getCapabilities().getMaxVertexAttributes();
 		lastRendered = null;
 	}
 
@@ -190,7 +191,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	}
 
 	@Override
-	public void cleanUp(Resource resource, ResourceData data) {
+	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
 		GL gl = factory.getGL();
 		IagHandle handle = (IagHandle) data.getHandle();
 
@@ -209,7 +210,11 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	}
 
 	@Override
-	public void update(Resource resource, ResourceData data, boolean fullUpdate) {
+	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
+		update(resource, data, fullUpdate);
+	}
+	
+	private void update(Resource resource, ResourceData data, boolean fullUpdate) {
 		GL gl = factory.getGL();
 		IndexedArrayGeometry geom = (IndexedArrayGeometry) resource;
 		IagHandle handle = (IagHandle) data.getHandle();

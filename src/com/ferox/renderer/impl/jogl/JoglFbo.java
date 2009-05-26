@@ -45,7 +45,7 @@ public class JoglFbo {
 		if (gl == null)
 			throw new RenderException(
 					"JoglFbo's can only be constructed when there's a current context");
-		if (!factory.getRenderer().getCapabilities().getFboSupport())
+		if (!factory.getFramework().getCapabilities().getFboSupport())
 			throw new RenderException(
 					"Current hardware doesn't support the creation of fbos");
 
@@ -63,7 +63,7 @@ public class JoglFbo {
 
 		if (depth != null) {
 			// attach the depth texture
-			Handle h = factory.getRenderer().getHandle(
+			Handle h = factory.getFramework().getHandle(
 					depth, factory);
 			attachImage(gl, glDepthTarget, h.getId(), layer,
 					GL.GL_DEPTH_ATTACHMENT_EXT);
@@ -95,7 +95,7 @@ public class JoglFbo {
 			colorImageIds = new int[colors.length];
 			Handle h;
 			for (int i = 0; i < colors.length; i++) {
-				h = factory.getRenderer().getHandle(colors[i], factory);
+				h = factory.getFramework().getHandle(colors[i], factory);
 				attachImage(gl, glColorTarget, h.getId(), layer,
 						GL.GL_COLOR_ATTACHMENT0_EXT + i);
 				colorImageIds[i] = h.getId();

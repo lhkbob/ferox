@@ -11,7 +11,7 @@ import com.ferox.math.Boundable;
  * resource, allowing optimizations to be performed.
  * </p>
  * <p>
- * There are two implementations of Geometry available that a Renderer must
+ * There are two implementations of Geometry available that a Framework must
  * support: PolygonGeometry and IndexArrayGeometry. Instead of implementing more
  * types of Geometry, programmers should sub-class one of those two and
  * automatically configure them.
@@ -27,7 +27,7 @@ public interface Geometry extends Boundable, Resource {
 	/**
 	 * Return the CompileType requested by this Geometry. A Geometry should use
 	 * the same CompileType for its entire life time to allow for potential
-	 * Renderer operations.
+	 * Framework operations.
 	 * 
 	 * @return The CompileType to use, must not be null, should default to NONE
 	 */
@@ -35,7 +35,7 @@ public interface Geometry extends Boundable, Resource {
 
 	/**
 	 * Geometries have the option to specify a CompileType that tells the
-	 * Renderer how the Geometry is to be used, allowing it to change internal
+	 * Framework how the Geometry is to be used, allowing it to change internal
 	 * data for potentially faster rendering.
 	 */
 	public static enum CompileType {

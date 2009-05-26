@@ -51,7 +51,7 @@ public interface OnscreenSurface extends RenderSurface {
 	/**
 	 * <p>
 	 * Return the actual object corresponding to the window displayed by the
-	 * windowing system. This is dependent on the Renderer that was used to
+	 * windowing system. This is dependent on the Framework that was used to
 	 * create the surface, but could be something such as java.awt.Frame or
 	 * javax.swing.JFrame.
 	 * </p>

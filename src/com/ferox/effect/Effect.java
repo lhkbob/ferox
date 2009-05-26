@@ -43,7 +43,7 @@ public interface Effect {
 	 * <p>
 	 * The Type annotation specifies what an Effect modifies when its applied
 	 * to a RenderAtom. It also defines the EffectType enum, which specifies the different
-	 * abstract effects available for a Renderer. Although Effect implementations
+	 * abstract effects available for a Framework. Although Effect implementations
 	 * are not final, it makes sense to declare the available types of effects.
 	 * </p>
 	 * <p>

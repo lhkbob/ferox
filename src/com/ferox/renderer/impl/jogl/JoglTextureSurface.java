@@ -92,7 +92,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 			int height, int depth, int layer, int numColorTargets,
 			boolean useDepthRenderBuffer) throws SurfaceCreationException {
 		super(factory);
-		RenderCapabilities caps = factory.getRenderer().getCapabilities();
+		RenderCapabilities caps = factory.getFramework().getCapabilities();
 		SurfaceSpecifier s = new SurfaceSpecifier(options, target, width,
 				height, depth, layer, numColorTargets, useDepthRenderBuffer);
 
@@ -458,25 +458,25 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		public void run() throws SurfaceCreationException {
 			if (s.colorBuffers != null)
 				for (int i = 0; i < s.colorBuffers.length; i++)
-					if (factory.getRenderer().doUpdate(s.colorBuffers[i], true,
+					if (factory.getFramework().doUpdate(s.colorBuffers[i], true,
 							factory) == Status.ERROR) {
 						// something is wrong, so we should fail
 						for (int j = 0; j <= i; j++)
-							factory.getRenderer().doCleanUp(s.colorBuffers[j],
+							factory.getFramework().doCleanUp(s.colorBuffers[j],
 									factory); // clean-up the textures
 						throw new SurfaceCreationException(
 								"Requested options created an unsupported color texture, cannot construct the texture surface: "
 										+ s.options);
 					}
 			if (s.depthBuffer != null)
-				if (factory.getRenderer()
+				if (factory.getFramework()
 						.doUpdate(s.depthBuffer, true, factory) == Status.ERROR) {
 					// fail like before
 					if (s.colorBuffers != null)
 						for (int i = 0; i < s.colorBuffers.length; i++)
-							factory.getRenderer().doCleanUp(s.colorBuffers[i],
+							factory.getFramework().doCleanUp(s.colorBuffers[i],
 									factory);
-					factory.getRenderer().doCleanUp(s.depthBuffer, factory);
+					factory.getFramework().doCleanUp(s.depthBuffer, factory);
 					throw new SurfaceCreationException(
 							"Requested options created an unsupported depth texture, cannot construct the texture surface: "
 									+ s.options);
@@ -517,10 +517,10 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 					// clean-up the textures
 					if (s.colorBuffers != null)
 						for (int i = 0; i < s.colorBuffers.length; i++)
-							factory.getRenderer().doCleanUp(s.colorBuffers[i],
+							factory.getFramework().doCleanUp(s.colorBuffers[i],
 									factory);
 					if (s.depthBuffer != null)
-						factory.getRenderer().doCleanUp(s.depthBuffer, factory);
+						factory.getFramework().doCleanUp(s.depthBuffer, factory);
 
 					throw new SurfaceCreationException(
 							"Exception occurred while creating a pbuffer", e);

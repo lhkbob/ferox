@@ -23,7 +23,7 @@ import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.WindowSurface;
-import com.ferox.renderer.impl.AbstractRenderer;
+import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.ContextManager;
 import com.ferox.renderer.impl.jogl.drivers.JoglTransformDriver;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
@@ -37,7 +37,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * </p>
  * <p>
  * This was chosen because it greatly simplified implementation and a surface
- * factory should only be used internally by an AbstractRenderer, which imposes
+ * factory should only be used internally by an AbstractFramework, which imposes
  * single threadedness anyway.
  * </p>
  * <p>
@@ -68,7 +68,7 @@ public class JoglContextManager implements ContextManager {
 
 	/* Misc variables. */
 	private final boolean debugGL;
-	private final AbstractRenderer renderer;
+	private final AbstractFramework renderer;
 	private final JoglTransformDriver transformDriver;
 
 	private final List<AttachableSurfaceGLEventListener> queuedRenderActions;
@@ -82,7 +82,7 @@ public class JoglContextManager implements ContextManager {
 	 * use this surface factory or undefined results will happen). If debug is
 	 * true, opengl errors will be checked after each opengl call.
 	 */
-	public JoglContextManager(AbstractRenderer renderer,
+	public JoglContextManager(AbstractFramework renderer,
 		RenderCapabilities caps, boolean debug) {
 		if (renderer == null)
 			throw new NullPointerException(
@@ -111,7 +111,7 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	/** Get the renderer that uses this factory. */
-	public AbstractRenderer getRenderer() {
+	public AbstractFramework getFramework() {
 		return renderer;
 	}
 

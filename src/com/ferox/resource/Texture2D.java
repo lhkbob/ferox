@@ -7,7 +7,7 @@ import com.ferox.resource.BufferData.DataType;
  * <p>
  * Represents a square two-dimensional image. The texture data is accessed by
  * normalized texture coordinates. The dimensions are not required to be
- * power-of-two textures, but a Renderer will likely re-scale the image if they
+ * power-of-two textures, but a Framework will likely re-scale the image if they
  * aren't supported. Even if they are supported, power-of-two textures likely
  * have better performance.
  * </p>
@@ -44,7 +44,7 @@ import com.ferox.resource.BufferData.DataType;
  * Texture2D provides methods to mark regions of the texture's mipmap levels as
  * dirty. These commands will always be clamped to the valid regions of the
  * texture. They will also update the dirty descriptor regardless of the null
- * status of any buffer data's, or the data's arrays. It is the Renderer's job
+ * status of any buffer data's, or the data's arrays. It is the Framework's job
  * to make sure that null data's or arrays are treated correctly regardless of
  * what the dirty descriptor declares.
  * </p>
