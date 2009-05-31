@@ -34,7 +34,6 @@ import com.ferox.util.geom.Text;
  */
 public abstract class BasicApplication extends ApplicationBase {
 	public static final long UPDATE_TIME = 100; // ms between updates of fps
-	// text
 
 	protected OnscreenSurface window;
 	protected SceneRenderPass pass;

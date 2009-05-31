@@ -84,8 +84,8 @@ public abstract class AbstractFramework implements Framework {
 	/* Resource management variables */
 	private final ManageResourcesAction manageResourceAction;
 	private final IdentityHashMap<Resource, Integer> resourceLocks;
-	private final DefaultResourceManager dfltManager; // dfltManager is 0th
-	// element in
+	private final DefaultResourceManager dfltManager;
+	// dfltManager is 0th element
 	private final List<ResourceManager> resourceManagers;
 	private final Stack<Resource> resourceProcessStack;
 
@@ -542,8 +542,8 @@ public abstract class AbstractFramework implements Framework {
 	 * <p>
 	 * Configure the rest of the internal structures of the AbstractFramework.
 	 * This method must be called within the constructor of a subclass. It is
-	 * not done within AbstractFramework's constructor to allow for subclasses to
-	 * detect and configure themselves.
+	 * not done within AbstractFramework's constructor to allow for subclasses
+	 * to detect and configure themselves.
 	 * </p>
 	 * <p>
 	 * After this method is returned, the methods of of AbstractFramework may be
@@ -740,9 +740,9 @@ public abstract class AbstractFramework implements Framework {
 			RenderPass currentPass;
 
 			try {
-				// reset at the beginning so each renderAtom() doesn't have
+				// set at the beginning so each renderAtom() doesn't have
 				// to queue up the default appearance, too
-				renderer.resetEffects();
+				renderer.setAppearance(renderer.dfltAppearance);
 
 				for (int p = 0; p < numPasses; p++) {
 					currentPass = passes.get(p);
@@ -756,7 +756,8 @@ public abstract class AbstractFramework implements Framework {
 					}
 				}
 			} finally {
-				// just reset the geometry driver
+				// reset everything
+				renderer.resetEffects();
 				renderer.resetGeometry();
 			}
 		}
@@ -856,7 +857,12 @@ public abstract class AbstractFramework implements Framework {
 
 		// Reset the effect state to that of the dflt appearance
 		private void resetEffects() {
-			setAppearance(dfltAppearance);
+			EffectDriver e;
+			for (int i = 0; i < supportedEffects.length; i++) {
+				e = getEffectDriver(supportedEffects[i]);
+				e.reset();
+				e.doApply();
+			}
 		}
 
 		// Must only use this method for setting the active effect set

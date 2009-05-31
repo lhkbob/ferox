@@ -53,7 +53,7 @@ public class GlslTest extends BasicApplication {
 		view.getLocalTransform().getTranslation().z = 20f;
 		root.add(view);
 
-		Geometry cube = build(new Teapot(3f, CompileType.DISPLAY_LIST));
+		Geometry cube = build(new Teapot(3f, CompileType.VBO_STATIC));
 		renderer.requestUpdate(cube, true);
 		Appearance app = createGlslAppearance(renderer);
 
@@ -252,7 +252,7 @@ public class GlslTest extends BasicApplication {
 		float cameraHeight =
 			view.getView().getFrustumTop() - view.getView().getFrustumBottom();
 		float sy = cameraHeight * y / pixelHeight;
-		sy = (float) Math.atan(sy / view.getView().getFrustumNear()) * 3;
+		sy = -(float) Math.atan(sy / view.getView().getFrustumNear()) * 3;
 
 		mx.rotX(sy);
 		my.rotY(sx);
@@ -282,8 +282,8 @@ public class GlslTest extends BasicApplication {
 		float sy = cameraHeight * y / pixelHeight;
 		sy = sy * trans.z / view.getView().getFrustumNear();
 
-		trans.x = trans.x - sx;
-		trans.y = trans.y + sy;
+		trans.x = trans.x - sx; // in right hand system, view's right is negative x
+		trans.y = trans.y - sy; // downward motion == pos. mouse y change, so negate it
 
 		world.inverseMul(view.getView().getViewTransform(), world);
 		node.setWorldTransform(world);

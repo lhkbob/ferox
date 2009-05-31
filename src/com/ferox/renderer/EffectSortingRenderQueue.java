@@ -73,23 +73,23 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 		}
 
 		switch (t) {
-		// bits 28 - 31
 		case SHADER:
+			// bits 28 - 31
 			return comp << 28;
-			// bits 20 - 27
 		case TEXTURE:
+			// bits 20 - 27
 			return comp << 20;
-			// bits 12 - 19
 		case LIGHT:
+			// bits 12 - 19
 			return comp << 12;
-			// bits 8 - 11
 		case BLEND:
 		case MATERIAL:
 		case GLOBAL_LIGHTING:
 		case FOG:
+			// bits 8 - 11
 			return comp << 8;
-			// bits 0 - 7
 		default:
+			// bits 0 - 7
 			return comp;
 		}
 	}
@@ -146,7 +146,7 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 		int sc = k[c];
 
 		return (sa < sb ? (sb < sc ? b : (sa < sc ? c : a)) : (sb > sc ? b
-				: (sa > sc ? c : a)));
+			: (sa > sc ? c : a)));
 	}
 
 	private static void vecswap(int[] k, RenderAtom x[], int a, int b, int n) {

@@ -33,6 +33,9 @@ import com.sun.opengl.util.BufferUtil;
  * @author Michael Ludwig
  */
 public class JoglTransformDriver implements TransformDriver {
+	// transform used to convert ferox view into jogl view
+	private static final Transform convert = new Transform(new Vector3f(), new Matrix3f(-1, 0, 0, 0, 1, 0, 0, 0, -1));
+	
 	private final FloatBuffer matrix;
 
 	private final Transform currentView;
@@ -111,8 +114,9 @@ public class JoglTransformDriver implements TransformDriver {
 
 			// set the view portion of the modelview matrix
 			gl.glMatrixMode(GL.GL_MODELVIEW);
-			loadMatrix(gl, view.getViewTransform());
-			currentView.set(view.getViewTransform());
+			
+			currentView.mul(convert, view.getViewTransform());
+			loadMatrix(gl, currentView);
 		} else
 			resetView();
 	}
