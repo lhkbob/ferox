@@ -23,19 +23,16 @@ public class AttachableSurfaceImplHelper {
 	 * AWT EDT). The second is active rendering, which renders on the current
 	 * thread.
 	 * 
-	 * The 1st has 2 varieties, the standard way, and an experimental way using
-	 * invokeLater() instead. They both perform about the same. In small scenes
-	 * they suffer from unstable high frame rates.
-	 * 
-	 * Active rendering is significantly faster, and has more stable framerates.
-	 * Unfortunately, it suffers from rendering artifacts in Mac from other
-	 * windows. I don't know why. It is still suitable for fullscreen rendering.
+	 * At the moment, use JOGL_STANDARD because:
+	 * -On Mac, there have been odd visual glitches with ACTIVE
+	 * -On Windows, there are context sharing crashes with ACTIVE
+	 * -AWT_WAIT is essentially a manual JOGL_STANDARD, so we should just do that
 	 */
 	private static final int RENDER_MODE_JOGL_STANDARD = 0;
 	private static final int RENDER_MODE_AWT_WAIT = 1;
 	private static final int RENDER_MODE_ACTIVE = 2;
 
-	private static final int renderMode = RENDER_MODE_ACTIVE;
+	private static final int renderMode = RENDER_MODE_JOGL_STANDARD;
 
 	/* Variables used for each render mode. */
 	private final List<JoglRenderSurface> attachedSurfaces;
