@@ -202,7 +202,7 @@ public class Plane {
 	 * @param trans Matrix that transforms this plane
 	 * @throws NullPointerException if trans is null
 	 */
-	public void transformLocal(Matrix4f trans) {
+	public void transform(Matrix4f trans) {
 		this.transform(this, trans);
 	}
 

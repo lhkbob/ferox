@@ -21,7 +21,6 @@ public class JoglColorMaskEffectDriver extends SingleEffectDriver<ColorMask> {
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, ColorMask nextState) {
 		boolean[] masks = record.frameRecord.colorWriteMask;
-		
 		if (masks[0] != nextState.isRedMasked() || masks[1] != nextState.isGreenMasked() ||
 			masks[2] != nextState.isBlueMasked() || masks[3] != nextState.isAlphaMasked()) {
 			// assign back to the record
