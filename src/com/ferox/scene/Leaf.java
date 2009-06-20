@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.math.BoundVolume;
+import com.ferox.math.bounds.BoundVolume;
 
 /**
  * Represents a leaf node in the scene structure. Possible examples of leaves

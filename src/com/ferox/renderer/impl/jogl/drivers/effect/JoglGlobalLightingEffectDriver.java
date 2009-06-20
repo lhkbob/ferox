@@ -3,7 +3,7 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.GlobalLighting;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
@@ -46,7 +46,7 @@ public class JoglGlobalLightingEffectDriver extends
 		}
 	}
 
-	private void setLightModel(GL gl, LightingRecord lr, Color ambient,
+	private void setLightModel(GL gl, LightingRecord lr, Color4f ambient,
 		boolean localViewer, int colorControl, boolean twoSided) {
 		// ambient color
 		if (!JoglUtil.equals(ambient, lr.lightModelAmbient)) {

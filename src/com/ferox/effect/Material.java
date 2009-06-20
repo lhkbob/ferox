@@ -1,7 +1,7 @@
 package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -27,14 +27,14 @@ import com.ferox.math.Color;
  */
 @Type(EffectType.MATERIAL)
 public class Material extends AbstractEffect {
-	private static final Color DEFAULT_AMBIENT = new Color(.2f, .2f, .2f);
-	private static final Color DEFAULT_DIFFUSE = new Color(.8f, .8f, .8f);
-	private static final Color DEFAULT_SPEC = new Color(1f, 1f, 1f);
+	private static final Color4f DEFAULT_AMBIENT = new Color4f(.2f, .2f, .2f);
+	private static final Color4f DEFAULT_DIFFUSE = new Color4f(.8f, .8f, .8f);
+	private static final Color4f DEFAULT_SPEC = new Color4f(1f, 1f, 1f);
 	private static final float DEFAULT_SHININESS = 5f;
 
-	private Color amb;
-	private Color diff;
-	private Color spec;
+	private Color4f amb;
+	private Color4f diff;
+	private Color4f spec;
 	private float shininess;
 
 	private boolean smooth;
@@ -50,7 +50,7 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @param diff Diffuse color, null uses default
 	 */
-	public Material(Color diff) {
+	public Material(Color4f diff) {
 		this(diff, null, DEFAULT_SHININESS);
 	}
 
@@ -62,7 +62,7 @@ public class Material extends AbstractEffect {
 	 * @param spec Specular color, null uses default
 	 * @param shininess Shininess, clamped >= 0
 	 */
-	public Material(Color diff, Color spec, float shininess) {
+	public Material(Color4f diff, Color4f spec, float shininess) {
 		this(diff, spec, null, shininess);
 	}
 
@@ -76,7 +76,7 @@ public class Material extends AbstractEffect {
 	 * @param ambient Ambient color, null uses default
 	 * @param shininess Shininess, clamped >= 0
 	 */
-	public Material(Color diff, Color spec, Color ambient, float shininess) {
+	public Material(Color4f diff, Color4f spec, Color4f ambient, float shininess) {
 		setDiffuse(diff);
 		setSpecular(spec);
 		setAmbient(ambient);
@@ -109,7 +109,7 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @return Diffuse color, not null
 	 */
-	public Color getDiffuse() {
+	public Color4f getDiffuse() {
 		return diff;
 	}
 
@@ -127,7 +127,7 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @return Specular color, not null
 	 */
-	public Color getSpecular() {
+	public Color4f getSpecular() {
 		return spec;
 	}
 
@@ -136,7 +136,7 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @return Ambient color, not null
 	 */
-	public Color getAmbient() {
+	public Color4f getAmbient() {
 		return amb;
 	}
 
@@ -145,9 +145,9 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @param diff Diffuse color, null = <.8, .8, .8, 1>
 	 */
-	public void setDiffuse(Color diff) {
+	public void setDiffuse(Color4f diff) {
 		if (diff == null)
-			diff = new Color(DEFAULT_DIFFUSE);
+			diff = new Color4f(DEFAULT_DIFFUSE);
 		this.diff = diff;
 	}
 
@@ -157,9 +157,9 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @param amb Ambient color, null = <.2, .2, .2, 1>
 	 */
-	public void setAmbient(Color amb) {
+	public void setAmbient(Color4f amb) {
 		if (amb == null)
-			amb = new Color(DEFAULT_AMBIENT);
+			amb = new Color4f(DEFAULT_AMBIENT);
 		this.amb = amb;
 	}
 
@@ -177,9 +177,9 @@ public class Material extends AbstractEffect {
 	 * 
 	 * @param spec Specular color, null = <1, 1, 1, 1>
 	 */
-	public void setSpecular(Color spec) {
+	public void setSpecular(Color4f spec) {
 		if (spec == null)
-			spec = new Color(DEFAULT_SPEC);
+			spec = new Color4f(DEFAULT_SPEC);
 		this.spec = spec;
 	}
 

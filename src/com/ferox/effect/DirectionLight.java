@@ -2,7 +2,7 @@ package com.ferox.effect;
 
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * A DirectionLight treats the light direction as coming from a source
@@ -30,7 +30,7 @@ public class DirectionLight extends Light {
 	 * @param direction
 	 * @param diffuse
 	 */
-	public DirectionLight(Vector3f direction, Color diffuse) {
+	public DirectionLight(Vector3f direction, Color4f diffuse) {
 		this(direction, diffuse, null, null);
 	}
 
@@ -43,8 +43,8 @@ public class DirectionLight extends Light {
 	 * @param specular
 	 * @param ambient
 	 */
-	public DirectionLight(Vector3f direction, Color diffuse, Color specular,
-		Color ambient) {
+	public DirectionLight(Vector3f direction, Color4f diffuse, Color4f specular,
+		Color4f ambient) {
 		super(diffuse, specular, ambient, direction);
 	}
 }

@@ -7,7 +7,7 @@ import java.util.Formatter;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.Effect.PixelTest;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.EffectSortingRenderQueue;
@@ -108,7 +108,7 @@ public abstract class BasicApplication extends ApplicationBase {
 
 		Shape fpsNode =
 			new Shape(fpsText, fpsText
-				.createAppearance(new Color(.8f, .8f, .8f)));
+				.createAppearance(new Color4f(.8f, .8f, .8f)));
 		fpsNode.setCullMode(CullMode.NEVER);
 		fpsNode.getLocalTransform().getTranslation().set(0f,
 			fpsText.getTextHeight(), 0f);

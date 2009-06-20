@@ -6,8 +6,8 @@ import java.util.List;
 import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.math.BoundVolume;
 import com.ferox.math.Transform;
+import com.ferox.math.bounds.BoundVolume;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;

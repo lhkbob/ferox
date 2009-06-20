@@ -3,7 +3,7 @@ package com.ferox.scene;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.DirectionLight;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * A subclass of LightNode that works with DirectionLights. It provides
@@ -29,7 +29,7 @@ public class DirectionLightNode extends LightNode<DirectionLight> {
 	 * @param direction
 	 * @param diffuse
 	 */
-	public DirectionLightNode(Vector3f direction, Color diffuse) {
+	public DirectionLightNode(Vector3f direction, Color4f diffuse) {
 		super(new DirectionLight(direction, diffuse));
 	}
 
@@ -42,8 +42,8 @@ public class DirectionLightNode extends LightNode<DirectionLight> {
 	 * @param specular
 	 * @param ambient
 	 */
-	public DirectionLightNode(Vector3f direction, Color diffuse,
-		Color specular, Color ambient) {
+	public DirectionLightNode(Vector3f direction, Color4f diffuse,
+		Color4f specular, Color4f ambient) {
 		super(new DirectionLight(direction, diffuse, specular, ambient));
 	}
 }

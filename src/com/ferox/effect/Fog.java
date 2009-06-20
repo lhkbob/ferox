@@ -1,7 +1,7 @@
 package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -30,13 +30,13 @@ public class Fog extends AbstractEffect {
 		EXP, EXP_SQUARED, LINEAR
 	}
 
-	private static final Color DEFAULT_COLOR = new Color(.5f, .5f, .5f, 1f);
+	private static final Color4f DEFAULT_COLOR = new Color4f(.5f, .5f, .5f, 1f);
 	private static final float DEFAULT_START = .1f;
 	private static final float DEFAULT_END = 10f;
 	private static final float DEFAULT_DENSITY = 1f;
 	private static final FogEquation DEFAULT_EQ = FogEquation.LINEAR;
 
-	private Color color;
+	private Color4f color;
 	private float start;
 	private float end;
 	private float density;
@@ -57,7 +57,7 @@ public class Fog extends AbstractEffect {
 	 * 
 	 * @param color The color to use
 	 */
-	public Fog(Color color) {
+	public Fog(Color4f color) {
 		this(color, DEFAULT_START, DEFAULT_END, DEFAULT_DENSITY);
 	}
 
@@ -71,7 +71,7 @@ public class Fog extends AbstractEffect {
 	 * @param density The density of the fog
 	 * @throws IllegalArgumentException if start > end
 	 */
-	public Fog(Color color, float start, float end, float density) {
+	public Fog(Color4f color, float start, float end, float density) {
 		this(color, start, end, density, null, null);
 	}
 
@@ -88,7 +88,7 @@ public class Fog extends AbstractEffect {
 	 * @param qual The quality of the rendered fog
 	 * @throws IllegalArgumentException if start > end
 	 */
-	public Fog(Color color, float start, float end, float density,
+	public Fog(Color4f color, float start, float end, float density,
 		FogEquation eq, Quality qual) {
 		setFogRange(start, end);
 		setDensity(density);
@@ -98,9 +98,9 @@ public class Fog extends AbstractEffect {
 	}
 
 	/**
-	 * @return The Color instance storing the color of this Fog
+	 * @return The Color4f instance storing the color of this Fog
 	 */
-	public Color getColor() {
+	public Color4f getColor() {
 		return color;
 	}
 
@@ -110,9 +110,9 @@ public class Fog extends AbstractEffect {
 	 * 
 	 * @param color The new color to use
 	 */
-	public void setColor(Color color) {
+	public void setColor(Color4f color) {
 		if (color == null)
-			color = new Color(DEFAULT_COLOR);
+			color = new Color4f(DEFAULT_COLOR);
 		this.color = color;
 	}
 

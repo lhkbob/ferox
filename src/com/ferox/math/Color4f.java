@@ -7,14 +7,14 @@ package com.ferox.math;
  * 
  * @author Michael Ludwig
  */
-public class Color {
+public class Color4f {
 	private float red;
 	private float green;
 	private float blue;
 	private float alpha;
 
 	/** Creates a color <0, 0, 0, 1>. */
-	public Color() {
+	public Color4f() {
 		this(0f, 0f, 0f, 1f);
 	}
 
@@ -25,7 +25,7 @@ public class Color {
 	 * @param green Green color value, clamped in [0, 1]
 	 * @param blue Blue color value, clamped in [0, 1]
 	 */
-	public Color(float red, float green, float blue) {
+	public Color4f(float red, float green, float blue) {
 		this(red, green, blue, 1f);
 	}
 
@@ -37,17 +37,17 @@ public class Color {
 	 * @param blue Blue color value, clamped in [0, 1]
 	 * @param alpha Alpha color value, clamped in [0, 1]
 	 */
-	public Color(float red, float green, float blue, float alpha) {
+	public Color4f(float red, float green, float blue, float alpha) {
 		this.set(red, green, blue, alpha);
 	}
 
 	/**
 	 * Creates a color that is a copy of other, other can't be null.
 	 * 
-	 * @param other Color whose values are copied
+	 * @param other Color4f whose values are copied
 	 * @throws NullPointerException if other is null
 	 */
-	public Color(Color other) {
+	public Color4f(Color4f other) {
 		this(other.red, other.green, other.blue, other.alpha);
 	}
 
@@ -152,11 +152,11 @@ public class Color {
 
 	@Override
 	public boolean equals(Object other) {
-		if (other == null || !(other instanceof Color))
+		if (other == null || !(other instanceof Color4f))
 			return false;
 		if (other == this)
 			return true;
-		Color that = (Color) other;
+		Color4f that = (Color4f) other;
 		return that.red == red && that.green == green && that.blue == blue
 			&& that.alpha == alpha;
 	}
@@ -172,7 +172,7 @@ public class Color {
 
 	@Override
 	public String toString() {
-		return "(Color " + red + ", " + green + ", " + blue + ", " + alpha
+		return "(Color4f " + red + ", " + green + ", " + blue + ", " + alpha
 			+ ")";
 	}
 }

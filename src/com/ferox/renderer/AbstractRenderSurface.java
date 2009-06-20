@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * An abstract implementation of RenderSurface that only implements the basic
@@ -14,9 +14,9 @@ import com.ferox.math.Color;
  * 
  */
 public abstract class AbstractRenderSurface implements RenderSurface {
-	private static final Color DEFAULT_CLEAR_COLOR = new Color();
+	private static final Color4f DEFAULT_CLEAR_COLOR = new Color4f();
 
-	private Color clearColor;
+	private Color4f clearColor;
 	private float clearDepth;
 	private int clearStencil;
 
@@ -41,14 +41,14 @@ public abstract class AbstractRenderSurface implements RenderSurface {
 	}
 
 	@Override
-	public Color getClearColor() {
+	public Color4f getClearColor() {
 		return clearColor;
 	}
 
 	@Override
-	public void setClearColor(Color color) {
+	public void setClearColor(Color4f color) {
 		if (color == null)
-			color = new Color(DEFAULT_CLEAR_COLOR);
+			color = new Color4f(DEFAULT_CLEAR_COLOR);
 		clearColor = color;
 	}
 

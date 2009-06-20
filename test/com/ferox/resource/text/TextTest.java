@@ -5,8 +5,8 @@ import java.awt.GraphicsEnvironment;
 
 import com.ferox.BasicApplication;
 import com.ferox.effect.PolygonStyle.DrawStyle;
-import com.ferox.math.BoundSphere;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
+import com.ferox.math.bounds.BoundSphere;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture2D;
@@ -23,7 +23,7 @@ public class TextTest extends BasicApplication {
 	public static final boolean DEBUG = false;
 	public static final boolean USE_VBO = true;
 
-	public static final Color bgColor = new Color(0f, 0f, 0f);
+	public static final Color4f bgColor = new Color4f(0f, 0f, 0f);
 
 	protected Geometry geom;
 
@@ -62,7 +62,7 @@ public class TextTest extends BasicApplication {
 		text.setWrapWidth(window.getWidth() / 1f);
 		renderer.requestUpdate(text, true);
 
-		Shape t = new Shape(text, text.createAppearance(new Color(1f, 0f, 0f)));
+		Shape t = new Shape(text, text.createAppearance(new Color4f(1f, 0f, 0f)));
 		t.getAppearance().setPolygonStyle(DrawStyle.SOLID, DrawStyle.SOLID);
 
 		t.setLocalBounds(new BoundSphere());

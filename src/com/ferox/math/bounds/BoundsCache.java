@@ -1,4 +1,4 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
 /**
  * BoundsCache is a convenience class that implements bound volume caching for

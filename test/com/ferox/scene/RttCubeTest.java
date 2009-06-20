@@ -16,7 +16,7 @@ import com.ferox.effect.Fog.FogEquation;
 import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.effect.Texture.EnvMode;
 import com.ferox.effect.Texture.TexCoordGen;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.TextureSurface;
@@ -39,7 +39,7 @@ public class RttCubeTest extends BasicApplication {
 	public static final int NUM_CUBES = 10000;
 	public static final int BOUNDS = 100;
 
-	public static final Color bgColor = new Color(.5f, .5f, .5f);
+	public static final Color4f bgColor = new Color4f(.5f, .5f, .5f);
 
 	protected Geometry geom;
 	protected TextureSurface sceneDepth;
@@ -193,11 +193,11 @@ public class RttCubeTest extends BasicApplication {
 		Appearance a = new Appearance();
 		
 		if (percent < .3333f) {
-			a.setMaterial(new Material(new Color(1f, percent, percent)));
+			a.setMaterial(new Material(new Color4f(1f, percent, percent)));
 		} else if (percent < .666667f) {
-			a.setMaterial(new Material(new Color(percent / 2f, 1f, percent / 2f)));
+			a.setMaterial(new Material(new Color4f(percent / 2f, 1f, percent / 2f)));
 		} else {
-			a.setMaterial(new Material(new Color(percent / 3f, percent / 3f, 1f)));
+			a.setMaterial(new Material(new Color4f(percent / 3f, percent / 3f, 1f)));
 		}
 
 		if (i % 2 == 0) {
@@ -213,7 +213,7 @@ public class RttCubeTest extends BasicApplication {
 								.getClassLoader().getResource(
 												"data/textures/squiggles.tga"));
 				renderer.requestUpdate(image, false);
-				t = new Texture(image, EnvMode.MODULATE, new Color(),
+				t = new Texture(image, EnvMode.MODULATE, new Color4f(),
 								TexCoordGen.NONE);
 			} catch (IOException io) {
 				throw new RuntimeException(io);
@@ -227,7 +227,7 @@ public class RttCubeTest extends BasicApplication {
 												.getResource(
 																"data/textures/grace_cube.dds"));
 				renderer.requestUpdate(image, false);
-				t = new Texture(image, EnvMode.MODULATE, new Color(),
+				t = new Texture(image, EnvMode.MODULATE, new Color4f(),
 								TexCoordGen.OBJECT);
 			} catch (IOException io) {
 				throw new RuntimeException(io);

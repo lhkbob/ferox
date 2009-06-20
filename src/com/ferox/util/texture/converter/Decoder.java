@@ -1,6 +1,6 @@
 package com.ferox.util.texture.converter;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
 
@@ -36,7 +36,7 @@ public interface Decoder {
 	 * @param w The z coordinate to access, from 0 to 1
 	 * @param store The color value to hold the read color from data
 	 */
-	public void getColor(DataBlock data, float u, float v, float w, Color store);
+	public void getColor(DataBlock data, float u, float v, float w, Color4f store);
 
 	/**
 	 * Determine if this decoder can convert the given type and format. It can

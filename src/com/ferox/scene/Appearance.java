@@ -27,7 +27,7 @@ import com.ferox.effect.PointStyle.PointSpriteOrigin;
 import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.effect.PolygonStyle.Winding;
 import com.ferox.effect.StencilTest.StencilOp;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * Appearance describes a set of Effects that can be applied to rendered
@@ -160,7 +160,7 @@ public class Appearance {
 	 *            side of a polygon
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setGlobalLighting(Color ambient, boolean separateSpec,
+	public Appearance setGlobalLighting(Color4f ambient, boolean separateSpec,
 		boolean localView, boolean twoSided) {
 
 		GlobalLighting lighting = new GlobalLighting();
@@ -214,15 +214,15 @@ public class Appearance {
 	}
 
 	/**
-	 * Identical to setMaterial(diffuse, specular, new Color(.2f, .2f, .2f,
+	 * Identical to setMaterial(diffuse, specular, new Color4f(.2f, .2f, .2f,
 	 * 1f)).
 	 * 
 	 * @param diffuse The diffuse color for the new material
 	 * @param specular The specular color for the new material
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setMaterial(Color diffuse, Color specular) {
-		return setMaterial(diffuse, specular, new Color(.2f, .2f, .2f, 1f));
+	public Appearance setMaterial(Color4f diffuse, Color4f specular) {
+		return setMaterial(diffuse, specular, new Color4f(.2f, .2f, .2f, 1f));
 	}
 
 	/**
@@ -233,7 +233,7 @@ public class Appearance {
 	 * @param ambient The ambient color for the new material
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setMaterial(Color diffuse, Color specular, Color ambient) {
+	public Appearance setMaterial(Color4f diffuse, Color4f specular, Color4f ambient) {
 		return setMaterial(diffuse, specular, ambient, 5f, true);
 	}
 
@@ -248,7 +248,7 @@ public class Appearance {
 	 * @param smoothed True if lit polygons have smooth or faceted lighting
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setMaterial(Color diffuse, Color specular, Color ambient,
+	public Appearance setMaterial(Color4f diffuse, Color4f specular, Color4f ambient,
 		float shininess, boolean smoothed) {
 
 		Material m = new Material(diffuse, specular, ambient, shininess);

@@ -6,7 +6,7 @@ import com.ferox.effect.Texture;
 import com.ferox.effect.BlendMode.BlendEquation;
 import com.ferox.effect.BlendMode.BlendFactor;
 import com.ferox.effect.Effect.PixelTest;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.resource.IndexedArrayGeometry;
 import com.ferox.scene.Appearance;
 
@@ -120,13 +120,13 @@ public class Text extends IndexedArrayGeometry {
 	 * @return The Appearance that allows correct rendering of text with the
 	 *         given text color
 	 */
-	public Appearance createAppearance(Color textColor) {
+	public Appearance createAppearance(Color4f textColor) {
 		Texture chars = new Texture(charSet.getCharacterSet());
 
 		Appearance a = new Appearance();
 		a.setAlphaTest(PixelTest.GREATER, 0f).setBlendMode(BlendEquation.ADD,
 			BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
-			.setTextures(chars).setMaterial(textColor, new Color());
+			.setTextures(chars).setMaterial(textColor, new Color4f());
 		return a;
 	}
 

@@ -13,7 +13,7 @@ import com.ferox.effect.GlslShader;
 import com.ferox.effect.Material;
 import com.ferox.effect.MultiTexture;
 import com.ferox.effect.Texture;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.math.Transform;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.Geometry;
@@ -61,8 +61,8 @@ public class GlslTest extends BasicApplication {
 		root.add(this.cube);
 
 		SpotLightNode light =
-			new SpotLightNode(new Color(.5f, .5f, .5f), new Color(1f, 1f, 1f),
-				new Color());
+			new SpotLightNode(new Color4f(.5f, .5f, .5f), new Color4f(1f, 1f, 1f),
+				new Color4f());
 		light.setEffectRadius(20f);
 
 		Shape lightCube =

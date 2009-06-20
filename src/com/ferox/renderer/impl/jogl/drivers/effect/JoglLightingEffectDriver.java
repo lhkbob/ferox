@@ -7,7 +7,7 @@ import org.openmali.vecmath.Vector3f;
 import com.ferox.effect.DirectionLight;
 import com.ferox.effect.Light;
 import com.ferox.effect.SpotLight;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.math.Transform;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
@@ -82,8 +82,8 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		}
 	}
 
-	private void setLightColors(GL gl, LightRecord lr, int glUnit, Color amb,
-		Color diff, Color spec) {
+	private void setLightColors(GL gl, LightRecord lr, int glUnit, Color4f amb,
+		Color4f diff, Color4f spec) {
 		// ambient
 		if (!JoglUtil.equals(amb, lr.ambient)) {
 			JoglUtil.get(amb, lr.ambient);

@@ -3,7 +3,7 @@ package com.ferox.effect;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.Effect.Type;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -35,13 +35,13 @@ import com.ferox.math.Color;
  */
 @Type(EffectType.LIGHT)
 public abstract class Light extends AbstractEffect {
-	private static final Color DEFAULT_AMBIENT = new Color(.2f, .2f, .2f);
-	private static final Color DEFAULT_DIFFUSE = new Color(.8f, .8f, .8f);
-	private static final Color DEFAULT_SPEC = new Color(1f, 1f, 1f);
+	private static final Color4f DEFAULT_AMBIENT = new Color4f(.2f, .2f, .2f);
+	private static final Color4f DEFAULT_DIFFUSE = new Color4f(.8f, .8f, .8f);
+	private static final Color4f DEFAULT_SPEC = new Color4f(1f, 1f, 1f);
 
-	private Color ambient;
-	private Color diffuse;
-	private Color specular;
+	private Color4f ambient;
+	private Color4f diffuse;
+	private Color4f specular;
 
 	private Vector3f direction;
 
@@ -59,7 +59,7 @@ public abstract class Light extends AbstractEffect {
 	 * 
 	 * @param diffuse The diffuse color to use for the light, null = default
 	 */
-	public Light(Color diffuse) {
+	public Light(Color4f diffuse) {
 		this(diffuse, null, null);
 	}
 
@@ -70,7 +70,7 @@ public abstract class Light extends AbstractEffect {
 	 * @param specular The specular color to use for the light, null = default
 	 * @param ambient The ambient color to use for the light, null = default
 	 */
-	public Light(Color diffuse, Color specular, Color ambient) {
+	public Light(Color4f diffuse, Color4f specular, Color4f ambient) {
 		this(diffuse, specular, ambient, null);
 	}
 
@@ -83,7 +83,7 @@ public abstract class Light extends AbstractEffect {
 	 * @param ambient The ambient color to use for the light, null = default
 	 * @param direction The initial direction that the light is shining
 	 */
-	public Light(Color diffuse, Color specular, Color ambient,
+	public Light(Color4f diffuse, Color4f specular, Color4f ambient,
 		Vector3f direction) {
 		setAmbient(ambient);
 		setDiffuse(diffuse);
@@ -94,60 +94,60 @@ public abstract class Light extends AbstractEffect {
 	/**
 	 * Get the ambient color of this light.
 	 * 
-	 * @return The ambient Color instance
+	 * @return The ambient Color4f instance
 	 */
-	public Color getAmbient() {
+	public Color4f getAmbient() {
 		return ambient;
 	}
 
 	/**
 	 * Set the ambient color of this light.
 	 * 
-	 * @param ambient The Color to use, if null uses default
+	 * @param ambient The Color4f to use, if null uses default
 	 */
-	public void setAmbient(Color ambient) {
+	public void setAmbient(Color4f ambient) {
 		if (ambient == null)
-			ambient = new Color(DEFAULT_AMBIENT);
+			ambient = new Color4f(DEFAULT_AMBIENT);
 		this.ambient = ambient;
 	}
 
 	/**
 	 * Get the diffuse color of this light.
 	 * 
-	 * @return The diffuse Color instance
+	 * @return The diffuse Color4f instance
 	 */
-	public Color getDiffuse() {
+	public Color4f getDiffuse() {
 		return diffuse;
 	}
 
 	/**
 	 * Set the diffuse color of this light.
 	 * 
-	 * @param diffuse The Color to use, if null uses default
+	 * @param diffuse The Color4f to use, if null uses default
 	 */
-	public void setDiffuse(Color diffuse) {
+	public void setDiffuse(Color4f diffuse) {
 		if (diffuse == null)
-			diffuse = new Color(DEFAULT_DIFFUSE);
+			diffuse = new Color4f(DEFAULT_DIFFUSE);
 		this.diffuse = diffuse;
 	}
 
 	/**
 	 * Get the specular color of this light.
 	 * 
-	 * @return The specular Color instance
+	 * @return The specular Color4f instance
 	 */
-	public Color getSpecular() {
+	public Color4f getSpecular() {
 		return specular;
 	}
 
 	/**
 	 * Set the specular color of this light.
 	 * 
-	 * @param specular The Color to use, if null uses the default
+	 * @param specular The Color4f to use, if null uses the default
 	 */
-	public void setSpecular(Color specular) {
+	public void setSpecular(Color4f specular) {
 		if (specular == null)
-			specular = new Color(DEFAULT_SPEC);
+			specular = new Color4f(DEFAULT_SPEC);
 		this.specular = specular;
 	}
 

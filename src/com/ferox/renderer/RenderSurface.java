@@ -2,7 +2,7 @@ package com.ferox.renderer;
 
 import java.util.List;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -164,9 +164,9 @@ public interface RenderSurface {
 	 * surface. A alpha value != 1 may be treated as 1 if the render surface
 	 * can't hold onto alpha pixel data. Default should be black.
 	 * 
-	 * @return Color that the surface's color buffer is cleared to
+	 * @return Color4f that the surface's color buffer is cleared to
 	 */
-	public Color getClearColor();
+	public Color4f getClearColor();
 
 	/**
 	 * Get the starting depth to use when the depth buffer is cleared. The value
@@ -216,7 +216,7 @@ public interface RenderSurface {
 	 * 
 	 * @param color New clear color to use, if null use black
 	 */
-	public void setClearColor(Color color);
+	public void setClearColor(Color4f color);
 
 	/**
 	 * Set the starting depth to use when the depth buffer is cleared. The value

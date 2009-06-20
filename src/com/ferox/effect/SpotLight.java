@@ -2,7 +2,7 @@ package com.ferox.effect;
 
 import org.openmali.vecmath.Vector3f;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -56,7 +56,7 @@ public class SpotLight extends Light {
 	 * @param position The location of the light, if null uses the origin
 	 * @param diffuse
 	 */
-	public SpotLight(Vector3f position, Color diffuse) {
+	public SpotLight(Vector3f position, Color4f diffuse) {
 		this(position, diffuse, null, null);
 	}
 
@@ -68,8 +68,8 @@ public class SpotLight extends Light {
 	 * @param specular
 	 * @param ambient
 	 */
-	public SpotLight(Vector3f position, Color diffuse, Color specular,
-		Color ambient) {
+	public SpotLight(Vector3f position, Color4f diffuse, Color4f specular,
+		Color4f ambient) {
 		this(position, diffuse, specular, ambient, null);
 	}
 
@@ -83,8 +83,8 @@ public class SpotLight extends Light {
 	 * @param ambient
 	 * @param direction
 	 */
-	public SpotLight(Vector3f position, Color diffuse, Color specular,
-		Color ambient, Vector3f direction) {
+	public SpotLight(Vector3f position, Color4f diffuse, Color4f specular,
+		Color4f ambient, Vector3f direction) {
 		super(diffuse, specular, ambient, direction);
 		setPosition(position);
 

@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.ferox.effect.Effect;
 import com.ferox.effect.EffectSet;
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.BoundVolume;
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.BoundVolume;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;

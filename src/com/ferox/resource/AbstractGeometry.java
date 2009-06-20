@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
-import com.ferox.math.BoundVolume;
-import com.ferox.math.BoundsCache;
+import com.ferox.math.bounds.BoundVolume;
+import com.ferox.math.bounds.BoundsCache;
 import com.ferox.renderer.Framework;
 
 /**

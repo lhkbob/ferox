@@ -3,7 +3,7 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.Material;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.ColoringRecord;
@@ -39,7 +39,7 @@ public class JoglMaterialEffectDriver extends SingleEffectDriver<Material> {
 			lr.matBackShininess = shiny;
 		}
 		// ambient
-		Color c = nextState.getAmbient();
+		Color4f c = nextState.getAmbient();
 		if (!JoglUtil.equals(c, lr.matFrontAmbient) || !JoglUtil.equals(c, lr.matBackAmbient)) {
 			JoglUtil.get(c, lr.matFrontAmbient);
 			JoglUtil.get(c, lr.matBackAmbient);

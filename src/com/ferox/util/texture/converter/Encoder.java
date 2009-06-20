@@ -1,6 +1,6 @@
 package com.ferox.util.texture.converter;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
 
@@ -30,7 +30,7 @@ public interface Encoder {
 	 * @param z The z coordinate to access, from 0 to data.getDepth() - 1
 	 * @param color The color value to store at <x, y, z> in data
 	 */
-	public void setColor(DataBlock data, int x, int y, int z, Color color);
+	public void setColor(DataBlock data, int x, int y, int z, Color4f color);
 
 	/**
 	 * Determine if this encoder can convert the given type and format. It can

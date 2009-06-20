@@ -3,7 +3,7 @@ package com.ferox.scene;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.SpotLight;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -32,7 +32,7 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * 
 	 * @param diffuse
 	 */
-	public SpotLightNode(Color diffuse) {
+	public SpotLightNode(Color4f diffuse) {
 		super(new SpotLight(new Vector3f(), diffuse));
 	}
 
@@ -43,8 +43,8 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param specular
 	 * @param ambient
 	 */
-	public SpotLightNode(Color diffuse, Color specular,
-		Color ambient) {
+	public SpotLightNode(Color4f diffuse, Color4f specular,
+		Color4f ambient) {
 		super(new SpotLight(new Vector3f(), diffuse, specular, ambient));
 	}
 
@@ -56,8 +56,8 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param ambient
 	 * @param direction
 	 */
-	public SpotLightNode(Color diffuse, Color specular,
-		Color ambient, Vector3f direction) {
+	public SpotLightNode(Color4f diffuse, Color4f specular,
+		Color4f ambient, Vector3f direction) {
 		super(new SpotLight(new Vector3f(), diffuse, specular, ambient, direction));
 	}
 

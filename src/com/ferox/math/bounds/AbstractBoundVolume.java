@@ -1,4 +1,6 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
+
+import com.ferox.math.Transform;
 
 /**
  * Provides implementations of applyTransform(trans, result), enclose(bv,

@@ -2,7 +2,7 @@ package com.ferox.scene;
 
 import java.util.List;
 
-import com.ferox.math.BoundVolume;
+import com.ferox.math.bounds.BoundVolume;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 

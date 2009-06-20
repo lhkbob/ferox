@@ -5,8 +5,8 @@ import java.util.List;
 import com.ferox.effect.Fog;
 import com.ferox.effect.Effect.Quality;
 import com.ferox.effect.Fog.FogEquation;
-import com.ferox.math.BoundSphere;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
+import com.ferox.math.bounds.BoundSphere;
 
 /**
  * A FogNode embodies a localized Fog effect. It provides methods that mirror
@@ -30,7 +30,7 @@ public class FogNode extends Leaf {
 	 * 
 	 * @param color
 	 */
-	public FogNode(Color color) {
+	public FogNode(Color4f color) {
 		fog = new Fog(color);
 	}
 
@@ -42,7 +42,7 @@ public class FogNode extends Leaf {
 	 * @param end
 	 * @param density
 	 */
-	public FogNode(Color color, float start, float end, float density) {
+	public FogNode(Color4f color, float start, float end, float density) {
 		fog = new Fog(color, start, end, density);
 	}
 
@@ -56,7 +56,7 @@ public class FogNode extends Leaf {
 	 * @param eq
 	 * @param qual
 	 */
-	public FogNode(Color color, float start, float end, float density,
+	public FogNode(Color4f color, float start, float end, float density,
 		FogEquation eq, Quality qual) {
 		fog = new Fog(color, start, end, density, eq, qual);
 	}
@@ -86,9 +86,9 @@ public class FogNode extends Leaf {
 	/**
 	 * Identical operation to Fog's getColor().
 	 * 
-	 * @return The Color instance used for the fog color
+	 * @return The Color4f instance used for the fog color
 	 */
-	public Color getColor() {
+	public Color4f getColor() {
 		return fog.getColor();
 	}
 
@@ -142,7 +142,7 @@ public class FogNode extends Leaf {
 	 * 
 	 * @param color The new fog color
 	 */
-	public void setColor(Color color) {
+	public void setColor(Color4f color) {
 		fog.setColor(color);
 	}
 

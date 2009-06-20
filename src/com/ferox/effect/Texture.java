@@ -1,7 +1,7 @@
 package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
 import com.ferox.resource.TextureImage;
@@ -246,7 +246,7 @@ public class Texture extends AbstractEffect {
 	private CombineOperand operandAlpha2;
 
 	private EnvMode texEnvMode;
-	private Color texEnvColor;
+	private Color4f texEnvColor;
 
 	private Plane planeR;
 	private Plane planeS;
@@ -287,10 +287,10 @@ public class Texture extends AbstractEffect {
 	 * 
 	 * @param data TextureImage used when rendering
 	 * @param mode EnvMode used to compute final pixel color
-	 * @param envColor Color used for certain EnvModes
+	 * @param envColor Color4f used for certain EnvModes
 	 * @param texCoord Texture coordinate generation mode for STR coordinates
 	 */
-	public Texture(TextureImage data, EnvMode mode, Color envColor,
+	public Texture(TextureImage data, EnvMode mode, Color4f envColor,
 		TexCoordGen texCoord) {
 		this();
 		setTexture(data);
@@ -819,9 +819,9 @@ public class Texture extends AbstractEffect {
 	 * Get the color to use for blending when the environment mode is BLEND, or
 	 * when using BLEND_COLOR for a CombineSource.
 	 * 
-	 * @return Color instance used when BLEND is the EnvMode
+	 * @return Color4f instance used when BLEND is the EnvMode
 	 */
-	public Color getTextureEnvColor() {
+	public Color4f getTextureEnvColor() {
 		return texEnvColor;
 	}
 
@@ -829,11 +829,11 @@ public class Texture extends AbstractEffect {
 	 * Set the color to use for blending when env mode is BLEND, or using a
 	 * BLEND_COLOR CombineSource.
 	 * 
-	 * @param texEnvColor Color for use with BLEND mode
+	 * @param texEnvColor Color4f for use with BLEND mode
 	 */
-	public void setTextureEnvColor(Color texEnvColor) {
+	public void setTextureEnvColor(Color4f texEnvColor) {
 		if (texEnvColor == null)
-			texEnvColor = new Color();
+			texEnvColor = new Color4f();
 		this.texEnvColor = texEnvColor;
 	}
 

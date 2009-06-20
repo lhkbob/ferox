@@ -18,7 +18,7 @@ import com.ferox.effect.Texture.CombineRgb;
 import com.ferox.effect.Texture.CombineSource;
 import com.ferox.effect.Texture.EnvMode;
 import com.ferox.effect.Texture.TexCoordGen;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.math.Plane;
 import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureFormat;
@@ -39,7 +39,7 @@ import com.ferox.resource.TextureImage.TextureWrap;
  */
 public class JoglUtil {
 	/** Store color into the 4-element float buffer. */
-	public static void get(Color color, float[] buffer) {
+	public static void get(Color4f color, float[] buffer) {
 		buffer[0] = color.getRed();
 		buffer[1] = color.getGreen();
 		buffer[2] = color.getBlue();
@@ -50,7 +50,7 @@ public class JoglUtil {
 	 * Return true if the 4 elements in buffer match the 4 color components of
 	 * color.
 	 */
-	public static boolean equals(Color color, float[] buffer) {
+	public static boolean equals(Color4f color, float[] buffer) {
 		return color.getRed() == buffer[0] && color.getGreen() == buffer[1]
 			&& color.getBlue() == buffer[2] && color.getAlpha() == buffer[3];
 	}

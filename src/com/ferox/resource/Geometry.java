@@ -1,6 +1,6 @@
 package com.ferox.resource;
 
-import com.ferox.math.Boundable;
+import com.ferox.math.bounds.Boundable;
 
 /**
  * <p>

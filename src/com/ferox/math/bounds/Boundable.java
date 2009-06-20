@@ -1,4 +1,4 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
 /**
  * A Boundable object has some notion of bounds attached to it and provides a

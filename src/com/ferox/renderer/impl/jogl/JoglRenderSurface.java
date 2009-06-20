@@ -3,7 +3,7 @@ package com.ferox.renderer.impl.jogl;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.renderer.AbstractRenderSurface;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderSurface;
@@ -231,7 +231,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 		gl.glDisable(GL.GL_SCISSOR_TEST);
 		pr.enableScissorTest = false;
 
-		Color clearColor = getClearColor();
+		Color4f clearColor = getClearColor();
 		if (!clearColor.equals(fr.clearColor)) {
 			gl.glClearColor(clearColor.getRed(), clearColor.getGreen(),
 				clearColor.getBlue(), clearColor.getAlpha());

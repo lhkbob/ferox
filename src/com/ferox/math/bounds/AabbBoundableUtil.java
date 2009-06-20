@@ -1,4 +1,4 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
 import org.openmali.vecmath.Vector3f;
 

@@ -3,7 +3,7 @@ package com.ferox.util.texture.converter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
@@ -141,7 +141,7 @@ public class TextureConverter {
 			float vScale = 1f / newHeight;
 			float wScale = 1f / newDepth;
 
-			Color store = new Color();
+			Color4f store = new Color4f();
 			int x, y, z;
 			float u, v, w;
 			for (z = 0; z < newDepth; z++) {

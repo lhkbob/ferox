@@ -3,7 +3,7 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.Fog;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.ColoringRecord;
@@ -49,7 +49,7 @@ public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
 	}
 
 	private void setRecord(GL gl, ColoringRecord cr, HintRecord hr,
-			Color color, float density, float start, float end, int mode,
+			Color4f color, float density, float start, float end, int mode,
 			int hint) {
 		// color
 		if (!JoglUtil.equals(color, cr.fogColor)) {

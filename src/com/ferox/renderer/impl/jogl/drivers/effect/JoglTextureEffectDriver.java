@@ -8,7 +8,7 @@ import com.ferox.effect.Effect;
 import com.ferox.effect.MultiTexture;
 import com.ferox.effect.Texture;
 import com.ferox.effect.Texture.TexCoordGen;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
 import com.ferox.renderer.UnsupportedEffectException;
@@ -226,7 +226,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
 
 		// env color
-		Color blend = tex.getTextureEnvColor();
+		Color4f blend = tex.getTextureEnvColor();
 		if (!JoglUtil.equals(blend, unit.textureEnvColor)) {
 			JoglUtil.get(blend, unit.textureEnvColor);
 			gl.glTexEnvfv(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_COLOR,

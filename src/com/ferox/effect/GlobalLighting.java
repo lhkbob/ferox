@@ -1,7 +1,7 @@
 package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -19,12 +19,12 @@ import com.ferox.math.Color;
  */
 @Type(EffectType.GLOBAL_LIGHTING)
 public class GlobalLighting extends AbstractEffect {
-	private static final Color DEFAULT_AMBIENT = new Color(0f, 0f, 0f, 1f);
+	private static final Color4f DEFAULT_AMBIENT = new Color4f(0f, 0f, 0f, 1f);
 
 	private boolean separateSpec;
 	private boolean localViewer;
 	private boolean useTwoSidedLighting;
-	private Color globalAmb;
+	private Color4f globalAmb;
 
 	/**
 	 * Creates a GlobalLighting that doesn't use separate specular or local
@@ -41,7 +41,7 @@ public class GlobalLighting extends AbstractEffect {
 	 * 
 	 * @param globalAmbient Global ambient color to use
 	 */
-	public GlobalLighting(Color globalAmbient) {
+	public GlobalLighting(Color4f globalAmbient) {
 		this(null, false, false, false);
 	}
 
@@ -56,7 +56,7 @@ public class GlobalLighting extends AbstractEffect {
 	 * @param twoSided Whether or not lighting is computed separately for two
 	 *            sides of a polygon
 	 */
-	public GlobalLighting(Color globalAmbient, boolean separateSpecular,
+	public GlobalLighting(Color4f globalAmbient, boolean separateSpecular,
 		boolean useLocalViewer, boolean twoSided) {
 		setSeparateSpecular(separateSpecular);
 		setLocalViewer(useLocalViewer);
@@ -135,18 +135,18 @@ public class GlobalLighting extends AbstractEffect {
 	 * 
 	 * @return Current global ambient color, own't be null
 	 */
-	public Color getGlobalAmbient() {
+	public Color4f getGlobalAmbient() {
 		return globalAmb;
 	}
 
 	/**
 	 * Set the global ambient light color.
 	 * 
-	 * @param globalAmb Color to use, null defaults to black
+	 * @param globalAmb Color4f to use, null defaults to black
 	 */
-	public void setGlobalAmbient(Color globalAmb) {
+	public void setGlobalAmbient(Color4f globalAmb) {
 		if (globalAmb == null)
-			globalAmb = new Color(DEFAULT_AMBIENT);
+			globalAmb = new Color4f(DEFAULT_AMBIENT);
 		this.globalAmb = globalAmb;
 	}
 

@@ -1,8 +1,10 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
 import org.openmali.vecmath.Matrix3f;
 import org.openmali.vecmath.Vector3f;
 
+import com.ferox.math.Plane;
+import com.ferox.math.Transform;
 import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;
 

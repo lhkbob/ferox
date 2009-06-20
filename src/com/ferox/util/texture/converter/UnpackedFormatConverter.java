@@ -1,6 +1,6 @@
 package com.ferox.util.texture.converter;
 
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
 
@@ -29,7 +29,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	}
 
 	@Override
-	public void getColor(DataBlock data, float u, float v, float w, Color store) {
+	public void getColor(DataBlock data, float u, float v, float w, Color4f store) {
 		int x = (int) u * data.getWidth();
 		int y = (int) v * data.getHeight();
 		int z = (int) w * data.getDepth();
@@ -87,7 +87,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	}
 
 	@Override
-	public void setColor(DataBlock data, int x, int y, int z, Color color) {
+	public void setColor(DataBlock data, int x, int y, int z, Color4f color) {
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
 		int index =

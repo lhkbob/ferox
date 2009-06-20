@@ -5,8 +5,8 @@ import java.util.List;
 import org.openmali.vecmath.Vector3f;
 
 import com.ferox.effect.Light;
-import com.ferox.math.BoundSphere;
-import com.ferox.math.Color;
+import com.ferox.math.Color4f;
+import com.ferox.math.bounds.BoundSphere;
 
 /**
  * A LightNode represents an leaf that can be added to a scene that represents a
@@ -71,27 +71,27 @@ public class LightNode<T extends Light> extends Leaf {
 	/**
 	 * Identical operation to Light's getAmbient().
 	 * 
-	 * @return Color instance used for the light's ambient color
+	 * @return Color4f instance used for the light's ambient color
 	 */
-	public Color getAmbient() {
+	public Color4f getAmbient() {
 		return light.getAmbient();
 	}
 
 	/**
 	 * Identical operation to Light's getDiffuse().
 	 * 
-	 * @return Color instance used for the light's diffuse color
+	 * @return Color4f instance used for the light's diffuse color
 	 */
-	public Color getDiffuse() {
+	public Color4f getDiffuse() {
 		return light.getDiffuse();
 	}
 
 	/**
 	 * Identical operation to Light's getSpecular().
 	 * 
-	 * @return Color instance used for the light's specular color
+	 * @return Color4f instance used for the light's specular color
 	 */
-	public Color getSpecular() {
+	public Color4f getSpecular() {
 		return light.getSpecular();
 	}
 
@@ -111,7 +111,7 @@ public class LightNode<T extends Light> extends Leaf {
 	 * 
 	 * @param ambient The ambient color to use
 	 */
-	public void setAmbient(Color ambient) {
+	public void setAmbient(Color4f ambient) {
 		light.setAmbient(ambient);
 	}
 
@@ -120,7 +120,7 @@ public class LightNode<T extends Light> extends Leaf {
 	 * 
 	 * @param diffuse The diffuse color to use
 	 */
-	public void setDiffuse(Color diffuse) {
+	public void setDiffuse(Color4f diffuse) {
 		light.setDiffuse(diffuse);
 	}
 
@@ -129,7 +129,7 @@ public class LightNode<T extends Light> extends Leaf {
 	 * 
 	 * @param specular The specular color to use
 	 */
-	public void setSpecular(Color specular) {
+	public void setSpecular(Color4f specular) {
 		light.setSpecular(specular);
 	}
 
