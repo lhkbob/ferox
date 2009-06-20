@@ -1,7 +1,6 @@
 package com.ferox.util.geom;
 
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Vector3f;
 import com.ferox.resource.IndexedArrayGeometry;
 
 /**
@@ -157,8 +156,7 @@ public class Rectangle extends IndexedArrayGeometry {
 		else
 			this.yAxis.set(yAxis);
 
-		Vector3f normal = new Vector3f();
-		normal.cross(this.xAxis, this.yAxis);
+		Vector3f normal = this.xAxis.cross(this.yAxis, null);
 
 		float[] vertices = new float[12];
 		float[] normals = new float[12];

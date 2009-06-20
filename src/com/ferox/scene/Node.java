@@ -3,10 +3,9 @@ package com.ferox.scene;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
@@ -540,22 +539,19 @@ public abstract class Node {
 		} else
 			worldTransform.set(localTransform);
 
-		Vector3f dirVec = Node.dirVec.get();
-		Vector3f leftVec = Node.leftVec.get();
-		Vector3f upVec = Node.upVec.get();
+		Vector3f dirVec = position.sub(worldTransform.getTranslation(), Node.dirVec.get());
+		dirVec.normalize(dirVec);
 
-		dirVec.sub(position, worldTransform.getTranslation());
-		dirVec.normalize();
-
-		leftVec.cross(up, dirVec);
-		leftVec.normalize();
-		upVec.cross(dirVec, leftVec);
-		upVec.normalize();
+		Vector3f leftVec = up.cross(dirVec, Node.leftVec.get());
+		leftVec.normalize(leftVec);
+		
+		Vector3f upVec = dirVec.cross(leftVec, Node.upVec.get());
+		upVec.normalize(upVec);
 
 		Matrix3f rot = worldTransform.getRotation();
-		rot.setColumn(0, leftVec);
-		rot.setColumn(1, upVec);
-		rot.setColumn(2, dirVec);
+		rot.setCol(0, leftVec);
+		rot.setCol(1, upVec);
+		rot.setCol(2, dirVec);
 
 		if (parent != null)
 			parent.worldToLocal(worldTransform, localTransform, true);

@@ -1,7 +1,6 @@
 package com.ferox.util.geom;
 
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Vector3f;
 import com.ferox.resource.IndexedArrayGeometry;
 
 /**
@@ -101,8 +100,7 @@ public class Box extends IndexedArrayGeometry {
 			throw new NullPointerException(
 				"minPoint and maxPoint cannot be null");
 
-		center.add(minPoint, maxPoint);
-		center.scale(.5f);
+		minPoint.add(maxPoint, center).scale(.5f, center);
 
 		xExtent = maxPoint.x - center.x;
 		yExtent = maxPoint.y - center.y;

@@ -4,16 +4,15 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.util.Formatter;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.effect.Effect.PixelTest;
 import com.ferox.math.Color4f;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.EffectSortingRenderQueue;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.RenderQueue;
-import com.ferox.renderer.Framework;
 import com.ferox.renderer.View;
 import com.ferox.resource.Geometry.CompileType;
 import com.ferox.scene.Group;

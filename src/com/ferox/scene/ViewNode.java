@@ -1,7 +1,6 @@
 package com.ferox.scene;
 
-import org.openmali.vecmath.Matrix3f;
-
+import com.ferox.math.Matrix3f;
 import com.ferox.renderer.View;
 
 /**

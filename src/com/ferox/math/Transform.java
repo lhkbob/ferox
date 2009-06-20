@@ -1,10 +1,5 @@
 package com.ferox.math;
 
-import org.openmali.vecmath.AxisAngle4f;
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Quat4f;
-import org.openmali.vecmath.Vector3f;
-
 /**
  * <p>
  * Describes a translation, rotation, and scale that effectively create a 4x4
@@ -168,59 +163,6 @@ public class Transform {
 	}
 
 	/**
-	 * Copies the quaternion as the rotation of this Transform.
-	 * 
-	 * @param rot Quaternion rotation to use, null implies identity
-	 */
-	public void setRotation(Quat4f rot) {
-		if (rot == null)
-			this.rot.setIdentity();
-		else
-			this.rot.set(rot);
-	}
-
-	/**
-	 * Copies the axis angle as the rotation of this Transform.
-	 * 
-	 * @param rot Axis angle rotation to use, null implies identity
-	 */
-	public void setRotation(AxisAngle4f rot) {
-		if (rot == null)
-			this.rot.setIdentity();
-		else
-			this.rot.set(rot);
-	}
-
-	/**
-	 * Copy the rotation into rot and return rot. If rot is null, it creates a
-	 * new instance
-	 * 
-	 * @param rot Storage for this rotation
-	 * @return Rotation as a quaternion, rot or a new Quat4f if rot was null
-	 */
-	public Quat4f getRotation(Quat4f rot) {
-		if (rot == null)
-			rot = new Quat4f();
-		rot.set(this.rot);
-		return rot;
-	}
-
-	/**
-	 * Copy the rotation into rot and return rot. If rot is null, it creates a
-	 * new instance
-	 * 
-	 * @param rot Storage for this rotation
-	 * @return Rotation as an axis angle, rot or a new AxisAngle4f if rot was
-	 *         null
-	 */
-	public AxisAngle4f getRotation(AxisAngle4f rot) {
-		if (rot == null)
-			rot = new AxisAngle4f();
-		rot.set(this.rot);
-		return rot;
-	}
-
-	/**
 	 * Compute the distance between this Transform's translation and the other's
 	 * translation.
 	 * 
@@ -264,7 +206,7 @@ public class Transform {
 		t1.transform(t2.trans, t);
 		trans.set(t);
 		scale = t1.scale * t2.scale;
-		rot.mul(t1.rot, t2.rot);
+		t1.rot.mul(t2.rot, rot);
 		return this;
 	}
 
@@ -302,7 +244,7 @@ public class Transform {
 		ti.inverseTransform(tn.trans, t);
 		trans.set(t);
 		scale = tn.scale / ti.scale;
-		rot.mulTransposeLeft(ti.rot, tn.rot);
+		ti.rot.mulTransposeLeft(tn.rot, rot);
 		return this;
 	}
 
@@ -341,11 +283,7 @@ public class Transform {
 		if (result == null)
 			result = new Vector3f();
 
-		result.scale(scale, t);
-		rot.transform(result);
-		result.add(trans);
-
-		return result;
+		return rot.mul(t.scale(scale, result), result).add(trans, result);
 	}
 
 	/**
@@ -383,14 +321,7 @@ public class Transform {
 		if (result == null)
 			result = new Vector3f();
 
-		result.sub(t, trans);
-		result.set(
-			rot.m00 * result.x + rot.m10 * result.y + rot.m20 * result.z,
-			rot.m01 * result.x + rot.m11 * result.y + rot.m21 * result.z,
-			rot.m02 * result.x + rot.m12 * result.y + rot.m22 * result.z);
-		result.scale(1f / scale);
-
-		return result;
+		return rot.mulPre(t.sub(trans, result), result).scale(1f / scale, result);
 	}
 
 	/**

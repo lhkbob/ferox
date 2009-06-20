@@ -1,8 +1,7 @@
 package com.ferox.effect;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.effect.Effect.Type;
+import com.ferox.math.Vector3f;
 
 
 /**

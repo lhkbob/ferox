@@ -1,8 +1,6 @@
 package com.ferox.util.geom;
 
-import org.openmali.FastMath;
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Vector3f;
 import com.ferox.resource.IndexedArrayGeometry;
 
 /**
@@ -46,6 +44,19 @@ public class Sphere extends IndexedArrayGeometry {
 	 */
 	public Sphere(float radius) {
 		this(radius, 16, 16);
+	}
+
+	/**
+	 * Create a sphere with the given radius, 16 radial and z samples with the
+	 * original texture mode. The sphere is configured to use the given compile
+	 * type.
+	 * 
+	 * @param radius Radius of the sphere
+	 * @param compile Compile type
+	 * @throws IllegalArgumentException if radius <= 0
+	 */
+	public Sphere(float radius, CompileType compile) {
+		this(radius, 16, 16, SphereTextureMode.ORIGINAL, compile);
 	}
 
 	/**
@@ -195,9 +206,9 @@ public class Sphere extends IndexedArrayGeometry {
 		float[] afSin = new float[radialSamples + 1];
 		float[] afCos = new float[radialSamples + 1];
 		for (int iR = 0; iR < radialSamples; iR++) {
-			float fAngle = FastMath.TWO_PI * fInvRS * iR;
-			afCos[iR] = FastMath.cos(fAngle);
-			afSin[iR] = FastMath.sin(fAngle);
+			float fAngle = (float) (2 * Math.PI * fInvRS * iR);
+			afCos[iR] = (float) Math.cos(fAngle);
+			afSin[iR] = (float) Math.sin(fAngle);
 		}
 		afSin[radialSamples] = afSin[0];
 		afCos[radialSamples] = afCos[0];
@@ -209,13 +220,12 @@ public class Sphere extends IndexedArrayGeometry {
 			float fZ = radius * fZFraction;
 
 			// compute center of slice
-			Vector3f kSliceCenter = tempVb;
-			kSliceCenter.set(center);
+			Vector3f kSliceCenter = tempVb.set(center);
 			kSliceCenter.z += fZ;
 
 			// compute radius of slice
 			float fSliceRadius =
-				FastMath.sqrt(Math.abs(radius * radius - fZ * fZ));
+				(float) Math.sqrt(Math.abs(radius * radius - fZ * fZ));
 
 			// compute slice vertices with duplication at end point
 			Vector3f kNormal;
@@ -224,20 +234,18 @@ public class Sphere extends IndexedArrayGeometry {
 				float fRadialFraction = iR * fInvRS; // in [0,1)
 
 				// vertices
-				Vector3f kRadial = tempVc;
-				kRadial.set(afCos[iR], afSin[iR], 0);
-				tempVa.scale(fSliceRadius, kRadial);
+				Vector3f kRadial = tempVc.set(afCos[iR], afSin[iR], 0);
+				kRadial.scale(fSliceRadius, tempVa);
 
 				vertices[i * 3 + 0] = kSliceCenter.x + tempVa.x;
 				vertices[i * 3 + 1] = kSliceCenter.y + tempVa.y;
 				vertices[i * 3 + 2] = kSliceCenter.z + tempVa.z;
 
 				// normals
-				tempVa.set(vertices[i * 3], vertices[i * 3 + 1],
-					vertices[i * 3 + 2]);
-				kNormal = tempVa;
-				kNormal.sub(center);
-				kNormal.normalize();
+				kNormal =
+					tempVa.set(vertices[i * 3], vertices[i * 3 + 1],
+						vertices[i * 3 + 2]);
+				kNormal.sub(center, kNormal).normalize(kNormal);
 
 				normals[i * 3 + 0] = kNormal.x;
 				normals[i * 3 + 1] = kNormal.y;
@@ -249,8 +257,7 @@ public class Sphere extends IndexedArrayGeometry {
 				} else { // PROJECTED
 					texCoords[i * 2 + 0] = fRadialFraction;
 					texCoords[i * 2 + 1] =
-						(FastMath.PI_HALF + FastMath.asin(fZFraction))
-							/ FastMath.PI;
+						(float) ((Math.PI / 2.0 + Math.asin(fZFraction)) / Math.PI);
 				}
 
 				i++;
@@ -270,8 +277,7 @@ public class Sphere extends IndexedArrayGeometry {
 			} else { // PROJECTED
 				texCoords[i * 2 + 0] = 1f;
 				texCoords[i * 2 + 1] =
-					(FastMath.PI_HALF + FastMath.asin(fZFraction))
-						/ FastMath.PI;
+					(float) ((Math.PI / 2.0 + Math.asin(fZFraction)) / Math.PI);
 			}
 
 			i++;

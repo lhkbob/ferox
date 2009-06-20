@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.effect.AlphaTest;
 import com.ferox.effect.BlendMode;
 import com.ferox.effect.ColorMask;
@@ -28,6 +26,7 @@ import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.effect.PolygonStyle.Winding;
 import com.ferox.effect.StencilTest.StencilOp;
 import com.ferox.math.Color4f;
+import com.ferox.math.Vector3f;
 
 /**
  * Appearance describes a set of Effects that can be applied to rendered

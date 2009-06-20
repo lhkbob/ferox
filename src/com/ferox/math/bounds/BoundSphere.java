@@ -1,8 +1,7 @@
 package com.ferox.math.bounds;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;
 
@@ -157,7 +156,7 @@ public class BoundSphere extends AbstractBoundVolume {
 		Vector3f extents = BoundSphere.tempC.get();
 
 		aabb.getCenter(center);
-		extents.sub(aabb.getMax(), aabb.getMin());
+		aabb.getMax().sub(aabb.getMin(), extents);
 		merge(center, extents.length() / 2f);
 	}
 
@@ -166,9 +165,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	private void merge(Vector3f center, float radius) {
-		Vector3f diff = BoundSphere.tempA.get();
-
-		diff.sub(center, this.center);
+		Vector3f diff = center.sub(this.center, BoundSphere.tempA.get());
 		float dist = diff.length();
 
 		if (dist != 0f) {
@@ -180,8 +177,7 @@ public class BoundSphere extends AbstractBoundVolume {
 				// other sphere is at least partially outside of us
 				float or = this.radius;
 				this.radius = (dist + radius + this.radius) / 2f;
-				this.center.scaleAdd((this.radius - or) / dist, diff,
-					this.center);
+				diff.scaleAdd((this.radius - or) / dist, this.center, this.center);
 			} // else we already enclose it, so do nothing
 		} else
 			// don't need to move the center, just take the largest radius
@@ -236,21 +232,11 @@ public class BoundSphere extends AbstractBoundVolume {
 		if (dir == null)
 			throw new NullPointerException(
 				"Can't compute extent for a null direction");
-		if (result == null)
-			result = new Vector3f();
-		result.set(center);
-
-		if (reverse) {
-			result.x -= dir.x * radius;
-			result.y -= dir.y * radius;
-			result.z -= dir.z * radius;
-		} else {
-			result.x += dir.x * radius;
-			result.y += dir.y * radius;
-			result.z += dir.z * radius;
-		}
-
-		return result;
+		
+		if (reverse)
+			return dir.scaleAdd(-radius, center, result);
+		else
+			return dir.scaleAdd(radius, center, result);
 	}
 
 	/** When intersecting an AxisAlignedBox, it calls other.intersects(this). */
@@ -265,7 +251,7 @@ public class BoundSphere extends AbstractBoundVolume {
 			Vector3f cross = BoundSphere.tempA.get();
 
 			BoundSphere s = (BoundSphere) other;
-			cross.sub(center, s.center);
+			center.sub(s.center, cross);
 			return cross.lengthSquared() <= (radius + s.radius)
 				* (radius + s.radius);
 		} else

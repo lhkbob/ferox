@@ -1,11 +1,10 @@
 package com.ferox.renderer;
 
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Matrix4f;
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Matrix3f;
+import com.ferox.math.Matrix4f;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 
 /**
  * <p>
@@ -186,19 +185,12 @@ public class View {
 		Vector3f u = View.u.get();
 
 		// compute the right-handed basis vectors of the view
-		up.normalize();
-		direction.normalize();
-
-		left.cross(up, direction);
-		left.normalize();
-		u.cross(direction, left);
-		u.normalize();
+		up.normalize(up).cross(direction, left).normalize(left);
+		direction.normalize(direction).cross(left, u).normalize(u);
 
 		// update viewTrans to the basis and possibly new location
 		Matrix3f m = viewTrans.getRotation();
-		m.setColumn(0, left.x, left.y, left.z);
-		m.setColumn(1, u.x, u.y, u.z);
-		m.setColumn(2, direction.x, direction.y, direction.z);
+		m.setCol(0, left).setCol(1, u).setCol(2, direction);
 
 		viewTrans.setTranslation(location);
 		viewTrans.setScale(1f);
@@ -522,7 +514,7 @@ public class View {
 
 	// compute the projection matrix
 	private void computeProjectionMatrix() {
-		projection.setZero();
+		projection.set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		if (useOrtho)
 			orthoMatrix(frustumRight, frustumLeft, frustumTop, frustumBottom,
 				frustumNear, frustumFar, projection);
@@ -536,32 +528,32 @@ public class View {
 		Vector3f p = u.get();
 
 		// FAR
-		p.scaleAdd(frustumFar, direction, location);
-		n.scale(-1f, direction);
+		direction.scaleAdd(frustumFar, location, p);
+		direction.scale(-1f, n);
 		setWorldPlane(FAR_PLANE, n, p);
 
 		// NEAR
-		p.scaleAdd(frustumNear, direction, location);
+		direction.scaleAdd(frustumNear, location, p);
 		n.set(direction);
 		setWorldPlane(NEAR_PLANE, n, p);
 
 		// LEFT
-		n.cross(direction, up);
-		p.scaleAdd(frustumLeft, n, location);
+		direction.cross(up, n);
+		n.scaleAdd(frustumLeft, location, p);
 		setWorldPlane(LEFT_PLANE, n, p);
 
 		// RIGHT
-		n.scale(-1f);
-		p.scaleAdd(-frustumRight, n, location);
+		n.scaleAdd(frustumRight, location, p);
+		n.scale(-1f, n);
 		setWorldPlane(RIGHT_PLANE, n, p);
 
 		// BOTTOM
-		p.scaleAdd(frustumBottom, up, location);
+		up.scaleAdd(frustumBottom, location, p);
 		setWorldPlane(BOTTOM_PLANE, up, p);
 
 		// TOP
-		n.scale(-1f, up);
-		p.scaleAdd(frustumTop, up, location);
+		up.scale(-1f, n);
+		up.scaleAdd(frustumTop, location, p);
 		setWorldPlane(TOP_PLANE, n, p);
 	}
 
@@ -570,48 +562,48 @@ public class View {
 		Vector3f p = u.get();
 
 		// FAR
-		p.scaleAdd(frustumFar, direction, location);
-		n.scale(-1f, direction);
+		direction.scaleAdd(frustumFar, location, p);
+		direction.scale(-1f, n);
 		setWorldPlane(FAR_PLANE, n, p);
 
 		// NEAR
-		p.scaleAdd(frustumNear, direction, location);
+		direction.scaleAdd(frustumNear, location, p);
 		n.set(direction);
 		setWorldPlane(NEAR_PLANE, n, p);
 
 		// compute left vector for LEFT and RIGHT usage
-		p.cross(up, direction);
+		up.cross(direction, p);
 
 		// LEFT
 		float invHyp =
 			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumLeft
 				* frustumLeft);
-		n.scale(-frustumNear * invHyp, p);
-		n.scaleAdd(Math.abs(frustumLeft) * invHyp, direction, n);
+		p.scale(-frustumNear * invHyp, n);
+		direction.scaleAdd(Math.abs(frustumLeft) * invHyp, n, n);
 		setWorldPlane(LEFT_PLANE, n, location);
 
 		// RIGHT
 		invHyp =
 			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumRight
 				* frustumRight);
-		n.scale(frustumNear * invHyp, p);
-		n.scaleAdd(Math.abs(frustumRight) * invHyp, direction, n);
+		p.scale(frustumNear * invHyp, n);
+		direction.scaleAdd(Math.abs(frustumRight) * invHyp, n, n);
 		setWorldPlane(RIGHT_PLANE, n, location);
 
 		// BOTTOM
 		invHyp =
 			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumBottom
 				* frustumBottom);
-		n.scale(frustumNear * invHyp, up);
-		n.scaleAdd(Math.abs(frustumBottom) * invHyp, direction, n);
+		up.scale(frustumNear * invHyp, n);
+		direction.scaleAdd(Math.abs(frustumBottom) * invHyp, n, n);
 		setWorldPlane(BOTTOM_PLANE, n, location);
 
 		// TOP
 		invHyp =
 			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumTop
 				* frustumTop);
-		n.scale(-frustumNear * invHyp, up);
-		n.scaleAdd(Math.abs(frustumTop) * invHyp, direction, n);
+		up.scale(-frustumNear * invHyp, n);
+		direction.scaleAdd(Math.abs(frustumTop) * invHyp, n, n);
 		setWorldPlane(TOP_PLANE, n, location);
 	}
 

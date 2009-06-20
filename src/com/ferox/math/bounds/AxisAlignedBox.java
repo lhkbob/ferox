@@ -1,10 +1,9 @@
 package com.ferox.math.bounds;
 
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Matrix3f;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.View;
 import com.ferox.renderer.View.FrustumIntersection;
 
@@ -168,11 +167,8 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	 * @return Center vector, out or new vector if out is null
 	 */
 	public Vector3f getCenter(Vector3f out) {
-		if (out == null)
-			out = new Vector3f();
-		out.add(worldMin, worldMax);
-		out.scale(.5f);
-		return out;
+		out = worldMin.add(worldMax, out);
+		return out.scale(.5f, out);
 	}
 
 	@Override
@@ -182,15 +178,15 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 		float s = trans.getScale();
 		Vector3f t = trans.getTranslation();
-		worldMax.set(s * worldMax.x, s * worldMax.y, s * worldMax.z);
-		worldMin.set(s * worldMin.x, s * worldMin.y, s * worldMin.z);
+		worldMax.scale(s, worldMax);
+		worldMin.scale(s, worldMin);
 
 		Vector3f c = AxisAlignedBox.c.get();
 		Matrix3f m = AxisAlignedBox.m.get();
 
 		getCenter(c);
-		worldMin.sub(c);
-		worldMax.sub(c);
+		worldMin.sub(c, worldMin);
+		worldMax.sub(c, worldMax);
 
 		Matrix3f b = trans.getRotation();
 		m.m00 = Math.abs(b.m00);
@@ -203,15 +199,12 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		m.m21 = Math.abs(b.m21);
 		m.m22 = Math.abs(b.m22);
 
-		m.transform(worldMin);
-		m.transform(worldMax);
+		m.mul(worldMin, worldMin);
+		m.mul(worldMax, worldMax);
 
-		b.transform(c);
-		worldMin.add(c);
-		worldMax.add(c);
-
-		worldMin.add(t);
-		worldMax.add(t);
+		b.mul(c, c);
+		worldMin.add(c, worldMin).add(t, worldMin);
+		worldMax.add(c, worldMax).add(t, worldMax);
 	}
 
 	@Override
@@ -224,7 +217,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		} else if (result instanceof BoundSphere) {
 			BoundSphere s = (BoundSphere) result;
 			Vector3f c = s.getCenter();
-			c.sub(worldMax, worldMin);
+			worldMax.sub(worldMin, c);
 			s.setRadius(c.length() / 2f);
 			getCenter(c);
 
@@ -432,12 +425,6 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 				&& ((a.worldMax.y >= worldMin.y && a.worldMax.y <= worldMax.y) || (a.worldMin.y >= worldMin.y && a.worldMin.y <= worldMax.y))
 				&& ((a.worldMax.z >= worldMin.z && a.worldMax.z <= worldMax.z) || (a.worldMin.z >= worldMin.z && a.worldMin.z <= worldMax.z));
 		} else if (other instanceof BoundSphere) {
-			/*
-			 * Vector3f c = AxisAlignedBox.c.get(); BoundSphere s =
-			 * (BoundSphere)other; this.getCenter(c); c.sub(s.getCenter());
-			 * this.getExtent(c, true, c); c.sub(s.getCenter()); return
-			 * c.lengthSquared() <= s.getRadius() * s.getRadius();
-			 */
 			// Idea taken from "Simple Intersection Tests for Games" by Miguel
 			// Gomez - Gamasutra
 			BoundSphere s = (BoundSphere) other;

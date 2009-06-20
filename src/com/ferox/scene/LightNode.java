@@ -2,10 +2,9 @@ package com.ferox.scene;
 
 import java.util.List;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.effect.Light;
 import com.ferox.math.Color4f;
+import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundSphere;
 
 /**
@@ -162,7 +161,7 @@ public class LightNode<T extends Light> extends Leaf {
 		super.updateTransform(fast);
 
 		Vector3f worldDir = light.getDirection();
-		worldTransform.getRotation().transform(localDirection, worldDir);
+		worldTransform.getRotation().mul(localDirection, worldDir);
 	}
 	
 	@Override

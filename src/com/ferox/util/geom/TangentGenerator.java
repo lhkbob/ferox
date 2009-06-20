@@ -1,7 +1,6 @@
 package com.ferox.util.geom;
 
-import org.openmali.vecmath.Vector2f;
-import org.openmali.vecmath.Vector3f;
+import com.ferox.math.Vector3f;
 
 /**
  * <p>
@@ -60,12 +59,12 @@ public class TangentGenerator {
 
 		// for a triangle
 		Vector3f verts[] = new Vector3f[3];
-		Vector2f tcs[] = new Vector2f[3];
+		Vector3f tcs[] = new Vector3f[3]; // ignore z
 
 		int v, i;
 		for (i = 0; i < 3; i++) {
 			verts[i] = new Vector3f();
-			tcs[i] = new Vector2f();
+			tcs[i] = new Vector3f();
 		}
 
 		int[] index = new int[3];
@@ -76,9 +75,7 @@ public class TangentGenerator {
 				i = indices[t * 3 + v];
 				index[v] = i;
 
-				verts[v].x = vertices[i * 3];
-				verts[v].y = vertices[i * 3 + 1];
-				verts[v].z = vertices[i * 3 + 2];
+				verts[v].set(vertices, i * 3);
 
 				tcs[v].x = texCoords[i * 2];
 				tcs[v].y = texCoords[i * 2 + 1];
@@ -88,13 +85,8 @@ public class TangentGenerator {
 
 			for (v = 0; v < 3; v++) {
 				i = index[v] * 3;
-				tangents[i] = tangent.x;
-				tangents[i + 1] = tangent.y;
-				tangents[i + 2] = tangent.z;
-
-				bitangents[i] = bitangent.x;
-				bitangents[i + 1] = bitangent.y;
-				bitangents[i + 2] = bitangent.z;
+				tangent.get(tangents, i);
+				bitangent.get(bitangents, i);
 			}
 		}
 	}
@@ -102,30 +94,24 @@ public class TangentGenerator {
 	// modifies v and t vectors, but that's okay since they aren't used after
 	// this method is called
 	private static void computeTriangleTangentSpace(Vector3f tangent,
-		Vector3f bitangent, Vector3f v[], Vector2f t[]) {
-		Vector3f edge1 = v[1];
-		edge1.sub(v[0]);
-		Vector3f edge2 = v[2];
-		edge2.sub(v[0]);
+		Vector3f bitangent, Vector3f v[], Vector3f t[]) {
+		Vector3f edge1 = v[1].sub(v[0], v[1]);
+		Vector3f edge2 = v[2].sub(v[0], v[2]);
 
-		Vector2f edge1uv = t[1];
-		edge1uv.sub(t[0]);
-		Vector2f edge2uv = t[2];
-		edge2uv.sub(t[0]);
+		Vector3f edge1uv = t[1].sub(t[0], t[1]);
+		Vector3f edge2uv = t[2].sub(t[0], t[2]);
 
 		float cp = edge1uv.y * edge2uv.x - edge1uv.x * edge2uv.y;
 
 		if (cp != 0.0f) {
 			float mul = 1.0f / cp;
-			tangent.scale(-edge2uv.y, edge1);
-			tangent.scaleAdd(edge1uv.y, edge2, tangent);
-			tangent.scale(mul);
-			tangent.normalize();
+			edge1.scale(-edge2uv.y, tangent);
+			edge2.scaleAdd(edge1uv.y, tangent, tangent);
+			tangent.scale(mul, tangent).normalize(tangent);
 
-			bitangent.scale(-edge2uv.x, edge1);
-			bitangent.scaleAdd(edge1uv.x, edge2, bitangent);
-			bitangent.scale(mul);
-			bitangent.normalize();
+			edge1.scale(-edge2uv.x, bitangent);
+			edge2.scaleAdd(edge1uv.x, bitangent, bitangent);
+			bitangent.scale(mul, bitangent).normalize(bitangent);
 		}
 	}
 }

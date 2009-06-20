@@ -2,8 +2,6 @@ package com.ferox.scene;
 
 import java.io.IOException;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.BasicApplication;
 import com.ferox.effect.DepthTest;
 import com.ferox.effect.GlobalLighting;
@@ -17,6 +15,7 @@ import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.effect.Texture.EnvMode;
 import com.ferox.effect.Texture.TexCoordGen;
 import com.ferox.math.Color4f;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.TextureSurface;

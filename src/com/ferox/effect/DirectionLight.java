@@ -1,8 +1,7 @@
 package com.ferox.effect;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.math.Color4f;
+import com.ferox.math.Vector3f;
 
 /**
  * A DirectionLight treats the light direction as coming from a source

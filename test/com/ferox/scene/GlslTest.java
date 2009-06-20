@@ -3,9 +3,6 @@ package com.ferox.scene;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.BasicApplication;
 import com.ferox.InputManager;
 import com.ferox.effect.GlobalLighting;
@@ -14,7 +11,9 @@ import com.ferox.effect.Material;
 import com.ferox.effect.MultiTexture;
 import com.ferox.effect.Texture;
 import com.ferox.math.Color4f;
+import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.GlslProgram;
@@ -254,13 +253,26 @@ public class GlslTest extends BasicApplication {
 		float sy = cameraHeight * y / pixelHeight;
 		sy = -(float) Math.atan(sy / view.getView().getFrustumNear()) * 3;
 
-		mx.rotX(sy);
-		my.rotY(sx);
-		mx.mul(my);
-		world.getRotation().mul(mx, world.getRotation());
+		rotX(mx, sy);
+		rotY(my, sx);
+		mx.mul(my, mx).mul(world.getRotation(), world.getRotation());
 
 		world.inverseMul(view.getView().getViewTransform(), world);
 		node.setWorldTransform(world);
+	}
+	
+	private void rotY(Matrix3f m, float angle) {
+		float cos = (float) Math.cos(angle);
+		float sin = (float) Math.sin(angle);
+		
+		m.set(cos, 0, sin, 0, 1, 0, -sin, 0, cos);
+	}
+	
+	private void rotX(Matrix3f m, float angle) {
+		float cos = (float) Math.cos(angle);
+		float sin = (float) Math.sin(angle);
+		
+		m.set(1, 0, 0, 0, cos, -sin, 0, sin, cos);
 	}
 
 	private void adjustTranslation(Node node, int x, int y) {

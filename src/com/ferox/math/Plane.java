@@ -1,7 +1,5 @@
 package com.ferox.math;
 
-import org.openmali.vecmath.Matrix4f;
-import org.openmali.vecmath.Vector3f;
 
 /**
  * Represents a 3D plane <a,b,c,d> that satisfies (a*x + b*y + c*z + d = 0),
@@ -137,7 +135,7 @@ public class Plane {
 	 * @throws NullPointerException if v is null
 	 */
 	public float signedDistance(Vector3f v) {
-		float num = a * v.x + b * v.y + c * v.z + d;
+		float num = v.dot(a, b, c) + d;
 		if (len == 1f)
 			return num;
 		else
@@ -177,9 +175,8 @@ public class Plane {
 		else
 			temp.set(-p.d / p.a, 0f, 0f);
 
-		norm.set(p.a, p.b, p.c);
 		trans.transform(temp);
-		trans.getRotation().transform(norm);
+		trans.getRotation().mul(norm.set(p.a, p.b, p.c), norm);
 
 		setPlane(norm.x, norm.y, norm.z, -temp.dot(norm));
 
@@ -194,49 +191,6 @@ public class Plane {
 		c = inverseD * c;
 		d = inverseD * d;
 		len = 1f;
-	}
-
-	/**
-	 * Transforms this plane in place by trans.
-	 * 
-	 * @param trans Matrix that transforms this plane
-	 * @throws NullPointerException if trans is null
-	 */
-	public void transform(Matrix4f trans) {
-		this.transform(this, trans);
-	}
-
-	/**
-	 * Transforms the plane by trans and stores it in this plane.
-	 * 
-	 * @param p The plane that is transformed
-	 * @param trans The matrix that transforms this plane
-	 * @return this
-	 * @throws NullPointerException if p or trans are null
-	 */
-	public Plane transform(Plane p, Matrix4f trans) {
-		if (trans == null || p == null)
-			throw new NullPointerException("Can't have null input: " + trans
-				+ " " + p);
-
-		Vector3f temp = Plane.temp.get();
-		Vector3f norm = Plane.norm.get();
-
-		if (p.c != 0)
-			temp.set(0f, 0f, -p.d / p.c);
-		else if (p.b != 0)
-			temp.set(0f, -p.d / p.b, 0f);
-		else
-			temp.set(-p.d / p.a, 0f, 0f);
-
-		norm.set(p.a, p.b, p.c);
-		trans.transform(temp);
-		temp.set(temp.x + trans.m03, temp.y + trans.m13, temp.z + trans.m23);
-		trans.transform(norm);
-
-		setPlane(norm.x, norm.y, norm.z, -temp.dot(norm));
-
-		return this;
 	}
 
 	@Override

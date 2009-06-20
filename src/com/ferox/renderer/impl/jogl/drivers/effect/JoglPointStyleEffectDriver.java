@@ -2,10 +2,9 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.effect.PointStyle;
 import com.ferox.effect.PointStyle.PointSpriteOrigin;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
@@ -92,7 +91,7 @@ public class JoglPointStyleEffectDriver extends
 		if (at.x != rr.pointDistanceAttenuation[0]
 			|| at.y != rr.pointDistanceAttenuation[1]
 			|| at.z != rr.pointDistanceAttenuation[2]) {
-			at.get(rr.pointDistanceAttenuation);
+			at.get(rr.pointDistanceAttenuation, 0);
 			gl.glPointParameterfv(GL.GL_POINT_DISTANCE_ATTENUATION,
 				rr.pointDistanceAttenuation, 0);
 		}

@@ -127,6 +127,7 @@ public final class Matrix4f implements Cloneable {
 	 * @return The matrix's determinant
 	 */
 	public float determinant() {
+		// Thanks to Ardor3D for the determinant expansion
 		float ra0 = m00 * m11 - m01 * m10;
 		float ra1 = m00 * m12 - m02 * m10;
 		float ra2 = m00 * m13 - m03 * m10;
@@ -153,6 +154,7 @@ public final class Matrix4f implements Cloneable {
 	 * @throws ArithmeticException if this matrix isn't invertible
 	 */
 	public Matrix4f inverse(Matrix4f result) {
+		// Also, thanks to Ardor3D for the inverse code
 		if (result == null)
 			result = new Matrix4f();
 

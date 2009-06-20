@@ -1,6 +1,6 @@
 package com.ferox.math.bounds;
 
-import org.openmali.vecmath.Vector3f;
+import com.ferox.math.Vector3f;
 
 /**
  * A utility class to compute enclosing AxisAlignedBox's for Boundables. This is

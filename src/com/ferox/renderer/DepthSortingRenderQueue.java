@@ -3,7 +3,7 @@ package com.ferox.renderer;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.openmali.vecmath.Vector3f;
+import com.ferox.math.Vector3f;
 
 /**
  * Extends BasicRenderQueue to allow for two different types of depth sorting:
@@ -37,10 +37,8 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 			Vector3f t1 = ra1.getTransform().getTranslation();
 			Vector3f t2 = ra2.getTransform().getTranslation();
 			
-			temp.sub(t1, position);
-			float d = temp.dot(direction);
-			temp.sub(t2, position);
-			d -= temp.dot(direction);
+			float d = t1.sub(position, temp).dot(direction);
+			d -= t2.sub(position, temp).dot(direction);
 			d /= dirLen;
 
 			if (forwardBack) {

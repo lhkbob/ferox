@@ -2,13 +2,12 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
 
-import org.openmali.vecmath.Vector3f;
-
 import com.ferox.effect.DirectionLight;
 import com.ferox.effect.Light;
 import com.ferox.effect.SpotLight;
 import com.ferox.math.Color4f;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
@@ -25,7 +24,6 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 	private static final int MAX_LIGHTS = 8;
 
 	private final Light[] appliedLights;
-	private Vector3f p;
 
 	public JoglLightingEffectDriver(JoglContextManager factory) {
 		super(null, Light.class, Math.min(MAX_LIGHTS, factory.getFramework()
@@ -130,7 +128,7 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 	private void setupSpotLight(GL gl, LightRecord lr, int glUnit,
 		SpotLight light) {
 		// setup the pos and direction
-		p = light.getPosition();
+		Vector3f p = light.getPosition();
 		lr.position[0] = p.x;
 		lr.position[1] = p.y;
 		lr.position[2] = p.z;
@@ -154,7 +152,7 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		DirectionLight light) {
 		// set the position array - we don't check, since the modelview changes
 		// things
-		p = light.getDirection();
+		Vector3f p = light.getDirection();
 		lr.position[0] = -p.x;
 		lr.position[1] = -p.y;
 		lr.position[2] = -p.z;

@@ -4,11 +4,10 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 
-import org.openmali.vecmath.Matrix3f;
-import org.openmali.vecmath.Matrix4f;
-import org.openmali.vecmath.Vector3f;
-
+import com.ferox.math.Matrix3f;
+import com.ferox.math.Matrix4f;
 import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
 import com.ferox.renderer.View;
 import com.ferox.renderer.impl.TransformDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;

@@ -1,6 +1,6 @@
 package com.ferox.math.bounds;
 
-import org.openmali.vecmath.Vector3f;
+import com.ferox.math.Vector3f;
 
 /**
  * A utility class to compute enclosing BoundSphere's for Boundables. This is to
@@ -91,9 +91,7 @@ public class SphereBoundableUtil {
 	}
 
 	private static void populateFromArray(Vector3f p, float[] points, int index) {
-		p.x = points[index * 3];
-		p.y = points[index * 3 + 1];
-		p.z = points[index * 3 + 2];
+		p.set(points, index * 3);
 	}
 
 	private static void setInArray(Vector3f p, float[] points, int index) {
@@ -102,23 +100,18 @@ public class SphereBoundableUtil {
 			points[index * 3 + 1] = 0f;
 			points[index * 3 + 2] = 0f;
 		} else {
-			points[index * 3] = p.x;
-			points[index * 3 + 1] = p.y;
-			points[index * 3 + 2] = p.z;
+			p.get(points, index * 3);
 		}
 	}
 
 	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a,
 		Vector3f b, Vector3f c) {
-		Vector3f tA = SphereBoundableUtil.tA.get();
-		Vector3f tB = SphereBoundableUtil.tB.get();
-		Vector3f tC = SphereBoundableUtil.tC.get();
+		Vector3f tA = a.sub(o, SphereBoundableUtil.tA.get());
+		Vector3f tB = b.sub(o, SphereBoundableUtil.tB.get());
+		Vector3f tC = c.sub(o, SphereBoundableUtil.tC.get());
+
 		Vector3f tD = SphereBoundableUtil.tD.get();
 		Vector3f cross = SphereBoundableUtil.cross.get();
-
-		tA.sub(a, o);
-		tB.sub(b, o);
-		tC.sub(c, o);
 
 		float denom =
 			2.0f * (tA.x * (tB.y * tC.z - tC.y * tB.z) - tB.x
@@ -128,48 +121,38 @@ public class SphereBoundableUtil {
 			sphere.getCenter().set(0f, 0f, 0f);
 			sphere.setRadius(0f);
 		} else {
-			cross.cross(tA, tB);
-			cross.scale(tC.lengthSquared());
-			tD.cross(tC, tA);
-			tD.scale(tB.lengthSquared());
-			cross.add(tD);
-			tD.cross(tB, tC);
-			tD.scale(tA.lengthSquared());
-			cross.add(tD);
-			cross.scale(1f / denom);
+			tA.cross(tB, cross).scale(tC.lengthSquared(), cross);
+			tC.cross(tA, tD).scale(tB.lengthSquared(), tD);
+			cross.add(tD, cross);
+			
+			tB.cross(tC, tD).scale(tA.lengthSquared(), tD);
+			cross.add(tD, cross).scale(1f / denom, cross);
 
 			sphere.setRadius(cross.length() * radiusEpsilon);
-			sphere.getCenter().add(o, cross);
+			o.add(cross, sphere.getCenter());
 		}
 	}
 
 	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a,
 		Vector3f b) {
-		Vector3f tA = SphereBoundableUtil.tA.get();
-		Vector3f tB = SphereBoundableUtil.tB.get();
+		Vector3f tA = a.sub(o, SphereBoundableUtil.tA.get());
+		Vector3f tB = b.sub(o, SphereBoundableUtil.tB.get());
 		Vector3f tC = SphereBoundableUtil.tC.get();
 		Vector3f tD = SphereBoundableUtil.tD.get();
-		Vector3f cross = SphereBoundableUtil.cross.get();
-
-		tA.sub(a, o);
-		tB.sub(b, o);
-		cross.cross(tA, tB);
+		
+		Vector3f cross = tA.cross(tB, SphereBoundableUtil.cross.get());
 
 		float denom = 2f * cross.lengthSquared();
-
 		if (denom == 0) {
 			sphere.getCenter().set(0f, 0f, 0f);
 			sphere.setRadius(0f);
 		} else {
-			tC.cross(cross, tA);
-			tC.scale(tB.lengthSquared());
-			tD.cross(tB, cross);
-			tD.scale(tA.lengthSquared());
-			tC.add(tD);
-			tC.scale(1f / denom);
-
+			cross.cross(tA, tC).scale(tB.lengthSquared(), tC);
+			tB.cross(cross, tD).scale(tA.lengthSquared(), tD);
+			tC.add(tD, tC).scale(1f / denom, tC);
+			
 			sphere.setRadius(tC.length() * radiusEpsilon);
-			sphere.getCenter().add(o, tC);
+			o.add(tC, sphere.getCenter());
 		}
 	}
 
@@ -179,8 +162,8 @@ public class SphereBoundableUtil {
 			+ radiusEpsilon - 1f);
 
 		Vector3f center = sphere.getCenter();
-		center.scale(.5f, o);
-		center.scaleAdd(.5f, a, center);
+		o.scale(.5f, center);
+		a.scaleAdd(.5f, center, center);
 	}
 
 	private static void fillPointsArray(float[] points, Boundable verts) {
