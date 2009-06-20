@@ -56,7 +56,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 				}
 
 				// set the uniforms
-				List<UniformBinding> uniforms = nextState.getSetUniforms();
+				List<UniformBinding> uniforms = nextState.getAssignedUniforms();
 				int size = uniforms.size();
 				for (int i = 0; i < size; i++)
 					setUniform(gl, uniforms.get(i));
@@ -92,7 +92,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 
 	private void setUniformValue(GL gl, GlslUniform uniform, Object value) {
 		Handle h = factory.getFramework().getHandle(uniform, factory);
-		if (h != null)
+		if (h != null) {
 			switch (uniform.getType()) {
 			case BOOL:
 			case INT:
@@ -115,7 +115,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			case BOOL_VEC2:
 			case INT_VEC2: {
 				int[] val = (int[]) value;
-				if (val.length == 1)
+				if (val.length == 2)
 					gl.glUniform2i(h.getId(), val[0], val[1]);
 				else
 					gl.glUniform2iv(h.getId(), uniform.getLength(), val, 0);
@@ -124,7 +124,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			case BOOL_VEC3:
 			case INT_VEC3: {
 				int[] val = (int[]) value;
-				if (val.length == 1)
+				if (val.length == 3)
 					gl.glUniform3i(h.getId(), val[0], val[1], val[2]);
 				else
 					gl.glUniform3iv(h.getId(), uniform.getLength(), val, 0);
@@ -133,7 +133,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			case BOOL_VEC4:
 			case INT_VEC4: {
 				int[] val = (int[]) value;
-				if (val.length == 1)
+				if (val.length == 4)
 					gl.glUniform4i(h.getId(), val[0], val[1], val[2], val[3]);
 				else
 					gl.glUniform4iv(h.getId(), uniform.getLength(), val, 0);
@@ -149,7 +149,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			}
 			case FLOAT_VEC2: {
 				float[] val = (float[]) value;
-				if (val.length == 1)
+				if (val.length == 2)
 					gl.glUniform2f(h.getId(), val[0], val[1]);
 				else
 					gl.glUniform2fv(h.getId(), uniform.getLength(), val, 0);
@@ -157,7 +157,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			}
 			case FLOAT_VEC3: {
 				float[] val = (float[]) value;
-				if (val.length == 1)
+				if (val.length == 3)
 					gl.glUniform3f(h.getId(), val[0], val[1], val[2]);
 				else
 					gl.glUniform3fv(h.getId(), uniform.getLength(), val, 0);
@@ -165,7 +165,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			}
 			case FLOAT_VEC4: {
 				float[] val = (float[]) value;
-				if (val.length == 1)
+				if (val.length == 4)
 					gl.glUniform4f(h.getId(), val[0], val[1], val[2], val[3]);
 				else
 					gl.glUniform4fv(h.getId(), uniform.getLength(), val, 0);
@@ -190,5 +190,6 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 				break;
 			}
 			}
+		}
 	}
 }

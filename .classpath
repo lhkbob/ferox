@@ -10,6 +10,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="resource/ferox-textures.jar"/>
-	<classpathentry kind="lib" path="lib/jogl.jar"/>
+	<classpathentry kind="lib" path="lib/jogl.jar" sourcepath="/Users/michaelludwig/Desktop/IDONEUS_/other/jogl-1.1.1-src/jogl/src/classes"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

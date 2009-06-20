@@ -17,20 +17,22 @@ import com.ferox.resource.GlslVertexAttribute.AttributeType;
  * geometry shaders become more common, they will likely be added in.
  * </p>
  * <p>
- * GlslPrograms are a fairly complicated resource for the Framework to deal with.
- * Here are a few guidelines: - If either shader fails to compile, it should
- * have a status of ERROR - Overlapping attribute slots cause a status of ERROR.
- * - If it fails to link, it has a status of ERROR. Uniforms and attributes are
- * left attached (uniforms status should be changed, though) - If it does link,
- * uniforms and attributes not declared in the code should be detached and
- * cleaned-up - Attributes and uniforms declared in the glsl code should be
+ * GlslPrograms are a fairly complicated resource for the Framework to deal
+ * with. Here are a few guidelines:
+ * <ul>
+ * <li>If either shader fails to compile, it should have a status of ERROR</li>
+ * <li>If it fails to link, it has a status of ERROR. Uniforms and attributes
+ * are left attached (each uniforms' status should be changed, though)</li>
+ * <li>If it does link, uniforms and attributes not present in the final glsl
+ * should be detached and cleaned-up</li>
+ * <li>Attributes and uniforms declared in the glsl code should be
  * bound/attached on a success if they aren't already attached, when
- * successfully linked.
+ * successfully linked.</li>
  * </p>
  * <p>
  * Care should be given when using the uniforms and attributes attached to a
  * program. If the program undergoes significant source code change, it is
- * likely that the uniforms will have been detached. Only attach a Uniform or
+ * likely that the uniforms will have been detached. Only attach a uniform or
  * attribute if you know that they are present in the code (even with compile
  * errors); if not, use the automatically attached uniforms after a successful
  * update.
@@ -223,7 +225,7 @@ public class GlslProgram implements Resource {
 	 * <p>
 	 * When a glsl program is updated, if it links successfully, it should
 	 * attach any uniform that is present in the code, that's not already been
-	 * attached. It will detach and clean-up unvalid uniforms.
+	 * attached. It will detach and clean-up invalid uniforms.
 	 * </p>
 	 * <p>
 	 * If a program is not linked successfully, all attached uniforms should

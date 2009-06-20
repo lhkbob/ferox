@@ -155,7 +155,7 @@ public class GlslTest extends BasicApplication {
 				"nm = gl_Normal;",
 
 				"light_dir = gl_LightSource[0].position.xyz - gl_Position.xyz;",
-				// "half_vector = gl_LightSource[0].halfVector.xyz;",
+				//"half_vector = gl_LightSource[0].halfVector.xyz;",
 				"eye_dir = -gl_Position.xyz;",
 
 				"gl_Position = gl_ProjectionMatrix * gl_Position;", "}" };
@@ -193,8 +193,8 @@ public class GlslTest extends BasicApplication {
 				"}" };
 
 		GlslProgram program = new GlslProgram(vertexShader, fragmentShader);
-		program.bindAttribute("tangent", AttributeType.VEC3F, 1);
-		program.bindAttribute("bitangent", AttributeType.VEC3F, 2);
+		program.bindAttribute("tangent", AttributeType.VEC3F, 14);
+		program.bindAttribute("bitangent", AttributeType.VEC3F, 15);
 
 		renderer.requestUpdate(program, true);
 		renderer.renderFrame(null);
@@ -301,8 +301,8 @@ public class GlslTest extends BasicApplication {
 		float[] bitan = new float[verts.length];
 		TangentGenerator.generate(verts, tcs, b.getIndices(), tan, bitan);
 
-		b.setVertexAttributes(1, new VectorBuffer(tan, 3));
-		b.setVertexAttributes(2, new VectorBuffer(bitan, 3));
+		b.setVertexAttributes(14, new VectorBuffer(tan, 3));
+		b.setVertexAttributes(15, new VectorBuffer(bitan, 3));
 
 		return b;
 	}

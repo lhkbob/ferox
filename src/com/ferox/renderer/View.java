@@ -19,12 +19,12 @@ import com.ferox.math.Transform;
  * configuration of the View, having an up vector of <0, 1, 0> and a direction
  * of <0, 0, -1>, the world coordinate space is as follows:
  * <ul>
- * <li>Positive Y Axis: Vertical, towards the top of the monitor.</li>
  * <li>Positive X Axis: Horizontal, towards the right edge of the monitor.</li>
+ * <li>Positive Y Axis: Vertical, towards the top of the monitor.</li>
  * <li>Positive Z Axis: Directly out of the monitor.</li>
  * </ul>
  * Keep in mind that a positive x change in view space causes the object to move
- * to the left.
+ * to the left, because the initial world direction is <0, 0, -1>.
  * </p>
  * 
  * @author Michael Ludwig

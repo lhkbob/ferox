@@ -216,7 +216,7 @@ public class GlslShader extends AbstractEffect {
 	 * @return List of all assigned UniformBindings, e.g. uniforms with non-null
 	 *         values for this shader.
 	 */
-	public List<UniformBinding> getSetUniforms() {
+	public List<UniformBinding> getAssignedUniforms() {
 		return readOnlyUniforms;
 	}
 
