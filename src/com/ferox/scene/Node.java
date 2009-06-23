@@ -156,7 +156,7 @@ public abstract class Node {
 	public void updateTransform(boolean fast) {
 		//localToWorld(IDENTITY.get(), worldTransform, fast);
 		if (parent != null)
-			worldTransform.mul(localTransform, parent.worldTransform);
+			parent.worldTransform.mul(localTransform, worldTransform);
 		else
 			worldTransform.set(localTransform);
 	}
@@ -426,10 +426,7 @@ public abstract class Node {
 				parent.localToWorld(IDENTITY.get(), result, false);
 		} else
 			result.setIdentity();
-		result.mul(result, localTransform);
-		result.mul(result, local);
-
-		return result;
+		return result.mul(localTransform, result).mul(local, result);
 	}
 
 	/**
@@ -469,7 +466,7 @@ public abstract class Node {
 			result.set(worldTransform);
 		else
 			localToWorld(IDENTITY.get(), result, false);
-		result.inverseMul(result, world);
+		result.inverseMul(world, result);
 
 		return result;
 	}
@@ -535,7 +532,7 @@ public abstract class Node {
 
 		if (parent != null) {
 			parent.updateTransform(false);
-			worldTransform.mul(parent.worldTransform, localTransform);
+			parent.worldTransform.mul(localTransform, worldTransform);
 		} else
 			worldTransform.set(localTransform);
 

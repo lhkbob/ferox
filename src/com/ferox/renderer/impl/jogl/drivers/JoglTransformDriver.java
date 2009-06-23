@@ -114,7 +114,7 @@ public class JoglTransformDriver implements TransformDriver {
 			// set the view portion of the modelview matrix
 			gl.glMatrixMode(GL.GL_MODELVIEW);
 			
-			currentView.mul(convert, view.getViewTransform());
+			convert.mul(view.getViewTransform(), currentView);
 			loadMatrix(gl, currentView);
 		} else
 			resetView();

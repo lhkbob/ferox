@@ -191,23 +191,24 @@ public class Transform {
 	}
 
 	/**
-	 * Stores t1 X t2 into this transform (order is as in conventional matrix
-	 * math). It is safe to call with t1 or t2 as this transform.
+	 * Stores this X t1 into result (order is as in conventional matrix
+	 * math). It is safe to call with result as this transform.
 	 * 
-	 * @param t1 Left-hand transform in multiplication
-	 * @param t2 Right-hand transform in multiplication
-	 * @return This transform
-	 * @throws NullPointerException if t1 or t2 are null
+	 * @param t1 Right-hand transform in multiplication
+	 * @param t2 Result of the multiplication
+	 * @return result, or a new Transform if null
+	 * @throws NullPointerException if t1 is null
 	 */
-	public Transform mul(Transform t1, Transform t2) {
-		if (t1 == null || t2 == null)
-			throw new NullPointerException("Can't multiply null transforms");
+	public Transform mul(Transform t1, Transform result) {
+		if (result == null)
+			result = new Transform();
+		
 		Vector3f t = temp.get();
-		t1.transform(t2.trans, t);
-		trans.set(t);
-		scale = t1.scale * t2.scale;
-		t1.rot.mul(t2.rot, rot);
-		return this;
+		transform(t1.trans, t);
+		result.trans.set(t);
+		result.scale = scale * t1.scale;
+		rot.mul(t1.rot, result.rot);
+		return result;
 	}
 
 	/** Calls this.inverse(this) */
@@ -216,36 +217,34 @@ public class Transform {
 	}
 
 	/**
-	 * Stores the inverse of t into this Transform. Safe to call with t = this.
+	 * Stores the inverse of this transform into result. Safe to call with result = this.
 	 * 
-	 * @param t Transform to invert
-	 * @return This transform
-	 * @throws NullPointerException if t is null
+	 * @param result Transform to store the inverse
+	 * @return result, or a new Transform if null
 	 */
-	public Transform inverse(Transform t) {
-		if (t == null)
-			throw new NullPointerException("Can't inverse a null transform");
-		return inverseMul(t, IDENTITY.get());
+	public Transform inverse(Transform result) {
+		return inverseMul(IDENTITY.get(), result);
 	}
 
 	/**
-	 * Stores ti^-1 X tn into this transform. Safe to call with ti or tn = this.
+	 * Stores this^-1 X tn into result. Safe to call with result = tn or this.
+	 * If result is null, a new Transform is created.
 	 * 
-	 * @param ti Inverse is used in left-hand of multiplication
 	 * @param tn Right-hand transform in multiplication
-	 * @return This transform
-	 * @throws NullPointerException if ti or tn are null
+	 * @param result Result of the multiplication
+	 * @return result, or a new Transform if null
+	 * @throws NullPointerException if tn is null
 	 */
-	public Transform inverseMul(Transform ti, Transform tn) {
-		if (ti == null || tn == null)
-			throw new NullPointerException(
-				"Can't inverse multiply null transforms");
+	public Transform inverseMul(Transform tn, Transform result) {
+		if (result == null)
+			result = new Transform();
+		
 		Vector3f t = temp.get();
-		ti.inverseTransform(tn.trans, t);
-		trans.set(t);
-		scale = tn.scale / ti.scale;
-		ti.rot.mulTransposeLeft(tn.rot, rot);
-		return this;
+		inverseTransform(tn.trans, t);
+		result.trans.set(t);
+		result.scale = tn.scale / this.scale;
+		rot.mulTransposeLeft(tn.rot, result.rot);
+		return result;
 	}
 
 	/**

@@ -239,7 +239,7 @@ public class GlslTest extends BasicApplication {
 	private void adjustRotation(Node node, int x, int y) {
 		Transform world = new Transform();
 		node.localToWorld(identity, world, false);
-		world.mul(view.getView().getViewTransform(), world);
+		view.getView().getViewTransform().mul(world, world);
 
 		int pixelWidth = window.getWidth();
 		float cameraWidth =
@@ -257,7 +257,7 @@ public class GlslTest extends BasicApplication {
 		rotY(my, sx);
 		mx.mul(my, mx).mul(world.getRotation(), world.getRotation());
 
-		world.inverseMul(view.getView().getViewTransform(), world);
+		view.getView().getViewTransform().inverseMul(world, world);
 		node.setWorldTransform(world);
 	}
 	
@@ -278,7 +278,7 @@ public class GlslTest extends BasicApplication {
 	private void adjustTranslation(Node node, int x, int y) {
 		Transform world = new Transform();
 		node.localToWorld(identity, world, false);
-		world.mul(view.getView().getViewTransform(), world);
+		view.getView().getViewTransform().mul(world, world);
 
 		Vector3f trans = world.getTranslation();
 
@@ -297,7 +297,7 @@ public class GlslTest extends BasicApplication {
 		trans.x = trans.x - sx; // in right hand system, view's right is negative x
 		trans.y = trans.y - sy; // downward motion == pos. mouse y change, so negate it
 
-		world.inverseMul(view.getView().getViewTransform(), world);
+		view.getView().getViewTransform().inverseMul(world, world);
 		node.setWorldTransform(world);
 	}
 
