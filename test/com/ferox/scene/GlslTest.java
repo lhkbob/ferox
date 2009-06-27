@@ -255,7 +255,7 @@ public class GlslTest extends BasicApplication {
 
 		rotX(mx, sy);
 		rotY(my, sx);
-		mx.mul(my, mx).mul(world.getRotation(), world.getRotation());
+		mx.mul(my).mul(world.getRotation(), world.getRotation());
 
 		view.getView().getViewTransform().inverseMul(world, world);
 		node.setWorldTransform(world);

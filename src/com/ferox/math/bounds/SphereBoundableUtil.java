@@ -121,12 +121,11 @@ public class SphereBoundableUtil {
 			sphere.getCenter().set(0f, 0f, 0f);
 			sphere.setRadius(0f);
 		} else {
-			tA.cross(tB, cross).scale(tC.lengthSquared(), cross);
-			tC.cross(tA, tD).scale(tB.lengthSquared(), tD);
-			cross.add(tD, cross);
+			tC.cross(tA, tD).scale(tB.lengthSquared());
+			tA.cross(tB, cross).scale(tC.lengthSquared()).add(tD);
 			
-			tB.cross(tC, tD).scale(tA.lengthSquared(), tD);
-			cross.add(tD, cross).scale(1f / denom, cross);
+			tB.cross(tC, tD).scale(tA.lengthSquared());
+			cross.add(tD).scale(1f / denom);
 
 			sphere.setRadius(cross.length() * radiusEpsilon);
 			o.add(cross, sphere.getCenter());
@@ -147,9 +146,8 @@ public class SphereBoundableUtil {
 			sphere.getCenter().set(0f, 0f, 0f);
 			sphere.setRadius(0f);
 		} else {
-			cross.cross(tA, tC).scale(tB.lengthSquared(), tC);
-			tB.cross(cross, tD).scale(tA.lengthSquared(), tD);
-			tC.add(tD, tC).scale(1f / denom, tC);
+			tB.cross(cross, tD).scale(tA.lengthSquared());
+			cross.cross(tA, tC).scale(tB.lengthSquared()).add(tD).scale(1f / denom);
 			
 			sphere.setRadius(tC.length() * radiusEpsilon);
 			o.add(tC, sphere.getCenter());

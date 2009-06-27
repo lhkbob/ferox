@@ -178,15 +178,15 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 		float s = trans.getScale();
 		Vector3f t = trans.getTranslation();
-		worldMax.scale(s, worldMax);
-		worldMin.scale(s, worldMin);
+		worldMax.scale(s);
+		worldMin.scale(s);
 
 		Vector3f c = AxisAlignedBox.c.get();
 		Matrix3f m = AxisAlignedBox.m.get();
 
 		getCenter(c);
-		worldMin.sub(c, worldMin);
-		worldMax.sub(c, worldMax);
+		worldMin.sub(c);
+		worldMax.sub(c);
 
 		Matrix3f b = trans.getRotation();
 		m.m00 = Math.abs(b.m00);
@@ -199,12 +199,12 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		m.m21 = Math.abs(b.m21);
 		m.m22 = Math.abs(b.m22);
 
-		m.mul(worldMin, worldMin);
-		m.mul(worldMax, worldMax);
+		m.mul(worldMin);
+		m.mul(worldMax);
 
 		b.mul(c, c);
-		worldMin.add(c, worldMin).add(t, worldMin);
-		worldMax.add(c, worldMax).add(t, worldMax);
+		worldMin.add(c).add(t);
+		worldMax.add(c).add(t);
 	}
 
 	@Override
@@ -216,8 +216,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 			return b;
 		} else if (result instanceof BoundSphere) {
 			BoundSphere s = (BoundSphere) result;
-			Vector3f c = s.getCenter();
-			worldMax.sub(worldMin, c);
+			Vector3f c = worldMax.sub(worldMin, s.getCenter());
 			s.setRadius(c.length() / 2f);
 			getCenter(c);
 

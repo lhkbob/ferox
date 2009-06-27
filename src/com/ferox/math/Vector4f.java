@@ -147,6 +147,16 @@ public final class Vector4f implements Cloneable {
 	}
 
 	/**
+	 * As ortho(proj, result) where result is the calling vector.
+	 * 
+	 * @param proj
+	 * @return This vector
+	 */
+	public Vector4f ortho(Vector4f proj) {
+		return ortho(proj, this);
+	}
+
+	/**
 	 * Orthogonalize this vector using the Gram-Schmidt process so that the
 	 * resultant vector is orthogonal to <x, y, z, w>. The orthogonal vector is
 	 * stored in result. If result is null, a new Vector4f should be created and
@@ -189,6 +199,16 @@ public final class Vector4f implements Cloneable {
 	}
 
 	/**
+	 * As project(proj, result) where result is the calling vector.
+	 * 
+	 * @param proj
+	 * @return This vector
+	 */
+	public Vector4f project(Vector4f proj) {
+		return project(proj, this);
+	}
+
+	/**
 	 * Project this vector onto <x, y, z, w> and store it in result. The
 	 * resulting projection will be parallel to <x, y, z, w>, but possibly
 	 * pointing in the opposite direction. If result is null, a new Vector4f
@@ -223,6 +243,16 @@ public final class Vector4f implements Cloneable {
 	}
 
 	/**
+	 * As add(v, result) where result is the calling vector.
+	 * 
+	 * @param v
+	 * @return This vector
+	 */
+	public Vector4f add(Vector4f v) {
+		return add(v, this);
+	}
+
+	/**
 	 * Add this and <x, y, z, w> together (this + <x, y, z, w>) and store the
 	 * added vector in result. If result is null, a new Vector4f should be
 	 * created and returned.
@@ -251,6 +281,16 @@ public final class Vector4f implements Cloneable {
 	 */
 	public Vector4f sub(Vector4f v, Vector4f result) {
 		return sub(v.x, v.y, v.z, v.w, result);
+	}
+
+	/**
+	 * As sub(v, result) where result is the calling vector.
+	 * 
+	 * @param v
+	 * @return This vector
+	 */
+	public Vector4f sub(Vector4f v) {
+		return sub(v, this);
 	}
 
 	/**
@@ -290,6 +330,17 @@ public final class Vector4f implements Cloneable {
 	}
 
 	/**
+	 * As scaleAdd(scalar, add, result) where result is this vector.
+	 * 
+	 * @param scalar
+	 * @param add
+	 * @return This vector
+	 */
+	public Vector4f scaleAdd(float scalar, Vector4f add) {
+		return scaleAdd(scalar, add, this);
+	}
+
+	/**
 	 * Scale this vector by the given scalar (scalar*this) and store it in
 	 * result. If result is null, a new Vector4f should be created and returned.
 	 * 
@@ -304,6 +355,16 @@ public final class Vector4f implements Cloneable {
 	}
 
 	/**
+	 * As scale(scalar, result) where result is the calling vector.
+	 * 
+	 * @param scalar
+	 * @return This vector
+	 */
+	public Vector4f scale(float scalar) {
+		return scale(scalar, this);
+	}
+
+	/**
 	 * Normalize this vector to be of length 1 and store it in result. If result
 	 * is null, a new Vector4f should be created and returned. This vector can't
 	 * be normalized if it's length is 0. If it's length is very close to 0, the
@@ -315,6 +376,15 @@ public final class Vector4f implements Cloneable {
 	 */
 	public Vector4f normalize(Vector4f result) {
 		return scale(1 / length(), result);
+	}
+
+	/**
+	 * Normalize this vector in place.
+	 * 
+	 * @return This vector
+	 */
+	public Vector4f normalize() {
+		return normalize(this);
 	}
 
 	@Override

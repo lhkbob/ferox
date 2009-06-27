@@ -142,6 +142,15 @@ public final class Vector3f implements Cloneable {
 	public Vector3f ortho(Vector3f proj, Vector3f result) {
 		return ortho(proj.x, proj.y, proj.z, result);
 	}
+	
+	/**
+	 * As ortho(proj, result) where result is this vector
+	 * @param proj
+	 * @return This vector
+	 */
+	public Vector3f ortho(Vector3f proj) {
+		return ortho(proj, this);
+	}
 
 	/**
 	 * Orthogonalize this vector using the Gram-Schmidt process so that the
@@ -181,6 +190,15 @@ public final class Vector3f implements Cloneable {
 	public Vector3f project(Vector3f proj, Vector3f result) {
 		return proj.scale(dot(proj) / proj.lengthSquared(), result);
 	}
+	
+	/**
+	 * As project(proj, result) where result is this vector
+	 * @param proj
+	 * @return This vector
+	 */
+	public Vector3f project(Vector3f proj) {
+		return project(proj, this);
+	}
 
 	/**
 	 * Project this vector onto <x, y, z> and store it in result. The resulting
@@ -214,6 +232,15 @@ public final class Vector3f implements Cloneable {
 	public Vector3f cross(Vector3f v, Vector3f result) {
 		return cross(v.x, v.y, v.z, result);
 	}
+	
+	/**
+	 * As cross(v, result) where result is this vector
+	 * @param v
+	 * @return This vector
+	 */
+	public Vector3f cross(Vector3f v) {
+		return cross(v, this);
+	}
 
 	/**
 	 * Compute the cross product (this X <x, y, z>) and store it in result. If
@@ -244,6 +271,15 @@ public final class Vector3f implements Cloneable {
 	public Vector3f add(Vector3f v, Vector3f result) {
 		return add(v.x, v.y, v.z, result);
 	}
+	
+	/**
+	 * As add(v, result) where result is this vector
+	 * @param v
+	 * @return This vector
+	 */
+	public Vector3f add(Vector3f v) {
+		return add(v, this);
+	}
 
 	/**
 	 * Add this and <x, y, z> together (this + <x, y, z>) and store the added
@@ -273,6 +309,15 @@ public final class Vector3f implements Cloneable {
 	 */
 	public Vector3f sub(Vector3f v, Vector3f result) {
 		return sub(v.x, v.y, v.z, result);
+	}
+	
+	/**
+	 * As sub(v, result) where result is this vector
+	 * @param v
+	 * @return This vector
+	 */
+	public Vector3f sub(Vector3f v) {
+		return sub(v, this);
 	}
 
 	/**
@@ -309,7 +354,18 @@ public final class Vector3f implements Cloneable {
 		return result.set(scalar * x + add.x, scalar * y + add.y, scalar * z
 			+ add.z);
 	}
-
+	
+	/**
+	 * As scaleAdd(scalar, add, result) where result is this vector.
+	 * 
+	 * @param scalar
+	 * @param add
+	 * @return This vector
+	 */
+	public Vector3f scaleAdd(float scalar, Vector3f add) {
+		return scaleAdd(scalar, add, this);
+	}
+	
 	/**
 	 * Scale this vector by the given scalar (scalar*this) and store it in
 	 * result. If result is null, a new Vector3f should be created and returned.
@@ -322,6 +378,15 @@ public final class Vector3f implements Cloneable {
 		if (result == null)
 			result = new Vector3f();
 		return result.set(scalar * x, scalar * y, scalar * z);
+	}
+	
+	/**
+	 * As scale(scalar, result) where result is this vector
+	 * @param scalar
+	 * @return This vector
+	 */
+	public Vector3f scale(float scalar) {
+		return scale(scalar, this);
 	}
 
 	/**
@@ -336,6 +401,14 @@ public final class Vector3f implements Cloneable {
 	 */
 	public Vector3f normalize(Vector3f result) {
 		return scale(1 / length(), result);
+	}
+	
+	/** 
+	 * Normalize this vector in place
+	 * @return This vector
+	 */
+	public Vector3f normalize() {
+		return normalize(this);
 	}
 
 	@Override

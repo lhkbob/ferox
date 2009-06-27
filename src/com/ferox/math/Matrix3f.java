@@ -88,6 +88,16 @@ public final class Matrix3f implements Cloneable {
 	}
 
 	/**
+	 * As add(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix3f add(Matrix3f r) {
+		return add(r, this);
+	}
+
+	/**
 	 * Add the given constant to each of this matrix's values and store it in
 	 * result. If result is null, then a new Matrix3f should be created and
 	 * returned.
@@ -102,6 +112,16 @@ public final class Matrix3f implements Cloneable {
 
 		return result.set(m00 + c, m01 + c, m02 + c, m10 + c, m11 + c, m12 + c,
 			m20 + c, m21 + c, m22 + c);
+	}
+
+	/**
+	 * As add(c, result) where result is this matrix
+	 * 
+	 * @param c
+	 * @return This matrix
+	 */
+	public Matrix3f add(float c) {
+		return add(c, this);
 	}
 
 	/**
@@ -155,6 +175,15 @@ public final class Matrix3f implements Cloneable {
 	}
 
 	/**
+	 * Inverse this matrix in place
+	 * 
+	 * @return This matrix
+	 */
+	public Matrix3f inverse() {
+		return inverse(this);
+	}
+
+	/**
 	 * Compute and return the length of this matrix. The length of a matrix is
 	 * defined as the square root of the sum of the squared matrix values.
 	 * 
@@ -189,6 +218,16 @@ public final class Matrix3f implements Cloneable {
 	}
 
 	/**
+	 * As mul(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix3f mul(Matrix3f r) {
+		return mul(r, this);
+	}
+
+	/**
 	 * Multiply this matrix by the 3x1 matrix represented by the three values in
 	 * r, or compute [this] x [r]. The result of this operation is another 3x1
 	 * matrix, which can then be interpreted as the transformed vector of r. The
@@ -201,6 +240,16 @@ public final class Matrix3f implements Cloneable {
 	 */
 	public Vector3f mul(Vector3f r, Vector3f result) {
 		return mul(r.x, r.y, r.z, result);
+	}
+
+	/**
+	 * As mul(r, result) where result is the given vector
+	 * 
+	 * @param r
+	 * @return r
+	 */
+	public Vector3f mul(Vector3f r) {
+		return mul(r, r);
 	}
 
 	/**
@@ -233,6 +282,16 @@ public final class Matrix3f implements Cloneable {
 	 */
 	public Matrix3f mulDiagonal(Vector3f diag, Matrix3f result) {
 		return mulDiagonal(diag.x, diag.y, diag.z, result);
+	}
+
+	/**
+	 * As mulDiagonal(diag, result) where result is this matrix
+	 * 
+	 * @param diag
+	 * @return This matrix
+	 */
+	public Matrix3f mulDiagonal(Vector3f diag) {
+		return mulDiagonal(diag, this);
 	}
 
 	/**
@@ -288,6 +347,16 @@ public final class Matrix3f implements Cloneable {
 	}
 
 	/**
+	 * As mulPre(r, result) where result is the given vector
+	 * 
+	 * @param r
+	 * @return r
+	 */
+	public Vector3f mulPre(Vector3f r) {
+		return mulPre(r, r);
+	}
+
+	/**
 	 * <p>
 	 * Multiply the transpose of this matrix by the transpose of r, or compute
 	 * [this]^T x [r]^T and store it in result. If result is null, then a new
@@ -308,6 +377,16 @@ public final class Matrix3f implements Cloneable {
 	}
 
 	/**
+	 * As mulTransposeBoth(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix3f mulTransposeBoth(Matrix3f r) {
+		return mulTransposeBoth(r, this);
+	}
+
+	/**
 	 * Multiply the transpose of this matrix by r, or compute [this]^T x [r] and
 	 * store it in result. If result is null, then a new Matrix3f should be
 	 * created and returned instead.
@@ -325,6 +404,16 @@ public final class Matrix3f implements Cloneable {
 			* r.m11 + m21 * r.m21, m01 * r.m02 + m11 * r.m12 + m21 * r.m22, m02
 			* r.m00 + m12 * r.m10 + m22 * r.m20, m02 * r.m01 + m12 * r.m11
 			+ m22 * r.m21, m02 * r.m02 + m12 * r.m12 + m22 * r.m22);
+	}
+
+	/**
+	 * As mulTransposeLeft(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix3f mulTransposeLeft(Matrix3f r) {
+		return mulTransposeLeft(r, this);
 	}
 
 	/**
@@ -349,6 +438,16 @@ public final class Matrix3f implements Cloneable {
 	}
 
 	/**
+	 * As mulTransposeRight(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix3f mulTransposeRight(Matrix3f r) {
+		return mulTransposeRight(r, this);
+	}
+
+	/**
 	 * Scale each of this matrix's values by the scalar and store it in result.
 	 * This effectively computes [result] = scalar*[this].
 	 * 
@@ -363,6 +462,16 @@ public final class Matrix3f implements Cloneable {
 		return result.set(scalar * m00, scalar * m01, scalar * m02, scalar
 			* m10, scalar * m11, scalar * m12, scalar * m20, scalar * m21,
 			scalar * m22);
+	}
+
+	/**
+	 * As scale(scalar, result) where result is this matrix
+	 * 
+	 * @param scalar
+	 * @return This matrix
+	 */
+	public Matrix3f scale(float scalar) {
+		return scale(scalar);
 	}
 
 	/**
@@ -454,6 +563,15 @@ public final class Matrix3f implements Cloneable {
 		if (result == null)
 			result = new Matrix3f();
 		return result.set(m00, m10, m20, m01, m11, m21, m02, m12, m22);
+	}
+
+	/**
+	 * Transpose this matrix in place
+	 * 
+	 * @return This matrix
+	 */
+	public Matrix3f transpose() {
+		return transpose(this);
 	}
 
 	/**

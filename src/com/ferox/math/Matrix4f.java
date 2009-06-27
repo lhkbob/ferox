@@ -101,6 +101,16 @@ public final class Matrix4f implements Cloneable {
 	}
 
 	/**
+	 * As add(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix4f add(Matrix4f r) {
+		return add(r, this);
+	}
+
+	/**
 	 * Add the given constant to each of this matrix's values and store it in
 	 * result. If result is null, then a new Matrix4f should be created and
 	 * returned.
@@ -116,6 +126,16 @@ public final class Matrix4f implements Cloneable {
 		return result.set(m00 + c, m01 + c, m02 + c, m03 + c, m10 + c, m11 + c,
 			m12 + c, m13 + c, m20 + c, m21 + c, m22 + c, m23 + c, m30 + c, m31
 				+ c, m32 + c, m33 + c);
+	}
+
+	/**
+	 * As add(c, result) where result is this matrix
+	 * 
+	 * @param c
+	 * @return This matrix
+	 */
+	public Matrix4f add(float c) {
+		return add(c, this);
 	}
 
 	/**
@@ -204,6 +224,15 @@ public final class Matrix4f implements Cloneable {
 	}
 
 	/**
+	 * Invert this matrix in place
+	 * 
+	 * @return This matrix
+	 */
+	public Matrix4f inverse() {
+		return inverse(this);
+	}
+
+	/**
 	 * Compute and return the length of this matrix. The length of a matrix is
 	 * defined as the square root of the sum of the squared matrix values.
 	 * 
@@ -248,6 +277,16 @@ public final class Matrix4f implements Cloneable {
 	}
 
 	/**
+	 * As mul(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix4f mul(Matrix4f r) {
+		return mul(r, this);
+	}
+
+	/**
 	 * Multiply this matrix by the 4x1 matrix represented by the four values in
 	 * r, or compute [this] x [r]. The result of this operation is another 4x1
 	 * matrix, which can then be interpreted as the transformed vector of r. The
@@ -260,6 +299,16 @@ public final class Matrix4f implements Cloneable {
 	 */
 	public Vector4f mul(Vector4f r, Vector4f result) {
 		return mul(r.x, r.y, r.z, r.w, result);
+	}
+
+	/**
+	 * As mul(r, result) where result is the given vector.
+	 * 
+	 * @param r
+	 * @return r
+	 */
+	public Vector4f mul(Vector4f r) {
+		return mul(r, r);
 	}
 
 	/**
@@ -298,6 +347,16 @@ public final class Matrix4f implements Cloneable {
 	}
 
 	/**
+	 * As mulDiagonal(diag, result) where result is this matrix
+	 * 
+	 * @param diag
+	 * @return This matrix
+	 */
+	public Matrix4f mulDiagonal(Vector4f diag) {
+		return mulDiagonal(diag, this);
+	}
+
+	/**
 	 * Multiply this matrix by the diagonal matrix that takes it's four diagonal
 	 * entries from (x, y, z, w), or compute [this] x [m], where [m] is all 0s
 	 * except m00 = x, m11 = y, m22 = z, and m33 = w. The multiplication is
@@ -331,6 +390,16 @@ public final class Matrix4f implements Cloneable {
 	 */
 	public Vector4f mulPre(Vector4f r, Vector4f result) {
 		return mulPre(r.x, r.y, r.z, r.w, result);
+	}
+
+	/**
+	 * As mul(r, r) where result is the given vector.
+	 * 
+	 * @param r
+	 * @return r
+	 */
+	public Vector4f mulPre(Vector4f r) {
+		return mulPre(r, r);
 	}
 
 	/**
@@ -375,6 +444,16 @@ public final class Matrix4f implements Cloneable {
 	}
 
 	/**
+	 * As mulTransposeBoth(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix4f mulTransposeBoth(Matrix4f r) {
+		return mulTransposeBoth(r, this);
+	}
+
+	/**
 	 * Multiply the transpose of this matrix by r, or compute [this]^T x [r] and
 	 * store it in result. If result is null, then a new Matrix4f should be
 	 * created and returned instead.
@@ -401,6 +480,16 @@ public final class Matrix4f implements Cloneable {
 				* r.m20 + m33 * r.m30, m03 * r.m01 + m13 * r.m11 + m23 * r.m21
 				+ m33 * r.m31, m03 * r.m02 + m13 * r.m12 + m23 * r.m22 + m33
 				* r.m32, m03 * r.m03 + m13 * r.m13 + m23 * r.m23 + m33 * r.m33);
+	}
+
+	/**
+	 * As mulTransposeLeft(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix4f mulTransposeLeft(Matrix4f r) {
+		return mulTransposeLeft(r, this);
 	}
 
 	/**
@@ -434,6 +523,16 @@ public final class Matrix4f implements Cloneable {
 	}
 
 	/**
+	 * As mulTransposeRight(r, result) where result is this matrix
+	 * 
+	 * @param r
+	 * @return This matrix
+	 */
+	public Matrix4f mulTransposeRight(Matrix4f r) {
+		return mulTransposeRight(r, this);
+	}
+
+	/**
 	 * Scale each of this matrix's values by the scalar and store it in result.
 	 * This effectively computes [result] = scalar*[this].
 	 * 
@@ -449,6 +548,16 @@ public final class Matrix4f implements Cloneable {
 			* m03, scalar * m10, scalar * m11, scalar * m12, scalar * m13,
 			scalar * m20, scalar * m21, scalar * m22, scalar * m23, scalar
 				* m30, scalar * m31, scalar * m32, scalar * m33);
+	}
+
+	/**
+	 * As scale(scalar, result) where result is this matrix
+	 * 
+	 * @param scalar
+	 * @return This matrix
+	 */
+	public Matrix4f scale(float scalar) {
+		return scale(scalar, this);
 	}
 
 	/**
@@ -535,6 +644,15 @@ public final class Matrix4f implements Cloneable {
 			result = new Matrix4f();
 		return result.set(m00, m10, m20, m30, m01, m11, m21, m31, m02, m12,
 			m22, m32, m03, m13, m23, m33);
+	}
+
+	/**
+	 * Transpose this matrix in place.
+	 * 
+	 * @return This matrix
+	 */
+	public Matrix4f transpose() {
+		return transpose(this);
 	}
 
 	/**

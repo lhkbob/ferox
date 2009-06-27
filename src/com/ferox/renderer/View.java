@@ -181,14 +181,11 @@ public class View {
 	 * </p>
 	 */
 	public void updateView() {
-		Vector3f left = View.l.get();
-		Vector3f u = View.u.get();
-
 		// compute the right-handed basis vectors of the view
-		up.normalize(up).cross(direction, left).normalize(left);
-		direction.normalize(direction).cross(left, u).normalize(u);
+		Vector3f left = up.normalize().cross(direction, View.l.get()).normalize();
+		Vector3f u = direction.normalize().cross(left, View.u.get()).normalize();
 
-		// update viewTrans to the basis and possibly new location
+		// update viewTrans to the basis vectors and new location
 		Matrix3f m = viewTrans.getRotation();
 		m.setCol(0, left).setCol(1, u).setCol(2, direction);
 

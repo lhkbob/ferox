@@ -536,14 +536,9 @@ public abstract class Node {
 		} else
 			worldTransform.set(localTransform);
 
-		Vector3f dirVec = position.sub(worldTransform.getTranslation(), Node.dirVec.get());
-		dirVec.normalize(dirVec);
-
-		Vector3f leftVec = up.cross(dirVec, Node.leftVec.get());
-		leftVec.normalize(leftVec);
-		
-		Vector3f upVec = dirVec.cross(leftVec, Node.upVec.get());
-		upVec.normalize(upVec);
+		Vector3f dirVec = position.sub(worldTransform.getTranslation(), Node.dirVec.get()).normalize();
+		Vector3f leftVec = up.cross(dirVec, Node.leftVec.get()).normalize();
+		Vector3f upVec = dirVec.cross(leftVec, Node.upVec.get()).normalize();
 
 		Matrix3f rot = worldTransform.getRotation();
 		rot.setCol(0, leftVec);

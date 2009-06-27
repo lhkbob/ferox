@@ -191,8 +191,8 @@ public class Transform {
 	}
 
 	/**
-	 * Stores this X t1 into result (order is as in conventional matrix
-	 * math). It is safe to call with result as this transform.
+	 * Stores this X t1 into result (order is as in conventional matrix math).
+	 * It is safe to call with result as this transform.
 	 * 
 	 * @param t1 Right-hand transform in multiplication
 	 * @param t2 Result of the multiplication
@@ -202,7 +202,7 @@ public class Transform {
 	public Transform mul(Transform t1, Transform result) {
 		if (result == null)
 			result = new Transform();
-		
+
 		Vector3f t = temp.get();
 		transform(t1.trans, t);
 		result.trans.set(t);
@@ -217,7 +217,8 @@ public class Transform {
 	}
 
 	/**
-	 * Stores the inverse of this transform into result. Safe to call with result = this.
+	 * Stores the inverse of this transform into result. Safe to call with
+	 * result = this.
 	 * 
 	 * @param result Transform to store the inverse
 	 * @return result, or a new Transform if null
@@ -238,7 +239,7 @@ public class Transform {
 	public Transform inverseMul(Transform tn, Transform result) {
 		if (result == null)
 			result = new Transform();
-		
+
 		Vector3f t = temp.get();
 		inverseTransform(tn.trans, t);
 		result.trans.set(t);
@@ -282,7 +283,7 @@ public class Transform {
 		if (result == null)
 			result = new Vector3f();
 
-		return rot.mul(t.scale(scale, result), result).add(trans, result);
+		return rot.mul(t.scale(scale, result), result).add(trans);
 	}
 
 	/**
@@ -320,7 +321,7 @@ public class Transform {
 		if (result == null)
 			result = new Vector3f();
 
-		return rot.mulPre(t.sub(trans, result), result).scale(1f / scale, result);
+		return rot.mulPre(t.sub(trans, result), result).scale(1f / scale);
 	}
 
 	/**
@@ -352,6 +353,15 @@ public class Transform {
 		Transform that = (Transform) other;
 		return trans.equals(that.trans) && scale == that.scale
 			&& rot.equals(that.rot);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 31;
+		result += 17 * trans.hashCode();
+		result += 17 * Float.floatToIntBits(scale);
+		result += 17 * rot.hashCode();
+		return result;
 	}
 
 	private static final ThreadLocal<Transform> IDENTITY =
