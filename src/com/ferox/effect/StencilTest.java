@@ -2,7 +2,6 @@ package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
 
-
 /**
  * <p>
  * A stencil test allows the discarding of pixels based on testing against the
@@ -22,8 +21,7 @@ import com.ferox.effect.Effect.Type;
 public class StencilTest extends AbstractEffect {
 	/** Operation to perform on the stencil buffer under certain conditions. */
 	public static enum StencilOp {
-		KEEP, ZERO, REPLACE, INCREMENT, DECREMENT, INVERT, INCREMENT_WRAP,
-		DECREMENT_WRAP
+		KEEP, ZERO, REPLACE, INCREMENT, DECREMENT, INVERT, INCREMENT_WRAP, DECREMENT_WRAP
 	}
 
 	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.ALWAYS;
@@ -201,9 +199,8 @@ public class StencilTest extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(StencilTest test: " + stencilFunc + " stencilFail: "
-			+ stencilFail + " depthFail: " + depthFail + " depthPass: "
-			+ depthPass + " reference: " + reference + " testMask: " + funcMask
-			+ " writeMask: " + writeMask + ")";
+		return "(StencilTest test: " + stencilFunc + " stencilFail: " + stencilFail 
+			 + " depthFail: " + depthFail + " depthPass: " + depthPass + " reference: " + reference 
+			 + " testMask: " + funcMask + " writeMask: " + writeMask + ")";
 	}
 }

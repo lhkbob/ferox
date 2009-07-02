@@ -21,15 +21,12 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 /**
  * Abstract class that provides the majority of the implementation of Jogl's
  * WindowSurface and FullscreenSurface. It assumes the use of a GLCanvas and a
- * Frame for the representation of the surface.
- * 
- * Every JoglOnscreenSurface gets its own state record.
+ * Frame for the representation of the surface. Every JoglOnscreenSurface gets
+ * its own state record.
  * 
  * @author Michael Ludwig
- * 
  */
-public abstract class JoglOnscreenSurface extends JoglRenderSurface implements
-		OnscreenSurface, WindowListener {
+public abstract class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
 	protected final GLCanvas canvas;
 	protected Frame frame; // final
 
@@ -43,20 +40,18 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements
 	private boolean updateVsync;
 
 	/**
-	 * The given options is used to identify the GLCapabilities for the
+	 * The given options are used to identify the GLCapabilities for the
 	 * constructed GLCanvas. The GLCanvas shares with the given factory's shadow
 	 * context.
 	 */
-	protected JoglOnscreenSurface(JoglContextManager factory,
-			DisplayOptions optionsRequest, final int x, final int y,
-			final int width, final int height, final boolean resizable,
-			final boolean undecorated) {
+	public JoglOnscreenSurface(JoglContextManager factory, DisplayOptions optionsRequest, 
+							   final int x, final int y, final int width, final int height, 
+							   final boolean resizable, final boolean undecorated) {
 		super(factory);
 		if (optionsRequest == null)
 			optionsRequest = new DisplayOptions();
-		canvas = new GLCanvas(chooseCapabilities(optionsRequest),
-				new DefaultGLCapabilitiesChooser(), factory.getShadowContext(),
-				null);
+		canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), 
+							  factory.getShadowContext(), null);
 		frame = new Frame();
 
 		JoglUtil.invokeOnAwtThread(new Runnable() {

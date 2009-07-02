@@ -92,7 +92,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 
 	private void setUniformValue(GL gl, GlslUniform uniform, Object value) {
 		Handle h = factory.getFramework().getHandle(uniform, factory);
-		if (h != null) {
+		if (h != null)
 			switch (uniform.getType()) {
 			case BOOL:
 			case INT:
@@ -173,23 +173,19 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 			}
 			case FLOAT_MAT2: {
 				float[] val = (float[]) value;
-				gl.glUniformMatrix2fv(h.getId(), uniform.getLength(), false,
-						val, 0);
+				gl.glUniformMatrix2fv(h.getId(), uniform.getLength(), false, val, 0);
 				break;
 			}
 			case FLOAT_MAT3: {
 				float[] val = (float[]) value;
-				gl.glUniformMatrix3fv(h.getId(), uniform.getLength(), false,
-						val, 0);
+				gl.glUniformMatrix3fv(h.getId(), uniform.getLength(), false, val, 0);
 				break;
 			}
 			case FLOAT_MAT4: {
 				float[] val = (float[]) value;
-				gl.glUniformMatrix4fv(h.getId(), uniform.getLength(), false,
-						val, 0);
+				gl.glUniformMatrix4fv(h.getId(), uniform.getLength(), false, val, 0);
 				break;
 			}
 			}
-		}
 	}
 }

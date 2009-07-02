@@ -20,7 +20,6 @@ import com.ferox.math.Vector3f;
 public class SpotLightNode extends LightNode<SpotLight> {
 	/**
 	 * Create a SpotLightNode with a SpotLight created with the given arguments.
-	 * 
 	 */
 	public SpotLightNode() {
 		super(new SpotLight(new Vector3f()));
@@ -42,8 +41,7 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param specular
 	 * @param ambient
 	 */
-	public SpotLightNode(Color4f diffuse, Color4f specular,
-		Color4f ambient) {
+	public SpotLightNode(Color4f diffuse, Color4f specular, Color4f ambient) {
 		super(new SpotLight(new Vector3f(), diffuse, specular, ambient));
 	}
 
@@ -55,8 +53,7 @@ public class SpotLightNode extends LightNode<SpotLight> {
 	 * @param ambient
 	 * @param direction
 	 */
-	public SpotLightNode(Color4f diffuse, Color4f specular,
-		Color4f ambient, Vector3f direction) {
+	public SpotLightNode(Color4f diffuse, Color4f specular, Color4f ambient, Vector3f direction) {
 		super(new SpotLight(new Vector3f(), diffuse, specular, ambient, direction));
 	}
 

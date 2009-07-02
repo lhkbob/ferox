@@ -1,9 +1,8 @@
 package com.ferox.effect;
 
-
 /**
- * Basic implementation that caches the EffectType returned by a sub-classes Type
- * annotation, so its constructor will fail unless the class is properly
+ * Basic implementation that caches the EffectType returned by a sub-classes
+ * Type annotation, so its constructor will fail unless the class is properly
  * annotated.
  * 
  * @author Michael Ludwig

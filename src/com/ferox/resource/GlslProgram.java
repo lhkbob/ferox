@@ -103,8 +103,7 @@ public class GlslProgram implements Resource {
 	public GlslProgram(String[] vertex, String[] fragment) {
 		dirty = createDescriptor();
 		if (dirty == null)
-			throw new NullPointerException(
-				"Sub-class returned a null dirty descriptor");
+			throw new NullPointerException("Sub-class returned a null dirty descriptor");
 		renderData = new RenderDataCache();
 
 		attachedUniforms = new HashMap<String, GlslUniform>();
@@ -140,15 +139,13 @@ public class GlslProgram implements Resource {
 	 * @throws IllegalStateException if an attribute is already bound with name,
 	 *             or if there's not enough room for the new attribute
 	 */
-	public GlslVertexAttribute bindAttribute(String name, AttributeType type,
-		int bindingSlot) {
+	public GlslVertexAttribute bindAttribute(String name, AttributeType type, int bindingSlot) {
 		if (name == null)
 			throw new NullPointerException("Name cannot be null");
 
 		GlslVertexAttribute u = boundAttrs.get(name);
 		if (u != null)
-			throw new IllegalStateException(
-				"Cannot re-bind an attribute with the same name: " + name);
+			throw new IllegalStateException("Cannot re-bind an attribute with the same name: " + name);
 		else
 			// throws IllegalArgumentException/NullPointerException
 			u = new GlslVertexAttribute(name, type, bindingSlot, this);
@@ -157,9 +154,7 @@ public class GlslProgram implements Resource {
 		int maxSlot = bindingSlot + type.getSlotCount();
 		for (int i = bindingSlot; i < maxSlot; i++)
 			if (usedAttributeSlots.get(i))
-				throw new IllegalStateException(
-					"Requested attribute does not have enough room at the given slot: "
-						+ bindingSlot);
+				throw new IllegalStateException("Requested attribute does not have enough room at the given slot: " + bindingSlot);
 
 		// mark slots as used
 		for (int i = bindingSlot; i < maxSlot; i++)
@@ -246,8 +241,7 @@ public class GlslProgram implements Resource {
 
 		GlslUniform u = attachedUniforms.get(name);
 		if (u != null)
-			throw new IllegalStateException(
-				"Cannot re-attach a uniform with the same name: " + name);
+			throw new IllegalStateException("Cannot re-attach a uniform with the same name: " + name);
 		else
 			u = new GlslUniform(name, type, length, this); // throws
 		// IllegalArgumentException/NullPointerException
@@ -352,14 +346,12 @@ public class GlslProgram implements Resource {
 	 * @throws IllegalArgumentException if both vertex and fragment are empty
 	 *             shaders
 	 */
-	public void setShaderCode(String[] vertex, String[] fragment)
-		throws IllegalArgumentException {
+	public void setShaderCode(String[] vertex, String[] fragment) throws IllegalArgumentException {
 		vertex = compress(vertex);
 		fragment = compress(fragment);
 
 		if (vertex.length == 0 && fragment.length == 0)
-			throw new IllegalArgumentException(
-				"Must specify at least one non-empty shader source");
+			throw new IllegalArgumentException("Must specify at least one non-empty shader source");
 
 		vertexShader = vertex;
 		fragmentShader = fragment;

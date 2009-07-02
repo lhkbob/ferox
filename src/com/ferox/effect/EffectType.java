@@ -2,23 +2,23 @@ package com.ferox.effect;
 
 /**
  * <p>
- * An enum describing the possible end effects allowed by most current
- * graphics hardware. This is highly based off of fixed-function rendering
- * pipelines in low-level graphics apis. Many related operations have been
- * gathered together into one effect type for simplicity. If ever new types
- * should become available, this enum may change.
+ * An enum describing the possible end effects allowed by most current graphics
+ * hardware. This is highly based off of fixed-function rendering pipelines in
+ * low-level graphics apis. Many related operations have been gathered together
+ * into one effect type for simplicity. If ever new types should become
+ * available, this enum may change.
  * </p>
  * <p>
  * Each EffectType has a boolean parameter controlling whether or not multiple
  * Effects of that EffectType can be used in the same EffectSet.
  * </p>
  * <p>
- * The concept of multiple effects may be confusing. For example, TEXTURE is
- * not a EffectType allowing multiple Effects, but low-level graphics libraries
- * let you use multi-texturing. This is because each texture has a specific
- * unit attached to it; the active textures are then a list and not a set.
- * Lights however are multiple effects because all lights applied to a
- * RenderAtom can be represented as a set.
+ * The concept of multiple effects may be confusing. For example, TEXTURE is not
+ * a EffectType allowing multiple Effects, but low-level graphics libraries let
+ * you use multi-texturing. This is because each texture has a specific unit
+ * attached to it; the active textures are then a list and not a set. Lights
+ * however are multiple effects because all lights applied to a RenderAtom can
+ * be represented as a set.
  * </p>
  */
 public enum EffectType {
@@ -92,8 +92,8 @@ public enum EffectType {
 	}
 
 	/**
-	 * Whether or not multiple Effects of this EffectType can be used in the same
-	 * EffectSet
+	 * Whether or not multiple Effects of this EffectType can be used in the
+	 * same EffectSet
 	 * 
 	 * @return True if multiple instances using this EffectType do not conflict
 	 *         with each other.

@@ -40,8 +40,8 @@ public class Glyph {
 	 * @param tcT The texture coordinate for the top edge
 	 * @param tcB The texture coordinate for the bottom edge
 	 */
-	public Glyph(float advance, float tcL, float tcR, float tcT, float tcB,
-		float x, float y, float width, float height) {
+	public Glyph(float advance, float tcL, float tcR, float tcT, float tcB, 
+				 float x, float y, float width, float height) {
 		this.advance = advance;
 		this.tcL = tcL;
 		this.tcR = tcR;

@@ -22,15 +22,13 @@ import com.ferox.resource.TextureRectangle.TextureRectangleDirtyDescriptor;
 
 /**
  * JoglTextureRectangleResourceDriver provides the functionality to load and
- * delete TextureRectangle instances in the graphics card.
- * 
- * A TextureRectangle will have an ERROR status if it is compressed and the
- * DXT_n compressions aren't supported, or if texture rectangles aren't
- * supported. It will be DIRTY if it was an unclamped float format and they're
- * not supported, or if an NPOT texture had to be resized.
+ * delete TextureRectangle instances in the graphics card. A TextureRectangle
+ * will have an ERROR status if it is compressed and the DXT_n compressions
+ * aren't supported, or if texture rectangles aren't supported. It will be DIRTY
+ * if it was an unclamped float format and they're not supported, or if an NPOT
+ * texture had to be resized.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	private final JoglContextManager factory;
@@ -75,15 +73,13 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 				if (!hasRectSupport) {
 					// rectangle textures aren't supported
 					data.setStatus(Status.ERROR);
-					data
-							.setStatusMessage("TextureRectangles aren't supported on this hardware");
+					data.setStatusMessage("TextureRectangles aren't supported on this hardware");
 					return; // abort the update
 				}
 				if (tRect.getFormat().isCompressed() && !hasS3tcCompression) {
 					// can't make the texture
 					data.setStatus(Status.ERROR);
-					data
-							.setStatusMessage("DXT_n TextureFormats aren't supported on this hardware");
+					data.setStatusMessage("DXT_n TextureFormats aren't supported on this hardware");
 					return; // abort the update
 				}
 
@@ -93,8 +89,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 				data.setHandle(handle);
 				if (imageDriver.isDirty(tRect, handle)) {
 					data.setStatus(Status.DIRTY);
-					data.setStatusMessage(imageDriver.getDirtyStatusMessage(
-							tRect, handle));
+					data.setStatusMessage(imageDriver.getDirtyStatusMessage(tRect, handle));
 				} else {
 					data.setStatus(Status.OK);
 					data.setStatusMessage("");
@@ -104,17 +99,13 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 				// down-the-line
 			}
 
-			TextureRectangleDirtyDescriptor dirty = (TextureRectangleDirtyDescriptor) tRect
-					.getDirtyDescriptor();
-			if (newTex || fullUpdate || dirty.isDataDirty()
-					|| dirty.isAnisotropicFilteringDirty()
-					|| dirty.isDepthCompareDirty() || dirty.isFilterDirty()
-					|| dirty.isTextureWrapDirty()) {
+			TextureRectangleDirtyDescriptor dirty = (TextureRectangleDirtyDescriptor) tRect.getDirtyDescriptor();
+			if (newTex || fullUpdate || dirty.isDataDirty() || dirty.isAnisotropicFilteringDirty() || 
+				dirty.isDepthCompareDirty() || dirty.isFilterDirty() || dirty.isTextureWrapDirty()) {
 				// we must actually update the texture
 				gl.glBindTexture(handle.glTarget, handle.id);
 
-				imageDriver.setTextureParameters(gl, handle, tRect, newTex
-						|| fullUpdate);
+				imageDriver.setTextureParameters(gl, handle, tRect, newTex || fullUpdate);
 
 				TextureFormat f = tRect.getFormat();
 				if (newTex || f.isCompressed() || f == TextureFormat.DEPTH)
@@ -125,13 +116,11 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 					doTexImage(gl, pr, handle, tRect, newTex);
 				else
 					// we can use glTexSubImage for better performance
-					doTexSubImage(gl, pr, (fullUpdate ? null : dirty), handle,
-							tRect);
+					doTexSubImage(gl, pr, (fullUpdate ? null : dirty), handle, tRect);
 
 				// restore the texture binding on the active unit
 				TextureUnit active = tr.textureUnits[tr.activeTexture];
-				int restoreId = (active.enabledTarget == handle.glTarget ? active.texBinding
-						: 0);
+				int restoreId = (active.enabledTarget == handle.glTarget ? active.texBinding : 0);
 				gl.glBindTexture(handle.glTarget, restoreId);
 			}
 
@@ -147,34 +136,28 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	 * regions. This method will properly resize images and use compressed
 	 * function calls if needed.
 	 */
-	private void doTexImage(GL gl, PackUnpackRecord pr, TextureHandle handle,
-			TextureRectangle tex, boolean newTex) {
+	private void doTexImage(GL gl, PackUnpackRecord pr, 
+							TextureHandle handle, TextureRectangle tex, boolean newTex) {
 		BufferData bd = tex.getData();
 
 		// possibly rescale the data
 		if (bd != null && bd.getData() != null) {
 			// proceed with glTexImage
-			imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, handle.width,
-					handle.height);
+			imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, handle.width, handle.height);
 			if (handle.glSrcFormat > 0)
-				gl.glTexImage2D(handle.glTarget, 0, handle.glDstFormat,
-						handle.width, handle.height, 0, handle.glSrcFormat,
-						handle.glType, imageDriver.wrap(bd));
+				gl.glTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
+								handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 			else
-				gl.glCompressedTexImage2D(handle.glTarget, 0,
-						handle.glDstFormat, handle.width, handle.height, 0, bd
-								.getCapacity(), imageDriver.wrap(bd));
+				gl.glCompressedTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
+										  bd.getCapacity(), imageDriver.wrap(bd));
 		} else if (newTex)
 			// we'll just allocate an empty image
 			if (handle.glSrcFormat > 0)
-				gl.glTexImage2D(handle.glTarget, 0, handle.glDstFormat,
-						handle.width, handle.height, 0, handle.glSrcFormat,
-						handle.glType, null);
+				gl.glTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
+								handle.glSrcFormat, handle.glType, null);
 			else
-				gl.glCompressedTexImage2D(handle.glTarget, 0,
-						handle.glDstFormat, handle.width, handle.height, 0, tex
-								.getFormat().getBufferSize(handle.width,
-										handle.height, 0), null);
+				gl.glCompressedTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
+										  tex.getFormat().getBufferSize(handle.width, handle.height, 0), null);
 	}
 
 	/*
@@ -183,9 +166,8 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	 * doesn't have a compressed format. It is recommended not to use the DEPTH
 	 * format, either since that seems to cause problems.
 	 */
-	private void doTexSubImage(GL gl, PackUnpackRecord pr,
-			TextureRectangleDirtyDescriptor dirty, TextureHandle handle,
-			TextureRectangle tex) {
+	private void doTexSubImage(GL gl, PackUnpackRecord pr, 
+							   TextureRectangleDirtyDescriptor dirty, TextureHandle handle, TextureRectangle tex) {
 		MipmapDirtyRegion mdr;
 		BufferData bd = tex.getData();
 
@@ -197,21 +179,15 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 				mdr = (dirty == null ? null : dirty.getDirtyRegion());
 				if (mdr != null) {
 					// use the region descriptor
-					imageDriver.setUnpackRegion(gl, pr, mdr.getDirtyXOffset(),
-							mdr.getDirtyYOffset(), 0, handle.width,
-							handle.height);
-					gl.glTexSubImage2D(handle.glTarget, 0, mdr
-							.getDirtyXOffset(), mdr.getDirtyYOffset(), mdr
-							.getDirtyWidth(), mdr.getDirtyHeight(),
-							handle.glSrcFormat, handle.glType, imageDriver
-									.wrap(bd));
+					imageDriver.setUnpackRegion(gl, pr, mdr.getDirtyXOffset(), mdr.getDirtyYOffset(), 0, handle.width, handle.height);
+					gl.glTexSubImage2D(handle.glTarget, 0, mdr.getDirtyXOffset(), mdr.getDirtyYOffset(), 
+									   mdr.getDirtyWidth(), mdr.getDirtyHeight(), handle.glSrcFormat, 
+									   handle.glType, imageDriver.wrap(bd));
 				} else {
 					// we'll update the whole image level
-					imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, handle.width,
-							handle.height);
-					gl.glTexSubImage2D(handle.glTarget, 0, 0, 0, handle.width,
-							handle.height, handle.glSrcFormat, handle.glType,
-							imageDriver.wrap(bd));
+					imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, handle.width, handle.height);
+					gl.glTexSubImage2D(handle.glTarget, 0, 0, 0, handle.width, handle.height, 
+									   handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 				}
 			}
 	}

@@ -14,7 +14,6 @@ import com.ferox.resource.TextureImage.TextureWrap;
  * correctly with offscreen rendering.
  * 
  * @author Michael Ludwig
- * 
  */
 public class TextureHandle implements Handle {
 	// id
@@ -45,8 +44,9 @@ public class TextureHandle implements Handle {
 
 	private float anisoLevel;
 
-	public TextureHandle(int id, int glTarget, int glType, int glSrcFormat,
-			int glDstFormat, int width, int height, int depth, int numMipmaps) {
+	public TextureHandle(int id, int glTarget, int glType, int glSrcFormat, 
+						 int glDstFormat, int width, int height, int depth, 
+						 int numMipmaps) {
 		// constant parameters for a texture
 		this.id = id;
 
@@ -129,18 +129,15 @@ public class TextureHandle implements Handle {
 
 	public void setDepthCompareEnabled(GL gl, boolean enable, boolean force) {
 		if (force || enable != enableDepthCompare) {
-			gl.glTexParameteri(glTarget, GL.GL_TEXTURE_COMPARE_MODE,
-					(enable ? GL.GL_COMPARE_R_TO_TEXTURE : GL.GL_NONE));
+			gl.glTexParameteri(glTarget, GL.GL_TEXTURE_COMPARE_MODE, (enable ? GL.GL_COMPARE_R_TO_TEXTURE : GL.GL_NONE));
 			enableDepthCompare = enable;
 		}
 	}
 
-	public void setAnisotropicLevel(GL gl, float level, float maxAniso,
-			boolean force) {
+	public void setAnisotropicLevel(GL gl, float level, float maxAniso, boolean force) {
 		if (force || level != anisoLevel) {
 			float amount = level * maxAniso + 1f;
-			gl.glTexParameterf(glTarget, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT,
-					amount);
+			gl.glTexParameterf(glTarget, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
 			anisoLevel = level;
 		}
 	}

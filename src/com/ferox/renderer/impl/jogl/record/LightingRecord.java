@@ -6,7 +6,6 @@ import javax.media.opengl.GL;
  * Class storing all the state relevant to lighting and material properties.
  * 
  * @author Michael Ludwig
- * 
  */
 public class LightingRecord {
 	/**

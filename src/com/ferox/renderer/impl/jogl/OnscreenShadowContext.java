@@ -14,13 +14,10 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * OnscreenShadowContext provides a GLContext from a GLCanvas, and when
  * necessary controls making the canvas visible. It attempts to keep the canvas
  * hidden unless GL calls actually need to be made (in which case, it makes it
- * visible only when necessary).
- * 
- * This is intended to be a fall-back shadow context when a PbufferShadowContext
- * can't be used.
+ * visible only when necessary). This is intended to be a fall-back shadow
+ * context when a PbufferShadowContext can't be used.
  * 
  * @author Michael Ludwig
- * 
  */
 public class OnscreenShadowContext extends AbstractShadowContext {
 	// to be executed on the EDT before the canvas has display() called

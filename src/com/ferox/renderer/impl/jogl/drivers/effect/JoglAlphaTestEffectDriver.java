@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.AlphaTest;
-import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 
@@ -13,7 +13,6 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * state implementation.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglAlphaTestEffectDriver extends SingleEffectDriver<AlphaTest> {
 	public JoglAlphaTestEffectDriver(JoglContextManager factory) {

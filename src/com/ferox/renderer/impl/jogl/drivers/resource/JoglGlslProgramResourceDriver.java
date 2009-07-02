@@ -41,8 +41,9 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		private int length;
 
 		public boolean equals(GlslUniform other) {
-			return other.getType() == type && other.getName().equals(name)
-					&& other.getLength() == length;
+			return other.getType() == type && 
+				   other.getName().equals(name) && 
+				   other.getLength() == length;
 		}
 	}
 
@@ -53,8 +54,9 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		private int bindSlot;
 
 		public boolean equals(GlslVertexAttribute other) {
-			return other.getType() == type && other.getName().equals(name)
-					&& other.getBindingSlot() == bindSlot;
+			return other.getType() == type && 
+				   other.getName().equals(name) && 
+				   other.getBindingSlot() == bindSlot;
 		}
 	}
 
@@ -65,8 +67,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	public JoglGlslProgramResourceDriver(JoglContextManager factory) {
 		this.factory = factory;
 		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
-		maxAttributes = factory.getFramework().getCapabilities()
-				.getMaxVertexAttributes();
+		maxAttributes = factory.getFramework().getCapabilities().getMaxVertexAttributes();
 	}
 
 	@Override
@@ -87,7 +88,8 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	}
 
 	@Override
-	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
+	public void update(Renderer renderer, Resource resource, 
+					   ResourceData data, boolean fullUpdate) {
 		GL gl = factory.getGL();
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 		GlslProgram program = (GlslProgram) resource;
@@ -96,8 +98,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 			if (!glslSupport) {
 				// glsl is not supported, so abort the update
 				data.setStatus(Status.ERROR);
-				data
-						.setStatusMessage("GLSL shader programs aren't supported on this hardware");
+				data.setStatusMessage("GLSL shader programs aren't supported on this hardware");
 
 				for (GlslUniform u : program.getUniforms().values())
 					// this will set status to ERROR, too
@@ -121,16 +122,14 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 
 		GlslProgramDirtyDescriptor dirty = program.getDirtyDescriptor();
 
-		if (fullUpdate || dirty.getAttributesDirty()
-				|| dirty.getGlslCodeDirty()) {
+		if (fullUpdate || dirty.getAttributesDirty() || dirty.getGlslCodeDirty()) {
 			// re-bind the attribute locations
 			int slot;
-			for (Entry<String, GlslVertexAttribute> entry : program
-					.getAttributes().entrySet()) {
+			for (Entry<String, GlslVertexAttribute> entry : program.getAttributes().entrySet()) {
 				slot = entry.getValue().getBindingSlot();
 				if (slot < maxAttributes)
-					gl.glBindAttribLocation(handle.programId, entry.getValue()
-							.getBindingSlot(), entry.getKey());
+					gl.glBindAttribLocation(handle.programId, entry.getValue().getBindingSlot(), 
+											entry.getKey());
 				// else ... ignore it since it's invalid
 			}
 		}
@@ -138,31 +137,24 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		if (fullUpdate || dirty.getGlslCodeDirty()) {
 			// set the glsl code that will be executed for the program
 			String[] fragmentCode = program.getFragmentShader();
-			int fragmentObject = (fragmentCode.length == 0 ? -1
-					: compileShader(gl, handle.fragmentId, fragmentCode,
-							GL.GL_FRAGMENT_SHADER));
+			int fragmentObject = (fragmentCode.length == 0 ? -1 
+														   : compileShader(gl, handle.fragmentId, fragmentCode, GL.GL_FRAGMENT_SHADER));
 
 			String[] vertexCode = program.getVertexShader();
-			int vertexObject = (vertexCode.length == 0 ? -1 : compileShader(gl,
-					handle.vertexId, vertexCode, GL.GL_VERTEX_SHADER));
+			int vertexObject = (vertexCode.length == 0 ? -1 
+													   : compileShader(gl, handle.vertexId, vertexCode, GL.GL_VERTEX_SHADER));
 
 			// attach the shaders
-			handle.fragmentId = setShader(gl, handle.programId,
-					handle.fragmentId, fragmentObject);
-			handle.vertexId = setShader(gl, handle.programId, handle.vertexId,
-					vertexObject);
+			handle.fragmentId = setShader(gl, handle.programId, handle.fragmentId, fragmentObject);
+			handle.vertexId = setShader(gl, handle.programId, handle.vertexId, vertexObject);
 
 			// check compile status
-			boolean fragCompiled = (fragmentObject <= 0 ? true : isCompiled(gl,
-					fragmentObject));
-			boolean vertCompiled = (vertexObject <= 0 ? true : isCompiled(gl,
-					vertexObject));
+			boolean fragCompiled = (fragmentObject <= 0 ? true : isCompiled(gl, fragmentObject));
+			boolean vertCompiled = (vertexObject <= 0 ? true : isCompiled(gl, vertexObject));
 
 			// variables used to set the status and status message
-			String fragMsg = "Fragment shader, Compiled: " + fragCompiled
-					+ " Log:\n" + getShaderLog(gl, handle.fragmentId);
-			String vertMsg = "Vertex shader, Compiled: " + vertCompiled
-					+ " Log:\n" + getShaderLog(gl, handle.vertexId);
+			String fragMsg = "Fragment shader, Compiled: " + fragCompiled + " Log:\n" + getShaderLog(gl, handle.fragmentId);
+			String vertMsg = "Vertex shader, Compiled: " + vertCompiled + " Log:\n" + getShaderLog(gl, handle.vertexId);
 
 			String progMsg;
 			Status status;
@@ -172,8 +164,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 				gl.glLinkProgram(handle.programId);
 				boolean linked = isLinked(gl, handle.programId);
 
-				progMsg = "Glsl program, Linked: " + linked + " Log:\n"
-						+ getProgramLog(gl, handle.programId);
+				progMsg = "Glsl program, Linked: " + linked + " Log:\n" + getProgramLog(gl, handle.programId);
 				status = (linked ? Status.OK : Status.ERROR);
 			} else {
 				// something failed to compile, set status to ERROR
@@ -182,28 +173,24 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 			}
 
 			data.setStatus(status);
-			data.setStatusMessage(vertMsg.trim() + "\n" + fragMsg.trim() + "\n"
-					+ progMsg.trim());
-			
-			if (status == Status.ERROR) {
+			data.setStatusMessage(vertMsg.trim() + "\n" + fragMsg.trim() + "\n" + progMsg.trim());
+
+			if (status == Status.ERROR)
 				// iterate through bound uniforms and update them
 				// to set their status to ERROR
-				for (Entry<String, GlslUniform> e: program.getUniforms().entrySet()) {
+				for (Entry<String, GlslUniform> e : program.getUniforms().entrySet())
 					renderer.update(e.getValue(), false);
-				}
-			}
 		}
 
 		// now we have to configure the uniforms and attributes
 
-		if ((fullUpdate || dirty.getGlslCodeDirty() || dirty.getUniformsDirty())
-				&& data.getStatus() != Status.ERROR)
+		if ((fullUpdate || dirty.getGlslCodeDirty() || 
+			dirty.getUniformsDirty()) && data.getStatus() != Status.ERROR)
 			// have to update the uniforms
 			detectUniforms(gl, renderer, program, handle);
 
-		if ((fullUpdate || dirty.getGlslCodeDirty() || dirty
-				.getAttributesDirty())
-				&& data.getStatus() != Status.ERROR)
+		if ((fullUpdate || dirty.getGlslCodeDirty() || 
+			dirty.getAttributesDirty()) && data.getStatus() != Status.ERROR)
 			// have to update the attributes and make sure slots don't overlap
 			detectAttributes(gl, program, handle);
 
@@ -214,15 +201,12 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * Fetch declared shader attributes, unbind attributes that don't exist.
 	 * Attach any new ones. Update the slot bindings for the given program.
 	 */
-	private static void detectAttributes(GL gl, GlslProgram program,
-			GlslProgramHandle handle) {
+	private static void detectAttributes(GL gl, GlslProgram program, GlslProgramHandle handle) {
 		int[] totalUniforms = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_ATTRIBUTES,
-				totalUniforms, 0);
+		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_ATTRIBUTES, totalUniforms, 0);
 
 		int[] maxNameLength = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
-				maxNameLength, 0);
+		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, maxNameLength, 0);
 
 		int[] nameLength = new int[1];
 		int[] size = new int[1];
@@ -232,8 +216,8 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		Map<String, Attribute> declaredAttributes = new HashMap<String, Attribute>();
 		for (int i = 0; i < totalUniforms[0]; i++) {
 			// read in the attrs from OpenGL
-			gl.glGetActiveAttrib(handle.programId, i, maxNameLength[0],
-					nameLength, 0, size, 0, type, 0, chars, 0);
+			gl.glGetActiveAttrib(handle.programId, i, maxNameLength[0], 
+								 nameLength, 0, size, 0, type, 0, chars, 0);
 
 			Attribute a = new Attribute();
 			a.type = JoglUtil.getAttributeType(type[0]);
@@ -249,12 +233,10 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		// now we have to clean-up bad attrs, attach new ones, and update good
 		// vars
 
-		Map<String, GlslVertexAttribute> existingAttrs = new HashMap<String, GlslVertexAttribute>(
-				program.getAttributes());
+		Map<String, GlslVertexAttribute> existingAttrs = new HashMap<String, GlslVertexAttribute>(program.getAttributes());
 		Attribute declared;
 		GlslVertexAttribute existing;
-		for (Entry<String, GlslVertexAttribute> entry : existingAttrs
-				.entrySet()) {
+		for (Entry<String, GlslVertexAttribute> entry : existingAttrs.entrySet()) {
 			existing = entry.getValue();
 			declared = declaredAttributes.get(existing.getName());
 			if (declared == null || !declared.equals(existing))
@@ -269,8 +251,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		for (Entry<String, Attribute> entry : declaredAttributes.entrySet()) {
 			declared = entry.getValue();
 			// we can use this attribute
-			program.bindAttribute(declared.name, declared.type,
-					declared.bindSlot);
+			program.bindAttribute(declared.name, declared.type, declared.bindSlot);
 		}
 	}
 
@@ -279,15 +260,13 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * exist from the program and clean them up. Attach new uniforms, and update
 	 * all valid uniforms (including ones attached previously).
 	 */
-	private static void detectUniforms(GL gl, Renderer renderer,
-			GlslProgram program, GlslProgramHandle handle) {
+	private static void detectUniforms(GL gl, Renderer renderer, 
+									   GlslProgram program, GlslProgramHandle handle) {
 		int[] totalUniforms = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_UNIFORMS,
-				totalUniforms, 0);
+		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_UNIFORMS, totalUniforms, 0);
 
 		int[] maxNameLength = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_UNIFORM_MAX_LENGTH,
-				maxNameLength, 0);
+		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_UNIFORM_MAX_LENGTH, maxNameLength, 0);
 
 		int[] nameLength = new int[1];
 		int[] size = new int[1];
@@ -297,8 +276,8 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		Map<String, Uniform> declaredUniforms = new HashMap<String, Uniform>();
 		for (int i = 0; i < totalUniforms[0]; i++) {
 			// read in the uniform from OpenGL
-			gl.glGetActiveUniform(handle.programId, i, maxNameLength[0],
-					nameLength, 0, size, 0, type, 0, chars, 0);
+			gl.glGetActiveUniform(handle.programId, i, maxNameLength[0], nameLength, 
+								  0, size, 0, type, 0, chars, 0);
 
 			Uniform u = new Uniform();
 			u.length = size[0];
@@ -312,8 +291,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 
 		// now we have to clean-up bad uniforms, attach new ones, and update
 		// good vars
-		Map<String, GlslUniform> existingUniforms = new HashMap<String, GlslUniform>(
-				program.getUniforms());
+		Map<String, GlslUniform> existingUniforms = new HashMap<String, GlslUniform>(program.getUniforms());
 		Uniform declared;
 		GlslUniform existing;
 		for (Entry<String, GlslUniform> entry : existingUniforms.entrySet()) {
@@ -333,8 +311,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		// at this point, only un-attached valid uniforms are in this map
 		for (Entry<String, Uniform> entry : declaredUniforms.entrySet()) {
 			declared = entry.getValue();
-			existing = program.attachUniform(declared.name, declared.type,
-					declared.length);
+			existing = program.attachUniform(declared.name, declared.type, declared.length);
 			renderer.update(existing, true);
 		}
 	}
@@ -344,8 +321,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * (if oldShader existed), and attach newShader (if newShader exists).
 	 * Returns newShader.
 	 */
-	private static int setShader(GL gl, int programId, int oldShader,
-			int newShader) {
+	private static int setShader(GL gl, int programId, int oldShader, int newShader) {
 		if (oldShader != newShader) {
 			if (oldShader > 0) {
 				// clean-up old shader object
@@ -368,8 +344,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * Returns the id of the shader object, which will be new if objectId isn't
 	 * positive.
 	 */
-	private static int compileShader(GL gl, int objectId, String[] sourceCode,
-			int type) {
+	private static int compileShader(GL gl, int objectId, String[] sourceCode, int type) {
 		if (objectId <= 0)
 			objectId = gl.glCreateShader(type);
 
@@ -377,8 +352,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		for (int i = 0; i < lineLengths.length; i++)
 			lineLengths[i] = sourceCode[i].length();
 
-		gl.glShaderSource(objectId, sourceCode.length, sourceCode, lineLengths,
-				0);
+		gl.glShaderSource(objectId, sourceCode.length, sourceCode, lineLengths, 0);
 		gl.glCompileShader(objectId);
 
 		return objectId;

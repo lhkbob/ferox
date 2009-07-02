@@ -56,8 +56,8 @@ public class FogNode extends Leaf {
 	 * @param eq
 	 * @param qual
 	 */
-	public FogNode(Color4f color, float start, float end, float density,
-		FogEquation eq, Quality qual) {
+	public FogNode(Color4f color, float start, float end, float density, 
+				   FogEquation eq, Quality qual) {
 		fog = new Fog(color, start, end, density, eq, qual);
 	}
 
@@ -77,8 +77,7 @@ public class FogNode extends Leaf {
 	 */
 	public void setEffectRadius(float radius) {
 		if (radius <= 0f)
-			throw new IllegalArgumentException("Invalid effect radius: "
-				+ radius);
+			throw new IllegalArgumentException("Invalid effect radius: " + radius);
 		BoundSphere local = new BoundSphere(radius);
 		setLocalBounds(local);
 	}
@@ -182,13 +181,13 @@ public class FogNode extends Leaf {
 	public void setQuality(Quality qual) {
 		fog.setQuality(qual);
 	}
-	
+
 	@Override
 	protected void prepareLightsAndFog(List<LightNode<?>> lights, List<FogNode> fogs) {
 		super.prepareLightsAndFog(lights, fogs);
 		fogs.add(this);
 	}
-	
+
 	@Override
 	protected void updateFog(FogNode fog) {
 		// do nothing

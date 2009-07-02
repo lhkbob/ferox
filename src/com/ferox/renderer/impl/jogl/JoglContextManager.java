@@ -9,16 +9,15 @@ import java.util.Queue;
 import java.util.Map.Entry;
 
 import javax.media.opengl.DebugGL;
-import javax.media.opengl.TraceGL;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.TraceGL;
 
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
@@ -82,11 +81,9 @@ public class JoglContextManager implements ContextManager {
 	 * use this surface factory or undefined results will happen). If debug is
 	 * true, opengl errors will be checked after each opengl call.
 	 */
-	public JoglContextManager(AbstractFramework renderer,
-		RenderCapabilities caps, boolean debug) {
+	public JoglContextManager(AbstractFramework renderer, RenderCapabilities caps, boolean debug) {
 		if (renderer == null)
-			throw new NullPointerException(
-				"Cannot create a surface factory with a null renderer");
+			throw new NullPointerException("Cannot create a surface factory with a null renderer");
 
 		debugGL = debug;
 		this.renderer = renderer;
@@ -116,11 +113,9 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	@Override
-	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
-		int width, int height) {
+	public FullscreenSurface createFullscreenSurface(DisplayOptions options, int width, int height) {
 		if (windowCreatedCount > 0)
-			throw new SurfaceCreationException(
-				"Cannot create a FullscreenSurface when there are created WindowSurfaces");
+			throw new SurfaceCreationException("Cannot create a FullscreenSurface when there are created WindowSurfaces");
 
 		JoglFullscreenSurface s = null;
 		s = new JoglFullscreenSurface(this, options, width, height);
@@ -133,16 +128,14 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	@Override
-	public WindowSurface createWindowSurface(DisplayOptions options, int x,
-		int y, int width, int height, boolean resizable, boolean undecorated) {
+	public WindowSurface createWindowSurface(DisplayOptions options, 
+										     int x, int y, int width, int height, 
+										     boolean resizable, boolean undecorated) {
 		if (fullscreenCreated)
-			throw new SurfaceCreationException(
-				"Cannot create a WindowSurface when there is already a FullscreenSurface");
+			throw new SurfaceCreationException("Cannot create a WindowSurface when there is already a FullscreenSurface");
 
 		JoglWindowSurface s = null;
-		s =
-			new JoglWindowSurface(this, options, x, y, width, height,
-				resizable, undecorated);
+		s = new JoglWindowSurface(this, options, x, y, width, height, resizable, undecorated);
 		activeSurfaces.add(s);
 
 		windowCreatedCount++;
@@ -152,14 +145,14 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	@Override
-	public TextureSurface createTextureSurface(DisplayOptions options,
-		TextureTarget target, int width, int height, int depth, int layer,
-		int numColorTargets, boolean useDepthRenderBuffer) {
+	public TextureSurface createTextureSurface(DisplayOptions options, TextureTarget target, 
+											   int width, int height, int depth, int layer,
+											   int numColorTargets, boolean useDepthRenderBuffer) {
 		JoglTextureSurface s = null;
 
-		s =
-			new JoglTextureSurface(this, options, target, width, height, depth,
-				layer, numColorTargets, useDepthRenderBuffer);
+		s = new JoglTextureSurface(this, options, target, 
+								   width, height, depth, layer, 
+								   numColorTargets, useDepthRenderBuffer);
 		activeSurfaces.add(s);
 
 		if (s.getGLAutoDrawable() != null)
@@ -168,8 +161,7 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	@Override
-	public TextureSurface createTextureSurface(TextureSurface share, int layer)
-		throws RenderException {
+	public TextureSurface createTextureSurface(TextureSurface share, int layer) {
 		JoglTextureSurface s = null;
 
 		s = new JoglTextureSurface(this, (JoglTextureSurface) share, layer);
@@ -203,8 +195,7 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	@Override
-	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces,
-		Runnable resourceAction) {
+	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces, Runnable resourceAction) {
 		int size = (queuedSurfaces == null ? 0 : queuedSurfaces.size());
 		JoglRenderSurface s;
 		for (int i = 0; i < size; i++) {
@@ -224,8 +215,7 @@ public class JoglContextManager implements ContextManager {
 		// attach all queued surfaces to the queued render actions
 		int raIndex = 0;
 		GLAutoDrawable queued;
-		GLAutoDrawable realized =
-			queuedRenderActions.get(raIndex).getGLAutoDrawable();
+		GLAutoDrawable realized = queuedRenderActions.get(raIndex).getGLAutoDrawable();
 
 		for (int i = 0; i < size; i++) {
 			s = (JoglRenderSurface) queuedSurfaces.get(i);
@@ -250,10 +240,9 @@ public class JoglContextManager implements ContextManager {
 				currentDrawable = renderAction.getGLAutoDrawable();
 				currentRecord = renderAction.getStateRecord();
 
-				currentGL =
-					(debugGL ? (TRACE ? new TraceGL(currentDrawable.getGL(),
-						System.out) : new DebugGL(currentDrawable.getGL()))
-						: currentDrawable.getGL());
+				currentGL = (debugGL ? (TRACE ? new TraceGL(currentDrawable.getGL(), System.out) 
+											  : new DebugGL(currentDrawable.getGL())) 
+								     : currentDrawable.getGL());
 
 				renderAction.render();
 			}
@@ -356,8 +345,7 @@ public class JoglContextManager implements ContextManager {
 	private void processZombieFbos() {
 		if (zombieFbos.size() > 0) {
 			ZombieFboCleanupAction cleanup;
-			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e : zombieFbos
-				.entrySet()) {
+			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e : zombieFbos.entrySet()) {
 				cleanup = new ZombieFboCleanupAction(e.getValue());
 				runOnGraphicsThread(null, cleanup);
 			}

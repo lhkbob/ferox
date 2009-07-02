@@ -74,11 +74,14 @@ public final class Matrix4f implements Cloneable {
 	 * @param m32
 	 * @param m33
 	 */
-	public Matrix4f(float m00, float m01, float m02, float m03, float m10,
-		float m11, float m12, float m13, float m20, float m21, float m22,
-		float m23, float m30, float m31, float m32, float m33) {
-		set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30,
-			m31, m32, m33);
+	public Matrix4f(float m00, float m01, float m02, float m03, 
+					float m10, float m11, float m12, float m13,
+					float m20, float m21, float m22, float m23, 
+					float m30, float m31, float m32, float m33) {
+		set(m00, m01, m02, m03, 
+			m10, m11, m12, m13, 
+			m20, m21, m22, m23,
+			m30, m31, m32, m33);
 	}
 
 	/**
@@ -94,10 +97,10 @@ public final class Matrix4f implements Cloneable {
 		if (result == null)
 			result = new Matrix4f();
 
-		return result.set(m00 + r.m00, m01 + r.m01, m02 + r.m02, m03 + r.m03,
-			m10 + r.m10, m11 + r.m11, m12 + r.m12, m13 + r.m13, m20 + r.m20,
-			m21 + r.m21, m22 + r.m22, m23 + r.m23, m30 + r.m30, m31 + r.m31,
-			m32 + r.m32, m33 + r.m33);
+		return result.set(m00 + r.m00, m01 + r.m01, m02 + r.m02, m03 + r.m03, 
+						  m10 + r.m10, m11 + r.m11, m12 + r.m12, m13 + r.m13, 
+						  m20 + r.m20, m21 + r.m21, m22 + r.m22, m23 + r.m23, 
+						  m30 + r.m30, m31 + r.m31, m32 + r.m32, m33 + r.m33);
 	}
 
 	/**
@@ -123,9 +126,10 @@ public final class Matrix4f implements Cloneable {
 		if (result == null)
 			result = new Matrix4f();
 
-		return result.set(m00 + c, m01 + c, m02 + c, m03 + c, m10 + c, m11 + c,
-			m12 + c, m13 + c, m20 + c, m21 + c, m22 + c, m23 + c, m30 + c, m31
-				+ c, m32 + c, m33 + c);
+		return result.set(m00 + c, m01 + c, m02 + c, m03 + c, 
+						  m10 + c, m11 + c, m12 + c, m13 + c, 
+						  m20 + c, m21 + c, m22 + c, m23 + c, 
+						  m30 + c, m31 + c, m32 + c, m33 + c);
 	}
 
 	/**
@@ -161,8 +165,7 @@ public final class Matrix4f implements Cloneable {
 		float rb4 = m21 * m33 - m23 * m31;
 		float rb5 = m22 * m33 - m23 * m32;
 
-		return ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5
-			* rb0;
+		return ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5 * rb0;
 	}
 
 	/**
@@ -192,12 +195,9 @@ public final class Matrix4f implements Cloneable {
 		float rb4 = m21 * m33 - m23 * m31;
 		float rb5 = m22 * m33 - m23 * m32;
 
-		float invDet =
-			ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5
-				* rb0;
-		if (Math.abs(invDet) <= .0001f) {
+		float invDet = ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5 * rb0;
+		if (Math.abs(invDet) <= .0001f)
 			throw new ArithmeticException("Singular matrix");
-		}
 		invDet = 1f / invDet;
 
 		float t00 = m11 * rb5 - m12 * rb4 + m13 * rb3;
@@ -217,10 +217,10 @@ public final class Matrix4f implements Cloneable {
 		float t23 = m21 * ra2 - m23 * ra0 - m20 * ra4;
 		float t33 = m20 * ra3 - m21 * ra1 + m22 * ra0;
 
-		return result.set(invDet * t00, invDet * t01, invDet * t02, invDet
-			* t03, invDet * t10, invDet * t11, invDet * t12, invDet * t13,
-			invDet * t20, invDet * t21, invDet * t22, invDet * t23, invDet
-				* t30, invDet * t31, invDet * t32, invDet * t33);
+		return result.set(invDet * t00, invDet * t01, invDet * t02, invDet * t03, 
+						  invDet * t10, invDet * t11, invDet * t12, invDet * t13, 
+						  invDet * t20, invDet * t21, invDet * t22, invDet * t23, 
+						  invDet * t30, invDet * t31, invDet * t32, invDet * t33);
 	}
 
 	/**
@@ -259,21 +259,22 @@ public final class Matrix4f implements Cloneable {
 	public Matrix4f mul(Matrix4f r, Matrix4f result) {
 		if (result == null)
 			result = new Matrix4f();
-		return result.set(
-			m00 * r.m00 + m01 * r.m10 + m02 * r.m20 + m03 * r.m30, m00 * r.m01
-				+ m01 * r.m11 + m02 * r.m21 + m03 * r.m31, m00 * r.m02 + m01
-				* r.m12 + m02 * r.m22 + m03 * r.m32, m00 * r.m03 + m01 * r.m13
-				+ m02 * r.m23 + m03 * r.m33, m10 * r.m00 + m11 * r.m10 + m12
-				* r.m20 + m13 * r.m30, m10 * r.m01 + m11 * r.m11 + m12 * r.m21
-				+ m13 * r.m31, m10 * r.m02 + m11 * r.m12 + m12 * r.m22 + m13
-				* r.m32, m10 * r.m03 + m11 * r.m13 + m12 * r.m23 + m13 * r.m33,
-			m20 * r.m00 + m21 * r.m10 + m22 * r.m20 + m23 * r.m30, m20 * r.m01
-				+ m21 * r.m11 + m22 * r.m21 + m23 * r.m31, m20 * r.m02 + m21
-				* r.m12 + m22 * r.m22 + m23 * r.m32, m20 * r.m03 + m21 * r.m13
-				+ m22 * r.m23 + m23 * r.m33, m30 * r.m00 + m31 * r.m10 + m32
-				* r.m20 + m33 * r.m30, m30 * r.m01 + m31 * r.m11 + m32 * r.m21
-				+ m33 * r.m31, m30 * r.m02 + m31 * r.m12 + m32 * r.m22 + m33
-				* r.m32, m30 * r.m03 + m31 * r.m13 + m32 * r.m23 + m33 * r.m33);
+		return result.set(m00 * r.m00 + m01 * r.m10 + m02 * r.m20 + m03 * r.m30,
+						  m00 * r.m01 + m01 * r.m11 + m02 * r.m21 + m03 * r.m31,
+						  m00 * r.m02 + m01 * r.m12 + m02 * r.m22 + m03 * r.m32, 
+						  m00 * r.m03 + m01 * r.m13 + m02 * r.m23 + m03 * r.m33, 
+						  m10 * r.m00 + m11 * r.m10 + m12 * r.m20 + m13 * r.m30, 
+						  m10 * r.m01 + m11 * r.m11 + m12 * r.m21 + m13 * r.m31, 
+						  m10 * r.m02 + m11 * r.m12 + m12 * r.m22 + m13 * r.m32, 
+						  m10 * r.m03 + m11 * r.m13 + m12 * r.m23 + m13 * r.m33, 
+						  m20 * r.m00 + m21 * r.m10 + m22 * r.m20 + m23 * r.m30, 
+						  m20 * r.m01 + m21 * r.m11 + m22 * r.m21 + m23 * r.m31, 
+						  m20 * r.m02 + m21 * r.m12 + m22 * r.m22 + m23 * r.m32, 
+						  m20 * r.m03 + m21 * r.m13 + m22 * r.m23 + m23 * r.m33, 
+						  m30 * r.m00 + m31 * r.m10 + m32 * r.m20 + m33 * r.m30, 
+						  m30 * r.m01 + m31 * r.m11 + m32 * r.m21 + m33 * r.m31, 
+						  m30 * r.m02 + m31 * r.m12 + m32 * r.m22 + m33 * r.m32, 
+						  m30 * r.m03 + m31 * r.m13 + m32 * r.m23 + m33 * r.m33);
 	}
 
 	/**
@@ -326,9 +327,10 @@ public final class Matrix4f implements Cloneable {
 	public Vector4f mul(float x, float y, float z, float w, Vector4f result) {
 		if (result == null)
 			result = new Vector4f();
-		return result.set(m00 * x + m01 * y + m02 * z + m03 * w, m10 * x + m11
-			* y + m12 * z + m13 * w, m20 * x + m21 * y + m22 * z + m23 * w, m30
-			* x + m31 * y + m32 * z + m33 * w);
+		return result.set(m00 * x + m01 * y + m02 * z + m03 * w, 
+						  m10 * x + m11 * y + m12 * z + m13 * w,
+						  m20 * x + m21 * y + m22 * z + m23 * w,
+						  m30 * x + m31 * y + m32 * z + m33 * w);
 	}
 
 	/**
@@ -369,13 +371,13 @@ public final class Matrix4f implements Cloneable {
 	 * @param result Matrix holding the multiplication result
 	 * @return result, or a new Matrix4f if null, holding the multiplication
 	 */
-	public Matrix4f mulDiagonal(float x, float y, float z, float w,
-		Matrix4f result) {
+	public Matrix4f mulDiagonal(float x, float y, float z, float w, Matrix4f result) {
 		if (result == null)
 			result = new Matrix4f();
-		return result.set(m00 * x, m01 * y, m02 * z, m03 * w, m10 * x, m11 * y,
-			m12 * z, m13 * w, m20 * x, m21 * y, m22 * z, m23 * w, m30 * x, m31
-				* y, m32 * z, m33 * w);
+		return result.set(m00 * x, m01 * y, m02 * z, m03 * w, 
+						  m10 * x, m11 * y, m12 * z, m13 * w, 
+						  m20 * x, m21 * y, m22 * z, m23 * w, 
+						  m30 * x, m31 * y, m32 * z, m33 * w);
 	}
 
 	/**
@@ -418,9 +420,10 @@ public final class Matrix4f implements Cloneable {
 	public Vector4f mulPre(float x, float y, float z, float w, Vector4f result) {
 		if (result == null)
 			result = new Vector4f();
-		return result.set(m00 * x + m10 * y + m20 * z + m30 * w, m01 * x + m11
-			* y + m21 * z + m31 * w, m02 * x + m12 * y + m22 * z + m32 * w, m03
-			* x + m13 * y + m23 * z + m33 * w);
+		return result.set(m00 * x + m10 * y + m20 * z + m30 * w, 
+						  m01 * x + m11 * y + m21 * z + m31 * w,
+						  m02 * x + m12 * y + m22 * z + m32 * w,
+						  m03 * x + m13 * y + m23 * z + m33 * w);
 	}
 
 	/**
@@ -465,21 +468,22 @@ public final class Matrix4f implements Cloneable {
 	public Matrix4f mulTransposeLeft(Matrix4f r, Matrix4f result) {
 		if (result == null)
 			result = new Matrix4f();
-		return result.set(
-			m00 * r.m00 + m10 * r.m10 + m20 * r.m20 + m30 * r.m30, m00 * r.m01
-				+ m10 * r.m11 + m20 * r.m21 + m30 * r.m31, m00 * r.m02 + m10
-				* r.m12 + m20 * r.m22 + m30 * r.m32, m00 * r.m03 + m10 * r.m13
-				+ m20 * r.m23 + m30 * r.m33, m01 * r.m00 + m11 * r.m10 + m21
-				* r.m20 + m31 * r.m30, m01 * r.m01 + m11 * r.m11 + m21 * r.m21
-				+ m31 * r.m31, m01 * r.m02 + m11 * r.m12 + m21 * r.m22 + m31
-				* r.m32, m01 * r.m03 + m11 * r.m13 + m21 * r.m23 + m31 * r.m33,
-			m02 * r.m00 + m12 * r.m10 + m22 * r.m20 + m32 * r.m30, m02 * r.m01
-				+ m12 * r.m11 + m22 * r.m21 + m32 * r.m31, m02 * r.m02 + m12
-				* r.m12 + m22 * r.m22 + m32 * r.m32, m02 * r.m03 + m12 * r.m13
-				+ m22 * r.m23 + m32 * r.m33, m03 * r.m00 + m13 * r.m10 + m23
-				* r.m20 + m33 * r.m30, m03 * r.m01 + m13 * r.m11 + m23 * r.m21
-				+ m33 * r.m31, m03 * r.m02 + m13 * r.m12 + m23 * r.m22 + m33
-				* r.m32, m03 * r.m03 + m13 * r.m13 + m23 * r.m23 + m33 * r.m33);
+		return result.set(m00 * r.m00 + m10 * r.m10 + m20 * r.m20 + m30 * r.m30, 
+						  m00 * r.m01 + m10 * r.m11 + m20 * r.m21 + m30 * r.m31,
+						  m00 * r.m02 + m10 * r.m12 + m20 * r.m22 + m30 * r.m32,
+						  m00 * r.m03 + m10 * r.m13 + m20 * r.m23 + m30 * r.m33,
+						  m01 * r.m00 + m11 * r.m10 + m21 * r.m20 + m31 * r.m30,
+						  m01 * r.m01 + m11 * r.m11 + m21 * r.m21 + m31 * r.m31,
+						  m01 * r.m02 + m11 * r.m12 + m21 * r.m22 + m31 * r.m32, 
+						  m01 * r.m03 + m11 * r.m13 + m21 * r.m23 + m31 * r.m33, 
+						  m02 * r.m00 + m12 * r.m10 + m22 * r.m20 + m32 * r.m30, 
+						  m02 * r.m01 + m12 * r.m11 + m22 * r.m21 + m32 * r.m31,
+						  m02 * r.m02 + m12 * r.m12 + m22 * r.m22 + m32 * r.m32,
+						  m02 * r.m03 + m12 * r.m13 + m22 * r.m23 + m32 * r.m33,
+						  m03 * r.m00 + m13 * r.m10 + m23 * r.m20 + m33 * r.m30,
+						  m03 * r.m01 + m13 * r.m11 + m23 * r.m21 + m33 * r.m31, 
+						  m03 * r.m02 + m13 * r.m12 + m23 * r.m22 + m33 * r.m32, 
+						  m03 * r.m03 + m13 * r.m13 + m23 * r.m23 + m33 * r.m33);
 	}
 
 	/**
@@ -505,21 +509,22 @@ public final class Matrix4f implements Cloneable {
 	public Matrix4f mulTransposeRight(Matrix4f r, Matrix4f result) {
 		if (result == null)
 			result = new Matrix4f();
-		return result.set(
-			m00 * r.m00 + m01 * r.m01 + m02 * r.m02 + m03 * r.m03, m00 * r.m10
-				+ m01 * r.m11 + m02 * r.m12 + m03 * r.m13, m00 * r.m20 + m01
-				* r.m21 + m02 * r.m22 + m03 * r.m23, m00 * r.m30 + m01 * r.m31
-				+ m03 * r.m32 + m03 * r.m33, m10 * r.m00 + m11 * r.m01 + m12
-				* r.m02 + m13 * r.m03, m10 * r.m10 + m11 * r.m11 + m12 * r.m12
-				+ m13 * r.m13, m10 * r.m20 + m11 * r.m21 + m12 * r.m22 + m13
-				* r.m23, m10 * r.m30 + m11 * r.m31 + m12 * r.m32 + m13 * r.m33,
-			m20 * r.m00 + m21 * r.m01 + m22 * r.m02 + m23 * r.m03, m20 * r.m10
-				+ m21 * r.m11 + m22 * r.m12 + m23 * r.m13, m20 * r.m20 + m21
-				* r.m21 + m22 * r.m22 + m23 * r.m23, m20 * r.m30 + m21 * r.m31
-				+ m22 * r.m32 + m23 * r.m33, m30 * r.m00 + m31 * r.m01 + m32
-				* r.m02 + m33 * r.m03, m30 * r.m10 + m31 * r.m11 + m32 * r.m12
-				+ m33 * r.m13, m30 * r.m20 + m31 * r.m21 + m32 * r.m22 + m33
-				* r.m23, m30 * r.m30 + m31 * r.m31 + m32 * r.m32 + m33 * r.m33);
+		return result.set(m00 * r.m00 + m01 * r.m01 + m02 * r.m02 + m03 * r.m03, 
+						  m00 * r.m10 + m01 * r.m11 + m02 * r.m12 + m03 * r.m13, 
+						  m00 * r.m20 + m01 * r.m21 + m02 * r.m22 + m03 * r.m23,
+						  m00 * r.m30 + m01 * r.m31 + m03 * r.m32 + m03 * r.m33, 
+						  m10 * r.m00 + m11 * r.m01 + m12 * r.m02 + m13 * r.m03, 
+						  m10 * r.m10 + m11 * r.m11 + m12 * r.m12 + m13 * r.m13, 
+						  m10 * r.m20 + m11 * r.m21 + m12 * r.m22 + m13 * r.m23, 
+						  m10 * r.m30 + m11 * r.m31 + m12 * r.m32 + m13 * r.m33, 
+						  m20 * r.m00 + m21 * r.m01 + m22 * r.m02 + m23 * r.m03, 
+						  m20 * r.m10 + m21 * r.m11 + m22 * r.m12 + m23 * r.m13,
+						  m20 * r.m20 + m21 * r.m21 + m22 * r.m22 + m23 * r.m23,
+						  m20 * r.m30 + m21 * r.m31 + m22 * r.m32 + m23 * r.m33,
+						  m30 * r.m00 + m31 * r.m01 + m32 * r.m02 + m33 * r.m03,
+						  m30 * r.m10 + m31 * r.m11 + m32 * r.m12 + m33 * r.m13,
+						  m30 * r.m20 + m31 * r.m21 + m32 * r.m22 + m33 * r.m23, 
+						  m30 * r.m30 + m31 * r.m31 + m32 * r.m32 + m33 * r.m33);
 	}
 
 	/**
@@ -544,10 +549,10 @@ public final class Matrix4f implements Cloneable {
 		if (result == null)
 			result = new Matrix4f();
 
-		return result.set(scalar * m00, scalar * m01, scalar * m02, scalar
-			* m03, scalar * m10, scalar * m11, scalar * m12, scalar * m13,
-			scalar * m20, scalar * m21, scalar * m22, scalar * m23, scalar
-				* m30, scalar * m31, scalar * m32, scalar * m33);
+		return result.set(scalar * m00, scalar * m01, scalar * m02, scalar * m03, 
+						  scalar * m10, scalar * m11, scalar * m12, scalar * m13, 
+						  scalar * m20, scalar * m21, scalar * m22, scalar * m23, 
+						  scalar * m30, scalar * m31, scalar * m32, scalar * m33);
 	}
 
 	/**
@@ -606,8 +611,7 @@ public final class Matrix4f implements Cloneable {
 	 * @return result, or a new Vector4f if null, holding the solutions
 	 * @throws ArithmeticException if no solution or an infinite solutions exist
 	 */
-	public Vector4f solve(float ax, float ay, float az, float aw,
-		Vector4f result) {
+	public Vector4f solve(float ax, float ay, float az, float aw, Vector4f result) {
 		// the system is b = [A]x and we're solving for x
 		// which becomes [A]^-1 b = x
 		Matrix4f inv = inverse.get();
@@ -642,8 +646,10 @@ public final class Matrix4f implements Cloneable {
 	public Matrix4f transpose(Matrix4f result) {
 		if (result == null)
 			result = new Matrix4f();
-		return result.set(m00, m10, m20, m30, m01, m11, m21, m31, m02, m12,
-			m22, m32, m03, m13, m23, m33);
+		return result.set(m00, m10, m20, m30,
+						  m01, m11, m21, m31, 
+						  m02, m12, m22, m32, 
+						  m03, m13, m23, m33);
 	}
 
 	/**
@@ -692,7 +698,7 @@ public final class Matrix4f implements Cloneable {
 				return m22;
 			else if (col == 3)
 				return m23;
-		} else if (row == 3) {
+		} else if (row == 3)
 			if (col == 0)
 				return m30;
 			else if (col == 1)
@@ -701,10 +707,8 @@ public final class Matrix4f implements Cloneable {
 				return m32;
 			else if (col == 3)
 				return m33;
-		}
 
-		throw new IndexOutOfBoundsException("Illegal row or column: " + row
-			+ ", " + col);
+		throw new IndexOutOfBoundsException("Illegal row or column: " + row + ", " + col);
 	}
 
 	/**
@@ -938,7 +942,7 @@ public final class Matrix4f implements Cloneable {
 				m23 = value;
 				return this;
 			}
-		} else if (row == 3) {
+		} else if (row == 3)
 			if (col == 0) {
 				m30 = value;
 				return this;
@@ -952,10 +956,8 @@ public final class Matrix4f implements Cloneable {
 				m33 = value;
 				return this;
 			}
-		}
 
-		throw new IndexOutOfBoundsException("Invalid row or column: " + row
-			+ ", " + col);
+		throw new IndexOutOfBoundsException("Invalid row or column: " + row + ", " + col);
 	}
 
 	/**
@@ -1144,21 +1146,16 @@ public final class Matrix4f implements Cloneable {
 	 * @throws NullPointerException if values is null
 	 */
 	public Matrix4f set(float[] values, int offset, boolean rowMajor) {
-		if (rowMajor) {
-			return set(values[offset], values[offset + 1], values[offset + 2],
-				values[offset + 3], values[offset + 4], values[offset + 5],
-				values[offset + 6], values[offset + 7], values[offset + 8],
-				values[offset + 9], values[offset + 10], values[offset + 11],
-				values[offset + 12], values[offset + 13], values[offset + 14],
-				values[offset + 15]);
-		} else {
-			return set(values[offset], values[offset + 4], values[offset + 8],
-				values[offset + 12], values[offset + 1], values[offset + 5],
-				values[offset + 9], values[offset + 13], values[offset + 2],
-				values[offset + 6], values[offset + 10], values[offset + 14],
-				values[offset + 3], values[offset + 7], values[offset + 11],
-				values[offset + 15]);
-		}
+		if (rowMajor)
+			return set(values[offset], values[offset + 1], values[offset + 2], values[offset + 3], 
+					   values[offset + 4], values[offset + 5], values[offset + 6], values[offset + 7], 
+					   values[offset + 8], values[offset + 9], values[offset + 10], values[offset + 11], 
+					   values[offset + 12], values[offset + 13], values[offset + 14], values[offset + 15]);
+		else
+			return set(values[offset], values[offset + 4], values[offset + 8], values[offset + 12], 
+					   values[offset + 1], values[offset + 5], values[offset + 9], values[offset + 13], 
+					   values[offset + 2], values[offset + 6], values[offset + 10], values[offset + 14], 
+					   values[offset + 3], values[offset + 7], values[offset + 11], values[offset + 15]);
 	}
 
 	/**
@@ -1183,9 +1180,10 @@ public final class Matrix4f implements Cloneable {
 	 * @param m33 New value for 4th row and 4th column
 	 * @return This matrix
 	 */
-	public Matrix4f set(float m00, float m01, float m02, float m03, float m10,
-		float m11, float m12, float m13, float m20, float m21, float m22,
-		float m23, float m30, float m31, float m32, float m33) {
+	public Matrix4f set(float m00, float m01, float m02, float m03, 
+						float m10, float m11, float m12, float m13, 
+						float m20, float m21, float m22, float m23, 
+						float m30, float m31, float m32, float m33) {
 		this.m00 = m00;
 		this.m01 = m01;
 		this.m02 = m02;
@@ -1217,8 +1215,10 @@ public final class Matrix4f implements Cloneable {
 	 * @throws NullPointerException if o is null
 	 */
 	public Matrix4f set(Matrix4f o) {
-		return set(o.m00, o.m01, o.m02, o.m03, o.m10, o.m11, o.m12, o.m13,
-			o.m20, o.m21, o.m22, o.m23, o.m30, o.m31, o.m32, o.m33);
+		return set(o.m00, o.m01, o.m02, o.m03, 
+				   o.m10, o.m11, o.m12, o.m13, 
+				   o.m20, o.m21, o.m22, o.m23,
+				   o.m30, o.m31, o.m32, o.m33);
 	}
 
 	/**
@@ -1227,7 +1227,10 @@ public final class Matrix4f implements Cloneable {
 	 * @return This matrix
 	 */
 	public Matrix4f setIdentity() {
-		return set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		return set(1, 0, 0, 0, 
+				   0, 1, 0, 0, 
+				   0, 0, 1, 0,
+				   0, 0, 0, 1);
 	}
 
 	/**
@@ -1242,14 +1245,14 @@ public final class Matrix4f implements Cloneable {
 		if (e == null)
 			return false;
 
-		return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps
-			&& Math.abs(m02 - e.m02) <= eps && Math.abs(m03 - e.m03) <= eps
-			&& Math.abs(m10 - e.m10) <= eps && Math.abs(m11 - e.m11) <= eps
-			&& Math.abs(m12 - e.m12) <= eps && Math.abs(m13 - e.m13) <= eps
-			&& Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps
-			&& Math.abs(m22 - e.m22) <= eps && Math.abs(m23 - e.m23) <= eps
-			&& Math.abs(m30 - e.m30) <= eps && Math.abs(m31 - e.m31) <= eps
-			&& Math.abs(m32 - e.m32) <= eps && Math.abs(m33 - e.m33) <= eps;
+		return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps && 
+			   Math.abs(m02 - e.m02) <= eps && Math.abs(m03 - e.m03) <= eps && 
+			   Math.abs(m10 - e.m10) <= eps && Math.abs(m11 - e.m11) <= eps &&
+			   Math.abs(m12 - e.m12) <= eps && Math.abs(m13 - e.m13) <= eps && 
+			   Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps && 
+			   Math.abs(m22 - e.m22) <= eps && Math.abs(m23 - e.m23) <= eps && 
+			   Math.abs(m30 - e.m30) <= eps && Math.abs(m31 - e.m31) <= eps && 
+			   Math.abs(m32 - e.m32) <= eps && Math.abs(m33 - e.m33) <= eps;
 	}
 
 	/**
@@ -1260,11 +1263,11 @@ public final class Matrix4f implements Cloneable {
 	 * @return True if these vectors are numerically equal
 	 */
 	public boolean equals(Matrix4f e) {
-		return e != null && m00 == e.m00 && m01 == e.m01 && m02 == e.m02
-			&& m03 == e.m03 && m10 == e.m10 && m11 == e.m11 && m12 == e.m12
-			&& m13 == e.m13 && m20 == e.m20 && m21 == e.m21 && m22 == e.m22
-			&& m23 == e.m23 && m30 == e.m30 && m31 == e.m31 && m32 == e.m32
-			&& m33 == e.m33;
+		return e != null && 
+			   m00 == e.m00 && m01 == e.m01 && m02 == e.m02 && m03 == e.m03 && 
+			   m10 == e.m10 && m11 == e.m11 && m12 == e.m12 && m13 == e.m13 && 
+			   m20 == e.m20 && m21 == e.m21 && m22 == e.m22 && m23 == e.m23 && 
+			   m30 == e.m30 && m31 == e.m31 && m32 == e.m32 && m33 == e.m33;
 	}
 
 	@Override

@@ -124,9 +124,11 @@ public class Text extends IndexedArrayGeometry {
 		Texture chars = new Texture(charSet.getCharacterSet());
 
 		Appearance a = new Appearance();
-		a.setAlphaTest(PixelTest.GREATER, 0f).setBlendMode(BlendEquation.ADD,
-			BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA)
-			.setTextures(chars).setMaterial(textColor, new Color4f());
+		a.setAlphaTest(PixelTest.GREATER, 0f)
+		 .setBlendMode(BlendEquation.ADD, BlendFactor.SRC_ALPHA, 
+			 		   BlendFactor.ONE_MINUS_SRC_ALPHA)
+		 .setTextures(chars)
+		 .setMaterial(textColor, new Color4f());
 		return a;
 	}
 
@@ -286,9 +288,7 @@ public class Text extends IndexedArrayGeometry {
 	 * </p>
 	 */
 	public void layoutText() {
-		LineMetrics lm =
-			charSet.getFont().getLineMetrics(text,
-				charSet.getFontRenderContext());
+		LineMetrics lm = charSet.getFont().getLineMetrics(text, charSet.getFontRenderContext());
 		TextLayout tl = new TextLayout(charSet, lm, maxTextWidth);
 		float[] it2v3 = tl.doLayout(text);
 
@@ -485,8 +485,7 @@ public class Text extends IndexedArrayGeometry {
 						// place a newline if the char can't fit on this line
 						// and it wasn't the first char for the line (we always
 						// put 1 char)
-						if (cursorX > leftEdge
-							&& cursorX + g.getAdvance() > wrapWidth)
+						if (cursorX > leftEdge && cursorX + g.getAdvance() > wrapWidth)
 							newline();
 					index = placeGlyph(g, coords, index);
 					break;
@@ -575,8 +574,7 @@ public class Text extends IndexedArrayGeometry {
 					// do nothing, since they only change the line position
 					break;
 				case '\t':
-					width +=
-						TAB_SPACE_COUNT * charSet.getGlyph(' ').getAdvance();
+					width += TAB_SPACE_COUNT * charSet.getGlyph(' ').getAdvance();
 					break;
 				default:
 					// this works for spaces, too

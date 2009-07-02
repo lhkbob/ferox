@@ -9,12 +9,13 @@ import java.util.Stack;
 import com.ferox.effect.DepthTest;
 import com.ferox.effect.Effect;
 import com.ferox.effect.EffectSet;
+import com.ferox.effect.EffectType;
 import com.ferox.effect.Material;
 import com.ferox.effect.PolygonStyle;
-import com.ferox.effect.EffectType;
 import com.ferox.renderer.DefaultResourceManager;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FrameStatistics;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.FullscreenSurface;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderCapabilities;
@@ -22,7 +23,6 @@ import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderStateException;
 import com.ferox.renderer.RenderSurface;
-import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.ResourceManager;
 import com.ferox.renderer.SurfaceCreationException;
@@ -126,54 +126,43 @@ public abstract class AbstractFramework implements Framework {
 	/* Idle operations. */
 
 	@Override
-	public final WindowSurface createWindowSurface(DisplayOptions options,
-		int x, int y, int width, int height, boolean resizable,
-		boolean undecorated) {
-
+	public final WindowSurface createWindowSurface(DisplayOptions options, 
+												   int x, int y, int width, int height, 
+												   boolean resizable, boolean undecorated) {
 		ensure(RenderState.IDLE);
-		WindowSurface surface =
-			this.prepareSurface(contextManager.createWindowSurface(options, x,
-				y, width, height, resizable, undecorated));
+		WindowSurface surface = this.prepareSurface(contextManager.createWindowSurface(options, 
+			x, y, width, height, resizable, undecorated));
 		return surface;
 	}
 
 	@Override
-	public final FullscreenSurface createFullscreenSurface(
-		DisplayOptions options, int width, int height) {
-
+	public final FullscreenSurface createFullscreenSurface(DisplayOptions options, 
+														   int width, int height) {
 		ensure(RenderState.IDLE);
-		FullscreenSurface surface =
-			this.prepareSurface(contextManager.createFullscreenSurface(options,
-				width, height));
+		FullscreenSurface surface = this.prepareSurface(contextManager.createFullscreenSurface(options,
+			width, height));
 		return surface;
 	}
 
 	@Override
-	public final TextureSurface createTextureSurface(DisplayOptions options,
-		TextureTarget target, int width, int height, int depth, int layer,
-		int numColorTargets, boolean useDepthRenderBuffer) {
-
+	public final TextureSurface createTextureSurface(DisplayOptions options, TextureTarget target, 
+													 int width, int height, int depth, int layer, 
+													 int numColorTargets, boolean useDepthRenderBuffer) {
 		ensure(RenderState.IDLE);
-		TextureSurface surface =
-			this.prepareSurface(contextManager.createTextureSurface(options,
-				target, width, height, depth, layer, numColorTargets,
-				useDepthRenderBuffer));
+		TextureSurface surface = this.prepareSurface(contextManager.createTextureSurface(options, target, 
+			width, height, depth, layer, 
+			numColorTargets, useDepthRenderBuffer));
 		lock(surface);
 		return surface;
 	}
 
 	@Override
-	public final TextureSurface createTextureSurface(TextureSurface share,
-		int layer) {
-
+	public final TextureSurface createTextureSurface(TextureSurface share, int layer) {
 		ensure(RenderState.IDLE);
 		if (share == null || share.isDestroyed() || share.getRenderer() != this)
-			throw new SurfaceCreationException(
-				"Invalid texture surface for sharing: " + share);
+			throw new SurfaceCreationException("Invalid texture surface for sharing: " + share);
 
-		TextureSurface surface =
-			this.prepareSurface(contextManager.createTextureSurface(share,
-				layer));
+		TextureSurface surface = this.prepareSurface(contextManager.createTextureSurface(share, layer));
 		lock(surface);
 		return surface;
 	}
@@ -184,15 +173,12 @@ public abstract class AbstractFramework implements Framework {
 		if (surface == null)
 			throw new NullPointerException("Cannot destroy a null surface");
 		if (surface.getRenderer() != this)
-			throw new IllegalArgumentException(
-				"Cannot destroy a surface created by another renderer: "
-					+ surface);
+			throw new IllegalArgumentException("Cannot destroy a surface created by another renderer: " + surface);
 
 		if (!surface.isDestroyed()) {
-			if (surface instanceof TextureSurface) {
+			if (surface instanceof TextureSurface)
 				// unlock the surface's textures
 				unlock((TextureSurface) surface);
-			}
 
 			contextManager.destroy(surface);
 		}
@@ -203,8 +189,7 @@ public abstract class AbstractFramework implements Framework {
 		ensure(RenderState.IDLE);
 
 		// destroy all currently active surfaces
-		List<RenderSurface> surfaces =
-			new ArrayList<RenderSurface>(contextManager.getActiveSurfaces());
+		List<RenderSurface> surfaces = new ArrayList<RenderSurface>(contextManager.getActiveSurfaces());
 		for (int i = 0; i < surfaces.size(); i++)
 			this.destroy(surfaces.get(i));
 		contextManager.destroy();
@@ -235,8 +220,7 @@ public abstract class AbstractFramework implements Framework {
 	public void requestUpdate(Resource resource, boolean forceFullUpdate) {
 		ensure(RenderState.IDLE);
 		if (resource == null)
-			throw new NullPointerException(
-				"Cannot request the update of a null resource");
+			throw new NullPointerException("Cannot request the update of a null resource");
 		dfltManager.requestUpdate(resource, forceFullUpdate);
 	}
 
@@ -244,8 +228,7 @@ public abstract class AbstractFramework implements Framework {
 	public void requestCleanUp(Resource resource) {
 		ensure(RenderState.IDLE);
 		if (resource == null)
-			throw new NullPointerException(
-				"Cannot request the cleanup of a null resource");
+			throw new NullPointerException("Cannot request the cleanup of a null resource");
 		dfltManager.requestCleanup(resource);
 	}
 
@@ -257,14 +240,11 @@ public abstract class AbstractFramework implements Framework {
 	public Framework queueRender(RenderSurface surface) {
 		ensure(RenderState.IDLE);
 
-		if (surface != null && !surface.isDestroyed()) {
+		if (surface != null && !surface.isDestroyed())
 			if (surface.getRenderer() != this)
-				throw new IllegalArgumentException(
-					"Cannot queue a surface created by another renderer: "
-						+ surface);
+				throw new IllegalArgumentException("Cannot queue a surface created by another renderer: " + surface);
 			else if (!queuedSurfaces.contains(surface))
 				queuedSurfaces.add(surface);
-		}
 
 		return this;
 	}
@@ -291,10 +271,9 @@ public abstract class AbstractFramework implements Framework {
 			renderState = RenderState.RENDERING;
 
 			// make sure all surfaces are valid
-			for (int i = queuedSurfaces.size() - 1; i >= 0; i--) {
+			for (int i = queuedSurfaces.size() - 1; i >= 0; i--)
 				if (queuedSurfaces.get(i).isDestroyed())
 					queuedSurfaces.remove(i);
-			}
 
 			int numSurfaces = queuedSurfaces.size();
 			if (numSurfaces > 0) {
@@ -320,14 +299,12 @@ public abstract class AbstractFramework implements Framework {
 
 			long renderStart = now;
 			// if numSurfaces == 0, the resource action is still executed
-			contextManager.runOnGraphicsThread(queuedSurfaces,
-				manageResourceAction);
+			contextManager.runOnGraphicsThread(queuedSurfaces, manageResourceAction);
 
 			now = System.nanoTime();
 			frameStats.setRenderTime(now - renderStart);
 		} catch (Exception e) {
-			throw new RenderException(
-				"Exception occurred during flushRenderer()", e);
+			throw new RenderException("Exception occurred during flushRenderer()", e);
 		} finally {
 			// restore the state of the renderer and prepare for the next frame
 			renderState = RenderState.IDLE;
@@ -406,8 +383,7 @@ public abstract class AbstractFramework implements Framework {
 	public Handle getHandle(Resource resource, ContextManager key) {
 		ensure(null);
 		if (!contextManager.isGraphicsThread())
-			throw new RenderStateException(
-				"Graphics operations can't be performed on this thread");
+			throw new RenderStateException("Graphics operations can't be performed on this thread");
 		if (key != contextManager)
 			throw new IllegalArgumentException("Key is incorrect: " + key);
 
@@ -418,8 +394,7 @@ public abstract class AbstractFramework implements Framework {
 			data = (ResourceData) resource.getRenderData(this);
 		}
 
-		return (data.isGeometry() || data.getStatus() == Status.ERROR ? null
-			: data.getHandle());
+		return (data.isGeometry() || data.getStatus() == Status.ERROR ? null : data.getHandle());
 	}
 
 	/**
@@ -451,24 +426,17 @@ public abstract class AbstractFramework implements Framework {
 	 * @throws RenderStateException if the calling thread can't perform graphics
 	 *             operations, or if the the framework is destroyed
 	 */
-	public Status doUpdate(Resource resource, boolean forceFullUpdate,
-		ContextManager key) throws RenderException {
+	public Status doUpdate(Resource resource, boolean forceFullUpdate, ContextManager key) {
 		ensure(null); // must make sure it's still okay to call
 		if (!contextManager.isGraphicsThread())
-			throw new RenderStateException(
-				"doUpdate() cannot be invoked on this thread");
+			throw new RenderStateException("doUpdate() cannot be invoked on this thread");
 
 		if (key != contextManager)
-			throw new IllegalArgumentException(
-				"Illegal to call this method without the correct surface contextManager: "
-					+ key);
+			throw new IllegalArgumentException("Illegal to call this method without the correct surface contextManager: " + key);
 		if (resource == null)
-			throw new NullPointerException(
-				"Cannot call update with a null resource");
+			throw new NullPointerException("Cannot call update with a null resource");
 		if (resourceProcessStack.contains(resource))
-			throw new RenderException(
-				"Cannot call update on a resource actively being cleaned or updated: "
-					+ resource);
+			throw new RenderException("Cannot call update on a resource actively being cleaned or updated: " + resource);
 
 		ResourceData data = (ResourceData) resource.getRenderData(this);
 		if (data == null) {
@@ -500,31 +468,22 @@ public abstract class AbstractFramework implements Framework {
 	 *             destroyed
 	 * @throws UnsupportedResourceException if resource is unsupported
 	 */
-	public void doCleanUp(Resource resource, ContextManager key)
-		throws RenderException {
+	public void doCleanUp(Resource resource, ContextManager key) {
 		ensure(null); // must make sure it's still okay to call
 		if (!contextManager.isGraphicsThread())
-			throw new RenderStateException(
-				"doCleanUp() cannot be invoked on this thread");
+			throw new RenderStateException("doCleanUp() cannot be invoked on this thread");
 
 		if (key != contextManager)
-			throw new IllegalArgumentException(
-				"Illegal to call this method without the correct surface contextManager: "
-					+ key);
+			throw new IllegalArgumentException("Illegal to call this method without the correct surface contextManager: " + key);
 		if (resourceLocks.containsKey(resource))
-			throw new IllegalArgumentException(
-				"Cannot call cleanUp on a resource that is locked by a one or more surfaces: "
-					+ resource);
+			throw new IllegalArgumentException("Cannot call cleanUp on a resource that is locked by a one or more surfaces: " + resource);
 		if (resource == null)
-			throw new NullPointerException(
-				"Cannot call cleanUp with a null resource");
+			throw new NullPointerException("Cannot call cleanUp with a null resource");
 		if (resourceProcessStack.contains(resource))
-			throw new RenderException(
-				"Cannot call cleanUp on a resource actively being cleaned or updated: "
-					+ resource);
+			throw new RenderException("Cannot call cleanUp on a resource actively being cleaned or updated: " + resource);
 
 		ResourceData data = (ResourceData) resource.getRenderData(this);
-		if (data != null) {
+		if (data != null)
 			try {
 				resourceProcessStack.push(resource);
 				data.driver.cleanUp(renderer, resource, data);
@@ -532,10 +491,9 @@ public abstract class AbstractFramework implements Framework {
 				resourceProcessStack.pop();
 				resource.setRenderData(this, null);
 			}
-		} else {
+		else
 			// call getResourceDriver() to make sure it's supported
 			getResourceDriver(resource.getClass());
-		}
 	}
 
 	/**
@@ -561,25 +519,19 @@ public abstract class AbstractFramework implements Framework {
 	 * @throws RenderStateException if this renderer isn't in the WAITING_INIT
 	 *             state.
 	 */
-	protected final void init(ContextManager surfaceFactory,
-		TransformDriver transformDriver, RenderCapabilities renderCaps,
-		EffectType[] supportedEffects) throws RenderException {
+	protected final void init(ContextManager surfaceFactory, TransformDriver transformDriver,
+							  RenderCapabilities renderCaps, EffectType[] supportedEffects) {
 		if (renderState != RenderState.WAITING_INIT)
-			throw new RenderStateException(
-				"Method init() cannot be called more than once in AbstractFramework");
+			throw new RenderStateException("Method init() cannot be called more than once in AbstractFramework");
 
 		if (surfaceFactory == null)
-			throw new NullPointerException(
-				"Must pass in a non-null ContextManager");
+			throw new NullPointerException("Must pass in a non-null ContextManager");
 		if (transformDriver == null)
-			throw new NullPointerException(
-				"Must pass in a non-null TransformDriver");
+			throw new NullPointerException("Must pass in a non-null TransformDriver");
 		if (renderCaps == null)
-			throw new NullPointerException(
-				"Cannot specify a non-null RenderCapabilities");
+			throw new NullPointerException("Cannot specify a non-null RenderCapabilities");
 		if (supportedEffects == null)
-			throw new NullPointerException(
-				"Must pass in a non-null EffectType array");
+			throw new NullPointerException("Must pass in a non-null EffectType array");
 
 		this.renderCaps = renderCaps;
 		this.supportedEffects = supportedEffects;
@@ -610,8 +562,7 @@ public abstract class AbstractFramework implements Framework {
 	 * @throws UnsupportedResourceException if no driver is available for the
 	 *             given resourceType
 	 */
-	protected abstract ResourceDriver getResourceDriver(
-		Class<? extends Resource> resourceType);
+	protected abstract ResourceDriver getResourceDriver(Class<? extends Resource> resourceType);
 
 	/**
 	 * <p>
@@ -687,13 +638,11 @@ public abstract class AbstractFramework implements Framework {
 	// and sets a RenderSurfaceAction on the surface for future rendering.
 	private <T extends RenderSurface> T prepareSurface(T surface) {
 		if (surface == null)
-			throw new SurfaceCreationException(
-				"Internal ContextManager returned a null surface");
+			throw new SurfaceCreationException("Internal ContextManager returned a null surface");
 
 		Method setRenderAction;
 		try {
-			setRenderAction =
-				surface.getClass().getMethod("setRenderAction", Runnable.class);
+			setRenderAction = surface.getClass().getMethod("setRenderAction", Runnable.class);
 			boolean priv = setRenderAction.isAccessible();
 			setRenderAction.setAccessible(true);
 
@@ -701,8 +650,7 @@ public abstract class AbstractFramework implements Framework {
 
 			setRenderAction.setAccessible(priv);
 		} catch (Exception e) {
-			throw new SurfaceCreationException(
-				"Exception occured when setting new surface's render action", e);
+			throw new SurfaceCreationException("Exception occured when setting new surface's render action", e);
 		}
 		// we're all good ...
 		return surface;
@@ -712,16 +660,12 @@ public abstract class AbstractFramework implements Framework {
 	// If expected != null, throws an exception if the current state doesn't
 	// match
 	private void ensure(RenderState expected) {
-		if (renderState == RenderState.WAITING_INIT
-			|| renderState == RenderState.DESTROYED)
-			throw new RenderStateException(
-				"Method call invalid when Framework is in state: "
-					+ renderState);
+		if (renderState == RenderState.WAITING_INIT || renderState == RenderState.DESTROYED)
+			throw new RenderStateException("Method call invalid when Framework is in state: " + renderState);
 
 		if (expected != null && expected != renderState)
-			throw new RenderStateException(
-				"Method call expected the Framework to be in state: "
-					+ expected + ", but it was in state: " + renderState);
+			throw new RenderStateException("Method call expected the Framework to be in state: " + 
+										   expected + ", but it was in state: " + renderState);
 	}
 
 	/* The render action for each created RenderSurface. */
@@ -749,8 +693,7 @@ public abstract class AbstractFramework implements Framework {
 					view = preparedPasses.get(currentPass);
 					if (view != null) {
 						// render the pass
-						transform.setView(view, surface.getWidth(), surface
-							.getHeight());
+						transform.setView(view, surface.getWidth(), surface.getHeight());
 						currentPass.render(renderer, view);
 						transform.resetView();
 					}
@@ -803,15 +746,12 @@ public abstract class AbstractFramework implements Framework {
 		@Override
 		public int renderAtom(RenderAtom atom) {
 			if (atom == null)
-				throw new NullPointerException(
-					"Cannot call renderAtom with a null RenderAtom");
+				throw new NullPointerException("Cannot call renderAtom with a null RenderAtom");
 			if (!contextManager.isGraphicsThread())
-				throw new RenderStateException(
-					"renderAtom() cannot be invoked on this thread");
+				throw new RenderStateException("renderAtom() cannot be invoked on this thread");
 
 			Geometry geom = atom.getGeometry();
-			ResourceData gd =
-				(ResourceData) geom.getRenderData(AbstractFramework.this);
+			ResourceData gd = (ResourceData) geom.getRenderData(AbstractFramework.this);
 			if (gd == null) {
 				// haven't seen it before, so do an update and then get
 				// the resource data again
@@ -886,9 +826,9 @@ public abstract class AbstractFramework implements Framework {
 
 	/* Used to make setting the default appearance easier. */
 	private static class DefaultEffectSet implements EffectSet {
-		private DepthTest depth;
-		private Material material;
-		private PolygonStyle poly;
+		private final DepthTest depth;
+		private final Material material;
+		private final PolygonStyle poly;
 
 		private int pos;
 

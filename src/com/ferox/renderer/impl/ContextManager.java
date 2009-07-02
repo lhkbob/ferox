@@ -13,9 +13,10 @@ import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>
- * ContextManager is one of the major backbones of an AbstractFramework subclass.
- * It provides a more specific interface for creating surfaces, as well as
- * providing some high-level method calls to allow their use when rendering.
+ * ContextManager is one of the major backbones of an AbstractFramework
+ * subclass. It provides a more specific interface for creating surfaces, as
+ * well as providing some high-level method calls to allow their use when
+ * rendering.
  * </p>
  * <p>
  * The resource model of AbstractFramework assumes that all created surfaces can
@@ -70,11 +71,11 @@ import com.ferox.resource.TextureImage.TextureTarget;
  */
 public interface ContextManager {
 	/**
-	 * This method must implement the identically named method in Framework, with
-	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractFramework has already made sure
-	 * it's idle, so the ContextManager only needs to throw
-	 * SurfaceCreationExceptions.
+	 * This method must implement the identically named method in Framework,
+	 * with additional rule: the returned surface must provide a
+	 * setRenderAction() method. It can be assumed that the AbstractFramework
+	 * has already made sure it's idle, so the ContextManager only needs to
+	 * throw SurfaceCreationExceptions.
 	 * 
 	 * @param options The options originally passed to the Framework
 	 * @param x The x originally passed to the Framework
@@ -87,15 +88,16 @@ public interface ContextManager {
 	 * @throws SurfaceCreationException for any of the reasons specified in
 	 *             Framework
 	 */
-	public WindowSurface createWindowSurface(DisplayOptions options, int x,
-		int y, int width, int height, boolean resizable, boolean undecorated);
+	public WindowSurface createWindowSurface(DisplayOptions options, 
+										     int x, int y, int width, int height, 
+										     boolean resizable, boolean undecorated);
 
 	/**
-	 * This method must implement the identically named method in Framework, with
-	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractFramework has already made sure
-	 * it's idle, so the ContextManager only needs to throw
-	 * SurfaceCreationExceptions.
+	 * This method must implement the identically named method in Framework,
+	 * with additional rule: the returned surface must provide a
+	 * setRenderAction() method. It can be assumed that the AbstractFramework
+	 * has already made sure it's idle, so the ContextManager only needs to
+	 * throw SurfaceCreationExceptions.
 	 * 
 	 * @param options The options originally passed to the Framework
 	 * @param width The width originally passed to the Framework
@@ -104,15 +106,15 @@ public interface ContextManager {
 	 * @throws SurfaceCreationException for any of the reasons specified in
 	 *             Framework
 	 */
-	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
-		int width, int height) throws RenderException;
+	public FullscreenSurface createFullscreenSurface(DisplayOptions options, 
+													 int width, int height) throws RenderException;
 
 	/**
-	 * This method must implement the identically named method in Framework, with
-	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractFramework has already made sure
-	 * it's idle, so the ContextManager only needs to throw
-	 * SurfaceCreationExceptions.
+	 * This method must implement the identically named method in Framework,
+	 * with additional rule: the returned surface must provide a
+	 * setRenderAction() method. It can be assumed that the AbstractFramework
+	 * has already made sure it's idle, so the ContextManager only needs to
+	 * throw SurfaceCreationExceptions.
 	 * 
 	 * @param options The options originally passed to the Framework
 	 * @param target The target originally passed to the Framework
@@ -127,18 +129,17 @@ public interface ContextManager {
 	 * @throws SurfaceCreationException for any of the reasons specified in
 	 *             Framework
 	 */
-	public TextureSurface createTextureSurface(DisplayOptions options,
-		TextureTarget target, int width, int height, int depth, int layer,
-		int numColorTargets, boolean useDepthRenderBuffer)
-		throws RenderException;
+	public TextureSurface createTextureSurface(DisplayOptions options, TextureTarget target, 
+											   int width, int height, int depth, int layer, 
+											   int numColorTargets, boolean useDepthRenderBuffer) throws RenderException;
 
 	/**
 	 * <p>
-	 * This method must implement the identically named method in Framework, with
-	 * additional rule: the returned surface must provide a setRenderAction()
-	 * method. It can be assumed that the AbstractFramework has already made sure
-	 * it's idle, so the ContextManager only needs to throw
-	 * SurfaceCreationExceptions.
+	 * This method must implement the identically named method in Framework,
+	 * with additional rule: the returned surface must provide a
+	 * setRenderAction() method. It can be assumed that the AbstractFramework
+	 * has already made sure it's idle, so the ContextManager only needs to
+	 * throw SurfaceCreationExceptions.
 	 * </p>
 	 * <p>
 	 * Additionally, share has already been validated by the AbstractFramework.
@@ -151,8 +152,7 @@ public interface ContextManager {
 	 * @throws SurfaceCreationException for any of the reasons specified in
 	 *             Framework
 	 */
-	public TextureSurface createTextureSurface(TextureSurface share, int layer)
-		throws RenderException;
+	public TextureSurface createTextureSurface(TextureSurface share, int layer) throws RenderException;
 
 	/**
 	 * <p>
@@ -208,8 +208,8 @@ public interface ContextManager {
 	 * @param resourceAction A Runnable that must be executed on a context
 	 *            before any surfaces are rendered
 	 */
-	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces,
-		Runnable resourceAction);
+	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces, 
+									Runnable resourceAction);
 
 	/**
 	 * @return True if the calling thread can have low-level graphics operations

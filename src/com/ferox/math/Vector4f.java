@@ -178,8 +178,7 @@ public final class Vector4f implements Cloneable {
 		float tw = this.w;
 
 		result = project(x, y, z, w, result);
-		return result.set(tx - result.x, ty - result.y, tz - result.z, tw
-			- result.w);
+		return result.set(tx - result.x, ty - result.y, tz - result.z, tw - result.w);
 	}
 
 	/**
@@ -325,8 +324,7 @@ public final class Vector4f implements Cloneable {
 	public Vector4f scaleAdd(float scalar, Vector4f add, Vector4f result) {
 		if (result == null)
 			result = new Vector4f();
-		return result.set(scalar * x + add.x, scalar * y + add.y, scalar * z
-			+ add.z, scalar * w + add.w);
+		return result.set(scalar * x + add.x, scalar * y + add.y, scalar * z + add.z, scalar * w + add.w);
 	}
 
 	/**
@@ -505,8 +503,7 @@ public final class Vector4f implements Cloneable {
 	 *             starting at offset
 	 */
 	public Vector4f set(float[] vals, int offset) {
-		return set(vals[offset], vals[offset + 1], vals[offset + 2],
-			vals[offset + 3]);
+		return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
 	}
 
 	@Override

@@ -81,8 +81,7 @@ public class UnitList<T> {
 	@SuppressWarnings("unchecked")
 	public void setItem(int unit, T item) {
 		if (unit < 0)
-			throw new IndexOutOfBoundsException(
-				"Invalid unit, units cannot be less than 0: " + unit);
+			throw new IndexOutOfBoundsException("Invalid unit, units cannot be less than 0: " + unit);
 
 		int nuIndex = -1;
 
@@ -125,23 +124,18 @@ public class UnitList<T> {
 				maxUnit = tu.unit;
 		}
 
-		boolean useRa =
-			(maxUnit - minUnit) < MAX_UNIT_DISPARITY
-				|| ((float) count) / (maxUnit - minUnit) > MIN_UNIT_USAGE;
+		boolean useRa = (maxUnit - minUnit) < MAX_UNIT_DISPARITY || ((float) count) / (maxUnit - minUnit) > MIN_UNIT_USAGE;
 
 		if (!useRa)
 			// no longer need random access, so clear it
 			this.resetRandomAccess();
 		else if (this.useRandomAccess) {
-			if (minUnit != this.raUnitOffset
-				|| maxUnit != (this.raUnitOffset + this.randomAccessData.length - 1)) {
+			if (minUnit != this.raUnitOffset || maxUnit != (this.raUnitOffset + this.randomAccessData.length - 1)) {
 				// we need an update
 				T[] newTex = (T[]) new Object[maxUnit - minUnit + 1];
-				System.arraycopy(this.randomAccessData, Math.max(0, minUnit
-					- this.raUnitOffset), newTex, Math.max(0, this.raUnitOffset
-					- minUnit), Math.min(this.randomAccessData.length
-					+ this.raUnitOffset, maxUnit + 1)
-					- this.raUnitOffset);
+				System.arraycopy(this.randomAccessData, Math.max(0, minUnit - this.raUnitOffset), newTex,
+								 Math.max(0, this.raUnitOffset - minUnit),
+								 Math.min(this.randomAccessData.length + this.raUnitOffset, maxUnit + 1) - this.raUnitOffset);
 				this.randomAccessData = newTex;
 				this.raUnitOffset = minUnit;
 			}
@@ -171,12 +165,10 @@ public class UnitList<T> {
 	 */
 	public T getItem(int unit) {
 		if (unit < 0)
-			throw new IndexOutOfBoundsException(
-				"Invalid unit, units cannot be less than 0: " + unit);
+			throw new IndexOutOfBoundsException("Invalid unit, units cannot be less than 0: " + unit);
 
 		if (this.useRandomAccess) {
-			if (unit < this.raUnitOffset
-				|| unit >= (this.raUnitOffset + this.randomAccessData.length))
+			if (unit < this.raUnitOffset || unit >= (this.raUnitOffset + this.randomAccessData.length))
 				return null;
 			return this.randomAccessData[unit - this.raUnitOffset];
 		} else {

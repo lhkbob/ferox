@@ -7,24 +7,28 @@ import java.awt.GraphicsEnvironment;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
 
-public class JoglFullscreenSurface extends JoglOnscreenSurface implements
-		FullscreenSurface {
+/** 
+ * A Jogl implementation that relies on AWT to display
+ * a fullscreen window with a GLCanvas inside it.
+ * 
+ * @author Michael Ludwig
+ *
+ */
+public class JoglFullscreenSurface extends JoglOnscreenSurface implements FullscreenSurface {
 	private DisplayMode mode;
 	private final GraphicsDevice gDev;
 
-	protected JoglFullscreenSurface(JoglContextManager factory,
-			DisplayOptions optionsRequest, final int width, final int height) {
+	public JoglFullscreenSurface(JoglContextManager factory, DisplayOptions optionsRequest, 
+								 final int width, final int height) {
 		super(factory, optionsRequest, 0, 0, width, height, false, true);
 
 		// get target device parameters and set the display mode
-		gDev = GraphicsEnvironment.getLocalGraphicsEnvironment()
-				.getDefaultScreenDevice();
+		gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		gDev.setFullScreenWindow(frame);
 
 		if (gDev.isFullScreenSupported()) {
 			if (gDev.isDisplayChangeSupported()) {
-				mode = chooseBestMode(gDev.getDisplayModes(), optionsRequest,
-						width, height);
+				mode = chooseBestMode(gDev.getDisplayModes(), optionsRequest, width, height);
 				gDev.setDisplayMode(mode);
 			} else
 				mode = gDev.getDisplayMode();
@@ -32,8 +36,8 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements
 			mode = gDev.getDisplayMode();
 	}
 
-	private static DisplayMode chooseBestMode(DisplayMode[] modes,
-			DisplayOptions options, int width, int height) {
+	private static DisplayMode chooseBestMode(DisplayMode[] modes, DisplayOptions options, 
+											  int width, int height) {
 		int desiredBitDepth;
 		switch (options.getPixelFormat()) {
 		case RGB_16BIT:
@@ -63,19 +67,16 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements
 	}
 
 	// closer to 0 represents better match
-	private static float getWeight(DisplayMode candidate, int bits, int width,
-			int height) {
+	private static float getWeight(DisplayMode candidate, int bits, int width, int height) {
 		int w = candidate.getWidth();
 		int h = candidate.getHeight();
 		int b = candidate.getBitDepth();
 
 		if (b == DisplayMode.BIT_DEPTH_MULTI)
-			return ((Math.abs(width - w) / (float) (w + width)) + (Math
-					.abs(height - h) / (float) (h + height))) / 2f;
+			return ((Math.abs(width - w) / (float) (w + width)) + (Math.abs(height - h) / (float) (h + height))) / 2f;
 		else
-			return ((Math.abs(width - w) / (float) (w + width))
-					+ (Math.abs(height - h) / (float) (h + height)) + (Math
-					.abs(bits - b) / (float) (b + bits))) / 3f;
+			return ((Math.abs(width - w) / (float) (w + width)) + (Math.abs(height - h) / (float) (h + height)) + 
+					(Math.abs(bits - b) / (float) (b + bits))) / 3f;
 	}
 
 	@Override

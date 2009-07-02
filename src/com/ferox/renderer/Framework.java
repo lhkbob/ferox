@@ -6,15 +6,15 @@ import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
  * <p>
- * The Framework is the core component for rendering with Ferox. It
- * controls the creation of RenderSurfaces, which store the final render
- * outputs, organizes the resources and, internally, handles all necessary
- * operations for rendering queued surfaces.
+ * The Framework is the core component for rendering with Ferox. It controls the
+ * creation of RenderSurfaces, which store the final render outputs, organizes
+ * the resources and, internally, handles all necessary operations for rendering
+ * queued surfaces.
  * </p>
  * <p>
  * Framework is not meant to be a thread-safe interface, and unless an
  * implementation specifically declares itself as such, the methods of a
- * Framework should only be called from a single thread. 
+ * Framework should only be called from a single thread.
  * </p>
  * <p>
  * There are three primary interfaces that Frameworks rely on to describe the
@@ -27,11 +27,11 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * <p>
  * Because these interfaces are not specific, a Framework implementation may not
  * support some types of implementations. Frameworks must document which types
- * they support, and how to add support for new types. To allow for
- * efficient caching and bookkeeping, these interfaces also provide methods
- * allowing a Framework to associate internal object with specific instances.
- * <b>UNDER NO CIRCUMSTANCES SHOULD THESE METHODS BE CALLED OR USED EXTERNALLY
- * OF RENDERER IMPLEMENTATIONS.</b>
+ * they support, and how to add support for new types. To allow for efficient
+ * caching and bookkeeping, these interfaces also provide methods allowing a
+ * Framework to associate internal object with specific instances. <b>UNDER NO
+ * CIRCUMSTANCES SHOULD THESE METHODS BE CALLED OR USED EXTERNALLY OF RENDERER
+ * IMPLEMENTATIONS.</b>
  * </p>
  * <p>
  * Although the get/setRenderData() methods in Resource allow for multiple
@@ -48,8 +48,8 @@ public interface Framework {
 	 * <p>
 	 * Create a WindowSurface with the given options, and flags for resizable
 	 * and undecorated. These parameters are requests to the underlying
-	 * Framework, which will try its best to follow them. When the window surface
-	 * is returned, it will be visible and on screen.
+	 * Framework, which will try its best to follow them. When the window
+	 * surface is returned, it will be visible and on screen.
 	 * </p>
 	 * <p>
 	 * The window is positioned at the given coordinates (relative to screen
@@ -82,14 +82,15 @@ public interface Framework {
 	 * @throws RenderStateException if the Framework is rendering, or if the
 	 *             Framework is destroyed
 	 */
-	public WindowSurface createWindowSurface(DisplayOptions options, int x,
-		int y, int width, int height, boolean resizable, boolean undecorated);
+	public WindowSurface createWindowSurface(DisplayOptions options, 
+											 int x, int y, int width, int height, 
+											 boolean resizable, boolean undecorated);
 
 	/**
 	 * <p>
 	 * Create a surface that puts the application into exclusive fullscreen
-	 * mode. The Framework will choose a screen resolution that is closest to the
-	 * given dimensions in width/height.
+	 * mode. The Framework will choose a screen resolution that is closest to
+	 * the given dimensions in width/height.
 	 * </p>
 	 * <p>
 	 * If options is null, or the parameters aren't directly supported, the
@@ -111,8 +112,8 @@ public interface Framework {
 	 * @throws RenderStateException if the Framework is rendering, or if the
 	 *             Framework is destroyed
 	 */
-	public FullscreenSurface createFullscreenSurface(DisplayOptions options,
-		int width, int height);
+	public FullscreenSurface createFullscreenSurface(DisplayOptions options, 
+													 int width, int height);
 
 	/**
 	 * <p>
@@ -193,9 +194,9 @@ public interface Framework {
 	 * @throws RenderStateException if the Framework is rendering or if it's
 	 *             destroyed
 	 */
-	public TextureSurface createTextureSurface(DisplayOptions options,
-		TextureTarget target, int width, int height, int depth, int layer,
-		int numColorTargets, boolean useDepthRenderBuffer);
+	public TextureSurface createTextureSurface(DisplayOptions options, TextureTarget target, 
+											   int width, int height, int depth, int layer, 
+											   int numColorTargets, boolean useDepthRenderBuffer);
 
 	/**
 	 * <p>
@@ -211,8 +212,8 @@ public interface Framework {
 	 * dynamic reflections to easily be implemented (for targets of T_3D or
 	 * T_CUBEMAP). If layer would be ignored in the other createTextureSurface()
 	 * method, it is ignored here. In this case, another surface is created that
-	 * references the exact same texture data which may cause undefined rendering
-	 * results.
+	 * references the exact same texture data which may cause undefined
+	 * rendering results.
 	 * </p>
 	 * 
 	 * @param share The TextureSurface whose images are attached to for
@@ -222,8 +223,8 @@ public interface Framework {
 	 * @throws SurfaceCreationException if share is null, it's already
 	 *             destroyed, or it wasn't created by this Framework. Also fail
 	 *             if layer is invalid for the share's target type
-	 * @throws RenderStateException if the Framework is rendering or if it's been
-	 *             destroyed
+	 * @throws RenderStateException if the Framework is rendering or if it's
+	 *             been destroyed
 	 */
 	public TextureSurface createTextureSurface(TextureSurface share, int layer);
 
@@ -248,17 +249,17 @@ public interface Framework {
 	 * @throws NullPointerException if surface is null
 	 * @throws IllegalArgumentException if the surface wasn't created by this
 	 *             Framework
-	 * @throws RenderStateException if this Framework is rendering or if it's been
-	 *             destroyed
+	 * @throws RenderStateException if this Framework is rendering or if it's
+	 *             been destroyed
 	 */
 	public void destroy(RenderSurface surface);
 
 	/**
 	 * <p>
 	 * Destroy all remaining, undestroyed RenderSurfaces created by this
-	 * Framework. This method also cleans up the remaining internal resources and
-	 * any information stored directly on the graphics card that wasn't cleaned
-	 * up as the direct result of a ResourceManager.
+	 * Framework. This method also cleans up the remaining internal resources
+	 * and any information stored directly on the graphics card that wasn't
+	 * cleaned up as the direct result of a ResourceManager.
 	 * </p>
 	 * <p>
 	 * After one Framework is destroyed, it is acceptable to create another
@@ -269,17 +270,18 @@ public interface Framework {
 	 * Framework will be discarded after it is destroyed.
 	 * </p>
 	 * 
-	 * @throws RenderStateException if the Framework is rendering idle, or if it's
-	 *             already been destroyed
+	 * @throws RenderStateException if the Framework is rendering idle, or if
+	 *             it's already been destroyed
 	 */
 	public void destroy();
 
 	/**
 	 * <p>
-	 * Add the given ResourceManager to the Framework's list of ResourceManagers.
-	 * ResourceManagers have their manage() method called at the beginning of
-	 * each flushRenderer() call. The managers will be processed in the order
-	 * they were added (and taking into account any removals).
+	 * Add the given ResourceManager to the Framework's list of
+	 * ResourceManagers. ResourceManagers have their manage() method called at
+	 * the beginning of each flushRenderer() call. The managers will be
+	 * processed in the order they were added (and taking into account any
+	 * removals).
 	 * </p>
 	 * <p>
 	 * Framework implementations must provide a default ResourceManager that is
@@ -316,8 +318,8 @@ public interface Framework {
 	 * then the eventual update will force a full update.
 	 * <p>
 	 * <p>
-	 * Every Framework implementation must provide a default ResourceManager that
-	 * is used by calls to requestUpdate() and requestCleanUp(). It is
+	 * Every Framework implementation must provide a default ResourceManager
+	 * that is used by calls to requestUpdate() and requestCleanUp(). It is
 	 * responsible for making sure that a specific resource instance is only
 	 * updated or cleaned once per frame.
 	 * </p>
@@ -333,8 +335,8 @@ public interface Framework {
 	 * of the next call to flushRenderer().
 	 * </p>
 	 * <p>
-	 * Note that an exception may be thrown later if the resource would fail
-	 * the requirements for the actual update() method.
+	 * Note that an exception may be thrown later if the resource would fail the
+	 * requirements for the actual update() method.
 	 * </p>
 	 * 
 	 * @param resource The resource that's to be updated next frame
@@ -394,9 +396,9 @@ public interface Framework {
 	 * ResourceManager and then any custom managers. After the managers are
 	 * processed, the Framework should, for each queued surface, clear the
 	 * surface based on its settings and render each attached render pass.
-	 * Queued surfaces that have been destroyed should be ignored.  When processing
-	 * each render pass, an internal implementation of Renderer should be used to
-	 * complete the renderings.
+	 * Queued surfaces that have been destroyed should be ignored. When
+	 * processing each render pass, an internal implementation of Renderer
+	 * should be used to complete the renderings.
 	 * </p>
 	 * <p>
 	 * The resource managers must be processed even if there are no queued
@@ -419,8 +421,8 @@ public interface Framework {
 	 *         was null).
 	 * @throws RenderException wrapping any exception that occurs while
 	 *             rendering
-	 * @throws RenderStateException if the Framework is idle or if it's
-	 *             already been destroyed
+	 * @throws RenderStateException if the Framework is idle or if it's already
+	 *             been destroyed
 	 */
 	public FrameStatistics renderFrame(FrameStatistics store);
 

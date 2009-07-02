@@ -4,13 +4,10 @@ import javax.media.opengl.GL;
 
 /**
  * Class that encapsulates the state for the different pixel operations and
- * tests.
- * 
- * The actual box for the scissor's test is not included because tracking it
- * would be too difficult.
+ * tests. The actual box for the scissor's test is not included because tracking
+ * it would be too difficult.
  * 
  * @author Michael Ludwig
- * 
  */
 public class PixelOpRecord {
 	public boolean enableScissorTest = false;

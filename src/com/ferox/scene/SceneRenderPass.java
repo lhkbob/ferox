@@ -44,10 +44,8 @@ public class SceneRenderPass implements RenderPass {
 	 * @param renderQueue The RenderQueue to use during visiting and flushing to
 	 *            the render; null defaults to a new EffectSortingRenderQueue
 	 */
-	public SceneRenderPass(Node scene, View view, RenderQueue renderQueue,
-		boolean updateScene) {
-		this.renderQueue =
-			(renderQueue == null ? new EffectSortingRenderQueue() : renderQueue);
+	public SceneRenderPass(Node scene, View view, RenderQueue renderQueue, boolean updateScene) {
+		this.renderQueue = (renderQueue == null ? new EffectSortingRenderQueue() : renderQueue);
 		setScene(scene);
 		setView(view);
 		setSceneUpdated(updateScene);
@@ -129,7 +127,7 @@ public class SceneRenderPass implements RenderPass {
 			return null;
 		renderQueue.clear();
 		view.updateView();
-		
+
 		if (updateScene)
 			scene.update();
 		scene.visit(renderQueue, view, null);

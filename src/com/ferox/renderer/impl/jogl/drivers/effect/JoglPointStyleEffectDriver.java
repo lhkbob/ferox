@@ -17,8 +17,7 @@ import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
  * 
  * @author Michael Ludwig
  */
-public class JoglPointStyleEffectDriver extends
-	SingleEffectDriver<PointStyle> {
+public class JoglPointStyleEffectDriver extends SingleEffectDriver<PointStyle> {
 
 	private final boolean glslSupport;
 	private final boolean pointSpriteSupport;
@@ -26,17 +25,16 @@ public class JoglPointStyleEffectDriver extends
 	public JoglPointStyleEffectDriver(JoglContextManager factory) {
 		super(new PointStyle(), PointStyle.class, factory);
 		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
-		pointSpriteSupport =
-			factory.getFramework().getCapabilities().getPointSpriteSupport();
+		pointSpriteSupport = factory.getFramework().getCapabilities().getPointSpriteSupport();
 	}
 
 	@Override
 	protected void apply(GL gl, JoglStateRecord record, PointStyle nextState) {
 		RasterizationRecord rr = record.rasterRecord;
 
-		setPoint(gl, rr, nextState.getPointSize(), nextState
-			.getDistanceAttenuation(), nextState.getPointSizeMin(), nextState
-			.getPointSizeMax(), nextState.isSmoothingEnabled());
+		setPoint(gl, rr, nextState.getPointSize(), nextState.getDistanceAttenuation(), 
+				 nextState.getPointSizeMin(), nextState.getPointSizeMax(), 
+				 nextState.isSmoothingEnabled());
 
 		setVertexShaderEnabled(gl, rr, nextState.isVertexShaderSizingEnabled());
 
@@ -65,8 +63,7 @@ public class JoglPointStyleEffectDriver extends
 		}
 	}
 
-	private void setVertexShaderEnabled(GL gl, RasterizationRecord rr,
-		boolean enable) {
+	private void setVertexShaderEnabled(GL gl, RasterizationRecord rr, boolean enable) {
 		// vertex shader
 		if (glslSupport && enable != rr.enableVertexShaderSize) {
 			// only do this if glsl is supported
@@ -78,9 +75,8 @@ public class JoglPointStyleEffectDriver extends
 		}
 	}
 
-	private static void setPoint(GL gl, RasterizationRecord rr,
-		float pointSize, Vector3f distance, float min, float max,
-		boolean smoothing) {
+	private static void setPoint(GL gl, RasterizationRecord rr, float pointSize, 
+								 Vector3f distance, float min, float max, boolean smoothing) {
 		// size
 		if (rr.pointSize != pointSize) {
 			rr.pointSize = pointSize;
@@ -88,12 +84,10 @@ public class JoglPointStyleEffectDriver extends
 		}
 		// distance atten.
 		Vector3f at = distance;
-		if (at.x != rr.pointDistanceAttenuation[0]
-			|| at.y != rr.pointDistanceAttenuation[1]
-			|| at.z != rr.pointDistanceAttenuation[2]) {
+		if (at.x != rr.pointDistanceAttenuation[0] || at.y != rr.pointDistanceAttenuation[1] || 
+			at.z != rr.pointDistanceAttenuation[2]) {
 			at.get(rr.pointDistanceAttenuation, 0);
-			gl.glPointParameterfv(GL.GL_POINT_DISTANCE_ATTENUATION,
-				rr.pointDistanceAttenuation, 0);
+			gl.glPointParameterfv(GL.GL_POINT_DISTANCE_ATTENUATION, rr.pointDistanceAttenuation, 0);
 		}
 		// maximum
 		if (max != rr.pointSizeMax) {
@@ -124,27 +118,24 @@ public class JoglPointStyleEffectDriver extends
 	 * one. If enableUnit doesn't equal a valid texture unit (TEXTURE0 ...),
 	 * this will disable all units.
 	 */
-	private static void enableCoordReplace(GL gl, TextureRecord tr,
-		int enableUnit) {
+	private static void enableCoordReplace(GL gl, TextureRecord tr, int enableUnit) {
 		int activeTex = tr.activeTexture;
 		// set the active texture unit first
 		TextureUnit tu = tr.textureUnits[activeTex];
-		setCoordReplaceEnabled(gl, activeTex, activeTex, tu,
-			activeTex == enableUnit);
+		setCoordReplaceEnabled(gl, activeTex, activeTex, tu, activeTex == enableUnit);
 
 		// now make sure all the others are set
 		for (int i = 0; i < tr.textureUnits.length; i++) {
 			if (i == tr.activeTexture)
 				continue; // we set this one earlier
 			tu = tr.textureUnits[i];
-			activeTex =
-				setCoordReplaceEnabled(gl, activeTex, i, tu, i == enableUnit);
+			activeTex = setCoordReplaceEnabled(gl, activeTex, i, tu, i == enableUnit);
 		}
 		tr.activeTexture = activeTex;
 	}
 
-	private static int setCoordReplaceEnabled(GL gl, int activeUnit,
-		int desiredUnit, TextureUnit tu, boolean enable) {
+	private static int setCoordReplaceEnabled(GL gl, int activeUnit, int desiredUnit, 
+											  TextureUnit tu, boolean enable) {
 		if (tu.enableCoordReplace != enable) {
 			if (activeUnit != desiredUnit) {
 				gl.glActiveTexture(GL.GL_TEXTURE0 + desiredUnit);
@@ -153,25 +144,22 @@ public class JoglPointStyleEffectDriver extends
 			}
 
 			tu.enableCoordReplace = enable;
-			gl.glTexEnvi(GL.GL_POINT_SPRITE_ARB, GL.GL_COORD_REPLACE_ARB,
-				(enable ? GL.GL_TRUE : GL.GL_FALSE));
+			gl.glTexEnvi(GL.GL_POINT_SPRITE_ARB, GL.GL_COORD_REPLACE_ARB, (enable ? GL.GL_TRUE 
+																				  : GL.GL_FALSE));
 		}
 
 		return activeUnit;
 	}
 
-	private static void setPointSpriteOrigin(GL gl, RasterizationRecord rr,
-		PointSpriteOrigin origin) {
+	private static void setPointSpriteOrigin(GL gl, RasterizationRecord rr, PointSpriteOrigin origin) {
 		if (origin == PointSpriteOrigin.UPPER_LEFT) {
 			if (rr.pointSpriteOrigin != GL.GL_UPPER_LEFT) {
 				rr.pointSpriteOrigin = GL.GL_UPPER_LEFT;
-				gl.glPointParameteri(GL.GL_POINT_SPRITE_COORD_ORIGIN,
-					GL.GL_UPPER_LEFT);
+				gl.glPointParameteri(GL.GL_POINT_SPRITE_COORD_ORIGIN, GL.GL_UPPER_LEFT);
 			}
 		} else if (rr.pointSpriteOrigin != GL.GL_LOWER_LEFT) {
 			rr.pointSpriteOrigin = GL.GL_LOWER_LEFT;
-			gl.glPointParameteri(GL.GL_POINT_SPRITE_COORD_ORIGIN,
-				GL.GL_LOWER_LEFT);
+			gl.glPointParameteri(GL.GL_POINT_SPRITE_COORD_ORIGIN, GL.GL_LOWER_LEFT);
 		}
 	}
 }

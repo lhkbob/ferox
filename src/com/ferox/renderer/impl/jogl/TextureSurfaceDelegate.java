@@ -12,7 +12,6 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * of this will be instantiated by JoglTextureSurface.
  * 
  * @author Michael Ludwig
- * 
  */
 public abstract class TextureSurfaceDelegate {
 	private final TextureImage[] colors;
@@ -27,9 +26,9 @@ public abstract class TextureSurfaceDelegate {
 
 	private int referenceCount;
 
-	public TextureSurfaceDelegate(DisplayOptions options,
-			TextureTarget colorTarget, TextureTarget depthTarget, int width,
-			int height, TextureImage[] colors, TextureImage depth) {
+	public TextureSurfaceDelegate(DisplayOptions options, TextureTarget colorTarget,
+								  TextureTarget depthTarget, int width, int height, 
+								  TextureImage[] colors, TextureImage depth) {
 		this.options = options;
 		this.colorTarget = colorTarget;
 		this.depthTarget = depthTarget;

@@ -15,8 +15,7 @@ import com.ferox.renderer.impl.jogl.record.LightingRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglGlobalLightingEffectDriver extends
-	SingleEffectDriver<GlobalLighting> {
+public class JoglGlobalLightingEffectDriver extends SingleEffectDriver<GlobalLighting> {
 
 	public JoglGlobalLightingEffectDriver(JoglContextManager factory) {
 		super(null, GlobalLighting.class, factory);
@@ -39,26 +38,25 @@ public class JoglGlobalLightingEffectDriver extends
 				gl.glEnable(GL.GL_LIGHTING);
 			}
 
-			setLightModel(gl, lr, nextState.getGlobalAmbient(), nextState
-				.isLocalViewer(), (nextState.getSeparateSpecular()
-				? GL.GL_SEPARATE_SPECULAR_COLOR : GL.GL_SINGLE_COLOR),
-				nextState.getTwoSidedLighting());
+			setLightModel(gl, lr, nextState.getGlobalAmbient(), nextState.isLocalViewer(), 
+						  (nextState.getSeparateSpecular() ? GL.GL_SEPARATE_SPECULAR_COLOR 
+							                               : GL.GL_SINGLE_COLOR), 
+					      nextState.getTwoSidedLighting());
 		}
 	}
 
-	private void setLightModel(GL gl, LightingRecord lr, Color4f ambient,
-		boolean localViewer, int colorControl, boolean twoSided) {
+	private void setLightModel(GL gl, LightingRecord lr, Color4f ambient, 
+							   boolean localViewer, int colorControl, boolean twoSided) {
 		// ambient color
 		if (!JoglUtil.equals(ambient, lr.lightModelAmbient)) {
 			JoglUtil.get(ambient, lr.lightModelAmbient);
-			gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, lr.lightModelAmbient,
-				0);
+			gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, lr.lightModelAmbient, 0);
 		}
 		// local viewer
 		if (localViewer != lr.lightModelLocalViewer) {
 			lr.lightModelLocalViewer = localViewer;
-			gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER,
-				(lr.lightModelLocalViewer ? GL.GL_TRUE : GL.GL_FALSE));
+			gl.glLightModeli(GL.GL_LIGHT_MODEL_LOCAL_VIEWER, (lr.lightModelLocalViewer ? GL.GL_TRUE 
+																					   : GL.GL_FALSE));
 		}
 		// separate specular
 		if (colorControl != lr.lightModelColorControl) {
@@ -68,8 +66,8 @@ public class JoglGlobalLightingEffectDriver extends
 		// two-sided lighting
 		if (twoSided != lr.lightModelTwoSided) {
 			lr.lightModelTwoSided = twoSided;
-			gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, (lr.lightModelTwoSided
-				? GL.GL_TRUE : GL.GL_FALSE));
+			gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, (lr.lightModelTwoSided ? GL.GL_TRUE 
+																				: GL.GL_FALSE));
 		}
 	}
 }

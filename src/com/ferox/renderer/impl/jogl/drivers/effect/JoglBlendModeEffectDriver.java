@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.BlendMode;
-import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 
@@ -13,7 +13,6 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * BlendMode instances.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglBlendModeEffectDriver extends SingleEffectDriver<BlendMode> {
 	public JoglBlendModeEffectDriver(JoglContextManager factory) {
@@ -46,11 +45,10 @@ public class JoglBlendModeEffectDriver extends SingleEffectDriver<BlendMode> {
 			}
 
 			// factors
-			int funcSrc = JoglUtil
-					.getGLBlendFactor(nextState.getSourceFactor());
+			int funcSrc = JoglUtil.getGLBlendFactor(nextState.getSourceFactor());
 			int funcDst = JoglUtil.getGLBlendFactor(nextState.getDestFactor());
-			if (funcSrc != pr.blendSrcRgb || funcSrc != pr.blendSrcAlpha
-					|| funcDst != pr.blendDstRgb || funcDst != pr.blendDstAlpha) {
+			if (funcSrc != pr.blendSrcRgb || funcSrc != pr.blendSrcAlpha || 
+				funcDst != pr.blendDstRgb || funcDst != pr.blendDstAlpha) {
 				pr.blendSrcRgb = funcSrc;
 				pr.blendSrcAlpha = funcSrc;
 				pr.blendDstRgb = funcDst;

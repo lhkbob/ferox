@@ -1,6 +1,5 @@
 package com.ferox.renderer;
 
-
 /**
  * <p>
  * A ResourceManager can be used to have application specific control over how

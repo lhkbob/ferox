@@ -36,8 +36,8 @@ public class FrameStatistics {
 	}
 
 	/**
-	 * Set the amount of nanoseconds that this Framework has been idle. This will
-	 * be the value returned by getIdleTime() and should not be negative.
+	 * Set the amount of nanoseconds that this Framework has been idle. This
+	 * will be the value returned by getIdleTime() and should not be negative.
 	 * 
 	 * @param ns The idle time, in nanoseconds
 	 */
@@ -46,9 +46,9 @@ public class FrameStatistics {
 	}
 
 	/**
-	 * Set the amount of nanoseconds that this Framework has been spent preparing
-	 * for rendering. This will be the value returned by getPrepareTime() and
-	 * should not be negative.
+	 * Set the amount of nanoseconds that this Framework has been spent
+	 * preparing for rendering. This will be the value returned by
+	 * getPrepareTime() and should not be negative.
 	 * 
 	 * @param ns The prepare time, in nanoseconds
 	 */
@@ -181,15 +181,10 @@ public class FrameStatistics {
 	 * @throws NullPointerException if out is null
 	 */
 	public void reportStatistics(PrintStream out) {
-		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n",
-			getTotalTime() / 1e6f, getIdleTime() / 1e6f);
-		out.printf("                     in prepare: %.6f ms,\n",
-			getPrepareTime() / 1e6f);
-		out.printf("                     in render: %.6f ms)\n",
-			getRenderTime() / 1e6f);
-		out.printf("Frame/sec: %.4f fps, Poly/sec: %.4f\n",
-			getFramesPerSecond(), getPolygonsPerSecond());
-		out.printf("Mesh count: %d, Polygon count: %d Vertex count: %d\n",
-			getMeshCount(), getPolygonCount(), getVertexCount());
+		out.printf("Total Time: %.6f ms (idle: %.6f ms,\n", getTotalTime() / 1e6f, getIdleTime() / 1e6f);
+		out.printf("                     in prepare: %.6f ms,\n", getPrepareTime() / 1e6f);
+		out.printf("                     in render: %.6f ms)\n", getRenderTime() / 1e6f);
+		out.printf("Frame/sec: %.4f fps, Poly/sec: %.4f\n", getFramesPerSecond(), getPolygonsPerSecond());
+		out.printf("Mesh count: %d, Polygon count: %d Vertex count: %d\n", getMeshCount(), getPolygonCount(), getVertexCount());
 	}
 }

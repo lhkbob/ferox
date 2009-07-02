@@ -72,7 +72,8 @@ public class RenderDataCache {
 		return renderData[id];
 	}
 
-	// internally manage and retrieve Framework ids, assumes Framework isn't null
+	// internally manage and retrieve Framework ids, assumes Framework isn't
+	// null
 	private static int getId(Framework renderer) {
 		if (frequentContext != null && frequentContext.get() == renderer)
 			return frequentId;

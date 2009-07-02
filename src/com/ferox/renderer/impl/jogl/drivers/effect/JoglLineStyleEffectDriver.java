@@ -40,8 +40,7 @@ public class JoglLineStyleEffectDriver extends SingleEffectDriver<LineStyle> {
 
 			short pattern = nextState.getStipplePattern();
 			int repeat = nextState.getStippleFactor();
-			if (rr.lineStipplePattern != pattern
-				|| rr.lineStippleRepeat != repeat) {
+			if (rr.lineStipplePattern != pattern || rr.lineStippleRepeat != repeat) {
 				rr.lineStipplePattern = pattern;
 				rr.lineStippleRepeat = repeat;
 				gl.glLineStipple(repeat, pattern);
@@ -53,8 +52,7 @@ public class JoglLineStyleEffectDriver extends SingleEffectDriver<LineStyle> {
 		}
 	}
 
-	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr,
-		boolean enable) {
+	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr, boolean enable) {
 		if (rr.enableLineSmooth != enable) {
 			rr.enableLineSmooth = enable;
 			if (enable)

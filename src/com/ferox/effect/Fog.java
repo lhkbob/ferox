@@ -88,8 +88,7 @@ public class Fog extends AbstractEffect {
 	 * @param qual The quality of the rendered fog
 	 * @throws IllegalArgumentException if start > end
 	 */
-	public Fog(Color4f color, float start, float end, float density,
-		FogEquation eq, Quality qual) {
+	public Fog(Color4f color, float start, float end, float density, FogEquation eq, Quality qual) {
 		setFogRange(start, end);
 		setDensity(density);
 		setEquation(eq);
@@ -147,8 +146,7 @@ public class Fog extends AbstractEffect {
 	 */
 	public void setFogRange(float start, float end) {
 		if (start < 0 || start > end)
-			throw new IllegalArgumentException("Illegal valus for fog range: "
-				+ start + " - " + end);
+			throw new IllegalArgumentException("Illegal valus for fog range: " + start + " - " + end);
 		this.start = start;
 		this.end = end;
 	}

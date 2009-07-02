@@ -5,7 +5,6 @@ package com.ferox.renderer.impl.jogl.record;
  * framebuffer operations.
  * 
  * @author Michael Ludwig
- * 
  */
 public class FramebufferRecord {
 	public final float[] clearColor = { 0f, 0f, 0f, 0f };

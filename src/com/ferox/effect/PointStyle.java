@@ -3,7 +3,6 @@ package com.ferox.effect;
 import com.ferox.effect.Effect.Type;
 import com.ferox.math.Vector3f;
 
-
 /**
  * <p>
  * A PointStyle controls the aspects of how all point primitives are rendered.
@@ -260,9 +259,7 @@ public class PointStyle extends AbstractEffect {
 	 */
 	public void setMinMaxPointSize(float min, float max) {
 		if (min > max)
-			throw new IllegalArgumentException(
-				"Cannot specify a minimum point distance that's less than the max: "
-					+ min + " " + max);
+			throw new IllegalArgumentException("Cannot specify a minimum point distance that's less than the max: " + min + " " + max);
 		pointSizeMin = Math.max(1f, min);
 		pointSizeMax = Math.max(1f, max);
 	}

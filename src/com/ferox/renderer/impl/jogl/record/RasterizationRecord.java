@@ -4,12 +4,10 @@ import javax.media.opengl.GL;
 
 /**
  * Class that stores the state of how points, lines, and polygons are rendered.
- * 
  * Polygon stippling is assumed to not be in use, and JoglPolygonDrawStyle
  * assumes this. Care should be given if using polygon stippling.
  * 
  * @author Michael Ludwig
- * 
  */
 public class RasterizationRecord {
 	public float pointSize = 1f;

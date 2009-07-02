@@ -4,12 +4,10 @@ import javax.media.opengl.GL;
 
 /**
  * This class encapsulates all of the state necessary for all of the available
- * texture units and their environments.
- * 
- * This does not track per-object texture parameters.
+ * texture units and their environments. This does not track per-object texture
+ * parameters.
  * 
  * @author Michael Ludwig
- * 
  */
 public class TextureRecord {
 	/** Represents the state of a single texture unit. */
@@ -20,14 +18,10 @@ public class TextureRecord {
 		public final float[] textureEnvColor = { 0f, 0f, 0f, 0f };
 		public float textureLodBias = 0f;
 
-		public final TextureGenRecord texGenR = new TextureGenRecord(
-				new float[] { 0f, 0f, 0f, 0f });
-		public final TextureGenRecord texGenS = new TextureGenRecord(
-				new float[] { 1f, 0f, 0f, 0f });
-		public final TextureGenRecord texGenT = new TextureGenRecord(
-				new float[] { 0f, 1f, 0f, 0f });
-		public final TextureGenRecord texGenQ = new TextureGenRecord(
-				new float[] { 0f, 0f, 0f, 0f });
+		public final TextureGenRecord texGenR = new TextureGenRecord(new float[] { 0f, 0f, 0f, 0f });
+		public final TextureGenRecord texGenS = new TextureGenRecord(new float[] { 1f, 0f, 0f, 0f });
+		public final TextureGenRecord texGenT = new TextureGenRecord(new float[] { 0f, 1f, 0f, 0f });
+		public final TextureGenRecord texGenQ = new TextureGenRecord(new float[] { 0f, 0f, 0f, 0f });
 
 		public int combineRgb = GL.GL_MODULATE;
 		public int combineAlpha = GL.GL_MODULATE;
@@ -57,11 +51,10 @@ public class TextureRecord {
 		/**
 		 * These fields differ from the standard OpenGL state because we're
 		 * imposing the constraint that only one target can be enabled and bound
-		 * to at any usable point in time.
-		 * 
-		 * If enableTarget is true, enabledTarget must be one of
-		 * GL_TEXTURE_2D/3D/CUBEMAP/RECTANGLE_ARB. If it's false, no texture
-		 * should be bound, and enabledTarget should = -1.
+		 * to at any usable point in time. If enableTarget is true,
+		 * enabledTarget must be one of GL_TEXTURE_2D/3D/CUBEMAP/RECTANGLE_ARB.
+		 * If it's false, no texture should be bound, and enabledTarget should =
+		 * -1.
 		 */
 		public boolean enableTarget = false;
 		public int enabledTarget = -1;

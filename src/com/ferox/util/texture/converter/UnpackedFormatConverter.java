@@ -36,30 +36,33 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
-		int index =
-			numC
-				* (x + y * data.getWidth() + z * data.getHeight()
-					* data.getWidth());
+		int index = numC * (x + y * data.getWidth() + z * data.getHeight() * data.getWidth());
 		Object array = data.getData().getData();
 
 		switch (data.getFormat()) {
 		case BGRA:
-			store.set(get(array, index + 2), get(array, index + 1), get(array,
-				index + 0), get(array, index + 3));
+			store.set(get(array, index + 2), 
+					  get(array, index + 1), 
+					  get(array, index + 0), 
+					  get(array, index + 3));
 			break;
 		case BGR:
-			store.set(get(array, index + 2), get(array, index + 1), get(array,
-				index + 0), 1f);
+			store.set(get(array, index + 2), 
+					  get(array, index + 1), 
+					  get(array, index + 0), 1f);
 			break;
 		case RGBA:
 		case RGBA_FLOAT:
-			store.set(get(array, index + 0), get(array, index + 1), get(array,
-				index + 2), get(array, index + 3));
+			store.set(get(array, index + 0),
+					  get(array, index + 1), 
+					  get(array, index + 2), 
+					  get(array, index + 3));
 			break;
 		case RGB:
 		case RGB_FLOAT:
-			store.set(get(array, index + 0), get(array, index + 1), get(array,
-				index + 2), 1f);
+			store.set(get(array, index + 0), 
+					  get(array, index + 1), 
+					  get(array, index + 2), 1f);
 			break;
 		case ALPHA:
 		case ALPHA_FLOAT:
@@ -90,10 +93,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	public void setColor(DataBlock data, int x, int y, int z, Color4f color) {
 		int numC = data.getFormat().getPrimitivesPerColor();
 		// first index of the color
-		int index =
-			numC
-				* (x + y * data.getWidth() + z * data.getHeight()
-					* data.getWidth());
+		int index = numC * (x + y * data.getWidth() + z * data.getHeight() * data.getWidth());
 		Object array = data.getData().getData();
 
 		switch (data.getFormat()) {
@@ -131,16 +131,14 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 			break;
 		case LUMINANCE_ALPHA:
 		case LUMINANCE_ALPHA_FLOAT: {
-			set(array, index, (color.getRed() + color.getGreen() + color
-				.getBlue()) / 3f);
+			set(array, index, (color.getRed() + color.getGreen() + color.getBlue()) / 3f);
 			set(array, index + 1, color.getAlpha());
 			break;
 		}
 		case DEPTH:
 		case LUMINANCE:
 		case LUMINANCE_FLOAT: {
-			set(array, index, (color.getRed() + color.getGreen() + color
-				.getBlue()) / 3f);
+			set(array, index, (color.getRed() + color.getGreen() + color.getBlue()) / 3f);
 			break;
 		}
 		}
@@ -168,8 +166,7 @@ public abstract class UnpackedFormatConverter implements Decoder, Encoder {
 	protected abstract float get(Object array, int index);
 
 	private boolean supported(DataType type, TextureFormat format) {
-		return type == validType && !format.isCompressed()
-			&& !format.isPackedFormat();
+		return type == validType && !format.isCompressed() && !format.isPackedFormat();
 	}
 
 }

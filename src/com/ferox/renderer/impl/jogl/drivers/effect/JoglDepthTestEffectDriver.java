@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.DepthTest;
-import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
@@ -14,7 +14,6 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * instances.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglDepthTestEffectDriver extends SingleEffectDriver<DepthTest> {
 	public JoglDepthTestEffectDriver(JoglContextManager factory) {

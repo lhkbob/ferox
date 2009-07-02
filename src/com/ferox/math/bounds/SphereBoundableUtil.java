@@ -32,8 +32,7 @@ public class SphereBoundableUtil {
 		recurseMini(sphere, points, points.length / 3, 0, 0);
 	}
 
-	private static void recurseMini(BoundSphere sphere, float[] points, int p,
-		int b, int ap) {
+	private static void recurseMini(BoundSphere sphere, float[] points, int p, int b, int ap) {
 		Vector3f tempA = SphereBoundableUtil.tempA.get();
 		Vector3f tempB = SphereBoundableUtil.tempB.get();
 		Vector3f tempC = SphereBoundableUtil.tempC.get();
@@ -74,10 +73,9 @@ public class SphereBoundableUtil {
 		}
 		for (int i = 0; i < p; i++) {
 			populateFromArray(tempA, points, i + ap);
-			float d =
-				((tempA.x - center.x) * (tempA.x - center.x)
-					+ (tempA.y - center.y) * (tempA.y - center.y) + (tempA.z - center.z)
-					* (tempA.z - center.z));
+			float d = (tempA.x - center.x) * (tempA.x - center.x) + 
+					  (tempA.y - center.y) * (tempA.y - center.y) + 
+					  (tempA.z - center.z) * (tempA.z - center.z);
 			if (d - (sphere.getRadius() * sphere.getRadius()) > radiusEpsilon - 1f) {
 				for (int j = i; j > 0; j--) {
 					populateFromArray(tempB, points, j + ap);
@@ -99,13 +97,11 @@ public class SphereBoundableUtil {
 			points[index * 3] = 0f;
 			points[index * 3 + 1] = 0f;
 			points[index * 3 + 2] = 0f;
-		} else {
+		} else
 			p.get(points, index * 3);
-		}
 	}
 
-	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a,
-		Vector3f b, Vector3f c) {
+	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a, Vector3f b, Vector3f c) {
 		Vector3f tA = a.sub(o, SphereBoundableUtil.tA.get());
 		Vector3f tB = b.sub(o, SphereBoundableUtil.tB.get());
 		Vector3f tC = c.sub(o, SphereBoundableUtil.tC.get());
@@ -113,17 +109,16 @@ public class SphereBoundableUtil {
 		Vector3f tD = SphereBoundableUtil.tD.get();
 		Vector3f cross = SphereBoundableUtil.cross.get();
 
-		float denom =
-			2.0f * (tA.x * (tB.y * tC.z - tC.y * tB.z) - tB.x
-				* (tA.y * tC.z - tC.y * tA.z) + tC.x
-				* (tA.y * tB.z - tB.y * tA.z));
+		float denom = 2.0f * (tA.x * (tB.y * tC.z - tC.y * tB.z) - 
+							  tB.x * (tA.y * tC.z - tC.y * tA.z) +
+							  tC.x * (tA.y * tB.z - tB.y * tA.z));
 		if (denom == 0) {
 			sphere.getCenter().set(0f, 0f, 0f);
 			sphere.setRadius(0f);
 		} else {
 			tC.cross(tA, tD).scale(tB.lengthSquared());
 			tA.cross(tB, cross).scale(tC.lengthSquared()).add(tD);
-			
+
 			tB.cross(tC, tD).scale(tA.lengthSquared());
 			cross.add(tD).scale(1f / denom);
 
@@ -132,13 +127,12 @@ public class SphereBoundableUtil {
 		}
 	}
 
-	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a,
-		Vector3f b) {
+	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a, Vector3f b) {
 		Vector3f tA = a.sub(o, SphereBoundableUtil.tA.get());
 		Vector3f tB = b.sub(o, SphereBoundableUtil.tB.get());
 		Vector3f tC = SphereBoundableUtil.tC.get();
 		Vector3f tD = SphereBoundableUtil.tD.get();
-		
+
 		Vector3f cross = tA.cross(tB, SphereBoundableUtil.cross.get());
 
 		float denom = 2f * cross.lengthSquared();
@@ -148,16 +142,16 @@ public class SphereBoundableUtil {
 		} else {
 			tB.cross(cross, tD).scale(tA.lengthSquared());
 			cross.cross(tA, tC).scale(tB.lengthSquared()).add(tD).scale(1f / denom);
-			
+
 			sphere.setRadius(tC.length() * radiusEpsilon);
 			o.add(tC, sphere.getCenter());
 		}
 	}
 
 	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a) {
-		sphere.setRadius((float) Math.sqrt(((a.x - o.x) * (a.x - o.x)
-			+ (a.y - o.y) * (a.y - o.y) + (a.z - o.z) * (a.z - o.z)) / 4f)
-			+ radiusEpsilon - 1f);
+		sphere.setRadius((float) Math.sqrt(((a.x - o.x) * (a.x - o.x) + 
+										    (a.y - o.y) * (a.y - o.y) + 
+										    (a.z - o.z) * (a.z - o.z)) / 4f) + radiusEpsilon - 1f);
 
 		Vector3f center = sphere.getCenter();
 		o.scale(.5f, center);
@@ -175,71 +169,62 @@ public class SphereBoundableUtil {
 	}
 
 	// used in recurseMini
-	private static final ThreadLocal<Vector3f> tempA =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tempB =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tempC =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tempD =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
+	private static final ThreadLocal<Vector3f> tempA = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tempB = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tempC = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tempD = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 
 	// used exclusively in setSphere methods
-	private static final ThreadLocal<Vector3f> tA =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tB =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tC =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tD =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
+	private static final ThreadLocal<Vector3f> tA = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tB = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tC = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tD = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 
 	// used in setSphere
-	private static final ThreadLocal<Vector3f> cross =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
+	private static final ThreadLocal<Vector3f> cross = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 }

@@ -54,8 +54,8 @@ public class GlslShader extends AbstractEffect {
 		 * only used if the uniform's policy is MANUAL.
 		 * </p>
 		 * <p>
-		 * This should be set to false after a Framework updates the value of the
-		 * uniform.
+		 * This should be set to false after a Framework updates the value of
+		 * the uniform.
 		 * </p>
 		 * 
 		 * @param dirty Set return value for isDirty()
@@ -87,12 +87,9 @@ public class GlslShader extends AbstractEffect {
 
 		@Override
 		public String toString() {
-			return "<"
-				+ variable
-				+ " = "
-				+ (value instanceof int[] ? Arrays.toString((int[]) value)
-					: Arrays.toString((float[]) value)) + ", dirty: " + isDirty
-				+ ">";
+			return "<" + variable + " = " + (value instanceof int[] ? Arrays.toString((int[]) value) 
+																	: Arrays.toString((float[]) value)) 
+				 + ", dirty: " + isDirty + ">";
 		}
 	}
 
@@ -157,9 +154,7 @@ public class GlslShader extends AbstractEffect {
 		if (uniform == null)
 			throw new NullPointerException("Uniform cannot be null");
 		if (uniform.getOwner() != program)
-			throw new IllegalArgumentException(
-				"Can only set uniforms that match this shader's GlslProgram, not: "
-					+ uniform.getOwner());
+			throw new IllegalArgumentException("Can only set uniforms that match this shader's GlslProgram, not: " + uniform.getOwner());
 
 		Integer index = indexMap.get(uniform);
 
@@ -171,9 +166,7 @@ public class GlslShader extends AbstractEffect {
 			}
 		} else {
 			if (!uniform.isValid(value))
-				throw new IllegalArgumentException(
-					"Value is not valid for the given uniform: "
-						+ uniform.getName() + " " + value);
+				throw new IllegalArgumentException("Value is not valid for the given uniform: " + uniform.getName() + " " + value);
 			// set the value, and mark it as dirty
 			UniformBinding binding;
 			if (index != null)

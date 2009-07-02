@@ -17,7 +17,6 @@ import com.ferox.renderer.impl.jogl.record.LightingRecord;
  * material colors, and sets the colors for FRONT_AND_BACK.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglMaterialEffectDriver extends SingleEffectDriver<Material> {
 	public JoglMaterialEffectDriver(JoglContextManager factory) {
@@ -43,24 +42,21 @@ public class JoglMaterialEffectDriver extends SingleEffectDriver<Material> {
 		if (!JoglUtil.equals(c, lr.matFrontAmbient) || !JoglUtil.equals(c, lr.matBackAmbient)) {
 			JoglUtil.get(c, lr.matFrontAmbient);
 			JoglUtil.get(c, lr.matBackAmbient);
-			gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT,
-					lr.matFrontAmbient, 0);
+			gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, lr.matFrontAmbient, 0);
 		}
 		// specular
 		c = nextState.getSpecular();
 		if (!JoglUtil.equals(c, lr.matFrontSpecular) || !JoglUtil.equals(c, lr.matFrontSpecular)) {
 			JoglUtil.get(c, lr.matFrontSpecular);
 			JoglUtil.get(c, lr.matBackSpecular);
-			gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR,
-					lr.matFrontSpecular, 0);
+			gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_SPECULAR, lr.matFrontSpecular, 0);
 		}
 		// diffuse
 		c = nextState.getDiffuse();
 		if (!JoglUtil.equals(c, lr.matFrontDiffuse) || !JoglUtil.equals(c, lr.matBackDiffuse)) {
 			JoglUtil.get(c, lr.matFrontDiffuse);
 			JoglUtil.get(c, lr.matBackDiffuse);
-			gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE,
-					lr.matFrontDiffuse, 0);
+			gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, lr.matFrontDiffuse, 0);
 		}
 		// no lighting, so just set the color to use
 		gl.glColor4f(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
@@ -69,8 +65,7 @@ public class JoglMaterialEffectDriver extends SingleEffectDriver<Material> {
 		setSmoothingEnabled(gl, record.colorRecord, nextState.isSmoothShaded());
 	}
 
-	private static void setSmoothingEnabled(GL gl, ColoringRecord cr,
-			boolean enabled) {
+	private static void setSmoothingEnabled(GL gl, ColoringRecord cr, boolean enabled) {
 		int mode = enabled ? GL.GL_SMOOTH : GL.GL_FLAT;
 		if (mode != cr.shadeModel) {
 			cr.shadeModel = mode;

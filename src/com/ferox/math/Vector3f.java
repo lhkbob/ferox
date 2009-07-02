@@ -142,9 +142,10 @@ public final class Vector3f implements Cloneable {
 	public Vector3f ortho(Vector3f proj, Vector3f result) {
 		return ortho(proj.x, proj.y, proj.z, result);
 	}
-	
+
 	/**
 	 * As ortho(proj, result) where result is this vector
+	 * 
 	 * @param proj
 	 * @return This vector
 	 */
@@ -190,9 +191,10 @@ public final class Vector3f implements Cloneable {
 	public Vector3f project(Vector3f proj, Vector3f result) {
 		return proj.scale(dot(proj) / proj.lengthSquared(), result);
 	}
-	
+
 	/**
 	 * As project(proj, result) where result is this vector
+	 * 
 	 * @param proj
 	 * @return This vector
 	 */
@@ -232,9 +234,10 @@ public final class Vector3f implements Cloneable {
 	public Vector3f cross(Vector3f v, Vector3f result) {
 		return cross(v.x, v.y, v.z, result);
 	}
-	
+
 	/**
 	 * As cross(v, result) where result is this vector
+	 * 
 	 * @param v
 	 * @return This vector
 	 */
@@ -255,8 +258,7 @@ public final class Vector3f implements Cloneable {
 	public Vector3f cross(float x, float y, float z, Vector3f result) {
 		if (result == null)
 			result = new Vector3f();
-		return result.set(this.y * z - y * this.z, this.z * x - z * this.x,
-			this.x * y - x * this.y);
+		return result.set(this.y * z - y * this.z, this.z * x - z * this.x, this.x * y - x * this.y);
 	}
 
 	/**
@@ -271,9 +273,10 @@ public final class Vector3f implements Cloneable {
 	public Vector3f add(Vector3f v, Vector3f result) {
 		return add(v.x, v.y, v.z, result);
 	}
-	
+
 	/**
 	 * As add(v, result) where result is this vector
+	 * 
 	 * @param v
 	 * @return This vector
 	 */
@@ -310,9 +313,10 @@ public final class Vector3f implements Cloneable {
 	public Vector3f sub(Vector3f v, Vector3f result) {
 		return sub(v.x, v.y, v.z, result);
 	}
-	
+
 	/**
 	 * As sub(v, result) where result is this vector
+	 * 
 	 * @param v
 	 * @return This vector
 	 */
@@ -351,10 +355,9 @@ public final class Vector3f implements Cloneable {
 	public Vector3f scaleAdd(float scalar, Vector3f add, Vector3f result) {
 		if (result == null)
 			result = new Vector3f();
-		return result.set(scalar * x + add.x, scalar * y + add.y, scalar * z
-			+ add.z);
+		return result.set(scalar * x + add.x, scalar * y + add.y, scalar * z + add.z);
 	}
-	
+
 	/**
 	 * As scaleAdd(scalar, add, result) where result is this vector.
 	 * 
@@ -365,7 +368,7 @@ public final class Vector3f implements Cloneable {
 	public Vector3f scaleAdd(float scalar, Vector3f add) {
 		return scaleAdd(scalar, add, this);
 	}
-	
+
 	/**
 	 * Scale this vector by the given scalar (scalar*this) and store it in
 	 * result. If result is null, a new Vector3f should be created and returned.
@@ -379,9 +382,10 @@ public final class Vector3f implements Cloneable {
 			result = new Vector3f();
 		return result.set(scalar * x, scalar * y, scalar * z);
 	}
-	
+
 	/**
 	 * As scale(scalar, result) where result is this vector
+	 * 
 	 * @param scalar
 	 * @return This vector
 	 */
@@ -402,9 +406,10 @@ public final class Vector3f implements Cloneable {
 	public Vector3f normalize(Vector3f result) {
 		return scale(1 / length(), result);
 	}
-	
-	/** 
+
+	/**
 	 * Normalize this vector in place
+	 * 
 	 * @return This vector
 	 */
 	public Vector3f normalize() {

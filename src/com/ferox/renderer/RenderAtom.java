@@ -29,9 +29,9 @@ public final class RenderAtom {
 	private final Object key;
 
 	/**
-	 * Create a render atom with the given transform, geometry, and effect map that
-	 * will be locked by the given key object. If key is null, this atom is not
-	 * locked.
+	 * Create a render atom with the given transform, geometry, and effect map
+	 * that will be locked by the given key object. If key is null, this atom is
+	 * not locked.
 	 * 
 	 * @param t The Transform to use
 	 * @param g The Geometry that will be used by this atom
@@ -61,8 +61,7 @@ public final class RenderAtom {
 				throw new NullPointerException("Transform cannot be null");
 			transform = t;
 		} else
-			throw new IllegalArgumentException(
-					"Incorrect key specified, cannot set transform");
+			throw new IllegalArgumentException("Incorrect key specified, cannot set transform");
 	}
 
 	/**
@@ -76,8 +75,7 @@ public final class RenderAtom {
 		if (this.key == null || key == this.key)
 			effects = e;
 		else
-			throw new IllegalArgumentException(
-					"Incorrect key specified, cannot set effects");
+			throw new IllegalArgumentException("Incorrect key specified, cannot set effects");
 	}
 
 	/**
@@ -94,8 +92,7 @@ public final class RenderAtom {
 				throw new NullPointerException("Geometry cannot be null");
 			geometry = g;
 		} else
-			throw new IllegalArgumentException(
-					"Incorrect key specified, cannot set geometry");
+			throw new IllegalArgumentException("Incorrect key specified, cannot set geometry");
 	}
 
 	/**

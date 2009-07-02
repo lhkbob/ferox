@@ -5,7 +5,6 @@ package com.ferox.renderer;
  * Framework can't handle.
  * 
  * @author Michael Ludwig
- * 
  */
 public class UnsupportedEffectException extends RenderException {
 	private static final long serialVersionUID = 1L;

@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import javax.media.opengl.GL;
 
 import com.ferox.effect.StencilTest;
-import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
@@ -46,34 +46,28 @@ public class JoglStencilTestEffectDriver extends SingleEffectDriver<StencilTest>
 			setWriteMask(gl, fr, nextState.getWriteMask());
 
 			// set the stencil function
-			setStencilFunc(gl, pr,
-				JoglUtil.getGLPixelTest(nextState.getTest()), nextState
-					.getReferenceValue(), nextState.getTestMask());
+			setStencilFunc(gl, pr, JoglUtil.getGLPixelTest(nextState.getTest()), 
+						   nextState.getReferenceValue(), nextState.getTestMask());
 
 			// set the stencil operations
-			setStencilOp(gl, pr, JoglUtil.getGLStencilOp(nextState
-				.getStencilFailOp()), JoglUtil.getGLStencilOp(nextState
-				.getDepthFailOp()), JoglUtil.getGLStencilOp(nextState
-				.getDepthPassOp()));
+			setStencilOp(gl, pr, JoglUtil.getGLStencilOp(nextState.getStencilFailOp()), 
+						 JoglUtil.getGLStencilOp(nextState.getDepthFailOp()), 
+						 JoglUtil.getGLStencilOp(nextState.getDepthPassOp()));
 		}
 	}
 
 	private void setWriteMask(GL gl, FramebufferRecord fr, int writeMask) {
-		if (fr.stencilWriteMask != writeMask
-			|| fr.stencilBackWriteMask != writeMask) {
+		if (fr.stencilWriteMask != writeMask || fr.stencilBackWriteMask != writeMask) {
 			fr.stencilBackWriteMask = writeMask;
 			fr.stencilWriteMask = writeMask;
 			gl.glStencilMask(writeMask);
 		}
 	}
 
-	private void setStencilOp(GL gl, PixelOpRecord pr, int sfail, int dfail,
-		int dpass) {
-		if (sfail != pr.stencilFail || sfail != pr.stencilBackFail
-			|| dfail != pr.stencilPassDepthFail
-			|| dfail != pr.stencilBackPassDepthFail
-			|| dpass != pr.stencilPassDepthPass
-			|| dpass != pr.stencilBackPassDepthPass) {
+	private void setStencilOp(GL gl, PixelOpRecord pr, int sfail, int dfail, int dpass) {
+		if (sfail != pr.stencilFail || sfail != pr.stencilBackFail || 
+			dfail != pr.stencilPassDepthFail || dfail != pr.stencilBackPassDepthFail || 
+			dpass != pr.stencilPassDepthPass || dpass != pr.stencilBackPassDepthPass) {
 			// update the record
 			pr.stencilFail = sfail;
 			pr.stencilBackFail = sfail;
@@ -86,10 +80,9 @@ public class JoglStencilTestEffectDriver extends SingleEffectDriver<StencilTest>
 		}
 	}
 
-	private void setStencilFunc(GL gl, PixelOpRecord pr, int func, int ref,
-		int mask) {
-		if ((func != pr.stencilFunc || ref != pr.stencilRef || ref != pr.stencilValueMask)
-			|| (func != pr.stencilBackFunc || ref != pr.stencilBackRef || ref != pr.stencilBackValueMask)) {
+	private void setStencilFunc(GL gl, PixelOpRecord pr, int func, int ref, int mask) {
+		if ((func != pr.stencilFunc || ref != pr.stencilRef || ref != pr.stencilValueMask) || 
+			(func != pr.stencilBackFunc || ref != pr.stencilBackRef || ref != pr.stencilBackValueMask)) {
 			// update the record
 			pr.stencilFunc = func;
 			pr.stencilBackFunc = func;

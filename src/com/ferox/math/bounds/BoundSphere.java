@@ -191,8 +191,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	@Override
 	public FrustumIntersection testFrustum(View view) {
 		if (view == null)
-			throw new NullPointerException(
-				"Cannot test a frustum with a null view");
+			throw new NullPointerException("Cannot test a frustum with a null view");
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
 		int planeState = view.getPlaneState();
@@ -200,8 +199,7 @@ public class BoundSphere extends AbstractBoundVolume {
 		int plane = 0;
 
 		for (int i = View.NUM_PLANES; i >= 0; i--) {
-			if (i == lastFailedPlane
-				|| (i == View.NUM_PLANES && lastFailedPlane < 0))
+			if (i == lastFailedPlane || (i == View.NUM_PLANES && lastFailedPlane < 0))
 				continue;
 
 			if (i == View.NUM_PLANES)
@@ -230,9 +228,8 @@ public class BoundSphere extends AbstractBoundVolume {
 	@Override
 	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f result) {
 		if (dir == null)
-			throw new NullPointerException(
-				"Can't compute extent for a null direction");
-		
+			throw new NullPointerException("Can't compute extent for a null direction");
+
 		if (reverse)
 			return dir.scaleAdd(-radius, center, result);
 		else
@@ -252,12 +249,9 @@ public class BoundSphere extends AbstractBoundVolume {
 
 			BoundSphere s = (BoundSphere) other;
 			center.sub(s.center, cross);
-			return cross.lengthSquared() <= (radius + s.radius)
-				* (radius + s.radius);
+			return cross.lengthSquared() <= (radius + s.radius) * (radius + s.radius);
 		} else
-			throw new UnsupportedOperationException(
-				"Unable to compute intersection between the given type: "
-					+ other);
+			throw new UnsupportedOperationException("Unable to compute intersection between the given type: " + other);
 	}
 
 	@Override
@@ -266,25 +260,22 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	// used in enclose
-	private static final ThreadLocal<Vector3f> tempA =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tempB =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> tempC =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
+	private static final ThreadLocal<Vector3f> tempA = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tempB = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> tempC = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 }

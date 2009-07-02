@@ -15,7 +15,6 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * instantiated when fbo support is available.
  * 
  * @author Michael Ludwig
- * 
  */
 public class FboDelegate extends TextureSurfaceDelegate {
 	private final JoglContextManager factory;
@@ -28,10 +27,11 @@ public class FboDelegate extends TextureSurfaceDelegate {
 	 * as a zombie and throw an exception (signaling the JoglTextureSurface to
 	 * fallback to pbuffers).
 	 */
-	public FboDelegate(JoglContextManager factory, DisplayOptions options,
-			TextureTarget colorTarget, TextureTarget depthTarget, int width,
-			int height, TextureImage[] colors, TextureImage depth,
-			boolean useDepthRenderBuffer) {
+	public FboDelegate(JoglContextManager factory, DisplayOptions options, 
+					   TextureTarget colorTarget, TextureTarget depthTarget, 
+					   int width, int height, 
+					   TextureImage[] colors, TextureImage depth, 
+					   boolean useDepthRenderBuffer) {
 		super(options, colorTarget, depthTarget, width, height, colors, depth);
 		this.factory = factory;
 		fbos = new IdentityHashMap<GLAutoDrawable, JoglFbo>();
@@ -59,9 +59,10 @@ public class FboDelegate extends TextureSurfaceDelegate {
 		GLAutoDrawable current = factory.getDisplayingDrawable();
 		JoglFbo fbo = fbos.get(current);
 		if (fbo == null) {
-			fbo = new JoglFbo(factory, getWidth(), getHeight(),
-					getColorTarget(), getDepthTarget(), getColorBuffers(),
-					getDepthBuffer(), layer, useDepthRB);
+			fbo = new JoglFbo(factory, getWidth(), getHeight(), 
+							  getColorTarget(), getDepthTarget(), 
+							  getColorBuffers(), getDepthBuffer(), 
+							  layer, useDepthRB);
 			fbos.put(current, fbo);
 		}
 		fbo.bind(factory.getGL(), factory.getRecord(), layer);
@@ -71,8 +72,7 @@ public class FboDelegate extends TextureSurfaceDelegate {
 	public void postRenderAction(JoglRenderSurface next) {
 		if (next != null) {
 			if (next instanceof JoglTextureSurface) {
-				TextureSurfaceDelegate ts = ((JoglTextureSurface) next)
-						.getDelegate();
+				TextureSurfaceDelegate ts = ((JoglTextureSurface) next).getDelegate();
 				if (ts instanceof FboDelegate)
 					return; // preRenderAction() will take care of everything
 			}

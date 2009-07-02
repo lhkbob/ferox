@@ -6,7 +6,6 @@ package com.ferox.renderer;
  * ones.
  * 
  * @author Michael Ludwig
- * 
  */
 public class RenderException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

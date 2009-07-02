@@ -19,8 +19,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class MultiStateDriver<T extends Effect> implements
-	EffectDriver {
+public abstract class MultiStateDriver<T extends Effect> implements EffectDriver {
 	// State of a Unit that is marked as 'empty'
 	private static final int EMPTY = 0;
 
@@ -54,8 +53,8 @@ public abstract class MultiStateDriver<T extends Effect> implements
 	 * maxUnits will be of a reasonable (e.g. 1-16).
 	 */
 	@SuppressWarnings("unchecked")
-	protected MultiStateDriver(T dfltState, Class<T> stateType, int maxUnits,
-		JoglContextManager factory) {
+	protected MultiStateDriver(T dfltState, Class<T> stateType, 
+							   int maxUnits, JoglContextManager factory) {
 		this.factory = factory;
 		this.dfltEffect = dfltState;
 		this.effectType = stateType;
@@ -75,8 +74,7 @@ public abstract class MultiStateDriver<T extends Effect> implements
 		this.queueSize = 0;
 	}
 
-	protected abstract void apply(GL gl, JoglStateRecord record, int unit,
-		T next);
+	protected abstract void apply(GL gl, JoglStateRecord record, int unit, T next);
 
 	@Override
 	public void doApply() {
@@ -132,10 +130,9 @@ public abstract class MultiStateDriver<T extends Effect> implements
 		for (i = 0; i < maxUnits; i++) {
 			o = this.apply[i];
 			if (o.state != EMPTY) {
-				if (o.state != SAME) {
+				if (o.state != SAME)
 					// apply new state
 					this.apply(gl, record, i, o.effect);
-				}
 				// mark it as invalid again
 				o.state = EMPTY;
 			} else if (o.effect != null) {
@@ -150,8 +147,8 @@ public abstract class MultiStateDriver<T extends Effect> implements
 	@SuppressWarnings("unchecked")
 	public void queueEffect(Effect state) {
 		if (!this.effectType.isInstance(state))
-			throw new UnsupportedEffectException("Unsupported effect type: " + state
-				+ ", expected an instance of " + this.effectType);
+			throw new UnsupportedEffectException("Unsupported effect type: " + state + 
+												 ", expected an instance of " + this.effectType);
 
 		queue[queueSize % queue.length] = (T) state;
 		queueSize++;
@@ -160,9 +157,8 @@ public abstract class MultiStateDriver<T extends Effect> implements
 	@Override
 	public void reset() {
 		// clear the queue, everything >= queueSize should be invalid already
-		for (int i = 0; i < Math.min(queueSize, queue.length); i++) {
+		for (int i = 0; i < Math.min(queueSize, queue.length); i++)
 			this.queue[i] = null;
-		}
 		this.queueSize = 0;
 	}
 }

@@ -11,7 +11,6 @@ import com.ferox.math.Color4f;
  * methods that are unlikely to require renderer intervention.
  * 
  * @author Michael Ludwig
- * 
  */
 public abstract class AbstractRenderSurface implements RenderSurface {
 	private static final Color4f DEFAULT_CLEAR_COLOR = new Color4f();

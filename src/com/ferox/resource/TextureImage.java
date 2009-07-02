@@ -120,8 +120,9 @@ public abstract class TextureImage implements Resource {
 		 * Requires positive values for dimensions. The max dimensions must be
 		 * the size of the mipmap in question.
 		 */
-		protected MipmapDirtyRegion(int x, int y, int z, int width, int height,
-			int depth, int maxWidth, int maxHeight, int maxDepth) {
+		protected MipmapDirtyRegion(int x, int y, int z, 
+									int width, int height, int depth, 
+									int maxWidth, int maxHeight, int maxDepth) {
 			this.x = this.y = this.z = Integer.MAX_VALUE;
 			this.width = this.height = this.depth = Integer.MIN_VALUE;
 			merge(x, y, z, width, height, depth, maxWidth, maxHeight, maxDepth);
@@ -155,8 +156,9 @@ public abstract class TextureImage implements Resource {
 		 * Requires positive values for dimensions. The max dimensions must be
 		 * the size of the mipmap in question.
 		 */
-		protected void merge(int x, int y, int z, int width, int height,
-			int depth, int maxWidth, int maxHeight, int maxDepth) {
+		protected void merge(int x, int y, int z, 
+							 int width, int height, int depth, 
+							 int maxWidth, int maxHeight, int maxDepth) {
 			// extents of the dirty region, constrained to valid region
 			int maxX = Math.min(x + width, maxWidth);
 			int maxY = Math.min(y + height, maxHeight);
@@ -265,8 +267,7 @@ public abstract class TextureImage implements Resource {
 	 * @throws NullPointerException if format or type are null
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
-	public TextureImage(TextureFormat format, DataType type, Filter filter)
-		throws IllegalArgumentException, NullPointerException {
+	public TextureImage(TextureFormat format, DataType type, Filter filter) {
 		this(format, type, filter, null, null, null);
 	}
 
@@ -287,23 +288,18 @@ public abstract class TextureImage implements Resource {
 	 * @throws NullPointerException if format or type are null
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
-	public TextureImage(TextureFormat format, DataType type, Filter filter,
-		TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest)
-		throws IllegalArgumentException, NullPointerException {
+	public TextureImage(TextureFormat format, DataType type, Filter filter, 
+					    TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest) {
 		if (format == null || type == null)
-			throw new NullPointerException(
-				"Can't specify a null TextureFormat or DataType: " + format
-					+ " " + type);
+			throw new NullPointerException("Can't specify a null TextureFormat or DataType: " + format + " " + type);
 		if (!format.isTypeValid(type))
-			throw new IllegalArgumentException(
-				"EffectType and format are not valid: " + format + " " + type);
+			throw new IllegalArgumentException("EffectType and format are not valid: " + format + " " + type);
 		this.format = format;
 		this.type = type;
 
 		dirty = createTextureDirtyDescriptor();
 		if (dirty == null)
-			throw new NullPointerException(
-				"Can't return a null TextureDirtyDescriptor from createTextureDirtyDescriptor()");
+			throw new NullPointerException("Can't return a null TextureDirtyDescriptor from createTextureDirtyDescriptor()");
 
 		renderData = new RenderDataCache();
 
@@ -656,9 +652,7 @@ public abstract class TextureImage implements Resource {
 	public static int calculateMipmapCount(int width, int height, int depth) {
 		if (width <= 0 || height <= 0 || depth <= 0)
 			return -1;
-		return (int) Math.floor(Math.log(Math.max(width, Math
-			.max(height, depth)))
-			/ Math.log(2)) + 1;
+		return (int) Math.floor(Math.log(Math.max(width, Math.max(height, depth))) / Math.log(2)) + 1;
 	}
 
 	@Override

@@ -1,6 +1,5 @@
 package com.ferox.math;
 
-
 /**
  * Represents a 3D plane <a,b,c,d> that satisfies (a*x + b*y + c*z + d = 0),
  * where <a, b, c> represents the normal of the plane.
@@ -8,20 +7,18 @@ package com.ferox.math;
  * @author Michael Ludwig
  */
 public class Plane {
-	private static final ThreadLocal<Vector3f> temp =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> norm =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
+	private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> norm = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 
 	private float a, b, c, d;
 	private float len;
@@ -77,9 +74,8 @@ public class Plane {
 	public void setPlane(float a, float b, float c, float d) {
 		float dist = (float) Math.sqrt(a * a + b * b + c * c);
 		if (dist == 0)
-			throw new ArithmeticException("Invalid plane input: " + a + " " + b
-				+ " " + c + " " + d
-				+ ", causes normal vector to be of length 0");
+			throw new ArithmeticException("Invalid plane input: " + a + " " + b + " " + c  + " " + 
+										  d + ", causes normal vector to be of length 0");
 
 		len = dist;
 		this.a = a;
@@ -162,8 +158,7 @@ public class Plane {
 	 */
 	public Plane transform(Plane p, Transform trans) {
 		if (trans == null || p == null)
-			throw new NullPointerException("Can't have null input: " + trans
-				+ " " + p);
+			throw new NullPointerException("Can't have null input: " + trans + " " + p);
 
 		Vector3f temp = Plane.temp.get();
 		Vector3f norm = Plane.norm.get();

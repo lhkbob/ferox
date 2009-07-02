@@ -4,15 +4,13 @@ package com.ferox.renderer.impl.jogl.record;
  * Class encapsulating the state record for the vertex arrays and vbo's. This
  * record does not track the client bindings for pointers when vbos aren't being
  * used. This is because there is no good way of releasing a pointer, so we
- * would be holding onto references when it could be garbage collected.
- * 
- * Also, there is no tracking of the pointers stride or offset. This is to
- * simplify rendering. Because of this, it is recommended to always set the
- * pointers, unless it is known that the pointers and their accessors will not
- * have changed.
+ * would be holding onto references when it could be garbage collected. Also,
+ * there is no tracking of the pointers stride or offset. This is to simplify
+ * rendering. Because of this, it is recommended to always set the pointers,
+ * unless it is known that the pointers and their accessors will not have
+ * changed.
  * 
  * @author Michael Ludwig
- * 
  */
 public class VertexArrayRecord {
 	/* Vertex array variables */

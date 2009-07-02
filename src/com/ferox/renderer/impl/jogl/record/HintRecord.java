@@ -7,7 +7,6 @@ import javax.media.opengl.GL;
  * all of these hints are actively used, but they are included for completion.
  * 
  * @author Michael Ludwig
- * 
  */
 public class HintRecord {
 	public int perspectiveCorrectionHint = GL.GL_DONT_CARE;

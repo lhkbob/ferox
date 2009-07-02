@@ -11,7 +11,6 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * of the Framework interface.
  * 
  * @author Michael Ludwig
- * 
  */
 public interface AttachableSurfaceGLEventListener extends GLEventListener {
 	/**
@@ -26,19 +25,17 @@ public interface AttachableSurfaceGLEventListener extends GLEventListener {
 	 * Attach the given surface so that it will be rendered into during this
 	 * surface's execution of display(). It is assumed that the given surface
 	 * hasn't already been attached for this frame. Also, the surface should
-	 * have a null GLAutoDrawable, or is actually this surface.
-	 * 
-	 * Any attached surfaces are to be cleared after display() is finished.
+	 * have a null GLAutoDrawable, or is actually this surface. Any attached
+	 * surfaces are to be cleared after display() is finished.
 	 */
 	public void attachRenderSurface(JoglRenderSurface surface);
 
 	/**
 	 * Assign the given runnable to executed by this surface when its display()
 	 * method is called. The runnable is assumed to be the resource action
-	 * passed in during renderFrame() of the factory.
-	 * 
-	 * After display() this will be reset to null. It is assumed that this is
-	 * called only if the surface has a non-null GLAutoDrawable.
+	 * passed in during renderFrame() of the factory. After display() this will
+	 * be reset to null. It is assumed that this is called only if the surface
+	 * has a non-null GLAutoDrawable.
 	 */
 	public void assignResourceAction(Runnable action);
 
@@ -52,10 +49,9 @@ public interface AttachableSurfaceGLEventListener extends GLEventListener {
 
 	/**
 	 * Invoke the display() method of the GLAutoDrawable to render all attached
-	 * surfaces and perform the resource action.
-	 * 
-	 * If an exception occurs while rendering, it must be re-thrown in this
-	 * thread instead of interrupting the EDT thread.
+	 * surfaces and perform the resource action. If an exception occurs while
+	 * rendering, it must be re-thrown in this thread instead of interrupting
+	 * the EDT thread.
 	 */
 	public void render() throws RenderException;
 }

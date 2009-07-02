@@ -56,8 +56,7 @@ public class GlobalLighting extends AbstractEffect {
 	 * @param twoSided Whether or not lighting is computed separately for two
 	 *            sides of a polygon
 	 */
-	public GlobalLighting(Color4f globalAmbient, boolean separateSpecular,
-		boolean useLocalViewer, boolean twoSided) {
+	public GlobalLighting(Color4f globalAmbient, boolean separateSpecular, boolean useLocalViewer, boolean twoSided) {
 		setSeparateSpecular(separateSpecular);
 		setLocalViewer(useLocalViewer);
 		setTwoSidedLighting(twoSided);
@@ -152,8 +151,7 @@ public class GlobalLighting extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(GlobalLighting ambient: " + globalAmb + " separateSpec: "
-			+ separateSpec + " local: " + localViewer + " twoSided: "
-			+ useTwoSidedLighting + ")";
+		return "(GlobalLighting ambient: " + globalAmb + " separateSpec: " + separateSpec 
+			 + " local: " + localViewer + " twoSided: " + useTwoSidedLighting + ")";
 	}
 }

@@ -6,7 +6,6 @@ package com.ferox.renderer.impl.jogl.record;
  * because it's unlikely to be used, and much of it is color convolution.
  * 
  * @author Michael Ludwig
- * 
  */
 public class PackUnpackRecord {
 	public boolean unpackSwapBytes = false;

@@ -14,7 +14,6 @@ import com.ferox.renderer.RenderException;
  * Utility class to implement the guts of AttachableSurfaceGLEventListener.
  * 
  * @author Michael Ludwig
- * 
  */
 public class AttachableSurfaceImplHelper {
 	/*
@@ -23,10 +22,10 @@ public class AttachableSurfaceImplHelper {
 	 * AWT EDT). The second is active rendering, which renders on the current
 	 * thread.
 	 * 
-	 * At the moment, use JOGL_STANDARD because:
-	 * -On Mac, there have been odd visual glitches with ACTIVE
-	 * -On Windows, there are context sharing crashes with ACTIVE
-	 * -AWT_WAIT is essentially a manual JOGL_STANDARD, so we should just do that
+	 * At the moment, use JOGL_STANDARD because: -On Mac, there have been odd
+	 * visual glitches with ACTIVE -On Windows, there are context sharing
+	 * crashes with ACTIVE -AWT_WAIT is essentially a manual JOGL_STANDARD, so
+	 * we should just do that
 	 */
 	private static final int RENDER_MODE_JOGL_STANDARD = 0;
 	private static final int RENDER_MODE_AWT_WAIT = 1;

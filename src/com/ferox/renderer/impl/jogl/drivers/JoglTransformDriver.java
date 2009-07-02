@@ -33,8 +33,9 @@ import com.sun.opengl.util.BufferUtil;
  */
 public class JoglTransformDriver implements TransformDriver {
 	// transform used to convert ferox view into jogl view
-	private static final Transform convert = new Transform(new Vector3f(), new Matrix3f(-1, 0, 0, 0, 1, 0, 0, 0, -1));
-	
+	private static final Transform convert = new Transform(new Vector3f(), 
+														   new Matrix3f(-1, 0, 0, 0, 1, 0, 0, 0, -1));
+
 	private final FloatBuffer matrix;
 
 	private final Transform currentView;
@@ -102,18 +103,17 @@ public class JoglTransformDriver implements TransformDriver {
 		resetModel();
 		if (view != null) {
 			// setup the viewport
-			setViewport(gl, view.getViewLeft(), view.getViewRight(), view
-				.getViewTop(), view.getViewBottom(), width, height);
+			setViewport(gl, view.getViewLeft(), view.getViewRight(), 
+						view.getViewTop(), view.getViewBottom(), width, height);
 
 			// set the projection matrix
 			gl.glMatrixMode(GL.GL_PROJECTION);
-			getOpenGLMatrix(view.getProjectionMatrix(), (FloatBuffer) matrix
-				.rewind());
+			getOpenGLMatrix(view.getProjectionMatrix(), (FloatBuffer) matrix.rewind());
 			gl.glLoadMatrixf(matrix);
 
 			// set the view portion of the modelview matrix
 			gl.glMatrixMode(GL.GL_MODELVIEW);
-			
+
 			convert.mul(view.getViewTransform(), currentView);
 			loadMatrix(gl, currentView);
 		} else
@@ -189,11 +189,11 @@ public class JoglTransformDriver implements TransformDriver {
 		ogl.put(pos + 15, matrix.m33);
 	}
 
-	private static void setViewport(GL gl, float left, float right, float top,
-		float bottom, int width, int height) {
-		gl.glViewport((int) (left * width), (int) (bottom * height),
-			(int) ((right - left) * width), (int) ((top - bottom) * height));
-		gl.glScissor((int) (left * width), (int) (bottom * height),
-			(int) ((right - left) * width), (int) ((top - bottom) * height));
+	private static void setViewport(GL gl, float left, float right, 
+									float top, float bottom, int width, int height) {
+		gl.glViewport((int) (left * width), (int) (bottom * height), 
+					  (int) ((right - left) * width), (int) ((top - bottom) * height));
+		gl.glScissor((int) (left * width), (int) (bottom * height), 
+					 (int) ((right - left) * width), (int) ((top - bottom) * height));
 	}
 }

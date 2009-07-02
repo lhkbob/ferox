@@ -5,8 +5,8 @@ import javax.media.opengl.GL;
 import com.ferox.effect.PolygonStyle;
 import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.effect.PolygonStyle.Winding;
-import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
 
@@ -16,8 +16,7 @@ import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglPolygonStyleEffectDriver extends
-	SingleEffectDriver<PolygonStyle> {
+public class JoglPolygonStyleEffectDriver extends SingleEffectDriver<PolygonStyle> {
 	public JoglPolygonStyleEffectDriver(JoglContextManager factory) {
 		super(new PolygonStyle(), PolygonStyle.class, factory);
 	}
@@ -30,11 +29,9 @@ public class JoglPolygonStyleEffectDriver extends
 		DrawStyle front = nextState.getFrontStyle();
 		int cullMode = 0; // 0 will imply disable culling
 		if (front == DrawStyle.NONE)
-			cullMode =
-				(back == DrawStyle.NONE ? GL.GL_FRONT_AND_BACK : GL.GL_FRONT);
+			cullMode = (back == DrawStyle.NONE ? GL.GL_FRONT_AND_BACK : GL.GL_FRONT);
 		else if (back == DrawStyle.NONE)
-			cullMode =
-				(front == DrawStyle.NONE ? GL.GL_FRONT_AND_BACK : GL.GL_BACK);
+			cullMode = (front == DrawStyle.NONE ? GL.GL_FRONT_AND_BACK : GL.GL_BACK);
 
 		if (cullMode != 0) {
 			setCullingEnabled(gl, rr, true);
@@ -78,8 +75,7 @@ public class JoglPolygonStyleEffectDriver extends
 				setFillOffsetEnabled(gl, rr, true);
 
 				// set the offset
-				if (rr.polygonOffsetFactor != offset
-					|| rr.polygonOffsetUnits != 0) {
+				if (rr.polygonOffsetFactor != offset || rr.polygonOffsetUnits != 0) {
 					rr.polygonOffsetFactor = offset;
 					rr.polygonOffsetUnits = 0f; // use 0 for units, since it's
 					// impl dependent
@@ -89,8 +85,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setPointOffsetEnabled(GL gl, RasterizationRecord rr,
-		boolean enabled) {
+	private static void setPointOffsetEnabled(GL gl, RasterizationRecord rr, boolean enabled) {
 		if (rr.enablePolygonOffsetPoint != enabled) {
 			rr.enablePolygonOffsetPoint = enabled;
 			if (enabled)
@@ -100,8 +95,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setLineOffsetEnabled(GL gl, RasterizationRecord rr,
-		boolean enabled) {
+	private static void setLineOffsetEnabled(GL gl, RasterizationRecord rr, boolean enabled) {
 		if (rr.enablePolygonOffsetLine != enabled) {
 			rr.enablePolygonOffsetLine = enabled;
 			if (enabled)
@@ -111,8 +105,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setFillOffsetEnabled(GL gl, RasterizationRecord rr,
-		boolean enabled) {
+	private static void setFillOffsetEnabled(GL gl, RasterizationRecord rr, boolean enabled) {
 		if (rr.enablePolygonOffsetFill != enabled) {
 			rr.enablePolygonOffsetFill = enabled;
 			if (enabled)
@@ -129,8 +122,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setFrontStyle(GL gl, RasterizationRecord rr,
-		DrawStyle style) {
+	private static void setFrontStyle(GL gl, RasterizationRecord rr, DrawStyle style) {
 		int mode = JoglUtil.getGLPolygonMode(style);
 		if (mode != rr.polygonFrontMode) {
 			rr.polygonFrontMode = mode;
@@ -138,8 +130,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setBackStyle(GL gl, RasterizationRecord rr,
-		DrawStyle style) {
+	private static void setBackStyle(GL gl, RasterizationRecord rr, DrawStyle style) {
 		int mode = JoglUtil.getGLPolygonMode(style);
 		if (mode != rr.polygonBackMode) {
 			rr.polygonBackMode = mode;
@@ -147,8 +138,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr,
-		boolean enable) {
+	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr, boolean enable) {
 		if (rr.enablePolygonSmooth != enable) {
 			rr.enablePolygonSmooth = enable;
 			if (enable)
@@ -158,8 +148,7 @@ public class JoglPolygonStyleEffectDriver extends
 		}
 	}
 
-	private static void setCullingEnabled(GL gl, RasterizationRecord rr,
-		boolean enable) {
+	private static void setCullingEnabled(GL gl, RasterizationRecord rr, boolean enable) {
 		if (rr.enableCullFace != enable) {
 			rr.enableCullFace = enable;
 			if (enable)

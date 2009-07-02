@@ -10,8 +10,8 @@ import com.ferox.effect.Effect;
  * </p>
  * <p>
  * For a given effect type, there will only ever be one driver object for an
- * AbstractFramework. When an AbstractFramework uses an EffectDriver returned by a
- * valid state driver factory, it is guaranteed that the Effect objects passed
+ * AbstractFramework. When an AbstractFramework uses an EffectDriver returned by
+ * a valid state driver factory, it is guaranteed that the Effect objects passed
  * in as arguments to the methods below will return the expected type in their
  * getType() method.
  * </p>

@@ -6,7 +6,6 @@ import javax.media.opengl.GL;
  * Class representing the usable state for fog and coloring.
  * 
  * @author Michael Ludwig
- * 
  */
 public class ColoringRecord {
 	/* Fog coloring. */

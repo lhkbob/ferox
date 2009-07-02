@@ -128,19 +128,13 @@ public class RectanglePacker<T> {
 
 				// create rectangles
 				if (dw > dh) {
-					this.child1.rc =
-						new Rectangle(this.rc.x, this.rc.y, width,
-							this.rc.height);
-					this.child2.rc =
-						new Rectangle(this.rc.x + width, this.rc.y,
-							this.rc.width - width, this.rc.height);
+					this.child1.rc = new Rectangle(this.rc.x, this.rc.y, width, this.rc.height);
+					this.child2.rc = new Rectangle(this.rc.x + width, this.rc.y, 
+												   this.rc.width - width, this.rc.height);
 				} else {
-					this.child1.rc =
-						new Rectangle(this.rc.x, this.rc.y, this.rc.width,
-							height);
-					this.child2.rc =
-						new Rectangle(this.rc.x, this.rc.y + height,
-							this.rc.width, this.rc.height - height);
+					this.child1.rc = new Rectangle(this.rc.x, this.rc.y, this.rc.width, height);
+					this.child2.rc = new Rectangle(this.rc.x, this.rc.y + height,	
+												   this.rc.width, this.rc.height - height);
 				}
 
 				return this.child1.insert(data, width, height);
@@ -165,9 +159,7 @@ public class RectanglePacker<T> {
 	 */
 	public RectanglePacker(int startWidth, int startHeight) {
 		if (startWidth <= 0 || startHeight <= 0)
-			throw new IllegalArgumentException(
-				"Starting dimensions must be positive: " + startWidth + " "
-					+ startHeight);
+			throw new IllegalArgumentException("Starting dimensions must be positive: " + startWidth + " " + startHeight);
 
 		Rectangle rootBounds = new Rectangle(0, 0, startWidth, startHeight);
 		this.root = new Node<T>();
@@ -237,8 +229,7 @@ public class RectanglePacker<T> {
 	 */
 	public Rectangle insert(T data, int width, int height) {
 		if (width <= 0 || height <= 0)
-			throw new IllegalArgumentException("Dimensions must be > 0, "
-				+ width + "x" + height);
+			throw new IllegalArgumentException("Dimensions must be > 0, " + width + "x" + height);
 		if (data == null)
 			return null;
 
@@ -274,10 +265,8 @@ public class RectanglePacker<T> {
 			n.child1 = this.root; // first child is old root
 			n.child2 = new Node<T>(); // second child is leaf with left-over
 			// space
-			n.child2.rc =
-				new Rectangle(oldBounds.width, 0, newW - oldBounds.width,
-					oldBounds.height);
-
+			n.child2.rc = new Rectangle(oldBounds.width, 0, newW - oldBounds.width, 
+										oldBounds.height);
 			this.root = n;
 		}
 	}
@@ -300,10 +289,8 @@ public class RectanglePacker<T> {
 			n.child1 = this.root; // first child is old root
 			n.child2 = new Node<T>(); // second child is leaf with left-over
 			// space
-			n.child2.rc =
-				new Rectangle(0, oldBounds.height, oldBounds.width, newH
-					- oldBounds.height);
-
+			n.child2.rc = new Rectangle(0, oldBounds.height, oldBounds.width, 
+										newH - oldBounds.height);
 			this.root = n;
 		}
 	}

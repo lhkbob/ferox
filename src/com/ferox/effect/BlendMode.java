@@ -2,7 +2,6 @@ package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
 
-
 /**
  * <p>
  * BlendMode controls the blending of source and destination pixels when
@@ -17,20 +16,19 @@ import com.ferox.effect.Effect.Type;
  */
 @Type(EffectType.BLEND)
 public class BlendMode extends AbstractEffect {
-	private static final BlendEquation DEFAULT_BLEND_EQ = BlendEquation.ADD;
-	private static final BlendFactor DEFAULT_SRC_FACTOR = BlendFactor.SRC_ALPHA;
-	private static final BlendFactor DEFAULT_DST_FACTOR =
-		BlendFactor.ONE_MINUS_SRC_ALPHA;
-
 	public static enum BlendEquation {
 		ADD, SUBTRACT, REVERSE_SUBTRACT, MIN, MAX
 	}
 
 	public static enum BlendFactor {
-		ZERO, ONE, SRC_COLOR, ONE_MINUS_SRC_COLOR, SRC_ALPHA,
-		ONE_MINUS_SRC_ALPHA, SRC_ALPHA_SATURATE
+		ZERO, ONE, SRC_COLOR, ONE_MINUS_SRC_COLOR, 
+		SRC_ALPHA, ONE_MINUS_SRC_ALPHA, SRC_ALPHA_SATURATE
 	}
 
+	private static final BlendEquation DEFAULT_BLEND_EQ = BlendEquation.ADD;
+	private static final BlendFactor DEFAULT_SRC_FACTOR = BlendFactor.SRC_ALPHA;
+	private static final BlendFactor DEFAULT_DST_FACTOR = BlendFactor.ONE_MINUS_SRC_ALPHA;
+	
 	private BlendEquation blendFunc;
 	private BlendFactor srcBlendFactor;
 	private BlendFactor dstBlendFactor;
@@ -107,7 +105,7 @@ public class BlendMode extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(BlendMode blendFunc: " + blendFunc + " src: " + srcBlendFactor
-			+ " dst:" + dstBlendFactor + ")";
+		return "(BlendMode blendFunc: " + blendFunc + " src: " + srcBlendFactor 
+			 + " dst:" + dstBlendFactor + ")";
 	}
 }

@@ -185,8 +185,8 @@ public class Material extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(Material ambient: " + amb + " diffuse: " + diff
-			+ " specular: " + spec + " shininess: " + shininess + " smoothed: "
-			+ smooth + ")";
+		return "(Material ambient: " + amb + " diffuse: " + diff 
+			 + " specular: " + spec + " shininess: " + shininess 
+			 + " smoothed: " + smooth + ")";
 	}
 }

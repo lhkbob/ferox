@@ -32,8 +32,7 @@ public abstract class AbstractShadowContext implements ShadowContext {
 	}
 
 	@Override
-	public void displayChanged(GLAutoDrawable drawable, boolean modeChanged,
-			boolean deviceChanged) {
+	public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
 		// do nothing
 	}
 
@@ -43,8 +42,7 @@ public abstract class AbstractShadowContext implements ShadowContext {
 	}
 
 	@Override
-	public void reshape(GLAutoDrawable drawable, int x, int y, int width,
-			int height) {
+	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		// do nothing
 	}
 }

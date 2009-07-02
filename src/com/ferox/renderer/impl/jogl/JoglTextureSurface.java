@@ -26,17 +26,14 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * JoglTextureSurface provides the ability to render into either pbuffers or
  * fbos, depending on the support of the current hardware. This functionality is
  * provided by a TextureSurfaceDelegate that is determined at construction time.
- * 
  * At the moment, the fbo delegate uses a JoglFbo for each context that it must
  * render on because (according to OpenGL 3.0), fbos aren't shared between
  * contexts. Because of this, it is theoretically possible that a texture
  * surface fails later on when it is actually used.
  * 
  * @author Michael Ludwig
- * 
  */
-public class JoglTextureSurface extends JoglRenderSurface implements
-		TextureSurface {
+public class JoglTextureSurface extends JoglRenderSurface implements TextureSurface {
 	/*
 	 * Internal class used to permute the requested surface parameters until it
 	 * is valid.
@@ -60,9 +57,9 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		DisplayOptions options;
 		boolean useFbo;
 
-		public SurfaceSpecifier(DisplayOptions options, TextureTarget target,
-				int width, int height, int depth, int layer,
-				int numColorTargets, boolean useDepthRenderBuffer) {
+		public SurfaceSpecifier(DisplayOptions options, TextureTarget target, 
+								int width, int height, int depth, int layer, 
+								int numColorTargets, boolean useDepthRenderBuffer) {
 			this.options = options;
 			colorTarget = target;
 			depthTarget = target;
@@ -81,20 +78,17 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 	/**
 	 * Creates a new JoglTextureSurface. It expects as arguments the creating
 	 * factory, and the arguments passed into the factory for its createSurface
-	 * method.
-	 * 
-	 * This will validate the input parameters and choose between an fbo or
-	 * pbuffer surface. It will throw a SurfaceCreationException if it cannot create a
-	 * valid surface.
+	 * method. This will validate the input parameters and choose between an fbo
+	 * or pbuffer surface. It will throw a SurfaceCreationException if it cannot
+	 * create a valid surface.
 	 */
-	protected JoglTextureSurface(JoglContextManager factory,
-			DisplayOptions options, TextureTarget target, int width,
-			int height, int depth, int layer, int numColorTargets,
-			boolean useDepthRenderBuffer) throws SurfaceCreationException {
+	public JoglTextureSurface(JoglContextManager factory, DisplayOptions options, 
+							  TextureTarget target, int width, int height, int depth, 
+							  int layer, int numColorTargets, boolean useDepthRenderBuffer) {
 		super(factory);
 		RenderCapabilities caps = factory.getFramework().getCapabilities();
-		SurfaceSpecifier s = new SurfaceSpecifier(options, target, width,
-				height, depth, layer, numColorTargets, useDepthRenderBuffer);
+		SurfaceSpecifier s = new SurfaceSpecifier(options, target, width, height, depth, 
+												  layer, numColorTargets, useDepthRenderBuffer);
 
 		// validate and adjust s so it meets requirements
 		verifySupport(s, caps);
@@ -105,10 +99,8 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		createDepthTexture(s, caps);
 
 		// create texture images and delegates of gfx card
-		factory.runOnGraphicsThread(null,
-				new UpdateTextureImagesAction(s, factory));
-		factory.runOnGraphicsThread(null,
-				new ConstructDelegateAction(s, factory, this));
+		factory.runOnGraphicsThread(null, new UpdateTextureImagesAction(s, factory));
+		factory.runOnGraphicsThread(null, new ConstructDelegateAction(s, factory, this));
 
 		// if we've gotten here, we're okay
 		this.layer = s.layer;
@@ -120,15 +112,13 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 	 * will throw an exception if the layer argument is invalid. It assumes the
 	 * given surface is valid, however.
 	 */
-	protected JoglTextureSurface(JoglContextManager factory,
-			JoglTextureSurface shared, int layer) {
+	public JoglTextureSurface(JoglContextManager factory, JoglTextureSurface shared, int layer) {
 		super(factory);
 		// validate the layer argument
 		TextureTarget target = shared.delegate.getColorTarget();
 		TextureImage color = shared.getColorBuffer(0);
 		TextureImage depth = shared.getDepthBuffer();
-		int d = (target == TextureTarget.T_3D ? (color == null ? depth
-				.getDepth(0) : color.getDepth(0)) : 0);
+		int d = (target == TextureTarget.T_3D ? (color == null ? depth.getDepth(0) : color.getDepth(0)) : 0);
 
 		this.layer = validateLayer(target, d, layer);
 		delegate = shared.delegate;
@@ -218,47 +208,38 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		return delegate.getWidth();
 	}
 
-	private static void verifySupport(SurfaceSpecifier s,
-			RenderCapabilities caps) throws SurfaceCreationException {
+	private static void verifySupport(SurfaceSpecifier s, RenderCapabilities caps) {
 		if (!caps.getFboSupport() && !caps.getPbufferSupport())
-			throw new SurfaceCreationException(
-					"Hardware doesn't support pbuffers or fbos, cannot create TextureSurface");
+			throw new SurfaceCreationException("Hardware doesn't support pbuffers or fbos, cannot create TextureSurface");
 	}
 
-	private static void verifyTarget(SurfaceSpecifier s, RenderCapabilities caps)
-			throws SurfaceCreationException {
+	private static void verifyTarget(SurfaceSpecifier s, RenderCapabilities caps) {
 		if (s.colorTarget == null)
 			throw new SurfaceCreationException("Cannot specify a null target");
-		if (s.colorTarget == TextureTarget.T_RECT
-				&& !caps.getRectangularTextureSupport())
-			throw new SurfaceCreationException(
-					"Rectangular textures aren't supported, can't create a surface with target T_RECT");
+		if (s.colorTarget == TextureTarget.T_RECT && !caps.getRectangularTextureSupport())
+			throw new SurfaceCreationException("Rectangular textures aren't supported, can't create a surface with target T_RECT");
 	}
 
-	private static void verifyDimensions(SurfaceSpecifier s,
-			RenderCapabilities caps) throws SurfaceCreationException {
+	private static void verifyDimensions(SurfaceSpecifier s, RenderCapabilities caps) {
 		// validate the dimensions, based on the target
 		switch (s.colorTarget) {
 		case T_1D:
 		case T_CUBEMAP:
 			if (s.width <= 0)
-				throw new SurfaceCreationException("Invalid dimension 'width': "
-						+ s.width + " for target: " + s.colorTarget);
+				throw new SurfaceCreationException("Invalid dimension 'width': " + s.width + " for target: " + s.colorTarget);
 			s.height = s.width;
 			s.depth = 1;
 			break;
 		case T_RECT:
 		case T_2D:
 			if (s.width <= 0 || s.height <= 0)
-				throw new SurfaceCreationException("Invalid dimensions: " + s.width
-						+ " x " + s.height + " for target: " + s.colorTarget);
+				throw new SurfaceCreationException("Invalid dimensions: " + s.width + " x " + s.height + " for target: " + s.colorTarget);
 			s.depth = 1;
 			break;
 		case T_3D:
 			if (s.width <= 0 || s.height <= 0 || s.depth <= 0)
-				throw new SurfaceCreationException("Invalid dimensions: " + s.width
-						+ " x " + s.height + " x " + s.depth + " for target: "
-						+ s.colorTarget);
+				throw new SurfaceCreationException("Invalid dimensions: " + s.width + " x " + s.height + " x " + s.depth + 
+												   " for target: " + s.colorTarget);
 			break;
 		}
 
@@ -305,18 +286,13 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		s.layer = validateLayer(s.colorTarget, s.depth, s.layer);
 	}
 
-	private static void detectOptions(SurfaceSpecifier s,
-			RenderCapabilities caps) throws SurfaceCreationException {
-		PixelFormat pf = (s.options == null ? PixelFormat.RGB_24BIT : s.options
-				.getPixelFormat());
-		DepthFormat df = (s.options == null ? DepthFormat.DEPTH_24BIT
-				: s.options.getDepthFormat());
-		StencilFormat sf = (s.options == null ? StencilFormat.NONE : s.options
-				.getStencilFormat());
+	private static void detectOptions(SurfaceSpecifier s, RenderCapabilities caps) {
+		PixelFormat pf = (s.options == null ? PixelFormat.RGB_24BIT : s.options.getPixelFormat());
+		DepthFormat df = (s.options == null ? DepthFormat.DEPTH_24BIT : s.options.getDepthFormat());
+		StencilFormat sf = (s.options == null ? StencilFormat.NONE : s.options.getStencilFormat());
 
 		if (pf == PixelFormat.NONE && df == DepthFormat.NONE)
-			throw new SurfaceCreationException(
-					"Cannot create a surface with a pf of NONE and a df of NONE");
+			throw new SurfaceCreationException("Cannot create a surface with a pf of NONE and a df of NONE");
 
 		s.useFbo = caps.getFboSupport() && sf == StencilFormat.NONE;
 		if (!s.useFbo && !caps.getPbufferSupport()) {
@@ -325,42 +301,35 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 			sf = StencilFormat.NONE;
 		}
 
-		if ((s.colorTarget == TextureTarget.T_3D || s.colorTarget == TextureTarget.T_CUBEMAP)
-				&& df != DepthFormat.NONE)
+		if ((s.colorTarget == TextureTarget.T_3D || s.colorTarget == TextureTarget.T_CUBEMAP) && df != DepthFormat.NONE)
 			// 3d/cm textures don't support depth textures, so we need to use a
 			// different target
 			if (!caps.getNpotTextureSupport()) {
 				// might have to use a TextureRectangle
-				if (s.width != ceilPot(s.width)
-						|| s.height != ceilPot(s.height))
+				if (s.width != ceilPot(s.width) || s.height != ceilPot(s.height))
 					s.depthTarget = TextureTarget.T_RECT;
 				else
 					s.depthTarget = TextureTarget.T_2D;
 			} else
 				s.depthTarget = TextureTarget.T_2D;
 
-		if (!caps.getUnclampedFloatTextureSupport()
-				&& (pf == PixelFormat.RGB_FLOAT || pf == PixelFormat.RGBA_FLOAT))
+		if (!caps.getUnclampedFloatTextureSupport() && (pf == PixelFormat.RGB_FLOAT || pf == PixelFormat.RGBA_FLOAT))
 			// can't use floating point pixel formats
-			pf = (pf == PixelFormat.RGB_FLOAT ? PixelFormat.RGB_24BIT
-					: PixelFormat.RGBA_32BIT);
+			pf = (pf == PixelFormat.RGB_FLOAT ? PixelFormat.RGB_24BIT : PixelFormat.RGBA_32BIT);
 
 		// clamp the number of color targets
 		if (s.useFbo)
-			s.numColorTargets = Math.max(1, Math.min(s.numColorTargets, caps
-					.getMaxColorTargets()));
+			s.numColorTargets = Math.max(1, Math.min(s.numColorTargets, caps.getMaxColorTargets()));
 		else
 			s.numColorTargets = 1;
 
 		// make these reflect the options
-		s.useDepthRenderBuffer = df == DepthFormat.NONE
-				&& s.useDepthRenderBuffer;
+		s.useDepthRenderBuffer = df == DepthFormat.NONE && s.useDepthRenderBuffer;
 		s.numColorTargets = (pf == PixelFormat.NONE ? 0 : s.numColorTargets);
 		s.options = new DisplayOptions(pf, df, sf, AntiAliasMode.NONE);
 	}
 
-	private static void createColorTextures(SurfaceSpecifier s,
-			RenderCapabilities caps) {
+	private static void createColorTextures(SurfaceSpecifier s, RenderCapabilities caps) {
 		TextureFormat format = null;
 		DataType type = null;
 		switch (s.options.getPixelFormat()) {
@@ -398,16 +367,13 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 					t = new Texture2D(null, s.width, s.height, format, type);
 					break;
 				case T_3D:
-					t = new Texture3D(null, s.width, s.height, s.depth, format,
-							type);
+					t = new Texture3D(null, s.width, s.height, s.depth, format, type);
 					break;
 				case T_CUBEMAP:
-					t = new TextureCubeMap(null, null, null, null, null, null,
-							s.width, format, type);
+					t = new TextureCubeMap(null, null, null, null, null, null, s.width, format, type);
 					break;
 				case T_RECT:
-					t = new TextureRectangle(null, s.width, s.height, format,
-							type);
+					t = new TextureRectangle(null, s.width, s.height, format, type);
 					break;
 				}
 				colorImages[i] = t;
@@ -419,23 +385,19 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		}
 	}
 
-	private static void createDepthTexture(SurfaceSpecifier s,
-			RenderCapabilities caps) {
+	private static void createDepthTexture(SurfaceSpecifier s, RenderCapabilities caps) {
 		if (s.options.getDepthFormat() != DepthFormat.NONE) {
-			DataType type = (s.options.getDepthFormat() == DepthFormat.DEPTH_16BIT ? DataType.UNSIGNED_SHORT
-					: DataType.UNSIGNED_INT);
+			DataType type = (s.options.getDepthFormat() == DepthFormat.DEPTH_16BIT ? DataType.UNSIGNED_SHORT 
+																				   : DataType.UNSIGNED_INT);
 			switch (s.depthTarget) {
 			case T_2D:
-				s.depthBuffer = new Texture2D(null, s.width, s.height,
-						TextureFormat.DEPTH, type);
+				s.depthBuffer = new Texture2D(null, s.width, s.height, TextureFormat.DEPTH, type);
 				break;
 			case T_RECT:
-				s.depthBuffer = new TextureRectangle(null, s.width, s.height,
-						TextureFormat.DEPTH, type);
+				s.depthBuffer = new TextureRectangle(null, s.width, s.height, TextureFormat.DEPTH, type);
 				break;
 			case T_1D:
-				s.depthBuffer = new Texture1D(null, s.width,
-						TextureFormat.DEPTH, type);
+				s.depthBuffer = new Texture1D(null, s.width, TextureFormat.DEPTH, type);
 				break;
 			}
 		} else {
@@ -449,8 +411,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		private final JoglContextManager factory;
 		private final SurfaceSpecifier s;
 
-		private UpdateTextureImagesAction(SurfaceSpecifier s,
-				JoglContextManager factory) {
+		private UpdateTextureImagesAction(SurfaceSpecifier s, JoglContextManager factory) {
 			this.factory = factory;
 			this.s = s;
 		}
@@ -458,28 +419,24 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		public void run() throws SurfaceCreationException {
 			if (s.colorBuffers != null)
 				for (int i = 0; i < s.colorBuffers.length; i++)
-					if (factory.getFramework().doUpdate(s.colorBuffers[i], true,
-							factory) == Status.ERROR) {
+					if (factory.getFramework().doUpdate(s.colorBuffers[i], true, factory) == Status.ERROR) {
 						// something is wrong, so we should fail
-						for (int j = 0; j <= i; j++)
-							factory.getFramework().doCleanUp(s.colorBuffers[j],
-									factory); // clean-up the textures
-						throw new SurfaceCreationException(
-								"Requested options created an unsupported color texture, cannot construct the texture surface: "
-										+ s.options);
+						for (int j = 0; j <= i; j++) {
+							// clean up the textures
+							factory.getFramework().doCleanUp(s.colorBuffers[j], factory);
+						}
+						throw new SurfaceCreationException("Requested options created an unsupported color texture," + 
+														   "cannot construct the texture surface: " + s.options);
 					}
 			if (s.depthBuffer != null)
-				if (factory.getFramework()
-						.doUpdate(s.depthBuffer, true, factory) == Status.ERROR) {
+				if (factory.getFramework().doUpdate(s.depthBuffer, true, factory) == Status.ERROR) {
 					// fail like before
 					if (s.colorBuffers != null)
 						for (int i = 0; i < s.colorBuffers.length; i++)
-							factory.getFramework().doCleanUp(s.colorBuffers[i],
-									factory);
+							factory.getFramework().doCleanUp(s.colorBuffers[i], factory);
 					factory.getFramework().doCleanUp(s.depthBuffer, factory);
-					throw new SurfaceCreationException(
-							"Requested options created an unsupported depth texture, cannot construct the texture surface: "
-									+ s.options);
+					throw new SurfaceCreationException("Requested options created an unsupported depth texture, " + 
+													   "cannot construct the texture surface: " + s.options);
 				}
 		}
 	}
@@ -493,8 +450,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 		private final SurfaceSpecifier s;
 		private final JoglTextureSurface surface;
 
-		private ConstructDelegateAction(SurfaceSpecifier s,
-				JoglContextManager factory, JoglTextureSurface surface) {
+		private ConstructDelegateAction(SurfaceSpecifier s, JoglContextManager factory, JoglTextureSurface surface) {
 			this.factory = factory;
 			this.s = s;
 			this.surface = surface;
@@ -502,28 +458,24 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 
 		public void run() throws SurfaceCreationException {
 			if (s.useFbo)
-				surface.delegate = new FboDelegate(factory, s.options,
-						s.colorTarget, s.depthTarget, s.width, s.height,
-						s.colorBuffers, s.depthBuffer, s.useDepthRenderBuffer);
+				surface.delegate = new FboDelegate(factory, s.options, s.colorTarget, s.depthTarget, 
+												   s.width, s.height, s.colorBuffers, s.depthBuffer,
+												   s.useDepthRenderBuffer);
 			else
 				try {
-					TextureImage color = (s.colorBuffers == null ? null
-							: s.colorBuffers[0]);
-					surface.delegate = new PbufferDelegate(factory, s.options,
-							surface, s.colorTarget, s.depthTarget, s.width,
-							s.height, color, s.depthBuffer,
-							s.useDepthRenderBuffer);
+					TextureImage color = (s.colorBuffers == null ? null : s.colorBuffers[0]);
+					surface.delegate = new PbufferDelegate(factory, s.options, surface, s.colorTarget, 
+														   s.depthTarget, s.width, s.height, color, s.depthBuffer, 
+														   s.useDepthRenderBuffer);
 				} catch (RuntimeException e) {
 					// clean-up the textures
 					if (s.colorBuffers != null)
 						for (int i = 0; i < s.colorBuffers.length; i++)
-							factory.getFramework().doCleanUp(s.colorBuffers[i],
-									factory);
+							factory.getFramework().doCleanUp(s.colorBuffers[i], factory);
 					if (s.depthBuffer != null)
 						factory.getFramework().doCleanUp(s.depthBuffer, factory);
 
-					throw new SurfaceCreationException(
-							"Exception occurred while creating a pbuffer", e);
+					throw new SurfaceCreationException("Exception occurred while creating a pbuffer", e);
 				}
 		}
 	}
@@ -545,14 +497,12 @@ public class JoglTextureSurface extends JoglRenderSurface implements
 			return 0; // layer is meaningless
 		case T_CUBEMAP:
 			if (layer < 0 || layer > 5)
-				throw new SurfaceCreationException("Invalid layer: " + layer
-						+ " for target: " + target);
+				throw new SurfaceCreationException("Invalid layer: " + layer + " for target: " + target);
 			break;
 		case T_3D:
 			if (layer < 0 || layer > (depth - 1))
-				throw new SurfaceCreationException("Invalid layer: " + layer
-						+ " for target: " + target
-						+ ", it must be witihin [0, " + (depth - 1) + "]");
+				throw new SurfaceCreationException("Invalid layer: " + layer + " for target: " + target + 
+												   ", it must be witihin [0, " + (depth - 1) + "]");
 		}
 		return layer;
 	}

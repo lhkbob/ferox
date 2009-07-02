@@ -14,8 +14,8 @@ public class DataBlock {
 	private final BufferData data;
 	private TextureFormat format;
 
-	protected DataBlock(BufferData data, int width, int height, int depth,
-		TextureFormat format) {
+	protected DataBlock(BufferData data, int width, int height, int depth, 
+						TextureFormat format) {
 		this.data = data;
 		this.width = width;
 		this.height = height;

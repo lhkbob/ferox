@@ -15,7 +15,6 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * instances of com.ferox.scene.Fog.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
 	public JoglFogEffectDriver(JoglContextManager factory) {
@@ -27,17 +26,17 @@ public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
 		ColoringRecord cr = record.colorRecord;
 		HintRecord hr = record.hintRecord;
 
-		if (nextState == null) {
+		if (nextState == null)
 			setFogEnabled(gl, cr, false);
-		} else {
+		else {
 			setFogEnabled(gl, cr, true);
-			setRecord(gl, cr, hr, nextState.getColor(), nextState.getDensity(),
-				nextState.getStartDistance(), nextState.getEndDistance(),
-				JoglUtil.getGLFogMode(nextState.getEquation()), JoglUtil
-				.getGLHint(nextState.getQuality()));
+			setRecord(gl, cr, hr, nextState.getColor(), nextState.getDensity(), 
+					  nextState.getStartDistance(), nextState.getEndDistance(), 
+					  JoglUtil.getGLFogMode(nextState.getEquation()), 
+					  JoglUtil.getGLHint(nextState.getQuality()));
 		}
 	}
-	
+
 	private void setFogEnabled(GL gl, ColoringRecord cr, boolean enable) {
 		if (cr.enableFog != enable) {
 			cr.enableFog = enable;
@@ -48,9 +47,9 @@ public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
 		}
 	}
 
-	private void setRecord(GL gl, ColoringRecord cr, HintRecord hr,
-			Color4f color, float density, float start, float end, int mode,
-			int hint) {
+	private void setRecord(GL gl, ColoringRecord cr, HintRecord hr, 
+						   Color4f color, float density, float start, 
+						   float end, int mode, int hint) {
 		// color
 		if (!JoglUtil.equals(color, cr.fogColor)) {
 			JoglUtil.get(color, cr.fogColor);

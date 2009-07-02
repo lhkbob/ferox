@@ -53,9 +53,8 @@ public class GlslVertexAttribute {
 	 *             with 'gl'
 	 * @throws NullPointerException if any arguments are null
 	 */
-	protected GlslVertexAttribute(String name, AttributeType type,
-		int bindingSlot, GlslProgram owner) throws IllegalArgumentException,
-		NullPointerException {
+	protected GlslVertexAttribute(String name, AttributeType type, int bindingSlot, 
+								  GlslProgram owner) {
 		if (name == null)
 			throw new NullPointerException("Name cannot be null");
 		if (type == null)
@@ -64,12 +63,10 @@ public class GlslVertexAttribute {
 			throw new NullPointerException("GlslProgram cannot be null");
 
 		if (bindingSlot < 1)
-			throw new IllegalArgumentException("BindingSlot must be >= 1: "
-				+ bindingSlot);
+			throw new IllegalArgumentException("BindingSlot must be >= 1: " + bindingSlot);
 		if (name.startsWith("gl"))
-			throw new IllegalArgumentException("Name cannot start with 'gl': "
-				+ name + ", that is reserved");
-
+			throw new IllegalArgumentException("Name cannot start with 'gl': " 
+											   + name + ", that is reserved");
 		this.type = type;
 		this.name = name;
 		this.owner = owner;

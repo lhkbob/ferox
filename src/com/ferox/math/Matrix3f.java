@@ -65,8 +65,9 @@ public final class Matrix3f implements Cloneable {
 	 * @param m21
 	 * @param m22
 	 */
-	public Matrix3f(float m00, float m01, float m02, float m10, float m11,
-		float m12, float m20, float m21, float m22) {
+	public Matrix3f(float m00, float m01, float m02, 
+					float m10, float m11, float m12, 
+					float m20, float m21, float m22) {
 		set(m00, m01, m02, m10, m11, m12, m20, m21, m22);
 	}
 
@@ -83,8 +84,9 @@ public final class Matrix3f implements Cloneable {
 		if (result == null)
 			result = new Matrix3f();
 
-		return result.set(m00 + r.m00, m01 + r.m01, m02 + r.m02, m10 + r.m10,
-			m11 + r.m11, m12 + r.m12, m20 + r.m20, m21 + r.m21, m22 + r.m22);
+		return result.set(m00 + r.m00, m01 + r.m01, m02 + r.m02, 
+						  m10 + r.m10, m11 + r.m11, m12 + r.m12,
+						  m20 + r.m20, m21 + r.m21, m22 + r.m22);
 	}
 
 	/**
@@ -110,8 +112,9 @@ public final class Matrix3f implements Cloneable {
 		if (result == null)
 			result = new Matrix3f();
 
-		return result.set(m00 + c, m01 + c, m02 + c, m10 + c, m11 + c, m12 + c,
-			m20 + c, m21 + c, m22 + c);
+		return result.set(m00 + c, m01 + c, m02 + c, 
+						  m10 + c, m11 + c, m12 + c, 
+						  m20 + c, m21 + c, m22 + c);
 	}
 
 	/**
@@ -169,9 +172,9 @@ public final class Matrix3f implements Cloneable {
 		float r21 = m20 * m01 - m21 * m00;
 		float r22 = m11 * m00 - m10 * m01;
 
-		return result.set(invDet * r00, invDet * r01, invDet * r02, invDet
-			* r10, invDet * r11, invDet * r12, invDet * r20, invDet * r21,
-			invDet * r22);
+		return result.set(invDet * r00, invDet * r01, invDet * r02, 
+						  invDet * r10, invDet * r11, invDet * r12, 
+						  invDet * r20, invDet * r21, invDet * r22);
 	}
 
 	/**
@@ -209,12 +212,15 @@ public final class Matrix3f implements Cloneable {
 	public Matrix3f mul(Matrix3f r, Matrix3f result) {
 		if (result == null)
 			result = new Matrix3f();
-		return result.set(m00 * r.m00 + m01 * r.m10 + m02 * r.m20, m00 * r.m01
-			+ m01 * r.m11 + m02 * r.m21, m00 * r.m02 + m01 * r.m12 + m02
-			* r.m22, m10 * r.m00 + m11 * r.m10 + m12 * r.m20, m10 * r.m01 + m11
-			* r.m11 + m12 * r.m21, m10 * r.m02 + m11 * r.m12 + m12 * r.m22, m20
-			* r.m00 + m21 * r.m10 + m22 * r.m20, m20 * r.m01 + m21 * r.m11
-			+ m22 * r.m21, m20 * r.m02 + m21 * r.m12 + m22 * r.m22);
+		return result.set(m00 * r.m00 + m01 * r.m10 + m02 * r.m20, 
+						  m00 * r.m01 + m01 * r.m11 + m02 * r.m21, 
+						  m00 * r.m02 + m01 * r.m12 + m02 * r.m22, 
+						  m10 * r.m00 + m11 * r.m10 + m12 * r.m20, 
+						  m10 * r.m01 + m11 * r.m11 + m12 * r.m21, 
+						  m10 * r.m02 + m11 * r.m12 + m12 * r.m22, 
+						  m20 * r.m00 + m21 * r.m10 + m22 * r.m20, 
+						  m20 * r.m01 + m21 * r.m11 + m22 * r.m21, 
+						  m20 * r.m02 + m21 * r.m12 + m22 * r.m22);
 	}
 
 	/**
@@ -266,8 +272,9 @@ public final class Matrix3f implements Cloneable {
 	public Vector3f mul(float x, float y, float z, Vector3f result) {
 		if (result == null)
 			result = new Vector3f();
-		return result.set(m00 * x + m01 * y + m02 * z, m10 * x + m11 * y + m12
-			* z, m20 * x + m21 * y + m22 * z);
+		return result.set(m00 * x + m01 * y + m02 * z, 
+						  m10 * x + m11 * y + m12 * z, 
+						  m20 * x + m21 * y + m22 * z);
 	}
 
 	/**
@@ -309,8 +316,9 @@ public final class Matrix3f implements Cloneable {
 	public Matrix3f mulDiagonal(float x, float y, float z, Matrix3f result) {
 		if (result == null)
 			result = new Matrix3f();
-		return result.set(m00 * x, m01 * y, m02 * z, m10 * x, m11 * y, m12 * z,
-			m20 * x, m21 * y, m22 * z);
+		return result.set(m00 * x, m01 * y, m02 * z,
+						  m10 * x, m11 * y, m12 * z, 
+						  m20 * x, m21 * y, m22 * z);
 	}
 
 	/**
@@ -342,8 +350,9 @@ public final class Matrix3f implements Cloneable {
 	public Vector3f mulPre(float x, float y, float z, Vector3f result) {
 		if (result == null)
 			result = new Vector3f();
-		return result.set(m00 * x + m10 * y + m20 * z, m01 * x + m11 * y + m21
-			* z, m02 * x + m12 * y + m22 * z);
+		return result.set(m00 * x + m10 * y + m20 * z, 
+						  m01 * x + m11 * y + m21 * z, 
+						  m02 * x + m12 * y + m22 * z);
 	}
 
 	/**
@@ -398,12 +407,15 @@ public final class Matrix3f implements Cloneable {
 	public Matrix3f mulTransposeLeft(Matrix3f r, Matrix3f result) {
 		if (result == null)
 			result = new Matrix3f();
-		return result.set(m00 * r.m00 + m10 * r.m10 + m20 * r.m20, m00 * r.m01
-			+ m10 * r.m11 + m20 * r.m21, m00 * r.m02 + m10 * r.m12 + m20
-			* r.m22, m01 * r.m00 + m11 * r.m10 + m21 * r.m20, m01 * r.m01 + m11
-			* r.m11 + m21 * r.m21, m01 * r.m02 + m11 * r.m12 + m21 * r.m22, m02
-			* r.m00 + m12 * r.m10 + m22 * r.m20, m02 * r.m01 + m12 * r.m11
-			+ m22 * r.m21, m02 * r.m02 + m12 * r.m12 + m22 * r.m22);
+		return result.set(m00 * r.m00 + m10 * r.m10 + m20 * r.m20, 
+						  m00 * r.m01 + m10 * r.m11 + m20 * r.m21, 
+						  m00 * r.m02 + m10 * r.m12 + m20 * r.m22, 
+						  m01 * r.m00 + m11 * r.m10 + m21 * r.m20, 
+						  m01 * r.m01 + m11 * r.m11 + m21 * r.m21, 
+						  m01 * r.m02 + m11 * r.m12 + m21 * r.m22, 
+						  m02 * r.m00 + m12 * r.m10 + m22 * r.m20, 
+						  m02 * r.m01 + m12 * r.m11 + m22 * r.m21, 
+						  m02 * r.m02 + m12 * r.m12 + m22 * r.m22);
 	}
 
 	/**
@@ -429,12 +441,15 @@ public final class Matrix3f implements Cloneable {
 	public Matrix3f mulTransposeRight(Matrix3f r, Matrix3f result) {
 		if (result == null)
 			result = new Matrix3f();
-		return result.set(m00 * r.m00 + m01 * r.m01 + m02 * r.m02, m00 * r.m10
-			+ m01 * r.m11 + m02 * r.m12, m00 * r.m20 + m01 * r.m21 + m02
-			* r.m22, m10 * r.m00 + m11 * r.m01 + m12 * r.m02, m10 * r.m10 + m11
-			* r.m11 + m12 * r.m12, m10 * r.m20 + m11 * r.m21 + m12 * r.m22, m20
-			* r.m00 + m21 * r.m01 + m22 * r.m02, m20 * r.m10 + m21 * r.m11
-			+ m22 * r.m12, m20 * r.m20 + m21 * r.m21 + m22 * r.m22);
+		return result.set(m00 * r.m00 + m01 * r.m01 + m02 * r.m02, 
+						  m00 * r.m10 + m01 * r.m11 + m02 * r.m12, 
+						  m00 * r.m20 + m01 * r.m21 + m02 * r.m22, 
+						  m10 * r.m00 + m11 * r.m01 + m12 * r.m02, 
+						  m10 * r.m10 + m11 * r.m11 + m12 * r.m12, 
+						  m10 * r.m20 + m11 * r.m21 + m12 * r.m22, 
+						  m20 * r.m00 + m21 * r.m01 + m22 * r.m02, 
+						  m20 * r.m10 + m21 * r.m11 + m22 * r.m12,
+						  m20 * r.m20 + m21 * r.m21 + m22 * r.m22);
 	}
 
 	/**
@@ -459,9 +474,9 @@ public final class Matrix3f implements Cloneable {
 		if (result == null)
 			result = new Matrix3f();
 
-		return result.set(scalar * m00, scalar * m01, scalar * m02, scalar
-			* m10, scalar * m11, scalar * m12, scalar * m20, scalar * m21,
-			scalar * m22);
+		return result.set(scalar * m00, scalar * m01, scalar * m02, 
+						  scalar * m10, scalar * m11, scalar * m12,
+						  scalar * m20, scalar * m21, scalar * m22);
 	}
 
 	/**
@@ -522,22 +537,12 @@ public final class Matrix3f implements Cloneable {
 			result = new Vector3f();
 		float invDet = determinant();
 		if (Math.abs(invDet) < .0001f)
-			throw new ArithmeticException(
-				"No solution, or infinite solutions, cannot solve system");
+			throw new ArithmeticException("No solution, or infinite solutions, cannot solve system");
 		invDet = 1f / invDet;
 
-		result.x =
-			invDet
-				* (ax * (m11 * m22 - m12 * m21) - ay * (m01 * m22 - m02 * m21) + az
-					* (m01 * m12 - m02 * m11));
-		result.y =
-			invDet
-				* (ay * (m00 * m22 - m02 * m20) - az * (m00 * m12 - m02 * m10) - ax
-					* (m10 * m22 - m12 * m20));
-		result.z =
-			invDet
-				* (ax * (m10 * m21 - m11 * m20) - ay * (m00 * m21 - m01 * m20) + az
-					* (m00 * m11 - m01 * m10));
+		result.x = invDet * (ax * (m11 * m22 - m12 * m21) - ay * (m01 * m22 - m02 * m21) + az * (m01 * m12 - m02 * m11));
+		result.y = invDet * (ay * (m00 * m22 - m02 * m20) - az * (m00 * m12 - m02 * m10) - ax * (m10 * m22 - m12 * m20));
+		result.z = invDet * (ax * (m10 * m21 - m11 * m20) - ay * (m00 * m21 - m01 * m20) + az * (m00 * m11 - m01 * m10));
 
 		return result;
 	}
@@ -598,17 +603,15 @@ public final class Matrix3f implements Cloneable {
 				return m11;
 			else if (col == 2)
 				return m12;
-		} else if (row == 2) {
+		} else if (row == 2)
 			if (col == 0)
 				return m20;
 			else if (col == 1)
 				return m21;
 			else if (col == 2)
 				return m22;
-		}
 
-		throw new IndexOutOfBoundsException("Illegal row or column: " + row
-			+ ", " + col);
+		throw new IndexOutOfBoundsException("Illegal row or column: " + row + ", " + col);
 	}
 
 	/**
@@ -798,7 +801,7 @@ public final class Matrix3f implements Cloneable {
 				m12 = value;
 				return this;
 			}
-		} else if (row == 2) {
+		} else if (row == 2)
 			if (col == 0) {
 				m20 = value;
 				return this;
@@ -809,10 +812,8 @@ public final class Matrix3f implements Cloneable {
 				m22 = value;
 				return this;
 			}
-		}
 
-		throw new IndexOutOfBoundsException("Invalid row or column: " + row
-			+ ", " + col);
+		throw new IndexOutOfBoundsException("Invalid row or column: " + row + ", " + col);
 	}
 
 	/**
@@ -965,15 +966,14 @@ public final class Matrix3f implements Cloneable {
 	 * @throws NullPointerException if values is null
 	 */
 	public Matrix3f set(float[] values, int offset, boolean rowMajor) {
-		if (rowMajor) {
-			return set(values[offset], values[offset + 1], values[offset + 2],
-				values[offset + 3], values[offset + 4], values[offset + 5],
-				values[offset + 6], values[offset + 7], values[offset + 8]);
-		} else {
-			return set(values[offset], values[offset + 3], values[offset + 6],
-				values[offset + 1], values[offset + 4], values[offset + 7],
-				values[offset + 2], values[offset + 5], values[offset + 8]);
-		}
+		if (rowMajor)
+			return set(values[offset], values[offset + 1], values[offset + 2], 
+					   values[offset + 3], values[offset + 4], values[offset + 5], 
+					   values[offset + 6], values[offset + 7], values[offset + 8]);
+		else
+			return set(values[offset], values[offset + 3], values[offset + 6], 
+					   values[offset + 1], values[offset + 4], values[offset + 7], 
+					   values[offset + 2], values[offset + 5], values[offset + 8]);
 	}
 
 	/**
@@ -991,8 +991,9 @@ public final class Matrix3f implements Cloneable {
 	 * @param m22 New value for 3rd row and 3rd column
 	 * @return This matrix
 	 */
-	public Matrix3f set(float m00, float m01, float m02, float m10, float m11,
-		float m12, float m20, float m21, float m22) {
+	public Matrix3f set(float m00, float m01, float m02, 
+						float m10, float m11, float m12, 
+						float m20, float m21, float m22) {
 		this.m00 = m00;
 		this.m01 = m01;
 		this.m02 = m02;
@@ -1016,8 +1017,7 @@ public final class Matrix3f implements Cloneable {
 	 * @throws NullPointerException if o is null
 	 */
 	public Matrix3f set(Matrix3f o) {
-		return set(o.m00, o.m01, o.m02, o.m10, o.m11, o.m12, o.m20, o.m21,
-			o.m22);
+		return set(o.m00, o.m01, o.m02, o.m10, o.m11, o.m12, o.m20, o.m21, o.m22);
 	}
 
 	/**
@@ -1041,11 +1041,15 @@ public final class Matrix3f implements Cloneable {
 		if (e == null)
 			return false;
 
-		return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps
-			&& Math.abs(m02 - e.m02) <= eps && Math.abs(m10 - e.m10) <= eps
-			&& Math.abs(m11 - e.m11) <= eps && Math.abs(m12 - e.m12) <= eps
-			&& Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps
-			&& Math.abs(m22 - e.m22) <= eps;
+		return Math.abs(m00 - e.m00) <= eps && 
+			   Math.abs(m01 - e.m01) <= eps && 
+			   Math.abs(m02 - e.m02) <= eps && 
+			   Math.abs(m10 - e.m10) <= eps && 
+			   Math.abs(m11 - e.m11) <= eps && 
+			   Math.abs(m12 - e.m12) <= eps && 
+			   Math.abs(m20 - e.m20) <= eps && 
+			   Math.abs(m21 - e.m21) <= eps && 
+			   Math.abs(m22 - e.m22) <= eps;
 	}
 
 	/**
@@ -1056,9 +1060,10 @@ public final class Matrix3f implements Cloneable {
 	 * @return True if these vectors are numerically equal
 	 */
 	public boolean equals(Matrix3f e) {
-		return e != null && m00 == e.m00 && m01 == e.m01 && m02 == e.m02
-			&& m10 == e.m10 && m11 == e.m11 && m12 == e.m12 && m20 == e.m20
-			&& m21 == e.m21 && m22 == e.m22;
+		return e != null && 
+			   m00 == e.m00 && m01 == e.m01 && m02 == e.m02 && 
+			   m10 == e.m10 && m11 == e.m11 && m12 == e.m12 && 
+			   m20 == e.m20 && m21 == e.m21 && m22 == e.m22;
 	}
 
 	@Override

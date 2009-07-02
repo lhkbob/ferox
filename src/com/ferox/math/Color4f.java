@@ -157,8 +157,7 @@ public class Color4f {
 		if (other == this)
 			return true;
 		Color4f that = (Color4f) other;
-		return that.red == red && that.green == green && that.blue == blue
-			&& that.alpha == alpha;
+		return that.red == red && that.green == green && that.blue == blue && that.alpha == alpha;
 	}
 
 	@Override
@@ -172,7 +171,6 @@ public class Color4f {
 
 	@Override
 	public String toString() {
-		return "(Color4f " + red + ", " + green + ", " + blue + ", " + alpha
-			+ ")";
+		return "(Color4f " + red + ", " + green + ", " + blue + ", " + alpha + ")";
 	}
 }

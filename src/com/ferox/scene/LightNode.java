@@ -39,8 +39,7 @@ public class LightNode<T extends Light> extends Leaf {
 	 */
 	protected LightNode(T light) {
 		if (light == null)
-			throw new NullPointerException(
-				"Sub-classes must pass in a non-null light");
+			throw new NullPointerException("Sub-classes must pass in a non-null light");
 		this.light = light;
 		this.localDirection = new Vector3f(light.getDirection());
 	}
@@ -54,8 +53,7 @@ public class LightNode<T extends Light> extends Leaf {
 	 */
 	public void setEffectRadius(float radius) {
 		if (radius <= 0f)
-			throw new IllegalArgumentException("Invalid effect radius: "
-				+ radius);
+			throw new IllegalArgumentException("Invalid effect radius: " + radius);
 		BoundSphere local = new BoundSphere(radius);
 		setLocalBounds(local);
 	}
@@ -163,13 +161,13 @@ public class LightNode<T extends Light> extends Leaf {
 		Vector3f worldDir = light.getDirection();
 		worldTransform.getRotation().mul(localDirection, worldDir);
 	}
-	
+
 	@Override
 	protected void prepareLightsAndFog(List<LightNode<?>> lights, List<FogNode> fogs) {
 		super.prepareLightsAndFog(lights, fogs);
 		lights.add(this);
 	}
-	
+
 	@Override
 	protected void updateFog(FogNode fog) {
 		// do nothing

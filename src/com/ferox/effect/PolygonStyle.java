@@ -2,7 +2,6 @@ package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
 
-
 /**
  * <p>
  * PolygonStyle describes how a geometry's polygons are rendered. It gives the
@@ -190,7 +189,6 @@ public class PolygonStyle extends AbstractEffect {
 	@Override
 	public String toString() {
 		return "(PolygonStyle front: " + frontMode + " back: " + backMode
-			+ " winding: " + winding + " offset: " + offset + " smoothed: "
-			+ enableSmoothing + ")";
+			 + " winding: " + winding + " offset: " + offset + " smoothed: " + enableSmoothing + ")";
 	}
 }

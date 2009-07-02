@@ -26,18 +26,15 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 	private final Light[] appliedLights;
 
 	public JoglLightingEffectDriver(JoglContextManager factory) {
-		super(null, Light.class, Math.min(MAX_LIGHTS, factory.getFramework()
-			.getCapabilities().getMaxActiveLights()), factory);
+		super(null, Light.class, Math.min(MAX_LIGHTS, 
+			  factory.getFramework().getCapabilities().getMaxActiveLights()), factory);
 		new Transform();
-		appliedLights =
-			new Light[Math.min(MAX_LIGHTS, factory.getFramework()
-				.getCapabilities().getMaxActiveLights())];
+		appliedLights = new Light[Math.min(MAX_LIGHTS, factory.getFramework().getCapabilities().getMaxActiveLights())];
 	}
 
 	@Override
 	public void reset() {
 		super.reset();
-
 		// reset the applied lights, since it's likely that the
 		// view transform has changed.
 		for (int i = 0; i < appliedLights.length; i++)
@@ -67,8 +64,8 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 				appliedLights[unit] = next;
 
 				// set lighting colors
-				setLightColors(gl, lr, glUnit, next.getAmbient(), next
-					.getDiffuse(), next.getSpecular());
+				setLightColors(gl, lr, glUnit, next.getAmbient(), 
+							   next.getDiffuse(), next.getSpecular());
 
 				// setup other properties
 				if (next instanceof SpotLight)
@@ -80,8 +77,8 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		}
 	}
 
-	private void setLightColors(GL gl, LightRecord lr, int glUnit, Color4f amb,
-		Color4f diff, Color4f spec) {
+	private void setLightColors(GL gl, LightRecord lr, int glUnit, 
+								Color4f amb, Color4f diff, Color4f spec) {
 		// ambient
 		if (!JoglUtil.equals(amb, lr.ambient)) {
 			JoglUtil.get(amb, lr.ambient);
@@ -99,8 +96,8 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		}
 	}
 
-	private void setSpotParameters(GL gl, LightRecord lr, int glUnit,
-		float spotCutoff, float constant, float linear, float quad) {
+	private void setSpotParameters(GL gl, LightRecord lr, int glUnit, 
+								   float spotCutoff, float constant, float linear, float quad) {
 		// spotCutoff
 		if (lr.spotCutoff != spotCutoff) {
 			lr.spotCutoff = spotCutoff;
@@ -109,8 +106,7 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		// constant att.
 		if (lr.constantAttenuation != constant) {
 			lr.constantAttenuation = constant;
-			gl.glLightf(glUnit, GL.GL_CONSTANT_ATTENUATION,
-				lr.constantAttenuation);
+			gl.glLightf(glUnit, GL.GL_CONSTANT_ATTENUATION, lr.constantAttenuation);
 		}
 		// linear att.
 		if (lr.linearAttenuation != linear) {
@@ -120,13 +116,12 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		// quadratic att.
 		if (lr.quadraticAttenuation != quad) {
 			lr.quadraticAttenuation = quad;
-			gl.glLightf(glUnit, GL.GL_QUADRATIC_ATTENUATION,
-				lr.quadraticAttenuation);
+			gl.glLightf(glUnit, GL.GL_QUADRATIC_ATTENUATION, lr.quadraticAttenuation);
 		}
 	}
 
-	private void setupSpotLight(GL gl, LightRecord lr, int glUnit,
-		SpotLight light) {
+	private void setupSpotLight(GL gl, LightRecord lr, int glUnit, 
+								SpotLight light) {
 		// setup the pos and direction
 		Vector3f p = light.getPosition();
 		lr.position[0] = p.x;
@@ -143,13 +138,12 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
 		gl.glLightfv(glUnit, GL.GL_SPOT_DIRECTION, lr.spotDirection, 0);
 
-		setSpotParameters(gl, lr, glUnit, light.getSpotCutoff(), light
-			.getConstantAttenuation(), light.getLinearAttenuation(), light
-			.getQuadraticAttenuation());
+		setSpotParameters(gl, lr, glUnit, light.getSpotCutoff(), light.getConstantAttenuation(), 
+						  light.getLinearAttenuation(), light.getQuadraticAttenuation());
 	}
 
-	private void setupDirectionLight(GL gl, LightRecord lr, int glUnit,
-		DirectionLight light) {
+	private void setupDirectionLight(GL gl, LightRecord lr, int glUnit, 
+									 DirectionLight light) {
 		// set the position array - we don't check, since the modelview changes
 		// things
 		Vector3f p = light.getDirection();

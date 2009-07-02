@@ -6,7 +6,6 @@ import javax.media.opengl.GLContext;
  * Common interface for either a pbuffer or onscreen shadow context.
  * 
  * @author Michael Ludwig
- * 
  */
 public interface ShadowContext extends AttachableSurfaceGLEventListener {
 	/**

@@ -28,11 +28,9 @@ public class GlslProgramLoader {
 	 * @throws IllegalArgumentException if the read-in files would create an
 	 *             invalid GlslProgram
 	 */
-	public static GlslProgram load(File vertexShader, File fragmentShader)
-		throws IOException {
+	public static GlslProgram load(File vertexShader, File fragmentShader) throws IOException {
 		String[] vCode = (vertexShader == null ? null : readAll(vertexShader));
-		String[] fCode =
-			(fragmentShader == null ? null : readAll(fragmentShader));
+		String[] fCode = (fragmentShader == null ? null : readAll(fragmentShader));
 
 		return new GlslProgram(vCode, fCode);
 	}
@@ -42,8 +40,7 @@ public class GlslProgramLoader {
 	 * strings.
 	 */
 	private static String[] readAll(File file) throws IOException {
-		InputStreamReader stream =
-			new InputStreamReader(new FileInputStream(file));
+		InputStreamReader stream = new InputStreamReader(new FileInputStream(file));
 		BufferedReader reader = new BufferedReader(stream);
 
 		List<String> lines = new ArrayList<String>();

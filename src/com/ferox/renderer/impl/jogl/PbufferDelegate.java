@@ -22,18 +22,17 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 
 	private int swapBuffersLayer;
 
-	public PbufferDelegate(JoglContextManager factory, DisplayOptions options,
-		JoglTextureSurface surface, TextureTarget colorTarget,
-		TextureTarget depthTarget, int width, int height, TextureImage color,
-		TextureImage depth, boolean useDepthRenderBuffer) {
-		super(options, colorTarget, depthTarget, width, height,
-			new TextureImage[] { color }, depth);
+	public PbufferDelegate(JoglContextManager factory, DisplayOptions options, 
+						   JoglTextureSurface surface, TextureTarget colorTarget, 
+						   TextureTarget depthTarget, int width, int height, 
+						   TextureImage color, TextureImage depth, 
+						   boolean useDepthRenderBuffer) {
+		super(options, colorTarget, depthTarget, width, height, 
+			  new TextureImage[] { color }, depth);
 
 		GLCapabilities caps = chooseCapabilities(options, useDepthRenderBuffer);
-		pbuffer =
-			GLDrawableFactory.getFactory().createGLPbuffer(caps,
-				new DefaultGLCapabilitiesChooser(), width, height,
-				factory.getShadowContext());
+		pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(),
+																 width, height, factory.getShadowContext());
 		pbuffer.addGLEventListener(surface);
 
 		this.factory = factory;
@@ -78,15 +77,13 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 		int dt = -1;
 
 		if (color != null) {
-			TextureHandle handle =
-				(TextureHandle) factory.getFramework().getHandle(color, factory);
+			TextureHandle handle = (TextureHandle) factory.getFramework().getHandle(color, factory);
 			gl.glBindTexture(handle.glTarget, handle.id);
 			copySubImage(gl, handle);
 			ct = handle.glTarget;
 		}
 		if (depth != null) {
-			TextureHandle handle =
-				(TextureHandle) factory.getFramework().getHandle(depth, factory);
+			TextureHandle handle = (TextureHandle) factory.getFramework().getHandle(depth, factory);
 			gl.glBindTexture(handle.glTarget, handle.id);
 			copySubImage(gl, handle);
 			dt = handle.glTarget;
@@ -105,23 +102,19 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 			break;
 		case GL.GL_TEXTURE_2D:
 		case GL.GL_TEXTURE_RECTANGLE_ARB:
-			gl.glCopyTexSubImage2D(handle.glTarget, 0, 0, 0, 0, 0, getWidth(),
-				getHeight());
+			gl.glCopyTexSubImage2D(handle.glTarget, 0, 0, 0, 0, 0, getWidth(), getHeight());
 			break;
 		case GL.GL_TEXTURE_CUBE_MAP:
 			int face = JoglUtil.getGLCubeFace(swapBuffersLayer);
-			gl
-				.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(),
-					getHeight());
+			gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
 		case GL.GL_TEXTURE_3D:
-			gl.glCopyTexSubImage3D(handle.glTarget, 0, 0, 0, swapBuffersLayer,
-				0, 0, getWidth(), getHeight());
+			gl.glCopyTexSubImage3D(handle.glTarget, 0, 0, 0, swapBuffersLayer, 
+								   0, 0, getWidth(), getHeight());
 			break;
 		}
 	}
 
-	private static void restoreBindings(GL gl, TextureUnit activeUnit,
-		int colorTarget, int depthTarget) {
+	private static void restoreBindings(GL gl, TextureUnit activeUnit, int colorTarget, int depthTarget) {
 		if (colorTarget > 0)
 			if (activeUnit.enabledTarget == colorTarget)
 				gl.glBindTexture(colorTarget, activeUnit.texBinding); // restore
@@ -139,13 +132,13 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 				gl.glBindTexture(depthTarget, 0); // not really the active unit
 	}
 
-	private static GLCapabilities chooseCapabilities(DisplayOptions request,
-		boolean useDepthRenderBuffer) {
+	private static GLCapabilities chooseCapabilities(DisplayOptions request, 
+													 boolean useDepthRenderBuffer) {
 		GLCapabilities caps = new GLCapabilities();
 
 		PixelFormat pf = request.getPixelFormat();
-		caps.setPbufferFloatingPointBuffers(pf == PixelFormat.RGB_FLOAT
-			|| pf == PixelFormat.RGBA_FLOAT);
+		caps.setPbufferFloatingPointBuffers(pf == PixelFormat.RGB_FLOAT || 
+											pf == PixelFormat.RGBA_FLOAT);
 
 		// try to update the caps fields
 		switch (pf) {

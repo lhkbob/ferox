@@ -11,14 +11,13 @@ import com.ferox.math.Vector3f;
  * for correct blending of transparent atoms).
  * 
  * @author Michael Ludwig
- * 
  */
 public class DepthSortingRenderQueue extends BasicRenderQueue {
 	private static class DepthSorter implements Comparator<RenderAtom> {
 		private Vector3f position;
 		private Vector3f direction;
 		private float dirLen;
-		
+
 		private final Vector3f temp;
 		private final boolean forwardBack;
 
@@ -26,7 +25,7 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 			this.forwardBack = forwardBack;
 			temp = new Vector3f();
 		}
-		
+
 		private void prepare(View view) {
 			position = view.getLocation();
 			direction = view.getDirection();
@@ -36,7 +35,7 @@ public class DepthSortingRenderQueue extends BasicRenderQueue {
 		public int compare(RenderAtom ra1, RenderAtom ra2) {
 			Vector3f t1 = ra1.getTransform().getTranslation();
 			Vector3f t2 = ra2.getTransform().getTranslation();
-			
+
 			float d = t1.sub(position, temp).dot(direction);
 			d -= t2.sub(position, temp).dot(direction);
 			d /= dirLen;

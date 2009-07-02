@@ -40,14 +40,14 @@ import com.ferox.resource.TextureRectangle;
 
 /**
  * <p>
- * Provides a full implementation of Framework that is based on the functionality
- * provided by AbstractFramework and the JOGL binding of OpenGL. OnscreenSurfaces
- * created by this Framework will return Frame objects from their getWindowImpl()
- * methods.
+ * Provides a full implementation of Framework that is based on the
+ * functionality provided by AbstractFramework and the JOGL binding of OpenGL.
+ * OnscreenSurfaces created by this Framework will return Frame objects from
+ * their getWindowImpl() methods.
  * </p>
  * <p>
- * This Framework is strictly single-threaded and undefined results will occur if
- * any of its methods are called outside of the thread it was created in.
+ * This Framework is strictly single-threaded and undefined results will occur
+ * if any of its methods are called outside of the thread it was created in.
  * Because of this requirement, it must not be created or used in the AWT event
  * threads.
  * </p>
@@ -85,8 +85,7 @@ public final class JoglFramework extends AbstractFramework {
 	public JoglFramework(boolean debugGL) {
 		RenderCapabilities caps = new JoglCapabilitiesDetector().detect();
 
-		JoglContextManager factory =
-			new JoglContextManager(this, caps, debugGL);
+		JoglContextManager factory = new JoglContextManager(this, caps, debugGL);
 		init(factory, factory.getTransformDriver(), caps, EffectType.values());
 		buildEffectDrivers(factory);
 		buildResourceDrivers(factory);
@@ -95,7 +94,7 @@ public final class JoglFramework extends AbstractFramework {
 	private void buildEffectDrivers(JoglContextManager factory) {
 		EffectType[] values = EffectType.values();
 		effectDrivers = new EffectDriver[values.length];
-		for (int i = 0; i < values.length; i++) {
+		for (int i = 0; i < values.length; i++)
 			switch (values[i]) {
 			case ALPHA:
 				effectDrivers[i] = new JoglAlphaTestEffectDriver(factory);
@@ -140,7 +139,6 @@ public final class JoglFramework extends AbstractFramework {
 				effectDrivers[i] = new JoglTextureEffectDriver(factory);
 				break;
 			}
-		}
 	}
 
 	private void buildResourceDrivers(JoglContextManager factory) {
@@ -162,8 +160,7 @@ public final class JoglFramework extends AbstractFramework {
 	}
 
 	@Override
-	protected ResourceDriver getResourceDriver(
-		Class<? extends Resource> resourceType) {
+	protected ResourceDriver getResourceDriver(Class<? extends Resource> resourceType) {
 		if (IndexedArrayGeometry.class.isAssignableFrom(resourceType))
 			return geomDriver;
 		else if (GlslProgram.class.isAssignableFrom(resourceType))
@@ -182,7 +179,6 @@ public final class JoglFramework extends AbstractFramework {
 			return trtDriver;
 
 		// if we've gotten here, we're unsupported
-		throw new UnsupportedResourceException("Unsupported resource type: "
-			+ resourceType);
+		throw new UnsupportedResourceException("Unsupported resource type: " + resourceType);
 	}
 }

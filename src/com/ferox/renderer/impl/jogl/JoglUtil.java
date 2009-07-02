@@ -51,8 +51,10 @@ public class JoglUtil {
 	 * color.
 	 */
 	public static boolean equals(Color4f color, float[] buffer) {
-		return color.getRed() == buffer[0] && color.getGreen() == buffer[1]
-			&& color.getBlue() == buffer[2] && color.getAlpha() == buffer[3];
+		return color.getRed() == buffer[0] && 
+			   color.getGreen() == buffer[1] && 
+			   color.getBlue() == buffer[2] && 
+			   color.getAlpha() == buffer[3];
 	}
 
 	/** Store the plane into the 4-element float buffer. */
@@ -68,8 +70,10 @@ public class JoglUtil {
 	 * plane.
 	 */
 	public static boolean equals(Plane plane, float[] buffer) {
-		return plane.getA() == buffer[0] && plane.getB() == buffer[1]
-			&& plane.getC() == buffer[2] && plane.getD() == buffer[3];
+		return plane.getA() == buffer[0] && 
+		       plane.getB() == buffer[1] &&
+		       plane.getC() == buffer[2] && 
+		       plane.getD() == buffer[3];
 	}
 
 	/**
@@ -540,7 +544,10 @@ public class JoglUtil {
 		return -1;
 	}
 
-	/** EffectType must not be null. This shouldn't be used for packed data types. */
+	/**
+	 * EffectType must not be null. This shouldn't be used for packed data
+	 * types.
+	 */
 	public static int getGLType(DataType type) {
 		switch (type) {
 		case BYTE:
@@ -850,12 +857,9 @@ public class JoglUtil {
 
 	/**
 	 * Utility method to invoke a Runnable on the AWT event dispatch thread
-	 * (e.g. for modifying AWT and Swing components).
-	 * 
-	 * This will throw an runtime exception if a problem occurs. It works
-	 * properly if called from the AWT thread.
-	 * 
-	 * This should be used when EventQueue.invokeAndWait() or
+	 * (e.g. for modifying AWT and Swing components). This will throw an runtime
+	 * exception if a problem occurs. It works properly if called from the AWT
+	 * thread. This should be used when EventQueue.invokeAndWait() or
 	 * SwingUtilities.invokeAndWait() would be used, except that this is thread
 	 * safe.
 	 */

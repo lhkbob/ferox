@@ -21,8 +21,8 @@ import com.ferox.renderer.Framework;
  * </p>
  * <p>
  * Changes to variables/attributes of implementations will not be visible by the
- * Framework until they have been updated (either by using the renderer's default
- * resource manager, or an application specific one). Related to this, a
+ * Framework until they have been updated (either by using the renderer's
+ * default resource manager, or an application specific one). Related to this, a
  * resource cannot be used, and will not be implicitly updated, if it's
  * referenced by a state.
  * </p>
@@ -44,7 +44,7 @@ public interface Resource {
 	 * @return The previously assigned data for the renderer, or null
 	 */
 	public Object getRenderData(Framework renderer);
-	
+
 	/**
 	 * <p>
 	 * Assign the renderer specific data for this object. This should not be
@@ -60,7 +60,7 @@ public interface Resource {
 	 * @param data Object to return from getRenderData
 	 */
 	public void setRenderData(Framework renderer, Object data);
-	
+
 	/**
 	 * <p>
 	 * Return an object that describes what regions of the resource are dirty.

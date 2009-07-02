@@ -42,8 +42,7 @@ public class DirectionLight extends Light {
 	 * @param specular
 	 * @param ambient
 	 */
-	public DirectionLight(Vector3f direction, Color4f diffuse, Color4f specular,
-		Color4f ambient) {
+	public DirectionLight(Vector3f direction, Color4f diffuse, Color4f specular, Color4f ambient) {
 		super(diffuse, specular, ambient, direction);
 	}
 }

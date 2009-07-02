@@ -5,7 +5,6 @@ package com.ferox.renderer;
  * that the Framework can't handle.
  * 
  * @author Michael Ludwig
- * 
  */
 public class UnsupportedResourceException extends RenderException {
 	private static final long serialVersionUID = 1L;

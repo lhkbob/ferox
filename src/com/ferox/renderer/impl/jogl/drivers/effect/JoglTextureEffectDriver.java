@@ -80,8 +80,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 		if (state instanceof Texture) {
 			// we're dirty if we're reusing singleState, and the 0th unit
 			// has changed
-			lastAppliedDirty =
-				lastApplied == singleUnit && singleUnit.getTexture(0) != state;
+			lastAppliedDirty = lastApplied == singleUnit && singleUnit.getTexture(0) != state;
 
 			queuedTexture = singleUnit;
 			singleUnit.setTexture(0, (Texture) state);
@@ -89,9 +88,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			queuedTexture = (MultiTexture) state;
 			lastAppliedDirty = false;
 		} else
-			throw new UnsupportedEffectException(
-				"This effect driver only supports Texture and MultiTexture, not: "
-					+ state);
+			throw new UnsupportedEffectException("This effect driver only supports Texture and MultiTexture, not: " + state);
 	}
 
 	@Override
@@ -104,16 +101,13 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * Modify the given context so that its TextureRecord matches the given
 	 * MultiTexture. If next is null, all texturing will be disabled instead.
 	 */
-	private void apply(AbstractFramework renderer, JoglStateRecord record,
-		MultiTexture next) {
+	private void apply(AbstractFramework renderer, JoglStateRecord record, MultiTexture next) {
 		GL gl = factory.getGL();
 		TextureRecord tr = record.textureRecord;
 		int activeTex = tr.activeTexture;
 
-		List<Unit<Texture>> toApply =
-			(next == null ? null : next.getTextures());
-		List<Unit<Texture>> toRestore =
-			(lastApplied == null ? null : lastApplied.getTextures());
+		List<Unit<Texture>> toApply = (next == null ? null : next.getTextures());
+		List<Unit<Texture>> toRestore = (lastApplied == null ? null : lastApplied.getTextures());
 
 		int numT;
 		int unit;
@@ -127,13 +121,11 @@ public class JoglTextureEffectDriver implements EffectDriver {
 				unit = tex.getUnit();
 				// must make sure it's a valid unit, and that it's a different
 				// Texture instance
-				if (unit < tr.textureUnits.length
-					&& (lastApplied == null || lastAppliedDirty || lastApplied
-						.getTexture(unit) != tex.getData()))
+				if (unit < tr.textureUnits.length && (lastApplied == null || 
+					lastAppliedDirty || lastApplied.getTexture(unit) != tex.getData()))
 					// bind the texture
-					activeTex =
-						applyTexture(gl, renderer, activeTex, unit,
-							tr.textureUnits[unit], tex.getData());
+					activeTex = applyTexture(gl, renderer, activeTex, 
+											 unit, tr.textureUnits[unit], tex.getData());
 			}
 		}
 
@@ -146,12 +138,10 @@ public class JoglTextureEffectDriver implements EffectDriver {
 				unit = tex.getUnit();
 				// must make sure it's a valid unit, and that it wasn't just
 				// bound above
-				if (unit < tr.textureUnits.length
-					&& (toApply == null || next.getTexture(unit) == null))
+				if (unit < tr.textureUnits.length && (toApply == null || next.getTexture(unit) == null))
 					// unbind the texture by passing in null
-					activeTex =
-						applyTexture(gl, renderer, activeTex, unit,
-							tr.textureUnits[unit], null);
+					activeTex = applyTexture(gl, renderer, activeTex, unit, 
+											 tr.textureUnits[unit], null);
 			}
 		}
 		// save the active texture unit back into the record
@@ -163,11 +153,9 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * environment. Returns the new active unit. If texture is null, the texture
 	 * bindings on the desiredUnit are broken.
 	 */
-	private int applyTexture(GL gl, AbstractFramework renderer, int activeUnit,
-		int desiredUnit, TextureUnit tu, Texture next) {
-		TextureHandle nextH =
-			(next == null ? null : (TextureHandle) renderer.getHandle(next
-				.getTexture(), factory));
+	private int applyTexture(GL gl, AbstractFramework renderer, int activeUnit, 
+							 int desiredUnit, TextureUnit tu, Texture next) {
+		TextureHandle nextH = (next == null ? null : (TextureHandle) renderer.getHandle(next.getTexture(), factory));
 		// set the texture unit
 		if (activeUnit != desiredUnit) {
 			gl.glActiveTexture(GL.GL_TEXTURE0 + desiredUnit);
@@ -178,12 +166,9 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			// disable the texture
 			bindTexture(gl, tu, -1, 0); // unbind the bound object
 			// disable tex-gen, too
-			setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, tu.texGenS,
-				TexCoordGen.NONE, null);
-			setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, tu.texGenT,
-				TexCoordGen.NONE, null);
-			setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, tu.texGenR,
-				TexCoordGen.NONE, null);
+			setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, tu.texGenS, TexCoordGen.NONE, null);
+			setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, tu.texGenT, TexCoordGen.NONE, null);
+			setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, tu.texGenR, TexCoordGen.NONE, null);
 		} else {
 			// enable the texture
 			bindTexture(gl, tu, nextH.glTarget, nextH.id);
@@ -216,21 +201,17 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			unit.isTextureMatrixIdentity = false;
 		}
 		// tc_s
-		setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex
-			.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
+		setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
 		// tc_t
-		setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex
-			.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
+		setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
 		// tc_r
-		setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex
-			.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
+		setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
 
 		// env color
 		Color4f blend = tex.getTextureEnvColor();
 		if (!JoglUtil.equals(blend, unit.textureEnvColor)) {
 			JoglUtil.get(blend, unit.textureEnvColor);
-			gl.glTexEnvfv(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_COLOR,
-				unit.textureEnvColor, 0);
+			gl.glTexEnvfv(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_COLOR, unit.textureEnvColor, 0);
 		}
 		// env mode
 		int envMode = JoglUtil.getGLTexEnvMode(tex.getTextureEnvMode());
@@ -248,8 +229,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * the active texture (in which case id is ignored). If glTarget is valid,
 	 * it assumes id is a valid non-zero texture object.
 	 */
-	private static void bindTexture(GL gl, TextureUnit unit, int glTarget,
-		int id) {
+	private static void bindTexture(GL gl, TextureUnit unit, int glTarget, int id) {
 		// unbind and disable old target
 		if (unit.enableTarget && glTarget != unit.enabledTarget) {
 			gl.glBindTexture(unit.enabledTarget, 0);
@@ -279,8 +259,8 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * matching record. If genMode is NONE, generation is disabled, otherwise
 	 * its enabled and set, possibly resetting the texture plane.
 	 */
-	private static void setTexGen(GL gl, int coord, int boolMode,
-		TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
+	private static void setTexGen(GL gl, int coord, int boolMode, 
+								  TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
 		if (genMode == TexCoordGen.NONE) {
 			// disable coordinate generation for this coord
 			if (tgr.enableTexGen) {
@@ -296,9 +276,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			} else if (genMode == TexCoordGen.OBJECT)
 				if (!JoglUtil.equals(eyeOrObject, tgr.objectPlane)) {
 					JoglUtil.get(eyeOrObject, tgr.objectPlane);
-					gl
-						.glTexGenfv(coord, GL.GL_OBJECT_PLANE, tgr.objectPlane,
-							0);
+					gl.glTexGenfv(coord, GL.GL_OBJECT_PLANE, tgr.objectPlane, 0);
 				}
 			// set the mode
 			int mode = JoglUtil.getGLTexGen(genMode);

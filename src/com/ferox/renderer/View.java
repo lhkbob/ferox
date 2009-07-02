@@ -386,17 +386,12 @@ public class View {
 	 * @throws IllegalArgumentException if left > right, bottom > top, near >
 	 *             far, or near <= 0 when the view isn't orthographic
 	 */
-	public void setFrustum(float left, float right, float bottom, float top,
-		float near, float far) {
+	public void setFrustum(float left, float right, float bottom, float top, float near, float far) {
 		if (left > right || bottom > top || near > far)
-			throw new IllegalArgumentException(
-				"Frustum values would create an invalid frustum: " + left + " "
-					+ right + " x " + bottom + " " + top + " x " + near + " "
-					+ far);
+			throw new IllegalArgumentException("Frustum values would create an invalid frustum: " + 
+											   left + " " + right + " x " + bottom + " " + top + " x " + near + " " + far);
 		if (near <= 0 && !useOrtho)
-			throw new IllegalArgumentException(
-				"Illegal value for near frustum when using perspective projection: "
-					+ near);
+			throw new IllegalArgumentException("Illegal value for near frustum when using perspective projection: " + near);
 
 		frustumLeft = left;
 		frustumRight = right;
@@ -426,8 +421,7 @@ public class View {
 	 */
 	public void setOrthogonalProjection(boolean ortho) {
 		if (!ortho && frustumNear <= 0)
-			throw new IllegalStateException(
-				"Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
+			throw new IllegalStateException("Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
 
 		if (useOrtho != ortho) {
 			useOrtho = ortho;
@@ -489,20 +483,15 @@ public class View {
 	 */
 	public void setViewPort(float left, float right, float bottom, float top) {
 		if (left < 0 || left > 1)
-			throw new IllegalArgumentException(
-				"Illegal value for left viewport edge: " + left);
+			throw new IllegalArgumentException("Illegal value for left viewport edge: " + left);
 		if (right < 0 || right > 1)
-			throw new IllegalArgumentException(
-				"Illegal value for right viewport edge: " + right);
+			throw new IllegalArgumentException("Illegal value for right viewport edge: " + right);
 		if (bottom < 0 || bottom > 1)
-			throw new IllegalArgumentException(
-				"Illegal value for bottom viewport edge: " + bottom);
+			throw new IllegalArgumentException("Illegal value for bottom viewport edge: " + bottom);
 		if (top < 0 || top > 1)
-			throw new IllegalArgumentException(
-				"Illegal value for top viewport edge: " + top);
+			throw new IllegalArgumentException("Illegal value for top viewport edge: " + top);
 		if (left > right || bottom > top)
-			throw new IllegalArgumentException("Viewport edges are invalid: "
-				+ left + " " + right + " x " + bottom + " " + top);
+			throw new IllegalArgumentException("Viewport edges are invalid: " + left + " " + right + " x " + bottom + " " + top);
 		viewBottom = bottom;
 		viewLeft = left;
 		viewRight = right;
@@ -511,13 +500,18 @@ public class View {
 
 	// compute the projection matrix
 	private void computeProjectionMatrix() {
-		projection.set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		projection.set(0, 0, 0, 0, 
+					   0, 0, 0, 0, 
+					   0, 0, 0, 0, 
+					   0, 0, 0, 0);
 		if (useOrtho)
-			orthoMatrix(frustumRight, frustumLeft, frustumTop, frustumBottom,
-				frustumNear, frustumFar, projection);
+			orthoMatrix(frustumRight, frustumLeft, 
+						frustumTop, frustumBottom, 
+						frustumNear, frustumFar, projection);
 		else
-			projMatrix(frustumRight, frustumLeft, frustumTop, frustumBottom,
-				frustumNear, frustumFar, projection);
+			projMatrix(frustumRight, frustumLeft, 
+					   frustumTop, frustumBottom,
+					   frustumNear, frustumFar, projection);
 	}
 
 	private void computeOrthoWorldPlanes() {
@@ -572,33 +566,25 @@ public class View {
 		up.cross(direction, p);
 
 		// LEFT
-		float invHyp =
-			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumLeft
-				* frustumLeft);
+		float invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumLeft * frustumLeft);
 		p.scale(-frustumNear * invHyp, n);
 		direction.scaleAdd(Math.abs(frustumLeft) * invHyp, n, n);
 		setWorldPlane(LEFT_PLANE, n, location);
 
 		// RIGHT
-		invHyp =
-			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumRight
-				* frustumRight);
+		invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumRight * frustumRight);
 		p.scale(frustumNear * invHyp, n);
 		direction.scaleAdd(Math.abs(frustumRight) * invHyp, n, n);
 		setWorldPlane(RIGHT_PLANE, n, location);
 
 		// BOTTOM
-		invHyp =
-			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumBottom
-				* frustumBottom);
+		invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumBottom * frustumBottom);
 		up.scale(frustumNear * invHyp, n);
 		direction.scaleAdd(Math.abs(frustumBottom) * invHyp, n, n);
 		setWorldPlane(BOTTOM_PLANE, n, location);
 
 		// TOP
-		invHyp =
-			1 / (float) Math.sqrt(frustumNear * frustumNear + frustumTop
-				* frustumTop);
+		invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumTop * frustumTop);
 		up.scale(-frustumNear * invHyp, n);
 		direction.scaleAdd(Math.abs(frustumTop) * invHyp, n, n);
 		setWorldPlane(TOP_PLANE, n, location);
@@ -622,8 +608,7 @@ public class View {
 	}
 
 	// computes an orthogonal projection matrix given the frustum values.
-	private static void orthoMatrix(float fr, float fl, float ft, float fb,
-		float fn, float ff, Matrix4f out) {
+	private static void orthoMatrix(float fr, float fl, float ft, float fb, float fn, float ff, Matrix4f out) {
 		out.m00 = 2f / (fr - fl);
 		out.m11 = 2f / (ft - fb);
 		out.m22 = 2f / (fn - ff);
@@ -635,8 +620,7 @@ public class View {
 	}
 
 	// computes a perspective projection matrix given the frustum values.
-	private static void projMatrix(float fr, float fl, float ft, float fb,
-		float fn, float ff, Matrix4f out) {
+	private static void projMatrix(float fr, float fl, float ft, float fb, float fn, float ff, Matrix4f out) {
 		out.m00 = 2f * fn / (fr - fl);
 		out.m11 = 2f * fn / (ft - fb);
 

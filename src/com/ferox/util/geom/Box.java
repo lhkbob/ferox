@@ -47,8 +47,8 @@ public class Box extends IndexedArrayGeometry {
 	 * @param type The compile type to use for the Box
 	 */
 	public Box(float side, CompileType type) {
-		this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), new Vector3f(
-			side / 2f, side / 2f, side / 2f), type);
+		this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
+			new Vector3f(side / 2f, side / 2f, side / 2f), type);
 	}
 
 	/**
@@ -97,8 +97,7 @@ public class Box extends IndexedArrayGeometry {
 	 */
 	public void setData(Vector3f minPoint, Vector3f maxPoint) {
 		if (minPoint == null || maxPoint == null)
-			throw new NullPointerException(
-				"minPoint and maxPoint cannot be null");
+			throw new NullPointerException("minPoint and maxPoint cannot be null");
 
 		minPoint.add(maxPoint, center).scale(.5f, center);
 
@@ -127,216 +126,48 @@ public class Box extends IndexedArrayGeometry {
 		int vi = 0;
 
 		// back
-		t[ti++] = 1f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		v[vi++] = minX;
-		v[vi++] = minY;
-		v[vi++] = minZ;
-		t[ti++] = 0f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		v[vi++] = maxX;
-		v[vi++] = minY;
-		v[vi++] = minZ;
-		t[ti++] = 0f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		v[vi++] = maxX;
-		v[vi++] = maxY;
-		v[vi++] = minZ;
-		t[ti++] = 1f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		v[vi++] = minX;
-		v[vi++] = maxY;
-		v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = minX; v[vi++] = minY; v[vi++] = minZ;
+		t[ti++] = 0f; t[ti++] = 0f;	n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = minZ;
+		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 1f;	n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = minZ;
 
 		// right
-		t[ti++] = 1f;
-		t[ti++] = 0f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = minY;
-		v[vi++] = minZ;
-		t[ti++] = 0f;
-		t[ti++] = 0f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = minY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 1f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = maxY;
-		v[vi++] = maxZ;
-		t[ti++] = 1f;
-		t[ti++] = 1f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = maxY;
-		v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = minZ;
+		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = maxZ;
+		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = minZ;
 
 		// front
-		t[ti++] = 1f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		v[vi++] = maxX;
-		v[vi++] = minY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		v[vi++] = minX;
-		v[vi++] = minY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		v[vi++] = minX;
-		v[vi++] = maxY;
-		v[vi++] = maxZ;
-		t[ti++] = 1f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		v[vi++] = maxX;
-		v[vi++] = maxY;
-		v[vi++] = maxZ;
+		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = minX; v[vi++] = minY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = maxZ;
+		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = maxZ;
 
 		// left
-		t[ti++] = 1f;
-		t[ti++] = 0f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = minY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 0f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = minY;
-		v[vi++] = minZ;
-		t[ti++] = 0f;
-		t[ti++] = 1f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = maxY;
-		v[vi++] = minZ;
-		t[ti++] = 1f;
-		t[ti++] = 1f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = maxY;
-		v[vi++] = maxZ;
+		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY;v[vi++] = minZ;
+		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = maxZ;
 
 		// top
-		t[ti++] = 1f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = maxY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = maxY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = maxY;
-		v[vi++] = minZ;
-		t[ti++] = 1f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = 1f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = maxY;
-		v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = minZ;
 
 		// bottom
-		t[ti++] = 1f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = minY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 0f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = minY;
-		v[vi++] = maxZ;
-		t[ti++] = 0f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		v[vi++] = maxX;
-		v[vi++] = minY;
-		v[vi++] = minZ;
-		t[ti++] = 1f;
-		t[ti++] = 1f;
-		n[ni++] = 0f;
-		n[ni++] = -1f;
-		n[ni++] = 0f;
-		v[vi++] = minX;
-		v[vi++] = minY;
-		v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = maxZ;
+		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = minZ;
+		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY; v[vi++] = minZ;
 
 		// indices
 		int[] indices = new int[] { 2, 1, 0, 3, 2, 0, // back
-			6, 5, 4, 7, 6, 4, // right
-			10, 9, 8, 11, 10, 8, // front
-			14, 13, 12, 15, 14, 12, // left
-			18, 17, 16, 19, 18, 16, // top
-			22, 21, 20, 23, 22, 20 }; // bottom
+		6, 5, 4, 7, 6, 4, // right
+		10, 9, 8, 11, 10, 8, // front
+		14, 13, 12, 15, 14, 12, // left
+		18, 17, 16, 19, 18, 16, // top
+		22, 21, 20, 23, 22, 20 }; // bottom
 
 		setVertices(v);
 		setIndices(indices, PolygonType.TRIANGLES);

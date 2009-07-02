@@ -41,8 +41,7 @@ public class DirectionLightNode extends LightNode<DirectionLight> {
 	 * @param specular
 	 * @param ambient
 	 */
-	public DirectionLightNode(Vector3f direction, Color4f diffuse,
-		Color4f specular, Color4f ambient) {
+	public DirectionLightNode(Vector3f direction, Color4f diffuse, Color4f specular, Color4f ambient) {
 		super(new DirectionLight(direction, diffuse, specular, ambient));
 	}
 }

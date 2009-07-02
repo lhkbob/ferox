@@ -5,9 +5,9 @@ import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.math.Color4f;
 import com.ferox.renderer.AbstractRenderSurface;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderSurface;
-import com.ferox.renderer.Framework;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
@@ -30,8 +30,7 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class JoglRenderSurface extends AbstractRenderSurface implements
-	RenderSurface, AttachableSurfaceGLEventListener {
+public abstract class JoglRenderSurface extends AbstractRenderSurface implements RenderSurface, AttachableSurfaceGLEventListener {
 	private boolean destroyed;
 
 	private boolean renderedOnce;
@@ -171,8 +170,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 	public void render() throws RenderException {
 		GLAutoDrawable gd = getGLAutoDrawable();
 		if (gd == null)
-			throw new RenderException(
-				"Cannot render a surface that must be attached to GL context");
+			throw new RenderException("Cannot render a surface that must be attached to GL context");
 
 		helper.render(gd);
 	}
@@ -183,21 +181,18 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 	}
 
 	@Override
-	public final void displayChanged(GLAutoDrawable drawable,
-		boolean modeChanged, boolean deviceChanged) {
+	public final void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
 		// do nothing
 	}
 
 	@Override
 	public final void init(GLAutoDrawable drawable) {
 		GL gl = drawable.getGL();
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT
-			| GL.GL_STENCIL_BUFFER_BIT);
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT);
 	}
 
 	@Override
-	public final void reshape(GLAutoDrawable drawable, int x, int y, int width,
-		int height) {
+	public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		// do nothing
 	}
 
@@ -233,8 +228,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 
 		Color4f clearColor = getClearColor();
 		if (!clearColor.equals(fr.clearColor)) {
-			gl.glClearColor(clearColor.getRed(), clearColor.getGreen(),
-				clearColor.getBlue(), clearColor.getAlpha());
+			gl.glClearColor(clearColor.getRed(), clearColor.getGreen(), clearColor.getBlue(), clearColor.getAlpha());
 			JoglUtil.get(clearColor, fr.clearColor);
 		}
 		float clearDepth = getClearDepth();

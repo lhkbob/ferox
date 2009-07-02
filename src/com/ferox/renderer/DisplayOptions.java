@@ -141,8 +141,7 @@ public final class DisplayOptions {
 	 * @param stencil The StencilFormat to use, null = NONE
 	 * @param aa The AntiAliasMode to use, null = NONE
 	 */
-	public DisplayOptions(PixelFormat pixels, DepthFormat depth,
-			StencilFormat stencil, AntiAliasMode aa) {
+	public DisplayOptions(PixelFormat pixels, DepthFormat depth, StencilFormat stencil, AntiAliasMode aa) {
 		pixelFormat = (pixels == null ? DEFAULT_PF : pixels);
 		depthFormat = (depth == null ? DEFAULT_DF : depth);
 		stencilFormat = (stencil == null ? DEFAULT_SF : stencil);
@@ -187,7 +186,7 @@ public final class DisplayOptions {
 
 	@Override
 	public String toString() {
-		return "(DisplayOptions " + pixelFormat + " " + depthFormat + " "
-				+ stencilFormat + " " + aaMode + ")";
+		return "(DisplayOptions " + pixelFormat + " " + depthFormat 
+			   + " " + stencilFormat + " " + aaMode + ")";
 	}
 }

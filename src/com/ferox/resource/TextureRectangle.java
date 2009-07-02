@@ -56,11 +56,12 @@ public class TextureRectangle extends TextureImage {
 	 * getDirtyDescriptor() for texture rectangle's will return objects of this
 	 * class.
 	 */
-	public static class TextureRectangleDirtyDescriptor extends
-		TextureDirtyDescriptor {
+	public static class TextureRectangleDirtyDescriptor extends TextureDirtyDescriptor {
 		private MipmapDirtyRegion dirtyRegions;
 
-		/** True if the only mipmap for the texture rectangle is dirty. */
+		/**
+		 * @return True if the only mipmap for the texture rectangle is dirty.
+		 */
 		public boolean isDataDirty() {
 			return dirtyRegions != null;
 		}
@@ -69,6 +70,8 @@ public class TextureRectangle extends TextureImage {
 		 * Get the MipmapDirtyRegion for the TextureRectangle. If null is
 		 * returned, then the data hasn't been flagged as dirty. The returned
 		 * region will be constrained to be in the dimensions of the texture.
+		 * 
+		 * @return MipmapDirtyRegion for this dirty descriptor's texture
 		 */
 		public MipmapDirtyRegion getDirtyRegion() {
 			return dirtyRegions;
@@ -86,24 +89,41 @@ public class TextureRectangle extends TextureImage {
 
 	/**
 	 * Creates a texture image with the given format and type, default other
-	 * values. Fails like super(format, type), or if the dimensions and data
-	 * array are invalid.
+	 * values.
+	 * 
+	 * @param data BufferData to use for the texture
+	 * @param width Width of the image
+	 * @param height Height of the image
+	 * @param format
+	 * @param type
+	 * 
+	 * @throws NullPointerException if format or type are null
+	 * @throws IllegalArgumentException if the dimensions, format and
+	 *             type don't create a valid texture
 	 */
-	public TextureRectangle(BufferData data, int width, int height,
-		TextureFormat format, DataType type) throws NullPointerException,
-		IllegalArgumentException {
+	public TextureRectangle(BufferData data, int width, int height, 
+							TextureFormat format, DataType type) {
 		super(format, type);
 		setData(data, width, height);
 	}
 
 	/**
 	 * Creates a texture image with the given type, format and filter, default
-	 * other values. Fails like super(format, type, filter), or if the
-	 * dimensions and data array are invalid.
+	 * other values.
+	 * 
+	 * @param data BufferData to use for the texture
+	 * @param width Width of the image
+	 * @param height Height of the image
+	 * @param format
+	 * @param type
+	 * @param filter
+	 * 
+	 * @throws NullPointerException if format or type are null
+	 * @throws IllegalArgumentException if the dimensions, format and
+	 *             type don't create a valid texture
 	 */
-	public TextureRectangle(BufferData data, int width, int height,
-		TextureFormat format, DataType type, Filter filter)
-		throws NullPointerException, IllegalArgumentException {
+	public TextureRectangle(BufferData data, int width, int height, 
+							TextureFormat format, DataType type, Filter filter) {
 		super(format, type, filter);
 		setData(data, width, height);
 	}
@@ -111,37 +131,41 @@ public class TextureRectangle extends TextureImage {
 	/**
 	 * Create a texture image with the given format, type, filter, wrap mode for
 	 * all coordinates, depth mode and test, and depth comparison is disabled.
-	 * Fails like super(format, type, filter, wrap, mode, test), or if the
-	 * dimensions and data array are invalid.
+	 * 
+	 * @param data BufferData to use for the texture
+	 * @param width Width of the image
+	 * @param height Height of the image
+	 * @param format
+	 * @param type
+	 * @param wrapAll
+	 * @param depthMode
+	 * @param depthTest
+	 * 
+	 * @throws NullPointerException if format or type are null
+	 * @throws IllegalArgumentException if the dimensions, format and
+	 *             type don't create a valid texture
 	 */
-	public TextureRectangle(BufferData data, int width, int height,
-		TextureFormat format, DataType type, Filter filter,
-		TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest)
-		throws NullPointerException, IllegalArgumentException {
+	public TextureRectangle(BufferData data, int width, int height, 
+							TextureFormat format, DataType type, Filter filter, 
+							TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest) {
 		super(format, type, filter, wrapAll, depthMode, depthTest);
 		setData(data, width, height);
 	}
 
 	/* Internal method used to validate the BufferData[] and dimensions. */
-	private void setData(BufferData data, int width, int height)
-		throws IllegalArgumentException {
+	private void setData(BufferData data, int width, int height) {
 		TextureFormat format = getFormat();
 		DataType type = getType();
 
 		if (data != null) {
 			if (data.getType() != type)
-				throw new IllegalArgumentException(
-					"BufferData doesn't have a matching type for the texture, expected: "
-						+ type + ", but was: " + data.getType());
+				throw new IllegalArgumentException("BufferData doesn't have a matching type for the texture, expected: " 
+												   + type + ", but was: " + data.getType());
 			if (data.getCapacity() != format.getBufferSize(width, height, 1))
-				throw new IllegalArgumentException(
-					"Buffer does not have the correct size, expected: "
-						+ format.getBufferSize(width, height, 1)
-						+ ", but was: " + data.getCapacity());
+				throw new IllegalArgumentException("Buffer does not have the correct size, expected: " 
+													+ format.getBufferSize(width, height, 1) + ", but was: " + data.getCapacity());
 		} else if (format.isCompressed())
-			throw new IllegalArgumentException(
-				"Headless TextureRectangle cannot have a client compressed texture: "
-					+ format);
+			throw new IllegalArgumentException("Headless TextureRectangle cannot have a client compressed texture: " + format);
 
 		// everything is valid up to this point, so we can update our values
 		this.width = width;
@@ -155,18 +179,19 @@ public class TextureRectangle extends TextureImage {
 	 * Mark a region of the texture image as dirty. The x, y offsets and width
 	 * and height will be clamped to be within the valid region of the given
 	 * layer.
+	 * 
+	 * @param x Offset along horizontal axis of image
+	 * @param y Offset along vertical axis of image
+	 * @param width Width of the dirty region
+	 * @param height Height of the dirty region
 	 */
 	public void markDirty(int x, int y, int width, int height) {
-		TextureRectangleDirtyDescriptor dirty =
-			(TextureRectangleDirtyDescriptor) getDirtyDescriptor();
+		TextureRectangleDirtyDescriptor dirty = (TextureRectangleDirtyDescriptor) getDirtyDescriptor();
 
 		if (dirty.dirtyRegions == null)
-			dirty.dirtyRegions =
-				new MipmapDirtyRegion(x, y, 0, width, height, 0, this.width,
-					this.height, 0);
+			dirty.dirtyRegions = new MipmapDirtyRegion(x, y, 0, width, height, 0, this.width, this.height, 0);
 		else
-			dirty.dirtyRegions.merge(x, y, 0, width, height, 0, this.width,
-				this.height, 0);
+			dirty.dirtyRegions.merge(x, y, 0, width, height, 0, this.width, this.height, 0);
 	}
 
 	/** Mark the entire texture image as dirty. */
@@ -224,8 +249,10 @@ public class TextureRectangle extends TextureImage {
 	 * Get the buffer data for the texture rectangle (there are no other
 	 * mipmaps). Returns null if the data isn't in client memory (most likely in
 	 * the graphics card).
+	 * 
+	 * @return The BufferData holding this texture's data
 	 */
-	public BufferData getData() throws IllegalArgumentException {
+	public BufferData getData() {
 		return data;
 	}
 

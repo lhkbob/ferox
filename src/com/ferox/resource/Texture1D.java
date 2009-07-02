@@ -66,8 +66,7 @@ public class Texture1D extends TextureImage {
 		 *         associated mipmap level, false if level is invalid
 		 */
 		public boolean isDataDirty(int level) {
-			if (dirtyRegions == null || level < 0
-				|| level >= dirtyRegions.length)
+			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
 				return false;
 			return dirtyRegions[level] != null;
 		}
@@ -83,8 +82,7 @@ public class Texture1D extends TextureImage {
 		 *         dirty
 		 */
 		public MipmapDirtyRegion getDirtyRegion(int level) {
-			if (dirtyRegions == null || level < 0
-				|| level >= dirtyRegions.length)
+			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
 				return null;
 			return dirtyRegions[level];
 		}
@@ -117,8 +115,7 @@ public class Texture1D extends TextureImage {
 	 * @throws IllegalArgumentException if the mipmaps, dimensions, format and
 	 *             type don't create a valid texture
 	 */
-	public Texture1D(BufferData[] data, int width, TextureFormat format,
-		DataType type) {
+	public Texture1D(BufferData[] data, int width, TextureFormat format, DataType type) {
 		super(format, type);
 		setData(data, width);
 	}
@@ -136,8 +133,8 @@ public class Texture1D extends TextureImage {
 	 * @throws IllegalArgumentException if the mipmaps, dimensions, format and
 	 *             type don't create a valid texture
 	 */
-	public Texture1D(BufferData[] data, int width, TextureFormat format,
-		DataType type, Filter filter) {
+	public Texture1D(BufferData[] data, int width, TextureFormat format, 
+					 DataType type, Filter filter) {
 		super(format, type, filter);
 		setData(data, width);
 	}
@@ -158,31 +155,27 @@ public class Texture1D extends TextureImage {
 	 * @throws IllegalArgumentException if the mipmaps, dimensions, format and
 	 *             type don't create a valid texture
 	 */
-	public Texture1D(BufferData[] data, int width, TextureFormat format,
-		DataType type, Filter filter, TextureWrap wrapAll, DepthMode depthMode,
-		PixelTest depthTest) {
+	public Texture1D(BufferData[] data, int width, TextureFormat format, 
+				     DataType type, Filter filter, TextureWrap wrapAll, 
+				     DepthMode depthMode, PixelTest depthTest) {
 		super(format, type, filter, wrapAll, depthMode, depthTest);
 		setData(data, width);
 	}
 
 	/* Internal method used to validate the BufferData[] and dimensions. */
-	private void setData(BufferData[] data, int width)
-		throws IllegalArgumentException {
+	private void setData(BufferData[] data, int width) {
 		// expected mipmap count if data.length > 1
 		int numMipmaps = TextureImage.calculateMipmapCount(width, 1, 1);
 		TextureFormat format = getFormat();
 		DataType type = getType();
 
 		if (format.isCompressed())
-			throw new IllegalArgumentException(
-				"The texture format cannot be compressed for a Texture1D: "
-					+ format);
+			throw new IllegalArgumentException("The texture format cannot be compressed for a Texture1D: " + format);
 
 		BufferData[] realData = null;
 		if (data != null) {
 			if (data.length != 1 && data.length != numMipmaps)
-				throw new IllegalArgumentException(
-					"If more than one BufferData is given, must provide all mipmap levels");
+				throw new IllegalArgumentException("If more than one BufferData is given, must provide all mipmap levels");
 			numMipmaps = data.length;
 
 			int nonNullCount = 0;
@@ -195,37 +188,28 @@ public class Texture1D extends TextureImage {
 				// make a new array to hold the buffers, so it can't be tampered
 				// with later
 				realData = new BufferData[data.length];
-				System.arraycopy(data, 0, realData, 0, Math.min(data.length,
-					realData.length));
+				System.arraycopy(data, 0, realData, 0, Math.min(data.length, realData.length));
 			} else
-				throw new IllegalArgumentException(
-					"Cannot pass in an array with some values null.  Array length: "
-						+ data.length + ", but has only " + nonNullCount
-						+ " non-null buffers.");
+				throw new IllegalArgumentException("Cannot pass in an array with some values null.  Array length: " 
+												   + data.length + ", but has only " + nonNullCount + " non-null buffers.");
 		}
 
 		if (realData != null) {
 			int s = width;
 			for (int i = 0; i < realData.length; i++) {
 				if (realData[i].getType() != type)
-					throw new IllegalArgumentException(
-						"BufferData doesn't have a matching type for the texture, expected: "
-							+ type + ", but was: " + realData[i].getType());
+					throw new IllegalArgumentException("BufferData doesn't have a matching type for the texture, expected: " 
+													   + type + ", but was: " + realData[i].getType());
 				if (realData[i].getCapacity() != format.getBufferSize(s, 1, 1))
-					throw new IllegalArgumentException(
-						"Buffer at mipmap level: " + i
-							+ " is does not have the correct size, expected: "
-							+ format.getBufferSize(s, 1, 1) + ", but was: "
-							+ realData[i].getCapacity());
+					throw new IllegalArgumentException("Buffer at mipmap level: " + i + " is does not have the correct size, expected: " 
+													   + format.getBufferSize(s, 1, 1) + ", but was: " + realData[i].getCapacity());
 				s = Math.max(1, s >> 1);
 			}
 
 			numMipmaps = realData.length;
 		} else {
 			if (format.isCompressed())
-				throw new IllegalArgumentException(
-					"Headless Texture1D cannot have a client compressed texture: "
-						+ format);
+				throw new IllegalArgumentException("Headless Texture1D cannot have a client compressed texture: " + format);
 			numMipmaps = 1;
 		}
 
@@ -254,17 +238,14 @@ public class Texture1D extends TextureImage {
 		if (dirty.dirtyRegions == null || dirty.dirtyRegions.length <= level) {
 			MipmapDirtyRegion[] temp = new MipmapDirtyRegion[level + 1];
 			if (dirty.dirtyRegions != null)
-				System.arraycopy(dirty.dirtyRegions, 0, temp, 0,
-					dirty.dirtyRegions.length);
+				System.arraycopy(dirty.dirtyRegions, 0, temp, 0, dirty.dirtyRegions.length);
 			dirty.dirtyRegions = temp;
 		}
 
 		int levelwidth = getWidth(level);
 		MipmapDirtyRegion r = dirty.dirtyRegions[level];
 		if (r == null) {
-			r =
-				new MipmapDirtyRegion(x, 0, 0, width, 0, 0, levelwidth,
-					levelwidth, 0);
+			r = new MipmapDirtyRegion(x, 0, 0, width, 0, 0, levelwidth, levelwidth, 0);
 			dirty.dirtyRegions[level] = r;
 		} else
 			r.merge(x, 0, 0, width, 0, 0, levelwidth, levelwidth, 0);
@@ -331,9 +312,7 @@ public class Texture1D extends TextureImage {
 	 */
 	public BufferData getData(int level) {
 		if (level < 0 || level >= numMipmaps)
-			throw new IllegalArgumentException(
-				"Buffer data doesn't exist beyond mipmap levels, illegal level: "
-					+ level);
+			throw new IllegalArgumentException("Buffer data doesn't exist beyond mipmap levels, illegal level: " + level);
 		if (data == null)
 			return null; // all we can return at this point
 		return data[level];

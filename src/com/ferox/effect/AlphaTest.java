@@ -2,7 +2,6 @@ package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
 
-
 /**
  * <p>
  * If attached to an appearance, pixels will only be rendered (for that
@@ -71,7 +70,6 @@ public class AlphaTest extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(AlphaTest test: " + alphaTest + " reference: " + refValue
-			+ ")";
+		return "(AlphaTest test: " + alphaTest + " reference: " + refValue + ")";
 	}
 }

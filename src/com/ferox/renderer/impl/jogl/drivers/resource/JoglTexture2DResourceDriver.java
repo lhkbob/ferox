@@ -24,14 +24,12 @@ import com.ferox.util.texture.converter.TextureConverter;
 /**
  * JoglTexture2DResourceDriver provides the functionality to load and delete
  * Texture2D instances in the graphics card. It will re-scale npot textures if
- * the card doesn't have npot support.
- * 
- * A Texture2D will only have an ERROR status if it is compressed and the DXT_n
- * compressions aren't supported. It will be DIRTY if it was an unclamped float
- * format and they're not supported, or if an NPOT texture had to be resized.
+ * the card doesn't have npot support. A Texture2D will only have an ERROR
+ * status if it is compressed and the DXT_n compressions aren't supported. It
+ * will be DIRTY if it was an unclamped float format and they're not supported,
+ * or if an NPOT texture had to be resized.
  * 
  * @author Michael Ludwig
- * 
  */
 public class JoglTexture2DResourceDriver implements ResourceDriver {
 	private final JoglContextManager factory;
@@ -74,8 +72,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 				if (t2d.getFormat().isCompressed() && !hasS3tcCompression) {
 					// can't make the texture
 					data.setStatus(Status.ERROR);
-					data
-							.setStatusMessage("DXT_n TextureFormats aren't supported on this hardware");
+					data.setStatusMessage("DXT_n TextureFormats aren't supported on this hardware");
 					return; // abort the update
 				}
 
@@ -85,8 +82,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 				data.setHandle(handle);
 				if (imageDriver.isDirty(t2d, handle)) {
 					data.setStatus(Status.DIRTY);
-					data.setStatusMessage(imageDriver.getDirtyStatusMessage(
-							t2d, handle));
+					data.setStatusMessage(imageDriver.getDirtyStatusMessage(t2d, handle));
 				} else {
 					data.setStatus(Status.OK);
 					data.setStatusMessage("");
@@ -96,23 +92,17 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 				// down-the-line
 			}
 
-			Texture2DDirtyDescriptor dirty = (Texture2DDirtyDescriptor) t2d
-					.getDirtyDescriptor();
-			if (newTex || fullUpdate || dirty.areMipmapsDirty()
-					|| dirty.isAnisotropicFilteringDirty()
-					|| dirty.isDepthCompareDirty() || dirty.isFilterDirty()
-					|| dirty.isTextureWrapDirty()) {
+			Texture2DDirtyDescriptor dirty = t2d.getDirtyDescriptor();
+			if (newTex || fullUpdate || dirty.areMipmapsDirty() || dirty.isAnisotropicFilteringDirty() || 
+				dirty.isDepthCompareDirty() || dirty.isFilterDirty() || dirty.isTextureWrapDirty()) {
 				// we must actually update the texture
 				gl.glBindTexture(handle.glTarget, handle.id);
 
-				imageDriver.setTextureParameters(gl, handle, t2d, newTex
-						|| fullUpdate);
+				imageDriver.setTextureParameters(gl, handle, t2d, newTex || fullUpdate);
 
 				TextureFormat f = t2d.getFormat();
-				boolean rescale = handle.width != t2d.getWidth(0)
-						|| handle.height != t2d.getHeight(0);
-				if (newTex || rescale || f.isCompressed()
-						|| f == TextureFormat.DEPTH)
+				boolean rescale = handle.width != t2d.getWidth(0) || handle.height != t2d.getHeight(0);
+				if (newTex || rescale || f.isCompressed() || f == TextureFormat.DEPTH)
 					// we have to re-allocate the image data, or make it for the
 					// first time
 					// re-allocate on rescale for simplicity. re-allocate for
@@ -120,13 +110,11 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 					doTexImage(gl, pr, handle, t2d, newTex);
 				else
 					// we can use glTexSubImage for better performance
-					doTexSubImage(gl, pr, (fullUpdate ? null : dirty), handle,
-							t2d);
+					doTexSubImage(gl, pr, (fullUpdate ? null : dirty), handle, t2d);
 
 				// restore the texture binding on the active unit
 				TextureUnit active = tr.textureUnits[tr.activeTexture];
-				int restoreId = (active.enabledTarget == handle.glTarget ? active.texBinding
-						: 0);
+				int restoreId = (active.enabledTarget == handle.glTarget ? active.texBinding : 0);
 				gl.glBindTexture(handle.glTarget, restoreId);
 			}
 
@@ -142,10 +130,9 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 	 * regions. This method will properly resize images and use compressed
 	 * function calls if needed.
 	 */
-	private void doTexImage(GL gl, PackUnpackRecord pr, TextureHandle handle,
-			Texture2D tex, boolean newTex) {
-		boolean needsResize = handle.width != tex.getWidth(0)
-				|| handle.height != tex.getHeight(0);
+	private void doTexImage(GL gl, PackUnpackRecord pr, TextureHandle handle, 
+							Texture2D tex, boolean newTex) {
+		boolean needsResize = handle.width != tex.getWidth(0) || handle.height != tex.getHeight(0);
 
 		int w, h;
 		BufferData bd;
@@ -161,29 +148,25 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 					// resize the image to meet POT requirements
 					bd = TextureConverter.convert(
 					// src
-							bd, tex.getFormat(), tex.getWidth(i), tex
-									.getHeight(i), 1,
-							// dst
-							null, tex.getFormat(), bd.getType(), w, h, 1);
+					bd, tex.getFormat(), tex.getWidth(i), tex.getHeight(i), 1,
+					// dst
+					null, tex.getFormat(), bd.getType(), w, h, 1);
 				// proceed with glTexImage
 				imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, h);
 				if (handle.glSrcFormat > 0)
-					gl.glTexImage2D(handle.glTarget, i, handle.glDstFormat, w,
-							h, 0, handle.glSrcFormat, handle.glType,
-							imageDriver.wrap(bd));
+					gl.glTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
+									handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 				else
-					gl.glCompressedTexImage2D(handle.glTarget, i,
-							handle.glDstFormat, w, h, 0, bd.getCapacity(),
-							imageDriver.wrap(bd));
+					gl.glCompressedTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
+											  bd.getCapacity(), imageDriver.wrap(bd));
 			} else if (newTex)
 				// we'll just allocate an empty image
 				if (handle.glSrcFormat > 0)
-					gl.glTexImage2D(handle.glTarget, i, handle.glDstFormat, w,
-							h, 0, handle.glSrcFormat, handle.glType, null);
+					gl.glTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
+									handle.glSrcFormat, handle.glType, null);
 				else
-					gl.glCompressedTexImage2D(handle.glTarget, i,
-							handle.glDstFormat, w, h, 0, tex.getFormat()
-									.getBufferSize(w, h, 0), null);
+					gl.glCompressedTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
+											  tex.getFormat().getBufferSize(w, h, 0), null);
 		}
 	}
 
@@ -193,8 +176,8 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 	 * doesn't have a compressed format. It is recommended not to use the DEPTH
 	 * format, either since that seems to cause problems.
 	 */
-	private void doTexSubImage(GL gl, PackUnpackRecord pr,
-			Texture2DDirtyDescriptor dirty, TextureHandle handle, Texture2D tex) {
+	private void doTexSubImage(GL gl, PackUnpackRecord pr, Texture2DDirtyDescriptor dirty, 
+							   TextureHandle handle, Texture2D tex) {
 		int w, h;
 		MipmapDirtyRegion mdr;
 		BufferData bd;
@@ -211,20 +194,15 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 					mdr = (dirty == null ? null : dirty.getDirtyRegion(i));
 					if (mdr != null) {
 						// use the region descriptor
-						imageDriver.setUnpackRegion(gl, pr, mdr
-								.getDirtyXOffset(), mdr.getDirtyYOffset(), 0,
-								w, h);
-						gl.glTexSubImage2D(handle.glTarget, i, mdr
-								.getDirtyXOffset(), mdr.getDirtyYOffset(), mdr
-								.getDirtyWidth(), mdr.getDirtyHeight(),
-								handle.glSrcFormat, handle.glType, imageDriver
-										.wrap(bd));
+						imageDriver.setUnpackRegion(gl, pr, mdr.getDirtyXOffset(), mdr.getDirtyYOffset(), 0, w, h);
+						gl.glTexSubImage2D(handle.glTarget, i, mdr.getDirtyXOffset(), mdr.getDirtyYOffset(),
+										   mdr.getDirtyWidth(), mdr.getDirtyHeight(), handle.glSrcFormat, 
+										   handle.glType, imageDriver.wrap(bd));
 					} else {
 						// we'll update the whole image level
 						imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, h);
-						gl.glTexSubImage2D(handle.glTarget, i, 0, 0, w, h,
-								handle.glSrcFormat, handle.glType, imageDriver
-										.wrap(bd));
+						gl.glTexSubImage2D(handle.glTarget, i, 0, 0, w, h, handle.glSrcFormat,
+										   handle.glType, imageDriver.wrap(bd));
 					}
 				}
 		}

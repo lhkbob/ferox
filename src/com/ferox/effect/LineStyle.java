@@ -2,7 +2,6 @@ package com.ferox.effect;
 
 import com.ferox.effect.Effect.Type;
 
-
 /**
  * LineStyle controls how line segments are rendered. These lines could have
  * been produced by geometry that directly renders lines, or because a
@@ -147,9 +146,8 @@ public class LineStyle extends AbstractEffect {
 
 	@Override
 	public String toString() {
-		return "(LineStyle width: " + lineWidth + " smoothed: "
-			+ enableSmoothing + " stippled: " + enableStippling + " pattern: "
-			+ Integer.toHexString(stipplePattern) + " factor: " + stippleFactor
-			+ ")";
+		return "(LineStyle width: " + lineWidth + " smoothed: " + enableSmoothing 
+			 + " stippled: " + enableStippling + " pattern: " + Integer.toHexString(stipplePattern) 
+			 + " factor: " + stippleFactor + ")";
 	}
 }

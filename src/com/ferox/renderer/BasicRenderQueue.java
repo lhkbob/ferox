@@ -23,8 +23,7 @@ public class BasicRenderQueue implements RenderQueue {
 	public void add(RenderAtom atom) {
 		if (atom != null) {
 			if (raCount >= renderAtoms.length) {
-				RenderAtom[] temp = new RenderAtom[raCount
-						+ ALLOCATION_INCREMENT];
+				RenderAtom[] temp = new RenderAtom[raCount + ALLOCATION_INCREMENT];
 				System.arraycopy(renderAtoms, 0, temp, 0, renderAtoms.length);
 				renderAtoms = temp;
 			}
@@ -81,8 +80,7 @@ public class BasicRenderQueue implements RenderQueue {
 	 *            atoms
 	 * @param raCount Index of first invalid render atom in renderAtoms
 	 */
-	protected void optimizeOrder(View view, RenderAtom[] renderAtoms,
-			int raCount) {
+	protected void optimizeOrder(View view, RenderAtom[] renderAtoms, int raCount) {
 		// do nothing in base class
 	}
 }

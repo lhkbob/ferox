@@ -9,8 +9,8 @@ import com.ferox.effect.Effect.Type;
  * component: red, green, blue, and alpha, have a boolean mask value. If this
  * value is set to true, color values for that component will be written into
  * the framebuffer. If the value if false, that color component will be
- * effectively masked out, preserving whatever color component was already written
- * to the framebuffer previously.
+ * effectively masked out, preserving whatever color component was already
+ * written to the framebuffer previously.
  * </p>
  * <p>
  * If all components have a mask of true, all color component values are

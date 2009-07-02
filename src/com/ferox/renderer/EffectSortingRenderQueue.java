@@ -38,9 +38,8 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 			int key = 0;
 
 			set.reset();
-			while ((e = set.next()) != null) {
+			while ((e = set.next()) != null)
 				key ^= typeKey(System.identityHashCode(e), e.getType());
-			}
 
 			// store it for later
 			return key;
@@ -145,8 +144,7 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 		int sb = k[b];
 		int sc = k[c];
 
-		return (sa < sb ? (sb < sc ? b : (sa < sc ? c : a)) : (sb > sc ? b
-			: (sa > sc ? c : a)));
+		return (sa < sb ? (sb < sc ? b : (sa < sc ? c : a)) : (sb > sc ? b : (sa > sc ? c : a)));
 	}
 
 	private static void vecswap(int[] k, RenderAtom x[], int a, int b, int n) {

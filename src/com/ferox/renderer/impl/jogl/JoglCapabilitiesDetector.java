@@ -24,12 +24,11 @@ public class JoglCapabilitiesDetector {
 
 	public RenderCapabilities detect() {
 		if (capabilities == null)
-			if (!FORCE_NO_PBUFFER
-					&& GLDrawableFactory.getFactory().canCreateGLPbuffer()) {
+			if (!FORCE_NO_PBUFFER && GLDrawableFactory.getFactory().canCreateGLPbuffer()) {
 				// use a pbuffer to query the capabilities
-				GLPbuffer pbuffer = GLDrawableFactory.getFactory()
-						.createGLPbuffer(new GLCapabilities(),
-								new DefaultGLCapabilitiesChooser(), 1, 1, null);
+				GLPbuffer pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(new GLCapabilities(), 
+																				   new DefaultGLCapabilitiesChooser(), 
+																				   1, 1, null);
 				pbuffer.getContext().makeCurrent();
 				queryCapabilities(pbuffer.getGL());
 				pbuffer.getContext().release();
@@ -49,8 +48,7 @@ public class JoglCapabilitiesDetector {
 						// detect
 						frame.setVisible(true);
 						canvas.getContext().makeCurrent();
-						JoglCapabilitiesDetector.this.queryCapabilities(canvas
-								.getGL());
+						JoglCapabilitiesDetector.this.queryCapabilities(canvas.getGL());
 						canvas.getContext().release();
 
 						// clean-up
@@ -88,10 +86,10 @@ public class JoglCapabilitiesDetector {
 		String vendor = gl.glGetString(GL.GL_VENDOR);
 		float vNum = formatVersion(gl.glGetString(GL.GL_VERSION));
 
-		boolean vboSupported = gl.isFunctionAvailable("glGenBuffersARB")
-				&& gl.isFunctionAvailable("glBindBufferARB")
-				&& gl.isFunctionAvailable("glDeleteBuffersARB")
-				&& gl.isExtensionAvailable("GL_ARB_vertex_buffer_object");
+		boolean vboSupported = gl.isFunctionAvailable("glGenBuffersARB") && 
+							   gl.isFunctionAvailable("glBindBufferARB") && 
+							   gl.isFunctionAvailable("glDeleteBuffersARB") && 
+							   gl.isExtensionAvailable("GL_ARB_vertex_buffer_object");
 
 		gl.glGetIntegerv(GL.GL_MAX_VERTEX_ATTRIBS, store, 0);
 		int maxVertexAttributes = store[0];
@@ -103,26 +101,16 @@ public class JoglCapabilitiesDetector {
 		gl.glGetIntegerv(GL.GL_MAX_LIGHTS, store, 0);
 		int maxLights = store[0];
 
-		boolean pointSpriteSupported = gl
-				.isExtensionAvailable("GL_ARB_point_sprite")
-				|| vNum >= 2f;
-		boolean glslSupported = gl
-				.isExtensionAvailable("GL_ARB_shading_language_100")
-				|| vNum >= 2f;
-		boolean fboSupported = !FORCE_NO_FBO
-				&& gl.isExtensionAvailable("GL_EXT_framebuffer_object");
-		boolean pbufferSupported = !FORCE_NO_PBUFFER
-				&& GLDrawableFactory.getFactory().canCreateGLPbuffer();
+		boolean pointSpriteSupported = gl.isExtensionAvailable("GL_ARB_point_sprite") || vNum >= 2f;
+		boolean glslSupported = gl.isExtensionAvailable("GL_ARB_shading_language_100") || vNum >= 2f;
+		boolean fboSupported = !FORCE_NO_FBO && gl.isExtensionAvailable("GL_EXT_framebuffer_object");
+		boolean pbufferSupported = !FORCE_NO_PBUFFER && GLDrawableFactory.getFactory().canCreateGLPbuffer();
 
-		boolean multiTexSupported = vNum >= 1.3f
-				|| gl.isExtensionAvailable("GL_ARB_multitexture");
-		boolean npotTextures = vNum >= 2.0f
-				|| gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
-		boolean rectTextures = gl
-				.isExtensionAvailable("GL_ARB_texture_rectangle");
+		boolean multiTexSupported = vNum >= 1.3f || gl.isExtensionAvailable("GL_ARB_multitexture");
+		boolean npotTextures = vNum >= 2.0f || gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
+		boolean rectTextures = gl.isExtensionAvailable("GL_ARB_texture_rectangle");
 		boolean fpTextures = gl.isExtensionAvailable("GL_ARB_texture_float");
-		boolean s3tcTex = gl
-				.isExtensionAvailable("GL_EXT_texture_compression_s3tc");
+		boolean s3tcTex = gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc");
 
 		int maxFFPTextureUnits;
 		int maxVertexShaderTextureUnits;
@@ -182,14 +170,13 @@ public class JoglCapabilitiesDetector {
 			maxRenderbufferSize = store[0];
 		}
 
-		capabilities = new RenderCapabilities(maxVertexShaderTextureUnits,
-				maxFragmentShaderTextureUnits, maxFFPTextureUnits,
-				maxCombinedTextureUnits, maxAniso, maxTextureSize,
-				maxTextureRectSize, maxTextureCubeMapSize, maxTexture3DSize,
-				maxRenderbufferSize, fpTextures, npotTextures, rectTextures,
-				s3tcTex, maxVertexAttributes, maxTextureCoordinates,
-				maxIndices, maxVertices, vboSupported, maxLights,
-				pointSpriteSupported, glslSupported, fboSupported,
-				pbufferSupported, maxColorAttachments, vendor, vNum);
+		capabilities = new RenderCapabilities(maxVertexShaderTextureUnits, maxFragmentShaderTextureUnits, 
+											  maxFFPTextureUnits, maxCombinedTextureUnits, maxAniso,
+											  maxTextureSize, maxTextureRectSize, maxTextureCubeMapSize, 
+											  maxTexture3DSize, maxRenderbufferSize, fpTextures, npotTextures, 
+											  rectTextures, s3tcTex, maxVertexAttributes, maxTextureCoordinates, 
+											  maxIndices, maxVertices, vboSupported, maxLights,
+											  pointSpriteSupported, glslSupported, fboSupported,
+											  pbufferSupported, maxColorAttachments, vendor, vNum);
 	}
 }

@@ -154,7 +154,7 @@ public abstract class Node {
 	 *            is valid
 	 */
 	public void updateTransform(boolean fast) {
-		//localToWorld(IDENTITY.get(), worldTransform, fast);
+		// localToWorld(IDENTITY.get(), worldTransform, fast);
 		if (parent != null)
 			parent.worldTransform.mul(localTransform, worldTransform);
 		else
@@ -188,7 +188,7 @@ public abstract class Node {
 		int size = lights.size();
 		for (int i = 0; i < size; i++)
 			updateLight(lights.get(i));
-		
+
 		// update this node for all detected fogs
 		size = fogs.size();
 		for (int i = 0; i < size; i++)
@@ -216,8 +216,7 @@ public abstract class Node {
 	 *            tree
 	 * @param sceneFogs A list that will accumulate all FogNodes in a scene tree
 	 */
-	protected void prepareLightsAndFog(List<LightNode<?>> sceneLights,
-		List<FogNode> sceneFogs) {
+	protected void prepareLightsAndFog(List<LightNode<?>> sceneLights, List<FogNode> sceneFogs) {
 		// always reset fog
 		fog = null;
 
@@ -244,10 +243,8 @@ public abstract class Node {
 	protected void updateLight(LightNode<?> light) {
 		if (lights != null) {
 			BoundVolume lightBounds = light.getWorldBounds();
-			if (lightBounds == null || worldBounds == null
-				|| worldBounds.intersects(lightBounds)) {
+			if (lightBounds == null || worldBounds == null || worldBounds.intersects(lightBounds))
 				lights.add(light);
-			}
 		}
 	}
 
@@ -268,11 +265,10 @@ public abstract class Node {
 	 */
 	protected void updateFog(FogNode fog) {
 		BoundVolume fogBounds = fog.getWorldBounds();
-		if (fogBounds == null || worldBounds == null
-			|| worldBounds.intersects(fogBounds)) {
+		if (fogBounds == null || worldBounds == null || worldBounds.intersects(fogBounds)) {
 			if (this.fog != null) {
-				if (worldTransform.distanceSquared(this.fog.worldTransform) > worldTransform
-					.distanceSquared(fog.worldTransform))
+				if (worldTransform.distanceSquared(this.fog.worldTransform) 
+					> worldTransform.distanceSquared(fog.worldTransform))
 					this.fog = fog;
 			} else {
 				// just attach the fog
@@ -314,8 +310,7 @@ public abstract class Node {
 	 * @param parentResult The VisitResult returned by this Node's parent its
 	 *            visit() call, or null if this Node is the first to be visited.
 	 */
-	public VisitResult visit(RenderQueue renderQueue, View view,
-		VisitResult parentResult) {
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
 		switch (cullMode) {
 		case ALWAYS:
 			return VisitResult.FAIL;
@@ -325,9 +320,8 @@ public abstract class Node {
 			if (parentResult == VisitResult.SUCCESS_ALL)
 				return VisitResult.SUCCESS_ALL;
 			else {
-				FrustumIntersection test =
-					(worldBounds == null ? FrustumIntersection.INTERSECT
-						: worldBounds.testFrustum(view));
+				FrustumIntersection test = (worldBounds == null ? FrustumIntersection.INTERSECT 
+																: worldBounds.testFrustum(view));
 				switch (test) {
 				case INSIDE:
 					return VisitResult.SUCCESS_ALL;
@@ -408,14 +402,11 @@ public abstract class Node {
 	 * @throws IllegalArgumentException if result is local, or this Node's local
 	 *             transform
 	 */
-	public Transform localToWorld(Transform local, Transform result,
-		boolean fast) {
+	public Transform localToWorld(Transform local, Transform result, boolean fast) {
 		if (local == null)
-			throw new NullPointerException(
-				"Can't compute world transform from null local trans");
+			throw new NullPointerException("Can't compute world transform from null local trans");
 		if (result == local || result == localTransform)
-			throw new IllegalArgumentException(
-				"Can't use this node's local transform or local as result");
+			throw new IllegalArgumentException("Can't use this node's local transform or local as result");
 		if (result == null)
 			result = new Transform();
 
@@ -451,14 +442,11 @@ public abstract class Node {
 	 * @throws IllegalArgumentException if result is world or this Node's world
 	 *             transform instance.
 	 */
-	public Transform worldToLocal(Transform world, Transform result,
-		boolean fast) {
+	public Transform worldToLocal(Transform world, Transform result, boolean fast) {
 		if (world == null)
-			throw new NullPointerException(
-				"Can't compute local transform from null world trans");
+			throw new NullPointerException("Can't compute local transform from null world trans");
 		if (result == world || result == worldTransform)
-			throw new IllegalArgumentException(
-				"Can't use this node's world transform or world as result");
+			throw new IllegalArgumentException("Can't use this node's world transform or world as result");
 		if (result == null)
 			result = new Transform();
 
@@ -505,8 +493,7 @@ public abstract class Node {
 			// fail here, to be consistent with worldToLocal()'s
 			// NullPointerException
 			if (world == null)
-				throw new NullPointerException(
-					"Cannot set a null world transform");
+				throw new NullPointerException("Cannot set a null world transform");
 			localTransform.set(world);
 		} else
 			parent.worldToLocal(world, localTransform, false);
@@ -526,10 +513,8 @@ public abstract class Node {
 	 */
 	public void lookAt(Vector3f position, Vector3f up) {
 		if (position == null || up == null)
-			throw new NullPointerException(
-				"Can't call lookAt() with null input vectors: " + position
-					+ " " + up);
-
+			throw new NullPointerException("Can't call lookAt() with null input vectors: " 
+										   + position + " " + up);
 		if (parent != null) {
 			parent.updateTransform(false);
 			parent.worldTransform.mul(localTransform, worldTransform);
@@ -553,48 +538,42 @@ public abstract class Node {
 
 	/* Internal variables used for computations. */
 
-	private static final ThreadLocal<List<LightNode<?>>> sceneLights =
-		new ThreadLocal<List<LightNode<?>>>() {
-			@Override
-			protected List<LightNode<?>> initialValue() {
-				return new ArrayList<LightNode<?>>();
-			}
-		};
+	private static final ThreadLocal<List<LightNode<?>>> sceneLights = new ThreadLocal<List<LightNode<?>>>() {
+		@Override
+		protected List<LightNode<?>> initialValue() {
+			return new ArrayList<LightNode<?>>();
+		}
+	};
 
-	private static final ThreadLocal<List<FogNode>> sceneFogs =
-		new ThreadLocal<List<FogNode>>() {
-			@Override
-			protected List<FogNode> initialValue() {
-				return new ArrayList<FogNode>();
-			}
-		};
+	private static final ThreadLocal<List<FogNode>> sceneFogs = new ThreadLocal<List<FogNode>>() {
+		@Override
+		protected List<FogNode> initialValue() {
+			return new ArrayList<FogNode>();
+		}
+	};
 
-	private static final ThreadLocal<Transform> IDENTITY =
-		new ThreadLocal<Transform>() {
-			@Override
-			protected Transform initialValue() {
-				return new Transform();
-			}
-		};
-	private static final ThreadLocal<Vector3f> dirVec =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> upVec =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
-	private static final ThreadLocal<Vector3f> leftVec =
-		new ThreadLocal<Vector3f>() {
-			@Override
-			protected Vector3f initialValue() {
-				return new Vector3f();
-			}
-		};
+	private static final ThreadLocal<Transform> IDENTITY = new ThreadLocal<Transform>() {
+		@Override
+		protected Transform initialValue() {
+			return new Transform();
+		}
+	};
+	private static final ThreadLocal<Vector3f> dirVec = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> upVec = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> leftVec = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
 }

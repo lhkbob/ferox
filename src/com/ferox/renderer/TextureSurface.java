@@ -42,8 +42,8 @@ public interface TextureSurface extends RenderSurface {
 	 * </p>
 	 * <p>
 	 * The BufferData associated with the texture is null, but internally the
-	 * Framework will update the low-level texture image each time the surface is
-	 * rendered.
+	 * Framework will update the low-level texture image each time the surface
+	 * is rendered.
 	 * </p>
 	 * 
 	 * @param target The requested target

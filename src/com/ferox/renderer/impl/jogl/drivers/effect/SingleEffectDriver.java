@@ -16,8 +16,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class SingleEffectDriver<T extends Effect> implements
-	EffectDriver {
+public abstract class SingleEffectDriver<T extends Effect> implements EffectDriver {
 	private final Class<? extends Effect> stateClass;
 	private final T defaultState;
 	protected final JoglContextManager factory;
@@ -30,8 +29,7 @@ public abstract class SingleEffectDriver<T extends Effect> implements
 	 * JoglContextManager as an argument. The given state will be used as the
 	 * default when no other state has been enqueued.
 	 */
-	protected SingleEffectDriver(T defaultState, Class<T> type,
-		JoglContextManager factory) {
+	protected SingleEffectDriver(T defaultState, Class<T> type, JoglContextManager factory) {
 		this.stateClass = type;
 		this.defaultState = defaultState;
 		this.factory = factory;
@@ -51,11 +49,9 @@ public abstract class SingleEffectDriver<T extends Effect> implements
 	public void doApply() {
 		if (this.queuedState != null) {
 			if (this.queuedState != this.lastAppliedState)
-				this.apply(this.factory.getGL(), this.factory.getRecord(),
-					this.queuedState);
+				this.apply(this.factory.getGL(), this.factory.getRecord(), this.queuedState);
 		} else if (this.lastAppliedState != null)
-			this.apply(this.factory.getGL(), this.factory.getRecord(),
-				this.defaultState);
+			this.apply(this.factory.getGL(), this.factory.getRecord(), this.defaultState);
 		this.lastAppliedState = this.queuedState;
 
 		this.reset();
@@ -65,8 +61,8 @@ public abstract class SingleEffectDriver<T extends Effect> implements
 	@SuppressWarnings("unchecked")
 	public void queueEffect(Effect state) {
 		if (!this.stateClass.isInstance(state))
-			throw new UnsupportedEffectException("Unsupported effect type: " + state
-				+ ", expected an instance of " + this.stateClass);
+			throw new UnsupportedEffectException("Unsupported effect type: " + state + 
+												 ", expected an instance of " + this.stateClass);
 
 		this.queuedState = (T) state;
 	}

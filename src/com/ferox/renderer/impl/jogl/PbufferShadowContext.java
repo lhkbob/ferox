@@ -16,7 +16,6 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * shadow context to use, assuming that pbuffers are supported.
  * 
  * @author Michael Ludwig
- * 
  */
 public class PbufferShadowContext extends AbstractShadowContext {
 	private final GLPbuffer pbuffer;
@@ -24,9 +23,8 @@ public class PbufferShadowContext extends AbstractShadowContext {
 
 	/** Assumes that pbuffers are supported on the current hardware. */
 	public PbufferShadowContext(RenderCapabilities caps) {
-		pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(
-				new GLCapabilities(), new DefaultGLCapabilitiesChooser(), 1, 1,
-				null);
+		pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(new GLCapabilities(), 
+																 new DefaultGLCapabilitiesChooser(), 1, 1, null);
 		pbuffer.addGLEventListener(this);
 
 		record = new JoglStateRecord(caps);

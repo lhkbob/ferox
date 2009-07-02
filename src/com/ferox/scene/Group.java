@@ -70,35 +70,34 @@ public class Group extends Node {
 			children[i].updateTransformAndBounds(false);
 		updateBounds();
 	}
-	
+
 	@Override
 	protected void prepareLightsAndFog(List<LightNode<?>> lights, List<FogNode> fogs) {
 		super.prepareLightsAndFog(lights, fogs);
 		for (int i = 0; i < size; i++)
 			children[i].prepareLightsAndFog(lights, fogs);
 	}
-	
+
 	@Override
 	protected void updateLight(LightNode<?> light) {
 		// just visit children, if this light intersects our bounds
-		if (light.worldBounds == null || worldBounds == null || worldBounds.intersects(light.worldBounds)) {
+		if (light.worldBounds == null || worldBounds == null 
+			|| worldBounds.intersects(light.worldBounds))
 			for (int i = 0; i < size; i++)
 				children[i].updateLight(light);
-		}
-	}
-	
-	@Override
-	protected void updateFog(FogNode fog) {
-		// just visit children, if this fog intersects our bounds
-		if (fog.worldBounds == null || worldBounds == null || worldBounds.intersects(fog.worldBounds)) {
-			for (int i = 0; i < size; i++)
-				children[i].updateFog(fog);
-		}
 	}
 
 	@Override
-	public VisitResult visit(RenderQueue renderQueue, View view,
-		VisitResult parentResult) {
+	protected void updateFog(FogNode fog) {
+		// just visit children, if this fog intersects our bounds
+		if (fog.worldBounds == null || worldBounds == null 
+			|| worldBounds.intersects(fog.worldBounds))
+			for (int i = 0; i < size; i++)
+				children[i].updateFog(fog);
+	}
+
+	@Override
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
 		VisitResult sp = super.visit(renderQueue, view, parentResult);
 		if (sp == VisitResult.FAIL)
 			return VisitResult.FAIL;
@@ -116,8 +115,7 @@ public class Group extends Node {
 	private void allocateChildren(int size) {
 		Node[] temp = new Node[size];
 		if (children != null)
-			System.arraycopy(children, 0, temp, 0, Math.min(children.length,
-				size));
+			System.arraycopy(children, 0, temp, 0, Math.min(children.length, size));
 		children = temp;
 	}
 
@@ -131,13 +129,12 @@ public class Group extends Node {
 	 */
 	public void ensureCapacity(int size) {
 		if (size < 1)
-			throw new IllegalArgumentException(
-				"Must ensure capacity with a positive size: " + size);
+			throw new IllegalArgumentException("Must ensure capacity with a positive size: " + size);
 		if (children == null)
 			allocateChildren(size);
 		else if (size > children.length)
-			allocateChildren((size - children.length > ALLOCATION_INCREMENT
-				? size : size + ALLOCATION_INCREMENT));
+			allocateChildren((size - children.length > ALLOCATION_INCREMENT ? size 
+																			: size + ALLOCATION_INCREMENT));
 	}
 
 	/**
@@ -169,8 +166,7 @@ public class Group extends Node {
 				ensureCapacity(size + ALLOCATION_INCREMENT);
 			children[size++] = elem;
 		} else
-			throw new IllegalArgumentException(
-				"Can't add a Node with a non-null parent to another Group");
+			throw new IllegalArgumentException("Can't add a Node with a non-null parent to another Group");
 	}
 
 	/**
@@ -184,9 +180,8 @@ public class Group extends Node {
 		if (index >= 0 && index < size)
 			return children[index];
 		else
-			throw new IndexOutOfBoundsException(
-				"Illegal index for child access: " + index + " expected [0-"
-					+ size + "]");
+			throw new IndexOutOfBoundsException("Illegal index for child access: " + index + 
+												" expected [0-" + size + "]");
 	}
 
 	/**
@@ -278,8 +273,7 @@ public class Group extends Node {
 	public Node remove(int index) {
 		Node elem = getChild(index); // fails if index is bad
 
-		System
-			.arraycopy(children, index + 1, children, index, size - index - 1);
+		System.arraycopy(children, index + 1, children, index, size - index - 1);
 		size--;
 		elem.parent = null;
 

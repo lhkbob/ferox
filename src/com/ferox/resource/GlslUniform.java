@@ -59,22 +59,22 @@ public class GlslUniform implements Resource {
 	 * </p>
 	 */
 	public static enum UniformType {
-		SAMPLER_1D(1, int[].class), SAMPLER_2D(1, int[].class), SAMPLER_3D(1,
-			int[].class), SAMPLER_CUBEMAP(1, int[].class), SAMPLER_RECT(1,
-			int[].class), SAMPLER_1D_SHADOW(1, int[].class), SAMPLER_2D_SHADOW(
-			1, int[].class), SAMPLER_RECT_SHADOW(1, int[].class),
+		FLOAT(1, float[].class), FLOAT_VEC2(2, float[].class), 
+		FLOAT_VEC3(3, float[].class), FLOAT_VEC4(4, float[].class),
 
-		FLOAT(1, float[].class), FLOAT_VEC2(2, float[].class), FLOAT_VEC3(3,
-			float[].class), FLOAT_VEC4(4, float[].class),
-
-		INT(1, int[].class), INT_VEC2(2, int[].class),
+		FLOAT_MAT2(4, float[].class), FLOAT_MAT3(9, float[].class), 
+		FLOAT_MAT4(16, float[].class),
+		
+		SAMPLER_1D(1, int[].class), SAMPLER_2D(1, int[].class), 
+		SAMPLER_3D(1, int[].class), SAMPLER_CUBEMAP(1, int[].class), 
+		SAMPLER_RECT(1, int[].class), SAMPLER_1D_SHADOW(1, int[].class), 
+		SAMPLER_2D_SHADOW(1, int[].class), SAMPLER_RECT_SHADOW(1, int[].class),
+		
+		INT(1, int[].class), INT_VEC2(2, int[].class), 
 		INT_VEC3(3, int[].class), INT_VEC4(4, int[].class),
 
-		BOOL(1, int[].class), BOOL_VEC2(2, int[].class), BOOL_VEC3(3,
-			int[].class), BOOL_VEC4(4, int[].class),
-
-		FLOAT_MAT2(4, float[].class), FLOAT_MAT3(9, float[].class), FLOAT_MAT4(
-			16, float[].class);
+		BOOL(1, int[].class), BOOL_VEC2(2, int[].class), 
+		BOOL_VEC3(3, int[].class), BOOL_VEC4(4, int[].class);
 
 		private int primitiveCount;
 		private Class<?> type;
@@ -154,24 +154,19 @@ public class GlslUniform implements Resource {
 	 *             'gl'
 	 * @throws NullPointerException if any arguments are null
 	 */
-	protected GlslUniform(String name, UniformType type, int length,
-		GlslProgram owner) {
+	protected GlslUniform(String name, UniformType type, int length, GlslProgram owner) {
 		if (name == null)
 			throw new NullPointerException("Cannot specify a null name");
 		if (type == null)
 			throw new NullPointerException("Cannot specify a null uniform type");
 		if (owner == null)
-			throw new NullPointerException(
-				"Cannot create a GlslUniform with a null GlslProgram");
+			throw new NullPointerException("Cannot create a GlslUniform with a null GlslProgram");
 
 		if (length < 1)
-			throw new IllegalArgumentException("Cannot specify length < 1: "
-				+ length);
+			throw new IllegalArgumentException("Cannot specify length < 1: " + length);
 		if (name.startsWith("gl"))
-			throw new IllegalArgumentException(
-				"Uniform names may not start with 'gl': " + name
-					+ ", they are reserved");
-
+			throw new IllegalArgumentException("Uniform names may not start with 'gl': " 
+											   + name + ", they are reserved");
 		this.name = name;
 		this.type = type;
 		this.owner = owner;

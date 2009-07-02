@@ -60,8 +60,7 @@ public final class ResourceData {
 	 */
 	public ResourceData(ResourceDriver driver) {
 		if (driver == null)
-			throw new NullPointerException(
-				"Constructor arguments cannot be null: " + driver);
+			throw new NullPointerException("Constructor arguments cannot be null: " + driver);
 
 		this.driver = driver;
 		isGeometry = driver instanceof GeometryDriver;
@@ -132,8 +131,7 @@ public final class ResourceData {
 	 */
 	public void setStatus(Status status) {
 		if (status == Status.CLEANED)
-			throw new IllegalArgumentException(
-				"Drivers may not set the status of a ResourceData to CLEANED");
+			throw new IllegalArgumentException("Drivers may not set the status of a ResourceData to CLEANED");
 		if (status == null)
 			status = Status.OK;
 		this.status = status;

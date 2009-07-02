@@ -75,8 +75,8 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	 * @param maxY Maximum y coordinate of the box
 	 * @param maxZ Maximum z coordinate of the box
 	 */
-	public AxisAlignedBox(float minX, float minY, float minZ, float maxX,
-		float maxY, float maxZ) {
+	public AxisAlignedBox(float minX, float minY, float minZ, 
+						  float maxX, float maxY, float maxZ) {
 		this();
 		this.setMin(minX, minY, minZ);
 		this.setMax(maxX, maxY, maxZ);
@@ -234,8 +234,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		else if (child instanceof BoundSphere)
 			mergeSphere((BoundSphere) child);
 		else
-			throw new UnsupportedOperationException(
-				"Unabled to merge given bound volume: " + child);
+			throw new UnsupportedOperationException("Unabled to merge given bound volume: " + child);
 	}
 
 	private void mergeAABB(AxisAlignedBox aabb) {
@@ -272,33 +271,39 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 					min.y = worldMin.y;
 					min.z = worldMax.z;
 				}
-			} else if (normal.z > 0) {
-				min.x = worldMin.x;
-				min.y = worldMax.y;
-				min.z = worldMin.z;
 			} else {
-				min.x = worldMin.x;
-				min.y = worldMax.y;
-				min.z = worldMax.z;
+				if (normal.z > 0) {
+					min.x = worldMin.x;
+					min.y = worldMax.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMin.x;
+					min.y = worldMax.y;
+					min.z = worldMax.z;
+				}
 			}
-		} else if (normal.y > 0) {
-			if (normal.z > 0) {
-				min.x = worldMax.x;
-				min.y = worldMin.y;
-				min.z = worldMin.z;
-			} else {
-				min.x = worldMax.x;
-				min.y = worldMin.y;
-				min.z = worldMax.z;
-			}
-		} else if (normal.z > 0) {
-			min.x = worldMax.x;
-			min.y = worldMax.y;
-			min.z = worldMin.z;
 		} else {
-			min.x = worldMax.x;
-			min.y = worldMax.y;
-			min.z = worldMax.z;
+			if (normal.y > 0) {
+				if (normal.z > 0) {
+					min.x = worldMax.x;
+					min.y = worldMin.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMax.x;
+					min.y = worldMin.y;
+					min.z = worldMax.z;
+				}
+			} else {
+				if (normal.z > 0) {
+					min.x = worldMax.x;
+					min.y = worldMax.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMax.x;
+					min.y = worldMax.y;
+					min.z = worldMax.z;
+				}
+			}
 		}
 	}
 
@@ -314,41 +319,46 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 					max.y = worldMax.y;
 					max.z = worldMin.z;
 				}
-			} else if (normal.z > 0) {
-				max.x = worldMax.x;
-				max.y = worldMin.y;
-				max.z = worldMax.z;
 			} else {
-				max.x = worldMax.x;
-				max.y = worldMin.y;
-				max.z = worldMin.z;
+				if (normal.z > 0) {
+					max.x = worldMax.x;
+					max.y = worldMin.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMax.x;
+					max.y = worldMin.y;
+					max.z = worldMin.z;
+				}
 			}
-		} else if (normal.y > 0) {
-			if (normal.z > 0) {
-				max.x = worldMin.x;
-				max.y = worldMax.y;
-				max.z = worldMax.z;
-			} else {
-				max.x = worldMin.x;
-				max.y = worldMax.y;
-				max.z = worldMin.z;
-			}
-		} else if (normal.z > 0) {
-			max.x = worldMin.x;
-			max.y = worldMin.y;
-			max.z = worldMax.z;
 		} else {
-			max.x = worldMin.x;
-			max.y = worldMin.y;
-			max.z = worldMin.z;
+			if (normal.y > 0) {
+				if (normal.z > 0) {
+					max.x = worldMin.x;
+					max.y = worldMax.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMin.x;
+					max.y = worldMax.y;
+					max.z = worldMin.z;
+				}
+			} else {
+				if (normal.z > 0) {
+					max.x = worldMin.x;
+					max.y = worldMin.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMin.x;
+					max.y = worldMin.y;
+					max.z = worldMin.z;
+				}
+			}
 		}
 	}
 
 	@Override
 	public FrustumIntersection testFrustum(View view) {
 		if (view == null)
-			throw new NullPointerException(
-				"Cannot test a frustum with a null view");
+			throw new NullPointerException("Cannot test a frustum with a null view");
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
 		int planeState = view.getPlaneState();
@@ -361,8 +371,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 		Plane p;
 		for (int i = View.NUM_PLANES; i >= 0; i--) {
-			if (i == lastFailedPlane
-				|| (i == View.NUM_PLANES && lastFailedPlane < 0))
+			if (i == lastFailedPlane || (i == View.NUM_PLANES && lastFailedPlane < 0))
 				continue;
 
 			if (i == View.NUM_PLANES)
@@ -396,8 +405,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	@Override
 	public Vector3f getExtent(Vector3f dir, boolean reverse, Vector3f out) {
 		if (dir == null)
-			throw new NullPointerException(
-				"Can't find extent along a null direction vector");
+			throw new NullPointerException("Can't find extent along a null direction vector");
 		if (out == null)
 			out = new Vector3f();
 
@@ -420,9 +428,12 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 		if (other instanceof AxisAlignedBox) {
 			AxisAlignedBox a = (AxisAlignedBox) other;
-			return ((a.worldMax.x >= worldMin.x && a.worldMax.x <= worldMax.x) || (a.worldMin.x >= worldMin.x && a.worldMin.x <= worldMax.x))
-				&& ((a.worldMax.y >= worldMin.y && a.worldMax.y <= worldMax.y) || (a.worldMin.y >= worldMin.y && a.worldMin.y <= worldMax.y))
-				&& ((a.worldMax.z >= worldMin.z && a.worldMax.z <= worldMax.z) || (a.worldMin.z >= worldMin.z && a.worldMin.z <= worldMax.z));
+			return ((a.worldMax.x >= worldMin.x && a.worldMax.x <= worldMax.x) 
+					|| (a.worldMin.x >= worldMin.x && a.worldMin.x <= worldMax.x)) && 
+				   ((a.worldMax.y >= worldMin.y && a.worldMax.y <= worldMax.y) 
+					|| (a.worldMin.y >= worldMin.y && a.worldMin.y <= worldMax.y)) && 
+				   ((a.worldMax.z >= worldMin.z && a.worldMax.z <= worldMax.z) 
+					|| (a.worldMin.z >= worldMin.z && a.worldMin.z <= worldMax.z));
 		} else if (other instanceof BoundSphere) {
 			// Idea taken from "Simple Intersection Tests for Games" by Miguel
 			// Gomez - Gamasutra
@@ -460,8 +471,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 			return totalDistance <= s.getRadius() * s.getRadius();
 		} else
-			throw new UnsupportedOperationException(
-				"Unable to compute intersection for type: " + other);
+			throw new UnsupportedOperationException("Unable to compute intersection for type: " + other);
 	}
 
 	@Override

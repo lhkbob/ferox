@@ -53,8 +53,7 @@ public class Shape extends Leaf {
 		lights = new ArrayList<LightNode<?>>();
 
 		// will fail here if geom is null
-		renderAtom =
-			new RenderAtom(worldTransform, geom, effects, renderAtomKey);
+		renderAtom = new RenderAtom(worldTransform, geom, effects, renderAtomKey);
 
 		setAppearance(app);
 		setAutoComputeBounds(true);
@@ -119,13 +118,11 @@ public class Shape extends Leaf {
 	 * Override visit to submit a render atom to the RenderQueue if necessary.
 	 */
 	@Override
-	public VisitResult visit(RenderQueue renderQueue, View view,
-		VisitResult parentResult) {
+	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
 		VisitResult sp = super.visit(renderQueue, view, parentResult);
-		if (sp != VisitResult.FAIL) {
+		if (sp != VisitResult.FAIL)
 			// finally add it to the queue
 			renderQueue.add(renderAtom);
-		}
 
 		return sp;
 	}
@@ -146,7 +143,7 @@ public class Shape extends Leaf {
 		}
 		return local;
 	}
-	
+
 	/*
 	 * EffectSet implementation that dynamically merges the List<Effect>
 	 * returned from the current appearance, the list of lights and the fog of
@@ -154,7 +151,7 @@ public class Shape extends Leaf {
 	 */
 	private class ShapeEffectSet implements EffectSet {
 		private int pos;
-		
+
 		public ShapeEffectSet() {
 			pos = 0;
 		}
@@ -165,34 +162,33 @@ public class Shape extends Leaf {
 				if (pos < app.size())
 					return app.get(pos);
 			}
-			
+
 			return null;
 		}
-		
+
 		private Effect getFogEffect(int pos) {
-			if (fog != null) {
+			if (fog != null)
 				if (appearance != null) {
 					if (pos == appearance.getEffects().size())
 						return fog.getFog();
 				} else if (pos == 0)
 					return fog.getFog();
-			}
-			
+
 			return null;
 		}
-		
+
 		private Effect getLightEffect(int pos) {
 			if (fog != null)
 				pos--;
 			if (appearance != null)
 				pos -= appearance.getEffects().size();
-			
+
 			if (pos >= 0 && pos < lights.size())
 				return lights.get(pos).getLight();
 			else
 				return null;
 		}
-		
+
 		@Override
 		public Effect next() {
 			Effect e = getAppearanceEffect(pos);
@@ -200,10 +196,10 @@ public class Shape extends Leaf {
 				e = getFogEffect(pos);
 			if (e == null)
 				e = getLightEffect(pos);
-			
+
 			if (e != null)
 				pos++;
-			
+
 			return e;
 		}
 

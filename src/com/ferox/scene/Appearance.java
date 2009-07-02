@@ -105,8 +105,7 @@ public class Appearance {
 	 * @param dst The BlendFactor affecting the destination color
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setBlendMode(BlendEquation blendEq, BlendFactor src,
-		BlendFactor dst) {
+	public Appearance setBlendMode(BlendEquation blendEq, BlendFactor src, BlendFactor dst) {
 
 		BlendMode blend = new BlendMode();
 		blend.setEquation(blendEq);
@@ -115,10 +114,10 @@ public class Appearance {
 
 		return setBlendMode(blend);
 	}
-	
+
 	/**
-	 * Convenience method to create a new ColorMask with the given
-	 * parameters and assign it to this Appearance.
+	 * Convenience method to create a new ColorMask with the given parameters
+	 * and assign it to this Appearance.
 	 * 
 	 * @param red The red mask boolean
 	 * @param green The green mask boolean
@@ -126,7 +125,8 @@ public class Appearance {
 	 * @param alpha The alpha mask boolean
 	 * @return The Appearance for chaining purposes
 	 */
-	public Appearance setColorMask(boolean red, boolean green, boolean blue, boolean alpha) {
+	public Appearance setColorMask(boolean red, boolean green, 
+								   boolean blue, boolean alpha) {
 		ColorMask cm = new ColorMask(red, green, blue, alpha);
 		return setColorMask(cm);
 	}
@@ -159,9 +159,8 @@ public class Appearance {
 	 *            side of a polygon
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setGlobalLighting(Color4f ambient, boolean separateSpec,
-		boolean localView, boolean twoSided) {
-
+	public Appearance setGlobalLighting(Color4f ambient, boolean separateSpec, 
+										boolean localView, boolean twoSided) {
 		GlobalLighting lighting = new GlobalLighting();
 		lighting.setGlobalAmbient(ambient);
 		lighting.setLocalViewer(localView);
@@ -199,9 +198,8 @@ public class Appearance {
 	 * @param factor The stipple repeat factor
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setLineStyle(float width, boolean enableSmooth,
-		short pattern, int factor) {
-
+	public Appearance setLineStyle(float width, boolean enableSmooth, 
+								   short pattern, int factor) {
 		LineStyle style = new LineStyle();
 		style.setLineWidth(width);
 		style.setSmoothingEnabled(enableSmooth);
@@ -247,9 +245,8 @@ public class Appearance {
 	 * @param smoothed True if lit polygons have smooth or faceted lighting
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setMaterial(Color4f diffuse, Color4f specular, Color4f ambient,
-		float shininess, boolean smoothed) {
-
+	public Appearance setMaterial(Color4f diffuse, Color4f specular, 
+								  Color4f ambient, float shininess, boolean smoothed) {
 		Material m = new Material(diffuse, specular, ambient, shininess);
 		m.setSmoothShaded(smoothed);
 
@@ -304,9 +301,8 @@ public class Appearance {
 	 * @param attenuation The distance attenuation vector to use
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setPointStyle(float width, boolean smoothing, float min,
-		Vector3f attenuation) {
-
+	public Appearance setPointStyle(float width, boolean smoothing, 
+									float min, Vector3f attenuation) {
 		PointStyle style = new PointStyle();
 		style.setPointSize(width);
 		style.setMinMaxPointSize(min, Float.MAX_VALUE);
@@ -326,8 +322,7 @@ public class Appearance {
 	 *            generation
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setPointStyle(float width,
-		PointSpriteOrigin pointSpriteMode) {
+	public Appearance setPointStyle(float width, PointSpriteOrigin pointSpriteMode) {
 
 		PointStyle style = new PointStyle();
 		style.setPointSize(width);
@@ -357,8 +352,7 @@ public class Appearance {
 	 * @param winding The winding of polygons to determine front/back facing
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setPolygonStyle(DrawStyle front, DrawStyle back,
-		Winding winding) {
+	public Appearance setPolygonStyle(DrawStyle front, DrawStyle back, Winding winding) {
 		return setPolygonStyle(front, back, winding, false, 0f);
 	}
 
@@ -373,9 +367,8 @@ public class Appearance {
 	 * @param offset The depth offset applied to rendered polygons
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setPolygonStyle(DrawStyle front, DrawStyle back,
-		Winding winding, boolean smoothing, float offset) {
-
+	public Appearance setPolygonStyle(DrawStyle front, DrawStyle back, Winding winding,
+									  boolean smoothing, float offset) {
 		PolygonStyle style = new PolygonStyle(front, back);
 		style.setWinding(winding);
 		style.setDepthOffset(offset);
@@ -397,10 +390,9 @@ public class Appearance {
 	 * @param depthPass The operation that occurs on depth test success
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setStencilTest(PixelTest test, int reference,
-		StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
-		return setStencilTest(test, reference, stencilFail, depthFail,
-			depthPass, ~0, ~0);
+	public Appearance setStencilTest(PixelTest test, int reference, 
+									 StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+		return setStencilTest(test, reference, stencilFail, depthFail, depthPass, ~0, ~0);
 	}
 
 	/**
@@ -418,10 +410,9 @@ public class Appearance {
 	 *            the buffer
 	 * @return This Appearance for chaining purposes
 	 */
-	public Appearance setStencilTest(PixelTest stencilTest, int reference,
-		StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass,
-		int testMask, int writeMask) {
-
+	public Appearance setStencilTest(PixelTest stencilTest, int reference, 
+									 StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass, 
+									 int testMask, int writeMask) {
 		StencilTest test = new StencilTest();
 		test.setDepthFailOp(depthFail);
 		test.setDepthPassOp(depthPass);
@@ -481,8 +472,9 @@ public class Appearance {
 	public BlendMode getBlendMode() {
 		return blendMode;
 	}
-	
-	/** Set the ColorMask instance to use, null breaks any previous binding.
+
+	/**
+	 * Set the ColorMask instance to use, null breaks any previous binding.
 	 * 
 	 * @param mask The ColorMask instance
 	 * @return This Appearance for chaining purposes
@@ -493,10 +485,10 @@ public class Appearance {
 		colorMask = mask;
 		if (colorMask != null)
 			effects.add(mask);
-		
+
 		return this;
 	}
-	
+
 	/**
 	 * @return The ColorMask attached to this Appearance, may be null
 	 */

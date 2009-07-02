@@ -10,23 +10,13 @@ import com.ferox.renderer.WindowSurface;
  * GLCanvas child that contains everything.
  * 
  * @author Michael Ludwig
- * 
  */
-public class JoglWindowSurface extends JoglOnscreenSurface implements
-		WindowSurface {
-	/**
-	 * Expects as arguments, the factory that is currently handling a
-	 * createWindowSurface() call, as well as the identically named arguments to
-	 * that call.
-	 * 
-	 * Makes sure that the created window is at least 1x1, wherever the window
-	 * was created.
-	 */
-	protected JoglWindowSurface(JoglContextManager factory,
-			DisplayOptions optionsRequest, int x, int y, int width, int height,
-			boolean resizable, boolean undecorated) {
-		super(factory, optionsRequest, x, y, width, height, resizable,
-				undecorated);
+public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurface {
+	public JoglWindowSurface(JoglContextManager factory, DisplayOptions optionsRequest, 
+							 int x, int y, int width, int height, 
+							 boolean resizable, boolean undecorated) {
+		super(factory, optionsRequest, x, y, width, height, 
+			  resizable, undecorated);
 	}
 
 	@Override
