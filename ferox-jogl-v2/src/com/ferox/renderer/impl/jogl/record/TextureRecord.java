@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.record;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /**
  * This class encapsulates all of the state necessary for all of the available
@@ -14,7 +14,7 @@ public class TextureRecord {
 	public static class TextureUnit {
 		public boolean enableCoordReplace = false;
 
-		public int textureEnvMode = GL.GL_MODULATE;
+		public int textureEnvMode = GL2.GL_MODULATE;
 		public final float[] textureEnvColor = { 0f, 0f, 0f, 0f };
 		public float textureLodBias = 0f;
 
@@ -23,23 +23,23 @@ public class TextureRecord {
 		public final TextureGenRecord texGenT = new TextureGenRecord(new float[] { 0f, 1f, 0f, 0f });
 		public final TextureGenRecord texGenQ = new TextureGenRecord(new float[] { 0f, 0f, 0f, 0f });
 
-		public int combineRgb = GL.GL_MODULATE;
-		public int combineAlpha = GL.GL_MODULATE;
+		public int combineRgb = GL2.GL_MODULATE;
+		public int combineAlpha = GL2.GL_MODULATE;
 
-		public int src0Rgb = GL.GL_TEXTURE;
-		public int src1Rgb = GL.GL_PREVIOUS;
-		public int src2Rgb = GL.GL_CONSTANT;
-		public int src0Alpha = GL.GL_TEXTURE;
-		public int src1Alpha = GL.GL_PREVIOUS;
-		public int src2Alpha = GL.GL_CONSTANT;
+		public int src0Rgb = GL2.GL_TEXTURE;
+		public int src1Rgb = GL2.GL_PREVIOUS;
+		public int src2Rgb = GL2.GL_CONSTANT;
+		public int src0Alpha = GL2.GL_TEXTURE;
+		public int src1Alpha = GL2.GL_PREVIOUS;
+		public int src2Alpha = GL2.GL_CONSTANT;
 
-		public int operand0Rgb = GL.GL_SRC_COLOR;
-		public int operand1Rgb = GL.GL_SRC_COLOR;
-		public int operand2Rgb = GL.GL_SRC_ALPHA;
+		public int operand0Rgb = GL2.GL_SRC_COLOR;
+		public int operand1Rgb = GL2.GL_SRC_COLOR;
+		public int operand2Rgb = GL2.GL_SRC_ALPHA;
 
-		public int operand0Alpha = GL.GL_SRC_ALPHA;
-		public int operand1Alpha = GL.GL_SRC_ALPHA;
-		public int operand2Alpha = GL.GL_SRC_ALPHA;
+		public int operand0Alpha = GL2.GL_SRC_ALPHA;
+		public int operand1Alpha = GL2.GL_SRC_ALPHA;
+		public int operand2Alpha = GL2.GL_SRC_ALPHA;
 
 		/**
 		 * This property is a stand-in to the texture matrix stack. Convention
@@ -70,7 +70,7 @@ public class TextureRecord {
 		public boolean enableTexGen;
 		public final float[] eyePlane = new float[4];
 		public final float[] objectPlane = new float[4];
-		public int textureGenMode = GL.GL_EYE_LINEAR;
+		public int textureGenMode = GL2.GL_EYE_LINEAR;
 
 		public TextureGenRecord(float[] plane) {
 			for (int i = 0; i < 4; i++) {

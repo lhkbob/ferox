@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.record;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /**
  * Class that stores the state of how points, lines, and polygons are rendered.
@@ -20,7 +20,7 @@ public class RasterizationRecord {
 	/** This value is undefined until explicitly set. */
 	public float pointFadeThresholdSize = 1f;
 	public final float[] pointDistanceAttenuation = { 1f, 0f, 0f };
-	public int pointSpriteOrigin = GL.GL_UPPER_LEFT;
+	public int pointSpriteOrigin = GL2.GL_UPPER_LEFT;
 
 	public float lineWidth = 1f;
 	public boolean enableLineSmooth = false;
@@ -29,12 +29,12 @@ public class RasterizationRecord {
 	public int lineStippleRepeat = 1;
 
 	public boolean enableCullFace = false;
-	public int cullFaceMode = GL.GL_BACK;
-	public int frontFace = GL.GL_CCW;
+	public int cullFaceMode = GL2.GL_BACK;
+	public int frontFace = GL2.GL_CCW;
 
 	public boolean enablePolygonSmooth = false;
-	public int polygonFrontMode = GL.GL_FILL;
-	public int polygonBackMode = GL.GL_FILL;
+	public int polygonFrontMode = GL2.GL_FILL;
+	public int polygonBackMode = GL2.GL_FILL;
 	public float polygonOffsetFactor = 0f;
 	public float polygonOffsetUnits = 0f;
 

@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.record;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /**
  * Class storing all the state relevant to lighting and material properties.
@@ -34,8 +34,8 @@ public class LightingRecord {
 
 	/* Color_Material state. */
 	public boolean enableColorMaterial = false;
-	public int colorMaterialParameter = GL.GL_AMBIENT_AND_DIFFUSE;
-	public int colorMaterialFace = GL.GL_FRONT_AND_BACK;
+	public int colorMaterialParameter = GL2.GL_AMBIENT_AND_DIFFUSE;
+	public int colorMaterialFace = GL2.GL_FRONT_AND_BACK;
 
 	/* Material state. */
 	public final float[] matFrontAmbient = { .2f, .2f, .2f, 1f };
@@ -54,7 +54,7 @@ public class LightingRecord {
 	public final float[] lightModelAmbient = { .2f, .2f, .2f, 1f };
 	public boolean lightModelLocalViewer = false;
 	public boolean lightModelTwoSided = false;
-	public int lightModelColorControl = GL.GL_SINGLE_COLOR;
+	public int lightModelColorControl = GL2.GL_SINGLE_COLOR;
 
 	public boolean enableLighting = false;
 
