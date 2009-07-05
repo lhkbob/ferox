@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.Effect;
 import com.ferox.renderer.UnsupportedEffectException;
@@ -19,7 +19,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class MultiStateDriver<T extends Effect> implements EffectDriver {
+public abstract class MultiStateDriver<T extends Effect, G extends GLBase> implements EffectDriver {
 	// State of a Unit that is marked as 'empty'
 	private static final int EMPTY = 0;
 
@@ -74,7 +74,9 @@ public abstract class MultiStateDriver<T extends Effect> implements EffectDriver
 		this.queueSize = 0;
 	}
 
-	protected abstract void apply(GL gl, JoglStateRecord record, int unit, T next);
+	protected abstract void apply(G gl, JoglStateRecord record, int unit, T next);
+	
+	protected abstract G convert(GLBase base);
 
 	@Override
 	public void doApply() {
@@ -126,7 +128,7 @@ public abstract class MultiStateDriver<T extends Effect> implements EffectDriver
 
 		// apply states with priority >= 0, restore others
 		JoglStateRecord record = this.factory.getRecord();
-		GL gl = this.factory.getGL();
+		G gl = convert(this.factory.getGL());
 		for (i = 0; i < maxUnits; i++) {
 			o = this.apply[i];
 			if (o.state != EMPTY) {

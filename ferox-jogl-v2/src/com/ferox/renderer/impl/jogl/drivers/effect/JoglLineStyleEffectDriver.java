@@ -1,6 +1,8 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.LineStyle;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
@@ -13,13 +15,18 @@ import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglLineStyleEffectDriver extends SingleEffectDriver<LineStyle> {
+public class JoglLineStyleEffectDriver extends SingleEffectDriver<LineStyle, GL2> {
 	public JoglLineStyleEffectDriver(JoglContextManager factory) {
 		super(new LineStyle(), LineStyle.class, factory);
 	}
+	
+	@Override
+	protected GL2 convert(GLBase gl) {
+		return gl.getGL2();
+	}
 
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, LineStyle nextState) {
+	protected void apply(GL2 gl, JoglStateRecord record, LineStyle nextState) {
 		RasterizationRecord rr = record.rasterRecord;
 
 		// width
@@ -35,7 +42,7 @@ public class JoglLineStyleEffectDriver extends SingleEffectDriver<LineStyle> {
 			// enable and configure it
 			if (!rr.enableLineStipple) {
 				rr.enableLineStipple = true;
-				gl.glEnable(GL.GL_LINE_STIPPLE);
+				gl.glEnable(GL2.GL_LINE_STIPPLE);
 			}
 
 			short pattern = nextState.getStipplePattern();
@@ -48,17 +55,17 @@ public class JoglLineStyleEffectDriver extends SingleEffectDriver<LineStyle> {
 		} else // disable it
 		if (rr.enableLineStipple) {
 			rr.enableLineStipple = false;
-			gl.glDisable(GL.GL_LINE_STIPPLE);
+			gl.glDisable(GL2.GL_LINE_STIPPLE);
 		}
 	}
 
-	private static void setSmoothingEnabled(GL gl, RasterizationRecord rr, boolean enable) {
+	private void setSmoothingEnabled(GL gl, RasterizationRecord rr, boolean enable) {
 		if (rr.enableLineSmooth != enable) {
 			rr.enableLineSmooth = enable;
 			if (enable)
-				gl.glEnable(GL.GL_LINE_SMOOTH);
+				gl.glEnable(GL2.GL_LINE_SMOOTH);
 			else
-				gl.glDisable(GL.GL_LINE_SMOOTH);
+				gl.glDisable(GL2.GL_LINE_SMOOTH);
 		}
 	}
 }

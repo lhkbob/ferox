@@ -1,6 +1,7 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.ColorMask;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
@@ -12,10 +13,15 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglColorMaskEffectDriver extends SingleEffectDriver<ColorMask> {
+public class JoglColorMaskEffectDriver extends SingleEffectDriver<ColorMask, GL> {
 
 	public JoglColorMaskEffectDriver(JoglContextManager factory) {
 		super(new ColorMask(), ColorMask.class, factory);
+	}
+	
+	@Override
+	protected GL convert(GLBase base) {
+		return base.getGL();
 	}
 
 	@Override

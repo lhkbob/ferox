@@ -3,6 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import java.util.List;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES1;
 
 import com.ferox.effect.Effect;
 import com.ferox.effect.MultiTexture;
@@ -102,7 +104,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * MultiTexture. If next is null, all texturing will be disabled instead.
 	 */
 	private void apply(AbstractFramework renderer, JoglStateRecord record, MultiTexture next) {
-		GL gl = factory.getGL();
+		GL2ES1 gl = factory.getGL().getGL2ES1();
 		TextureRecord tr = record.textureRecord;
 		int activeTex = tr.activeTexture;
 
@@ -153,12 +155,12 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * environment. Returns the new active unit. If texture is null, the texture
 	 * bindings on the desiredUnit are broken.
 	 */
-	private int applyTexture(GL gl, AbstractFramework renderer, int activeUnit, 
+	private int applyTexture(GL2ES1 gl, AbstractFramework renderer, int activeUnit, 
 							 int desiredUnit, TextureUnit tu, Texture next) {
 		TextureHandle nextH = (next == null ? null : (TextureHandle) renderer.getHandle(next.getTexture(), factory));
 		// set the texture unit
 		if (activeUnit != desiredUnit) {
-			gl.glActiveTexture(GL.GL_TEXTURE0 + desiredUnit);
+			gl.glActiveTexture(GL2.GL_TEXTURE0 + desiredUnit);
 			activeUnit = desiredUnit;
 		}
 
@@ -166,9 +168,9 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			// disable the texture
 			bindTexture(gl, tu, -1, 0); // unbind the bound object
 			// disable tex-gen, too
-			setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, tu.texGenS, TexCoordGen.NONE, null);
-			setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, tu.texGenT, TexCoordGen.NONE, null);
-			setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, tu.texGenR, TexCoordGen.NONE, null);
+			setTexGen(gl, GL2.GL_S, GL2.GL_TEXTURE_GEN_S, tu.texGenS, TexCoordGen.NONE, null);
+			setTexGen(gl, GL2.GL_T, GL2.GL_TEXTURE_GEN_T, tu.texGenT, TexCoordGen.NONE, null);
+			setTexGen(gl, GL2.GL_R, GL2.GL_TEXTURE_GEN_R, tu.texGenR, TexCoordGen.NONE, null);
 		} else {
 			// enable the texture
 			bindTexture(gl, tu, nextH.glTarget, nextH.id);
@@ -183,44 +185,44 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * Make the necessary changes to the active unit based off of the non-null
 	 * Texture instance. unitValue should be the active unit - GL_TEXTURE0.
 	 */
-	private void setTexEnv(GL gl, TextureUnit unit, Texture tex) {
+	private void setTexEnv(GL2ES1 gl, TextureUnit unit, Texture tex) {
 		// texture transform
 		Transform t = tex.getTextureTransform();
 		if (t == null) {
 			if (!unit.isTextureMatrixIdentity) {
-				gl.glMatrixMode(GL.GL_TEXTURE_MATRIX);
+				gl.glMatrixMode(GL2.GL_TEXTURE_MATRIX);
 				gl.glLoadIdentity();
-				gl.glMatrixMode(GL.GL_MODELVIEW);
+				gl.glMatrixMode(GL2.GL_MODELVIEW);
 
 				unit.isTextureMatrixIdentity = true;
 			}
 		} else {
-			gl.glMatrixMode(GL.GL_TEXTURE_MATRIX);
+			gl.glMatrixMode(GL2.GL_TEXTURE_MATRIX);
 			factory.getTransformDriver().loadMatrix(gl, t);
-			gl.glMatrixMode(GL.GL_MODELVIEW);
+			gl.glMatrixMode(GL2.GL_MODELVIEW);
 			unit.isTextureMatrixIdentity = false;
 		}
 		// tc_s
-		setTexGen(gl, GL.GL_S, GL.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
+		setTexGen(gl, GL2.GL_S, GL2.GL_TEXTURE_GEN_S, unit.texGenS, tex.getTexCoordGenS(), tex.getTexCoordGenPlaneS());
 		// tc_t
-		setTexGen(gl, GL.GL_T, GL.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
+		setTexGen(gl, GL2.GL_T, GL2.GL_TEXTURE_GEN_T, unit.texGenT, tex.getTexCoordGenT(), tex.getTexCoordGenPlaneT());
 		// tc_r
-		setTexGen(gl, GL.GL_R, GL.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
+		setTexGen(gl, GL2.GL_R, GL2.GL_TEXTURE_GEN_R, unit.texGenR, tex.getTexCoordGenR(), tex.getTexCoordGenPlaneR());
 
 		// env color
 		Color4f blend = tex.getTextureEnvColor();
 		if (!JoglUtil.equals(blend, unit.textureEnvColor)) {
 			JoglUtil.get(blend, unit.textureEnvColor);
-			gl.glTexEnvfv(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_COLOR, unit.textureEnvColor, 0);
+			gl.glTexEnvfv(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_COLOR, unit.textureEnvColor, 0);
 		}
 		// env mode
 		int envMode = JoglUtil.getGLTexEnvMode(tex.getTextureEnvMode());
 		if (envMode != unit.textureEnvMode) {
 			unit.textureEnvMode = envMode;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, envMode);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, envMode);
 		}
 		// combine state if needed
-		if (envMode == GL.GL_COMBINE)
+		if (envMode == GL2.GL_COMBINE)
 			setCombineEnv(gl, unit, tex);
 	}
 
@@ -229,7 +231,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * the active texture (in which case id is ignored). If glTarget is valid,
 	 * it assumes id is a valid non-zero texture object.
 	 */
-	private static void bindTexture(GL gl, TextureUnit unit, int glTarget, int id) {
+	private void bindTexture(GL gl, TextureUnit unit, int glTarget, int id) {
 		// unbind and disable old target
 		if (unit.enableTarget && glTarget != unit.enabledTarget) {
 			gl.glBindTexture(unit.enabledTarget, 0);
@@ -259,8 +261,8 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * matching record. If genMode is NONE, generation is disabled, otherwise
 	 * its enabled and set, possibly resetting the texture plane.
 	 */
-	private static void setTexGen(GL gl, int coord, int boolMode, 
-								  TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
+	private void setTexGen(GL2ES1 gl, int coord, int boolMode, 
+	  					   TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
 		if (genMode == TexCoordGen.NONE) {
 			// disable coordinate generation for this coord
 			if (tgr.enableTexGen) {
@@ -272,16 +274,16 @@ public class JoglTextureEffectDriver implements EffectDriver {
 			if (genMode == TexCoordGen.EYE) {
 				// always push the eye-plane through
 				JoglUtil.get(eyeOrObject, tgr.eyePlane);
-				gl.glTexGenfv(coord, GL.GL_EYE_PLANE, tgr.eyePlane, 0);
+				gl.glTexGenfv(coord, GL2.GL_EYE_PLANE, tgr.eyePlane, 0);
 			} else if (genMode == TexCoordGen.OBJECT)
 				if (!JoglUtil.equals(eyeOrObject, tgr.objectPlane)) {
 					JoglUtil.get(eyeOrObject, tgr.objectPlane);
-					gl.glTexGenfv(coord, GL.GL_OBJECT_PLANE, tgr.objectPlane, 0);
+					gl.glTexGenfv(coord, GL2.GL_OBJECT_PLANE, tgr.objectPlane, 0);
 				}
 			// set the mode
 			int mode = JoglUtil.getGLTexGen(genMode);
 			if (mode != tgr.textureGenMode) {
-				gl.glTexGeni(coord, GL.GL_TEXTURE_GEN_MODE, mode);
+				gl.glTexGeni(coord, GL2.GL_TEXTURE_GEN_MODE, mode);
 				tgr.textureGenMode = mode;
 			}
 			// enable it
@@ -293,94 +295,94 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	}
 
 	/* Set all state necessary for the GL_COMBINE environment mode. */
-	private static void setCombineEnv(GL gl, TextureUnit tu, Texture tex) {
+	private void setCombineEnv(GL2ES1 gl, TextureUnit tu, Texture tex) {
 		// combine alpha
 		int c = JoglUtil.getGLCombineAlphaFunc(tex.getCombineAlphaEquation());
 		if (c != tu.combineAlpha) {
 			tu.combineAlpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_COMBINE_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_COMBINE_ALPHA, c);
 		}
 		// combine rgb
 		c = JoglUtil.getGLCombineRGBFunc(tex.getCombineRgbEquation());
 		if (c != tu.combineRgb) {
 			tu.combineRgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_COMBINE_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_COMBINE_RGB, c);
 		}
 
 		// combine source alpha 0
 		c = JoglUtil.getGLCombineSrc(tex.getSourceAlpha0());
 		if (c != tu.src0Alpha) {
 			tu.src0Alpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_SOURCE0_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_SOURCE0_ALPHA, c);
 		}
 		// combine source alpha 1
 		c = JoglUtil.getGLCombineSrc(tex.getSourceAlpha1());
 		if (c != tu.src1Alpha) {
 			tu.src1Alpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_SOURCE1_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_SOURCE1_ALPHA, c);
 		}
 		// combine source alpha 2
 		c = JoglUtil.getGLCombineSrc(tex.getSourceAlpha2());
 		if (c != tu.src2Alpha) {
 			tu.src2Alpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_SOURCE2_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_SOURCE2_ALPHA, c);
 		}
 
 		// combine source rgb 0
 		c = JoglUtil.getGLCombineSrc(tex.getSourceRgb0());
 		if (c != tu.src0Rgb) {
 			tu.src0Rgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_SOURCE0_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_SOURCE0_RGB, c);
 		}
 		// combine source rgb 1
 		c = JoglUtil.getGLCombineSrc(tex.getSourceRgb1());
 		if (c != tu.src1Rgb) {
 			tu.src1Rgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_SOURCE1_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_SOURCE1_RGB, c);
 		}
 		// combine source rgb 2
 		c = JoglUtil.getGLCombineSrc(tex.getSourceRgb2());
 		if (c != tu.src2Rgb) {
 			tu.src2Rgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_SOURCE2_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_SOURCE2_RGB, c);
 		}
 
 		// combine operand alpha 0
 		c = JoglUtil.getGLCombineOp(tex.getOperandAlpha0());
 		if (c != tu.operand0Alpha) {
 			tu.operand0Alpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_OPERAND0_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_OPERAND0_ALPHA, c);
 		}
 		// combine operand alpha 1
 		c = JoglUtil.getGLCombineOp(tex.getOperandAlpha1());
 		if (c != tu.operand1Alpha) {
 			tu.operand1Alpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_OPERAND1_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_OPERAND1_ALPHA, c);
 		}
 		// combine operand alpha 2
 		c = JoglUtil.getGLCombineOp(tex.getOperandAlpha2());
 		if (c != tu.operand2Alpha) {
 			tu.operand2Alpha = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_OPERAND2_ALPHA, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_OPERAND2_ALPHA, c);
 		}
 
 		// combine operand rgb 0
 		c = JoglUtil.getGLCombineOp(tex.getOperandRgb0());
 		if (c != tu.operand0Rgb) {
 			tu.operand0Rgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_OPERAND0_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_OPERAND0_RGB, c);
 		}
 		// combine operand rgb 1
 		c = JoglUtil.getGLCombineOp(tex.getOperandRgb1());
 		if (c != tu.operand1Rgb) {
 			tu.operand1Rgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_OPERAND1_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_OPERAND1_RGB, c);
 		}
 		// combine operand rgb 2
 		c = JoglUtil.getGLCombineOp(tex.getOperandRgb2());
 		if (c != tu.operand2Rgb) {
 			tu.operand2Rgb = c;
-			gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_OPERAND2_RGB, c);
+			gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_OPERAND2_RGB, c);
 		}
 	}
 }

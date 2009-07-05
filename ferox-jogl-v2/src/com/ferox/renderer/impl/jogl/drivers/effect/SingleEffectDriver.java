@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.Effect;
 import com.ferox.renderer.UnsupportedEffectException;
@@ -16,7 +16,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class SingleEffectDriver<T extends Effect> implements EffectDriver {
+public abstract class SingleEffectDriver<T extends Effect, G extends GLBase> implements EffectDriver {
 	private final Class<? extends Effect> stateClass;
 	private final T defaultState;
 	protected final JoglContextManager factory;
@@ -43,15 +43,17 @@ public abstract class SingleEffectDriver<T extends Effect> implements EffectDriv
 	 * with the queued state, or by the default state supplied in the
 	 * constructor.
 	 */
-	protected abstract void apply(GL gl, JoglStateRecord record, T nextState);
+	protected abstract void apply(G gl, JoglStateRecord record, T nextState);
+	
+	protected abstract G convert(GLBase gl);
 
 	@Override
 	public void doApply() {
 		if (this.queuedState != null) {
 			if (this.queuedState != this.lastAppliedState)
-				this.apply(this.factory.getGL(), this.factory.getRecord(), this.queuedState);
+				this.apply(convert(this.factory.getGL()), this.factory.getRecord(), this.queuedState);
 		} else if (this.lastAppliedState != null)
-			this.apply(this.factory.getGL(), this.factory.getRecord(), this.defaultState);
+			this.apply(convert(this.factory.getGL()), this.factory.getRecord(), this.defaultState);
 		this.lastAppliedState = this.queuedState;
 
 		this.reset();

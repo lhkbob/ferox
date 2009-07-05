@@ -3,7 +3,8 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.GlslShader;
 import com.ferox.effect.GlslShader.UniformBinding;
@@ -13,7 +14,7 @@ import com.ferox.renderer.impl.jogl.record.GlslShaderRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.GlslUniform;
 
-public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
+public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader, GL2ES2> {
 	private final IdentityHashMap<GlslUniform, GlslUniform> perFrameUniforms;
 
 	public JoglGlslShaderEffectDriver(JoglContextManager factory) {
@@ -28,9 +29,14 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 		// although it's really just each surface
 		perFrameUniforms.clear();
 	}
+	
+	@Override
+	protected GL2ES2 convert(GLBase gl) {
+		return gl.getGL2ES2();
+	}
 
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, GlslShader nextState) {
+	protected void apply(GL2ES2 gl, JoglStateRecord record, GlslShader nextState) {
 		GlslShaderRecord sr = record.shaderRecord;
 
 		if (nextState == null) {
@@ -64,7 +70,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 		}
 	}
 
-	private void setUniform(GL gl, UniformBinding binding) {
+	private void setUniform(GL2ES2 gl, UniformBinding binding) {
 		GlslUniform u = binding.getUniform();
 
 		// determine if it's actually necessary to set the uniform
@@ -90,7 +96,7 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader> {
 		}
 	}
 
-	private void setUniformValue(GL gl, GlslUniform uniform, Object value) {
+	private void setUniformValue(GL2ES2 gl, GlslUniform uniform, Object value) {
 		Handle h = factory.getFramework().getHandle(uniform, factory);
 		if (h != null)
 			switch (uniform.getType()) {

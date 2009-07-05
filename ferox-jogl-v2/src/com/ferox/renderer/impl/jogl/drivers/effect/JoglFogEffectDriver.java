@@ -1,6 +1,8 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.Fog;
 import com.ferox.math.Color4f;
@@ -16,13 +18,18 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
+public class JoglFogEffectDriver extends SingleEffectDriver<Fog, GL2> {
 	public JoglFogEffectDriver(JoglContextManager factory) {
 		super(null, Fog.class, factory);
 	}
+	
+	@Override
+	protected GL2 convert(GLBase gl) {
+		return gl.getGL2();
+	}
 
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, Fog nextState) {
+	protected void apply(GL2 gl, JoglStateRecord record, Fog nextState) {
 		ColoringRecord cr = record.colorRecord;
 		HintRecord hr = record.hintRecord;
 
@@ -41,44 +48,44 @@ public class JoglFogEffectDriver extends SingleEffectDriver<Fog> {
 		if (cr.enableFog != enable) {
 			cr.enableFog = enable;
 			if (enable)
-				gl.glEnable(GL.GL_FOG);
+				gl.glEnable(GL2.GL_FOG);
 			else
-				gl.glDisable(GL.GL_FOG);
+				gl.glDisable(GL2.GL_FOG);
 		}
 	}
 
-	private void setRecord(GL gl, ColoringRecord cr, HintRecord hr, 
+	private void setRecord(GL2 gl, ColoringRecord cr, HintRecord hr, 
 						   Color4f color, float density, float start, 
 						   float end, int mode, int hint) {
 		// color
 		if (!JoglUtil.equals(color, cr.fogColor)) {
 			JoglUtil.get(color, cr.fogColor);
-			gl.glFogfv(GL.GL_FOG_COLOR, cr.fogColor, 0);
+			gl.glFogfv(GL2.GL_FOG_COLOR, cr.fogColor, 0);
 		}
 		// density
 		if (density != cr.fogDensity) {
 			cr.fogDensity = density;
-			gl.glFogf(GL.GL_FOG_DENSITY, cr.fogDensity);
+			gl.glFogf(GL2.GL_FOG_DENSITY, cr.fogDensity);
 		}
 		// start
 		if (start != cr.fogStart) {
 			cr.fogStart = start;
-			gl.glFogf(GL.GL_FOG_START, cr.fogStart);
+			gl.glFogf(GL2.GL_FOG_START, cr.fogStart);
 		}
 		// end
 		if (end != cr.fogEnd) {
 			cr.fogEnd = end;
-			gl.glFogf(GL.GL_FOG_END, cr.fogEnd);
+			gl.glFogf(GL2.GL_FOG_END, cr.fogEnd);
 		}
 		// mode
 		if (mode != cr.fogMode) {
 			cr.fogMode = mode;
-			gl.glFogi(GL.GL_FOG_MODE, mode);
+			gl.glFogi(GL2.GL_FOG_MODE, mode);
 		}
 		// hint
 		if (hint != hr.fogHint) {
 			hr.fogHint = hint;
-			gl.glHint(GL.GL_FOG_HINT, hint);
+			gl.glHint(GL2.GL_FOG_HINT, hint);
 		}
 	}
 }

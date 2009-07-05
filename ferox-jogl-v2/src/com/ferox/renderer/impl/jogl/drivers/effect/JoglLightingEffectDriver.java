@@ -1,6 +1,8 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.DirectionLight;
 import com.ferox.effect.Light;
@@ -20,7 +22,7 @@ import com.ferox.renderer.impl.jogl.record.LightingRecord.LightRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
+public class JoglLightingEffectDriver extends MultiStateDriver<Light, GL2ES1> {
 	private static final int MAX_LIGHTS = 8;
 
 	private final Light[] appliedLights;
@@ -40,11 +42,16 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		for (int i = 0; i < appliedLights.length; i++)
 			appliedLights[i] = null;
 	}
+	
+	@Override
+	protected GL2ES1 convert(GLBase base) {
+		return base.getGL2ES1();
+	}
 
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, int unit, Light next) {
+	protected void apply(GL2ES1 gl, JoglStateRecord record, int unit, Light next) {
 		LightRecord lr = record.lightRecord.lightUnits[unit];
-		int glUnit = GL.GL_LIGHT0 + unit;
+		int glUnit = GL2.GL_LIGHT0 + unit;
 
 		if (next == null) {
 			// disable the light
@@ -77,50 +84,50 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		}
 	}
 
-	private void setLightColors(GL gl, LightRecord lr, int glUnit, 
+	private void setLightColors(GL2ES1 gl, LightRecord lr, int glUnit, 
 								Color4f amb, Color4f diff, Color4f spec) {
 		// ambient
 		if (!JoglUtil.equals(amb, lr.ambient)) {
 			JoglUtil.get(amb, lr.ambient);
-			gl.glLightfv(glUnit, GL.GL_AMBIENT, lr.ambient, 0);
+			gl.glLightfv(glUnit, GL2.GL_AMBIENT, lr.ambient, 0);
 		}
 		// diffuse
 		if (!JoglUtil.equals(diff, lr.diffuse)) {
 			JoglUtil.get(diff, lr.diffuse);
-			gl.glLightfv(glUnit, GL.GL_DIFFUSE, lr.diffuse, 0);
+			gl.glLightfv(glUnit, GL2.GL_DIFFUSE, lr.diffuse, 0);
 		}
 		// specular
 		if (!JoglUtil.equals(spec, lr.specular)) {
 			JoglUtil.get(spec, lr.specular);
-			gl.glLightfv(glUnit, GL.GL_SPECULAR, lr.specular, 0);
+			gl.glLightfv(glUnit, GL2.GL_SPECULAR, lr.specular, 0);
 		}
 	}
 
-	private void setSpotParameters(GL gl, LightRecord lr, int glUnit, 
+	private void setSpotParameters(GL2ES1 gl, LightRecord lr, int glUnit, 
 								   float spotCutoff, float constant, float linear, float quad) {
 		// spotCutoff
 		if (lr.spotCutoff != spotCutoff) {
 			lr.spotCutoff = spotCutoff;
-			gl.glLightf(glUnit, GL.GL_SPOT_CUTOFF, lr.spotCutoff);
+			gl.glLightf(glUnit, GL2.GL_SPOT_CUTOFF, lr.spotCutoff);
 		}
 		// constant att.
 		if (lr.constantAttenuation != constant) {
 			lr.constantAttenuation = constant;
-			gl.glLightf(glUnit, GL.GL_CONSTANT_ATTENUATION, lr.constantAttenuation);
+			gl.glLightf(glUnit, GL2.GL_CONSTANT_ATTENUATION, lr.constantAttenuation);
 		}
 		// linear att.
 		if (lr.linearAttenuation != linear) {
 			lr.linearAttenuation = linear;
-			gl.glLightf(glUnit, GL.GL_LINEAR_ATTENUATION, lr.linearAttenuation);
+			gl.glLightf(glUnit, GL2.GL_LINEAR_ATTENUATION, lr.linearAttenuation);
 		}
 		// quadratic att.
 		if (lr.quadraticAttenuation != quad) {
 			lr.quadraticAttenuation = quad;
-			gl.glLightf(glUnit, GL.GL_QUADRATIC_ATTENUATION, lr.quadraticAttenuation);
+			gl.glLightf(glUnit, GL2.GL_QUADRATIC_ATTENUATION, lr.quadraticAttenuation);
 		}
 	}
 
-	private void setupSpotLight(GL gl, LightRecord lr, int glUnit, 
+	private void setupSpotLight(GL2ES1 gl, LightRecord lr, int glUnit, 
 								SpotLight light) {
 		// setup the pos and direction
 		Vector3f p = light.getPosition();
@@ -135,14 +142,14 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		lr.spotDirection[2] = p.z;
 
 		// pos and dir
-		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
-		gl.glLightfv(glUnit, GL.GL_SPOT_DIRECTION, lr.spotDirection, 0);
+		gl.glLightfv(glUnit, GL2.GL_POSITION, lr.position, 0);
+		gl.glLightfv(glUnit, GL2.GL_SPOT_DIRECTION, lr.spotDirection, 0);
 
 		setSpotParameters(gl, lr, glUnit, light.getSpotCutoff(), light.getConstantAttenuation(), 
 						  light.getLinearAttenuation(), light.getQuadraticAttenuation());
 	}
 
-	private void setupDirectionLight(GL gl, LightRecord lr, int glUnit, 
+	private void setupDirectionLight(GL2ES1 gl, LightRecord lr, int glUnit, 
 									 DirectionLight light) {
 		// set the position array - we don't check, since the modelview changes
 		// things
@@ -153,6 +160,6 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light> {
 		lr.position[3] = 0f;
 
 		// setup of the direction
-		gl.glLightfv(glUnit, GL.GL_POSITION, lr.position, 0);
+		gl.glLightfv(glUnit, GL2.GL_POSITION, lr.position, 0);
 	}
 }

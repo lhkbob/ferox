@@ -1,6 +1,8 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLBase;
 
 import com.ferox.effect.BlendMode;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
@@ -14,13 +16,18 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglBlendModeEffectDriver extends SingleEffectDriver<BlendMode> {
+public class JoglBlendModeEffectDriver extends SingleEffectDriver<BlendMode, GL2ES2> {
 	public JoglBlendModeEffectDriver(JoglContextManager factory) {
 		super(null, BlendMode.class, factory);
 	}
+	
+	@Override
+	protected GL2ES2 convert(GLBase gl) {
+		return gl.getGL2ES2();
+	}
 
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, BlendMode nextState) {
+	protected void apply(GL2ES2 gl, JoglStateRecord record, BlendMode nextState) {
 		PixelOpRecord pr = record.pixelOpRecord;
 
 		if (nextState == null) {
