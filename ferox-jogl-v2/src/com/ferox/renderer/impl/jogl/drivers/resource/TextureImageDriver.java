@@ -7,6 +7,7 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.jogl.JoglUtil;
@@ -80,34 +81,34 @@ public class TextureImageDriver {
 		// skip pixels
 		if (pr.unpackSkipPixels != xOffset) {
 			pr.unpackSkipPixels = xOffset;
-			gl.glPixelStorei(GL.GL_UNPACK_SKIP_PIXELS, xOffset);
+			gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, xOffset);
 		}
 		// skip rows
 		if (pr.unpackSkipRows != yOffset) {
 			pr.unpackSkipRows = yOffset;
-			gl.glPixelStorei(GL.GL_UNPACK_SKIP_ROWS, yOffset);
+			gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, yOffset);
 		}
 		// skip images
 		if (pr.unpackSkipImages != zOffset) {
 			pr.unpackSkipImages = zOffset;
-			gl.glPixelStorei(GL.GL_UNPACK_SKIP_IMAGES, zOffset);
+			gl.glPixelStorei(GL2.GL_UNPACK_SKIP_IMAGES, zOffset);
 		}
 
 		// width of whole face
 		if (pr.unpackRowLength != blockWidth) {
 			pr.unpackRowLength = blockWidth;
-			gl.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, blockWidth);
+			gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, blockWidth);
 		}
 		// height of whole face
 		if (pr.unpackImageHeight != blockHeight) {
 			pr.unpackImageHeight = blockHeight;
-			gl.glPixelStorei(GL.GL_UNPACK_IMAGE_HEIGHT, blockHeight);
+			gl.glPixelStorei(GL2.GL_UNPACK_IMAGE_HEIGHT, blockHeight);
 		}
 
 		// configure the alignment
 		if (pr.unpackAlignment != 1) {
 			pr.unpackAlignment = 1;
-			gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+			gl.glPixelStorei(GL2.GL_UNPACK_ALIGNMENT, 1);
 		}
 	}
 

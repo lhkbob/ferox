@@ -150,7 +150,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 			else
 				gl.glCompressedTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
 										  bd.getCapacity(), imageDriver.wrap(bd));
-		} else if (newTex)
+		} else if (newTex) {
 			// we'll just allocate an empty image
 			if (handle.glSrcFormat > 0)
 				gl.glTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
@@ -158,6 +158,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 			else
 				gl.glCompressedTexImage2D(handle.glTarget, 0, handle.glDstFormat, handle.width, handle.height, 0, 
 										  tex.getFormat().getBufferSize(handle.width, handle.height, 0), null);
+		}
 	}
 
 	/*
@@ -171,7 +172,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 		MipmapDirtyRegion mdr;
 		BufferData bd = tex.getData();
 
-		if (bd != null && bd.getData() != null)
+		if (bd != null && bd.getData() != null) {
 			if (dirty == null || dirty.isDataDirty()) {
 				// we'll have to call glTexSubImage here, but we don't
 				// have to call glCompressedTexSubImage since compressed images
@@ -190,5 +191,6 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 									   handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 				}
 			}
+		}
 	}
 }

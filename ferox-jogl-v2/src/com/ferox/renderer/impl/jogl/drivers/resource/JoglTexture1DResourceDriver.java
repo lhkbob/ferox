@@ -1,6 +1,10 @@
 package com.ferox.renderer.impl.jogl.drivers.resource;
 
+import java.nio.Buffer;
+
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL3;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
@@ -67,6 +71,13 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 			handle = imageDriver.createNewTexture(gl, t1d);
 
 			data.setHandle(handle);
+			if (!gl.isGL2() && !gl.isGL3()) {
+				// can't proceed
+				data.setStatus(Status.ERROR);
+				data.setStatusMessage("Requires a GL2 or GL3 for Texture1D functionality");
+				return;
+			}
+			
 			if (imageDriver.isDirty(t1d, handle)) {
 				data.setStatus(Status.DIRTY);
 				data.setStatusMessage(imageDriver.getDirtyStatusMessage(t1d, handle));
@@ -127,21 +138,23 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 			// possibly rescale the data
 			bd = tex.getData(i);
 			if (bd != null && bd.getData() != null) {
-				if (needsResize)
+				if (needsResize) {
 					// resize the image to meet POT requirements
 					bd = TextureConverter.convert(
-					// src
-					bd, tex.getFormat(), tex.getWidth(i), 1, 1,
-					// dst
-					null, tex.getFormat(), bd.getType(), w, 1, 1);
+								// src
+								bd, tex.getFormat(), tex.getWidth(i), 1, 1,
+								// dst
+								null, tex.getFormat(), bd.getType(), w, 1, 1);
+				}
 				// proceed with glTexImage
 				imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, 1);
-				gl.glTexImage1D(handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
-								handle.glType, imageDriver.wrap(bd));
-			} else if (newTex)
+				glTexImage1D(gl, handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
+							 handle.glType, imageDriver.wrap(bd));
+			} else if (newTex) {
 				// we'll just allocate an empty image
-				gl.glTexImage1D(handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
-							    handle.glType, null);
+				glTexImage1D(gl, handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
+							 handle.glType, null);
+			}
 		}
 	}
 
@@ -160,7 +173,7 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 			bd = tex.getData(i);
 			w = Math.max(1, handle.width >> i);
 
-			if (bd != null && bd.getData() != null)
+			if (bd != null && bd.getData() != null) {
 				if (dirty == null || dirty.isDataDirty(i)) {
 					// we'll have to call glTexSubImage here, but we don't
 					// have to call glCompressedTexSubImage since compressed
@@ -169,16 +182,38 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 					if (mdr != null) {
 						// use the region descriptor
 						imageDriver.setUnpackRegion(gl, pr, mdr.getDirtyXOffset(), 0, 0, w, 1);
-						gl.glTexSubImage1D(handle.glTarget, i, mdr.getDirtyXOffset(), mdr.getDirtyWidth(), 
-										 handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
+						glTexSubImage1D(gl, handle.glTarget, i, mdr.getDirtyXOffset(), mdr.getDirtyWidth(), 
+										handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 					} else {
 						// we'll update the whole image level
 						imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, 1);
-						gl.glTexSubImage1D(handle.glTarget, i, 0, w, handle.glSrcFormat,
-										   handle.glType, imageDriver.wrap(bd));
+						glTexSubImage1D(gl, handle.glTarget, i, 0, w, handle.glSrcFormat,
+										handle.glType, imageDriver.wrap(bd));
 					}
 				}
+			}	
+		}
+	}
+	
+	private void glTexImage1D(GL gl, int target, int layer, int dstFormat, int width,
+							  int border, int srcFormat, int type, Buffer data) {
+		if (gl.isGL2()) {
+			GL2 gl2 = gl.getGL2();
+			gl2.glTexImage1D(target, layer, dstFormat, width, border, srcFormat, type, data);
+		} else { // assume GL3
+			GL3 gl3 = gl.getGL3();
+			gl3.glTexImage1D(target, layer, dstFormat, width, border, srcFormat, type, data);
 		}
 	}
 
+	private void glTexSubImage1D(GL gl, int target, int layer, int xOffset, 
+							     int width, int srcFormat, int type, Buffer data) {
+		if (gl.isGL2()) {
+			GL2 gl2 = gl.getGL2();
+			gl2.glTexSubImage1D(target, layer, xOffset, width, srcFormat, type, data);
+		} else { // assumes GL3
+			GL3 gl3 = gl.getGL3();
+			gl3.glTexSubImage1D(target, layer, xOffset, width, srcFormat, type, data);
+		} 
+	}
 }

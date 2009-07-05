@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceData;
@@ -72,7 +74,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL gl = factory.getGL();
+		GL2ES2 gl = factory.getGL().getGL2ES2();
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 
 		if (handle != null) {
@@ -90,7 +92,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	@Override
 	public void update(Renderer renderer, Resource resource, 
 					   ResourceData data, boolean fullUpdate) {
-		GL gl = factory.getGL();
+		GL2ES2 gl = factory.getGL().getGL2ES2();
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 		GlslProgram program = (GlslProgram) resource;
 
@@ -138,11 +140,11 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 			// set the glsl code that will be executed for the program
 			String[] fragmentCode = program.getFragmentShader();
 			int fragmentObject = (fragmentCode.length == 0 ? -1 
-														   : compileShader(gl, handle.fragmentId, fragmentCode, GL.GL_FRAGMENT_SHADER));
+														   : compileShader(gl, handle.fragmentId, fragmentCode, GL2.GL_FRAGMENT_SHADER));
 
 			String[] vertexCode = program.getVertexShader();
 			int vertexObject = (vertexCode.length == 0 ? -1 
-													   : compileShader(gl, handle.vertexId, vertexCode, GL.GL_VERTEX_SHADER));
+													   : compileShader(gl, handle.vertexId, vertexCode, GL2.GL_VERTEX_SHADER));
 
 			// attach the shaders
 			handle.fragmentId = setShader(gl, handle.programId, handle.fragmentId, fragmentObject);
@@ -201,12 +203,12 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * Fetch declared shader attributes, unbind attributes that don't exist.
 	 * Attach any new ones. Update the slot bindings for the given program.
 	 */
-	private static void detectAttributes(GL gl, GlslProgram program, GlslProgramHandle handle) {
+	private void detectAttributes(GL2ES2 gl, GlslProgram program, GlslProgramHandle handle) {
 		int[] totalUniforms = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_ATTRIBUTES, totalUniforms, 0);
+		gl.glGetProgramiv(handle.programId, GL2.GL_ACTIVE_ATTRIBUTES, totalUniforms, 0);
 
 		int[] maxNameLength = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, maxNameLength, 0);
+		gl.glGetProgramiv(handle.programId, GL2.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, maxNameLength, 0);
 
 		int[] nameLength = new int[1];
 		int[] size = new int[1];
@@ -230,9 +232,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 			}
 		}
 
-		// now we have to clean-up bad attrs, attach new ones, and update good
-		// vars
-
+		// now we have to clean-up bad attrs, attach new ones, and update good vars
 		Map<String, GlslVertexAttribute> existingAttrs = new HashMap<String, GlslVertexAttribute>(program.getAttributes());
 		Attribute declared;
 		GlslVertexAttribute existing;
@@ -260,13 +260,13 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * exist from the program and clean them up. Attach new uniforms, and update
 	 * all valid uniforms (including ones attached previously).
 	 */
-	private static void detectUniforms(GL gl, Renderer renderer, 
-									   GlslProgram program, GlslProgramHandle handle) {
+	private void detectUniforms(GL2ES2 gl, Renderer renderer, 
+								GlslProgram program, GlslProgramHandle handle) {
 		int[] totalUniforms = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_UNIFORMS, totalUniforms, 0);
+		gl.glGetProgramiv(handle.programId, GL2.GL_ACTIVE_UNIFORMS, totalUniforms, 0);
 
 		int[] maxNameLength = new int[1];
-		gl.glGetProgramiv(handle.programId, GL.GL_ACTIVE_UNIFORM_MAX_LENGTH, maxNameLength, 0);
+		gl.glGetProgramiv(handle.programId, GL2.GL_ACTIVE_UNIFORM_MAX_LENGTH, maxNameLength, 0);
 
 		int[] nameLength = new int[1];
 		int[] size = new int[1];
@@ -321,7 +321,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * (if oldShader existed), and attach newShader (if newShader exists).
 	 * Returns newShader.
 	 */
-	private static int setShader(GL gl, int programId, int oldShader, int newShader) {
+	private int setShader(GL2ES2 gl, int programId, int oldShader, int newShader) {
 		if (oldShader != newShader) {
 			if (oldShader > 0) {
 				// clean-up old shader object
@@ -344,7 +344,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	 * Returns the id of the shader object, which will be new if objectId isn't
 	 * positive.
 	 */
-	private static int compileShader(GL gl, int objectId, String[] sourceCode, int type) {
+	private int compileShader(GL2ES2 gl, int objectId, String[] sourceCode, int type) {
 		if (objectId <= 0)
 			objectId = gl.glCreateShader(type);
 
@@ -359,9 +359,9 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	}
 
 	/* Return the string representation of the shader object's log. */
-	private static String getShaderLog(GL gl, int objectId) {
+	private String getShaderLog(GL2ES2 gl, int objectId) {
 		int[] logSize = new int[1];
-		gl.glGetShaderiv(objectId, GL.GL_INFO_LOG_LENGTH, logSize, 0);
+		gl.glGetShaderiv(objectId, GL2.GL_INFO_LOG_LENGTH, logSize, 0);
 
 		if (logSize[0] > 0) {
 			byte[] chars = new byte[logSize[0]];
@@ -373,16 +373,16 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	}
 
 	/* Return true if the given shader object was compiled successfully. */
-	private static boolean isCompiled(GL gl, int objectId) {
+	private boolean isCompiled(GL2ES2 gl, int objectId) {
 		int[] status = new int[1];
-		gl.glGetShaderiv(objectId, GL.GL_COMPILE_STATUS, status, 0);
+		gl.glGetShaderiv(objectId, GL2.GL_COMPILE_STATUS, status, 0);
 		return status[0] == GL.GL_TRUE;
 	}
 
 	/* Return the string representation of the shader program's log. */
-	private static String getProgramLog(GL gl, int programId) {
+	private String getProgramLog(GL2ES2 gl, int programId) {
 		int[] logSize = new int[1];
-		gl.glGetProgramiv(programId, GL.GL_INFO_LOG_LENGTH, logSize, 0);
+		gl.glGetProgramiv(programId, GL2.GL_INFO_LOG_LENGTH, logSize, 0);
 
 		if (logSize[0] > 0) {
 			byte[] chars = new byte[logSize[0]];
@@ -394,14 +394,14 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	}
 
 	/* Return true if the given shader program was linked successfully. */
-	private static boolean isLinked(GL gl, int programId) {
+	private boolean isLinked(GL2ES2 gl, int programId) {
 		int[] status = new int[1];
-		gl.glGetProgramiv(programId, GL.GL_LINK_STATUS, status, 0);
+		gl.glGetProgramiv(programId, GL2.GL_LINK_STATUS, status, 0);
 		return status[0] == GL.GL_TRUE;
 	}
 
 	/* Build a string from an opengl byte array. */
-	private static String createString(byte[] chars, int length) {
+	private String createString(byte[] chars, int length) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < length; i++)
 			builder.append((char) chars[i]);

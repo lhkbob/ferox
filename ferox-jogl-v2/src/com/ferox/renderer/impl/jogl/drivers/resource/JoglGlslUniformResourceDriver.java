@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.drivers.resource;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceData;
@@ -45,7 +45,7 @@ public class JoglGlslUniformResourceDriver implements ResourceDriver {
 
 	@Override
 	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
-		GL gl = factory.getGL();
+		GL2ES2 gl = factory.getGL().getGL2ES2();
 
 		GlslUniformHandle handle = (GlslUniformHandle) data.getHandle();
 		if (handle == null) {

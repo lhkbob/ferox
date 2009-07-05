@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.GeometryDriver;
@@ -132,7 +133,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 
 	@Override
 	public int render(Geometry geom, ResourceData data) {
-		GL gl = factory.getGL();
+		GL2 gl = factory.getGL().getGL2();
 		VertexArrayRecord vr = factory.getRecord().vertexArrayRecord;
 
 		IagHandle handle = (IagHandle) data.getHandle();
@@ -162,10 +163,10 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 
 			if (handle.indices == null)
 				gl.glDrawRangeElements(handle.glPolyType, 0, handle.vertexCount, handle.indexCount, 
-									   GL.GL_UNSIGNED_INT, 0);
+									   GL2.GL_UNSIGNED_INT, 0);
 			else
 				gl.glDrawRangeElements(handle.glPolyType, 0, handle.vertexCount, handle.indexCount,
-									   GL.GL_UNSIGNED_INT, handle.indices.rewind());
+									   GL2.GL_UNSIGNED_INT, handle.indices.rewind());
 		}
 
 		return handle.polyCount;
@@ -174,7 +175,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	@Override
 	public void reset() {
 		if (lastRendered != null) {
-			GL gl = factory.getGL();
+			GL2 gl = factory.getGL().getGL2();
 			VertexArrayRecord vr = factory.getRecord().vertexArrayRecord;
 
 			bindVbos(gl, vr, 0, 0);
@@ -186,7 +187,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL gl = factory.getGL();
+		GL2 gl = factory.getGL().getGL2();
 		IagHandle handle = (IagHandle) data.getHandle();
 
 		switch (handle.compile) {
@@ -208,7 +209,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	}
 
 	private void update(Resource resource, ResourceData data, boolean fullUpdate) {
-		GL gl = factory.getGL();
+		GL2 gl = factory.getGL().getGL2();
 		IndexedArrayGeometry geom = (IndexedArrayGeometry) resource;
 		IagHandle handle = (IagHandle) data.getHandle();
 
@@ -243,7 +244,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 				// make a new list id
 				handle.dlId = gl.glGenLists(1);
 
-			gl.glNewList(handle.dlId, GL.GL_COMPILE);
+			gl.glNewList(handle.dlId, GL2.GL_COMPILE);
 			render(geom, data);
 			reset();
 			gl.glEndList();
@@ -259,7 +260,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 			// delegate to this method to allocate and set data
 			if (!updateForVbo(gl, factory.getRecord().vertexArrayRecord, geom, handle)) {
 				// delete the vbos and reset the ids and sizes
-				gl.glDeleteBuffersARB(2, new int[] { handle.elementVbo, handle.arrayVbo }, 0);
+				gl.glDeleteBuffers(2, new int[] { handle.elementVbo, handle.arrayVbo }, 0);
 				handle.elementVbo = 0;
 				handle.arrayVbo = 0;
 				handle.elementVboSize = 0;
@@ -464,19 +465,19 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 									   IndexedArrayGeometry geom, IagHandle handle, int vboSize) {
 		if (handle.arrayVbo == 0) {
 			int[] id = new int[1];
-			gl.glGenBuffersARB(1, id, 0);
+			gl.glGenBuffers(1, id, 0);
 			handle.arrayVbo = id[0];
 		}
 
-		gl.glBindBufferARB(GL.GL_ARRAY_BUFFER_ARB, handle.arrayVbo);
+		gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, handle.arrayVbo);
 		if (vboSize > handle.arrayVboSize) {
 			handle.arrayVboSize = vboSize;
-			gl.glBufferDataARB(GL.GL_ARRAY_BUFFER_ARB, vboSize * 4, null, 
-							   (handle.compile == CompileType.VBO_DYNAMIC ? GL.GL_STREAM_DRAW_ARB 
-								   										  : GL.GL_STATIC_DRAW_ARB));
+			gl.glBufferData(GL2.GL_ARRAY_BUFFER, vboSize * 4, null, 
+							(handle.compile == CompileType.VBO_DYNAMIC ? GL2.GL_STREAM_DRAW 
+								   									   : GL2.GL_STATIC_DRAW));
 			int error = gl.glGetError();
 
-			if (error == GL.GL_OUT_OF_MEMORY)
+			if (error == GL2.GL_OUT_OF_MEMORY)
 				// fail here
 				return false;
 		}
@@ -503,7 +504,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 		}
 
 		// restore old binding
-		gl.glBindBufferARB(GL.GL_ARRAY_BUFFER_ARB, var.arrayBufferBinding);
+		gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, var.arrayBufferBinding);
 		return true;
 	}
 
@@ -515,7 +516,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	 */
 	private int updateSubArray(GL gl, float[] data, int offset) {
 		FloatBuffer wrapped = FloatBuffer.wrap(data);
-		gl.glBufferSubDataARB(GL.GL_ARRAY_BUFFER_ARB, offset, data.length * 4, wrapped.clear());
+		gl.glBufferSubData(GL2.GL_ARRAY_BUFFER, offset, data.length * 4, wrapped.clear());
 
 		return offset + data.length * 4;
 	}
@@ -530,27 +531,27 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 										 int[] indices, IagHandle handle) {
 		if (handle.elementVbo == 0) {
 			int[] id = new int[1];
-			gl.glGenBuffersARB(1, id, 0);
+			gl.glGenBuffers(1, id, 0);
 			handle.elementVbo = id[0];
 		}
 
-		gl.glBindBufferARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, handle.elementVbo);
+		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, handle.elementVbo);
 
 		if (indices.length > handle.elementVboSize) {
 			handle.elementVboSize = indices.length;
-			gl.glBufferDataARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, indices.length * 4, null, 
-							   (handle.compile == CompileType.VBO_DYNAMIC ? GL.GL_STREAM_DRAW_ARB 
-								   										  : GL.GL_STATIC_DRAW_ARB));
-			if (gl.glGetError() == GL.GL_OUT_OF_MEMORY)
+			gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, indices.length * 4, null, 
+							(handle.compile == CompileType.VBO_DYNAMIC ? GL2.GL_STREAM_DRAW 
+								   								       : GL2.GL_STATIC_DRAW));
+			if (gl.glGetError() == GL2.GL_OUT_OF_MEMORY)
 				// abort
 				return false;
 		}
 
 		IntBuffer wrapped = IntBuffer.wrap(indices);
-		gl.glBufferSubData(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, 0, indices.length * 4, wrapped.clear());
+		gl.glBufferSubData(GL2.GL_ELEMENT_ARRAY_BUFFER, 0, indices.length * 4, wrapped.clear());
 
 		// restore old binding
-		gl.glBindBufferARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, var.elementBufferBinding);
+		gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, var.elementBufferBinding);
 		return true;
 	}
 
@@ -569,12 +570,12 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	private void bindVbos(GL gl, VertexArrayRecord vr, int arrayId, int elementId) {
 		if (vr.arrayBufferBinding != arrayId) {
 			vr.arrayBufferBinding = arrayId;
-			gl.glBindBufferARB(GL.GL_ARRAY_BUFFER_ARB, arrayId);
+			gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, arrayId);
 		}
 
 		if (vr.elementBufferBinding != elementId) {
 			vr.elementBufferBinding = elementId;
-			gl.glBindBufferARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, elementId);
+			gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, elementId);
 		}
 	}
 
@@ -585,7 +586,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	 * vertex array is not in use by it, so it will be disabled. Then, if handle
 	 * isn't null, all vertex arrays used by it are enabled and configured.
 	 */
-	private void setVertexArrays(GL gl, VertexArrayRecord vr, 
+	private void setVertexArrays(GL2 gl, VertexArrayRecord vr, 
 								 IagHandle handle, IagHandle lastHandle) {
 		int count;
 		VertexArray array;
@@ -603,21 +604,21 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 				case PT_VERTICES:
 					if (handle == null) {
 						vr.enableVertexArray = false;
-						gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
+						gl.glDisableClientState(GL2.GL_VERTEX_ARRAY);
 					}
 					break;
 				case PT_NORMALS:
 					if (handle == null || !handle.hasNormals) {
 						vr.enableNormalArray = false;
-						gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
+						gl.glDisableClientState(GL2.GL_NORMAL_ARRAY);
 					}
 					break;
 				case PT_TEXCOORDS:
 					if (handle == null || (handle.tcUsage & (1 << array.unit)) == 0) {
 						vr.clientActiveTexture = array.unit;
-						gl.glClientActiveTexture(GL.GL_TEXTURE0 + array.unit);
+						gl.glClientActiveTexture(GL2.GL_TEXTURE0 + array.unit);
 						vr.enableTexCoordArrays[array.unit] = false;
-						gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+						gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
 					}
 					break;
 				case PT_VERTATTRIBS:
@@ -641,36 +642,36 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 				case PT_VERTICES:
 					if (!vr.enableVertexArray) {
 						vr.enableVertexArray = true;
-						gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+						gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
 					}
 					if (array.buffer == null)
-						gl.glVertexPointer(array.elementSize, GL.GL_FLOAT, 0, array.offset);
+						gl.glVertexPointer(array.elementSize, GL2.GL_FLOAT, 0, array.offset);
 					else
-						gl.glVertexPointer(array.elementSize, GL.GL_FLOAT, 0, array.buffer.rewind());
+						gl.glVertexPointer(array.elementSize, GL2.GL_FLOAT, 0, array.buffer.rewind());
 					break;
 				case PT_NORMALS:
 					if (!vr.enableNormalArray) {
 						vr.enableNormalArray = true;
-						gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
+						gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
 					}
 					if (array.buffer == null)
-						gl.glNormalPointer(GL.GL_FLOAT, 0, array.offset);
+						gl.glNormalPointer(GL2.GL_FLOAT, 0, array.offset);
 					else
-						gl.glNormalPointer(GL.GL_FLOAT, 0, array.buffer.rewind());
+						gl.glNormalPointer(GL2.GL_FLOAT, 0, array.buffer.rewind());
 					break;
 				case PT_TEXCOORDS:
 					if (vr.clientActiveTexture != array.unit) {
 						vr.clientActiveTexture = array.unit;
-						gl.glClientActiveTexture(GL.GL_TEXTURE0 + array.unit);
+						gl.glClientActiveTexture(GL2.GL_TEXTURE0 + array.unit);
 					}
 					if (!vr.enableTexCoordArrays[array.unit]) {
 						vr.enableTexCoordArrays[array.unit] = true;
-						gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+						gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
 					}
 					if (array.buffer == null)
-						gl.glTexCoordPointer(array.elementSize, GL.GL_FLOAT, 0, array.offset);
+						gl.glTexCoordPointer(array.elementSize, GL2.GL_FLOAT, 0, array.offset);
 					else
-						gl.glTexCoordPointer(array.elementSize, GL.GL_FLOAT, 0, array.buffer.rewind());
+						gl.glTexCoordPointer(array.elementSize, GL2.GL_FLOAT, 0, array.buffer.rewind());
 					break;
 				case PT_VERTATTRIBS:
 					if (!vr.enableVertexAttribArrays[array.unit]) {
@@ -678,9 +679,9 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 						gl.glEnableVertexAttribArray(array.unit);
 					}
 					if (array.buffer == null)
-						gl.glVertexAttribPointer(array.unit, array.elementSize, GL.GL_FLOAT, false, 0, array.offset);
+						gl.glVertexAttribPointer(array.unit, array.elementSize, GL2.GL_FLOAT, false, 0, array.offset);
 					else
-						gl.glVertexAttribPointer(array.unit, array.elementSize, GL.GL_FLOAT, false, 0, array.buffer.rewind());
+						gl.glVertexAttribPointer(array.unit, array.elementSize, GL2.GL_FLOAT, false, 0, array.buffer.rewind());
 					break;
 				}
 			}

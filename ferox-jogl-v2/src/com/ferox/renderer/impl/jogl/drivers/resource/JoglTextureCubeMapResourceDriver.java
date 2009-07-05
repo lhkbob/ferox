@@ -104,8 +104,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 				TextureFormat f = tcm.getFormat();
 				boolean rescale = handle.width != tcm.getWidth(0);
 				if (newTex || rescale || f.isCompressed() || f == TextureFormat.DEPTH)
-					// we have to re-allocate the image data, or make it for the
-					// first time
+					// we have to re-allocate the image data, or make it for the first time
 					// re-allocate on rescale for simplicity. re-allocate for
 					// formats because of driver issues
 					this.doTexImage(gl, pr, handle, tcm, newTex);
@@ -135,11 +134,13 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 							TextureHandle handle, TextureCubeMap tex, boolean newTex) {
 		boolean needsResize = handle.width != tex.getWidth(0) || handle.height != tex.getHeight(0);
 
-		for (int i = 0; i < handle.numMipmaps; i++)
+		for (int i = 0; i < handle.numMipmaps; i++) {
 			// loop over all faces in this level
-			for (int f = 0; f < 6; f++)
+			for (int f = 0; f < 6; f++) {
 				// delegate to the other function
 				this.doTexImage(gl, pr, handle, tex, newTex, needsResize, i, f);
+			}
+		}
 	}
 
 	/*
@@ -150,13 +151,15 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	 */
 	private void doTexSubImage(GL gl, PackUnpackRecord pr, TextureCubeMapDirtyDescriptor dirty, 
 							   TextureHandle handle, TextureCubeMap tex) {
-		for (int i = 0; i < handle.numMipmaps; i++)
+		for (int i = 0; i < handle.numMipmaps; i++) {
 			// loop over all faces in this level
-			for (int f = 0; f < 6; f++)
+			for (int f = 0; f < 6; f++) {
 				if (dirty.isDataDirty(f, i))
 					// delegate to the other function now
 					this.doTexSubImage(gl, pr, dirty.getDirtyRegion(f, i), 
 									   handle, tex, i, f);
+			}
+		}
 	}
 
 	private void doTexImage(GL gl, PackUnpackRecord pr, TextureHandle handle, TextureCubeMap tex, 
@@ -165,12 +168,14 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 		BufferData bd = tex.getData(face, level);
 
 		if (bd != null && bd.getData() != null) {
-			if (needsResize)
+			if (needsResize) {
 				// resize the image to meet POT requirements
-				bd = TextureConverter.convert(// src
-				bd, tex.getFormat(), tex.getWidth(level), tex.getHeight(level), 1,
-				// dst
-				null, tex.getFormat(), bd.getType(), s, s, 1);
+				bd = TextureConverter.convert(
+							// src
+							bd, tex.getFormat(), tex.getWidth(level), tex.getHeight(level), 1,
+							// dst
+							null, tex.getFormat(), bd.getType(), s, s, 1);
+			}
 			// proceed with glTexImage
 			imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, s, s);
 			if (handle.glSrcFormat > 0)
@@ -179,7 +184,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 			else
 				gl.glCompressedTexImage2D(JoglUtil.getGLCubeFace(face), level, handle.glDstFormat, 
 										  s, s, 0, bd.getCapacity(), imageDriver.wrap(bd));
-		} else if (newTex)
+		} else if (newTex) {
 			// we'll just allocate an empty image
 			if (handle.glSrcFormat > 0)
 				gl.glTexImage2D(JoglUtil.getGLCubeFace(face), level, handle.glDstFormat, s, s, 0, 
@@ -187,6 +192,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 			else
 				gl.glCompressedTexImage2D(JoglUtil.getGLCubeFace(face), level, handle.glDstFormat, s, s, 0, 
 										  tex.getFormat().getBufferSize(s, s, 0), null);
+		}
 	}
 
 	/* Do glTexSubImage2D() for the given mipmap and face. */
@@ -196,7 +202,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 		int s = Math.max(1, handle.width >> level);
 		BufferData bd = tex.getData(face, level);
 
-		if (bd != null && bd.getData() != null)
+		if (bd != null && bd.getData() != null) {
 			// we won't have to call glTexSubImage here -> that should always
 			// use doTexImage()
 			if (region != null) {
@@ -211,5 +217,6 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 				gl.glTexSubImage2D(JoglUtil.getGLCubeFace(face), level, 0, 0, s, s, 
 								   handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 			}
+		}
 	}
 }

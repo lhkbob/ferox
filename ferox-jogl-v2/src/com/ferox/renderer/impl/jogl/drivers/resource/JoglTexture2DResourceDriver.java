@@ -103,8 +103,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 				TextureFormat f = t2d.getFormat();
 				boolean rescale = handle.width != t2d.getWidth(0) || handle.height != t2d.getHeight(0);
 				if (newTex || rescale || f.isCompressed() || f == TextureFormat.DEPTH)
-					// we have to re-allocate the image data, or make it for the
-					// first time
+					// we have to re-allocate the image data, or make it for the first time
 					// re-allocate on rescale for simplicity. re-allocate for
 					// formats because of driver issues
 					doTexImage(gl, pr, handle, t2d, newTex);
@@ -144,13 +143,14 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 			// possibly rescale the data
 			bd = tex.getData(i);
 			if (bd != null && bd.getData() != null) {
-				if (needsResize)
+				if (needsResize) {
 					// resize the image to meet POT requirements
 					bd = TextureConverter.convert(
-					// src
-					bd, tex.getFormat(), tex.getWidth(i), tex.getHeight(i), 1,
-					// dst
-					null, tex.getFormat(), bd.getType(), w, h, 1);
+								// src
+								bd, tex.getFormat(), tex.getWidth(i), tex.getHeight(i), 1,
+								// dst
+								null, tex.getFormat(), bd.getType(), w, h, 1);
+				}
 				// proceed with glTexImage
 				imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, h);
 				if (handle.glSrcFormat > 0)
@@ -159,7 +159,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 				else
 					gl.glCompressedTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
 											  bd.getCapacity(), imageDriver.wrap(bd));
-			} else if (newTex)
+			} else if (newTex) {
 				// we'll just allocate an empty image
 				if (handle.glSrcFormat > 0)
 					gl.glTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
@@ -167,6 +167,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 				else
 					gl.glCompressedTexImage2D(handle.glTarget, i, handle.glDstFormat, w, h, 0, 
 											  tex.getFormat().getBufferSize(w, h, 0), null);
+			}
 		}
 	}
 
@@ -186,7 +187,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 			w = Math.max(1, handle.width >> i);
 			h = Math.max(1, handle.height >> i);
 
-			if (bd != null && bd.getData() != null)
+			if (bd != null && bd.getData() != null) {
 				if (dirty == null || dirty.isDataDirty(i)) {
 					// we'll have to call glTexSubImage here, but we don't
 					// have to call glCompressedTexSubImage since compressed
@@ -205,6 +206,7 @@ public class JoglTexture2DResourceDriver implements ResourceDriver {
 										   handle.glType, imageDriver.wrap(bd));
 					}
 				}
+			}
 		}
 	}
 }
