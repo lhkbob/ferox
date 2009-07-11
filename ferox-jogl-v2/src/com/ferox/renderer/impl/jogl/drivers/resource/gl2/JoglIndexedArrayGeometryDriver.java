@@ -1,4 +1,4 @@
-package com.ferox.renderer.impl.jogl.drivers.resource;
+package com.ferox.renderer.impl.jogl.drivers.resource.gl2;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.GeometryDriver;
@@ -14,6 +15,7 @@ import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.renderer.impl.jogl.record.VertexArrayRecord;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.IndexedArrayGeometry;
@@ -32,7 +34,7 @@ import com.sun.opengl.util.BufferUtil;
  * 
  * @author Michael Ludwig
  */
-public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
+public class JoglIndexedArrayGeometryDriver implements GeometryDriver, DriverProfile<GL2> {
 	private static final int PT_VERTICES = 0;
 	private static final int PT_NORMALS = 1;
 	private static final int PT_TEXCOORDS = 2;
@@ -130,10 +132,20 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 		maxVertexAttribs = factory.getFramework().getCapabilities().getMaxVertexAttributes();
 		lastRendered = null;
 	}
+	
+	@Override
+	public GL2 convert(GL2ES2 base) {
+		return base.getGL2();
+	}
+	
+	@Override
+	public GL2 getGL(JoglContextManager context) {
+		return context.getGL().getGL2();
+	}
 
 	@Override
 	public int render(Geometry geom, ResourceData data) {
-		GL2 gl = factory.getGL().getGL2();
+		GL2 gl = getGL(factory);
 		VertexArrayRecord vr = factory.getRecord().vertexArrayRecord;
 
 		IagHandle handle = (IagHandle) data.getHandle();
@@ -175,7 +187,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	@Override
 	public void reset() {
 		if (lastRendered != null) {
-			GL2 gl = factory.getGL().getGL2();
+			GL2 gl = getGL(factory);
 			VertexArrayRecord vr = factory.getRecord().vertexArrayRecord;
 
 			bindVbos(gl, vr, 0, 0);
@@ -187,7 +199,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL2 gl = factory.getGL().getGL2();
+		GL2 gl = getGL(factory);
 		IagHandle handle = (IagHandle) data.getHandle();
 
 		switch (handle.compile) {
@@ -209,7 +221,7 @@ public class JoglIndexedArrayGeometryDriver implements GeometryDriver {
 	}
 
 	private void update(Resource resource, ResourceData data, boolean fullUpdate) {
-		GL2 gl = factory.getGL().getGL2();
+		GL2 gl = getGL(factory);
 		IndexedArrayGeometry geom = (IndexedArrayGeometry) resource;
 		IagHandle handle = (IagHandle) data.getHandle();
 

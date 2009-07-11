@@ -1,7 +1,6 @@
 package com.ferox;
 
 import java.awt.Font;
-import java.awt.Frame;
 import java.util.Formatter;
 
 import com.ferox.effect.Effect.PixelTest;
@@ -23,6 +22,7 @@ import com.ferox.scene.ViewNode;
 import com.ferox.scene.Node.CullMode;
 import com.ferox.util.geom.CharacterSet;
 import com.ferox.util.geom.Text;
+import com.sun.javafx.newt.opengl.GLWindow;
 
 /**
  * BasicApplication extends ApplicationBase and imposes more constraints on the
@@ -80,11 +80,8 @@ public abstract class BasicApplication extends ApplicationBase {
 
 		pass = new SceneRenderPass(null, v, createQueue(), false);
 
-		// this.window = renderer.createFullscreenSurface(new DisplayOptions(),
-		// 640, 480);
-		window =
-			renderer.createWindowSurface(createOptions(), 10, 10, 640, 480,
-				false, false);
+		window = renderer.createFullscreenSurface(createOptions(), 640, 480);
+		//window = renderer.createWindowSurface(createOptions(), 10, 10, 640, 480, false, false);
 		window.addRenderPass(pass);
 		window.setTitle(this.getClass().getSimpleName());
 
@@ -124,8 +121,8 @@ public abstract class BasicApplication extends ApplicationBase {
 		window.addRenderPass(fpsPass);
 
 		// somewhat lame to get input working for now
-		Frame f = (Frame) window.getWindowImpl();
-		configureInputHandling(f.getComponent(0), viewTrans);
+		GLWindow f = (GLWindow) window.getWindowImpl();
+		configureInputHandling(f, viewTrans);
 
 		lastFpsUpdate = 0;
 	}

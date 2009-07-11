@@ -1,14 +1,15 @@
-package com.ferox.renderer.impl.jogl.drivers.effect;
+package com.ferox.renderer.impl.jogl.drivers.effect.gl2;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GLBase;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.Material;
 import com.ferox.math.Color4f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
+import com.ferox.renderer.impl.jogl.drivers.effect.SingleEffectDriver;
 import com.ferox.renderer.impl.jogl.record.ColoringRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.LightingRecord;
@@ -21,18 +22,18 @@ import com.ferox.renderer.impl.jogl.record.LightingRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglMaterialEffectDriver extends SingleEffectDriver<Material, GL2ES1> {
+public class JoglMaterialEffectDriver extends SingleEffectDriver<Material, GL2> {
 	public JoglMaterialEffectDriver(JoglContextManager factory) {
 		super(new Material(), Material.class, factory);
 	}
 
 	@Override
-	protected GL2ES1 convert(GLBase gl) {
-		return gl.getGL2ES1();
+	public GL2 convert(GL2ES2 gl) {
+		return gl.getGL2();
 	}
 	
 	@Override
-	protected void apply(GL2ES1 gl, JoglStateRecord record, Material nextState) {
+	protected void apply(GL2 gl, JoglStateRecord record, Material nextState) {
 		// we have to update lighting each time, since if the case is:
 		// <m1, no_lighting> then <m1, lighting>, the 2nd time, m1 will not
 		// be applied since it was "already applied"

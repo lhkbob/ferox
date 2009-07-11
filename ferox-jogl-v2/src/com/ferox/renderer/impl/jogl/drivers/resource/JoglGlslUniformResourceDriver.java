@@ -8,6 +8,7 @@ import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.resource.GlslUniform;
 import com.ferox.resource.Resource;
 import com.ferox.resource.GlslUniform.UniformType;
@@ -19,7 +20,7 @@ import com.ferox.resource.Resource.Status;
  * 
  * @author Michael Ludwig
  */
-public class JoglGlslUniformResourceDriver implements ResourceDriver {
+public class JoglGlslUniformResourceDriver implements ResourceDriver, DriverProfile<GL2ES2> {
 	/* Very simple handle, all it is, is the id for the uniform. */
 	private static class GlslUniformHandle implements Handle {
 		private int id;
@@ -37,6 +38,16 @@ public class JoglGlslUniformResourceDriver implements ResourceDriver {
 		this.factory = factory;
 		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
 	}
+	
+	@Override
+	public GL2ES2 convert(GL2ES2 base) {
+		return base;
+	}
+	
+	@Override
+	public GL2ES2 getGL(JoglContextManager context) {
+		return context.getGL();
+	}
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
@@ -45,7 +56,7 @@ public class JoglGlslUniformResourceDriver implements ResourceDriver {
 
 	@Override
 	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
-		GL2ES2 gl = factory.getGL().getGL2ES2();
+		GL2ES2 gl = getGL(factory);
 
 		GlslUniformHandle handle = (GlslUniformHandle) data.getHandle();
 		if (handle == null) {

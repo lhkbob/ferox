@@ -32,17 +32,17 @@ public abstract class AbstractShadowContext implements ShadowContext {
 	}
 
 	@Override
-	public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-		// do nothing
-	}
-
-	@Override
 	public void init(GLAutoDrawable drawable) {
 		// do nothing
 	}
 
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+		// do nothing
+	}
+	
+	@Override
+	public void dispose(GLAutoDrawable drawable) {
 		// do nothing
 	}
 }

@@ -1,7 +1,7 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLBase;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.DepthTest;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
@@ -16,18 +16,18 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglDepthTestEffectDriver extends SingleEffectDriver<DepthTest, GL> {
+public class JoglDepthTestEffectDriver extends SingleEffectDriver<DepthTest, GL2ES2> {
 	public JoglDepthTestEffectDriver(JoglContextManager factory) {
 		super(new DepthTest(), DepthTest.class, factory);
 	}
 	
 	@Override
-	protected GL convert(GLBase gl) {
-		return gl.getGL();
+	public GL2ES2 convert(GL2ES2 gl) {
+		return gl;
 	}
 	
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, DepthTest nextState) {
+	protected void apply(GL2ES2 gl, JoglStateRecord record, DepthTest nextState) {
 		PixelOpRecord pr = record.pixelOpRecord;
 		FramebufferRecord fr = record.frameRecord;
 

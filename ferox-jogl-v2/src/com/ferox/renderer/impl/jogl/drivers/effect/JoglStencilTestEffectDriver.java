@@ -1,7 +1,7 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLBase;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.StencilTest;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
@@ -16,7 +16,7 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglStencilTestEffectDriver extends SingleEffectDriver<StencilTest, GL> {
+public class JoglStencilTestEffectDriver extends SingleEffectDriver<StencilTest, GL2ES2> {
 	private static final int FULL_MASK = ~0;
 
 	public JoglStencilTestEffectDriver(JoglContextManager factory) {
@@ -24,12 +24,12 @@ public class JoglStencilTestEffectDriver extends SingleEffectDriver<StencilTest,
 	}
 	
 	@Override
-	protected GL convert(GLBase gl) {
-		return gl.getGL();
+	public GL2ES2 convert(GL2ES2 gl) {
+		return gl;
 	}
 
 	@Override
-	protected void apply(GL gl, JoglStateRecord record, StencilTest nextState) {
+	protected void apply(GL2ES2 gl, JoglStateRecord record, StencilTest nextState) {
 		PixelOpRecord pr = record.pixelOpRecord;
 		FramebufferRecord fr = record.frameRecord;
 

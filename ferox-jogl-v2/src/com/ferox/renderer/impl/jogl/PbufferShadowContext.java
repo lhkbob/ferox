@@ -6,6 +6,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
@@ -22,9 +23,11 @@ public class PbufferShadowContext extends AbstractShadowContext {
 	private final JoglStateRecord record;
 
 	/** Assumes that pbuffers are supported on the current hardware. */
-	public PbufferShadowContext(RenderCapabilities caps) {
-		pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(new GLCapabilities(), 
-																 new DefaultGLCapabilitiesChooser(), 1, 1, null);
+	public PbufferShadowContext(GLProfile profile, RenderCapabilities caps) {
+		GLCapabilities glCaps = new GLCapabilities(profile);
+		pbuffer = GLDrawableFactory.getFactory(profile).createGLPbuffer(glCaps, 
+																 		new DefaultGLCapabilitiesChooser(), 
+																 		1, 1, null);
 		pbuffer.addGLEventListener(this);
 
 		record = new JoglStateRecord(caps);

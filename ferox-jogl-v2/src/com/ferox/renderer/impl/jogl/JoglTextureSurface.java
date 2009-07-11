@@ -1,6 +1,7 @@
 package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.RenderCapabilities;
@@ -82,7 +83,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	 * or pbuffer surface. It will throw a SurfaceCreationException if it cannot
 	 * create a valid surface.
 	 */
-	public JoglTextureSurface(JoglContextManager factory, DisplayOptions options, 
+	public JoglTextureSurface(JoglContextManager factory, GLProfile profile, DisplayOptions options, 
 							  TextureTarget target, int width, int height, int depth, 
 							  int layer, int numColorTargets, boolean useDepthRenderBuffer) {
 		super(factory);
@@ -100,7 +101,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 
 		// create texture images and delegates of gfx card
 		factory.runOnGraphicsThread(null, new UpdateTextureImagesAction(s, factory));
-		factory.runOnGraphicsThread(null, new ConstructDelegateAction(s, factory, this));
+		factory.runOnGraphicsThread(null, new ConstructDelegateAction(profile, s, factory, this));
 
 		// if we've gotten here, we're okay
 		this.layer = s.layer;
@@ -112,7 +113,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	 * will throw an exception if the layer argument is invalid. It assumes the
 	 * given surface is valid, however.
 	 */
-	public JoglTextureSurface(JoglContextManager factory, JoglTextureSurface shared, int layer) {
+	public JoglTextureSurface(JoglContextManager factory, GLProfile profile, JoglTextureSurface shared, int layer) {
 		super(factory);
 		// validate the layer argument
 		TextureTarget target = shared.delegate.getColorTarget();
@@ -449,11 +450,13 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 		private final JoglContextManager factory;
 		private final SurfaceSpecifier s;
 		private final JoglTextureSurface surface;
+		private final GLProfile profile;
 
-		private ConstructDelegateAction(SurfaceSpecifier s, JoglContextManager factory, JoglTextureSurface surface) {
+		private ConstructDelegateAction(GLProfile profile, SurfaceSpecifier s, JoglContextManager factory, JoglTextureSurface surface) {
 			this.factory = factory;
 			this.s = s;
 			this.surface = surface;
+			this.profile = profile;
 		}
 
 		public void run() throws SurfaceCreationException {
@@ -464,7 +467,7 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 			else
 				try {
 					TextureImage color = (s.colorBuffers == null ? null : s.colorBuffers[0]);
-					surface.delegate = new PbufferDelegate(factory, s.options, surface, s.colorTarget, 
+					surface.delegate = new PbufferDelegate(factory, profile, s.options, surface, s.colorTarget, 
 														   s.depthTarget, s.width, s.height, color, s.depthBuffer, 
 														   s.useDepthRenderBuffer);
 				} catch (RuntimeException e) {

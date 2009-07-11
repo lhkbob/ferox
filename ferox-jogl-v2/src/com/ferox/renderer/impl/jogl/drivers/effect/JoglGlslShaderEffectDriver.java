@@ -4,7 +4,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLBase;
 
 import com.ferox.effect.GlslShader;
 import com.ferox.effect.GlslShader.UniformBinding;
@@ -31,8 +30,8 @@ public class JoglGlslShaderEffectDriver extends SingleEffectDriver<GlslShader, G
 	}
 	
 	@Override
-	protected GL2ES2 convert(GLBase gl) {
-		return gl.getGL2ES2();
+	public GL2ES2 convert(GL2ES2 gl) {
+		return gl;
 	}
 
 	@Override

@@ -2,9 +2,8 @@ package com.ferox.renderer.impl.jogl.drivers;
 
 import java.nio.FloatBuffer;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Matrix4f;
@@ -33,7 +32,7 @@ import com.sun.opengl.util.BufferUtil;
  * 
  * @author Michael Ludwig
  */
-public class JoglTransformDriver implements TransformDriver {
+public class JoglTransformDriver implements TransformDriver, DriverProfile<GL2> {
 	// transform used to convert ferox view into jogl view
 	private static final Transform convert = new Transform(new Vector3f(), 
 														   new Matrix3f(-1, 0, 0, 0, 1, 0, 0, 0, -1));
@@ -51,6 +50,16 @@ public class JoglTransformDriver implements TransformDriver {
 		currentView = new Transform();
 		modelPushed = false;
 	}
+	
+	@Override
+	public GL2 convert(GL2ES2 base) {
+		return base.getGL2();
+	}
+
+	@Override
+	public GL2 getGL(JoglContextManager context) {
+		return convert(context.getGL().getGL2ES2());
+	}
 
 	/**
 	 * Returns the current "view" portion of the modelview matrix. This is
@@ -65,7 +74,7 @@ public class JoglTransformDriver implements TransformDriver {
 	 * Load the given matrix onto the current matrix stack, as determined by the
 	 * given gl's matrix mode.
 	 */
-	public void loadMatrix(GLMatrixFunc gl, Transform t) {
+	public void loadMatrix(GL2 gl, Transform t) {
 		matrix.rewind();
 		getOpenGLMatrix(t, matrix);
 		gl.glLoadMatrixf(matrix);
@@ -75,7 +84,7 @@ public class JoglTransformDriver implements TransformDriver {
 	 * Push and then multiply the current stack by t. Should be paired with
 	 * gl.glPopMatrix().
 	 */
-	public void pushMatrix(GLMatrixFunc gl, Transform t) {
+	public void pushMatrix(GL2 gl, Transform t) {
 		gl.glPushMatrix();
 		getOpenGLMatrix(t, matrix);
 		gl.glMultMatrixf(matrix);
@@ -84,23 +93,23 @@ public class JoglTransformDriver implements TransformDriver {
 	@Override
 	public void setModelTransform(Transform transform) {
 		if (!modelPushed) {
-			pushMatrix(factory.getGL().getGL2(), transform);
+			pushMatrix(getGL(factory), transform);
 			modelPushed = true;
 		} else
-			loadMatrix(factory.getGL().getGL2(), transform);
+			loadMatrix(getGL(factory), transform);
 	}
 
 	@Override
 	public void resetModel() {
 		if (modelPushed) {
-			factory.getGL().getGL2().glPopMatrix();
+			getGL(factory).glPopMatrix();
 			modelPushed = false;
 		}
 	}
 
 	@Override
 	public void setView(View view, int width, int height) {
-		GL2 gl = factory.getGL().getGL2();
+		GL2 gl = getGL(factory);
 
 		resetModel();
 		if (view != null) {
@@ -124,7 +133,7 @@ public class JoglTransformDriver implements TransformDriver {
 
 	@Override
 	public void resetView() {
-		factory.getGL().getGL2().glLoadIdentity();
+		getGL(factory).glLoadIdentity();
 		currentView.setIdentity();
 	}
 
@@ -191,7 +200,7 @@ public class JoglTransformDriver implements TransformDriver {
 		ogl.put(pos + 15, matrix.m33);
 	}
 
-	private static void setViewport(GL gl, float left, float right, 
+	private static void setViewport(GL2 gl, float left, float right, 
 									float top, float bottom, int width, int height) {
 		gl.glViewport((int) (left * width), (int) (bottom * height), 
 					  (int) ((right - left) * width), (int) ((top - bottom) * height));

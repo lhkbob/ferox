@@ -1,12 +1,12 @@
 package com.ferox;
 
-import java.awt.Component;
 import java.awt.event.KeyEvent;
 
 import com.ferox.math.Transform;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.impl.jogl.JoglFramework;
+import com.sun.javafx.newt.opengl.GLWindow;
 
 /**
  * ApplicationBase provides a common, simple framework for tests to build off
@@ -54,7 +54,7 @@ public class ApplicationBase {
 	 * mover isn't null, it will be the transform automatically moved by the
 	 * default implementation of handleInput().
 	 */
-	protected void configureInputHandling(Component c, Transform mover) {
+	protected void configureInputHandling(GLWindow c, Transform mover) {
 		input = new InputManager(c);
 		input.setKeyBehavior(KeyEvent.VK_R, InputManager.INITIAL_PRESS);
 		input.setKeyBehavior(KeyEvent.VK_M, InputManager.INITIAL_PRESS);

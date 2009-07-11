@@ -14,6 +14,7 @@ import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
 import com.ferox.resource.GlslVertexAttribute;
@@ -23,7 +24,7 @@ import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.GlslVertexAttribute.AttributeType;
 import com.ferox.resource.Resource.Status;
 
-public class JoglGlslProgramResourceDriver implements ResourceDriver {
+public class JoglGlslProgramResourceDriver implements ResourceDriver, DriverProfile<GL2ES2> {
 	/* Handle subclass used for GlslPrograms. */
 	private static class GlslProgramHandle implements Handle {
 		private int programId;
@@ -71,10 +72,20 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		glslSupport = factory.getFramework().getCapabilities().getGlslSupport();
 		maxAttributes = factory.getFramework().getCapabilities().getMaxVertexAttributes();
 	}
+	
+	@Override
+	public GL2ES2 convert(GL2ES2 base) {
+		return base;
+	}
+	
+	@Override
+	public GL2ES2 getGL(JoglContextManager context) {
+		return context.getGL();
+	}
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL2ES2 gl = factory.getGL().getGL2ES2();
+		GL2ES2 gl = getGL(factory);
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 
 		if (handle != null) {
@@ -92,7 +103,7 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 	@Override
 	public void update(Renderer renderer, Resource resource, 
 					   ResourceData data, boolean fullUpdate) {
-		GL2ES2 gl = factory.getGL().getGL2ES2();
+		GL2ES2 gl = getGL(factory);
 		GlslProgramHandle handle = (GlslProgramHandle) data.getHandle();
 		GlslProgram program = (GlslProgram) resource;
 
@@ -139,12 +150,12 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		if (fullUpdate || dirty.getGlslCodeDirty()) {
 			// set the glsl code that will be executed for the program
 			String[] fragmentCode = program.getFragmentShader();
-			int fragmentObject = (fragmentCode.length == 0 ? -1 
-														   : compileShader(gl, handle.fragmentId, fragmentCode, GL2.GL_FRAGMENT_SHADER));
+			int fragmentObject = (fragmentCode.length == 0 ? 
+								  -1 : compileShader(gl, handle.fragmentId, fragmentCode, GL2.GL_FRAGMENT_SHADER));
 
 			String[] vertexCode = program.getVertexShader();
-			int vertexObject = (vertexCode.length == 0 ? -1 
-													   : compileShader(gl, handle.vertexId, vertexCode, GL2.GL_VERTEX_SHADER));
+			int vertexObject = (vertexCode.length == 0 ? 
+								-1 : compileShader(gl, handle.vertexId, vertexCode, GL2.GL_VERTEX_SHADER));
 
 			// attach the shaders
 			handle.fragmentId = setShader(gl, handle.programId, handle.fragmentId, fragmentObject);
@@ -185,7 +196,6 @@ public class JoglGlslProgramResourceDriver implements ResourceDriver {
 		}
 
 		// now we have to configure the uniforms and attributes
-
 		if ((fullUpdate || dirty.getGlslCodeDirty() || 
 			dirty.getUniformsDirty()) && data.getStatus() != Status.ERROR)
 			// have to update the uniforms

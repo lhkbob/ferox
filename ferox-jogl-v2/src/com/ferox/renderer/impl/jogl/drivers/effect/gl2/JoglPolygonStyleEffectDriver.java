@@ -1,14 +1,15 @@
-package com.ferox.renderer.impl.jogl.drivers.effect;
+package com.ferox.renderer.impl.jogl.drivers.effect.gl2;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.GLBase;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.PolygonStyle;
 import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.effect.PolygonStyle.Winding;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
+import com.ferox.renderer.impl.jogl.drivers.effect.SingleEffectDriver;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.RasterizationRecord;
 
@@ -24,7 +25,7 @@ public class JoglPolygonStyleEffectDriver extends SingleEffectDriver<PolygonStyl
 	}
 	
 	@Override
-	protected GL2 convert(GLBase gl) {
+	public GL2 convert(GL2ES2 gl) {
 		return gl.getGL2();
 	}
 

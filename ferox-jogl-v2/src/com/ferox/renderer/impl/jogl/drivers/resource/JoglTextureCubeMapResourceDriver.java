@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.drivers.resource;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
@@ -9,6 +9,7 @@ import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.TextureHandle;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
@@ -32,7 +33,7 @@ import com.ferox.util.texture.converter.TextureConverter;
  * 
  * @author Michael Ludwig
  */
-public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
+public class JoglTextureCubeMapResourceDriver implements ResourceDriver, DriverProfile<GL2ES2> {
 	private final JoglContextManager factory;
 	private final TextureImageDriver imageDriver;
 	private final boolean hasS3tcCompression;
@@ -44,10 +45,20 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 		imageDriver = new TextureImageDriver(caps);
 		hasS3tcCompression = caps.getS3TextureCompression();
 	}
+	
+	@Override
+	public GL2ES2 convert(GL2ES2 base) {
+		return base.getGL2();
+	}
+
+	@Override
+	public GL2ES2 getGL(JoglContextManager context) {
+		return context.getGL();
+	}
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL gl = factory.getGL();
+		GL2ES2 gl = getGL(factory);
 		TextureHandle handle = (TextureHandle) data.getHandle();
 
 		if (handle != null)
@@ -58,7 +69,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
 		JoglStateRecord sr = factory.getRecord();
 
-		GL gl = factory.getGL();
+		GL2ES2 gl = getGL(factory);
 		PackUnpackRecord pr = sr.packRecord;
 		TextureRecord tr = sr.textureRecord;
 
@@ -130,7 +141,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	 * regions. This method will properly resize images and use compressed
 	 * function calls if needed.
 	 */
-	private void doTexImage(GL gl, PackUnpackRecord pr, 
+	private void doTexImage(GL2ES2 gl, PackUnpackRecord pr, 
 							TextureHandle handle, TextureCubeMap tex, boolean newTex) {
 		boolean needsResize = handle.width != tex.getWidth(0) || handle.height != tex.getHeight(0);
 
@@ -149,7 +160,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	 * doesn't have a compressed format. It is recommended not to use the DEPTH
 	 * format, either since that seems to cause problems.
 	 */
-	private void doTexSubImage(GL gl, PackUnpackRecord pr, TextureCubeMapDirtyDescriptor dirty, 
+	private void doTexSubImage(GL2ES2 gl, PackUnpackRecord pr, TextureCubeMapDirtyDescriptor dirty, 
 							   TextureHandle handle, TextureCubeMap tex) {
 		for (int i = 0; i < handle.numMipmaps; i++) {
 			// loop over all faces in this level
@@ -162,7 +173,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 		}
 	}
 
-	private void doTexImage(GL gl, PackUnpackRecord pr, TextureHandle handle, TextureCubeMap tex, 
+	private void doTexImage(GL2ES2 gl, PackUnpackRecord pr, TextureHandle handle, TextureCubeMap tex, 
 							boolean newTex, boolean needsResize, int level, int face) {
 		int s = Math.max(1, handle.width >> level);
 		BufferData bd = tex.getData(face, level);
@@ -196,7 +207,7 @@ public class JoglTextureCubeMapResourceDriver implements ResourceDriver {
 	}
 
 	/* Do glTexSubImage2D() for the given mipmap and face. */
-	private void doTexSubImage(GL gl, PackUnpackRecord pr, MipmapDirtyRegion region, 
+	private void doTexSubImage(GL2ES2 gl, PackUnpackRecord pr, MipmapDirtyRegion region, 
 							  TextureHandle handle, TextureCubeMap tex,
 							  int level, int face) {
 		int s = Math.max(1, handle.width >> level);

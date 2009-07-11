@@ -1,26 +1,20 @@
 package com.ferox;
 
-import java.awt.AWTException;
-import java.awt.Component;
-import java.awt.Cursor;
+
 import java.awt.Point;
 import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 
-import javax.swing.SwingUtilities;
+import com.sun.javafx.newt.KeyEvent;
+import com.sun.javafx.newt.KeyListener;
+import com.sun.javafx.newt.MouseEvent;
+import com.sun.javafx.newt.MouseListener;
+import com.sun.javafx.newt.opengl.GLWindow;
 
 //FIXME: make this better, cleaner and more interfacy, not permanent
-public class InputManager implements KeyListener, MouseListener,
-	MouseMotionListener, MouseWheelListener {
+public class InputManager implements KeyListener, MouseListener {
 	public static final int NORMAL = 0;
 	public static final int RELATIVE = 1;
+	
 	public static final int INITIAL_PRESS = 1;
 	public static final int MOVED = 0;
 	public static final int DRAGGED = 1;
@@ -31,11 +25,6 @@ public class InputManager implements KeyListener, MouseListener,
 
 	private static final int NUM_KEYS = 600;
 	private static final int NUM_MOUSE_BUTTONS = 3;
-
-	public static final Cursor INVISIBLE_CURSOR =
-		Toolkit.getDefaultToolkit().createCustomCursor(
-			Toolkit.getDefaultToolkit().getImage(""), new Point(0, 0),
-			"invisible");
 
 	private final int keyPressed[][];
 	private final int mouseButtonPressed[];
@@ -57,16 +46,12 @@ public class InputManager implements KeyListener, MouseListener,
 	private final Point mouseAtButton3[];
 	private final Point mouseAtWheel;
 
-	private Component comp;
+	private GLWindow comp;
 	public Robot robot;
 
 	private boolean isRecentering;
 
-	public InputManager(Component comp) {
-		this(comp, NORMAL);
-	}
-
-	public InputManager(Component comp, int behavior) {
+	public InputManager(GLWindow comp) {
 		mouseLocation = new Point();
 		centerLocation = new Point();
 		mouseAtButton1 = new Point[3];
@@ -83,74 +68,18 @@ public class InputManager implements KeyListener, MouseListener,
 		keyPressed = new int[NUM_KEYS][2];
 		mouseButtonPressed = new int[NUM_MOUSE_BUTTONS];
 		setInputComponent(comp);
-		setBehavior(behavior);
 	}
 
-	public void setInputComponent(Component comp) {
+	public void setInputComponent(GLWindow comp) {
 		if (this.comp != null) {
 			this.comp.removeKeyListener(this);
 			this.comp.removeMouseListener(this);
-			this.comp.removeMouseMotionListener(this);
-			this.comp.removeMouseWheelListener(this);
 		}
 		this.comp = comp;
 		if (this.comp != null) {
 			this.comp.addKeyListener(this);
 			this.comp.addMouseListener(this);
-			this.comp.addMouseMotionListener(this);
-			this.comp.addMouseWheelListener(this);
 		}
-	}
-
-	public void setCursor(Cursor cursor) {
-		comp.setCursor(cursor);
-	}
-
-	public void setBehavior(int behavior) {
-		if (behavior == 0 || behavior == 1) {
-			mouseBehavior = behavior;
-		} else {
-			mouseBehavior = 0;
-		}
-		if (behavior == 1) {
-			setRelativeMouseMode(mouseBehavior);
-		}
-	}
-
-	private void setRelativeMouseMode(int mode) {
-		if (mode == isRelativeMouseMode()) {
-			return;
-		}
-		if (mode == RELATIVE) {
-			try {
-				robot = new Robot();
-				recenterMouse();
-				setCursor(INVISIBLE_CURSOR);
-			} catch (AWTException ex) {
-				robot = null;
-			}
-		} else {
-			robot = null;
-		}
-	}
-
-	public int isRelativeMouseMode() {
-		if (robot == null) {
-			return NORMAL;
-		} else {
-			return RELATIVE;
-		}
-	}
-
-	private synchronized void recenterMouse() {
-		if (robot != null && comp.isShowing()) {
-			centerLocation.x = comp.getWidth() / 2;
-			centerLocation.y = comp.getHeight() / 2;
-			SwingUtilities.convertPointToScreen(centerLocation, comp);
-			isRecentering = true;
-			robot.mouseMove(centerLocation.x, centerLocation.y);
-		}
-
 	}
 
 	public void mouseMoved(MouseEvent e) {
@@ -160,9 +89,6 @@ public class InputManager implements KeyListener, MouseListener,
 		} else {
 			mouseXChange = (e.getX()) - mouseLocation.x;
 			mouseYChange = (e.getY()) - mouseLocation.y;
-			if (mouseBehavior == 1) {
-				recenterMouse();
-			}
 			mouseMotionType = MOVED;
 		}
 		mouseLocation.x = (e.getX());
@@ -289,7 +215,7 @@ public class InputManager implements KeyListener, MouseListener,
 		e.consume();
 	}
 
-	public void mouseWheelMoved(MouseWheelEvent e) {
+	public void mouseWheelMoved(MouseEvent e) {
 		mouseWheelChange = e.getWheelRotation();
 		mouseAtWheel.x = (e.getX());// +(int)currentComp.getBounds().getX());//
 		mouseAtWheel.y = (e.getY());// )+(int)currentComp.getBounds().getY());
@@ -461,7 +387,7 @@ public class InputManager implements KeyListener, MouseListener,
 		}
 	}
 
-	public Component getListeningComponent() {
+	public GLWindow getListeningComponent() {
 		return comp;
 	}
 

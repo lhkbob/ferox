@@ -1,9 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.media.opengl.GL;
-import javax.swing.SwingUtilities;
+import javax.media.opengl.GL2;
 
 import com.ferox.effect.BlendMode.BlendEquation;
 import com.ferox.effect.BlendMode.BlendFactor;
@@ -83,55 +80,55 @@ public class JoglUtil {
 	 */
 	public static UniformType getUniformType(int type) {
 		switch (type) {
-		case GL.GL_FLOAT:
+		case GL2.GL_FLOAT:
 			return UniformType.FLOAT;
-		case GL.GL_FLOAT_VEC2:
+		case GL2.GL_FLOAT_VEC2:
 			return UniformType.FLOAT_VEC2;
-		case GL.GL_FLOAT_VEC3:
+		case GL2.GL_FLOAT_VEC3:
 			return UniformType.FLOAT_VEC3;
-		case GL.GL_FLOAT_VEC4:
+		case GL2.GL_FLOAT_VEC4:
 			return UniformType.FLOAT_VEC4;
 
-		case GL.GL_FLOAT_MAT2:
+		case GL2.GL_FLOAT_MAT2:
 			return UniformType.FLOAT_MAT2;
-		case GL.GL_FLOAT_MAT3:
+		case GL2.GL_FLOAT_MAT3:
 			return UniformType.FLOAT_MAT3;
-		case GL.GL_FLOAT_MAT4:
+		case GL2.GL_FLOAT_MAT4:
 			return UniformType.FLOAT_MAT4;
 
-		case GL.GL_INT:
+		case GL2.GL_INT:
 			return UniformType.INT;
-		case GL.GL_INT_VEC2:
+		case GL2.GL_INT_VEC2:
 			return UniformType.INT_VEC2;
-		case GL.GL_INT_VEC3:
+		case GL2.GL_INT_VEC3:
 			return UniformType.INT_VEC3;
-		case GL.GL_INT_VEC4:
+		case GL2.GL_INT_VEC4:
 			return UniformType.INT_VEC4;
 
-		case GL.GL_BOOL:
+		case GL2.GL_BOOL:
 			return UniformType.BOOL;
-		case GL.GL_BOOL_VEC2:
+		case GL2.GL_BOOL_VEC2:
 			return UniformType.BOOL_VEC2;
-		case GL.GL_BOOL_VEC3:
+		case GL2.GL_BOOL_VEC3:
 			return UniformType.BOOL_VEC3;
-		case GL.GL_BOOL_VEC4:
+		case GL2.GL_BOOL_VEC4:
 			return UniformType.BOOL_VEC4;
 
-		case GL.GL_SAMPLER_1D:
+		case GL2.GL_SAMPLER_1D:
 			return UniformType.SAMPLER_1D;
-		case GL.GL_SAMPLER_2D:
+		case GL2.GL_SAMPLER_2D:
 			return UniformType.SAMPLER_2D;
-		case GL.GL_SAMPLER_3D:
+		case GL2.GL_SAMPLER_3D:
 			return UniformType.SAMPLER_3D;
-		case GL.GL_SAMPLER_CUBE:
+		case GL2.GL_SAMPLER_CUBE:
 			return UniformType.SAMPLER_CUBEMAP;
-		case GL.GL_SAMPLER_2D_RECT_ARB:
+		case GL2.GL_SAMPLER_2D_RECT_ARB:
 			return UniformType.SAMPLER_RECT;
-		case GL.GL_SAMPLER_2D_SHADOW:
+		case GL2.GL_SAMPLER_2D_SHADOW:
 			return UniformType.SAMPLER_2D_SHADOW;
-		case GL.GL_SAMPLER_1D_SHADOW:
+		case GL2.GL_SAMPLER_1D_SHADOW:
 			return UniformType.SAMPLER_1D_SHADOW;
-		case GL.GL_SAMPLER_2D_RECT_SHADOW_ARB:
+		case GL2.GL_SAMPLER_2D_RECT_SHADOW_ARB:
 			return UniformType.SAMPLER_RECT_SHADOW;
 		}
 
@@ -145,19 +142,19 @@ public class JoglUtil {
 	 */
 	public static AttributeType getAttributeType(int type) {
 		switch (type) {
-		case GL.GL_FLOAT:
+		case GL2.GL_FLOAT:
 			return AttributeType.FLOAT;
-		case GL.GL_FLOAT_VEC2:
+		case GL2.GL_FLOAT_VEC2:
 			return AttributeType.VEC2F;
-		case GL.GL_FLOAT_VEC3:
+		case GL2.GL_FLOAT_VEC3:
 			return AttributeType.VEC3F;
-		case GL.GL_FLOAT_VEC4:
+		case GL2.GL_FLOAT_VEC4:
 			return AttributeType.VEC4F;
-		case GL.GL_FLOAT_MAT2:
+		case GL2.GL_FLOAT_MAT2:
 			return AttributeType.MAT2F;
-		case GL.GL_FLOAT_MAT3:
+		case GL2.GL_FLOAT_MAT3:
 			return AttributeType.MAT3F;
-		case GL.GL_FLOAT_MAT4:
+		case GL2.GL_FLOAT_MAT4:
 			return AttributeType.MAT4F;
 		}
 
@@ -168,17 +165,17 @@ public class JoglUtil {
 	public static int getGLPolygonConnectivity(PolygonType type) {
 		switch (type) {
 		case LINES:
-			return GL.GL_LINES;
+			return GL2.GL_LINES;
 		case POINTS:
-			return GL.GL_POINTS;
+			return GL2.GL_POINTS;
 		case QUAD_STRIP:
-			return GL.GL_QUAD_STRIP;
+			return GL2.GL_QUAD_STRIP;
 		case QUADS:
-			return GL.GL_QUADS;
+			return GL2.GL_QUADS;
 		case TRIANGLE_STRIP:
-			return GL.GL_TRIANGLE_STRIP;
+			return GL2.GL_TRIANGLE_STRIP;
 		case TRIANGLES:
-			return GL.GL_TRIANGLES;
+			return GL2.GL_TRIANGLES;
 		}
 
 		return -1;
@@ -188,11 +185,11 @@ public class JoglUtil {
 	public static int getGLHint(Quality qual) {
 		switch (qual) {
 		case BEST:
-			return GL.GL_NICEST;
+			return GL2.GL_NICEST;
 		case DONT_CARE:
-			return GL.GL_DONT_CARE;
+			return GL2.GL_DONT_CARE;
 		case FAST:
-			return GL.GL_FASTEST;
+			return GL2.GL_FASTEST;
 		}
 
 		return -1;
@@ -202,21 +199,21 @@ public class JoglUtil {
 	public static int getGLPixelTest(PixelTest test) {
 		switch (test) {
 		case ALWAYS:
-			return GL.GL_ALWAYS;
+			return GL2.GL_ALWAYS;
 		case EQUAL:
-			return GL.GL_EQUAL;
+			return GL2.GL_EQUAL;
 		case GEQUAL:
-			return GL.GL_GEQUAL;
+			return GL2.GL_GEQUAL;
 		case GREATER:
-			return GL.GL_GREATER;
+			return GL2.GL_GREATER;
 		case LEQUAL:
-			return GL.GL_LEQUAL;
+			return GL2.GL_LEQUAL;
 		case LESS:
-			return GL.GL_LESS;
+			return GL2.GL_LESS;
 		case NEVER:
-			return GL.GL_NEVER;
+			return GL2.GL_NEVER;
 		case NOT_EQUAL:
-			return GL.GL_NOTEQUAL;
+			return GL2.GL_NOTEQUAL;
 		}
 
 		return -1;
@@ -229,13 +226,13 @@ public class JoglUtil {
 	public static int getGLMinFilter(Filter filter) {
 		switch (filter) {
 		case LINEAR:
-			return GL.GL_LINEAR;
+			return GL2.GL_LINEAR;
 		case NEAREST:
-			return GL.GL_NEAREST;
+			return GL2.GL_NEAREST;
 		case MIPMAP_LINEAR:
-			return GL.GL_LINEAR_MIPMAP_LINEAR;
+			return GL2.GL_LINEAR_MIPMAP_LINEAR;
 		case MIPMAP_NEAREST:
-			return GL.GL_NEAREST_MIPMAP_NEAREST;
+			return GL2.GL_NEAREST_MIPMAP_NEAREST;
 		}
 
 		return -1;
@@ -249,10 +246,10 @@ public class JoglUtil {
 		switch (filter) {
 		case LINEAR:
 		case MIPMAP_LINEAR:
-			return GL.GL_LINEAR;
+			return GL2.GL_LINEAR;
 		case NEAREST:
 		case MIPMAP_NEAREST:
-			return GL.GL_NEAREST;
+			return GL2.GL_NEAREST;
 		}
 
 		return -1;
@@ -262,11 +259,11 @@ public class JoglUtil {
 	public static int getGLWrapMode(TextureWrap wrap) {
 		switch (wrap) {
 		case CLAMP:
-			return GL.GL_CLAMP_TO_EDGE;
+			return GL2.GL_CLAMP_TO_EDGE;
 		case MIRROR:
-			return GL.GL_MIRRORED_REPEAT;
+			return GL2.GL_MIRRORED_REPEAT;
 		case REPEAT:
-			return GL.GL_REPEAT;
+			return GL2.GL_REPEAT;
 		}
 
 		return -1;
@@ -276,17 +273,17 @@ public class JoglUtil {
 	public static int getGLCubeFace(int face) {
 		switch (face) {
 		case TextureCubeMap.PX:
-			return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+			return GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 		case TextureCubeMap.NX:
-			return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+			return GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
 		case TextureCubeMap.PY:
-			return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+			return GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
 		case TextureCubeMap.NY:
-			return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+			return GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
 		case TextureCubeMap.PZ:
-			return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+			return GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
 		case TextureCubeMap.NZ:
-			return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+			return GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
 		}
 
 		return -1;
@@ -296,15 +293,15 @@ public class JoglUtil {
 	public static int getGLTextureTarget(TextureTarget tar) {
 		switch (tar) {
 		case T_1D:
-			return GL.GL_TEXTURE_1D;
+			return GL2.GL_TEXTURE_1D;
 		case T_2D:
-			return GL.GL_TEXTURE_2D;
+			return GL2.GL_TEXTURE_2D;
 		case T_3D:
-			return GL.GL_TEXTURE_3D;
+			return GL2.GL_TEXTURE_3D;
 		case T_CUBEMAP:
-			return GL.GL_TEXTURE_CUBE_MAP;
+			return GL2.GL_TEXTURE_CUBE_MAP;
 		case T_RECT:
-			return GL.GL_TEXTURE_RECTANGLE_ARB;
+			return GL2.GL_TEXTURE_RECTANGLE_ARB;
 		}
 
 		return -1;
@@ -320,59 +317,59 @@ public class JoglUtil {
 		case ABGR_1555:
 		case ABGR_4444:
 		case ABGR_8888:
-			return GL.GL_RGBA;
+			return GL2.GL_RGBA;
 		case RGBA_4444:
 		case RGBA_5551:
 		case RGBA_8888:
-			return GL.GL_RGBA;
+			return GL2.GL_RGBA;
 
 			// packed of the BGRA variety (packed type distinguishes them)
 		case ARGB_1555:
 		case ARGB_4444:
 		case ARGB_8888:
-			return GL.GL_BGRA;
+			return GL2.GL_BGRA;
 		case BGRA_4444:
 		case BGRA_5551:
 		case BGRA_8888:
-			return GL.GL_BGRA;
+			return GL2.GL_BGRA;
 
 			// packed and unpacked RGB types
 		case RGB:
 		case RGB_565:
 		case RGB_FLOAT:
-			return GL.GL_RGB;
+			return GL2.GL_RGB;
 
 			// packed and unpacked BGR types
 		case BGR:
-			return GL.GL_BGR;
+			return GL2.GL_BGR;
 		case BGR_565:
-			return GL.GL_RGB; // type swaps the ordering
+			return GL2.GL_RGB; // type swaps the ordering
 
 			// unpacked RGBA and BGRA types
 		case RGBA:
 		case RGBA_FLOAT:
-			return GL.GL_RGBA;
+			return GL2.GL_RGBA;
 		case BGRA:
-			return GL.GL_BGRA;
+			return GL2.GL_BGRA;
 
 			// depth formats
 		case DEPTH:
-			return GL.GL_DEPTH_COMPONENT;
+			return GL2.GL_DEPTH_COMPONENT;
 
 			// alpha formats
 		case ALPHA:
 		case ALPHA_FLOAT:
-			return GL.GL_ALPHA;
+			return GL2.GL_ALPHA;
 
 			// luminance formats
 		case LUMINANCE:
 		case LUMINANCE_FLOAT:
-			return GL.GL_LUMINANCE;
+			return GL2.GL_LUMINANCE;
 
 			// LA formats
 		case LUMINANCE_ALPHA:
 		case LUMINANCE_ALPHA_FLOAT:
-			return GL.GL_LUMINANCE_ALPHA;
+			return GL2.GL_LUMINANCE_ALPHA;
 
 		}
 
@@ -391,113 +388,113 @@ public class JoglUtil {
 		case ARGB_1555:
 		case RGBA_5551:
 		case BGRA_5551:
-			return GL.GL_RGB5_A1;
+			return GL2.GL_RGB5_A1;
 
 			// packed RGBA4
 		case ABGR_4444:
 		case ARGB_4444:
 		case RGBA_4444:
 		case BGRA_4444:
-			return GL.GL_RGBA4;
+			return GL2.GL_RGBA4;
 
 			// packed RGBA8
 		case ABGR_8888:
 		case ARGB_8888:
 		case RGBA_8888:
 		case BGRA_8888:
-			return GL.GL_RGBA8;
+			return GL2.GL_RGBA8;
 
 			// packed RGB8
 		case RGB_565:
 		case BGR_565:
-			return GL.GL_RGB5;
+			return GL2.GL_RGB5;
 
 			// unclamped floating point
 		case RGB_FLOAT:
-			return GL.GL_RGB32F_ARB;
+			return GL2.GL_RGB32F_ARB;
 		case RGBA_FLOAT:
-			return GL.GL_RGBA32F_ARB;
+			return GL2.GL_RGBA32F_ARB;
 		case ALPHA_FLOAT:
-			return GL.GL_ALPHA32F_ARB;
+			return GL2.GL_ALPHA32F_ARB;
 		case LUMINANCE_FLOAT:
-			return GL.GL_LUMINANCE32F_ARB;
+			return GL2.GL_LUMINANCE32F_ARB;
 		case LUMINANCE_ALPHA_FLOAT:
-			return GL.GL_LUMINANCE_ALPHA32F_ARB;
+			return GL2.GL_LUMINANCE_ALPHA32F_ARB;
 
 			// DXT_n compression
 		case RGB_DXT1:
-			return GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+			return GL2.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 		case RGBA_DXT1:
-			return GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			return GL2.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 		case RGBA_DXT3:
-			return GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+			return GL2.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 		case RGBA_DXT5:
-			return GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			return GL2.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 
 			// if we've gotten here, we have a type-less format, and have to
 			// take the type into account
 		case ALPHA:
 			switch (type) {
 			case UNSIGNED_BYTE:
-				return GL.GL_ALPHA8;
+				return GL2.GL_ALPHA8;
 			case UNSIGNED_SHORT:
 			case UNSIGNED_INT:
-				return GL.GL_ALPHA16;
+				return GL2.GL_ALPHA16;
 			default:
-				return GL.GL_ALPHA;
+				return GL2.GL_ALPHA;
 			}
 		case LUMINANCE:
 			switch (type) {
 			case UNSIGNED_BYTE:
-				return GL.GL_LUMINANCE8;
+				return GL2.GL_LUMINANCE8;
 			case UNSIGNED_SHORT:
 			case UNSIGNED_INT:
-				return GL.GL_LUMINANCE16;
+				return GL2.GL_LUMINANCE16;
 			default:
-				return GL.GL_LUMINANCE;
+				return GL2.GL_LUMINANCE;
 			}
 		case LUMINANCE_ALPHA:
 			switch (type) {
 			case UNSIGNED_BYTE:
-				return GL.GL_LUMINANCE8_ALPHA8;
+				return GL2.GL_LUMINANCE8_ALPHA8;
 			case UNSIGNED_SHORT:
 			case UNSIGNED_INT:
-				return GL.GL_LUMINANCE16_ALPHA16;
+				return GL2.GL_LUMINANCE16_ALPHA16;
 			default:
-				return GL.GL_LUMINANCE_ALPHA;
+				return GL2.GL_LUMINANCE_ALPHA;
 			}
 		case DEPTH:
 			switch (type) {
 			case UNSIGNED_BYTE:
-				return GL.GL_DEPTH_COMPONENT16;
+				return GL2.GL_DEPTH_COMPONENT16;
 			case UNSIGNED_SHORT:
-				return GL.GL_DEPTH_COMPONENT24;
+				return GL2.GL_DEPTH_COMPONENT24;
 			case UNSIGNED_INT:
-				return GL.GL_DEPTH_COMPONENT32;
+				return GL2.GL_DEPTH_COMPONENT32;
 			default:
-				return GL.GL_DEPTH_COMPONENT;
+				return GL2.GL_DEPTH_COMPONENT;
 			}
 		case RGB:
 		case BGR:
 			switch (type) {
 			case UNSIGNED_BYTE:
-				return GL.GL_RGB8;
+				return GL2.GL_RGB8;
 			case UNSIGNED_SHORT:
 			case UNSIGNED_INT:
-				return GL.GL_RGB16;
+				return GL2.GL_RGB16;
 			default:
-				return GL.GL_RGB;
+				return GL2.GL_RGB;
 			}
 		case RGBA:
 		case BGRA:
 			switch (type) {
 			case UNSIGNED_BYTE:
-				return GL.GL_RGBA8;
+				return GL2.GL_RGBA8;
 			case UNSIGNED_SHORT:
 			case UNSIGNED_INT:
-				return GL.GL_RGBA16;
+				return GL2.GL_RGBA16;
 			default:
-				return GL.GL_RGBA;
+				return GL2.GL_RGBA;
 			}
 		}
 
@@ -514,30 +511,30 @@ public class JoglUtil {
 		// packed ABGR and ARGB types
 		case ABGR_1555:
 		case ARGB_1555:
-			return GL.GL_UNSIGNED_SHORT_1_5_5_5_REV;
+			return GL2.GL_UNSIGNED_SHORT_1_5_5_5_REV;
 		case ABGR_4444:
 		case ARGB_4444:
-			return GL.GL_UNSIGNED_SHORT_4_4_4_4_REV;
+			return GL2.GL_UNSIGNED_SHORT_4_4_4_4_REV;
 		case ABGR_8888:
 		case ARGB_8888:
-			return GL.GL_UNSIGNED_INT_8_8_8_8_REV;
+			return GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
 
 			// packed BGRA and RGBA types
 		case BGRA_5551:
 		case RGBA_5551:
-			return GL.GL_UNSIGNED_SHORT_5_5_5_1;
+			return GL2.GL_UNSIGNED_SHORT_5_5_5_1;
 		case BGRA_4444:
 		case RGBA_4444:
-			return GL.GL_UNSIGNED_SHORT_4_4_4_4;
+			return GL2.GL_UNSIGNED_SHORT_4_4_4_4;
 		case BGRA_8888:
 		case RGBA_8888:
-			return GL.GL_UNSIGNED_INT_8_8_8_8;
+			return GL2.GL_UNSIGNED_INT_8_8_8_8;
 
 			// packed BGR and RGB types
 		case BGR_565:
-			return GL.GL_UNSIGNED_SHORT_5_6_5_REV;
+			return GL2.GL_UNSIGNED_SHORT_5_6_5_REV;
 		case RGB_565:
-			return GL.GL_UNSIGNED_SHORT_5_6_5;
+			return GL2.GL_UNSIGNED_SHORT_5_6_5;
 		}
 
 		// not a packed type
@@ -551,19 +548,19 @@ public class JoglUtil {
 	public static int getGLType(DataType type) {
 		switch (type) {
 		case BYTE:
-			return GL.GL_BYTE;
+			return GL2.GL_BYTE;
 		case FLOAT:
-			return GL.GL_FLOAT;
+			return GL2.GL_FLOAT;
 		case INT:
-			return GL.GL_INT;
+			return GL2.GL_INT;
 		case SHORT:
-			return GL.GL_SHORT;
+			return GL2.GL_SHORT;
 		case UNSIGNED_BYTE:
-			return GL.GL_UNSIGNED_BYTE;
+			return GL2.GL_UNSIGNED_BYTE;
 		case UNSIGNED_INT:
-			return GL.GL_UNSIGNED_INT;
+			return GL2.GL_UNSIGNED_INT;
 		case UNSIGNED_SHORT:
-			return GL.GL_UNSIGNED_SHORT;
+			return GL2.GL_UNSIGNED_SHORT;
 		}
 
 		return -1;
@@ -573,11 +570,11 @@ public class JoglUtil {
 	public static int getGLDepthMode(DepthMode depth) {
 		switch (depth) {
 		case ALPHA:
-			return GL.GL_ALPHA;
+			return GL2.GL_ALPHA;
 		case INTENSITY:
-			return GL.GL_INTENSITY;
+			return GL2.GL_INTENSITY;
 		case LUMINANCE:
-			return GL.GL_LUMINANCE;
+			return GL2.GL_LUMINANCE;
 		}
 
 		return -1;
@@ -587,15 +584,15 @@ public class JoglUtil {
 	public static int getGLBlendEquation(BlendEquation func) {
 		switch (func) {
 		case ADD:
-			return GL.GL_FUNC_ADD;
+			return GL2.GL_FUNC_ADD;
 		case MAX:
-			return GL.GL_MAX;
+			return GL2.GL_MAX;
 		case MIN:
-			return GL.GL_MIN;
+			return GL2.GL_MIN;
 		case REVERSE_SUBTRACT:
-			return GL.GL_FUNC_REVERSE_SUBTRACT;
+			return GL2.GL_FUNC_REVERSE_SUBTRACT;
 		case SUBTRACT:
-			return GL.GL_FUNC_SUBTRACT;
+			return GL2.GL_FUNC_SUBTRACT;
 		}
 
 		return -1;
@@ -605,19 +602,19 @@ public class JoglUtil {
 	public static int getGLBlendFactor(BlendFactor src) {
 		switch (src) {
 		case ZERO:
-			return GL.GL_ZERO;
+			return GL2.GL_ZERO;
 		case ONE:
-			return GL.GL_ONE;
+			return GL2.GL_ONE;
 		case SRC_COLOR:
-			return GL.GL_SRC_COLOR;
+			return GL2.GL_SRC_COLOR;
 		case ONE_MINUS_SRC_COLOR:
-			return GL.GL_ONE_MINUS_SRC_COLOR;
+			return GL2.GL_ONE_MINUS_SRC_COLOR;
 		case SRC_ALPHA:
-			return GL.GL_SRC_ALPHA;
+			return GL2.GL_SRC_ALPHA;
 		case ONE_MINUS_SRC_ALPHA:
-			return GL.GL_ONE_MINUS_SRC_ALPHA;
+			return GL2.GL_ONE_MINUS_SRC_ALPHA;
 		case SRC_ALPHA_SATURATE:
-			return GL.GL_SRC_ALPHA_SATURATE;
+			return GL2.GL_SRC_ALPHA_SATURATE;
 		}
 
 		return -1;
@@ -627,11 +624,11 @@ public class JoglUtil {
 	public static int getGLFogMode(FogEquation eq) {
 		switch (eq) {
 		case EXP:
-			return GL.GL_EXP;
+			return GL2.GL_EXP;
 		case EXP_SQUARED:
-			return GL.GL_EXP2;
+			return GL2.GL_EXP2;
 		case LINEAR:
-			return GL.GL_LINEAR;
+			return GL2.GL_LINEAR;
 		}
 
 		return -1;
@@ -643,11 +640,11 @@ public class JoglUtil {
 	public static int getGLPolygonMode(DrawStyle style) {
 		switch (style) {
 		case LINE:
-			return GL.GL_LINE;
+			return GL2.GL_LINE;
 		case POINT:
-			return GL.GL_POINT;
+			return GL2.GL_POINT;
 		case SOLID:
-			return GL.GL_FILL;
+			return GL2.GL_FILL;
 		}
 
 		return -1;
@@ -657,21 +654,21 @@ public class JoglUtil {
 	public static int getGLStencilOp(StencilOp op) {
 		switch (op) {
 		case DECREMENT:
-			return GL.GL_DECR;
+			return GL2.GL_DECR;
 		case DECREMENT_WRAP:
-			return GL.GL_DECR_WRAP;
+			return GL2.GL_DECR_WRAP;
 		case INCREMENT:
-			return GL.GL_INCR;
+			return GL2.GL_INCR;
 		case INCREMENT_WRAP:
-			return GL.GL_INCR_WRAP;
+			return GL2.GL_INCR_WRAP;
 		case ZERO:
-			return GL.GL_ZERO;
+			return GL2.GL_ZERO;
 		case KEEP:
-			return GL.GL_KEEP;
+			return GL2.GL_KEEP;
 		case REPLACE:
-			return GL.GL_REPLACE;
+			return GL2.GL_REPLACE;
 		case INVERT:
-			return GL.GL_INVERT;
+			return GL2.GL_INVERT;
 		}
 
 		return -1;
@@ -681,15 +678,15 @@ public class JoglUtil {
 	public static int getGLTexEnvMode(EnvMode mode) {
 		switch (mode) {
 		case REPLACE:
-			return GL.GL_REPLACE;
+			return GL2.GL_REPLACE;
 		case DECAL:
-			return GL.GL_DECAL;
+			return GL2.GL_DECAL;
 		case MODULATE:
-			return GL.GL_MODULATE;
+			return GL2.GL_MODULATE;
 		case BLEND:
-			return GL.GL_BLEND;
+			return GL2.GL_BLEND;
 		case COMBINE:
-			return GL.GL_COMBINE;
+			return GL2.GL_COMBINE;
 		}
 
 		return -1;
@@ -701,15 +698,15 @@ public class JoglUtil {
 	public static int getGLTexGen(TexCoordGen gen) {
 		switch (gen) {
 		case EYE:
-			return GL.GL_EYE_LINEAR;
+			return GL2.GL_EYE_LINEAR;
 		case OBJECT:
-			return GL.GL_OBJECT_LINEAR;
+			return GL2.GL_OBJECT_LINEAR;
 		case SPHERE:
-			return GL.GL_SPHERE_MAP;
+			return GL2.GL_SPHERE_MAP;
 		case REFLECTION:
-			return GL.GL_REFLECTION_MAP;
+			return GL2.GL_REFLECTION_MAP;
 		case NORMAL:
-			return GL.GL_NORMAL_MAP;
+			return GL2.GL_NORMAL_MAP;
 		}
 
 		return -1;
@@ -719,21 +716,21 @@ public class JoglUtil {
 	public static int getGLCombineRGBFunc(CombineRgb func) {
 		switch (func) {
 		case ADD:
-			return GL.GL_ADD;
+			return GL2.GL_ADD;
 		case ADD_SIGNED:
-			return GL.GL_ADD_SIGNED;
+			return GL2.GL_ADD_SIGNED;
 		case DOT3_RGB:
-			return GL.GL_DOT3_RGB;
+			return GL2.GL_DOT3_RGB;
 		case DOT3_RGBA:
-			return GL.GL_DOT3_RGBA;
+			return GL2.GL_DOT3_RGBA;
 		case INTERPOLATE:
-			return GL.GL_INTERPOLATE;
+			return GL2.GL_INTERPOLATE;
 		case MODULATE:
-			return GL.GL_MODULATE;
+			return GL2.GL_MODULATE;
 		case REPLACE:
-			return GL.GL_REPLACE;
+			return GL2.GL_REPLACE;
 		case SUBTRACT:
-			return GL.GL_SUBTRACT;
+			return GL2.GL_SUBTRACT;
 		}
 
 		return -1;
@@ -743,17 +740,17 @@ public class JoglUtil {
 	public static int getGLCombineAlphaFunc(CombineAlpha func) {
 		switch (func) {
 		case ADD:
-			return GL.GL_ADD;
+			return GL2.GL_ADD;
 		case ADD_SIGNED:
-			return GL.GL_ADD_SIGNED;
+			return GL2.GL_ADD_SIGNED;
 		case INTERPOLATE:
-			return GL.GL_INTERPOLATE;
+			return GL2.GL_INTERPOLATE;
 		case MODULATE:
-			return GL.GL_MODULATE;
+			return GL2.GL_MODULATE;
 		case REPLACE:
-			return GL.GL_REPLACE;
+			return GL2.GL_REPLACE;
 		case SUBTRACT:
-			return GL.GL_SUBTRACT;
+			return GL2.GL_SUBTRACT;
 		}
 
 		return -1;
@@ -763,13 +760,13 @@ public class JoglUtil {
 	public static int getGLCombineOp(CombineOperand op) {
 		switch (op) {
 		case ALPHA:
-			return GL.GL_SRC_ALPHA;
+			return GL2.GL_SRC_ALPHA;
 		case COLOR:
-			return GL.GL_SRC_COLOR;
+			return GL2.GL_SRC_COLOR;
 		case ONE_MINUS_ALPHA:
-			return GL.GL_ONE_MINUS_SRC_ALPHA;
+			return GL2.GL_ONE_MINUS_SRC_ALPHA;
 		case ONE_MINUS_COLOR:
-			return GL.GL_ONE_MINUS_SRC_COLOR;
+			return GL2.GL_ONE_MINUS_SRC_COLOR;
 		}
 
 		return -1;
@@ -779,100 +776,79 @@ public class JoglUtil {
 	public static int getGLCombineSrc(CombineSource src) {
 		switch (src) {
 		case BLEND_COLOR:
-			return GL.GL_CONSTANT;
+			return GL2.GL_CONSTANT;
 		case CURR_TEX:
-			return GL.GL_TEXTURE;
+			return GL2.GL_TEXTURE;
 		case PREV_TEX:
-			return GL.GL_PREVIOUS;
+			return GL2.GL_PREVIOUS;
 		case VERTEX_COLOR:
-			return GL.GL_PRIMARY_COLOR;
+			return GL2.GL_PRIMARY_COLOR;
 		case TEX0:
-			return GL.GL_TEXTURE0;
+			return GL2.GL_TEXTURE0;
 		case TEX1:
-			return GL.GL_TEXTURE1;
+			return GL2.GL_TEXTURE1;
 		case TEX2:
-			return GL.GL_TEXTURE2;
+			return GL2.GL_TEXTURE2;
 		case TEX3:
-			return GL.GL_TEXTURE3;
+			return GL2.GL_TEXTURE3;
 		case TEX4:
-			return GL.GL_TEXTURE4;
+			return GL2.GL_TEXTURE4;
 		case TEX5:
-			return GL.GL_TEXTURE5;
+			return GL2.GL_TEXTURE5;
 		case TEX6:
-			return GL.GL_TEXTURE6;
+			return GL2.GL_TEXTURE6;
 		case TEX7:
-			return GL.GL_TEXTURE7;
+			return GL2.GL_TEXTURE7;
 		case TEX8:
-			return GL.GL_TEXTURE8;
+			return GL2.GL_TEXTURE8;
 		case TEX9:
-			return GL.GL_TEXTURE9;
+			return GL2.GL_TEXTURE9;
 		case TEX10:
-			return GL.GL_TEXTURE10;
+			return GL2.GL_TEXTURE10;
 		case TEX11:
-			return GL.GL_TEXTURE11;
+			return GL2.GL_TEXTURE11;
 		case TEX12:
-			return GL.GL_TEXTURE12;
+			return GL2.GL_TEXTURE12;
 		case TEX13:
-			return GL.GL_TEXTURE13;
+			return GL2.GL_TEXTURE13;
 		case TEX14:
-			return GL.GL_TEXTURE14;
+			return GL2.GL_TEXTURE14;
 		case TEX15:
-			return GL.GL_TEXTURE15;
+			return GL2.GL_TEXTURE15;
 		case TEX16:
-			return GL.GL_TEXTURE16;
+			return GL2.GL_TEXTURE16;
 		case TEX17:
-			return GL.GL_TEXTURE17;
+			return GL2.GL_TEXTURE17;
 		case TEX18:
-			return GL.GL_TEXTURE18;
+			return GL2.GL_TEXTURE18;
 		case TEX19:
-			return GL.GL_TEXTURE19;
+			return GL2.GL_TEXTURE19;
 		case TEX20:
-			return GL.GL_TEXTURE20;
+			return GL2.GL_TEXTURE20;
 		case TEX21:
-			return GL.GL_TEXTURE21;
+			return GL2.GL_TEXTURE21;
 		case TEX22:
-			return GL.GL_TEXTURE22;
+			return GL2.GL_TEXTURE22;
 		case TEX23:
-			return GL.GL_TEXTURE23;
+			return GL2.GL_TEXTURE23;
 		case TEX24:
-			return GL.GL_TEXTURE24;
+			return GL2.GL_TEXTURE24;
 		case TEX25:
-			return GL.GL_TEXTURE25;
+			return GL2.GL_TEXTURE25;
 		case TEX26:
-			return GL.GL_TEXTURE26;
+			return GL2.GL_TEXTURE26;
 		case TEX27:
-			return GL.GL_TEXTURE27;
+			return GL2.GL_TEXTURE27;
 		case TEX28:
-			return GL.GL_TEXTURE28;
+			return GL2.GL_TEXTURE28;
 		case TEX29:
-			return GL.GL_TEXTURE29;
+			return GL2.GL_TEXTURE29;
 		case TEX30:
-			return GL.GL_TEXTURE30;
+			return GL2.GL_TEXTURE30;
 		case TEX31:
-			return GL.GL_TEXTURE31;
+			return GL2.GL_TEXTURE31;
 		}
 
 		return -1;
-	}
-
-	/**
-	 * Utility method to invoke a Runnable on the AWT event dispatch thread
-	 * (e.g. for modifying AWT and Swing components). This will throw an runtime
-	 * exception if a problem occurs. It works properly if called from the AWT
-	 * thread. This should be used when EventQueue.invokeAndWait() or
-	 * SwingUtilities.invokeAndWait() would be used, except that this is thread
-	 * safe.
-	 */
-	public static void invokeOnAwtThread(Runnable r) {
-		if (SwingUtilities.isEventDispatchThread())
-			r.run();
-		else
-			try {
-				SwingUtilities.invokeAndWait(r);
-			} catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			} catch (InvocationTargetException e) {
-				throw new RuntimeException(e);
-			}
 	}
 }

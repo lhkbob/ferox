@@ -1,11 +1,12 @@
 package com.ferox.renderer.impl.jogl.drivers.effect;
 
-import javax.media.opengl.GLBase;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.Effect;
 import com.ferox.renderer.UnsupportedEffectException;
 import com.ferox.renderer.impl.EffectDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 
 /**
@@ -16,7 +17,7 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class SingleEffectDriver<T extends Effect, G extends GLBase> implements EffectDriver {
+public abstract class SingleEffectDriver<T extends Effect, G extends GL2ES2> implements EffectDriver, DriverProfile<G> {
 	private final Class<? extends Effect> stateClass;
 	private final T defaultState;
 	protected final JoglContextManager factory;
@@ -44,17 +45,20 @@ public abstract class SingleEffectDriver<T extends Effect, G extends GLBase> imp
 	 * constructor.
 	 */
 	protected abstract void apply(G gl, JoglStateRecord record, T nextState);
-	
-	protected abstract G convert(GLBase gl);
 
 	@Override
+	public G getGL(JoglContextManager context) {
+		return convert(context.getGL());
+	}
+	
+	@Override
 	public void doApply() {
-		if (this.queuedState != null) {
-			if (this.queuedState != this.lastAppliedState)
-				this.apply(convert(this.factory.getGL()), this.factory.getRecord(), this.queuedState);
-		} else if (this.lastAppliedState != null)
-			this.apply(convert(this.factory.getGL()), this.factory.getRecord(), this.defaultState);
-		this.lastAppliedState = this.queuedState;
+		if (queuedState != null) {
+			if (queuedState != lastAppliedState)
+				apply(getGL(factory), factory.getRecord(), queuedState);
+		} else if (lastAppliedState != null)
+			apply(getGL(factory), factory.getRecord(), defaultState);
+		lastAppliedState = queuedState;
 
 		this.reset();
 	}
@@ -62,9 +66,9 @@ public abstract class SingleEffectDriver<T extends Effect, G extends GLBase> imp
 	@Override
 	@SuppressWarnings("unchecked")
 	public void queueEffect(Effect state) {
-		if (!this.stateClass.isInstance(state))
+		if (!stateClass.isInstance(state))
 			throw new UnsupportedEffectException("Unsupported effect type: " + state + 
-												 ", expected an instance of " + this.stateClass);
+												 ", expected an instance of " + stateClass);
 
 		this.queuedState = (T) state;
 	}

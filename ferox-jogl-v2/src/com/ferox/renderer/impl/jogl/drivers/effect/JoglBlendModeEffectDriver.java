@@ -2,7 +2,6 @@ package com.ferox.renderer.impl.jogl.drivers.effect;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLBase;
 
 import com.ferox.effect.BlendMode;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
@@ -22,8 +21,8 @@ public class JoglBlendModeEffectDriver extends SingleEffectDriver<BlendMode, GL2
 	}
 	
 	@Override
-	protected GL2ES2 convert(GLBase gl) {
-		return gl.getGL2ES2();
+	public GL2ES2 convert(GL2ES2 gl) {
+		return gl;
 	}
 
 	@Override

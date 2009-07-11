@@ -1,13 +1,13 @@
 package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.math.Color4f;
 import com.ferox.renderer.AbstractRenderSurface;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderException;
-import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
@@ -30,7 +30,7 @@ import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
  * 
  * @author Michael Ludwig
  */
-public abstract class JoglRenderSurface extends AbstractRenderSurface implements RenderSurface, AttachableSurfaceGLEventListener {
+public abstract class JoglRenderSurface extends AbstractRenderSurface implements AttachableSurfaceGLEventListener {
 	private boolean destroyed;
 
 	private boolean renderedOnce;
@@ -181,11 +181,6 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 	}
 
 	@Override
-	public final void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-		// do nothing
-	}
-
-	@Override
 	public final void init(GLAutoDrawable drawable) {
 		GL gl = drawable.getGL();
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT);
@@ -193,6 +188,11 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 
 	@Override
 	public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+		// do nothing
+	}
+	
+	@Override
+	public final void dispose(GLAutoDrawable drawable) {
 		// do nothing
 	}
 
@@ -256,10 +256,10 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface implements
 		// these aren't covered by any drivers at the moment, so make sure
 		// they're
 		// enabled correctly
-		gl.glEnable(GL.GL_SCISSOR_TEST);
+		gl.glEnable(GL2.GL_SCISSOR_TEST);
 		pr.enableScissorTest = true;
 
 		// this isn't part of the state record, but overhead should be minimal
-		gl.glEnable(GL.GL_RESCALE_NORMAL);
+		gl.glEnable(GL2.GL_RESCALE_NORMAL);
 	}
 }

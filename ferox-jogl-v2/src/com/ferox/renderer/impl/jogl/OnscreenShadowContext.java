@@ -1,18 +1,17 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.Frame;
-
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
+import com.sun.javafx.newt.opengl.GLWindow;
 
 /**
  * OnscreenShadowContext provides a GLContext from a GLCanvas, and when
- * necessary controls making the canvas visible. It attempts to keep the canvas
+ * necessary controls making the window visible. It attempts to keep the window
  * hidden unless GL calls actually need to be made (in which case, it makes it
  * visible only when necessary). This is intended to be a fall-back shadow
  * context when a PbufferShadowContext can't be used.
@@ -20,89 +19,43 @@ import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
  * @author Michael Ludwig
  */
 public class OnscreenShadowContext extends AbstractShadowContext {
-	// to be executed on the EDT before the canvas has display() called
-	private final Runnable showFrame;
-	private final Runnable hideFrame;
-
-	private Frame frame;
-	private final GLCanvas canvas;
+	private final GLWindow window;
 
 	private JoglStateRecord record;
-	private final RenderCapabilities caps;
 
-	public OnscreenShadowContext(RenderCapabilities caps) {
-		canvas = new GLCanvas();
-		canvas.addGLEventListener(this);
+	public OnscreenShadowContext(GLProfile profile, RenderCapabilities caps) {
+		window = GLWindow.create();
+		window.addGLEventListener(this);
 
-		this.caps = caps;
-		record = new JoglStateRecord(caps); // init here just so we won't return
-		// a null state record ever
-
-		frame = null;
-
-		showFrame = new Runnable() {
-			public void run() {
-				if (frame == null) {
-					Frame f = new Frame();
-					f.setSize(1, 1);
-					f.setResizable(false);
-					f.setUndecorated(true);
-					f.setTitle("");
-					f.add(canvas);
-
-					frame = f;
-				}
-
-				frame.setVisible(true);
-			}
-		};
-
-		hideFrame = new Runnable() {
-			public void run() {
-				frame.setVisible(false);
-			}
-		};
+		// init here just so we won't return a null record ever
+		record = new JoglStateRecord(caps);
 	}
-
+	
 	@Override
 	public void render() throws RenderException {
 		// must make the frame visible so that the context is valid
-		// for gl execution (instead of just context sharing)
-		JoglUtil.invokeOnAwtThread(showFrame);
-
-		record = new JoglStateRecord(caps);
-
+		window.setVisible(true);
 		try {
 			super.render();
 		} finally {
 			// must always hide the frame, even when an exception is thrown
-			JoglUtil.invokeOnAwtThread(hideFrame);
+			window.setVisible(false);
 		}
 	}
 
 	@Override
 	public void destroy() {
-		if (frame != null) {
-			JoglUtil.invokeOnAwtThread(new Runnable() {
-				public void run() {
-					frame.setVisible(false);
-					frame.dispose();
-				}
-			});
-			frame = null;
-		}
-
-		canvas.getContext().destroy();
+		window.destroy();
 	}
 
 	@Override
 	public GLContext getContext() {
-		return canvas.getContext();
+		return window.getContext();
 	}
 
 	@Override
 	public GLAutoDrawable getGLAutoDrawable() {
-		return canvas;
+		return window;
 	}
 
 	@Override

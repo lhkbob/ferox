@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl.drivers.resource;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
@@ -8,6 +8,7 @@ import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.TextureHandle;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
@@ -30,7 +31,7 @@ import com.ferox.resource.TextureRectangle.TextureRectangleDirtyDescriptor;
  * 
  * @author Michael Ludwig
  */
-public class JoglTextureRectangleResourceDriver implements ResourceDriver {
+public class JoglTextureRectangleResourceDriver implements ResourceDriver, DriverProfile<GL2ES2> {
 	private final JoglContextManager factory;
 	private final TextureImageDriver imageDriver;
 	private final boolean hasS3tcCompression;
@@ -44,10 +45,20 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 		hasS3tcCompression = caps.getS3TextureCompression();
 		hasRectSupport = caps.getRectangularTextureSupport();
 	}
+	
+	@Override
+	public GL2ES2 convert(GL2ES2 base) {
+		return base.getGL2();
+	}
+
+	@Override
+	public GL2ES2 getGL(JoglContextManager context) {
+		return context.getGL();
+	}
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL gl = factory.getGL();
+		GL2ES2 gl = getGL(factory);
 		TextureHandle handle = (TextureHandle) data.getHandle();
 
 		if (handle != null)
@@ -58,7 +69,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
 		JoglStateRecord sr = factory.getRecord();
 
-		GL gl = factory.getGL();
+		GL2ES2 gl = getGL(factory);
 		PackUnpackRecord pr = sr.packRecord;
 		TextureRecord tr = sr.textureRecord;
 
@@ -136,7 +147,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	 * regions. This method will properly resize images and use compressed
 	 * function calls if needed.
 	 */
-	private void doTexImage(GL gl, PackUnpackRecord pr, 
+	private void doTexImage(GL2ES2 gl, PackUnpackRecord pr, 
 							TextureHandle handle, TextureRectangle tex, boolean newTex) {
 		BufferData bd = tex.getData();
 
@@ -167,7 +178,7 @@ public class JoglTextureRectangleResourceDriver implements ResourceDriver {
 	 * doesn't have a compressed format. It is recommended not to use the DEPTH
 	 * format, either since that seems to cause problems.
 	 */
-	private void doTexSubImage(GL gl, PackUnpackRecord pr, 
+	private void doTexSubImage(GL2ES2 gl, PackUnpackRecord pr, 
 							   TextureRectangleDirtyDescriptor dirty, TextureHandle handle, TextureRectangle tex) {
 		MipmapDirtyRegion mdr;
 		BufferData bd = tex.getData();

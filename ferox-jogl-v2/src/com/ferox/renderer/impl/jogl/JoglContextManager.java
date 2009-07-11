@@ -8,11 +8,15 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Map.Entry;
 
-import javax.media.opengl.DebugGL;
+import javax.media.opengl.DebugGL2;
+import javax.media.opengl.DebugGL3;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.TraceGL;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.TraceGL2;
+import javax.media.opengl.TraceGL3;
 
 import com.ferox.math.Transform;
 import com.ferox.renderer.DisplayOptions;
@@ -50,7 +54,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * @author Michael Ludwig
  */
 public class JoglContextManager implements ContextManager {
-	private static final boolean TRACE = true;
+	private static final boolean TRACE = false;
 
 	/* Variables for the shadow context. */
 	private ShadowContext shadowContext;
@@ -66,6 +70,8 @@ public class JoglContextManager implements ContextManager {
 	private final List<JoglRenderSurface> realizedSurfaces;
 
 	/* Misc variables. */
+	private final GLProfile profile;
+	
 	private final boolean debugGL;
 	private final AbstractFramework renderer;
 	private final JoglTransformDriver transformDriver;
@@ -74,19 +80,23 @@ public class JoglContextManager implements ContextManager {
 
 	private GLAutoDrawable currentDrawable;
 	private JoglStateRecord currentRecord;
-	private GL currentGL;
+	private GL2ES2 currentGL;
 
 	/**
 	 * Construct a surface factory for the given renderer (this renderer must
 	 * use this surface factory or undefined results will happen). If debug is
 	 * true, opengl errors will be checked after each opengl call.
 	 */
-	public JoglContextManager(AbstractFramework renderer, RenderCapabilities caps, boolean debug) {
+	public JoglContextManager(AbstractFramework renderer, RenderCapabilities caps, GLProfile profile, boolean debug) {
 		if (renderer == null)
 			throw new NullPointerException("Cannot create a surface factory with a null renderer");
+		if (!profile.isGL2() && !profile.isGL3())
+			throw new IllegalArgumentException("GLProfile must be one of GL2 or GL3, not: " + profile);
+		
+		this.profile = profile;
+		this.renderer = renderer;
 
 		debugGL = debug;
-		this.renderer = renderer;
 		transformDriver = new JoglTransformDriver(this);
 
 		windowCreatedCount = 0;
@@ -101,9 +111,9 @@ public class JoglContextManager implements ContextManager {
 
 		// create the shadow context
 		if (caps.getPbufferSupport())
-			shadowContext = new PbufferShadowContext(caps);
+			shadowContext = new PbufferShadowContext(profile, caps);
 		else
-			shadowContext = new OnscreenShadowContext(caps);
+			shadowContext = new OnscreenShadowContext(profile, caps);
 
 	}
 
@@ -118,7 +128,7 @@ public class JoglContextManager implements ContextManager {
 			throw new SurfaceCreationException("Cannot create a FullscreenSurface when there are created WindowSurfaces");
 
 		JoglFullscreenSurface s = null;
-		s = new JoglFullscreenSurface(this, options, width, height);
+		s = new JoglFullscreenSurface(this, profile, options, width, height);
 		activeSurfaces.add(s);
 
 		fullscreenCreated = true;
@@ -135,7 +145,7 @@ public class JoglContextManager implements ContextManager {
 			throw new SurfaceCreationException("Cannot create a WindowSurface when there is already a FullscreenSurface");
 
 		JoglWindowSurface s = null;
-		s = new JoglWindowSurface(this, options, x, y, width, height, resizable, undecorated);
+		s = new JoglWindowSurface(this, profile, options, x, y, width, height, resizable, undecorated);
 		activeSurfaces.add(s);
 
 		windowCreatedCount++;
@@ -150,7 +160,7 @@ public class JoglContextManager implements ContextManager {
 											   int numColorTargets, boolean useDepthRenderBuffer) {
 		JoglTextureSurface s = null;
 
-		s = new JoglTextureSurface(this, options, target, 
+		s = new JoglTextureSurface(this, profile, options, target, 
 								   width, height, depth, layer, 
 								   numColorTargets, useDepthRenderBuffer);
 		activeSurfaces.add(s);
@@ -164,7 +174,7 @@ public class JoglContextManager implements ContextManager {
 	public TextureSurface createTextureSurface(TextureSurface share, int layer) {
 		JoglTextureSurface s = null;
 
-		s = new JoglTextureSurface(this, (JoglTextureSurface) share, layer);
+		s = new JoglTextureSurface(this, profile, (JoglTextureSurface) share, layer);
 		activeSurfaces.add(s);
 
 		if (s.getGLAutoDrawable() != null)
@@ -240,9 +250,22 @@ public class JoglContextManager implements ContextManager {
 				currentDrawable = renderAction.getGLAutoDrawable();
 				currentRecord = renderAction.getStateRecord();
 
-				currentGL = (debugGL ? (TRACE ? new TraceGL(currentDrawable.getGL(), System.out) 
-											  : new DebugGL(currentDrawable.getGL())) 
-								     : currentDrawable.getGL());
+				GL gl = currentDrawable.getGL();
+				if (gl.isGL2()) {
+					if (TRACE)
+						gl = new TraceGL2(gl.getGL2(), System.out);
+					if (debugGL)
+						gl = new DebugGL2(gl.getGL2());
+					
+					currentGL = gl.getGL2ES2();
+				} else { // assume gl3
+					if (TRACE)
+						gl = new TraceGL3(gl.getGL3(), System.out);
+					if (debugGL)
+						gl = new DebugGL3(gl.getGL3());
+					
+					currentGL = gl.getGL2ES2();
+				}
 
 				renderAction.render();
 			}
@@ -300,7 +323,7 @@ public class JoglContextManager implements ContextManager {
 	 * must only be called from within a method in the stack of a display() call
 	 * of a JoglRenderSurface.
 	 */
-	public GL getGL() {
+	public GL2ES2 getGL() {
 		return currentGL;
 	}
 

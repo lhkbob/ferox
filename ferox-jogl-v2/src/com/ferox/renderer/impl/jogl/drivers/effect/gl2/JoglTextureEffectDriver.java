@@ -1,10 +1,10 @@
-package com.ferox.renderer.impl.jogl.drivers.effect;
+package com.ferox.renderer.impl.jogl.drivers.effect.gl2;
 
 import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.Effect;
 import com.ferox.effect.MultiTexture;
@@ -19,6 +19,7 @@ import com.ferox.renderer.impl.EffectDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
 import com.ferox.renderer.impl.jogl.TextureHandle;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureGenRecord;
@@ -43,7 +44,7 @@ import com.ferox.util.UnitList.Unit;
  * 
  * @author Michael Ludwig
  */
-public class JoglTextureEffectDriver implements EffectDriver {
+public class JoglTextureEffectDriver implements EffectDriver, DriverProfile<GL2> {
 	private MultiTexture lastApplied;
 	private MultiTexture queuedTexture;
 
@@ -63,7 +64,17 @@ public class JoglTextureEffectDriver implements EffectDriver {
 		queuedTexture = null;
 		lastAppliedDirty = false;
 	}
+	
+	@Override
+	public GL2 convert(GL2ES2 base) {
+		return base.getGL2();
+	}
 
+	@Override
+	public GL2 getGL(JoglContextManager context) {
+		return context.getGL().getGL2();
+	}
+	
 	@Override
 	public void doApply() {
 		// apply the MultiTexture if there were changes
@@ -104,7 +115,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * MultiTexture. If next is null, all texturing will be disabled instead.
 	 */
 	private void apply(AbstractFramework renderer, JoglStateRecord record, MultiTexture next) {
-		GL2ES1 gl = factory.getGL().getGL2ES1();
+		GL2 gl = getGL(factory);
 		TextureRecord tr = record.textureRecord;
 		int activeTex = tr.activeTexture;
 
@@ -155,7 +166,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * environment. Returns the new active unit. If texture is null, the texture
 	 * bindings on the desiredUnit are broken.
 	 */
-	private int applyTexture(GL2ES1 gl, AbstractFramework renderer, int activeUnit, 
+	private int applyTexture(GL2 gl, AbstractFramework renderer, int activeUnit, 
 							 int desiredUnit, TextureUnit tu, Texture next) {
 		TextureHandle nextH = (next == null ? null : (TextureHandle) renderer.getHandle(next.getTexture(), factory));
 		// set the texture unit
@@ -185,7 +196,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * Make the necessary changes to the active unit based off of the non-null
 	 * Texture instance. unitValue should be the active unit - GL_TEXTURE0.
 	 */
-	private void setTexEnv(GL2ES1 gl, TextureUnit unit, Texture tex) {
+	private void setTexEnv(GL2 gl, TextureUnit unit, Texture tex) {
 		// texture transform
 		Transform t = tex.getTextureTransform();
 		if (t == null) {
@@ -261,7 +272,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	 * matching record. If genMode is NONE, generation is disabled, otherwise
 	 * its enabled and set, possibly resetting the texture plane.
 	 */
-	private void setTexGen(GL2ES1 gl, int coord, int boolMode, 
+	private void setTexGen(GL2 gl, int coord, int boolMode, 
 	  					   TextureGenRecord tgr, TexCoordGen genMode, Plane eyeOrObject) {
 		if (genMode == TexCoordGen.NONE) {
 			// disable coordinate generation for this coord
@@ -295,7 +306,7 @@ public class JoglTextureEffectDriver implements EffectDriver {
 	}
 
 	/* Set all state necessary for the GL_COMBINE environment mode. */
-	private void setCombineEnv(GL2ES1 gl, TextureUnit tu, Texture tex) {
+	private void setCombineEnv(GL2 gl, TextureUnit tu, Texture tex) {
 		// combine alpha
 		int c = JoglUtil.getGLCombineAlphaFunc(tex.getCombineAlphaEquation());
 		if (c != tu.combineAlpha) {

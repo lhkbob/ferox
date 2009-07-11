@@ -6,8 +6,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.jogl.JoglUtil;
@@ -76,7 +76,7 @@ public class TextureImageDriver {
 	 * It is assumed that the given dimension are valid and will fit the next
 	 * rectangle correctly.
 	 */
-	public void setUnpackRegion(GL gl, PackUnpackRecord pr, int xOffset, int yOffset, int zOffset, 
+	public void setUnpackRegion(GL2ES2 gl, PackUnpackRecord pr, int xOffset, int yOffset, int zOffset, 
 								int blockWidth, int blockHeight) {
 		// skip pixels
 		if (pr.unpackSkipPixels != xOffset) {
@@ -122,7 +122,7 @@ public class TextureImageDriver {
 	 * needed later on for other parts of updating. It is assumed that all
 	 * values are valid, and not null.
 	 */
-	public void setTextureParameters(GL gl, TextureHandle handle, 
+	public void setTextureParameters(GL2ES2 gl, TextureHandle handle, 
 									 TextureImage ti, boolean forceAll) {
 		TextureDirtyDescriptor tdd = ti.getDirtyDescriptor(); // won't be null
 
@@ -153,7 +153,7 @@ public class TextureImageDriver {
 	 * hardware can't support them (and it's not a T_RECT). The dimensions will
 	 * also be clamped to the hardware maximums for each target type.
 	 */
-	public TextureHandle createNewTexture(GL gl, TextureImage ti) {
+	public TextureHandle createNewTexture(GL2ES2 gl, TextureImage ti) {
 		// determine the valid dimensions - based on hardware constraints and
 		// extensions
 		int width = ti.getWidth(0);
@@ -256,7 +256,7 @@ public class TextureImageDriver {
 	 * Delete the texture object for the given texture handle. It is assumed
 	 * that the handle is not null, and hasn't already been deleted.
 	 */
-	public void destroyTexture(GL gl, TextureHandle handle) {
+	public void destroyTexture(GL2ES2 gl, TextureHandle handle) {
 		gl.glDeleteTextures(1, new int[] { handle.id }, 0);
 	}
 

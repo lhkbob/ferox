@@ -1,17 +1,15 @@
 package com.ferox.renderer.impl.jogl.drivers.resource;
 
-import java.nio.Buffer;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL3;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceData;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
+import com.ferox.renderer.impl.jogl.JoglProfileUtil;
 import com.ferox.renderer.impl.jogl.TextureHandle;
+import com.ferox.renderer.impl.jogl.drivers.DriverProfile;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.PackUnpackRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
@@ -34,7 +32,7 @@ import com.ferox.util.texture.converter.TextureConverter;
  * 
  * @author Michael Ludwig
  */
-public class JoglTexture1DResourceDriver implements ResourceDriver {
+public class JoglTexture1DResourceDriver implements ResourceDriver, DriverProfile<GL2ES2> {
 	private final JoglContextManager factory;
 	private final TextureImageDriver imageDriver;
 
@@ -44,10 +42,20 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 		this.factory = factory;
 		imageDriver = new TextureImageDriver(caps);
 	}
+	
+	@Override
+	public GL2ES2 convert(GL2ES2 base) {
+		return base.getGL2();
+	}
+
+	@Override
+	public GL2ES2 getGL(JoglContextManager context) {
+		return context.getGL();
+	}
 
 	@Override
 	public void cleanUp(Renderer renderer, Resource resource, ResourceData data) {
-		GL gl = factory.getGL();
+		GL2ES2 gl = getGL(factory);
 		TextureHandle handle = (TextureHandle) data.getHandle();
 
 		// a T_1D should always have a valid handle
@@ -58,7 +66,7 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 	public void update(Renderer renderer, Resource resource, ResourceData data, boolean fullUpdate) {
 		JoglStateRecord sr = factory.getRecord();
 
-		GL gl = factory.getGL();
+		GL2ES2 gl = getGL(factory);
 		PackUnpackRecord pr = sr.packRecord;
 		TextureRecord tr = sr.textureRecord;
 
@@ -125,7 +133,7 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 	 * with doTexSubImage(). For simplicity, this ignores the mipmap dirty
 	 * regions. This method will properly resize images if needed.
 	 */
-	private void doTexImage(GL gl, PackUnpackRecord pr, TextureHandle handle, 
+	private void doTexImage(GL2ES2 gl, PackUnpackRecord pr, TextureHandle handle, 
 							Texture1D tex, boolean newTex) {
 		boolean needsResize = handle.width != tex.getWidth(0);
 
@@ -148,12 +156,12 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 				}
 				// proceed with glTexImage
 				imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, 1);
-				glTexImage1D(gl, handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
-							 handle.glType, imageDriver.wrap(bd));
+				JoglProfileUtil.glTexImage1D(gl, handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
+											 handle.glType, imageDriver.wrap(bd));
 			} else if (newTex) {
 				// we'll just allocate an empty image
-				glTexImage1D(gl, handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
-							 handle.glType, null);
+				JoglProfileUtil.glTexImage1D(gl, handle.glTarget, i, handle.glDstFormat, w, 0, handle.glSrcFormat, 
+											 handle.glType, null);
 			}
 		}
 	}
@@ -164,7 +172,7 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 	 * doesn't have a compressed format. It is recommended not to use the DEPTH
 	 * format, either since that seems to cause problems.
 	 */
-	private void doTexSubImage(GL gl, PackUnpackRecord pr, Texture1DDirtyDescriptor dirty,
+	private void doTexSubImage(GL2ES2 gl, PackUnpackRecord pr, Texture1DDirtyDescriptor dirty,
 							   TextureHandle handle, Texture1D tex) {
 		int w;
 		MipmapDirtyRegion mdr;
@@ -182,38 +190,16 @@ public class JoglTexture1DResourceDriver implements ResourceDriver {
 					if (mdr != null) {
 						// use the region descriptor
 						imageDriver.setUnpackRegion(gl, pr, mdr.getDirtyXOffset(), 0, 0, w, 1);
-						glTexSubImage1D(gl, handle.glTarget, i, mdr.getDirtyXOffset(), mdr.getDirtyWidth(), 
-										handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
+						JoglProfileUtil.glTexSubImage1D(gl, handle.glTarget, i, mdr.getDirtyXOffset(), mdr.getDirtyWidth(), 
+														handle.glSrcFormat, handle.glType, imageDriver.wrap(bd));
 					} else {
 						// we'll update the whole image level
 						imageDriver.setUnpackRegion(gl, pr, 0, 0, 0, w, 1);
-						glTexSubImage1D(gl, handle.glTarget, i, 0, w, handle.glSrcFormat,
-										handle.glType, imageDriver.wrap(bd));
+						JoglProfileUtil.glTexSubImage1D(gl, handle.glTarget, i, 0, w, handle.glSrcFormat,
+														handle.glType, imageDriver.wrap(bd));
 					}
 				}
 			}	
 		}
-	}
-	
-	private void glTexImage1D(GL gl, int target, int layer, int dstFormat, int width,
-							  int border, int srcFormat, int type, Buffer data) {
-		if (gl.isGL2()) {
-			GL2 gl2 = gl.getGL2();
-			gl2.glTexImage1D(target, layer, dstFormat, width, border, srcFormat, type, data);
-		} else { // assume GL3
-			GL3 gl3 = gl.getGL3();
-			gl3.glTexImage1D(target, layer, dstFormat, width, border, srcFormat, type, data);
-		}
-	}
-
-	private void glTexSubImage1D(GL gl, int target, int layer, int xOffset, 
-							     int width, int srcFormat, int type, Buffer data) {
-		if (gl.isGL2()) {
-			GL2 gl2 = gl.getGL2();
-			gl2.glTexSubImage1D(target, layer, xOffset, width, srcFormat, type, data);
-		} else { // assumes GL3
-			GL3 gl3 = gl.getGL3();
-			gl3.glTexSubImage1D(target, layer, xOffset, width, srcFormat, type, data);
-		} 
 	}
 }

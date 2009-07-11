@@ -4,6 +4,8 @@ import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 
+import javax.media.opengl.GLProfile;
+
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
 
@@ -15,15 +17,17 @@ import com.ferox.renderer.FullscreenSurface;
  *
  */
 public class JoglFullscreenSurface extends JoglOnscreenSurface implements FullscreenSurface {
-	private DisplayMode mode;
-	private final GraphicsDevice gDev;
+	//private DisplayMode mode;
+	//private final GraphicsDevice gDev;
 
-	public JoglFullscreenSurface(JoglContextManager factory, DisplayOptions optionsRequest, 
+	public JoglFullscreenSurface(JoglContextManager factory, GLProfile profile, DisplayOptions optionsRequest, 
 								 final int width, final int height) {
-		super(factory, optionsRequest, 0, 0, width, height, false, true);
+		super(factory, profile, optionsRequest, 0, 0, width, height, false, true);
 
+		// FIXME: will this work??
+		window.setFullscreen(true);
 		// get target device parameters and set the display mode
-		gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+		/*gDev = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		gDev.setFullScreenWindow(frame);
 
 		if (gDev.isFullScreenSupported()) {
@@ -33,7 +37,7 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 			} else
 				mode = gDev.getDisplayMode();
 		} else
-			mode = gDev.getDisplayMode();
+			mode = gDev.getDisplayMode();*/
 	}
 
 	private static DisplayMode chooseBestMode(DisplayMode[] modes, DisplayOptions options, 
@@ -81,8 +85,8 @@ public class JoglFullscreenSurface extends JoglOnscreenSurface implements Fullsc
 
 	@Override
 	public void destroySurface() {
-		if (gDev.getFullScreenWindow() == frame)
-			gDev.setFullScreenWindow(null);
+		if (window.isFullscreen())
+			window.setFullscreen(false);
 		super.destroySurface();
 	}
 }

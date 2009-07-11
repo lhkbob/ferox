@@ -2,9 +2,12 @@ package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
@@ -22,7 +25,7 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 
 	private int swapBuffersLayer;
 
-	public PbufferDelegate(JoglContextManager factory, DisplayOptions options, 
+	public PbufferDelegate(JoglContextManager factory, GLProfile profile, DisplayOptions options, 
 						   JoglTextureSurface surface, TextureTarget colorTarget, 
 						   TextureTarget depthTarget, int width, int height, 
 						   TextureImage color, TextureImage depth, 
@@ -30,8 +33,8 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 		super(options, colorTarget, depthTarget, width, height, 
 			  new TextureImage[] { color }, depth);
 
-		GLCapabilities caps = chooseCapabilities(options, useDepthRenderBuffer);
-		pbuffer = GLDrawableFactory.getFactory().createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(),
+		GLCapabilities caps = chooseCapabilities(options, profile, useDepthRenderBuffer);
+		pbuffer = GLDrawableFactory.getFactory(profile).createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(),
 																 width, height, factory.getShadowContext());
 		pbuffer.addGLEventListener(surface);
 
@@ -69,7 +72,7 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 		TextureImage color = getColorBuffer(0); // will be 1 color target at max
 		TextureImage depth = getDepthBuffer();
 
-		GL gl = factory.getGL();
+		GL2ES2 gl = factory.getGL();
 		TextureRecord tr = factory.getRecord().textureRecord;
 		TextureUnit tu = tr.textureUnits[tr.activeTexture];
 
@@ -95,21 +98,21 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 	 * Copy the buffer into the given TextureHandle. It assumes the texture was
 	 * already bound.
 	 */
-	private void copySubImage(GL gl, TextureHandle handle) {
+	private void copySubImage(GL2ES2 gl, TextureHandle handle) {
 		switch (handle.glTarget) {
-		case GL.GL_TEXTURE_1D:
-			gl.glCopyTexSubImage1D(handle.glTarget, 0, 0, 0, 0, getWidth());
+		case GL2.GL_TEXTURE_1D:
+			JoglProfileUtil.glCopyTexSubImage1D(gl, handle.glTarget, 0, 0, 0, 0, getWidth());
 			break;
 		case GL.GL_TEXTURE_2D:
-		case GL.GL_TEXTURE_RECTANGLE_ARB:
+		case GL2.GL_TEXTURE_RECTANGLE_ARB:
 			gl.glCopyTexSubImage2D(handle.glTarget, 0, 0, 0, 0, 0, getWidth(), getHeight());
 			break;
 		case GL.GL_TEXTURE_CUBE_MAP:
 			int face = JoglUtil.getGLCubeFace(swapBuffersLayer);
 			gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
-		case GL.GL_TEXTURE_3D:
-			gl.glCopyTexSubImage3D(handle.glTarget, 0, 0, 0, swapBuffersLayer, 
-								   0, 0, getWidth(), getHeight());
+		case GL2.GL_TEXTURE_3D:
+			JoglProfileUtil.glCopyTexSubImage3D(gl, handle.glTarget, 0, 0, 0, 
+												swapBuffersLayer, 0, 0, getWidth(), getHeight());
 			break;
 		}
 	}
@@ -132,9 +135,9 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 				gl.glBindTexture(depthTarget, 0); // not really the active unit
 	}
 
-	private static GLCapabilities chooseCapabilities(DisplayOptions request, 
+	private static GLCapabilities chooseCapabilities(DisplayOptions request, GLProfile profile,
 													 boolean useDepthRenderBuffer) {
-		GLCapabilities caps = new GLCapabilities();
+		GLCapabilities caps = new GLCapabilities(profile);
 
 		PixelFormat pf = request.getPixelFormat();
 		caps.setPbufferFloatingPointBuffers(pf == PixelFormat.RGB_FLOAT || 

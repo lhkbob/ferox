@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
-import javax.swing.SwingUtilities;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.WindowSurface;
@@ -12,51 +12,43 @@ import com.ferox.renderer.WindowSurface;
  * @author Michael Ludwig
  */
 public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurface {
-	public JoglWindowSurface(JoglContextManager factory, DisplayOptions optionsRequest, 
+	public JoglWindowSurface(JoglContextManager factory, GLProfile profile, DisplayOptions optionsRequest, 
 							 int x, int y, int width, int height, 
 							 boolean resizable, boolean undecorated) {
-		super(factory, optionsRequest, x, y, width, height, 
+		super(factory, profile, optionsRequest, x, y, width, height, 
 			  resizable, undecorated);
 	}
 
 	@Override
 	public boolean isResizable() {
-		return frame.isResizable();
+		// GLWindow's don't have an option to not be resizable
+		return true;
 	}
 
 	@Override
 	public boolean isUndecorated() {
-		return frame.isUndecorated();
+		return window.isUndecorated();
 	}
 
 	@Override
-	public void setSize(final int width, final int height) {
+	public void setSize(int width, int height) {
 		if (width <= 0 || height <= 0)
 			return;
-
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				JoglWindowSurface.this.frame.setSize(width, height);
-			}
-		});
+		window.setSize(width, height);
 	}
 
 	@Override
 	public int getX() {
-		return frame.getX();
+		return window.getX();
 	}
 
 	@Override
 	public int getY() {
-		return frame.getY();
+		return window.getY();
 	}
 
 	@Override
-	public void setLocation(final int x, final int y) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				JoglWindowSurface.this.frame.setLocation(x, y);
-			}
-		});
+	public void setLocation(int x, int y) {
+		window.setPosition(x, y);
 	}
 }

@@ -1,33 +1,35 @@
 package com.ferox.renderer.impl.jogl;
 
+import javax.media.opengl.GLProfile;
+
 import com.ferox.effect.EffectType;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.UnsupportedResourceException;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.EffectDriver;
 import com.ferox.renderer.impl.ResourceDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglAlphaTestEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglBlendModeEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglColorMaskEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglDepthTestEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglFogEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglGlobalLightingEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglGlslShaderEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglLightingEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglLineStyleEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglMaterialEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglPointStyleEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglPolygonStyleEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.effect.JoglStencilTestEffectDriver;
-import com.ferox.renderer.impl.jogl.drivers.effect.JoglTextureEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglAlphaTestEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglFogEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglGlobalLightingEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglLightingEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglLineStyleEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglMaterialEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglPointStyleEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglPolygonStyleEffectDriver;
+import com.ferox.renderer.impl.jogl.drivers.effect.gl2.JoglTextureEffectDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglGlslProgramResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglGlslUniformResourceDriver;
-import com.ferox.renderer.impl.jogl.drivers.resource.JoglIndexedArrayGeometryDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTexture1DResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTexture2DResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTexture3DResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTextureCubeMapResourceDriver;
 import com.ferox.renderer.impl.jogl.drivers.resource.JoglTextureRectangleResourceDriver;
+import com.ferox.renderer.impl.jogl.drivers.resource.gl2.JoglIndexedArrayGeometryDriver;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
 import com.ferox.resource.IndexedArrayGeometry;
@@ -42,14 +44,13 @@ import com.ferox.resource.TextureRectangle;
  * <p>
  * Provides a full implementation of Framework that is based on the
  * functionality provided by AbstractFramework and the JOGL binding of OpenGL.
- * OnscreenSurfaces created by this Framework will return Frame objects from
+ * OnscreenSurfaces created by this Framework will return GLWindow objects from
  * their getWindowImpl() methods.
  * </p>
  * <p>
  * This Framework is strictly single-threaded and undefined results will occur
  * if any of its methods are called outside of the thread it was created in.
- * Because of this requirement, it must not be created or used in the AWT event
- * threads.
+ * It should only be used on the Thread that constructed the Framework.
  * </p>
  * 
  * @author Michael Ludwig
@@ -83,9 +84,10 @@ public final class JoglFramework extends AbstractFramework {
 	 * @param debugGL Whether or not to debug each OpenGL call
 	 */
 	public JoglFramework(boolean debugGL) {
-		RenderCapabilities caps = new JoglCapabilitiesDetector().detect();
+		GLProfile profile = GLProfile.get(GLProfile.GL2);
+		RenderCapabilities caps = new JoglCapabilitiesDetector().detect(profile);
 
-		JoglContextManager factory = new JoglContextManager(this, caps, debugGL);
+		JoglContextManager factory = new JoglContextManager(this, caps, profile, debugGL);
 		init(factory, factory.getTransformDriver(), caps, EffectType.values());
 		buildEffectDrivers(factory);
 		buildResourceDrivers(factory);

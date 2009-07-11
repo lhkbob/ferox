@@ -1,14 +1,11 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.Frame;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
-import javax.swing.SwingUtilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.OnscreenSurface;
@@ -17,24 +14,23 @@ import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
+import com.sun.javafx.newt.WindowEvent;
+import com.sun.javafx.newt.WindowListener;
+import com.sun.javafx.newt.opengl.GLWindow;
 
 /**
  * Abstract class that provides the majority of the implementation of Jogl's
- * WindowSurface and FullscreenSurface. It assumes the use of a GLCanvas and a
- * Frame for the representation of the surface. Every JoglOnscreenSurface gets
- * its own state record.
+ * WindowSurface and FullscreenSurface. It uses Newt's GLWindow native window
+ * implementation. Every JoglOnscreenSurface gets its own state record.
  * 
  * @author Michael Ludwig
  */
 public abstract class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
-	protected final GLCanvas canvas;
-	protected Frame frame; // final
+	protected final GLWindow window;
 
 	private final JoglStateRecord record;
 
 	private DisplayOptions options;
-
-	private boolean iconified;
 
 	private boolean enableVsync;
 	private boolean updateVsync;
@@ -44,65 +40,47 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	 * constructed GLCanvas. The GLCanvas shares with the given factory's shadow
 	 * context.
 	 */
-	public JoglOnscreenSurface(JoglContextManager factory, DisplayOptions optionsRequest, 
-							   final int x, final int y, final int width, final int height, 
-							   final boolean resizable, final boolean undecorated) {
+	public JoglOnscreenSurface(JoglContextManager factory, GLProfile profile, DisplayOptions optionsRequest, 
+							   int x, int y, int width, int height, 
+							   boolean resizable, boolean undecorated) {
 		super(factory);
 		if (optionsRequest == null)
 			optionsRequest = new DisplayOptions();
-		canvas = new GLCanvas(chooseCapabilities(optionsRequest), new DefaultGLCapabilitiesChooser(), 
-							  factory.getShadowContext(), null);
-		frame = new Frame();
+		
+		GLCapabilities glCaps = chooseCapabilities(profile, optionsRequest);
+		window = GLWindow.create(glCaps, undecorated);
+		window.setEventHandlerMode(GLWindow.EVENT_HANDLER_GL_NONE);
+		
+		window.setSize(Math.max(width, 1), Math.max(height, 1));
+		window.setPosition(x, y);
 
-		JoglUtil.invokeOnAwtThread(new Runnable() {
-			public void run() {
-				frame.setResizable(resizable);
-				frame.setUndecorated(undecorated);
-				frame.setBounds(x, y, Math.max(width, 1), Math.max(height, 1));
-
-				frame.add(canvas);
-
-				frame.setVisible(true);
-				canvas.requestFocusInWindow();
-			}
-		});
-
-		frame.addWindowListener(this);
-
-		canvas.addGLEventListener(this);
-		frame.setIgnoreRepaint(true);
-		canvas.setIgnoreRepaint(true);
+		window.setVisible(true);
+		// must create context after its visible
+		GLContext old = window.getContext();
+		GLContext shared = window.createContext(factory.getShadowContext());
+		window.setContext(shared);
+		old.destroy(); // clean-up
+		
+		window.addWindowListener(this);
+		window.addGLEventListener(this);
 
 		record = new JoglStateRecord(factory.getFramework().getCapabilities());
 		options = optionsRequest;
 
 		enableVsync = false;
 		updateVsync = true;
-		iconified = false;
 	}
 
-	/**
-	 * Return the gl canvas that must be the sole child of the frame returned by
-	 * getFrame().
-	 */
 	@Override
-	public GLCanvas getGLAutoDrawable() {
-		return canvas;
+	public GLAutoDrawable getGLAutoDrawable() {
+		return window;
 	}
 
-	/** In addition, destroys the context of this surface's GLCanvas. */
+	/** In addition, destroys the context of this surface's GLWindow. */
 	@Override
 	public void destroySurface() {
-		frame.removeWindowListener(JoglOnscreenSurface.this);
-
-		JoglUtil.invokeOnAwtThread(new Runnable() {
-			public void run() {
-				frame.setVisible(false);
-				frame.dispose();
-			}
-		});
-
-		canvas.getContext().destroy();
+		window.removeWindowListener(this);
+		window.destroy();
 		super.destroySurface();
 	}
 
@@ -115,10 +93,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		GL gl = factory.getGL();
 
 		if (updateVsync) {
-			if (enableVsync)
-				gl.setSwapInterval(1);
-			else
-				gl.setSwapInterval(0);
+			gl.setSwapInterval(enableVsync ? 1 : 0);
 			updateVsync = false;
 		}
 	}
@@ -141,7 +116,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 
 	@Override
 	public Object getWindowImpl() {
-		return frame;
+		return window;
 	}
 
 	@Override
@@ -162,74 +137,55 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 
 	@Override
 	public int getHeight() {
-		return canvas.getHeight();
+		return window.getHeight();
 	}
 
 	@Override
 	public int getWidth() {
-		return canvas.getWidth();
+		return window.getWidth();
 	}
 
 	@Override
 	public String getTitle() {
-		return frame.getTitle();
+		return window.getTitle();
 	}
 
 	@Override
-	public void setTitle(final String title) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				frame.setTitle(title == null ? "" : title);
-			}
-		});
+	public void setTitle(String title) {
+		window.setTitle(title);
 	}
 
 	@Override
 	public boolean isVisible() {
-		return !isDestroyed() && !iconified;
-	}
-
-	/** Do a half-cleanup and notify the factory that we've been destroyed. */
-	@Override
-	public void windowClosed(WindowEvent e) {
+		return !isDestroyed() && window.isVisible();
 	}
 
 	/* Unfortunate consequences of being a window listener. */
-
 	@Override
-	public void windowActivated(WindowEvent e) {
-	}
-
-	@Override
-	public void windowClosing(WindowEvent e) {
-		// the factory will make sure everything is destroyed properly on the
-		// correct thread
+	public void windowDestroyNotify(WindowEvent e) {
 		factory.destroy(this);
 	}
 
 	@Override
-	public void windowDeactivated(WindowEvent e) {
+	public void windowGainedFocus(WindowEvent e) {
 	}
 
 	@Override
-	public void windowDeiconified(WindowEvent e) {
-		iconified = false;
+	public void windowLostFocus(WindowEvent e) {
 	}
 
 	@Override
-	public void windowIconified(WindowEvent e) {
-		iconified = true;
+	public void windowMoved(WindowEvent e) {
 	}
 
 	@Override
-	public void windowOpened(WindowEvent e) {
+	public void windowResized(WindowEvent e) {
 	}
 
 	/* Utility methods. */
 
-	private static GLCapabilities chooseCapabilities(DisplayOptions request) {
-		GLCapabilities caps = new GLCapabilities();
-
+	private static GLCapabilities chooseCapabilities(GLProfile profile, DisplayOptions request) {
+		GLCapabilities caps = new GLCapabilities(profile);
 		// try to update the caps fields
 		switch (request.getPixelFormat()) {
 		case RGB_16BIT:
@@ -390,9 +346,9 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 				break;
 			}
 
-			gl.glEnable(GL.GL_MULTISAMPLE);
+			gl.glEnable(GL2.GL_MULTISAMPLE);
 		} else
-			gl.glDisable(GL.GL_MULTISAMPLE);
+			gl.glDisable(GL2.GL_MULTISAMPLE);
 
 		return new DisplayOptions(format, df, sf, aa);
 	}

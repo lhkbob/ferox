@@ -1,8 +1,8 @@
-package com.ferox.renderer.impl.jogl.drivers.effect;
+package com.ferox.renderer.impl.jogl.drivers.effect.gl2;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GLBase;
+import javax.media.opengl.GL2ES2;
 
 import com.ferox.effect.DirectionLight;
 import com.ferox.effect.Light;
@@ -12,6 +12,7 @@ import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.renderer.impl.jogl.JoglContextManager;
 import com.ferox.renderer.impl.jogl.JoglUtil;
+import com.ferox.renderer.impl.jogl.drivers.effect.MultiStateDriver;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.LightingRecord.LightRecord;
 
@@ -22,7 +23,7 @@ import com.ferox.renderer.impl.jogl.record.LightingRecord.LightRecord;
  * 
  * @author Michael Ludwig
  */
-public class JoglLightingEffectDriver extends MultiStateDriver<Light, GL2ES1> {
+public class JoglLightingEffectDriver extends MultiStateDriver<Light, GL2> {
 	private static final int MAX_LIGHTS = 8;
 
 	private final Light[] appliedLights;
@@ -44,12 +45,12 @@ public class JoglLightingEffectDriver extends MultiStateDriver<Light, GL2ES1> {
 	}
 	
 	@Override
-	protected GL2ES1 convert(GLBase base) {
-		return base.getGL2ES1();
+	public GL2 convert(GL2ES2 base) {
+		return base.getGL2();
 	}
 
 	@Override
-	protected void apply(GL2ES1 gl, JoglStateRecord record, int unit, Light next) {
+	protected void apply(GL2 gl, JoglStateRecord record, int unit, Light next) {
 		LightRecord lr = record.lightRecord.lightUnits[unit];
 		int glUnit = GL2.GL_LIGHT0 + unit;
 

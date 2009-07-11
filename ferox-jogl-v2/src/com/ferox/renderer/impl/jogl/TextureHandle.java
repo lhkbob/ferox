@@ -1,6 +1,7 @@
 package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 import com.ferox.effect.Effect.PixelTest;
 import com.ferox.renderer.impl.ResourceData.Handle;
@@ -98,7 +99,7 @@ public class TextureHandle implements Handle {
 	public void setWrapT(GL gl, TextureWrap wrap, boolean force) {
 		if (force || wrap != wrapT) {
 			int w = JoglUtil.getGLWrapMode(wrap);
-			gl.glTexParameteri(glTarget, GL.GL_TEXTURE_WRAP_T, w);
+			gl.glTexParameteri(glTarget, GL2.GL_TEXTURE_WRAP_T, w);
 			wrapT = wrap;
 		}
 	}
@@ -106,7 +107,7 @@ public class TextureHandle implements Handle {
 	public void setWrapR(GL gl, TextureWrap wrap, boolean force) {
 		if (force || wrap != wrapR) {
 			int w = JoglUtil.getGLWrapMode(wrap);
-			gl.glTexParameteri(glTarget, GL.GL_TEXTURE_WRAP_R, w);
+			gl.glTexParameteri(glTarget, GL2.GL_TEXTURE_WRAP_R, w);
 			wrapR = wrap;
 		}
 	}
@@ -114,7 +115,7 @@ public class TextureHandle implements Handle {
 	public void setDepthTest(GL gl, PixelTest test, boolean force) {
 		if (force || test != depthTest) {
 			int t = JoglUtil.getGLPixelTest(test);
-			gl.glTexParameteri(glTarget, GL.GL_TEXTURE_COMPARE_FUNC, t);
+			gl.glTexParameteri(glTarget, GL2.GL_TEXTURE_COMPARE_FUNC, t);
 			depthTest = test;
 		}
 	}
@@ -122,14 +123,14 @@ public class TextureHandle implements Handle {
 	public void setDepthMode(GL gl, DepthMode mode, boolean force) {
 		if (force || mode != depthMode) {
 			int m = JoglUtil.getGLDepthMode(mode);
-			gl.glTexParameteri(glTarget, GL.GL_DEPTH_TEXTURE_MODE, m);
+			gl.glTexParameteri(glTarget, GL2.GL_DEPTH_TEXTURE_MODE, m);
 			depthMode = mode;
 		}
 	}
 
 	public void setDepthCompareEnabled(GL gl, boolean enable, boolean force) {
 		if (force || enable != enableDepthCompare) {
-			gl.glTexParameteri(glTarget, GL.GL_TEXTURE_COMPARE_MODE, (enable ? GL.GL_COMPARE_R_TO_TEXTURE : GL.GL_NONE));
+			gl.glTexParameteri(glTarget, GL2.GL_TEXTURE_COMPARE_MODE, (enable ? GL2.GL_COMPARE_R_TO_TEXTURE : GL.GL_NONE));
 			enableDepthCompare = enable;
 		}
 	}
