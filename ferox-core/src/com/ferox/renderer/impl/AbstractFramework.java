@@ -271,9 +271,10 @@ public abstract class AbstractFramework implements Framework {
 			renderState = RenderState.RENDERING;
 
 			// make sure all surfaces are valid
-			for (int i = queuedSurfaces.size() - 1; i >= 0; i--)
+			for (int i = queuedSurfaces.size() - 1; i >= 0; i--) {
 				if (queuedSurfaces.get(i).isDestroyed())
 					queuedSurfaces.remove(i);
+			}
 
 			int numSurfaces = queuedSurfaces.size();
 			if (numSurfaces > 0) {
