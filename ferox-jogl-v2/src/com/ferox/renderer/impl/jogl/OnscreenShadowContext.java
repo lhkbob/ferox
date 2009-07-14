@@ -1,6 +1,7 @@
 package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
 
@@ -24,22 +25,27 @@ public class OnscreenShadowContext extends AbstractShadowContext {
 	private JoglStateRecord record;
 
 	public OnscreenShadowContext(GLProfile profile, RenderCapabilities caps) {
-		window = GLWindow.create();
+		window = GLWindow.create(new GLCapabilities(profile), true);
+		window.setSize(1, 1);
 		window.addGLEventListener(this);
 
 		// init here just so we won't return a null record ever
 		record = new JoglStateRecord(caps);
+		
+		// HACK: set it visible once, and then hide so it has a context
+		window.setVisible(true);
+		//window.setVisible(false);
 	}
 	
 	@Override
 	public void render() throws RenderException {
 		// must make the frame visible so that the context is valid
-		window.setVisible(true);
+		//window.setVisible(true);
 		try {
 			super.render();
 		} finally {
 			// must always hide the frame, even when an exception is thrown
-			window.setVisible(false);
+			//window.setVisible(false);
 		}
 	}
 

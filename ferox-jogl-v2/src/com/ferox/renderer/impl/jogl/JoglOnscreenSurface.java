@@ -63,6 +63,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 		
 		window.addWindowListener(this);
 		window.addGLEventListener(this);
+		window.requestFocus();
 
 		record = new JoglStateRecord(factory.getFramework().getCapabilities());
 		options = optionsRequest;
@@ -79,9 +80,9 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	/** In addition, destroys the context of this surface's GLWindow. */
 	@Override
 	public void destroySurface() {
+		super.destroySurface();
 		window.removeWindowListener(this);
 		window.destroy();
-		super.destroySurface();
 	}
 
 	/**
@@ -163,6 +164,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	/* Unfortunate consequences of being a window listener. */
 	@Override
 	public void windowDestroyNotify(WindowEvent e) {
+		System.out.println("window destroy notify");
 		factory.destroy(this);
 	}
 

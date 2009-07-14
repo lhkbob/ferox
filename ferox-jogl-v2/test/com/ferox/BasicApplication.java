@@ -80,8 +80,8 @@ public abstract class BasicApplication extends ApplicationBase {
 
 		pass = new SceneRenderPass(null, v, createQueue(), false);
 
-		window = renderer.createFullscreenSurface(createOptions(), 640, 480);
-		//window = renderer.createWindowSurface(createOptions(), 10, 10, 640, 480, false, false);
+		//window = renderer.createFullscreenSurface(createOptions(), 640, 480);
+		window = renderer.createWindowSurface(createOptions(), 10, 10, 640, 480, false, false);
 		window.addRenderPass(pass);
 		window.setTitle(this.getClass().getSimpleName());
 

@@ -35,7 +35,10 @@ public class JoglCapabilitiesDetector {
 				pbuffer.destroy();
 			} else {
 				// quick make a window visible to get a GLContext
-				GLWindow window = GLWindow.create();
+				GLWindow window = GLWindow.create(new GLCapabilities(profile), true);
+				window.setSize(1, 1);
+				window.setVisible(true);
+				
 				window.getContext().makeCurrent();
 				queryCapabilities(window.getGL());
 				window.getContext().release();
