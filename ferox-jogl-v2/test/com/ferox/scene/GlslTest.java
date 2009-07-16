@@ -11,6 +11,7 @@ import com.ferox.effect.Material;
 import com.ferox.effect.MultiTexture;
 import com.ferox.effect.Texture;
 import com.ferox.math.Color4f;
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
@@ -241,18 +242,17 @@ public class GlslTest extends BasicApplication {
 		node.localToWorld(identity, world, false);
 		view.getView().getViewTransform().mul(world, world);
 
+		Frustum f = view.getView().getFrustum();
+		
 		int pixelWidth = window.getWidth();
-		float cameraWidth =
-			view.getView().getFrustumRight() - view.getView().getFrustumLeft();
+		float cameraWidth =	f.getFrustumRight() - f.getFrustumLeft();
 		float sx = cameraWidth * x / pixelWidth;
-		sx = (float) Math.atan(sx / view.getView().getFrustumNear()) * 3;
+		sx = (float) Math.atan(sx / f.getFrustumNear()) * 3;
 
 		int pixelHeight = window.getHeight();
-		float cameraHeight =
-			view.getView().getFrustumTop() - view.getView().getFrustumBottom();
+		float cameraHeight = f.getFrustumTop() - f.getFrustumBottom();
 		float sy = cameraHeight * y / pixelHeight;
-		sy = -(float) Math.atan(sy / view.getView().getFrustumNear()) * 3;
-
+		sy = -(float) Math.atan(sy / f.getFrustumNear()) * 3;
 		rotX(mx, sy);
 		rotY(my, sx);
 		mx.mul(my).mul(world.getRotation(), world.getRotation());
@@ -281,18 +281,17 @@ public class GlslTest extends BasicApplication {
 		view.getView().getViewTransform().mul(world, world);
 
 		Vector3f trans = world.getTranslation();
+		Frustum f = view.getView().getFrustum();
 
 		int pixelWidth = window.getWidth();
-		float cameraWidth =
-			view.getView().getFrustumRight() - view.getView().getFrustumLeft();
+		float cameraWidth = f.getFrustumRight() - f.getFrustumLeft();
 		float sx = cameraWidth * x / pixelWidth;
-		sx = sx * trans.z / view.getView().getFrustumNear();
+		sx = sx * trans.z / f.getFrustumNear();
 
 		int pixelHeight = window.getHeight();
-		float cameraHeight =
-			view.getView().getFrustumTop() - view.getView().getFrustumBottom();
+		float cameraHeight = f.getFrustumTop() - f.getFrustumBottom();
 		float sy = cameraHeight * y / pixelHeight;
-		sy = sy * trans.z / view.getView().getFrustumNear();
+		sy = sy * trans.z / f.getFrustumNear();
 
 		trans.x = trans.x - sx; // in right hand system, view's right is negative x
 		trans.y = trans.y - sy; // downward motion == pos. mouse y change, so negate it
