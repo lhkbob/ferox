@@ -3,6 +3,7 @@ package com.ferox.scene;
 import java.util.List;
 
 import com.ferox.math.bounds.BoundVolume;
+import com.ferox.math.bounds.PlaneState;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
 
@@ -97,16 +98,17 @@ public class Group extends Node {
 	}
 
 	@Override
-	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
-		VisitResult sp = super.visit(renderQueue, view, parentResult);
+	public VisitResult visit(RenderQueue renderQueue, View view, PlaneState planeState, VisitResult parentResult) {
+		VisitResult sp = super.visit(renderQueue, view, planeState, parentResult);
 		if (sp == VisitResult.FAIL)
 			return VisitResult.FAIL;
 
-		int planeState = view.getPlaneState();
+		int planeBits = (planeState != null ? planeState.get() : 0);
 
 		for (int i = 0; i < size; i++) {
-			children[i].visit(renderQueue, view, sp);
-			view.setPlaneState(planeState);
+			children[i].visit(renderQueue, view, planeState, sp);
+			if (planeState != null)
+				planeState.set(planeBits);
 		}
 
 		return sp;

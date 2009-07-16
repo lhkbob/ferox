@@ -1,9 +1,9 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.Frustum;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
-import com.ferox.renderer.View;
-import com.ferox.renderer.View.FrustumIntersection;
+import com.ferox.math.Frustum.FrustumIntersection;
 
 /**
  * A BoundSphere is a location and a radius enclosing everything within radius
@@ -132,7 +132,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	@Override
-	public void applyTransform(Transform trans) {
+	public void transform(Transform trans) {
 		if (trans == null)
 			return;
 		trans.transform(center);
@@ -184,44 +184,39 @@ public class BoundSphere extends AbstractBoundVolume {
 			this.radius = Math.max(radius, this.radius);
 	}
 
-	/**
-	 * Converts the sphere into camera space of the view and then uses the
-	 * view's sphere classifier to quickly test for frustum intersection.
-	 */
 	@Override
-	public FrustumIntersection testFrustum(View view) {
-		if (view == null)
-			throw new NullPointerException("Cannot test a frustum with a null view");
+	public FrustumIntersection testFrustum(Frustum frustum, PlaneState planeState) {
+		if (frustum == null)
+			throw new NullPointerException("Cannot test a null frustum");
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
-		int planeState = view.getPlaneState();
 		float dist;
 		int plane = 0;
 
-		for (int i = View.NUM_PLANES; i >= 0; i--) {
-			if (i == lastFailedPlane || (i == View.NUM_PLANES && lastFailedPlane < 0))
+		for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
+			if (i == lastFailedPlane || (i == Frustum.NUM_PLANES && lastFailedPlane < 0))
 				continue;
 
-			if (i == View.NUM_PLANES)
+			if (i == Frustum.NUM_PLANES)
 				plane = lastFailedPlane;
 			else
 				plane = i;
 
-			if ((planeState & (1 << plane)) == 0) {
-				dist = view.getWorldPlane(plane).signedDistance(center);
+			if (planeState == null || planeState.isTestRequired(plane)) {
+				dist = frustum.getFrustumPlane(plane).signedDistance(center);
 
 				if (dist < -radius) {
-					view.setPlaneState(planeState);
 					lastFailedPlane = plane;
 					return FrustumIntersection.OUTSIDE;
-				} else if (dist < radius)
+				} else if (dist < radius) {
 					result = FrustumIntersection.INTERSECT;
-				else
-					planeState |= (1 << plane);
+				} else {
+					if (planeState != null)
+						planeState.setTestRequired(plane, false);
+				}
 			}
 		}
 
-		view.setPlaneState(planeState);
 		return result;
 	}
 

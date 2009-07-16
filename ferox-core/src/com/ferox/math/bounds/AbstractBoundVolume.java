@@ -12,9 +12,9 @@ import com.ferox.math.Transform;
 public abstract class AbstractBoundVolume implements BoundVolume {
 
 	@Override
-	public BoundVolume applyTransform(Transform trans, BoundVolume result) {
+	public BoundVolume transform(Transform trans, BoundVolume result) {
 		result = this.clone(result);
-		result.applyTransform(trans);
+		result.transform(trans);
 		return result;
 	}
 

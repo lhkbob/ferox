@@ -1,9 +1,9 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.Frustum;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
-import com.ferox.renderer.View;
-import com.ferox.renderer.View.FrustumIntersection;
+import com.ferox.math.Frustum.FrustumIntersection;
 
 /**
  * A BoundVolume represents a partitioning of space into what's outside and
@@ -49,18 +49,31 @@ public interface BoundVolume {
 	 * 
 	 * @param trans Transform to apply to this BoundVolume
 	 */
-	public void applyTransform(Transform trans);
+	public void transform(Transform trans);
 
 	/**
-	 * Test this BoundVolume against the view frustum. view must have had
-	 * updateView() called before this is invoked. Implementations can assume
-	 * that the view's plane state is valid and can modify the plane state.
+	 *<p>
+	 * Test this BoundVolume against frustum. frustum must have had
+	 * updateFrustumPlanes() called before this is invoked.
+	 * </p>
+	 * <p>
+	 * Implementations can assume that the given PlaneState is valid. If a
+	 * programmer does not wish to use a PlaneState, then null should be
+	 * specified. A null PlaneState should be treated just like a PlaneState
+	 * requiring all planes to be tested.
+	 * </p>
+	 * <p>
+	 * If planeState is non-null, implementations should update the PlaneState
+	 * based on the intermediate results of the plane tests.
+	 * </p>
 	 * 
-	 * @param view View to check frustum intersection
+	 * @param frustum Frustum to test intersection with
+	 * @param planeState The PlaneState to use for efficient testing, may be
+	 *            null
 	 * @return FrustumIntersection result
 	 * @throws NullPointerException if view is null
 	 */
-	public FrustumIntersection testFrustum(View view);
+	public FrustumIntersection testFrustum(Frustum frustum, PlaneState planeState);
 
 	/**
 	 * Compute the farthest extent of this volume along the given direction
@@ -93,10 +106,10 @@ public interface BoundVolume {
 	 * output is stored in result (or a new instance).
 	 * 
 	 * @see #clone(BoundVolume)
-	 * @see #applyTransform(Transform)
+	 * @see #transform(Transform)
 	 * @param trans Transform applied to this BoundVolume
 	 * @param result BoundVolume to hold computed enclosure of this and
 	 *            toEnclose
 	 */
-	public BoundVolume applyTransform(Transform trans, BoundVolume result);
+	public BoundVolume transform(Transform trans, BoundVolume result);
 }

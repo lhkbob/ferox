@@ -21,7 +21,7 @@ public abstract class Leaf extends Node {
 	public void updateBounds() {
 		localBounds = adjustLocalBounds(localBounds);
 		if (localBounds != null)
-			worldBounds = localBounds.applyTransform(worldTransform, worldBounds);
+			worldBounds = localBounds.transform(worldTransform, worldBounds);
 		else
 			worldBounds = null;
 	}

@@ -7,6 +7,7 @@ import com.ferox.effect.Effect;
 import com.ferox.effect.EffectSet;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.BoundVolume;
+import com.ferox.math.bounds.PlaneState;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
@@ -118,8 +119,8 @@ public class Shape extends Leaf {
 	 * Override visit to submit a render atom to the RenderQueue if necessary.
 	 */
 	@Override
-	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
-		VisitResult sp = super.visit(renderQueue, view, parentResult);
+	public VisitResult visit(RenderQueue renderQueue, View view, PlaneState planeState, VisitResult parentResult) {
+		VisitResult sp = super.visit(renderQueue, view, planeState, parentResult);
 		if (sp != VisitResult.FAIL)
 			// finally add it to the queue
 			renderQueue.add(renderAtom);

@@ -6,10 +6,11 @@ import java.util.List;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
+import com.ferox.math.Frustum.FrustumIntersection;
 import com.ferox.math.bounds.BoundVolume;
+import com.ferox.math.bounds.PlaneState;
 import com.ferox.renderer.RenderQueue;
 import com.ferox.renderer.View;
-import com.ferox.renderer.View.FrustumIntersection;
 
 /**
  * <p>
@@ -307,10 +308,11 @@ public abstract class Node {
 	 * @param renderQueue The RenderQueue that should be filled with RenderAtoms
 	 *            representing this scene
 	 * @param view The View that will be used to render renderQueue
+	 * @param planeState An optional PlaneState to use for frustum intersection tests
 	 * @param parentResult The VisitResult returned by this Node's parent its
 	 *            visit() call, or null if this Node is the first to be visited.
 	 */
-	public VisitResult visit(RenderQueue renderQueue, View view, VisitResult parentResult) {
+	public VisitResult visit(RenderQueue renderQueue, View view, PlaneState planeState, VisitResult parentResult) {
 		switch (cullMode) {
 		case ALWAYS:
 			return VisitResult.FAIL;
@@ -320,8 +322,8 @@ public abstract class Node {
 			if (parentResult == VisitResult.SUCCESS_ALL)
 				return VisitResult.SUCCESS_ALL;
 			else {
-				FrustumIntersection test = (worldBounds == null ? FrustumIntersection.INTERSECT 
-																: worldBounds.testFrustum(view));
+				FrustumIntersection test = (worldBounds == null ? 
+											FrustumIntersection.INTERSECT : worldBounds.testFrustum(view.getFrustum(), planeState));
 				switch (test) {
 				case INSIDE:
 					return VisitResult.SUCCESS_ALL;

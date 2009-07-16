@@ -1,5 +1,6 @@
 package com.ferox.scene;
 
+import com.ferox.math.bounds.PlaneState;
 import com.ferox.renderer.EffectSortingRenderQueue;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderQueue;
@@ -17,9 +18,11 @@ import com.ferox.renderer.View;
  */
 public class SceneRenderPass implements RenderPass {
 	private final RenderQueue renderQueue;
+	private final PlaneState planeState;
+	
 	private Node scene;
 	private View view;
-
+	
 	public boolean updateScene;
 
 	/**
@@ -46,6 +49,8 @@ public class SceneRenderPass implements RenderPass {
 	 */
 	public SceneRenderPass(Node scene, View view, RenderQueue renderQueue, boolean updateScene) {
 		this.renderQueue = (renderQueue == null ? new EffectSortingRenderQueue() : renderQueue);
+		this.planeState = new PlaneState();
+		
 		setScene(scene);
 		setView(view);
 		setSceneUpdated(updateScene);
@@ -130,7 +135,9 @@ public class SceneRenderPass implements RenderPass {
 
 		if (updateScene)
 			scene.update();
-		scene.visit(renderQueue, view, null);
+		
+		planeState.reset();
+		scene.visit(renderQueue, view, planeState, null);
 		return view;
 	}
 

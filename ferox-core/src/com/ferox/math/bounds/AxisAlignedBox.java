@@ -1,11 +1,11 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Plane;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
-import com.ferox.renderer.View;
-import com.ferox.renderer.View.FrustumIntersection;
+import com.ferox.math.Frustum.FrustumIntersection;
 
 /**
  * An AxisAlignedBox is a BoundVolume that represents a rectangular box that
@@ -172,7 +172,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	}
 
 	@Override
-	public void applyTransform(Transform trans) {
+	public void transform(Transform trans) {
 		if (trans == null)
 			return;
 
@@ -356,12 +356,11 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	}
 
 	@Override
-	public FrustumIntersection testFrustum(View view) {
-		if (view == null)
-			throw new NullPointerException("Cannot test a frustum with a null view");
+	public FrustumIntersection testFrustum(Frustum frustum, PlaneState planeState) {
+		if (frustum == null)
+			throw new NullPointerException("Cannot test a null frustum");
 
 		FrustumIntersection result = FrustumIntersection.INSIDE;
-		int planeState = view.getPlaneState();
 		float distMax;
 		float distMin;
 		int plane = 0;
@@ -370,17 +369,17 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		Vector3f c = AxisAlignedBox.c.get();
 
 		Plane p;
-		for (int i = View.NUM_PLANES; i >= 0; i--) {
-			if (i == lastFailedPlane || (i == View.NUM_PLANES && lastFailedPlane < 0))
+		for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
+			if (i == lastFailedPlane || (i == Frustum.NUM_PLANES && lastFailedPlane < 0))
 				continue;
 
-			if (i == View.NUM_PLANES)
+			if (i == Frustum.NUM_PLANES)
 				plane = lastFailedPlane;
 			else
 				plane = i;
 
-			if ((planeState & (1 << plane)) == 0) {
-				p = view.getWorldPlane(plane);
+			if (planeState == null || planeState.isTestRequired(plane)) {
+				p = frustum.getFrustumPlane(plane);
 				n.set(p.getA(), p.getB(), p.getC());
 				getExtent(n, false, c);
 				distMax = p.signedDistance(c);
@@ -388,17 +387,17 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 				distMin = p.signedDistance(c);
 
 				if (distMax < 0) {
-					view.setPlaneState(planeState);
 					lastFailedPlane = plane;
 					return FrustumIntersection.OUTSIDE;
-				} else if (distMin < 0)
+				} else if (distMin < 0) {
 					result = FrustumIntersection.INTERSECT;
-				else
-					planeState |= (1 << plane);
+				} else {
+					if (planeState != null)
+						planeState.setTestRequired(plane, false);
+				}
 			}
 		}
 
-		view.setPlaneState(planeState);
 		return result;
 	}
 

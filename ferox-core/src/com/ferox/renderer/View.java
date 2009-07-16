@@ -1,8 +1,8 @@
 package com.ferox.renderer;
 
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Matrix4f;
-import com.ferox.math.Plane;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 
@@ -29,34 +29,7 @@ import com.ferox.math.Vector3f;
  * @author Michael Ludwig
  */
 public class View {
-	/** Result of a frustum test against a BoundVolume. */
-	public static enum FrustumIntersection {
-		INSIDE, OUTSIDE, INTERSECT
-	}
-
-	public static final int NUM_PLANES = 6;
-
-	public static final int NEAR_PLANE = 0;
-	public static final int FAR_PLANE = 1;
-	public static final int TOP_PLANE = 2;
-	public static final int BOTTOM_PLANE = 3;
-	public static final int LEFT_PLANE = 4;
-	public static final int RIGHT_PLANE = 5;
-
-	public static final int NEAR_PLANE_BIT = (1 << NEAR_PLANE);
-	public static final int FAR_PLANE_BIT = (1 << FAR_PLANE);
-	public static final int TOP_PLANE_BIT = (1 << TOP_PLANE);
-	public static final int BOTTOM_PLANE_BIT = (1 << BOTTOM_PLANE);
-	public static final int LEFT_PLANE_BIT = (1 << LEFT_PLANE);
-	public static final int RIGHT_PLANE_BIT = (1 << RIGHT_PLANE);
-
 	private static final ThreadLocal<Vector3f> l = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> u = new ThreadLocal<Vector3f>() {
 		@Override
 		protected Vector3f initialValue() {
 			return new Vector3f();
@@ -64,14 +37,7 @@ public class View {
 	};
 
 	private final Matrix4f projection;
-	private boolean useOrtho;
-
-	private float frustumLeft;
-	private float frustumRight;
-	private float frustumTop;
-	private float frustumBottom;
-	private float frustumNear;
-	private float frustumFar;
+	private final Frustum frustum;
 
 	private float viewLeft;
 	private float viewRight;
@@ -82,9 +48,6 @@ public class View {
 	private final Vector3f up;
 	private final Vector3f direction;
 
-	private int planeState;
-
-	private final Plane[] worldPlanes;
 	private final Transform viewTrans;
 
 	/**
@@ -93,39 +56,15 @@ public class View {
 	 */
 	public View() {
 		projection = new Matrix4f();
-
-		worldPlanes = new Plane[6];
 		viewTrans = new Transform();
+		frustum = new Frustum(60f, 1f, 1f, 100f);
 
-		location = new Vector3f();
-		up = new Vector3f(0f, 1f, 0f);
-		direction = new Vector3f(0f, 0f, -1f);
-
+		// share the frustum's vectors
+		location = frustum.getLocation();
+		up = frustum.getUp();
+		direction = frustum.getDirection();
+		
 		setViewPort(0f, 1f, 0f, 1f);
-		setPerspective(60f, 1f, 1f, 100f);
-	}
-
-	/**
-	 * Get the current plane state of this view. See setPlaneState(...) for
-	 * more.
-	 * 
-	 * @return The current plane state of the view
-	 */
-	public int getPlaneState() {
-		return planeState;
-	}
-
-	/**
-	 * planeBits is a bitwise OR of the PLANE_BITS static variables. If a bit is
-	 * set, signals this view that it's unnecessary to test that plane when
-	 * testing bound intersection. This is used when traversing a scene to
-	 * efficiently elimate plane tests.
-	 * 
-	 * @param planeBits The new plane state to use for subsequent
-	 *            BoundVolume.testFrustum() calls
-	 */
-	public void setPlaneState(int planeBits) {
-		planeState = planeBits;
 	}
 
 	/**
@@ -135,8 +74,8 @@ public class View {
 	 * </p>
 	 * <p>
 	 * This instance should not be modified. This will be stale if the location,
-	 * direction, and up vectors or the projection matrix are changed without a
-	 * subsequent call to updateView().
+	 * direction, and up vectors are changed without a subsequent call to
+	 * updateView().
 	 * </p>
 	 * 
 	 * @return The Transform instance going from world coordinates to view
@@ -145,62 +84,59 @@ public class View {
 	public Transform getViewTransform() {
 		return viewTrans;
 	}
-
+	
 	/**
 	 * <p>
-	 * Return a plane representing the given plane of the view frustum, in world
-	 * coordinates. This plane should not be modified.
+	 * Return the Frustum that represents the viewing projection for this View.
 	 * </p>
 	 * <p>
-	 * This will be stale if the location, direction, and up vectors or the
-	 * projection matrix are changed without a subsequent call to updateView().
-	 * It may return null if it is stale.
+	 * This instance can be modified to assign new frustum values or change the
+	 * projection mode from orthogonal to perspective. The Frustum's location,
+	 * direction and up vectors are shared by this View. These vectors will be
+	 * re-shared after a call to updateView() if the frustum's are rebound.
+	 * </p>
+	 * <p>
+	 * The frustum planes stored by the returned Frustum will be stale if
+	 * location, direction and up vectors are changed without a subsequent call
+	 * to updateView() or by calling the Frustum's updateFrustumPlanes() method.
 	 * </p>
 	 * 
-	 * @param plane The requested plane
-	 * @return The Plane instance for the requested plane, in world coordinates
-	 * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
+	 * @return The Frustum instance used by this View
 	 */
-	public Plane getWorldPlane(int plane) {
-		return worldPlanes[plane];
+	public Frustum getFrustum() {
+		return frustum;
 	}
 
 	/**
 	 * <p>
-	 * Update the Transform returned by getViewTransform() and the Planes
-	 * returned by getWorldPlane() to reflect any changes to the View's
-	 * location, direction, up vector and projection matrix.
-	 * </p>
-	 * <p>
-	 * This also resets the view's plane state to 0 (so all planes must be
-	 * tested in the frustum).
-	 * </p>
+	 * Update the Transform returned by getViewTransform() and update this
+	 * View's Frustum object to reflect changes in the View's location,
+	 * direction and up vectors. After a call to this method, getViewTransform()
+	 * will not be stale, and the frustum planes within getFrustum() will be
+	 * up-to-date.
 	 * <p>
 	 * This must be called before the view is used by a render pass in the
 	 * renderer.
 	 * </p>
 	 */
 	public void updateView() {
-		// compute the right-handed basis vectors of the view
-		Vector3f left = up.normalize().cross(direction, View.l.get()).normalize();
-		Vector3f u = direction.normalize().cross(left, View.u.get()).normalize();
+		// restore frustum references, and auto update the planes,
+		// will also ortho-normalize direction and up
+		frustum.setOrientation(location, direction, up);
+		Vector3f left = up.cross(direction, View.l.get()).normalize();
 
 		// update viewTrans to the basis vectors and new location
 		Matrix3f m = viewTrans.getRotation();
-		m.setCol(0, left).setCol(1, u).setCol(2, direction);
+		m.setCol(0, left).setCol(1, up).setCol(2, direction);
 
 		viewTrans.setTranslation(location);
 		viewTrans.setScale(1f);
 
 		// invert the world transform to get the view transform
 		viewTrans.inverse();
-
-		if (useOrtho)
-			computeOrthoWorldPlanes();
-		else
-			computePerspectiveWorldPlanes();
-
-		planeState = 0;
+		
+		// store the projection matrix
+		frustum.getProjectionMatrix(projection);
 	}
 
 	/**
@@ -284,152 +220,6 @@ public class View {
 	}
 
 	/**
-	 * Set the frustum to be frustum with the given field of view (in degrees).
-	 * Widths and heights are calculated using the assumed aspect ration and
-	 * near and far values. Because perspective transforms only make sense for
-	 * non-orthographic projections, it also sets this view to be
-	 * non-orthographic.
-	 * 
-	 * @param fov The field of view
-	 * @param aspect The aspect ratio of the view region (width / height)
-	 * @param near The distance from the view's location to the near camera
-	 *            plane
-	 * @param far The distance from the view's location to the far camera plane
-	 * @throws IllegalArgumentException if left > right, bottom > top, or near >
-	 *             far, or if near <= 0
-	 */
-	public void setPerspective(float fov, float aspect, float near, float far) {
-		float h = (float) Math.tan(Math.toRadians(fov)) * near * .5f;
-		float w = h * aspect;
-		useOrtho = false;
-		setFrustum(-w, w, -h, h, near, far);
-	}
-
-	/**
-	 * Get the left edge of the near frustum plane.
-	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
-	 * @return The left edge of the near frustum plane
-	 */
-	public float getFrustumLeft() {
-		return frustumLeft;
-	}
-
-	/**
-	 * Get the right edge of the near frustum plane.
-	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
-	 * @return The right edge of the near frustum plane
-	 */
-	public float getFrustumRight() {
-		return frustumRight;
-	}
-
-	/**
-	 * Get the top edge of the near frustum plane.
-	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
-	 * @return The top edge of the near frustum plane
-	 */
-	public float getFrustumTop() {
-		return frustumTop;
-	}
-
-	/**
-	 * Get the bottom edge of the near frustum plane.
-	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
-	 * @return The bottom edge of the near frustum plane
-	 */
-	public float getFrustumBottom() {
-		return frustumBottom;
-	}
-
-	/**
-	 * Get the distance to the near frustum plane from the origin, in camera
-	 * coords.
-	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
-	 * @return The distance to the near frustum plane
-	 */
-	public float getFrustumNear() {
-		return frustumNear;
-	}
-
-	/**
-	 * Get the distance to the far frustum plane from the origin, in camera
-	 * coords.
-	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
-	 * @return The distance to the far frustum plane
-	 */
-	public float getFrustumFar() {
-		return frustumFar;
-	}
-
-	/**
-	 * Sets the dimensions of the viewing frustum in camera coords. left, right,
-	 * bottom, and top specify edges of the rectangular near plane. This plane
-	 * is positioned perpendicular to the viewing direction, a distance near
-	 * along the direction vector from the view's location. If this view is
-	 * using orthogonal projection, the frustum is a rectangular prism extending
-	 * from this near plane, out to an identically sized plane, that is distance
-	 * far away. If not, the far plane is the far extent of a pyramid with it's
-	 * point at the origin (camera coords), truncated at the near plane.
-	 * 
-	 * @param left The left edge of the near frustum plane
-	 * @param right The right edge of the near frustum plane
-	 * @param bottom The bottom edge of the near frustum plane
-	 * @param top The top edge of the near frustum plane
-	 * @param near The distance to the near frustum plane
-	 * @param far The distance to the far frustum plane
-	 * @throws IllegalArgumentException if left > right, bottom > top, near >
-	 *             far, or near <= 0 when the view isn't orthographic
-	 */
-	public void setFrustum(float left, float right, float bottom, float top, float near, float far) {
-		if (left > right || bottom > top || near > far)
-			throw new IllegalArgumentException("Frustum values would create an invalid frustum: " + 
-											   left + " " + right + " x " + bottom + " " + top + " x " + near + " " + far);
-		if (near <= 0 && !useOrtho)
-			throw new IllegalArgumentException("Illegal value for near frustum when using perspective projection: " + near);
-
-		frustumLeft = left;
-		frustumRight = right;
-		frustumBottom = bottom;
-		frustumTop = top;
-		frustumNear = near;
-		frustumFar = far;
-
-		computeProjectionMatrix();
-	}
-
-	/**
-	 * Whether or not this view uses a perspective or orthogonal projection.
-	 * 
-	 * @return True if the projection matrix is orthographic
-	 */
-	public boolean isOrthogonalProjection() {
-		return useOrtho;
-	}
-
-	/**
-	 * Set whether or not to use orthogonal projection.
-	 * 
-	 * @param ortho Whether or not to use an orthographic projection
-	 * @throws IllegalStateException if ortho is false and the near frustum
-	 *             plane is <= 0
-	 */
-	public void setOrthogonalProjection(boolean ortho) {
-		if (!ortho && frustumNear <= 0)
-			throw new IllegalStateException("Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
-
-		if (useOrtho != ortho) {
-			useOrtho = ortho;
-			computeProjectionMatrix();
-		}
-	}
-
-	/**
 	 * Get the left edge of the viewport, as a fraction of the width measured
 	 * from the left side of the frame. Default value is 0.
 	 * 
@@ -496,139 +286,5 @@ public class View {
 		viewLeft = left;
 		viewRight = right;
 		viewTop = top;
-	}
-
-	// compute the projection matrix
-	private void computeProjectionMatrix() {
-		projection.set(0, 0, 0, 0, 
-					   0, 0, 0, 0, 
-					   0, 0, 0, 0, 
-					   0, 0, 0, 0);
-		if (useOrtho)
-			orthoMatrix(frustumRight, frustumLeft, 
-						frustumTop, frustumBottom, 
-						frustumNear, frustumFar, projection);
-		else
-			projMatrix(frustumRight, frustumLeft, 
-					   frustumTop, frustumBottom,
-					   frustumNear, frustumFar, projection);
-	}
-
-	private void computeOrthoWorldPlanes() {
-		Vector3f n = l.get();
-		Vector3f p = u.get();
-
-		// FAR
-		direction.scaleAdd(frustumFar, location, p);
-		direction.scale(-1f, n);
-		setWorldPlane(FAR_PLANE, n, p);
-
-		// NEAR
-		direction.scaleAdd(frustumNear, location, p);
-		n.set(direction);
-		setWorldPlane(NEAR_PLANE, n, p);
-
-		// LEFT
-		direction.cross(up, n);
-		n.scaleAdd(frustumLeft, location, p);
-		setWorldPlane(LEFT_PLANE, n, p);
-
-		// RIGHT
-		n.scaleAdd(frustumRight, location, p);
-		n.scale(-1f, n);
-		setWorldPlane(RIGHT_PLANE, n, p);
-
-		// BOTTOM
-		up.scaleAdd(frustumBottom, location, p);
-		setWorldPlane(BOTTOM_PLANE, up, p);
-
-		// TOP
-		up.scale(-1f, n);
-		up.scaleAdd(frustumTop, location, p);
-		setWorldPlane(TOP_PLANE, n, p);
-	}
-
-	private void computePerspectiveWorldPlanes() {
-		Vector3f n = l.get();
-		Vector3f p = u.get();
-
-		// FAR
-		direction.scaleAdd(frustumFar, location, p);
-		direction.scale(-1f, n);
-		setWorldPlane(FAR_PLANE, n, p);
-
-		// NEAR
-		direction.scaleAdd(frustumNear, location, p);
-		n.set(direction);
-		setWorldPlane(NEAR_PLANE, n, p);
-
-		// compute left vector for LEFT and RIGHT usage
-		up.cross(direction, p);
-
-		// LEFT
-		float invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumLeft * frustumLeft);
-		p.scale(-frustumNear * invHyp, n);
-		direction.scaleAdd(Math.abs(frustumLeft) * invHyp, n, n);
-		setWorldPlane(LEFT_PLANE, n, location);
-
-		// RIGHT
-		invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumRight * frustumRight);
-		p.scale(frustumNear * invHyp, n);
-		direction.scaleAdd(Math.abs(frustumRight) * invHyp, n, n);
-		setWorldPlane(RIGHT_PLANE, n, location);
-
-		// BOTTOM
-		invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumBottom * frustumBottom);
-		up.scale(frustumNear * invHyp, n);
-		direction.scaleAdd(Math.abs(frustumBottom) * invHyp, n, n);
-		setWorldPlane(BOTTOM_PLANE, n, location);
-
-		// TOP
-		invHyp = 1 / (float) Math.sqrt(frustumNear * frustumNear + frustumTop * frustumTop);
-		up.scale(-frustumNear * invHyp, n);
-		direction.scaleAdd(Math.abs(frustumTop) * invHyp, n, n);
-		setWorldPlane(TOP_PLANE, n, location);
-	}
-
-	// set the given world plane so it's a plane with the given normal
-	// that passes through pos, and then normalize it
-	private void setWorldPlane(int plane, Vector3f normal, Vector3f pos) {
-		setWorldPlane(plane, normal.x, normal.y, normal.z, -normal.dot(pos));
-	}
-
-	// set the given world plane, with the 4 values, and then normalize it
-	private void setWorldPlane(int plane, float a, float b, float c, float d) {
-		Plane cp = worldPlanes[plane];
-		if (cp == null) {
-			cp = new Plane(a, b, c, d);
-			worldPlanes[plane] = cp;
-		} else
-			cp.setPlane(a, b, c, d);
-		cp.normalize();
-	}
-
-	// computes an orthogonal projection matrix given the frustum values.
-	private static void orthoMatrix(float fr, float fl, float ft, float fb, float fn, float ff, Matrix4f out) {
-		out.m00 = 2f / (fr - fl);
-		out.m11 = 2f / (ft - fb);
-		out.m22 = 2f / (fn - ff);
-		out.m33 = 1f;
-
-		out.m03 = -(fr + fl) / (fr - fl);
-		out.m13 = -(ft + fb) / (ft - fb);
-		out.m23 = -(ff + fn) / (ff - fn);
-	}
-
-	// computes a perspective projection matrix given the frustum values.
-	private static void projMatrix(float fr, float fl, float ft, float fb, float fn, float ff, Matrix4f out) {
-		out.m00 = 2f * fn / (fr - fl);
-		out.m11 = 2f * fn / (ft - fb);
-
-		out.m02 = (fr + fl) / (fr - fl);
-		out.m12 = (ft + fb) / (ft - fb);
-		out.m22 = -(ff + fn) / (ff - fn);
-		out.m32 = -1f;
-
-		out.m23 = -2f * ff * fn / (ff - fn);
 	}
 }
