@@ -88,7 +88,7 @@ public abstract class BasicApplication extends ApplicationBase {
 		window.addRenderPass(pass);
 		window.setTitle(this.getClass().getSimpleName());
 
-		v.setPerspective(60f, (float) window.getWidth() / window.getHeight(),
+		v.getFrustum().setPerspective(60f, (float) window.getWidth() / window.getHeight(),
 			1f, 1000f);
 
 		scene = buildScene(renderer, view);
@@ -117,8 +117,8 @@ public abstract class BasicApplication extends ApplicationBase {
 		g.add(fpsNode);
 
 		View ortho = new View();
-		ortho.setOrthogonalProjection(true);
-		ortho.setFrustum(0, window.getWidth(), 0, window.getHeight(), -1, 1);
+		ortho.getFrustum().setOrthogonalProjection(true);
+		ortho.getFrustum().setFrustum(0, window.getWidth(), 0, window.getHeight(), -1, 1);
 		fpsPass = new SceneRenderPass(g, ortho);
 		fpsPass.setSceneUpdated(true);
 		window.addRenderPass(fpsPass);

@@ -54,7 +54,7 @@ public class RttCubeTest extends BasicApplication {
 	@Override
 	protected Node buildScene(Framework renderer, ViewNode view) {
 		this.window.setClearColor(bgColor);
-		view.getView().setPerspective(60f,
+		view.getView().getFrustum().setPerspective(60f,
 						window.getWidth() / (float) window.getHeight(), 1f,
 						300f);
 		view.getLocalTransform().getTranslation().z = 2f * BOUNDS;
@@ -165,8 +165,8 @@ public class RttCubeTest extends BasicApplication {
 						new Appearance().setDepthTest(dt).setTextures(new Texture(colorTex)));
 
 		View ortho = new View();
-		ortho.setOrthogonalProjection(true);
-		ortho.setFrustum(0, window.getWidth(), 0, window.getHeight(), -1, 1);
+		ortho.getFrustum().setOrthogonalProjection(true);
+		ortho.getFrustum().setFrustum(0, window.getWidth(), 0, window.getHeight(), -1, 1);
 
 		window.removeRenderPass(pass);
 		window.addRenderPass(new SceneRenderPass(colorShape, ortho));
