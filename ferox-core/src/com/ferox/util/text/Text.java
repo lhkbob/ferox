@@ -1,4 +1,4 @@
-package com.ferox.util.geom;
+package com.ferox.util.text;
 
 import java.awt.font.LineMetrics;
 

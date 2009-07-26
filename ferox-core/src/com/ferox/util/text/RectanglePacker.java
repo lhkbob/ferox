@@ -1,4 +1,4 @@
-package com.ferox.util;
+package com.ferox.util.text;
 
 /**
  * <p>

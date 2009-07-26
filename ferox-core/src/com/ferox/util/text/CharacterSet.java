@@ -1,4 +1,4 @@
-package com.ferox.util.geom;
+package com.ferox.util.text;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -20,8 +20,7 @@ import com.ferox.resource.Texture2D;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.TextureImage.Filter;
-import com.ferox.util.RectanglePacker;
-import com.ferox.util.RectanglePacker.Rectangle;
+import com.ferox.util.text.RectanglePacker.Rectangle;
 
 /**
  * <p>

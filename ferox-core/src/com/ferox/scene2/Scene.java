@@ -3,9 +3,7 @@ package com.ferox.scene2;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.bounds.BoundVolume;
@@ -39,8 +37,6 @@ public class Scene {
 	// and its size should be much smaller so we don't need Bag's efficient removal
 	private final List<Cell> cells;
 	
-	private final Set<Class<? extends SceneElement>> indices;
-	
 	private long lastUpdate; // ns
 	private boolean cellAdded;
 	
@@ -52,7 +48,6 @@ public class Scene {
 	public Scene() {
 		sceneElements = new Bag<SceneElement>();
 		cells = new ArrayList<Cell>();
-		indices = new HashSet<Class<? extends SceneElement>>();
 		
 		// set up the default cell at the lowest possible priority
 		UnboundedCell dfltCell = new UnboundedCell();
@@ -130,10 +125,6 @@ public class Scene {
 			cells.add(cell);
 			cell.setScene(this);
 			
-			// add all indices configured for this Scene
-			for (Class<? extends SceneElement> index: indices)
-				cell.addIndex(index);
-			
 			cellAdded = true;
 		}
 	}
@@ -142,9 +133,8 @@ public class Scene {
 	 * <p>
 	 * Remove the given Cell from this Scene so that it no longer partitions
 	 * SceneElements. The SceneElements currently contained within the Cell will
-	 * be removed from it, and all indices will be cleared. The SceneElements
-	 * are still owned by this Scene and will be placed in another Cell at the
-	 * next update.
+	 * be removed from it. The SceneElements are still owned by this Scene and
+	 * will be placed in another Cell at the next update.
 	 * </p>
 	 * <p>
 	 * If cell is null or not owned by this Scene, then this method is a no-op.
@@ -216,60 +206,6 @@ public class Scene {
 	public void update() {
 		long delta = System.nanoTime() - lastUpdate;
 		update(delta / 1e9f);
-	}
-	
-	/**
-	 * <p>
-	 * Add the given SceneElement type as an index to enable more efficient
-	 * queries. An index does not have to be explicitly added to be used in a
-	 * query, but in scenarios where the SceneElement type is uncommon compared
-	 * to most of a Scene's elements, indexing can greatly improve performance.
-	 * </p>
-	 * <p>
-	 * If index is null, equal to SceneElement, or already added to this Scene,
-	 * then this method is a no-op. It does not make sense to add SceneElement
-	 * as an index, because it would index all elements, anyway.
-	 * </p>
-	 * 
-	 * @param index The class type to use as an index
-	 */
-	public void addIndex(Class<? extends SceneElement> index) {
-		if (index != null && !SceneElement.class.equals(index) && !indices.contains(index)) {
-			indices.add(index);
-			
-			int length = cells.size();
-			for (int i = 0; i < length; i++)
-				cells.get(i).addIndex(index);
-		}
-	}
-	
-	/**
-	 * <p>
-	 * Remove the given index from this Scene. After a call to this method,
-	 * Cell's will no longer explicitly index SceneElements based off of the
-	 * given index. Depending on the size of this Scene and the types of
-	 * queries, this may save memory or make queries slower or both.
-	 * </p>
-	 * <p>
-	 * If index is null, equal to SceneElement, or not already an index for this
-	 * Scene, then this method is a no-op and false is returned.
-	 * </p>
-	 * 
-	 * @param index The class type to no longer use as an index
-	 * @return True if the index was successfully removed.
-	 */
-	public boolean removeIndex(Class<? extends SceneElement> index) {
-		if (index != null && !SceneElement.class.equals(index) && indices.contains(index)) {
-			indices.remove(index);
-			
-			int length = cells.size();
-			for (int i = 0; i < length; i++) 
-				cells.get(i).removeIndex(index);
-			
-			return true;
-		}
-		
-		return false;
 	}
 	
 	/**

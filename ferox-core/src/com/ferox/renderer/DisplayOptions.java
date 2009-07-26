@@ -3,14 +3,12 @@ package com.ferox.renderer;
 /**
  * <p>
  * DisplayOptions represents a set of configurable surface parameters used when
- * creating render surfaces.
+ * creating render surfaces. DisplayOptions are immutable after they are
+ * created.
  * </p>
  * <p>
  * When creating a surface, these values should be deemed as a request and the
  * renderer must satisfy them as best as possible.
- * </p>
- * <p>
- * DisplayOptions are immutable after they are created.
  * </p>
  * 
  * @author Michael Ludwig

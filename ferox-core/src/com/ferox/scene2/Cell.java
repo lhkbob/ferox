@@ -16,6 +16,19 @@ import com.ferox.util.Bag;
  * partition the Scene's elements into manageable areas to improve the speed of
  * both visibility and spatial culling.
  * </p>
+ * <p>
+ * You should not need to call the majority of the methods in Cell because they
+ * are intended for use by a Cell's managing Scene. The following methods should
+ * not be called, except by a Scene:
+ * <ul>
+ * <li>setScene(Scene)</li>
+ * <li>add(SceneElement)</li>
+ * <li>remove(SceneElement)</li>
+ * <li>query() - both varieties</li>
+ * <li>update(float)</li>
+ * </ul>
+ * The remaining methods are free for normal use.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -101,40 +114,6 @@ public interface Cell {
 	public void remove(SceneElement element);
 	
 	/**
-	 * <p>
-	 * Add the given SceneElement type as an index to enable more efficient
-	 * queries. An index does not have to be explicitly added to be used in a
-	 * query, but in scenarios where the SceneElement type is uncommon compared
-	 * to most of a Scene's elements, indexing can greatly improve performance.
-	 * </p>
-	 * <p>
-	 * If index is null, equal to SceneElement, or already added to this Cell,
-	 * then this method is a no-op. It does not make sense to add SceneElement
-	 * as an index, because it would index all elements, anyway.
-	 * </p>
-	 * 
-	 * @param index The class type to use as an index
-	 */
-	public void addIndex(Class<? extends SceneElement> index);
-	
-	/**
-	 * <p>
-	 * Remove the given index from this Cell. After a call to this method,
-	 * this Cell will no longer explicitly index SceneElements based off of the
-	 * given index. Depending on the size of this Scene and the types of
-	 * queries, this may save memory or make queries slower or both.
-	 * </p>
-	 * <p>
-	 * If index is null, equal to SceneElement, or not already an index for this
-	 * Cell, then this method is a no-op and false is returned.
-	 * </p>
-	 * 
-	 * @param index The class type to no longer use as an index
-	 * @return True if the index was successfully removed.
-	 */
-	public void removeIndex(Class<? extends SceneElement> index);
-	
-	/**
 	 * Perform a visibility query as described in Scene.query(). The primary
 	 * difference is that result can be assumed to be non-null and that all
 	 * matching SceneElements in this Cell will be added to the bag without
@@ -163,10 +142,9 @@ public interface Cell {
 	public void query(BoundVolume query, Class<? extends SceneElement> index, Bag<SceneElement> result);
 	
 	/**
-	 * Clear this Cell so that it is completely reverted to its initial state.
-	 * All currently added SceneElements should be removed as per remove(), and
-	 * all indices should be removed as per removeIndex(). The Cell's priority
-	 * and Scene should be left unchanged.
+	 * Clear this Cell so that it is completely empty. All currently added
+	 * SceneElements should be removed as per remove(). The Cell's priority and
+	 * Scene should be left unchanged.
 	 */
 	public void clear();
 	
