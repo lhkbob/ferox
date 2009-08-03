@@ -39,7 +39,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 	 * Convenience function to return the translation vector of the transform
 	 * returned by getLocalTransform(). For the same reasons that
 	 * getLocalTransform() is read-only, so is the returned vector. Any changes
-	 * to it should be followed by a call to flagDirty().
+	 * to it should be followed by a call to setDirty().
 	 * 
 	 * @return The local translation
 	 */
@@ -52,7 +52,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 	 * Convenience function to return the rotation matrix of the transform
 	 * returned by getLocalTransform(). For the same reasons that
 	 * getLocalTransform() is read-only, so is the returned matrix. Any changes
-	 * to it should be followed by a call to flagDirty().
+	 * to it should be followed by a call to setDirty().
 	 * 
 	 * @return The local rotation matrix
 	 */
@@ -71,7 +71,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 	 */
 	public void setTranslation(float x, float y, float z) {
 		localTransform.setTranslation(x, y, z);
-		flagDirty();
+		setDirty();
 	}
 	
 	/**
@@ -82,7 +82,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 	 */
 	public void setTranslation(Vector3f t) {
 		localTransform.setTranslation(t);
-		flagDirty();
+		setDirty();
 	}
 	
 	/**
@@ -94,7 +94,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 	 */
 	public void setRotation(Matrix3f m) {
 		localTransform.setRotation(m);
-		flagDirty();
+		setDirty();
 	}
 	
 	/**
@@ -102,26 +102,26 @@ public abstract class AbstractSceneElement implements SceneElement {
 	 * used for local bounds is the same as the space used for object
 	 * coordinates in the geometry of the element. Null may be specified, but it
 	 * may limit a Scene's query effectiveness. Calling this method will also
-	 * invoke flagDirty().
+	 * invoke setDirty().
 	 * 
 	 * @param bounds The BoundVolume instance to use
 	 */
 	public void setBounds(BoundVolume bounds) {
 		localBounds = bounds;
-		flagDirty();
+		setDirty();
 	}
 	
 	/**
 	 * Copy t into this SceneElement's local or primary transform. If there is
 	 * no UpdateController, this will be used as the element's final transform
 	 * after an update(). If t is null, the transform will be set to the
-	 * identity. Calling this method will also invoke flagDirty().
+	 * identity. Calling this method will also invoke setDirty().
 	 * 
 	 * @param t The new local transform values
 	 */
 	public void setTransform(Transform t) {
 		localTransform.set(t);
-		flagDirty();
+		setDirty();
 	}
 	
 	/**
@@ -149,8 +149,13 @@ public abstract class AbstractSceneElement implements SceneElement {
 	}
 	
 	@Override
-	public void flagDirty() {
+	public void setDirty() {
 		dirty = true;
+	}
+	
+	@Override
+	public boolean isDirty() {
+		return dirty;
 	}
 
 	@Override
@@ -201,12 +206,14 @@ public abstract class AbstractSceneElement implements SceneElement {
 			reassign = dirty || controller.update(this, timeDelta);
 		} else if (dirty) {
 			worldTransform.set(localTransform);
+			reassign = true;
+		}
+		
+		if (reassign) {
 			if (localBounds != null)
 				worldBounds = localBounds.transform(worldTransform, worldBounds);
 			else
 				worldBounds = null;
-			
-			reassign = true;
 		}
 		
 		dirty = false;

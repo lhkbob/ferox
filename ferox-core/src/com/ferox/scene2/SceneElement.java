@@ -163,7 +163,17 @@ public interface SceneElement {
 	 * update(). This will signal the Scene that it should be re-evaluated and
 	 * placed into a correct Cell.
 	 */
-	public void flagDirty();
+	public void setDirty();
+	
+	/**
+	 * Return true if this SceneElement's local transform or bound state has
+	 * been modified. Depending on if there's an assigned UpdateController (and
+	 * how its implemented) this will generally match the return value from the
+	 * next update().
+	 * 
+	 * @return This SceneElement's dirty status
+	 */
+	public boolean isDirty();
 	
 	/**
 	 * <p>
@@ -173,13 +183,17 @@ public interface SceneElement {
 	 * Cell.
 	 * </p>
 	 * <p>
-	 * If there is no UpdateController assigned to this SceneElement, then the
-	 * local transform should be copied into the world transform. The world
-	 * bounds should be derived from the local bounds using
-	 * BoundVolume.transform() with the world transform.
+	 * If there is an UpdateController, then the controller should be invoked
+	 * and is responsible for modifying the world transform. If there is no
+	 * controller, then the local transform should be copied into the world
+	 * transform.
 	 * </p>
 	 * <p>
-	 * If there is an UpdateController, this work is delegated to it instead.
+	 * The world bounds should be derived from the local bounds using
+	 * BoundVolume.transform() using the computed world transform. If the local
+	 * bounds are null, then the world bounds should also be null. The bounds
+	 * should be computed by the SceneElement regardless of the presences of an
+	 * UpdateController.
 	 * </p>
 	 * 
 	 * @param timeDelta The time change since the last update, in seconds
@@ -191,8 +205,8 @@ public interface SceneElement {
 	 * <p>
 	 * Set the current UpdateController to override the default behavior of the
 	 * update method. If this controller is non-null, it becomes responsible for
-	 * properly updating the world bounds and world transform based on the
-	 * element's local parameters and whatever else may be necessary.
+	 * properly updating the world transform based on the element's local
+	 * parameters and whatever else may be necessary.
 	 * </p>
 	 * <p>
 	 * If controller is null, then any previous controller is cleared and update
