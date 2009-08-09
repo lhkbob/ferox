@@ -1,8 +1,8 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 import com.ferox.math.bounds.BoundSphere;
 import com.ferox.resource.Geometry;
-import com.ferox.scene2.fx.Appearance;
+import com.ferox.scene.fx.Appearance;
 
 /**
  * <p>

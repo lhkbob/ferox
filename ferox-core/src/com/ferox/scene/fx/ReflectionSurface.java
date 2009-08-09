@@ -1,4 +1,4 @@
-package com.ferox.scene2.fx;
+package com.ferox.scene.fx;
 
 public class ReflectionSurface {
 	// cubemap/sphere texture etc for the source of the reflection data

@@ -1,4 +1,4 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 /**
  * Provide a simple starting point for Cell implementations. It implements the

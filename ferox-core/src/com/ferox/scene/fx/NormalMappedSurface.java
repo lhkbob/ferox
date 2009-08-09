@@ -1,4 +1,4 @@
-package com.ferox.scene2.fx;
+package com.ferox.scene.fx;
 
 public class NormalMappedSurface {
 	// normal texture map

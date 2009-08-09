@@ -1,4 +1,4 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 import com.ferox.math.Matrix3f;
 import com.ferox.renderer.View;

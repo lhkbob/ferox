@@ -1,4 +1,4 @@
-package com.ferox.scene2.fx;
+package com.ferox.scene.fx;
 
 public class TransparentSurface {
 	// texture source for refraction

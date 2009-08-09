@@ -1,4 +1,4 @@
-package com.ferox.scene2.fx;
+package com.ferox.scene.fx;
 
 public interface SceneCompositor {
 	// this is what will be implemented by the deferred/forward/fixed systems

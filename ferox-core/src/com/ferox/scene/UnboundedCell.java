@@ -1,4 +1,4 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.Frustum.FrustumIntersection;

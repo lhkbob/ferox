@@ -1,4 +1,4 @@
-package com.ferox.scene2.fx;
+package com.ferox.scene.fx;
 
 public class LightingModel {
 	// for simple renderings, or ui elements, i'll just use render atoms and bag<effects> directly

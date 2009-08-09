@@ -1,4 +1,4 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 /**
  * UpdateControllers can be used to provide custom update behavior for
