@@ -1,8 +1,9 @@
 package com.ferox.renderer;
 
-import com.ferox.effect.EffectSet;
+import com.ferox.effect.Effect;
 import com.ferox.math.Transform;
 import com.ferox.resource.Geometry;
+import com.ferox.util.Bag;
 
 /**
  * <p>
@@ -23,7 +24,7 @@ import com.ferox.resource.Geometry;
  */
 public final class RenderAtom {
 	private Transform transform;
-	private EffectSet effects;
+	private Bag<Effect> effects;
 	private Geometry geometry;
 
 	private final Object key;
@@ -35,11 +36,11 @@ public final class RenderAtom {
 	 * 
 	 * @param t The Transform to use
 	 * @param g The Geometry that will be used by this atom
-	 * @param e The EffectSet that is initially used
+	 * @param e The set of effects to be used
 	 * @param key The key required for all setX() calls, if it's not null
 	 * @throws NullPointerException if t or g are null
 	 */
-	public RenderAtom(Transform t, Geometry g, EffectSet e, Object key) {
+	public RenderAtom(Transform t, Geometry g, Bag<Effect> e, Object key) {
 		this.key = key;
 
 		setTransform(t, key);
@@ -65,13 +66,17 @@ public final class RenderAtom {
 	}
 
 	/**
-	 * Set the EffectSet instance to use.
+	 * Set the EffectSet instance to use. The parameter e is a List only to
+	 * support efficient iterations by a Renderer. It is assumed that the list
+	 * contains only non-null elements that respect the guidelines of each
+	 * Effect's EffectType. Renderer's are not responsible for ensuring correct
+	 * behavior if this is broken.
 	 * 
 	 * @param e The new effect map instance to use
 	 * @param key The key to allow the set to proceed
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
-	public void setEffects(EffectSet e, Object key) {
+	public void setEffects(Bag<Effect> e, Object key) {
 		if (this.key == null || key == this.key)
 			effects = e;
 		else
@@ -107,9 +112,9 @@ public final class RenderAtom {
 
 	/**
 	 * <p>
-	 * Get the effects of the render atom. Essentially an atom is a vehicle for
-	 * delivering the effects to the renderer, along with a transform for
-	 * positioning the effects on a render surface.
+	 * Get the effects used to render the atom's Geometry. Essentially an atom
+	 * is a vehicle for delivering the effects and geometry, in addition to a
+	 * transformation that describes where to draw the geometry.
 	 * </p>
 	 * <p>
 	 * If this method returns null, the atom will be rendered with the default
@@ -118,7 +123,7 @@ public final class RenderAtom {
 	 * 
 	 * @return The effect map to use, may be null
 	 */
-	public EffectSet getEffects() {
+	public Bag<Effect> getEffects() {
 		return effects;
 	}
 

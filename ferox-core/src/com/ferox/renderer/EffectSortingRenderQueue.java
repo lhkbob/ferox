@@ -1,8 +1,8 @@
 package com.ferox.renderer;
 
 import com.ferox.effect.Effect;
-import com.ferox.effect.EffectSet;
 import com.ferox.effect.EffectType;
+import com.ferox.util.Bag;
 
 /**
  * EffectSortingRenderQueue can be used to order queued RenderAtoms by the
@@ -31,15 +31,17 @@ public class EffectSortingRenderQueue extends BasicRenderQueue {
 
 	/* Compute the sorting key for the given render atom. */
 	private int computeSortKey(RenderAtom atom) {
-		EffectSet set = atom.getEffects();
+		Bag<Effect> set = atom.getEffects();
 
 		if (set != null) {
 			Effect e;
 			int key = 0;
 
-			set.reset();
-			while ((e = set.next()) != null)
+			int count = set.size();
+			for (int i = 0; i < count; i++) {
+				e = set.get(i);
 				key ^= typeKey(System.identityHashCode(e), e.getType());
+			}
 
 			// store it for later
 			return key;

@@ -2,6 +2,7 @@ package com.ferox.scene2;
 
 import com.ferox.math.bounds.BoundSphere;
 import com.ferox.resource.Geometry;
+import com.ferox.scene2.fx.Appearance;
 
 /**
  * <p>

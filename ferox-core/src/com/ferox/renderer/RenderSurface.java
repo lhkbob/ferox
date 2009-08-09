@@ -126,11 +126,11 @@ public interface RenderSurface {
 	public List<RenderPass> getAllRenderPasses();
 
 	/**
-	 * Get the renderer that created this surface.
+	 * Get the Framework that created this surface.
 	 * 
 	 * @return The Framework that created this surface, must not be null
 	 */
-	public Framework getRenderer();
+	public Framework getFramework();
 
 	/**
 	 * True if the color buffer of the render surface is cleared before any

@@ -8,7 +8,6 @@ import java.util.Stack;
 
 import com.ferox.effect.DepthTest;
 import com.ferox.effect.Effect;
-import com.ferox.effect.EffectSet;
 import com.ferox.effect.EffectType;
 import com.ferox.effect.Material;
 import com.ferox.effect.PolygonStyle;
@@ -37,6 +36,7 @@ import com.ferox.resource.Resource;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.util.Bag;
 
 /**
  * <p>
@@ -159,7 +159,7 @@ public abstract class AbstractFramework implements Framework {
 	@Override
 	public final TextureSurface createTextureSurface(TextureSurface share, int layer) {
 		ensure(RenderState.IDLE);
-		if (share == null || share.isDestroyed() || share.getRenderer() != this)
+		if (share == null || share.isDestroyed() || share.getFramework() != this)
 			throw new SurfaceCreationException("Invalid texture surface for sharing: " + share);
 
 		TextureSurface surface = this.prepareSurface(contextManager.createTextureSurface(share, layer));
@@ -172,7 +172,7 @@ public abstract class AbstractFramework implements Framework {
 		ensure(RenderState.IDLE);
 		if (surface == null)
 			throw new NullPointerException("Cannot destroy a null surface");
-		if (surface.getRenderer() != this)
+		if (surface.getFramework() != this)
 			throw new IllegalArgumentException("Cannot destroy a surface created by another renderer: " + surface);
 
 		if (!surface.isDestroyed()) {
@@ -241,7 +241,7 @@ public abstract class AbstractFramework implements Framework {
 		ensure(RenderState.IDLE);
 
 		if (surface != null && !surface.isDestroyed())
-			if (surface.getRenderer() != this)
+			if (surface.getFramework() != this)
 				throw new IllegalArgumentException("Cannot queue a surface created by another renderer: " + surface);
 			else if (!queuedSurfaces.contains(surface))
 				queuedSurfaces.add(surface);
@@ -727,11 +727,14 @@ public abstract class AbstractFramework implements Framework {
 
 	/* Internal implementation of Renderer */
 	private class RendererImpl implements Renderer {
-		private final EffectSet dfltAppearance;
+		private final Bag<Effect> dfltAppearance;
 		private GeometryDriver lastGeometryDriver;
 
 		public RendererImpl() {
-			dfltAppearance = new DefaultEffectSet();
+			dfltAppearance = new Bag<Effect>(3);
+			dfltAppearance.add(new DepthTest());
+			dfltAppearance.add(new Material());
+			dfltAppearance.add(new PolygonStyle());
 		}
 
 		@Override
@@ -807,14 +810,16 @@ public abstract class AbstractFramework implements Framework {
 		}
 
 		// Must only use this method for setting the active effect set
-		private void setAppearance(EffectSet app) {
+		private void setAppearance(Bag<Effect> app) {
 			// queue states present in the appearance
 			if (app != null) {
 				Effect e;
-				app.reset();
-
-				while ((e = app.next()) != null)
+				
+				int count = app.size();
+				for (int i = 0; i < count; i++) {
+					e = app.get(i);
 					getEffectDriver(e.getType()).queueEffect(e);
+				}
 			}
 
 			// perform queued state changes, anything not queued
@@ -822,60 +827,6 @@ public abstract class AbstractFramework implements Framework {
 			// only source of effect changes
 			for (int i = 0; i < supportedEffects.length; i++)
 				getEffectDriver(supportedEffects[i]).doApply();
-		}
-	}
-
-	/* Used to make setting the default appearance easier. */
-	private static class DefaultEffectSet implements EffectSet {
-		private final DepthTest depth;
-		private final Material material;
-		private final PolygonStyle poly;
-
-		private int pos;
-
-		public DefaultEffectSet() {
-			depth = new DepthTest();
-			material = new Material();
-			poly = new PolygonStyle();
-
-			pos = 0;
-		}
-
-		@Override
-		public Effect next() {
-			Effect e = null;
-			switch (pos) {
-			case 0:
-				e = depth;
-				break;
-			case 1:
-				e = material;
-				break;
-			case 2:
-				e = poly;
-				break;
-			}
-
-			if (e != null)
-				pos++;
-			return e;
-		}
-
-		@Override
-		public int position() {
-			return pos;
-		}
-
-		@Override
-		public void position(int pos) {
-			if (pos < 0 || pos > 2)
-				pos = 0;
-			this.pos = pos;
-		}
-
-		@Override
-		public void reset() {
-			position(0);
 		}
 	}
 }

@@ -2,13 +2,7 @@ package com.ferox.util.text;
 
 import java.awt.font.LineMetrics;
 
-import com.ferox.effect.Texture;
-import com.ferox.effect.BlendMode.BlendEquation;
-import com.ferox.effect.BlendMode.BlendFactor;
-import com.ferox.effect.Effect.PixelTest;
-import com.ferox.math.Color4f;
 import com.ferox.resource.IndexedArrayGeometry;
-import com.ferox.scene.Appearance;
 
 /**
  * <p>
@@ -98,38 +92,6 @@ public class Text extends IndexedArrayGeometry {
 		setWrapWidth(-1f);
 
 		layoutText(); // give us some valid values for the other properties
-	}
-
-	/**
-	 * <p>
-	 * Utility method to generate a Appearance suitable for displaying the Text
-	 * with the given color for the text.
-	 * </p>
-	 * <p>
-	 * It uses a BlendMode so that anti-aliased text and small text (even when
-	 * not with AA) looks nice. It also adds an AlphaTest to reduce z-fighting,
-	 * that discards all pixels with an alpha of 0.
-	 * </p>
-	 * <p>
-	 * If possible, a better solution would be to add a DepthTest to the
-	 * returned Appearance that disables depth testing. This depend on the use
-	 * of the Text, though.
-	 * </p>
-	 * 
-	 * @param textColor The text color of the rendered text
-	 * @return The Appearance that allows correct rendering of text with the
-	 *         given text color
-	 */
-	public Appearance createAppearance(Color4f textColor) {
-		Texture chars = new Texture(charSet.getCharacterSet());
-
-		Appearance a = new Appearance();
-		a.setAlphaTest(PixelTest.GREATER, 0f)
-		 .setBlendMode(BlendEquation.ADD, BlendFactor.SRC_ALPHA, 
-			 		   BlendFactor.ONE_MINUS_SRC_ALPHA)
-		 .setTextures(chars)
-		 .setMaterial(textColor, new Color4f());
-		return a;
 	}
 
 	/**

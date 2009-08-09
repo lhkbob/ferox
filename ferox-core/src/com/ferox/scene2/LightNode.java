@@ -19,7 +19,8 @@ public class LightNode<T extends Light> extends AbstractSceneElement {
 	protected final T light;
 
 	private final Vector3f localDirection;
-
+	private boolean castsShadows;
+	
 	/**
 	 * <p>
 	 * Create a new LightNode that uses the given Light instance when setting
@@ -40,6 +41,30 @@ public class LightNode<T extends Light> extends AbstractSceneElement {
 			throw new NullPointerException("Sub-classes must pass in a non-null light");
 		this.light = light;
 		this.localDirection = new Vector3f(light.getDirection());
+		this.castsShadows = false;
+	}
+
+	/**
+	 * Returns whether or not this LightNode should be considered a shadow
+	 * caster when a Scene is rendered and the shadows have to be generated. If
+	 * this returns false, this LightNode will not generate shadows. If it's
+	 * true, it is only a hint that it should make shadows when possible.
+	 * 
+	 * @return True if this LightNode casts shadows.
+	 */
+	public boolean isShadowCaster() {
+		return castsShadows;
+	}
+	
+	/**
+	 * Set whether or not this LightNode can cast shadows onto other objects.
+	 * Setting this value to true enables the node to cast shadows when
+	 * supported, but it may cause a performance penalty.
+	 * 
+	 * @param castsShadows The LightNode's new shadow casting policy
+	 */
+	public void setShadowCaster(boolean castsShadows) {
+		this.castsShadows = castsShadows;
 	}
 
 	/**

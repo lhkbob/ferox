@@ -18,6 +18,9 @@ import com.ferox.math.bounds.BoundVolume;
  * 
  * @author Michael Ludwig
  */
+// FIXME: should we allow Cells to set CellData onto an Element?
+// this could be very useful for Portals and Octrees because then they can keep
+// track of where each element was (if contained)
 public interface SceneElement {
 	/**
 	 * Return the Scene that this SceneElement was last added to. This instance
