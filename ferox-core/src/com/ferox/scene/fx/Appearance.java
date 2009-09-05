@@ -3,7 +3,7 @@ package com.ferox.scene.fx;
 import java.util.IdentityHashMap;
 
 public class Appearance {
-	private IdentityHashMap<Class<? extends Component>, Component> components;
+	private final IdentityHashMap<Class<? extends Component>, Component> components;
 	
 	public Appearance(Component... components) {
 		this.components = new IdentityHashMap<Class<? extends Component>, Component>();

@@ -69,56 +69,56 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public enum TextureFormat {
-	RGBA(null, 4, true), 
-	RGBA_4444(DataType.UNSIGNED_SHORT, 1, true, true), 
-	RGBA_8888(DataType.UNSIGNED_INT, 1, true, true), 
-	RGBA_5551(DataType.UNSIGNED_SHORT, 1, true, true), 
-	RGBA_FLOAT(DataType.FLOAT, 4, true),
+	RGBA(null, 4, 4, true), 
+	RGBA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	RGBA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
+	RGBA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	RGBA_FLOAT(DataType.FLOAT, 4, 4, true),
 
-	RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, true), 
-	RGBA_DXT3(DataType.UNSIGNED_BYTE, -1, true),
-	RGBA_DXT5(DataType.UNSIGNED_BYTE, -1, true),
+	RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, 4, true), 
+	RGBA_DXT3(DataType.UNSIGNED_BYTE, -1, 4, true),
+	RGBA_DXT5(DataType.UNSIGNED_BYTE, -1, 4, true),
 
-	BGRA(null, 4, true), 
-	BGRA_4444(DataType.UNSIGNED_SHORT, 1, true, true), 
-	BGRA_8888(DataType.UNSIGNED_INT, 1, true, true), 
-	BGRA_5551(DataType.UNSIGNED_SHORT, 1, true, true),
+	BGRA(null, 4, 4, true), 
+	BGRA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	BGRA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
+	BGRA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true),
 
-	ARGB_4444(DataType.UNSIGNED_SHORT, 1, true, true), 
-	ARGB_1555(DataType.UNSIGNED_SHORT, 1, true, true), 
-	ARGB_8888(DataType.UNSIGNED_INT, 1, true, true),
+	ARGB_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	ARGB_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	ARGB_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
 
-	ABGR_4444(DataType.UNSIGNED_SHORT, 1, true, true), 
-	ABGR_1555(DataType.UNSIGNED_SHORT, 1, true, true), 
-	ABGR_8888(DataType.UNSIGNED_INT, 1, true, true),
+	ABGR_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	ABGR_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+	ABGR_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
 
-	RGB(null, 3, false), 
-	RGB_565(DataType.UNSIGNED_SHORT, 1, false, true), 
-	RGB_FLOAT(DataType.FLOAT, 3, false), 
-	RGB_DXT1(DataType.UNSIGNED_BYTE, -1, false),
+	RGB(null, 3, 3, false), 
+	RGB_565(DataType.UNSIGNED_SHORT, 1, 3, false, true), 
+	RGB_FLOAT(DataType.FLOAT, 3, 3, false), 
+	RGB_DXT1(DataType.UNSIGNED_BYTE, -1, 3, false),
 
-	BGR(null, 3, false), 
-	BGR_565(DataType.UNSIGNED_SHORT, 1, false, true),
+	BGR(null, 3, 3, false), 
+	BGR_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
 
-	LUMINANCE_ALPHA(null, 2, true), 
-	LUMINANCE(null, 1, false), 
-	ALPHA(null, 1, true),
+	LUMINANCE_ALPHA(null, 2, 2, true), 
+	LUMINANCE(null, 1, 1, false), 
+	ALPHA(null, 1, 1, true),
 
-	LUMINANCE_ALPHA_FLOAT(DataType.FLOAT, 2, true), 
-	LUMINANCE_FLOAT(DataType.FLOAT, 1, false), 
-	ALPHA_FLOAT(DataType.FLOAT, 1, true),
+	LUMINANCE_ALPHA_FLOAT(DataType.FLOAT, 2, 2, true), 
+	LUMINANCE_FLOAT(DataType.FLOAT, 1, 1, false), 
+	ALPHA_FLOAT(DataType.FLOAT, 1, 1, true),
 
-	DEPTH(null, 1, false);
+	DEPTH(null, 1, 1, false);
 
 	private DataType type;
 	private boolean hasAlpha, isPacked;
-	private int pPerC;
+	private int pPerC, numC;
 
-	private TextureFormat(DataType type, int pPerC, boolean alpha) {
-		this(type, pPerC, alpha, false);
+	private TextureFormat(DataType type, int pPerC, int numC, boolean alpha) {
+		this(type, pPerC, numC, alpha, false);
 	}
 
-	private TextureFormat(DataType type, int pPerC, boolean alpha, boolean packed) {
+	private TextureFormat(DataType type, int pPerC, int numC, boolean alpha, boolean packed) {
 		this.type = type;
 		this.pPerC = pPerC;
 		hasAlpha = alpha;
@@ -133,6 +133,16 @@ public enum TextureFormat {
 	 */
 	public boolean isPackedFormat() {
 		return isPacked;
+	}
+	
+	/**
+	 * Return the number of components representing the color. An rgb color
+	 * would have 3 components and an rgba color would have 4, etc.
+	 * 
+	 * @return The number of components in this format
+	 */
+	public int getNumComponents() {
+		return numC;
 	}
 
 	/**

@@ -421,7 +421,7 @@ public interface Framework {
 	 *         was null).
 	 * @throws RenderException wrapping any exception that occurs while
 	 *             rendering
-	 * @throws RenderStateException if the Framework is idle or if it's already
+	 * @throws RenderStateException if the Framework is rendering or if it's already
 	 *             been destroyed
 	 */
 	public FrameStatistics renderFrame(FrameStatistics store);

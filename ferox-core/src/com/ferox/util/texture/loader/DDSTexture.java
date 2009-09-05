@@ -36,9 +36,9 @@ public class DDSTexture {
 	private TextureTarget target;
 
 	private int mipmapCount; // at least 1
-	private int width, height, depth; // depth may be unused for cube maps and
-	// 2d textures (in which case it's set
-	// to 1)
+	// depth may be unused for cube maps and 2d textures 
+	// (in which case it's set to 1)
+	private int width, height, depth;
 	private BufferData[][] data; // accessed [face][mipmap]
 
 	/**
