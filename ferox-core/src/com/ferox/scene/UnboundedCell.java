@@ -61,23 +61,21 @@ public class UnboundedCell extends AbstractCell {
 
 	@Override
 	public void clear() {
-		SceneElement[] array = elements.elements();
 		int ct = elements.size();
 		for (int i = 0; i < ct; i++)
-			array[i].setCell(null);
+			elements.get(i).setCell(null);
 		
 		elements.clear(false);
 	}
 
 	@Override
 	public void query(Frustum query, Class<? extends SceneElement> index, Bag<SceneElement> result) {
-		SceneElement[] array = elements.elements();
 		int ct = elements.size();
 		
 		SceneElement e;
 		BoundVolume v;
 		for (int i = 0; i < ct; i++) {
-			e = array[i];
+			e = elements.get(i);
 			if (index == null || index.isInstance(e)) {
 				v = e.getWorldBounds();
 				if (v == null || v.testFrustum(query, null) != FrustumIntersection.OUTSIDE)
@@ -88,13 +86,12 @@ public class UnboundedCell extends AbstractCell {
 
 	@Override
 	public void query(BoundVolume query, Class<? extends SceneElement> index, Bag<SceneElement> result) {
-		SceneElement[] array = elements.elements();
 		int ct = elements.size();
 		
 		SceneElement e;
 		BoundVolume v;
 		for (int i = 0; i < ct; i++) {
-			e = array[i];
+			e = elements.get(i);
 			if (index == null || index.isInstance(e)) {
 				v = e.getWorldBounds();
 				if (v == null || v.intersects(query))

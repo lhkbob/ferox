@@ -3,6 +3,7 @@ package com.ferox.resource;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.math.bounds.BoundsCache;
 import com.ferox.renderer.Framework;
+import com.ferox.util.FastMap;
 
 /**
  * AbstractGeometry provides implementations for many of the methods of
@@ -12,7 +13,7 @@ import com.ferox.renderer.Framework;
  */
 public abstract class AbstractGeometry implements Geometry {
 	private final BoundsCache boundsCache;
-	private final RenderDataCache renderCache;
+	private final FastMap<Framework, Object> renderCache;
 	private final CompileType compileType;
 
 	/**
@@ -24,7 +25,7 @@ public abstract class AbstractGeometry implements Geometry {
 	 */
 	public AbstractGeometry(CompileType type) {
 		compileType = (type == null ? CompileType.NONE : type);
-		renderCache = new RenderDataCache();
+		renderCache = new FastMap<Framework, Object>(Framework.class);
 		boundsCache = new BoundsCache(this);
 	}
 
@@ -58,11 +59,11 @@ public abstract class AbstractGeometry implements Geometry {
 
 	@Override
 	public Object getRenderData(Framework renderer) {
-		return renderCache.getRenderData(renderer);
+		return renderCache.get(renderer);
 	}
 
 	@Override
 	public void setRenderData(Framework renderer, Object data) {
-		renderCache.setRenderData(renderer, data);
+		renderCache.put(renderer, data);
 	}
 }

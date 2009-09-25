@@ -13,6 +13,8 @@ public abstract class AbstractSceneCompositor<T extends AttachedRenderSurface> i
 	private boolean initialized;
 	private boolean destroyed;
 	
+	// FIXME: this must be a SortedMap(?)
+	// or we should just have parallel lists or something
 	protected final IdentityHashMap<RenderSurface, T> surfaces;
 	private Framework framework; // extracted from surfaces
 	private Scene scene;
@@ -89,7 +91,6 @@ public abstract class AbstractSceneCompositor<T extends AttachedRenderSurface> i
 		}
 		
 		this.scene = scene;
-		
 		initialized = true;
 	}
 

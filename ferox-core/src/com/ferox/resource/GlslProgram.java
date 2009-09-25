@@ -8,6 +8,7 @@ import java.util.Map;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.GlslVertexAttribute.AttributeType;
+import com.ferox.util.FastMap;
 
 /**
  * <p>
@@ -88,7 +89,7 @@ public class GlslProgram implements Resource {
 
 	private final GlslProgramDirtyDescriptor dirty;
 
-	private final RenderDataCache renderData;
+	private final FastMap<Framework, Object> renderData;
 
 	/**
 	 * Create a new GlslProgram with the given vertex and fragment shaders.
@@ -104,7 +105,7 @@ public class GlslProgram implements Resource {
 		dirty = createDescriptor();
 		if (dirty == null)
 			throw new NullPointerException("Sub-class returned a null dirty descriptor");
-		renderData = new RenderDataCache();
+		renderData = new FastMap<Framework, Object>(Framework.class);
 
 		attachedUniforms = new HashMap<String, GlslUniform>();
 		boundAttrs = new HashMap<String, GlslVertexAttribute>();
@@ -387,12 +388,12 @@ public class GlslProgram implements Resource {
 
 	@Override
 	public Object getRenderData(Framework renderer) {
-		return renderData.getRenderData(renderer);
+		return renderData.get(renderer);
 	}
 
 	@Override
 	public void setRenderData(Framework renderer, Object data) {
-		renderData.setRenderData(renderer, data);
+		renderData.put(renderer, data);
 	}
 
 	/* Utility to remove null strings from the source. */

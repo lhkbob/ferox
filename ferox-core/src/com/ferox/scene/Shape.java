@@ -32,6 +32,7 @@ public class Shape extends AbstractSceneElement {
 	 * @throws NullPointerException if geometry or appearance are null
 	 */
 	public Shape(Geometry geometry, Appearance appearance) {
+		setAppearance(appearance);
 		setGeometry(geometry);
 		setAutoComputeBounds(true);
 	}

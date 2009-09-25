@@ -17,12 +17,21 @@ public class ViewNode extends AbstractSceneElement {
 	private View view;
 
 	/**
-	 * Creates a ViewNode with the given view.
+	 * Creates a ViewNode with the given view. The ViewNode's local transform
+	 * will mirror's the view's current position and orientation.
 	 * 
 	 * @param view The View that is updated by this ViewNode
 	 */
 	public ViewNode(View view) {
 		setView(view);
+		
+		view.updateView(); // make sure vectors are ortho-normal
+		Matrix3f m = getRotation();
+		m.setCol(0, view.getUp().cross(view.getDirection(), null));
+		m.setCol(1, view.getUp());
+		m.setCol(2, view.getDirection());
+		
+		setTranslation(view.getLocation());
 	}
 
 	/**

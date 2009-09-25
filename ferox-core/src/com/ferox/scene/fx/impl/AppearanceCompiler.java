@@ -3,7 +3,7 @@ package com.ferox.scene.fx.impl;
 import com.ferox.scene.fx.Appearance;
 
 public interface AppearanceCompiler<T> {
-	public T compile(Appearance a);
+	public T compile(Appearance a, T previous);
 	
-	public void clean(Appearance a);
+	public void clean(T compiled);
 }

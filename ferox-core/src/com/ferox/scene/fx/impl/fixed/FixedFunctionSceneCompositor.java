@@ -3,50 +3,81 @@ package com.ferox.scene.fx.impl.fixed;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.ferox.math.Frustum;
+import com.ferox.math.bounds.BoundVolume;
 import com.ferox.renderer.FrameStatistics;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.View;
 import com.ferox.scene.Scene;
+import com.ferox.scene.SceneElement;
 import com.ferox.scene.fx.Appearance;
 import com.ferox.scene.fx.GeometryProfile;
+import com.ferox.scene.fx.SceneCompositor;
 import com.ferox.scene.fx.impl.AbstractSceneCompositor;
 import com.ferox.scene.fx.impl.AppearanceCache;
 import com.ferox.scene.fx.impl.SceneQueryCache;
+import com.ferox.util.Bag;
 
 public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedFunctionAttachedSurface> {
 	public static enum RenderMode {
-		NO_TEXTURE_NO_SHADOWMAP,
-		SINGLE_TEXTURE_NO_SHADOWMAP,
-		DUAL_TEXTURE_NO_SHADOWMAP,
-		SINGLE_TEXTURE_SHADOWMAP,
-		DUAL_TEXTURE_SHADOWMAP
+		NO_TEXTURE_NO_SHADOWMAP(0, false),
+		SINGLE_TEXTURE_NO_SHADOWMAP(1, false),
+		DUAL_TEXTURE_NO_SHADOWMAP(2, false),
+		SINGLE_TEXTURE_SHADOWMAP(1, true),
+		DUAL_TEXTURE_SHADOWMAP(2, true);
+		
+		private int numTex; private boolean shadows;
+		private RenderMode(int numTex, boolean shadows) {
+			this.numTex = numTex; this.shadows = shadows;
+		}
+		
+		public int getMinimumTextures() { return numTex; }
+		
+		public boolean getShadowsEnabled() { return shadows; }
 	}
+	
+	private static final int SM_ALL = SceneCompositor.SM_G_CASCADE | SceneCompositor.SM_G_SIMPLE | SceneCompositor.SM_G_PERSPECTIVE;
 	
 	private SceneQueryCache sceneCache;
 	private AppearanceCache<FixedFunctionAppearance> appearanceCache;
 
 	private int shadowMapTextureUnit;
-	private GeometryProfile geomProfile;
 	private RenderMode renderMode;
 	
 	public FixedFunctionSceneCompositor() {
 		super();
 	}
 	
-	// TODO add access to the scene cache
-	// TODO add methods to get a FixedFunctionAppearance
-
+	FixedFunctionAppearance get(Appearance a) {
+		return appearanceCache.get(a);
+	}
+	
+	Bag<SceneElement> query(BoundVolume volume, Class<? extends SceneElement> index) {
+		return sceneCache.query(volume, index);
+	}
+	
+	Bag<SceneElement> query(Frustum frustum, Class<? extends SceneElement> index) {
+		return sceneCache.query(frustum, index);
+	}
+	
+	public RenderMode getRenderMode() {
+		return renderMode;
+	}
+	
+	public int getShadowMapTextureUnit() {
+		return shadowMapTextureUnit;
+	}
+	
 	@Override
 	public void compile(Appearance a) {
 		validateState();
-		
 		appearanceCache.compile(a);
 	}
 	
 	@Override
-	public void clear(Appearance a) {
+	public void clean(Appearance a) {
 		validateState();
-		
 		appearanceCache.clean(a);
 	}
 
@@ -54,27 +85,74 @@ public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedF
 	public void destroy() {
 		super.destroy();
 		
+		appearanceCache.cleanAll();
 		for (Entry<RenderSurface, FixedFunctionAttachedSurface> e: surfaces.entrySet()) {
 			e.getValue().destroy();
 		}
-		appearanceCache.cleanAll();
 	}
 
 	@Override
 	public void initialize(Scene scene, GeometryProfile geomProfile, int capBits) {
 		super.initialize(scene, geomProfile, capBits);
-		// TODO determine render mode, choose shadow map texture unit
-		// and then call initialize on all attached surfaces
 		
-		// To have shadow mapping we need:
-		// pbuffers or fbos, 1+ textures and depth texture support
-		// + have shadows requested by capBits
+		RenderCapabilities caps = getFramework().getCapabilities();
 		
-		// DUAL_TEX_SM - shadow map support w/ 3+ textures
-		// SING_TEX_SM - shadow map support w/ 2 textures
-		// DUAL_TEX_NSM - 2+ textures w/ no sm support
-		// SING_TEX_NSM - 1 texture (don't care about sm support)
-		// NO_TEX_NSM - 0 textures
+		int numTex = caps.getMaxFixedPipelineTextures();
+		boolean shadowsRequested = (capBits & SM_ALL) != 0; // any SM_? request counts
+		boolean shadowSupport = (caps.getFboSupport() || caps.getPbufferSupport()) && 
+								numTex > 1 && caps.getVersion() > 1.3f; // FIXME: is this the correct version
+								
+		RenderMode mode = null;
+		if (shadowsRequested && shadowSupport) {
+			// choose between DUAL_TEX_SM or SING_TEX_SM
+			if (numTex > 2)
+				mode = RenderMode.DUAL_TEXTURE_SHADOWMAP;
+			else
+				mode = RenderMode.SINGLE_TEXTURE_SHADOWMAP;
+
+			int texUnit = -1;
+			for (int i = 0; i < numTex; i++) {
+				if (!geomProfile.isTextureUnitBound(i)) {
+					texUnit = i;
+					break;
+				}
+			}
+			
+			if (texUnit < 0) {
+				// no tex unit, so disable shadow mapping
+				mode = null;
+			} else {
+				// store for later
+				shadowMapTextureUnit = texUnit;
+				geomProfile.setTextureUnitBound(texUnit, true);
+			}
+		}
+		
+		if (mode == null) {
+			// choose between DUAL_TEX_NSM, SING_TEX_NSM, and NO_TEX_NSM
+			if (numTex > 1)
+				mode = RenderMode.DUAL_TEXTURE_NO_SHADOWMAP;
+			else if (numTex == 1)
+				mode = RenderMode.SINGLE_TEXTURE_NO_SHADOWMAP;
+			else
+				mode = RenderMode.NO_TEXTURE_NO_SHADOWMAP;
+			shadowMapTextureUnit = -1;
+		}
+		renderMode = mode;
+		
+		FixedFunctionAppearanceCompiler compiler = new FixedFunctionAppearanceCompiler(mode);
+		appearanceCache = new AppearanceCache<FixedFunctionAppearance>(this, compiler);
+		sceneCache = new SceneQueryCache(scene);
+		
+		Entry<RenderSurface, FixedFunctionAttachedSurface> e;
+		Iterator<Entry<RenderSurface, FixedFunctionAttachedSurface>> it = surfaces.entrySet().iterator();
+		while(it.hasNext()) {
+			e = it.next();
+			if (e.getKey().isDestroyed())
+				it.remove();
+			else
+				e.getValue().initialize(renderMode, shadowMapTextureUnit);
+		}
 	}
 
 	@Override

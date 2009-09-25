@@ -1,6 +1,7 @@
 package com.ferox.resource;
 
 import com.ferox.renderer.Framework;
+import com.ferox.util.FastMap;
 
 /**
  * <p>
@@ -140,7 +141,7 @@ public class GlslUniform implements Resource {
 
 	private ValueUpdatePolicy policy;
 
-	private final RenderDataCache renderData;
+	private final FastMap<Framework, Object> renderData;
 
 	/**
 	 * GlslUniforms should only be constructed with a GlslProgram's
@@ -172,7 +173,7 @@ public class GlslUniform implements Resource {
 		this.owner = owner;
 		this.length = length;
 
-		renderData = new RenderDataCache();
+		renderData = new FastMap<Framework, Object>(Framework.class);
 
 		setValueUpdatePolicy(null);
 	}
@@ -283,11 +284,11 @@ public class GlslUniform implements Resource {
 
 	@Override
 	public Object getRenderData(Framework renderer) {
-		return renderData.getRenderData(renderer);
+		return renderData.get(renderer);
 	}
 
 	@Override
 	public void setRenderData(Framework renderer, Object data) {
-		renderData.setRenderData(renderer, data);
+		renderData.put(renderer, data);
 	}
 }

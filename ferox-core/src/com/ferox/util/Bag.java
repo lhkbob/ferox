@@ -1,6 +1,7 @@
 package com.ferox.util;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Provides a useful implementation of the Bag data structure. Much like an
@@ -17,7 +18,7 @@ public class Bag<T> {
 	public static final float DEFAULT_FACTOR = 2f;
 	public static final int DEFAULT_GROWTH = 0;
 	
-	private Object[] elements;
+	private T[] elements;
 	private int size;
 	private int maxFastClearSize;
 	
@@ -54,6 +55,7 @@ public class Bag<T> {
 	 * @throws IllegalArgumentException if capacity < 0, if factor < 1, if
 	 *             growth < 0
 	 */
+	@SuppressWarnings("unchecked")
 	public Bag(int capacity, float factor, int growth) {
 		if (capacity < 0)
 			throw new IllegalArgumentException("Cannot have negative capacity");
@@ -62,24 +64,16 @@ public class Bag<T> {
 		if (growth < 0)
 			throw new IllegalArgumentException("Cannot have a growth < 0");
 		
-		elements = new Object[capacity];
+		elements = (T[]) new Object[capacity];
 		size = 0;
 		maxFastClearSize = 0;
 		
 		this.factor = factor;
 		this.growth = growth;
 	}
-
-	/**
-	 * Provide access to the underlying array used by this Bag. This must be
-	 * considered read-only. Any modifications could break the contract of the
-	 * Bag. Also, only the values in indices 0 to (size() - 1) are valid.
-	 * 
-	 * @return Underlying array of this Bag
-	 */
-	@SuppressWarnings("unchecked")
-	public T[] elements() {
-		return (T[]) elements;
+	
+	public Object[] elements() {
+		return elements;
 	}
 	
 	/**
@@ -133,11 +127,10 @@ public class Bag<T> {
 	 * @return The T at index
 	 * @throws IndexOutOfBoundsException if index < 0 or >= size()
 	 */
-	@SuppressWarnings("unchecked")
 	public T get(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
-		return (T) elements[index];
+		return elements[index];
 	}
 	
 	/**
@@ -252,15 +245,20 @@ public class Bag<T> {
 	 * @param capacity The new capacity
 	 * @throws IllegalArgumentException if capacity < 0
 	 */
+	@SuppressWarnings("unchecked")
 	public void capacity(int capacity) {
 		if (capacity < 0)
 			throw new IllegalArgumentException("Cannot have a negative capacity");
 		
-		Object[] newElements = new Object[capacity];
+		T[] newElements = (T[]) new Object[capacity];
 		System.arraycopy(elements, 0, newElements, 0, Math.min(capacity, elements.length));
 		elements = newElements;
 		
 		size = Math.min(capacity, size);
 		maxFastClearSize = Math.min(capacity, maxFastClearSize);
+	}
+	
+	public void sort(Comparator<T> comparator) {
+		Arrays.sort(elements, 0, size, comparator);
 	}
 }

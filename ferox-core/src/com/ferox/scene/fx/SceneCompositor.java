@@ -7,18 +7,19 @@ import com.ferox.renderer.View;
 import com.ferox.scene.Scene;
 
 public interface SceneCompositor {
-	// FIXME: bit sets are screwed up
-	public static final int SM_HARD = 0x11;
-	public static final int SM_CASCADE = 0x12;
-	public static final int SM_PCF = 0x12;
-	public static final int SM_VARIANCE = 0x14;
-	public static final int SM_PCSS = 0x18;
+	public static final int SM_G_SIMPLE = 0x10;
+	public static final int SM_G_PERSPECTIVE = 0x20;
+	public static final int SM_G_CASCADE = 0x40;
 	
-	public static final int FS_BLOOM = 0x20;
-	public static final int FS_HDR = 0x21;
-	public static final int FS_MOTION_BLUR = 0x22;
-	public static final int FS_DEPTH_OF_FIELD = 0x24;
-	public static final int FS_AMBIENT_OCCLUSION = 0x28;
+	public static final int SM_L_PCF = 0x100;
+	public static final int SM_L_VARIANCE = 0x200;
+	public static final int SM_L_PCSS = 0x400;
+	
+	public static final int FS_BLOOM = 0x1000;
+	public static final int FS_HDR = 0x2000;
+	public static final int FS_MOTION_BLUR = 0x4000;
+	public static final int FS_DEPTH_OF_FIELD = 0x8000;
+	public static final int FS_AMBIENT_OCCLUSION = 0x10000;
 	
 	// FIXME: document this:
 	// we want clear/compile to use weak references, so that when an Appearance
@@ -36,6 +37,7 @@ public interface SceneCompositor {
 	// initialization must check attached surface's to make sure they're compatible
 	// with the requested features, if not -> throw an exception
 
+	// FIXME: - this should maintain order for when the surfaces get queued
 	public void attach(RenderSurface surface, View view);
 
 	/**
@@ -105,7 +107,7 @@ public interface SceneCompositor {
 	 */
 	public void compile(Appearance a);
 	
-	public void clear(Appearance a);
+	public void clean(Appearance a);
 	
 	public FrameStatistics render(FrameStatistics stats);
 	

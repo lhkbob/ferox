@@ -1097,4 +1097,11 @@ public final class Matrix3f implements Cloneable {
 
 		return result;
 	}
+	
+	@Override
+	public String toString() {
+		return "[[ " + m00 + ", " + m01 + ", " + m02 + " ]\n" +
+				"[ " + m10 + ", " + m11 + ", " + m12 + " ]\n" +
+				"[ " + m20 + ", " + m21 + ", " + m22 + " ]]";
+	}
 }

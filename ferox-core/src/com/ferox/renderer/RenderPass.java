@@ -25,11 +25,8 @@ public interface RenderPass {
 	 * Render the prepared pass. The preparation and rendering is split into
 	 * separate phases because a RenderPass may be used in multiple
 	 * RenderSurfaces, requiring that it is rendered more than once, but
-	 * preparing is required just once.
-	 * </p>
-	 * <p>
-	 * This method is responsible for invoking renderAtom(atom) as necessary on
-	 * renderer. A convenient way of achieving this is to use a RenderQueue.
+	 * preparing is required just once. This method is responsible for invoking
+	 * renderAtom(atom) as necessary on renderer.
 	 * </p>
 	 * <p>
 	 * Implementations can assume that this method is called appropriately and
@@ -59,11 +56,6 @@ public interface RenderPass {
 	 * For example, render passes that use SceneElements could update the scene
 	 * element as well, or it could assume that the scene was updated by the
 	 * application programmer.
-	 * </p>
-	 * <p>
-	 * If the RenderPass implementation relies on a RenderQueue for rendering
-	 * atoms, this method is responsible for clearing and filling the
-	 * RenderQueue; the queue should then be flushed in the render() method.
 	 * </p>
 	 * <p>
 	 * Return the View object to use for the rendering of the pass. If null is

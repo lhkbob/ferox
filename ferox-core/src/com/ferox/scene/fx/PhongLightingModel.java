@@ -26,6 +26,8 @@ public class PhongLightingModel extends LightingModel {
 		setAmbient(ambient);
 		setDiffuse(diffuse);
 		setSpecular(specular);
+		
+		setShininess(0f);
 	}
 	
 	public void setAmbient(Color4f ambient) {

@@ -3,6 +3,7 @@ package com.ferox.resource;
 import com.ferox.effect.Effect.PixelTest;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.BufferData.DataType;
+import com.ferox.util.FastMap;
 
 /**
  * <p>
@@ -237,7 +238,7 @@ public abstract class TextureImage implements Resource {
 	private boolean enableDepthCompare;
 	private PixelTest depthCompareTest;
 
-	private final RenderDataCache renderData;
+	private final FastMap<Framework, Object> renderData;
 	private final TextureDirtyDescriptor dirty;
 
 	/**
@@ -301,7 +302,7 @@ public abstract class TextureImage implements Resource {
 		if (dirty == null)
 			throw new NullPointerException("Can't return a null TextureDirtyDescriptor from createTextureDirtyDescriptor()");
 
-		renderData = new RenderDataCache();
+		renderData = new FastMap<Framework, Object>(Framework.class);
 
 		setFilter(filter);
 		this.setWrapSTR(wrapAll);
@@ -657,12 +658,12 @@ public abstract class TextureImage implements Resource {
 
 	@Override
 	public Object getRenderData(Framework renderer) {
-		return renderData.getRenderData(renderer);
+		return renderData.get(renderer);
 	}
 
 	@Override
 	public void setRenderData(Framework renderer, Object data) {
-		renderData.setRenderData(renderer, data);
+		renderData.put(renderer, data);
 	}
 
 	@Override

@@ -203,7 +203,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 		boolean reassign = false;
 		
 		if (controller != null) {
-			reassign = dirty || controller.update(this, timeDelta);
+			reassign = controller.update(this, timeDelta) || dirty;
 		} else if (dirty) {
 			worldTransform.set(localTransform);
 			reassign = true;
