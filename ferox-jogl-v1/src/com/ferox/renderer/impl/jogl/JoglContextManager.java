@@ -14,7 +14,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.TraceGL;
 
-import com.ferox.math.Transform;
+import com.ferox.math.Color4f;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
 import com.ferox.renderer.RenderCapabilities;
@@ -23,9 +23,12 @@ import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.WindowSurface;
 import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.ContextManager;
 import com.ferox.renderer.impl.jogl.drivers.JoglTransformDriver;
+import com.ferox.renderer.impl.jogl.record.FramebufferRecord;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
+import com.ferox.renderer.impl.jogl.record.PixelOpRecord;
 import com.ferox.resource.TextureImage.TextureTarget;
 
 /**
@@ -70,8 +73,8 @@ public class JoglContextManager implements ContextManager {
 	private final AbstractFramework renderer;
 	private final JoglTransformDriver transformDriver;
 
-	private final List<AttachableSurfaceGLEventListener> queuedRenderActions;
-
+	private final ActionRunner actionRunner;
+	
 	private GLAutoDrawable currentDrawable;
 	private JoglStateRecord currentRecord;
 	private GL currentGL;
@@ -85,26 +88,24 @@ public class JoglContextManager implements ContextManager {
 		if (renderer == null)
 			throw new NullPointerException("Cannot create a surface factory with a null renderer");
 
-		debugGL = debug;
 		this.renderer = renderer;
+		debugGL = debug;
 		transformDriver = new JoglTransformDriver(this);
 
 		windowCreatedCount = 0;
 		fullscreenCreated = false;
 
 		activeSurfaces = new ArrayList<RenderSurface>();
-
 		realizedSurfaces = new ArrayList<JoglRenderSurface>();
-		queuedRenderActions = new ArrayList<AttachableSurfaceGLEventListener>();
 
 		zombieFbos = new HashMap<GLAutoDrawable, Queue<JoglFbo>>();
-
+		actionRunner = new ActionRunner();
+		
 		// create the shadow context
 		if (caps.getPbufferSupport())
 			shadowContext = new PbufferShadowContext(caps);
 		else
 			shadowContext = new OnscreenShadowContext(caps);
-
 	}
 
 	/** Get the renderer that uses this factory. */
@@ -193,63 +194,52 @@ public class JoglContextManager implements ContextManager {
 
 		shadowContext.destroy();
 	}
-
+	
 	@Override
-	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces, Runnable resourceAction) {
-		int size = (queuedSurfaces == null ? 0 : queuedSurfaces.size());
-		JoglRenderSurface s;
-		for (int i = 0; i < size; i++) {
-			s = (JoglRenderSurface) queuedSurfaces.get(i);
-			if (s.getGLAutoDrawable() != null)
-				queuedRenderActions.add(s);
+	public void runOnGraphicsThread(Action actions) {
+		if (actions == null)
+			return; // nothing to do
+		actionRunner.run(actions);
+	}
+	
+	@Override
+	public void clear(RenderSurface surface, boolean cColor, boolean cDepth, boolean cStencil) {
+		JoglRenderSurface s = (JoglRenderSurface) surface;
+		FramebufferRecord fr = s.getStateRecord().frameRecord;
+		PixelOpRecord pr = s.getStateRecord().pixelOpRecord;
+
+		GL gl = getGL();
+
+		// disable this to make sure color clearing happens over whole surface
+		gl.glDisable(GL.GL_SCISSOR_TEST);
+		pr.enableScissorTest = false;
+
+		Color4f clearColor = s.getClearColor();
+		if (!clearColor.equals(fr.clearColor)) {
+			gl.glClearColor(clearColor.getRed(), clearColor.getGreen(), clearColor.getBlue(), clearColor.getAlpha());
+			JoglUtil.get(clearColor, fr.clearColor);
+		}
+		float clearDepth = s.getClearDepth();
+		if (fr.clearDepth != clearDepth) {
+			gl.glClearDepth(clearDepth);
+			fr.clearDepth = clearDepth;
+		}
+		int clearStencil = s.getClearStencil();
+		if (fr.clearStencil != clearStencil) {
+			gl.glClearStencil(clearStencil);
+			fr.clearStencil = clearStencil;
 		}
 
-		if (queuedRenderActions.size() == 0)
-			// we don't have any displaying surfaces to use, so
-			// we use the shadow context
-			queuedRenderActions.add(shadowContext);
+		int clearBits = 0;
+		if (cColor && s.hasColorBuffer())
+			clearBits |= GL.GL_COLOR_BUFFER_BIT;
+		if (cDepth && s.hasDepthBuffer())
+			clearBits |= GL.GL_DEPTH_BUFFER_BIT;
+		if (cStencil && s.hasStencilBuffer())
+			clearBits |= GL.GL_STENCIL_BUFFER_BIT;
 
-		// assign the resource action
-		queuedRenderActions.get(0).assignResourceAction(resourceAction);
-
-		// attach all queued surfaces to the queued render actions
-		int raIndex = 0;
-		GLAutoDrawable queued;
-		GLAutoDrawable realized = queuedRenderActions.get(raIndex).getGLAutoDrawable();
-
-		for (int i = 0; i < size; i++) {
-			s = (JoglRenderSurface) queuedSurfaces.get(i);
-			queued = s.getGLAutoDrawable();
-			if (queued != null && queued != realized) {
-				// advance to next realized surface
-				raIndex++;
-				realized = queuedRenderActions.get(raIndex).getGLAutoDrawable();
-			}
-
-			// attach s to the current realized surface
-			queuedRenderActions.get(raIndex).attachRenderSurface(s);
-		}
-
-		try {
-			// render all the actions now
-			AttachableSurfaceGLEventListener renderAction;
-			size = queuedRenderActions.size();
-			for (int i = 0; i < size; i++) {
-				renderAction = queuedRenderActions.get(i);
-
-				currentDrawable = renderAction.getGLAutoDrawable();
-				currentRecord = renderAction.getStateRecord();
-
-				currentGL = (debugGL ? (TRACE ? new TraceGL(currentDrawable.getGL(), System.out) 
-											  : new DebugGL(currentDrawable.getGL())) 
-								     : currentDrawable.getGL());
-
-				renderAction.render();
-			}
-		} finally {
-			// must clear the list even when an exception occurs
-			queuedRenderActions.clear();
-		}
+		if (clearBits != 0)
+			gl.glClear(clearBits);
 	}
 
 	@Override
@@ -278,16 +268,6 @@ public class JoglContextManager implements ContextManager {
 	}
 
 	/**
-	 * Returns the current, intended view transform in the modelview matrix.
-	 * Because of the implementation of JoglTransformDriver, this may not
-	 * actually be reflected in the opengl state. See JoglTransformDriver for
-	 * more details.
-	 */
-	public Transform getViewTransform() {
-		return transformDriver.getCurrentViewTransform();
-	}
-
-	/**
 	 * Returns the current state record, which will only be not null when a
 	 * JoglRenderSurface is having its display() method invoked.
 	 */
@@ -311,6 +291,40 @@ public class JoglContextManager implements ContextManager {
 	public GLContext getShadowContext() {
 		return shadowContext.getContext();
 	}
+	
+	/**
+	 * Should only be called when the given fbo should be scheduled for
+	 * destruction. At the next possible time, the fbo will have its destroy()
+	 * method called on the owner context.
+	 */
+	void notifyFboZombie(GLAutoDrawable owner, JoglFbo fbo) {
+		Queue<JoglFbo> queue = zombieFbos.get(owner);
+		if (queue == null) {
+			queue = new LinkedList<JoglFbo>();
+			zombieFbos.put(owner, queue);
+		}
+		queue.add(fbo);
+	}
+	
+	private void processZombieFbos() {
+		if (zombieFbos.size() > 0) {
+			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e : zombieFbos.entrySet()) {
+				if (e.getKey() == shadowContext.getGLAutoDrawable()) {
+					// shadow context
+					runOnGraphicsThread(new ZombieFboCleanupAction(null, e.getValue()));
+				} else {
+					// look-up the associated JoglRenderSurface
+					for (RenderSurface s: activeSurfaces) {
+						if (((JoglRenderSurface) s).getGLAutoDrawable() == e.getKey()) {
+							runOnGraphicsThread(new ZombieFboCleanupAction(s, e.getValue()));
+							break;
+						}
+					}
+				}
+			}
+			zombieFbos.clear();
+		}
+	}
 
 	private void relinquishSurface(JoglRenderSurface surface) {
 		GLAutoDrawable c = surface.getGLAutoDrawable();
@@ -326,44 +340,90 @@ public class JoglContextManager implements ContextManager {
 
 		activeSurfaces.remove(surface);
 	}
+	
+	private class ActionRunner {
+		private Action batchHead;
+		private Action batchTail;
+		
+		public void run(Action actions) {
+			batchHead = null;
+			batchTail = null;
+			FrameworkGLEventListener batchOwner = null;
+			JoglRenderSurface lastSurface = null; // may not be batchOwner
+			
+			JoglRenderSurface s;
+			while(actions != null) {
+				s = (JoglRenderSurface) actions.getRenderSurface();
+				if (s == null || s == lastSurface) {
+					// just add it
+					add(actions);
+				} else {
+					// add post action for last surface if not null
+					if (lastSurface != null)
+						add(lastSurface.getPostRenderAction());
+					
+					if (s.getGLAutoDrawable() != null && batchOwner != s) {
+						// run the current batch
+						if (batchHead != null && batchOwner != null)
+							runBatch(batchOwner, actions);
+						
+						batchOwner = s;
+					} 
+					
+					// start a new surface
+					add(s.getPreRenderAction());
+					add(actions);
+				}
+				
+				lastSurface = s;
+				actions = actions.next();
+			}
+			
+			if (batchHead != null) {
+				add(lastSurface.getPostRenderAction());
+				runBatch(batchOwner, null);
+			}
+		}
+		
+		private void add(Action a) {
+			if (batchTail != null)
+				batchTail.setNext(a);
+			batchTail = a;
+			if (batchHead == null)
+				batchHead = a;
+		}
+		
+		private void runBatch(FrameworkGLEventListener batchOwner, Action next) {
+			if (batchOwner == null)
+				batchOwner = shadowContext;
+			
+			batchTail.setNext(null);
+			
+			currentDrawable = batchOwner.getGLAutoDrawable();
+			currentRecord = batchOwner.getStateRecord();
+			currentGL = (debugGL ? (TRACE ? new TraceGL(currentDrawable.getGL(), System.out) 
+										  : new DebugGL(currentDrawable.getGL())) 
+							     : currentDrawable.getGL());
+			batchOwner.render(batchHead);
+			
+			batchHead = null;
+			batchTail = null;
+		}
+	}
 
 	/* Utility class to cleanup fbos for a given GLAutoDrawable. */
-	private class ZombieFboCleanupAction implements Runnable {
+	private class ZombieFboCleanupAction extends Action {
 		private final Queue<JoglFbo> fbos;
 
-		public ZombieFboCleanupAction(Queue<JoglFbo> toCleanup) {
+		public ZombieFboCleanupAction(RenderSurface fboOwner, Queue<JoglFbo> toCleanup) {
+			super(fboOwner);
 			fbos = toCleanup;
 		}
 
 		@Override
-		public void run() {
+		public void perform() {
 			while (!fbos.isEmpty())
 				fbos.poll().destroy(currentGL);
 		}
-	}
-
-	private void processZombieFbos() {
-		if (zombieFbos.size() > 0) {
-			ZombieFboCleanupAction cleanup;
-			for (Entry<GLAutoDrawable, Queue<JoglFbo>> e : zombieFbos.entrySet()) {
-				cleanup = new ZombieFboCleanupAction(e.getValue());
-				runOnGraphicsThread(null, cleanup);
-			}
-			zombieFbos.clear();
-		}
-	}
-
-	/**
-	 * Should only be called when the given fbo should be scheduled for
-	 * destruction. At the next possible time, the fbo will have its destroy()
-	 * method called on the owner context.
-	 */
-	void notifyFboZombie(GLAutoDrawable owner, JoglFbo fbo) {
-		Queue<JoglFbo> queue = zombieFbos.get(owner);
-		if (queue == null) {
-			queue = new LinkedList<JoglFbo>();
-			zombieFbos.put(owner, queue);
-		}
-		queue.add(fbo);
 	}
 }

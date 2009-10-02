@@ -16,6 +16,7 @@ import com.ferox.renderer.DisplayOptions.AntiAliasMode;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 
 /**
@@ -135,7 +136,7 @@ public abstract class JoglOnscreenSurface extends JoglRenderSurface implements O
 	}
 
 	@Override
-	public void postRenderAction(JoglRenderSurface next) {
+	public void postRenderAction(Action next) {
 		// do nothing
 	}
 

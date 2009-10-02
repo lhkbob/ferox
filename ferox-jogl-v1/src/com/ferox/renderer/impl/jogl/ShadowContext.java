@@ -7,7 +7,7 @@ import javax.media.opengl.GLContext;
  * 
  * @author Michael Ludwig
  */
-public interface ShadowContext extends AttachableSurfaceGLEventListener {
+public interface ShadowContext extends FrameworkGLEventListener {
 	/**
 	 * Return the GLContext that all render surfaces' glContexts must share
 	 * resources with.

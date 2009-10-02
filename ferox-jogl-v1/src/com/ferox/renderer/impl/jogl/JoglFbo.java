@@ -16,8 +16,6 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * 
  * @author Michael Ludwig
  */
-// FIXME: it may be the case that we'll have to create a color render buffer
-// when no color buffers are attached.
 public class JoglFbo {
 	private final int fboId;
 	private int renderBufferId;
@@ -53,11 +51,10 @@ public class JoglFbo {
 		fboId = id[0];
 		gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);
 
-		int glColorTarget = getGlTarget(colorTarget, layer);
-		int glDepthTarget = getGlTarget(depthTarget, layer);
-
 		if (depth != null) {
 			// attach the depth texture
+			int glDepthTarget = getGlTarget(depthTarget, layer);
+
 			Handle h = factory.getFramework().getHandle(depth, factory);
 			attachImage(gl, glDepthTarget, h.getId(), layer, GL.GL_DEPTH_ATTACHMENT_EXT);
 
@@ -83,6 +80,8 @@ public class JoglFbo {
 
 		if (colors != null && colors.length > 0) {
 			// attach all of the images
+			int glColorTarget = getGlTarget(colorTarget, layer);
+
 			colorImageIds = new int[colors.length];
 			Handle h;
 			for (int i = 0; i < colors.length; i++) {
@@ -154,8 +153,7 @@ public class JoglFbo {
 			fbr.drawFramebufferBinding = fboId;
 		}
 
-		// possibly re-attach the images (in the case of cubemaps or 3d
-		// textures)
+		// possibly re-attach the images (in the case of cubemaps or 3d textures)
 		if (layer != boundLayer) {
 			if (colorImageIds != null) {
 				int target = getGlTarget(colorTarget, layer);
@@ -163,8 +161,7 @@ public class JoglFbo {
 					attachImage(gl, target, colorImageIds[i], layer, 
 								GL.GL_COLOR_ATTACHMENT0_EXT + i);
 			}
-			// we don't have to re-attach depth images -> will always be
-			// 1d/2d/rect -> 1 layer only
+			// we don't have to re-attach depth images -> will always be 1d/2d/rect -> 1 layer only
 			boundLayer = layer;
 		}
 	}

@@ -3,27 +3,19 @@ package com.ferox.renderer.impl.jogl;
 import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.renderer.RenderException;
+import com.ferox.renderer.impl.Action;
+import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 
 public abstract class AbstractShadowContext implements ShadowContext {
-	private final AttachableSurfaceImplHelper helper;
+	private final FrameworkGLEventListenerImpl helper;
 
 	public AbstractShadowContext() {
-		helper = new AttachableSurfaceImplHelper();
+		helper = new FrameworkGLEventListenerImpl();
 	}
 
 	@Override
-	public void render() throws RenderException {
-		helper.render(getGLAutoDrawable());
-	}
-
-	@Override
-	public void assignResourceAction(Runnable action) {
-		helper.assignResourceAction(action);
-	}
-
-	@Override
-	public void attachRenderSurface(JoglRenderSurface surface) {
-		helper.attachRenderSurface(surface);
+	public void render(Action actions) throws RenderException {
+		helper.render(getGLAutoDrawable(), actions);
 	}
 
 	@Override
@@ -44,5 +36,21 @@ public abstract class AbstractShadowContext implements ShadowContext {
 	@Override
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		// do nothing
+	}
+
+	@Override
+	public Action getPostRenderAction() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Action getPreRenderAction() {
+		return null;
+	}
+
+	@Override
+	public JoglStateRecord getStateRecord() {
+		return null;
 	}
 }

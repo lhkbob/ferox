@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.renderer.DisplayOptions;
+import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
@@ -69,16 +71,17 @@ public class FboDelegate extends TextureSurfaceDelegate {
 	}
 
 	@Override
-	public void postRenderAction(JoglRenderSurface next) {
+	public void postRenderAction(Action next) {
 		if (next != null) {
-			if (next instanceof JoglTextureSurface) {
-				TextureSurfaceDelegate ts = ((JoglTextureSurface) next).getDelegate();
+			RenderSurface s = next.getRenderSurface();
+			if (s instanceof JoglTextureSurface) {
+				TextureSurfaceDelegate ts = ((JoglTextureSurface) s).getDelegate();
 				if (ts instanceof FboDelegate)
 					return; // preRenderAction() will take care of everything
 			}
-			GLAutoDrawable current = factory.getDisplayingDrawable();
-			fbos.get(current).release(factory.getGL(), factory.getRecord());
 		}
+		GLAutoDrawable current = factory.getDisplayingDrawable();
+		fbos.get(current).release(factory.getGL(), factory.getRecord());
 	}
 
 	@Override

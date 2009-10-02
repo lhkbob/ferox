@@ -3,6 +3,7 @@ package com.ferox.renderer.impl.jogl;
 import javax.media.opengl.GLAutoDrawable;
 
 import com.ferox.renderer.DisplayOptions;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
@@ -49,7 +50,7 @@ public abstract class TextureSurfaceDelegate {
 
 	public abstract void preRenderAction(int layer);
 
-	public abstract void postRenderAction(JoglRenderSurface next);
+	public abstract void postRenderAction(Action next);
 
 	public abstract void destroySurface();
 

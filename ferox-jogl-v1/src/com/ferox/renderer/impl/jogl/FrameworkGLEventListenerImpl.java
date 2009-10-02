@@ -1,21 +1,20 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.awt.EventQueue;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.Threading;
 
 import com.ferox.renderer.RenderException;
+import com.ferox.renderer.impl.Action;
 
 /**
- * Utility class to implement the guts of AttachableSurfaceGLEventListener.
+ * Utility class to implement the guts of FrameworkGLEventListener.
  * 
  * @author Michael Ludwig
  */
-public class AttachableSurfaceImplHelper {
+public class FrameworkGLEventListenerImpl {
 	/*
 	 * Various supported render modes. There are 3 varieties, of 2 different
 	 * types. The first type is forcing JOGL rendering onto another thread (the
@@ -34,8 +33,7 @@ public class AttachableSurfaceImplHelper {
 	private static final int renderMode = RENDER_MODE_JOGL_STANDARD;
 
 	/* Variables used for each render mode. */
-	private final List<JoglRenderSurface> attachedSurfaces;
-	private Runnable resourceAction;
+	private Action actions;
 	private Exception caughtEDTException;
 
 	/* Variables used for AWT_WAIT. */
@@ -43,53 +41,19 @@ public class AttachableSurfaceImplHelper {
 	private volatile boolean actionFinished; // signal back to other thread
 	private Object lock;
 
-	public AttachableSurfaceImplHelper() {
-		attachedSurfaces = new ArrayList<JoglRenderSurface>();
-	}
-
-	/**
-	 * Matches the assignResourceAction() method of the
-	 * AttachableSurfaceGLEventListener.
-	 */
-	public void assignResourceAction(Runnable action) {
-		resourceAction = action;
-	}
-
-	/**
-	 * Matches the attachRenderSurface() method of the
-	 * AttachableSurfaceGLEventListener.
-	 */
-	public void attachRenderSurface(JoglRenderSurface surface) {
-		attachedSurfaces.add(surface);
+	public FrameworkGLEventListenerImpl() {
 	}
 
 	/**
 	 * Matches the display(drawable) method of the
-	 * AttachableSurfaceGLEventListener.
+	 * FrameworkGLEventListener.
 	 */
 	public void display(GLAutoDrawable drawable) {
 		try {
-			// execute the assigned resource action
-			if (resourceAction != null)
-				resourceAction.run();
-
-			JoglRenderSurface curr;
-			JoglRenderSurface next;
-
-			int i;
-			int size = attachedSurfaces.size();
-			if (size > 0) {
-				i = 1;
-				curr = attachedSurfaces.get(0);
-				next = (size > 1 ? attachedSurfaces.get(1) : null);
-
-				while (curr != null) {
-					curr.displaySurface(next);
-					curr = next;
-
-					i++;
-					next = (i < size ? attachedSurfaces.get(i) : null);
-				}
+			Action c = actions;
+			while(c != null) {
+				c.perform();
+				c = c.next();
 			}
 
 			// flush everything that has been issued
@@ -101,13 +65,14 @@ public class AttachableSurfaceImplHelper {
 	}
 
 	/**
-	 * Matches the render(drawable) method of the
-	 * AttachableSurfaceGLEventListener.
+	 * Matches the drawable.render() method of the
+	 * FrameworkGLEventListener.
 	 */
-	public void render(final GLAutoDrawable drawable) throws RenderException {
+	public void render(final GLAutoDrawable drawable, Action actions) throws RenderException {
 		try {
 			caughtEDTException = null;
-
+			this.actions = actions;
+			
 			switch (renderMode) {
 			case RENDER_MODE_ACTIVE:
 				renderActive(drawable);
@@ -124,8 +89,16 @@ public class AttachableSurfaceImplHelper {
 			if (c != null)
 				throw new RenderException(c);
 		} finally {
-			attachedSurfaces.clear();
-			resourceAction = null;
+			// unwind every action so some can be garbage collected
+			Action c = actions;
+			Action n;
+			while(c != null) {
+				n = c.next();
+				c.setNext(null);
+				c = n;
+			}
+			
+			actions = null;
 			caughtEDTException = null;
 		}
 	}

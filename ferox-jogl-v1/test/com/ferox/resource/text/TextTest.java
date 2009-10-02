@@ -16,8 +16,8 @@ import com.ferox.scene.Group;
 import com.ferox.scene.Node;
 import com.ferox.scene.Shape;
 import com.ferox.scene.ViewNode;
-import com.ferox.util.geom.CharacterSet;
-import com.ferox.util.geom.Text;
+import com.ferox.util.text.CharacterSet;
+import com.ferox.util.text.Text;
 
 public class TextTest extends BasicApplication {
 	public static final boolean DEBUG = false;

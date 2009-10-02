@@ -8,6 +8,7 @@ import javax.media.opengl.GLContext;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 
 /**
@@ -65,7 +66,7 @@ public class OnscreenShadowContext extends AbstractShadowContext {
 	}
 
 	@Override
-	public void render() throws RenderException {
+	public void render(Action actions) throws RenderException {
 		// must make the frame visible so that the context is valid
 		// for gl execution (instead of just context sharing)
 		JoglUtil.invokeOnAwtThread(showFrame);
@@ -73,7 +74,7 @@ public class OnscreenShadowContext extends AbstractShadowContext {
 		record = new JoglStateRecord(caps);
 
 		try {
-			super.render();
+			super.render(actions);
 		} finally {
 			// must always hide the frame, even when an exception is thrown
 			JoglUtil.invokeOnAwtThread(hideFrame);

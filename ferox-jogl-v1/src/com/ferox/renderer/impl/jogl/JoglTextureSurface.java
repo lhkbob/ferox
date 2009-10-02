@@ -10,6 +10,7 @@ import com.ferox.renderer.DisplayOptions.AntiAliasMode;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.resource.Texture1D;
 import com.ferox.resource.Texture2D;
@@ -99,8 +100,10 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 		createDepthTexture(s, caps);
 
 		// create texture images and delegates of gfx card
-		factory.runOnGraphicsThread(null, new UpdateTextureImagesAction(s, factory));
-		factory.runOnGraphicsThread(null, new ConstructDelegateAction(s, factory, this));
+		Action update = new UpdateTextureImagesAction(s, factory);
+		Action construct = new ConstructDelegateAction(s, factory, this);
+		update.setNext(construct);
+		factory.runOnGraphicsThread(update);
 
 		// if we've gotten here, we're okay
 		this.layer = s.layer;
@@ -141,12 +144,12 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	}
 
 	@Override
-	public void preRenderAction() {
+	protected void preRenderAction() {
 		delegate.preRenderAction(layer);
 	}
 
 	@Override
-	public void postRenderAction(JoglRenderSurface next) {
+	protected void postRenderAction(Action next) {
 		delegate.postRenderAction(next);
 	}
 
@@ -407,16 +410,18 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	}
 
 	/* Runnable action to create the textures on the shared context. */
-	private static class UpdateTextureImagesAction implements Runnable {
+	private static class UpdateTextureImagesAction extends Action {
 		private final JoglContextManager factory;
 		private final SurfaceSpecifier s;
 
 		private UpdateTextureImagesAction(SurfaceSpecifier s, JoglContextManager factory) {
+			super(null);
 			this.factory = factory;
 			this.s = s;
 		}
 
-		public void run() throws SurfaceCreationException {
+		@Override
+		public void perform() {
 			if (s.colorBuffers != null)
 				for (int i = 0; i < s.colorBuffers.length; i++)
 					if (factory.getFramework().doUpdate(s.colorBuffers[i], true, factory) == Status.ERROR) {
@@ -445,18 +450,20 @@ public class JoglTextureSurface extends JoglRenderSurface implements TextureSurf
 	 * Runnable to create the delegate. Must be executed on the context so that
 	 * it can cleanup the textures if something goes wrong.
 	 */
-	private static class ConstructDelegateAction implements Runnable {
+	private static class ConstructDelegateAction extends Action {
 		private final JoglContextManager factory;
 		private final SurfaceSpecifier s;
 		private final JoglTextureSurface surface;
 
 		private ConstructDelegateAction(SurfaceSpecifier s, JoglContextManager factory, JoglTextureSurface surface) {
+			super(null);
 			this.factory = factory;
 			this.s = s;
 			this.surface = surface;
 		}
 
-		public void run() throws SurfaceCreationException {
+		@Override
+		public void perform() {
 			if (s.useFbo)
 				surface.delegate = new FboDelegate(factory, s.options, s.colorTarget, s.depthTarget, 
 												   s.width, s.height, s.colorBuffers, s.depthBuffer,

@@ -8,6 +8,7 @@ import javax.media.opengl.GLPbuffer;
 
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
+import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.record.JoglStateRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord;
 import com.ferox.renderer.impl.jogl.record.TextureRecord.TextureUnit;
@@ -65,7 +66,7 @@ public class PbufferDelegate extends TextureSurfaceDelegate {
 	}
 
 	@Override
-	public void postRenderAction(JoglRenderSurface next) {
+	public void postRenderAction(Action next) {
 		TextureImage color = getColorBuffer(0); // will be 1 color target at max
 		TextureImage depth = getDepthBuffer();
 
