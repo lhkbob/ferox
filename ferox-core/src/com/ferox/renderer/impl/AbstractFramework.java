@@ -1,6 +1,5 @@
 package com.ferox.renderer.impl;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -92,8 +91,8 @@ public abstract class AbstractFramework implements Framework {
 	/* Rendering frame variables */
 	private final RendererImpl renderer;
 
-	private final IdentityHashMap<RenderPass, View> preparedPasses;
-	private final List<RenderSurface> queuedSurfaces;
+	private Action actionHead;
+	private Action actionTail;
 
 	private long lastFrameTime;
 	private FrameStatistics frameStats;
@@ -108,9 +107,6 @@ public abstract class AbstractFramework implements Framework {
 		renderState = RenderState.WAITING_INIT;
 
 		lastFrameTime = -1;
-		preparedPasses = new IdentityHashMap<RenderPass, View>();
-		queuedSurfaces = new ArrayList<RenderSurface>();
-
 		renderer = new RendererImpl();
 
 		dfltManager = new DefaultResourceManager();
@@ -130,8 +126,8 @@ public abstract class AbstractFramework implements Framework {
 												   int x, int y, int width, int height, 
 												   boolean resizable, boolean undecorated) {
 		ensure(RenderState.IDLE);
-		WindowSurface surface = this.prepareSurface(contextManager.createWindowSurface(options, 
-			x, y, width, height, resizable, undecorated));
+		WindowSurface surface = contextManager.createWindowSurface(options, 
+																   x, y, width, height, resizable, undecorated);
 		return surface;
 	}
 
@@ -139,8 +135,8 @@ public abstract class AbstractFramework implements Framework {
 	public final FullscreenSurface createFullscreenSurface(DisplayOptions options, 
 														   int width, int height) {
 		ensure(RenderState.IDLE);
-		FullscreenSurface surface = this.prepareSurface(contextManager.createFullscreenSurface(options,
-			width, height));
+		FullscreenSurface surface = contextManager.createFullscreenSurface(options,
+																		   width, height);
 		return surface;
 	}
 
@@ -149,9 +145,9 @@ public abstract class AbstractFramework implements Framework {
 													 int width, int height, int depth, int layer, 
 													 int numColorTargets, boolean useDepthRenderBuffer) {
 		ensure(RenderState.IDLE);
-		TextureSurface surface = this.prepareSurface(contextManager.createTextureSurface(options, target, 
-			width, height, depth, layer, 
-			numColorTargets, useDepthRenderBuffer));
+		TextureSurface surface = contextManager.createTextureSurface(options, target, 
+																	 width, height, depth, layer, 
+																	 numColorTargets, useDepthRenderBuffer);
 		lock(surface);
 		return surface;
 	}
@@ -162,7 +158,7 @@ public abstract class AbstractFramework implements Framework {
 		if (share == null || share.isDestroyed() || share.getFramework() != this)
 			throw new SurfaceCreationException("Invalid texture surface for sharing: " + share);
 
-		TextureSurface surface = this.prepareSurface(contextManager.createTextureSurface(share, layer));
+		TextureSurface surface = contextManager.createTextureSurface(share, layer);
 		lock(surface);
 		return surface;
 	}
@@ -235,17 +231,42 @@ public abstract class AbstractFramework implements Framework {
 	/*
 	 * Rendering methods and helper classes
 	 */
-
+	
 	@Override
-	public Framework queueRender(RenderSurface surface) {
+	public Framework queue(RenderSurface surface, RenderPass pass) {
 		ensure(RenderState.IDLE);
-
-		if (surface != null && !surface.isDestroyed())
-			if (surface.getFramework() != this)
-				throw new IllegalArgumentException("Cannot queue a surface created by another renderer: " + surface);
-			else if (!queuedSurfaces.contains(surface))
-				queuedSurfaces.add(surface);
-
+		
+		boolean found = false;
+		Action n = actionHead;
+		while(n != null) {
+			if (n.getRenderSurface() == surface) {
+				found = true;
+				break;
+			}
+			n = n.next();
+		}
+		
+		// let this function handle everything
+		return queue(surface, pass, !found, !found, !found);
+	}
+	
+	@Override
+	public Framework queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil) {
+		ensure(RenderState.IDLE);
+		if (surface == null || pass == null || surface.isDestroyed())
+			return this; // no-op
+		if (surface.getFramework() != this)
+			throw new IllegalArgumentException("RenderSurface must be constructed by this Framework");
+		
+		if (clearColor || clearDepth || clearStencil) {
+			// add a ClearSurfaceAction
+			ClearSurfaceAction c = new ClearSurfaceAction(surface, clearColor, clearDepth, clearStencil);
+			addLast(c);
+		}
+		
+		RenderPassAction p = new RenderPassAction(surface, pass);
+		addLast(p);
+		
 		return this;
 	}
 
@@ -270,37 +291,22 @@ public abstract class AbstractFramework implements Framework {
 			long prepareStart = now;
 			renderState = RenderState.RENDERING;
 
-			// make sure all surfaces are valid
-			for (int i = queuedSurfaces.size() - 1; i >= 0; i--) {
-				if (queuedSurfaces.get(i).isDestroyed())
-					queuedSurfaces.remove(i);
+			// prepend the ManageResourcesAction
+			addFirst(manageResourceAction);
+			
+			// prepare all actions
+			Action c = actionHead;
+			Action p = null;
+			while(c != null) {
+				Action n = c.prepare(p);
+				p = c;
+				c = n;
 			}
-
-			int numSurfaces = queuedSurfaces.size();
-			if (numSurfaces > 0) {
-				// we're rendering an entire frame now, resource managers will
-				// be done on 1st surface
-				int numPasses;
-				List<RenderPass> passes;
-				RenderPass pass;
-				// prepare every render pass present in all queued surfaces
-				for (int i = 0; i < numSurfaces; i++) {
-					passes = queuedSurfaces.get(i).getAllRenderPasses();
-					numPasses = passes.size();
-
-					for (int p = 0; p < numPasses; p++) {
-						pass = passes.get(p);
-						if (!preparedPasses.containsKey(pass))
-							preparedPasses.put(pass, pass.preparePass());
-					}
-				}
-				now = System.nanoTime();
-				frameStats.setPrepareTime(now - prepareStart);
-			}
+			now = System.nanoTime();
+			frameStats.setPrepareTime(now - prepareStart);
 
 			long renderStart = now;
-			// if numSurfaces == 0, the resource action is still executed
-			contextManager.runOnGraphicsThread(queuedSurfaces, manageResourceAction);
+			contextManager.runOnGraphicsThread(actionHead);
 
 			now = System.nanoTime();
 			frameStats.setRenderTime(now - renderStart);
@@ -309,8 +315,8 @@ public abstract class AbstractFramework implements Framework {
 		} finally {
 			// restore the state of the renderer and prepare for the next frame
 			renderState = RenderState.IDLE;
-			preparedPasses.clear();
 			lastFrameTime = now;
+			clearActions();
 		}
 
 		// return the stats, since the frame is done
@@ -583,6 +589,28 @@ public abstract class AbstractFramework implements Framework {
 	protected abstract EffectDriver getEffectDriver(EffectType effectType);
 
 	/* Internal operations. */
+	
+	// Utility to add an Action to the end of the linked-list of actions
+	private void addLast(Action a) {
+		if (actionTail != null)
+			actionTail.setNext(a);
+		actionTail = a;
+		if (actionHead == null)
+			actionHead = a;
+	}
+	
+	private void addFirst(Action a) {
+		a.setNext(actionHead);
+		actionHead = a;
+		if (actionTail == null)
+			actionTail = a;
+	}
+	
+	private void clearActions() {
+		actionTail = null;
+		actionHead = null;
+		manageResourceAction.setNext(null);
+	}
 
 	// Locks the surface's texture buffers so they won't be updated or cleaned.
 	// Expects a valid, non-null surface and assumes the surface's textures
@@ -634,29 +662,6 @@ public abstract class AbstractFramework implements Framework {
 		}
 	}
 
-	// Makes sure that the created surface has a method
-	// setRenderAction(Runnable)
-	// and sets a RenderSurfaceAction on the surface for future rendering.
-	private <T extends RenderSurface> T prepareSurface(T surface) {
-		if (surface == null)
-			throw new SurfaceCreationException("Internal ContextManager returned a null surface");
-
-		Method setRenderAction;
-		try {
-			setRenderAction = surface.getClass().getMethod("setRenderAction", Runnable.class);
-			boolean priv = setRenderAction.isAccessible();
-			setRenderAction.setAccessible(true);
-
-			setRenderAction.invoke(surface, new RenderSurfaceAction(surface));
-
-			setRenderAction.setAccessible(priv);
-		} catch (Exception e) {
-			throw new SurfaceCreationException("Exception occured when setting new surface's render action", e);
-		}
-		// we're all good ...
-		return surface;
-	}
-
 	// Throws an exception if the render state is DESTROYED or WAITING_INIT
 	// If expected != null, throws an exception if the current state doesn't
 	// match
@@ -668,41 +673,64 @@ public abstract class AbstractFramework implements Framework {
 			throw new RenderStateException("Method call expected the Framework to be in state: " + 
 										   expected + ", but it was in state: " + renderState);
 	}
-
-	/* The render action for each created RenderSurface. */
-	private class RenderSurfaceAction implements Runnable {
-		private final RenderSurface surface;
-
-		public RenderSurfaceAction(RenderSurface surface) {
-			this.surface = surface;
+	
+	/* The action that will clear each surface. */
+	private class ClearSurfaceAction extends Action {
+		private final boolean clearColor;
+		private final boolean clearDepth;
+		private final boolean clearStencil;
+		
+		public ClearSurfaceAction(RenderSurface surface, boolean clearColor, boolean clearDepth, boolean clearStencil) {
+			super(surface);
+			this.clearColor = clearColor;
+			this.clearDepth = clearDepth;
+			this.clearStencil = clearStencil;
 		}
 
 		@Override
-		public void run() {
-			List<RenderPass> passes = surface.getAllRenderPasses();
-			int numPasses = passes.size();
-			View view;
-			RenderPass currentPass;
+		public void perform() {
+			contextManager.clear(getRenderSurface(), clearColor, clearDepth, clearStencil);
+		}
+	}
 
+	/* The render action for each RenderPass. */
+	private class RenderPassAction extends Action {
+		private final RenderPass pass;
+		private View view;
+
+		public RenderPassAction(RenderSurface surface, RenderPass pass) {
+			super(surface);
+			this.pass = pass;
+		}
+		
+		@Override
+		public Action prepare(Action previous) {
+			view = pass.getView();
+			if (view == null) {
+				// splice out
+				return splice(previous);
+			} else {
+				// move on normally
+				view.updateView();
+				return super.prepare(previous);
+			}
+		}
+
+		@Override
+		public void perform() {
 			try {
 				// set at the beginning so each renderAtom() doesn't have
 				// to queue up the default appearance, too
 				renderer.setAppearance(renderer.dfltAppearance);
 
-				for (int p = 0; p < numPasses; p++) {
-					currentPass = passes.get(p);
-					view = preparedPasses.get(currentPass);
-					if (view != null) {
-						// render the pass
-						transform.setView(view, surface.getWidth(), surface.getHeight());
-						currentPass.render(renderer, view);
-						transform.resetView();
-					}
+				if (view != null) {
+					transform.setView(view, getRenderSurface().getWidth(), getRenderSurface().getHeight());
+					pass.render(renderer);
+					transform.resetView();
 				}
 			} finally {
 				// reset everything
-				renderer.resetEffects();
-				renderer.resetGeometry();
+				renderer.reset();
 			}
 		}
 	}
@@ -712,16 +740,19 @@ public abstract class AbstractFramework implements Framework {
 	 * is passed in as the 2nd argument to renderFrame() of the surface
 	 * contextManager.
 	 */
-	private class ManageResourcesAction implements Runnable {
+	private class ManageResourcesAction extends Action {
+		public ManageResourcesAction() {
+			super(null);
+		}
+		
 		@Override
-		public void run() {
+		public void perform() {
 			int numManagers = resourceManagers.size();
 			for (int i = 0; i < numManagers; i++)
 				resourceManagers.get(i).manage(renderer);
 
 			// restore state if someone invoked renderAtom(), too
-			renderer.resetEffects();
-			renderer.resetGeometry();
+			renderer.reset();
 		}
 	}
 
@@ -790,22 +821,19 @@ public abstract class AbstractFramework implements Framework {
 		public Framework getFramework() {
 			return AbstractFramework.this;
 		}
-
-		// Reset the geometry drivers for the next surface
-		private void resetGeometry() {
-			if (lastGeometryDriver != null) {
-				lastGeometryDriver.reset();
-				lastGeometryDriver = null;
-			}
-		}
-
 		// Reset the effect state to that of the dflt appearance
-		private void resetEffects() {
+		// and reset the geometry drivers
+		private void reset() {
 			EffectDriver e;
 			for (int i = 0; i < supportedEffects.length; i++) {
 				e = getEffectDriver(supportedEffects[i]);
 				e.reset();
 				e.doApply();
+			}
+			
+			if (lastGeometryDriver != null) {
+				lastGeometryDriver.reset();
+				lastGeometryDriver = null;
 			}
 		}
 

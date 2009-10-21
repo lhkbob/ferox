@@ -1,6 +1,6 @@
 package com.ferox.resource;
 
-import com.ferox.effect.Effect.PixelTest;
+import com.ferox.effect.Comparison;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.util.FastMap;
@@ -222,7 +222,7 @@ public abstract class TextureImage implements Resource {
 	private static final TextureWrap DEFAULT_TEX_WRAP = TextureWrap.MIRROR;
 	private static final Filter DEFAULT_FILTER = Filter.MIPMAP_LINEAR;
 	private static final DepthMode DEFAULT_DEPTHMODE = DepthMode.LUMINANCE;
-	private static final PixelTest DEFAULT_DEPTHTEST = PixelTest.GREATER;
+	private static final Comparison DEFAULT_DEPTHTEST = Comparison.GREATER;
 
 	private final TextureFormat format;
 	private final DataType type;
@@ -236,7 +236,7 @@ public abstract class TextureImage implements Resource {
 
 	private DepthMode depthMode;
 	private boolean enableDepthCompare;
-	private PixelTest depthCompareTest;
+	private Comparison depthCompareTest;
 
 	private final FastMap<Framework, Object> renderData;
 	private final TextureDirtyDescriptor dirty;
@@ -290,7 +290,7 @@ public abstract class TextureImage implements Resource {
 	 * @throws IllegalArgumentException if format doesn't support type
 	 */
 	public TextureImage(TextureFormat format, DataType type, Filter filter, 
-					    TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest) {
+					    TextureWrap wrapAll, DepthMode depthMode, Comparison depthTest) {
 		if (format == null || type == null)
 			throw new NullPointerException("Can't specify a null TextureFormat or DataType: " + format + " " + type);
 		if (!format.isTypeValid(type))
@@ -516,19 +516,19 @@ public abstract class TextureImage implements Resource {
 	/**
 	 * Get the depth test to use when depth comparing is enabled.
 	 * 
-	 * @return The PixelTest used when depth comparing during texture
+	 * @return The Comparison used when depth comparing during texture
 	 *         application
 	 */
-	public PixelTest getDepthCompareTest() {
+	public Comparison getDepthCompareTest() {
 		return depthCompareTest;
 	}
 
 	/**
 	 * Set the depth test to use when depth comparing is enabled.
 	 * 
-	 * @param depthCompareTest The new PixelTest to use, null = GREATER
+	 * @param depthCompareTest The new Comparison to use, null = GREATER
 	 */
-	public void setDepthCompareTest(PixelTest depthCompareTest) {
+	public void setDepthCompareTest(Comparison depthCompareTest) {
 		if (depthCompareTest == null)
 			depthCompareTest = DEFAULT_DEPTHTEST;
 		this.depthCompareTest = depthCompareTest;

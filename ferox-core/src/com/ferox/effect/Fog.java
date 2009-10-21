@@ -1,205 +1,181 @@
 package com.ferox.effect;
 
-import com.ferox.effect.Effect.Type;
 import com.ferox.math.Color4f;
 
 /**
  * <p>
- * Represents a region of fog within the scene. It provides methods to set
- * color, quality, range, density and equations for the fog. The default color
- * is <.5, .5, .5, 1>, the default equation is LINEAR and the default quality is
- * DONT_CARE.
+ * Fog encapsulates the state necessary to achieve an approximation to a fogged
+ * environment. It works by blending a fog color with the post-texturing color
+ * of an incoming pixel. This fogged color is then written into the color buffer
+ * per normal (possibly including blending).
+ * <p>
+ * <p>
+ * The fogged color is computed as follows:
+ * <ol>
+ * <li>c = eye-space distance from camera to the pixel</li>
+ * <li>d = density of the fog, as configured</li>
+ * <li>e = end distance of the fog, as configured</li>
+ * <li>s = start distance of the fog, as configured</li>
+ * <li>f = blending factor computed from c, d, e, and/or s based on configured
+ * FogEquation</li>
+ * <li>Cf = 4-component fog color</li>
+ * <li>Cr = 4-component textured color, before fogging</li>
+ * <li>C = final fogged color</li>
+ * </ol>
+ * 
+ * <pre>
+ * Final Color:
+ * C = f * Cr + (1 - f) * Cf
+ * </pre>
+ * 
  * </p>
  * <p>
- * The amount of coloring used for a pixel rendered with a Fog depends on the
- * pixels depth. Depending slightly on the fog equation used (
- * {@link FogEquation}), the farther away a pixel is, the more fogged it will
- * be.
+ * The blending factor f is computed as follows:
+ * 
+ * <pre>
+ * FogEquation |    'f'
+ * ------------|------------------
+ * EXP         | e&circ;(-d * c)
+ * EXP_SQUARED | e&circ;((-d * c)&circ;2)
+ * LINEAR      | (e - c) / (e - s)
+ * </pre>
+ * 
  * </p>
  * 
  * @author Michael Ludwig
  */
-@Type(EffectType.FOG)
-public class Fog extends AbstractEffect {
+public class Fog {
 	/**
-	 * Equation used to compute the amount of fog between start and end
-	 * distances. The exact coloring of LINEAR fog depends on the start and end
-	 * values, for EXP and EXP_SQUARED, density effects the coloring.
+	 * The equation used to compute the blending factor for the fog. See above
+	 * for descriptions of each equation.
 	 */
 	public static enum FogEquation {
 		EXP, EXP_SQUARED, LINEAR
 	}
-
-	private static final Color4f DEFAULT_COLOR = new Color4f(.5f, .5f, .5f, 1f);
-	private static final float DEFAULT_START = .1f;
-	private static final float DEFAULT_END = 10f;
-	private static final float DEFAULT_DENSITY = 1f;
-	private static final FogEquation DEFAULT_EQ = FogEquation.LINEAR;
 
 	private Color4f color;
 	private float start;
 	private float end;
 	private float density;
 	private FogEquation eq;
-	private Quality qual;
 
 	/**
-	 * Creates a fog with default color, equation and quality with a range of .1
-	 * to 10, and a density of 1.
+	 * Create a new Fog state that uses a linear range of 0 to 1, has a density
+	 * of 1, uses the EXP FogEquation and has a fog color of (0, 0, 0, 0).
 	 */
 	public Fog() {
-		this(null);
+		setColor(new Color4f(0f, 0f, 0f, 0f));
+		setLinearFogRange(0f, 1f);
+		setDensity(1f);
+		setEquation(FogEquation.EXP);
 	}
 
 	/**
-	 * Creates a fog with the given color, default equation and quality, range
-	 * between .1 to 10, and a density of 1.
+	 * Return the Fog's color, any changes to this Color4f will directly affect
+	 * the Fog.  This is Cf as described above.
 	 * 
-	 * @param color The color to use
-	 */
-	public Fog(Color4f color) {
-		this(color, DEFAULT_START, DEFAULT_END, DEFAULT_DENSITY);
-	}
-
-	/**
-	 * Creates a fog with the given color, fog range and density, and the
-	 * default equation and quality.
-	 * 
-	 * @param color The color to use
-	 * @param start The start distance
-	 * @param end The ending distance (distance at which fog is densest)
-	 * @param density The density of the fog
-	 * @throws IllegalArgumentException if start > end
-	 */
-	public Fog(Color4f color, float start, float end, float density) {
-		this(color, start, end, density, null, null);
-	}
-
-	/**
-	 * Creates a fog with the given color, fog range, density, equation and
-	 * quality. If any of color, eq, or qual are null, then that value will be
-	 * set to the default.
-	 * 
-	 * @param color The color to use
-	 * @param start The start distance
-	 * @param end The ending distance (distance at which fog is densest)
-	 * @param density The density of the fog
-	 * @param eq The FogEquation to use
-	 * @param qual The quality of the rendered fog
-	 * @throws IllegalArgumentException if start > end
-	 */
-	public Fog(Color4f color, float start, float end, float density, FogEquation eq, Quality qual) {
-		setFogRange(start, end);
-		setDensity(density);
-		setEquation(eq);
-		setQuality(qual);
-		setColor(color);
-	}
-
-	/**
-	 * @return The Color4f instance storing the color of this Fog
+	 * @return The Fog's color
 	 */
 	public Color4f getColor() {
 		return color;
 	}
 
 	/**
-	 * Set the fog color. If color is null, the fog color is set to the default
-	 * color.
+	 * Assign a new Color4f as this Fog's color. This is taken as a reference,
+	 * so any changes to color will affect the Fog's color.  If color is null,
+	 * it uses (0, 0, 0, 0) instead.
 	 * 
-	 * @param color The new color to use
+	 * @param color The new Fog color
+	 * @return This Fog
 	 */
-	public void setColor(Color4f color) {
-		if (color == null)
-			color = new Color4f(DEFAULT_COLOR);
-		this.color = color;
+	public Fog setColor(Color4f color) {
+		this.color = (color != null ? color : new Color4f(0f, 0f, 0f, 0f));
+		return this;
 	}
 
 	/**
-	 * Get the starting distance, in eye space, of the fog. Objects closer than
-	 * this value to the eye will not be fogged. This only affects a linear fog.
+	 * Return the linear start distance, which is used if the Fog's equation is
+	 * LINEAR. This is s as described above.
 	 * 
-	 * @return The start distance
+	 * @return The Fog's start distance for the LINEAR equation
 	 */
-	public float getStartDistance() {
+	public float getLinearStartDistance() {
 		return start;
 	}
 
 	/**
-	 * Get the ending distance, in eye space, of the fog. Eyes farther away than
-	 * this distance will be completely fogged. This only affects a linear fog
+	 * Return the linear end distance, which is used if the Fog's equation is
+	 * LINEAR. This is e as described above.
 	 * 
-	 * @return The ending distance of the fog
+	 * @return The Fog's end distance for the LINEAR equation
 	 */
-	public float getEndDistance() {
+	public float getLinearEndDistance() {
 		return end;
 	}
 
 	/**
-	 * Set the start and end distances for this fog.
+	 * Set the linear fog range to use if the Fog's equation is LINEAR. The
+	 * value start represents s as above, and end represents e as above. start
+	 * must be greater than 0 and cannot be equal to or greater than end.
 	 * 
-	 * @see #getEndDistance()
-	 * @see #getStartDistance()
-	 * @param start The new start distance
-	 * @param end The new ending distance
-	 * @throws IllegalArgumentException if start > end, or start < 0
+	 * @param start The start distance for LINEAR
+	 * @param end The end distance for LINEAR
+	 * @return This Fog
+	 * @throws IllegalArgumentException if start < 0 or if start >= end
 	 */
-	public void setFogRange(float start, float end) {
-		if (start < 0 || start > end)
-			throw new IllegalArgumentException("Illegal valus for fog range: " + start + " - " + end);
+	public Fog setLinearFogRange(float start, float end) {
+		if (start < 0 || start >= end)
+			throw new IllegalArgumentException("Illegal valus for fog range: " + start + " , " + end);
 		this.start = start;
 		this.end = end;
+		return this;
 	}
 
 	/**
-	 * @return The fog density, a value greater than or equal to 0
+	 * Return the fog density that is used if the Fog's equation is EXP or
+	 * EXP_SQUARED. This is d as described above.
+	 * 
+	 * @return The Fog's density
 	 */
 	public float getDensity() {
 		return density;
 	}
 
 	/**
-	 * Set the fog density, it will be clamped to be above 0.
+	 * Set the fog density to use if the Fog's equation is EXP or EXP_SQUARED.
+	 * This is d as described above. If density is < 0, then an exception is
+	 * thrown.
 	 * 
-	 * @param density The new density value
+	 * @param density The fog density
+	 * @return This Fog
+	 * @throws IllegalArgumentException if density < 0
 	 */
-	public void setDensity(float density) {
-		this.density = Math.max(0f, density);
+	public Fog setDensity(float density) {
+		if (density < 0f)
+			throw new IllegalArgumentException("Fog density must be positive");
+		this.density = density;
+		return this;
 	}
 
-	/** @return The fog equation used by this fog. */
+	/**
+	 * Return the FogEquation that is used by this Fog. See above for
+	 * descriptions of each FogEquation.
+	 * 
+	 * @return This Fog's FogEquation
+	 */
 	public FogEquation getEquation() {
 		return eq;
 	}
 
 	/**
-	 * Set the fog equation used by this fog. If eq is null, the equation is set
-	 * to the default.
+	 * Set the FogEquation to use for this Fog. See above for each equation's
+	 * behaviors. If eq is null, then EXP is assigned.
 	 * 
-	 * @param eq The new fog equation
+	 * @param eq The new FogEquation
+	 * @return This Fog
 	 */
-	public void setEquation(FogEquation eq) {
-		if (eq == null)
-			eq = DEFAULT_EQ;
-		this.eq = eq;
-	}
-
-	/**
-	 * @return The quality of fog computation.
-	 */
-	public Quality getQuality() {
-		return qual;
-	}
-
-	/**
-	 * Set the quality of fog computation. If qual is null, the quality is set
-	 * to the default.
-	 * 
-	 * @param qual The new fog rendering quality
-	 */
-	public void setQuality(Quality qual) {
-		if (qual == null)
-			qual = Quality.DONT_CARE;
-		this.qual = qual;
+	public Fog setEquation(FogEquation eq) {
+		this.eq = (eq != null ? eq : FogEquation.EXP);
+		return this;
 	}
 }

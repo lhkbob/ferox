@@ -1,7 +1,5 @@
 package com.ferox.renderer;
 
-import java.util.List;
-
 import com.ferox.math.Color4f;
 
 /**
@@ -93,71 +91,11 @@ public interface RenderSurface {
 	public DisplayOptions getDisplayOptions();
 
 	/**
-	 * <p>
-	 * Add the given render pass to this surface. It should be a no-op if pass
-	 * is null or if this surface already has the given pass in it.
-	 * </p>
-	 * <p>
-	 * The given pass should be at the last index of the list returned by
-	 * getAllRenderPasses() (until another pass is added, then it's the 2nd last
-	 * pass, etc).
-	 * </p>
-	 * 
-	 * @param pass The RenderPass to add to this surface
-	 */
-	public void addRenderPass(RenderPass pass);
-
-	/**
-	 * Remove the given render pass from this surface. It should be a no-op if
-	 * this pass is null or pass wasn't added to this surface.
-	 * 
-	 * @param pass The RenderPass to remove, so that it's no longer rendered
-	 */
-	public void removeRenderPass(RenderPass pass);
-
-	/**
-	 * Get the list of all contained render passes for this surface. They should
-	 * be in the order of addition to the pass (after taking into account pass
-	 * removals). The first element should be the oldest remaining pass, and the
-	 * newest pass is the last element in the list.
-	 * 
-	 * @return An unmodifiable list of all added RenderPasses for this surface
-	 */
-	public List<RenderPass> getAllRenderPasses();
-
-	/**
 	 * Get the Framework that created this surface.
 	 * 
 	 * @return The Framework that created this surface, must not be null
 	 */
 	public Framework getFramework();
-
-	/**
-	 * True if the color buffer of the render surface is cleared before any
-	 * passes are rendered. Default should be true.
-	 * 
-	 * @return True if the color buffer is cleared before each render, if it has
-	 *         a color buffer
-	 */
-	public boolean isColorBufferCleared();
-
-	/**
-	 * True if the depth buffer of the render surface is cleared before any
-	 * passes are rendered. Default should be true.
-	 * 
-	 * @return True if the depth buffer is cleared before each render, if it has
-	 *         a depth buffer
-	 */
-	public boolean isDepthBufferCleared();
-
-	/**
-	 * True if the stencil buffer of the render surface is cleared before any
-	 * passes are rendered. Default should be false.
-	 * 
-	 * @return True if the stencil buffer is cleared before each render, if it
-	 *         has a stencil buffer
-	 */
-	public boolean isStencilBufferCleared();
 
 	/**
 	 * Get the background color to use when the color buffer is cleared for this
@@ -186,33 +124,9 @@ public interface RenderSurface {
 	public int getClearStencil();
 
 	/**
-	 * Set whether the color buffer of the render surface is cleared before any
-	 * passes are rendered. Default should be true.
-	 * 
-	 * @param clear Whether or not the color buffer should be cleared
-	 */
-	public void setColorBufferCleared(boolean clear);
-
-	/**
-	 * Set whether the depth buffer of the render surface is cleared before any
-	 * passes are rendered. Default should be true.
-	 * 
-	 * @param clear Whether or not the depth buffer should be cleared
-	 */
-	public void setDepthBufferCleared(boolean clear);
-
-	/**
-	 * Set whether the stencil buffer of the render surface is cleared before
-	 * any passes are rendered. Default should be false.
-	 * 
-	 * @param clear Whether or not the stencil buffer should be cleared
-	 */
-	public void setStencilBufferCleared(boolean clear);
-
-	/**
-	 * Set the background color to use when the color buffer is cleared for this
-	 * surface. A non-one alpha value may be treated as one if the render
-	 * surface can't hold onto alpha pixel data.
+	 * Copy color as the background color to use when the color buffer is
+	 * cleared for this surface. A non-one alpha value may be treated as one if
+	 * the render surface can't hold onto alpha pixel data.
 	 * 
 	 * @param color New clear color to use, if null use black
 	 */
@@ -222,7 +136,8 @@ public interface RenderSurface {
 	 * Set the starting depth to use when the depth buffer is cleared. The value
 	 * must be within 0 and 1, where 1 represents farthest away.
 	 * 
-	 * @param depth New depth clear value, clamped to be in [0, 1]
+	 * @param depth New depth clear value
+	 * @throws IllegalArgumentException if depth is < 0 or > 1
 	 */
 	public void setClearDepth(float depth);
 

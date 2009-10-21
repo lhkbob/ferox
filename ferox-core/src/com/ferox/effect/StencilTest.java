@@ -1,206 +1,237 @@
 package com.ferox.effect;
 
-import com.ferox.effect.Effect.Type;
-
 /**
  * <p>
- * A stencil test allows the discarding of pixels based on testing against the
- * "stencil" buffer. This can be used for a number of fancy effects, such as
- * rendering only to an oddly shaped region, do shadow volumes and things like
- * that.
+ * StencilTest contains the state necessary to describe the so-called stencil
+ * test, and how the stencil buffer of a RenderSurface is updated. When stencil
+ * testing is enabled, a pixel can be discarded based on the stencil test and
+ * the stencil buffer can be updated at three possible places in a pixel's
+ * lifetime.
  * </p>
  * <p>
- * <b>NOTE:</b> not all render surfaces will allocate a stencil buffer unless
- * requested. Without a stencil buffer, stencil tests will do nothing, so if
- * using these, make sure to enable stencil buffers when getting surfaces.
+ * The stencil test and buffer allow for complicated pixel masks, and more
+ * complex rendering techniques such as mirror reflections and shadow volumes.
+ * At its heart, the stencil buffer is just a collection of unsigned integers,
+ * of a very limited size (usually between 1, 2 and 8 bits). The stencil test
+ * just compares the stencil buffer's value against a reference to determine
+ * success.
+ * </p>
+ * <p>
+ * A stencil buffer is filled with values either by specifying a clear value for
+ * a RenderSurface, or by performing per-pixel updates to it based on three
+ * points in a pixel's lifetime:
+ * <ol>
+ * <li>When the stencil test fails</li>
+ * <li>When the depth test fails</li>
+ * <li>When the depth test passes</li>
+ * </ol>
+ * Each of these events can only happen once for a given pixel, since if the
+ * stencil test fails it will not proceed to the depth test and the other 2
+ * update points rely on the same test.
+ * </p>
+ * <p>
+ * Each of the above events have an associated StencilUpdateOperation that will
+ * be applied to the current stencil buffer pixel when the event occurs.
  * </p>
  * 
  * @author Michael Ludwig
  */
-@Type(EffectType.STENCIL)
-public class StencilTest extends AbstractEffect {
-	/** Operation to perform on the stencil buffer under certain conditions. */
-	public static enum StencilOp {
-		KEEP, ZERO, REPLACE, INCREMENT, DECREMENT, INVERT, INCREMENT_WRAP, DECREMENT_WRAP
+public class StencilTest {
+	/**
+	 * StencilUpdateOperation represents an update action that can occur as
+	 * described above. When performing an action, there are three values that
+	 * come into play for a given fragment update: the current stencil buffer's
+	 * value for the fragment, the reference value, and the maximum allowed
+	 * stencil value. The maximum value is dependent on the number of bits used
+	 * in a RenderSurface's stencil buffer.
+	 */
+	public static enum StencilUpdateOperation {
+		/** Keeps the stencil's value the same */
+		KEEP, 
+		/** Sets the stencil's value to 0 */
+		ZERO, 
+		/** Replaces the stencil's value with the reference value */
+		REPLACE, 
+		/** Add one to the stencil's current value, clamping it to the max */
+		INCREMENT,
+		/** Subtract one from the stencil's current value, clamping it to 0 */
+		DECREMENT, 
+		/** Bitwise invert the stencil's value */
+		INVERT, 
+		/** Add one to the stencil's value, wrapping around to 0 */
+		INCREMENT_WRAP,
+		/** Subtract one from the stencil's value, wrapping around to the max value */
+		DECREMENT_WRAP
 	}
 
-	private static final PixelTest DEFAULT_PIXELTEST = PixelTest.ALWAYS;
-	private static final StencilOp DEFAULT_STENCIL_OP = StencilOp.KEEP;
-	private static final int DEFAULT_REF_VALUE = 0;
-	private static final int DEFAULT_MASK = ~0;
+	private StencilUpdateOperation stencilFail;
+	private StencilUpdateOperation depthFail;
+	private StencilUpdateOperation depthPass;
 
-	private PixelTest stencilFunc;
-
-	private StencilOp stencilFail;
-	private StencilOp depthFail;
-	private StencilOp depthPass;
-
+	private Comparison test;
 	private int reference;
-	private int funcMask;
-	private int writeMask;
+	private int mask;
 
-	/** Create a stencil test with default values. */
+	/**
+	 * Create a StencilTest that uses the KEEP operation on all three update
+	 * points, has a test of ALWAYS, a reference value of 0, and mask filled
+	 * with all 1s.
+	 */
 	public StencilTest() {
-		setStencilFailOp(null);
-		setDepthFailOp(null);
-		setDepthPassOp(null);
+		setStencilFailOperation(StencilUpdateOperation.KEEP);
+		setDepthFailOperation(StencilUpdateOperation.KEEP);
+		setDepthPassOperation(StencilUpdateOperation.KEEP);
 
-		setTest(null);
-
-		setReferenceValue(DEFAULT_REF_VALUE);
-		setTestMask(DEFAULT_MASK);
-		setWriteMask(DEFAULT_MASK);
+		setTest(Comparison.ALWAYS);
+		setReference(0);
+		setFunctionMask(~0);
 	}
 
 	/**
-	 * Get the pixel test used when comparing stencil values.
+	 * Return the StencilUpdateOperation that is applied when the stencil test
+	 * fails.
 	 * 
-	 * @return PixelTest for stencil comparisons
+	 * @return The stencil fail operation
 	 */
-	public PixelTest getTest() {
-		return stencilFunc;
-	}
-
-	/**
-	 * Set the pixel test to use for stencil tests.
-	 * 
-	 * @param stencilFunc PixelTest used for stencil testing, null = ALWAYS
-	 */
-	public void setTest(PixelTest stencilFunc) {
-		if (stencilFunc == null)
-			stencilFunc = DEFAULT_PIXELTEST;
-		this.stencilFunc = stencilFunc;
-	}
-
-	/**
-	 * Get the stencil operation performed when a stencil test fails when
-	 * rendering pixels.
-	 * 
-	 * @return StencilOp used when the stencil test fails
-	 */
-	public StencilOp getStencilFailOp() {
+	public StencilUpdateOperation getStencilFailOperation() {
 		return stencilFail;
 	}
 
 	/**
-	 * Set the stencil operation performed on the stencil buffer when a stencil
-	 * test fails.
+	 * Set the StencilUpdateOpeartion that is applied when the stencil test
+	 * fails. If fail is null, then it uses the KEEP operation.
 	 * 
-	 * @param stencilFail StencilOp to use for failed stencil tests, null = KEEP
+	 * @param fail The new stencil fail operation
+	 * @return This StencilTest
 	 */
-	public void setStencilFailOp(StencilOp stencilFail) {
-		if (stencilFail == null)
-			this.stencilFail = DEFAULT_STENCIL_OP;
-		this.stencilFail = stencilFail;
+	public StencilTest setStencilFailOperation(StencilUpdateOperation fail) {
+		stencilFail = (fail != null ? fail : StencilUpdateOperation.KEEP);
+		return this;
 	}
 
 	/**
-	 * Get the stencil operation performed when a depth test fails.
+	 * Return the StencilUpdateOperation that is applied when the depth test
+	 * fails.
 	 * 
-	 * @return StencilOp used when the depth test fails
+	 * @return The depth fail operation
 	 */
-	public StencilOp getDepthFailOp() {
+	public StencilUpdateOperation getDepthFailOperation() {
 		return depthFail;
 	}
 
 	/**
-	 * Set the stencil operation performed when a depth test fails.
+	 * Set the StencilUpdateOpeartion that is applied when the depth test fails.
+	 * If fail is null, then it uses the KEEP operation.
 	 * 
-	 * @param depthFail StencilOp used for failed depth tests, null = KEEP
+	 * @param fail The new depth fail operation
+	 * @return This StencilTest
 	 */
-	public void setDepthFailOp(StencilOp depthFail) {
-		if (depthFail == null)
-			depthFail = DEFAULT_STENCIL_OP;
-		this.depthFail = depthFail;
+	public StencilTest setDepthFailOperation(StencilUpdateOperation fail) {
+		depthFail = (fail != null ? fail : StencilUpdateOperation.KEEP);
+		return this;
 	}
 
 	/**
-	 * Get the stencil operation performed when the depth test passes.
+	 * Return the StencilUpdateOperation that is applied when the depth test
+	 * succeeds.
 	 * 
-	 * @return StencilOp used if the depth test passes
+	 * @return The depth pass operation
 	 */
-	public StencilOp getDepthPassOp() {
+	public StencilUpdateOperation getDepthPassOperation() {
 		return depthPass;
 	}
 
 	/**
-	 * Set the stencil operation performed when a depth test succeeds.
+	 * Set the StencilUpdateOpeartion that is applied when the depth test
+	 * succeeds. If pass is null, then it uses the KEEP operation.
 	 * 
-	 * @param depthPass StencilOp for when depth testing passes, null = KEEP
+	 * @param pass The new depth pass operation
+	 * @return This StencilTest
 	 */
-	public void setDepthPassOp(StencilOp depthPass) {
-		if (depthPass == null)
-			depthPass = DEFAULT_STENCIL_OP;
-		this.depthPass = depthPass;
+	public StencilTest setDepthPassOperation(StencilUpdateOperation pass) {
+		depthPass = (pass != null ? pass : StencilUpdateOperation.KEEP);
+		return this;
 	}
 
 	/**
-	 * Get the reference value used in stencil tests. Default value is 0.
+	 * Return the comparison used when performing the actual stencil test. The
+	 * test performed is
 	 * 
-	 * @return Reference value used in stencil tests
+	 * <pre>
+	 * (value &amp; mask) OP (reference &amp; mask)
+	 * </pre>
+	 * 
+	 * where value is the current stencil value in the buffer, reference is the
+	 * configured reference value, and mask is the configured function mask. It
+	 * is important to realize the function mask is not the write mask for the
+	 * stencil buffer.
+	 * 
+	 * @return The stencil test
 	 */
-	public int getReferenceValue() {
+	public Comparison getTest() {
+		return test;
+	}
+
+	/**
+	 * Set the Comparison used for performing the actual stencil test. See
+	 * {@link #getTest()} for details about the how the test is performed. If
+	 * test is null, then ALWAYS is used.
+	 * 
+	 * @param test The new Comparison for the stencil test
+	 * @return This StencilTest
+	 */
+	public StencilTest setTest(Comparison test) {
+		this.test = (test != null ? test : Comparison.ALWAYS);
+		return this;
+	}
+
+	/**
+	 * Return the reference value used for comparison in the stencil test.
+	 * During comparison, this value is actually AND'd with the configured
+	 * function mask.
+	 * 
+	 * @return The reference test value
+	 */
+	public int getReference() {
 		return reference;
 	}
 
 	/**
-	 * Set the reference value used in stencil tests.
+	 * Set the reference value used during the stencil test. For each test, the
+	 * given reference value is AND'd with the current mask to get the final
+	 * comparison value. Bits outside of a RenderSurface's stencil buffer's
+	 * precision are ignored. When used, this value is interpreted as an
+	 * unsigned int using the bits set in ref.
 	 * 
-	 * @param reference Reference value used in stencil tests
+	 * @param ref The new reference value
+	 * @return This StencilTest
 	 */
-	public void setReferenceValue(int reference) {
-		this.reference = reference;
+	public StencilTest setReference(int ref) {
+		reference = ref;
+		return this;
 	}
 
 	/**
-	 * Get the stencil mask applied to both the stencil buffer value and the
-	 * reference value before applying the test function. Default is all one
-	 * bits.
+	 * Return the function mask that is applied to both the current stencil
+	 * buffer value and the configured reference value during the stencil test.
+	 * The mask is applied using the bitwise AND operation.
 	 * 
-	 * @return Bit mask applied to reference and stencil value
+	 * @return The function mask
 	 */
-	public int getTestMask() {
-		return funcMask;
+	public int getFunctionMask() {
+		return mask;
 	}
 
 	/**
-	 * Set the stencil mask applied to both the buffer and reference before
-	 * doing the test function. Because a stencil buffer may not have 32 bits,
-	 * the s least significant bits of funcMask are used when masking (s is the
-	 * number of bits in the stencil buffer).
+	 * Set the function mask to use when stencil tests are enabled. Bits outside
+	 * of a RenderSurface's stencil buffer's precision are ignored.  mask is
+	 * interpreted as a bit mask, and not an actual number.
 	 * 
-	 * @param funcMask Bit mask applied to reference and stencil value
+	 * @param mask The new bit mask
+	 * @return This StencilTest
 	 */
-	public void setTestMask(int funcMask) {
-		this.funcMask = funcMask;
-	}
-
-	/**
-	 * Get the mask applied to writes to the stencil buffer. Default is all one
-	 * bits.
-	 * 
-	 * @return Mask applied to values as they're written
-	 */
-	public int getWriteMask() {
-		return writeMask;
-	}
-
-	/**
-	 * Set the mask applied to writes to the stencil buffer. Just like the
-	 * stencil func mask, it uses the s least significant bits. For a given bit,
-	 * if it's a 1, then that bit is written, if it's a 0, then no bit is
-	 * written (leaving whatever was at that bit unchanged).
-	 * 
-	 * @param writeMask Mask applied to written stencil values
-	 */
-	public void setWriteMask(int writeMask) {
-		this.writeMask = writeMask;
-	}
-
-	@Override
-	public String toString() {
-		return "(StencilTest test: " + stencilFunc + " stencilFail: " + stencilFail 
-			 + " depthFail: " + depthFail + " depthPass: " + depthPass + " reference: " + reference 
-			 + " testMask: " + funcMask + " writeMask: " + writeMask + ")";
+	public StencilTest setFunctionMask(int mask) {
+		this.mask = mask;
+		return this;
 	}
 }

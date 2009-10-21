@@ -569,12 +569,12 @@ public class DDSTexture {
 				if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE2D)
 					throw new IOException("DX10 header and surface caps are inconsistent");
 				if (header.headerDX10.arraySize > 1)
-					throw new IOException("Texture arrays aren't supported");
+					throw new IOException("TextureEnvironment arrays aren't supported");
 			} else if (target == TextureTarget.T_3D) {
 				if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE3D)
 					throw new IOException("DX10 header and surface caps are inconsistent");
 				if (header.headerDX10.arraySize > 1)
-					throw new IOException("Texture arrays aren't supported");
+					throw new IOException("TextureEnvironment arrays aren't supported");
 			} else if (target == TextureTarget.T_CUBEMAP)
 				if (header.headerDX10.resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
 					// nvidia sets the dx10 header to be a 2d tex, with

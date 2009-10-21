@@ -52,6 +52,17 @@ public class Color4f {
 	}
 
 	/**
+	 * Sets this color's components to be equal to other's.
+	 * 
+	 * @param other The Color4f to clone
+	 * @return This Color4f
+	 * @throws NullPointerException if other is null
+	 */
+	public Color4f set(Color4f other) {
+		return set(other.red, other.green, other.blue, other.alpha);
+	}
+
+	/**
 	 * Sets this color's components to be the given rgb values, and an alpha of
 	 * 1.
 	 * 
@@ -59,8 +70,8 @@ public class Color4f {
 	 * @param green Green color value, clamped in [0, 1]
 	 * @param blue Blue color value, clamped in [0, 1]
 	 */
-	public void set(float red, float green, float blue) {
-		this.set(red, green, blue, 1f);
+	public Color4f set(float red, float green, float blue) {
+		return set(red, green, blue, 1f);
 	}
 
 	/**
@@ -70,48 +81,54 @@ public class Color4f {
 	 * @param green Green color value, clamped in [0, 1]
 	 * @param blue Blue color value, clamped in [0, 1]
 	 * @param alpha Alpha color value, clamped in [0, 1]
+	 * @return This Color4f
 	 */
-	public void set(float red, float green, float blue, float alpha) {
-		setRed(red);
-		setGreen(green);
-		setBlue(blue);
-		setAlpha(alpha);
+	public Color4f set(float red, float green, float blue, float alpha) {
+		return setRed(red).setGreen(green).setBlue(blue).setAlpha(alpha);
 	}
 
 	/**
 	 * Set the red component, clamped to [0, 1].
 	 * 
 	 * @param red Red color value, clamped in [0, 1]
+	 * @return This Color4f
 	 */
-	public void setRed(float red) {
+	public Color4f setRed(float red) {
 		this.red = Math.max(0f, Math.min(1f, red));
+		return this;
 	}
 
 	/**
 	 * Set the green component, clamped to [0, 1].
 	 * 
 	 * @param green Green color value, clamped in [0, 1]
+	 * @return This Color4f
 	 */
-	public void setGreen(float green) {
+	public Color4f setGreen(float green) {
 		this.green = Math.max(0f, Math.min(1f, green));
+		return this;
 	}
 
 	/**
 	 * Set the blue component, clamped to [0, 1].
 	 * 
 	 * @param blue Blue color value, clamped in [0, 1]
+	 * @return This Color4f
 	 */
-	public void setBlue(float blue) {
+	public Color4f setBlue(float blue) {
 		this.blue = Math.max(0f, Math.min(1f, blue));
+		return this;
 	}
 
 	/**
 	 * Set the alpha component, clamped to [0, 1].
 	 * 
 	 * @param alpha Alpha color value, clamped in [0, 1]
+	 * @return This Color4f
 	 */
-	public void setAlpha(float alpha) {
+	public Color4f setAlpha(float alpha) {
 		this.alpha = Math.max(0f, Math.min(1f, alpha));
+		return this;
 	}
 
 	/**

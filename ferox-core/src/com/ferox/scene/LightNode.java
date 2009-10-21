@@ -84,7 +84,7 @@ public class LightNode<T extends Light> extends AbstractSceneElement {
 	/**
 	 * @return The Light effect that represents this LightNode.
 	 */
-	public T getLight() {
+	public final T getLight() {
 		return light;
 	}
 

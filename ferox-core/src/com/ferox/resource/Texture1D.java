@@ -1,6 +1,6 @@
 package com.ferox.resource;
 
-import com.ferox.effect.Effect.PixelTest;
+import com.ferox.effect.Comparison;
 import com.ferox.resource.BufferData.DataType;
 
 /**
@@ -157,7 +157,7 @@ public class Texture1D extends TextureImage {
 	 */
 	public Texture1D(BufferData[] data, int width, TextureFormat format, 
 				     DataType type, Filter filter, TextureWrap wrapAll, 
-				     DepthMode depthMode, PixelTest depthTest) {
+				     DepthMode depthMode, Comparison depthTest) {
 		super(format, type, filter, wrapAll, depthMode, depthTest);
 		setData(data, width);
 	}

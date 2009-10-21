@@ -1,6 +1,6 @@
 package com.ferox.resource;
 
-import com.ferox.effect.Effect.PixelTest;
+import com.ferox.effect.Comparison;
 import com.ferox.resource.BufferData.DataType;
 
 /**
@@ -147,7 +147,7 @@ public class TextureRectangle extends TextureImage {
 	 */
 	public TextureRectangle(BufferData data, int width, int height, 
 							TextureFormat format, DataType type, Filter filter, 
-							TextureWrap wrapAll, DepthMode depthMode, PixelTest depthTest) {
+							TextureWrap wrapAll, DepthMode depthMode, Comparison depthTest) {
 		super(format, type, filter, wrapAll, depthMode, depthTest);
 		setData(data, width, height);
 	}

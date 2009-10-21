@@ -5,7 +5,6 @@ import java.util.Map.Entry;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.bounds.BoundVolume;
-import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.View;
@@ -37,13 +36,13 @@ public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedF
 		public boolean getShadowsEnabled() { return shadows; }
 	}
 	
-	private static final int SM_ALL = SceneCompositor.SM_G_CASCADE | SceneCompositor.SM_G_SIMPLE | SceneCompositor.SM_G_PERSPECTIVE;
-	
 	private SceneQueryCache sceneCache;
 	private AppearanceCache<FixedFunctionAppearance> appearanceCache;
 
 	private int shadowMapTextureUnit;
 	private RenderMode renderMode;
+	
+	private 
 	
 	public FixedFunctionSceneCompositor() {
 		super();
@@ -69,6 +68,14 @@ public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedF
 		return shadowMapTextureUnit;
 	}
 	
+	public boolean getShadowsEnabled() {
+		
+	}
+	
+	public void setShadowsEnabled(boolean s) {
+		
+	}
+	
 	@Override
 	public void compile(Appearance a) {
 		validateState();
@@ -92,8 +99,8 @@ public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedF
 	}
 
 	@Override
-	public void initialize(Scene scene, GeometryProfile geomProfile, int capBits) {
-		super.initialize(scene, geomProfile, capBits);
+	public void initialize(Scene scene, GeometryProfile geomProfile) {
+		super.initialize(scene, geomProfile);
 		
 		RenderCapabilities caps = getFramework().getCapabilities();
 		
@@ -156,8 +163,11 @@ public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedF
 	}
 
 	@Override
-	public FrameStatistics render(FrameStatistics stats) {
+	public void queue() {
 		validateState();
+		
+		appearanceCache.reset();
+		sceneCache.reset();
 		
 		Entry<RenderSurface, FixedFunctionAttachedSurface> e;
 		Iterator<Entry<RenderSurface, FixedFunctionAttachedSurface>> it = surfaces.entrySet().iterator();
@@ -170,13 +180,6 @@ public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedF
 				// the attached surface will handle everything
 				e.getValue().queue();
 			}
-		}
-		
-		try {
-			return getFramework().renderFrame(stats);
-		} finally {
-			appearanceCache.reset();
-			sceneCache.reset();
 		}
 	}
 

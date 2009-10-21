@@ -1,151 +1,128 @@
 package com.ferox.scene.fx;
 
-import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.View;
 import com.ferox.scene.Scene;
 
 public interface SceneCompositor {
-	public static final int SM_G_SIMPLE = 0x10;
-	public static final int SM_G_PERSPECTIVE = 0x20;
-	public static final int SM_G_CASCADE = 0x40;
-	
-	public static final int SM_L_PCF = 0x100;
-	public static final int SM_L_VARIANCE = 0x200;
-	public static final int SM_L_PCSS = 0x400;
-	
-	public static final int FS_BLOOM = 0x1000;
-	public static final int FS_HDR = 0x2000;
-	public static final int FS_MOTION_BLUR = 0x4000;
-	public static final int FS_DEPTH_OF_FIELD = 0x8000;
-	public static final int FS_AMBIENT_OCCLUSION = 0x10000;
-	
-	// FIXME: document this:
-	// we want clear/compile to use weak references, so that when an Appearance
-	// should be removed, it becomes un-compiled
-	// we want to fail when attaching destroyed surfaces
-	// initialization must require a surface
-	// what to do when rendering, and we realize that a surface is destroyed??
-	// - we could fail, or detach it
-	// - i think we should detach it, but we'll have to make sure that doesn't cause
-	// - problems with more advanced compositors which use multiple surfaces
-	// what to do when framework is destroyed?
-	// - things will throw an exception, we could try to catch it and then rethrow it
-	// - i think we should just not catch anything and let it fail
-	
-	// initialization must check attached surface's to make sure they're compatible
-	// with the requested features, if not -> throw an exception
-
-	// FIXME: - this should maintain order for when the surfaces get queued
+	// attach a surface to this SC, can happen any time
+	// if view == null, same as detach
+	// else overwrites any old one
 	public void attach(RenderSurface surface, View view);
-
-	/**
-	 * <p>
-	 * Initialize the SceneCompositor for use with the given Scene. The
-	 * GeometryProfile notifies what geometry attributes are being used by
-	 * explicitly by any geometries or the Components in Appearances for the
-	 * Scene. Any unused attribute in the GeometryProfile can be used by the
-	 * SceneCompositor in an implementation dependent to achieve the correct
-	 * results for an Appearance. If geomProfile is null, it is assumed no
-	 * attributes are explicitly used.
-	 * </p>
-	 * <p>
-	 * Upon a successful return from this method, the SceneCompositor will be
-	 * ready for use. The isInitialized() method must return true and it will be
-	 * valid to call compile(), clear() and render(). It is highly likely that
-	 * an implementation will have to add RenderPasses to the attached
-	 * RenderSurfaces. It is guaranteed that any RenderPasses already manually
-	 * added to the RenderSurface will be executed before the compositor's
-	 * passes. Any RenderPasses after initialization will be executed after the
-	 * compositor's passes.
-	 * </p>
-	 * <p>
-	 * If, at the time of initialization, there are unresolvable problems with
-	 * the attached RenderSurfaces, then an exception should be thrown. These
-	 * problems should include:
-	 * <ul>
-	 * <li>No attached RenderSurfaces.</li>
-	 * <li>Attached RenderSurfaces that are from different Frameworks.</li>
-	 * <li>RenderSurfaces that have been destroyed.</li>
-	 * </ul>
-	 * With the capBits parameter, it is possible to request a set of features
-	 * and visual effects (such as shadow mapping) to be used when rendering the
-	 * scene. These capabilities are generally global effects that modify
-	 * everything rendered in the scene.A SceneCompositor should strive to
-	 * respect the requested capabilities bits, but it is better to ignore
-	 * options that are unsupported instead of failing completely.
-	 * </p>
-	 * <p>
-	 * A SceneCompositor can only be initialized once.
-	 * </p>
-	 * 
-	 * @param scene The Scene that will be rendered by this SceneCompositor
-	 * @param geomProfile The GeometryProfile describing the configuration of a
-	 *            scene's geometry
-	 * @param capBits An or'd set of bits that request features and visual
-	 *            effects for a SceneCompositor to use when rendering
-	 * @throws NullPointerException if scene is null
-	 * @throws IllegalStateException if the attached RenderSurfaces are somehow
-	 *             invalid, if it's already been initialized, or if it's been
-	 *             destroyed
-	 */
-	public void initialize(Scene scene, GeometryProfile geomProfile, int capBits);
 	
-	/**
-	 * Return true if and only if this SceneCompositor has been successfully
-	 * initialized. This should still return false after the compositor has been
-	 * destroyed.
-	 * 
-	 * @return True if the compositor is initialized
-	 */
-	public boolean isInitialized();
+	public void detach(RenderSurface surface);
 	
-	/**
-	 * 
-	 * @param a
-	 */
+	public boolean isAttached(RenderSurface surface);
+	
+	// cache a compiled version of a for later use, will not change
+	// FIXME: how to resolve vector changes, etc. that are fast w/o changing struct of appearance
 	public void compile(Appearance a);
 	
+	// cleans up compiled version, must be explicit
 	public void clean(Appearance a);
-	
-	public FrameStatistics render(FrameStatistics stats);
-	
-	public Framework getFramework(); // return null until init
-	
-	public Scene getScene(); // return null until initialization
+
+	/**
+	 * Queue all currently attached RenderSurfaces, in the order that they were
+	 * attached. This has the same effect as queue(s) for each RenderSurface
+	 * that was passed to attach(). Any attached RenderSurface that has been
+	 * destroyed will be implicitly detached.
+	 */
+	public void queueAll();
 
 	/**
 	 * <p>
-	 * Destroy and cleanup internal implementation details of this
-	 * SceneCompositor. These might include Resource instances (such as
-	 * generated GlslPrograms) or additional TextureSurfaces used for special
-	 * effects. All RenderPasses that were added to the attached RenderSurfaces
-	 * should be removed.
+	 * Queue up the specified attached RenderSurface so that the next time this
+	 * SceneCompositor's Framework is rendered, all necessary RenderPasses will
+	 * be rendered to draw this SceneCompositor's Scene into s. The scene will
+	 * be rendered from the View that was specified when s was originally
+	 * attached.
 	 * </p>
 	 * <p>
-	 * Once a SceneCompositor has been destroyed, its isDestroyed() must return
-	 * true and isInitialized() should return false again. After destruction a
-	 * SceneCompositor cannot be used anymore. It is strongly suggested that all
-	 * SceneCompositors are destroyed before they're discarded for garbage
-	 * collection.
+	 * In addition to queuing RenderPass's specific to the surface s,
+	 * implementations may also queue passes associated with internal
+	 * RenderSurfaces needed to achieve special effects for the final render.
+	 * One such example of this is filling a shadow map.
 	 * </p>
 	 * <p>
-	 * Invoking destroy() will not destroy any of the attached RenderSurfaces or
-	 * their associated Framework.
+	 * If s has been destroyed, it will be implicitly detached from this
+	 * SceneCompositor and this queue will be ignored. If s is null or not
+	 * attached, this queue request is ignored.
+	 * </p>
+	 */
+	public void queue(RenderSurface s);
+
+	/**
+	 * <p>
+	 * Return the Framework that is used by the SceneCompositor. Any attached
+	 * RenderSurfaces must have been created by this Framework.
+	 * </p>
+	 * <p>
+	 * This must return null if the SceneCompositor is destroyed, otherwise it
+	 * must be non-null. It is recommended that SceneCompositor implementations
+	 * take a Framework as a constructor argument.
 	 * </p>
 	 * 
-	 * @throws IllegalStateException if this SceneCompositor hasn't been
-	 *             initialized yet, or if it's already been destroyed
+	 * @return The Framework used by this SceneCompositor, null if destroyed
+	 */
+	public Framework getFramework();
+
+	/**
+	 * <p>
+	 * Return the Scene instance that will be used as a source for content by
+	 * the SceneCompositor implementation when rendering. Each SceneCompositor
+	 * will render the Scene in a potentially unique manner, and may not be able
+	 * to be fully faithful to the scene's description.
+	 * </p>
+	 * <p>
+	 * Like getFramework(), this should only return null when the
+	 * SceneCompositor is destroyed. The Scene should also be part a constructor
+	 * argument. Implementations may allow the scene to be changed at a later
+	 * point.
+	 * </p>
+	 * 
+	 * @return The Scene that's to be rendered, null if destroyed
+	 */
+	public Scene getScene();
+
+	/**
+	 * <p>
+	 * Destroy the SceneCompositor so that it is no longer usable and no longer
+	 * keeps a hold on its internal resources. Destroying a SceneCompositor will
+	 * detach any attached RenderSurfaces, clean all currently compiled
+	 * Appearances and clean-up any other resources used internally by the
+	 * SceneCompositor.
+	 * </p>
+	 * <p>
+	 * Successfully destroying the SceneCompositor will likely require the
+	 * Framework to be usable, so the Framework should not be destroyed until
+	 * after the SceneCompositor has been. After destruction, many methods will
+	 * throw exceptions or change their return values.
+	 * </p>
+	 * 
+	 * @see #isDestroyed()
 	 */
 	public void destroy();
 
 	/**
-	 * Return true if this SceneCompositor has been destroyed via a call to
-	 * destroy(). If this returns true, then isInitialized() returns false and
-	 * it's invalid to use this SceneCompositor further.
+	 * Return true if destroy() has been called, at which point the
+	 * SceneCompositor becomes unusable. If isDestroyed() returns true, then
+	 * calling the following methods will throw exceptions:
+	 * <ul>
+	 * <li>{@link #attach(RenderSurface, View)}</li>
+	 * <li>{@link #clean(Appearance)}</li>
+	 * <li>{@link #compile(Appearance)}</li>
+	 * <li>{@link #detach(RenderSurface)}</li>
+	 * <li>{@link #destroy()}</li>
+	 * <li>{@link #queue(RenderSurface)}</li>
+	 * <li>{@link #queueAll()}</li>
+	 * </ul>
+	 * The remaining methods may return different values if the SceneCompositor
+	 * is destroyed.
 	 * 
-	 * @return True if the compositor is destroyed
+	 * @see #destroy()
+	 * @return True if the SceneCompositor is destroyed and unusable, false
+	 *         otherwise
 	 */
 	public boolean isDestroyed();
 }

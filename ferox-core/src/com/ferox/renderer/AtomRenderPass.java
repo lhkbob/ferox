@@ -21,6 +21,7 @@ public class AtomRenderPass implements RenderPass {
 		setView(view);
 	}
 	
+	@Override
 	public View getView() {
 		return view;
 	}
@@ -38,15 +39,9 @@ public class AtomRenderPass implements RenderPass {
 		if (atom != null)
 			atoms.remove(atom);
 	}
-	
-	@Override
-	public View preparePass() {
-		view.updateView();
-		return view;
-	}
 
 	@Override
-	public void render(Renderer renderer, View view) {
+	public void render(Renderer renderer) {
 		int ct = atoms.size();
 		for (int i = 0; i < ct; i++) {
 			// render each atom

@@ -54,31 +54,22 @@ public class FixedFunctionAttachedSurface extends AttachedRenderSurface {
 	}
 	
 	public void initialize(RenderMode renderMode, int shadowMapUnit) {
-		RenderSurface s = getSurface();
 		basePass = new BaseRenderPass(this);
-		s.addRenderPass(basePass);
 		
 		if (renderMode.getShadowsEnabled()) {
 			// requires shadow map configuration
 			Framework f = compositor.getFramework();
 			shadowMap = f.createTextureSurface(new DisplayOptions(PixelFormat.NONE, DepthFormat.DEPTH_24BIT), 
 											   TextureTarget.T_2D, 512, 512, 1, 0, 0, false);
-			shadowMap.setColorBufferCleared(false);
 			
 			shadowMapPass = new ShadowMapRenderPass(this);
-			shadowMap.addRenderPass(shadowMapPass);
 			
 			lightPass = new LightRenderPass(this);
-			s.addRenderPass(lightPass);
 		}
 	}
 	
 	public void destroy() {
-		getSurface().removeRenderPass(basePass);
-		getSurface().removeRenderPass(lightPass); // doesn't care if it's null
-		
 		if (shadowMap != null) {
-			shadowMap.removeRenderPass(shadowMapPass);
 			compositor.getFramework().destroy(shadowMap);
 			shadowMap = null;
 		}
@@ -99,8 +90,9 @@ public class FixedFunctionAttachedSurface extends AttachedRenderSurface {
 		
 		Framework f = compositor.getFramework();
 		if (shadowMap != null)
-			f.queueRender(shadowMap);
-		f.queueRender(getSurface());
+			f.queue(shadowMap, shadowMapPass, false, true, false);
+		f.queue(getSurface(), basePass);
+		f.queue(getSurface(), lightPass);
 	}
 	
 	private DirectionLight chooseLight(Bag<SceneElement> lights, View view) {

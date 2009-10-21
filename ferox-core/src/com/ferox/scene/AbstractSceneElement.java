@@ -33,6 +33,7 @@ public abstract class AbstractSceneElement implements SceneElement {
 	public AbstractSceneElement() {
 		localTransform = new Transform();
 		worldTransform = new Transform();
+		dirty = true;
 	}
 	
 	/**

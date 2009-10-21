@@ -17,7 +17,7 @@ import com.ferox.util.UnitList.Unit;
  * <ul>
  * <li>Vertex - float - 3D position - 3</li>
  * <li>Normal - float - Normal vector at a vertex - 3</li>
- * <li>Texture Coordinate - float - Variable-sized vector to access textures -
+ * <li>TextureEnvironment Coordinate - float - Variable-sized vector to access textures -
  * 1, 2, or 3</li>
  * <li>Vertex Attribute - float - Generic, variable-sized vector for shader
  * programs - 1, 2, 3 or 4</li>
@@ -297,7 +297,7 @@ public class IndexedArrayGeometry extends AbstractGeometry {
 	 */
 	public void setTextureCoordinates(int unit, VectorBuffer data) {
 		if (data != null && data.elementSize == 4)
-			throw new IllegalArgumentException("Texture coordinates cannot be 4-element vectors");
+			throw new IllegalArgumentException("TextureEnvironment coordinates cannot be 4-element vectors");
 		texCoords.setItem(unit, data);
 	}
 

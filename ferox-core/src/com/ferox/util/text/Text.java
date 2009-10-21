@@ -21,7 +21,7 @@ import com.ferox.resource.IndexedArrayGeometry;
  * <p>
  * Text requires that a specific type of Appearance be used:
  * <ol>
- * <li>Has a Texture or MultiTexture with the CharacterSet's Texture2D on the
+ * <li>Has a TextureEnvironment or MultiTexture with the CharacterSet's Texture2D on the
  * 0th texture unit.</li>
  * <li>It must use a BlendMode or AlphaTest to properly discard the transparent
  * pixels.</li>

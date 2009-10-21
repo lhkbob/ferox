@@ -208,8 +208,9 @@ public interface ContextManager {
 	 * @param resourceAction A Runnable that must be executed on a context
 	 *            before any surfaces are rendered
 	 */
-	public void runOnGraphicsThread(List<RenderSurface> queuedSurfaces, 
-									Runnable resourceAction);
+	public void runOnGraphicsThread(Action actions);
+	
+	public void clear(RenderSurface surface, boolean clearColor, boolean clearDepth, boolean clearStencil);
 
 	/**
 	 * @return True if the calling thread can have low-level graphics operations

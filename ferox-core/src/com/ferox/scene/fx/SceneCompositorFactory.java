@@ -15,6 +15,21 @@ public class SceneCompositorFactory {
 	public static final int SC_FORWARD = 0x2;
 	public static final int SC_DEFERRED = 0x4;
 	
+	// FIXME: improve SM bit options
+	public static final int SM_G_SIMPLE = 0x10;
+	public static final int SM_G_PERSPECTIVE = 0x20;
+	public static final int SM_G_CASCADE = 0x40;
+	
+	public static final int SM_L_PCF = 0x100;
+	public static final int SM_L_VARIANCE = 0x200;
+	public static final int SM_L_PCSS = 0x400;
+	
+	public static final int FS_BLOOM = 0x1000;
+	public static final int FS_HDR = 0x2000;
+	public static final int FS_MOTION_BLUR = 0x4000;
+	public static final int FS_DEPTH_OF_FIELD = 0x8000;
+	public static final int FS_AMBIENT_OCCLUSION = 0x10000;
+	
 	public static enum CommonGeometryProfile {
 		BLANK, PRIMARY_TEX0, PRIMARY_TEX0_DECAL_TEX1
 	}

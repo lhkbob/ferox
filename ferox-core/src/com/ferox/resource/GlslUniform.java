@@ -37,7 +37,7 @@ public class GlslUniform implements Resource {
 	 * possibilities.
 	 * </p>
 	 * <p>
-	 * SAMPLER_x refer to Texture accessors. The values for sampler variables
+	 * SAMPLER_x refer to TextureEnvironment accessors. The values for sampler variables
 	 * are the texture units with which to access a texture from. Textures bound
 	 * to these units should be colored textures.
 	 * </p>

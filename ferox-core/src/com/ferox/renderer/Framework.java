@@ -1,5 +1,6 @@
 package com.ferox.renderer;
 
+import com.ferox.math.Color4f;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
@@ -363,42 +364,108 @@ public interface Framework {
 
 	/**
 	 * <p>
-	 * Queue the given RenderSurface to be rendered during the next call to
-	 * flushRenderer. RenderSurfaces are rendered in the order that they were
-	 * queued, so it is the applications responsibility for queuing them in a
-	 * reliable and efficient order.
+	 * Queue the given RenderSurface so that the given RenderPass will be
+	 * rendered during the next call to renderFrame(). RenderSurfaces and their
+	 * associated passes are rendered in the order that they were queued.
+	 * Therefore, it's possible to render one pass into surface A, then another
+	 * pass into surface B, and then render something else back into A.
 	 * </p>
 	 * <p>
-	 * One likely trend to stick to is to have all of the TextureSurfaces
-	 * grouped at the beginning, with the OnscreenSurfaces coming later. A
-	 * low-level texture surface may be implemented as an fbo, allowing the
-	 * Framework to avoid many low-level context switches. In the worst case,
-	 * each TextureSurface will require a context switch, just like each
-	 * OnscreenSurface.
+	 * If the RenderSurface is queued for the 1st time this frame, the surface
+	 * will have its logical buffers cleared to its designated colors. If the
+	 * RenderSurface is being re-queued with another pass (etc.), then the
+	 * logical buffers not be cleared again during the frame. The buffer
+	 * clearing will not occur until renderFrame() is called, however.
 	 * </p>
 	 * <p>
-	 * If a surface is queued multiple times, been destroyed, or null then it
-	 * will be ignored.
+	 * If the given surface or pass is null, then the queue has no effect.
+	 * Similarly destroyed surfaces from this Framework are ignored; this
+	 * applies to a destroyed surface at queue time and render time.
+	 * </p>
+	 * <p>
+	 * Implementations are strongly encouraged to batch sequential groups of
+	 * RenderPasses that apply to the same RenderSurface to avoid unnecessary
+	 * context switching.
 	 * </p>
 	 * 
-	 * @param surface The render surface that should be queued for rendering
+	 * @param surface The RenderSurface that the given RenderPass will be
+	 *            rendered to
+	 * @param pass The RenderPass that will be rendered
 	 * @return This Framework
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             already been destroyed
+	 * @throws RenderStateException if the Framework is currently rendering or
+	 *             if it's already been destroyed
 	 */
-	public Framework queueRender(RenderSurface surface);
+	public Framework queue(RenderSurface surface, RenderPass pass);
 
+	/**
+	 * <p>
+	 * Perform the same operations as queue(RenderSurface, RenderPass) except
+	 * this method allows you to manually override the buffer clear policy for
+	 * each of the surface's logical buffers. This override is respected
+	 * regardless of whether or not the surface is being queued for the first
+	 * time or a subsequent time.
+	 * </p>
+	 * <p>
+	 * If the RenderSurface does not have a logical buffer that matches one of
+	 * the clear options, that clear option is ignored.
+	 * </p>
+	 * 
+	 * @param surface The RenderSurface that the given RenderPass will be
+	 *            rendered to
+	 * @param pass The RenderPass that will be rendered
+	 * @param clearColor True if the color buffer should be cleared
+	 * @param clearDepth True if the depth buffer should be cleared
+	 * @param clearStencil True if the stencil buffer should be cleared
+	 * @return This Framework
+	 * @throws IllegalArgumentException if surface wasn't created by this
+	 *             Framework
+	 * @throws RenderStateException if the Framework is currently rendering or
+	 *             if it's already been destroyed
+	 */
+	public Framework queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil);
+
+	/**
+	 * <p>
+	 * Perform the same operations as queue(RenderSurface, RenderPass) except
+	 * this method allows you to manually override the buffer clear policy for
+	 * each of the surface's logical buffers. This override is respected
+	 * regardless of whether or not the surface is being queued for the first
+	 * time or a subsequent time.  In addition it also overrides the actual clear
+	 * values for each of the buffers.
+	 * </p>
+	 * <p>
+	 * If the RenderSurface does not have a logical buffer that matches one of
+	 * the clear options, that clear option is ignored.
+	 * </p>
+	 * 
+	 * @param surface The RenderSurface that the given RenderPass will be
+	 *            rendered to
+	 * @param pass The RenderPass that will be rendered
+	 * @param clearColor True if the color buffer should be cleared
+	 * @param clearDepth True if the depth buffer should be cleared
+	 * @param clearStencil True if the stencil buffer should be cleared
+	 * @param color The color that surface is cleared to, if null it clears to black
+	 * @param depth The depth value that surface is cleared to, must be in [0, 1]
+	 * @param stencil The stencil value that the surface is cleared to
+	 * @return This Framework
+	 * @throws IllegalArgumentException if surface wasn't created by this
+	 *             Framework, or if depth is outside of [0, 1]
+	 * @throws RenderStateException if the Framework is currently rendering or
+	 *             if it's already been destroyed
+	 */
+	public Framework queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
+	
 	/**
 	 * <p>
 	 * Render a single frame. The Framework must invoke manage() on its default
 	 * ResourceManager and then any custom managers. After the managers are
-	 * processed, the Framework should, for each queued surface, clear the
-	 * surface based on its settings and render each attached render pass.
-	 * Queued surfaces that have been destroyed should be ignored. When
-	 * processing each render pass, an internal implementation of Renderer
-	 * should be used to complete the renderings.
+	 * processed, the Framework should, for each queued surface x pass, clear
+	 * the surface based on the clear parameters when the surface was queued and
+	 * render the pass. Queued surfaces that have been destroyed should be
+	 * ignored. When processing each render pass, an internal implementation of
+	 * Renderer should be used to complete the renderings.
 	 * </p>
 	 * <p>
 	 * The resource managers must be processed even if there are no queued
@@ -421,8 +488,8 @@ public interface Framework {
 	 *         was null).
 	 * @throws RenderException wrapping any exception that occurs while
 	 *             rendering
-	 * @throws RenderStateException if the Framework is rendering or if it's already
-	 *             been destroyed
+	 * @throws RenderStateException if the Framework is rendering or if it's
+	 *             already been destroyed
 	 */
 	public FrameStatistics renderFrame(FrameStatistics store);
 

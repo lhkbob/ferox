@@ -2,9 +2,9 @@ package com.ferox.scene.fx.impl.fixed;
 
 import com.ferox.effect.Material;
 import com.ferox.effect.MultiTexture;
-import com.ferox.effect.Texture;
-import com.ferox.effect.Texture.EnvMode;
-import com.ferox.effect.Texture.TexCoordGen;
+import com.ferox.effect.TextureEnvironment;
+import com.ferox.effect.TextureEnvironment.EnvironmentMode;
+import com.ferox.effect.TextureEnvironment.TexCoordGeneration;
 import com.ferox.scene.fx.Appearance;
 import com.ferox.scene.fx.LightingModel;
 import com.ferox.scene.fx.PhongLightingModel;
@@ -61,26 +61,26 @@ public class FixedFunctionAppearance {
 			TextureUnit newDecal = mat.getDecalTexture();
 			
 			// try to re-use texture objects
-			Texture primary = (newPrimary == null ? null : textures.getTexture(newPrimary.getUnit()));
-			Texture decal = (newDecal == null ? null : textures.getTexture(newDecal.getUnit()));
+			TextureEnvironment primary = (newPrimary == null ? null : textures.getTexture(newPrimary.getUnit()));
+			TextureEnvironment decal = (newDecal == null ? null : textures.getTexture(newDecal.getUnit()));
 			
 			// clear out any old ones
 			textures.clearTextures();
 			
 			if (newPrimary != null) {
-				primary = (primary == null ? new Texture() : primary);
+				primary = (primary == null ? new TextureEnvironment() : primary);
 				primary.setTexture(newPrimary.getTexture());
-				primary.setTextureEnvMode(EnvMode.MODULATE);
-				primary.setTexCoordGenSTR(TexCoordGen.NONE);
+				primary.setTextureEnvMode(EnvironmentMode.MODULATE);
+				primary.setTexCoordGenSTR(TexCoordGeneration.NONE);
 				
 				textures.setTexture(newPrimary.getUnit(), primary);
 			}
 			
 			if (newDecal != null && renderMode.getMinimumTextures() > 1) {
-				decal = (decal == null ? new Texture() : decal);
+				decal = (decal == null ? new TextureEnvironment() : decal);
 				decal.setTexture(newDecal.getTexture());
-				decal.setTextureEnvMode(EnvMode.DECAL);
-				decal.setTexCoordGenSTR(TexCoordGen.NONE);
+				decal.setTextureEnvMode(EnvironmentMode.DECAL);
+				decal.setTexCoordGenSTR(TexCoordGeneration.NONE);
 				
 				textures.setTexture(newDecal.getUnit(), decal);
 			}

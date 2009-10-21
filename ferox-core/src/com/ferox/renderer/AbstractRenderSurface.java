@@ -1,9 +1,5 @@
 package com.ferox.renderer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.ferox.math.Color4f;
 
 /**
@@ -15,28 +11,14 @@ import com.ferox.math.Color4f;
 public abstract class AbstractRenderSurface implements RenderSurface {
 	private static final Color4f DEFAULT_CLEAR_COLOR = new Color4f();
 
-	private Color4f clearColor;
+	private final Color4f clearColor;
 	private float clearDepth;
 	private int clearStencil;
 
-	private boolean enableClearColor;
-	private boolean enableClearDepth;
-	private boolean enableClearStencil;
-
-	private final List<RenderPass> passes;
-	private final List<RenderPass> readOnlyPasses;
-
 	public AbstractRenderSurface() {
-		passes = new ArrayList<RenderPass>();
-		readOnlyPasses = Collections.unmodifiableList(passes);
-
-		setClearColor(null);
+		clearColor = new Color4f(DEFAULT_CLEAR_COLOR);
 		setClearDepth(1f);
 		setClearStencil(0);
-
-		setColorBufferCleared(true);
-		setDepthBufferCleared(true);
-		setStencilBufferCleared(true);
 	}
 
 	@Override
@@ -48,7 +30,7 @@ public abstract class AbstractRenderSurface implements RenderSurface {
 	public void setClearColor(Color4f color) {
 		if (color == null)
 			color = new Color4f(DEFAULT_CLEAR_COLOR);
-		clearColor = color;
+		clearColor.set(color);
 	}
 
 	@Override
@@ -58,7 +40,9 @@ public abstract class AbstractRenderSurface implements RenderSurface {
 
 	@Override
 	public void setClearDepth(float depth) {
-		clearDepth = Math.max(0, Math.min(depth, 1));
+		if (depth < 0f || depth > 1f)
+			throw new IllegalArgumentException("Invalid depth clear value: " + depth);
+		clearDepth = depth;
 	}
 
 	@Override
@@ -69,51 +53,5 @@ public abstract class AbstractRenderSurface implements RenderSurface {
 	@Override
 	public void setClearStencil(int stencil) {
 		clearStencil = stencil;
-	}
-
-	@Override
-	public boolean isColorBufferCleared() {
-		return enableClearColor;
-	}
-
-	@Override
-	public void setColorBufferCleared(boolean enable) {
-		enableClearColor = enable;
-	}
-
-	@Override
-	public boolean isDepthBufferCleared() {
-		return enableClearDepth;
-	}
-
-	@Override
-	public void setDepthBufferCleared(boolean enable) {
-		enableClearDepth = enable;
-	}
-
-	@Override
-	public boolean isStencilBufferCleared() {
-		return enableClearStencil;
-	}
-
-	@Override
-	public void setStencilBufferCleared(boolean enable) {
-		enableClearStencil = enable;
-	}
-
-	@Override
-	public void addRenderPass(RenderPass pass) {
-		if (!passes.contains(pass))
-			passes.add(pass);
-	}
-
-	@Override
-	public List<RenderPass> getAllRenderPasses() {
-		return readOnlyPasses;
-	}
-
-	@Override
-	public void removeRenderPass(RenderPass pass) {
-		passes.remove(pass);
 	}
 }

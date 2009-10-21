@@ -1,111 +1,51 @@
 package com.ferox.effect;
 
-import com.ferox.effect.Effect.Type;
 import com.ferox.math.Color4f;
 
 /**
- * <p>
- * A material represents the surface color properties of an appearance. The
- * default material has an ambient of <.2, .2, .2, 1> (dark gray), a diffuse of
- * <.8, .8, .8, 1> (light gray) and a white specular, with low shininess.
- * </p>
- * <p>
- * Whenever colors are used, they are stored by reference, so any changes to the
- * color object will be immediately reflected in the scene and in any material
- * object that uses that color object.
- * </p>
- * <p>
- * Materials support alpha values, but it is likely that for values < 1, you
- * will only get correct results if it is combined with a blend mode state.
- * </p>
- * <p>
- * A material affects both the front side and back side of something rendered
- * equally. Different surface materials may be added later on.
- * </p>
+ * Material contains the color and shininess values representative of a
+ * surface's coloring and the way lights interact with it. Each color used in a
+ * Material represents how much of each component of a light type is reflected
+ * off of its surface. For example, if a Material has a diffuse color of red
+ * (e.g. <1, 0, 0>), then only the red component of diffuse light is reflected
+ * from it. A green or blue diffuse light will cause the surface to appear
+ * black.
  * 
  * @author Michael Ludwig
  */
-@Type(EffectType.MATERIAL)
-public class Material extends AbstractEffect {
-	private static final Color4f DEFAULT_AMBIENT = new Color4f(.2f, .2f, .2f);
-	private static final Color4f DEFAULT_DIFFUSE = new Color4f(.8f, .8f, .8f);
-	private static final Color4f DEFAULT_SPEC = new Color4f(1f, 1f, 1f);
-	private static final float DEFAULT_SHININESS = 5f;
-
-	private Color4f amb;
-	private Color4f diff;
-	private Color4f spec;
+public class Material {
+	private final Color4f amb;
+	private final Color4f diff;
+	private final Color4f spec;
+	private final Color4f em;
+	
 	private float shininess;
 
-	private boolean smooth;
-
-	/** Creates a material with default colors and shiniess. */
+	/**
+	 * Creates a material with an ambient color of (.2, .2, .2, 1), a diffuse
+	 * color of (.8, .8, .8, 1), a specular and emissive color of (0, 0, 0, 1),
+	 * and a shininess of 0.
+	 */
 	public Material() {
-		this(null);
+		amb = new Color4f(.2f, .2f, .2f, 1f);
+		diff = new Color4f(.8f, .8f, .8f, 1f);
+		spec = new Color4f();
+		em = new Color4f();
+		
+		setShininess(0f);
 	}
-
+	
 	/**
-	 * Creates a material with the default ambient and spec, and default
-	 * shininess and the given diffuse.
+	 * Get the emissive color used by this Material.
 	 * 
-	 * @param diff Diffuse color, null uses default
+	 * @return Emissive color, not null
 	 */
-	public Material(Color4f diff) {
-		this(diff, null, DEFAULT_SHININESS);
+	public Color4f getEmissive() {
+		return em;
 	}
 
 	/**
-	 * Creates a material with the default ambient, and given diffuse, specular
-	 * colors and shininess. Shininess is clamped to be above (or equal to) 0.
-	 * 
-	 * @param diff Diffuse color, null uses default
-	 * @param spec Specular color, null uses default
-	 * @param shininess Shininess, clamped >= 0
-	 */
-	public Material(Color4f diff, Color4f spec, float shininess) {
-		this(diff, spec, null, shininess);
-	}
-
-	/**
-	 * Creates a material with the given ambient, diffuse and specular colors
-	 * and given shininess. If null is given, default value is used. Shininess
-	 * is clamped to be above (or equal to) 0.
-	 * 
-	 * @param diff Diffuse color, null uses default
-	 * @param spec Specular color, null uses default
-	 * @param ambient Ambient color, null uses default
-	 * @param shininess Shininess, clamped >= 0
-	 */
-	public Material(Color4f diff, Color4f spec, Color4f ambient, float shininess) {
-		setDiffuse(diff);
-		setSpecular(spec);
-		setAmbient(ambient);
-		setShininess(shininess);
-		setSmoothShaded(true);
-	}
-
-	/**
-	 * Return true if the Material will have lighting interpolated smoothly
-	 * across primitives, or if it will be flat shaded.
-	 * 
-	 * @return If lighting is smoothed over polygons
-	 */
-	public boolean isSmoothShaded() {
-		return smooth;
-	}
-
-	/**
-	 * Set if a primitive will be smoothly shaded (true), or if it will be
-	 * "flat" or faceted.
-	 * 
-	 * @param smooth Whether or not smooth lighting is used
-	 */
-	public void setSmoothShaded(boolean smooth) {
-		this.smooth = smooth;
-	}
-
-	/**
-	 * Get the diffuse color used by this material.
+	 * Get the diffuse color used by this Material.
 	 * 
 	 * @return Diffuse color, not null
 	 */
@@ -114,7 +54,7 @@ public class Material extends AbstractEffect {
 	}
 
 	/**
-	 * Get the shininess for this material.
+	 * Get the shininess for this Material.
 	 * 
 	 * @return Shininess, will be >= 0
 	 */
@@ -123,7 +63,7 @@ public class Material extends AbstractEffect {
 	}
 
 	/**
-	 * Get the specular color used by this material.
+	 * Get the specular color used by this Material.
 	 * 
 	 * @return Specular color, not null
 	 */
@@ -132,61 +72,77 @@ public class Material extends AbstractEffect {
 	}
 
 	/**
-	 * Get the ambient color used by this material.
+	 * Get the ambient color used by this Material.
 	 * 
 	 * @return Ambient color, not null
 	 */
 	public Color4f getAmbient() {
 		return amb;
 	}
+	
+	/**
+	 * Copy em into the emissive color for this Material.
+	 * 
+	 * @param em Emissive color, null = <0, 0, 0, 1>
+	 * @return This Material
+	 */
+	public Material setEmissive(Color4f em) {
+		if (em == null)
+			em = new Color4f(0f, 0f, 0f, 1f);
+		this.em.set(em);
+		return this;
+	}
 
 	/**
-	 * Set the diffuse color for this material.
+	 * Copy diff into the diffuse color for this Material.
 	 * 
 	 * @param diff Diffuse color, null = <.8, .8, .8, 1>
+	 * @return This Material
 	 */
-	public void setDiffuse(Color4f diff) {
+	public Material setDiffuse(Color4f diff) {
 		if (diff == null)
-			diff = new Color4f(DEFAULT_DIFFUSE);
-		this.diff = diff;
+			diff = new Color4f(.8f, .8f, .8f, 1f);
+		this.diff.set(diff);
+		return this;
 	}
 
 	/**
-	 * Set the ambient color for this material. If null, creates a new color
-	 * that is the default values (<.2, .2, .2, 1>).
+	 * Copy amb into the ambient color for this Material.
 	 * 
 	 * @param amb Ambient color, null = <.2, .2, .2, 1>
+	 * @return This Material
 	 */
-	public void setAmbient(Color4f amb) {
+	public Material setAmbient(Color4f amb) {
 		if (amb == null)
-			amb = new Color4f(DEFAULT_AMBIENT);
-		this.amb = amb;
+			amb = new Color4f(.2f, .2f, .2f, 1f);
+		this.amb.set(amb);
+		return this;
 	}
 
 	/**
-	 * Sets the shininess of this material, a higher value represents shinier.
+	 * Sets the shininess of this Material, a higher value represents shinier.
 	 * 
-	 * @param shininess Shininess, clamped >= 0
+	 * @param shininess Shininess, must be in [0, 128]
+	 * @return This Material
+	 * @throws IllegalArgumentException if shininess < 0 or > 128
 	 */
-	public void setShininess(float shininess) {
-		this.shininess = Math.max(0, shininess);
+	public Material setShininess(float shininess) {
+		if (shininess < 0 || shininess > 128)
+			throw new IllegalArgumentException("Shininess out of range [0, 128]: " + shininess);
+		this.shininess = shininess;
+		return this;
 	}
 
 	/**
-	 * Set the specular color for this material.
+	 * Copy spec into the specular color for this material.
 	 * 
-	 * @param spec Specular color, null = <1, 1, 1, 1>
+	 * @param spec Specular color, null = <0, 0, 0, 1>
+	 * @return This Material
 	 */
-	public void setSpecular(Color4f spec) {
+	public Material setSpecular(Color4f spec) {
 		if (spec == null)
-			spec = new Color4f(DEFAULT_SPEC);
-		this.spec = spec;
-	}
-
-	@Override
-	public String toString() {
-		return "(Material ambient: " + amb + " diffuse: " + diff 
-			 + " specular: " + spec + " shininess: " + shininess 
-			 + " smoothed: " + smooth + ")";
+			spec = new Color4f(0f, 0f, 0f, 1f);
+		this.spec.set(spec);
+		return this;
 	}
 }

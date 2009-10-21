@@ -1,15 +1,13 @@
 package com.ferox.renderer;
 
-import com.ferox.effect.Effect;
+import com.ferox.effect.Shader;
 import com.ferox.math.Transform;
 import com.ferox.resource.Geometry;
-import com.ferox.util.Bag;
 
 /**
  * <p>
  * A RenderAtom represents a visual object on the screen that can be rendered by
- * a Framework implementation. This is subject to the renderer's support for the
- * geometry, effects, and resources referenced by the atom.
+ * a Framework implementation.
  * </p>
  * <p>
  * RenderAtom's have the ability to be locked by whoever constructs them, so
@@ -24,7 +22,7 @@ import com.ferox.util.Bag;
  */
 public final class RenderAtom {
 	private Transform transform;
-	private Bag<Effect> effects;
+	private Shader shader;
 	private Geometry geometry;
 
 	private final Object key;
@@ -36,16 +34,16 @@ public final class RenderAtom {
 	 * 
 	 * @param t The Transform to use
 	 * @param g The Geometry that will be used by this atom
-	 * @param e The set of effects to be used
+	 * @param s The Shader used when rendering the geometry
 	 * @param key The key required for all setX() calls, if it's not null
-	 * @throws NullPointerException if t or g are null
+	 * @throws NullPointerException if t, g, or s are null
 	 */
-	public RenderAtom(Transform t, Geometry g, Bag<Effect> e, Object key) {
+	public RenderAtom(Transform t, Geometry g, Shader s, Object key) {
 		this.key = key;
 
 		setTransform(t, key);
 		setGeometry(g, key);
-		setEffects(e, key);
+		setShader(s, key);
 	}
 
 	/**
@@ -66,20 +64,21 @@ public final class RenderAtom {
 	}
 
 	/**
-	 * Set the EffectSet instance to use. The parameter e is a List only to
-	 * support efficient iterations by a Renderer. It is assumed that the list
-	 * contains only non-null elements that respect the guidelines of each
-	 * Effect's EffectType. Renderer's are not responsible for ensuring correct
-	 * behavior if this is broken.
+	 * Set the Shader that will influence how this RenderAtom's Geometry
+	 * is finally rendered.  This is subject to the Framework's support for
+	 * the Shader implementation.
 	 * 
 	 * @param e The new effect map instance to use
 	 * @param key The key to allow the set to proceed
+	 * @throws NullPointerException if s is null
 	 * @throws IllegalArgumentException if key is incorrect
 	 */
-	public void setEffects(Bag<Effect> e, Object key) {
-		if (this.key == null || key == this.key)
-			effects = e;
-		else
+	public void setShader(Shader s, Object key) {
+		if (this.key == null || key == this.key) {
+			if (s == null)
+				throw new NullPointerException("Shader cannot be null");
+			shader = s;
+		} else
 			throw new IllegalArgumentException("Incorrect key specified, cannot set effects");
 	}
 
@@ -111,20 +110,12 @@ public final class RenderAtom {
 	}
 
 	/**
-	 * <p>
-	 * Get the effects used to render the atom's Geometry. Essentially an atom
-	 * is a vehicle for delivering the effects and geometry, in addition to a
-	 * transformation that describes where to draw the geometry.
-	 * </p>
-	 * <p>
-	 * If this method returns null, the atom will be rendered with the default
-	 * effects.
-	 * </p>
+	 * Get the Shader used to render this atom's Geometry.
 	 * 
-	 * @return The effect map to use, may be null
+	 * @return The Shader to use, will not be null
 	 */
-	public Bag<Effect> getEffects() {
-		return effects;
+	public Shader getShader() {
+		return shader;
 	}
 
 	/**
