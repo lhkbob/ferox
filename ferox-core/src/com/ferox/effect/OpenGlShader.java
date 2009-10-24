@@ -5,23 +5,37 @@ import com.ferox.effect.BlendMode.BlendFactor;
 import com.ferox.effect.StencilTest.StencilUpdateOperation;
 import com.ferox.math.Color4f;
 
+/**
+ * <p>
+ * OpenGlShader is a base Shader implementation that models itself after the
+ * capabilities of an OpenGl system. It provides access to state that is
+ * included in both GL 3.0 and earlier, and the later versions 3.1+. It's
+ * intended as a concrete base for Shaders targeted at a given set of OpenGL
+ * versions.
+ * </p>
+ * <p>
+ * At the moment there are only two complete sub-classes:
+ * {@link FixedFunctionShader}, which is targeted at GL 3.0 and earlier systems
+ * without access to the programmable shader pipeline; and {@link GlslShader},
+ * which is targeted at 3.1+ and forward compatible 2.0+ systems that only use
+ * the programmable shader.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @param <T> The fully defined subclass of OpenGlShader
+ */
 @SuppressWarnings("unchecked")
 public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader {
+	/**
+	 * DrawStyle is an enum that specifies how a rendered polygon is actually
+	 * drawn into a RenderSurface. If it's SOLID, the polygon is filled entirely
+	 * as would be expected. If it's LINE or POINT, the polygon's edges or
+	 * vertices are the only pixels that are rendered, using the current
+	 * configuration for line or point styles. If it's NONE, then the polygon is
+	 * culled and not drawn at all.
+	 */
 	public static enum DrawStyle {
 		SOLID, LINE, POINT, NONE
-	}
-	
-	/**
-	 * PointSpriteMode specifies the point sprite mode used when rendering
-	 * points.  If the mode is NONE, then points are rendered as normal.
-	 * However, if it is UPPER_LEFT or LOWER_LEFT then points are dynamically
-	 * converted to a billboarded quad that generates texture coordinates 
-	 * so that the 0th 
-	 * @author michaelludwig
-	 *
-	 */
-	public static enum PointSpriteMode {
-		UPPER_LEFT, LOWER_LEFT, NONE
 	}
 	
 	// blending
@@ -35,10 +49,10 @@ public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader 
 	private DrawStyle frontStyle;
 	private DrawStyle backStyle;
 	
-	private final PrimitiveRenderStyle primitiveModifier;
-	
-	// point sprites
-	private PointSpriteMode pointSpriteMode;
+	// depth offsets
+	private boolean offsetEnabled;
+	private float offsetFactor;
+	private float offsetUnits;
 	
 	// depth masking
 	private Comparison depthTest;
@@ -57,12 +71,15 @@ public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader 
 	private boolean colorMaskGreen;
 	private boolean colorMaskBlue;
 	private boolean colorMaskAlpha;
-	
+
+	/**
+	 * Create a new OpenGlShader that is shapes are rendered without blending,
+	 * or the stencil test, a default depth test, no depth offsets, and with
+	 * only front faces.
+	 */
 	public OpenGlShader() {
 		blendAlpha = new BlendMode();
 		blendRgb = new BlendMode();
-		
-		primitiveModifier = new PrimitiveRenderStyle();
 		
 		stencilFront = new StencilTest();
 		stencilBack = new StencilTest();
@@ -70,15 +87,82 @@ public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader 
 		blendColor = new Color4f();
 		
 		setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE);
-		setPointSpriteMode(PointSpriteMode.NONE);
 		
 		setDepthTest(Comparison.LEQUAL);
 		setDepthWriteEnabled(true);
+		
+		setDepthOffsets(0f, 0f);
+		setDepthOffsetEnabled(false);
 		
 		setColorChannelsEnabled(true, true, true, true);
 		
 		setStencilWriteMask(~0);
 		setStencilTestEnabled(false);
+	}
+	
+	/**
+	 * Get the offset factor to be applied to polygons, lines, and points
+	 * rendered with this Shader, if depth offsets are enabled.
+	 * 
+	 * @return The offset factor to use
+	 */
+	public float getDepthOffsetFactor() {
+		return offsetFactor;
+	}
+
+	/**
+	 * Get the offset units used when computing the final depth offset for
+	 * rendered primitives. This works in conjunction with the offset factor,
+	 * and only applies if depth offsets are enabled.
+	 * 
+	 * @return The offset units to use
+	 */
+	public float getDepthOffsetUnits() {
+		return offsetUnits;
+	}
+
+	/**
+	 * Set the offset factor and offset units to use with the depth offset. The
+	 * exact effect of the factor and units are dependent on the graphics card
+	 * and OpenGL drivers used on the current machine. These values will have no
+	 * effect unless depth offsets are enabled with
+	 * {@link #setDepthOffsetEnabled(boolean)}.
+	 * 
+	 * @param factor The new offset factor to use
+	 * @param units The new offset units to use
+	 * @return This Shader
+	 */
+	public T setDepthOffsets(float factor, float units) {
+		offsetFactor = factor;
+		offsetUnits = units;
+		
+		return (T) this;
+	}
+
+	/**
+	 * Return whether or not depth offsets are enabled. If this returns true
+	 * then the offset factor and units will modify the final depth value of a
+	 * rendered primitive. This can be used to create billboarded polygons that
+	 * don't z-fight with previously rendered surfaces.
+	 * 
+	 * @return True if depth offsets are enabled
+	 */
+	public boolean getDepthOffsetEnabled() {
+		return offsetEnabled;
+	}
+
+	/**
+	 * Set whether or not depth offsets are enabled. See
+	 * {@link #getOffsetEnabled()}, {@link #getOffsetFactor()}, and
+	 * {@link #getOffsetUnits()} for a description of what depth offsets
+	 * accomplish.
+	 * 
+	 * @param enabled True if depth offsets should be enabled
+	 * @return This Shader
+	 */
+	public T setDepthOffsetEnabled(boolean enabled) {
+		offsetEnabled = enabled;
+		return (T) this;
 	}
 
 	/**
@@ -249,79 +333,6 @@ public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader 
 	 */
 	public boolean isDepthWriteEnabled() {
 		return depthWriteMask;
-	}
-
-	/**
-	 * Convenience function to set the line and point widths of this
-	 * OpenGlShader's PrimitiveRenderStyle to the given width.
-	 * 
-	 * @param width The new point/line width
-	 * @return This Shader
-	 * @throws IllegalArgumentException if width < 1
-	 */
-	public T setWidth(float width) {
-		primitiveModifier.setWidth(width);
-		return (T) this;
-	}
-
-	/**
-	 * Convenience function to set all primitives to have anti-aliasing enabled
-	 * for this OpenGlShader's PrimitiveRenderStyle, based off of the enable
-	 * parameter.
-	 * 
-	 * @param enable Whether or not primitives should be anti-aliased
-	 * @return This Shader
-	 */
-	public T setAntiAliasingEnabled(boolean enable) {
-		primitiveModifier.setAntiAliasingEnabled(enable);
-		return (T) this;
-	}
-
-	/**
-	 * Convenience function to set three parameters controlling depth offsets in
-	 * this OpenGlShader's PrimitiveRenderStyle.
-	 * 
-	 * @param enabled Whether or not depth offsets are enabled
-	 * @param factor The offset factor to use
-	 * @param units The offset units to use
-	 * @return This Shader
-	 */
-	public T setOffsets(boolean enabled, float factor, float units) {
-		primitiveModifier.setOffset(factor, units).setOffsetEnabled(enabled);
-		return (T) this;
-	}
-
-	/**
-	 * Return the PrimitiveRenderStyle instance that controls the details of
-	 * primitive rendering for this OpenGlShader.
-	 * 
-	 * @return The PrimitiveRenderStyle state for this Shader
-	 */
-	public PrimitiveRenderStyle getPrimitiveRenderStyle() {
-		return primitiveModifier;
-	}
-
-	/**
-	 * Set the PointSpriteMode used when rendering points with this
-	 * OpenGlShader. If PointSpriteMode is not NONE, then points will be
-	 * rendered as quads facing the camera of width equal to the point width,
-	 * centered at the point.
-	 * 
-	 * @param pointSprite The new PointSpriteMode, null uses NONE
-	 * @return This Shader
-	 */
-	public T setPointSpriteMode(PointSpriteMode pointSprite) {
-		pointSpriteMode = (pointSprite != null ? pointSprite : PointSpriteMode.NONE);
-		return (T) this;
-	}
-
-	/**
-	 * Return the PointSpriteMode used by this OpenGlShader.
-	 * 
-	 * @return The point sprite policy for this Shader
-	 */
-	public PointSpriteMode getPointSpriteMode() {
-		return pointSpriteMode;
 	}
 
 	/**

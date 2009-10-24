@@ -7,24 +7,18 @@ import com.ferox.resource.TextureImage;
 
 /**
  * <p>
- * A TextureEnvironment wraps a TextureImage a provides information on how it will be
- * blended together with other textures and material colors of the rendered
- * object. It also controls texture coordinate generation (if desired), and
- * setting the a transform that is applied to each texture coordinate before
+ * A TextureEnvironment wraps a TextureImage and provides information on how it
+ * will be blended together with other textures and material colors of the
+ * rendered object. It also controls texture coordinate generation (if desired),
+ * and setting the transform that is applied to each texture coordinate before
  * accessing the texture.
  * </p>
  * <p>
- * TextureEnvironment isn't an Effect, it is to be used in conjunction with MultiTexture,
- * which describes which integer unit a TextureEnvironment is applied to.
+ * TextureEnvironment's also allow for advanced combinations when the
+ * EnvironmentMode COMBINE is used. The EnvironmentMode's and combine operations
+ * are modeled directly after the texture environment options in OpenGL.
  * </p>
  * <p>
- * TextureEnvironment's also allow for advanced combinations when the EnvironmentMode COMBINE is
- * used. The EnvModes and combine operations are modeled directly after the
- * texture environment options in OpenGL.
- * </p>
- * <p>
- * TextureEnvironment's also allow for advanced combinations when the EnvironmentMode COMBINE is
- * used.<br>
  * Summary of EnvironmentMode operations:<br>
  * Cv = final rgb color Av = final alpha<br>
  * Cs = rgb of this texture As = alpha of this tex<br>
@@ -59,45 +53,24 @@ import com.ferox.resource.TextureImage;
  * <br>
  * 
  * <pre>
- * CombineRgb   |   Rgb Result
- * REPLACE      |   op0(src0)
- * MODULATE     |   op0(src0) * op1(src1)
- * ADD          |   op0(src0) + op1(src1)
- * ADD_SIGNED   |   op0(src0) + op1(src1) - .5
- * INTERPOLATE  |   op0(src0) * op2(src2) + op1(src1) * (1 - op2(src2))
- * SUBTRACT     |   op0(src0) - op1(src1)
- * DOT3_RGB     |   4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
- * DOT3_RGBA    |   4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
+ * CombineFunction |   Rgb Result
+ * REPLACE         |   op0(src0)
+ * MODULATE        |   op0(src0) * op1(src1)
+ * ADD             |   op0(src0) + op1(src1)
+ * ADD_SIGNED      |   op0(src0) + op1(src1) - .5
+ * INTERPOLATE     |   op0(src0) * op2(src2) + op1(src1) * (1 - op2(src2))
+ * SUBTRACT        |   op0(src0) - op1(src1)
+ * DOT3_RGB        |   4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
+ * DOT3_RGBA       |   4 * ((r0-.5)*(r1-.5) + (g0-.5)*(g1-.5) + (b0-.5)*(b1-.5))
  * </pre>
  * 
  * </p>
  * <p>
- * CombineAlpha is computed in exactly the same way, except that there are no
- * DOT3_x options. In CombineRgb, DOT3_RGBA ignores the result of CombineAlpha.
- * The combine operations, SRC_COLOR and ONE_MINUS_SRC_COLOR are meaningless for
- * CombineAlpha, so they are mapped to SRC_ALPHA and ONE_MINUS_SRC_ALPHA when
- * specified.
- * </p>
- * <p>
- * Defaults:<br>
- * COMBINE_RGB = CombineRgb.MODULATE; <br>
- * COMBINE_ALPHA = CombineAlpha.MODULATE;<br>
- * SOURCE_RGB0 = CombineSource.PREV_TEX; <br>
- * SOURCE_RGB1 = CombineSource.CURR_TEX;<br>
- * SOURCE_RGB2 = CombineSource.VERTEX_COLOR; <br>
- * SOURCE_ALPHA0 = CombineSource.PREV_TEX; <br>
- * SOURCE_ALPHA1 = CombineSource.CURR_TEX; <br>
- * SOURCE_ALPHA2 = CombineSource.VERTEX_COLOR;<br>
- * <br>
- * OP_RGB0 = CombineOperand.COLOR;<br>
- * OP_RGB1 = CombineOperand.COLOR; <br>
- * OP_RGB2 = CombineOperand.ALPHA;<br>
- * OP_ALPHA0 = CombineOperand.ALPHA;<br>
- * OP_ALPHA1 = CombineOperand.ALPHA;<br>
- * OP_ALPHA2 = CombineOperand.ALPHA;<br>
- * <br>
- * ENV_MODE = EnvironmentMode.MODULATE;<br>
- * COORD_GEN = TexCoordGeneration.NONE;<br>
+ * Combinations with alpha are computed in exactly the same way, except that
+ * there are no DOT3_x options. DOT3_RGBA ignores the result of the alpha
+ * CombineFunction. The combine operations, SRC_COLOR and ONE_MINUS_SRC_COLOR
+ * are meaningless for CombineAlpha, so they are mapped to SRC_ALPHA and
+ * ONE_MINUS_SRC_ALPHA when specified.
  * </p>
  * 
  * @author Michael Ludwig
