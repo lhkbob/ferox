@@ -61,119 +61,11 @@ public class TextureCubeMap extends TextureImage {
 	/** Constant specifying the negative z cube map face. */
 	public static final int NZ = 5;
 
-	/**
-	 * The dirty descriptor class that is used by TextureCubeMap. Calls to
-	 * getDirtyDescriptor() for texture cubemaps's will return objects of this
-	 * class.
-	 */
-	public static class TextureCubeMapDirtyDescriptor extends TextureDirtyDescriptor {
-		private MipmapDirtyRegion[] drPX, drPY, drPZ, drNX, drNY, drNZ;
-
-		private MipmapDirtyRegion[] getRegion(int face) {
-			switch (face) {
-			case PX:
-				return drPX;
-			case PY:
-				return drPY;
-			case PZ:
-				return drPZ;
-			case NX:
-				return drNX;
-			case NY:
-				return drNY;
-			case NZ:
-				return drNZ;
-			default:
-				return null;
-			}
-		}
-
-		private void setRegion(int face, MipmapDirtyRegion[] region) {
-			switch (face) {
-			case PX:
-				drPX = region;
-				break;
-			case PY:
-				drPY = region;
-				break;
-			case PZ:
-				drPZ = region;
-				break;
-			case NX:
-				drNX = region;
-				break;
-			case NY:
-				drNY = region;
-				break;
-			case NZ:
-				drNZ = region;
-				break;
-			}
-		}
-
-		/**
-		 * @param face Cube face to check, one of PX, PY, PZ, NX, NY, NZ
-		 * @param level Mipmap level to check
-		 * @return True if there is a non-null MipmapDirtyRegion for the
-		 *         associated mipmap level. If face or level are invalid, then
-		 *         false is returned.
-		 */
-		public boolean isDataDirty(int face, int level) {
-			MipmapDirtyRegion[] dirtyRegions = getRegion(face);
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
-				return false;
-			return dirtyRegions[level] != null;
-		}
-
-		/**
-		 * Get the MipmapDirtyRegion for the given mipmap level. If face or
-		 * level are invalid, or if the face and level aren't dirty, then null
-		 * is returned. The returned region will be constrained to be in the
-		 * dimensions of the mipmap level.
-		 * 
-		 * @param face Cube face to check, one of PX, PY, PZ, NX, NY, NZ
-		 * @param level Mipmap level to check
-		 * @return The dirty region for the cube face at level
-		 */
-		public MipmapDirtyRegion getDirtyRegion(int face, int level) {
-			MipmapDirtyRegion[] dirtyRegions = getRegion(face);
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
-				return null;
-			return dirtyRegions[level];
-		}
-
-		/**
-		 * @param face One of PX, PY, PZ, NX, NY, NZ
-		 * @return True if at least one mipmap region is not null. If face isn't
-		 *         one of PX, PY, PZ, NX, NY, or NZ returns false.
-		 */
-		public boolean areMipmapsDirty(int face) {
-			return getRegion(face) != null;
-		}
-
-		/**
-		 * Return true if any mipmap region of any face of the cubemap is dirty.
-		 */
-		public boolean areMipmapsDirty() {
-			return drPX != null || drPY != null || drPZ != null || 
-				   drNX != null || drNY != null || drNZ != null;
-		}
-
-		@Override
-		protected void clearDescriptor() {
-			super.clearDescriptor();
-			drPX = null;
-			drPY = null;
-			drPZ = null;
-			drNX = null;
-			drNY = null;
-			drNZ = null;
-		}
-	}
-
 	private BufferData[] px, py, pz, nx, ny, nz;
 	private int side;
 	private int numMipmaps;
+	
+	private TextureCubeMapDirtyDescriptor dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -335,23 +227,17 @@ public class TextureCubeMap extends TextureImage {
 		if (face < 0 || face > 5)
 			return; // invalid face
 
-		TextureCubeMapDirtyDescriptor dirty = getDirtyDescriptor();
-		MipmapDirtyRegion[] dirtyRegions = dirty.getRegion(face);
-		if (dirtyRegions == null || dirtyRegions.length <= level) {
-			MipmapDirtyRegion[] temp = new MipmapDirtyRegion[level + 1];
-			if (dirtyRegions != null)
-				System.arraycopy(dirtyRegions, 0, temp, 0, dirtyRegions.length);
-			dirtyRegions = temp;
-			dirty.setRegion(face, dirtyRegions);
-		}
+		if (dirty == null)
+			dirty = new TextureCubeMapDirtyDescriptor(numMipmaps);
 
 		int levelSide = getWidth(level);
-		MipmapDirtyRegion r = dirtyRegions[level];
-		if (r == null) {
-			r = new MipmapDirtyRegion(x, y, 0, width, height, 0, levelSide, levelSide, 0);
-			dirtyRegions[level] = r;
-		} else
-			r.merge(x, y, 0, width, height, 0, levelSide, levelSide, 0);
+		ImageRegion r = dirty.getDirtyMipmap(face, level);
+		
+		if (r == null)
+			r = new ImageRegion(x, y, 0, width, height, 0, levelSide, levelSide, 0);
+		else
+			r = r.merge(x, y, 0, width, height, 0);
+		dirty.setDirtyMipmap(face, level, r);
 	}
 
 	/**
@@ -366,8 +252,8 @@ public class TextureCubeMap extends TextureImage {
 	}
 
 	/**
-	 * Mark a whole texture face as dirty. Does nothing if face isn't PX, PY,
-	 * PZ, NX, NY, or NZ.
+	 * Mark all of the image data as dirty for a specific cube face. Does
+	 * nothing if face isn't PX, PY, PZ, NX, NY, or NZ.
 	 * 
 	 * @param face The cube face that has all mipmaps marked dirty
 	 */
@@ -375,16 +261,11 @@ public class TextureCubeMap extends TextureImage {
 		if (face < 0 || face > 5)
 			return; // don't want to create the array now
 
-		TextureCubeMapDirtyDescriptor dirty = getDirtyDescriptor();
-		// create the whole array now for efficiency. It's okay to ignore old
-		// array because
-		// the new regions will take up the whole level.
-		dirty.setRegion(face, new MipmapDirtyRegion[numMipmaps]);
 		for (int i = 0; i < numMipmaps; i++)
 			this.markDirty(face, i);
 	}
 
-	/** Mark the entire cubemap as dirty. */
+	/** Mark the entire TextureCubeMaps' image data as dirty. */
 	public void markDirty() {
 		for (int i = 0; i < 6; i++)
 			this.markDirty(i);
@@ -455,12 +336,19 @@ public class TextureCubeMap extends TextureImage {
 	}
 
 	@Override
-	protected TextureCubeMapDirtyDescriptor createTextureDirtyDescriptor() {
-		return new TextureCubeMapDirtyDescriptor();
+	public void clearDirtyDescriptor() {
+		dirty = null;
 	}
 
 	@Override
 	public TextureCubeMapDirtyDescriptor getDirtyDescriptor() {
-		return (TextureCubeMapDirtyDescriptor) super.getDirtyDescriptor();
+		return dirty;
+	}
+	
+	@Override
+	protected void setTextureParametersDirty() {
+		if (dirty == null)
+			dirty = new TextureCubeMapDirtyDescriptor(numMipmaps);
+		dirty.setParametersDirty();
 	}
 }

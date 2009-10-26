@@ -1,9 +1,5 @@
 package com.ferox.scene.fx.impl.fixed;
 
-import com.ferox.effect.DirectionLight;
-import com.ferox.effect.Effect;
-import com.ferox.effect.PolygonStyle;
-import com.ferox.effect.PolygonStyle.DrawStyle;
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
@@ -15,6 +11,10 @@ import com.ferox.renderer.View;
 import com.ferox.resource.Geometry;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.Shape;
+import com.ferox.shader.DirectionLight;
+import com.ferox.shader.Effect;
+import com.ferox.shader.PolygonStyle;
+import com.ferox.shader.PolygonStyle.DrawStyle;
 import com.ferox.util.Bag;
 
 public class ShadowMapRenderPass implements RenderPass {

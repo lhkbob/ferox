@@ -1,4 +1,4 @@
-package com.ferox.effect;
+package com.ferox.shader;
 
 /**
  * <p>

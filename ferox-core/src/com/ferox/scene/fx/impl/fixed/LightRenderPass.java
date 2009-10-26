@@ -1,9 +1,5 @@
 package com.ferox.scene.fx.impl.fixed;
 
-import com.ferox.effect.DepthTest;
-import com.ferox.effect.Effect;
-import com.ferox.effect.TextureEnvironment;
-import com.ferox.effect.Effect.PixelTest;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.renderer.RenderAtom;
@@ -12,6 +8,10 @@ import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.View;
 import com.ferox.resource.Geometry;
+import com.ferox.shader.DepthTest;
+import com.ferox.shader.Effect;
+import com.ferox.shader.TextureEnvironment;
+import com.ferox.shader.Effect.PixelTest;
 import com.ferox.util.Bag;
 import com.ferox.util.geom.Rectangle;
 

@@ -1,8 +1,8 @@
 package com.ferox.renderer;
 
-import com.ferox.effect.Shader;
 import com.ferox.math.Transform;
 import com.ferox.resource.Geometry;
+import com.ferox.shader.Shader;
 
 /**
  * <p>

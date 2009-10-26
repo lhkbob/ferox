@@ -1,9 +1,9 @@
 package com.ferox.scene;
 
-import com.ferox.effect.Light;
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundSphere;
+import com.ferox.shader.Light;
 
 /**
  * A LightNode represents an leaf that can be added to a scene that represents a

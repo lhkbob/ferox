@@ -1,4 +1,4 @@
-package com.ferox.effect;
+package com.ferox.shader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,9 +7,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ferox.effect.Effect.Type;
 import com.ferox.resource.GlslProgram;
 import com.ferox.resource.GlslUniform;
+import com.ferox.shader.Effect.Type;
 
 /**
  * <p>

@@ -333,7 +333,7 @@ public interface Framework {
 	 * <p>
 	 * A call to this method will override an old update or clean-up request.
 	 * The request, if it's not overridden later, will be completed at the start
-	 * of the next call to flushRenderer().
+	 * of the next call to renderFrame().
 	 * </p>
 	 * <p>
 	 * Note that an exception may be thrown later if the resource would fail the
@@ -461,7 +461,7 @@ public interface Framework {
 	 * <p>
 	 * Render a single frame. The Framework must invoke manage() on its default
 	 * ResourceManager and then any custom managers. After the managers are
-	 * processed, the Framework should, for each queued surface x pass, clear
+	 * processed, the Framework should, for each queued (surface X pass), clear
 	 * the surface based on the clear parameters when the surface was queued and
 	 * render the pass. Queued surfaces that have been destroyed should be
 	 * ignored. When processing each render pass, an internal implementation of
@@ -470,12 +470,6 @@ public interface Framework {
 	 * <p>
 	 * The resource managers must be processed even if there are no queued
 	 * render surfaces.
-	 * </p>
-	 * <p>
-	 * The Framework is allowed to prepare the render passes at any time before
-	 * the pass must be rendered, including before the managers are processed.
-	 * No matter when they are prepared, a Framework must be sure to respect the
-	 * result of pass's prepare() method.
 	 * </p>
 	 * <p>
 	 * If an exception is thrown, the rendering of the frame stops. Because of

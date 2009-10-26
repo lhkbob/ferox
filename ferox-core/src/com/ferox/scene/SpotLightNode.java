@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
-import com.ferox.effect.SpotLight;
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
+import com.ferox.shader.SpotLight;
 
 /**
  * <p>

@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
-import com.ferox.effect.Comparison;
 import com.ferox.resource.BufferData.DataType;
+import com.ferox.shader.Comparison;
 
 /**
  * <p>
@@ -51,41 +51,10 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public class TextureRectangle extends TextureImage {
-	/**
-	 * The dirty descriptor class that is used by TextureRectangle. Calls to
-	 * getDirtyDescriptor() for texture rectangle's will return objects of this
-	 * class.
-	 */
-	public static class TextureRectangleDirtyDescriptor extends TextureDirtyDescriptor {
-		private MipmapDirtyRegion dirtyRegions;
-
-		/**
-		 * @return True if the only mipmap for the texture rectangle is dirty.
-		 */
-		public boolean isDataDirty() {
-			return dirtyRegions != null;
-		}
-
-		/**
-		 * Get the MipmapDirtyRegion for the TextureRectangle. If null is
-		 * returned, then the data hasn't been flagged as dirty. The returned
-		 * region will be constrained to be in the dimensions of the texture.
-		 * 
-		 * @return MipmapDirtyRegion for this dirty descriptor's texture
-		 */
-		public MipmapDirtyRegion getDirtyRegion() {
-			return dirtyRegions;
-		}
-
-		@Override
-		protected void clearDescriptor() {
-			super.clearDescriptor();
-			dirtyRegions = null;
-		}
-	}
-
 	private BufferData data;
 	private int width, height;
+	
+	private TextureRectangleDirtyDescriptor dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -186,15 +155,18 @@ public class TextureRectangle extends TextureImage {
 	 * @param height Height of the dirty region
 	 */
 	public void markDirty(int x, int y, int width, int height) {
-		TextureRectangleDirtyDescriptor dirty = (TextureRectangleDirtyDescriptor) getDirtyDescriptor();
+		if (dirty == null)
+			dirty = new TextureRectangleDirtyDescriptor();
 
-		if (dirty.dirtyRegions == null)
-			dirty.dirtyRegions = new MipmapDirtyRegion(x, y, 0, width, height, 0, this.width, this.height, 0);
+		ImageRegion r = dirty.getDirtyRegion();
+		if (r == null)
+			r = new ImageRegion(x, y, 0, width, height, 0, this.width, this.height, 0);
 		else
-			dirty.dirtyRegions.merge(x, y, 0, width, height, 0, this.width, this.height, 0);
+			r = r.merge(x, y, 0, width, height, 0);
+		dirty.setDirtyRegion(r);
 	}
 
-	/** Mark the entire texture image as dirty. */
+	/** Mark the entire TextureRectangle's image data as dirty. */
 	public void markDirty() {
 		this.markDirty(0, 0, width, height);
 	}
@@ -257,7 +229,19 @@ public class TextureRectangle extends TextureImage {
 	}
 
 	@Override
-	protected TextureDirtyDescriptor createTextureDirtyDescriptor() {
-		return new TextureRectangleDirtyDescriptor();
+	public void clearDirtyDescriptor() {
+		dirty = null;
+	}
+
+	@Override
+	public TextureRectangleDirtyDescriptor getDirtyDescriptor() {
+		return dirty;
+	}
+	
+	@Override
+	protected void setTextureParametersDirty() {
+		if (dirty == null)
+			dirty = new TextureRectangleDirtyDescriptor();
+		dirty.setParametersDirty();
 	}
 }

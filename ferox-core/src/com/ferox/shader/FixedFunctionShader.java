@@ -1,7 +1,15 @@
-package com.ferox.effect;
+package com.ferox.shader;
 
 import com.ferox.math.Color4f;
+import com.ferox.renderer.RenderCapabilities;
 
+/**
+ * FixedFunctionShader is a sub-class of OpenGlShader that exposes the majority
+ * of the fixed function state in OpenGL versions before 3.1 (and primarily 2.0
+ * or earlier since this Shader does not support programmable shader pipelines).
+ * 
+ * @author Michael Ludwig
+ */
 public class FixedFunctionShader extends OpenGlShader<FixedFunctionShader> {
 	// alpha test
 	private Comparison alphaTest;
@@ -39,8 +47,30 @@ public class FixedFunctionShader extends OpenGlShader<FixedFunctionShader> {
 	private String vertexBinding;
 	private String normalBinding;
 	private final String[] texCoords;
-	
-	public FixedFunctionShader(int numLights, int numTextures) {
+
+	/**
+	 * Create a new FixedFunctionShader with default settings:
+	 * <ul>
+	 * <li>Lighting is disabled, all advanced configurations are disabled</li>
+	 * <li>Default Material and Lights</li>
+	 * <li>All textures are unbound and disabled</li>
+	 * <li>No anti-aliasing, and point/line width of 1</li>
+	 * <li>No fogging</li>
+	 * </ul>
+	 * The specified RenderCapabilities is used to determine the number of
+	 * active lights and texture units available.
+	 * 
+	 * @param renderCaps The RenderCapabilities that this FixedFunctionShader
+	 *            will be targeted towards
+	 * @throws NullPointerException if renderCaps is null
+	 */
+	public FixedFunctionShader(RenderCapabilities renderCaps) {
+		if (renderCaps == null)
+			throw new NullPointerException("RenderCapabilities cannot be null");
+		
+		int numLights = renderCaps.getMaxActiveLights();
+		int numTextures = renderCaps.getMaxFixedPipelineTextures();
+		
 		lights = new Light[numLights];
 		texEnv = new TextureEnvironment[numTextures];
 		texCoords = new String[numTextures];
@@ -566,47 +596,117 @@ public class FixedFunctionShader extends OpenGlShader<FixedFunctionShader> {
 		alphaReferenceValue = alphaValue;
 		return this;
 	}
-	
+
+	/**
+	 * Return whether or not lighting is enabled. If lighting is enabled, then
+	 * global lighting and any enabled Lights will be applied to rendered
+	 * Geometries. If lighting is disabled, the diffuse color of this Shader's
+	 * Material is used as the shape's color.
+	 * 
+	 * @return True if lighting affects the rendering
+	 */
 	public boolean isLightingEnabled() {
 		return enableLighting;
 	}
-	
+
+	/**
+	 * Set whether or not lighting should be enabled.
+	 * 
+	 * @param enabled True if lighting is used
+	 * @return This Shader
+	 */
 	public FixedFunctionShader setLightingEnabled(boolean enabled) {
 		enableLighting = enabled;
 		return this;
 	}
-	
+
+	/**
+	 * Return whether or not two-sided lighting should be enabled. If it's
+	 * enabled, when lighting is computed lighting contributions will be
+	 * determined separately for each side of a polygon.
+	 * 
+	 * @return True if two-sided lighting is used
+	 */
 	public boolean isTwoSidedLightingEnabled() {
 		return glUseTwoSidedLighting;
 	}
-	
+
+	/**
+	 * Set whether or not two-sided lighting is enabled.
+	 * 
+	 * @param use True if two-sided lighting should be used
+	 * @return This Shader
+	 */
 	public FixedFunctionShader setTwoSidedLightingEnabled(boolean use) {
 		glUseTwoSidedLighting = use;
 		return this;
 	}
 
+	/**
+	 * Return whether or not the specular contribution is computed separately
+	 * from the primary lighting. When enabled, the specular lighting is
+	 * combined with the final color after the texturing is computed. Without
+	 * separate specular coloring, the specular highlights can be washed out by
+	 * the textures.
+	 * 
+	 * @return True if specular is computed separately
+	 */
 	public boolean isSeparateSpecularEnabled() {
 		return glSeparateSpec;
 	}
 
+	/**
+	 * Set whether or not separate specular lighting is enabled.
+	 * 
+	 * @param separateSpec True if specular light is added after textures
+	 * @return This Shader
+	 */
 	public FixedFunctionShader setSeparateSpecularEnabled(boolean separateSpec) {
 		glSeparateSpec = separateSpec;
 		return this;
 	}
 
+	/**
+	 * Return whether or not local viewing is enabled. If local viewing is
+	 * enabled, specular lighting is computed using the camera's position,
+	 * otherwise an infinite position is used. Local viewing is more correct but
+	 * more expensive to compute.
+	 * 
+	 * @return True if local viewing is enabled
+	 */
 	public boolean isLocalViewerEnabled() {
 		return glLocalViewer;
 	}
 
+	/**
+	 * Set whether or not local viewing is enabled.
+	 * 
+	 * @param localViewer True if local viewing is used for specular colors
+	 * @return This Shader
+	 */
 	public FixedFunctionShader setLocalViewerEnabled(boolean localViewer) {
 		glLocalViewer = localViewer;
 		return this;
 	}
 
+	/**
+	 * Return the global ambient color used when lighting is enabled. This
+	 * ambient color will be added to a Material regardless of which lights are
+	 * enabled.
+	 * 
+	 * @return The global ambient color
+	 */
 	public Color4f getGlobalAmbientColor() {
 		return globalAmbient;
 	}
 
+	/**
+	 * Copy globalAmb into the global ambient color used for this Shader when
+	 * lighting is enabled.
+	 * 
+	 * @param globalAmb The new global ambient color
+	 * @return This Shader
+	 */
 	public FixedFunctionShader setGlobalAmbientColor(Color4f globalAmb) {
 		if (globalAmb == null)
 			globalAmbient.set(.2f, .2f, .2f, 1f);

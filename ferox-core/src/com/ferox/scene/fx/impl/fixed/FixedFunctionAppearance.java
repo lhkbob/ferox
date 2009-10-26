@@ -1,10 +1,5 @@
 package com.ferox.scene.fx.impl.fixed;
 
-import com.ferox.effect.Material;
-import com.ferox.effect.MultiTexture;
-import com.ferox.effect.TextureEnvironment;
-import com.ferox.effect.TextureEnvironment.EnvironmentMode;
-import com.ferox.effect.TextureEnvironment.TexCoordGeneration;
 import com.ferox.scene.fx.Appearance;
 import com.ferox.scene.fx.LightingModel;
 import com.ferox.scene.fx.PhongLightingModel;
@@ -13,6 +8,11 @@ import com.ferox.scene.fx.SolidLightingModel;
 import com.ferox.scene.fx.TextureUnit;
 import com.ferox.scene.fx.TexturedMaterial;
 import com.ferox.scene.fx.impl.fixed.FixedFunctionSceneCompositor.RenderMode;
+import com.ferox.shader.Material;
+import com.ferox.shader.MultiTexture;
+import com.ferox.shader.TextureEnvironment;
+import com.ferox.shader.TextureEnvironment.EnvironmentMode;
+import com.ferox.shader.TextureEnvironment.TexCoordGeneration;
 
 public class FixedFunctionAppearance {
 	private final RenderMode renderMode;

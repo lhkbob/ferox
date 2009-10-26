@@ -1,8 +1,5 @@
 package com.ferox.scene.fx.impl.fixed;
 
-import com.ferox.effect.Effect;
-import com.ferox.effect.GlobalLighting;
-import com.ferox.effect.Light;
 import com.ferox.math.Frustum;
 import com.ferox.math.Transform;
 import com.ferox.renderer.RenderAtom;
@@ -14,6 +11,9 @@ import com.ferox.scene.LightNode;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.Shape;
 import com.ferox.scene.fx.Appearance;
+import com.ferox.shader.Effect;
+import com.ferox.shader.GlobalLighting;
+import com.ferox.shader.Light;
 import com.ferox.util.Bag;
 
 public class BaseRenderPass implements RenderPass {

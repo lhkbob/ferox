@@ -5,11 +5,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Stack;
 
-import com.ferox.effect.DepthTest;
-import com.ferox.effect.Effect;
-import com.ferox.effect.EffectType;
-import com.ferox.effect.Material;
-import com.ferox.effect.PolygonStyle;
 import com.ferox.renderer.DefaultResourceManager;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FrameStatistics;
@@ -35,6 +30,11 @@ import com.ferox.resource.Resource;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.shader.DepthTest;
+import com.ferox.shader.Effect;
+import com.ferox.shader.EffectType;
+import com.ferox.shader.Material;
+import com.ferox.shader.PolygonStyle;
 import com.ferox.util.Bag;
 
 /**

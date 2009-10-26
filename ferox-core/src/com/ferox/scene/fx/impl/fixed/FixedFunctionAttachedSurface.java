@@ -1,6 +1,5 @@
 package com.ferox.scene.fx.impl.fixed;
 
-import com.ferox.effect.DirectionLight;
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
 import com.ferox.renderer.DisplayOptions;
@@ -16,6 +15,7 @@ import com.ferox.scene.LightNode;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.fx.impl.AttachedRenderSurface;
 import com.ferox.scene.fx.impl.fixed.FixedFunctionSceneCompositor.RenderMode;
+import com.ferox.shader.DirectionLight;
 import com.ferox.util.Bag;
 
 public class FixedFunctionAttachedSurface extends AttachedRenderSurface {

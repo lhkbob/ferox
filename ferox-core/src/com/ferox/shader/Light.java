@@ -1,4 +1,4 @@
-package com.ferox.effect;
+package com.ferox.shader;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;

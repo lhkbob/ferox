@@ -1,8 +1,8 @@
 package com.ferox.resource;
 
-import com.ferox.effect.Comparison;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.BufferData.DataType;
+import com.ferox.shader.Comparison;
 import com.ferox.util.FastMap;
 
 /**
@@ -48,140 +48,7 @@ import com.ferox.util.FastMap;
  * @author Michael Ludwig
  */
 public abstract class TextureImage implements Resource {
-	/**
-	 * Base class that should be used for all subclasses of TextureImage for
-	 * their dirty descriptors.
-	 */
-	public static class TextureDirtyDescriptor {
-		private boolean wrapDirty;
-		private boolean filterDirty;
-		private boolean dCompareDirty;
-		private boolean anisoDirty;
-
-		/**
-		 * @return True if any of the S, T, and R wrap modes have changed.
-		 */
-		public final boolean isTextureWrapDirty() {
-			return wrapDirty;
-		}
-
-		/**
-		 * @return True if the Filter enum has changed.
-		 */
-		public final boolean isFilterDirty() {
-			return filterDirty;
-		}
-
-		/**
-		 * @return True if the DepthMode, depth compare, or depth compare enable
-		 *         boolean have changed.
-		 */
-		public final boolean isDepthCompareDirty() {
-			return dCompareDirty;
-		}
-
-		/**
-		 * @return True if the amount anisotropic filtering is dirty.
-		 */
-		public final boolean isAnisotropicFilteringDirty() {
-			return anisoDirty;
-		}
-
-		/**
-		 * Should be overridden by subclasses to clear their descriptions, too.
-		 * Must call super.clearDescriptor().
-		 */
-		protected void clearDescriptor() {
-			wrapDirty = false;
-			filterDirty = false;
-			dCompareDirty = false;
-			anisoDirty = false;
-		}
-	}
-
-	/**
-	 * <p>
-	 * Class that represents a region on a mipmap that is dirty. It provides
-	 * access to three dimensions. For textures that don't have a given
-	 * dimension, the extra dims. can be ignored.
-	 * </p>
-	 * <p>
-	 * When requesting the offsets and lengths, it is guaranteed that the region
-	 * will be within the constraints of the mipmap in question.
-	 * </p>
-	 * <p>
-	 * (0, 0, 0) starts in the lower-left corner and extends up by the dirty
-	 * dimensions in question.
-	 * </p>
-	 */
-	public static class MipmapDirtyRegion {
-		private int x, y, z, width, height, depth;
-
-		/*
-		 * Requires positive values for dimensions. The max dimensions must be
-		 * the size of the mipmap in question.
-		 */
-		protected MipmapDirtyRegion(int x, int y, int z, 
-									int width, int height, int depth, 
-									int maxWidth, int maxHeight, int maxDepth) {
-			this.x = this.y = this.z = Integer.MAX_VALUE;
-			this.width = this.height = this.depth = Integer.MIN_VALUE;
-			merge(x, y, z, width, height, depth, maxWidth, maxHeight, maxDepth);
-		}
-
-		public int getDirtyXOffset() {
-			return x;
-		}
-
-		public int getDirtyYOffset() {
-			return y;
-		}
-
-		public int getDirtyZOffset() {
-			return z;
-		}
-
-		public int getDirtyWidth() {
-			return width;
-		}
-
-		public int getDirtyHeight() {
-			return height;
-		}
-
-		public int getDirtyDepth() {
-			return depth;
-		}
-
-		/*
-		 * Requires positive values for dimensions. The max dimensions must be
-		 * the size of the mipmap in question.
-		 */
-		protected void merge(int x, int y, int z, 
-							 int width, int height, int depth, 
-							 int maxWidth, int maxHeight, int maxDepth) {
-			// extents of the dirty region, constrained to valid region
-			int maxX = Math.min(x + width, maxWidth);
-			int maxY = Math.min(y + height, maxHeight);
-			int maxZ = Math.min(z + depth, maxDepth);
-			int minX = Math.max(0, x);
-			int minY = Math.min(0, y);
-			int minZ = Math.min(0, z);
-
-			int oldMaxX = this.x + this.width;
-			int oldMaxY = this.y + this.height;
-			int oldMaxZ = this.z + this.depth;
-
-			this.x = Math.min(this.x, minX);
-			this.width = Math.max(oldMaxX, maxX) - this.x;
-			this.y = Math.min(this.y, minY);
-			this.height = Math.max(oldMaxY, maxY) - this.y;
-			this.z = Math.min(this.z, minZ);
-			this.depth = Math.max(oldMaxZ, maxZ) - this.z;
-		}
-	}
-
-	/** An enum representing the supported texture subclasses. */
+	/** An enum representing the available TextureImage subclasses. */
 	public static enum TextureTarget {
 		/** Corresponds to Texture1D. */
 		T_1D,
@@ -224,6 +91,7 @@ public abstract class TextureImage implements Resource {
 	private static final DepthMode DEFAULT_DEPTHMODE = DepthMode.LUMINANCE;
 	private static final Comparison DEFAULT_DEPTHTEST = Comparison.GREATER;
 
+	private final FastMap<Framework, Object> renderData;
 	private final TextureFormat format;
 	private final DataType type;
 
@@ -237,9 +105,6 @@ public abstract class TextureImage implements Resource {
 	private DepthMode depthMode;
 	private boolean enableDepthCompare;
 	private Comparison depthCompareTest;
-
-	private final FastMap<Framework, Object> renderData;
-	private final TextureDirtyDescriptor dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -297,15 +162,10 @@ public abstract class TextureImage implements Resource {
 			throw new IllegalArgumentException("EffectType and format are not valid: " + format + " " + type);
 		this.format = format;
 		this.type = type;
-
-		dirty = createTextureDirtyDescriptor();
-		if (dirty == null)
-			throw new NullPointerException("Can't return a null TextureDirtyDescriptor from createTextureDirtyDescriptor()");
-
 		renderData = new FastMap<Framework, Object>(Framework.class);
 
 		setFilter(filter);
-		this.setWrapSTR(wrapAll);
+		setWrapSTR(wrapAll);
 		setDepthMode(depthMode);
 		setDepthCompareTest(depthTest);
 		setDepthCompareEnabled(false);
@@ -328,14 +188,13 @@ public abstract class TextureImage implements Resource {
 	 * likely that hardware will clamp this to discrete, supported values.
 	 * 
 	 * @param level The fraction of anisotropic filtering to use (1 == maximum
-	 *            hardware support), clamped to be in [0, 1]
+	 *            hardware support)
+	 * @throws IllegalArgumentException if level < 0 or level > 1
 	 */
 	public void setAnisotropicFiltering(float level) {
-		float old = anisoLevel;
-		anisoLevel = Math.max(0f, Math.min(level, 1f));
-
-		if (old != anisoLevel)
-			dirty.anisoDirty = true;
+		if (level < 0f || level > 1f)
+			throw new IllegalArgumentException("Invalid range for anisotropic filtering");
+		anisoLevel = level;
 	}
 
 	/**
@@ -379,7 +238,6 @@ public abstract class TextureImage implements Resource {
 		if (wrapS == null)
 			wrapS = DEFAULT_TEX_WRAP;
 		this.wrapS = wrapS;
-		dirty.wrapDirty = true;
 	}
 
 	/**
@@ -403,7 +261,6 @@ public abstract class TextureImage implements Resource {
 		if (wrapT == null)
 			wrapT = DEFAULT_TEX_WRAP;
 		this.wrapT = wrapT;
-		dirty.wrapDirty = true;
 	}
 
 	/**
@@ -427,7 +284,6 @@ public abstract class TextureImage implements Resource {
 		if (wrapR == null)
 			wrapR = DEFAULT_TEX_WRAP;
 		this.wrapR = wrapR;
-		dirty.wrapDirty = true;
 	}
 
 	/**
@@ -487,7 +343,6 @@ public abstract class TextureImage implements Resource {
 			filter = DEFAULT_FILTER;
 
 		this.filter = filter;
-		dirty.filterDirty = true;
 	}
 
 	/**
@@ -510,7 +365,6 @@ public abstract class TextureImage implements Resource {
 		if (depthMode == null)
 			depthMode = DEFAULT_DEPTHMODE;
 		this.depthMode = depthMode;
-		dirty.dCompareDirty = true;
 	}
 
 	/**
@@ -532,7 +386,6 @@ public abstract class TextureImage implements Resource {
 		if (depthCompareTest == null)
 			depthCompareTest = DEFAULT_DEPTHTEST;
 		this.depthCompareTest = depthCompareTest;
-		dirty.dCompareDirty = true;
 	}
 
 	/**
@@ -556,7 +409,6 @@ public abstract class TextureImage implements Resource {
 	 */
 	public void setDepthCompareEnabled(boolean enableDepthCompare) {
 		this.enableDepthCompare = enableDepthCompare;
-		dirty.dCompareDirty = true;
 	}
 
 	/**
@@ -610,6 +462,13 @@ public abstract class TextureImage implements Resource {
 	public abstract int getNumMipmaps();
 
 	/**
+	 * Return the texture target enum that corresponds to this images class.
+	 * 
+	 * @return The target for this texture image
+	 */
+	public abstract TextureTarget getTarget();
+	
+	/**
 	 * Whether or not this texture is mipmapped. True if and only if
 	 * getNumMipmaps() > 1.
 	 * 
@@ -618,22 +477,24 @@ public abstract class TextureImage implements Resource {
 	public final boolean isMipmapped() {
 		return getNumMipmaps() > 1;
 	}
-
+	
 	/**
-	 * Return the texture target enum that corresponds to this images class.
-	 * 
-	 * @return The target for this texture image
+	 * Signal the sub-class that one of TextureImage's texture parameters
+	 * have been modified.  This should then cause its dirty descriptor
+	 * to be properly modified to reflect this.
 	 */
-	public abstract TextureTarget getTarget();
+	protected void setTextureParametersDirty() { }
+	
+	@Override
+	public Object getRenderData(Framework renderer) {
+		return renderData.get(renderer);
+	}
 
-	/**
-	 * Create the subclasses dirty descriptor instance to use. Must not return
-	 * null. This will be the object returned by getDirtyDescriptor().
-	 * 
-	 * @return The dirty descriptor to use for this instance
-	 */
-	protected abstract TextureDirtyDescriptor createTextureDirtyDescriptor();
-
+	@Override
+	public void setRenderData(Framework renderer, Object data) {
+		renderData.put(renderer, data);
+	}
+	
 	/**
 	 * <p>
 	 * A utility method that will calculate the number of mipmaps for the given
@@ -654,32 +515,5 @@ public abstract class TextureImage implements Resource {
 		if (width <= 0 || height <= 0 || depth <= 0)
 			return -1;
 		return (int) Math.floor(Math.log(Math.max(width, Math.max(height, depth))) / Math.log(2)) + 1;
-	}
-
-	@Override
-	public Object getRenderData(Framework renderer) {
-		return renderData.get(renderer);
-	}
-
-	@Override
-	public void setRenderData(Framework renderer, Object data) {
-		renderData.put(renderer, data);
-	}
-
-	@Override
-	public void clearDirtyDescriptor() {
-		dirty.clearDescriptor();
-	}
-
-	/**
-	 * Subclasses should override this with a more specific descriptor type if
-	 * necessary. The returned instance if the object created by
-	 * createTextureDirtyDescriptor().
-	 * 
-	 * @return The dirty descriptor for this texture
-	 */
-	@Override
-	public TextureDirtyDescriptor getDirtyDescriptor() {
-		return dirty;
 	}
 }

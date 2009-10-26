@@ -14,10 +14,10 @@ package com.ferox.resource;
  * Only the contents of the buffer data may be modified or reassigned.
  * </p>
  * <p>
- * If a BufferData is constructed with a null array, and an associated resource
+ * If a BufferData is constructed with a null array, and an associated Resource
  * is updated before a non-null array is assigned, then the Framework should
- * allocate space without changing any of the values (which could be old
- * garbage).
+ * allocate space without changing any of the previous values (which could be
+ * old garbage).
  * </p>
  * <p>
  * If a BufferData is later set to have a null array, and an associated resource

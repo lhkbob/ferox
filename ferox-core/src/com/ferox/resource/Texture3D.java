@@ -58,54 +58,11 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public class Texture3D extends TextureImage {
-	/**
-	 * The dirty descriptor class that is used by Texture3D. Calls to
-	 * getDirtyDescriptor() for texture 3d's will return objects of this class.
-	 */
-	public static class Texture3DDirtyDescriptor extends TextureDirtyDescriptor {
-		private MipmapDirtyRegion[] dirtyRegions;
-
-		/**
-		 * @param level Mipmap level to check
-		 * @return True if there is a non-null MipmapDirtyRegion for the
-		 *         associated mipmap level. Returns false if level is invalid.
-		 */
-		public boolean isDataDirty(int level) {
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
-				return false;
-			return dirtyRegions[level] != null;
-		}
-
-		/**
-		 * Get the MipmapDirtyRegion for the given mipmap level. If null is
-		 * returned, then that mipmap isn't dirty or level was invalid. The
-		 * returned region will be constrained to be in the dimensions of the
-		 * mipmap level.
-		 * 
-		 * @param level Mipmap level to check
-		 * @return The dirty mipmap region
-		 */
-		public MipmapDirtyRegion getDirtyRegion(int level) {
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
-				return null;
-			return dirtyRegions[level];
-		}
-
-		/** @return True if at least one mipmap region is not null. */
-		public boolean areMipmapsDirty() {
-			return dirtyRegions != null;
-		}
-
-		@Override
-		protected void clearDescriptor() {
-			super.clearDescriptor();
-			dirtyRegions = null;
-		}
-	}
-
 	private BufferData[] data;
 	private int width, height, depth;
 	private int numMipmaps;
+	
+	private TextureDirtyDescriptor dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -229,23 +186,19 @@ public class Texture3D extends TextureImage {
 		if (level < 0 || level >= (numMipmaps - 1))
 			return; // invalid level option
 
-		Texture3DDirtyDescriptor dirty = getDirtyDescriptor();
-		if (dirty.dirtyRegions == null || dirty.dirtyRegions.length <= level) {
-			MipmapDirtyRegion[] temp = new MipmapDirtyRegion[level + 1];
-			if (dirty.dirtyRegions != null)
-				System.arraycopy(dirty.dirtyRegions, 0, temp, 0, dirty.dirtyRegions.length);
-			dirty.dirtyRegions = temp;
-		}
+		if (dirty == null)
+			dirty = new TextureDirtyDescriptor(numMipmaps);
 
 		int levelWidth = getWidth(level);
 		int levelHeight = getHeight(level);
 		int levelDepth = getDepth(level);
-		MipmapDirtyRegion r = dirty.dirtyRegions[level];
-		if (r == null) {
-			r = new MipmapDirtyRegion(x, y, z, width, height, depth, levelWidth, levelHeight, levelDepth);
-			dirty.dirtyRegions[level] = r;
-		} else
-			r.merge(x, y, 0, width, height, depth, levelWidth, levelHeight, levelDepth);
+		ImageRegion r = dirty.getDirtyMipmap(level);
+		
+		if (r == null)
+			r = new ImageRegion(x, y, z, width, height, depth, levelWidth, levelHeight, levelDepth);
+		else
+			r = r.merge(x, y, z, width, height, depth);
+		dirty.setDirtyMipmap(level, r);
 	}
 
 	/**
@@ -258,13 +211,8 @@ public class Texture3D extends TextureImage {
 		this.markDirty(0, 0, 0, getWidth(level), getHeight(level), getDepth(level), level);
 	}
 
-	/** Mark the entire texture image as dirty. */
+	/** Mark all of this Texture3D's image data as dirty. */
 	public void markDirty() {
-		Texture3DDirtyDescriptor dirty = getDirtyDescriptor();
-		// create the whole array now for efficiency. It's okay to ignore old
-		// array because
-		// the new regions will take up the whole level.
-		dirty.dirtyRegions = new MipmapDirtyRegion[numMipmaps];
 		for (int i = 0; i < numMipmaps; i++)
 			this.markDirty(i);
 	}
@@ -318,12 +266,19 @@ public class Texture3D extends TextureImage {
 	}
 
 	@Override
-	protected Texture3DDirtyDescriptor createTextureDirtyDescriptor() {
-		return new Texture3DDirtyDescriptor();
+	public void clearDirtyDescriptor() {
+		dirty = null;
 	}
 
 	@Override
-	public Texture3DDirtyDescriptor getDirtyDescriptor() {
-		return (Texture3DDirtyDescriptor) super.getDirtyDescriptor();
+	public TextureDirtyDescriptor getDirtyDescriptor() {
+		return dirty;
+	}
+	
+	@Override
+	protected void setTextureParametersDirty() {
+		if (dirty == null)
+			dirty = new TextureDirtyDescriptor(numMipmaps);
+		dirty.setParametersDirty();
 	}
 }

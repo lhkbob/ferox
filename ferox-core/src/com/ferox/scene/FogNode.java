@@ -1,10 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.effect.Fog;
-import com.ferox.effect.Effect.Quality;
-import com.ferox.effect.Fog.FogEquation;
 import com.ferox.math.Color4f;
 import com.ferox.math.bounds.BoundSphere;
+import com.ferox.shader.Fog;
+import com.ferox.shader.Effect.Quality;
+import com.ferox.shader.Fog.FogEquation;
 
 /**
  * A FogNode embodies a localized Fog effect. It provides methods that mirror

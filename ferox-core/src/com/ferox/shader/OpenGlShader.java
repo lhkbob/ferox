@@ -1,9 +1,9 @@
-package com.ferox.effect;
+package com.ferox.shader;
 
-import com.ferox.effect.BlendMode.BlendFunction;
-import com.ferox.effect.BlendMode.BlendFactor;
-import com.ferox.effect.StencilTest.StencilUpdateOperation;
 import com.ferox.math.Color4f;
+import com.ferox.shader.BlendMode.BlendFactor;
+import com.ferox.shader.BlendMode.BlendFunction;
+import com.ferox.shader.StencilTest.StencilUpdateOperation;
 
 /**
  * <p>

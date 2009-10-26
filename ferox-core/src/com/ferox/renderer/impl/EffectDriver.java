@@ -1,6 +1,6 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.effect.Effect;
+import com.ferox.shader.Effect;
 
 /**
  * <p>

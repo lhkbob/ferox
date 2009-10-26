@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
-import com.ferox.effect.Comparison;
 import com.ferox.resource.BufferData.DataType;
+import com.ferox.shader.Comparison;
 
 /**
  * <p>
@@ -52,54 +52,11 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public class Texture2D extends TextureImage {
-	/**
-	 * The dirty descriptor class that is used by Texture2D. Calls to
-	 * getDirtyDescriptor() for texture 2d's will return objects of this class.
-	 */
-	public static class Texture2DDirtyDescriptor extends TextureDirtyDescriptor {
-		private MipmapDirtyRegion[] dirtyRegions;
-
-		/**
-		 * @param level Mipmap level to check
-		 * @return True if there is a non-null MipmapDirtyRegion for the
-		 *         associated mipmap level. Returns false if level is invalid.
-		 */
-		public boolean isDataDirty(int level) {
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
-				return false;
-			return dirtyRegions[level] != null;
-		}
-
-		/**
-		 * Get the MipmapDirtyRegion for the given mipmap level. If null is
-		 * returned, then that mipmap isn't dirty or level is invalid. The
-		 * returned region will be constrained to be in the dimensions of the
-		 * mipmap level.
-		 * 
-		 * @param level Mipmap level to check
-		 * @return The dirty region for the requested mipmap
-		 */
-		public MipmapDirtyRegion getDirtyRegion(int level) {
-			if (dirtyRegions == null || level < 0 || level >= dirtyRegions.length)
-				return null;
-			return dirtyRegions[level];
-		}
-
-		/** @return True if at least one mipmap region is not null. */
-		public boolean areMipmapsDirty() {
-			return dirtyRegions != null;
-		}
-
-		@Override
-		protected void clearDescriptor() {
-			super.clearDescriptor();
-			dirtyRegions = null;
-		}
-	}
-
 	private BufferData[] data;
 	private int width, height;
 	private int numMipmaps;
+	
+	private TextureDirtyDescriptor dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -184,8 +141,7 @@ public class Texture2D extends TextureImage {
 			if (nonNullCount == 0) {
 				// do nothing, it should be a headless texture
 			} else if (nonNullCount == data.length) {
-				// make a new array to hold the buffers, so it can't be tampered
-				// with later
+				// make a new array to hold the buffers, so it can't be tampered with later
 				realData = new BufferData[data.length];
 				System.arraycopy(data, 0, realData, 0, Math.min(data.length, realData.length));
 			} else
@@ -239,22 +195,18 @@ public class Texture2D extends TextureImage {
 		if (level < 0 || level >= (numMipmaps - 1))
 			return; // invalid level option
 
-		Texture2DDirtyDescriptor dirty = getDirtyDescriptor();
-		if (dirty.dirtyRegions == null || dirty.dirtyRegions.length <= level) {
-			MipmapDirtyRegion[] temp = new MipmapDirtyRegion[level + 1];
-			if (dirty.dirtyRegions != null)
-				System.arraycopy(dirty.dirtyRegions, 0, temp, 0, dirty.dirtyRegions.length);
-			dirty.dirtyRegions = temp;
-		}
+		if (dirty == null)
+			dirty = new TextureDirtyDescriptor(numMipmaps);
 
 		int levelWidth = getWidth(level);
 		int levelHeight = getHeight(level);
-		MipmapDirtyRegion r = dirty.dirtyRegions[level];
-		if (r == null) {
-			r = new MipmapDirtyRegion(x, y, 0, width, height, 0, levelWidth, levelHeight, 0);
-			dirty.dirtyRegions[level] = r;
-		} else
-			r.merge(x, y, 0, width, height, 0, levelWidth, levelHeight, 0);
+		ImageRegion r = dirty.getDirtyMipmap(level);
+		
+		if (r == null)
+			r = new ImageRegion(x, y, 0, width, height, 0, levelWidth, levelHeight, 0);
+		else
+			r = r.merge(x, y, 0, width, height, 0);
+		dirty.setDirtyMipmap(level, r);
 	}
 
 	/**
@@ -267,13 +219,8 @@ public class Texture2D extends TextureImage {
 		this.markDirty(0, 0, getWidth(level), getHeight(level), level);
 	}
 
-	/** Mark the entire texture image as dirty. */
+	/** Mark all of this Texture2D's image data as dirty. */
 	public void markDirty() {
-		Texture2DDirtyDescriptor dirty = getDirtyDescriptor();
-		// create the whole array now for efficiency. It's okay to ignore old
-		// array because
-		// the new regions will take up the whole level.
-		dirty.dirtyRegions = new MipmapDirtyRegion[numMipmaps];
 		for (int i = 0; i < numMipmaps; i++)
 			this.markDirty(i);
 	}
@@ -325,14 +272,21 @@ public class Texture2D extends TextureImage {
 			return null; // all we can return at this point
 		return data[level];
 	}
-
+	
 	@Override
-	protected Texture2DDirtyDescriptor createTextureDirtyDescriptor() {
-		return new Texture2DDirtyDescriptor();
+	public void clearDirtyDescriptor() {
+		dirty = null;
 	}
 
 	@Override
-	public Texture2DDirtyDescriptor getDirtyDescriptor() {
-		return (Texture2DDirtyDescriptor) super.getDirtyDescriptor();
+	public TextureDirtyDescriptor getDirtyDescriptor() {
+		return dirty;
+	}
+	
+	@Override
+	protected void setTextureParametersDirty() {
+		if (dirty == null)
+			dirty = new TextureDirtyDescriptor(numMipmaps);
+		dirty.setParametersDirty();
 	}
 }

@@ -6,25 +6,24 @@ import com.ferox.renderer.Framework;
  * <p>
  * Interface that represents some type of data stored on the graphics card. A
  * resource is fairly abstract so there many things can be represented (assuming
- * there is some hardware capabilities supporting it). The only paradigm is that
- * changes are made to the resource, a resource manager tells the renderer to
- * update it, and then the resource is used during the rest of the rendering.
+ * there are hardware capabilities supporting it). Some examples include
+ * TextureImage, Geometry, and GlslProgram.
  * </p>
  * <p>
- * If a resource is updated, used, then changed and used again before it is
- * updated, then those changes will not be visible.
- * </p>
- * <p>
- * Resources should not be Effects. The pattern to use is to have a state wrap a
- * resource, allowing for some dynamic property changes: texture wraps texture
- * image, providing environment variables.
- * </p>
- * <p>
- * Changes to variables/attributes of implementations will not be visible by the
- * Framework until they have been updated (either by using the renderer's
- * default resource manager, or an application specific one). Related to this, a
- * resource cannot be used, and will not be implicitly updated, if it's
- * referenced by a state.
+ * There are multiple ways that a Resource can be managed with a Framework. A
+ * Resource cannot be used until its been updated by a Framework. There are
+ * multiple ways that a Resource can be updated, some of which are automatic:
+ * <ol>
+ * <li>Implement a ResourceManager to call update() and cleanUp() with the
+ * necessary Resources and a Renderer from the Framework</li>
+ * <li>Use a Framework's requestUpdate() and requestCleanUp() methods to
+ * schedule an update/cleanup for the next frame</li>
+ * <li>Rely on the Framework automatically updating a Resource if it's never
+ * seen the Resource before, or if the Resource has a non-null dirty descriptor</li>
+ * </ol>
+ * Although the Resource can be automatically updated by a Framework, it must be
+ * manually cleaned-up. A Framework that's destroyed will have any remaining
+ * Resource's internal data cleaned up, too.
  * </p>
  * 
  * @author Michael Ludwig
@@ -63,16 +62,26 @@ public interface Resource {
 
 	/**
 	 * <p>
-	 * Return an object that describes what regions of the resource are dirty.
-	 * Implementations should document what type of object is returned. The
-	 * returned dirty descriptor must be an immutable object (according to its
-	 * public interface).
+	 * Return an object that describes what regions of the Resource are dirty.
+	 * When this returns a non-null instance, and the Resource is used in a
+	 * frame, then the Framework should automatically update the Resource based
+	 * on the returned dirty descriptor. If null is returned, then this Resource
+	 * has not be modified (or marked as modified).
 	 * </p>
 	 * <p>
-	 * If null is returned, then Renderers should assume that the entire
-	 * Resource is dirty, for lack of a better alternative. The descriptor is
-	 * the minimal set of values needed to be updated. Renderers should not
-	 * update less than what is described by the object.
+	 * Implementations should document what type of object is returned, and
+	 * override the return type, too. The returned dirty descriptor must be an
+	 * immutable object (according to its public interface).
+	 * </p>
+	 * <p>
+	 * Because there is only one dirty descriptor per Resource, a
+	 * ResourceManager is generally required when using multiple Frameworks.
+	 * </p>
+	 * <p>
+	 * The descriptor is the minimal set of values needed to be updated.
+	 * Renderers should not update less than what is described by the object. If
+	 * a Resource is manually updated and it's descriptor is null, the entire
+	 * Resource should be updated entirely, for lack of a better alternative.
 	 * </p>
 	 * 
 	 * @return Implementations specific object describing what parts of the
@@ -81,35 +90,35 @@ public interface Resource {
 	public Object getDirtyDescriptor();
 
 	/**
-	 * Should only be called by renderer implementations when an update is
-	 * completed and the resource is no longer deemed dirty from the renderer's
+	 * <p>
+	 * Should only be called by Renderer implementations when an update is
+	 * completed and the Resource is no longer deemed dirty from the Renderer's
 	 * point of view.
+	 * </p>
+	 * <p>
+	 * After a call to this, getDirtyDescriptor() should return null.
+	 * </p>
 	 */
 	public void clearDirtyDescriptor();
 
 	/**
 	 * Each resource will have a status with the active renderer. A Resource is
-	 * usable if it has a status of OK or DIRTY. It is likely to be ignored by
-	 * ERROR or CLEANED (or some other Framework dependent way of handling
-	 * ignored resources).
+	 * usable if it has a status of READY. Resources that are CLEANED will be
+	 * auto-updated when used. A Resource that has a status of ERROR is unusable
+	 * until it's been repaired.
 	 */
 	public static enum Status {
 		/** The resource has been updated successfully and is ready to use. */
-		OK,
+		READY,
 		/**
-		 * The renderer couldn't support the resource as is, but it was able to
-		 * change it so that it can function as if it were OK.
-		 */
-		DIRTY,
-		/**
-		 * The renderer has tried to update the resource and there may be
-		 * internal data for the resource, but something is wrong and the
-		 * resource isn't usable.
+		 * The Framework has tried to update the resource and there may be
+		 * internal data for the Resource, but something is wrong and the
+		 * Resource isn't usable.
 		 */
 		ERROR,
 		/**
-		 * The renderer has no internal representations of the resource (never
-		 * updated, or it's been cleaned.
+		 * The Framework has no internal representations of the Resource (never
+		 * updated, or it's been cleaned).
 		 */
 		CLEANED
 	}

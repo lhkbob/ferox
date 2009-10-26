@@ -59,11 +59,8 @@ public interface Renderer {
 	 * An important note about the update/clean-up process of the Framework: If
 	 * a resource hasn't been used before or is cleaned-up, but is needed when
 	 * rendering a RenderAtom, it will be automatically updated. If the resource
-	 * is subsequently modified, it must be updated as normal. The auto-updating
-	 * is purely a convenience and shouldn't be used in high-performance
-	 * applications. Resource updates in the middle of the frame have more
-	 * impact on render speed than updates done at the beginning, before any
-	 * rendering has begun.
+	 * has a non-null dirty descriptor when it's needed, it will also be
+	 * updated.
 	 * </p>
 	 * <p>
 	 * It is the resource manager implementations responsibility that a resource
