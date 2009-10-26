@@ -3,40 +3,46 @@ package com.ferox.math.bounds;
 import com.ferox.math.Vector3f;
 
 /**
- * A utility class to compute enclosing BoundSphere's for Boundables. This is to
- * be used for Boundables when they implement their getBounds() method. All that
- * is necessary is for them to correctly implement their getVertex() and
- * getVertexCount() methods.
+ * <p>
+ * A utility class to compute enclosing BoundSphere's for a set of vertices.
+ * This is used within BoundSphere's appropriate constructor, but is extracted
+ * because the algorithm is fairly complicated.
+ * </p>
+ * <p>
+ * The enclosing algorithm is an adaptation of the recurse-minimum sphere enclosing
+ * algorithm that is implemented within jME.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public class SphereBoundableUtil {
+class BoundSphereUtil {
 	private static final float radiusEpsilon = 1.00001f;
 
 	/**
 	 * Utility method to store enclose vertices in a BoundSphere, using the
-	 * recurse minimum algorithm. Does nothing if box or vertices is null, or if
-	 * vertices has a vertex count of 0.
+	 * recurse minimum algorithm.
 	 * 
-	 * @param vertices The Boundable whose bounding sphere will be computed
+	 * @param vertices The set of vertices to be enclosed
 	 * @param sphere The BoundSphere who will hold the computed results
+	 * @throws IllegalArgumentException if vertices.length isn't a multiple of
+	 *             3, or if its length < 3
+	 * @throws NullPointerException if vertices is null
 	 */
-	public static void getBounds(Boundable vertices, BoundSphere sphere) {
-		if (vertices == null || vertices.getVertexCount() == 0)
-			return;
-
-		float[] points = new float[vertices.getVertexCount() * 3];
-		fillPointsArray(points, vertices);
+	public static void getBounds(float[] vertices, BoundSphere sphere) {
+		if (vertices == null)
+			throw new NullPointerException("Vertices cannot be null");
+		if (vertices.length % 3 != 0 || vertices.length < 3)
+			throw new IllegalArgumentException("Vertices length must be a multiple of 3, and at least 3: " + vertices.length);
 
 		// thanks to JME for the algorithm, adapted to use float[]
-		recurseMini(sphere, points, points.length / 3, 0, 0);
+		recurseMini(sphere, vertices, vertices.length / 3, 0, 0);
 	}
 
 	private static void recurseMini(BoundSphere sphere, float[] points, int p, int b, int ap) {
-		Vector3f tempA = SphereBoundableUtil.tempA.get();
-		Vector3f tempB = SphereBoundableUtil.tempB.get();
-		Vector3f tempC = SphereBoundableUtil.tempC.get();
-		Vector3f tempD = SphereBoundableUtil.tempD.get();
+		Vector3f tempA = new Vector3f();
+		Vector3f tempB = new Vector3f();
+		Vector3f tempC = new Vector3f();
+		Vector3f tempD = new Vector3f();
 
 		Vector3f center = sphere.getCenter();
 
@@ -102,12 +108,12 @@ public class SphereBoundableUtil {
 	}
 
 	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a, Vector3f b, Vector3f c) {
-		Vector3f tA = a.sub(o, SphereBoundableUtil.tA.get());
-		Vector3f tB = b.sub(o, SphereBoundableUtil.tB.get());
-		Vector3f tC = c.sub(o, SphereBoundableUtil.tC.get());
+		Vector3f tA = a.sub(o, BoundSphereUtil.tA.get());
+		Vector3f tB = b.sub(o, BoundSphereUtil.tB.get());
+		Vector3f tC = c.sub(o, BoundSphereUtil.tC.get());
 
-		Vector3f tD = SphereBoundableUtil.tD.get();
-		Vector3f cross = SphereBoundableUtil.cross.get();
+		Vector3f tD = BoundSphereUtil.tD.get();
+		Vector3f cross = BoundSphereUtil.cross.get();
 
 		float denom = 2.0f * (tA.x * (tB.y * tC.z - tC.y * tB.z) - 
 							  tB.x * (tA.y * tC.z - tC.y * tA.z) +
@@ -128,12 +134,12 @@ public class SphereBoundableUtil {
 	}
 
 	private static void setSphere(BoundSphere sphere, Vector3f o, Vector3f a, Vector3f b) {
-		Vector3f tA = a.sub(o, SphereBoundableUtil.tA.get());
-		Vector3f tB = b.sub(o, SphereBoundableUtil.tB.get());
-		Vector3f tC = SphereBoundableUtil.tC.get();
-		Vector3f tD = SphereBoundableUtil.tD.get();
+		Vector3f tA = a.sub(o, BoundSphereUtil.tA.get());
+		Vector3f tB = b.sub(o, BoundSphereUtil.tB.get());
+		Vector3f tC = BoundSphereUtil.tC.get();
+		Vector3f tD = BoundSphereUtil.tD.get();
 
-		Vector3f cross = tA.cross(tB, SphereBoundableUtil.cross.get());
+		Vector3f cross = tA.cross(tB, BoundSphereUtil.cross.get());
 
 		float denom = 2f * cross.lengthSquared();
 		if (denom == 0) {
@@ -157,42 +163,6 @@ public class SphereBoundableUtil {
 		o.scale(.5f, center);
 		a.scaleAdd(.5f, center, center);
 	}
-
-	private static void fillPointsArray(float[] points, Boundable verts) {
-		int vertexCount = verts.getVertexCount();
-
-		for (int i = 0; i < vertexCount; i++) {
-			points[i * 3] = verts.getVertex(i, 0);
-			points[i * 3 + 1] = verts.getVertex(i, 1);
-			points[i * 3 + 2] = verts.getVertex(i, 2);
-		}
-	}
-
-	// used in recurseMini
-	private static final ThreadLocal<Vector3f> tempA = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tempB = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tempC = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> tempD = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
 
 	// used exclusively in setSphere methods
 	private static final ThreadLocal<Vector3f> tA = new ThreadLocal<Vector3f>() {
@@ -220,7 +190,6 @@ public class SphereBoundableUtil {
 		}
 	};
 
-	// used in setSphere
 	private static final ThreadLocal<Vector3f> cross = new ThreadLocal<Vector3f>() {
 		@Override
 		protected Vector3f initialValue() {

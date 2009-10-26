@@ -1,6 +1,5 @@
 package com.ferox.scene;
 
-import com.ferox.math.bounds.BoundSphere;
 import com.ferox.resource.Geometry;
 import com.ferox.scene.fx.Appearance;
 
@@ -21,11 +20,11 @@ import com.ferox.scene.fx.Appearance;
 public class Shape extends AbstractSceneElement {
 	private Appearance appearance;
 	private Geometry geometry;
-	private boolean autoBound;
 	
 	/**
 	 * Create a new Shape that uses the given Geometry and Appearance. The
-	 * constructed Shape will have its auto-bound policy set to true.
+	 * constructed Shape will have no local bounds yet, so it must be set
+	 * later.
 	 * 
 	 * @param geometry The geometry to use
 	 * @param appearance The Appearance used to render the associated Geometry
@@ -34,7 +33,6 @@ public class Shape extends AbstractSceneElement {
 	public Shape(Geometry geometry, Appearance appearance) {
 		setAppearance(appearance);
 		setGeometry(geometry);
-		setAutoComputeBounds(true);
 	}
 	
 	/**
@@ -83,37 +81,5 @@ public class Shape extends AbstractSceneElement {
 		if (geometry == null)
 			throw new NullPointerException("Cannot have a null Geometry");
 		this.geometry = geometry;
-	}
-	
-	/**
-	 * Set whether or not this Shape will auto-compute its local bounds from its
-	 * assigned Geometry during each update. If this Shape has a null local
-	 * bounds when an update occurs, and auto-bounding is true, then the Shape
-	 * will use a BoundSphere. Otherwise, auto-bounding uses whatever instance
-	 * was last assigned as its local bounds.
-	 * 
-	 * @param autoBound The new auto-bound policy for this Shape
-	 */
-	public void setAutoComputeBounds(boolean autoBound) {
-		this.autoBound = autoBound;
-	}
-	
-	/**
-	 * Return true if this Shape will auto-compute its local bounds from the
-	 * assigned Geometry during each update.
-	 * @return The auto-bound policy for this Shape
-	 */
-	public boolean getAutoComputeBounds() {
-		return autoBound;
-	}
-	
-	@Override
-	public boolean update(float timeDelta) {
-		if (autoBound) {
-			if (localBounds == null)
-				localBounds = new BoundSphere();
-			geometry.getBounds(localBounds);
-		}
-		return super.update(timeDelta);
 	}
 }

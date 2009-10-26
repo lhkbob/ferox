@@ -61,6 +61,21 @@ public class BoundSphere extends AbstractBoundVolume {
 		this.setCenter(x, y, z);
 		setRadius(radius);
 	}
+	
+	/**
+	 * Create a sphere that encloses the given set of vertices. The vertices array
+	 * is assumed to have each vertex as three consecutive values within the
+	 * array, starting at index 0 being the x coordinate of the first vertex.
+	 * 
+	 * @param vertices Set of vertices for the BoundSphere to enclose
+	 * @throws IllegalArgumentException if vertices.length isn't a multiple of
+	 *             3, or if its length < 3
+	 * @throws NullPointerException if vertices is null
+	 */
+	public BoundSphere(float[] vertices) {
+		this();
+		BoundSphereUtil.getBounds(vertices, this);
+	}
 
 	/**
 	 * Set the sphere's radius.

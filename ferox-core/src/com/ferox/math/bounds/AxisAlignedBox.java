@@ -14,25 +14,6 @@ import com.ferox.math.Frustum.FrustumIntersection;
  * @author Michael Ludwig
  */
 public class AxisAlignedBox extends AbstractBoundVolume {
-	private static final ThreadLocal<Vector3f> c = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Vector3f> n = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() {
-			return new Vector3f();
-		}
-	};
-	private static final ThreadLocal<Matrix3f> m = new ThreadLocal<Matrix3f>() {
-		@Override
-		protected Matrix3f initialValue() {
-			return new Matrix3f();
-		}
-	};
-
 	private final Vector3f worldMax;
 	private final Vector3f worldMin;
 	private int lastFailedPlane;
@@ -95,6 +76,28 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 		this.setMax(width / 2f, height / 2f, depth / 2f);
 	}
 
+	/**
+	 * Create a box that encloses the given set of vertices. The vertices array
+	 * is assumed to have each vertex as three consecutive values within the
+	 * array, starting at index 0 being the x coordinate of the first vertex.
+	 * 
+	 * @param vertices Set of vertices for the AxisAlignedBox to enclose
+	 * @throws IllegalArgumentException if vertices.length isn't a multiple of
+	 *             3, or if its length < 3
+	 * @throws NullPointerException if vertices is null
+	 */
+	public AxisAlignedBox(float[] vertices) {
+		this();
+		if (vertices == null)
+			throw new NullPointerException("Vertices cannot be null");
+		if (vertices.length % 3 != 0 || vertices.length < 3)
+			throw new IllegalArgumentException("Vertices length must be a multiple of 3, and at least 3: " + vertices.length);
+		
+		int vertexCount = vertices.length / 3;
+		for (int i = 0; i < vertexCount; i++)
+			enclosePoint(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]); 
+	}
+	
 	/**
 	 * Copy the given vector into the max value of the aa box.
 	 * 
@@ -237,124 +240,6 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 			throw new UnsupportedOperationException("Unabled to merge given bound volume: " + child);
 	}
 
-	private void mergeAABB(AxisAlignedBox aabb) {
-		worldMax.x = Math.max(worldMax.x, aabb.worldMax.x);
-		worldMax.y = Math.max(worldMax.y, aabb.worldMax.y);
-		worldMax.z = Math.max(worldMax.z, aabb.worldMax.z);
-
-		worldMin.x = Math.min(worldMin.x, aabb.worldMin.x);
-		worldMin.y = Math.min(worldMin.y, aabb.worldMin.y);
-		worldMin.z = Math.min(worldMin.z, aabb.worldMin.z);
-	}
-
-	private void mergeSphere(BoundSphere sphere) {
-		Vector3f c = sphere.getCenter();
-		float r = sphere.getRadius();
-		worldMax.x = Math.max(worldMax.x, c.x + r);
-		worldMax.y = Math.max(worldMax.y, c.y + r);
-		worldMax.z = Math.max(worldMax.z, c.z + r);
-
-		worldMin.x = Math.min(worldMin.x, c.x - r);
-		worldMin.y = Math.min(worldMin.y, c.y - r);
-		worldMin.z = Math.min(worldMin.z, c.z - r);
-	}
-
-	private void getMinWorldVertices(Vector3f normal, Vector3f min) {
-		if (normal.x > 0) {
-			if (normal.y > 0) {
-				if (normal.z > 0) {
-					min.x = worldMin.x;
-					min.y = worldMin.y;
-					min.z = worldMin.z;
-				} else {
-					min.x = worldMin.x;
-					min.y = worldMin.y;
-					min.z = worldMax.z;
-				}
-			} else {
-				if (normal.z > 0) {
-					min.x = worldMin.x;
-					min.y = worldMax.y;
-					min.z = worldMin.z;
-				} else {
-					min.x = worldMin.x;
-					min.y = worldMax.y;
-					min.z = worldMax.z;
-				}
-			}
-		} else {
-			if (normal.y > 0) {
-				if (normal.z > 0) {
-					min.x = worldMax.x;
-					min.y = worldMin.y;
-					min.z = worldMin.z;
-				} else {
-					min.x = worldMax.x;
-					min.y = worldMin.y;
-					min.z = worldMax.z;
-				}
-			} else {
-				if (normal.z > 0) {
-					min.x = worldMax.x;
-					min.y = worldMax.y;
-					min.z = worldMin.z;
-				} else {
-					min.x = worldMax.x;
-					min.y = worldMax.y;
-					min.z = worldMax.z;
-				}
-			}
-		}
-	}
-
-	private void getMaxWorldVertices(Vector3f normal, Vector3f max) {
-		if (normal.x > 0) {
-			if (normal.y > 0) {
-				if (normal.z > 0) {
-					max.x = worldMax.x;
-					max.y = worldMax.y;
-					max.z = worldMax.z;
-				} else {
-					max.x = worldMax.x;
-					max.y = worldMax.y;
-					max.z = worldMin.z;
-				}
-			} else {
-				if (normal.z > 0) {
-					max.x = worldMax.x;
-					max.y = worldMin.y;
-					max.z = worldMax.z;
-				} else {
-					max.x = worldMax.x;
-					max.y = worldMin.y;
-					max.z = worldMin.z;
-				}
-			}
-		} else {
-			if (normal.y > 0) {
-				if (normal.z > 0) {
-					max.x = worldMin.x;
-					max.y = worldMax.y;
-					max.z = worldMax.z;
-				} else {
-					max.x = worldMin.x;
-					max.y = worldMax.y;
-					max.z = worldMin.z;
-				}
-			} else {
-				if (normal.z > 0) {
-					max.x = worldMin.x;
-					max.y = worldMin.y;
-					max.z = worldMax.z;
-				} else {
-					max.x = worldMin.x;
-					max.y = worldMin.y;
-					max.z = worldMin.z;
-				}
-			}
-		}
-	}
-
 	@Override
 	public FrustumIntersection testFrustum(Frustum frustum, PlaneState planeState) {
 		if (frustum == null)
@@ -477,4 +362,151 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	public String toString() {
 		return "(AxisAlignedBox min: " + worldMin + " max: " + worldMax + ")";
 	}
+
+	private void mergeAABB(AxisAlignedBox aabb) {
+		worldMax.x = Math.max(worldMax.x, aabb.worldMax.x);
+		worldMax.y = Math.max(worldMax.y, aabb.worldMax.y);
+		worldMax.z = Math.max(worldMax.z, aabb.worldMax.z);
+
+		worldMin.x = Math.min(worldMin.x, aabb.worldMin.x);
+		worldMin.y = Math.min(worldMin.y, aabb.worldMin.y);
+		worldMin.z = Math.min(worldMin.z, aabb.worldMin.z);
+	}
+
+	private void mergeSphere(BoundSphere sphere) {
+		Vector3f c = sphere.getCenter();
+		float r = sphere.getRadius();
+		worldMax.x = Math.max(worldMax.x, c.x + r);
+		worldMax.y = Math.max(worldMax.y, c.y + r);
+		worldMax.z = Math.max(worldMax.z, c.z + r);
+
+		worldMin.x = Math.min(worldMin.x, c.x - r);
+		worldMin.y = Math.min(worldMin.y, c.y - r);
+		worldMin.z = Math.min(worldMin.z, c.z - r);
+	}
+
+	private void getMinWorldVertices(Vector3f normal, Vector3f min) {
+		if (normal.x > 0) {
+			if (normal.y > 0) {
+				if (normal.z > 0) {
+					min.x = worldMin.x;
+					min.y = worldMin.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMin.x;
+					min.y = worldMin.y;
+					min.z = worldMax.z;
+				}
+			} else {
+				if (normal.z > 0) {
+					min.x = worldMin.x;
+					min.y = worldMax.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMin.x;
+					min.y = worldMax.y;
+					min.z = worldMax.z;
+				}
+			}
+		} else {
+			if (normal.y > 0) {
+				if (normal.z > 0) {
+					min.x = worldMax.x;
+					min.y = worldMin.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMax.x;
+					min.y = worldMin.y;
+					min.z = worldMax.z;
+				}
+			} else {
+				if (normal.z > 0) {
+					min.x = worldMax.x;
+					min.y = worldMax.y;
+					min.z = worldMin.z;
+				} else {
+					min.x = worldMax.x;
+					min.y = worldMax.y;
+					min.z = worldMax.z;
+				}
+			}
+		}
+	}
+
+	private void getMaxWorldVertices(Vector3f normal, Vector3f max) {
+		if (normal.x > 0) {
+			if (normal.y > 0) {
+				if (normal.z > 0) {
+					max.x = worldMax.x;
+					max.y = worldMax.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMax.x;
+					max.y = worldMax.y;
+					max.z = worldMin.z;
+				}
+			} else {
+				if (normal.z > 0) {
+					max.x = worldMax.x;
+					max.y = worldMin.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMax.x;
+					max.y = worldMin.y;
+					max.z = worldMin.z;
+				}
+			}
+		} else {
+			if (normal.y > 0) {
+				if (normal.z > 0) {
+					max.x = worldMin.x;
+					max.y = worldMax.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMin.x;
+					max.y = worldMax.y;
+					max.z = worldMin.z;
+				}
+			} else {
+				if (normal.z > 0) {
+					max.x = worldMin.x;
+					max.y = worldMin.y;
+					max.z = worldMax.z;
+				} else {
+					max.x = worldMin.x;
+					max.y = worldMin.y;
+					max.z = worldMin.z;
+				}
+			}
+		}
+	}
+	
+	private void enclosePoint(float x, float y, float z) {
+		worldMax.x = Math.max(worldMax.x, x);
+		worldMax.y = Math.max(worldMax.y, y);
+		worldMax.z = Math.max(worldMax.z, z);
+
+		worldMin.x = Math.min(worldMin.x, x);
+		worldMin.y = Math.min(worldMin.y, y);
+		worldMin.z = Math.min(worldMin.z, z);
+	}
+	
+	private static final ThreadLocal<Vector3f> c = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Vector3f> n = new ThreadLocal<Vector3f>() {
+		@Override
+		protected Vector3f initialValue() {
+			return new Vector3f();
+		}
+	};
+	private static final ThreadLocal<Matrix3f> m = new ThreadLocal<Matrix3f>() {
+		@Override
+		protected Matrix3f initialValue() {
+			return new Matrix3f();
+		}
+	};
 }
