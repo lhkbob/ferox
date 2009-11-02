@@ -2,6 +2,7 @@ package com.ferox.shader;
 
 import com.ferox.math.Color4f;
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.resource.Geometry;
 
 /**
  * FixedFunctionShader is a sub-class of OpenGlShader that exposes the majority
@@ -97,7 +98,8 @@ public class FixedFunctionShader extends OpenGlShader<FixedFunctionShader> {
 		setAntiAliasingEnabled(false);
 		setWidth(1f);
 		
-		// leave geometry unbound
+		setGeometryBindings(Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
+							Geometry.DEFAULT_TEXCOORD_NAME);
 	}
 
 	/**
@@ -236,6 +238,16 @@ public class FixedFunctionShader extends OpenGlShader<FixedFunctionShader> {
 		}
 		
 		return this;
+	}
+
+	/**
+	 * Clear all previously set name bindings for vertices, normals and texture
+	 * coordinates. This is equivalent to setGeometryBindings(null, null, null).
+	 * 
+	 * @return This Shader
+	 */
+	public FixedFunctionShader resetGeometryBindings() {
+		return setGeometryBindings(null, null, (String[]) null);
 	}
 
 	/**

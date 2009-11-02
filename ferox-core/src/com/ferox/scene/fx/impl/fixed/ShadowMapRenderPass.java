@@ -7,13 +7,13 @@ import com.ferox.math.Vector3f;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.View;
 import com.ferox.resource.Geometry;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.Shape;
 import com.ferox.shader.DirectionLight;
 import com.ferox.shader.Effect;
 import com.ferox.shader.PolygonStyle;
+import com.ferox.shader.View;
 import com.ferox.shader.PolygonStyle.DrawStyle;
 import com.ferox.util.Bag;
 

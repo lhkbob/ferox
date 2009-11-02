@@ -6,22 +6,22 @@ package com.ferox.renderer;
  * 
  * @author Michael Ludwig
  */
-public class UnsupportedEffectException extends RenderException {
+public class UnsupportedShaderException extends RenderException {
 	private static final long serialVersionUID = 1L;
 
-	public UnsupportedEffectException() {
+	public UnsupportedShaderException() {
 		super();
 	}
 
-	public UnsupportedEffectException(String arg0) {
+	public UnsupportedShaderException(String arg0) {
 		super(arg0);
 	}
 
-	public UnsupportedEffectException(Throwable arg0) {
+	public UnsupportedShaderException(Throwable arg0) {
 		super(arg0);
 	}
 
-	public UnsupportedEffectException(String arg0, Throwable arg1) {
+	public UnsupportedShaderException(String arg0, Throwable arg1) {
 		super(arg0, arg1);
 	}
 }

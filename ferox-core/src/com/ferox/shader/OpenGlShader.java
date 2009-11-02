@@ -38,6 +38,9 @@ public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader 
 		SOLID, LINE, POINT, NONE
 	}
 	
+	// view
+	private View view;
+	
 	// blending
 	private final BlendMode blendRgb;
 	private final BlendMode blendAlpha;
@@ -98,6 +101,34 @@ public abstract class OpenGlShader<T extends OpenGlShader<T>> implements Shader 
 		
 		setStencilWriteMask(~0);
 		setStencilTestEnabled(false);
+	}
+
+	/**
+	 * Return the View that's to be used for this OpenGlShader. Any Geometry
+	 * rendered with this Shader should be drawn as if it were being viewed from
+	 * this View's perspective. Depending on the sub-class, the subclass may be
+	 * responsible for performing those calculations. In other cases, the
+	 * Framework must do this logic.
+	 * 
+	 * @return The View used by this Shader
+	 */
+	public View getView() {
+		return view;
+	}
+
+	/**
+	 * Assign a new View instance to use for this OpenGlShader. This View cannot
+	 * be null.
+	 * 
+	 * @param view The new View
+	 * @return This Shader
+	 * @throws NullPointerException
+	 */
+	public T setView(View view) {
+		if (view == null)
+			throw new NullPointerException("Cannot specify a null view");
+		this.view = view;
+		return (T) this;
 	}
 	
 	/**

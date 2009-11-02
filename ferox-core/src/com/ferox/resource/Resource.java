@@ -14,16 +14,22 @@ import com.ferox.renderer.Framework;
  * Resource cannot be used until its been updated by a Framework. There are
  * multiple ways that a Resource can be updated, some of which are automatic:
  * <ol>
- * <li>Implement a ResourceManager to call update() and cleanUp() with the
- * necessary Resources and a Renderer from the Framework</li>
- * <li>Use a Framework's requestUpdate() and requestCleanUp() methods to
- * schedule an update/cleanup for the next frame</li>
+ * <li>Implement some manager to call update() and cleanup() with the necessary
+ * Resources, and monitor the returned Futures</li>
+ * <li>Use a Framework's update() and cleanup() methods and trust that they
+ * complete as needed (per their contract).</li>
  * <li>Rely on the Framework automatically updating a Resource if it's never
  * seen the Resource before, or if the Resource has a non-null dirty descriptor</li>
  * </ol>
  * Although the Resource can be automatically updated by a Framework, it must be
  * manually cleaned-up. A Framework that's destroyed will have any remaining
  * Resource's internal data cleaned up, too.
+ * </p>
+ * <p>
+ * It is not required that Resource implementations be thread-safe. A Framework
+ * is responsible for acquiring a lock. Even so, care should be given to
+ * modifying Resources that have a pending update or cleanup task for a
+ * Framework.
  * </p>
  * 
  * @author Michael Ludwig
@@ -71,7 +77,9 @@ public interface Resource {
 	 * <p>
 	 * Implementations should document what type of object is returned, and
 	 * override the return type, too. The returned dirty descriptor must be an
-	 * immutable object (according to its public interface).
+	 * immutable object. Every time the dirty descriptor must be expanded to
+	 * represent more state, a new instance should be created that has a
+	 * superset of the dirty attributes of the previous instance.
 	 * </p>
 	 * <p>
 	 * Because there is only one dirty descriptor per Resource, a
@@ -79,9 +87,9 @@ public interface Resource {
 	 * </p>
 	 * <p>
 	 * The descriptor is the minimal set of values needed to be updated.
-	 * Renderers should not update less than what is described by the object. If
-	 * a Resource is manually updated and it's descriptor is null, the entire
-	 * Resource should be updated entirely, for lack of a better alternative.
+	 * Frameworks should not update less than what is described by the object.
+	 * If a Resource is manually updated and it's descriptor is null, the entire
+	 * Resource should be updated, for lack of a better alternative.
 	 * </p>
 	 * 
 	 * @return Implementations specific object describing what parts of the
@@ -91,8 +99,8 @@ public interface Resource {
 
 	/**
 	 * <p>
-	 * Should only be called by Renderer implementations when an update is
-	 * completed and the Resource is no longer deemed dirty from the Renderer's
+	 * Should only be called by Framework implementations when an update is
+	 * completed and the Resource is no longer deemed dirty from the Framework's
 	 * point of view.
 	 * </p>
 	 * <p>

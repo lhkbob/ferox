@@ -1,4 +1,4 @@
-package com.ferox.renderer;
+package com.ferox.shader;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
@@ -123,7 +123,7 @@ public class View {
 		// restore frustum references, and auto update the planes,
 		// will also ortho-normalize direction and up
 		frustum.setOrientation(location, direction, up);
-		Vector3f left = up.cross(direction, View.l.get()).normalize();
+		Vector3f left = up.cross(direction, View.l.get());
 
 		// update viewTrans to the basis vectors and new location
 		Matrix3f m = viewTrans.getRotation();

@@ -68,11 +68,11 @@ public class Shape extends AbstractSceneElement {
 	public Geometry getGeometry() {
 		return geometry;
 	}
-	
+
 	/**
 	 * Assign geom to be this Shape's new Geometry for use when rendering. Every
-	 * Shape requires a non-null Geometry. If geom doesn't have a status of OK
-	 * or DIRTY when the Shape will be rendered, the Shape will not appear.
+	 * Shape requires a non-null Geometry. If geom doesn't have a status of
+	 * READY when the Shape will be rendered, the Shape will not appear.
 	 * 
 	 * @param geometry The new Geometry to use
 	 * @throws NullPointerException if geom is null

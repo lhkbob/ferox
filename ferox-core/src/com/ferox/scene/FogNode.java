@@ -3,7 +3,6 @@ package com.ferox.scene;
 import com.ferox.math.Color4f;
 import com.ferox.math.bounds.BoundSphere;
 import com.ferox.shader.Fog;
-import com.ferox.shader.Effect.Quality;
 import com.ferox.shader.Fog.FogEquation;
 
 /**

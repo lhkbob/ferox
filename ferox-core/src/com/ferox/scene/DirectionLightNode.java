@@ -2,7 +2,6 @@ package com.ferox.scene;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
-import com.ferox.shader.DirectionLight;
 
 /**
  * A subclass of LightNode that works with DirectionLights. It provides
@@ -10,7 +9,7 @@ import com.ferox.shader.DirectionLight;
  * 
  * @author Michael Ludwig
  */
-public class DirectionLightNode extends LightNode<DirectionLight> {
+public class DirectionLightNode extends LightNode {
 	/**
 	 * Create a DirectionLightNode with a DirectionLight created with the given
 	 * arguments.

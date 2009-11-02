@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
-import com.ferox.math.ReadOnly;
 import com.ferox.math.Transform;
 import com.ferox.math.bounds.BoundVolume;
+import com.ferox.util.ReadOnly;
 
 /**
  * <p>

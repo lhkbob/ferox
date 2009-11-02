@@ -1,7 +1,7 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.math.Transform;
-import com.ferox.renderer.View;
+import com.ferox.shader.View;
 
 /**
  * <p>

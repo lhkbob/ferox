@@ -1,24 +1,24 @@
 package com.ferox.util.geom;
 
 import com.ferox.math.Vector3f;
-import com.ferox.resource.IndexedArrayGeometry;
+import com.ferox.resource.Geometry;
+import com.ferox.resource.PolygonType;
+import com.ferox.resource.VectorBuffer;
 
 /**
+ * <p>
  * A Rectangle is a single quad aligned with a specified x and y axis, in three
  * dimensions. It is very useful for fullscreen effects that require rendering a
  * rectangle across the entire screen.
+ * </p>
+ * <p>
+ * By default, a Rectangle is configured to have its vertices, normals and texture
+ * coordinates use the default attribute names defined in Geometry.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public class Rectangle extends IndexedArrayGeometry {
-	private float left;
-	private float right;
-	private float top;
-	private float bottom;
-
-	private final Vector3f yAxis;
-	private final Vector3f xAxis;
-
+public class Rectangle extends PrimitiveGeometry {
 	/**
 	 * Create a Rectangle with standard basis vectors with its lower left corner
 	 * at the origin, extending to <width, height>.
@@ -59,73 +59,32 @@ public class Rectangle extends IndexedArrayGeometry {
 	 */
 	public Rectangle(Vector3f xAxis, Vector3f yAxis, 
 					 float left, float right, float bottom, float top) {
-		super(CompileType.NONE);
-		this.yAxis = new Vector3f();
-		this.xAxis = new Vector3f();
+		this(xAxis, yAxis, left, right, bottom, top, CompileType.NONE,
+			 Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
+	}
 
+	/**
+	 * Create a Rectangle with the given basis vectors and edge dimensions. It
+	 * will also use the given basis vectors and edge dimensions. Unlike the
+	 * other constructors which use the default Geometry attribute names, this
+	 * one allows you to specify them.
+	 * 
+	 * @param xAxis
+	 * @param yAxis
+	 * @param left
+	 * @param right
+	 * @param bottom
+	 * @param top
+	 * @param type The compile type to use
+	 * @param vertexName The name for the vertex attribute
+	 * @param normalName The name for the normals attribute
+	 * @param tcName The name for the texture coordinates attribute
+	 */
+	public Rectangle(Vector3f xAxis, Vector3f yAxis, 
+				     float left, float right, float bottom, float top, 
+					 CompileType type, String vertexName, String normalName, String tcName) {
+		super(type, vertexName, normalName, tcName);
 		setData(xAxis, yAxis, left, right, bottom, top);
-	}
-
-	/**
-	 * Return the local x-axis for this square, it points in the positive x
-	 * direction.
-	 * 
-	 * @param store The vector to hold the x axis, or null if a new vector is to
-	 *            be used
-	 * @return The x axis, held in store or a new vector if it was null
-	 */
-	public Vector3f getXAxis(Vector3f store) {
-		if (store == null)
-			store = new Vector3f();
-		store.set(xAxis);
-		return store;
-	}
-
-	/**
-	 * Return the local y-axis for this square, it points in the positive y
-	 * direction.
-	 * 
-	 * @param store The vector to hold the y axis, or null if a new vector is to
-	 *            be used
-	 * @return The y axis, held in store or a new vector if it was null
-	 */
-	public Vector3f getYAxis(Vector3f store) {
-		if (store == null)
-			store = new Vector3f();
-		store.set(yAxis);
-		return store;
-	}
-
-	/**
-	 * @return the left edge's position, relative to this Rectangle's local
-	 *         x-axis.
-	 */
-	public float getLeft() {
-		return left;
-	}
-
-	/**
-	 * @return the right edge's position, relative to this Rectangle's local
-	 *         x-axis.
-	 */
-	public float getRight() {
-		return right;
-	}
-
-	/**
-	 * @return the bottom edge's position, relative to this Rectangle's local
-	 *         y-axis.
-	 */
-	public float getBottom() {
-		return bottom;
-	}
-
-	/**
-	 * @return the top edge's position, relative to this Rectangle's local
-	 *         y-axis.
-	 */
-	public float getTop() {
-		return top;
 	}
 
 	/**
@@ -147,15 +106,11 @@ public class Rectangle extends IndexedArrayGeometry {
 			throw new IllegalArgumentException("Side positions of the square are incorrect");
 
 		if (xAxis == null)
-			this.xAxis.set(1f, 0f, 0f);
-		else
-			this.xAxis.set(xAxis);
+			xAxis = new Vector3f(1f, 0f, 0f);
 		if (yAxis == null)
-			this.yAxis.set(0f, 1f, 0f);
-		else
-			this.yAxis.set(yAxis);
+			yAxis = new Vector3f(0f, 1f, 0f);
 
-		Vector3f normal = this.xAxis.cross(this.yAxis, null);
+		Vector3f normal = xAxis.cross(yAxis, null);
 
 		float[] vertices = new float[12];
 		float[] normals = new float[12];
@@ -163,9 +118,9 @@ public class Rectangle extends IndexedArrayGeometry {
 		int[] indices = new int[4];
 
 		// lower-left
-		vertices[0] = this.xAxis.x * left + this.yAxis.x * bottom;
-		vertices[1] = this.xAxis.y * left + this.yAxis.y * bottom;
-		vertices[2] = this.xAxis.z * left + this.yAxis.z * bottom;
+		vertices[0] = xAxis.x * left + yAxis.x * bottom;
+		vertices[1] = xAxis.y * left + yAxis.y * bottom;
+		vertices[2] = xAxis.z * left + yAxis.z * bottom;
 
 		normals[0] = normal.x;
 		normals[1] = normal.y;
@@ -175,9 +130,9 @@ public class Rectangle extends IndexedArrayGeometry {
 		texCoords[1] = 0f;
 
 		// lower-right
-		vertices[3] = this.xAxis.x * right + this.yAxis.x * bottom;
-		vertices[4] = this.xAxis.y * right + this.yAxis.y * bottom;
-		vertices[5] = this.xAxis.z * right + this.yAxis.z * bottom;
+		vertices[3] = xAxis.x * right + yAxis.x * bottom;
+		vertices[4] = xAxis.y * right + yAxis.y * bottom;
+		vertices[5] = xAxis.z * right + yAxis.z * bottom;
 
 		normals[3] = normal.x;
 		normals[4] = normal.y;
@@ -187,9 +142,9 @@ public class Rectangle extends IndexedArrayGeometry {
 		texCoords[3] = 0f;
 
 		// uppper-right
-		vertices[6] = this.xAxis.x * right + this.yAxis.x * top;
-		vertices[7] = this.xAxis.y * right + this.yAxis.y * top;
-		vertices[8] = this.xAxis.z * right + this.yAxis.z * top;
+		vertices[6] = xAxis.x * right + yAxis.x * top;
+		vertices[7] = xAxis.y * right + yAxis.y * top;
+		vertices[8] = xAxis.z * right + yAxis.z * top;
 
 		normals[6] = normal.x;
 		normals[7] = normal.y;
@@ -199,9 +154,9 @@ public class Rectangle extends IndexedArrayGeometry {
 		texCoords[5] = 1f;
 
 		// upper-left
-		vertices[9] = this.xAxis.x * left + this.yAxis.x * top;
-		vertices[10] = this.xAxis.y * left + this.yAxis.y * top;
-		vertices[11] = this.xAxis.z * left + this.yAxis.z * top;
+		vertices[9] = xAxis.x * left + yAxis.x * top;
+		vertices[10] = xAxis.y * left + yAxis.y * top;
+		vertices[11] = xAxis.z * left + yAxis.z * top;
 
 		normals[9] = normal.x;
 		normals[10] = normal.y;
@@ -215,15 +170,10 @@ public class Rectangle extends IndexedArrayGeometry {
 		indices[1] = 1;
 		indices[2] = 2;
 		indices[3] = 3;
-
-		setVertices(vertices);
-		setNormals(normals);
-		setTextureCoordinates(0, new VectorBuffer(texCoords, 2));
+		
+		setAttribute(getVertexName(), new VectorBuffer(vertices, 3));
+		setAttribute(getNormalName(), new VectorBuffer(normals, 3));
+		setAttribute(getTextureCoordinateName(), new VectorBuffer(texCoords, 2));
 		setIndices(indices, PolygonType.QUADS);
-
-		this.left = left;
-		this.right = right;
-		this.bottom = bottom;
-		this.top = top;
 	}
 }

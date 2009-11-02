@@ -2,13 +2,15 @@ package com.ferox.renderer;
 
 /**
  * <p>
- * A RenderPass describes a view from which it is rendered and provides an
- * abstract method for rendering content into surfaces for a Framework, will
- * render the visible scene based on the pass's view object.
+ * A RenderPass is the mechanism with which content can be rendered into
+ * a RenderSurface for a Framework.  A RenderPass's {@link #render(Renderer, RenderSurface)} 
+ * method is invoked when appropriate by a Framework so that the Renderer's
+ * render() method can be called.  It is the pass's responsibility to
+ * specify Geometry's and Shader's to describe a meaningful scene.
  * </p>
  * <p>
  * Implementations should provide means to set and access the visible entities
- * to be rendered.
+ * to be rendered.  These modifiers should strive to be as thread-safe as possible.
  * </p>
  * 
  * @author Michael Ludwig
@@ -16,25 +18,17 @@ package com.ferox.renderer;
 public interface RenderPass {
 	/**
 	 * <p>
-	 * Render the prepared pass. The preparation and rendering is split into
-	 * separate phases because a RenderPass may be used in multiple
-	 * RenderSurfaces, requiring that it is rendered more than once, but
-	 * preparing is required just once. This method is responsible for invoking
-	 * renderAtom(atom) as necessary on renderer.
-	 * </p>
+	 * Render the Geometry's and Shader's explicitly or implicitly described in
+	 * this RenderPass.
 	 * <p>
-	 * Implementations can assume that this method is called appropriately and
-	 * after a method call to preparePass(renderer). Also, renderer and view can
-	 * be assumed to be non-null. The specified view will be applied, so that
-	 * atoms rendered via renderer.renderAtom() will be correcly rendered from
-	 * that view point and projection.
+	 * Implementations can assume that this method is called appropriately by
+	 * the Framework with a usable Renderer.
 	 * </p>
 	 * 
-	 * @see #preparePass()
 	 * @param renderer The Renderer that is actively rendering on the calling
 	 *            Thread
+	 * @param surface The RenderSurface that this RenderPass will be rendered
+	 *            into
 	 */
-	public void render(Renderer renderer);
-
-	public View getView();
+	public void render(Renderer renderer, RenderSurface surface);
 }

@@ -1,11 +1,15 @@
 package com.ferox.util.geom;
 
 import com.ferox.math.Vector3f;
-import com.ferox.resource.IndexedArrayGeometry;
+import com.ferox.resource.Geometry;
+import com.ferox.resource.PolygonType;
+import com.ferox.resource.VectorBuffer;
 
 /**
  * <p>
- * A Box represents a 6 sided rectangular prism.
+ * A Box represents a 6 sided rectangular prism. By default, a Box is configured
+ * to have its vertices, normals and texture coordinates use the default
+ * attribute names defined in Geometry.
  * </p>
  * <p>
  * This code was ported from com.jme.scene.shapes.Box
@@ -13,10 +17,7 @@ import com.ferox.resource.IndexedArrayGeometry;
  * 
  * @author Michael Ludwig
  */
-public class Box extends IndexedArrayGeometry {
-	private final Vector3f center = new Vector3f();
-	private float xExtent, yExtent, zExtent;
-
+public class Box extends PrimitiveGeometry {
 	/**
 	 * Construct a box centered on its origin, with the given side length. So,
 	 * Box(1f) creates a unit cube. Uses CompileType.NONE.
@@ -24,7 +25,7 @@ public class Box extends IndexedArrayGeometry {
 	 * @param side The side length of the created cube
 	 */
 	public Box(float side) {
-		this(side, CompileType.VERTEX_ARRAY);
+		this(side, CompileType.NONE);
 	}
 
 	/**
@@ -36,7 +37,7 @@ public class Box extends IndexedArrayGeometry {
 	 * @throws NullPointerException if min or max are null
 	 */
 	public Box(Vector3f min, Vector3f max) {
-		this(min, max, CompileType.VERTEX_ARRAY);
+		this(min, max, CompileType.NONE);
 	}
 
 	/**
@@ -48,7 +49,7 @@ public class Box extends IndexedArrayGeometry {
 	 */
 	public Box(float side, CompileType type) {
 		this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
-			new Vector3f(side / 2f, side / 2f, side / 2f), type);
+			 new Vector3f(side / 2f, side / 2f, side / 2f), type);
 	}
 
 	/**
@@ -61,24 +62,26 @@ public class Box extends IndexedArrayGeometry {
 	 * @throws NullPointerException if min or max are null
 	 */
 	public Box(Vector3f min, Vector3f max, CompileType type) {
-		super(type);
-		// set the data, this will set vertices, normals, etc.
-		// as needed in super-class
-		setData(min, max);
+		this(min, max, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
+			 Geometry.DEFAULT_TEXCOORD_NAME);
 	}
 
 	/**
-	 * Returns the current center of this box, in local space. The result is
-	 * stored within store. If store is null, a new vector is created.
+	 * Construct a new Box with the given minimum and maximum points. These
+	 * points are opposite corners of the box. Unlike other constructors which
+	 * use the default attribute names, this constructor allows you to configure
+	 * them as you wish.
 	 * 
-	 * @param store The vector to hold the center
-	 * @return store, or a new Vector3f holding the center
+	 * @param min Minimum corner of the box
+	 * @param max Maximum corner
+	 * @param type The CompileType to use
+	 * @param vertexName The name for vertices
+	 * @param normalName The name for normals
+	 * @param tcName The name for texture coordinates
 	 */
-	public Vector3f getCenter(Vector3f store) {
-		if (store == null)
-			store = new Vector3f();
-		store.set(center);
-		return store;
+	public Box(Vector3f min, Vector3f max, CompileType type, String vertexName, String normalName, String tcName) {
+		super(type, vertexName, tcName, normalName);
+		setData(min, max);
 	}
 
 	/**
@@ -90,6 +93,12 @@ public class Box extends IndexedArrayGeometry {
 	 * This assumes that minPoint represents the minimum coordinate point of the
 	 * box, and maxPoint is the max. If this isn't true, results are undefined.
 	 * </p>
+	 * <p>
+	 * The vertices, normals and texture coordinates will be placed in
+	 * attributes with the default names defined in Geometry. If you wish to use
+	 * different attribute names, invoke
+	 * {@link #redefineAttributes(String, String, String)} to use the new names.
+	 * </p>
 	 * 
 	 * @param minPoint Minimum corner of the box
 	 * @param maxPoint Maximum corner of the box
@@ -99,17 +108,12 @@ public class Box extends IndexedArrayGeometry {
 		if (minPoint == null || maxPoint == null)
 			throw new NullPointerException("minPoint and maxPoint cannot be null");
 
-		minPoint.add(maxPoint, center).scale(.5f, center);
+		Vector3f center = minPoint.add(maxPoint, null).scale(.5f);
 
-		xExtent = maxPoint.x - center.x;
-		yExtent = maxPoint.y - center.y;
-		zExtent = maxPoint.z - center.z;
+		float xExtent = maxPoint.x - center.x;
+		float yExtent = maxPoint.y - center.y;
+		float zExtent = maxPoint.z - center.z;
 
-		updateData();
-	}
-
-	/* Set all of the IndexedArrayGeometry's fields to be valid. */
-	private void updateData() {
 		float[] v = new float[72];
 		float[] n = new float[72];
 		float[] t = new float[48];
@@ -169,9 +173,9 @@ public class Box extends IndexedArrayGeometry {
 		18, 17, 16, 19, 18, 16, // top
 		22, 21, 20, 23, 22, 20 }; // bottom
 
-		setVertices(v);
+		setAttribute(getVertexName(), new VectorBuffer(n, 3));
+		setAttribute(getNormalName(), new VectorBuffer(n, 3));
+		setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
 		setIndices(indices, PolygonType.TRIANGLES);
-		setNormals(n);
-		setTextureCoordinates(0, new VectorBuffer(t, 2));
 	}
 }

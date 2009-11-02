@@ -5,7 +5,6 @@ import com.ferox.math.Transform;
 import com.ferox.renderer.RenderAtom;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.View;
 import com.ferox.resource.Geometry;
 import com.ferox.scene.LightNode;
 import com.ferox.scene.SceneElement;
@@ -14,6 +13,7 @@ import com.ferox.scene.fx.Appearance;
 import com.ferox.shader.Effect;
 import com.ferox.shader.GlobalLighting;
 import com.ferox.shader.Light;
+import com.ferox.shader.View;
 import com.ferox.util.Bag;
 
 public class BaseRenderPass implements RenderPass {

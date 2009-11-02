@@ -2,6 +2,7 @@ package com.ferox.util.geom;
 
 import com.ferox.math.Vector3f;
 import com.ferox.resource.IndexedArrayGeometry;
+import com.ferox.resource.VectorBuffer;
 
 /**
  * <p>

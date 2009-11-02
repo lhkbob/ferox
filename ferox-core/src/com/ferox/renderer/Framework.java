@@ -1,5 +1,7 @@
 package com.ferox.renderer;
 
+import java.util.concurrent.Future;
+
 import com.ferox.math.Color4f;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
@@ -9,13 +11,41 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * <p>
  * The Framework is the core component for rendering with Ferox. It controls the
  * creation of RenderSurfaces, which store the final render outputs, organizes
- * the resources and, internally, handles all necessary operations for rendering
+ * the Resources and, internally, handles all necessary operations for rendering
  * queued surfaces.
  * </p>
  * <p>
- * Framework is not meant to be a thread-safe interface, and unless an
- * implementation specifically declares itself as such, the methods of a
- * Framework should only be called from a single thread.
+ * The lifecycle of a Framework often fits the following pattern:
+ * <ol>
+ * <li>Initialize the Framework and create the RenderSurfaces necessary</li>
+ * <li>Render some number of frames, which involves queuing the RenderSurfaces
+ * and then invoking {@link #render()}</li>
+ * <li>At the same time as above, Resources may be updated and cleaned up based
+ * on need of the application</li>
+ * <li>The Framework is destroyed and is no longer usable</li>
+ * </ol>
+ * Another variant might represent a 3D editor where the RenderSurfaces are
+ * created and destroyed more dynamically in response to user action.
+ * </p>
+ * <p>
+ * Framework implementations must be thread-safe such that all methods can be
+ * invoked from any thread at any time. Depending on the type of action
+ * performed by the action, the methods may return immediately with the result,
+ * block until capable of performing the action, or schedule some future task
+ * that will be performed automatically. Generally, blocking methods are methods
+ * that are called infrequently such as RenderSurface creation and destruction,
+ * or Framework destruction. Methods that return immediately are queries to
+ * immutable objects or are RenderSurface queues (which will be described in
+ * more detail later). Methods with future tasks are those that are performed
+ * frequently and benefit most from the ability of multi-threading, such as
+ * managing resources and rendering frames.
+ * </p>
+ * <p>
+ * When queuing RenderSurfaces for a frame, each Thread maintains its own
+ * RenderSurface queue. This is so that the queues from one Thread do not
+ * contaminate the ordering of the queue in another Thread. When a frame is
+ * rendered from a Thread, it uses the queue for the calling Thread (even if the
+ * rendering logic is executed on another Thread entirely).
  * </p>
  * <p>
  * There are three primary interfaces that Frameworks rely on to describe the
@@ -38,8 +68,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * Although the get/setRenderData() methods in Resource allow for multiple
  * simultaneous Frameworks, it is highly recommended that only one Framework be
  * used for efficiency purposes. It is unlikely that there should ever be a need
- * for multiple distinct Frameworks. One exception would be if a Framework
- * implementation wrapped an actual Framework to provide extra functionality.
+ * for multiple simultaneous Frameworks.
  * </p>
  * 
  * @author Michael Ludwig
@@ -80,8 +109,7 @@ public interface Framework {
 	 * @throws SurfaceCreationException if the Framework cannot create the
 	 *             WindowSurface, such as if there is an active
 	 *             FullscreenSurface
-	 * @throws RenderStateException if the Framework is rendering, or if the
-	 *             Framework is destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public WindowSurface createWindowSurface(DisplayOptions options, 
 											 int x, int y, int width, int height, 
@@ -98,10 +126,10 @@ public interface Framework {
 	 * Framework may change them to create a fullscreen surface.
 	 * </p>
 	 * <p>
-	 * There may only be one fullscreen surface at one time. An exception will
+	 * There may only be one fullscreen surface at any time. An exception will
 	 * be thrown if another fullscreen surface exists from this Framework and
 	 * that surface isn't destroyed. Similarly, the fullscreen surface can't be
-	 * created until all window surfaces are destroyed, too.
+	 * created until all window surfaces are destroyed.
 	 * </p>
 	 * 
 	 * @param options The requested DisplayOptions
@@ -110,32 +138,32 @@ public interface Framework {
 	 * @throws SurfaceCreationException if the Framework cannot create the
 	 *             FullscreenSurface, such as if there's an active WindowSurface
 	 *             already
-	 * @throws RenderStateException if the Framework is rendering, or if the
-	 *             Framework is destroyed
+	 * @throws RenderException if the Framework if has been destroyed
 	 */
 	public FullscreenSurface createFullscreenSurface(DisplayOptions options, 
 													 int width, int height);
 
 	/**
 	 * <p>
-	 * Create a texture surface that can be used to render into textures. The
+	 * Create a TextureSurface that can be used to render into textures. The
 	 * Framework will create new textures that can be retrieved by calling the
 	 * returned surface's getColorBuffer(target) and getDepthBuffer() methods.
 	 * The size of the texture is determined by the width, height, and depth
-	 * values and its formatting and type is chosen by the display options. In
+	 * values and its formatting and type is chosen by the DisplayOptions. In
 	 * options, if the pixel format is NONE, then no textures will be created
 	 * for the color buffers. Similarly, if the depth format is NONE, no texture
 	 * is created for the depth buffer. (see about useDepthRenderBuffer below).
 	 * </p>
 	 * <p>
 	 * Like the other surface creation methods, the Framework is free to change
-	 * the parameters to make a surface created.
+	 * the parameters to make a surface create-able.
 	 * </p>
 	 * <p>
 	 * The target value tells the Framework what type of texture to use (for all
-	 * buffers of the surface). If the target is T_1D, or T_CUBEMAP then height,
-	 * depth and layer are ignored. If target is T_2D or T_RECT, then depth and
-	 * layer are ignored. If target is T_3D, nothing is ignored.
+	 * buffers of the surface). If the target is T_1D then height, depth and
+	 * layer are ignored. If the target is T_CUBEMAP then height, and depth are
+	 * ignored. If target is T_2D or T_RECT, then depth and layer are ignored.
+	 * If target is T_3D, nothing is ignored.
 	 * </p>
 	 * <p>
 	 * The layer value has the same meaning as it does in getLayer() of
@@ -144,9 +172,9 @@ public interface Framework {
 	 * </p>
 	 * <p>
 	 * numColorTargets requests the surface to use the given number of color
-	 * targets. For glsl shader writers, the textures returned by
+	 * targets. For GLSL shader's, the textures returned by
 	 * getColorBuffer(target) correspond to the low-level color targets
-	 * supported by glsl. If options has a pixel format of NONE, then
+	 * supported by GLSL. If options has a pixel format of NONE, then
 	 * numColorTargets is ignored and will be 0 for the returned surface. If
 	 * numColorTargets is not ignored, then it will be clamped between [1,
 	 * maxColorTargets].
@@ -160,18 +188,21 @@ public interface Framework {
 	 * depth texture would be created, then useDepthRenderBuffer is ignored.
 	 * </p>
 	 * <p>
-	 * If target is one of T_CUBEMAP or T_3D, cubemap and 3d textures aren't
-	 * supported with a DEPTH format. If the requested depth format is not NONE,
-	 * then a Texture2D/Rectangle will be created that will be shared by each
-	 * layer of the color buffers. If separate depth data is necessary (e.g. for
-	 * point shadow mapping), you should do cubemap unrolling into a Texture2D.
+	 * Because T_CUBEMAP and T_3D textures do not support the DEPTH format, the
+	 * created TextureSurface cannot have a depth buffer of the same texture
+	 * type. If the requested depth format is not NONE in this case, then a
+	 * Texture2D or TextureRectangle will be created that will be shared by each
+	 * layer of the color buffers. If you need separate depth data for each
+	 * layer, you must use some other solution (such as cube map "unrolling").
 	 * </p>
 	 * <p>
 	 * All texture images created for the TextureSurface (and then returned by
-	 * its getXBuffer() methods) must be updated and ready to use (e.g. it's not
-	 * necessary to update the textures by a resource manager unless you change
-	 * the texture parameters of the image). Each texture image should return a
-	 * null BufferData for its image data.
+	 * its getXBuffer() methods) will be ready to use (e.g. it's not necessary
+	 * to update the textures unless you change the texture parameters of the
+	 * image). Each texture image should return a null BufferData for its image
+	 * data. It is illegal to cleanup the TextureSurface's textures. When a
+	 * TextureSurface is destroyed, it will cleanup all of its associated
+	 * textures (assuming no other TextureSurface references them).
 	 * </p>
 	 * 
 	 * @param options The requested DisplayOptions, affects the chosen texture
@@ -192,8 +223,7 @@ public interface Framework {
 	 * @throws SurfaceCreationException if the TextureSurface can't be created,
 	 *             because dimensions were invalid for the target, the layer was
 	 *             invalid (if not ignored), or if they are unsupported, etc.
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             destroyed
+	 * @throws RenderException if the Framework has already been destroyed
 	 */
 	public TextureSurface createTextureSurface(DisplayOptions options, TextureTarget target, 
 											   int width, int height, int depth, int layer, 
@@ -202,7 +232,7 @@ public interface Framework {
 	/**
 	 * <p>
 	 * Create a texture surface that uses the exact same textures as the given
-	 * surface (e.g. its getXBuffer() methods return the same texture images).
+	 * surface (e.g. its getXBuffer() methods return the same TextureImages).
 	 * The new surface will have the same format, same number of color targets,
 	 * and the same depth buffer (including hidden depth render buffers, if they
 	 * were created for the original surface).
@@ -214,7 +244,7 @@ public interface Framework {
 	 * T_CUBEMAP). If layer would be ignored in the other createTextureSurface()
 	 * method, it is ignored here. In this case, another surface is created that
 	 * references the exact same texture data which may cause undefined
-	 * rendering results.
+	 * rendering results if the surfaces are used at the same time.
 	 * </p>
 	 * 
 	 * @param share The TextureSurface whose images are attached to for
@@ -224,17 +254,16 @@ public interface Framework {
 	 * @throws SurfaceCreationException if share is null, it's already
 	 *             destroyed, or it wasn't created by this Framework. Also fail
 	 *             if layer is invalid for the share's target type
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             been destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public TextureSurface createTextureSurface(TextureSurface share, int layer);
 
 	/**
 	 * <p>
 	 * Destroy the given RenderSurface. After a call to this method, the surface
-	 * can no longer be used for calls to queueRender() and its isDestroyed()
-	 * method will return true. The behavior of other methods of the surface are
-	 * undefined after a call to this method.
+	 * will be ignored by calls to any of the queue() methods, and its
+	 * isDestroyed() method will return true. The behavior of other methods of
+	 * the surface are undefined after a call to this method.
 	 * </p>
 	 * <p>
 	 * OnscreenSurfaces will no longer be visible after they are destroyed. When
@@ -242,140 +271,153 @@ public interface Framework {
 	 * original resolution when the surface was first created.
 	 * </p>
 	 * <p>
-	 * Invoking destroy(surface) on already destroyed surfaces should be a
-	 * no-op.
+	 * Invoking destroy(surface) on already destroyed surfaces is a no-op. If
+	 * the given surface is being used in an actively rendering frame, this call
+	 * will block until the frame has completed before it's destroyed.
 	 * </p>
 	 * 
 	 * @param surface The RenderSurface to destroy
 	 * @throws NullPointerException if surface is null
 	 * @throws IllegalArgumentException if the surface wasn't created by this
 	 *             Framework
-	 * @throws RenderStateException if this Framework is rendering or if it's
-	 *             been destroyed
+	 * @throws RenderException if this Framework has been destroyed
 	 */
 	public void destroy(RenderSurface surface);
 
 	/**
 	 * <p>
-	 * Destroy all remaining, undestroyed RenderSurfaces created by this
-	 * Framework. This method also cleans up the remaining internal resources
-	 * and any information stored directly on the graphics card that wasn't
-	 * cleaned up as the direct result of a ResourceManager.
-	 * </p>
-	 * <p>
-	 * After one Framework is destroyed, it is acceptable to create another
-	 * Framework.
+	 * Destroy all remaining active RenderSurfaces created by this Framework.
+	 * This will cancel any pending cleanups and updates and any frames that are
+	 * currently being rendered.  Even though the cleanup Futures are canceled,
+	 * the internal data will be properly discarded.
 	 * </p>
 	 * <p>
 	 * There is no matching isDestroyed() method because it is assumed that the
 	 * Framework will be discarded after it is destroyed.
 	 * </p>
+	 * <p>
+	 * This method will block until all tasks have completed that can't be
+	 * canceled.
+	 * </p>
 	 * 
-	 * @throws RenderStateException if the Framework is rendering idle, or if
-	 *             it's already been destroyed
+	 * @throws RenderException if it's already been destroyed
 	 */
 	public void destroy();
 
 	/**
 	 * <p>
-	 * Add the given ResourceManager to the Framework's list of
-	 * ResourceManagers. ResourceManagers have their manage() method called at
-	 * the beginning of each flushRenderer() call. The managers will be
-	 * processed in the order they were added (and taking into account any
-	 * removals).
+	 * Schedule an update for the given resource. Every resource must be updated
+	 * before it can be used by the Framework (including Geometries). If the
+	 * resource has never been updated before by this Framework, or if
+	 * forceFullUpdate is true, the resource will ignore the object returned by
+	 * getDirtyDescriptor(). Otherwise, the Framework must update at least
+	 * what's specified by the dirty description.
 	 * </p>
 	 * <p>
-	 * Framework implementations must provide a default ResourceManager that is
-	 * used by calls to requestUpdate() and requestCleanUp(). This default
-	 * ResourceManager is invoked before any other managers.
+	 * The update action should use the dirty descriptor instance returned by
+	 * getDirtyDescriptor() at the time this method is invoked. It should only
+	 * clear the dirty descriptor once the returned Future is done. If
+	 * subsequent update is scheduled before this one has been processed, it
+	 * should return a Future linked to the same task, and the task's dirty
+	 * descriptor should be updated to reflect the current descriptor.
 	 * </p>
 	 * <p>
-	 * Don't do anything if the manager is null, or if it's already been added
-	 * to this Framework.
-	 * </p>
-	 * 
-	 * @param manager The ResourceManager to add to the list of processed
-	 *            managers
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             already been destroyed
-	 */
-	public void addResourceManager(ResourceManager manager);
-
-	/**
-	 * Remove the given ResourceManager from the Framework's list of managers.
-	 * This method does nothing if the manager is null, or if it's not in the
-	 * Framework's list.
-	 * 
-	 * @param manager The ResourceManage to remove from the list of processed
-	 *            managers
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             already been destroyed
-	 */
-	public void removeResourceManager(ResourceManager manager);
-
-	/**
-	 * <p>
-	 * Request the given resource to be updated. If forceFullUpdate is true,
-	 * then the eventual update will force a full update.
-	 * <p>
-	 * <p>
-	 * Every Framework implementation must provide a default ResourceManager
-	 * that is used by calls to requestUpdate() and requestCleanUp(). It is
-	 * responsible for making sure that a specific resource instance is only
-	 * updated or cleaned once per frame.
+	 * An important note about the update/clean-up process of the Framework: If
+	 * a resource hasn't been used before or has been cleaned-up, but is needed
+	 * when rendering, it will be automatically updated. If the resource has a
+	 * non-null dirty descriptor when it's needed, it will also be updated.
 	 * </p>
 	 * <p>
-	 * Requested updates and clean-ups will be performed in the order of the
-	 * method calls (updates and clean-ups may then be interleaved in some
-	 * cases, then). Resources that rely on other resources must be updated
-	 * after the required resources have been updated.
+	 * An update will be guaranteed completed before a Resource must be used by
+	 * by a Renderer. The scheduling of an update will cancel an cleanup
+	 * requests that haven't yet been processed. An update can be canceled
+	 * manually, by scheduling a cleanup, or when the Framework is destroyed.
 	 * </p>
 	 * <p>
-	 * A call to this method will override an old update or clean-up request.
-	 * The request, if it's not overridden later, will be completed at the start
-	 * of the next call to renderFrame().
-	 * </p>
-	 * <p>
-	 * Note that an exception may be thrown later if the resource would fail the
-	 * requirements for the actual update() method.
+	 * When canceling an update manually, there is a small window of time where
+	 * the Framework has begun updating it but before it has completed where the
+	 * task is no longer cancel-able.
 	 * </p>
 	 * 
-	 * @param resource The resource that's to be updated next frame
-	 * @param forceFullUpdate Whether or not the resource should have a complete
-	 *            update
+	 * @param resource The Resource to be updated
+	 * @param forceFullUpdate Whether or not the update should ignore dirty
+	 *            descriptions of the resource
+	 * @return A Future that can be used to determine when the update completes,
+	 *         the Status held by the Future is the new status of the Resource
 	 * @throws NullPointerException if resource is null
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             already been destroyed
+	 * @throws UnsupportedResourceException if the resource implementation is
+	 *             unsupported by this Framework
 	 */
-	public void requestUpdate(Resource resource, boolean forceFullUpdate);
+	public Future<Status> update(Resource resource, boolean forceFullUpdate);
 
 	/**
-	 * Request the given resource to be cleaned up. This is the counterpart to
-	 * requestUpdate() and functions similarly, except it will eventually clean
-	 * the resource instead of update it.
+	 * <p>
+	 * Cleanup the low-level, graphics hardware related data for the given
+	 * Resource. This is a request to the Framework to cleanup the Resource, and
+	 * the Framework will process it at some time near in the future. If the
+	 * Resource has been scheduled for an update that has yet to occur, this
+	 * will cancel the update.
+	 * </p>
+	 * <p>
+	 * Unlike the destroy() methods, a resource is still usable after it has
+	 * been cleaned. Its attributes and data can be modified; the only
+	 * requirement is that it must be updated again before it can be used
+	 * correctly for rendering (explicitly or implicitly). Because resources are
+	 * implicitly updated if they're cleaned-up, a resource should only be
+	 * cleaned-up if it's not to be used again for a long period of time.
+	 * </p>
+	 * <p>
+	 * A cleanup can be canceled by explicitly scheduling an update via
+	 * {@link #update(Resource, boolean)}, or when the Framework has been
+	 * destroyed, or by manually canceling the returned Future. An implicit
+	 * update does not cancel the clean-up.
+	 * </p>
+	 * <p>
+	 * When manually canceling a cleanup, there is a small window of time in
+	 * which the Future hasn't yet completed but a cancel is not allowed. Once
+	 * the Framework has begun to cleanup the Resource, it can no longer be
+	 * canceled.
+	 * </p>
+	 * <p>
+	 * This will do nothing if the resource has already been cleaned up or it
+	 * was never updated by this Framework before.If a scheduled cleanup has yet
+	 * to be completed and cleanup() is invoked again, this should return a
+	 * Future linked to the same task.
+	 * </p>
 	 * 
-	 * @param resource The resource that should have internal resources cleaned
-	 *            up
+	 * @param resource The Resource to have its internal resources cleaned-up
+	 * @return A Future that can be used to determine when the clean-up
+	 *         completes, or if it is canceled by an update or Framework
+	 *         destruction.
 	 * @throws NullPointerException if resource is null
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             already been destroyed
+	 * @throws IllegalArgumentException if the Resource is a TextureImage being
+	 *             used by an undestroyed TextureSurface for this Framework
+	 * @throws UnsupportedResourceException if the resource implementation is
+	 *             unsupported by this Framework
 	 */
-	public void requestCleanUp(Resource resource);
+	public Future<Void> cleanup(Resource resource);
 
 	/**
 	 * <p>
 	 * Queue the given RenderSurface so that the given RenderPass will be
-	 * rendered during the next call to renderFrame(). RenderSurfaces and their
-	 * associated passes are rendered in the order that they were queued.
-	 * Therefore, it's possible to render one pass into surface A, then another
-	 * pass into surface B, and then render something else back into A.
+	 * rendered during the next call to render() from this Thread.
+	 * RenderSurfaces and their associated passes are rendered in the order that
+	 * they were queued. Therefore, it's possible to render one pass into
+	 * surface A, then another pass into surface B, and then render something
+	 * else back into A.
+	 * </p>
+	 * <p>
+	 * When speaking of of the RenderSurface queue, or performing a queue
+	 * operation, each Thread has its own queue so that multiple calls from
+	 * various Threads do contaminate a single queue with a non-deterministic
+	 * ordering.
 	 * </p>
 	 * <p>
 	 * If the RenderSurface is queued for the 1st time this frame, the surface
 	 * will have its logical buffers cleared to its designated colors. If the
 	 * RenderSurface is being re-queued with another pass (etc.), then the
-	 * logical buffers not be cleared again during the frame. The buffer
-	 * clearing will not occur until renderFrame() is called, however.
+	 * logical buffers will not be cleared again during the frame. The buffer
+	 * clearing will not occur until render() is called, however.
 	 * </p>
 	 * <p>
 	 * If the given surface or pass is null, then the queue has no effect.
@@ -391,13 +433,11 @@ public interface Framework {
 	 * @param surface The RenderSurface that the given RenderPass will be
 	 *            rendered to
 	 * @param pass The RenderPass that will be rendered
-	 * @return This Framework
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework
-	 * @throws RenderStateException if the Framework is currently rendering or
-	 *             if it's already been destroyed
+	 * @throws RenderException if the Framework is has been destroyed
 	 */
-	public Framework queue(RenderSurface surface, RenderPass pass);
+	public void queue(RenderSurface surface, RenderPass pass);
 
 	/**
 	 * <p>
@@ -418,13 +458,11 @@ public interface Framework {
 	 * @param clearColor True if the color buffer should be cleared
 	 * @param clearDepth True if the depth buffer should be cleared
 	 * @param clearStencil True if the stencil buffer should be cleared
-	 * @return This Framework
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework
-	 * @throws RenderStateException if the Framework is currently rendering or
-	 *             if it's already been destroyed
+	 * @throws RenderException if the Framework is has been destroyed
 	 */
-	public Framework queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil);
+	public void queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil);
 
 	/**
 	 * <p>
@@ -449,45 +487,48 @@ public interface Framework {
 	 * @param color The color that surface is cleared to, if null it clears to black
 	 * @param depth The depth value that surface is cleared to, must be in [0, 1]
 	 * @param stencil The stencil value that the surface is cleared to
-	 * @return This Framework
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework, or if depth is outside of [0, 1]
-	 * @throws RenderStateException if the Framework is currently rendering or
-	 *             if it's already been destroyed
+	 * @throws RenderException if the Framework is has been destroyed
 	 */
-	public Framework queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
-	
+	public void queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
+
 	/**
 	 * <p>
-	 * Render a single frame. The Framework must invoke manage() on its default
-	 * ResourceManager and then any custom managers. After the managers are
-	 * processed, the Framework should, for each queued (surface X pass), clear
-	 * the surface based on the clear parameters when the surface was queued and
-	 * render the pass. Queued surfaces that have been destroyed should be
-	 * ignored. When processing each render pass, an internal implementation of
-	 * Renderer should be used to complete the renderings.
+	 * Render a single frame for the queued RenderSurfaces of the calling
+	 * Thread. For each queued (surface X pass), clear the surface based on the
+	 * clear parameters when the surface was queued and render the pass. Queued
+	 * surfaces that have been destroyed should be ignored.
 	 * </p>
 	 * <p>
-	 * The resource managers must be processed even if there are no queued
-	 * render surfaces.
+	 * As specified in {@link #queue(RenderSurface, RenderPass)}, each Thread
+	 * maintains its own queue of RenderSurfaces for rendering. When render() is
+	 * invoked, it uses the queue for the calling Thread. The actual rendering
+	 * may be performed on this thread or on an internal thread, depending on
+	 * the implementation. A RenderPass should be used in a synchronized manner
+	 * so that it's only executed in Thread at a given time.
+	 * </p>
+	 * <p>
+	 * If the frame is to be rendered on another Thread, the returned Future may
+	 * not be completed when this returns. In this case it is cancel-able,
+	 * leaving the frame unfinished. The state of the RenderSurfaces involved
+	 * are not explicitly described here, but should be reasonable and must
+	 * still be usable in subsequent renders without problems.
 	 * </p>
 	 * <p>
 	 * If an exception is thrown, the rendering of the frame stops. Because of
 	 * this, ResourceManagers, RenderPasses and other objects used in
 	 * flushRenderer should be careful when they decide to throw an exception.
+	 * The returned Future will then contain this Exception instead of a a
+	 * FrameStatistics result.
 	 * </p>
 	 * 
-	 * @param store The FrameStatistics instance to use for stats accumulation
-	 * @return The stats for this frame (in store, or a new instance if store
-	 *         was null).
-	 * @throws RenderException wrapping any exception that occurs while
-	 *             rendering
-	 * @throws RenderStateException if the Framework is rendering or if it's
-	 *             already been destroyed
+	 * @return A Future that can be used to determine when a frame has
+	 *         completed. Within it will contain FrameStatistics information
+	 *         about the timing of the frame
+	 * @throws RenderException if the Framework has been destroyed
 	 */
-	public FrameStatistics renderFrame(FrameStatistics store);
-
-	/* Anytime operations. */
+	public Future<FrameStatistics> render();
 
 	/**
 	 * <p>
@@ -500,7 +541,7 @@ public interface Framework {
 	 * 
 	 * @param resource The Resource whose status is requested
 	 * @return The Status of resource
-	 * @throws RenderStateException if the Framework has been destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public Status getStatus(Resource resource);
 
@@ -511,7 +552,7 @@ public interface Framework {
 	 * 
 	 * @param resource The Resource whose status message is requested
 	 * @return The status message for resource
-	 * @throws RenderStateException if the Framework has been destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public String getStatusMessage(Resource resource);
 
@@ -519,7 +560,7 @@ public interface Framework {
 	 * Get the capabilities of this Framework.
 	 * 
 	 * @return The RenderCapabilities for this Framework, will not be null
-	 * @throws RenderStateException if the Framework has been destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public RenderCapabilities getCapabilities();
 }

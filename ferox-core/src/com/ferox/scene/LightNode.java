@@ -14,11 +14,14 @@ import com.ferox.shader.Light;
  * @author Michael Ludwig
  * @param <T> The specific sub-type of Light that should be used
  */
-public class LightNode<T extends Light> extends AbstractSceneElement {
-	/** Light instance returned by getLight(), and passed into the constructor. */
-	protected final T light;
-
+public class LightNode extends AbstractSceneElement {
 	private final Vector3f localDirection;
+	private final Vector3f worldDirection;
+	
+	private final Color4f ambient;
+	private final Color4f diffuse;
+	private final Color4f specular;
+	
 	private boolean castsShadows;
 	
 	/**
@@ -36,11 +39,7 @@ public class LightNode<T extends Light> extends AbstractSceneElement {
 	 * 
 	 * @param light The Light that is held by this LightNode
 	 */
-	protected LightNode(T light) {
-		if (light == null)
-			throw new NullPointerException("Sub-classes must pass in a non-null light");
-		this.light = light;
-		this.localDirection = new Vector3f(light.getDirection());
+	protected LightNode() {
 		this.castsShadows = false;
 	}
 
@@ -82,14 +81,7 @@ public class LightNode<T extends Light> extends AbstractSceneElement {
 	}
 
 	/**
-	 * @return The Light effect that represents this LightNode.
-	 */
-	public final T getLight() {
-		return light;
-	}
-
-	/**
-	 * Identical operation to Light's getAmbient().
+	 * Return the ambi
 	 * 
 	 * @return Color4f instance used for the light's ambient color
 	 */

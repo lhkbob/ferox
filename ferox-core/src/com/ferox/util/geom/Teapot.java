@@ -1,6 +1,10 @@
 package com.ferox.util.geom;
 
-import com.ferox.resource.IndexedArrayGeometry;
+import java.util.Arrays;
+
+import com.ferox.resource.Geometry;
+import com.ferox.resource.PolygonType;
+import com.ferox.resource.VectorBuffer;
 
 /**
  * <p>
@@ -9,38 +13,54 @@ import com.ferox.resource.IndexedArrayGeometry;
  * coordinates (on the 0th unit), as well as indices.
  * </p>
  * <p>
+ * By default, a Teapot is configured to have its vertices, normals and texture
+ * coordinates use the default attribute names defined in Geometry.
+ * </p>
+ * <p>
  * If you're texturing the Teapot, you should use REPEAT for the s and t
  * coordinates.
  * </p>
  * 
  * @author Michael Ludwig {@link "http://www.sjbaker.org/teapot/"}
  */
-public class Teapot extends IndexedArrayGeometry {
+public class Teapot extends PrimitiveGeometry {
 	/**
 	 * Instantiates a new Teapot object with the given scale.
 	 * 
 	 * @param scale The scale factor that affects the size of the teapot
 	 */
 	public Teapot(float scale) {
-		this(scale, CompileType.VERTEX_ARRAY);
+		this(scale, CompileType.NONE);
 	}
 
 	/**
-	 * Instantiates a new Teapot object with the given scale.
+	 * Instantiates a new Teapot object with the given scale and compile type.
 	 * 
 	 * @param scale The scale factor that affects the size of the teapot
 	 * @param type The compile type to use
 	 */
 	public Teapot(float scale, CompileType type) {
-		super(type);
+		this(scale, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
+			 Geometry.DEFAULT_TEXCOORD_NAME);
+	}
+
+	/**
+	 * Instantiate a new Teapot object with the given scale, compile type, and
+	 * configured attribute names.
+	 * 
+	 * @param scale The scale fator
+	 * @param type The compile type
+	 * @param vertexName The name for the vertex attribute
+	 * @param normalName The name for the normals attribute
+	 * @param tcName The name for the texture coordinates attribute
+	 */
+	public Teapot(float scale, CompileType type, String vertexName, String normalName, String tcName) {
+		super(type, vertexName, normalName, tcName);
 
 		// copy the teapot so that each instance can be modified separately
-		float[] verts = new float[TEAPOT.vertices.length];
-		System.arraycopy(TEAPOT.vertices, 0, verts, 0, verts.length);
-		float[] norms = new float[TEAPOT.normals.length];
-		System.arraycopy(TEAPOT.normals, 0, norms, 0, norms.length);
-		float[] tcs = new float[TEAPOT.texCoords.length];
-		System.arraycopy(TEAPOT.texCoords, 0, tcs, 0, tcs.length);
+		float[] verts = Arrays.copyOf(TEAPOT.vertices, TEAPOT.vertices.length);
+		float[] norms = Arrays.copyOf(TEAPOT.normals, TEAPOT.normals.length);
+		float[] tcs = Arrays.copyOf(TEAPOT.texCoords, TEAPOT.texCoords.length);
 
 		int[] indices = new int[TEAPOT.indices.length];
 		System.arraycopy(TEAPOT.indices, 0, indices, 0, indices.length);
@@ -49,9 +69,9 @@ public class Teapot extends IndexedArrayGeometry {
 			for (int i = 0; i < verts.length; i++)
 				verts[i] *= scale;
 
-		setVertices(verts);
-		setNormals(norms);
-		setTextureCoordinates(0, new VectorBuffer(tcs, 2));
+		setAttribute(getVertexName(), new VectorBuffer(verts, 3));
+		setAttribute(getNormalName(), new VectorBuffer(norms, 3));
+		setAttribute(getTextureCoordinateName(), new VectorBuffer(tcs, 2));
 		setIndices(indices, PolygonType.TRIANGLES);
 	}
 

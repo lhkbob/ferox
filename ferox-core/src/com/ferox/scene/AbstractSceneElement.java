@@ -1,10 +1,10 @@
 package com.ferox.scene;
 
 import com.ferox.math.Matrix3f;
-import com.ferox.math.ReadOnly;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
+import com.ferox.util.ReadOnly;
 
 /**
  * AbstractSceneElement provides a complete implementation of SceneElement so

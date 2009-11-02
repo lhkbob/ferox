@@ -1,4 +1,4 @@
-package com.ferox.math;
+package com.ferox.util;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,12 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>
- * Many of the com.ferox.math objects are fully mutable or can be used as the
- * result parameter for computations. However, it may be useful for other
- * classes to control or regulate when the math objects are updated to minimize
- * the work done.
- * </p>
  * <p>
  * To avoid defensive copies or duplicate instances, the ReadOnly annotation can
  * be used to declare a returned instance as read-only. It is then the

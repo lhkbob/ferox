@@ -20,9 +20,8 @@ import com.ferox.renderer.Renderer;
 import com.ferox.renderer.ResourceManager;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.UnsupportedEffectException;
+import com.ferox.renderer.UnsupportedShaderException;
 import com.ferox.renderer.UnsupportedResourceException;
-import com.ferox.renderer.View;
 import com.ferox.renderer.WindowSurface;
 import com.ferox.renderer.impl.ResourceData.Handle;
 import com.ferox.resource.Geometry;
@@ -35,6 +34,7 @@ import com.ferox.shader.Effect;
 import com.ferox.shader.EffectType;
 import com.ferox.shader.Material;
 import com.ferox.shader.PolygonStyle;
+import com.ferox.shader.View;
 import com.ferox.util.Bag;
 
 /**
@@ -271,7 +271,7 @@ public abstract class AbstractFramework implements Framework {
 	}
 
 	@Override
-	public FrameStatistics renderFrame(FrameStatistics store) {
+	public FrameStatistics render(FrameStatistics store) {
 		ensure(RenderState.IDLE);
 
 		// reset the frame statistics
@@ -583,7 +583,7 @@ public abstract class AbstractFramework implements Framework {
 	 * @param effectType The EffectType that all Effects used with the returned
 	 *            EffectDriver will be
 	 * @return The EffectDriver associated with effectType
-	 * @throws UnsupportedEffectException if no driver is available for the
+	 * @throws UnsupportedShaderException if no driver is available for the
 	 *             given effectType
 	 */
 	protected abstract EffectDriver getEffectDriver(EffectType effectType);
@@ -725,7 +725,7 @@ public abstract class AbstractFramework implements Framework {
 
 				if (view != null) {
 					transform.setView(view, getRenderSurface().getWidth(), getRenderSurface().getHeight());
-					pass.render(renderer);
+					pass.render(renderer, new RenderSurface());
 					transform.resetView();
 				}
 			} finally {

@@ -17,7 +17,7 @@ import com.ferox.shader.SpotLight;
  * 
  * @author Michael Ludwig
  */
-public class SpotLightNode extends LightNode<SpotLight> {
+public class SpotLightNode extends LightNode {
 	/**
 	 * Create a SpotLightNode with a SpotLight created with the given arguments.
 	 */

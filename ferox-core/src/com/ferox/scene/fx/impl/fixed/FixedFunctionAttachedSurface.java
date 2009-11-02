@@ -6,7 +6,6 @@ import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.View;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.resource.TextureImage.TextureTarget;
@@ -16,6 +15,7 @@ import com.ferox.scene.SceneElement;
 import com.ferox.scene.fx.impl.AttachedRenderSurface;
 import com.ferox.scene.fx.impl.fixed.FixedFunctionSceneCompositor.RenderMode;
 import com.ferox.shader.DirectionLight;
+import com.ferox.shader.View;
 import com.ferox.util.Bag;
 
 public class FixedFunctionAttachedSurface extends AttachedRenderSurface {

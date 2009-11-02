@@ -1,76 +1,131 @@
 package com.ferox.resource;
 
-import com.ferox.math.bounds.Boundable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * <p>
- * A Geometry represents an abstract representation of something on the screen.
- * A Geometry is the union of a boundable and a resource. By being a boundable,
- * it allows bounding volumes to be created around it. By extending a resource,
- * creating and modifying the geometry must follow the same process as any other
- * resource, allowing optimizations to be performed.
- * </p>
- * <p>
- * There are two implementations of Geometry available that a Framework must
- * support: PolygonGeometry and IndexArrayGeometry. Instead of implementing more
- * types of Geometry, programmers should sub-class one of those two and
- * automatically configure them.
- * </p>
- * <p>
- * Renderers should ignore RenderAtoms that use Geometries with a status equal
- * to ERROR.
- * </p>
- * 
- * @author Michael Ludwig
- */
-public interface Geometry extends Boundable, Resource {
-	/**
-	 * Return the CompileType requested by this Geometry. A Geometry should use
-	 * the same CompileType for its entire life time to allow for potential
-	 * Framework operations.
-	 * 
-	 * @return The CompileType to use, must not be null, should default to NONE
-	 */
-	public CompileType getCompileType();
+import com.ferox.renderer.Framework;
+import com.ferox.util.FastMap;
 
-	/**
-	 * Geometries have the option to specify a CompileType that tells the
-	 * Framework how the Geometry is to be used, allowing it to change internal
-	 * data for potentially faster rendering.
-	 */
+public class Geometry implements Resource {
+	public static final String DEFAULT_VERTICES_NAME = "vertices";
+	public static final String DEFAULT_NORMALS_NAME = "normals";
+	public static final String DEFAULT_TEXCOORD_NAME = "texcoords";
+	
 	public static enum CompileType {
-		/**
-		 * No compiling should be done. NONE is special in that changes made to
-		 * the Geometry should be immediately reflected in the rendering,
-		 * without needing to call renderer.update().
-		 */
-		NONE,
-		/**
-		 * Store the geometry in arrays in client memory for batch rendering.
-		 * This is faster than NONE, but slightly less dynamic (you have to call
-		 * update(), but it should be a faster operation than other types) and
-		 * may take up more memory.
-		 */
-		VERTEX_ARRAY,
-		/**
-		 * Like VERTEX_ARRAY but the arrays are stored in the graphics card (no
-		 * extra copy in client memory). This is one of the fastest compiling
-		 * options but it may not be supported on all graphics cards. Its
-		 * updates are slower than VERTEX_ARRAYS and should be used for rarely
-		 * updated geometry.
-		 */
-		VBO_STATIC,
-		/**
-		 * Like VBO_STATIC except the the graphics card memory used is intended
-		 * for more frequent updates. This results in slightly slower rendering,
-		 * but faster updates.
-		 */
-		VBO_DYNAMIC,
-		/**
-		 * Use a display list to compile all low-level operations need to render
-		 * the geometry. This has the slowest update. Performance benefits
-		 * largely depend on the hardware but can be quite fast.
-		 */
-		DISPLAY_LIST
+		NONE, RESIDENT_DYNAMIC, RESIDENT_STATIC
+	}
+	
+	private final CompileType compile;
+	private final Map<String, VectorBuffer> attributes;
+	private final Map<String, VectorBuffer> readOnlyAttributes;
+	
+	private int[] indices;
+	private PolygonType polyType;
+	
+	private GeometryDirtyDescriptor dirty;
+	private final FastMap<Framework, Object> renderData;
+	
+	public Geometry(CompileType compileType) {
+		compile = (compileType != null ? compileType : CompileType.NONE);
+		attributes = new HashMap<String, VectorBuffer>();
+		readOnlyAttributes = Collections.unmodifiableMap(attributes);
+		renderData = new FastMap<Framework, Object>(Framework.class);
+	}
+	
+	public int[] getIndices() {
+		return indices;
+	}
+	
+	public PolygonType getPolygonType() {
+		return polyType;
+	}
+	
+	public void setIndices(int[] indices, PolygonType type) {
+		this.indices = indices;
+		polyType = (type == null ? PolygonType.POINTS : type);
+		
+		if (dirty == null)
+			dirty = new GeometryDirtyDescriptor();
+		dirty.markIndicesDirty(0, indices.length);
+	}
+	
+	public VectorBuffer getAttribute(String name) {
+		if (name == null)
+			throw new NullPointerException("Cannot access an attribute with a null name");
+		return attributes.get(name);
+	}
+	
+	public void setAttribute(String name, VectorBuffer values) {
+		if (name == null)
+			throw new NullPointerException("Cannot assign an attribute with a null name");
+		
+		if (values != null) {
+			VectorBuffer old = attributes.put(name, values);
+			
+			if (dirty == null)
+				dirty = new GeometryDirtyDescriptor();
+			if (old == null)
+				dirty.notifyAttributeAdded(name);
+			dirty.markAttributeDirty(name, 0, values.getBuffer().length);
+		} else
+			removeAttribute(name);
+	}
+	
+	public VectorBuffer removeAttribute(String name) {
+		if (name == null)
+			throw new NullPointerException("Cannot remove an attribute with a null name");
+		
+		VectorBuffer rem = attributes.remove(name);
+		if (rem != null) {
+			if (dirty == null)
+				dirty = new GeometryDirtyDescriptor();
+			dirty.notifyAttributeRemoved(name);
+		}
+		
+		return rem;
+	}
+	
+	public Map<String, VectorBuffer> getAttributes() {
+		return readOnlyAttributes;
+	}
+	
+	public final CompileType getCompileType() {
+		return compile;
+	}
+	
+	public void markIndicesDirty(int offset, int length) {
+		if (dirty == null)
+			dirty = new GeometryDirtyDescriptor();
+		dirty.markIndicesDirty(offset, length);
+	}
+	
+	public void markAttributeDirty(String name, int offset, int length) {
+		if (!attributes.containsKey(name))
+			return;
+		
+		if (dirty == null)
+			dirty = new GeometryDirtyDescriptor();
+		dirty.markAttributeDirty(name, offset, length);
+	}
+
+	@Override
+	public void clearDirtyDescriptor() {
+		dirty = null;
+	}
+
+	@Override
+	public GeometryDirtyDescriptor getDirtyDescriptor() {
+		return dirty;
+	}
+
+	@Override
+	public Object getRenderData(Framework renderer) {
+		return renderData.get(renderer);
+	}
+
+	@Override
+	public void setRenderData(Framework renderer, Object data) {
+		renderData.put(renderer, data);
 	}
 }

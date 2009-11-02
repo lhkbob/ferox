@@ -1,8 +1,11 @@
-package com.ferox.util.text;
+package com.ferox.util.geom.text;
 
 import java.awt.font.LineMetrics;
 
-import com.ferox.resource.IndexedArrayGeometry;
+import com.ferox.resource.Geometry;
+import com.ferox.resource.PolygonType;
+import com.ferox.resource.VectorBuffer;
+import com.ferox.util.geom.PrimitiveGeometry;
 
 /**
  * <p>
@@ -50,9 +53,9 @@ import com.ferox.resource.IndexedArrayGeometry;
  * 
  * @author Michael Ludwig
  */
-public class Text extends IndexedArrayGeometry {
-	/** Number of spaces a tab character represents. */
-	public static final int TAB_SPACE_COUNT = 4;
+public class Text extends PrimitiveGeometry {
+	/** Number of spaces a tab character represents. Initially this is set to 4. */
+	public static int TAB_SPACE_COUNT = 4;
 
 	private CharacterSet charSet;
 	private String text;
@@ -85,7 +88,23 @@ public class Text extends IndexedArrayGeometry {
 	 * @throws NullPointerException if charSet is null
 	 */
 	public Text(CharacterSet charSet, String text, CompileType type) {
-		super(type);
+		this(charSet, text, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
+	}
+
+	/**
+	 * Create a Text with the given CharacterSet, initial text, compile type.
+	 * Unlike the other constructors, this also allows you to configure the
+	 * attribute names used for vertices and texture coordinates.
+	 * 
+	 * @param charSet The CharacterSet
+	 * @param text The initial text
+	 * @param type The compile type
+	 * @param vertexName The vertex name
+	 * @param tcName The texture coordinate name
+	 * @throws NullPointerException if charSet is null
+	 */
+	public Text(CharacterSet charSet, String text, CompileType type, String vertexName, String tcName) {
+		super(type, vertexName, Geometry.DEFAULT_NORMALS_NAME, tcName);
 
 		setCharacterSet(charSet);
 		setText(text);
@@ -273,8 +292,8 @@ public class Text extends IndexedArrayGeometry {
 			i[j] = j;
 		}
 
-		setVertices(v);
-		setTextureCoordinates(0, new VectorBuffer(t, 2));
+		setAttribute(getVertexName(), new VectorBuffer(v, 3));
+		setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
 		setIndices(i, PolygonType.QUADS);
 
 		width = tl.getMaxWidth();
@@ -290,8 +309,8 @@ public class Text extends IndexedArrayGeometry {
 		private float cursorY;
 
 		private final float leftEdge;
-		private final float height; // amount to subtract cursorY to get the
-		// next line
+		// amount to subtract cursorY to get the next line
+		private final float height;
 		private final float ascent, descent;
 
 		private float maxWidth;
