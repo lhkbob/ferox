@@ -278,7 +278,7 @@ public class GlslUniform implements Resource {
 	}
 
 	@Override
-	public Object getDirtyDescriptor() {
+	public Object getDirtyState() {
 		return null;
 	}
 

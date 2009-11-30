@@ -70,8 +70,8 @@ public class FixedFunctionAppearance {
 			if (newPrimary != null) {
 				primary = (primary == null ? new TextureEnvironment() : primary);
 				primary.setTexture(newPrimary.getTexture());
-				primary.setTextureEnvMode(EnvironmentMode.MODULATE);
-				primary.setTexCoordGenSTR(TexCoordGeneration.NONE);
+				primary.setTextureEnvMode(TextureEnvMode.MODULATE);
+				primary.setTexCoordGenSTR(TexCoordMode.NONE);
 				
 				textures.setTexture(newPrimary.getUnit(), primary);
 			}
@@ -79,8 +79,8 @@ public class FixedFunctionAppearance {
 			if (newDecal != null && renderMode.getMinimumTextures() > 1) {
 				decal = (decal == null ? new TextureEnvironment() : decal);
 				decal.setTexture(newDecal.getTexture());
-				decal.setTextureEnvMode(EnvironmentMode.DECAL);
-				decal.setTexCoordGenSTR(TexCoordGeneration.NONE);
+				decal.setTextureEnvMode(TextureEnvMode.DECAL);
+				decal.setTexCoordGenSTR(TexCoordMode.NONE);
 				
 				textures.setTexture(newDecal.getUnit(), decal);
 			}

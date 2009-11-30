@@ -9,11 +9,11 @@ import com.ferox.resource.Geometry;
 import com.ferox.scene.LightNode;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.Shape;
+import com.ferox.scene.View;
 import com.ferox.scene.fx.Appearance;
 import com.ferox.shader.Effect;
 import com.ferox.shader.GlobalLighting;
 import com.ferox.shader.Light;
-import com.ferox.shader.View;
 import com.ferox.util.Bag;
 
 public class BaseRenderPass implements RenderPass {

@@ -62,7 +62,7 @@ public class Texture3D extends TextureImage {
 	private int width, height, depth;
 	private int numMipmaps;
 	
-	private TextureDirtyDescriptor dirty;
+	private TextureDirtyState dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -187,18 +187,13 @@ public class Texture3D extends TextureImage {
 			return; // invalid level option
 
 		if (dirty == null)
-			dirty = new TextureDirtyDescriptor(numMipmaps);
+			dirty = new TextureDirtyState(numMipmaps, false);
 
 		int levelWidth = getWidth(level);
 		int levelHeight = getHeight(level);
 		int levelDepth = getDepth(level);
-		ImageRegion r = dirty.getDirtyMipmap(level);
 		
-		if (r == null)
-			r = new ImageRegion(x, y, z, width, height, depth, levelWidth, levelHeight, levelDepth);
-		else
-			r = r.merge(x, y, z, width, height, depth);
-		dirty.setDirtyMipmap(level, r);
+		dirty = dirty.updateMipmap(level, new ImageRegion(x, y, z, width, height, depth, levelWidth, levelHeight, levelDepth));
 	}
 
 	/**
@@ -266,19 +261,17 @@ public class Texture3D extends TextureImage {
 	}
 
 	@Override
-	public void clearDirtyDescriptor() {
+	public TextureDirtyState getDirtyState() {
+		TextureDirtyState d = dirty;
 		dirty = null;
-	}
-
-	@Override
-	public TextureDirtyDescriptor getDirtyDescriptor() {
-		return dirty;
+		return d;
 	}
 	
 	@Override
 	protected void setTextureParametersDirty() {
 		if (dirty == null)
-			dirty = new TextureDirtyDescriptor(numMipmaps);
-		dirty.setParametersDirty();
+			dirty = new TextureDirtyState(numMipmaps, true);
+		else
+			dirty = dirty.setTextureParametersDirty();
 	}
 }

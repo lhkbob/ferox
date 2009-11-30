@@ -5,9 +5,9 @@ import java.util.IdentityHashMap;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.Scene;
+import com.ferox.scene.View;
 import com.ferox.scene.fx.GeometryProfile;
 import com.ferox.scene.fx.SceneCompositor;
-import com.ferox.shader.View;
 
 public abstract class AbstractSceneCompositor<T extends AttachedRenderSurface> implements SceneCompositor {
 	private boolean initialized;

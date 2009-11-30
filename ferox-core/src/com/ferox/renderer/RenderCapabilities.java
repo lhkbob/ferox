@@ -43,8 +43,8 @@ public class RenderCapabilities {
 
 	// misc
 	private final int maxActiveLights;
-	private final boolean glslSupported;
-	private final boolean pointSpriteSupport;
+	private final boolean glslSupported; // FIXME: add glsl language version?
+	private final boolean pointSpriteSupport; // FIXME: to be removed
 
 	// frame properties
 	private final boolean fboSupported;
@@ -54,6 +54,8 @@ public class RenderCapabilities {
 	// version
 	private final String vendor;
 	private final float version;
+	
+	// FIXME: add booleans for ffp and glsl renderer support
 
 	/**
 	 * Create a render capabilities object with the given properties. There is

@@ -1,6 +1,7 @@
-package com.ferox.renderer;
+package com.ferox.renderer.impl;
 
 import com.ferox.math.Color4f;
+import com.ferox.renderer.RenderSurface;
 
 /**
  * An abstract implementation of RenderSurface that only implements the basic

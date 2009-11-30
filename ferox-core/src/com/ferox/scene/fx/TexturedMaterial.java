@@ -1,31 +1,33 @@
 package com.ferox.scene.fx;
 
+import com.ferox.resource.TextureImage;
+
 public class TexturedMaterial implements Component {
-	private TextureUnit primarySurface;
-	private TextureUnit decalSurface;
+	private TextureImage primarySurface;
+	private TextureImage decalSurface;
 	
-	public TexturedMaterial(TextureUnit primary) {
+	public TexturedMaterial(TextureImage primary) {
 		this(primary, null);
 	}
 	
-	public TexturedMaterial(TextureUnit primary, TextureUnit decal) {
+	public TexturedMaterial(TextureImage primary, TextureImage decal) {
 		setPrimaryTexture(primary);
 		setDecalTexture(decal);
 	}
 	
-	public void setPrimaryTexture(TextureUnit image) {
+	public void setPrimaryTexture(TextureImage image) {
 		primarySurface = image;
 	}
 	
-	public TextureUnit getPrimaryTexture() {
+	public TextureImage getPrimaryTexture() {
 		return primarySurface;
 	}
 	
-	public void setDecalTexture(TextureUnit image) {
+	public void setDecalTexture(TextureImage image) {
 		decalSurface = image;
 	}
 	
-	public TextureUnit getDecalTexture() {
+	public TextureImage getDecalTexture() {
 		return decalSurface;
 	}
 

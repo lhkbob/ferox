@@ -1,7 +1,6 @@
 package com.ferox.scene;
 
 import com.ferox.math.Matrix3f;
-import com.ferox.shader.View;
 
 /**
  * A ViewNode allows the updating of a View's location based on the node's

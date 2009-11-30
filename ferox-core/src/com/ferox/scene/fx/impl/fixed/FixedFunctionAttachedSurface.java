@@ -12,10 +12,10 @@ import com.ferox.resource.TextureImage.TextureTarget;
 import com.ferox.scene.DirectionLightNode;
 import com.ferox.scene.LightNode;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.View;
 import com.ferox.scene.fx.impl.AttachedRenderSurface;
 import com.ferox.scene.fx.impl.fixed.FixedFunctionSceneCompositor.RenderMode;
 import com.ferox.shader.DirectionLight;
-import com.ferox.shader.View;
 import com.ferox.util.Bag;
 
 public class FixedFunctionAttachedSurface extends AttachedRenderSurface {

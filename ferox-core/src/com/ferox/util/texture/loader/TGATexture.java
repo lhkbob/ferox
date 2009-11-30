@@ -14,8 +14,8 @@ import com.ferox.resource.TextureFormat;
  * Texture2D's.
  * </p>
  * <p>
- * It is recommended to use TextureIO, since it will delegate to TGATexture when
- * needed.
+ * It is recommended to use TextureLoader, since it will delegate to TGATexture
+ * when needed.
  * </p>
  * <p>
  * This was based heavily off of the code in

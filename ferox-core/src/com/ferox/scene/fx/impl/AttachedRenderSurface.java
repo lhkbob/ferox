@@ -1,7 +1,7 @@
 package com.ferox.scene.fx.impl;
 
 import com.ferox.renderer.RenderSurface;
-import com.ferox.shader.View;
+import com.ferox.scene.View;
 
 public class AttachedRenderSurface {
 	private RenderSurface surface;

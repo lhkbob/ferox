@@ -3,7 +3,7 @@ package com.ferox.scene.fx;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.Scene;
-import com.ferox.shader.View;
+import com.ferox.scene.View;
 
 public interface SceneCompositor {
 	// attach a surface to this SC, can happen any time

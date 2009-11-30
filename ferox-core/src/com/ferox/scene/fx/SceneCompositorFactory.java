@@ -7,8 +7,8 @@ import java.util.Map.Entry;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.Scene;
+import com.ferox.scene.View;
 import com.ferox.scene.fx.impl.fixed.FixedFunctionSceneCompositor;
-import com.ferox.shader.View;
 
 public class SceneCompositorFactory {
 	public static final int SC_FIXED = 0x1;

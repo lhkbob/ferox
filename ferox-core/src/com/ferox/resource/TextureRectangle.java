@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
+import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.shader.Comparison;
 
 /**
  * <p>
@@ -54,7 +54,7 @@ public class TextureRectangle extends TextureImage {
 	private BufferData data;
 	private int width, height;
 	
-	private TextureRectangleDirtyDescriptor dirty;
+	private TextureRectangleDirtyState dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -155,15 +155,12 @@ public class TextureRectangle extends TextureImage {
 	 * @param height Height of the dirty region
 	 */
 	public void markDirty(int x, int y, int width, int height) {
+		ImageRegion r = new ImageRegion(x, y, 0, width, height, 0, this.width, this.height, 0);
+		
 		if (dirty == null)
-			dirty = new TextureRectangleDirtyDescriptor();
-
-		ImageRegion r = dirty.getDirtyRegion();
-		if (r == null)
-			r = new ImageRegion(x, y, 0, width, height, 0, this.width, this.height, 0);
+			dirty = new TextureRectangleDirtyState(r, false);
 		else
-			r = r.merge(x, y, 0, width, height, 0);
-		dirty.setDirtyRegion(r);
+			dirty = dirty.update(r);
 	}
 
 	/** Mark the entire TextureRectangle's image data as dirty. */
@@ -229,19 +226,17 @@ public class TextureRectangle extends TextureImage {
 	}
 
 	@Override
-	public void clearDirtyDescriptor() {
+	public TextureRectangleDirtyState getDirtyState() {
+		TextureRectangleDirtyState d = dirty;
 		dirty = null;
-	}
-
-	@Override
-	public TextureRectangleDirtyDescriptor getDirtyDescriptor() {
-		return dirty;
+		return d;
 	}
 	
 	@Override
 	protected void setTextureParametersDirty() {
 		if (dirty == null)
-			dirty = new TextureRectangleDirtyDescriptor();
-		dirty.setParametersDirty();
+			dirty = new TextureRectangleDirtyState(null, true);
+		else
+			dirty = dirty.setTextureParametersDirty();
 	}
 }

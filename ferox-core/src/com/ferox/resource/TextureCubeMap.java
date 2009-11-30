@@ -65,7 +65,7 @@ public class TextureCubeMap extends TextureImage {
 	private int side;
 	private int numMipmaps;
 	
-	private TextureCubeMapDirtyDescriptor dirty;
+	private TextureCubeMapDirtyState dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -228,16 +228,10 @@ public class TextureCubeMap extends TextureImage {
 			return; // invalid face
 
 		if (dirty == null)
-			dirty = new TextureCubeMapDirtyDescriptor(numMipmaps);
+			dirty = new TextureCubeMapDirtyState(numMipmaps, false);
 
 		int levelSide = getWidth(level);
-		ImageRegion r = dirty.getDirtyMipmap(face, level);
-		
-		if (r == null)
-			r = new ImageRegion(x, y, 0, width, height, 0, levelSide, levelSide, 0);
-		else
-			r = r.merge(x, y, 0, width, height, 0);
-		dirty.setDirtyMipmap(face, level, r);
+		dirty = dirty.updateMipmap(face, level, new ImageRegion(x, y, 0, width, height, 0, levelSide, levelSide, 0));
 	}
 
 	/**
@@ -336,19 +330,17 @@ public class TextureCubeMap extends TextureImage {
 	}
 
 	@Override
-	public void clearDirtyDescriptor() {
+	public TextureCubeMapDirtyState getDirtyState() {
+		TextureCubeMapDirtyState d = dirty;
 		dirty = null;
-	}
-
-	@Override
-	public TextureCubeMapDirtyDescriptor getDirtyDescriptor() {
-		return dirty;
+		return d;
 	}
 	
 	@Override
 	protected void setTextureParametersDirty() {
 		if (dirty == null)
-			dirty = new TextureCubeMapDirtyDescriptor(numMipmaps);
-		dirty.setParametersDirty();
+			dirty = new TextureCubeMapDirtyState(numMipmaps, true);
+		else
+			dirty = dirty.setTextureParametersDirty();
 	}
 }

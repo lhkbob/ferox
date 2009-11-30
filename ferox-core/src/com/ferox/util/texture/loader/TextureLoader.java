@@ -127,7 +127,7 @@ public class TextureLoader {
 		InputStream urlStream = url.openStream();
 		TextureImage image;
 		try {
-			image = readTexture(url.openStream());
+			image = readTexture(urlStream);
 		} finally {
 			urlStream.close();
 		}
@@ -175,7 +175,10 @@ public class TextureLoader {
 
 			throw new IOException("Unable to load the given texture, no registered loader with support");
 		} catch (Exception io) {
-			throw new IOException(io);
+			if (!(io instanceof IOException))
+				throw new IOException(io);
+			else
+				throw (IOException) io;
 		}
 	}
 
@@ -291,7 +294,7 @@ public class TextureLoader {
 	 * image must have room for 4 cube faces along its width, and 3 faces on its
 	 * height).
 	 * </p>
-	 * The image is layed out like so:</br>
+	 * The image is laid out like so:
 	 * <pre>
 	 * ¥----¥----¥----¥----¥
 	 * | -- | NZ | -- | -- |

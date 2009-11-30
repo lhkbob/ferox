@@ -200,8 +200,8 @@ public interface Framework {
 	 * its getXBuffer() methods) will be ready to use (e.g. it's not necessary
 	 * to update the textures unless you change the texture parameters of the
 	 * image). Each texture image should return a null BufferData for its image
-	 * data. It is illegal to cleanup the TextureSurface's textures. When a
-	 * TextureSurface is destroyed, it will cleanup all of its associated
+	 * data. It is illegal to dispose the TextureSurface's textures. When a
+	 * TextureSurface is destroyed, it will dispose all of its associated
 	 * textures (assuming no other TextureSurface references them).
 	 * </p>
 	 * 
@@ -287,8 +287,8 @@ public interface Framework {
 	/**
 	 * <p>
 	 * Destroy all remaining active RenderSurfaces created by this Framework.
-	 * This will cancel any pending cleanups and updates and any frames that are
-	 * currently being rendered.  Even though the cleanup Futures are canceled,
+	 * This will cancel any pending disposals and updates and any frames that are
+	 * currently being rendered.  Even though the dispose Futures are canceled,
 	 * the internal data will be properly discarded.
 	 * </p>
 	 * <p>
@@ -310,33 +310,28 @@ public interface Framework {
 	 * before it can be used by the Framework (including Geometries). If the
 	 * resource has never been updated before by this Framework, or if
 	 * forceFullUpdate is true, the resource will ignore the object returned by
-	 * getDirtyDescriptor(). Otherwise, the Framework must update at least
-	 * what's specified by the dirty description.
+	 * getDirtyState(). Otherwise, the Framework must update at least what's
+	 * specified by the dirty description.
 	 * </p>
 	 * <p>
-	 * The update action should use the dirty descriptor instance returned by
-	 * getDirtyDescriptor() at the time this method is invoked. It should only
-	 * clear the dirty descriptor once the returned Future is done. If
-	 * subsequent update is scheduled before this one has been processed, it
-	 * should return a Future linked to the same task, and the task's dirty
-	 * descriptor should be updated to reflect the current descriptor.
+	 * The update action should use the dirty state instance returned by
+	 * getDirtyState() at the time this method is invoked. If a subsequent
+	 * update is scheduled before this one has been processed, it should return
+	 * a Future linked to the same task, and the task's dirty state should be
+	 * updated to represent the union of the current dirty state and the
+	 * original dirty state.
 	 * </p>
 	 * <p>
-	 * An important note about the update/clean-up process of the Framework: If
-	 * a resource hasn't been used before or has been cleaned-up, but is needed
+	 * An important note about the update/disposal process of the Framework: If
+	 * a resource hasn't been used before or has been disposed, but is needed
 	 * when rendering, it will be automatically updated. If the resource has a
 	 * non-null dirty descriptor when it's needed, it will also be updated.
 	 * </p>
 	 * <p>
 	 * An update will be guaranteed completed before a Resource must be used by
-	 * by a Renderer. The scheduling of an update will cancel an cleanup
+	 * by a Renderer. The scheduling of an update will cancel any disposal
 	 * requests that haven't yet been processed. An update can be canceled
-	 * manually, by scheduling a cleanup, or when the Framework is destroyed.
-	 * </p>
-	 * <p>
-	 * When canceling an update manually, there is a small window of time where
-	 * the Framework has begun updating it but before it has completed where the
-	 * task is no longer cancel-able.
+	 * manually, by scheduling a disposal, or when the Framework is destroyed.
 	 * </p>
 	 * 
 	 * @param resource The Resource to be updated
@@ -352,8 +347,8 @@ public interface Framework {
 
 	/**
 	 * <p>
-	 * Cleanup the low-level, graphics hardware related data for the given
-	 * Resource. This is a request to the Framework to cleanup the Resource, and
+	 * Dispose the low-level, graphics hardware related data for the given
+	 * Resource. This is a request to the Framework to dispose the Resource, and
 	 * the Framework will process it at some time near in the future. If the
 	 * Resource has been scheduled for an update that has yet to occur, this
 	 * will cancel the update.
@@ -363,39 +358,38 @@ public interface Framework {
 	 * been cleaned. Its attributes and data can be modified; the only
 	 * requirement is that it must be updated again before it can be used
 	 * correctly for rendering (explicitly or implicitly). Because resources are
-	 * implicitly updated if they're cleaned-up, a resource should only be
-	 * cleaned-up if it's not to be used again for a long period of time.
+	 * implicitly updated if they're disposed, a resource should only be
+	 * disposed if it's not to be used again for a long period of time.
 	 * </p>
 	 * <p>
-	 * A cleanup can be canceled by explicitly scheduling an update via
+	 * A disposal can be canceled by explicitly scheduling an update via
 	 * {@link #update(Resource, boolean)}, or when the Framework has been
 	 * destroyed, or by manually canceling the returned Future. An implicit
 	 * update does not cancel the clean-up.
 	 * </p>
 	 * <p>
-	 * When manually canceling a cleanup, there is a small window of time in
-	 * which the Future hasn't yet completed but a cancel is not allowed. Once
-	 * the Framework has begun to cleanup the Resource, it can no longer be
-	 * canceled.
+	 * This will do nothing if the resource has already been cleaned up or it
+	 * was never updated by this Framework before. If a scheduled disposal has
+	 * yet to be completed and dispose() is invoked again, this should return a
+	 * Future linked to the same task.
 	 * </p>
 	 * <p>
-	 * This will do nothing if the resource has already been cleaned up or it
-	 * was never updated by this Framework before.If a scheduled cleanup has yet
-	 * to be completed and cleanup() is invoked again, this should return a
-	 * Future linked to the same task.
+	 * When a Resource is no longer strong referenced, and is capable of being
+	 * garbage collected, the Framework should automatically schedule a disposal
+	 * if the Resource's state is not UNSUPPORTED or DISPOSED already.
 	 * </p>
 	 * 
 	 * @param resource The Resource to have its internal resources cleaned-up
 	 * @return A Future that can be used to determine when the clean-up
 	 *         completes, or if it is canceled by an update or Framework
-	 *         destruction.
+	 *         destruction. The returned Future's get() method returns null.
 	 * @throws NullPointerException if resource is null
 	 * @throws IllegalArgumentException if the Resource is a TextureImage being
 	 *             used by an undestroyed TextureSurface for this Framework
 	 * @throws UnsupportedResourceException if the resource implementation is
 	 *             unsupported by this Framework
 	 */
-	public Future<Void> cleanup(Resource resource);
+	public Future<Object> dispose(Resource resource);
 
 	/**
 	 * <p>
@@ -420,9 +414,9 @@ public interface Framework {
 	 * clearing will not occur until render() is called, however.
 	 * </p>
 	 * <p>
-	 * If the given surface or pass is null, then the queue has no effect.
-	 * Similarly destroyed surfaces from this Framework are ignored; this
-	 * applies to a destroyed surface at queue time and render time.
+	 * Destroyed surfaces from this Framework are ignored; this applies to a
+	 * destroyed surface at queue time and render time. This is to make it
+	 * easier in a multi-threaded environment.
 	 * </p>
 	 * <p>
 	 * Implementations are strongly encouraged to batch sequential groups of
@@ -433,9 +427,10 @@ public interface Framework {
 	 * @param surface The RenderSurface that the given RenderPass will be
 	 *            rendered to
 	 * @param pass The RenderPass that will be rendered
+	 * @throws NullPointerException if surface or pass are null
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework
-	 * @throws RenderException if the Framework is has been destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public void queue(RenderSurface surface, RenderPass pass);
 
@@ -458,11 +453,13 @@ public interface Framework {
 	 * @param clearColor True if the color buffer should be cleared
 	 * @param clearDepth True if the depth buffer should be cleared
 	 * @param clearStencil True if the stencil buffer should be cleared
+	 * @throws NullPointerException if surface or pass are null
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework
 	 * @throws RenderException if the Framework is has been destroyed
 	 */
-	public void queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil);
+	public void queue(RenderSurface surface, RenderPass pass, 
+					  boolean clearColor, boolean clearDepth, boolean clearStencil);
 
 	/**
 	 * <p>
@@ -487,11 +484,14 @@ public interface Framework {
 	 * @param color The color that surface is cleared to, if null it clears to black
 	 * @param depth The depth value that surface is cleared to, must be in [0, 1]
 	 * @param stencil The stencil value that the surface is cleared to
+	 * @throws NullPointerException if surface or pass are null
 	 * @throws IllegalArgumentException if surface wasn't created by this
 	 *             Framework, or if depth is outside of [0, 1]
-	 * @throws RenderException if the Framework is has been destroyed
+	 * @throws RenderException if the Framework has been destroyed
 	 */
-	public void queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
+	public void queue(RenderSurface surface, RenderPass pass, 
+					  boolean clearColor, boolean clearDepth, boolean clearStencil, 
+					  Color4f color, float depth, int stencil);
 
 	/**
 	 * <p>
@@ -532,8 +532,8 @@ public interface Framework {
 
 	/**
 	 * <p>
-	 * Get the current status of the given resource. Return null if resource is
-	 * null or if the resource type is unsupported.
+	 * Get the current status of the given resource. Return UNSUPPORTED if the
+	 * Framework cannot support the given Resource type.
 	 * </p>
 	 * <p>
 	 * If ERROR is returned, the resource will be ignored when rendering.
@@ -541,17 +541,18 @@ public interface Framework {
 	 * 
 	 * @param resource The Resource whose status is requested
 	 * @return The Status of resource
+	 * @throws NullPointerException if resource is null
 	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public Status getStatus(Resource resource);
 
 	/**
 	 * Get a Framework status message that is more informative about the given
-	 * resources's status. Return null if the resource is null or its type is
-	 * unsupported.
+	 * resources's status.
 	 * 
 	 * @param resource The Resource whose status message is requested
 	 * @return The status message for resource
+	 * @throws NullPointerException if resource is null
 	 * @throws RenderException if the Framework has been destroyed
 	 */
 	public String getStatusMessage(Resource resource);

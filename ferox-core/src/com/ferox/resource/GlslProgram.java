@@ -382,7 +382,7 @@ public class GlslProgram implements Resource {
 	 * @return Dirty descriptor created by createDescriptor().
 	 */
 	@Override
-	public GlslProgramDirtyDescriptor getDirtyDescriptor() {
+	public GlslProgramDirtyDescriptor getDirtyState() {
 		return dirty;
 	}
 

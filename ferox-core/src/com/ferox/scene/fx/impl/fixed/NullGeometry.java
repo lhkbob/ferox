@@ -21,7 +21,7 @@ class NullGeometry implements Geometry {
 	public void clearDirtyDescriptor() { }
 
 	@Override
-	public Object getDirtyDescriptor() { return null; }
+	public Object getDirtyState() { return null; }
 
 	@Override
 	public Object getRenderData(Framework renderer) { return null; }

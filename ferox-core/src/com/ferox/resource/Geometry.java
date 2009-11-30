@@ -4,17 +4,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ferox.renderer.Framework;
-import com.ferox.util.FastMap;
-
-public class Geometry implements Resource {
-	public static final String DEFAULT_VERTICES_NAME = "vertices";
-	public static final String DEFAULT_NORMALS_NAME = "normals";
-	public static final String DEFAULT_TEXCOORD_NAME = "texcoords";
-	
+public class Geometry extends Resource {
 	public static enum CompileType {
 		NONE, RESIDENT_DYNAMIC, RESIDENT_STATIC
 	}
+	
+	public static final String DEFAULT_VERTICES_NAME = "vertices";
+	public static final String DEFAULT_NORMALS_NAME = "normals";
+	public static final String DEFAULT_TEXCOORD_NAME = "texcoords";
 	
 	private final CompileType compile;
 	private final Map<String, VectorBuffer> attributes;
@@ -23,14 +20,12 @@ public class Geometry implements Resource {
 	private int[] indices;
 	private PolygonType polyType;
 	
-	private GeometryDirtyDescriptor dirty;
-	private final FastMap<Framework, Object> renderData;
+	private GeometryDirtyState dirty;
 	
 	public Geometry(CompileType compileType) {
 		compile = (compileType != null ? compileType : CompileType.NONE);
 		attributes = new HashMap<String, VectorBuffer>();
 		readOnlyAttributes = Collections.unmodifiableMap(attributes);
-		renderData = new FastMap<Framework, Object>(Framework.class);
 	}
 	
 	public int[] getIndices() {
@@ -44,10 +39,7 @@ public class Geometry implements Resource {
 	public void setIndices(int[] indices, PolygonType type) {
 		this.indices = indices;
 		polyType = (type == null ? PolygonType.POINTS : type);
-		
-		if (dirty == null)
-			dirty = new GeometryDirtyDescriptor();
-		dirty.markIndicesDirty(0, indices.length);
+		markIndicesDirty(0, indices.length);
 	}
 	
 	public VectorBuffer getAttribute(String name) {
@@ -64,10 +56,8 @@ public class Geometry implements Resource {
 			VectorBuffer old = attributes.put(name, values);
 			
 			if (dirty == null)
-				dirty = new GeometryDirtyDescriptor();
-			if (old == null)
-				dirty.notifyAttributeAdded(name);
-			dirty.markAttributeDirty(name, 0, values.getBuffer().length);
+				dirty = new GeometryDirtyState();
+			dirty = dirty.updateAttribute(name, 0, values.getBuffer().length, old == null);
 		} else
 			removeAttribute(name);
 	}
@@ -79,8 +69,8 @@ public class Geometry implements Resource {
 		VectorBuffer rem = attributes.remove(name);
 		if (rem != null) {
 			if (dirty == null)
-				dirty = new GeometryDirtyDescriptor();
-			dirty.notifyAttributeRemoved(name);
+				dirty = new GeometryDirtyState();
+			dirty = dirty.removeAttribute(name);
 		}
 		
 		return rem;
@@ -96,8 +86,8 @@ public class Geometry implements Resource {
 	
 	public void markIndicesDirty(int offset, int length) {
 		if (dirty == null)
-			dirty = new GeometryDirtyDescriptor();
-		dirty.markIndicesDirty(offset, length);
+			dirty = new GeometryDirtyState();
+		dirty = dirty.updateIndices(offset, length);
 	}
 	
 	public void markAttributeDirty(String name, int offset, int length) {
@@ -105,27 +95,14 @@ public class Geometry implements Resource {
 			return;
 		
 		if (dirty == null)
-			dirty = new GeometryDirtyDescriptor();
-		dirty.markAttributeDirty(name, offset, length);
+			dirty = new GeometryDirtyState();
+		dirty.updateAttribute(name, offset, length, false);
 	}
 
 	@Override
-	public void clearDirtyDescriptor() {
+	public GeometryDirtyState getDirtyState() {
+		GeometryDirtyState d = dirty;
 		dirty = null;
-	}
-
-	@Override
-	public GeometryDirtyDescriptor getDirtyDescriptor() {
-		return dirty;
-	}
-
-	@Override
-	public Object getRenderData(Framework renderer) {
-		return renderData.get(renderer);
-	}
-
-	@Override
-	public void setRenderData(Framework renderer, Object data) {
-		renderData.put(renderer, data);
+		return d;
 	}
 }

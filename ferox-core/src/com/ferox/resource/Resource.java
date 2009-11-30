@@ -1,117 +1,41 @@
 package com.ferox.resource;
 
-import com.ferox.renderer.Framework;
-
 /**
  * <p>
- * Interface that represents some type of data stored on the graphics card. A
- * resource is fairly abstract so there many things can be represented (assuming
- * there are hardware capabilities supporting it). Some examples include
- * TextureImage, Geometry, and GlslProgram.
+ * An abstract class that represents some type of data stored on the graphics
+ * card. A resource is fairly abstract so there many things can be represented
+ * (assuming there are hardware capabilities supporting it). Some examples
+ * include TextureImage, Geometry, and GlslProgram.
  * </p>
  * <p>
  * There are multiple ways that a Resource can be managed with a Framework. A
  * Resource cannot be used until its been updated by a Framework. There are
  * multiple ways that a Resource can be updated, some of which are automatic:
  * <ol>
- * <li>Implement some manager to call update() and cleanup() with the necessary
+ * <li>Implement some manager to call update() and dispose() with the necessary
  * Resources, and monitor the returned Futures</li>
- * <li>Use a Framework's update() and cleanup() methods and trust that they
+ * <li>Use a Framework's update() and dispose() methods and trust that they
  * complete as needed (per their contract).</li>
  * <li>Rely on the Framework automatically updating a Resource if it's never
  * seen the Resource before, or if the Resource has a non-null dirty descriptor</li>
  * </ol>
- * Although the Resource can be automatically updated by a Framework, it must be
- * manually cleaned-up. A Framework that's destroyed will have any remaining
- * Resource's internal data cleaned up, too.
+ * When a Resource can only be accessed by weak references, a Framework will
+ * automatically schedule it for disposal. A Framework that's destroyed will
+ * have any remaining Resource's internal data disposed, too.
  * </p>
  * <p>
  * It is not required that Resource implementations be thread-safe. A Framework
- * is responsible for acquiring a lock. Even so, care should be given to
- * modifying Resources that have a pending update or cleanup task for a
+ * is responsible for acquiring a lock. Even so, care should be given when
+ * modifying Resources that have a pending update or dispose task for a
  * Framework.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public interface Resource {
-	/**
-	 * <p>
-	 * Get the renderer specific data that has been assigned to this Effect.
-	 * This object should not be modified unless it's by the Framework that
-	 * created it.
-	 * </p>
-	 * <p>
-	 * Undefined behavior occurs if it's changed.
-	 * </p>
-	 * 
-	 * @param renderer Framework to fetch data for, will not be null
-	 * @return The previously assigned data for the renderer, or null
-	 */
-	public Object getRenderData(Framework renderer);
-
-	/**
-	 * <p>
-	 * Assign the renderer specific data for this object. This should not be
-	 * called directly, it is to be used by renderers to attach implementation
-	 * specific information needed for successful operation.
-	 * </p>
-	 * <p>
-	 * Undefined behavior occurs if this is set by something other than the
-	 * Framework.
-	 * </p>
-	 * 
-	 * @param renderer Framework to assign data to
-	 * @param data Object to return from getRenderData
-	 */
-	public void setRenderData(Framework renderer, Object data);
-
-	/**
-	 * <p>
-	 * Return an object that describes what regions of the Resource are dirty.
-	 * When this returns a non-null instance, and the Resource is used in a
-	 * frame, then the Framework should automatically update the Resource based
-	 * on the returned dirty descriptor. If null is returned, then this Resource
-	 * has not be modified (or marked as modified).
-	 * </p>
-	 * <p>
-	 * Implementations should document what type of object is returned, and
-	 * override the return type, too. The returned dirty descriptor must be an
-	 * immutable object. Every time the dirty descriptor must be expanded to
-	 * represent more state, a new instance should be created that has a
-	 * superset of the dirty attributes of the previous instance.
-	 * </p>
-	 * <p>
-	 * Because there is only one dirty descriptor per Resource, a
-	 * ResourceManager is generally required when using multiple Frameworks.
-	 * </p>
-	 * <p>
-	 * The descriptor is the minimal set of values needed to be updated.
-	 * Frameworks should not update less than what is described by the object.
-	 * If a Resource is manually updated and it's descriptor is null, the entire
-	 * Resource should be updated, for lack of a better alternative.
-	 * </p>
-	 * 
-	 * @return Implementations specific object describing what parts of the
-	 *         Resource are dirty
-	 */
-	public Object getDirtyDescriptor();
-
-	/**
-	 * <p>
-	 * Should only be called by Framework implementations when an update is
-	 * completed and the Resource is no longer deemed dirty from the Framework's
-	 * point of view.
-	 * </p>
-	 * <p>
-	 * After a call to this, getDirtyDescriptor() should return null.
-	 * </p>
-	 */
-	public void clearDirtyDescriptor();
-
+public abstract class Resource {
 	/**
 	 * Each resource will have a status with the active renderer. A Resource is
-	 * usable if it has a status of READY. Resources that are CLEANED will be
+	 * usable if it has a status of READY. Resources that are DISPOSED will be
 	 * auto-updated when used. A Resource that has a status of ERROR is unusable
 	 * until it's been repaired.
 	 */
@@ -125,9 +49,76 @@ public interface Resource {
 		 */
 		ERROR,
 		/**
-		 * The Framework has no internal representations of the Resource (never
-		 * updated, or it's been cleaned).
+		 * The Framework has no support for the Resource sub-class. Like ERROR
+		 * it means the Resource is unusable. Unlike ERROR, the Resource cannot
+		 * be used without an exception being thrown, and it's impossible to
+		 * modify the Resource to change this status.
 		 */
-		CLEANED
+		UNSUPPORTED,
+		/**
+		 * The Framework has no internal representations of the Resource (never
+		 * updated, or it's been disposed).
+		 */
+		DISPOSED
 	}
+	
+	private static int resourceId = 0;
+	private static final Object ID_LOCK = new Object();
+	
+	private final int id;
+	
+	public Resource() {
+		synchronized(ID_LOCK) {
+			id = resourceId++;
+		}
+	}
+
+	/**
+	 * Return a unique numeric id that's assigned to this Resource instance.
+	 * Each instantiated Resource is assigned an id, starting at 0, which is
+	 * valid only for the lifetime of the current JVM.
+	 * 
+	 * @return This Resource's unique id
+	 */
+	public final int getId() {
+		return id;
+	}
+
+	/**
+	 * <p>
+	 * Return an object that describes what regions of the Resource are dirty.
+	 * When this returns a non-null instance, and the Resource is used in a
+	 * frame, then the Framework should automatically update the Resource based
+	 * on the returned dirty state. If null is returned, then this Resource
+	 * has not be modified (or marked as modified).
+	 * </p>
+	 * <p>
+	 * Implementations should document what type of object is returned, and
+	 * override the return type. The returned dirty state must be an
+	 * immutable object. Every time the dirty state must be expanded to
+	 * represent more state, a new instance should be created that has a
+	 * superset of the dirty attributes of the previous instance.
+	 * </p>
+	 * <p>
+	 * Because there is only one dirty state per Resource, care must be
+	 * given when using multiple Frameworks at the same time.
+	 * </p>
+	 * <p>
+	 * The state is the minimal set of values needed to be updated.
+	 * Frameworks should not update less than what is described by the object.
+	 * If a Resource is manually updated and it's state is null, the entire
+	 * Resource should be updated, for lack of a better alternative.
+	 * </p>
+	 * <p>
+	 * Invoking this method resets the dirty state of a Resource, so a second
+	 * call to this method will return null, until the Resource has again
+	 * been flagged as dirty. Because of this, this should only be called by
+	 * Framework implementations at the appropriate time to look up the dirty
+	 * state.
+	 * </p>
+	 * 
+	 * @return Implementations specific object describing what parts of the
+	 *         Resource are dirty
+	 */
+	public abstract DirtyState<?> getDirtyState();
 }

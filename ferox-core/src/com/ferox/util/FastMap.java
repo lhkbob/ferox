@@ -32,15 +32,17 @@ public class FastMap<K, V> {
 			if (frequentKey != null && frequentKey.get() == key)
 				return frequentIndex;
 
-			Integer id = indexMap.get(key);
-			if (id == null) {
-				id = indexCounter++;
-				indexMap.put(key, id);
-			}
+			synchronized(indexMap) {
+				Integer id = indexMap.get(key);
+				if (id == null) {
+					id = indexCounter++;
+					indexMap.put(key, id);
+				}
 
-			frequentKey = new WeakReference<Object>(key);
-			frequentIndex = id;
-			return id;
+				frequentKey = new WeakReference<Object>(key);
+				frequentIndex = id;
+				return id;
+			}
 		}
 	}
 	

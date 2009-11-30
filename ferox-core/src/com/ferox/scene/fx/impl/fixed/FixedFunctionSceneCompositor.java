@@ -9,13 +9,13 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.Scene;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.View;
 import com.ferox.scene.fx.Appearance;
 import com.ferox.scene.fx.GeometryProfile;
 import com.ferox.scene.fx.SceneCompositor;
 import com.ferox.scene.fx.impl.AbstractSceneCompositor;
 import com.ferox.scene.fx.impl.AppearanceCache;
 import com.ferox.scene.fx.impl.SceneQueryCache;
-import com.ferox.shader.View;
 import com.ferox.util.Bag;
 
 public class FixedFunctionSceneCompositor extends AbstractSceneCompositor<FixedFunctionAttachedSurface> {

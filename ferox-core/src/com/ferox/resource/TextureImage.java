@@ -1,9 +1,7 @@
 package com.ferox.resource;
 
-import com.ferox.renderer.Framework;
+import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.shader.Comparison;
-import com.ferox.util.FastMap;
 
 /**
  * <p>
@@ -47,7 +45,7 @@ import com.ferox.util.FastMap;
  * 
  * @author Michael Ludwig
  */
-public abstract class TextureImage implements Resource {
+public abstract class TextureImage extends Resource {
 	/** An enum representing the available TextureImage subclasses. */
 	public static enum TextureTarget {
 		/** Corresponds to Texture1D. */
@@ -91,7 +89,6 @@ public abstract class TextureImage implements Resource {
 	private static final DepthMode DEFAULT_DEPTHMODE = DepthMode.LUMINANCE;
 	private static final Comparison DEFAULT_DEPTHTEST = Comparison.GREATER;
 
-	private final FastMap<Framework, Object> renderData;
 	private final TextureFormat format;
 	private final DataType type;
 
@@ -162,7 +159,6 @@ public abstract class TextureImage implements Resource {
 			throw new IllegalArgumentException("EffectType and format are not valid: " + format + " " + type);
 		this.format = format;
 		this.type = type;
-		renderData = new FastMap<Framework, Object>(Framework.class);
 
 		setFilter(filter);
 		setWrapSTR(wrapAll);
@@ -484,16 +480,6 @@ public abstract class TextureImage implements Resource {
 	 * to be properly modified to reflect this.
 	 */
 	protected void setTextureParametersDirty() { }
-	
-	@Override
-	public Object getRenderData(Framework renderer) {
-		return renderData.get(renderer);
-	}
-
-	@Override
-	public void setRenderData(Framework renderer, Object data) {
-		renderData.put(renderer, data);
-	}
 	
 	/**
 	 * <p>

@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
+import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.shader.Comparison;
 
 /**
  * <p>
@@ -56,7 +56,7 @@ public class Texture2D extends TextureImage {
 	private int width, height;
 	private int numMipmaps;
 	
-	private TextureDirtyDescriptor dirty;
+	private TextureDirtyState dirty;
 
 	/**
 	 * Creates a texture image with the given format and type, default other
@@ -196,17 +196,11 @@ public class Texture2D extends TextureImage {
 			return; // invalid level option
 
 		if (dirty == null)
-			dirty = new TextureDirtyDescriptor(numMipmaps);
+			dirty = new TextureDirtyState(numMipmaps, false);
 
 		int levelWidth = getWidth(level);
 		int levelHeight = getHeight(level);
-		ImageRegion r = dirty.getDirtyMipmap(level);
-		
-		if (r == null)
-			r = new ImageRegion(x, y, 0, width, height, 0, levelWidth, levelHeight, 0);
-		else
-			r = r.merge(x, y, 0, width, height, 0);
-		dirty.setDirtyMipmap(level, r);
+		dirty = dirty.updateMipmap(level, new ImageRegion(x, y, 0, width, height, 0, levelWidth, levelHeight, 0));
 	}
 
 	/**
@@ -274,19 +268,17 @@ public class Texture2D extends TextureImage {
 	}
 	
 	@Override
-	public void clearDirtyDescriptor() {
+	public TextureDirtyState getDirtyState() {
+		TextureDirtyState d = dirty;
 		dirty = null;
-	}
-
-	@Override
-	public TextureDirtyDescriptor getDirtyDescriptor() {
-		return dirty;
+		return d;
 	}
 	
 	@Override
 	protected void setTextureParametersDirty() {
 		if (dirty == null)
-			dirty = new TextureDirtyDescriptor(numMipmaps);
-		dirty.setParametersDirty();
+			dirty = new TextureDirtyState(numMipmaps, true);
+		else
+			dirty = dirty.setTextureParametersDirty();
 	}
 }

@@ -19,7 +19,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * textures and 2d textures from an input stream.
  * </p>
  * <p>
- * It is recommended to use TextureIO for input however, since it will delegate
+ * It is recommended to use TextureLoader for input however, since it will delegate
  * to DDSTexture when needed.
  * </p>
  * 
@@ -106,8 +106,7 @@ public class DDSTexture {
 			throw new NullPointerException("Cannot test a null stream");
 
 		if (!(stream instanceof BufferedInputStream))
-			stream = new BufferedInputStream(stream); // this way marking is
-		// supported
+			stream = new BufferedInputStream(stream); // this way marking is supported
 		try {
 			DDSHeader header;
 			try {
@@ -443,22 +442,16 @@ public class DDSTexture {
 	private static final int DDSD_DEPTH = 0x00800000; // dwDepth is valid
 
 	// Selected bits in DDSPixelFormat flags
-	private static final int DDPF_ALPHAPIXELS = 0x00000001; // Alpha channel is
-	// present
-	private static final int DDPF_ALPHA = 0x00000002; // Only contains alpha
-	// information
+	private static final int DDPF_ALPHAPIXELS = 0x00000001; // Alpha channel is present
+	private static final int DDPF_ALPHA = 0x00000002; // Only contains alpha information
 	private static final int DDPF_LUMINANCE = 0x00020000; // luminance data
 	private static final int DDPF_FOURCC = 0x00000004; // FourCC code is valid
 	private static final int DDPF_RGB = 0x00000040; // RGB data is present
 
 	// Selected bits in DDS capabilities flags
-	private static final int DDSCAPS_TEXTURE = 0x00001000; // Can be used as a
-	// texture
-	private static final int DDSCAPS_MIPMAP = 0x00400000; // Is one level of a
-	// mip-map
-	private static final int DDSCAPS_COMPLEX = 0x00000008; // Complex surface
-	// structure, such
-	// as a cube map
+	private static final int DDSCAPS_TEXTURE = 0x00001000; // Can be used as a texture
+	private static final int DDSCAPS_MIPMAP = 0x00400000; // Is one level of a mip-map
+	private static final int DDSCAPS_COMPLEX = 0x00000008; // Complex surface structure, such as a cube map
 
 	// Selected bits in DDS capabilities 2 flags
 	private static final int DDSCAPS2_CUBEMAP = 0x00000200;
@@ -502,8 +495,7 @@ public class DDSTexture {
 	private static void validateHeader(DDSHeader h) throws IOException {
 		// Must have the magic number 'DDS '
 		// Size must be 124, although devIL reports that some files have 'DDS '
-		// in the
-		// size var as well, so we'll support that.
+		// in the size var as well, so we'll support that.
 		if (h.magic != FOURCC_DDS || (h.size != 124 && h.size != FOURCC_DDS))
 			throw new IOException("DDS header is invalid");
 		if (h.pixelFormat.size != 32)
@@ -569,12 +561,12 @@ public class DDSTexture {
 				if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE2D)
 					throw new IOException("DX10 header and surface caps are inconsistent");
 				if (header.headerDX10.arraySize > 1)
-					throw new IOException("TextureEnvironment arrays aren't supported");
+					throw new IOException("Texture arrays aren't supported");
 			} else if (target == TextureTarget.T_3D) {
 				if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE3D)
 					throw new IOException("DX10 header and surface caps are inconsistent");
 				if (header.headerDX10.arraySize > 1)
-					throw new IOException("TextureEnvironment arrays aren't supported");
+					throw new IOException("Texture arrays aren't supported");
 			} else if (target == TextureTarget.T_CUBEMAP)
 				if (header.headerDX10.resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
 					// nvidia sets the dx10 header to be a 2d tex, with
@@ -704,9 +696,7 @@ public class DDSTexture {
 
 		h.reserved2 = readLEInt(in);
 
-		if (h.pixelFormat.fourCC == FOURCC_DX10) { // According to AMD, this is
-			// how we know if it's
-			// present
+		if (h.pixelFormat.fourCC == FOURCC_DX10) { // According to AMD, this is how we know if it's present
 			h.headerDX10 = new DDSHeader_DX10();
 			int dxgi = readLEInt(in);
 			h.headerDX10.dxgiFormat = (dxgi < 0 || dxgi >= DXGIPixelFormat.values().length ? DXGIPixelFormat.values()[0] 
@@ -751,10 +741,8 @@ public class DDSTexture {
 		}
 	}
 
-	// create an appropriately typed nio buffer based the DDSTexture's glType
-	// and the byte[] image.
-	// for int, short, and float primitive types, it converts the byte ordering
-	// into big endian.
+	// create an appropriately typed nio buffer based the DDSTexture's glType and the byte[] image.
+	// for int, short, and float primitive types, it converts the byte ordering into big endian.
 	private BufferData createBuffer(byte[] image) throws IOException {
 		switch (type) {
 		case UNSIGNED_INT: {

@@ -78,7 +78,7 @@ public class ImageRegion {
 		this.height = Math.min(height, maxHeight - this.y);
 		this.depth = Math.min(depth, maxDepth - this.z);
 	}
-
+	
 	/**
 	 * Return the x offset of this region within the image block.
 	 * 
@@ -171,5 +171,21 @@ public class ImageRegion {
 		// constrained to valid region
 		return new ImageRegion(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ,
 							   maxWidth, maxHeight, maxDepth);
+	}
+
+	/**
+	 * Construct a new ImageRegion that is the union of this ImageRegion and the
+	 * given ImageRegion. The constructed region will be constrained to the
+	 * maximum dimensions of this ImageRegion. If region is null, it returns this
+	 * ImageRegion.
+	 * 
+	 * @param region The ImageRegion to merge with
+	 * @return A new ImageRegion representing the union
+	 */
+	public ImageRegion merge(ImageRegion region) {
+		if (region == null)
+			return this;
+		else
+			return merge(region.x, region.y, region.z, region.width, region.height, region.depth);
 	}
 }

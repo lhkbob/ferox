@@ -10,10 +10,10 @@ import com.ferox.renderer.Renderer;
 import com.ferox.resource.Geometry;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.Shape;
+import com.ferox.scene.View;
 import com.ferox.shader.DirectionLight;
 import com.ferox.shader.Effect;
 import com.ferox.shader.PolygonStyle;
-import com.ferox.shader.View;
 import com.ferox.shader.PolygonStyle.DrawStyle;
 import com.ferox.util.Bag;
 
@@ -94,8 +94,8 @@ public class ShadowMapRenderPass implements RenderPass {
 			ftr.set(ff / fn * fr, ff / fn * ft, ff);
 			ftl.set(ff / fn * fl, ff / fn * ft, ff);
 		}
-		Vector3f camCenter = nbr.add(nbl, null).add(ntr).add(ntl).
-						     add(fbr).add(fbl).add(ftr).add(ftl).scale(1 / 8f);
+		Vector3f camCenter = nbr.add(nbl, null).add(ntr).add(ntl)
+						        .add(fbr).add(fbl).add(ftr).add(ftl).scale(1 / 8f);
 		
 		// transform frustum corners to light space
 		l.mulPre(v.mulPre(nbr.sub(camCenter)));
