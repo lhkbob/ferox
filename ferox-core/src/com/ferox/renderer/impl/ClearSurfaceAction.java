@@ -2,6 +2,7 @@ package com.ferox.renderer.impl;
 
 import com.ferox.math.Color4f;
 import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.Renderer;
 
 public class ClearSurfaceAction extends Action {
 	private final boolean clearDepth;
@@ -26,6 +27,13 @@ public class ClearSurfaceAction extends Action {
 
 	@Override
 	public void perform(Context context, Action next) {
-		context.clearSurface(clearColor, clearDepth, clearStencil, color, depth, stencil);
+		Renderer renderer = context.getRenderer();
+		// make sure the entire buffer will be cleared, 
+		// without doing a full reset
+		renderer.setDepthWriteMask(true);
+		renderer.setColorWriteMask(true, true, true, true);
+		renderer.setStencilWriteMask(~0);
+		
+		renderer.clear(clearColor, clearDepth, clearStencil, color, depth, stencil);
 	}
 }

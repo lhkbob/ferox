@@ -13,6 +13,7 @@ public class RenderPassAction extends Action {
 
 	@Override
 	public void perform(Context context, Action next) {
+		context.getRenderer().reset();
 		renderPass.render(context.getRenderer(), getRenderSurface());
 	}
 }

@@ -21,7 +21,7 @@ import com.ferox.resource.DirtyState;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
-public abstract class MultithreadFramework implements Framework {
+public abstract class AbstractFramework implements Framework {
 	private final ThreadLocal<List<Action>> queue;
 	private volatile boolean destroyed;
 	
@@ -34,7 +34,7 @@ public abstract class MultithreadFramework implements Framework {
 	private final Object surfaceLock;
 	private final ReadWriteLock stateLock;
 	
-	public MultithreadFramework() {
+	public AbstractFramework() {
 		validSurfaces = Collections.synchronizedSet(new HashSet<RenderSurface>());
 		queue = new ThreadLocal<List<Action>>();
 		destroyed = false;
@@ -66,16 +66,17 @@ public abstract class MultithreadFramework implements Framework {
 	public void destroy(RenderSurface surface) {
 		if (surface == null)
 			throw new NullPointerException("Cannot destroy a null RenderSurface");
-		if (surface.isDestroyed())
-			return;
-		if (!validSurfaces.contains(surface))
-			throw new IllegalArgumentException("Cannot destroy a RenderSurface created by another Framework");
-		
+
 		try {
 			stateLock.readLock().lock();
 			ensureNotDestroyed();
 			
 			synchronized(surfaceLock) {
+				if (surface.isDestroyed())
+					return;
+				if (!validSurfaces.contains(surface))
+					throw new IllegalArgumentException("Cannot destroy a RenderSurface created by another Framework");
+
 				innerDestroy(surface);
 			}
 		} finally {

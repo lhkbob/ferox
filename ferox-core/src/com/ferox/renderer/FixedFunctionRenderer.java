@@ -59,7 +59,7 @@ import com.ferox.resource.TextureImage;
  * </p>
  * <p>
  * Like the state exposed by the Renderer super-type, there are default values
- * that will be the Renderer will use at the start of a RenderPass and each time
+ * that the Renderer will use at the start of a RenderPass and each time
  * {@link #reset()} is called manually. The defaults are as follows:
  * <ul>
  * <li>The vertex binding name is set to {@link Geometry#DEFAULT_VERTICES_NAME}</li>
@@ -75,7 +75,7 @@ import com.ferox.resource.TextureImage;
  * <li>The global ambient color is (.2, .2, .2, 1)</li>
  * <li>Smooth shading is enabled, and two-sided lighting is disabled</li>
  * <li>Each light has a black ambient color. The 0th light has white diffuse and
- * specular lighting, whie all others have black diffuse and specular colors</li>
+ * specular lighting, while all others have black diffuse and specular colors</li>
  * <li>Each light has a position vector of (0, 0, 1, 0) - it's directional</li>
  * <li>Each light has a spotlight direction of (0, 0, -1) and attenuation of
  * (c,l,q) = (1,0,0)</li>
@@ -86,6 +86,7 @@ import com.ferox.resource.TextureImage;
  * <li>The modelview and projection matrix are set to the identity matrices</li>
  * <li>All TextureImages are unbound, all texture units are disabled</li>
  * <li>Every texture unit uses {@link EnvMode#MODULATE}</li>
+ * <li>Every texture unit uses a texture color of (0, 0, 0, 0)</li>
  * <li>All texture units use {@link TexCoordSource#ATTRIBUTE} for each of the
  * available coordinates</li>
  * <li>For each texture unit, the object and eye planes are set to S=(1, 0, 0,
@@ -464,6 +465,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * 
 	 * @param density The new fog density
 	 * @param squared True if the exponent should be squared
+	 * @throws IllegalArgumentException if density is less than 0
 	 */
 	public void setFogExponential(float density, boolean squared);
 
@@ -680,7 +682,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * </p>
 	 * <p>
 	 * When determining the contribution of a given light, it is scaled by some
-	 * attenuation factor which is computed based on these configured constants
+	 * attenuation factor that is computed based on these configured constants
 	 * and a pixel's distance to the light. If we let c, l, and q represent the
 	 * constant, linear and quadratic terms and d is equal to the distance to
 	 * the light, then the attenuation factor is computed as:
@@ -704,7 +706,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * @param quadratic The quadratic attenuation factor, >= 0
 	 * @throws IllegalArgumentException if constant, linear or quadratic < 0
 	 */
-	public void setSpotlightAttenuation(int light, float constant, float linear, float quadratic);
+	public void setLightAttenuation(int light, float constant, float linear, float quadratic);
 
 	/**
 	 * <p>
@@ -870,7 +872,8 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * 
 	 * @param tex The texture unit
 	 * @param coord The coordinate whose object plane will be set
-	 * @param plane The object plane that's used for this unit and coordinate
+	 * @param plane The object plane that's used for this unit and coordinate * @throws
+	 *            NullPointerException if coord or plane are null
 	 */
 	public void setTextureObjectPlane(int tex, TexCoord coord, Vector4f plane);
 
@@ -893,6 +896,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * @param coord The coordinate whose eye plane will be set
 	 * @param plane The eye plane to be specified, values are before inverse
 	 *            modelview multiplication
+	 * @throws NullPointerException if coord or plane are null
 	 */
 	public void setTextureEyePlane(int tex, TexCoord coord, Vector4f plane);
 
