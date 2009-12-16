@@ -6,7 +6,17 @@ import javax.media.opengl.GL2;
 import javax.swing.SwingUtilities;
 
 import com.ferox.math.Color4f;
-import com.ferox.math.Plane;
+import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
+import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
+import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
+import com.ferox.renderer.FixedFunctionRenderer.EnvMode;
+import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
+import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
+import com.ferox.renderer.Renderer.BlendFactor;
+import com.ferox.renderer.Renderer.BlendFunction;
+import com.ferox.renderer.Renderer.Comparison;
+import com.ferox.renderer.Renderer.DrawStyle;
+import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.resource.PolygonType;
 import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureFormat;
@@ -17,17 +27,6 @@ import com.ferox.resource.TextureImage.DepthMode;
 import com.ferox.resource.TextureImage.Filter;
 import com.ferox.resource.TextureImage.TextureTarget;
 import com.ferox.resource.TextureImage.TextureWrap;
-import com.ferox.shader.Comparison;
-import com.ferox.shader.BlendMode.BlendFactor;
-import com.ferox.shader.BlendMode.BlendFunction;
-import com.ferox.shader.Fog.FogEquation;
-import com.ferox.shader.OpenGlShader.DrawStyle;
-import com.ferox.shader.StencilTest.StencilUpdateOperation;
-import com.ferox.shader.TextureEnvironment.CombineFunction;
-import com.ferox.shader.TextureEnvironment.CombineOperand;
-import com.ferox.shader.TextureEnvironment.CombineSource;
-import com.ferox.shader.TextureEnvironment.EnvironmentMode;
-import com.ferox.shader.TextureEnvironment.TexCoordGeneration;
 
 /**
  * Utils provides conversions for the commonly used enums in States/Resources
@@ -53,25 +52,6 @@ public class Utils {
 			   color.getGreen() == buffer[1] && 
 			   color.getBlue() == buffer[2] && 
 			   color.getAlpha() == buffer[3];
-	}
-
-	/** Store the plane into the 4-element float buffer. */
-	public static void get(Plane plane, float[] buffer) {
-		buffer[0] = plane.getA();
-		buffer[1] = plane.getB();
-		buffer[2] = plane.getC();
-		buffer[3] = plane.getD();
-	}
-
-	/**
-	 * Return true if the 4 elements in the buffer match the 4 values of the
-	 * plane.
-	 */
-	public static boolean equals(Plane plane, float[] buffer) {
-		return plane.getA() == buffer[0] && 
-		       plane.getB() == buffer[1] &&
-		       plane.getC() == buffer[2] && 
-		       plane.getD() == buffer[3];
 	}
 
 	/**
@@ -607,20 +587,6 @@ public class Utils {
 		return -1;
 	}
 
-	/** eq must not be null. */
-	public static int getGLFogMode(FogEquation eq) {
-		switch (eq) {
-		case EXP:
-			return GL2.GL_EXP;
-		case EXP_2:
-			return GL2.GL_EXP2;
-		case LINEAR:
-			return GL2.GL_LINEAR;
-		}
-
-		return -1;
-	}
-
 	/**
 	 * Should not be called with NONE or null, as no gl enum exists to match it.
 	 */
@@ -638,7 +604,7 @@ public class Utils {
 	}
 
 	/** Op must not be null. */
-	public static int getGLStencilOp(StencilUpdateOperation op) {
+	public static int getGLStencilOp(StencilOp op) {
 		switch (op) {
 		case DECREMENT:
 			return GL2.GL_DECR;
@@ -662,7 +628,7 @@ public class Utils {
 	}
 
 	/** Mode must not be null. */
-	public static int getGLTexEnvMode(EnvironmentMode mode) {
+	public static int getGLTexEnvMode(EnvMode mode) {
 		switch (mode) {
 		case REPLACE:
 			return GL2.GL_REPLACE;
@@ -680,9 +646,9 @@ public class Utils {
 	}
 
 	/**
-	 * Should not be called with NONE or null, as nothing parallels its meaning.
+	 * Should not be called with ATTRIBUTE or null, as nothing parallels its meaning.
 	 */
-	public static int getGLTexGen(TexCoordGeneration gen) {
+	public static int getGLTexGen(TexCoordSource gen) {
 		switch (gen) {
 		case EYE:
 			return GL2.GL_EYE_LINEAR;
@@ -698,9 +664,25 @@ public class Utils {
 
 		return -1;
 	}
+	
+	/** Coord must be null */
+	public static int getGLTexCoord(TexCoord coord, boolean forEnable) {
+		switch(coord) {
+		case Q:
+			return (forEnable ? GL2.GL_TEXTURE_GEN_Q : GL2.GL_Q);
+		case R:
+			return (forEnable ? GL2.GL_TEXTURE_GEN_R : GL2.GL_R);
+		case S:
+			return (forEnable ? GL2.GL_TEXTURE_GEN_S : GL2.GL_S);
+		case T:
+			return (forEnable ? GL2.GL_TEXTURE_GEN_T : GL2.GL_T);
+		}
+		
+		return -1;
+	}
 
 	/** Func must not be null. */
-	public static int getGLCombineRGBFunc(CombineFunction func) {
+	public static int getGLCombineFunc(CombineFunction func) {
 		switch (func) {
 		case ADD:
 			return GL2.GL_ADD;
@@ -724,7 +706,7 @@ public class Utils {
 	}
 
 	/** Op must not be null. */
-	public static int getGLCombineOp(CombineOperand op) {
+	public static int getGLCombineOp(CombineOp op) {
 		switch (op) {
 		case ALPHA:
 			return GL2.GL_SRC_ALPHA;
@@ -742,7 +724,7 @@ public class Utils {
 	/** Src must not be null. */
 	public static int getGLCombineSrc(CombineSource src) {
 		switch (src) {
-		case BLEND_COLOR:
+		case CONST_COLOR:
 			return GL2.GL_CONSTANT;
 		case CURR_TEX:
 			return GL2.GL_TEXTURE;

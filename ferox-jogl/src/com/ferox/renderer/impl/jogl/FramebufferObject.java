@@ -5,7 +5,6 @@ import javax.media.opengl.GL2GL3;
 
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.impl.ResourceHandle;
-import com.ferox.renderer.impl.jogl.state.FramebufferRecord;
 import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
@@ -30,7 +29,6 @@ public class FramebufferObject {
 			throw new RenderException("Current hardware doesn't support the creation of fbos");
 
 		GL2GL3 gl = context.getGL();
-		FramebufferRecord fbr = context.getRecord().frameRecord;
 
 		this.colorTarget = colorTarget;
 
@@ -120,20 +118,15 @@ public class FramebufferObject {
 		}
 
 		// restore the old binding
-		gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbr.drawFramebufferBinding);
+		gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, context.getRecord().getFbo());
 	}
 
 	public void bind(int layer) {
 		JoglContext context = JoglContext.getCurrent();
 		GL2GL3 gl = context.getGL();
 		
-		FramebufferRecord fbr = context.getRecord().frameRecord;
-
 		// bind the fbo if needed
-		if (fbr.drawFramebufferBinding != fboId) {
-			gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
-			fbr.drawFramebufferBinding = fboId;
-		}
+		context.getRecord().bindFbo(gl, fboId);
 
 		// possibly re-attach the images (in the case of cubemaps or 3d textures)
 		if (layer != boundLayer) {
@@ -150,12 +143,7 @@ public class FramebufferObject {
 
 	public void release() {
 		JoglContext context = JoglContext.getCurrent();
-		FramebufferRecord fbr = context.getRecord().frameRecord;
-
-		if (fbr.drawFramebufferBinding != 0) {
-			context.getGL().glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
-			fbr.drawFramebufferBinding = 0;
-		}
+		context.getRecord().bindFbo(context.getGL(), 0);
 	}
 
 	public void destroy() {

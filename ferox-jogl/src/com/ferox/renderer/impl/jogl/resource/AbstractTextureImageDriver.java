@@ -13,18 +13,15 @@ import javax.media.opengl.GL2GL3;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.renderer.impl.jogl.BoundObjectState;
 import com.ferox.renderer.impl.jogl.JoglContext;
 import com.ferox.renderer.impl.jogl.Utils;
-import com.ferox.renderer.impl.jogl.state.JoglStateRecord;
-import com.ferox.renderer.impl.jogl.state.PackUnpackRecord;
-import com.ferox.renderer.impl.jogl.state.TextureRecord;
-import com.ferox.renderer.impl.jogl.state.TextureRecord.TextureUnit;
 import com.ferox.resource.BufferData;
+import com.ferox.resource.DirtyState;
 import com.ferox.resource.ImageRegion;
 import com.ferox.resource.Resource;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.TextureImage;
-import com.ferox.resource.Resource.DirtyState;
 import com.ferox.resource.Resource.Status;
 import com.ferox.util.texture.converter.TextureConverter;
 
@@ -147,12 +144,10 @@ public abstract class AbstractTextureImageDriver<T extends TextureImage, D exten
 	
 	// update the given texture's parameters and images as needed based off of dirtyState and newTex
 	private void update(GL2GL3 gl, T tex, TextureHandle handle, D dirtyState, boolean newTex) {
-		JoglStateRecord record = JoglContext.getCurrent().getRecord();
+		BoundObjectState record = JoglContext.getCurrent().getRecord();
+		int aTex = record.getActiveTexture();
 		
-		TextureRecord tr = record.textureRecord;
-		TextureUnit unit = tr.textureUnits[tr.activeTexture];
-		
-		int oldId = (unit.enabledTarget == handle.glTarget ? unit.texBinding : 0);
+		int oldId = (record.getTextureTarget(aTex) == handle.glTarget ? record.getTexture(aTex) : 0);
 		gl.glBindTexture(handle.glTarget, handle.getId());
 		if (dirtyState == null || getParametersDirty(dirtyState))
 			setTextureParameters(gl, handle, tex, dirtyState == null);
@@ -160,15 +155,15 @@ public abstract class AbstractTextureImageDriver<T extends TextureImage, D exten
 		TextureFormat f = tex.getFormat();
 		boolean rescale = tex.getWidth(0) != handle.width || tex.getHeight(0) != handle.height || tex.getDepth(0) != handle.depth;
 		if (newTex || rescale || f.isCompressed() || f == TextureFormat.DEPTH)
-			doTexImage(gl, record.packRecord, tex, handle, newTex);
+			doTexImage(gl, tex, handle, newTex);
 		else
-			doTexSubImage(gl, record.packRecord, tex, handle, dirtyState);
+			doTexSubImage(gl, tex, handle, dirtyState);
 		
 		gl.glBindTexture(handle.glTarget, oldId);
 	}
 	
 	// iterate through all layers and mipmaps and invoke glTexImage on each combinatio
-	private void doTexImage(GL2GL3 gl, PackUnpackRecord pr, T tex, TextureHandle handle, boolean newTex) {
+	private void doTexImage(GL2GL3 gl,  T tex, TextureHandle handle, boolean newTex) {
 		boolean needsResize = handle.width != tex.getWidth(0) || handle.height != tex.getHeight(0) || handle.depth != tex.getDepth(0);
 		int numLayers = getNumLayers(tex);
 		
@@ -189,7 +184,7 @@ public abstract class AbstractTextureImageDriver<T extends TextureImage, D exten
 													  null, tex.getFormat(), bd.getType(), w, h, d);
 					}
 					// proceed with image allocation
-					setUnpackRegion(gl, pr, 0, 0, 0, w, h);
+					setUnpackRegion(gl, 0, 0, 0, w, h);
 					glTexImage(gl, handle, l, i, w, h, d, bd.getCapacity(), wrap(bd));
 				} else if (newTex) {
 					// allocate empty image
@@ -200,7 +195,7 @@ public abstract class AbstractTextureImageDriver<T extends TextureImage, D exten
 	}
 	
 	// iterate through all layers and mipmaps and invoke glTexSubImage on each dirty layer/mipmap pair
-	private void doTexSubImage(GL2GL3 gl, PackUnpackRecord pr, T tex, TextureHandle handle, D dirty) {
+	private void doTexSubImage(GL2GL3 gl, T tex, TextureHandle handle, D dirty) {
 		int numLayers = getNumLayers(tex);
 		int w, h, d;
 		ImageRegion mdr;
@@ -217,12 +212,12 @@ public abstract class AbstractTextureImageDriver<T extends TextureImage, D exten
 					mdr = (dirty == null ? null : getDirtyRegion(dirty, l, i));
 					if (mdr != null) {
 						// use the region descriptor
-						setUnpackRegion(gl, pr, mdr.getXOffset(), mdr.getYOffset(), mdr.getZOffset(), w, h);
+						setUnpackRegion(gl, mdr.getXOffset(), mdr.getYOffset(), mdr.getZOffset(), w, h);
 						glTexSubImage(gl, handle, l, i, mdr.getXOffset(), mdr.getYOffset(), mdr.getZOffset(), 
 									  mdr.getWidth(), mdr.getHeight(), mdr.getDepth(), wrap(bd));
 					} else if (dirty == null) {
 						// update the whole image
-						setUnpackRegion(gl, pr, 0, 0, 0, w, h);
+						setUnpackRegion(gl, 0, 0, 0, w, h);
 						glTexSubImage(gl, handle, l, i, 0, 0, 0, w, h, d, wrap(bd));
 					}
 				}
@@ -231,40 +226,22 @@ public abstract class AbstractTextureImageDriver<T extends TextureImage, D exten
 	}
 
 	// modify the pack record so that gl unpacks the correct region
-	private void setUnpackRegion(GL gl, PackUnpackRecord pr, int xOffset, int yOffset, int zOffset, 
+	private void setUnpackRegion(GL gl, int xOffset, int yOffset, int zOffset, 
 								 int blockWidth, int blockHeight) {
 		// skip pixels
-		if (pr.unpackSkipPixels != xOffset) {
-			pr.unpackSkipPixels = xOffset;
-			gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, xOffset);
-		}
+		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_PIXELS, xOffset);
 		// skip rows
-		if (pr.unpackSkipRows != yOffset) {
-			pr.unpackSkipRows = yOffset;
-			gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, yOffset);
-		}
+		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_ROWS, yOffset);
 		// skip images
-		if (pr.unpackSkipImages != zOffset) {
-			pr.unpackSkipImages = zOffset;
-			gl.glPixelStorei(GL2.GL_UNPACK_SKIP_IMAGES, zOffset);
-		}
+		gl.glPixelStorei(GL2.GL_UNPACK_SKIP_IMAGES, zOffset);
 
 		// width of whole face
-		if (pr.unpackRowLength != blockWidth) {
-			pr.unpackRowLength = blockWidth;
-			gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, blockWidth);
-		}
+		gl.glPixelStorei(GL2.GL_UNPACK_ROW_LENGTH, blockWidth);
 		// height of whole face
-		if (pr.unpackImageHeight != blockHeight) {
-			pr.unpackImageHeight = blockHeight;
-			gl.glPixelStorei(GL2.GL_UNPACK_IMAGE_HEIGHT, blockHeight);
-		}
+		gl.glPixelStorei(GL2.GL_UNPACK_IMAGE_HEIGHT, blockHeight);
 
 		// configure the alignment
-		if (pr.unpackAlignment != 1) {
-			pr.unpackAlignment = 1;
-			gl.glPixelStorei(GL2.GL_UNPACK_ALIGNMENT, 1);
-		}
+		gl.glPixelStorei(GL2.GL_UNPACK_ALIGNMENT, 1);
 	}
 
 	// update all of the texture parameters for ti

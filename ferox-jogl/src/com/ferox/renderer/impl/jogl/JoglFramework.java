@@ -11,11 +11,11 @@ import com.ferox.renderer.Renderer;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.WindowSurface;
-import com.ferox.renderer.impl.MultithreadFramework;
+import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
-public abstract class JoglFramework extends MultithreadFramework {
+public abstract class JoglFramework extends AbstractFramework {
 	private final GLProfile glProfile;
 	private final JoglContext shadowContext;
 	
@@ -24,12 +24,12 @@ public abstract class JoglFramework extends MultithreadFramework {
 	private volatile int windowSurfaces;
 	private volatile boolean fullscreenSurface;
 	
-	public JoglFramework(GLProfile profile) {
+	public JoglFramework(GLProfile profile, int capForceBits) {
 		if (Threading.isSingleThreaded())
 			Threading.disableSingleThreading();
 		
 		RenderCapabilitiesDetector detector = new RenderCapabilitiesDetector();
-		RenderCapabilities caps = detector.detect(profile);
+		RenderCapabilities caps = detector.detect(profile, capForceBits);
 		
 		resourceManager = new JoglResourceManager(this, caps);
 		init(resourceManager, new JoglRenderManager(this, true), caps);

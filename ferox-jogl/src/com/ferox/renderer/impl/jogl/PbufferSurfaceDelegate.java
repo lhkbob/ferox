@@ -12,8 +12,6 @@ import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.jogl.resource.TextureHandle;
-import com.ferox.renderer.impl.jogl.state.TextureRecord;
-import com.ferox.renderer.impl.jogl.state.TextureRecord.TextureUnit;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
@@ -65,8 +63,6 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
 		TextureImage depth = getDepthBuffer();
 
 		GL2GL3 gl = context.getGL();
-		TextureRecord tr = context.getRecord().textureRecord;
-		TextureUnit tu = tr.textureUnits[tr.activeTexture];
 
 		int ct = -1;
 		int dt = -1;
@@ -84,7 +80,7 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
 			dt = handle.glTarget;
 		}
 		
-		restoreBindings(gl, tu, ct, dt);
+		restoreBindings(gl, context.getRecord(), ct, dt);
 	}
 
 	/*
@@ -110,18 +106,21 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
 		}
 	}
 
-	private static void restoreBindings(GL gl, TextureUnit activeUnit, int colorTarget, int depthTarget) {
+	private static void restoreBindings(GL gl, BoundObjectState state, int colorTarget, int depthTarget) {
+		int target = state.getTextureTarget(state.getActiveTexture());
+		int tex = state.getTexture(state.getActiveTexture());
+		
 		if (colorTarget > 0) {
-			if (activeUnit.enabledTarget == colorTarget)
+			if (target == colorTarget)
 				// restore enabled texture
-				gl.glBindTexture(colorTarget, activeUnit.texBinding);
+				gl.glBindTexture(colorTarget, tex);
 			else
 				gl.glBindTexture(colorTarget, 0); // not really the active unit
 		}
 		if (depthTarget > 0 && colorTarget != depthTarget) {
-			if (activeUnit.enabledTarget == depthTarget)
+			if (target == depthTarget)
 				// restore enabled texture
-				gl.glBindTexture(depthTarget, activeUnit.texBinding);
+				gl.glBindTexture(depthTarget, tex);
 			else
 				gl.glBindTexture(depthTarget, 0); // not really the active unit
 		}

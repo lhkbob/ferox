@@ -2,11 +2,11 @@ package com.ferox.renderer.impl.jogl;
 
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import com.ferox.renderer.AbstractRenderSurface;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
+import com.ferox.renderer.impl.AbstractRenderSurface;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
 

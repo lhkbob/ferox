@@ -7,19 +7,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 
-import com.ferox.math.Color4f;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
-import com.ferox.renderer.impl.jogl.state.JoglStateRecord;
 
 public class JoglContext implements Context {
 	private static final ThreadLocal<JoglContext> current = new ThreadLocal<JoglContext>();
@@ -29,12 +28,12 @@ public class JoglContext implements Context {
 	private final GLContext context;
 	private final GLDrawable drawable;
 	
-	private final ReentrantLock contextLock;
-	
-	// FIXME: add a state record - must resolve state across gl profiles
+	private final BoundObjectState objState;
 	private final List<FramebufferObject> zombieFbos;
 	
 	private volatile boolean destroyed;
+	private boolean initialized;
+	private final ReentrantLock contextLock;
 	
 	private FrameStatistics frameStats;
 	
@@ -48,6 +47,14 @@ public class JoglContext implements Context {
 		renderer = framework.createRenderer(this);
 		drawable = surface;
 		destroyed = false;
+		initialized = false;
+		
+		int ffp = framework.getCapabilities().getMaxFixedPipelineTextures();
+		int frag = framework.getCapabilities().getMaxFragmentShaderTextures();
+		int vert = framework.getCapabilities().getMaxVertexShaderTextures();
+		
+		int maxTextures = Math.max(ffp, Math.max(frag, vert));
+		objState = new BoundObjectState(maxTextures);
 
 		contextLock = new ReentrantLock();
 		zombieFbos = Collections.synchronizedList(new ArrayList<FramebufferObject>());
@@ -62,23 +69,14 @@ public class JoglContext implements Context {
 	public static Thread getThread(JoglContext context) {
 		return contextThreads.get(context);
 	}
-	
-	@Override
-	public void clearSurface(boolean clearColor, boolean clearDepth, boolean clearStencil, 
-							 Color4f color, float depth, int stencil) {
-		if (destroyed)
-			return;
-		// TODO implement once state record is added
-		
-	}
 
 	@Override
 	public Renderer getRenderer() {
 		return renderer;
 	}
 	
-	public JoglStateRecord getRecord() {
-		
+	public BoundObjectState getRecord() {
+		return objState;
 	}
 	
 	public FrameStatistics getCurrentStatistics() {
@@ -171,10 +169,27 @@ public class JoglContext implements Context {
 		
 		current.set(this);
 		contextThreads.put(this, Thread.currentThread());
+		
+		if (!initialized) {
+			initialized = true;
+			GL2GL3 gl = getGL();
+			
+			// make some state assumptions valid
+			gl.glEnable(GL.GL_DEPTH_TEST);
+			gl.glCullFace(GL.GL_BACK);
+			gl.glEnable(GL.GL_CULL_FACE);
+			
+			if (gl.isGL2()) {
+				// additional state for fixed-pipeline
+				GL2 gl2 = gl.getGL2();
+				gl2.glColorMaterial(GL.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE);
+				gl2.glEnable(GL2.GL_COLOR_MATERIAL);
+			}
+		}
 	}
 	
 	private void releaseAndSwap() {
-		context.release(); // FIXME: what happens if context isn't current?
+		context.release();
 		drawable.swapBuffers();
 		
 		current.set(null);

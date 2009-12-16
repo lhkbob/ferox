@@ -3,12 +3,12 @@ package com.ferox.renderer.impl.jogl.resource;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
+import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.jogl.Utils;
 import com.ferox.resource.TextureImage.DepthMode;
 import com.ferox.resource.TextureImage.Filter;
 import com.ferox.resource.TextureImage.TextureWrap;
-import com.ferox.shader.Comparison;
 
 public class TextureHandle extends ResourceHandle {
 	// formatting

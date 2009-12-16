@@ -2,16 +2,17 @@ package com.ferox.renderer.impl.jogl;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
-
-import javax.media.opengl.GL2;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
@@ -20,7 +21,6 @@ import com.ferox.renderer.impl.FutureSync;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.Sync;
-import com.ferox.renderer.impl.jogl.resource.GeometryHandle;
 import com.ferox.renderer.impl.jogl.resource.JoglGeometryResourceDriver;
 import com.ferox.renderer.impl.jogl.resource.JoglTexture1DResourceDriver;
 import com.ferox.renderer.impl.jogl.resource.JoglTexture2DResourceDriver;
@@ -28,7 +28,7 @@ import com.ferox.renderer.impl.jogl.resource.JoglTexture3DResourceDriver;
 import com.ferox.renderer.impl.jogl.resource.JoglTextureCubeMapResourceDriver;
 import com.ferox.renderer.impl.jogl.resource.JoglTextureRectangleResourceDriver;
 import com.ferox.renderer.impl.jogl.resource.ResourceDriver;
-import com.ferox.renderer.impl.jogl.resource.TextureHandle;
+import com.ferox.resource.DirtyState;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Texture1D;
@@ -36,7 +36,6 @@ import com.ferox.resource.Texture2D;
 import com.ferox.resource.Texture3D;
 import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureRectangle;
-import com.ferox.resource.Resource.DirtyState;
 import com.ferox.resource.Resource.Status;
 
 public class JoglResourceManager implements ResourceManager {
@@ -53,12 +52,9 @@ public class JoglResourceManager implements ResourceManager {
 	// must be volatile so everything can see changes to it
 	private volatile boolean destroyed;
 	
-	private final ResourceDriver geometryDriver;
-	private final ResourceDriver t1dDriver;
-	private final ResourceDriver t2dDriver;
-	private final ResourceDriver t3dDriver;
-	private final ResourceDriver tcmDriver;
-	private final ResourceDriver trDriver;
+	// resource data per resource, accessed by id
+	private ResourceData[] resourceData;
+	private final Map<Class<? extends Resource>, ResourceDriver> drivers;
 	
 	private final Set<WeakResourceReference> residentResources; // needed for auto-cleanup
 	private final Set<Resource> locks;
@@ -69,14 +65,18 @@ public class JoglResourceManager implements ResourceManager {
 	public JoglResourceManager(JoglFramework framework, RenderCapabilities caps) {
 		if (framework == null)
 			throw new NullPointerException("Cannot specify a null JoglFramework");
+		if (caps == null)
+			throw new NullPointerException("Cannot specify a null RenderCapabilities");
 		this.framework = framework;
 		
-		geometryDriver = new JoglGeometryResourceDriver(caps);
-		t1dDriver = new JoglTexture1DResourceDriver(caps);
-		t2dDriver = new JoglTexture2DResourceDriver(caps);
-		t3dDriver = new JoglTexture3DResourceDriver(caps);
-		tcmDriver = new JoglTextureCubeMapResourceDriver(caps);
-		trDriver = new JoglTextureRectangleResourceDriver(caps);
+		drivers = new HashMap<Class<? extends Resource>, ResourceDriver>();
+		drivers.put(Geometry.class, new JoglGeometryResourceDriver(caps));
+		drivers.put(Texture1D.class, new JoglTexture1DResourceDriver(caps));
+		drivers.put(Texture2D.class, new JoglTexture2DResourceDriver(caps));
+		drivers.put(Texture3D.class, new JoglTexture3DResourceDriver(caps));
+		drivers.put(TextureCubeMap.class, new JoglTextureCubeMapResourceDriver(caps));
+		drivers.put(TextureRectangle.class, new JoglTextureRectangleResourceDriver(caps));
+		resourceData = new ResourceData[0];
 		
 		residentResources = new HashSet<WeakResourceReference>();
 		locks = Collections.synchronizedSet(new HashSet<Resource>());
@@ -106,20 +106,20 @@ public class JoglResourceManager implements ResourceManager {
 		if (driver == null)
 			throw new UnsupportedResourceException("Resource type: " + resource.getClass());
 		
-		ResourceData rd = (ResourceData) resource.getRenderData(framework);
+		ResourceData rd = getResourceData(resource);
 		DirtyState<?> ds = resource.getDirtyState();
 		
 		if (rd == null || rd.queuedSync != null || ds != null) {
 			// something is going on, so check everything
 			synchronized(pendingTasks) {
 				// re-fetch rd to get any possible changes
-				rd = (ResourceData) resource.getRenderData(framework);
+				rd = getResourceData(resource);
 				if (rd == null) {
 					// do a new update
-					rd = new ResourceData();
-					resource.setRenderData(framework, rd);
+					rd = new ResourceData(resource.getId(), driver);
+					setResourceData(resource, rd);
 					
-					UpdateTask ut = new UpdateTask(resource, null, driver);
+					UpdateTask ut = new UpdateTask(resource, null);
 					synchronizeUpdate(new Sync<Status>(ut));
 				} else if (rd.queuedTask instanceof UpdateTask) {
 					// merge the dirty states
@@ -135,7 +135,7 @@ public class JoglResourceManager implements ResourceManager {
 					return null;
 				} else if (ds != null) {
 					// perform an update to get the new dirty state 
-					UpdateTask ut = new UpdateTask(resource, ds, driver);
+					UpdateTask ut = new UpdateTask(resource, ds);
 					synchronizeUpdate(new Sync<Status>(ut));
 				}
 			}
@@ -169,7 +169,7 @@ public class JoglResourceManager implements ResourceManager {
 		if (d == null)
 			return Status.UNSUPPORTED;
 		
-		ResourceData rd = (ResourceData) resource.getRenderData(framework);
+		ResourceData rd = getResourceData(resource);
 		if (rd == null || rd.handle == null || rd.handle.getStatus() == Status.DISPOSED)
 			return Status.DISPOSED;
 		else
@@ -182,7 +182,7 @@ public class JoglResourceManager implements ResourceManager {
 		if (d == null)
 			return "Resource of type " + resource.getClass().getSimpleName() + " is unsupported";
 		
-		ResourceData rd = (ResourceData) resource.getRenderData(framework);
+		ResourceData rd = getResourceData(resource);
 		if (rd == null || rd.handle == null || rd.handle.getStatus() == Status.DISPOSED)
 			return "Resource is disposed of";
 		else
@@ -202,9 +202,9 @@ public class JoglResourceManager implements ResourceManager {
 			if (destroyed)
 				throw new RenderException("Cannot retrieve ResourceHandle from a destroyed JoglResourceManager");
 
-			ResourceData rd = (ResourceData) resource.getRenderData(framework);
+			ResourceData rd = getResourceData(resource);
 			if (rd == null || rd.handle == null || rd.handle.getStatus() == Status.DISPOSED)
-				return new FutureSync<Object>(null);
+				return new FutureSync<Object>(null); // already cleaned up
 
 			Callable<?> task = rd.queuedTask;
 			if (task instanceof DisposeTask) {
@@ -216,7 +216,7 @@ public class JoglResourceManager implements ResourceManager {
 				pendingTasks.remove(rd.queuedSync);
 			}
 
-			task = new DisposeTask(resource, d);
+			task = new DisposeTask(resource);
 			rd.queuedTask = task;
 			rd.queuedSync = new Sync<Object>((Callable<Object>) task);
 			pendingTasks.add(rd.queuedSync);
@@ -238,10 +238,10 @@ public class JoglResourceManager implements ResourceManager {
 			if (destroyed)
 				throw new RenderException("Cannot retrieve ResourceHandle from a destroyed JoglResourceManager");
 
-			rd = (ResourceData) resource.getRenderData(framework);
+			rd = getResourceData(resource);
 			if (rd == null) {
-				rd = new ResourceData();
-				resource.setRenderData(framework, null);
+				rd = new ResourceData(resource.getId(), d);
+				setResourceData(resource, rd);
 			}
 			
 			if (rd != null && rd.queuedTask instanceof UpdateTask) {
@@ -256,7 +256,7 @@ public class JoglResourceManager implements ResourceManager {
 				pendingTasks.remove(rd.queuedSync);
 			}
 			
-			UpdateTask task = new UpdateTask(resource, dirtyDescriptor, d);
+			UpdateTask task = new UpdateTask(resource, dirtyDescriptor);
 			Sync<Status> sync = new Sync<Status>(task);
 			
 			rd.queuedSync = sync;
@@ -268,14 +268,6 @@ public class JoglResourceManager implements ResourceManager {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private DirtyState<?> merge(DirtyState<?> d1, DirtyState<?> d2) {
-		if (d1 != null && d2 != null)
-			return ((DirtyState) d1).merge((DirtyState) d2); // lame
-		else
-			return null;
-	}
-	
 	@Override
 	public void destroy() {
 		if (!casDestroyed.compareAndSet(this, false, true))
@@ -318,38 +310,34 @@ public class JoglResourceManager implements ResourceManager {
 		locks.remove(resource);
 	}
 	
+	/* Private helper methods */
+	
 	private ResourceDriver getDriver(Resource r) {
-		if (r instanceof Geometry)
-			return geometryDriver;
-		else if (r instanceof Texture1D)
-			return t1dDriver;
-		else if (r instanceof Texture2D)
-			return t2dDriver;
-		else if (r instanceof Texture3D)
-			return t3dDriver;
-		else if (r instanceof TextureRectangle)
-			return trDriver;
-		else if (r instanceof TextureCubeMap)
-			return tcmDriver;
+		return drivers.get(r.getClass());
+	}
+	
+	private ResourceData getResourceData(Resource r) {
+		int id = r.getId();
+		return (id < resourceData.length ? resourceData[id] : null);
+	}
+	
+	private void setResourceData(Resource r, ResourceData rd) {
+		int id = r.getId();
+		if (id >= resourceData.length && rd != null)
+			resourceData = Arrays.copyOf(resourceData, Math.max(resourceData.length * 2, id + 1));
+		if (id < resourceData.length)
+			resourceData[id] = rd;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private DirtyState<?> merge(DirtyState<?> d1, DirtyState<?> d2) {
+		if (d1 != null && d2 != null)
+			return ((DirtyState) d1).merge((DirtyState) d2); // lame
 		else
 			return null;
 	}
 	
-	private ResourceDriver getDriver(ResourceHandle handle) {
-		if (handle instanceof GeometryHandle) {
-			return geometryDriver;
-		} else if (handle instanceof TextureHandle) {
-			switch(((TextureHandle) handle).glTarget) {
-			case GL2.GL_TEXTURE_1D: return t1dDriver;
-			case GL2.GL_TEXTURE_2D: return t2dDriver;
-			case GL2.GL_TEXTURE_3D: return t3dDriver;
-			case GL2.GL_TEXTURE_CUBE_MAP: return tcmDriver;
-			case GL2.GL_TEXTURE_RECTANGLE_ARB: return trDriver;
-			}
-		}
-		
-		return null;
-	}
+	/* Inner classes that provide much grunt work */
 	
 	private class ResourceWorker implements Runnable {
 		@Override
@@ -379,17 +367,18 @@ public class JoglResourceManager implements ResourceManager {
 						Iterator<WeakResourceReference> it = residentResources.iterator();
 						while(it.hasNext()) {
 							WeakResourceReference next = it.next();
+							ResourceData rd = next.data;
+
 							if (next.get() == null) {
 								// schedule cleanup
-								ResourceHandle handle = next.handle;
-								if (handle.getStatus() != Status.DISPOSED) {
+								if (rd.handle.getStatus() != Status.DISPOSED) {
 									synchronized(pendingTasks) {
-										pendingTasks.add(new Sync<Object>(new HandleDisposeTask(handle, getDriver(handle))));
+										pendingTasks.add(new Sync<Object>(new HandleDisposeTask(rd)));
 										pendingTasks.notifyAll();
 									}
 								}
 								it.remove();
-							} else if (next.handle.getStatus() == Status.DISPOSED)
+							} else if (rd.handle.getStatus() == Status.DISPOSED)
 								it.remove(); // clean up explicit dispose
 						}
 					}
@@ -405,32 +394,30 @@ public class JoglResourceManager implements ResourceManager {
 	
 	private class UpdateTask implements Callable<Status> {
 		private final Resource toUpdate;
-		private final ResourceDriver driver;
 		
 		private DirtyState<?> dirtyState;
 		
-		public UpdateTask(Resource toUpdate, DirtyState<?> dirtyState, ResourceDriver driver) {
+		public UpdateTask(Resource toUpdate, DirtyState<?> dirtyState) {
 			this.toUpdate = toUpdate;
 			this.dirtyState = dirtyState;
-			this.driver = driver;
 		}
 		
 		@Override
 		public Status call() throws Exception {
-			ResourceData rd = (ResourceData) toUpdate.getRenderData(framework);
+			ResourceData rd = getResourceData(toUpdate);
 			ResourceHandle handle = rd.handle;
 
 			if (handle == null || handle.getStatus() == Status.DISPOSED) {
 				// init resource
-				handle = driver.init(toUpdate);
+				handle = rd.driver.init(toUpdate);
 				rd.handle = handle;
 				synchronized(residentResources) {
-					residentResources.add(new WeakResourceReference(toUpdate, handle));
+					residentResources.add(new WeakResourceReference(toUpdate, rd));
 				}
 			} else {
 				// perform an update
 				try {
-					driver.update(toUpdate, handle, dirtyState);
+					rd.driver.update(toUpdate, handle, dirtyState);
 				} catch(RuntimeException re) {
 					handle.setStatus(Status.ERROR);
 					handle.setStatusMessage("Exception thrown during update");
@@ -451,21 +438,19 @@ public class JoglResourceManager implements ResourceManager {
 	
 	private class DisposeTask implements Callable<Object> {
 		private final Resource toDispose;
-		private final ResourceDriver driver;
 		
-		public DisposeTask(Resource toDispose, ResourceDriver driver) {
+		public DisposeTask(Resource toDispose) {
 			this.toDispose = toDispose;
-			this.driver = driver;
 		}
 		
 		@Override
 		public Object call() throws Exception {
-			ResourceData rd = (ResourceData) toDispose.getRenderData(framework);
-			toDispose.setRenderData(framework, null);
+			ResourceData rd = getResourceData(toDispose);
+			setResourceData(toDispose, null);
 
 			if (rd != null && rd.handle != null && rd.handle.getStatus() != Status.DISPOSED) {
 				// dispose resource
-				driver.dispose(rd.handle);
+				rd.driver.dispose(rd.handle);
 				rd.handle.setStatus(Status.DISPOSED);
 				// disposalScheduler will automatically remove handle from residentResources
 			}
@@ -481,37 +466,51 @@ public class JoglResourceManager implements ResourceManager {
 	}
 	
 	private class HandleDisposeTask implements Callable<Object> {
-		private final ResourceHandle handle;
-		private final ResourceDriver driver;
+		private final ResourceData data;
 		
-		public HandleDisposeTask(ResourceHandle handle, ResourceDriver driver) {
-			this.handle = handle;
-			this.driver = driver;
+		public HandleDisposeTask(ResourceData rd) {
+			data = rd;
 		}
 		
 		@Override
 		public Object call() throws Exception {
+			ResourceHandle handle = data.handle;
+			
 			if (handle.getStatus() != Status.DISPOSED) {
-				driver.dispose(handle);
+				data.driver.dispose(handle);
 				handle.setStatus(Status.DISPOSED);
 			}
+			
+			// can't use setResourceData since we don't have a Resource
+			if (data.id < resourceData.length)
+				resourceData[data.id] = null;
 			return null;
 		}
 	}
 	
-	private class ResourceData {
+	/* These classes can be static */
+	
+	private static class ResourceData {
+		final ResourceDriver driver;
+		final int id;
+		
 		ResourceHandle handle;
 		
 		volatile Callable<?> queuedTask; // Callable passed to queuedSync
 		volatile Sync<?> queuedSync;
+		
+		public ResourceData(int id, ResourceDriver driver) {
+			this.id = id;
+			this.driver = driver;
+		}
 	}
 	
-	private class WeakResourceReference extends WeakReference<Resource> {
-		final ResourceHandle handle;
+	private static class WeakResourceReference extends WeakReference<Resource> {
+		final ResourceData data;
 		
-		public WeakResourceReference(Resource resource, ResourceHandle handle) {
+		public WeakResourceReference(Resource resource, ResourceData rd) {
 			super(resource);
-			this.handle = handle;
+			data = rd;
 		}
 	}
 }

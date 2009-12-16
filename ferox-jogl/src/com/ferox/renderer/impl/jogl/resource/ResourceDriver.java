@@ -1,8 +1,8 @@
 package com.ferox.renderer.impl.jogl.resource;
 
 import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.resource.DirtyState;
 import com.ferox.resource.Resource;
-import com.ferox.resource.Resource.DirtyState;
 import com.ferox.resource.Resource.Status;
 
 public interface ResourceDriver {

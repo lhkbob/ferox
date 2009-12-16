@@ -13,15 +13,15 @@ import javax.media.opengl.GL2GL3;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.renderer.impl.jogl.BoundObjectState;
 import com.ferox.renderer.impl.jogl.JoglContext;
-import com.ferox.renderer.impl.jogl.state.VertexArrayRecord;
+import com.ferox.resource.DirtyState;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.GeometryDirtyState;
 import com.ferox.resource.Resource;
 import com.ferox.resource.VectorBuffer;
 import com.ferox.resource.Geometry.CompileType;
 import com.ferox.resource.GeometryDirtyState.BufferRange;
-import com.ferox.resource.Resource.DirtyState;
 import com.ferox.resource.Resource.Status;
 
 public class JoglGeometryResourceDriver implements ResourceDriver {
@@ -101,7 +101,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 	}
 	
 	private void updateForVbo(GL2GL3 gl, Geometry g, GeometryHandle handle, GeometryDirtyState dirty) {
-		VertexArrayRecord record = JoglContext.getCurrent().getRecord().vertexArrayRecord;
+		BoundObjectState record = JoglContext.getCurrent().getRecord();
 		// bind this geometry's vbos
 		gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, handle.arrayVbo);
 		gl.glBindBuffer(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, handle.elementVbo);
@@ -217,8 +217,8 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		}
 		
 		// restore vbo bindings
-		gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, record.arrayBufferBinding);
-		gl.glBindBuffer(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, record.elementBufferBinding);
+		gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, record.getArrayVbo());
+		gl.glBindBuffer(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, record.getElementVbo());
 	}
 	
 	private void updateVboAttributesFull(GL2GL3 gl, Geometry g, GeometryHandle handle) {
