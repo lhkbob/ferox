@@ -414,7 +414,7 @@ public final class Vector4f implements Cloneable {
 	}
 
 	/**
-	 * Store the three component values of this vector into vals, starting at
+	 * Store the four component values of this vector into vals, starting at
 	 * offset. The components should be placed consecutively, ordered x, y, z,
 	 * and w. It is assumed that the array has at least four positions
 	 * available, starting at offset.

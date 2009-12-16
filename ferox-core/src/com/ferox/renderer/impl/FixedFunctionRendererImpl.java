@@ -8,7 +8,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
 
-public class FixedFunctionRendererImpl implements FixedFunctionRenderer {
+public final class FixedFunctionRendererImpl implements FixedFunctionRenderer {
 	private final RendererDelegate coreD;
 	private final FixedFunctionRendererDelegate ffpD;
 	

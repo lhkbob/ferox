@@ -108,32 +108,51 @@ public abstract class RendererDelegate {
 	}
 
 	public void setBlendModeAlpha(BlendFunction function, BlendFactor src, BlendFactor dst) {
-		if (blendFuncAlpha != function || blendSrcAlpha != src || blendDstAlpha != dst) {
+		if (function == null || src == null || dst == null)
+			throw new NullPointerException("Cannot use null arguments: " + function + ", " + src + ", " + dst);
+		if (dst == BlendFactor.SRC_ALPHA_SATURATE)
+			throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
+		
+		if (blendFuncAlpha != function) {
 			blendFuncAlpha = function;
+			glBlendEquations(blendFuncRgb, function);
+		}
+		
+		if (blendSrcAlpha != src || blendDstAlpha != dst) {
 			blendSrcAlpha = src;
 			blendDstAlpha = dst;
-			glBlendFunction(function, src, dst, false);
+			glBlendFactors(blendSrcRgb, blendDstRgb, src, dst);
 		}
 	}
 
 	public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
 		if (function == null || src == null || dst == null)
 			throw new NullPointerException("Cannot use null arguments: " + function + ", " + src + ", " + dst);
-		
-		if (blendFuncRgb != function || blendSrcRgb != src || blendDstRgb != dst) {
+		if (dst == BlendFactor.SRC_ALPHA_SATURATE)
+			throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
+
+		if (blendFuncRgb != function) {
 			blendFuncRgb = function;
+			glBlendEquations(function, blendFuncAlpha);
+		}
+		
+		if (blendSrcRgb != src || blendDstRgb != dst) {
 			blendSrcRgb = src;
 			blendDstRgb = dst;
-			glBlendFunction(function, src, dst, true);
+			glBlendFactors(src, dst, blendSrcAlpha, blendDstAlpha);
 		}
 	}
 	
 	/**
-	 * Invoke OpenGL calls to set the blend functions and factors.  If
-	 * isRGB is true, it's for rgb values, else it's for alpha values.
+	 * Invoke OpenGL calls to set the blend factors.
 	 */
-	protected abstract void glBlendFunction(BlendFunction func, BlendFactor src, BlendFactor dst, boolean isRGB);
+	protected abstract void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha);
 
+	/**
+	 * Invoke OpenGL calls to set the blend equations. 
+	 */
+	protected abstract void glBlendEquations(BlendFunction funcRgb, BlendFunction funcAlpha);
+	
 	public void setBlendingEnabled(boolean enable) {
 		if (blendEnabled != enable) {
 			blendEnabled = enable;
@@ -238,17 +257,21 @@ public abstract class RendererDelegate {
 	}
 
 	public void setStencilWriteMask(int front, int back) {
-		if (stencilMaskFront != front || stencilMaskBack != back) {
+		if (stencilMaskFront != front) {
 			stencilMaskFront = front;
+			glStencilMask(true, front);
+		}
+			
+		if (stencilMaskBack != back) {
 			stencilMaskBack = back;
-			glStencilMask(front, back);
+			glStencilMask(false, back);
 		}
 	}
 	
 	/**
 	 * Invoke OpenGL calls to set the stencil masks
 	 */
-	protected abstract void glStencilMask(int front, int back);
+	protected abstract void glStencilMask(boolean front, int mask);
 
 	public void setStencilTest(Comparison test, int refValue, int testMask) {
 		setStencilTestFront(test, refValue, testMask);

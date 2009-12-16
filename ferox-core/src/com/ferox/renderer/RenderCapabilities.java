@@ -43,19 +43,18 @@ public class RenderCapabilities {
 
 	// misc
 	private final int maxActiveLights;
-	private final boolean glslSupported; // FIXME: add glsl language version?
-	private final boolean pointSpriteSupport; // FIXME: to be removed
-
+	private final boolean hasFfpRenderer;
+	private final boolean hasGlslRenderer;
+	
+	private final float glslVersion;
+	
+	private final String vendor;
+	private final float version;
+	
 	// frame properties
 	private final boolean fboSupported;
 	private final boolean pbuffersSupported;
 	private final int maxColorTargets;
-
-	// version
-	private final String vendor;
-	private final float version;
-	
-	// FIXME: add booleans for ffp and glsl renderer support
 
 	/**
 	 * Create a render capabilities object with the given properties. There is
@@ -69,9 +68,9 @@ public class RenderCapabilities {
 							  boolean fpTextures, boolean npotTextures, boolean rectTextures, 
 							  boolean s3tcTextures, int maxVertexAttributes, int maxTextureCoordinates, 
 							  int maxRecommendedIndices, int maxRecommendedVertices, boolean vboSupported, 
-							  int maxActiveLights, boolean pointSpriteSupport, boolean glslSupported, 
+							  int maxActiveLights, boolean glslSupported, boolean ffpSupported,
 							  boolean fboSupported, boolean pbuffersSupported, int maxColorTargets, 
-							  String vendor, float version) {
+							  String vendor, float version, float glslVersion) {
 		this.maxVertexShaderTextures = maxVertexShaderTextures;
 		this.maxFragmentShaderTextures = maxFragmentShaderTextures;
 		this.maxFixedPipelineTextures = maxFixedPipelineTextures;
@@ -96,8 +95,8 @@ public class RenderCapabilities {
 		this.vboSupported = vboSupported;
 
 		this.maxActiveLights = maxActiveLights;
-		this.glslSupported = glslSupported;
-		this.pointSpriteSupport = pointSpriteSupport;
+		this.hasFfpRenderer = ffpSupported;
+		this.hasGlslRenderer = glslSupported;
 
 		this.fboSupported = fboSupported;
 		this.pbuffersSupported = pbuffersSupported;
@@ -105,16 +104,7 @@ public class RenderCapabilities {
 
 		this.vendor = vendor;
 		this.version = version;
-	}
-
-	/**
-	 * Return whether or not points can actually be rendered as point sprites on
-	 * the current hardware.
-	 * 
-	 * @return True if points can be rendered as point sprites
-	 */
-	public boolean getPointSpriteSupport() {
-		return pointSpriteSupport;
+		this.glslVersion = glslVersion;
 	}
 
 	/**
@@ -329,12 +319,22 @@ public class RenderCapabilities {
 	}
 
 	/**
-	 * Whether or not GLSL shaders are supported.
+	 * Whether or not this Framework can provide Renderers that implement
+	 * {@link GlslRenderer}.
 	 * 
 	 * @return True if shaders can be used
 	 */
-	public boolean getGlslSupport() {
-		return glslSupported;
+	public boolean hadGlslRenderer() {
+		return hasGlslRenderer;
+	}
+	
+	/**
+	 * Whether or not this Framework can provide Renderers that implement
+	 * {@link FixedFunctionRenderer}.
+	 * @return True if fixed-function pipeline can be used
+	 */
+	public boolean hadFixedFunctionRenderer() {
+		return hasFfpRenderer;
 	}
 
 	/**
@@ -360,7 +360,7 @@ public class RenderCapabilities {
 	}
 
 	/**
-	 * Get the vendor returned string that describes the opengl drivers on
+	 * Get the vendor returned string that describes the OpenGL drivers on
 	 * installed on the computer.
 	 * 
 	 * @return Implementation vendor description
@@ -370,11 +370,20 @@ public class RenderCapabilities {
 	}
 
 	/**
-	 * Get the opengl version present on the computer.
+	 * Get the OpenGL version present on the computer.
 	 * 
 	 * @return Version to one decimal point
 	 */
 	public float getVersion() {
 		return version;
+	}
+
+	/**
+	 * Get the GLSL shading language available on the computer.
+	 * 
+	 * @return Version to one decimal point
+	 */
+	public float getGlslVersion() {
+		return glslVersion;
 	}
 }

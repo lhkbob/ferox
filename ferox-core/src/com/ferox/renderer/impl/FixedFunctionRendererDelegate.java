@@ -24,7 +24,7 @@ public abstract class FixedFunctionRendererDelegate {
 	}
 	
 	protected static enum LightColor {
-		AMBIENT, DIFFUSE, SPECULAR, EMMISSIVE
+		AMBIENT, DIFFUSE, SPECULAR, EMISSIVE
 	}
 	
 	protected static enum MatrixMode {
@@ -530,7 +530,7 @@ public abstract class FixedFunctionRendererDelegate {
 		
 		if (!matEmmissive.equals(emm)) {
 			matEmmissive.set(emm);
-			glMaterialColor(LightColor.EMMISSIVE, emm);
+			glMaterialColor(LightColor.EMISSIVE, emm);
 		}
 	}
 
@@ -707,6 +707,8 @@ public abstract class FixedFunctionRendererDelegate {
 			throw new NullPointerException("CombineSource and CombineOp can't be null");
 		if (operand < 0 || operand > 2)
 			throw new IllegalArgumentException("Operand must be 0, 1, or 2");
+		if (op == CombineOp.COLOR || op == CombineOp.ONE_MINUS_COLOR)
+			throw new IllegalArgumentException("Illegal CombineOp for alpha: " + op);
 		
 		TextureState t = textures[tex];
 		if (t.srcAlpha[operand] != src) {
@@ -773,29 +775,49 @@ public abstract class FixedFunctionRendererDelegate {
 		switch(coord) {
 		case S:
 			if (t.tcS != gen) {
-				t.tcS = gen;
 				setTextureUnit(tex);
+				if (t.tcS == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, true);
+				else if (gen == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, false);
+				
+				t.tcS = gen;
 				glTexGen(coord, gen);
 			}
 			break;
 		case R:
 			if (t.tcR != gen) {
-				t.tcR = gen;
 				setTextureUnit(tex);
+				if (t.tcR == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, true);
+				else if (gen == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, false);
+				
+				t.tcR = gen;
 				glTexGen(coord, gen);
 			}
 			break;
 		case T:
 			if (t.tcT != gen) {
-				t.tcT = gen;
 				setTextureUnit(tex);
+				if (t.tcT == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, true);
+				else if (gen == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, false);
+				
+				t.tcT = gen;
 				glTexGen(coord, gen);
 			}
 			break;
 		case Q:
 			if (t.tcQ != gen) {
-				t.tcQ = gen;
 				setTextureUnit(tex);
+				if (t.tcQ == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, true);
+				else if (gen == TexCoordSource.ATTRIBUTE)
+					glEnableTexGen(coord, false);
+				
+				t.tcQ = gen;
 				glTexGen(coord, gen);
 			}
 			break;
@@ -806,6 +828,11 @@ public abstract class FixedFunctionRendererDelegate {
 	 * Invoke OpenGL to set the coordinate generation for the active texture
 	 */
 	protected abstract void glTexGen(TexCoord coord, TexCoordSource gen);
+	
+	/**
+	 * Invoke OpenGL operations to enable/disable coord generation
+	 */
+	protected abstract void glEnableTexGen(TexCoord coord, boolean enable);
 
 	public void setTextureEyePlane(int tex, TexCoord coord, Vector4f plane) {
 		if (tex < 0 || tex >= textures.length)

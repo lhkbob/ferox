@@ -206,7 +206,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	public static enum CombineOp {
 		/**
 		 * This operand returns Cs unmodified. It's invalid to use for the alpha
-		 * CombineFunction.
+		 * CombineOp.
 		 */
 		COLOR,
 		/**
@@ -216,7 +216,7 @@ public interface FixedFunctionRenderer extends Renderer {
 		ALPHA, 
 		/**
 		 * This operand returns (1 - Cs). It cannot be used with the alpha
-		 * CombineFunction.
+		 * CombineOp.
 		 */
 		ONE_MINUS_COLOR, 
 		/**
@@ -728,7 +728,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * @param diff The diffuse color of the material, or solid color when
 	 *            lighting is disabled
 	 * @param spec The specular color of the material
-	 * @param emm The emmissive color of the material
+	 * @param emm The emissive color of the material
 	 */
 	public void setMaterial(Color4f amb, Color4f diff, Color4f spec, Color4f emm);
 
@@ -965,14 +965,16 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * Identical to
 	 * {@link #setTextureCombineOpRgb(int, int, CombineSource, CombineOp)}
 	 * except that the CombineSource and CombineOp apply to the configured alpha
-	 * function.
+	 * function. As such the CombineOp cannot be {@link CombineOp#COLOR} or
+	 * {@link CombineOp#ONE_MINUS_COLOR}.
 	 * 
 	 * @param tex The texture unit
 	 * @param operand The argument to the function, must be 0, 1, or 2
 	 * @param src The CombineSource for the operand
 	 * @param op The CombineOp that modifies the specified CombineSource
 	 * @throws NullPointerException if src or op are null
-	 * @throws IllegalArgumentException if operand is not 0, 1, or 2
+	 * @throws IllegalArgumentException if operand is not 0, 1, or 2 or if op is
+	 *             illegal
 	 */
 	public void setTextureCombineOpAlpha(int tex, int operand, CombineSource src, CombineOp op);
 
