@@ -17,6 +17,16 @@ import com.ferox.renderer.impl.FutureSync;
 import com.ferox.renderer.impl.RenderManager;
 import com.ferox.renderer.impl.Sync;
 
+/**
+ * JoglRenderManager is a complete implementation of RenderManager. It has two
+ * possible modes of operation:
+ * <ol>
+ * <li>It can serialize all render requests onto a single internal thread.</li>
+ * <li>It can execute each render request on the thread that called it.</li>
+ * </ol>
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglRenderManager implements RenderManager {
 	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	
@@ -30,7 +40,17 @@ public class JoglRenderManager implements RenderManager {
 	// must be volatile so everything can see changes to it
 	private volatile Boolean destroyed;
 	private volatile BlockingQueue<Sync<FrameStatistics>> renderQueue;
-	
+
+	/**
+	 * Create a new JoglRenderManager that will be used by the given
+	 * JoglFramework. If serialize is true, all renders occur on a single inner
+	 * thread. If it is false, then all renders occur on the thread that invoked
+	 * {@link #render(List)}.
+	 * 
+	 * @param framework The JoglFramework to use
+	 * @param serialize Render serialization policy
+	 * @throws NullPointerException if framework is null
+	 */
 	public JoglRenderManager(JoglFramework framework, boolean serialize) {
 		if (framework == null)
 			throw new NullPointerException("Cannot specify a null Framework");

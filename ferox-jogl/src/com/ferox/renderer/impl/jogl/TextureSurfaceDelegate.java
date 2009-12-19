@@ -5,6 +5,13 @@ import com.ferox.renderer.impl.Action;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * TextureSurfaceDelegate is an abstract class that exposes much of the same
+ * functionality that a TextureSurface would. This is used so that multiple
+ * JoglTextureSurface's can support sharing the same delegate instance.
+ * 
+ * @author Michael Ludwig
+ */
 public abstract class TextureSurfaceDelegate {
 	private final TextureImage[] colors;
 	private final TextureImage depth;

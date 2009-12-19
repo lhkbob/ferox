@@ -10,6 +10,12 @@ import com.ferox.resource.ImageRegion;
 import com.ferox.resource.Texture2D;
 import com.ferox.resource.TextureDirtyState;
 
+/**
+ * A concrete subclass of {@link AbstractTextureImageDriver} that supports
+ * Texture2D images.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglTexture2DResourceDriver extends AbstractTextureImageDriver<Texture2D, TextureDirtyState> {
 	private final boolean hasS3tcCompression;
 	

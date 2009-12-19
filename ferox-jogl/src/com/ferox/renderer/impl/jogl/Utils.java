@@ -29,8 +29,8 @@ import com.ferox.resource.TextureImage.TextureTarget;
 import com.ferox.resource.TextureImage.TextureWrap;
 
 /**
- * Utils provides conversions for the commonly used enums in States/Resources
- * to their appropriate GL2 enum values, as well as some other useful utilities.
+ * Utils provides conversions for the commonly used enums in Resources and Renderers
+ * to their appropriate GL enum values, as well as some other useful utilities.
  * 
  * @author Michael Ludwig
  */

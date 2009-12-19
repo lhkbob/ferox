@@ -5,6 +5,13 @@ package com.ferox.renderer.impl.jogl.resource;
 
 import java.nio.FloatBuffer;
 
+/**
+ * A VertexArray represents the persisted state of a VectorBuffer within a
+ * Geometry. It either contains access information pointing to a VBO holding the
+ * vector data, or a native FloatBuffer holding the vector data.
+ * 
+ * @author Michael Ludwig
+ */
 public class VertexArray {
 	// if null, use offset with a vbo
 	public FloatBuffer buffer;

@@ -32,7 +32,7 @@ public class FixedFunctionFrameworkThreadedTest {
 		
 		final Geometry shape = new Box(2f, CompileType.RESIDENT_STATIC);
 		System.out.println("Geometry status: " + f.update(shape, false).get());
-		final TextureImage texture = TextureLoader.readTexture(new File("ferox-gl.png"));
+		final TextureImage texture = TextureLoader.readTexture(new File("ferox-gl.tga"));
 		System.out.println("Texture status: " + f.update(texture, false).get());
 		
 		Thread renderer1 = new Thread(new Runnable() {

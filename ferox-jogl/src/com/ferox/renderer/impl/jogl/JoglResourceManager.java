@@ -20,6 +20,7 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.UnsupportedResourceException;
 import com.ferox.renderer.impl.FutureSync;
+import com.ferox.renderer.impl.RenderInterruptedException;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.Sync;
@@ -40,6 +41,13 @@ import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureRectangle;
 import com.ferox.resource.Resource.Status;
 
+/**
+ * JoglResourceManager is a complete implementation of ResourceManager for use
+ * with JoglFrameworks. It supports performing updates and disposals in parallel
+ * to other operations such as rendering.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglResourceManager implements ResourceManager {
 	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	private static final long CLEANUP_WAKEUP_INTERVAL = 500;
@@ -64,7 +72,16 @@ public class JoglResourceManager implements ResourceManager {
 	
 	private final Object updateLock = new Object();
 	private final Deque<Sync<?>> pendingTasks; // not thread-safe, must be synchronized
-	
+
+	/**
+	 * Create a new JoglResourceManager associated with the given JoglFramework.
+	 * The RenderCapabilities must eventually be the capabilities exposed by the
+	 * given framework.
+	 * 
+	 * @param framework The Framework that uses this resource manager
+	 * @param caps The capabilities of the system
+	 * @throws NullPointerException if framework or caps are null
+	 */
 	public JoglResourceManager(JoglFramework framework, RenderCapabilities caps) {
 		if (framework == null)
 			throw new NullPointerException("Cannot specify a null JoglFramework");

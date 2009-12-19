@@ -11,7 +11,13 @@ import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.renderer.impl.RendererDelegate;
 
-public class JoglRendererDelegate extends RendererDelegate {
+/**
+ * JoglRendererDelegate is a full implementation of the RendererDelegate for use
+ * with a JoglFramework.
+ * 
+ * @author Michael Ludwig
+ */
+public final class JoglRendererDelegate extends RendererDelegate {
 	private final JoglContext context;
 	
 	// state tracking for buffer clearing
@@ -23,7 +29,13 @@ public class JoglRendererDelegate extends RendererDelegate {
 	private boolean cullEnabled = true;
 	private int frontPolyMode = GL2GL3.GL_FILL;
 	private int backPolyMode = GL2GL3.GL_FILL;
-	
+
+	/**
+	 * Create a new JoglRendererDelegate that is tied to the given JoglContext.
+	 * 
+	 * @param context The context used by this delegate
+	 * @throws NullPointerException if context is null
+	 */
 	public JoglRendererDelegate(JoglContext context) {
 		if (context == null)
 			throw new NullPointerException("Context cannot be null");

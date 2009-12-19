@@ -20,7 +20,14 @@ import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
 import com.ferox.renderer.impl.Action;
 
-public class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
+/**
+ * JoglOnscreenSurface is an implementation of OnscreenSurface that provides the
+ * majority of the implementation for subclasses {@link JoglWindowSurface} and
+ * {@link JoglFullscreenSurface}.
+ * 
+ * @author Michael Ludwig
+ */
+public abstract class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSurface, WindowListener {
 	protected final JoglContext context;
 	protected final GLCanvas canvas;
 	protected Frame frame; // final

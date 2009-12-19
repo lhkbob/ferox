@@ -25,6 +25,14 @@ import com.ferox.resource.TextureImage;
 import com.ferox.resource.Resource.Status;
 import com.ferox.util.texture.converter.TextureConverter;
 
+/**
+ * AbstractTextureImageDriver is a ResourceDriver that manages the OpenGL work
+ * necessary to properly update a TextureImage.
+ * 
+ * @author Michael Ludwig
+ * @param <T> The TextureImage type
+ * @param <D> The DirtyState type that T uses
+ */
 public abstract class AbstractTextureImageDriver<T extends TextureImage, D extends DirtyState<D>> implements ResourceDriver {
 	// extensions present
 	private final boolean npotSupported; 

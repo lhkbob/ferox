@@ -7,6 +7,13 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
+/**
+ * PbufferShadowContext is a special form of JoglContext that is suitable for
+ * use as a shadow context for a JoglFramework. It uses pbuffers to maintain an
+ * offscreen GLContext.
+ * 
+ * @author Michael Ludwig
+ */
 public class PbufferShadowContext extends JoglContext {
 	private GLPbuffer pbuffer;
 	
@@ -22,7 +29,21 @@ public class PbufferShadowContext extends JoglContext {
 		pbuffer.destroy();
 	}
 
+	/**
+	 * Create a new PbufferShadowContext that will be used for the given
+	 * JoglFramework and will use the given GLProfile. The GLProfile must match
+	 * the profile that the JoglFramework will eventually report.
+	 * 
+	 * @param framework The JoglFramework using the returned
+	 *            PbufferShadowContext
+	 * @param profile The GLProfile of the framework
+	 * @return An PbufferShadowContext
+	 * @throws NullPointerException if framework or profile is null
+	 */
 	public static PbufferShadowContext create(JoglFramework framework, GLProfile profile) {
+		if (framework == null || profile == null)
+			throw new NullPointerException("Cannot create a PbufferShadowContext with a null JoglFramework or null GLProfile");
+		
 		GLCapabilities glCaps = new GLCapabilities(profile);
 		GLPbuffer pbuffer = GLDrawableFactory.getFactory(profile).createGLPbuffer(glCaps, 
 																				  new DefaultGLCapabilitiesChooser(), 

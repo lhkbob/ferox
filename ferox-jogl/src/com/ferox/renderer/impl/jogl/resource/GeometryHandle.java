@@ -6,6 +6,12 @@ import java.util.List;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.resource.Geometry.CompileType;
 
+/**
+ * GeometryHandle is a concrete subclass of ResourceHangle that is used by the
+ * JoglGeometryResourceDriver when it manages Geometry instances.
+ * 
+ * @author Michael Ludwig
+ */
 public class GeometryHandle extends ResourceHandle {
 	// layout is as follows:
 	public List<VertexArray> compiledPointers;

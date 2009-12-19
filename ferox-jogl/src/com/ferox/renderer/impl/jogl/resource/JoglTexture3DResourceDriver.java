@@ -10,6 +10,12 @@ import com.ferox.resource.ImageRegion;
 import com.ferox.resource.Texture3D;
 import com.ferox.resource.TextureDirtyState;
 
+/**
+ * A concrete subclass of {@link AbstractTextureImageDriver} that supports
+ * Texture3D images.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglTexture3DResourceDriver extends AbstractTextureImageDriver<Texture3D, TextureDirtyState> {
 	public JoglTexture3DResourceDriver(RenderCapabilities caps) {
 		super(caps);

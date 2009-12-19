@@ -10,6 +10,12 @@ import com.ferox.resource.ImageRegion;
 import com.ferox.resource.TextureRectangle;
 import com.ferox.resource.TextureRectangleDirtyState;
 
+/**
+ * A concrete subclass of {@link AbstractTextureImageDriver} that supports
+ * TextureRectangle images.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglTextureRectangleResourceDriver extends AbstractTextureImageDriver<TextureRectangle, TextureRectangleDirtyState> {
 	private final boolean hasS3tcCompression;
 	private final boolean hasRectSupport;

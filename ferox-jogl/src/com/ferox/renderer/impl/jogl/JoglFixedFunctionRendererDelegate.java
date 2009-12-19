@@ -18,6 +18,7 @@ import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.impl.FixedFunctionRendererDelegate;
+import com.ferox.renderer.impl.RenderInterruptedException;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.jogl.resource.GeometryHandle;
 import com.ferox.renderer.impl.jogl.resource.VertexArray;
@@ -27,7 +28,14 @@ import com.ferox.resource.Geometry.CompileType;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
 
-public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelegate {
+/**
+ * An final implementation of FixedFunctionRendererDelgate that implements all
+ * of the functionality required. This requires a GL2 enabled profile because
+ * any higher version of OpenGL does not support the fixed-function pipeline.
+ * 
+ * @author Michael Ludwig
+ */
+public final class JoglFixedFunctionRendererDelegate extends FixedFunctionRendererDelegate {
 	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	
 	private final JoglContext context;
@@ -46,8 +54,17 @@ public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelega
 	
 	private GeometryHandle lastGeometry;
 	private int lastGeometryVersion;
-	
-	public JoglFixedFunctionDelegate(JoglContext context, JoglFramework framework) {
+
+	/**
+	 * Create a new JoglFixedFunctionRendererDelegate that is paired with the given
+	 * JoglContext, and is to be used within the given JoglFramework.
+	 * 
+	 * @param context The JoglContext that provides the GL instances for this
+	 *            delegate
+	 * @param framework The JoglFramework that created the JoglContext
+	 * @throws NullPointerException if either argument is null
+	 */
+	public JoglFixedFunctionRendererDelegate(JoglContext context, JoglFramework framework) {
 		super(framework.getCapabilities().getMaxActiveLights(), framework.getCapabilities().getMaxFixedPipelineTextures());
 		if (context == null)
 			throw new NullPointerException("Context cannot be null");

@@ -25,6 +25,11 @@ import com.ferox.resource.Geometry.CompileType;
 import com.ferox.resource.GeometryDirtyState.BufferRange;
 import com.ferox.resource.Resource.Status;
 
+/**
+ * An implementation of ResourceDriver that supports the Geometry resource type.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglGeometryResourceDriver implements ResourceDriver {
 	private static final float REALLOC_FACTOR = .75f; // fraction of new buffer size that triggers a realloc
 	

@@ -21,8 +21,22 @@ import com.ferox.renderer.RenderException;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
+import com.ferox.renderer.impl.RenderInterruptedException;
 import com.ferox.renderer.impl.Sync;
 
+/**
+ * <p>
+ * JoglContext is a complete implementation of Context for use with the
+ * {@link JoglFramework}. Each JoglContext is associated with a single
+ * GLDrawable. These GLDrawables are created by RenderSurfaces or by the
+ * JoglFramework to facilitate context sharing.
+ * </p>
+ * <p>
+ * A JoglContext should not be created directly
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglContext implements Context {
 	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	
@@ -41,11 +55,33 @@ public class JoglContext implements Context {
 	private final ReentrantLock contextLock;
 	
 	private FrameStatistics frameStats;
-	
+
+	/**
+	 * Create a new JoglContext that is intended for the given JoglFramework and
+	 * is tied to the given GLDrawable. A new GLContext is created for the
+	 * surface that is shared with the framework's shadow context. If surface is
+	 * a GLAutoDrawable, it should have its GLContext updated after the
+	 * JoglContext is created.
+	 * 
+	 * @param framework The JoglFramework this JoglContext is used with
+	 * @param surface The GLDrawable that this JoglContext wraps
+	 * @throws NullPointerException if framework or surface are null
+	 */
 	public JoglContext(JoglFramework framework, GLDrawable surface) {
 		this(framework, surface, surface.createContext(framework.getShadowContext().getContext()));
 	}
-	
+
+	/**
+	 * Protected constructor that allows the the specification of a GLContext.
+	 * It is assumed that the GLContext is associated to the GLDrawable. This
+	 * constructor is intended for shadow context creation when there is no
+	 * other context to share with yet.
+	 * 
+	 * @param framework The Framework that this is for
+	 * @param surface The GLDrawable wrapped by this JoglContext
+	 * @param context The explicit GLContext to use for the surface
+	 * @throws NullPointerException if any arguments are null
+	 */
 	protected JoglContext(JoglFramework framework, GLDrawable surface, GLContext context) {
 		if (surface == null || framework == null || context == null)
 			throw new NullPointerException("Cannot specify a null Framework, GLDrawable, or GLContext");
@@ -67,11 +103,26 @@ public class JoglContext implements Context {
 		this.context = context;
 		log.log(Level.FINE, "JoglContext created for " + surface.getClass().getSimpleName(), this);
 	}
-	
+
+	/**
+	 * Return the JoglContext that is current on the calling thread. If no
+	 * JoglContext is current, then null is returned. When a non-null
+	 * JoglContext is returned, it is acceptable to invoke GL methods.
+	 * 
+	 * @return The current JoglContext
+	 */
 	public static JoglContext getCurrent() {
 		return current.get();
 	}
-	
+
+	/**
+	 * Return the Thread that the given context is current on. If the context is
+	 * not current, then a null Thread is returned. It is assumed that context
+	 * is not null.
+	 * 
+	 * @param context The JoglContext to check
+	 * @return The Thread that context is current on
+	 */
 	public static Thread getThread(JoglContext context) {
 		return contextThreads.get(context);
 	}
@@ -81,31 +132,56 @@ public class JoglContext implements Context {
 		return renderer;
 	}
 	
+	/**
+	 * @return The BoundObjectState used by this JoglContext
+	 */
 	public BoundObjectState getRecord() {
 		return objState;
 	}
-	
+
+	/**
+	 * @return The FrameStatistics that are currently being used to track a
+	 *         frame that's in the progress of rendering
+	 */
 	public FrameStatistics getCurrentStatistics() {
 		return frameStats;
 	}
 	
+	/**
+	 * @return The lock that must be acquired before the JoglContext can be
+	 *         destroyed
+	 */
 	public ReentrantLock getLock() {
 		return contextLock;
 	}
-	
-	// Caller must have acquired lock via getLock()
+
+	/**
+	 * Destroy this JoglContext. This does nothing if the context has already
+	 * been destroyed. If the context is current, then it is released. The
+	 * caller must have already acquired the context's lock via
+	 * {@link #getLock()}.
+	 */
 	public void destroy() {
 		if (destroyed)
 			return;
 		
-		if (current.get() == this)
-			releaseAndSwap();
+		if (current.get() == this) {
+			drawable.swapBuffers();
+			release();
+		}
 		
 		context.destroy();
 		destroyed = true;
 		log.log(Level.FINE, "JoglContext destroyed", this);
 	}
-	
+
+	/**
+	 * Invoke the run() method of the given Sync while this JoglContext is
+	 * current. The context will be released after this is invoked.
+	 * 
+	 * @param sync The Sync to run
+	 * @throws NullPointerException if sync is null
+	 */
 	public void runSync(Sync<?> sync) {
 		try {
 			contextLock.lock();
@@ -116,7 +192,17 @@ public class JoglContext implements Context {
 			contextLock.unlock();
 		}
 	}
-	
+
+	/**
+	 * Render all of the Actions that are present in batch, and keep track of
+	 * statistics within stats. The FrameStatistics should only have its mesh
+	 * counts updated, timing is handled by the JoglRenderManager. It can be
+	 * assumed that all Actions within this batch are for the surface attached
+	 * to this JoglContext, or have a null RenderSurface.
+	 * 
+	 * @param batch The batch of Actions to render
+	 * @param stats The FrameStatistics used track Geometry counts
+	 */
 	public void render(List<Action> batch, FrameStatistics stats) {
 		Action a = null;
 		JoglRenderSurface lastSurface = null;
@@ -148,34 +234,60 @@ public class JoglContext implements Context {
 			
 			throw t;
 		} finally {
+			// we assume here that something drastic hasn't happened, like a card melt
 			renderer.reset();
+			drawable.swapBuffers();
+			release();
 			
-			releaseAndSwap();
 			frameStats = null;
 			contextLock.unlock();
 		}
 	}
 	
+	/**
+	 * @return The GLDrawable attached to this JoglContext
+	 */
 	public GLDrawable getDrawable() {
 		return drawable;
 	}
 	
+	/**
+	 * @return The actual GLContext wrapped by this JoglContext
+	 */
 	public GLContext getContext() {
 		return context;
 	}
 	
+	/**
+	 * @return A GL2GL3 instance associated with this JoglContext
+	 */
 	public GL2GL3 getGL() {
 		return context.getGL().getGL2GL3();
 	}
-	
+
+	/**
+	 * @return A GL2 instance for this context. This assumes that GL2 is
+	 *         supported by the framework's profile
+	 */
 	public GL2 getGL2() {
 		return context.getGL().getGL2();
 	}
-	
+
+	/**
+	 * @return A GL3 instance for this context. This assumes that GL3 is
+	 *         supported by the framework's profile
+	 */
 	public GL3 getGL3() {
 		return context.getGL().getGL3();
 	}
-	
+
+	/**
+	 * Notify the context that a FramebufferObject should be destroyed on this
+	 * context the next time it's made current. Assumes that the fbo is not
+	 * null, hasn't been destroyed, and will no longer be used.
+	 * 
+	 * @param fbo The fbo to destroy eventually
+	 */
 	void notifyFboZombie(FramebufferObject fbo) {
 		zombieFbos.add(fbo);
 	}
@@ -216,11 +328,6 @@ public class JoglContext implements Context {
 		contextThreads.remove(this);
 		
 		log.log(Level.FINER, "Context released", this);
-	}
-	
-	private void releaseAndSwap() {
-		drawable.swapBuffers();
-		release();
 	}
 	
 	private void cleanupZombieFbos() {

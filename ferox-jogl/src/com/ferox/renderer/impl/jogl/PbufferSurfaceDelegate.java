@@ -15,6 +15,21 @@ import com.ferox.renderer.impl.jogl.resource.TextureHandle;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * <p>
+ * PbufferSurfaceDelegate is a TextureSurfaceDelegate that uses pbuffers to
+ * render to a texture offscreen. Each time the rendering is completed, the
+ * pbuffer is copied into an actual texture using glCopyTexSubImage(). It does
+ * not support pbuffer direct RTT support since that is not well supported or
+ * standardized across systems.
+ * </p>
+ * <p>
+ * Like {@link FboSurfaceDelegate}, this should not be created directly but
+ * instead is created when necessary by a {@link JoglTextureSurface}.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
 	private final JoglFramework framework;
 	

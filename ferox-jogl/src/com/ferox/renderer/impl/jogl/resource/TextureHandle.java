@@ -10,6 +10,13 @@ import com.ferox.resource.TextureImage.DepthMode;
 import com.ferox.resource.TextureImage.Filter;
 import com.ferox.resource.TextureImage.TextureWrap;
 
+/**
+ * TextureHandle is a concrete subclass of ResourceHandle that represents the
+ * persisted state of a TextureImage, and is used by any
+ * {@link AbstractTextureImageDriver} when they manage TextureImages.
+ * 
+ * @author Michael Ludwig
+ */
 public class TextureHandle extends ResourceHandle {
 	// formatting
 	public final int glTarget;

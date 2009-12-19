@@ -18,6 +18,13 @@ import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * JoglFramework is an abstract class that almost completes the implementation
+ * of Framework. All that's necessary for subclasses is to provide a GLProfile
+ * that's to be used and provide implementations of Renderer.
+ * 
+ * @author Michael Ludwig
+ */
 public abstract class JoglFramework extends AbstractFramework {
 	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	
@@ -28,8 +35,24 @@ public abstract class JoglFramework extends AbstractFramework {
 
 	private volatile int windowSurfaces;
 	private volatile boolean fullscreenSurface;
-	
+
+	/**
+	 * Create a new JoglFramework that uses the given GLProfile when creating
+	 * OpenGL contexts. capForceBits is passed directly to a
+	 * {@link RenderCapabilitiesDetector} to determine the RenderCapabilities of
+	 * the system.
+	 * 
+	 * @param profile The GLProfile required for this Framework
+	 * @param capForceBits The bits used to forcefully disable certain
+	 *            capabilities
+	 * @param serializeRender True if all renders are to occur on a single
+	 *            thread
+	 * @throws NullPointerException if profile is null
+	 */
 	public JoglFramework(GLProfile profile, int capForceBits, boolean serializeRender) {
+		if (profile == null)
+			throw new NullPointerException("Cannot create a JoglFramework with a null GLProfile");
+		
 		if (Threading.isSingleThreaded())
 			Threading.disableSingleThreading();
 		
@@ -147,6 +170,13 @@ public abstract class JoglFramework extends AbstractFramework {
 			getFrameworkLock().unlock();
 		}
 	}
+	
+	/**
+	 * @return The GLProfile that this JoglFramework uses
+	 */
+	public GLProfile getGLProfile() {
+		return glProfile;
+	}
 
 	@Override
 	protected void innerDestroy(RenderSurface surface) {
@@ -186,17 +216,26 @@ public abstract class JoglFramework extends AbstractFramework {
 		
 		log.log(Level.INFO, "JoglFramework destroyed");
 	}
-	
+
+	/**
+	 * Create a new Renderer that will be used by the given JoglContext.
+	 * 
+	 * @param context The JoglContext that will use this Renderer
+	 * @return A unique Renderer
+	 */
 	protected abstract Renderer createRenderer(JoglContext context);
 	
-	public GLProfile getGLProfile() {
-		return glProfile;
-	}
-	
+	/**
+	 * @return The JoglResourceManager used by this Framework
+	 */
 	JoglResourceManager getResourceManager() {
 		return resourceManager;
 	}
-	
+
+	/**
+	 * @return The shadow context that all other JoglContext's created for this
+	 *         Framework should share with
+	 */
 	JoglContext getShadowContext() {
 		return shadowContext;
 	}

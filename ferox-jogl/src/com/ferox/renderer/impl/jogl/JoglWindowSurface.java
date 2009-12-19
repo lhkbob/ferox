@@ -5,6 +5,14 @@ import javax.swing.SwingUtilities;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.WindowSurface;
 
+/**
+ * JoglWindowSurface is a complete implementation of WindowSurface that is based
+ * off of {@link JoglOnscreenSurface}. It should not be created directly, but
+ * instead should be created using
+ * {@link JoglFramework#createWindowSurface(DisplayOptions, int, int, int, int, boolean, boolean)}
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglWindowSurface extends JoglOnscreenSurface implements WindowSurface {
 	public JoglWindowSurface(JoglFramework framework, DisplayOptions optionsRequest, int x, int y, 
 						     int width, int height, boolean resizable, boolean undecorated) {

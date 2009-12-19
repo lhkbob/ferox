@@ -11,6 +11,12 @@ import com.ferox.resource.ImageRegion;
 import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureCubeMapDirtyState;
 
+/**
+ * A concrete subclass of {@link AbstractTextureImageDriver} that supports
+ * TextureCubeMap images.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglTextureCubeMapResourceDriver extends AbstractTextureImageDriver<TextureCubeMap, TextureCubeMapDirtyState> {
 	private final boolean hasS3tcCompression;
 	

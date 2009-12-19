@@ -9,6 +9,13 @@ import com.ferox.resource.TextureCubeMap;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * FramebufferObject is a low-level wrapper around an OpenGL fbo and can be used
+ * to perform render-to-texture effects. These should not be used directly and
+ * are intended to be managed by a {@link FboSurfaceDelegate}.
+ * 
+ * @author Michael Ludwig
+ */
 public class FramebufferObject {
 	private final int fboId;
 	private int renderBufferId;
@@ -24,7 +31,7 @@ public class FramebufferObject {
 				   			 int layer, boolean useDepthRenderBuffer) {
 		JoglContext context = JoglContext.getCurrent();
 		if (context == null)
-			throw new RenderException("JoglFbo's can only be constructed when there's a current context");
+			throw new RenderException("FramebufferObject's can only be constructed when there's a current context");
 		if (!framework.getCapabilities().getFboSupport())
 			throw new RenderException("Current hardware doesn't support the creation of fbos");
 

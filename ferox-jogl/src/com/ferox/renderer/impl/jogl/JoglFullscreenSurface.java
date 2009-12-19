@@ -7,6 +7,13 @@ import java.awt.GraphicsEnvironment;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FullscreenSurface;
 
+/**
+ * JoglFullscreenSurface is a complete implementation of FullscreenSurface. They
+ * should not be created directly, but instead use
+ * {@link JoglFramework#createFullscreenSurface(DisplayOptions, int, int)}.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglFullscreenSurface extends JoglOnscreenSurface implements FullscreenSurface {
 	private DisplayMode mode;
 	private final GraphicsDevice gDev;

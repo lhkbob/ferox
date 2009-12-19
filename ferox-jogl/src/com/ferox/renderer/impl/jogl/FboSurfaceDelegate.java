@@ -9,6 +9,13 @@ import com.ferox.renderer.impl.Action;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * FboSurfaceDelegate is a TextureSurfaceDelegate that uses
+ * {@link FramebufferObject}'s to render to textures.  This should
+ * not be created directly, but is created internally by a {@link JoglTextureSurface}.
+ * 
+ * @author Michael Ludwig
+ */
 public class FboSurfaceDelegate extends TextureSurfaceDelegate {
 	private final JoglFramework framework;
 	

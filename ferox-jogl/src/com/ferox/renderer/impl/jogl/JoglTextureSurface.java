@@ -21,6 +21,17 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * JoglTextureSurface is a complete implementation of TextureSurface that works
+ * with the JoglFramework. It has support for using framebuffer objects or
+ * pbuffers to support render-to-texture capabilities. It automatically chooses
+ * which to use based on the capabilities of the JoglFramework. They should not
+ * be created directly, but instead should be created via
+ * {@link JoglFramework#createTextureSurface(TextureSurface, int)} or
+ * {@link JoglFramework#createTextureSurface(DisplayOptions, TextureTarget, int, int, int, int, int, boolean)}
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglTextureSurface extends JoglRenderSurface implements TextureSurface {
 	private final TextureSurfaceDelegate delegate;
 	private final int layer;

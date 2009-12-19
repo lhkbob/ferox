@@ -10,6 +10,12 @@ import com.ferox.resource.ImageRegion;
 import com.ferox.resource.Texture1D;
 import com.ferox.resource.TextureDirtyState;
 
+/**
+ * A concrete subclass of {@link AbstractTextureImageDriver} that supports
+ * Texture1D images.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglTexture1DResourceDriver extends AbstractTextureImageDriver<Texture1D, TextureDirtyState> {
 	public JoglTexture1DResourceDriver(RenderCapabilities caps) {
 		super(caps);
