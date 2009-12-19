@@ -6,6 +6,7 @@ import com.ferox.math.Color4f;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
+import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
@@ -18,19 +19,46 @@ import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
+/**
+ * The FixedFunctionRendererDelegate is a utility class that exposes the same
+ * methods as {@link FixedFunctionRenderer}, minus any of the functionality that
+ * can be handled by {@link RendererDelegate}. These public facing methods track
+ * the current state, and when necessary, delegate to protected abstract methods
+ * which have the responsibility of actually making OpenGL calls.
+ * 
+ * @author Michael Ludwig
+ */
 public abstract class FixedFunctionRendererDelegate {
+	/**
+	 * FogMode represents the three different eye fog modes that are available
+	 * in OpenGL.
+	 */
 	protected static enum FogMode {
 		LINEAR, EXP, EXP_SQUARED
 	}
-	
+
+	/**
+	 * When configuring lighting and material colors, OpenGL uses the same
+	 * functions to control the different types of color. For light colors, the
+	 * EMISSIVE enum is unused, since it's only available for material colors.
+	 */
 	protected static enum LightColor {
 		AMBIENT, DIFFUSE, SPECULAR, EMISSIVE
 	}
 	
+	/**
+	 * OpenGL provides only one way to update matrices, and to switch 
+	 * between matrix types, you must set the current mode.
+	 */
 	protected static enum MatrixMode {
 		MODELVIEW, PROJECTION, TEXTURE
 	}
-	
+
+	/**
+	 * An inner class that contains per-light state. Although it's accessible to
+	 * sub-classes, it should be considered read-only because the
+	 * FixedFunctionRendererDelegate manages the updates to its variables.
+	 */
 	protected static class LightState {
 		// LightState does not track position or direction since
 		// they're stored by OpenGL after being modified by the current MV matrix
@@ -48,7 +76,12 @@ public abstract class FixedFunctionRendererDelegate {
 		
 		public boolean enabled = false;
 	}
-	
+
+	/**
+	 * An inner class that contains per-texture unit state. Although it's
+	 * accessible to sub-classes, it should be considered read-only because the
+	 * FixedFunctionRendererDelegate manages the updates to its variables.
+	 */
 	protected static class TextureState {
 		// TextureState does not track texture transforms, or eye planes
 		// since these are difficult to track
@@ -149,7 +182,17 @@ public abstract class FixedFunctionRendererDelegate {
 	
 	// matrix
 	protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
-	
+
+	/**
+	 * Create a FixedFunctionRendererDelegate that is configured to use the given
+	 * number of lights and textures. It is assumed that numLights and
+	 * numTextures represent the hardware-reported limits to the number of
+	 * lights and textures available. If not, undefined results may occur.
+	 * 
+	 * @param numLights The maximum number of lights
+	 * @param numTextures The maximum number of texture units
+	 * @throws IllegalArgumentException if numLights < 8, or numTextures < 0
+	 */
 	public FixedFunctionRendererDelegate(int numLights, int numTextures) {
 		if (numLights < 8)
 			throw new IllegalArgumentException("numLights is below required hardware minimum of 8: " + numLights);

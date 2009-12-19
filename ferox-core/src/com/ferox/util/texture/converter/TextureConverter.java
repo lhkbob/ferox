@@ -27,8 +27,8 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public class TextureConverter {
-	private static List<Encoder> encoders = new ArrayList<Encoder>();
-	private static List<Decoder> decoders = new ArrayList<Decoder>();
+	private static final List<Encoder> encoders = new ArrayList<Encoder>();
+	private static final List<Decoder> decoders = new ArrayList<Decoder>();
 
 	/**
 	 * <p>

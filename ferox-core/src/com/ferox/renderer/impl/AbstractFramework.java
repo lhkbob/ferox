@@ -21,6 +21,22 @@ import com.ferox.resource.DirtyState;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
+/**
+ * <p>
+ * AbstractFramework provides a shell for implementing the full functionality of
+ * a Framework. Where possible, it separates key functionality into other
+ * interfaces that it depends on, such as {@link RenderManager} and
+ * {@link ResourceManager}.
+ * </p>
+ * <p>
+ * All implemented methods of AbstractFramework are intended to be thread-safe,
+ * but it requires the correct cooperation of implementations. There are a
+ * number of protected methods exposed that must be used to complete the
+ * functionality of the Framework.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public abstract class AbstractFramework implements Framework {
 	private final ThreadLocal<List<Action>> queue;
 	private volatile boolean destroyed;
@@ -33,7 +49,13 @@ public abstract class AbstractFramework implements Framework {
 	
 	private final Object surfaceLock;
 	private final ReadWriteLock stateLock;
-	
+
+	/**
+	 * Create a new AbstractFramework. This framework is not usable until its
+	 * {@link #init(ResourceManager, RenderManager, RenderCapabilities)} method
+	 * has been invoked. It's strongly recommended that subclasses call this
+	 * from within their constructor after super() has been invoked.
+	 */
 	public AbstractFramework() {
 		validSurfaces = Collections.synchronizedSet(new HashSet<RenderSurface>());
 		queue = new ThreadLocal<List<Action>>();
@@ -169,6 +191,9 @@ public abstract class AbstractFramework implements Framework {
 			if (depth < 0f || depth > 1f)
 				throw new IllegalArgumentException("Invalid depth clear value: " + depth);
 			
+			if (color == null)
+				color = new Color4f();
+			
 			// we use a simple heuristic for invalid surfaces, if it's not destroyed it must be in validSurfaces
 			// if it was created by this Framework.
 			if (surface.isDestroyed())
@@ -184,7 +209,7 @@ public abstract class AbstractFramework implements Framework {
 
 			if (clearColor || clearDepth || clearStencil) {
 				ClearSurfaceAction c = new ClearSurfaceAction(surface, clearColor, clearDepth, clearStencil, 
-					color, depth, stencil);
+															  color, depth, stencil);
 				threadQueue.add(c);
 			}
 
@@ -226,28 +251,85 @@ public abstract class AbstractFramework implements Framework {
 			stateLock.readLock().unlock();
 		}
 	}
-	
+
+	/**
+	 * Return the Lock that should be acquired before any Framework operation
+	 * should be performed. Subclasses must use this when implementing the
+	 * create RenderSurface methods. When this lock is acquired, any
+	 * {@link #destroy()} call will block until this lock is released.
+	 * 
+	 * @return A Lock that prevents
+	 */
 	protected final Lock getFrameworkLock() {
 		return stateLock.readLock();
 	}
-	
+
+	/**
+	 * <p>
+	 * The surface lock is related to the framework lock, and must be acquired
+	 * any time a RenderSurface is being created or being destroyed. Because
+	 * {@link #destroy(RenderSurface)} correctly acquires this lock, only the
+	 * create RenderSurface methods must do so. Synchronize on the returned
+	 * instance to acquire the lock.
+	 * </p>
+	 * <p>
+	 * The primary reason that this lock is necessary is to prevent the creation
+	 * of a WindowSurface and a FullscreenSurface at the same time.
+	 * </p>
+	 * 
+	 * @return The lock needed when creating or destroying surfaces
+	 */
 	protected final Object getSurfaceLock() {
 		return surfaceLock;
 	}
-	
+
+	/**
+	 * Utility method that throws a RenderException if the Framework is
+	 * destroyed. This should be called when appropriate by subclasses when they
+	 * are responsible for ensuring that the Framework is not destroyed.
+	 */
 	protected final void ensureNotDestroyed() {
 		if (destroyed)
 			throw new RenderException("Framework is destroyed");
 	}
-	
+
+	/**
+	 * This must be called by subclasses when they successfully create a new
+	 * RenderSurface.
+	 * 
+	 * @param surface The RenderSurface that was just created
+	 */
 	protected void addNotify(RenderSurface surface) {
 		validSurfaces.add(surface);
 	}
-	
+
+	/**
+	 * This must be called by subclasses after they have been destroyed.
+	 * 
+	 * @param surface The RenderSurface that's no longer usable
+	 */
 	protected void removeNotify(RenderSurface surface) {
 		validSurfaces.remove(surface);
 	}
-	
+
+	/**
+	 * <p>
+	 * Initialize the AbstractFramework completely. The AbstractFramework relies
+	 * on a ResourceManager and a RenderManager to control the updates and
+	 * disposals of resources, and to complete the rendering of each frame.
+	 * </p>
+	 * <p>
+	 * This method is necessary because it may not be possible to create a
+	 * ResourceManager, RenderManager and RenderCapabilities until after
+	 * AbstractFramework's constructor has been invoked. It is strongly
+	 * recommended that subclasses call this method before their own constructor
+	 * completes. Undefined results occur if it's called more than once.
+	 * </p>
+	 * 
+	 * @param resourceManager The ResourceManager to use
+	 * @param renderManager The RenderManager to use
+	 * @param caps The RenderCapabilities of the system
+	 */
 	protected final void init(ResourceManager resourceManager, RenderManager renderManager, 
 							  RenderCapabilities caps) {
 		if (resourceManager == null)
@@ -259,8 +341,37 @@ public abstract class AbstractFramework implements Framework {
 		this.renderManager = renderManager;
 		this.renderCaps = caps;
 	}
-	
+
+	/**
+	 * <p>
+	 * Although {@link #destroy()} is implemented and may, in fact, destroy all
+	 * that's necessary, innerDestroy() is provided to allow subclasses to
+	 * clean-up any other objects that aren't under the direct control of the
+	 * AbstractFramework.
+	 * </p>
+	 * <p>
+	 * It is not necessary to acquire any framework locks, destroy the remaining
+	 * surfaces, or destroy the ResourceManager and RenderManager because
+	 * {@link #destroy()} handles this already.
+	 * </p>
+	 */
 	protected abstract void innerDestroy();
-	
+
+	/**
+	 * <p>
+	 * Like with {@link #innerDestroy()}, this method is provided to complete
+	 * any necessary destruction required for cleaning up a RenderSurface. This
+	 * method can assume that s has not already been destroyed and that all
+	 * necessary locks have been acquired.
+	 * </p>
+	 * <p>
+	 * Except for those things, this method is responsible for handling anything
+	 * else necessary for cleaning up the RenderSurface. This includes making
+	 * any OnscreenSurfaces no longer visible, and calling
+	 * {@link #removeNotify(RenderSurface)} when appropriate.
+	 * </p>
+	 * 
+	 * @param s The RenderSurface to destroy
+	 */
 	protected abstract void innerDestroy(RenderSurface s);
 }

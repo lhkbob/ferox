@@ -5,13 +5,44 @@ import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.Renderer;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
 
+/**
+ * <p>
+ * FixedFunctionRendererImpl is a complete implementation of
+ * FixedFunctionRenderer that delegates each method call to an appropriate
+ * delegate. It combines the functionality of {@link RendererDelegate} and
+ * {@link FixedFunctionRendererDelegate} to complete the FixedFunctionRenderer
+ * interface.
+ * </p>
+ * <p>
+ * Implementations can reduce the amount of repeated work by just implementing
+ * one of each type of delegate. This way the functionality exposed in the
+ * top-level Renderer is not duplicated in both FixedFunctionRenderer and
+ * GlslRenderer implementations.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public final class FixedFunctionRendererImpl implements FixedFunctionRenderer {
 	private final RendererDelegate coreD;
 	private final FixedFunctionRendererDelegate ffpD;
-	
+
+	/**
+	 * Create a FixedFunctionRendererImpl that combines the two delegates'
+	 * functionality together. The given delegates should not be used by any of
+	 * Renderer implementation to guarantee the correctness of its state
+	 * tracking.
+	 * 
+	 * @param renderDelegate The RendererDelegate that handles the majority of
+	 *            methods declared in {@link Renderer}
+	 * @param ffpDelegate The FixedFunctionRendererDelegate that handles the
+	 *            methods declared in {@link FixedFunctionRenderer} and actually
+	 *            rendering the Geometries
+	 * @throws NullPointerException if either delegate is null
+	 */
 	public FixedFunctionRendererImpl(RendererDelegate renderDelegate, 
 									 FixedFunctionRendererDelegate ffpDelegate) {
 		if (renderDelegate == null || ffpDelegate == null)

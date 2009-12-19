@@ -42,7 +42,7 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public class TextureLoader {
-	private static List<ImageFileLoader> loaders = new ArrayList<ImageFileLoader>();
+	private static final List<ImageFileLoader> loaders = new ArrayList<ImageFileLoader>();
 
 	// register some default loaders
 	static {

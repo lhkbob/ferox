@@ -486,7 +486,7 @@ public final class Matrix3f implements Cloneable {
 	 * @return This matrix
 	 */
 	public Matrix3f scale(float scalar) {
-		return scale(scalar);
+		return scale(scalar, this);
 	}
 
 	/**

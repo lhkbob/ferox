@@ -1,12 +1,29 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.math.Color4f;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilOp;
 
+/**
+ * <p>
+ * The RendererDelegate is a utility class that exposes the same methods defined
+ * in {@link Renderer}, except that it doesn't have responsibility for
+ * implementing render(). The public facing methods correctly track OpenGL
+ * state, and when necessary delegate to protected functions whose
+ * responsibility is to invoke the actual low-level graphics calls.
+ * </p>
+ * <p>
+ * It is recommended that the RendererDelegate is used with a
+ * {@link FixedFunctionRendererDelegate} or a {@link GlslRendererDelegate} to
+ * create the complete functionality of the different Renderer types.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public abstract class RendererDelegate {
 	private static final Color4f DEFAULT_BLEND_COLOR = new Color4f(0f, 0f, 0f, 0f);
 	
