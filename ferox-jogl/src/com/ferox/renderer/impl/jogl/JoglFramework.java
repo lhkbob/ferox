@@ -1,5 +1,8 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.Threading;
 
@@ -16,6 +19,8 @@ import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.TextureTarget;
 
 public abstract class JoglFramework extends AbstractFramework {
+	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
+	
 	private final GLProfile glProfile;
 	private final JoglContext shadowContext;
 	
@@ -24,7 +29,7 @@ public abstract class JoglFramework extends AbstractFramework {
 	private volatile int windowSurfaces;
 	private volatile boolean fullscreenSurface;
 	
-	public JoglFramework(GLProfile profile, int capForceBits) {
+	public JoglFramework(GLProfile profile, int capForceBits, boolean serializeRender) {
 		if (Threading.isSingleThreaded())
 			Threading.disableSingleThreading();
 		
@@ -32,7 +37,7 @@ public abstract class JoglFramework extends AbstractFramework {
 		RenderCapabilities caps = detector.detect(profile, capForceBits);
 		
 		resourceManager = new JoglResourceManager(this, caps);
-		init(resourceManager, new JoglRenderManager(this, true), caps);
+		init(resourceManager, new JoglRenderManager(this, serializeRender), caps);
 		
 		glProfile = profile;
 		windowSurfaces = 0;
@@ -42,6 +47,8 @@ public abstract class JoglFramework extends AbstractFramework {
 			shadowContext = PbufferShadowContext.create(this, profile);
 		else
 			shadowContext = OnscreenShadowContext.create(this, profile);
+		
+		log.log(Level.INFO, "JoglFramework created, using a " + shadowContext.getClass().getSimpleName());
 	}
 
 	@Override
@@ -62,6 +69,7 @@ public abstract class JoglFramework extends AbstractFramework {
 				addNotify(s);
 				
 				fullscreenSurface = true;
+				log.log(Level.INFO, "FullscreenSurface created: " + options + ", width=" + width + ", height=" + height);
 				return s;
 			}
 		} finally {
@@ -82,6 +90,8 @@ public abstract class JoglFramework extends AbstractFramework {
 														  	  depth, layer, numColorTargets, useDepthRenderBuffer);
 				addNotify(s);
 				lockTextures(s);
+				
+				log.log(Level.INFO, "TextureSurface created: " + options + ", target=" + target + ", width=" + width + ", height=" + height + ", depth=" + depth);
 				return s;
 			}
 		} finally {
@@ -104,6 +114,8 @@ public abstract class JoglFramework extends AbstractFramework {
 				JoglTextureSurface s = new JoglTextureSurface(this, (JoglTextureSurface) share, layer);
 				addNotify(s);
 				lockTextures(s);
+				
+				log.log(Level.INFO, "Shared TextureSurface created");
 				return s;
 			}
 		} finally {
@@ -128,6 +140,7 @@ public abstract class JoglFramework extends AbstractFramework {
 				addNotify(s);
 				
 				windowSurfaces++;
+				log.log(Level.INFO, "WindowSurface created: " + options + ", width=" + width + ", height=" + height);
 				return s;
 			}
 		} finally {
@@ -137,21 +150,19 @@ public abstract class JoglFramework extends AbstractFramework {
 
 	@Override
 	protected void innerDestroy(RenderSurface surface) {
-		if (!(surface instanceof JoglRenderSurface) || surface.getFramework() != this)
-			throw new IllegalArgumentException("Cannot destroy a RenderSurface from another Framework");
-		
 		JoglRenderSurface rs = (JoglRenderSurface) surface;
-		removeNotify(rs);
 		
 		JoglContext context = rs.getContext();
 		if (context != null && !context.getLock().tryLock()) {
 			Thread contextThread = JoglContext.getThread(context);
-			contextThread.interrupt();
+			if (contextThread != null)
+				contextThread.interrupt();
 			context.getLock().lock();
 		}
 		
 		synchronized(rs.getLock()) {
 			rs.destroy();
+			removeNotify(rs);
 		}
 		
 		if (context != null)
@@ -164,6 +175,7 @@ public abstract class JoglFramework extends AbstractFramework {
 			fullscreenSurface = false;
 		else if (rs instanceof JoglTextureSurface)
 			unlockTextures((JoglTextureSurface) rs);
+		log.log(Level.INFO, surface.getClass().getSimpleName() + " destroyed");
 	}
 	
 	@Override
@@ -171,6 +183,8 @@ public abstract class JoglFramework extends AbstractFramework {
 		shadowContext.getLock().lock();
 		shadowContext.destroy();
 		shadowContext.getLock().unlock();
+		
+		log.log(Level.INFO, "JoglFramework destroyed");
 	}
 	
 	protected abstract Renderer createRenderer(JoglContext context);

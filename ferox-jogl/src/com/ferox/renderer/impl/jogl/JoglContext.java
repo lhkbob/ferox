@@ -6,6 +6,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -19,8 +21,11 @@ import com.ferox.renderer.RenderException;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
+import com.ferox.renderer.impl.Sync;
 
 public class JoglContext implements Context {
+	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
+	
 	private static final ThreadLocal<JoglContext> current = new ThreadLocal<JoglContext>();
 	private static final Map<JoglContext, Thread> contextThreads = new IdentityHashMap<JoglContext, Thread>();
 	
@@ -60,6 +65,7 @@ public class JoglContext implements Context {
 		zombieFbos = Collections.synchronizedList(new ArrayList<FramebufferObject>());
 
 		this.context = context;
+		log.log(Level.FINE, "JoglContext created for " + surface.getClass().getSimpleName(), this);
 	}
 	
 	public static JoglContext getCurrent() {
@@ -97,6 +103,18 @@ public class JoglContext implements Context {
 		
 		context.destroy();
 		destroyed = true;
+		log.log(Level.FINE, "JoglContext destroyed", this);
+	}
+	
+	public void runSync(Sync<?> sync) {
+		try {
+			contextLock.lock();
+			makeCurrent();
+			sync.run();
+		} finally {
+			release();
+			contextLock.unlock();
+		}
 	}
 	
 	public void render(List<Action> batch, FrameStatistics stats) {
@@ -107,9 +125,6 @@ public class JoglContext implements Context {
 			contextLock.lock();
 			frameStats = stats;
 			makeCurrent();
-			
-			// destroy any fbos that have been destroyed
-			cleanupZombieFbos();
 			
 			int size = batch.size();
 			for (int i = 0; i < size && !destroyed; i++) {
@@ -125,6 +140,7 @@ public class JoglContext implements Context {
 					throw new RenderInterruptedException();
 			}
 			
+			getGL().glFlush();
 		} catch (RuntimeException t) {
 			// clean up surface state
 			if (!destroyed && lastSurface != null && a != lastSurface.getPostRenderAction())
@@ -132,6 +148,8 @@ public class JoglContext implements Context {
 			
 			throw t;
 		} finally {
+			renderer.reset();
+			
 			releaseAndSwap();
 			frameStats = null;
 			contextLock.unlock();
@@ -176,7 +194,6 @@ public class JoglContext implements Context {
 			
 			// make some state assumptions valid
 			gl.glEnable(GL.GL_DEPTH_TEST);
-			gl.glCullFace(GL.GL_BACK);
 			gl.glEnable(GL.GL_CULL_FACE);
 			
 			if (gl.isGL2()) {
@@ -186,14 +203,24 @@ public class JoglContext implements Context {
 				gl2.glEnable(GL2.GL_COLOR_MATERIAL);
 			}
 		}
+		
+		// destroy any fbos that have been destroyed
+		cleanupZombieFbos();
+		
+		log.log(Level.FINER, "Context made current", this);
+	}
+	
+	private void release() {
+		context.release();
+		current.set(null);
+		contextThreads.remove(this);
+		
+		log.log(Level.FINER, "Context released", this);
 	}
 	
 	private void releaseAndSwap() {
-		context.release();
 		drawable.swapBuffers();
-		
-		current.set(null);
-		contextThreads.remove(this);
+		release();
 	}
 	
 	private void cleanupZombieFbos() {

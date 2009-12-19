@@ -1,5 +1,8 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
@@ -17,12 +20,16 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.impl.FixedFunctionRendererDelegate;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.jogl.resource.GeometryHandle;
+import com.ferox.renderer.impl.jogl.resource.VertexArray;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
+import com.ferox.resource.Geometry.CompileType;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.TextureImage.TextureTarget;
 
 public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelegate {
+	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
+	
 	private final JoglContext context;
 	private final JoglResourceManager resManager;
 	
@@ -33,6 +40,12 @@ public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelega
 	
 	// state tracking
 	private boolean alphaTestEnabled;
+	private VertexArray boundVertices;
+	private VertexArray boundNormals;
+	private final VertexArray[] boundTexCoords;
+	
+	private GeometryHandle lastGeometry;
+	private int lastGeometryVersion;
 	
 	public JoglFixedFunctionDelegate(JoglContext context, JoglFramework framework) {
 		super(framework.getCapabilities().getMaxActiveLights(), framework.getCapabilities().getMaxFixedPipelineTextures());
@@ -47,6 +60,10 @@ public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelega
 		vector4Buffer = new float[4];
 		vector3Buffer = new float[3];
 		alphaTestEnabled = false;
+		
+		boundVertices = null;
+		boundNormals = null;
+		boundTexCoords = new VertexArray[texBindings.length];
 	}
 	
 	private void glEnable(int flag, boolean enable) {
@@ -365,12 +382,44 @@ public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelega
 		int glTarget = Utils.getGLTextureTarget(target);
 		ResourceHandle handle = (img == null ? null : resManager.getHandle(img));
 		
+		// the BoundObjectState takes care of the same id for us
 		if (handle == null) {
 			context.getRecord().bindTexture(context.getGL(), glTarget, 0);
 		} else {
 			context.getRecord().bindTexture(context.getGL(), glTarget, handle.getId());
-			context.getGL().glBindTexture(glTarget, handle.getId());
 		}
+	}
+	
+	@Override
+	public void reset() {
+		super.reset();
+		GL2 gl = context.getGL2();
+		
+		// unbind vbos
+		BoundObjectState state = context.getRecord();
+		state.bindArrayVbo(gl, 0);
+		state.bindElementVbo(gl, 0);
+		
+		// disable all vertex pointers
+		if (boundVertices != null) {
+			gl.glDisableClientState(GL2.GL_VERTEX_ARRAY);
+			boundVertices = null;
+		}
+		if (boundNormals != null) {
+			gl.glDisableClientState(GL2.GL_NORMAL_ARRAY);
+			boundNormals = null;
+		}
+		for (int i = 0; i < texBindings.length; i++) {
+			if (boundTexCoords[i] != null) {
+				gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
+				gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+				boundTexCoords[i] = null;
+			}
+		}
+		
+		// reset geom tracker
+		lastGeometry = null;
+		lastGeometryVersion = 0;
 	}
 
 	@Override
@@ -379,15 +428,127 @@ public final class JoglFixedFunctionDelegate extends FixedFunctionRendererDelega
 			throw new RenderInterruptedException();
 		
 		ResourceHandle handle = resManager.getHandle(geom);
-		if (handle.getStatus() == Status.READY)
+		if (handle.getStatus() == Status.READY) {
 			return renderImpl((GeometryHandle) handle);
-		else
+		} else
 			return 0;
 	}
 	
 	private int renderImpl(GeometryHandle handle) {
 		GL2 gl = context.getGL2();
+		BoundObjectState state = context.getRecord();
 		
-		return 0;
+		VertexArray vertices = getVertexArray(handle, vertexBinding);
+		if (vertices == null || vertices.elementSize == 1)
+			return 0; // can't use this va as vertices
+		log.log(Level.FINEST, "Rendering geometry with " + handle.polyCount + " polygons");
+
+		boolean useVbos = handle.compile != CompileType.NONE;
+		
+		// BoundObjectState takes care of the same id for us
+		if (lastGeometry != handle || lastGeometryVersion != handle.version) {
+			boolean override = lastGeometryVersion != handle.version;
+			
+			if (!useVbos) {
+				state.bindArrayVbo(gl, 0);
+				state.bindElementVbo(gl, 0);
+			} else {
+				state.bindArrayVbo(gl, handle.arrayVbo);
+				state.bindElementVbo(gl, handle.elementVbo);
+			}
+
+			if (boundVertices != vertices || override) {
+				if (boundVertices == null)
+					gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
+				glVertexPointer(gl, vertices, useVbos);
+				boundVertices = vertices;
+			}
+
+			VertexArray normals = getVertexArray(handle, normalBinding);
+			if (lightingEnabled && normals != null && normals.elementSize == 3) {
+				if (boundNormals != normals || override) {
+					// update pointer
+					if (boundNormals == null)
+						gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
+					glNormalPointer(gl, normals, useVbos);
+					boundNormals = normals;
+				}
+			} else {
+				// don't send normals
+				if (boundNormals != null) {
+					gl.glDisableClientState(GL2.GL_NORMAL_ARRAY);
+					boundNormals = null;
+				}
+			}
+
+			VertexArray tcs;
+			for (int i = 0; i < texBindings.length; i++) {
+				tcs = getVertexArray(handle, texBindings[i]);
+				if (textures[i].enabled && state.getTexture(i) != 0 && tcs != null) {
+					if (boundTexCoords[i] != tcs || override) {
+						// update pointer
+						gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
+						if (boundTexCoords[i] == null)
+							gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+						glTexCoordPointer(gl, tcs, useVbos);
+						boundTexCoords[i] = tcs;
+					}
+				} else {
+					// disable texcoords
+					if (boundTexCoords[i] != null) {
+						gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
+						gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+						boundTexCoords[i] = null;
+					}
+				}
+			}
+		}
+		
+		if (useVbos)
+			gl.glDrawRangeElements(handle.glPolyType, handle.minIndex, handle.maxIndex, 
+								   handle.indexCount, GL2.GL_UNSIGNED_INT, 0);
+		else
+			gl.glDrawRangeElements(handle.glPolyType, handle.minIndex, handle.maxIndex, 
+								   handle.indexCount, GL2.GL_UNSIGNED_INT, handle.indices.rewind());
+		
+		lastGeometry = handle;
+		lastGeometryVersion = handle.version;
+		return handle.polyCount;
+	}
+	
+	private void glVertexPointer(GL2 gl, VertexArray vertices, boolean vbo) {
+		if (vbo)
+			gl.glVertexPointer(vertices.elementSize, GL.GL_FLOAT, 0, vertices.offset);
+		else
+			gl.glVertexPointer(vertices.elementSize, GL.GL_FLOAT, 0, vertices.buffer.rewind());
+	}
+	
+	private void glNormalPointer(GL2 gl, VertexArray normals, boolean vbo) {
+		if (vbo)
+			gl.glNormalPointer(GL.GL_FLOAT, 0, normals.offset);
+		else
+			gl.glNormalPointer(GL.GL_FLOAT, 0, normals.buffer.rewind());
+	}
+	
+	private void glTexCoordPointer(GL2 gl, VertexArray tcs, boolean vbo) {
+		if (vbo)
+			gl.glTexCoordPointer(tcs.elementSize, GL.GL_FLOAT, 0, tcs.offset);
+		else
+			gl.glTexCoordPointer(tcs.elementSize, GL.GL_FLOAT, 0, tcs.buffer.rewind());
+	}
+	
+	private VertexArray getVertexArray(GeometryHandle handle, String name) {
+		if (name == null)
+			return null;
+		
+		VertexArray arr;
+		int len = handle.compiledPointers.size();
+		for (int i = 0; i < len; i++) {
+			arr = handle.compiledPointers.get(i);
+			if (arr.name.equals(name))
+				return arr;
+		}
+		// couldn't find a match
+		return null;
 	}
 }

@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
@@ -39,18 +41,19 @@ import com.ferox.resource.TextureRectangle;
 import com.ferox.resource.Resource.Status;
 
 public class JoglResourceManager implements ResourceManager {
+	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	private static final long CLEANUP_WAKEUP_INTERVAL = 500;
 	
 	private static int threadId = 0;
 	private static final AtomicReferenceFieldUpdater<JoglResourceManager, Boolean> casDestroyed =
-		AtomicReferenceFieldUpdater.newUpdater(JoglResourceManager.class, boolean.class, "destroyed");
+		AtomicReferenceFieldUpdater.newUpdater(JoglResourceManager.class, Boolean.class, "destroyed");
 	
 	private final JoglFramework framework;
 	private final Thread workerThread;
 	private final Thread cleanupScheduler;
 	
 	// must be volatile so everything can see changes to it
-	private volatile boolean destroyed;
+	private volatile Boolean destroyed;
 	
 	// resource data per resource, accessed by id
 	private ResourceData[] resourceData;
@@ -102,14 +105,16 @@ public class JoglResourceManager implements ResourceManager {
 	public ResourceHandle getHandle(Resource resource) {
 		if (resource == null)
 			throw new NullPointerException("Cannot retreive handle for null Resource");
-		ResourceDriver driver = getDriver(resource);
-		if (driver == null)
-			throw new UnsupportedResourceException("Resource type: " + resource.getClass());
 		
 		ResourceData rd = getResourceData(resource);
 		DirtyState<?> ds = resource.getDirtyState();
 		
 		if (rd == null || rd.queuedSync != null || ds != null) {
+			ResourceDriver driver = getDriver(resource);
+			if (driver == null)
+				throw new UnsupportedResourceException("Resource type: " + resource.getClass());
+			
+			log.log(Level.FINE, "getHandle() request must block for potential update", resource);
 			// something is going on, so check everything
 			synchronized(pendingTasks) {
 				// re-fetch rd to get any possible changes
@@ -158,6 +163,7 @@ public class JoglResourceManager implements ResourceManager {
 						updateLock.wait();
 				}
 			} catch(InterruptedException ie) {
+				log.log(Level.SEVERE, "Interrupted while waiting for ResourceHandle", ie);
 				throw new RenderInterruptedException("Interrupted while waiting for Resource", ie);
 			}
 		}
@@ -221,8 +227,12 @@ public class JoglResourceManager implements ResourceManager {
 			rd.queuedSync = new Sync<Object>((Callable<Object>) task);
 			pendingTasks.add(rd.queuedSync);
 			
-			pendingTasks.notifyAll();
-			return new FutureSync<Object>((Sync<Object>) rd.queuedSync);
+			try {
+				log.log(Level.INFO, "Scheduling disposal of resource " + resource.getClass().getSimpleName() + ":" + resource.getId());
+				return new FutureSync<Object>((Sync<Object>) rd.queuedSync);
+			} finally {
+				pendingTasks.notifyAll();
+			}
 		}
 	}
 
@@ -263,8 +273,12 @@ public class JoglResourceManager implements ResourceManager {
 			rd.queuedTask = task;
 			pendingTasks.add(sync);
 			
-			pendingTasks.notifyAll();
-			return new FutureSync<Status>(sync);
+			try {
+				log.log(Level.INFO, "Scheduling update for resource " + resource.getClass().getSimpleName() + ":" + resource.getId());
+				return new FutureSync<Status>(sync);
+			} finally {
+				pendingTasks.notifyAll();
+			}
 		}
 	}
 
@@ -284,6 +298,7 @@ public class JoglResourceManager implements ResourceManager {
 				cleanupScheduler.join();
 		} catch(InterruptedException ie) {
 			// do nothing
+			log.log(Level.WARNING, "Interrupted while waiting for work threads to complete");
 		}
 		
 		synchronized(pendingTasks) {
@@ -313,7 +328,14 @@ public class JoglResourceManager implements ResourceManager {
 	/* Private helper methods */
 	
 	private ResourceDriver getDriver(Resource r) {
-		return drivers.get(r.getClass());
+		Class<?> clazz = r.getClass();
+		while(clazz != null && Resource.class.isAssignableFrom(clazz)) {
+			ResourceDriver d = drivers.get(clazz);
+			if (d != null)
+				return d;
+			clazz = clazz.getSuperclass();
+		}
+		return null;
 	}
 	
 	private ResourceData getResourceData(Resource r) {
@@ -349,10 +371,11 @@ public class JoglResourceManager implements ResourceManager {
 							pendingTasks.wait();
 						
 						Sync<?> sync = pendingTasks.removeFirst();
-						sync.run();
+						framework.getShadowContext().runSync(sync);
 					}
 				} catch(InterruptedException ie) {
 					// do nothing
+					log.log(Level.WARNING, "ResourceManager interrupted");
 				}
 			}
 		}
@@ -373,6 +396,7 @@ public class JoglResourceManager implements ResourceManager {
 								// schedule cleanup
 								if (rd.handle.getStatus() != Status.DISPOSED) {
 									synchronized(pendingTasks) {
+										log.log(Level.INFO, "Scheduling disposal for garbage collected resource with id=" + rd.id);
 										pendingTasks.add(new Sync<Object>(new HandleDisposeTask(rd)));
 										pendingTasks.notifyAll();
 									}
@@ -387,6 +411,7 @@ public class JoglResourceManager implements ResourceManager {
 					Thread.sleep(CLEANUP_WAKEUP_INTERVAL);
 				} catch(InterruptedException ie) {
 					// do nothing
+					log.log(Level.WARNING, "DisposalScheduler interrupted");
 				}
 			}
 		}
@@ -404,6 +429,7 @@ public class JoglResourceManager implements ResourceManager {
 		
 		@Override
 		public Status call() throws Exception {
+			long now = System.currentTimeMillis();
 			ResourceData rd = getResourceData(toUpdate);
 			ResourceHandle handle = rd.handle;
 
@@ -431,8 +457,12 @@ public class JoglResourceManager implements ResourceManager {
 				rd.queuedTask = null;
 			}
 
-			updateLock.notifyAll(); // wake-up any thread blocking on getHandle()
-			return handle.getStatus();
+			Status status = handle.getStatus();
+			synchronized(updateLock) {
+				updateLock.notifyAll(); // wake-up any thread blocking on getHandle()
+			}
+			log.log(Level.INFO, "Update complete for " + toUpdate.getClass().getSimpleName() + ":" + toUpdate.getId() + " in " + (System.currentTimeMillis() - now) + " ms");
+			return status;
 		}
 	}
 	
@@ -445,6 +475,7 @@ public class JoglResourceManager implements ResourceManager {
 		
 		@Override
 		public Object call() throws Exception {
+			long now = System.currentTimeMillis();
 			ResourceData rd = getResourceData(toDispose);
 			setResourceData(toDispose, null);
 
@@ -461,6 +492,7 @@ public class JoglResourceManager implements ResourceManager {
 				rd.queuedTask = null;
 			}
 			// dummy return value
+			log.log(Level.INFO, "Disposal complete for " + toDispose.getClass().getSimpleName() + ":" + toDispose.getId() + " in " + (System.currentTimeMillis() - now) + " ms");
 			return null;
 		}
 	}

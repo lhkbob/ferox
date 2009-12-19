@@ -9,7 +9,11 @@ public class FixedFunctionJoglFramework extends JoglFramework {
 	private static final int FORCE_BITS = RenderCapabilitiesDetector.FORCE_NO_GLSL;
 	
 	public FixedFunctionJoglFramework() {
-		super(GLProfile.get(GLProfile.GL2), FORCE_BITS);
+		this(true);
+	}
+	
+	public FixedFunctionJoglFramework(boolean serializeRenders) {
+		super(GLProfile.get(GLProfile.GL2), FORCE_BITS, serializeRenders);
 	}
 
 	@Override

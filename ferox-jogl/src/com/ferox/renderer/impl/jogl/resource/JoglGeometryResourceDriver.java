@@ -15,6 +15,7 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.jogl.BoundObjectState;
 import com.ferox.renderer.impl.jogl.JoglContext;
+import com.ferox.renderer.impl.jogl.Utils;
 import com.ferox.resource.DirtyState;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.GeometryDirtyState;
@@ -98,6 +99,8 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 			updateForVbo(gl, g, handle, dirty);
 		else
 			updateForVertexArray(gl, g, handle, dirty);
+		handle.glPolyType = Utils.getGLPolygonConnectivity(g.getPolygonType());
+		handle.version = handle.version + 1;
 	}
 	
 	private void updateForVbo(GL2GL3 gl, Geometry g, GeometryHandle handle, GeometryDirtyState dirty) {
@@ -201,12 +204,14 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		// now handle the indices vbo
 		int[] indices = g.getIndices();
 		int indexLength = indices.length * 4;
-		BufferRange dirtyI = dirty.getModifiedIndices();
+		BufferRange dirtyI = (dirty == null ? null : dirty.getModifiedIndices());
+		boolean computeMinMax = false;
 		
 		if (indexLength > handle.elementVboSize || handle.elementVboSize * REALLOC_FACTOR > indexLength) {
 			// not enough space, do a full buffer allcate
 			gl.glBufferData(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, indexLength, IntBuffer.wrap(indices), getVboType(handle.compile));
 			handle.elementVboSize = indexLength;
+			computeMinMax = true;
 		} else if (dirty == null || dirtyI != null) {
 			// update based on dirty state, w/0 BufferSubData for speed
 			if (dirty == null)
@@ -214,11 +219,17 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 			else
 				gl.glBufferSubData(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, dirtyI.getOffset() * 4, dirtyI.getLength() * 4, 
 								   IntBuffer.wrap(indices, dirtyI.getOffset(), dirtyI.getLength()));
+			computeMinMax = true;
 		}
 		
 		// restore vbo bindings
 		gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, record.getArrayVbo());
 		gl.glBindBuffer(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, record.getElementVbo());
+		
+		handle.indexCount = indices.length;
+		handle.polyCount = g.getPolygonType().getPolygonCount(handle.indexCount);
+		if (computeMinMax)
+			updateMinMaxIndices(handle, indices);
 	}
 	
 	private void updateVboAttributesFull(GL2GL3 gl, Geometry g, GeometryHandle handle) {
@@ -232,6 +243,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 			va.offset = offset;
 			va.vboLen = vb.getBuffer().length * 4;
 			
+			vas.add(va);
 			offset += va.vboLen;
 		}
 		
@@ -331,28 +343,34 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		}
 		
 		// update indices data and counts
+		boolean computeMinMax = false;
 		int[] indices = g.getIndices();
 		if (handle.indices == null || handle.indices.capacity() < indices.length) {
 			// make new indices
 			handle.indices = ByteBuffer.allocateDirect(indices.length * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
 			handle.indices.put(indices).rewind();
+			computeMinMax = true;
 		} else {
 			// reuse index buffer, and possibly just update the indices
 			if (dirty == null) {
 				handle.indices.limit(indices.length).position(0);
 				handle.indices.put(indices).rewind();
+				computeMinMax = true;
 			} else {
 				BufferRange br = dirty.getModifiedIndices();
 				if (br != null) {
 					// only update if indices were modified
 					handle.indices.limit(indices.length).position(br.getOffset());
 					handle.indices.put(indices, br.getOffset(), br.getLength()).rewind();
+					computeMinMax = true;
 				}
 			}
 		}
 		
 		handle.indexCount = indices.length;
 		handle.polyCount = g.getPolygonType().getPolygonCount(handle.indexCount);
+		if (computeMinMax)
+			updateMinMaxIndices(handle, indices);
 	}
 	
 	private int getVboType(CompileType type) {
@@ -385,5 +403,20 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		
 		handle.arrayVbo = id[0];
 		handle.elementVbo = id[1];
+	}
+	
+	private void updateMinMaxIndices(GeometryHandle handle, int[] indices) {
+		int min = Integer.MAX_VALUE;
+		int max = Integer.MIN_VALUE;
+		
+		for (int i = 0; i < indices.length; i++) {
+			if (indices[i] < min)
+				min = indices[i];
+			if (indices[i] > max)
+				max = indices[i];
+		}
+		
+		handle.minIndex = min;
+		handle.maxIndex = max;
 	}
 }

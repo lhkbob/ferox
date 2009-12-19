@@ -19,6 +19,9 @@ public class GeometryHandle extends ResourceHandle {
 	public int polyCount;
 
 	public int indexCount;
+	
+	public int minIndex;
+	public int maxIndex;
 
 	// if null, use elementVbo
 	public IntBuffer indices;
@@ -28,9 +31,12 @@ public class GeometryHandle extends ResourceHandle {
 	public int elementVbo;
 
 	public final CompileType compile;
+	
+	public volatile int version;
 
 	public GeometryHandle(CompileType type) {
 		super(-1); // geom has no single id
 		compile = type;
+		version = 0;
 	}
 }

@@ -10,10 +10,9 @@ import com.ferox.renderer.impl.AbstractRenderSurface;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
 
-// DOWNLOAD: portal.acm.org/citation.cfm?id=300546
 public abstract class JoglRenderSurface extends AbstractRenderSurface {
 	private static final AtomicReferenceFieldUpdater<JoglRenderSurface, Boolean> casDestroyed =
-		AtomicReferenceFieldUpdater.newUpdater(JoglRenderSurface.class, boolean.class, "destroyed");
+		AtomicReferenceFieldUpdater.newUpdater(JoglRenderSurface.class, Boolean.class, "destroyed");
 	
 	private final JoglFramework framework;
 	
@@ -21,7 +20,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface {
 	private final Action preRenderAction;
 	
 	private boolean renderedOnce;
-	private volatile boolean destroyed;
+	private volatile Boolean destroyed;
 	
 	private final Object surfaceLock = new Object();
 	

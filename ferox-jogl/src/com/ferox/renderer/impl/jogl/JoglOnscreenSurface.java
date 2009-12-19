@@ -38,10 +38,9 @@ public class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSu
 		super(framework);
 		if (optionsRequest == null)
 			optionsRequest = new DisplayOptions();
-		canvas = new GLCanvas(chooseCapabilities(framework.getGLProfile(), optionsRequest), 
+		canvas = new PaintDisabledGLCanvas(chooseCapabilities(framework.getGLProfile(), optionsRequest), 
 							  new DefaultGLCapabilitiesChooser(), null, null);
-		context = new JoglContext(framework, canvas);
-		canvas.setContext(context.getContext());
+		canvas.setAutoSwapBufferMode(false);
 		frame = new Frame();
 
 		Utils.invokeOnAwtThread(new Runnable() {
@@ -56,6 +55,8 @@ public class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSu
 				canvas.requestFocusInWindow();
 			}
 		});
+		context = new JoglContext(framework, canvas);
+		canvas.setContext(context.getContext());
 
 		frame.addWindowListener(this);
 
@@ -77,6 +78,7 @@ public class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSu
 	@Override
 	protected void init() {
 		// fetch the detected options
+		canvas.getChosenGLCapabilities();
 		options = detectOptions(context.getGL());
 	}
 
@@ -202,7 +204,7 @@ public class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSu
 
 	private static GLCapabilities chooseCapabilities(GLProfile profile, DisplayOptions request) {
 		GLCapabilities caps = new GLCapabilities(profile);
-
+		
 		// try to update the caps fields
 		switch (request.getPixelFormat()) {
 		case RGB_16BIT:
@@ -287,7 +289,7 @@ public class JoglOnscreenSurface extends JoglRenderSurface implements OnscreenSu
 		int[] t = new int[1];
 		int red, green, blue, alpha, stencil, depth;
 		int samples, sampleBuffers;
-
+		
 		gl.glGetIntegerv(GL.GL_RED_BITS, t, 0);
 		red = t[0];
 		gl.glGetIntegerv(GL.GL_GREEN_BITS, t, 0);

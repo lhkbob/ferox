@@ -41,6 +41,7 @@ public class RenderCapabilitiesDetector {
 				window.add(canvas);
 				
 				window.setSize(1, 1);
+				window.setUndecorated(true);
 				window.setVisible(true);
 				
 				canvas.getContext().makeCurrent();

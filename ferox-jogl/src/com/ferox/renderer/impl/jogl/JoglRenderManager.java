@@ -8,6 +8,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.impl.Action;
@@ -16,15 +18,17 @@ import com.ferox.renderer.impl.RenderManager;
 import com.ferox.renderer.impl.Sync;
 
 public class JoglRenderManager implements RenderManager {
+	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
+	
 	private static int threadId = 0;
 	private static final AtomicReferenceFieldUpdater<JoglRenderManager, Boolean> casDestroyed =
-		AtomicReferenceFieldUpdater.newUpdater(JoglRenderManager.class, boolean.class, "destroyed");
+		AtomicReferenceFieldUpdater.newUpdater(JoglRenderManager.class, Boolean.class, "destroyed");
 	
 	private final JoglFramework framework;
 	private final Thread workerThread;
 	
 	// must be volatile so everything can see changes to it
-	private volatile boolean destroyed;
+	private volatile Boolean destroyed;
 	private volatile BlockingQueue<Sync<FrameStatistics>> renderQueue;
 	
 	public JoglRenderManager(JoglFramework framework, boolean serialize) {
@@ -32,6 +36,7 @@ public class JoglRenderManager implements RenderManager {
 			throw new NullPointerException("Cannot specify a null Framework");
 		this.framework = framework;
 		renderQueue = new LinkedBlockingQueue<Sync<FrameStatistics>>();
+		destroyed = false;
 		
 		if (serialize) {
 			workerThread = new Thread(new RenderWorker());
@@ -78,6 +83,7 @@ public class JoglRenderManager implements RenderManager {
 					workerThread.join();
 			} catch (InterruptedException e) {
 				// continue
+				log.log(Level.WARNING, "Exception while waiting for worker thread to terminate", e);
 			}
 		}
 		
@@ -100,6 +106,7 @@ public class JoglRenderManager implements RenderManager {
 						render.run(); // does nothing if it's cancelled
 				} catch(InterruptedException ie) {
 					// continue
+					log.log(Level.WARNING, "Render interrupted");
 				}
 			}
 		}
@@ -168,6 +175,7 @@ public class JoglRenderManager implements RenderManager {
 			}
 			
 			stats.setRenderTime(System.nanoTime() - now);
+			log.log(Level.FINE, "Render completed in " + (stats.getRenderTime() / 1000000) + " ms");
 			return stats;
 		}
 		

@@ -128,16 +128,20 @@ public class JoglRendererDelegate extends RendererDelegate {
 			gl.glCullFace(cullFace);
 		}
 		
-		int frontMode = Utils.getGLPolygonMode(front);
-		if (frontPolyMode != frontMode) {
-			frontPolyMode = frontMode;
-			gl.glPolygonMode(GL.GL_FRONT, frontMode);
+		if (front != DrawStyle.NONE) {
+			int frontMode = Utils.getGLPolygonMode(front);
+			if (frontPolyMode != frontMode) {
+				frontPolyMode = frontMode;
+				gl.glPolygonMode(GL.GL_FRONT, frontMode);
+			}
 		}
 		
-		int backMode = Utils.getGLPolygonMode(back);
-		if (backPolyMode != backMode) {
-			backPolyMode = backMode;
-			gl.glPolygonMode(GL.GL_BACK, backMode);
+		if (back != DrawStyle.NONE) {
+			int backMode = Utils.getGLPolygonMode(back);
+			if (backPolyMode != backMode) {
+				backPolyMode = backMode;
+				gl.glPolygonMode(GL.GL_BACK, backMode);
+			}
 		}
 	}
 	
