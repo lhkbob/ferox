@@ -31,6 +31,55 @@ public abstract class FixedFunctionRendererDelegate {
 		MODELVIEW, PROJECTION, TEXTURE
 	}
 	
+	protected static class LightState {
+		// LightState does not track position or direction since
+		// they're stored by OpenGL after being modified by the current MV matrix
+		private boolean modifiedSinceReset = false;
+		
+		public final Color4f ambient = new Color4f(0f, 0f, 0f, 1f);
+		public final Color4f specular = new Color4f(0f, 0f, 0f, 1f);
+		public final Color4f diffuse = new Color4f(0f, 0f, 0f, 1f);
+		
+		public float constAtt = 1f;
+		public float linAtt = 0f;
+		public float quadAtt = 0f;
+		
+		public float spotAngle = 180f;
+		
+		public boolean enabled = false;
+	}
+	
+	protected static class TextureState {
+		// TextureState does not track texture transforms, or eye planes
+		// since these are difficult to track
+		private boolean modifiedSinceReset = false;
+		
+		public boolean enabled = false;
+		public TextureImage image = null;
+		
+		public EnvMode envMode = EnvMode.MODULATE;
+		public Color4f color = new Color4f(0f, 0f, 0f, 0f);
+		
+		public TexCoordSource tcS = TexCoordSource.ATTRIBUTE;
+		public TexCoordSource tcT = TexCoordSource.ATTRIBUTE;
+		public TexCoordSource tcR = TexCoordSource.ATTRIBUTE;
+		public TexCoordSource tcQ = TexCoordSource.ATTRIBUTE;
+		
+		public final Vector4f objPlaneS = new Vector4f(1f, 0f, 0f, 0f);
+		public final Vector4f objPlaneT = new Vector4f(0f, 1f, 0f, 0f);
+		public final Vector4f objPlaneR = new Vector4f(0f, 0f, 0f, 0f);
+		public final Vector4f objPlaneQ = new Vector4f(0f, 0f, 0f, 0f);
+		
+		public CombineFunction rgbFunc = CombineFunction.MODULATE;
+		public CombineFunction alphaFunc = CombineFunction.MODULATE;
+		
+		public final CombineOp[] opRgb = {CombineOp.COLOR, CombineOp.COLOR, CombineOp.ALPHA};
+		public final CombineOp[] opAlpha = {CombineOp.ALPHA, CombineOp.ALPHA, CombineOp.ALPHA};
+		
+		public final CombineSource[] srcRgb = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
+		public final CombineSource[] srcAlpha = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
+	}
+	
 	private static final Matrix4f IDENTITY = new Matrix4f().setIdentity();
 	
 	// cached defaults
@@ -49,47 +98,47 @@ public abstract class FixedFunctionRendererDelegate {
 	private static final Vector4f DEFAULT_0_PLANE = new Vector4f(0f, 0f, 0f, 0f);
 	
 	// alpha test
-	private Comparison alphaTest = Comparison.ALWAYS;
-	private float alphaRefValue = 1f;
+	protected Comparison alphaTest = Comparison.ALWAYS;
+	protected float alphaRefValue = 1f;
 	
 	// fog
-	private final Color4f fogColor = new Color4f(ZERO);
+	protected final Color4f fogColor = new Color4f(ZERO);
 	
-	private float fogStart = 0f;
-	private float fogEnd = 1f;
-	private float fogDensity = 1f;
+	protected float fogStart = 0f;
+	protected float fogEnd = 1f;
+	protected float fogDensity = 1f;
 	
-	private FogMode fogMode = FogMode.EXP;
-	private boolean fogEnabled = false;
+	protected FogMode fogMode = FogMode.EXP;
+	protected boolean fogEnabled = false;
 	
 	// global lighting
-	private final Color4f globalAmbient = new Color4f(DEFAULT_MAT_A_COLOR);
-	private boolean lightingEnabled = false;
-	private boolean lightingTwoSided = false;
-	private boolean lightingSmoothed = true;
+	protected final Color4f globalAmbient = new Color4f(DEFAULT_MAT_A_COLOR);
+	protected boolean lightingEnabled = false;
+	protected boolean lightingTwoSided = false;
+	protected boolean lightingSmoothed = true;
 	
 	// lights
-	private final LightState[] lights;
+	protected final LightState[] lights;
 	
 	// material
-	private final Color4f matDiffuse = new Color4f(DEFAULT_MAT_D_COLOR);
-	private final Color4f matAmbient = new Color4f(DEFAULT_MAT_A_COLOR);
-	private final Color4f matSpecular = new Color4f(BLACK);
-	private final Color4f matEmmissive = new Color4f(BLACK);
+	protected final Color4f matDiffuse = new Color4f(DEFAULT_MAT_D_COLOR);
+	protected final Color4f matAmbient = new Color4f(DEFAULT_MAT_A_COLOR);
+	protected final Color4f matSpecular = new Color4f(BLACK);
+	protected final Color4f matEmmissive = new Color4f(BLACK);
 	
-	private float matShininess = 0f;
+	protected float matShininess = 0f;
 	
 	// primitive size/aa
-	private boolean lineAAEnabled = false;
-	private boolean pointAAEnabled = false;
-	private boolean polyAAEnabled = false;
+	protected boolean lineAAEnabled = false;
+	protected boolean pointAAEnabled = false;
+	protected boolean polyAAEnabled = false;
 	
-	private float lineWidth = 1f;
-	private float pointWidth = 1f;
+	protected float lineWidth = 1f;
+	protected float pointWidth = 1f;
 	
 	// texturing
-	private int activeTex = 0;
-	private final TextureState[] textures;
+	protected int activeTex = 0;
+	protected final TextureState[] textures;
 	
 	// bindings, has protected access for sub-classes
 	protected String vertexBinding = Geometry.DEFAULT_VERTICES_NAME;
@@ -99,7 +148,7 @@ public abstract class FixedFunctionRendererDelegate {
 	private final String[] restoreTexBindings;
 	
 	// matrix
-	private MatrixMode matrixMode = MatrixMode.MODELVIEW;
+	protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
 	
 	public FixedFunctionRendererDelegate(int numLights, int numTextures) {
 		if (numLights < 8)
@@ -156,14 +205,18 @@ public abstract class FixedFunctionRendererDelegate {
 		// reset all lights
 		for (int i = 0; i < lights.length; i++) {
 			setLightEnabled(i, false);
-			setLightPosition(i, DEFAULT_LIGHT_POS);
+			if (lights[i].modifiedSinceReset) {
+				// special check to avoid repeated no-point calls
+				setLightPosition(i, DEFAULT_LIGHT_POS);
+				setSpotlight(i, DEFAULT_SPOT_DIR, 180f);
+				lights[i].modifiedSinceReset = false;
+			}
 			
 			if (i == 0)
 				setLightColor(i, BLACK, WHITE, WHITE);
 			else
 				setLightColor(i, BLACK, WHITE, WHITE);
 			
-			setSpotlight(i, DEFAULT_SPOT_DIR, 180f);
 			setLightAttenuation(i, 1f, 0f, 0f);
 		}
 		
@@ -187,10 +240,16 @@ public abstract class FixedFunctionRendererDelegate {
 
 			setTextureCoordGeneration(i, TexCoordSource.ATTRIBUTE);
 			
-			setTextureEyePlane(i, TexCoord.S, DEFAULT_S_PLANE);
-			setTextureEyePlane(i, TexCoord.T, DEFAULT_T_PLANE);
-			setTextureEyePlane(i, TexCoord.R, DEFAULT_0_PLANE);
-			setTextureEyePlane(i, TexCoord.Q, DEFAULT_0_PLANE);
+			if (textures[i].modifiedSinceReset) {
+				// special check to only do it something was modified
+				setTextureTransform(i, null);
+				setTextureEyePlane(i, TexCoord.S, DEFAULT_S_PLANE);
+				setTextureEyePlane(i, TexCoord.T, DEFAULT_T_PLANE);
+				setTextureEyePlane(i, TexCoord.R, DEFAULT_0_PLANE);
+				setTextureEyePlane(i, TexCoord.Q, DEFAULT_0_PLANE);
+				textures[i].modifiedSinceReset = false;
+			}
+			
 			setTextureObjectPlane(i, TexCoord.S, DEFAULT_S_PLANE);
 			setTextureObjectPlane(i, TexCoord.T, DEFAULT_T_PLANE);
 			setTextureObjectPlane(i, TexCoord.R, DEFAULT_0_PLANE);
@@ -389,6 +448,7 @@ public abstract class FixedFunctionRendererDelegate {
 		
 		// always set the light position since pos will be transformed by
 		// the current matrix
+		lights[light].modifiedSinceReset = true;
 		glLightPosition(light, pos);
 	}
 	
@@ -413,6 +473,7 @@ public abstract class FixedFunctionRendererDelegate {
 		
 		// always set the spotlight direction since it will be transformed
 		// by the current matrix
+		l.modifiedSinceReset = true;
 		glLightDirection(light, dir);
 	}
 	
@@ -843,9 +904,10 @@ public abstract class FixedFunctionRendererDelegate {
 			throw new NullPointerException("TexCoord cannot be null");
 		
 		// always send plane
+		textures[tex].modifiedSinceReset = true;
+
 		setTextureUnit(tex);
 		glTexEyePlane(coord, plane);
-		
 	}
 	
 	/**
@@ -923,6 +985,9 @@ public abstract class FixedFunctionRendererDelegate {
 			return; // ignore it
 		if (matrix == null)
 			matrix = IDENTITY;
+		
+		// always send texture matrix
+		textures[tex].modifiedSinceReset = true;
 		
 		setTextureUnit(tex);
 		setMatrixMode(MatrixMode.TEXTURE);

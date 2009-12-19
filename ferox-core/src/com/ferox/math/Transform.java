@@ -343,6 +343,40 @@ public class Transform {
 		trans.set(0f, 0f, 0f);
 	}
 
+	/**
+	 * Get this Transform as a 4x4 matrix. If result is null a new
+	 * {@link Matrix4f} is created and returned, otherwise result is returned.
+	 * 
+	 * @param result The Matrix4f set to this Transform
+	 * @return result, or a new Matrix4f if it was null
+	 */
+	public Matrix4f get(Matrix4f result) {
+		if (result == null)
+			result = new Matrix4f();
+		
+		result.m00 = scale * rot.m00;
+		result.m10 = scale * rot.m10;
+		result.m20 = scale * rot.m20;
+		result.m30 = 0;
+		
+		result.m01 = scale * rot.m01;
+		result.m11 = scale * rot.m11;
+		result.m21 = scale * rot.m21;
+		result.m31 = 0;
+		
+		result.m02 = scale * rot.m02;
+		result.m12 = scale * rot.m12;
+		result.m22 = scale * rot.m22;
+		result.m32 = 0;
+		
+		result.m03 = trans.x;
+		result.m13 = trans.y;
+		result.m23 = trans.z;
+		result.m33 = 1;
+		
+		return result;
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (other == null || !(other instanceof Transform))

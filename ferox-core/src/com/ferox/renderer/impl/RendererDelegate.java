@@ -11,55 +11,55 @@ public abstract class RendererDelegate {
 	private static final Color4f DEFAULT_BLEND_COLOR = new Color4f(0f, 0f, 0f, 0f);
 	
 	// blending
-	private final Color4f blendColor = new Color4f(DEFAULT_BLEND_COLOR);
-	private BlendFunction blendFuncRgb = BlendFunction.ADD;
-	private BlendFunction blendFuncAlpha = BlendFunction.ADD;
+	protected final Color4f blendColor = new Color4f(DEFAULT_BLEND_COLOR);
+	protected BlendFunction blendFuncRgb = BlendFunction.ADD;
+	protected BlendFunction blendFuncAlpha = BlendFunction.ADD;
 	
-	private BlendFactor blendSrcRgb = BlendFactor.ONE;
-	private BlendFactor blendDstRgb = BlendFactor.ZERO;
-	private BlendFactor blendSrcAlpha = BlendFactor.ONE;
-	private BlendFactor blendDstAlpha = BlendFactor.ZERO;
+	protected BlendFactor blendSrcRgb = BlendFactor.ONE;
+	protected BlendFactor blendDstRgb = BlendFactor.ZERO;
+	protected BlendFactor blendSrcAlpha = BlendFactor.ONE;
+	protected BlendFactor blendDstAlpha = BlendFactor.ZERO;
 	
-	private boolean blendEnabled = false;
+	protected boolean blendEnabled = false;
 	
 	// color masking [red, green, blue, alpha]
-	private final boolean[] colorMask = new boolean[] {true, true, true, true};
+	protected final boolean[] colorMask = new boolean[] {true, true, true, true};
 	
 	// depth offsets
-	private float depthOffsetFactor = 0f;
-	private float depthOffsetUnits = 0f;
-	private boolean depthOffsetEnabled = false;
+	protected float depthOffsetFactor = 0f;
+	protected float depthOffsetUnits = 0f;
+	protected boolean depthOffsetEnabled = false;
 	
 	// depth test and mask
-	private Comparison depthTest = Comparison.LESS;
-	private boolean depthMask = true;
+	protected Comparison depthTest = Comparison.LESS;
+	protected boolean depthMask = true;
 	
 	// draw styles
-	private DrawStyle styleFront = DrawStyle.SOLID;
-	private DrawStyle styleBack = DrawStyle.NONE;
+	protected DrawStyle styleFront = DrawStyle.SOLID;
+	protected DrawStyle styleBack = DrawStyle.NONE;
 	
 	// stencil test
-	private Comparison stencilTestFront = Comparison.ALWAYS;
-	private int stencilRefFront = 0;
-	private int stencilTestMaskFront = ~0;
+	protected Comparison stencilTestFront = Comparison.ALWAYS;
+	protected int stencilRefFront = 0;
+	protected int stencilTestMaskFront = ~0;
 	
-	private StencilOp stencilFailFront = StencilOp.KEEP;
-	private StencilOp depthFailFront = StencilOp.KEEP;
-	private StencilOp depthPassFront = StencilOp.KEEP;
+	protected StencilOp stencilFailFront = StencilOp.KEEP;
+	protected StencilOp depthFailFront = StencilOp.KEEP;
+	protected StencilOp depthPassFront = StencilOp.KEEP;
 	
-	private Comparison stencilTestBack = Comparison.ALWAYS;
-	private int stencilRefBack = 0;
-	private int stencilTestMaskBack = ~0;
+	protected Comparison stencilTestBack = Comparison.ALWAYS;
+	protected int stencilRefBack = 0;
+	protected int stencilTestMaskBack = ~0;
 	
-	private StencilOp stencilFailBack = StencilOp.KEEP;
-	private StencilOp depthFailBack = StencilOp.KEEP;
-	private StencilOp depthPassBack = StencilOp.KEEP;
+	protected StencilOp stencilFailBack = StencilOp.KEEP;
+	protected StencilOp depthFailBack = StencilOp.KEEP;
+	protected StencilOp depthPassBack = StencilOp.KEEP;
 	
-	private boolean stencilEnabled = false;
+	protected boolean stencilEnabled = false;
 	
 	// stencil mask
-	private int stencilMaskFront = ~0;
-	private int stencilMaskBack = ~0;
+	protected int stencilMaskFront = ~0;
+	protected int stencilMaskBack = ~0;
 	
 	public void reset() {
 		// reset the portion of state described in Renderer

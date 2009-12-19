@@ -80,7 +80,7 @@ public class Box extends PrimitiveGeometry {
 	 * @param tcName The name for texture coordinates
 	 */
 	public Box(Vector3f min, Vector3f max, CompileType type, String vertexName, String normalName, String tcName) {
-		super(type, vertexName, tcName, normalName);
+		super(type, vertexName, normalName, tcName);
 		setData(min, max);
 	}
 
@@ -173,7 +173,7 @@ public class Box extends PrimitiveGeometry {
 		18, 17, 16, 19, 18, 16, // top
 		22, 21, 20, 23, 22, 20 }; // bottom
 
-		setAttribute(getVertexName(), new VectorBuffer(n, 3));
+		setAttribute(getVertexName(), new VectorBuffer(v, 3));
 		setAttribute(getNormalName(), new VectorBuffer(n, 3));
 		setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
 		setIndices(indices, PolygonType.TRIANGLES);
