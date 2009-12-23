@@ -78,6 +78,8 @@ public class Box extends PrimitiveGeometry {
 	 * @param vertexName The name for vertices
 	 * @param normalName The name for normals
 	 * @param tcName The name for texture coordinates
+	 * @throws NullPointerException if min, max, vertexName, normalName or
+	 *             tcName are null
 	 */
 	public Box(Vector3f min, Vector3f max, CompileType type, String vertexName, String normalName, String tcName) {
 		super(type, vertexName, normalName, tcName);
