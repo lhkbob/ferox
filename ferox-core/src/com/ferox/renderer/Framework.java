@@ -314,12 +314,21 @@ public interface Framework {
 	 * specified by the dirty description.
 	 * </p>
 	 * <p>
-	 * The update action should use the dirty state instance returned by
+	 * The update action should use the DirtyState instance returned by
 	 * getDirtyState() at the time this method is invoked. If a subsequent
 	 * update is scheduled before this one has been processed, it should return
-	 * a Future linked to the same task, and the task's dirty state should be
+	 * a Future linked to the same task, and the task's DirtyState should be
 	 * updated to represent the union of the current dirty state and the
 	 * original dirty state.
+	 * </p>
+	 * <p>
+	 * The correctness of the dirty state merging is dependent on
+	 * {@link Resource#getDirtyState()} not be called anywhere else. Otherwise,
+	 * an integral piece of dirtiness may be lost and the merged states will not
+	 * reflect the actual picture. To prevent 'incomplete' updates when
+	 * performing complex updates to a Resource, or using multiple Frameworks
+	 * simultaneously, use <tt>forceFullUpdate</tt> set to true to ensure
+	 * everything is completely up-to-date.
 	 * </p>
 	 * <p>
 	 * An important note about the update/disposal process of the Framework: If

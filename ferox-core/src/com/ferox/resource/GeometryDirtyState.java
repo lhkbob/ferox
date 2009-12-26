@@ -224,23 +224,24 @@ public class GeometryDirtyState implements DirtyState<GeometryDirtyState> {
 			return this;
 		
 		Set<String> newAttrs = new HashSet<String>(newAttributes);
-		newAttrs.addAll(geom.newAttributes);
+		// cannot include 'removed' attributes that happened afterwards
+		for (String d: geom.newAttributes) {
+			if (!delAttributes.contains(d))
+				newAttrs.add(d);
+		}
 		
 		Map<String, BufferRange> dirtyAttrs = new HashMap<String, BufferRange>(dirtyAttributes);
 		for (String name: geom.dirtyAttributes.keySet()) {
 			BufferRange b1 = dirtyAttrs.get(name);
 			BufferRange b2 = geom.dirtyAttributes.get(name);
 			
-			dirtyAttrs.put(name, merge(b2.offset, b2.len, b1));
+			// cannot include 'removed' attributes
+			if (!delAttributes.contains(name))
+				dirtyAttrs.put(name, merge(b2.offset, b2.len, b1));
 		}
 		
-		Set<String> delAttrs = new HashSet<String>();
-		// must only include attributes that are no longer in the
-		// the new attribute set
-		for (String d: delAttributes) {
-			if (!newAttrs.contains(d) && !dirtyAttrs.containsKey(d))
-				delAttrs.add(d);
-		}
+		Set<String> delAttrs = new HashSet<String>(delAttributes);
+		// must only include attributes that haven't been re-added
 		for (String d: geom.delAttributes) {
 			if (!newAttrs.contains(d) && !dirtyAttrs.containsKey(d))
 				delAttrs.add(d);
