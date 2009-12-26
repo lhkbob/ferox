@@ -181,7 +181,7 @@ public class CharacterSet {
 		return antiAlias;
 	}
 
-	/** @return The FontRenderContext used to layout this CharacterSheet. */
+	/** @return The FontRenderContext used to layout this CharacterSet */
 	public FontRenderContext getFontRenderContext() {
 		return context;
 	}

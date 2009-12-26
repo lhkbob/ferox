@@ -1,11 +1,11 @@
 package com.ferox.resource;
 
 /**
- * VectorBuffer represents a float[] buffer used by Geometry
- * that can have variable sized vectors. For example, texture coordinates
- * can be made of 1, 2, or 3 tuple vectors, so it uses VectorBuffer to store
- * the element size. In contrast, normals and vertices must always be 3
- * tuples, so we do not need the extra storage of a VectorBuffer.
+ * VectorBuffer represents a float[] buffer used by Geometry that can have
+ * variable sized vectors. For example, texture coordinates can be made of 1, 2,
+ * 3 or 4-tuple vectors, while vertices can be made of 2, 3, or 4-tuple vectors.
+ * 
+ * @author Michael Ludwig
  */
 public class VectorBuffer {
 	final int elementSize;
@@ -43,7 +43,7 @@ public class VectorBuffer {
 	/**
 	 * @return The float[] buffer holding the vector data
 	 */
-	public float[] getBuffer() {
+	public float[] getData() {
 		return buffer;
 	}
 }

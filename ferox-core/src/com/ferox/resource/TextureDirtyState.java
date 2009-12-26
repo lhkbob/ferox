@@ -2,11 +2,12 @@ package com.ferox.resource;
 
 import java.util.Arrays;
 
-
 /**
- * The dirty descriptor class that is used by Texture1D, Texture2D and
- * Texture3D. Calls to getDirtyState() for those TextureImage subclasses
- * will return objects of this class.
+ * The DirtyState subclass that is used by Texture1D, Texture2D and Texture3D.
+ * Calls to getDirtyState() for those TextureImage subclasses will return
+ * objects of this class.
+ * 
+ * @author Michael Ludwig
  */
 public class TextureDirtyState implements DirtyState<TextureDirtyState> {
 	private final ImageRegion[] mipmaps;
@@ -14,10 +15,10 @@ public class TextureDirtyState implements DirtyState<TextureDirtyState> {
 
 	/**
 	 * Create a new TextureDirtyState that can hold up to the given number of
-	 * dirty mipmaps, and parameters as the dirty boolean for texture
+	 * dirty mipmaps, and <tt>parameters</tt> as the dirty boolean for texture
 	 * parameters. Initially no mipmaps are marked as dirty.
 	 * 
-	 * @param mipmaps The dirty mipmap regions
+	 * @param numMipmaps The number of mipmaps available in the texture
 	 * @param parameters The dirtiness of texture parameters
 	 * @throws IllegalArgumentException if numMipmaps < 1
 	 */
@@ -34,12 +35,11 @@ public class TextureDirtyState implements DirtyState<TextureDirtyState> {
 	}
 
 	/**
-	 * Get the ImageRegion for the TextureImage for the given mipmap level. The
-	 * dimensions in use by the returned ImageRegion depends on the number of
-	 * dimensions used by the TextureImage (e.g. 1 for Texture1D). If null is
-	 * returned, then the data for that mipmap hasn't been flagged as dirty. The
-	 * returned region will be constrained to be in the dimensions of the
-	 * texture.
+	 * Get the dirty ImageRegion for the TextureImage for the given mipmap
+	 * level. The dimensions in use by the returned ImageRegion depends on the
+	 * number of dimensions used by the TextureImage (e.g. 1 for Texture1D). If
+	 * null is returned, then the data for that mipmap hasn't been flagged as
+	 * dirty.
 	 * 
 	 * @param level The mipmap level to query
 	 * @return ImageRegion for this dirty state's texture
@@ -60,14 +60,37 @@ public class TextureDirtyState implements DirtyState<TextureDirtyState> {
 	public boolean getTextureParametersDirty() {
 		return parameters;
 	}
-	
+
+	/**
+	 * If this TextureDirtyState's {@link #getTextureParametersDirty()} returns
+	 * true, then this instance is returned. Otherwise, a new TextureDirtyState
+	 * is created that has the same dirty mipmaps, but the texture parameters
+	 * are flagged as dirty.
+	 * 
+	 * @return A TextureDirtyState with equivalent dirty image data, but with
+	 *         {@link #getTextureParametersDirty()} returning true
+	 */
 	public TextureDirtyState setTextureParametersDirty() {
 		if (parameters)
 			return this;
 		else
 			return new TextureDirtyState(mipmaps, true);
 	}
-	
+
+	/**
+	 * Create and return a new TextureDirtyState that has the given ImageRegion
+	 * merged into any previous dirty ImageRegion at the given mipmap level.
+	 * This does not affect any other mipmap levels. It is assumed that the
+	 * ImageRegion is constrained to the valid dimensions of the associated
+	 * texture, for the given mipmap level.
+	 * 
+	 * @param mipmap The mipmap that will be updated
+	 * @param region The new ImageRegion to merge in, using
+	 *            {@link ImageRegion#merge(ImageRegion)}
+	 * @return A new TextureDirtyState that's equivalent to this dirty state,
+	 *         except that it includes the given region
+	 * @throws IllegalArgumentException if mipmap < 0 or mipmap >= # mipmaps
+	 */
 	public TextureDirtyState updateMipmap(int mipmap, ImageRegion region) {
 		if (mipmap < 0 || mipmap >= mipmaps.length)
 			throw new IllegalArgumentException("Invalid mipmap level: " + mipmap);

@@ -73,10 +73,8 @@ public class AttachController implements UpdateController {
 			return false;
 		} else {
 			boolean update = false;
-			if (attachment.isDirty()) {
+			if (attachment.isDirty())
 				attachment.update(timeDelta);
-				update = true;
-			}
 			
 			if (!cachedWorld.equals(attachment.getWorldTransform())) {
 				cachedWorld.set(attachment.getWorldTransform());

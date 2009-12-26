@@ -154,14 +154,14 @@ public class Scene {
 		
 		return false;
 	}
-	
+
 	/**
 	 * <p>
 	 * Update the scene, so that all currently added SceneElements are
 	 * up-to-date and are in the correct cells. If the Scene (or any of its
-	 * related components, Cells, or SceneElements) is not modified, then it's
-	 * guaranteed that all queries will be accurate and each SceneElement's
-	 * world state and cell association will be valid.
+	 * related components, Cells, or SceneElements) is not modified afterwards,
+	 * then it's guaranteed that all queries will be accurate and each
+	 * SceneElement's world state and cell association will be valid.
 	 * </p>
 	 * <p>
 	 * timeDelta is present as a parameter to allow for artificially timed

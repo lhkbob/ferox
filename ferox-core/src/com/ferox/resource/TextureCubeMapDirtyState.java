@@ -2,17 +2,26 @@ package com.ferox.resource;
 
 import java.util.Arrays;
 
-
-
 /**
- * The dirty descriptor class that is used by TextureCubeMap. Calls to
- * getDirtyState() for texture cubemaps's will return objects of this
+ * The DirtyState subclass that is used by TextureCubeMap. Calls to
+ * getDirtyState() on instances of TextureCubeMap will return objects of this
  * class.
+ * 
+ * @author Michael Ludwig
  */
 public class TextureCubeMapDirtyState implements DirtyState<TextureCubeMapDirtyState> {
 	private final ImageRegion[] drPX, drPY, drPZ, drNX, drNY, drNZ;
 	private boolean parameters;
 	
+	/**
+	 * Create a new TextureCubeMapDirtyState that can hold up to the given number of
+	 * dirty mipmaps, and <tt>parameters</tt> as the dirty boolean for texture
+	 * parameters. Initially no mipmaps are marked as dirty.
+	 * 
+	 * @param numMipmaps The number of mipmaps available in the texture
+	 * @param parameters The dirtiness of texture parameters
+	 * @throws IllegalArgumentException if numMipmaps < 1
+	 */
 	public TextureCubeMapDirtyState(int numMipmaps, boolean parameters) {
 		if (numMipmaps < 1)
 			throw new IllegalArgumentException("The number of mipmaps must be at least 1: " + numMipmaps);
@@ -38,20 +47,22 @@ public class TextureCubeMapDirtyState implements DirtyState<TextureCubeMapDirtyS
 	
 		this.parameters = parameters;
 	}
-	
+
 	/**
 	 * <p>
-	 * Get the ImageRegion for the TextureCubeMap. If null is returned, then the
-	 * data for that mipmap hasn't been flagged as dirty. The returned region
-	 * will be constrained to be in the dimensions of the texture.
+	 * Get the dirty ImageRegion for the TextureCubeMap for the given cube face
+	 * and mipmap level. If null is returned, then the data for that mipmap and
+	 * face hasn't been flagged as dirty.
 	 * </p>
 	 * <p>
 	 * face must be one of PX, PY, PZ, NX, NY, NZ as defined in TextureCubeMap.
 	 * </p>
 	 * 
+	 * @param face The cube face to fetch from
+	 * @param level The mipmap level that's retrieved from <tt>face</tt>
 	 * @return ImageRegion for this dirty state's texture
 	 * @throws IllegalArgumentException if level < 0 or level >= # mipmaps, or
-	 *             iff face is invalid
+	 *             if face is invalid
 	 */
 	public ImageRegion getDirtyMipmap(int face, int level) {
 		ImageRegion[] dirtyRegions = getMipmaps(face);
@@ -69,14 +80,39 @@ public class TextureCubeMapDirtyState implements DirtyState<TextureCubeMapDirtyS
 	public boolean getTextureParametersDirty() {
 		return parameters;
 	}
-	
+
+	/**
+	 * If this TextureCubeMapDirtyState's {@link #getTextureParametersDirty()}
+	 * returns true, then this instance is returned. Otherwise, a new
+	 * TextureCubeMapDirtyState is created that has the same dirty mipmaps, but
+	 * the texture parameters are flagged as dirty.
+	 * 
+	 * @return A TextureCubeMapDirtyState with equivalent dirty image data, but
+	 *         with {@link #getTextureParametersDirty()} returning true
+	 */
 	public TextureCubeMapDirtyState setTextureParametersDirty() {
 		if (parameters)
 			return this;
 		else
 			return new TextureCubeMapDirtyState(drPX, drPY, drPZ, drNX, drNY, drNZ, true);
 	}
-	
+
+	/**
+	 * Create and return a new TextureCubeDirtyState that has the given
+	 * ImageRegion merged into any previous dirty ImageRegion at the given
+	 * mipmap level and cube-face. This does not affect any other mipmap levels
+	 * or faces. It is assumed that the ImageRegion is constrained to the valid
+	 * dimensions of the associated texture, for the given mipmap level.
+	 * 
+	 * @param face The cube face that selects which mipmaps can be modified
+	 * @param level The mipmap that will be updated, based on face
+	 * @param region The new ImageRegion to merge in, using
+	 *            {@link ImageRegion#merge(ImageRegion)}
+	 * @return A new TextureCubeMapDirtyState that's equivalent to this dirty
+	 *         state, except that it includes the given region
+	 * @throws IllegalArgumentException if mipmap < 0 or mipmap >= # mipmaps, or
+	 *             if face is invalid
+	 */
 	public TextureCubeMapDirtyState updateMipmap(int face, int level, ImageRegion region) {
 		ImageRegion[] faceMips = getMipmaps(face);
 		if (level < 0 || level >= faceMips.length)
