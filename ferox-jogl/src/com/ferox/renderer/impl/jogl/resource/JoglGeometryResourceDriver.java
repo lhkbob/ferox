@@ -133,7 +133,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 				if (vb == null) {
 					// pool the vbo range
 					reuseVbos.add(vas.remove(i));
-				} else if (vb.getBuffer().length * 4 > va.vboLen) {
+				} else if (vb.getData().length * 4 > va.vboLen) {
 					// array grew so we need to allocate a new buffer
 					newBuffersReq.add(va.name);
 					reuseVbos.add(vas.remove(i));
@@ -147,7 +147,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 				int bestDiff = Integer.MAX_VALUE;
 				
 				for (int j = reuseVbos.size() - 1; j >= 0; j--) {
-					int diff = reuseVbos.get(j).vboLen - vb.getBuffer().length;
+					int diff = reuseVbos.get(j).vboLen - vb.getData().length;
 					if (diff == 0) {
 						// just use this, since it will be the best
 						best = reuseVbos.get(j);
@@ -191,10 +191,10 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 					BufferRange br = dirty.getModifiedAttributes().get(name);
 					if (br != null) {
 						// update based on dirty range
-						glArrayData(gl, vboType, array.offset, br.getOffset(), br.getLength(), vb.getBuffer());
+						glArrayData(gl, vboType, array.offset, br.getOffset(), br.getLength(), vb.getData());
 					} else if (newBuffersReq.contains(name)) {
 						// update entire vector buffer
-						glArrayData(gl, vboType, array.offset, 0, vb.getBuffer().length, vb.getBuffer());
+						glArrayData(gl, vboType, array.offset, 0, vb.getData().length, vb.getData());
 					} // else no change needed
 				}
 			} else {
@@ -246,7 +246,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 			
 			va.elementSize = vb.getElementSize();
 			va.offset = offset;
-			va.vboLen = vb.getBuffer().length * 4;
+			va.vboLen = vb.getData().length * 4;
 			
 			vas.add(va);
 			offset += va.vboLen;
@@ -261,7 +261,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		
 		for (int i = 0; i < vas.size(); i++) {
 			VertexArray va = vas.get(i);
-			float[] data = g.getAttribute(va.name).getBuffer();
+			float[] data = g.getAttribute(va.name).getData();
 			glArrayData(gl, vboType, va.offset, 0, data.length, data);
 		}
 		
@@ -304,7 +304,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 			
 			// update the vertex array's FloatBuffer
 			va.elementSize = a.getValue().getElementSize();
-			float[] data = a.getValue().getBuffer();
+			float[] data = a.getValue().getData();
 			if (va.buffer == null || data.length > va.buffer.capacity()) {
 				// need a new buffer, first check the pool, then allocate
 				int bestDiff = Integer.MAX_VALUE;
@@ -391,7 +391,7 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		Map<String, VectorBuffer> attrs = g.getAttributes();
 		int elementCount = -1;
 		for (VectorBuffer vb: attrs.values()) {
-			int e = vb.getBuffer().length / vb.getElementSize();
+			int e = vb.getData().length / vb.getElementSize();
 			if (elementCount < 0)
 				elementCount = e;
 			else if (e != elementCount)

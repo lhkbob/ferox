@@ -16,12 +16,14 @@ import com.ferox.renderer.Renderer;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.Geometry.CompileType;
+import com.ferox.resource.TextureImage.TextureWrap;
 import com.ferox.scene.View;
-import com.ferox.util.geom.Box;
+import com.ferox.util.geom.Sphere;
+import com.ferox.util.geom.Teapot;
 import com.ferox.util.texture.loader.TextureLoader;
 
 public class FixedFunctionFrameworkThreadedTest {
-	private static final int BOUNDS = 50;
+	private static final int BOUNDS = 25;
 	
 	public static void main(String[] args) throws Exception {
 		final Framework f = new FixedFunctionJoglFramework(false);
@@ -30,24 +32,34 @@ public class FixedFunctionFrameworkThreadedTest {
 		System.out.println("Version: " + f.getCapabilities().getVersion());
 		System.out.println("Shader Language: " + f.getCapabilities().getGlslVersion());
 		
-		final Geometry shape = new Box(2f, CompileType.RESIDENT_STATIC);
+		final Geometry shape = new Teapot(2f, CompileType.RESIDENT_STATIC);
 		System.out.println("Geometry status: " + f.update(shape, false).get());
+		System.out.println("Polygon count: " + shape.getPolygonType().getPolygonCount(shape.getIndices().length));
+
+		long now = System.currentTimeMillis();
+		final Geometry shape2 = new Sphere(2f, 128, CompileType.RESIDENT_STATIC);
+		System.out.println("Build time: " + (System.currentTimeMillis() - now));
+		
+		System.out.println("Geometry status: " + f.update(shape2, false).get());
+		System.out.println("Polygon count: " + shape2.getPolygonType().getPolygonCount(shape2.getIndices().length));
+		
 		final TextureImage texture = TextureLoader.readTexture(new File("ferox-gl.tga"));
+		texture.setWrapSTR(TextureWrap.REPEAT);
 		System.out.println("Texture status: " + f.update(texture, false).get());
 		
 		Thread renderer1 = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				RenderPass pass = new ShapeRenderPass(shape, texture, 10000, BOUNDS);
+				RenderPass pass = new ShapeRenderPass(shape, texture, 100, BOUNDS);
 				OnscreenSurface surface = f.createWindowSurface(new DisplayOptions(), 10, 10, 800, 600, false, false);
 
 				surface.setClearColor(new Color4f(.4f, .2f, 1f));
-				surface.setTitle("Render 1");
+				surface.setTitle("Teapots");
 				
 				Runtime r = Runtime.getRuntime();
 				while(true) {
 					try {
-						surface.setTitle(String.format("Render 1, Mem: %.2f", ((r.totalMemory() - r.freeMemory()) / (1024f * 1024f))));
+						surface.setTitle(String.format("Teapots, Mem: %.2f", ((r.totalMemory() - r.freeMemory()) / (1024f * 1024f))));
 						f.queue(surface, pass);
 						f.render().get();
 					} catch(Exception e) {
@@ -63,16 +75,16 @@ public class FixedFunctionFrameworkThreadedTest {
 		Thread renderer2 = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				RenderPass pass = new ShapeRenderPass(shape, texture, 10000, BOUNDS);
+				RenderPass pass = new ShapeRenderPass(shape2, texture, 10, BOUNDS);
 				OnscreenSurface surface = f.createWindowSurface(new DisplayOptions(), 500, 10, 800, 600, false, false);
 				
 				surface.setClearColor(new Color4f(.2f, .2f,.2f, 1f));
-				surface.setTitle("Render 2");
+				surface.setTitle("Spheres");
 				
 				Runtime r = Runtime.getRuntime();
 				while(true) {
 					try {
-						surface.setTitle(String.format("Render 2, Mem: %.2f", ((r.totalMemory() - r.freeMemory()) / (1024f * 1024f))));
+						surface.setTitle(String.format("Spheres, Mem: %.2f", ((r.totalMemory() - r.freeMemory()) / (1024f * 1024f))));
 
 						f.queue(surface, pass);
 						f.render().get();

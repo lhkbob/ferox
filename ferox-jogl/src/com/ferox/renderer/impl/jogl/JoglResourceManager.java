@@ -147,7 +147,7 @@ public class JoglResourceManager implements ResourceManager {
 					// merge the dirty states
 					UpdateTask ut = (UpdateTask) rd.queuedTask;
 					if (ds != null) // only merge if we have to
-						ut.dirtyState = merge(ut.dirtyState, ds);
+						ut.dirtyState = merge(ds, ut.dirtyState);
 					
 					pendingTasks.remove(rd.queuedSync);
 					synchronizeUpdate((Sync<Status>) rd.queuedSync);
@@ -274,7 +274,7 @@ public class JoglResourceManager implements ResourceManager {
 			if (rd != null && rd.queuedTask instanceof UpdateTask) {
 				// merge dirty states
 				UpdateTask ut = (UpdateTask) rd.queuedTask;
-				ut.dirtyState = merge(ut.dirtyState, dirtyDescriptor);
+				ut.dirtyState = merge(dirtyDescriptor, ut.dirtyState);
 
 				return new FutureSync<Status>((Sync<Status>) rd.queuedSync);
 			} else if (rd != null && rd.queuedTask instanceof DisposeTask) {
@@ -368,12 +368,12 @@ public class JoglResourceManager implements ResourceManager {
 			resourceData[id] = rd;
 	}
 	
+	// note that ordering of arguments here is important for timeline consistency
 	@SuppressWarnings("unchecked")
-	private DirtyState<?> merge(DirtyState<?> d1, DirtyState<?> d2) {
-		if (d1 != null && d2 != null)
-			return ((DirtyState) d1).merge((DirtyState) d2); // lame
-		else
+	private DirtyState<?> merge(DirtyState<?> newDs, DirtyState<?> oldDs) {
+		if (newDs == null || oldDs == null)
 			return null;
+		return ((DirtyState) newDs).merge((DirtyState) oldDs); // lame
 	}
 	
 	/* Inner classes that provide much grunt work */
