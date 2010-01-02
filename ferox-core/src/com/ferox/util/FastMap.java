@@ -12,6 +12,7 @@ import java.util.WeakHashMap;
  * 
  * @author Michael Ludwig
  */
+@Deprecated
 public class FastMap<K, V> {
 	private static class FrequentKeyCache {
 		private WeakReference<Object> frequentKey;
