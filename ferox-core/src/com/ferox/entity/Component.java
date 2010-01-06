@@ -11,15 +11,13 @@ public abstract class Component {
 	private final String description;
 	
 	public Component(String description) {
-		synchronized(typeMap) {
-			Integer id = typeMap.get(getClass());
-			if (id == null) {
-				id = Integer.valueOf(idSeq++);
-				typeMap.put(getClass(), id);
-			}
-			
-			typeId = id.intValue();
+		Integer id = typeMap.get(getClass());
+		if (id == null) {
+			id = Integer.valueOf(idSeq++);
+			typeMap.put(getClass(), id);
 		}
+
+		typeId = id.intValue();
 		this.description = description;
 	}
 	
@@ -42,9 +40,7 @@ public abstract class Component {
 		if (type == null)
 			throw new NullPointerException("Type cannot be null");
 		
-		synchronized(typeMap) {
-			Integer id = typeMap.get(type);
-			return (id == null ? -1 : id.intValue());
-		}
+		Integer id = typeMap.get(type);
+		return (id == null ? -1 : id.intValue());
 	}
 }

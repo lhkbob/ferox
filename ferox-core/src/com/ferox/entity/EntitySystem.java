@@ -1,22 +1,22 @@
 package com.ferox.entity;
 
 import java.util.Arrays;
-import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class EntitySystem {
-	private final Object entityLock = new Object();
+import com.ferox.util.Bag;
+
+public final class EntitySystem implements Iterable<Entity> {
 	private int entityIdSeq;
 	
 	private ComponentTable[] componentTables;
-	private final EntityList allList;
+	private final Bag<Entity> allList;
 	
 	public EntitySystem() {
 		entityIdSeq = 0;
 		
 		componentTables = new ComponentTable[8];
-		allList = new EntityList();
+		allList = new Bag<Entity>();
 	}
 	
 	public Iterator<Entity> iterator() {
@@ -31,17 +31,28 @@ public final class EntitySystem {
 		if (componentId < 0 || componentId >= componentTables.length || componentTables[componentId] == null)
 			return new NullIterator();
 		else
-			return new ComponentTableIterator(componentTables[componentId]);
+			return componentTables[componentId].iterator();
+	}
+	
+	public void removeAll() {
+		for(Entity e: this)
+			e.setValid(false);
+			
+		for (int i = 0; i < componentTables.length; i++) {
+			if (componentTables[i] != null)
+				componentTables[i].entities.clear();
+		}
+		allList.clear();
+	}
+	
+	public int getEntityCount() {
+		return allList.size();
 	}
 	
 	public Entity newEntity() {
-		Entity e;
-		synchronized(entityLock) {
-			int id = entityIdSeq++;
-			e = new Entity(this, id);
-		}
-		
+		Entity e = new Entity(this, entityIdSeq++);
 		allList.add(e);
+		
 		return e;
 	}
 	
@@ -76,33 +87,31 @@ public final class EntitySystem {
 	void attach(Entity entity, Component c) {
 		ComponentTable table;
 
-		synchronized(entityLock) {
-			int type = c.getTypeId();
-			if (type >= componentTables.length) {
-				// need a new component table
-				table = new ComponentTable(type);
-				componentTables = Arrays.copyOf(componentTables, type + 1);
-				componentTables[type] = table;
-			} else 
-				table = componentTables[type];
-		}
+		int type = c.getTypeId();
+		if (type >= componentTables.length) {
+			// need a new component table
+			table = new ComponentTable(type);
+			componentTables = Arrays.copyOf(componentTables, type + 1);
+			componentTables[type] = table;
+		} else 
+			table = componentTables[type];
 		
-		table.list.add(entity);
+		table.entities.add(entity);
 	}
 	
 	void detach(Entity entity, Component c) {
 		int type = c.getTypeId();
 		if (type > 0 && type < componentTables.length && componentTables[type] != null)
-			componentTables[type].list.remove(entity);
+			componentTables[type].entities.remove(entity);
 	}
 	
 	/* Iterator that iterates over all entities in the system */
 	private class EntitySystemIterator implements Iterator<Entity> {
-		private final EntityListIterator iterator;
+		private final Iterator<Entity> iterator;
 		private Entity current;
 		
 		public EntitySystemIterator() {
-			iterator = new EntityListIterator(allList);
+			iterator = allList.iterator();
 			current = null;
 		}
 		
@@ -127,37 +136,48 @@ public final class EntitySystem {
 		}
 	}
 	
-	/* Iterator that iterates over the entities within a ComponentTable */
-	private static class ComponentTableIterator implements Iterator<Entity> {
-		private final int typeId;
-		private final EntityListIterator iterator;
-		private Entity current;
+	private static class ComponentTable implements Iterable<Entity> {
+		final int typeId;
+		final Bag<Entity> entities;
 		
-		public ComponentTableIterator(ComponentTable table) {
-			typeId = table.typeId;
-			iterator = new EntityListIterator(table.list);
-			current = null;
-		}
-		
-		@Override
-		public boolean hasNext() {
-			return iterator.hasNext();
+		public ComponentTable(int typeId) {
+			this.typeId = typeId;
+			entities = new Bag<Entity>();
 		}
 
 		@Override
-		public Entity next() {
-			current = iterator.next();
-			return current;
+		public Iterator<Entity> iterator() {
+			return new ComponentTableIterator();
 		}
+		
+		private class ComponentTableIterator implements Iterator<Entity> {
+			private final Iterator<Entity> iterator;
+			private Entity current;
+			
+			public ComponentTableIterator() {
+				iterator = entities.iterator();
+				current = null;
+			}
+			
+			@Override
+			public boolean hasNext() {
+				return iterator.hasNext();
+			}
 
-		@Override
-		public void remove() {
-			iterator.remove();
-			current.detach(typeId);
+			@Override
+			public Entity next() {
+				current = iterator.next();
+				return current;
+			}
+
+			@Override
+			public void remove() {
+				iterator.remove();
+				current.detach(typeId);
+			}
 		}
 	}
 	
-	/* Iterator that has no elements */
 	private static class NullIterator implements Iterator<Entity> {
 		@Override
 		public boolean hasNext() {
@@ -172,156 +192,6 @@ public final class EntitySystem {
 		@Override
 		public void remove() {
 			throw new IllegalStateException();
-		}
-	}
-	
-	/* Iterator that iterates over the contents of an EntityList */
-	private static class EntityListIterator implements Iterator<Entity> {
-		final EntityList list;
-		int modCount;
-		
-		EntityNode currentNode;
-		boolean removed;
-		
-		public EntityListIterator(EntityList list) {
-			this.list = list;
-			
-			modCount = list.modCount;
-			currentNode = null;
-			
-			removed = false;
-		}
-		
-		@Override
-		public boolean hasNext() {
-			if (modCount != list.modCount)
-				throw new ConcurrentModificationException();
-			
-			return (currentNode == null ? list.head != null : currentNode.next != null);
-		}
-
-		@Override
-		public Entity next() {
-			if (!hasNext())
-				throw new NoSuchElementException();
-			
-			EntityNode n = (currentNode == null ? list.head : currentNode.next);
-			
-			if (n == null) {
-				// must have had some modification that screwed us up
-				throw new ConcurrentModificationException();
-			} else {
-				// advance to the node, n
-				currentNode = n;
-				removed = false;
-				return currentNode.entity;
-			}
-		}
-
-		@Override
-		public void remove() {
-			if (currentNode == null)
-				throw new IllegalStateException("next() must be called first");
-			if (removed)
-				throw new IllegalStateException("remove() already called for this element");
-			if (modCount != list.modCount)
-				throw new ConcurrentModificationException();
-			
-			modCount = list.remove(currentNode);
-			removed = true;
-		}
-	}
-	
-	private static class ComponentTable {
-		final int typeId;
-		final EntityList list;
-		
-		public ComponentTable(int typeId) {
-			this.typeId = typeId;
-			list = new EntityList();
-		}
-	}
-	
-	private static class EntityList {
-		EntityNode head;
-		EntityNode tail;
-		
-		volatile int modCount;
-		
-		public EntityList() {
-			head = null;
-			tail = null;
-			
-			modCount = 0;
-		}
-		
-		public synchronized void add(Entity entity) {
-			modCount++;
-
-			if (head == null) {
-				head = new EntityNode(entity, null, null);
-				tail = head;
-			} else {
-				// iterate from the end to the beginning
-				EntityNode c = tail;
-				while(c != null && c.entity.getId() > entity.getId()) {
-					c = c.prev;
-				}
-				
-				if (c == null) {
-					// new head
-					head = new EntityNode(entity, null, head);
-				} else {
-					// insert new node
-					new EntityNode(entity, c, c.next);
-				}
-			}
-		}
-		
-		public synchronized void remove(Entity e) {
-			int id = e.getId();
-			EntityNode c = head;
-			while(c != null && c.entity.getId() < id) {
-				c = c.next;
-			}
-			
-			if (c != null && c.entity.getId() == id)
-				remove(c);
-		}			
-		
-		public synchronized int remove(EntityNode node) {
-			modCount++;
-			
-			if (node.prev != null)
-				node.prev.next = node.next;
-			else
-				head = node.next;
-			
-			if (node.next != null)
-				node.next.prev = node.prev;
-			else
-				tail = node.prev;
-			return modCount;
-		}
-	}
-	
-	private static class EntityNode {
-		EntityNode prev;
-		EntityNode next;
-		
-		Entity entity;
-		
-		// modifies p and n to point to this node, too
-		public EntityNode(Entity entity, EntityNode p, EntityNode n) {
-			this.entity = entity;
-			
-			prev = p;
-			next = n;
-			
-			if (prev != null)
-				prev.next = this;
-			if (next != null)
-				next.prev = this;
 		}
 	}
 }

@@ -3,16 +3,12 @@ package com.ferox.entity;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 public final class Entity implements Iterable<Component> {
-	private static final AtomicReferenceFieldUpdater<Entity, Boolean> validUpdater = 
-		AtomicReferenceFieldUpdater.newUpdater(Entity.class, Boolean.class, "valid");
-	
 	private final int id;
 	private final EntitySystem owner;
 	
-	private volatile Boolean valid;
+	private Boolean valid;
 	
 	private Component[] components;
 	
@@ -29,11 +25,9 @@ public final class Entity implements Iterable<Component> {
 			throw new NullPointerException("Component cannot be null");
 		
 		int type = c.getTypeId();
-		synchronized(components) {
-			if (type >= components.length)
-				components = Arrays.copyOf(components, type + 1);
-			components[type] = c;
-		}
+		if (type >= components.length)
+			components = Arrays.copyOf(components, type + 1);
+		components[type] = c;
 		
 		owner.attach(this, c);
 	}
@@ -78,7 +72,11 @@ public final class Entity implements Iterable<Component> {
 	}
 	
 	boolean setValid(boolean valid) {
-		return validUpdater.compareAndSet(this, !valid, valid);
+		if (this.valid != valid) {
+			this.valid = valid;
+			return true;
+		} else
+			return false;
 	}
 	
 	private class ComponentIterator implements Iterator<Component> {
@@ -115,7 +113,7 @@ public final class Entity implements Iterable<Component> {
 			if (index < 0)
 				throw new IllegalStateException("Must call next() before first calling remove()");
 			if (components[index] == null)
-				throw new IllegalStateException("Already calling remove()");
+				throw new IllegalStateException("Already called remove()");
 			
 			owner.detach(Entity.this, components[index]);
 			components[index] = null;
