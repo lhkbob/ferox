@@ -1,7 +1,9 @@
 package com.ferox.entity;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import com.ferox.util.Bag;
@@ -12,13 +14,43 @@ public final class EntitySystem implements Iterable<Entity> {
 	private ComponentTable[] componentTables;
 	private final Bag<Entity> allList;
 	
+	private final Map<Class<? extends Controller>, Controller> controllers;
+	
 	public EntitySystem() {
 		entityIdSeq = 0;
 		
 		componentTables = new ComponentTable[8];
 		allList = new Bag<Entity>();
+		
+		controllers = new HashMap<Class<? extends Controller>, Controller>();
 	}
 	
+	@SuppressWarnings("unchecked")
+	public <T extends Controller> T getController(Class<T> type) {
+		if (type == null)
+			throw new NullPointerException("Type cannot be null");
+		
+		return (T) controllers.get(type);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Controller> T registerController(T controller) {
+		if (controller == null)
+			throw new NullPointerException("Controller cannot be null");
+		
+		Class<? extends Controller> type = controller.getClass();
+		return (T) controllers.put(type, controller);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Controller> T unregisterController(Class<T> type) {
+		if (type == null)
+			throw new NullPointerException("Type cannot be null");
+		
+		return (T) controllers.remove(type);
+	}
+	
+	@Override
 	public Iterator<Entity> iterator() {
 		return new EntitySystemIterator();
 	}

@@ -8,7 +8,7 @@ public final class Entity implements Iterable<Component> {
 	private final int id;
 	private final EntitySystem owner;
 	
-	private Boolean valid;
+	private boolean valid;
 	
 	private Component[] components;
 	
@@ -44,9 +44,23 @@ public final class Entity implements Iterable<Component> {
 			return null;
 	}
 	
-	public Component remove(Class<? extends Component> type) {
+	@SuppressWarnings("unchecked")
+	public <T extends Component> T remove(Class<T> type) {
 		int typeId = Component.getTypeId(type);
-		return remove(typeId);
+		return (T) remove(typeId);
+	}
+	
+	public Component get(int type) {
+		if (type >= 0 && type < components.length)
+			return components[type];
+		else
+			return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Component> T get(Class<T> type) {
+		int typeId = Component.getTypeId(type);
+		return (T) get(typeId);
 	}
 	
 	public EntitySystem getOwner() {

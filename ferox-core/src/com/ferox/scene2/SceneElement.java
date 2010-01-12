@@ -5,12 +5,16 @@ import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
-import com.ferox.util.ReadOnly;
 
 /**
  * <p>
- * SceneElement represents any finite element of a rendered scene. Generally
- * subclasses are fairly logical in nature, such as lights, shapes and cameras.
+ * SceneElement represents any finite element of a rendered scene. Generally a
+ * SceneElement is not useful by itself but can be combined with a number of
+ * other Components to represent anything from lights, to fog, to rendered
+ * geometry. These other Component types then depend on an Entity also being a
+ * SceneElement. It is recommended that each Entity use a unique SceneElement
+ * instance, unlike appearance related Components which can possibly be shared
+ * across many Entities.
  * </p>
  * <p>
  * SceneElements can be added to an EntitySystem which has a SceneController.
@@ -34,11 +38,11 @@ public class SceneElement extends Component {
 	private static final String DESCR = "3D element within a scene";
 	
 	private final Transform transform;
+	
 	private BoundVolume localBounds;
 	private BoundVolume worldBounds;
-	
+
 	private SceneElementUpdater updater;
-	private boolean updated;
 	
 	private boolean potentiallyVisible;
 	
@@ -48,24 +52,9 @@ public class SceneElement extends Component {
 	private Vector3f constrainVector;
 	private Axis constrainAxis;
 	
-	private Cell cellOwner;
-	
 	public SceneElement() {
 		super(DESCR);
 		transform = new Transform();
-		updated = true;
-	}
-
-	/**
-	 * Return the current Cell that owns this SceneElement. This will only be
-	 * up-to-date after the SceneController has run. This may return null if the
-	 * element has yet to be placed in a Cell, or if it's old Cell was removed
-	 * from the SceneController before the next update.
-	 * 
-	 * @return The Cell that owns this element
-	 */
-	public Cell getCell() {
-		return cellOwner;
 	}
 
 	/**
@@ -90,16 +79,6 @@ public class SceneElement extends Component {
 	 */
 	public void setPotentiallyVisible(boolean pv) {
 		potentiallyVisible = pv;
-	}
-	
-	/**
-	 * Set the Cell that owns this SceneElement. This should not be called
-	 * except by a Cell in response to an add(), remove() or clear() call.
-	 * 
-	 * @param cell The Cell that owns this element
-	 */
-	public void setCell(Cell cell) {
-		cellOwner = cell;
 	}
 
 	/**
@@ -214,52 +193,6 @@ public class SceneElement extends Component {
 	}
 
 	/**
-	 * @return The translation vector of {@link #getTransform()}. This vector
-	 *         should be considered read-only. If it's modified, then
-	 *         setUpdated(true) should be invoked.
-	 */
-	@ReadOnly
-	public Vector3f getTranslation() {
-		return transform.getTranslation();
-	}
-
-	/**
-	 * Set the translation vector of {@link #getTransform()} to the vector
-	 * represented by <x, y, z>. The SceneElement will also be flagged as
-	 * updated.
-	 * 
-	 * @param x The new x translation coordinate
-	 * @param y The new y translation coordinate
-	 * @param z The new z translation coordinate
-	 */
-	public void setTranslation(float x, float y, float z) {
-		transform.setTranslation(x, y, z);
-		setUpdated(true);
-	}
-
-	/**
-	 * Copy the given vector into this SceneElement's translation. The
-	 * SceneElement will also be flagged as updated.
-	 * 
-	 * @param t The new translation
-	 * @throws NullPointerException if t is null
-	 */
-	public void setTranslation(Vector3f t) {
-		transform.setTranslation(t);
-		setUpdated(true);
-	}
-
-	/**
-	 * @return The rotation matrix of {@link #getTransform()}. This matrix
-	 *         should be considered read-only. If it's modified, then
-	 *         setUpdated(true) should be invoked.
-	 */
-	@ReadOnly
-	public Matrix3f getRotation() {
-		return transform.getRotation();
-	}
-
-	/**
 	 * Copy the given rotation matrix into this SceneElement's rotation matrix.
 	 * The SceneElement will also be flagged as updated.
 	 * 
@@ -268,50 +201,43 @@ public class SceneElement extends Component {
 	 */
 	public void setRotation(Matrix3f m) {
 		transform.setRotation(m);
-		setUpdated(true);
 	}
 
 	/**
 	 * @return The Transform that represents the 3D position and orientation of
-	 *         this SceneElement. This should be considered read-only. If it is
-	 *         updated, then setUpdated(true) must be invoked.
+	 *         this SceneElement.
 	 */
-	@ReadOnly
 	public Transform getTransform() {
 		return transform;
 	}
 
 	/**
-	 * Copy t into this SceneElement's Transform. This SceneElement will also be
-	 * flagged as having been updated.
+	 * Copy t into this SceneElement's Transform.
 	 * 
 	 * @param t The new Transform for this SceneElement
 	 * @throws NullPointerException if t is null
 	 */
 	public void setTransform(Transform t) {
 		transform.set(t);
-		setUpdated(true);
 	}
 
 	/**
 	 * <p>
 	 * Set the local bounds that represent the extents of this SceneElement
 	 * within its local coordinate space. If <tt>bounds</tt> is null, then this
-	 * element has no bounds and the SceneController should assign a null world
+	 * element has no bounds and the SceneController will assign a null world
 	 * bounds. Otherwise the local bounds will be transformed into world space
 	 * using {@link #getTransform()} to compute the world bounds.
 	 * </p>
 	 * <p>
-	 * This instance is not copied, so any changes will be reflected by the
-	 * SceneElement. When changed, the element's setUpdated(true) method should
-	 * be called.
+	 * This instance is not copied, so any changes to it later will be reflected by the
+	 * SceneElement.
 	 * </p>
 	 * 
 	 * @param bounds The new local bounds
 	 */
 	public void setLocalBounds(BoundVolume bounds) {
 		localBounds = bounds;
-		setUpdated(true);
 	}
 
 	/**
@@ -322,9 +248,7 @@ public class SceneElement extends Component {
 	 * using {@link BoundVolume#transform(Transform)}.
 	 * </p>
 	 * <p>
-	 * The returned instance is not a defensive copy and it should be considered
-	 * as read-only. However, if it is modified, use setUpdated() to ensure that
-	 * the element will be updated properly.
+	 * The returned instance is not a defensive copy.
 	 * </p>
 	 * <p>
 	 * This may return a null local bounds if the SceneElement is not bounded.
@@ -335,7 +259,6 @@ public class SceneElement extends Component {
 	 * 
 	 * @return The local bounds
 	 */
-	@ReadOnly
 	public BoundVolume getLocalBounds() {
 		return localBounds;
 	}
@@ -363,24 +286,5 @@ public class SceneElement extends Component {
 	 */
 	public BoundVolume getWorldBounds() {
 		return worldBounds;
-	}
-
-	/**
-	 * @return Return true if this SceneElement has been updated since the last
-	 *         processing of a SceneController. This should be true if the local
-	 *         bounds or transform has been modified.
-	 */
-	public boolean isUpdated() {
-		return updated;
-	}
-
-	/**
-	 * Set whether or not this SceneElement has been modified since the last
-	 * time the SceneController has processed every SceneElement.
-	 * 
-	 * @param u True if this SceneElement has been modified
-	 */
-	public void setUpdated(boolean u) {
-		updated = u;
 	}
 }

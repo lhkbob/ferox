@@ -212,20 +212,13 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 
 	@Override
 	public BoundVolume clone(BoundVolume result) {
-		if (result instanceof AxisAlignedBox) {
-			AxisAlignedBox b = (AxisAlignedBox) result;
-			b.worldMax.set(worldMax);
-			b.worldMin.set(worldMin);
-			return b;
-		} else if (result instanceof BoundSphere) {
-			BoundSphere s = (BoundSphere) result;
-			Vector3f c = worldMax.sub(worldMin, s.getCenter());
-			s.setRadius(c.length() / 2f);
-			getCenter(c);
-
-			return s;
-		} else
-			return this.clone(new AxisAlignedBox());
+		if (result == null || !(result instanceof AxisAlignedBox))
+			result = new AxisAlignedBox();
+		
+		AxisAlignedBox b = (AxisAlignedBox) result;
+		b.worldMax.set(worldMax);
+		b.worldMin.set(worldMin);
+		return b;
 	}
 
 	@Override
@@ -361,6 +354,19 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 	@Override
 	public String toString() {
 		return "(AxisAlignedBox min: " + worldMin + " max: " + worldMax + ")";
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof AxisAlignedBox))
+			return false;
+		AxisAlignedBox that = (AxisAlignedBox) o;
+		return that.worldMax.equals(worldMax) && that.worldMin.equals(worldMin);
+	}
+	
+	@Override
+	public int hashCode() {
+		return worldMax.hashCode() ^ worldMin.hashCode();
 	}
 
 	private void mergeAABB(AxisAlignedBox aabb) {

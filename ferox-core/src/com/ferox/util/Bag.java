@@ -1,7 +1,11 @@
 package com.ferox.util;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Provides a useful implementation of the Bag data structure. Much like an
@@ -11,14 +15,14 @@ import java.util.Comparator;
  * determine equality instead of an object's equals() method.
  * 
  * @author Michael Ludwig
- * @param <T> The element type stored in this bag
+ * @param <E> The element type stored in this bag
  */
-public class Bag<T> {
+public class Bag<E> implements Collection<E>, Iterable<E> {
 	public static final int DEFAULT_CAPACITY = 8;
 	public static final float DEFAULT_FACTOR = 2f;
 	public static final int DEFAULT_GROWTH = 0;
 	
-	private T[] elements;
+	private E[] elements;
 	private int size;
 	private int maxFastClearSize;
 	
@@ -64,14 +68,21 @@ public class Bag<T> {
 		if (growth < 0)
 			throw new IllegalArgumentException("Cannot have a growth < 0");
 		
-		elements = (T[]) new Object[capacity];
+		elements = (E[]) new Object[capacity];
 		size = 0;
 		maxFastClearSize = 0;
 		
 		this.factor = factor;
 		this.growth = growth;
 	}
-	
+
+	/**
+	 * Return the Object array that is currently being used by the Bag to hold
+	 * onto its elements. This should be considered read-only, and only the
+	 * elements at indices 0 to {@link #size()} - 1 are of any meaning.
+	 * 
+	 * @return The read-only Object[] holding all the elements
+	 */
 	public Object[] elements() {
 		return elements;
 	}
@@ -80,9 +91,12 @@ public class Bag<T> {
 	 * Add an item to the Bag, possibly growing its capacity.
 	 * 
 	 * @param item The item to add
+	 * @throws NullPointerException if item is null
 	 */
-	public void add(T item) {
+	@Override
+	public boolean add(E item) {
 		set(size, item);
+		return true;
 	}
 	
 	/**
@@ -94,7 +108,7 @@ public class Bag<T> {
 	 * @throws IndexOutOfBoundsException if index is < 0 or >= size()
 	 */
 	@SuppressWarnings("unchecked")
-	public T remove(int index) {
+	public E remove(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
 		
@@ -102,7 +116,7 @@ public class Bag<T> {
 		elements[index] = elements[size];
 		elements[size--] = null;
 		
-		return (T) e;
+		return (E) e;
 	}
 	
 	/**
@@ -113,8 +127,13 @@ public class Bag<T> {
 	 * 
 	 * @param item The item to be removed
 	 * @return True if a reference was found and removed
+	 * @throws NullPointerException if item is null
 	 */
-	public boolean remove(T item) {
+	@Override
+	public boolean remove(Object item) {
+		if (item == null)
+			throw new NullPointerException("Null elements aren't supported");
+		
 		int index = indexOf(item);
 		return (index >= 0 ? remove(index) != null : false);
 	}
@@ -127,7 +146,7 @@ public class Bag<T> {
 	 * @return The T at index
 	 * @throws IndexOutOfBoundsException if index < 0 or >= size()
 	 */
-	public T get(int index) {
+	public E get(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
 		return elements[index];
@@ -151,29 +170,28 @@ public class Bag<T> {
 	 * @param item The item to be stored at index
 	 * @return The value formerly at index
 	 * @throws IndexOutOfBoundsException if index < 0 or index > size()
+	 * @throws NullPointerException if item is null
 	 */
 	@SuppressWarnings("unchecked")
-	public T set(int index, T item) {
+	public E set(int index, E item) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index must be in [0, " + size + "]");
+		if (item == null)
+			throw new NullPointerException("Item cannot be null");
 		
-		if (item != null) {
-			if (index == size) {
-				// potentially grow the array
-				if (size == elements.length)
-					capacity((int) (size * factor + growth));
-				elements[size++] = item;
-				return null;
-			} else {
-				Object e = elements[index];
-				elements[index] = item;
-				return (T) e;
-			}
+		if (index == size) {
+			// potentially grow the array
+			if (size == elements.length)
+				capacity((int) (size * factor + growth));
+			elements[size++] = item;
+			return null;
+		} else {
+			Object e = elements[index];
+			elements[index] = item;
+			return (E) e;
 		}
-		
-		return null;
 	}
-	
+
 	/**
 	 * Determine the first index that holds a reference to item. This uses '=='
 	 * to determine equality, and not the equals() method. Later indices that
@@ -183,27 +201,45 @@ public class Bag<T> {
 	 * @param item The item to search for
 	 * @return The current index of the 1st reference to item, or -1 if it
 	 *         wasn't found
+	 * @throws NullPointerException if item is null
 	 */
-	public int indexOf(T item) {
-		if (item != null) {
-			for (int i = 0; i < size; i++) {
-				if (elements[i] == item)
-					return i;
-			}
+	public int indexOf(Object item) {
+		if (item == null)
+			throw new NullPointerException("Null elements aren't supported");
+		
+		for (int i = 0; i < size; i++) {
+			if (elements[i] == item)
+				return i;
 		}
 		return -1;
 	}
-	
+
 	/**
 	 * Return true if item is contained in this Bag.
 	 * 
 	 * @param item The item to check for
 	 * @return True if indexOf(item) >= 0
+	 * @throws NullPointerException if item is null
 	 */
-	public boolean contains(T item) {
+	@Override
+	public boolean contains(Object item) {
 		return indexOf(item) >= 0;
 	}
 	
+	@Override
+	public void clear() {
+		clear(false);
+	}
+
+	/**
+	 * Clear this Bag of all elements. If <tt>fast</tt> is true, then the size
+	 * is reset to 0 without clearing any internal references. They will be
+	 * overwritten as elements are re-added into the Bag, but otherwise cannot
+	 * be garbage collected. Fast clearing is useful when needing a collection
+	 * that can be re-filled repeatedly and quickly.
+	 * 
+	 * @param fast True if references are not cleared
+	 */
 	public void clear(boolean fast) {
 		if (fast) {
 			maxFastClearSize = Math.max(size, maxFastClearSize);
@@ -225,6 +261,7 @@ public class Bag<T> {
 	/**
 	 * @return The current size of the Bag
 	 */
+	@Override
 	public int size() {
 		return size;
 	}
@@ -250,15 +287,135 @@ public class Bag<T> {
 		if (capacity < 0)
 			throw new IllegalArgumentException("Cannot have a negative capacity");
 		
-		T[] newElements = (T[]) new Object[capacity];
+		E[] newElements = (E[]) new Object[capacity];
 		System.arraycopy(elements, 0, newElements, 0, Math.min(capacity, elements.length));
 		elements = newElements;
 		
 		size = Math.min(capacity, size);
 		maxFastClearSize = Math.min(capacity, maxFastClearSize);
 	}
-	
-	public void sort(Comparator<T> comparator) {
+
+	/**
+	 * Sort the Bag using the given Comparator. If the Comparator is null, the
+	 * elements are sorted using their natural ordering.
+	 * 
+	 * @param comparator The Comparator to use when sorting
+	 * @throws ClassCastException if comparator is null and the elements in the
+	 *             Bag are not Comparable
+	 */
+	public void sort(Comparator<E> comparator) {
 		Arrays.sort(elements, 0, size, comparator);
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
+		if (c == null)
+			throw new NullPointerException("Collection can't be null");
+		
+		for (E t: c) {
+			add(t);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		if (c == null)
+			throw new NullPointerException("Collection can't be null");
+		
+		for (Object o: c) {
+			if (!contains(o))
+				return false;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return size == 0;
+	}
+
+	@Override
+	public Iterator<E> iterator() {
+		return new BagIterator();
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		if (c == null)
+			throw new NullPointerException("Collection cannot be null");
+		
+		boolean rm = false;
+		for (Object o: c) {
+			rm |= remove(o);
+		}
+		return rm;
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		boolean rm = false;
+		for (int i = size - 1; i >= 0; i++) {
+			if (!c.contains(elements[i])) {
+				remove(i);
+				rm = true;
+			}
+		}
+		return rm;
+	}
+
+	@Override
+	public Object[] toArray() {
+		return Arrays.copyOf(elements, size);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T[] toArray(T[] a) {
+		if (a == null)
+			throw new NullPointerException("Array cannot be null");
+		
+		if (a.length != size)
+			a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
+		System.arraycopy(elements, 0, a, 0, size);
+		return a;
+	}
+	
+	private class BagIterator implements Iterator<E> {
+		private int index;
+		private E element;
+		
+		public BagIterator() {
+			index = -1;
+			element = null;
+		}
+		
+		@Override
+		public boolean hasNext() {
+			return index < size - 1;
+		}
+
+		@Override
+		public E next() {
+			if (!hasNext())
+				throw new NoSuchElementException();
+			
+			if (elements[index] == element) {
+				// no element was removed, so advance the index
+				element = elements[index++];
+			}
+			
+			return elements[index];
+		}
+
+		@Override
+		public void remove() {
+			if (index < 0)
+				throw new IllegalStateException("Must call next() before first calling remove()");
+			if (index >= size || element != elements[index])
+				throw new IllegalStateException("Element already removed");
+			
+			Bag.this.remove(index);
+		}
 	}
 }

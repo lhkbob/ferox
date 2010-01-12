@@ -8,15 +8,17 @@ import com.ferox.math.Frustum.FrustumIntersection;
 /**
  * A BoundVolume represents a partitioning of space into what's outside and
  * what's inside the BoundVolume. Its main purpose is used for efficient view
- * culling and picking, as well as spatial queries.
+ * culling and picking, as well as spatial queries. Subclasses are strongly
+ * recommended to correctly implement equals() and hashCode().
  * 
  * @author Michael Ludwig
  */
 public interface BoundVolume {
 	/**
-	 * Clone this BoundVolume into result. If result is of an unsupported type
-	 * or null, create a new BoundVolume of this volume's type to store the
-	 * clone.
+	 * Clone this BoundVolume into result. If result is of a different class
+	 * type, or is null, then a new BoundVolume that matches this class type
+	 * should be created and cloned. The returned instance must satisfy
+	 * <code>this.equals(this.clone(?))</code>.
 	 * 
 	 * @param result Storage for clone of this BoundVolume
 	 * @return Clone stored in result, or new BoundVolume holding clone

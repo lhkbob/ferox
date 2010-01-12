@@ -6,6 +6,7 @@ package com.ferox.math;
  * 
  * @author Michael Ludwig
  */
+// FIXME: could this functionality be merged into Vector4f, or become a static utility class??
 public class Plane {
 	private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
 		@Override

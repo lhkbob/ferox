@@ -11,13 +11,7 @@ public abstract class Component {
 	private final String description;
 	
 	public Component(String description) {
-		Integer id = typeMap.get(getClass());
-		if (id == null) {
-			id = Integer.valueOf(idSeq++);
-			typeMap.put(getClass(), id);
-		}
-
-		typeId = id.intValue();
+		typeId = getTypeId(getClass());
 		this.description = description;
 	}
 	
@@ -40,7 +34,15 @@ public abstract class Component {
 		if (type == null)
 			throw new NullPointerException("Type cannot be null");
 		
-		Integer id = typeMap.get(type);
-		return (id == null ? -1 : id.intValue());
+		// even though an EntitySystem is not multi-threaded, this static
+		// method must be since multiple systems could use it at once
+		synchronized(typeMap) {
+			Integer id = typeMap.get(type);
+			if (id == null) {
+				id = Integer.valueOf(idSeq++);
+				typeMap.put(type, id);
+			}
+			return id.intValue();
+		}
 	}
 }

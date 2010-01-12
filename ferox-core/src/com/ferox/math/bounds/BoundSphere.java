@@ -12,7 +12,7 @@ import com.ferox.math.Frustum.FrustumIntersection;
  * @author Michael Ludwig
  */
 public class BoundSphere extends AbstractBoundVolume {
-	private static final float radiusEpsilon = 1.00001f;
+	private static final float minRadius = .00001f;
 
 	private float radius;
 	private final Vector3f center;
@@ -83,7 +83,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	 * @param r New radius of the sphere, clamped to be above .00001
 	 */
 	public void setRadius(float r) {
-		radius = Math.max(radiusEpsilon - 1f, r);
+		radius = Math.max(minRadius, r);
 	}
 
 	/**
@@ -130,20 +130,14 @@ public class BoundSphere extends AbstractBoundVolume {
 
 	@Override
 	public BoundVolume clone(BoundVolume result) {
-		if (result instanceof BoundSphere) {
-			BoundSphere s = (BoundSphere) result;
-			s.radius = radius;
-			s.center.set(center);
+		if (result == null || !(result instanceof BoundSphere))
+			result = new BoundSphere();
+		
+		BoundSphere s = (BoundSphere) result;
+		s.radius = radius;
+		s.center.set(center);
 
-			return s;
-		} else if (result instanceof AxisAlignedBox) {
-			AxisAlignedBox b = (AxisAlignedBox) result;
-			b.setMin(center.x - radius, center.y - radius, center.z - radius);
-			b.setMax(center.x + radius, center.y + radius, center.z + radius);
-
-			return b;
-		} else
-			return this.clone(new BoundSphere());
+		return s;
 	}
 
 	@Override
@@ -267,6 +261,19 @@ public class BoundSphere extends AbstractBoundVolume {
 	@Override
 	public String toString() {
 		return "(BoundSphere center: " + center + " radius: " + radius + ")";
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof BoundSphere))
+			return false;
+		BoundSphere that = (BoundSphere) o;
+		return that.center.equals(center) && that.radius == radius;
+	}
+	
+	@Override
+	public int hashCode() {
+		return center.hashCode() ^ (Float.floatToIntBits(radius) * 37);
 	}
 
 	// used in enclose

@@ -13,14 +13,14 @@ public abstract class AbstractBoundVolume implements BoundVolume {
 
 	@Override
 	public BoundVolume transform(Transform trans, BoundVolume result) {
-		result = this.clone(result);
+		result = clone(result);
 		result.transform(trans);
 		return result;
 	}
 
 	@Override
 	public BoundVolume enclose(BoundVolume toEnclose, BoundVolume result) {
-		result = this.clone(result);
+		result = clone(result);
 		result.enclose(toEnclose);
 		return result;
 	}
