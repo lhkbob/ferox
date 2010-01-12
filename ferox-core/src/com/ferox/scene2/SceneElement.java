@@ -24,7 +24,7 @@ import com.ferox.math.bounds.BoundVolume;
  * 
  * @author Michael Ludwig
  */
-public class SceneElement extends Component {
+public final class SceneElement extends Component {
 	/**
 	 * Axis represents each of the three local basis vectors of a SceneElement.
 	 * Axis is used when constraining one of the local axis to a vector in world
