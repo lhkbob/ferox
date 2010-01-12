@@ -1,6 +1,6 @@
 package com.ferox.scene2;
 
-import com.ferox.entity.Entity;
+import com.ferox.util.entity.Entity;
 
 /**
  * SceneElementUpdater can be used to provide custom update behavior for

@@ -1,10 +1,10 @@
 package com.ferox.scene2;
 
-import com.ferox.entity.Component;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
+import com.ferox.util.entity.Component;
 
 /**
  * <p>

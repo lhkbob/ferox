@@ -1,6 +1,6 @@
 package com.ferox.scene2;
 
-import com.ferox.entity.Component;
+import com.ferox.util.entity.Component;
 
 /**
  * BillboardTarget is a modifier Component that is used by SceneController to

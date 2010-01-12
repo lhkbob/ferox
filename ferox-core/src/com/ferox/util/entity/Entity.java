@@ -1,4 +1,4 @@
-package com.ferox.entity;
+package com.ferox.util.entity;
 
 import java.util.Arrays;
 import java.util.Iterator;

@@ -1,9 +1,9 @@
 package com.ferox.scene2;
 
-import com.ferox.entity.Entity;
 import com.ferox.math.Frustum;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.Bag;
+import com.ferox.util.entity.Entity;
 
 /**
  * <p>

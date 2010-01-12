@@ -1,8 +1,8 @@
 package com.ferox.scene2;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Entity;
 import com.ferox.math.Transform;
+import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Entity;
 
 public class AttachUpdater implements SceneElementUpdater {
 	private final static int SE_ID = Component.getTypeId(SceneElement.class);

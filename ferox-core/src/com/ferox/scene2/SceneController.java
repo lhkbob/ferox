@@ -3,16 +3,16 @@ package com.ferox.scene2;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Controller;
-import com.ferox.entity.Entity;
-import com.ferox.entity.EntitySystem;
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.Bag;
+import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Controller;
+import com.ferox.util.entity.Entity;
+import com.ferox.util.entity.EntitySystem;
 
 /**
  * <p>
