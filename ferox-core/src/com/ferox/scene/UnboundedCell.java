@@ -4,6 +4,8 @@ import com.ferox.math.Frustum;
 import com.ferox.math.Frustum.FrustumIntersection;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.Bag;
+import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Entity;
 
 /**
  * <p>
@@ -19,65 +21,55 @@ import com.ferox.util.Bag;
  * 
  * @author Michael Ludwig
  */
-public class UnboundedCell extends AbstractCell {
-	private final Bag<SceneElement> elements;
+public class UnboundedCell extends Cell {
+	private static final Object SUCCESS = new Object();
+	private static final int SE_ID = Component.getTypeId(SceneElement.class);
+	
+	private final Bag<Entity> elements;
 	
 	/**
 	 * Create a new UnboundedCell with a priority of 0.
 	 */
 	public UnboundedCell() {
-		elements = new Bag<SceneElement>();
+		elements = new Bag<Entity>();
 	}
 
 	@Override
-	public boolean add(SceneElement element) {
-		if (element == null)
-			return false;
+	public Object add(Entity e, SceneElement element, Object cellData) {
 		// element already within this cell
-		if (element.getCell() == this)
-			return true;
-		
-		// must place a new element
-		if (element.getCell() != null)
-			element.getCell().remove(element);
-		elements.add(element);
-		element.setCell(this);
+		if (cellData != null)
+			return SUCCESS;
 		
 		// we always add the element
-		return true;
+		elements.add(e);
+		return SUCCESS;
 	}
 	
 	@Override
-	public void remove(SceneElement element) {
-		if (element == null || element.getCell() != this)
-			return;
-		
+	public void remove(Entity e, SceneElement element, Object cellData) {
 		boolean rem = elements.remove(element);
 		// this shouldn't happen, but just in case
 		if (!rem)
 			throw new RuntimeException("Inconsistent state in UnboundedCell");
-		element.setCell(null);
 	}
 
 	@Override
 	public void clear() {
-		int ct = elements.size();
-		for (int i = 0; i < ct; i++)
-			elements.get(i).setCell(null);
-		
-		elements.clear(false);
+		elements.clear();
 	}
 
 	@Override
-	public void query(Frustum query, Class<? extends SceneElement> index, Bag<SceneElement> result) {
+	public void query(Frustum query, Bag<Entity> result) {
 		int ct = elements.size();
 		
-		SceneElement e;
+		Entity e;
+		SceneElement s;
 		BoundVolume v;
 		for (int i = 0; i < ct; i++) {
 			e = elements.get(i);
-			if (index == null || index.isInstance(e)) {
-				v = e.getWorldBounds();
+			s = (SceneElement) e.get(SE_ID);
+			if (s != null) {
+				v = s.getWorldBounds();
 				if (v == null || v.testFrustum(query, null) != FrustumIntersection.OUTSIDE)
 					result.add(e);
 			}
@@ -85,15 +77,17 @@ public class UnboundedCell extends AbstractCell {
 	}
 
 	@Override
-	public void query(BoundVolume query, Class<? extends SceneElement> index, Bag<SceneElement> result) {
+	public void query(BoundVolume query, Bag<Entity> result) {
 		int ct = elements.size();
 		
-		SceneElement e;
+		Entity e;
+		SceneElement s;
 		BoundVolume v;
 		for (int i = 0; i < ct; i++) {
 			e = elements.get(i);
-			if (index == null || index.isInstance(e)) {
-				v = e.getWorldBounds();
+			s = (SceneElement) e.get(SE_ID);
+			if (s != null) {
+				v = s.getWorldBounds();
 				if (v == null || v.intersects(query))
 					result.add(e);
 			}

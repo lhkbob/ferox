@@ -1,4 +1,4 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 import java.util.Comparator;
 import java.util.Iterator;

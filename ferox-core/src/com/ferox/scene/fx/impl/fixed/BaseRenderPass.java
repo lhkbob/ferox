@@ -102,7 +102,7 @@ public class BaseRenderPass implements RenderPass {
 			
 			// remove lights for next atom
 			for (j = 0; j < addedEffects; j++)
-				atomEffects.remove(atomEffects.size() - 1);
+				atomEffects.removeNode(atomEffects.size() - 1);
 		}
 		
 		// reset everything

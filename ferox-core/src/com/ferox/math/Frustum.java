@@ -45,9 +45,9 @@ public class Frustum {
 	private float frustumFar;
 	
 	// frustum orientation
-	private Vector3f up;
-	private Vector3f direction;
-	private Vector3f location;
+	private final Vector3f up;
+	private final Vector3f direction;
+	private final Vector3f location;
 	
 	// planes representing frustum, adjusted for
 	// position, direction and up
@@ -67,12 +67,14 @@ public class Frustum {
 		this();
 		setPerspective(fov, aspect, znear, zfar);
 	}
-	
+
 	/**
 	 * Instantiate a new Frustum that's positioned at the origin, looking down
 	 * the negative z-axis. The six values are equivalent to those specified in
 	 * setFrustum() and are taken as the initial frustum parameters.
 	 * 
+	 * @param ortho True if the frustum values are for an orthographic
+	 *            projection, otherwise it's a perspective projection
 	 * @param fl
 	 * @param fr
 	 * @param fb
@@ -80,7 +82,7 @@ public class Frustum {
 	 * @param fn
 	 * @param ff
 	 */
-	public Frustum(float fl, float fr, float fb, float ft, float fn, float ff) {
+	public Frustum(boolean ortho, float fl, float fr, float fb, float ft, float fn, float ff) {
 		this();
 		setFrustum(fl, fr, fb, ft, fn, ff);
 	}
@@ -204,10 +206,15 @@ public class Frustum {
 	 * @param near The distance from the view's location to the near camera
 	 *            plane
 	 * @param far The distance from the view's location to the far camera plane
-	 * @throws IllegalArgumentException if left > right, bottom > top, or near >
+	 * @throws IllegalArgumentException if fov is outside of (0, 180], or aspect is <= 0, or near >
 	 *             far, or if near <= 0
 	 */
 	public void setPerspective(float fov, float aspect, float near, float far) {
+		if (fov <= 0f || fov > 180f)
+			throw new IllegalArgumentException("Field of view must be in (0, 180], not: " + fov);
+		if (aspect <= 0)
+			throw new IllegalArgumentException("Aspect ration must be >= 0, not: " + aspect);
+		
 		float h = (float) Math.tan(Math.toRadians(fov)) * near * .5f;
 		float w = h * aspect;
 		useOrtho = false;
@@ -308,13 +315,12 @@ public class Frustum {
 		
 		return projection;
 	}
-	
+
 	/**
 	 * <p>
-	 * Assign the given vectors to this Frustum for its location, direction and
-	 * up vectors. These references will replace any previously assigned
-	 * vectors. direction and up will be normalized and modified to be
-	 * orthogonal to each other.
+	 * Copy the given vectors into this Frustum for its location, direction and
+	 * up vectors. The orientation is then normalized and orthogonalized, but
+	 * this leaves the given vectors unmodified.
 	 * </p>
 	 * <p>
 	 * Any later changes to the vectors' x, y, and z values will not be
@@ -331,9 +337,9 @@ public class Frustum {
 			throw new NullPointerException("Orientation vectors cannot be null: " + 
 										   location + " " + direction + " " + up);
 		
-		this.location = location;
-		this.direction = direction;
-		this.up = up;
+		this.location.set(location);
+		this.direction.set(direction);
+		this.up.set(up);
 		
 		updateFrustumPlanes();
 	}

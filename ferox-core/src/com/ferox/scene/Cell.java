@@ -3,75 +3,78 @@ package com.ferox.scene;
 import com.ferox.math.Frustum;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.Bag;
+import com.ferox.util.entity.Entity;
 
 /**
  * <p>
  * A Cell represents a reasonably static partitioning of the space within a
- * Scene. Different Cells can be optimized for different types of Scenes. For
+ * SceneController. Different Cells can be optimized for different types of scenes. For
  * example, the BoundedOctreeCell is useful in open/outdoor scenes and the
  * PortalCell is useful for classic FPS style play.
  * </p>
  * <p>
- * Cells are created, configured and then added to a Scene where they help
- * partition the Scene's elements into manageable areas to improve the speed of
- * both visibility and spatial culling.
+ * Cells are created, configured and then added to a SceneController where they
+ * help partition the scene's elements into manageable areas to improve the
+ * speed of both visibility and spatial culling.
  * </p>
  * <p>
  * You should not need to call the majority of the methods in Cell because they
- * are intended for use by a Cell's managing Scene. The following methods should
- * not be called, except by a Scene:
+ * are intended for use by a Cell's managing SceneController. The following
+ * methods should not be called, except by a SceneController:
  * <ul>
- * <li>setScene(Scene)</li>
- * <li>add(SceneElement)</li>
- * <li>remove(SceneElement)</li>
- * <li>query() - both varieties</li>
- * <li>update(float)</li>
+ * <li>{@link #add(SceneElement)}</li>
+ * <li>{@link #clear()}</li>
+ * <li>{@link #query(BoundVolume, Class, Bag)}</li>
+ * <li>{@link #query(Frustum, Class, Bag)}</li>
+ * <li>{@link #remove(SceneElement)}</li>
+ * <li>{@link #update(float)}</li>
  * </ul>
  * The remaining methods are free for normal use.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public interface Cell {
-	/**
-	 * Return the Scene that this Cell was last added to. This instance must
-	 * match the instance specified in the last call to setScene(). If null is
-	 * returned, then this cell is not part of a Scene.
-	 * 
-	 * @return The Scene that owns this cell
-	 */
-	public Scene getScene();
+public abstract class Cell {
+	private int lastPriority;
+	private int priority;
+	
+	SceneController owner;
 	
 	/**
-	 * Set the Scene that owns this Cell. This should not be called except by a
-	 * Scene in response to an add() or remove() call.
-	 * 
-	 * @param scene The Scene that owns this cell
+	 * Create a new Cell with a priority of 0.
 	 */
-	public void setScene(Scene scene);
-	
+	public Cell() {
+		lastPriority = 0;
+		priority = 0;
+		
+		owner = null;
+	}
+
 	/**
 	 * <p>
 	 * Return the priority of this Cell when determining the order in which
 	 * SceneElements are tested against the Cells of a Scene. In the event that
-	 * more than one Cell would return true from an add(element) for the same
-	 * element, the Cell with the higher priority will have the element added to
-	 * it.
+	 * more than one Cell would return a non-null Object from
+	 * {@link #add(SceneElement)} for the same element, the Cell with the higher
+	 * priority will have the element added to it.
 	 * </p>
 	 * <p>
-	 * By default this should be set to 0.
+	 * By default this is set to 0.
 	 * </p>
 	 * 
 	 * @return The current priority of the Cell
 	 */
-	public int getPriority();
-	
+	public int getPriority() {
+		return priority;
+	}
+
 	/**
 	 * <p>
 	 * Assign a priority to this Cell for the purposes of resolving ownership
 	 * over SceneElements that could technically be in multiple Cells of a
 	 * Scene. The Cell with a higher priority will get the element. Changes to a
-	 * Cell's priority will be visible after the next update to its Scene.
+	 * Cell's priority will be visible after the next processing of the
+	 * SceneController.
 	 * </p>
 	 * <p>
 	 * The priority is allowed to be any int value and the range should be
@@ -81,73 +84,93 @@ public interface Cell {
 	 * 
 	 * @param priority The new priority for the cell
 	 */
-	public void setPriority(int priority);
-	
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
 	/**
 	 * <p>
 	 * Determine whether or not the given SceneElement should be assigned to
 	 * this Cell, and potentially add it to the Cell. If the Cell can contain
-	 * the element, then it should remove the element from any previous owning
-	 * Cell, update the element's Cell reference, adjust its internal data
-	 * structures, and finally return true.
+	 * the element, then it should adjust its internal data structures, and
+	 * finally return a non-null Object that will be associated with
+	 * <tt>element</tt> and the Cell.
 	 * </p>
 	 * <p>
 	 * If the element should not be added to this Cell, then the element should
-	 * not be modified and false should be returned. It can be assumed that
+	 * not be modified and null should be returned. It can be assumed that
 	 * elements are tested against Cells in the correct order based on the cell
 	 * priority.
 	 * </p>
+	 * <p>
+	 * <tt>e</tt> is the Entity which is tied to the <tt>element</tt> Component.
+	 * If the SceneElement is to be owned by this Cell, the Entity should be
+	 * recorded as well so that spatial queries can return the correct entities
+	 * quickly.
+	 * </p>
 	 * 
+	 * @param e The Entity which has the given SceneElement component
 	 * @param element The candidate element for addition
-	 * @return True if the element was successfully assigned to this Cell
+	 * @param cellData The previous cell data associated with this Cell and
+	 *            element, or null if element was not owned by this Cell
+	 * @return A non-null instance of cell data to use if this Cell can take the
+	 *         element
 	 */
-	public boolean add(SceneElement element);
-	
+	public abstract Object add(Entity e, SceneElement element, Object cellData);
+
 	/**
+	 * <p>
 	 * Remove the given element from this Cell so that it will no longer be
-	 * considered for any query results. After a successful remove(), the
-	 * element's cell reference should be assigned to null. If element is not
-	 * presently owned by this Cell, then remove() should be a no-op.
+	 * considered for any query results. This will only be called by the
+	 * SceneController SceneElement should be removed from the Cell. This could
+	 * be because another Cell is the new owner, or if the entity, <tt>e</tt> is
+	 * no longer a SceneElement.
+	 * </p>
+	 * <p>
+	 * Because the entity can be removed after it's no longer a SceneElement,
+	 * <tt>element</tt> may be null. In this case, cellData is still accurate
+	 * and should be sufficient enough to correctly remove the entity.
+	 * </p>
 	 * 
-	 * @param element The element to be removed.
+	 * @param e The Entity to be removed, and that is associated with element
+	 * @param element The element to be removed, may be null if e is no longer a
+	 *            SceneElement
+	 * @param cellData The cell data last returned via
+	 *            {@link #add(Entity, SceneElement, Object)} for this Entity
 	 */
-	public void remove(SceneElement element);
-	
+	public abstract void remove(Entity e, SceneElement element, Object cellData);
+
 	/**
-	 * Perform a visibility query as described in Scene.query(). The primary
-	 * difference is that result can be assumed to be non-null and that all
-	 * matching SceneElements in this Cell will be added to the bag without
-	 * first clearing it. The Cell should only test SceneElements that have been
-	 * assigned to it.
+	 * Perform a visibility query as described in
+	 * {@link SceneController#query(Frustum, Bag)}. The primary difference is
+	 * that result can be assumed to be non-null and that all matching Entities
+	 * in this Cell will be added to the bag without first clearing it. The Cell
+	 * should only test SceneElements that have been assigned to it.
 	 * 
-	 * @see Scene.#query(Frustum, Class, Bag)
 	 * @param query The Frustum to test against
-	 * @param index The SceneElement type index
-	 * @param result The Bag to add all matching SceneElements to
+	 * @param result The Bag to add all matching Entities to
 	 */
-	public void query(Frustum query, Class<? extends SceneElement> index, Bag<SceneElement> result);
-	
+	public abstract void query(Frustum query, Bag<Entity> result);
+
 	/**
-	 * Perform a spatial query as described in Scene.query(). The primary
-	 * difference is that result can be assumed to be non-null and that all
-	 * matching SceneElements in this Cell will be added to the bag without
-	 * first clearing it. The Cell should only test SceneElements that have been
-	 * assigned to it.
+	 * Perform a visibility query as described in
+	 * {@link SceneController#query(BoundVolume, Bag)}. The primary difference
+	 * is that result can be assumed to be non-null and that all matching
+	 * Entities in this Cell will be added to the bag without first clearing it.
+	 * The Cell should only test SceneElements that have been assigned to it.
 	 * 
-	 * @see Scene.#query(BoundVolume, Class, Bag)
 	 * @param query The BoundVolume to test against
-	 * @param index The SceneElement type index
-	 * @param result The Bag to add all matching SceneElements to
+	 * @param result The Bag to add all matching Entities to
 	 */
-	public void query(BoundVolume query, Class<? extends SceneElement> index, Bag<SceneElement> result);
-	
+	public abstract void query(BoundVolume query, Bag<Entity> result);
+
 	/**
 	 * Clear this Cell so that it is completely empty. All currently added
-	 * SceneElements should be removed as per remove(). The Cell's priority and
-	 * Scene should be left unchanged.
+	 * SceneElements should be removed as if via remove(). The Cell's priority
+	 * should be left unchanged.
 	 */
-	public void clear();
-	
+	public abstract void clear();
+
 	/**
 	 * <p>
 	 * Perform an update of this Cell. This occurs during the first steps of a
@@ -159,12 +182,17 @@ public interface Cell {
 	 * </p>
 	 * <p>
 	 * Return true if all of the Cell's current elements need to be reassigned.
-	 * The most common cause of this would be a change in priority. There could
-	 * also be other circumstances specific to a Cell implementation.
+	 * The current implementation returns true when there's a change in
+	 * priority. There could be additional circumstances specific to a Cell
+	 * implementation.
 	 * </p>
 	 * 
 	 * @param timeDelta The time change since the last update, in seconds
 	 * @return True if the Cell's contents need to be forcibly reassigned
 	 */
-	public boolean update(float timeDelta);
+	public boolean update(float timeDelta) {
+		boolean update = lastPriority != priority;
+		lastPriority = priority;
+		return update;
+	}
 }

@@ -1,4 +1,4 @@
-package com.ferox.scene2;
+package com.ferox.scene;
 
 import com.ferox.util.entity.Component;
 

@@ -1,85 +1,60 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Geometry;
-import com.ferox.scene.fx.Appearance;
+import com.ferox.util.entity.Component;
 
 /**
  * <p>
- * A Shape represents the simplest type of Scene component, that of a Geometry
- * with an associated Appearance. It also has an auto-bound policy that will
- * calculate its local bounds from its assigned Geometry.
+ * Shape is relatively simple Component that can associate a Geometry resource
+ * to an Entity. By itself Shape holds little value but can be quite powerful
+ * when combined with other Components. Some examples include adding additional
+ * Components to describe the surface color, in which case this Shape can then
+ * be rendered. It may be possible to describe the detailed region of fog, or
+ * can be used to give a {@link Light} visible shape (such as with a light
+ * bulb).
  * </p>
  * <p>
- * A Shape should be suitable for most simple renderings that don't require
- * animation, levels of detail or dynamic effects such as billboarding or
- * particles.
+ * It is very likely that Controllers that use Shape will also require the
+ * owning Entity to be a SceneElement. Generally Shape is intended for a
+ * graphical description of geometry and is likely to have a too high resolution
+ * for efficient use in a physics system. It is recommended that Shape's be
+ * shared across Entities which require the same Geometry.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public class Shape extends AbstractSceneElement {
-	private Appearance appearance;
+public class Shape extends Component {
+	private static final String DESCR = "Geometry of an Entity";
+	
 	private Geometry geometry;
-	
+
 	/**
-	 * Create a new Shape that uses the given Geometry and Appearance. The
-	 * constructed Shape will have no local bounds yet, so it must be set
-	 * later.
+	 * Create a new Shape that uses the given Geometry instance.
 	 * 
-	 * @param geometry The geometry to use
-	 * @param appearance The Appearance used to render the associated Geometry
-	 * @throws NullPointerException if geometry or appearance are null
+	 * @param geom The Geometry that this Shape represents
+	 * @throws NullPointerException if geom is null
 	 */
-	public Shape(Geometry geometry, Appearance appearance) {
-		setAppearance(appearance);
-		setGeometry(geometry);
-	}
-	
-	/**
-	 * Return the current Appearance in use by this Shape. This will not be
-	 * null.
-	 * 
-	 * @return The Shape's Appearance
-	 */
-	public Appearance getAppearance() {
-		return appearance;
-	}
-	
-	/**
-	 * Assign a new Appearance to the Shape. Where possible, it is recommended
-	 * to use the same Appearance instance to improve rendering speed. A Shape
-	 * must have a non-null Appearance.
-	 * 
-	 * @param appearance The new Appearance to use
-	 * @throws NullPointerException if appearance is null
-	 */
-	public void setAppearance(Appearance appearance) {
-		if (appearance == null)
-			throw new NullPointerException("Must have a non-null Appearance");
-		this.appearance = appearance;
-	}
-	
-	/**
-	 * Return the Geometry that should be rendered for the given Shape when it's
-	 * being processed.
-	 * 
-	 * @return This Shape's Geometry.
-	 */
-	public Geometry getGeometry() {
-		return geometry;
+	public Shape(Geometry geom) {
+		super(DESCR);
+		setGeometry(geom);
 	}
 
 	/**
-	 * Assign geom to be this Shape's new Geometry for use when rendering. Every
-	 * Shape requires a non-null Geometry. If geom doesn't have a status of
-	 * READY when the Shape will be rendered, the Shape will not appear.
+	 * Assign a new Geometry instance to this Shape.
 	 * 
-	 * @param geometry The new Geometry to use
+	 * @param geom The Geometry to use
 	 * @throws NullPointerException if geom is null
 	 */
-	public void setGeometry(Geometry geometry) {
-		if (geometry == null)
-			throw new NullPointerException("Cannot have a null Geometry");
-		this.geometry = geometry;
+	public void setGeometry(Geometry geom) {
+		if (geom == null)
+			throw new NullPointerException("Geometry cannot be null");
+		geometry = geom;
+	}
+	
+	/**
+	 * @return The Geometry that this Shape embodies
+	 */
+	public Geometry getGeometry() {
+		return geometry;
 	}
 }
