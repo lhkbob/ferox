@@ -9,10 +9,33 @@ import com.ferox.util.entity.Controller;
 import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntitySystem;
 
+/**
+ * ViewNodeController is a Controller implementation that handles the processing
+ * necessary to update each ViewNode within an EntitySystem. For each Entity
+ * that is a ViewNode, a ViewNodeController performs the following operations:
+ * <ol>
+ * <li>If the entity is also a SceneElement, modify the ViewNode's Frustum so
+ * that it reflects the location and orientation of the SceneElement. The y-axis
+ * is considered up and the z-axis is considered to be the direction.</li>
+ * <li>If {@link ViewNode#getAutoUpdateProjection()} returns true, modify the
+ * projection as described in ViewNode to match its RenderSurface's dimensions.</li>
+ * <li>Invoke {@link Frustum#updateFrustumPlanes()} so the Frustum is up to
+ * date.</li>
+ * </ol>
+ * 
+ * @author Michael Ludwig
+ */
 public class ViewNodeController implements Controller {
 	private static final int VN_ID = Component.getTypeId(ViewNode.class);
 	private static final int SE_ID = Component.getTypeId(SceneElement.class);
-	
+
+	/**
+	 * Create a ViewNodeController that is registered with the given
+	 * EntitySystem. If the system is null, then the controller will not be
+	 * registered and should be registered later.
+	 * 
+	 * @param system The EntitySystem to be registered with if not null
+	 */
 	public ViewNodeController(EntitySystem system) {
 		if (system != null)
 			system.registerController(this);
