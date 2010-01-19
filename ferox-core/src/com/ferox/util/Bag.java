@@ -403,9 +403,12 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 			if (elements[index] == element) {
 				// no element was removed, so advance the index
 				element = elements[index++];
+			} else {
+				// refresh what the current element is
+				element = elements[index];
 			}
 			
-			return elements[index];
+			return element;
 		}
 
 		@Override
