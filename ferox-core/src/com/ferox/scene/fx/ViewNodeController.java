@@ -1,9 +1,14 @@
-package com.ferox.scene;
+package com.ferox.scene.fx;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
+import com.ferox.scene.SceneController;
+import com.ferox.scene.SceneElement;
+import com.ferox.util.Bag;
 import com.ferox.util.entity.Component;
 import com.ferox.util.entity.Controller;
 import com.ferox.util.entity.Entity;
@@ -25,32 +30,65 @@ import com.ferox.util.entity.EntitySystem;
  * 
  * @author Michael Ludwig
  */
-public class ViewNodeController implements Controller {
+public class ViewNodeController extends Controller {
 	private static final int VN_ID = Component.getTypeId(ViewNode.class);
 	private static final int SE_ID = Component.getTypeId(SceneElement.class);
 
+	private Map<Frustum, Bag<Entity>> visibilitySets;
+	
 	/**
 	 * Create a ViewNodeController that is registered with the given
-	 * EntitySystem. If the system is null, then the controller will not be
-	 * registered and should be registered later.
+	 * EntitySystem.
 	 * 
-	 * @param system The EntitySystem to be registered with if not null
+	 * @param system The EntitySystem to be registered with
+	 * @throws NullPointerException if system is null
 	 */
 	public ViewNodeController(EntitySystem system) {
-		if (system != null)
-			system.registerController(this);
+		super(system);
+		visibilitySets = new HashMap<Frustum, Bag<Entity>>();
+	}
+
+	/**
+	 * <p>
+	 * Return the results of visibility query for the <tt>frustum</tt>. The
+	 * returned result is computed once per frustum during this Controller's
+	 * process phase, so the returned Bag should not be modified. If
+	 * <tt>frustum</tt> is not the Frustum of a ViewNode in the system, then
+	 * null is returned.
+	 * </p>
+	 * <p>
+	 * The visibility query is performed using
+	 * {@link SceneController#query(Frustum, Bag)}. If the system has no
+	 * SceneController the queries cannot be performed, so this will return
+	 * null.
+	 * </p>
+	 * 
+	 * @param frustum The Frustum whose visibility set is returned
+	 * @return The Bag of Entities that are visible within frustum.
+	 * @throws NullPointerException if frustum is null
+	 */
+	public Bag<Entity> getVisibleEntities(Frustum frustum) {
+		if (frustum == null)
+			throw new NullPointerException("Frustum cannot be null");
+		return visibilitySets.get(frustum);
 	}
 	
 	@Override
-	public void process(EntitySystem system) {
+	public void process() {
 		Iterator<Entity> it = system.iterator(VN_ID);
 		
+		Map<Frustum, Bag<Entity>> pvs = new HashMap<Frustum, Bag<Entity>>();
+		SceneController scene = system.getController(SceneController.class);
+		
 		while(it.hasNext()) {
-			process(it.next());
+			process(it.next(), scene, pvs);
 		}
+		
+		// discard any unused bags and store computed results for this frame
+		visibilitySets = pvs;
 	}
 	
-	private void process(Entity e) {
+	private void process(Entity e, SceneController scene, Map<Frustum, Bag<Entity>> pvs) {
 		ViewNode vn = (ViewNode) e.get(VN_ID);
 		SceneElement se = (SceneElement) e.get(SE_ID);
 		
@@ -86,5 +124,23 @@ public class ViewNodeController implements Controller {
 		
 		if (needsUpdate)
 			f.updateFrustumPlanes();
+		
+		// frustum is up-to-date, so now we perform a visibility query
+		if (scene != null) {
+			Bag<Entity> query = visibilitySets.get(f);
+			if (query == null)
+				query = new Bag<Entity>();
+			
+			scene.query(f, query);
+			pvs.put(f, query);
+			
+			// modify all scene elements to be potentially visible
+			int ct = query.size();
+			for (int i = 0; i < ct; i++) {
+				se = (SceneElement) query.get(i).get(SE_ID);
+				if (se != null)
+					se.setPotentiallyVisible(true);
+			}
+		} // else nothing we can do
 	}
 }

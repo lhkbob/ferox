@@ -324,16 +324,17 @@ public class RenderCapabilities {
 	 * 
 	 * @return True if shaders can be used
 	 */
-	public boolean hadGlslRenderer() {
+	public boolean hasGlslRenderer() {
 		return hasGlslRenderer;
 	}
-	
+
 	/**
 	 * Whether or not this Framework can provide Renderers that implement
 	 * {@link FixedFunctionRenderer}.
+	 * 
 	 * @return True if fixed-function pipeline can be used
 	 */
-	public boolean hadFixedFunctionRenderer() {
+	public boolean hasFixedFunctionRenderer() {
 		return hasFfpRenderer;
 	}
 

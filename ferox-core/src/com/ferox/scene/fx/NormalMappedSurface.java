@@ -1,11 +1,15 @@
 package com.ferox.scene.fx;
 
 import com.ferox.resource.TextureImage;
+import com.ferox.util.entity.Component;
 
-public class NormalMappedSurface implements Component {
+public class NormalMappedSurface extends Component {
+	private static final String DESCR = "Adds image based normal mapping to rendered Entities";
+	
 	private TextureImage normalMap;
 	
 	public NormalMappedSurface(TextureImage normalMap) {
+		super(DESCR);
 		setNormalMap(normalMap);
 	}
 	
@@ -20,10 +24,5 @@ public class NormalMappedSurface implements Component {
 	
 	public TextureImage getNormalMap() {
 		return normalMap;
-	}
-
-	@Override
-	public final Class<NormalMappedSurface> getType() {
-		return NormalMappedSurface.class;
 	}
 }

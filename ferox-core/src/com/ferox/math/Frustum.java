@@ -295,8 +295,15 @@ public class Frustum {
 	public Vector3f getDirection() {
 		return direction;
 	}
-	
-	// compute the projection matrix
+
+	/**
+	 * Compute and return the 4x4 projection matrix that represents the
+	 * mathematical projection from the frustum to homogenous device coordinates
+	 * (essentially the unit cube).
+	 * 
+	 * @param projection The matrix is stored in <tt>projection</tt> if not null
+	 * @return projection, or a new Matrix4f if it was null
+	 */
 	public Matrix4f getProjectionMatrix(Matrix4f projection) {
 		if (projection == null)
 			projection = new Matrix4f();
@@ -314,6 +321,53 @@ public class Frustum {
 					   frustumNear, frustumFar, projection);
 		
 		return projection;
+	}
+
+	/**
+	 * <p>
+	 * Compute and return the 'view' transform this Frustum. The view transform
+	 * represents the the coordinate space transformation from world space to
+	 * camera/frustum space. The local basis of the Frustum is formed by the
+	 * left, up and direction vectors of the Frustum. The left vector is up X
+	 * direction, and up and direction are user defined vectors.
+	 * </p>
+	 * <p>
+	 * The result matrix is stored in <tt>view</tt> if it's not null. If it is
+	 * null, a new matrix is created and returned.
+	 * </p>
+	 * 
+	 * @param view The result matrix to hold the computation
+	 * @return view, or a new Matrix4f if view was null
+	 */
+	public Matrix4f getViewMatrix(Matrix4f view) {
+		if (view == null)
+			view = new Matrix4f();
+		
+		Vector3f left = up.normalize().cross(direction, Frustum.p.get()).normalize();
+		direction.normalize().cross(left, up);
+		
+		view.m00 = left.x;
+		view.m10 = left.y;
+		view.m20 = left.z;
+		view.m30 = 0f;
+		
+		view.m01 = up.x;
+		view.m11 = up.y;
+		view.m21 = up.z;
+		view.m31 = 0f;
+		
+		view.m02 = direction.x;
+		view.m12 = direction.y;
+		view.m22 = direction.z;
+		view.m32 = 0f;
+		
+		view.m03 = location.x;
+		view.m13 = location.y;
+		view.m23 = location.z;
+		view.m33 = 1f;
+		
+		view.inverse();
+		return view;
 	}
 
 	/**
@@ -351,7 +405,7 @@ public class Frustum {
 	public void updateFrustumPlanes() {
 		// compute the right-handed basis vectors of the frustum
 		Vector3f left = up.normalize().cross(direction, Frustum.p.get()).normalize();
-		direction.normalize().cross(left, up).normalize();
+		direction.normalize().cross(left, up);
 		
 		if (useOrtho)
 			computeOrthoWorldPlanes();

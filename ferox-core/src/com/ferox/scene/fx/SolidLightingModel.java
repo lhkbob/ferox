@@ -1,12 +1,16 @@
 package com.ferox.scene.fx;
 
 import com.ferox.math.Color4f;
+import com.ferox.util.entity.Component;
 
-public class SolidLightingModel extends LightingModel {
-	private Color4f color;
+public class SolidLightingModel extends Component {
+	private static final String DESCR = "Renderable entities are unlit using a solid color";
 	
-	public SolidLightingModel(Color4f color, boolean shadowReceiver) {
-		super(shadowReceiver);
+	private final Color4f color;
+	
+	public SolidLightingModel(Color4f color) {
+		super(DESCR);
+		this.color = new Color4f();
 		setColor(color);
 	}
 	
@@ -16,7 +20,7 @@ public class SolidLightingModel extends LightingModel {
 	
 	public void setColor(Color4f color) {
 		if (color == null)
-			color = new Color4f(.2f, .2f, .2f, 1f);
-		this.color = color;
+			throw new NullPointerException("Color cannot be null");
+		this.color.set(color);
 	}
 }

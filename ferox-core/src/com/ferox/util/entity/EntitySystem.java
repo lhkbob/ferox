@@ -8,6 +8,9 @@ import java.util.NoSuchElementException;
 
 import com.ferox.util.Bag;
 
+// FIXME: maybe allow component types to be declared indexable at runtime
+// when not indexable, a ComponentTable is not maintained and iteration
+// is performed across allList and then pruned? or no iteration is allowed??
 public final class EntitySystem implements Iterable<Entity> {
 	private int entityIdSeq;
 	

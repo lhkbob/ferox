@@ -1,8 +1,11 @@
 package com.ferox.scene.fx;
 
 import com.ferox.resource.TextureImage;
+import com.ferox.util.entity.Component;
 
-public class TexturedMaterial implements Component {
+public class TexturedMaterial extends Component {
+	private static final String DESCR = "Adds textureing to rendered Entities";
+	
 	private TextureImage primarySurface;
 	private TextureImage decalSurface;
 	
@@ -11,6 +14,8 @@ public class TexturedMaterial implements Component {
 	}
 	
 	public TexturedMaterial(TextureImage primary, TextureImage decal) {
+		super(DESCR);
+		
 		setPrimaryTexture(primary);
 		setDecalTexture(decal);
 	}
@@ -29,10 +34,5 @@ public class TexturedMaterial implements Component {
 	
 	public TextureImage getDecalTexture() {
 		return decalSurface;
-	}
-
-	@Override
-	public Class<TexturedMaterial> getType() {
-		return TexturedMaterial.class;
 	}
 }

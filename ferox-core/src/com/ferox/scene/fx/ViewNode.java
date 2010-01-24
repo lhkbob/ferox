@@ -1,8 +1,9 @@
-package com.ferox.scene;
+package com.ferox.scene.fx;
 
 import com.ferox.math.Frustum;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.WindowSurface;
+import com.ferox.scene.SceneElement;
 import com.ferox.util.entity.Component;
 
 /**

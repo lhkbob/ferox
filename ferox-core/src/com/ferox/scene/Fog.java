@@ -1,6 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.math.Color4f;
+import com.ferox.scene.fx.Shape;
 import com.ferox.util.entity.Component;
 
 /**

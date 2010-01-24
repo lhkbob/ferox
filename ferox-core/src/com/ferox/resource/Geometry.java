@@ -158,6 +158,17 @@ public class Geometry extends Resource {
 	}
 
 	/**
+	 * Return the number of polygons that will be rendered for this Geometry.
+	 * Convenience function for
+	 * <code>this.getPolygonType().getPolygonCount(this.getIndices().length);</code>
+	 * 
+	 * @return The polygon count, or 0 if indices is null
+	 */
+	public int getPolygonCount() {
+		return (indices == null ? 0 : polyType.getPolygonCount(indices.length));
+	}
+
+	/**
 	 * Set the index information and PolygonType that will be used by this
 	 * Geometry. If <tt>type</tt> is null, then {@link PolygonType#POINTS} will
 	 * be used instead. It is permissible for the indices to be null, as that is

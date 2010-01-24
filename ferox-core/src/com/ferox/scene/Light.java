@@ -1,6 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.math.Color4f;
+import com.ferox.scene.fx.ShadowCaster;
 import com.ferox.util.entity.Component;
 
 /**
@@ -19,6 +20,8 @@ import com.ferox.util.entity.Component;
  * <li>If a Light, SceneElement and {@link DirectedLight} are combined, the
  * light's emissions are constrained to be a directed light. See DirectedLight
  * for more details.</li>
+ * <li>If a Light is combined with {@link ShadowCaster}, it is a hint that the
+ * light is the source for shadow generation.</li>
  * <li>Additionally, there may be other combinations that are undocumented or
  * unknown at this time. Support is wholly dependent on the rendering engine
  * that processes the scene.</li>
@@ -38,24 +41,19 @@ public class Light extends Component {
 	private static final String DESCR = "Adds light to rendered entities in a scene";
 	
 	private final Color4f color;
-	private boolean castsShadow;
 	// FIXME: add intensity, or other form of light descriptor that modifies final colors sent to opengl?
 
 	/**
-	 * Create a new Light component using the given color, and hint to whether
-	 * or not it casts shadows.
+	 * Create a new Light component using the given color.
 	 * 
 	 * @param color The color passed to {@link #setColor(Color4f)}
-	 * @param castsShadow The boolean passed to
-	 *            {@link #setShadowCaster(boolean)}
 	 * @throws NullPointerException if color is null
 	 */
-	public Light(Color4f color, boolean castsShadow) {
+	public Light(Color4f color) {
 		super(DESCR);
 		this.color = new Color4f();
 		
 		setColor(color);
-		setShadowCaster(castsShadow);
 	}
 
 	/**
@@ -81,27 +79,5 @@ public class Light extends Component {
 	 */
 	public Color4f getColor() {
 		return color;
-	}
-
-	/**
-	 * Set whether or not this light casts shadows. This is a hint to the
-	 * rendering engine that it should render shadows cast from objects affected
-	 * by this light.
-	 * 
-	 * @param castsShadow True if shadows are cast
-	 */
-	public void setShadowCaster(boolean castsShadow) {
-		this.castsShadow = castsShadow;
-	}
-
-	/**
-	 * Return true if shadows should be cast by this Light. This is only a hint
-	 * and shadows may be unsupported by the rendering engine. However, if this
-	 * returns false, then no shadows should be cast from this light.
-	 * 
-	 * @return True if this light casts shadows
-	 */
-	public boolean isShadowCaster() {
-		return castsShadow;
 	}
 }

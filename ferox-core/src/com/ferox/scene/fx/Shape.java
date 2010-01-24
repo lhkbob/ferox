@@ -1,6 +1,7 @@
-package com.ferox.scene;
+package com.ferox.scene.fx;
 
 import com.ferox.resource.Geometry;
+import com.ferox.scene.Light;
 import com.ferox.util.entity.Component;
 
 /**

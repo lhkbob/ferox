@@ -25,22 +25,17 @@ import com.ferox.util.entity.EntitySystem;
  * the like.
  * </p>
  * <p>
- * The SceneController does not modify whether or not a SceneElement is
- * potentially visible (see {@link SceneElement#isPotentiallyVisible()}). It is
- * assumed that additional Controllers are used to make these determinations,
- * potentially with the aid of the SceneControllers
- * {@link #query(BoundVolume, Bag)} and {@link #query(Frustum, Bag)}.
- * <p>
- * A SceneController is intended to be used with only one EntitySystem. It is
- * recommended that it is registered with the EntitySystem, as well. The
- * SceneController does not require it to perform correctly, but other
- * Controllers may depend on access to an EntitySystem's SceneController to help
- * perform spatial queries.
+ * The SceneController resets every SceneElement's
+ * {@link SceneElement#isPotentiallyVisible() potentially visible status} to
+ * false. It is assumed that additional Controllers are used to set the
+ * appropriate SceneElement's status back to true, potentially with the aid of
+ * the SceneControllers {@link #query(BoundVolume, Bag)} and
+ * {@link #query(Frustum, Bag)}.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public class SceneController implements Controller {
+public class SceneController extends Controller {
 	private static final int BT_ID = Component.getTypeId(BillboardTarget.class);
 	private static final int ED_ID = Component.getTypeId(ElementData.class);
 	private static final int SE_ID = Component.getTypeId(SceneElement.class);
@@ -64,16 +59,13 @@ public class SceneController implements Controller {
 	 * with minimum priority. This Cell cannot be removed and is used as a catch
 	 * all for SceneElements that aren't assigned to any configured Cells.
 	 * </p>
-	 * <p>
-	 * If system is not null, then this SceneController automatically registers
-	 * itself with the given system. Otherwise, it's assumed that it will be
-	 * registered later.
-	 * </p>
 	 * 
 	 * @param system The EntitySystem that this SceneController registers itself
 	 *            with
+	 * @throws NullPointerException if system is null
 	 */
 	public SceneController(EntitySystem system) {
+		super(system);
 		lastProcess = -1;
 		cells = new Bag<Cell>();
 		
@@ -81,9 +73,6 @@ public class SceneController implements Controller {
 		UnboundedCell dfltCell = new UnboundedCell();
 		dfltCell.setPriority(Integer.MIN_VALUE);
 		add(dfltCell);
-		
-		if (system != null)
-			system.registerController(this);
 	}
 
 	/**
@@ -173,7 +162,7 @@ public class SceneController implements Controller {
 		
 		if (results == null)
 			results = new Bag<Entity>();
-		results.clear(false);
+		results.clear(true);
 		
 		int length = cells.size();
 		for (int i = 0; i < length; i++) {
@@ -268,10 +257,7 @@ public class SceneController implements Controller {
 	 * @param system The EntitySystem that's being processed
 	 */
 	@Override
-	public void process(EntitySystem system) {
-		if (system == null)
-			throw new NullPointerException("EntitySystem cannot be null");
-		
+	public void process() {
 		long now = System.nanoTime();
 		if (deltaTime < 0f) {
 			// delta hasn't been overridden so compute it
@@ -372,12 +358,17 @@ public class SceneController implements Controller {
 		
 		if (element != null) {
 			if (data == null) {
+				// new scene element
 				data = new ElementData();
 				e.add(data);
 				processEntity(e, element, data);
 			} else if (!data.processed) {
+				// just update everything unless already processed
 				processEntity(e, element, data);
 			}
+			
+			// reset visibility
+			element.setPotentiallyVisible(false);
 		}
 	}
 	
