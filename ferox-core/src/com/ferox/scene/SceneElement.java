@@ -5,6 +5,7 @@ import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -24,6 +25,7 @@ import com.ferox.util.entity.Component;
  * 
  * @author Michael Ludwig
  */
+@Indexable
 public final class SceneElement extends Component {
 	/**
 	 * Axis represents each of the three local basis vectors of a SceneElement.

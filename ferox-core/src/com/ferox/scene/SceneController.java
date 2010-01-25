@@ -13,6 +13,7 @@ import com.ferox.util.entity.Component;
 import com.ferox.util.entity.Controller;
 import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntitySystem;
+import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -254,10 +255,13 @@ public class SceneController extends Controller {
 	 * important that BillboardTargets do not depend on other SceneElements,
 	 * since a stale billboard point or constraint axis may be used.
 	 * 
-	 * @param system The EntitySystem that's being processed
+	 * @throws IllegalStateException if the controller is no longer part of its
+	 *             system
 	 */
 	@Override
 	public void process() {
+		validate();
+		
 		long now = System.nanoTime();
 		if (deltaTime < 0f) {
 			// delta hasn't been overridden so compute it
@@ -450,6 +454,7 @@ public class SceneController extends Controller {
 		}
 	}
 	
+	@Indexable
 	private static class ElementData extends Component {
 		private static final String DESCR = "Internal data used by SceneController to manage SceneElements";
 		

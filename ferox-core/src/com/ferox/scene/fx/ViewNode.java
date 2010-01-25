@@ -5,6 +5,7 @@ import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.WindowSurface;
 import com.ferox.scene.SceneElement;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -39,6 +40,7 @@ import com.ferox.util.entity.Component;
  * @see ViewNodeController
  * @author Michael Ludwig
  */
+@Indexable
 public class ViewNode extends Component {
 	private static final String DESCR = "Represents a camera location for rendering";
 	

@@ -10,9 +10,16 @@ public abstract class Component {
 	private final int typeId;
 	private final String description;
 	
+	private final boolean iterable;
+	
 	public Component(String description) {
+		this(description, true);
+	}
+	
+	public Component(String description, boolean iterable) {
 		typeId = getTypeId(getClass());
 		this.description = description;
+		this.iterable = getClass().getAnnotation(Indexable.class) != null;
 	}
 	
 	public final String getDescription() {
@@ -21,6 +28,10 @@ public abstract class Component {
 	
 	public final int getTypeId() {
 		return typeId;
+	}
+	
+	public boolean isIndexable() {
+		return iterable;
 	}
 	
 	public String toString() {

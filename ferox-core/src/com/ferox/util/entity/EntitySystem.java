@@ -8,9 +8,6 @@ import java.util.NoSuchElementException;
 
 import com.ferox.util.Bag;
 
-// FIXME: maybe allow component types to be declared indexable at runtime
-// when not indexable, a ComponentTable is not maintained and iteration
-// is performed across allList and then pruned? or no iteration is allowed??
 public final class EntitySystem implements Iterable<Entity> {
 	private int entityIdSeq;
 	
@@ -37,20 +34,27 @@ public final class EntitySystem implements Iterable<Entity> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Controller> T registerController(T controller) {
+	<T extends Controller> void registerController(T controller) {
 		if (controller == null)
 			throw new NullPointerException("Controller cannot be null");
 		
 		Class<? extends Controller> type = controller.getClass();
-		return (T) controllers.put(type, controller);
+		T old = (T) controllers.get(type);
+		if (old != null)
+			throw new IllegalArgumentException("There already exists a " + type.getSimpleName() + " within the EntitySystem");
+		else
+			controllers.put(type, controller);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Controller> T unregisterController(Class<T> type) {
+	public <T extends Controller> T removeController(Class<T> type) {
 		if (type == null)
 			throw new NullPointerException("Type cannot be null");
 		
-		return (T) controllers.remove(type);
+		T old = (T) controllers.remove(type);
+		if (old != null)
+			old.invalid = true;
+		return old;
 	}
 	
 	@Override
@@ -64,7 +68,7 @@ public final class EntitySystem implements Iterable<Entity> {
 	
 	public Iterator<Entity> iterator(int componentId) {
 		if (componentId < 0 || componentId >= componentTables.length || componentTables[componentId] == null)
-			return new NullIterator();
+			return new ComponentViewIterator(componentId);
 		else
 			return componentTables[componentId].iterator();
 	}
@@ -120,6 +124,9 @@ public final class EntitySystem implements Iterable<Entity> {
 	}
 	
 	void attach(Entity entity, Component c) {
+		if (!c.isIndexable())
+			return;
+		
 		ComponentTable table;
 
 		int type = c.getTypeId();
@@ -171,6 +178,54 @@ public final class EntitySystem implements Iterable<Entity> {
 		}
 	}
 	
+	private class ComponentViewIterator implements Iterator<Entity> {
+		private final Iterator<Entity> iterator;
+		private final int componentType;
+		
+		private Entity toReturn;
+		private Entity current;
+		
+		public ComponentViewIterator(int type) {
+			iterator = allList.iterator();
+			componentType = type;
+		}
+		
+		@Override
+		public boolean hasNext() {
+			if (toReturn == null)
+				advance();
+			return toReturn != null;
+		}
+
+		@Override
+		public Entity next() {
+			if (toReturn == null)
+				advance();
+			current = toReturn;
+			toReturn = null;
+			
+			if (current == null)
+				throw new NoSuchElementException();
+			else
+				return current;
+		}
+
+		@Override
+		public void remove() {
+			// let the iterator handle everything
+			iterator.remove();
+		}
+		
+		private void advance() {
+			toReturn = null;
+			while(iterator.hasNext()) {
+				toReturn = iterator.next();
+				if (toReturn.get(componentType) != null)
+					break;
+			}
+		}
+	}
+	
 	private static class ComponentTable implements Iterable<Entity> {
 		final int typeId;
 		final Bag<Entity> entities;
@@ -210,23 +265,6 @@ public final class EntitySystem implements Iterable<Entity> {
 				iterator.remove();
 				current.detach(typeId);
 			}
-		}
-	}
-	
-	private static class NullIterator implements Iterator<Entity> {
-		@Override
-		public boolean hasNext() {
-			return false;
-		}
-
-		@Override
-		public Entity next() {
-			throw new NoSuchElementException();
-		}
-
-		@Override
-		public void remove() {
-			throw new IllegalStateException();
 		}
 	}
 }

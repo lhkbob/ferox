@@ -14,7 +14,7 @@ public class TexturedMaterial extends Component {
 	}
 	
 	public TexturedMaterial(TextureImage primary, TextureImage decal) {
-		super(DESCR);
+		super(DESCR, false);
 		
 		setPrimaryTexture(primary);
 		setDecalTexture(decal);

@@ -33,7 +33,7 @@ public class BlinnPhongLightingModel extends Component {
 	}
 	
 	public BlinnPhongLightingModel(Color4f ambient, Color4f diffuse, Color4f specular, float shininess) {
-		super(DESCR);
+		super(DESCR, false);
 		
 		this.ambient = new Color4f();
 		this.diffuse = new Color4f();

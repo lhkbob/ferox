@@ -9,7 +9,7 @@ public class SolidLightingModel extends Component {
 	private final Color4f color;
 	
 	public SolidLightingModel(Color4f color) {
-		super(DESCR);
+		super(DESCR, false);
 		this.color = new Color4f();
 		setColor(color);
 	}

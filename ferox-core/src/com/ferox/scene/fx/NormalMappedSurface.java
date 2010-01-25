@@ -9,7 +9,7 @@ public class NormalMappedSurface extends Component {
 	private TextureImage normalMap;
 	
 	public NormalMappedSurface(TextureImage normalMap) {
-		super(DESCR);
+		super(DESCR, false);
 		setNormalMap(normalMap);
 	}
 	

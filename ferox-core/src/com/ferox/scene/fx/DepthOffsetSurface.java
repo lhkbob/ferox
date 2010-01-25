@@ -9,7 +9,7 @@ public class DepthOffsetSurface extends Component {
 	private TextureImage depthMap;
 	
 	public DepthOffsetSurface(TextureImage depthmap) {
-		super(DESCR);
+		super(DESCR, false);
 		setDepthMap(depthMap);
 	}
 	

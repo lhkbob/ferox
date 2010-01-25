@@ -36,7 +36,7 @@ public class Shape extends Component {
 	 * @throws NullPointerException if geom is null
 	 */
 	public Shape(Geometry geom) {
-		super(DESCR);
+		super(DESCR, false);
 		setGeometry(geom);
 	}
 

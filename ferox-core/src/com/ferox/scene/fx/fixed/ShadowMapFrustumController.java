@@ -78,6 +78,8 @@ public class ShadowMapFrustumController extends Controller {
 
 	@Override
 	public void process() {
+		validate();
+		
 		SceneController scene = system.getController(SceneController.class);
 		
 		Map<ViewNode, LightAndFrustum> newLights = new HashMap<ViewNode, LightAndFrustum>();

@@ -72,9 +72,24 @@ public class ViewNodeController extends Controller {
 			throw new NullPointerException("Frustum cannot be null");
 		return visibilitySets.get(frustum);
 	}
-	
+
+	/**
+	 * Overridden to perform the following operations:
+	 * <ol>
+	 * <li>Update all ViewNodes to reflect their attached SceneElements, if
+	 * possible.</li>
+	 * <li>Update the ViewNodes' projections to match dimension changes, if
+	 * necessary.</li>
+	 * <li>Compute the visibility sets for each ViewNode in the system.</li>
+	 * </ol>
+	 * 
+	 * @throws IllegalStateException if the controller is no longer part of its
+	 *             system
+	 */
 	@Override
 	public void process() {
+		validate();
+		
 		Iterator<Entity> it = system.iterator(VN_ID);
 		
 		Map<Frustum, Bag<Entity>> pvs = new HashMap<Frustum, Bag<Entity>>();

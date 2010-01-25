@@ -2,6 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Vector3f;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -39,6 +40,7 @@ import com.ferox.util.entity.Component;
  * 
  * @author Michael Ludwig
  */
+@Indexable
 public class DirectedLight extends Component {
 	private static final String DESCR = "Modifies behavior of Light by adding direction to the light source";
 	

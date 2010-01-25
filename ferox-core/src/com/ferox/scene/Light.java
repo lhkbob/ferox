@@ -3,6 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.Color4f;
 import com.ferox.scene.fx.ShadowCaster;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -37,6 +38,7 @@ import com.ferox.util.entity.Component;
  * 
  * @author Michael Ludwig
  */
+@Indexable
 public class Light extends Component {
 	private static final String DESCR = "Adds light to rendered entities in a scene";
 	

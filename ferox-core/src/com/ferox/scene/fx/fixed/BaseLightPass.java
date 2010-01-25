@@ -1,13 +1,13 @@
 package com.ferox.scene.fx.fixed;
 
-import com.ferox.renderer.RenderPass;
-import com.ferox.renderer.RenderSurface;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.FixedFunctionRenderer;
 
-public class BaseLightPass implements RenderPass {
+public class BaseLightPass extends AbstractFfpRenderPass {
+
 	@Override
-	public void render(Renderer renderer, RenderSurface surface) {
+	protected void render(FixedFunctionRenderer renderer) {
 		// TODO Auto-generated method stub
 		
 	}
+	
 }

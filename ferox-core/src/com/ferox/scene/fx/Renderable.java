@@ -2,7 +2,9 @@ package com.ferox.scene.fx;
 
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Indexable;
 
+@Indexable
 public class Renderable extends Component {
 	private static final String DESCR = "Declares that an Entity should be rendered";
 	

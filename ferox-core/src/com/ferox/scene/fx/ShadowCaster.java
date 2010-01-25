@@ -20,6 +20,6 @@ public class ShadowCaster extends Component {
 	 * component, only one instance is necessary.
 	 */
 	public ShadowCaster() {
-		super(DESCR);
+		super(DESCR, false);
 	}
 }

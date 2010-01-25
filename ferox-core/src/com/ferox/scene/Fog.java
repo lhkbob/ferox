@@ -3,6 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.Color4f;
 import com.ferox.scene.fx.Shape;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -28,6 +29,7 @@ import com.ferox.util.entity.Component;
  * 
  * @author Michael Ludwig
  */
+@Indexable
 public class Fog extends Component {
 	private static final String DESCR = "Adds fog to a rendered scene";
 
