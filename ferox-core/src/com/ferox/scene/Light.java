@@ -43,10 +43,11 @@ public class Light extends Component {
 	private static final String DESCR = "Adds light to rendered entities in a scene";
 	
 	private final Color4f color;
-	// FIXME: add intensity, or other form of light descriptor that modifies final colors sent to opengl?
+	private float intensity;
 
 	/**
-	 * Create a new Light component using the given color.
+	 * Create a new Light component using the given color. The initial
+	 * intensity is 0.5.
 	 * 
 	 * @param color The color passed to {@link #setColor(Color4f)}
 	 * @throws NullPointerException if color is null
@@ -56,6 +57,42 @@ public class Light extends Component {
 		this.color = new Color4f();
 		
 		setColor(color);
+		setIntensity(.5f);
+	}
+	
+	/**
+	 * Set the Light's intensity.  The intensity of a light controls
+	 * how bright its specular highlights are, and how rapidly its
+	 * energy falls off with distance.  A value of 0 signals a very dim
+	 * light.  There is no maximum value, which can be used to create very
+	 * bright lights within HDR capable scenes. A value of 1 represents
+	 * the highest LDR brightness.</p>
+	 * <p>The intensity of the a Light may cause its color to appear
+	 * darker or brighter than float values in the Color4f instance.
+	 * For example a dim white light may appear equivalent to a gray
+	 * bright light, excluding the energy falloff.</p>
+	 * <p>Because of the nature of current rendering hardware, this
+	 * intensity must be translated into approximated depth attenuation
+	 * and into a specular exponent.  The exact details of this are
+	 * not specified here, but it should follow the pattern that a higher
+	 * intensity generates a brighter light.</p>
+	 * @param intensity The light's intensity
+	 * @throws IllegalArgumentException if intensity < 0
+	 */
+	public void setIntensity(float intensity) {
+		if (intensity < 0f)
+			throw new IllegalArgumentException("Intensity must >= 0, not: " + intensity);
+		this.intensity = intensity;
+	}
+
+	/**
+	 * Return the Light's current intensity. See {@link #setIntensity(float)}
+	 * for details.
+	 * 
+	 * @return The light intensity
+	 */
+	public float getIntensity() {
+		return intensity;
 	}
 
 	/**

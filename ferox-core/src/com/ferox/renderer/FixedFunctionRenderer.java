@@ -1053,8 +1053,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * <ol>
 	 * <li>The normal name at the time of rendering cannot be null</li>
 	 * <li>The Geometry must have an attribute with the given name</li>
-	 * <li>The attribute must have an element size of 3
-	 * <li>
+	 * <li>The attribute must have an element size of 3</li>
 	 * </ol>
 	 * When a Geometry is rendered without normals, an undetermined normal is
 	 * used for computing the lighting effects. Thus it is not necessary to

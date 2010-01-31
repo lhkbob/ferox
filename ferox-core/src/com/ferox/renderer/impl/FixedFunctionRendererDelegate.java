@@ -182,6 +182,7 @@ public abstract class FixedFunctionRendererDelegate {
 	
 	// matrix
 	protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
+	private Matrix4f dirtyModelView = null; // last set model view that hasn't been sent yet
 
 	/**
 	 * Create a FixedFunctionRendererDelegate that is configured to use the given
@@ -217,9 +218,14 @@ public abstract class FixedFunctionRendererDelegate {
 
 	/**
 	 * Perform identical operations to {@link Renderer#render(Geometry)}, except
-	 * within the fixed-function context.
+	 * within the fixed-function context. Subclasses should override this, but
+	 * must be sure to call super.render(geom) before performing their
+	 * operations.
 	 */
-	public abstract int render(Geometry geom);
+	public int render(Geometry geom) {
+		flushModelView();
+		return 0;
+	}
 	
 	public void reset() {
 		setModelViewMatrix(null);
@@ -306,9 +312,7 @@ public abstract class FixedFunctionRendererDelegate {
 	public void setModelViewMatrix(Matrix4f matrix) {
 		if (matrix == null)
 			matrix = IDENTITY;
-		
-		setMatrixMode(MatrixMode.MODELVIEW);
-		glSetMatrix(matrix);
+		dirtyModelView = matrix;
 	}
 	
 	/**
@@ -325,6 +329,14 @@ public abstract class FixedFunctionRendererDelegate {
 		if (matrixMode != mode) {
 			matrixMode = mode;
 			glMatrixMode(mode);
+		}
+	}
+	
+	private void flushModelView() {
+		if (dirtyModelView != null) {
+			setMatrixMode(MatrixMode.MODELVIEW);
+			glSetMatrix(dirtyModelView);
+			dirtyModelView = null;
 		}
 	}
 	
@@ -492,6 +504,7 @@ public abstract class FixedFunctionRendererDelegate {
 		// always set the light position since pos will be transformed by
 		// the current matrix
 		lights[light].modifiedSinceReset = true;
+		flushModelView();
 		glLightPosition(light, pos);
 	}
 	
@@ -517,6 +530,7 @@ public abstract class FixedFunctionRendererDelegate {
 		// always set the spotlight direction since it will be transformed
 		// by the current matrix
 		l.modifiedSinceReset = true;
+		flushModelView();
 		glLightDirection(light, dir);
 	}
 	
@@ -947,6 +961,7 @@ public abstract class FixedFunctionRendererDelegate {
 			throw new NullPointerException("TexCoord cannot be null");
 		
 		// always send plane
+		flushModelView();
 		textures[tex].modifiedSinceReset = true;
 
 		setTextureUnit(tex);

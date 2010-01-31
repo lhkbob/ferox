@@ -11,7 +11,6 @@ public final class Entity implements Iterable<Component> {
 	private boolean valid;
 	
 	private Component[] components;
-	private int componentHash;
 	
 	Entity(EntitySystem owner, int id) {
 		this.owner = owner;
@@ -31,7 +30,6 @@ public final class Entity implements Iterable<Component> {
 		components[type] = c;
 		
 		owner.attach(this, c);
-		recomputeHash();
 	}
 	
 	public Component remove(int type) {
@@ -42,7 +40,6 @@ public final class Entity implements Iterable<Component> {
 				owner.detach(this, old);
 			}
 			
-			recomputeHash();
 			return old;
 		} else
 			return null;
@@ -79,10 +76,6 @@ public final class Entity implements Iterable<Component> {
 		return valid;
 	}
 	
-	public int getComponentHash() {
-		return componentHash;
-	}
-	
 	@Override
 	public Iterator<Component> iterator() {
 		return new ComponentIterator();
@@ -99,15 +92,6 @@ public final class Entity implements Iterable<Component> {
 			return true;
 		} else
 			return false;
-	}
-	
-	private void recomputeHash() {
-		int hash = 17;
-		for (int i = 0; i < components.length; i++) {
-			if (components[i] != null)
-				hash = 37 * hash + System.identityHashCode(components[i]);
-		}
-		componentHash = hash;
 	}
 	
 	private class ComponentIterator implements Iterator<Component> {

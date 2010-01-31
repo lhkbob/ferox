@@ -13,6 +13,7 @@ import com.ferox.scene.DirectedLight;
 import com.ferox.scene.Light;
 import com.ferox.scene.SceneController;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.fx.ShadowCaster;
 import com.ferox.scene.fx.ViewNode;
 import com.ferox.util.Bag;
 import com.ferox.util.entity.Component;
@@ -25,6 +26,7 @@ public class ShadowMapFrustumController extends Controller {
 	private static final int DR_ID = Component.getTypeId(DirectedLight.class);
 	private static final int SE_ID = Component.getTypeId(SceneElement.class);
 	private static final int VN_ID = Component.getTypeId(ViewNode.class);
+	private static final int SC_ID = Component.getTypeId(ShadowCaster.class);
 	
 	private float maxDistance;
 	private float focusDistance;
@@ -221,7 +223,7 @@ public class ShadowMapFrustumController extends Controller {
 		Iterator<Entity> it = system.iterator(DR_ID);
 		while(it.hasNext()) {
 			l = it.next();
-			if (l.get(LT_ID) != null) {
+			if (l.get(LT_ID) != null && l.get(SC_ID) != null) {
 				w = calculateLightWeight(l, l == oldLight, view);
 				if (w > weight) {
 					node = l;

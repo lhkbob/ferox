@@ -139,7 +139,7 @@ public interface Renderer {
 		/**
 		 * ADD blends the two colors together by adding their scaled components
 		 * together:<br>
-		 * fC = sC * bS + dC + bD
+		 * fC = sC * bS + dC * bD
 		 */
 		ADD,
 		/**

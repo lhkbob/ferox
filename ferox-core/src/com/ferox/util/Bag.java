@@ -113,8 +113,8 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 			throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
 		
 		Object e = elements[index];
-		elements[index] = elements[size];
-		elements[size--] = null;
+		elements[index] = elements[--size];
+		elements[size] = null;
 		
 		return (E) e;
 	}
@@ -375,24 +375,28 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 		if (a == null)
 			throw new NullPointerException("Array cannot be null");
 		
-		if (a.length != size)
+		if (a.length < size)
 			a = (T[]) Array.newInstance(a.getClass().getComponentType(), size);
 		System.arraycopy(elements, 0, a, 0, size);
+		if (a.length > size)
+			a[size] = null;
 		return a;
 	}
 	
 	private class BagIterator implements Iterator<E> {
 		private int index;
 		private E element;
+		private boolean removed;
 		
 		public BagIterator() {
-			index = -1;
+			index = 0;
 			element = null;
+			removed = false;
 		}
 		
 		@Override
 		public boolean hasNext() {
-			return index < size - 1;
+			return index < size;
 		}
 
 		@Override
@@ -400,7 +404,7 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 			if (!hasNext())
 				throw new NoSuchElementException();
 			
-			if (elements[index] == element) {
+			if (index < 0 || elements[index] == element) {
 				// no element was removed, so advance the index
 				element = elements[index++];
 			} else {
@@ -408,6 +412,7 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 				element = elements[index];
 			}
 			
+			removed = false;
 			return element;
 		}
 
@@ -415,10 +420,11 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 		public void remove() {
 			if (index < 0)
 				throw new IllegalStateException("Must call next() before first calling remove()");
-			if (index >= size || element != elements[index])
+			if (index >= size || element != elements[index] || removed)
 				throw new IllegalStateException("Element already removed");
 			
 			Bag.this.remove(index);
+			removed = true;
 		}
 	}
 }

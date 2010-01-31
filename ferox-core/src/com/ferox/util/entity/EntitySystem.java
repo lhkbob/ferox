@@ -11,6 +11,7 @@ import com.ferox.util.Bag;
 public final class EntitySystem implements Iterable<Entity> {
 	private int entityIdSeq;
 	
+	private int[] componentCounts;
 	private ComponentTable[] componentTables;
 	private final Bag<Entity> allList;
 	
@@ -19,6 +20,7 @@ public final class EntitySystem implements Iterable<Entity> {
 	public EntitySystem() {
 		entityIdSeq = 0;
 		
+		componentCounts = new int[8];
 		componentTables = new ComponentTable[8];
 		allList = new Bag<Entity>();
 		
@@ -67,9 +69,12 @@ public final class EntitySystem implements Iterable<Entity> {
 	}
 	
 	public Iterator<Entity> iterator(int componentId) {
-		if (componentId < 0 || componentId >= componentTables.length || componentTables[componentId] == null)
-			return new ComponentViewIterator(componentId);
-		else
+		if (componentId < 0 || componentId >= componentTables.length || componentTables[componentId] == null) {
+			if (componentId >= 0 && componentId < componentCounts.length && componentCounts[componentId] > 0)
+				return new ComponentViewIterator(componentId);
+			else
+				return new NullIterator();
+		} else
 			return componentTables[componentId].iterator();
 	}
 	
@@ -124,27 +129,37 @@ public final class EntitySystem implements Iterable<Entity> {
 	}
 	
 	void attach(Entity entity, Component c) {
-		if (!c.isIndexable())
-			return;
-		
-		ComponentTable table;
-
+		// update component counts
 		int type = c.getTypeId();
-		if (type >= componentTables.length) {
-			// need a new component table
-			table = new ComponentTable(type);
-			componentTables = Arrays.copyOf(componentTables, type + 1);
-			componentTables[type] = table;
-		} else 
-			table = componentTables[type];
+		if (type >= componentCounts.length)
+			componentCounts = Arrays.copyOf(componentCounts, type + 1);
+		componentCounts[type]++;
 		
-		table.entities.add(entity);
+		if (c.isIndexable()) {
+			// add to the component table, too
+			ComponentTable table;
+			if (type >= componentTables.length || componentTables[type] == null) {
+				// need a new component table
+				table = new ComponentTable(type);
+				if (type >= componentTables.length)
+					componentTables = Arrays.copyOf(componentTables, type + 1);
+				componentTables[type] = table;
+			} else 
+				table = componentTables[type];
+
+			table.entities.add(entity);
+		}
 	}
 	
 	void detach(Entity entity, Component c) {
 		int type = c.getTypeId();
-		if (type > 0 && type < componentTables.length && componentTables[type] != null)
-			componentTables[type].entities.remove(entity);
+		if (type < componentCounts.length)
+			componentCounts[type] = Math.max(0, componentCounts[type] - 1);
+		
+		if (c.isIndexable()) {
+			if (type < componentTables.length && componentTables[type] != null)
+				componentTables[type].entities.remove(entity);
+		}
 	}
 	
 	/* Iterator that iterates over all entities in the system */
@@ -178,6 +193,8 @@ public final class EntitySystem implements Iterable<Entity> {
 		}
 	}
 	
+	/* Iterator that iterates over all entities, but only returns those that
+	 * match a certain type. */
 	private class ComponentViewIterator implements Iterator<Entity> {
 		private final Iterator<Entity> iterator;
 		private final int componentType;
@@ -222,7 +239,26 @@ public final class EntitySystem implements Iterable<Entity> {
 				toReturn = iterator.next();
 				if (toReturn.get(componentType) != null)
 					break;
+				else
+					toReturn = null; // clear it
 			}
+		}
+	}
+	
+	private static class NullIterator implements Iterator<Entity> {
+		@Override
+		public boolean hasNext() {
+			return false;
+		}
+
+		@Override
+		public Entity next() {
+			throw new NoSuchElementException();
+		}
+
+		@Override
+		public void remove() {
+			throw new IllegalStateException();
 		}
 	}
 	
