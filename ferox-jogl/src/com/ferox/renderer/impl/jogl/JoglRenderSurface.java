@@ -150,6 +150,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface {
 				renderedOnce = true;
 			}
 			
+			JoglContext.getCurrent().getGL().glViewport(0, 0, getWidth(), getHeight());
 			preRender();
 		}
 	}

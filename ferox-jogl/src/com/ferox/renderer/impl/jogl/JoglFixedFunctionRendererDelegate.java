@@ -1,8 +1,5 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
@@ -36,8 +33,6 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * @author Michael Ludwig
  */
 public final class JoglFixedFunctionRendererDelegate extends FixedFunctionRendererDelegate {
-	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
-	
 	private final JoglContext context;
 	private final JoglResourceManager resManager;
 	
@@ -446,6 +441,7 @@ public final class JoglFixedFunctionRendererDelegate extends FixedFunctionRender
 		
 		ResourceHandle handle = resManager.getHandle(geom);
 		if (handle.getStatus() == Status.READY) {
+			super.render(geom);
 			return renderImpl((GeometryHandle) handle);
 		} else
 			return 0;
@@ -458,9 +454,9 @@ public final class JoglFixedFunctionRendererDelegate extends FixedFunctionRender
 		VertexArray vertices = getVertexArray(handle, vertexBinding);
 		if (vertices == null || vertices.elementSize == 1)
 			return 0; // can't use this va as vertices
-		log.log(Level.FINEST, "Rendering geometry with " + handle.polyCount + " polygons");
 
 		boolean useVbos = handle.compile != CompileType.NONE;
+		int vertexCount = (useVbos ? vertices.vboLen / (4 * vertices.elementSize) : vertices.buffer.capacity() / vertices.elementSize);
 		
 		// BoundObjectState takes care of the same id for us
 		if (lastGeometry != handle || lastGeometryVersion != handle.version) {
@@ -530,6 +526,7 @@ public final class JoglFixedFunctionRendererDelegate extends FixedFunctionRender
 		
 		lastGeometry = handle;
 		lastGeometryVersion = handle.version;
+		context.getCurrentStatistics().add(1, vertexCount, handle.polyCount);
 		return handle.polyCount;
 	}
 	

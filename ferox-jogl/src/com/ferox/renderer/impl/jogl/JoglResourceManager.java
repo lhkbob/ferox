@@ -131,6 +131,7 @@ public class JoglResourceManager implements ResourceManager {
 			if (driver == null)
 				throw new UnsupportedResourceException("Resource type: " + resource.getClass());
 			
+			Sync<Status> forceSync = null;
 			log.log(Level.FINE, "getHandle() request must block for potential update", resource);
 			// something is going on, so check everything
 			synchronized(pendingTasks) {
@@ -142,7 +143,7 @@ public class JoglResourceManager implements ResourceManager {
 					setResourceData(resource, rd);
 					
 					UpdateTask ut = new UpdateTask(resource, null);
-					synchronizeUpdate(new Sync<Status>(ut));
+					forceSync = new Sync<Status>(ut);
 				} else if (rd.queuedTask instanceof UpdateTask) {
 					// merge the dirty states
 					UpdateTask ut = (UpdateTask) rd.queuedTask;
@@ -150,7 +151,7 @@ public class JoglResourceManager implements ResourceManager {
 						ut.dirtyState = merge(ds, ut.dirtyState);
 					
 					pendingTasks.remove(rd.queuedSync);
-					synchronizeUpdate((Sync<Status>) rd.queuedSync);
+					forceSync = (Sync<Status>) rd.queuedSync;
 				} else if (rd.queuedTask instanceof DisposeTask) {
 					// cleanup is still pending, so return null so we don't get
 					// a destroyed resource bound to some other context
@@ -158,32 +159,37 @@ public class JoglResourceManager implements ResourceManager {
 				} else if (ds != null) {
 					// perform an update to get the new dirty state 
 					UpdateTask ut = new UpdateTask(resource, ds);
-					synchronizeUpdate(new Sync<Status>(ut));
+					forceSync = new Sync<Status>(ut);
+				}
+				
+				if (forceSync != null) {
+					if (JoglContext.getCurrent() == framework.getShadowContext()) {
+						forceSync.run();
+						forceSync = null; // null this so we don't wait later on
+					} else {
+						pendingTasks.addFirst(forceSync);
+						pendingTasks.notifyAll();
+					}
+				}
+				// release monitor
+			}
+			
+			// wait until it's completed
+			if (forceSync != null) {
+				synchronized(updateLock) {
+					try {
+						while(!forceSync.isDone())
+							updateLock.wait();
+					} catch (InterruptedException ie) {
+						log.log(Level.SEVERE, "Interrupted while waiting for ResourceHandle", ie);
+						throw new RenderInterruptedException("Interrupted while waiting for Resource", ie);
+					}
 				}
 			}
 		}
 		
 		// if we're lucky we didn't have to synchronize
 		return (rd.handle.getStatus() == Status.READY ? rd.handle : null);
-	}
-	
-	// assumes that pendingTasks is already locked
-	private void synchronizeUpdate(Sync<Status> updateSync) {
-		if (JoglContext.getCurrent() == framework.getShadowContext()) {
-			updateSync.run();
-		} else {
-			pendingTasks.addFirst(updateSync);
-			pendingTasks.notifyAll();
-			try {
-				synchronized(updateLock) {
-					while(!updateSync.isDone())
-						updateLock.wait();
-				}
-			} catch(InterruptedException ie) {
-				log.log(Level.SEVERE, "Interrupted while waiting for ResourceHandle", ie);
-				throw new RenderInterruptedException("Interrupted while waiting for Resource", ie);
-			}
-		}
 	}
 
 	@Override
@@ -389,6 +395,9 @@ public class JoglResourceManager implements ResourceManager {
 						
 						Sync<?> sync = pendingTasks.removeFirst();
 						framework.getShadowContext().runSync(sync);
+						synchronized(updateLock) {
+							updateLock.notifyAll(); // wake-up any thread blocking on getHandle()
+						}
 					}
 				} catch(InterruptedException ie) {
 					// do nothing
@@ -475,10 +484,7 @@ public class JoglResourceManager implements ResourceManager {
 			}
 
 			Status status = handle.getStatus();
-			synchronized(updateLock) {
-				updateLock.notifyAll(); // wake-up any thread blocking on getHandle()
-			}
-			log.log(Level.INFO, "Update complete for " + toUpdate.getClass().getSimpleName() + ":" + toUpdate.getId() + " in " + (System.currentTimeMillis() - now) + " ms");
+			log.log(Level.INFO, "Update complete for " + toUpdate.getClass().getSimpleName() + ":" + toUpdate.getId() + " (" + status + ") in " + (System.currentTimeMillis() - now) + " ms");
 			return status;
 		}
 	}

@@ -42,7 +42,7 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
 								  JoglTextureSurface surface, TextureTarget colorTarget, 
 								  TextureTarget depthTarget, int width, int height, 
 								  TextureImage color, TextureImage depth, boolean useDepthRenderBuffer) {
-		super(options, colorTarget, depthTarget, width, height, new TextureImage[] { color }, depth);
+		super(options, colorTarget, depthTarget, width, height, (color == null ? null : new TextureImage[] { color }), depth);
 		this.framework = framework;
 		
 		GLCapabilities caps = chooseCapabilities(options, framework.getGLProfile(), useDepthRenderBuffer);

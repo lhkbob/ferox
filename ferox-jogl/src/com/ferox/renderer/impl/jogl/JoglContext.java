@@ -15,6 +15,7 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
+import javax.media.opengl.glu.GLU;
 
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.RenderException;
@@ -226,7 +227,11 @@ public class JoglContext implements Context {
 					throw new RenderInterruptedException();
 			}
 			
-			getGL().glFlush();
+			GL2GL3 gl = getGL();
+			gl.glFlush();
+			int error = gl.glGetError();
+			if (error != 0)
+				throw new RenderException("OpenGL error reported while rendering: " + error + " " + new GLU().gluErrorString(error));
 		} catch (RuntimeException t) {
 			// clean up surface state
 			if (!destroyed && lastSurface != null && a != lastSurface.getPostRenderAction())
