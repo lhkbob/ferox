@@ -14,11 +14,6 @@ import com.ferox.util.Bag;
 import com.ferox.util.geom.Box;
 
 public abstract class AbstractFfpRenderPass implements RenderPass {
-	protected static Matrix4f convertHand = new Matrix4f(-1f, 0f, 0f, 0f,
-														  0f, 1f, 0f, 0f,
-														  0f, 0f,-1f, 0f,
-														  0f, 0f, 0f, 1f);
-	
 	// constant configuration variables
 	private final String vertexBinding;
 	private final String normalBinding;
@@ -111,7 +106,7 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		
 		// get matrix forms from the frustum
 		frustum.getProjectionMatrix(projection);
-		convertHand.mul(frustum.getViewMatrix(view), view); // switches z-axis
+		frustum.getViewMatrix(view);
 		
 		// set projection matrix and view matrices on renderer
 		renderer.setProjectionMatrix(projection);
@@ -122,7 +117,9 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		// set draw mode
 		renderer.setDrawStyle(atom.front, atom.back);
 		
-		// set material color
+		// set materials
+		renderer.setLightingEnabled(atom.lit);
+		renderer.setMaterialShininess(atom.shininess);
 		renderer.setMaterial(atom.ambient, atom.diffuse, atom.specular, black);
 		
 		// set textures
@@ -197,6 +194,9 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 			// direction light
 			lightPos.set(-atom.direction.x, -atom.direction.y, -atom.direction.z, 0f);
 			renderer.setLightPosition(light, lightPos);
+		} else {
+			// ambient light, which doesn't really use an index, so disable it
+			renderer.setLightEnabled(light, false);
 		}
 	}
 	
@@ -210,14 +210,11 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 				// no specular and slightly dimmed
 				dimmedLight.set(.1f * atom.diffuse.getRed(), .1f * atom.diffuse.getGreen(), .1f * atom.diffuse.getBlue(), 1f);
 				dimmedAmbient.set(.2f * atom.diffuse.getRed(), .2f * atom.diffuse.getGreen(), .2f * atom.diffuse.getBlue(), 1f);
-				renderer.setLightColor(light, dimmedAmbient, dimmedLight, black);
-				renderer.setMaterialShininess(0f);
+				renderer.setLightColor(light, black, dimmedLight, black);
 			} else {
+				// set colors as is, but leave out the ambient
 				renderer.setLightColor(light, black, atom.diffuse, atom.specular);
-				renderer.setMaterialShininess(atom.specularExponent);
 			}
-			
-			renderer.setLightAttenuation(light, atom.constAtt, atom.linAtt, atom.quadAtt);
 		}
 	}
 	

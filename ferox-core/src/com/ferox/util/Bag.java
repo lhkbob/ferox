@@ -404,7 +404,7 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 			if (!hasNext())
 				throw new NoSuchElementException();
 			
-			if (index < 0 || elements[index] == element) {
+			if (index == 0 || elements[index - 1] == element) {
 				// no element was removed, so advance the index
 				element = elements[index++];
 			} else {
@@ -418,7 +418,7 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 
 		@Override
 		public void remove() {
-			if (index < 0)
+			if (index == 0)
 				throw new IllegalStateException("Must call next() before first calling remove()");
 			if (index >= size || element != elements[index] || removed)
 				throw new IllegalStateException("Element already removed");

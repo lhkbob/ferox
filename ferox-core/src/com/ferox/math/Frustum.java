@@ -84,6 +84,7 @@ public class Frustum {
 	 */
 	public Frustum(boolean ortho, float fl, float fr, float fb, float ft, float fn, float ff) {
 		this();
+		setOrthogonalProjection(ortho);
 		setFrustum(fl, fr, fb, ft, fn, ff);
 	}
 	
@@ -343,30 +344,16 @@ public class Frustum {
 		if (view == null)
 			view = new Matrix4f();
 		
-		Vector3f left = up.normalize().cross(direction, Frustum.p.get()).normalize();
-		direction.normalize().cross(left, up);
+		// FIXME: reuse vectors
+		Vector3f n = direction.scale(-1f, null).normalize();
+		Vector3f u = up.normalize().cross(n, null);
+		Vector3f v = n.cross(u, null);
 		
-		view.m00 = left.x;
-		view.m10 = left.y;
-		view.m20 = left.z;
-		view.m30 = 0f;
-		
-		view.m01 = up.x;
-		view.m11 = up.y;
-		view.m21 = up.z;
-		view.m31 = 0f;
-		
-		view.m02 = direction.x;
-		view.m12 = direction.y;
-		view.m22 = direction.z;
-		view.m32 = 0f;
-		
-		view.m03 = location.x;
-		view.m13 = location.y;
-		view.m23 = location.z;
-		view.m33 = 1f;
-		
-		view.inverse();
+		view.m00 = u.x; view.m01 = u.y; view.m02 = u.z; view.m03 = -location.dot(u);
+		view.m10 = v.x; view.m11 = v.y; view.m12 = v.z; view.m13 = -location.dot(v);
+		view.m20 = n.x; view.m21 = n.y; view.m22 = n.z; view.m23 = -location.dot(n);
+		view.m30 = 0f; view.m31 = 0f; view.m32 = 0f; view.m33 = 1f;
+
 		return view;
 	}
 

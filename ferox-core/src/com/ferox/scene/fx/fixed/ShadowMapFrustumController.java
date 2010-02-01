@@ -97,10 +97,12 @@ public class ShadowMapFrustumController extends Controller {
 				lf = new LightAndFrustum();
 			
 			lf.light = chooseLight(viewNode.getFrustum(), lf.light);
-			updateLightFrustum(viewNode.getFrustum(), lf);
-			if (scene != null)
-				computeVisibility(scene, lf.lightFrustum, pvs);
-
+			if (lf.light != null) {
+				updateLightFrustum(viewNode.getFrustum(), lf);
+				if (scene != null)
+					computeVisibility(scene, lf.lightFrustum, pvs);
+			}
+			
 			newLights.put(viewNode, lf);
 		}
 		
@@ -110,7 +112,7 @@ public class ShadowMapFrustumController extends Controller {
 	
 	private void computeVisibility(SceneController scene, Frustum f, Map<Frustum, Bag<Entity>> pvs) {
 		Bag<Entity> result = visibleEntities.get(f);
-		if (f == null)
+		if (result == null)
 			result = new Bag<Entity>();
 		
 		scene.query(f, result);
@@ -206,6 +208,7 @@ public class ShadowMapFrustumController extends Controller {
 		Vector3f p = lightView.getLocation().set((minF.x + maxF.x) / 2f, (minF.y + maxF.y) / 2f, minF.z);
 		lightView.setOrthogonalProjection(true);
 		lightView.setFrustum(minF.x - p.x, maxF.x - p.x, minF.y - p.y, maxF.y - p.y, 0, maxF.z - p.z);
+		// FIXME: work for spotlights, too
 		
 		// transform lightView's position back into world space
 		l.mul(p).add(camCenter).add(cf.getLocation());

@@ -159,15 +159,19 @@ public abstract class TextureImage extends Resource {
 			throw new IllegalArgumentException("EffectType and format are not valid: " + format + " " + type);
 		this.format = format;
 		this.type = type;
+		
+		// can't use setters since they flag it as dirty
+		this.anisoLevel = 0f;
 
-		setFilter(filter);
-		setWrapSTR(wrapAll);
-		setDepthMode(depthMode);
-		setDepthCompareTest(depthTest);
-		setDepthCompareEnabled(false);
-		setAnisotropicFiltering(0f);
+		this.filter = (filter == null ? DEFAULT_FILTER : filter);
+		this.wrapR = (wrapAll == null ? DEFAULT_TEX_WRAP : wrapAll);
+		this.wrapS = (wrapAll == null ? DEFAULT_TEX_WRAP : wrapAll);
+		this.wrapT = (wrapAll == null ? DEFAULT_TEX_WRAP : wrapAll);
+		this.depthMode = (depthMode == null ? DEFAULT_DEPTHMODE : depthMode);
+		this.depthCompareTest = (depthTest == null ? DEFAULT_DEPTHTEST : depthTest);
+		this.enableDepthCompare = false;
 	}
-
+	
 	/**
 	 * Get the ratio of anisotropic filtering to apply on the image (from 0 to
 	 * 1).
@@ -191,6 +195,7 @@ public abstract class TextureImage extends Resource {
 		if (level < 0f || level > 1f)
 			throw new IllegalArgumentException("Invalid range for anisotropic filtering");
 		anisoLevel = level;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -234,6 +239,7 @@ public abstract class TextureImage extends Resource {
 		if (wrapS == null)
 			wrapS = DEFAULT_TEX_WRAP;
 		this.wrapS = wrapS;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -257,6 +263,7 @@ public abstract class TextureImage extends Resource {
 		if (wrapT == null)
 			wrapT = DEFAULT_TEX_WRAP;
 		this.wrapT = wrapT;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -280,6 +287,7 @@ public abstract class TextureImage extends Resource {
 		if (wrapR == null)
 			wrapR = DEFAULT_TEX_WRAP;
 		this.wrapR = wrapR;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -339,6 +347,7 @@ public abstract class TextureImage extends Resource {
 			filter = DEFAULT_FILTER;
 
 		this.filter = filter;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -361,6 +370,7 @@ public abstract class TextureImage extends Resource {
 		if (depthMode == null)
 			depthMode = DEFAULT_DEPTHMODE;
 		this.depthMode = depthMode;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -382,6 +392,7 @@ public abstract class TextureImage extends Resource {
 		if (depthCompareTest == null)
 			depthCompareTest = DEFAULT_DEPTHTEST;
 		this.depthCompareTest = depthCompareTest;
+		setTextureParametersDirty();
 	}
 
 	/**
@@ -405,6 +416,7 @@ public abstract class TextureImage extends Resource {
 	 */
 	public void setDepthCompareEnabled(boolean enableDepthCompare) {
 		this.enableDepthCompare = enableDepthCompare;
+		setTextureParametersDirty();
 	}
 
 	/**

@@ -15,10 +15,4 @@ public class LightAtom {
 
 	public Vector3f direction;
 	public float cutoffAngle;
-	
-	public float constAtt;
-	public float linAtt;
-	public float quadAtt;
-	
-	public float specularExponent;
 }

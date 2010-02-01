@@ -14,7 +14,7 @@ public class ShadowMapPass extends AbstractFfpRenderPass {
 		ffp.setColorWriteMask(false, false, false, false);
 		ffp.setDrawStyle(DrawStyle.NONE, DrawStyle.SOLID);
 		// move everything backwards slightly to fix for floating errors
-		ffp.setDepthOffsets(0f, -5f);
+		ffp.setDepthOffsets(0f, 5f);
 		ffp.setDepthOffsetsEnabled(true);
 		
 		RenderAtom r;

@@ -115,7 +115,7 @@ public class ViewNodeController extends Controller {
 			Matrix3f m = se.getTransform().getRotation();
 			m.getCol(1, f.getUp());
 			m.getCol(2, f.getDirection());
-			se.getTransform().getTranslation().set(f.getLocation());
+			f.getLocation().set(se.getTransform().getTranslation());
 		}
 		
 		if (vn.getAutoUpdateProjection()) {
@@ -127,7 +127,7 @@ public class ViewNodeController extends Controller {
 				f.setFrustum(0, width, 0, height, f.getFrustumNear(), f.getFrustumFar());
 			} else {
 				// modify the frustum to use the correct aspect ratio
-				int oldHeight = (int) ((f.getFrustumTop() - f.getFrustumBottom()) / 2f);
+				float oldHeight = ((f.getFrustumTop() - f.getFrustumBottom()) / 2f);
 				float fov = (float) Math.toDegrees(Math.atan(2 * oldHeight / f.getFrustumNear()));
 				f.setPerspective(fov, width / (float) height, f.getFrustumNear(), f.getFrustumFar());
 			}

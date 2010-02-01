@@ -15,7 +15,6 @@ public class BaseLightPass extends AbstractFfpRenderPass {
 	
 	@Override
 	protected void render(FixedFunctionRenderer ffp) {
-		
 		int lightCount = lightAtoms.size();
 		for (int firstLight = 0; firstLight < lightCount; firstLight += maxNumLights) {
 			// configure the lights for the scene
@@ -44,17 +43,25 @@ public class BaseLightPass extends AbstractFfpRenderPass {
 				for (int li = 0; li < maxNumLights; li++) {
 					if (firstLight + li < lightCount) {
 						light = lightAtoms.get(firstLight + li);
-						ffp.setLightEnabled(li, (light.worldBounds != null ? light.worldBounds.intersects(atom.worldBounds) : true));
 						
-						if (light == shadowLight) {
-							if (useShadowLight && !atom.receivesShadow) {
-								// use full light color
-								useShadowLight = false;
-								setLightColor(li, light, false);
-							} else if (!useShadowLight && atom.receivesShadow) {
-								// use dimmed light color
-								useShadowLight = true;
-								setLightColor(li, light, true);
+						if (light.direction != null || light.position != null) {
+							// not an ambient light, so it must be enabled/disabled
+							ffp.setLightEnabled(li, (light.worldBounds != null ? light.worldBounds.intersects(atom.worldBounds) 
+																			   : true));
+
+							if (light == shadowLight) {
+								// FIXME: currently enabling shadows adds energy to the scene, I think it may be
+								// because it's not turning off the shadow light as needed (or that it's lighting too
+								// much with light color)
+								if (useShadowLight && !atom.receivesShadow) {
+									// use full light color
+									useShadowLight = false;
+									setLightColor(li, light, false);
+								} else if (!useShadowLight && atom.receivesShadow) {
+									// use dimmed light color
+									useShadowLight = true;
+									setLightColor(li, light, true);
+								}
 							}
 						}
 					}

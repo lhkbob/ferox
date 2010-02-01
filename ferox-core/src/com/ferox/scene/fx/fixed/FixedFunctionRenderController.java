@@ -14,7 +14,9 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
 import com.ferox.resource.TextureImage.DepthMode;
+import com.ferox.resource.TextureImage.Filter;
 import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.TextureImage.TextureWrap;
 import com.ferox.scene.DirectedLight;
 import com.ferox.scene.Light;
 import com.ferox.scene.SceneElement;
@@ -119,8 +121,10 @@ public class FixedFunctionRenderController extends Controller {
 			
 			// set up the depth comparison
 			TextureImage sm = shadowMap.getDepthBuffer();
+			sm.setFilter(Filter.LINEAR);
+			sm.setWrapSTR(TextureWrap.CLAMP);
 			sm.setDepthCompareEnabled(true);
-			sm.setDepthCompareTest(Comparison.LESS);
+			sm.setDepthCompareTest(Comparison.LEQUAL);
 			sm.setDepthMode(DepthMode.ALPHA);
 		} else {
 			// no shadowing is needed
@@ -189,12 +193,7 @@ public class FixedFunctionRenderController extends Controller {
 		LightAtom atom = new LightAtom();
 		
 		
-		float intensity = Math.min(light.getIntensity(), 1f);
-		atom.specularExponent = 128 * intensity;
-		atom.quadAtt = 1 / (intensity + 1);
-		atom.constAtt = 1f;
-		atom.linAtt = 0f;
-		
+		float intensity = light.getIntensity();
 		Color4f color = light.getColor();
 		atom.specular = new Color4f(intensity * color.getRed(), intensity * color.getGreen(), intensity * color.getBlue(), 1f);
 		atom.diffuse = new Color4f(.8f * atom.specular.getRed(), .8f * atom.specular.getGreen(), .8f * atom.specular.getBlue(), 1f);

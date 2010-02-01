@@ -23,6 +23,7 @@ public class BlinnPhongAtomModifier implements AtomModifier<BlinnPhongLightingMo
 		atom.ambient = component.getAmbient();
 		
 		atom.lit = true;
+		atom.shininess = Math.max(128f, component.getShininess());
 		return atom;
 	}
 

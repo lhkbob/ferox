@@ -19,6 +19,8 @@ public class RenderAtom {
 	public boolean castsShadow;
 	public boolean receivesShadow;
 	
+	public float shininess;
+	
 	public Color4f diffuse;
 	public Color4f specular;
 	public Color4f ambient;
