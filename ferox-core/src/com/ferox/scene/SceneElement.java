@@ -4,8 +4,8 @@ import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.Indexable;
+import com.ferox.util.entity.AbstractComponent;
+import com.ferox.util.entity.Description;
 
 /**
  * <p>
@@ -25,8 +25,8 @@ import com.ferox.util.entity.Indexable;
  * 
  * @author Michael Ludwig
  */
-@Indexable
-public final class SceneElement extends Component {
+@Description("3D element within a scene")
+public final class SceneElement extends AbstractComponent<SceneElement> {
 	/**
 	 * Axis represents each of the three local basis vectors of a SceneElement.
 	 * Axis is used when constraining one of the local axis to a vector in world
@@ -36,8 +36,6 @@ public final class SceneElement extends Component {
 	public static enum Axis {
 		X, Y, Z
 	}
-	
-	private static final String DESCR = "3D element within a scene";
 	
 	private final Transform transform;
 	
@@ -55,7 +53,7 @@ public final class SceneElement extends Component {
 	private Axis constrainAxis;
 	
 	public SceneElement() {
-		super(DESCR);
+		super(SceneElement.class);
 		transform = new Transform();
 	}
 

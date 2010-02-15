@@ -1,62 +1,28 @@
 package com.ferox.util.entity;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 import com.ferox.util.Bag;
 
 public final class EntitySystem implements Iterable<Entity> {
-	private int entityIdSeq;
-	
 	private int[] componentCounts;
 	private ComponentTable[] componentTables;
 	private final Bag<Entity> allList;
 	
-	private final Map<Class<? extends Controller>, Controller> controllers;
+	private final ProcessResults results;
 	
 	public EntitySystem() {
-		entityIdSeq = 0;
-		
 		componentCounts = new int[8];
 		componentTables = new ComponentTable[8];
 		allList = new Bag<Entity>();
 		
-		controllers = new HashMap<Class<? extends Controller>, Controller>();
+		results = new ProcessResults(this);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public <T extends Controller> T getController(Class<T> type) {
-		if (type == null)
-			throw new NullPointerException("Type cannot be null");
-		
-		return (T) controllers.get(type);
-	}
-	
-	@SuppressWarnings("unchecked")
-	<T extends Controller> void registerController(T controller) {
-		if (controller == null)
-			throw new NullPointerException("Controller cannot be null");
-		
-		Class<? extends Controller> type = controller.getClass();
-		T old = (T) controllers.get(type);
-		if (old != null)
-			throw new IllegalArgumentException("There already exists a " + type.getSimpleName() + " within the EntitySystem");
-		else
-			controllers.put(type, controller);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public <T extends Controller> T removeController(Class<T> type) {
-		if (type == null)
-			throw new NullPointerException("Type cannot be null");
-		
-		T old = (T) controllers.remove(type);
-		if (old != null)
-			old.invalid = true;
-		return old;
+	public ProcessResults getResults() {
+		return results;
 	}
 	
 	@Override
@@ -65,22 +31,26 @@ public final class EntitySystem implements Iterable<Entity> {
 	}
 	
 	public Iterator<Entity> iterator(Class<? extends Component> componentType) {
-		return iterator(Component.getTypeId(componentType));
+		return iterator(Component.getComponentId(componentType));
 	}
 	
-	public Iterator<Entity> iterator(int componentId) {
-		if (componentId < 0 || componentId >= componentTables.length || componentTables[componentId] == null) {
-			if (componentId >= 0 && componentId < componentCounts.length && componentCounts[componentId] > 0)
-				return new ComponentViewIterator(componentId);
-			else
-				return new NullIterator();
-		} else
-			return componentTables[componentId].iterator();
+	public Iterator<Entity> iterator(ComponentId<?> id) {
+		int type = id.getId();
+		
+		if (type >= 0 && type < componentTables.length) {
+			ComponentTable table = componentTables[type];
+			if (componentTables[type] != null)
+				return table.iterator();
+			else if (componentCounts[type] > 0)
+				return new ComponentViewIterator(id);
+		}
+		
+		return new NullIterator();
 	}
 	
 	public void removeAll() {
 		for(Entity e: this)
-			e.setValid(false);
+			e.setOwner(null);
 			
 		for (int i = 0; i < componentTables.length; i++) {
 			if (componentTables[i] != null)
@@ -89,48 +59,39 @@ public final class EntitySystem implements Iterable<Entity> {
 		allList.clear();
 	}
 	
-	public int getEntityCount() {
+	public int size() {
 		return allList.size();
 	}
 	
-	public Entity newEntity() {
-		Entity e = new Entity(this, entityIdSeq++);
-		allList.add(e);
-		
-		return e;
-	}
-	
-	public void removeEntity(Entity e) {
+	public void remove(Entity e) {
 		if (e == null)
 			throw new NullPointerException("Cannot remove a null Entity");
 		if (e.getOwner() != this)
 			throw new IllegalArgumentException("Entity must be owned by this EntitySystem");
 		
-		if (e.setValid(false)) {
-			// remove the entity from all tables that reference it
-			for (Component c: e)
-				detach(e, c);
-			allList.remove(e);
-		}
+		e.setOwner(null);
+		// remove the entity from all tables that reference it
+		for (Component c: e)
+			detach(e, c);
+		allList.remove(e);
 	}
 	
-	public void addEntity(Entity e) {
+	public void add(Entity e) {
 		if (e == null)
 			throw new NullPointerException("Cannot add a null Entity");
-		if (e.getOwner() != this)
-			throw new IllegalArgumentException("Entity must be owned by this EntitySystem");
+		if (e.getOwner() == null)
+			throw new IllegalArgumentException("Entity cannot be owned by any EntitySystem");
 		
-		if (e.setValid(true)) {
-			// add back entity to any component tables it has
-			for (Component c: e)
-				attach(e, c);
-			allList.add(e);
-		}
+		e.setOwner(this);
+		// add back entity to any component tables it has
+		for (Component c: e)
+			attach(e, c);
+		allList.add(e);
 	}
 	
 	void attach(Entity entity, Component c) {
 		// update component counts
-		int type = c.getTypeId();
+		int type = c.getComponentId().getId();
 		if (type >= componentCounts.length)
 			componentCounts = Arrays.copyOf(componentCounts, type + 1);
 		componentCounts[type]++;
@@ -152,7 +113,7 @@ public final class EntitySystem implements Iterable<Entity> {
 	}
 	
 	void detach(Entity entity, Component c) {
-		int type = c.getTypeId();
+		int type = c.getComponentId().getId();
 		if (type < componentCounts.length)
 			componentCounts[type] = Math.max(0, componentCounts[type] - 1);
 		
@@ -186,7 +147,8 @@ public final class EntitySystem implements Iterable<Entity> {
 		@Override
 		public void remove() {
 			iterator.remove();
-			if (current.setValid(false)) {
+			if (current.getOwner() == EntitySystem.this) {
+				current.setOwner(null);
 				for (Component c: current)
 					detach(current, c);
 			}
@@ -197,12 +159,12 @@ public final class EntitySystem implements Iterable<Entity> {
 	 * match a certain type. */
 	private class ComponentViewIterator implements Iterator<Entity> {
 		private final Iterator<Entity> iterator;
-		private final int componentType;
+		private final ComponentId<?> componentType;
 		
 		private Entity toReturn;
 		private Entity current;
 		
-		public ComponentViewIterator(int type) {
+		public ComponentViewIterator(ComponentId<?> type) {
 			iterator = allList.iterator();
 			componentType = type;
 		}

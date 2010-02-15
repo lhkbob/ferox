@@ -1,9 +1,8 @@
 package com.ferox.scene;
 
 import com.ferox.math.Color4f;
-import com.ferox.scene.fx.Shape;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.Indexable;
+import com.ferox.util.entity.AbstractComponent;
+import com.ferox.util.entity.Description;
 
 /**
  * <p>
@@ -29,10 +28,8 @@ import com.ferox.util.entity.Indexable;
  * 
  * @author Michael Ludwig
  */
-@Indexable
-public class Fog extends Component {
-	private static final String DESCR = "Adds fog to a rendered scene";
-
+@Description("Adds fog to a rendered scene")
+public final class Fog extends AbstractComponent<Fog> {
 	/**
 	 * Falloff represents how the visibility of fog decreases as distance
 	 * increases. The opacity of the fog, at some distance, can be considered as
@@ -100,7 +97,7 @@ public class Fog extends Component {
 	 * @throws IllegalArgumentException if distanceToOpaque is negative
 	 */
 	public Fog(Color4f color, Falloff falloff, float distanceToOpaque) {
-		super(DESCR);
+		super(Fog.class);
 		
 		this.color = new Color4f();
 		setColor(color);

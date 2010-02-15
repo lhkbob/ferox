@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.Indexable;
+import com.ferox.util.entity.AbstractComponent;
+import com.ferox.util.entity.Description;
 
 /**
  * BillboardTarget is a modifier Component that is used by SceneController to
@@ -25,15 +25,13 @@ import com.ferox.util.entity.Indexable;
  * 
  * @author Michael Ludwig
  */
-@Indexable
-public final class BillboardTarget extends Component {
-	private static final String DESCR = "Flag indicating that the Entity is a dynamic billboarding target";
-
+@Description("Flag indicating that the Entity is a dynamic billboarding target")
+public final class BillboardTarget extends AbstractComponent<BillboardTarget> {
 	/**
 	 * Create a new BillboardTarget. Because BillboardTarget contains no data
 	 * and is a flag Component, generally only one instance is needed.
 	 */
 	public BillboardTarget() {
-		super(DESCR);
+		super(BillboardTarget.class);
 	}
 }

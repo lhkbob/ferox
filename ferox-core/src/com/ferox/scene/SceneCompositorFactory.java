@@ -5,9 +5,8 @@ import java.util.concurrent.ExecutionException;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.resource.Geometry;
-import com.ferox.scene.fx.ViewNodeController;
-import com.ferox.scene.fx.fixed.FixedFunctionRenderController;
-import com.ferox.scene.fx.fixed.ShadowMapFrustumController;
+import com.ferox.scene.impl.fixed.FixedFunctionRenderController;
+import com.ferox.scene.impl.fixed.ShadowMapFrustumController;
 import com.ferox.util.entity.EntitySystem;
 
 public class SceneCompositorFactory {

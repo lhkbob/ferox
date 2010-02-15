@@ -5,34 +5,40 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public final class Entity implements Iterable<Component> {
-	private final int id;
-	private final EntitySystem owner;
-	
-	private boolean valid;
-	
+	private EntitySystem owner;
+		
 	private Component[] components;
 	
-	Entity(EntitySystem owner, int id) {
-		this.owner = owner;
-		this.id = id;
-		
-		valid = true;
-		components = new Component[8];
+	public Entity() {
+		this((Component[]) null);
 	}
 	
-	public void add(Component c) {
+	public Entity(Component... components) {
+		owner = null;
+		this.components = new Component[(components == null ? 8 : components.length)];
+		if (components != null) {
+			for (int i = 0; i < components.length; i++)
+				add(components[i]);
+		}
+	}
+	
+	public Entity add(Component c) {
 		if (c == null)
 			throw new NullPointerException("Component cannot be null");
 		
-		int type = c.getTypeId();
+		int type = c.getComponentId().getId();
 		if (type >= components.length)
 			components = Arrays.copyOf(components, type + 1);
 		components[type] = c;
 		
-		owner.attach(this, c);
+		if (owner != null)
+			owner.attach(this, c);
+		return this;
 	}
 	
-	public Component remove(int type) {
+	@SuppressWarnings("unchecked")
+	public <T extends Component> T remove(ComponentId<T> id) {
+		int type = id.getId();
 		if (type >= 0 && type < components.length) {
 			Component old = components[type];
 			if (old != null) {
@@ -40,40 +46,30 @@ public final class Entity implements Iterable<Component> {
 				owner.detach(this, old);
 			}
 			
-			return old;
+			return (T) old;
 		} else
 			return null;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public <T extends Component> T remove(Class<T> type) {
-		int typeId = Component.getTypeId(type);
-		return (T) remove(typeId);
+		return remove(Component.getComponentId(type));
 	}
 	
-	public Component get(int type) {
+	@SuppressWarnings("unchecked")
+	public <T extends Component> T get(ComponentId<T> id) {
+		int type = id.getId();
 		if (type >= 0 && type < components.length)
-			return components[type];
+			return (T) components[type];
 		else
 			return null;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public <T extends Component> T get(Class<T> type) {
-		int typeId = Component.getTypeId(type);
-		return (T) get(typeId);
+		return get(Component.getComponentId(type));
 	}
 	
 	public EntitySystem getOwner() {
 		return owner;
-	}
-	
-	public int getId() {
-		return id;
-	}
-	
-	public boolean isValid() {
-		return valid;
 	}
 	
 	@Override
@@ -86,12 +82,9 @@ public final class Entity implements Iterable<Component> {
 			components[componentType] = null;
 	}
 	
-	boolean setValid(boolean valid) {
-		if (this.valid != valid) {
-			this.valid = valid;
-			return true;
-		} else
-			return false;
+	void setOwner(EntitySystem owner) {
+		// assign new owner
+		this.owner = owner;
 	}
 	
 	private class ComponentIterator implements Iterator<Component> {
@@ -130,7 +123,8 @@ public final class Entity implements Iterable<Component> {
 			if (components[index] == null)
 				throw new IllegalStateException("Already called remove()");
 			
-			owner.detach(Entity.this, components[index]);
+			if (owner != null)
+				owner.detach(Entity.this, components[index]);
 			components[index] = null;
 		}
 	}

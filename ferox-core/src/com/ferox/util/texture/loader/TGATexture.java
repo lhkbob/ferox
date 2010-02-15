@@ -495,7 +495,7 @@ public class TGATexture {
 	/*
 	 * This assumes that the body is for a 24 bit or 32 bit for a BGR and BGRA
 	 * image respectively. (really a ARGB image, but its in LE order, but just
-	 * using BGRA is faster)
+	 * using BGRA is faster) FIXME: does this assumption work for 24 bit images?
 	 */
 	private void decodeTrueColor24_32(InputStream dIn) throws IOException {
 		int i; // input row index

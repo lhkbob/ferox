@@ -2,6 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Transform;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.ComponentId;
 import com.ferox.util.entity.Entity;
 
 /**
@@ -29,7 +30,7 @@ import com.ferox.util.entity.Entity;
  * @author Michael Ludwig
  */
 public class AttachUpdater implements SceneElementUpdater {
-	private final static int SE_ID = Component.getTypeId(SceneElement.class);
+	private final static ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
 	private Entity attachTo;
 	private final Transform offset;
@@ -102,8 +103,8 @@ public class AttachUpdater implements SceneElementUpdater {
 	
 	@Override
 	public void update(Entity entity, SceneController controller, float dt) {
-		SceneElement parent = (SceneElement) attachTo.get(SE_ID);
-		SceneElement child = (SceneElement) entity.get(SE_ID);
+		SceneElement parent = attachTo.get(SE_ID);
+		SceneElement child = entity.get(SE_ID);
 		
 		if (parent != null && child != null) {
 			// make sure the parent is up to date first

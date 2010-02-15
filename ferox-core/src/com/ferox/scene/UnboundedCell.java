@@ -5,6 +5,7 @@ import com.ferox.math.Frustum.FrustumIntersection;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.Bag;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.ComponentId;
 import com.ferox.util.entity.Entity;
 
 /**
@@ -23,7 +24,7 @@ import com.ferox.util.entity.Entity;
  */
 public class UnboundedCell extends Cell {
 	private static final Object SUCCESS = new Object();
-	private static final int SE_ID = Component.getTypeId(SceneElement.class);
+	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 	
 	private final Bag<Entity> elements;
 	
@@ -67,7 +68,7 @@ public class UnboundedCell extends Cell {
 		BoundVolume v;
 		for (int i = 0; i < ct; i++) {
 			e = elements.get(i);
-			s = (SceneElement) e.get(SE_ID);
+			s = e.get(SE_ID);
 			if (s != null) {
 				v = s.getWorldBounds();
 				if (v == null || v.testFrustum(query, null) != FrustumIntersection.OUTSIDE)
@@ -85,7 +86,7 @@ public class UnboundedCell extends Cell {
 		BoundVolume v;
 		for (int i = 0; i < ct; i++) {
 			e = elements.get(i);
-			s = (SceneElement) e.get(SE_ID);
+			s = e.get(SE_ID);
 			if (s != null) {
 				v = s.getWorldBounds();
 				if (v == null || v.intersects(query))

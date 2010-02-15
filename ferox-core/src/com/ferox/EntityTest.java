@@ -5,7 +5,7 @@ import java.util.Iterator;
 import com.ferox.util.entity.Component;
 import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntitySystem;
-import com.ferox.util.entity.Indexable;
+import com.ferox.util.entity.NonIndexable;
 
 public class EntityTest {
 	public static void main(String[] args) {
@@ -49,7 +49,7 @@ public class EntityTest {
 		System.out.println("Complete");
 	}
 	
-	@Indexable
+	@NonIndexable
 	private static class A extends Component {
 		private int a;
 		public A(int a) {

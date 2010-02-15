@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
 import com.ferox.math.Vector3f;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.Indexable;
+import com.ferox.util.entity.AbstractComponent;
+import com.ferox.util.entity.Description;
 
 /**
  * <p>
@@ -40,10 +40,8 @@ import com.ferox.util.entity.Indexable;
  * 
  * @author Michael Ludwig
  */
-@Indexable
-public class DirectedLight extends Component {
-	private static final String DESCR = "Modifies behavior of Light by adding direction to the light source";
-	
+@Description("Modifies behavior of Light by adding direction to the light source")
+public final class DirectedLight extends AbstractComponent<DirectedLight> {
 	private final Vector3f direction;
 	private float cutoffAngle;
 
@@ -71,7 +69,7 @@ public class DirectedLight extends Component {
 	 * @throws IllegalArgumentException if cutoffAngle > 90
 	 */
 	public DirectedLight(Vector3f direction, float cutoffAngle) {
-		super(DESCR);
+		super(DirectedLight.class);
 		
 		this.direction = new Vector3f();
 		setDirection(direction);

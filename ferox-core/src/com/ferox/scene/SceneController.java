@@ -10,10 +10,11 @@ import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.Bag;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.ComponentId;
 import com.ferox.util.entity.Controller;
+import com.ferox.util.entity.Description;
 import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntitySystem;
-import com.ferox.util.entity.Indexable;
 
 /**
  * <p>
@@ -36,10 +37,11 @@ import com.ferox.util.entity.Indexable;
  * 
  * @author Michael Ludwig
  */
-public class SceneController extends Controller {
-	private static final int BT_ID = Component.getTypeId(BillboardTarget.class);
-	private static final int ED_ID = Component.getTypeId(ElementData.class);
-	private static final int SE_ID = Component.getTypeId(SceneElement.class);
+// FIXME: add stuff about results
+public class SceneController implements Controller<Void> {
+	private static final ComponentId<BillboardTarget> BT_ID = Component.getComponentId(BillboardTarget.class);
+	private static final ComponentId<ElementData> ED_ID = Component.getComponentId(ElementData.class);
+	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 	
 	private static final Comparator<Cell> prioritySorter = new Comparator<Cell>() {
 		@Override
@@ -60,13 +62,8 @@ public class SceneController extends Controller {
 	 * with minimum priority. This Cell cannot be removed and is used as a catch
 	 * all for SceneElements that aren't assigned to any configured Cells.
 	 * </p>
-	 * 
-	 * @param system The EntitySystem that this SceneController registers itself
-	 *            with
-	 * @throws NullPointerException if system is null
 	 */
 	public SceneController(EntitySystem system) {
-		super(system);
 		lastProcess = -1;
 		cells = new Bag<Cell>();
 		
@@ -259,9 +256,7 @@ public class SceneController extends Controller {
 	 *             system
 	 */
 	@Override
-	public void process() {
-		validate();
-		
+	public void process(EntitySystem system) {
 		long now = System.nanoTime();
 		if (deltaTime < 0f) {
 			// delta hasn't been overridden so compute it
@@ -300,8 +295,8 @@ public class SceneController extends Controller {
 		it = system.iterator(ED_ID);
 		while(it.hasNext()) {
 			e = it.next();
-			d = (ElementData) e.get(ED_ID);
-			s = (SceneElement) e.get(SE_ID);
+			d = e.get(ED_ID);
+			s = e.get(SE_ID);
 			
 			if (s == null) {
 				// Entity is no longer a SceneElement, so clean it up
@@ -329,6 +324,8 @@ public class SceneController extends Controller {
 		
 		cellsModified = false;
 		deltaTime = -1f; // invalidate delta for next frame
+		
+		system.getResults().addController(this); // make this scene available for querying against
 	}
 
 	/**
@@ -357,8 +354,8 @@ public class SceneController extends Controller {
 	 * @param e The Entity to be processed
 	 */
 	public void process(Entity e) {
-		ElementData data = (ElementData) e.get(ED_ID);
-		SceneElement element = (SceneElement) e.get(SE_ID);
+		ElementData data = e.get(ED_ID);
+		SceneElement element = e.get(SE_ID);
 		
 		if (element != null) {
 			if (data == null) {
@@ -454,10 +451,8 @@ public class SceneController extends Controller {
 		}
 	}
 	
-	@Indexable
+	@Description("Internal data used by SceneController to manage SceneElements")
 	private static class ElementData extends Component {
-		private static final String DESCR = "Internal data used by SceneController to manage SceneElements";
-		
 		final Transform oldTransform;
 		BoundVolume oldLocalBounds;
 		boolean processed;
@@ -467,7 +462,6 @@ public class SceneController extends Controller {
 		Object cellData;
 		
 		public ElementData() {
-			super(DESCR);
 			oldTransform = new Transform();
 		}
 	}

@@ -1,62 +1,27 @@
 package com.ferox.util.entity;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class Component {
-	private static final Map<Class<? extends Component>, Integer> typeMap = new HashMap<Class<? extends Component>, Integer>();
-	private static int idSeq = 0;
+	private final ComponentId<?> typeId;
 	
-	private final int typeId;
-	private final String description;
-	
-	private final boolean iterable;
-	
-	public Component(String description) {
-		this(description, true);
-	}
-	
-	public Component(String description, boolean iterable) {
+	public Component() {
 		Class<? extends Component> type = getClass();
-		
-		typeId = getTypeId(type);
-		this.description = description;
-		this.iterable = type.getAnnotation(Indexable.class) != null;
+		typeId = getComponentId(type);
 	}
 	
-	public final String getDescription() {
-		return description;
+	public String getDescription() {
+		return typeId.getDescription();
 	}
 	
-	public final int getTypeId() {
+	public ComponentId<?> getComponentId() {
 		return typeId;
 	}
 	
-	public final boolean isIndexable() {
-		return iterable;
+	public boolean isIndexable() {
+		return typeId.isIndexable();
 	}
 	
-	@Override
-	public String toString() {
-		if (description == null)
-			return getClass().getSimpleName() + "(type id=" + typeId + ")";
-		else
-			return getClass().getSimpleName() + "(type id=" + typeId + ") - " + description;
-	}
-	
-	public static int getTypeId(Class<? extends Component> type) {
-		if (type == null)
-			throw new NullPointerException("Type cannot be null");
-		
-		// even though an EntitySystem is not multi-threaded, this static
-		// method must be since multiple systems could use it at once
-		synchronized(typeMap) {
-			Integer id = typeMap.get(type);
-			if (id == null) {
-				id = Integer.valueOf(idSeq++);
-				typeMap.put(type, id);
-			}
-			return id.intValue();
-		}
+	public static <T extends Component> ComponentId<T> getComponentId(Class<T> type) {
+		return ComponentId.getComponentId(type);
 	}
 }
