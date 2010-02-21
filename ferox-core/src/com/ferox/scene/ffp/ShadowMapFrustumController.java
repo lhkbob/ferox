@@ -1,4 +1,4 @@
-package com.ferox.scene.impl.fixed;
+package com.ferox.scene.ffp;
 
 import java.util.HashMap;
 import java.util.Iterator;

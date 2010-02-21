@@ -11,18 +11,10 @@ public final class EntitySystem implements Iterable<Entity> {
 	private ComponentTable[] componentTables;
 	private final Bag<Entity> allList;
 	
-	private final ProcessResults results;
-	
 	public EntitySystem() {
 		componentCounts = new int[8];
 		componentTables = new ComponentTable[8];
 		allList = new Bag<Entity>();
-		
-		results = new ProcessResults(this);
-	}
-	
-	public ProcessResults getResults() {
-		return results;
 	}
 	
 	@Override

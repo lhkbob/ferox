@@ -1,4 +1,4 @@
-package com.ferox.scene;
+package com.ferox.scene.fx;
 
 import com.ferox.math.Color4f;
 import com.ferox.util.entity.AbstractComponent;

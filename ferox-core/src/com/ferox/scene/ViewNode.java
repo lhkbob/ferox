@@ -41,6 +41,8 @@ import com.ferox.util.entity.Description;
  */
 @Description("Represents a camera location for rendering")
 public final class ViewNode extends AbstractComponent<ViewNode> {
+	// FIXME: add dimensions (which are not percentages, updated based on auto-update)
+	// FIXME: add surface order, so that multiple viewnodes can be mapped to one surface in correct order
 	private RenderSurface surface;
 	private boolean matchSurfaceDim;
 	

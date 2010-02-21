@@ -1,4 +1,4 @@
-package com.ferox.scene.impl.fixed;
+package com.ferox.scene.ffp;
 
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer.BlendFactor;

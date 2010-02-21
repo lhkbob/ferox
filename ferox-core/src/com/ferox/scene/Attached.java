@@ -1,5 +1,5 @@
 package com.ferox.scene;
 
-public class OctreeCell {
+public class Attached {
 
 }

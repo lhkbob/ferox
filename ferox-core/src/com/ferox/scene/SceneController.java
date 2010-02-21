@@ -37,7 +37,6 @@ import com.ferox.util.entity.EntitySystem;
  * 
  * @author Michael Ludwig
  */
-// FIXME: add stuff about results
 public class SceneController implements Controller<Void> {
 	private static final ComponentId<BillboardTarget> BT_ID = Component.getComponentId(BillboardTarget.class);
 	private static final ComponentId<ElementData> ED_ID = Component.getComponentId(ElementData.class);
@@ -252,8 +251,7 @@ public class SceneController implements Controller<Void> {
 	 * important that BillboardTargets do not depend on other SceneElements,
 	 * since a stale billboard point or constraint axis may be used.
 	 * 
-	 * @throws IllegalStateException if the controller is no longer part of its
-	 *             system
+	 * @throws NullPointerException if system is null
 	 */
 	@Override
 	public void process(EntitySystem system) {

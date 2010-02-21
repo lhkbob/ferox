@@ -1,4 +1,4 @@
-package com.ferox.scene.impl.fixed;
+package com.ferox.scene.ffp;
 
 import java.util.Comparator;
 
@@ -9,14 +9,13 @@ import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
 
-
 public class RenderAtom {
+	// FIXME: add a bitset representing which lights influence it
 	public Geometry geometry;
 	public Matrix4f worldTransform;
 	public BoundVolume worldBounds;
 	
 	public boolean lit;
-	public boolean castsShadow;
 	public boolean receivesShadow;
 	
 	public float shininess;

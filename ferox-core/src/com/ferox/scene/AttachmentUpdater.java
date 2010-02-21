@@ -29,7 +29,7 @@ import com.ferox.util.entity.Entity;
  * 
  * @author Michael Ludwig
  */
-public class AttachUpdater implements SceneElementUpdater {
+public class AttachmentUpdater implements SceneElementUpdater {
 	private final static ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
 	private Entity attachTo;
@@ -43,7 +43,7 @@ public class AttachUpdater implements SceneElementUpdater {
 	 * @param offset The offset that separates attachTo from the SceneElements
 	 * @throws NullPointerException if attachTo or offset are null
 	 */
-	public AttachUpdater(Entity attachTo, Transform offset) {
+	public AttachmentUpdater(Entity attachTo, Transform offset) {
 		this.offset = new Transform();
 		
 		setOffset(offset);

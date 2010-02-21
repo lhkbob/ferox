@@ -312,8 +312,7 @@ public class AxisAlignedBox extends AbstractBoundVolume {
 				   ((a.worldMax.z >= worldMin.z && a.worldMax.z <= worldMax.z) 
 					|| (a.worldMin.z >= worldMin.z && a.worldMin.z <= worldMax.z));
 		} else if (other instanceof BoundSphere) {
-			// Idea taken from "Simple Intersection Tests for Games" by Miguel
-			// Gomez - Gamasutra
+			// Idea taken from "Simple Intersection Tests for Games" by Miguel Gomez - Gamasutra
 			BoundSphere s = (BoundSphere) other;
 			Vector3f sphereCenter = s.getCenter();
 			float totalDistance = 0;

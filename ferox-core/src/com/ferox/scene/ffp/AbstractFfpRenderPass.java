@@ -1,4 +1,4 @@
-package com.ferox.scene.impl.fixed;
+package com.ferox.scene.ffp;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Frustum;

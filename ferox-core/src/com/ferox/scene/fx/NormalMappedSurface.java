@@ -1,4 +1,4 @@
-package com.ferox.scene;
+package com.ferox.scene.fx;
 
 import com.ferox.resource.TextureImage;
 import com.ferox.util.entity.AbstractComponent;

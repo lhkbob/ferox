@@ -26,7 +26,7 @@ import com.ferox.util.entity.NonIndexable;
  * @author Michael Ludwig
  */
 @NonIndexable
-@Description("Geometry of an Entity")
+@Description("Detailed geometry of an Entity")
 public final class Shape extends AbstractComponent<Shape> {
 	private Geometry geometry;
 

@@ -1,5 +1,5 @@
 package com.ferox.scene;
 
-public class SpotLight {
+public class Billboarded {
 
 }

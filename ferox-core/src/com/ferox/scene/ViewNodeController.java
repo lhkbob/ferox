@@ -25,29 +25,21 @@ import com.ferox.util.entity.EntitySystem;
  * projection as described in ViewNode to match its RenderSurface's dimensions.</li>
  * <li>Invoke {@link Frustum#updateFrustumPlanes()} so the Frustum is up to
  * date.</li>
+ * <li>Use the EntitySystem's attached {@link SceneController} to determine the
+ * visible entities within the ViewNode and flag them as visible:
+ * {@link SceneElement#isPotentiallyVisible()}.</li>
  * </ol>
  * 
  * @author Michael Ludwig
  */
-// FIXME: document stuff pertaining to results
-public class ViewNodeController implements Controller<Map<ViewNode, Bag<Entity>>> {
+public class ViewNodeController implements Controller<VisibilityResults> {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
-	private Map<ViewNode, Bag<Entity>> visibilitySets;
-	
 	/**
 	 * Create a ViewNodeController.
 	 */
-	public ViewNodeController() {
-		visibilitySets = new HashMap<ViewNode, Bag<Entity>>();
-	}
-
-	public Bag<Entity> getVisibleEntities(ViewNode view) {
-		if (view == null)
-			throw new NullPointerException("ViewNode cannot be null");
-		return visibilitySets.get(view);
-	}
+	public ViewNodeController() { }
 
 	/**
 	 * Overridden to perform the following operations:
@@ -58,24 +50,25 @@ public class ViewNodeController implements Controller<Map<ViewNode, Bag<Entity>>
 	 * necessary.</li>
 	 * <li>Compute the visibility sets for each ViewNode in the system.</li>
 	 * </ol>
+	 * After process() completes, {@link #getVisibleEntities(ViewNode)} will
+	 * return meaningful results for the ViewNodes encountered within the
+	 * EntitySystem. Subsequent processing will overwrite the previous results.
 	 * 
-	 * @throws IllegalStateException if the controller is no longer part of its
-	 *             system
+	 * @throws NullPointerException if system is null
 	 */
 	@Override
 	public void process(EntitySystem system) {
 		Iterator<Entity> it = system.iterator(VN_ID);
 		
-		Map<ViewNode, Bag<Entity>> old = system.getResults().getResult(this);
+		VisibilityResults old = system.getResults().getResult(this);
 		Map<ViewNode, Bag<Entity>> pvs = new HashMap<ViewNode, Bag<Entity>>();
 		SceneController scene = system.getResults().getController(SceneController.class);
 		
 		while(it.hasNext()) {
-			process(it.next(), scene, pvs, old);
+			process(it.next(), scene, pvs, (old == null ? null : old.en);
 		}
 		
-		// discard any unused bags and store computed results for this frame
-		visibilitySets = pvs;
+		// store computed results for this frame
 		system.getResults().setResult(this, pvs);
 	}
 	
