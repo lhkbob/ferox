@@ -1,4 +1,4 @@
-package com.ferox.scene;
+package com.ferox.scene.controller;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -6,6 +6,8 @@ import java.util.Map;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
+import com.ferox.scene.SceneElement;
+import com.ferox.scene.ViewNode;
 import com.ferox.util.Bag;
 import com.ferox.util.entity.Component;
 import com.ferox.util.entity.ComponentId;
@@ -32,7 +34,7 @@ import com.ferox.util.entity.EntitySystem;
  * 
  * @author Michael Ludwig
  */
-public class ViewNodeController implements Controller<VisibilityResults> {
+public class ViewNodeController implements Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 

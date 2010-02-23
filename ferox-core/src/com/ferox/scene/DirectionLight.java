@@ -1,4 +1,4 @@
-package com.ferox.scene.light;
+package com.ferox.scene;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;

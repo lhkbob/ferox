@@ -1,11 +1,9 @@
-/**
- * 
- */
-package com.ferox.scene;
+package com.ferox.scene.controller;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ferox.scene.ViewNode;
 import com.ferox.util.Bag;
 import com.ferox.util.entity.Entity;
 

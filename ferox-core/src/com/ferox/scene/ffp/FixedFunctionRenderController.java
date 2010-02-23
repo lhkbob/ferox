@@ -21,7 +21,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
 import com.ferox.resource.TextureImage.TextureWrap;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ViewNode;
-import com.ferox.scene.ViewNodeController;
+import com.ferox.scene.controller.ViewNodeController;
 import com.ferox.util.Bag;
 import com.ferox.util.entity.Component;
 import com.ferox.util.entity.ComponentId;

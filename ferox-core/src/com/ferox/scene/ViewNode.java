@@ -3,6 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.Frustum;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.WindowSurface;
+import com.ferox.scene.controller.ViewNodeController;
 import com.ferox.util.entity.AbstractComponent;
 import com.ferox.util.entity.Description;
 
