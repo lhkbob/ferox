@@ -3,9 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 
-@Description("SpotLight acts as a positional light with a cone or sphere of influence")
 public class SpotLight extends AbstractComponent<SpotLight> {
 	private final Vector3f direction;
 	private final Vector3f position;

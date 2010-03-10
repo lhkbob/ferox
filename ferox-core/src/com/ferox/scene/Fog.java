@@ -2,7 +2,6 @@ package com.ferox.scene;
 
 import com.ferox.math.Color4f;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 
 /**
  * <p>
@@ -28,7 +27,6 @@ import com.ferox.util.entity.Description;
  * 
  * @author Michael Ludwig
  */
-@Description("Adds fog to a rendered scene")
 public final class Fog extends AbstractComponent<Fog> {
 	/**
 	 * Falloff represents how the visibility of fog decreases as distance

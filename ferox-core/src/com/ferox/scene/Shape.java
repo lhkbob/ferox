@@ -1,9 +1,9 @@
 package com.ferox.scene;
 
+import javax.media.j3d.Light;
+
 import com.ferox.resource.Geometry;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
-import com.ferox.util.entity.NonIndexable;
 
 /**
  * <p>
@@ -25,8 +25,6 @@ import com.ferox.util.entity.NonIndexable;
  * 
  * @author Michael Ludwig
  */
-@NonIndexable
-@Description("Detailed geometry of an Entity")
 public final class Shape extends AbstractComponent<Shape> {
 	private Geometry geometry;
 

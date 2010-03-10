@@ -2,11 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.resource.TextureImage;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
-import com.ferox.util.entity.NonIndexable;
 
-@NonIndexable
-@Description("Adds surface relief data to an Entity")
 public final class DepthOffsetSurface extends AbstractComponent<DepthOffsetSurface> {
 	private TextureImage depthMap;
 	

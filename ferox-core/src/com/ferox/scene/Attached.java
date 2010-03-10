@@ -2,10 +2,8 @@ package com.ferox.scene;
 
 import com.ferox.math.Transform;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 import com.ferox.util.entity.Entity;
 
-@Description("Specifies an Entity is spatially attached to another Entity")
 public class Attached extends AbstractComponent<Attached> {
 	private Entity attachedTo;
 	private final Transform offset;

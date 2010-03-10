@@ -1,8 +1,6 @@
 package com.ferox.scene.controller;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
@@ -37,6 +35,7 @@ import com.ferox.util.entity.EntitySystem;
 public class ViewNodeController implements Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+	private static final ComponentId<VisibleEntities> VE_ID = Component.getComponentId(VisibleEntities.class);
 
 	/**
 	 * Create a ViewNodeController.
@@ -60,21 +59,22 @@ public class ViewNodeController implements Controller {
 	 */
 	@Override
 	public void process(EntitySystem system) {
+		SpatialHierarchyUtil scene = new SpatialHierarchyUtil(system);
 		Iterator<Entity> it = system.iterator(VN_ID);
-		
-		VisibilityResults old = system.getResults().getResult(this);
-		Map<ViewNode, Bag<Entity>> pvs = new HashMap<ViewNode, Bag<Entity>>();
-		SceneController scene = system.getResults().getController(SceneController.class);
-		
 		while(it.hasNext()) {
-			process(it.next(), scene, pvs, (old == null ? null : old.en);
+			process(it.next(), scene);
 		}
 		
-		// store computed results for this frame
-		system.getResults().setResult(this, pvs);
+		// FIXME: how do we clean up these book-keeping components that aren't managed
+		// by the user but are shared across multiple controllers (complication is that
+		// not just the viewnodecontroller creates the visibleentities components, so
+		// we can't just iterate and remove all ve's that are no longer vn's)
+		//
+		// we could make it so that ve has a creator, and this controller only cleans
+		// up those that it owns.
 	}
 	
-	private void process(Entity e, SceneController scene, Map<ViewNode, Bag<Entity>> pvs, Map<ViewNode, Bag<Entity>> old) {
+	private void process(Entity e, SpatialHierarchyUtil scene) {
 		ViewNode vn = e.get(VN_ID);
 		SceneElement se = e.get(SE_ID);
 		
@@ -112,21 +112,22 @@ public class ViewNodeController implements Controller {
 			f.updateFrustumPlanes();
 		
 		// frustum is up-to-date, so now we perform a visibility query
-		if (scene != null) {
-			Bag<Entity> query = (old == null ? null : old.get(f));
-			if (query == null)
-				query = new Bag<Entity>();
-			
-			scene.query(f, query);
-			pvs.put(vn, query);
-			
-			// modify all scene elements to be potentially visible
-			int ct = query.size();
-			for (int i = 0; i < ct; i++) {
-				se = (SceneElement) query.get(i).get(SE_ID);
-				if (se != null)
-					se.setPotentiallyVisible(true);
-			}
-		} // else nothing we can do
+		VisibleEntities ve = e.get(VE_ID);
+		if (ve == null) {
+			ve = new VisibleEntities();
+			e.add(ve);
+		}
+		ve.resetVisibility();
+		
+		Bag<Entity> query = ve.getEntities();
+		scene.query(f, query);
+
+		// modify all scene elements to be potentially visible
+		int ct = query.size();
+		for (int i = 0; i < ct; i++) {
+			se = (SceneElement) query.get(i).get(SE_ID);
+			if (se != null)
+				se.setPotentiallyVisible(true);
+		}
 	}
 }

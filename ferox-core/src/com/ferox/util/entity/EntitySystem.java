@@ -6,15 +6,13 @@ import java.util.NoSuchElementException;
 
 import com.ferox.util.Bag;
 
-public final class EntitySystem implements Iterable<Entity> {
-	private int[] componentCounts;
-	private ComponentTable[] componentTables;
-	private final Bag<Entity> allList;
+public class EntitySystem implements Iterable<Entity> {
+	private ComponentTable[] tables;
+	private int[] tableCounts;
+	private final Bag<Entity> allEntities;
 	
 	public EntitySystem() {
-		componentCounts = new int[8];
-		componentTables = new ComponentTable[8];
-		allList = new Bag<Entity>();
+		allEntities = new Bag<Entity>();
 	}
 	
 	@Override
@@ -22,97 +20,134 @@ public final class EntitySystem implements Iterable<Entity> {
 		return new EntitySystemIterator();
 	}
 	
-	public Iterator<Entity> iterator(Class<? extends Component> componentType) {
-		return iterator(Component.getComponentId(componentType));
-	}
-	
 	public Iterator<Entity> iterator(ComponentId<?> id) {
-		int type = id.getId();
+		if (id == null)
+			throw new NullPointerException("ComponentId cannot be null");
 		
-		if (type >= 0 && type < componentTables.length) {
-			ComponentTable table = componentTables[type];
-			if (componentTables[type] != null)
-				return table.iterator();
-			else if (componentCounts[type] > 0)
-				return new ComponentViewIterator(id);
+		int index = id.getId();
+		if (index >= tableCounts.length || tableCounts[index] == 0)
+			return new NullIterator(); // no table or entities available
+		if (index < tables.length && tables[index] != null)
+			return tables[index].iterator();
+		else
+			return new ComponentViewIterator(id);
+	}
+	
+	public void addIndex(ComponentId<?> id) {
+		if (id == null)
+			throw new NullPointerException("Cannot add an index for a null ComponentId");
+		
+		int index = id.getId();
+		if (index >= tables.length)
+			tables = Arrays.copyOf(tables, index + 1);
+		if (tables[index] == null) {
+			tables[index] = new ComponentTable();
+			for (Entity e: allEntities)
+				e.updateIndex(index, tables[index]);
+		} // else don't need anything
+	}
+	
+	public void removeIndex(ComponentId<?> id) {
+		if (id == null)
+			throw new NullPointerException("Cannot remove an index for a null ComponentId");
+		
+		int index = id.getId();
+		if (index < tables.length && tables[index] != null) {
+			for (Entity e: tables[index])
+				e.updateIndex(index, null);
+			tables[index] = null;
 		}
+	}
+	
+	public boolean hasIndex(ComponentId<?> id) {
+		if (id == null)
+			throw new NullPointerException("ComponentId cannot be null");
 		
-		return new NullIterator();
-	}
-	
-	public void removeAll() {
-		for(Entity e: this)
-			e.setOwner(null);
-			
-		for (int i = 0; i < componentTables.length; i++) {
-			if (componentTables[i] != null)
-				componentTables[i].entities.clear();
-		}
-		allList.clear();
-	}
-	
-	public int size() {
-		return allList.size();
-	}
-	
-	public void remove(Entity e) {
-		if (e == null)
-			throw new NullPointerException("Cannot remove a null Entity");
-		if (e.getOwner() != this)
-			throw new IllegalArgumentException("Entity must be owned by this EntitySystem");
-		
-		e.setOwner(null);
-		// remove the entity from all tables that reference it
-		for (Component c: e)
-			detach(e, c);
-		allList.remove(e);
+		int index = id.getId();
+		return index < tables.length && tables[index] != null;
 	}
 	
 	public void add(Entity e) {
 		if (e == null)
-			throw new NullPointerException("Cannot add a null Entity");
-		if (e.getOwner() == null)
-			throw new IllegalArgumentException("Entity cannot be owned by any EntitySystem");
+			throw new NullPointerException("Entity cannot be null");
+		if (e.owner != null && e.owner != this)
+			throw new IllegalArgumentException("Entity is already owned by another EntitySystem");
 		
-		e.setOwner(this);
-		// add back entity to any component tables it has
+		if (e.owner == this)
+			return; // don't need to do any extra work
+		
+		e.owner = this;
+		allEntities.add(e);
+		e.systemIndex = allEntities.size() - 1;
+		
+		e.updateIndices();
+		
 		for (Component c: e)
-			attach(e, c);
-		allList.add(e);
+			incrementCount(c.getComponentId());
 	}
 	
-	void attach(Entity entity, Component c) {
-		// update component counts
-		int type = c.getComponentId().getId();
-		if (type >= componentCounts.length)
-			componentCounts = Arrays.copyOf(componentCounts, type + 1);
-		componentCounts[type]++;
+	public void remove(Entity e) {
+		if (e == null)
+			throw new NullPointerException("Entity cannot be null");
+		if (e.owner != this)
+			throw new IllegalArgumentException("Entity must be owned by this EntitySystem");
 		
-		if (c.isIndexable()) {
-			// add to the component table, too
-			ComponentTable table;
-			if (type >= componentTables.length || componentTables[type] == null) {
-				// need a new component table
-				table = new ComponentTable(type);
-				if (type >= componentTables.length)
-					componentTables = Arrays.copyOf(componentTables, type + 1);
-				componentTables[type] = table;
-			} else 
-				table = componentTables[type];
-
-			table.entities.add(entity);
+		e.owner = null;
+		allEntities.remove(e.systemIndex);
+		if (allEntities.size() != e.systemIndex)
+			allEntities.get(e.systemIndex).systemIndex = e.systemIndex;
+		e.systemIndex = -1;
+		
+		e.updateIndices();
+		
+		for (Component c: e)
+			decrementCount(c.getComponentId());
+	}
+	
+	public void reset() {
+		// remove all of the entities from this system
+		Iterator<Entity> it = allEntities.iterator();
+		while(it.hasNext()) {
+			Entity e = it.next();
+			e.owner = null;
+			e.systemIndex = -1;
+			e.updateIndices(); // will handle removing itself from component tables
+			
+			it.remove();
+		}
+		
+		// reset tables and counts
+		tableCounts = new int[0];
+		tables = new ComponentTable[0];
+	}
+	
+	public int size() {
+		return allEntities.size();
+	}
+	
+	void incrementCount(ComponentId<?> id) {
+		int index = id.getId();
+		if (index < tableCounts.length) {
+			// just update counter
+			tableCounts[index]++;
+		} else {
+			// must grow table counts
+			tableCounts = Arrays.copyOf(tableCounts, index + 1);
+			tableCounts[index] = 1;
 		}
 	}
 	
-	void detach(Entity entity, Component c) {
-		int type = c.getComponentId().getId();
-		if (type < componentCounts.length)
-			componentCounts[type] = Math.max(0, componentCounts[type] - 1);
-		
-		if (c.isIndexable()) {
-			if (type < componentTables.length && componentTables[type] != null)
-				componentTables[type].entities.remove(entity);
-		}
+	void decrementCount(ComponentId<?> id) {
+		int index = id.getId();
+		if (index < tableCounts.length)
+			tableCounts[index]--;
+		// else it should be 0 anyway
+	}
+	
+	ComponentTable lookupTable(int typeId) {
+		if (typeId >=0 && typeId < tables.length)
+			return tables[typeId];
+		return null;
 	}
 	
 	/* Iterator that iterates over all entities in the system */
@@ -121,7 +156,7 @@ public final class EntitySystem implements Iterable<Entity> {
 		private Entity current;
 		
 		public EntitySystemIterator() {
-			iterator = allList.iterator();
+			iterator = allEntities.iterator();
 			current = null;
 		}
 		
@@ -138,12 +173,13 @@ public final class EntitySystem implements Iterable<Entity> {
 
 		@Override
 		public void remove() {
-			iterator.remove();
-			if (current.getOwner() == EntitySystem.this) {
-				current.setOwner(null);
-				for (Component c: current)
-					detach(current, c);
-			}
+			if (current == null)
+				throw new IllegalStateException("Must call next() first");
+			
+			// this will remove current from allEntities, which a Bag iterator
+			// can handle
+			EntitySystem.this.remove(current);
+			current = null;
 		}
 	}
 	
@@ -157,7 +193,7 @@ public final class EntitySystem implements Iterable<Entity> {
 		private Entity current;
 		
 		public ComponentViewIterator(ComponentId<?> type) {
-			iterator = allList.iterator();
+			iterator = allEntities.iterator();
 			componentType = type;
 		}
 		
@@ -183,8 +219,10 @@ public final class EntitySystem implements Iterable<Entity> {
 
 		@Override
 		public void remove() {
-			// let the iterator handle everything
-			iterator.remove();
+			if (current == null)
+				throw new IllegalStateException("Must call next() first");
+			current.remove(componentType);
+			current = null;
 		}
 		
 		private void advance() {
@@ -213,48 +251,6 @@ public final class EntitySystem implements Iterable<Entity> {
 		@Override
 		public void remove() {
 			throw new IllegalStateException();
-		}
-	}
-	
-	private static class ComponentTable implements Iterable<Entity> {
-		final int typeId;
-		final Bag<Entity> entities;
-		
-		public ComponentTable(int typeId) {
-			this.typeId = typeId;
-			entities = new Bag<Entity>();
-		}
-
-		@Override
-		public Iterator<Entity> iterator() {
-			return new ComponentTableIterator();
-		}
-		
-		private class ComponentTableIterator implements Iterator<Entity> {
-			private final Iterator<Entity> iterator;
-			private Entity current;
-			
-			public ComponentTableIterator() {
-				iterator = entities.iterator();
-				current = null;
-			}
-			
-			@Override
-			public boolean hasNext() {
-				return iterator.hasNext();
-			}
-
-			@Override
-			public Entity next() {
-				current = iterator.next();
-				return current;
-			}
-
-			@Override
-			public void remove() {
-				iterator.remove();
-				current.detach(typeId);
-			}
 		}
 	}
 }

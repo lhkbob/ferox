@@ -4,7 +4,6 @@ import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 
 /**
  * <p>
@@ -24,7 +23,6 @@ import com.ferox.util.entity.Description;
  * 
  * @author Michael Ludwig
  */
-@Description("3D element within a scene")
 public final class SceneElement extends AbstractComponent<SceneElement> {
 	private final Transform transform;
 	

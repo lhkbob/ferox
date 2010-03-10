@@ -2,9 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 
-@Description("Declares that an Entity should be rendered")
 public final class Renderable extends AbstractComponent<Renderable> {
 	private DrawStyle frontStyle;
 	private DrawStyle backStyle;

@@ -2,11 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.resource.TextureImage;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
-import com.ferox.util.entity.NonIndexable;
 
-@NonIndexable
-@Description("Adds image based normal mapping to rendered Entities")
 public final class NormalMappedSurface extends AbstractComponent<NormalMappedSurface> {
 	private TextureImage normalMap;
 	

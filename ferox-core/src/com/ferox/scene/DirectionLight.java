@@ -3,9 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 
-@Description("Light representing an infititely far away directional light, such as the sun")
 public class DirectionLight extends AbstractComponent<DirectionLight> {
 	private final Vector3f direction;
 	private final Color4f color;

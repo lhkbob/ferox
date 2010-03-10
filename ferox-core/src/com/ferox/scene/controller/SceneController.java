@@ -163,6 +163,7 @@ public class SceneController implements Controller {
 		}
 	}
 	
+	// FIXME: can we make this part of SpatialHierarchyUtil??
 	private void placeElement(Entity e, SceneElement s, ElementData d) {
 		Object o;
 		Cell c;

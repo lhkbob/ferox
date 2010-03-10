@@ -2,11 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Color4f;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
-import com.ferox.util.entity.NonIndexable;
 
-@NonIndexable
-@Description("Renderable Entities are lit using the Blinn-Phong lighting model")
 public final class BlinnPhongLightingModel extends AbstractComponent<BlinnPhongLightingModel> {
 	
 	private static final Color4f DEFAULT_SPEC = new Color4f(0f, 0f, 0f, 1f);

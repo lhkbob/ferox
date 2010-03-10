@@ -2,9 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Vector3f;
 import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Description;
 
-@Description("Specifies an Entity's orientation is constrained to an axis or direction")
 public class Billboarded extends AbstractComponent<Billboarded> {
 	/**
 	 * Axis represents each of the three local basis vectors of a SceneElement.
