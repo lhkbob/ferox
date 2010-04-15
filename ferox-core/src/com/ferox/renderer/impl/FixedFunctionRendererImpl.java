@@ -5,6 +5,7 @@ import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.Renderer;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.TextureImage;
@@ -26,7 +27,7 @@ import com.ferox.resource.TextureImage;
  * 
  * @author Michael Ludwig
  */
-public final class FixedFunctionRendererImpl implements FixedFunctionRenderer {
+public final class FixedFunctionRendererImpl implements FixedFunctionRenderer, SurfaceAwareRenderer {
 	private final RendererDelegate coreD;
 	private final FixedFunctionRendererDelegate ffpD;
 
@@ -360,5 +361,15 @@ public final class FixedFunctionRendererImpl implements FixedFunctionRenderer {
 	@Override
 	public void setStencilWriteMask(int front, int back) {
 		coreD.setStencilWriteMask(front, back);
+	}
+
+	@Override
+	public void setViewport(int x, int y, int width, int height) {
+		coreD.setViewport(x, y, width, height);
+	}
+
+	@Override
+	public void setRenderSurface(RenderSurface surface) {
+		coreD.setBaseViewport(surface.getWidth(), surface.getHeight());
 	}
 }

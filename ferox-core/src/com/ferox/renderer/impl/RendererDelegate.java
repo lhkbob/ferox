@@ -78,6 +78,15 @@ public abstract class RendererDelegate {
 	protected int stencilMaskFront = ~0;
 	protected int stencilMaskBack = ~0;
 	
+	// viewport
+	protected int viewX = 0;
+	protected int viewY = 0;
+	protected int viewWidth = -1;
+	protected int viewHeight = -1;
+
+	protected int viewSurfaceWidth = -1;
+	protected int viewSurfaceHeight = -1;
+	
 	public void reset() {
 		// reset the portion of state described in Renderer
 		setBlendColor(DEFAULT_BLEND_COLOR);
@@ -97,6 +106,13 @@ public abstract class RendererDelegate {
 		setStencilUpdateOps(StencilOp.KEEP, StencilOp.KEEP, StencilOp.KEEP);
 		setStencilTestEnabled(false);
 		setStencilWriteMask(~0);
+		
+		setViewport(0, 0, viewSurfaceWidth, viewSurfaceHeight);
+	}
+	
+	public void setBaseViewport(int width, int height) {
+		viewSurfaceWidth = width;
+		viewSurfaceHeight = height;
 	}
 	
 	/**
@@ -365,4 +381,21 @@ public abstract class RendererDelegate {
 	 * Invoke OpenGL calls to set the StencilOps
 	 */
 	protected abstract void glStencilUpdate(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass, boolean isFront);
+	
+	public void setViewport(int x, int y, int width, int height) {
+		if (x < 0 || y < 0 || width < 0 || height < 0)
+			throw new IllegalArgumentException("Invalid arguments, all must be positive: " + x + ", " + y + ", " + width + ", " + height);
+		if (x != viewX || y != viewY || width != viewWidth || height != viewHeight) {
+			viewX = x;
+			viewY = y;
+			viewWidth = width;
+			viewHeight = height;
+			glViewport(x, y, width, height);
+		}
+	}
+	
+	/**
+	 * Invoke OpenGL calls to set the viewport
+	 */
+	protected abstract void glViewport(int x, int y, int width, int height);
 }

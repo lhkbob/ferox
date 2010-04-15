@@ -21,15 +21,16 @@ package com.ferox.resource;
  * </p>
  * <p>
  * If a BufferData is later set to have a null array, and an associated resource
- * is updated, Renderers should not modify already allocated space. Essentially,
- * a null data array implies Renderers must make sure the space is there, but
- * otherwise not change the contents.
+ * is updated, Frameworks should not modify already allocated space.
+ * Essentially, a null data array implies Frameworks must make sure the space is
+ * there, but otherwise not change the contents.
  * </p>
  * <p>
  * Because of this, care should be given when using null arrays and BufferDatas.
  * One reasonably safe scenario is to update a resource using a BufferData, and
  * then on a success, nullify the BufferData's array to clear up client memory.
- * It is necessary to reload the array before any more updates.
+ * It is necessary to reload the array before any more updates that require
+ * changes to said data.
  * </p>
  * 
  * @author Michael Ludwig

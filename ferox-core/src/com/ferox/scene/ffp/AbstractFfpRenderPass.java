@@ -10,21 +10,20 @@ import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.Renderer;
 import com.ferox.resource.Geometry;
-import com.ferox.util.Bag;
-import com.ferox.util.geom.Box;
 
 public abstract class AbstractFfpRenderPass implements RenderPass {
-	// constant configuration variables
-	private final String vertexBinding;
-	private final String normalBinding;
-	private final String texCoordBinding;
+	protected static final Color4f BLACK = new Color4f(0f, 0f, 0f, 1f);
 	
-	protected final RenderMode renderMode;
-
+	// constant configuration variables
+	protected final String vertexBinding;
+	protected final String normalBinding;
+	protected final String texCoordBinding;
+	
+	protected final int maxMaterialTexUnits;
+	
 	// cached variables
 	private final Vector4f lightPos;
 	private final Vector3f lightDir;
-	private final Color4f black;
 	private final Color4f dimmedAmbient;
 	private final Color4f dimmedLight;
 	
@@ -32,19 +31,13 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 	private final Matrix4f modelView;
 	private final Matrix4f projection;
 	
-	private final Geometry defaultGeometry;
-
 	// per-pass variables
 	private FixedFunctionRenderer renderer;
+	protected RenderDescription renderDescr;
 	
-	protected LightAtom shadowLight;
-	protected Bag<RenderAtom> renderAtoms;
-	protected Bag<LightAtom> lightAtoms;
-	protected Frustum frustum;
-	
-	public AbstractFfpRenderPass(RenderMode renderMode, String vertexBinding, String normalBinding, 
+	public AbstractFfpRenderPass(int maxMaterialTexUnits, String vertexBinding, String normalBinding, 
 								 String texCoordBinding) {
-		this.renderMode = renderMode;
+		this.maxMaterialTexUnits = maxMaterialTexUnits;
 
 		this.vertexBinding = vertexBinding;
 		this.normalBinding = normalBinding;
@@ -54,45 +47,38 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		lightPos = new Vector4f();
 		lightDir = new Vector3f();
 
-		black = new Color4f();
 		dimmedAmbient = new Color4f();
 		dimmedLight = new Color4f();
 		
 		modelView = new Matrix4f();
 		view = new Matrix4f();
 		projection = new Matrix4f();
-		
-		defaultGeometry = new Box(.5f);
 	}
 	
-	public void setPass(Frustum frustum, Bag<RenderAtom> renderAtoms, Bag<LightAtom> lightAtoms, LightAtom shadowLight) {
-		this.frustum = frustum;
-		this.renderAtoms = renderAtoms;
-		this.lightAtoms = lightAtoms;
-		this.shadowLight = shadowLight;
+	public void setRenderDescription(RenderDescription renderDescr) {
+		this.renderDescr = renderDescr;
 	}
 
 	@Override
 	public void render(Renderer renderer, RenderSurface surface) {
-		if (renderer instanceof FixedFunctionRenderer && frustum != null && renderAtoms != null) {
+		if (renderer instanceof FixedFunctionRenderer && getFrustum() != null) {
+			// render only when we have an ffp renderer, the description is complete
+			// and this pass can determine a proper frustum to use
 			this.renderer = (FixedFunctionRenderer) renderer;
-			init();
+			init(surface);
 			render(this.renderer);
 			this.renderer = null;
 		}
 		
-		frustum = null;
-		renderAtoms = null;
-		lightAtoms = null;
-		shadowLight = null;
+		renderDescr = null; // reset
 	}
 	
-	private void init() {
+	private void init(RenderSurface surface) {
 		// setup attribute bindings
 		renderer.setVertexBinding(vertexBinding);
 		renderer.setNormalBinding(normalBinding);
 		
-		switch(renderMode.getMinimumTextures()) {
+		switch(maxMaterialTexUnits) {
 		case 2:
 			renderer.setTextureCoordinateBinding(1, texCoordBinding);
 		case 1:
@@ -104,7 +90,12 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 			break;
 		}
 		
+		// delegate to configure viewport, and then possibly clear
+		if (initViewport(renderer))
+			renderer.clear(true, true, true, surface.getClearColor(), surface.getClearDepth(), surface.getClearStencil());
+		
 		// get matrix forms from the frustum
+		Frustum frustum = getFrustum();
 		frustum.getProjectionMatrix(projection);
 		frustum.getViewMatrix(view);
 		
@@ -120,10 +111,10 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		// set materials
 		renderer.setLightingEnabled(atom.lit);
 		renderer.setMaterialShininess(atom.shininess);
-		renderer.setMaterial(atom.ambient, atom.diffuse, atom.specular, black);
+		renderer.setMaterial(atom.ambient, atom.diffuse, atom.specular, BLACK);
 		
 		// set textures
-		switch(renderMode.getMinimumTextures()) {
+		switch(maxMaterialTexUnits) {
 		case 2:
 			if (atom.decalTexture != null) {
 				renderer.setTexture(1, atom.decalTexture);
@@ -139,6 +130,7 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 				renderer.setTextureEnabled(0, false);
 			break;
 		}
+		
 		// render it
 		renderGeometry(atom.geometry, atom.worldTransform);
 	}
@@ -149,15 +141,14 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		renderer.setModelViewMatrix(modelView);
 		
 		// render the geom
-		renderer.render((geom == null ? defaultGeometry : geom));
-		renderer.setModelViewMatrix(view);
+		renderer.render(geom);
 		
 		// restore view
 		renderer.setModelViewMatrix(view);
 	}
 	
 	protected void setLight(int light, LightAtom atom) {
-		setLight(light, atom, atom == shadowLight);
+		setLight(light, atom, atom == renderDescr.getShadowCaster());
 	}
 	
 	protected void setLight(int light, LightAtom atom, boolean asShadow) {
@@ -167,56 +158,47 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 			return;
 		}
 		
-		setLightColor(light, atom, asShadow);
-		
-		if (atom.position != null) {
-			if (atom.direction == null) {
-				// position light
-				lightPos.set(atom.position.x, atom.position.y, atom.position.z, 1f);
-				lightDir.set(0f, 0f, -1f);
-				
-				renderer.setLightPosition(light, lightPos);
-				renderer.setSpotlight(light, lightDir, 180f);
-			} else if (atom.cutoffAngle >= 0) {
-				// spotlight
-				lightPos.set(atom.position.x, atom.position.y, atom.position.z, 1f);
-				lightDir.set(atom.direction.x, atom.direction.y, atom.direction.z);
-				lightDir.normalize();
-				
-				renderer.setLightPosition(light, lightPos);
-				renderer.setSpotlight(light, lightDir, atom.cutoffAngle);
-			} else {
-				// direction light
-				lightPos.set(-atom.direction.x, -atom.direction.y, -atom.direction.z, 0f);
-				renderer.setLightPosition(light, lightPos);
-			}
-		} else if (atom.direction != null) {
-			// direction light
+		switch(atom.type) {
+		case AMBIENT:
+			// ambient lights don't use an index so disable the unit
+			renderer.setGlobalAmbientLight(atom.diffuse);
+			renderer.setLightEnabled(light, false);
+			break;
+		case DIRECTION:
+			setLightColor(light, atom, asShadow);
 			lightPos.set(-atom.direction.x, -atom.direction.y, -atom.direction.z, 0f);
 			renderer.setLightPosition(light, lightPos);
-		} else {
-			// ambient light, which doesn't really use an index, so disable it
-			renderer.setLightEnabled(light, false);
+			break;
+		case SPOTLIGHT:
+			// this can also be a point light, in which case direction is ignored by OpenGL
+			setLightColor(light, atom, asShadow);
+			lightPos.set(atom.position.x, atom.position.y, atom.position.z, 1f);
+			lightDir.set(atom.direction.x, atom.direction.y, atom.direction.z).normalize();
+
+			renderer.setLightPosition(light, lightPos);
+			renderer.setSpotlight(light, lightDir, atom.cutoffAngle);
+			break;
 		}
 	}
 	
 	protected void setLightColor(int light, LightAtom atom, boolean asShadow) {
-		if (atom.position == null && atom.direction == null) {
-			// global ambient light
-			renderer.setGlobalAmbientLight(atom.diffuse);
+		if (asShadow) {
+			// no specular highlight and dim other light contributions
+			dimmedLight.set(.1f * atom.diffuse.getRed(), .1f * atom.diffuse.getGreen(), .1f * atom.diffuse.getBlue(), 1f);
+			dimmedAmbient.set(.2f * atom.diffuse.getRed(), .2f * atom.diffuse.getGreen(), .2f * atom.diffuse.getBlue(), 1f);
+			renderer.setLightColor(light, dimmedAmbient, dimmedLight, BLACK);
 		} else {
-			// normal light
-			if (asShadow) {
-				// no specular and slightly dimmed
-				dimmedLight.set(.1f * atom.diffuse.getRed(), .1f * atom.diffuse.getGreen(), .1f * atom.diffuse.getBlue(), 1f);
-				dimmedAmbient.set(.2f * atom.diffuse.getRed(), .2f * atom.diffuse.getGreen(), .2f * atom.diffuse.getBlue(), 1f);
-				renderer.setLightColor(light, black, dimmedLight, black);
-			} else {
-				// set colors as is, but leave out the ambient
-				renderer.setLightColor(light, black, atom.diffuse, atom.specular);
-			}
+			// set colors
+			renderer.setLightColor(light, BLACK, atom.diffuse, atom.specular);
 		}
+		
+		// set linear attenuation
+		renderer.setLightAttenuation(light, atom.constCutoff, atom.linCutoff, atom.quadCutoff);
 	}
 	
 	protected abstract void render(FixedFunctionRenderer renderer);
+	
+	protected abstract Frustum getFrustum();
+	
+	protected abstract boolean initViewport(FixedFunctionRenderer renderer);
 }

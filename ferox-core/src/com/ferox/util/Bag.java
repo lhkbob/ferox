@@ -107,16 +107,15 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 	 * @return The value formerly at index
 	 * @throws IndexOutOfBoundsException if index is < 0 or >= size()
 	 */
-	@SuppressWarnings("unchecked")
 	public E remove(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
 		
-		Object e = elements[index];
+		E e = elements[index];
 		elements[index] = elements[--size];
 		elements[size] = null;
 		
-		return (E) e;
+		return e;
 	}
 	
 	/**
@@ -172,7 +171,6 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 	 * @throws IndexOutOfBoundsException if index < 0 or index > size()
 	 * @throws NullPointerException if item is null
 	 */
-	@SuppressWarnings("unchecked")
 	public E set(int index, E item) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index must be in [0, " + size + "]");
@@ -186,9 +184,9 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 			elements[size++] = item;
 			return null;
 		} else {
-			Object e = elements[index];
+			E e = elements[index];
 			elements[index] = item;
-			return (E) e;
+			return e;
 		}
 	}
 
@@ -312,8 +310,22 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 		if (c == null)
 			throw new NullPointerException("Collection can't be null");
 		
-		for (E t: c) {
-			add(t);
+		if (c instanceof Bag) {
+			// do a fast array copy
+			Bag<? extends E> bag = (Bag<? extends E>) c;
+			int totalSize = size + bag.size;
+			
+			// grow current array
+			if (totalSize > elements.length)
+				capacity(totalSize);
+			
+			// copy over bag's elements
+			System.arraycopy(bag.elements, 0, elements, size, bag.size);
+			size = totalSize;
+		} else {
+			// default implementation
+			for (E t: c)
+				add(t);
 		}
 		return true;
 	}

@@ -84,8 +84,7 @@ public class Frustum {
 	 */
 	public Frustum(boolean ortho, float fl, float fr, float fb, float ft, float fn, float ff) {
 		this();
-		setOrthogonalProjection(ortho);
-		setFrustum(fl, fr, fb, ft, fn, ff);
+		setFrustum(ortho, fl, fr, fb, ft, fn, ff);
 	}
 	
 	// initialize everything
@@ -160,15 +159,21 @@ public class Frustum {
 	}
 
 	/**
+	 * <p>
 	 * Sets the dimensions of the viewing frustum in camera coords. left, right,
 	 * bottom, and top specify edges of the rectangular near plane. This plane
 	 * is positioned perpendicular to the viewing direction, a distance near
-	 * along the direction vector from the view's location. If this view is
-	 * using orthogonal projection, the frustum is a rectangular prism extending
-	 * from this near plane, out to an identically sized plane, that is distance
-	 * far away. If not, the far plane is the far extent of a pyramid with it's
-	 * point at the location, truncated at the near plane.
+	 * along the direction vector from the view's location.
+	 * </p>
+	 * <p>
+	 * If this Frustum is using orthogonal projection, the frustum is a
+	 * rectangular prism extending from this near plane, out to an identically
+	 * sized plane, that is distance far away. If not, the far plane is the far
+	 * extent of a pyramid with it's point at the location, truncated at the
+	 * near plane.
+	 * </p>
 	 * 
+	 * @param ortho True if the Frustum should use an orthographic projection
 	 * @param left The left edge of the near frustum plane
 	 * @param right The right edge of the near frustum plane
 	 * @param bottom The bottom edge of the near frustum plane
@@ -178,11 +183,11 @@ public class Frustum {
 	 * @throws IllegalArgumentException if left > right, bottom > top, near >
 	 *             far, or near <= 0 when the view isn't orthographic
 	 */
-	public void setFrustum(float left, float right, float bottom, float top, float near, float far) {
+	public void setFrustum(boolean ortho, float left, float right, float bottom, float top, float near, float far) {
 		if (left > right || bottom > top || near > far)
 			throw new IllegalArgumentException("Frustum values would create an invalid frustum: " + 
 											   left + " " + right + " x " + bottom + " " + top + " x " + near + " " + far);
-		if (near <= 0 && !useOrtho)
+		if (near <= 0 && !ortho)
 			throw new IllegalArgumentException("Illegal value for near frustum when using perspective projection: " + near);
 
 		frustumLeft = left;
@@ -192,14 +197,16 @@ public class Frustum {
 		frustumNear = near;
 		frustumFar = far;
 		
+		useOrtho = ortho;
+		
 		updateFrustumPlanes();
 	}
-	
+
 	/**
-	 * Set the frustum to be frustum with the given field of view (in degrees).
-	 * Widths and heights are calculated using the assumed aspect ration and
-	 * near and far values. Because perspective transforms only make sense for
-	 * non-orthographic projections, it also sets this view to be
+	 * Set the frustum to be perspective projection with the given field of view
+	 * (in degrees). Widths and heights are calculated using the assumed aspect
+	 * ration and near and far values. Because perspective transforms only make
+	 * sense for non-orthographic projections, it also sets this view to be
 	 * non-orthographic.
 	 * 
 	 * @param fov The field of view
@@ -207,8 +214,8 @@ public class Frustum {
 	 * @param near The distance from the view's location to the near camera
 	 *            plane
 	 * @param far The distance from the view's location to the far camera plane
-	 * @throws IllegalArgumentException if fov is outside of (0, 180], or aspect is <= 0, or near >
-	 *             far, or if near <= 0
+	 * @throws IllegalArgumentException if fov is outside of (0, 180], or aspect
+	 *             is <= 0, or near > far, or if near <= 0
 	 */
 	public void setPerspective(float fov, float aspect, float near, float far) {
 		if (fov <= 0f || fov > 180f)
@@ -216,12 +223,27 @@ public class Frustum {
 		if (aspect <= 0)
 			throw new IllegalArgumentException("Aspect ration must be >= 0, not: " + aspect);
 		
-		float h = (float) Math.tan(Math.toRadians(fov)) * near * .5f;
+		float h = (float) Math.tan(Math.toRadians(fov * .5f)) * near;
 		float w = h * aspect;
-		useOrtho = false;
-		setFrustum(-w, w, -h, h, near, far);
+		setFrustum(false, -w, w, -h, h, near, far);
 	}
 
+	/**
+	 * Set the frustum to be an orthographic projection that uses the given
+	 * boundary edges for the near frustum plane. The near value is set to -1,
+	 * and the far value is set to 1.
+	 * 
+	 * @param left
+	 * @param right
+	 * @param bottom
+	 * @param top
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
+	 * @throws IllegalArgumentException if left > right or bottom > top
+	 */
+	public void setOrtho(float left, float right, float bottom, float top) {
+		setFrustum(true, left, right, bottom, top, -1f, 1f);
+	}
+	
 	/**
 	 * Whether or not this view uses a perspective or orthogonal projection.
 	 * 
@@ -229,23 +251,6 @@ public class Frustum {
 	 */
 	public boolean isOrthogonalProjection() {
 		return useOrtho;
-	}
-
-	/**
-	 * Set whether or not to use orthogonal projection.
-	 * 
-	 * @param ortho Whether or not to use an orthographic projection
-	 * @throws IllegalStateException if ortho is false and the near frustum
-	 *             plane is <= 0
-	 */
-	public void setOrthogonalProjection(boolean ortho) {
-		if (!ortho && frustumNear <= 0)
-			throw new IllegalStateException("Calling setOrthogonalProjection(false) when near frustum distance <= 0 is illegal");
-
-		if (useOrtho != ortho) {
-			useOrtho = ortho;
-			updateFrustumPlanes();
-		}
 	}
 	
 	/**
@@ -298,6 +303,24 @@ public class Frustum {
 	}
 
 	/**
+	 * Compute and return the field of view along the vertical axis that this
+	 * Frustum uses. This is meaningless for an orthographic projection, and
+	 * returns -1 in that case. Otherwise, an angle in degrees is returned in
+	 * the range 0 to 180. This works correctly even when the bottom and top
+	 * edges of the Frustum are not centered about the location.
+	 * 
+	 * @return The field of view of this Frustum
+	 */
+	public float getFieldOfView() {
+		if (useOrtho)
+			return -1f;
+		
+		double fovTop = Math.atan(frustumTop / frustumNear);
+		double fovBottom = Math.atan(frustumBottom / frustumNear);
+		return (float) Math.toDegrees(fovTop - fovBottom);
+	}
+
+	/**
 	 * Compute and return the 4x4 projection matrix that represents the
 	 * mathematical projection from the frustum to homogenous device coordinates
 	 * (essentially the unit cube).
@@ -344,7 +367,6 @@ public class Frustum {
 		if (view == null)
 			view = new Matrix4f();
 		
-		// FIXME: reuse vectors
 		Vector3f n = direction.scale(-1f, null).normalize();
 		Vector3f u = up.normalize().cross(n, null);
 		Vector3f v = n.cross(u, null);

@@ -1,9 +1,14 @@
 package com.ferox.scene;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.bounds.BoundVolume;
 import com.ferox.util.entity.AbstractComponent;
+import com.ferox.util.entity.Controller;
 
 /**
  * <p>
@@ -29,35 +34,60 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
 	private BoundVolume localBounds;
 	private BoundVolume worldBounds;
 
-	private boolean potentiallyVisible;
+	private final Set<Frustum> visibility;
 	
 	public SceneElement() {
 		super(SceneElement.class);
 		transform = new Transform();
+		visibility = new HashSet<Frustum>();
 	}
 
 	/**
-	 * Return true if this SceneElement has been determined as potentially
-	 * visible. This is generally determined by the Cells that own each
-	 * SceneElement, and by the Entities within an EntitySystem that represent
-	 * viewable regions.
+	 * Return true if this SceneElement has been flagged as visible to the
+	 * Frustum <tt>f</tt>. Implementations of {@link Controller} are responsible
+	 * for assigning this as appropriate. If a SceneElement has no world bounds,
+	 * the controllers should consider the element "visible".
 	 * 
-	 * @return Whether or not the SceneElement is potentially visible
+	 * @param f The Frustum to check visibility
+	 * @return Whether or not the SceneElement is visible to f
+	 * @throws NullPointerException if f is null
 	 */
-	public boolean isPotentiallyVisible() {
-		return potentiallyVisible;
+	public boolean isVisible(Frustum f) {
+		if (f == null)
+			throw new NullPointerException("Frustum cannot be null");
+		return visibility.contains(f);
 	}
 
 	/**
-	 * Set whether or not this SceneElement is potentially visible. If a
-	 * SceneElement is potentially visible it will generally be used by
-	 * Controllers that can perform useful operations only on Entities that will
-	 * affect the rendered scene.
+	 * Set whether or not this SceneElement is considered visible to the Frustum
+	 * <tt>f</tt>. The method is provided as is to allow for Controller
+	 * implementations to fine-grain or optimize the actual frustum testing
+	 * performed (instead of this method invoking
+	 * {@link BoundVolume#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
+	 * automatically.
 	 * 
-	 * @param pv Whether or not the SceneElement is potentially visible
+	 * @param f The Frustum whose visibility is assigned
+	 * @param pv Whether or not the SceneElement is visible to f
+	 * @throws NullPointerException if f is null
 	 */
-	public void setPotentiallyVisible(boolean pv) {
-		potentiallyVisible = pv;
+	public void setVisible(Frustum f, boolean pv) {
+		if (f == null)
+			throw new NullPointerException("Frustum cannot be null");
+		if (pv)
+			visibility.add(f);
+		else
+			visibility.remove(f);
+	}
+
+	/**
+	 * Reset the visibility flags of this SceneElement so that is no longer
+	 * visible to any Frustums. Subsequent calls to
+	 * {@link #isVisible(Frustum)} will return false until a Frustum
+	 * has been flagged as visible via
+	 * {@link #setVisible(Frustum, boolean)}.
+	 */
+	public void resetVisibility() {
+		visibility.clear();
 	}
 
 	/**

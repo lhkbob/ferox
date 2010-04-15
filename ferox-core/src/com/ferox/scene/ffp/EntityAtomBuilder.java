@@ -1,6 +1,7 @@
 package com.ferox.scene.ffp;
 
 import com.ferox.math.Color4f;
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
@@ -50,28 +51,36 @@ public class EntityAtomBuilder {
 		defaultBlack = new Color4f(0f, 0f, 0f, 1f);
 	}
 	
-	public void buildShadowAtoms(Entity e, Stream<ShadowAtom> stream) {
+	public ShadowAtom buildShadowAtom(Entity e, Frustum f, Stream<ShadowAtom> stream) {
 		Renderable r = e.get(R_ID);
-		if (r != null) {
+		if (r != null && (e.get(SC_ID) != null || e.getMeta(r, SC_ID) != null)) {
+			SceneElement se = e.get(SE_ID);
+			if (!checkFrustum(se, f))
+				return null; // not within view
+			
 			ShadowAtom atom = stream.newInstance();
 			Shape shape = e.get(S_ID);
 			atom.geometry = (shape == null ? defaultGeometry : shape.getGeometry());
 			
-			SceneElement se = e.get(SE_ID);
 			atom.worldTransform = (se == null ? new Matrix4f() : se.getTransform().get(atom.worldTransform));
 			
 			stream.push(atom);
-		}
+			return atom;
+		} else
+			return null;
 	}
 	
-	public void buildRenderAtoms(Entity e, Stream<RenderAtom> stream) {
+	public RenderAtom buildRenderAtom(Entity e, Frustum f, Stream<RenderAtom> stream) {
 		Renderable r = e.get(R_ID);
 		if (r != null) {
+			SceneElement se = e.get(SE_ID);
+			if (!checkFrustum(se, f))
+				return null; // not within view
+			
 			RenderAtom atom = stream.newInstance();
 			atom.front = r.getDrawStyleFront();
 			atom.back = r.getDrawStyleBack();
 			
-			SceneElement se = e.get(SE_ID);
 			if (se != null) {
 				// scene element
 				atom.worldBounds = se.getWorldBounds();
@@ -92,7 +101,7 @@ public class EntityAtomBuilder {
 				atom.ambient = bl.getAmbient();
 				atom.diffuse = bl.getDiffuse();
 				atom.specular = bl.getSpecular();
-				atom.shininess = Math.max(128, bl.getShininess());
+				atom.shininess = Math.min(128, bl.getShininess());
 				
 				atom.lit = true;
 			} else if (sl != null) {
@@ -105,6 +114,7 @@ public class EntityAtomBuilder {
 				atom.ambient = defaultBlack;
 				atom.diffuse = defaultDiffuse;
 				atom.specular = defaultBlack;
+				atom.shininess = 1;
 				
 				atom.lit = true;
 			}
@@ -122,15 +132,18 @@ public class EntityAtomBuilder {
 			}
 			
 			stream.push(atom);
-		} // else this version doesn't support non-Renderable RenderAtoms
+			return atom;
+		} else
+			return null;
 	}
 	
-	public void buildLightAtoms(Entity e, Stream<LightAtom> stream) {
-		SceneElement se = e.get(SE_ID);
-		ShadowCaster sc = e.get(SC_ID);
-		
+	public LightAtom buildAmbientLightAtom(Entity e, Frustum f, Stream<LightAtom> stream) {
 		AmbientLight al = e.get(LA_ID);
 		if (al != null) {
+			SceneElement se = e.get(SE_ID);
+			if (!checkFrustum(se, f))
+				return null; // not within view
+			
 			LightAtom atom = stream.newInstance();
 			atom.type = Type.AMBIENT;
 			atom.worldBounds = (se == null ? null : se.getWorldBounds());
@@ -149,32 +162,18 @@ public class EntityAtomBuilder {
 			atom.quadCutoff = 0f;
 			
 			stream.push(atom);
-		}
-		
-		DirectionLight dl = e.get(LD_ID);
-		if (dl != null) {
-			LightAtom atom = stream.newInstance();
-			atom.type = Type.DIRECTION;
-			atom.worldBounds = (se == null ? null : se.getWorldBounds());
-			
-			atom.diffuse = dl.getColor();
-			atom.specular = atom.diffuse;
-			
-			atom.castsShadows = sc != null;
-			atom.direction = dl.getDirection().normalize(atom.direction);
-			
-			atom.position = null;
-			atom.cutoffAngle = 0f;
-			
-			atom.constCutoff = 1f;
-			atom.linCutoff = 0f;
-			atom.quadCutoff = 0f;
-			
-			stream.push(atom);
-		}
-		
+			return atom;
+		} else
+			return null;
+	}
+	
+	public LightAtom buildSpotLightAtom(Entity e, Frustum f, Stream<LightAtom> stream) {
 		SpotLight sl = e.get(LS_ID);
 		if (sl != null) {
+			SceneElement se = e.get(SE_ID);
+			if (!checkFrustum(se, f))
+				return null; // not within view
+			
 			LightAtom atom = stream.newInstance();
 			atom.type = Type.SPOTLIGHT;
 			atom.worldBounds = (se == null ? null : se.getWorldBounds());
@@ -182,7 +181,7 @@ public class EntityAtomBuilder {
 			atom.diffuse = sl.getColor();
 			atom.specular = atom.diffuse;
 			
-			atom.castsShadows = sc != null;
+			atom.castsShadows = e.get(SC_ID) != null || e.getMeta(sl, SC_ID) != null;
 			atom.direction = sl.getDirection().normalize(atom.direction);
 			if (atom.position == null)
 				atom.position = new Vector3f(sl.getPosition());
@@ -195,6 +194,44 @@ public class EntityAtomBuilder {
 			atom.quadCutoff = 0f;
 			
 			stream.push(atom);
-		}
+			return atom;
+		} else
+			return null;
+	}
+	
+	public LightAtom buildDirectionLightAtom(Entity e, Frustum f, Stream<LightAtom> stream) {
+		DirectionLight dl = e.get(LD_ID);
+		if (dl != null) {
+			SceneElement se = e.get(SE_ID);
+			if (!checkFrustum(se, f))
+				return null; // not within view
+			
+			LightAtom atom = stream.newInstance();
+			atom.type = Type.DIRECTION;
+			atom.worldBounds = (se == null ? null : se.getWorldBounds());
+			
+			atom.diffuse = dl.getColor();
+			atom.specular = atom.diffuse;
+			
+			atom.castsShadows = e.get(SC_ID) != null || e.getMeta(dl, SC_ID) != null;
+			atom.direction = dl.getDirection().normalize(atom.direction);
+			
+			atom.position = null;
+			atom.cutoffAngle = 0f;
+			
+			atom.constCutoff = 1f;
+			atom.linCutoff = 0f;
+			atom.quadCutoff = 0f;
+			
+			stream.push(atom);
+			return atom;
+		} else
+			return null;
+	}
+	
+	private boolean checkFrustum(SceneElement se, Frustum f) {
+		if (se == null || f == null)
+			return true;
+		return se.isVisible(f);
 	}
 }

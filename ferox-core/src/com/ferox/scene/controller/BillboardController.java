@@ -13,12 +13,31 @@ import com.ferox.util.entity.Controller;
 import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntitySystem;
 
+/**
+ * <p>
+ * The BillboardController processes an {@link EntitySystem} to implement the
+ * behavior necessary that allows {@link SceneElement} to be {@link Billboarded}
+ * . This controller will process all Billboarded entities that are also
+ * SceneElements, and update the SceneElement's transform as required to meet
+ * the constraints of the billboard.
+ * </p>
+ * <p>
+ * Any Billboarded entities that are not SceneElements are ignored. The
+ * SceneElement is required as a source for the location, and the result of the
+ * orientation computation.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public class BillboardController implements Controller {
 	private static final ComponentId<Billboarded> B_ID = Component.getComponentId(Billboarded.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 	
 	@Override
 	public void process(EntitySystem system) {
+		// make sure we have an index over Billboards
+		system.addIndex(B_ID);
+		
 		Iterator<Entity> it = system.iterator(B_ID);
 		while(it.hasNext()) {
 			process(it.next());

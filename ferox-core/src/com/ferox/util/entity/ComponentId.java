@@ -1,9 +1,11 @@
 package com.ferox.util.entity;
 
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * <p>
  * ComponentId is a dynamically assigned identifier unique to a concrete
  * subclass of {@link Component}. Every instance of a Component type T will
  * contain the same ComponentId. ComponentId is a glorified integer id assigned
@@ -11,6 +13,7 @@ import java.util.Map;
  * instances in an {@link Entity} or iterating over Entities of a given type,
  * instead of requiring a hash-map lookup if Classes were to be used. It also
  * allows for correctly typed Component returns from an Entity.
+ * </p>
  * 
  * @see Component
  * @see Entity
@@ -83,7 +86,8 @@ public final class ComponentId<T extends Component> {
 	 *            subclass of Component
 	 * @return A unique ComponentId associated with the given type
 	 * @throws NullPointerException if type is null
-	 * @throws IllegalArgumentException if type is not actual
+	 * @throws IllegalArgumentException if type is not actually a concrete
+	 *             subclass of Component
 	 */
 	@SuppressWarnings("unchecked")
 	static <M extends Component> ComponentId<M> getComponentId(Class<M> type) {
@@ -91,6 +95,8 @@ public final class ComponentId<T extends Component> {
 			throw new NullPointerException("Type cannot be null");
 		if (!Component.class.isAssignableFrom(type))
 			throw new IllegalArgumentException("Type must be a subclass of Component: " + type);
+		if (Modifier.isAbstract(type.getModifiers()))
+			throw new IllegalArgumentException("Component class type cannot be abstract: " + type);
 
 		synchronized (typeMap) {
 			ComponentId<M> id = (ComponentId<M>) typeMap.get(type);

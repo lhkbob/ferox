@@ -723,4 +723,30 @@ public interface Renderer {
 	 *             clearDepth is true
 	 */
 	public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
+
+	/**
+	 * <p>
+	 * Set the active region of the current RenderSurface. This effectively
+	 * changes the location and size of the area being rendered into. The (x,y)
+	 * coordinates represent the lower-left corner of the viewport, relative to
+	 * the lower left corner of the current RenderSurface. The width and height
+	 * can extend beyond the edges of the RenderSurface, but are clamped to
+	 * implementation maximums.
+	 * </p>
+	 * <p>
+	 * At the beginning of each pass, the viewport is set to span the entire
+	 * content of the RenderSurface. When a RenderSurface is cleared (either
+	 * based on parameters specified to
+	 * {@link Framework#queue(RenderSurface, RenderPass) queue()} or to
+	 * {@link #clear(boolean, boolean, boolean, Color4f, float, int) clear()}),
+	 * it uses the current viewport, and only clears the content within it.
+	 * </p>
+	 * 
+	 * @param x The x coordinate of the new viewport
+	 * @param y The y coordinate of the new viewport
+	 * @param width The width of the new viewport
+	 * @param height The height of the new viewport
+	 * @throws IllegalArgumentException if any argument is less than 0
+	 */
+	public void setViewport(int x, int y, int width, int height);
 }

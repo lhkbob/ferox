@@ -9,13 +9,17 @@ public interface RenderConnection {
 		public T newInstance();
 	}
 	
-	public Stream<ShadowAtom> openShadowAtomStream();
+	public Stream<ShadowAtom> getShadowAtomStream();
 	
-	public Stream<RenderAtom> openRenderAtomStream();
+	public Stream<RenderAtom> getRenderAtomStream();
 	
-	public Stream<LightAtom> openLightAtomStream();
+	public Stream<LightAtom> getLightAtomStream();
+	
+	public Stream<FogAtom> getFogAtomStream();
 	
 	public void setShadowLight(Frustum shadowFrustum, LightAtom shadowCaster);
 	
-	public void setView(Frustum frustum, float left, float right, float bottom, float top);
+	public void setView(Frustum frustum, int left, int right, int bottom, int top);
+	
+	public void close();
 }

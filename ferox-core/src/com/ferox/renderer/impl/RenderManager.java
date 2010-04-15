@@ -10,8 +10,8 @@ import com.ferox.renderer.Framework;
  * <p>
  * A RenderManager takes on the responsibility of rendering a set of Actions.
  * The AbstractFramework (or something else) computes the set of Actions
- * necessary to render a frame correctly, and the delegate responsibility to the
- * RenderManager.
+ * necessary to render a frame correctly, and then delegates responsibility to
+ * the RenderManager.
  * </p>
  * <p>
  * The RenderManager must be thread safe. Implementations may choose to render

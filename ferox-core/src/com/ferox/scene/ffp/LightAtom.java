@@ -9,7 +9,6 @@ public class LightAtom {
 		AMBIENT, DIRECTION, SPOTLIGHT
 	}
 
-	public int id;
 	public Type type; // depending on type, certain properties are undefined
 	public BoundVolume worldBounds;
 	
@@ -28,4 +27,7 @@ public class LightAtom {
 	public float constCutoff;
 	public float linCutoff;
 	public float quadCutoff;
+	
+	// special flag for render passes to track if a light atom is active
+	public boolean active;
 }

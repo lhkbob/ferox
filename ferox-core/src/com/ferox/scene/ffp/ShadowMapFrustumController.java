@@ -1,274 +1,273 @@
 package com.ferox.scene.ffp;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Frustum;
-import com.ferox.math.Matrix3f;
-import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
-import com.ferox.scene.DirectedLight;
-import com.ferox.scene.Light;
+import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.scene.DirectionLight;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.ShadowCaster;
+import com.ferox.scene.SpotLight;
 import com.ferox.scene.ViewNode;
-import com.ferox.scene.controller.SceneController;
-import com.ferox.scene.fx.ShadowCaster;
 import com.ferox.util.Bag;
+import com.ferox.util.entity.AbstractComponent;
 import com.ferox.util.entity.Component;
+import com.ferox.util.entity.ComponentId;
 import com.ferox.util.entity.Controller;
 import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntitySystem;
 
-public class ShadowMapFrustumController implements Controller<> {
-	private static final int LT_ID = Component.getTypeId(Light.class);
-	private static final int DR_ID = Component.getTypeId(DirectedLight.class);
-	private static final int SE_ID = Component.getTypeId(SceneElement.class);
-	private static final int VN_ID = Component.getTypeId(ViewNode.class);
-	private static final int SC_ID = Component.getTypeId(ShadowCaster.class);
+public class ShadowMapFrustumController implements Controller {
+	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
+	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
+	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+	private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
 	
-	private float maxDistance;
-	private float focusDistance;
+	private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
 	
-	private Map<ViewNode, LightAndFrustum> lights;
-	private Map<Frustum, Bag<Entity>> visibleEntities;
-	
-	public ShadowMapFrustumController(EntitySystem system) {
-		super(system);
+	public static class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
+		private Frustum frustum;
+		private Entity shadowLight;
+		private boolean isSpotlight;
 		
-		lights = new HashMap<ViewNode, LightAndFrustum>();
-		visibleEntities = new HashMap<Frustum, Bag<Entity>>();
-		
-		setMaximumLightDistance(500f);
-		setFocalDistance(10f);
-	}
-	
-	public float getMaximumLightDistance() {
-		return maxDistance;
-	}
-	
-	public void setMaximumLightDistance(float maxDistance) {
-		if (maxDistance <= 0f)
-			throw new IllegalArgumentException("maxDistance must be greater than 0, not: " + maxDistance);
-		this.maxDistance = maxDistance;
-	}
-	
-	public float getFocalDistance() {
-		return focusDistance;
-	}
-	
-	public void setFocalDistance(float focusDistance) {
-		if (focusDistance <= 0f)
-			throw new IllegalArgumentException("focusDistance must be greater than 0, not: " + focusDistance);
-		this.focusDistance = focusDistance;
-	}
-	
-	public Frustum getShadowMapFrustum(ViewNode view) {
-		LightAndFrustum lf = lights.get(view);
-		return (lf == null ? null : lf.lightFrustum);
-	}
-	
-	public Entity getShadowMapLight(ViewNode view) {
-		LightAndFrustum lf = lights.get(view);
-		return (lf == null ? null : lf.light);
-	}
-	
-	public Bag<Entity> getShadowMapEntities(Frustum frustum) {
-		return visibleEntities.get(frustum);
-	}
-
-	@Override
-	public void process() {
-		validate();
-		
-		SceneController scene = system.getController(SceneController.class);
-		
-		Map<ViewNode, LightAndFrustum> newLights = new HashMap<ViewNode, LightAndFrustum>();
-		Map<Frustum, Bag<Entity>> pvs = new HashMap<Frustum, Bag<Entity>>();
-		
-		ViewNode viewNode;
-		LightAndFrustum lf;
-		Iterator<Entity> vi = system.iterator(VN_ID);
-		while(vi.hasNext()) {
-			viewNode = (ViewNode) vi.next().get(VN_ID);
-			lf = lights.get(viewNode);
-			if (lf == null)
-				lf = new LightAndFrustum();
-			
-			lf.light = chooseLight(viewNode.getFrustum(), lf.light);
-			if (lf.light != null) {
-				updateLightFrustum(viewNode.getFrustum(), lf);
-				if (scene != null)
-					computeVisibility(scene, lf.lightFrustum, pvs);
-			}
-			
-			newLights.put(viewNode, lf);
+		public ShadowMapFrustum(Frustum f, Entity light, boolean isSpot) {
+			super(ShadowMapFrustum.class);
+			setFrustum(f);
+			setLight(light);
+			setSpotLight(isSpot);
 		}
 		
-		lights = newLights;
-		visibleEntities = pvs;
+		public boolean isSpotLight() {
+			return isSpotlight;
+		}
+		
+		public void setSpotLight(boolean isSpot) {
+			isSpotlight = isSpot;
+		}
+		
+		public Entity getLight() {
+			return shadowLight;
+		}
+		
+		public void setLight(Entity light) {
+			if (light == null)
+				throw new NullPointerException("Light entity cannot be null");
+			shadowLight = light;
+		}
+		
+		public Frustum getFrustum() {
+			return frustum;
+		}
+		
+		public void setFrustum(Frustum f) {
+			if (f == null)
+				throw new NullPointerException("Frustum cannot be null");
+			frustum = f;
+		}
 	}
 	
-	private void computeVisibility(SceneController scene, Frustum f, Map<Frustum, Bag<Entity>> pvs) {
-		Bag<Entity> result = visibleEntities.get(f);
-		if (result == null)
-			result = new Bag<Entity>();
+	private final Bag<Entity> visCache;
+	private final SpatialHierarchy<Entity> hierarchy;
+	
+	private float shadowMapScale;
+	private final int shadowMapSize;
+	
+	public ShadowMapFrustumController(SpatialHierarchy<Entity> hierarchy, float shadowMapScale, int shadowMapSize) {
+		if (hierarchy == null)
+			throw new NullPointerException("SpatialHierarchy cannot be null");
+		if (shadowMapSize < 1)
+			throw new IllegalArgumentException("Shadow map size must be at least 1: " + shadowMapSize);
+		this.shadowMapSize = shadowMapSize;
+		this.hierarchy = hierarchy;
 		
-		scene.query(f, result);
-		pvs.put(f, result);
+		visCache = new Bag<Entity>();
+		setShadowMapScale(shadowMapScale);
+	}
+	
+	public float getShadowMapScale() {
+		return shadowMapScale;
+	}
+	
+	public void setShadowMapScale(float scale) {
+		if (scale <= 0f)
+			throw new IllegalArgumentException("Scale must be greater than 0");
+		shadowMapScale = scale;
+	}
+	
+	@Override
+	public void process(EntitySystem system) {
+		// make sure we have indices for viewnodes, and the two supported light types
+		system.addIndex(VN_ID);
+		system.addIndex(DL_ID);
+		system.addIndex(SL_ID);
+		
+		Iterator<Entity> vi = system.iterator(VN_ID);
+		while(vi.hasNext()) {
+			Entity e = vi.next();
+			ViewNode viewNode = e.get(VN_ID);
+			ShadowMapFrustum lf = e.getMeta(viewNode, SMF_ID);
+			
+			float bestWeight = 0f;
+			Entity bestLight = null;
+			boolean isSpot = false;
+			
+			Entity light;
+			float weight;
+			
+			// first check direction lights
+			DirectionLight dl;
+			DirectionLight oldDirLight = (lf == null || lf.isSpotLight() ? null : lf.getLight().get(DL_ID));
+			Iterator<Entity> it = system.iterator(DL_ID);
+			while(it.hasNext()) {
+				light = it.next();
+				dl = light.get(DL_ID);
+				if (dl != null && (light.get(SC_ID) != null || light.getMeta(dl, SC_ID) != null)) {
+					weight = calculateWeight(dl, viewNode.getFrustum(), dl == oldDirLight);
+					if (weight > bestWeight) {
+						bestLight = light;
+						bestWeight = weight;
+					}
+				}
+			}
+			
+			// now check spot lights
+			SpotLight sl;
+			SpotLight oldSpotLight = (lf == null || !lf.isSpotLight() ? null : lf.getLight().get(SL_ID));
+			it = system.iterator(SL_ID);
+			while(it.hasNext()) {
+				light = it.next();
+				sl = light.get(SL_ID);
+				if (sl != null && (light.get(SC_ID) != null || light.getMeta(sl, SC_ID) != null)) {
+					weight = calculateWeight(sl, viewNode.getFrustum(), sl == oldSpotLight);
+					if (weight > bestWeight) {
+						bestLight = light;
+						bestWeight = weight;
+						isSpot = true;
+					}
+				}
+			}
+			
+			if (bestLight != null) {
+				// form the shadow map frustum
+				Frustum f;
+				if (isSpot)
+					f = computeLightFrustum(bestLight.get(SL_ID), viewNode.getFrustum(), (lf == null ? null : lf.getFrustum()));
+				else
+					f = computeLightFrustum(bestLight.get(DL_ID), viewNode.getFrustum(), (lf == null ? null : lf.getFrustum()));
+				
+				if (lf == null) {
+					lf = new ShadowMapFrustum(f, bestLight, isSpot);
+					e.addMeta(viewNode, lf);
+				} else {
+					lf.setFrustum(f);
+					lf.setLight(bestLight);
+					lf.setSpotLight(isSpot);
+				}
+				
+				computeVisibility(f);
+			} else {
+				// no more shadow mapping
+				e.removeMeta(viewNode, SMF_ID);
+			}
+		}
+	}
+	
+	private void computeVisibility(Frustum f) {
+		visCache.clear(true);
+		
+		hierarchy.query(f, visCache);
 		
 		// modify all scene elements to be potentially visible
 		SceneElement se;
-		int ct = result.size();
+		int ct = visCache.size();
 		for (int i = 0; i < ct; i++) {
-			se = (SceneElement) result.get(i).get(SE_ID);
+			se = visCache.get(i).get(SE_ID);
 			if (se != null)
-				se.setPotentiallyVisible(true);
+				se.setVisible(f, true);
 		}
 	}
 	
-	private Matrix3f getRotation(Matrix4f m) {
-		Matrix3f r = new Matrix3f(m.m00, m.m01, m.m02, 
-								  m.m10, m.m11, m.m12, 
-								  m.m20, m.m21, m.m22);
-		return r;
-	}
-	
-	private void updateLightFrustum(Frustum cf, LightAndFrustum lf) {
-		Frustum lightView = lf.lightFrustum;
-		Vector3f lightDir = ((DirectedLight) lf.light.get(DR_ID)).getDirection();
-		
-		float fr = cf.getFrustumRight();
-		float fl = cf.getFrustumLeft();
-		float fb = cf.getFrustumBottom();
-		float ft = cf.getFrustumTop();
-		float fn = cf.getFrustumNear();
-		float ff = cf.getFrustumFar();
-		
-		// compute basis for the shadow map projection
-		Vector3f z = lightDir.normalize(lightView.getDirection());
-		Vector3f y = cf.getUp().ortho(z, lightView.getUp()).normalize();
-		Vector3f x = y.cross(z, null);
-		
-		
-		Matrix3f v = getRotation(cf.getViewMatrix(null));
-		Matrix3f l = new Matrix3f();
-		l.setCol(0, x);
-		l.setCol(1, y);
-		l.setCol(2, z);
-		
-		
-		// compute the frustum corners in camera space
-		Vector3f nbr = new Vector3f(fr, fb, fn);
-		Vector3f nbl = new Vector3f(fl, fb, fn);
-		Vector3f ntr = new Vector3f(fr, ft, fn);
-		Vector3f ntl = new Vector3f(fl, ft, fn);
-		Vector3f fbr = new Vector3f();
-		Vector3f fbl = new Vector3f();
-		Vector3f ftr = new Vector3f();
-		Vector3f ftl = new Vector3f();
-		
-		if (cf.isOrthogonalProjection()) {
-			fbr.set(fr, fb, ff);
-			fbl.set(fl, fb, ff);
-			ftr.set(fr, ft, ff);
-			ftl.set(fl, ft, ff);
+	private Frustum computeLightFrustum(SpotLight light, Frustum view, Frustum result) {
+		if (result != null) {
+			result.setPerspective(light.getCutoffAngle() * 2, 1f, .01f, view.getFrustumFar() - view.getFrustumNear());
 		} else {
-			fbr.set(ff / fn * fr, ff / fn * fb, ff);
-			fbl.set(ff / fn * fl, ff / fn * fb, ff);
-			ftr.set(ff / fn * fr, ff / fn * ft, ff);
-			ftl.set(ff / fn * fl, ff / fn * ft, ff);
-		}
-		Vector3f camCenter = nbr.add(nbl, null).add(ntr).add(ntl)
-						        .add(fbr).add(fbl).add(ftr).add(ftl).scale(1 / 8f);
-		
-		// transform frustum corners to light space by computing: L^-1 * V^-1 * (corner - camCenter)
-		// since L and V are rotation matrices, the corners are being rotated about camCenter
-		l.mulPre(v.mulPre(nbr.sub(camCenter)));
-		l.mulPre(v.mulPre(nbl.sub(camCenter)));
-		l.mulPre(v.mulPre(ntr.sub(camCenter)));
-		l.mulPre(v.mulPre(ntl.sub(camCenter)));
-		l.mulPre(v.mulPre(fbr.sub(camCenter)));
-		l.mulPre(v.mulPre(fbl.sub(camCenter)));
-		l.mulPre(v.mulPre(ftr.sub(camCenter)));
-		l.mulPre(v.mulPre(ftl.sub(camCenter)));
-		
-		// determine min and max frustum values in light space
-		Vector3f minF = new Vector3f();
-		Vector3f maxF = new Vector3f();
-		minF.set(Math.min(nbr.x, Math.min(nbl.x, Math.min(ntr.x, Math.min(ntl.x, Math.min(fbr.x, Math.min(fbl.x, Math.min(ftr.x, ftl.x))))))), 
-			     Math.min(nbr.y, Math.min(nbl.y, Math.min(ntr.y, Math.min(ntl.y, Math.min(fbr.y, Math.min(fbl.y, Math.min(ftr.y, ftl.y))))))),
-			     Math.min(nbr.z, Math.min(nbl.z, Math.min(ntr.z, Math.min(ntl.z, Math.min(fbr.z, Math.min(fbl.z, Math.min(ftr.z, ftl.z))))))));
-		maxF.set(Math.max(nbr.x, Math.max(nbl.x, Math.max(ntr.x, Math.max(ntl.x, Math.max(fbr.x, Math.max(fbl.x, Math.max(ftr.x, ftl.x))))))), 
-				 Math.max(nbr.y, Math.max(nbl.y, Math.max(ntr.y, Math.max(ntl.y, Math.max(fbr.y, Math.max(fbl.y, Math.max(ftr.y, ftl.y))))))),
-				 Math.max(nbr.z, Math.max(nbl.z, Math.max(ntr.z, Math.max(ntl.z, Math.max(fbr.z, Math.max(fbl.z, Math.max(ftr.z, ftl.z))))))));
-		
-		// configure the frustum finally
-		Vector3f p = lightView.getLocation().set((minF.x + maxF.x) / 2f, (minF.y + maxF.y) / 2f, minF.z);
-		lightView.setOrthogonalProjection(true);
-		lightView.setFrustum(minF.x - p.x, maxF.x - p.x, minF.y - p.y, maxF.y - p.y, 0, maxF.z - p.z);
-		// FIXME: work for spotlights, too
-		
-		// transform lightView's position back into world space
-		l.mul(p).add(camCenter).add(cf.getLocation());
-		
-		// update the frustum
-		lightView.updateFrustumPlanes();
-	}
-	
-	private Entity chooseLight(Frustum view, Entity oldLight) {
-		float weight = 0f;
-		Entity node = null;
-		
-		Entity l;
-		float w;
-		Iterator<Entity> it = system.iterator(DR_ID);
-		while(it.hasNext()) {
-			l = it.next();
-			if (l.get(LT_ID) != null && l.get(SC_ID) != null) {
-				w = calculateLightWeight(l, l == oldLight, view);
-				if (w > weight) {
-					node = l;
-					weight = w;
-				}
-			}
+			// create a new frustum
+			result = new Frustum(light.getCutoffAngle() * 2, 1f, .01f, view.getFrustumFar() - view.getFrustumNear());
 		}
 		
-		return node;
+		// orient frustum to be at spot's position and direction, while being
+		// consistent with view's up vector
+		result.setOrientation(light.getPosition(), light.getDirection(), view.getUp());
+		return result;
 	}
 	
-	private float calculateLightWeight(Entity e, boolean old, Frustum view) {
-		Light l = (Light) e.get(LT_ID);
-		Vector3f lightDir = ((DirectedLight) e.get(DR_ID)).getDirection();
-		SceneElement se = (SceneElement) e.get(SE_ID);
-		if (se != null)
-			lightDir = se.getTransform().transform(lightDir, null);
+	private Frustum computeLightFrustum(DirectionLight light, Frustum view, Frustum result) {
+		float scale = shadowMapScale * shadowMapSize;
+		float distance = view.getFrustumFar() - view.getFrustumNear();
 		
-		// [0, 1] - bonues lights that are brighter
-		Color4f c = l.getColor();
+		if (result != null) {
+			result.setFrustum(true, -scale, scale, -scale, scale, 0, distance);
+		} else {
+			// create a new frustum
+			result = new Frustum(true, -scale, scale, -scale, scale, 0, distance);
+		}
+		
+		// orient frustum to face in light's direction, offset a ways from the scene
+		distance *= .25f; // focus 1/4 down the frustum
+		Vector3f loc = new Vector3f(view.getLocation());
+		view.getDirection().scaleAdd(distance, loc, loc); // point 1/4 down frustum
+		
+		float height = (view.isOrthogonalProjection() ? (view.getFrustumTop() - view.getFrustumBottom()) : 
+														(float) (distance * Math.tan(Math.toRadians(view.getFieldOfView()))));
+		light.getDirection().scaleAdd(height, loc, loc);
+		
+		result.setOrientation(loc, light.getDirection(), view.getUp());
+		return result;
+	}
+	
+	private float calculateWeight(SpotLight light, Frustum view, boolean old) {
+		// exclude point lights: some physical accuracy
+		if (light.getCutoffAngle() > 90f)
+			return -1f;
+		
+		// [0, 1] - bonuses lights that are brighter
+		Color4f c = light.getColor();
 		float brightness = (c.getRed() + c.getGreen() + c.getBlue()) / 3f;
 		
-		// [0, 1] - bonuses lights that are in line with the up direction
-		float direction = (1 + view.getUp().dot(lightDir)) / 2f;
+		// [0, 1] - bonuses lights that are in line with the camera direction:
+		// this is because spotlights will likely be intended as flash lights
+		float direction = (1 + view.getDirection().dot(light.getDirection())) / 2f;
 		
-		// [0, 1] - bonuses lights that are closer to the focus point
-		float position = .5f; // .5 is default for infinite direction lights w/o location
-		if (se != null) {
-			Vector3f focus = view.getDirection().scaleAdd(focusDistance, view.getLocation(), lightDir);
-			position = focus.sub(se.getTransform().getTranslation()).length();
-			position = Math.max(maxDistance - position, 0f) / maxDistance;
-		}
+		// [0, 1] - bonuses lights that are near the camera location:
+		// proximity increases importance of shadows generated from light
+		Vector3f p1 = light.getPosition();
+		Vector3f p2 = view.getLocation();
+		float scale = view.getFrustumFar() - view.getFrustumNear();
+		float distance = (float) Math.sqrt(p1.x * p2.x + p1.y * p2.y + p1.z * p2.z);
+		float position = Math.max(scale - distance, 0f) / scale;
 		
-		// [0, 1] - bonuses the previous shadow light to prevent flickering
+		// [0, 1] - bonuses the previous shadow light: to avoid flickering
 		float bonus = (old ? 1f : 0f);
 		
-		// [0, 1] - average out everything
+		
 		return (brightness + direction + position + bonus) / 4f;
 	}
 	
-	private static class LightAndFrustum {
-		Entity light;
-		final Frustum lightFrustum = new Frustum(60f, 1f, .1f, 100f);
+	private float calculateWeight(DirectionLight light, Frustum view, boolean old) {
+		// [0, 1] - bonuses lights that are brighter: some physical accuracy
+		Color4f c = light.getColor();
+		float brightness = (c.getRed() + c.getGreen() + c.getBlue()) / 3f;
+		
+		// [0, 1] - bonuses lights that are opposite of up direction (shining down):
+		// this is because they are more likely to create important shadows that will
+		// render well
+		float direction = (1 - view.getUp().dot(light.getDirection())) / 2f;
+		
+		// [0, 1] - bonuses the previous shadow light: to avoid flickering
+		float bonus = (old ? 1f : 0f);
+		return (brightness + direction + bonus) / 3f;
 	}
 }

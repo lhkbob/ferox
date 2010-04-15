@@ -253,6 +253,8 @@ public class Text extends PrimitiveGeometry {
 	 * 
 	 * @return True if the text layout is dirty
 	 */
+	// FIXME: keep this internally, but then in the dirty descriptor, check to see
+	// if it's true and then perform layout to generate the proper dirty descriptor.
 	public boolean isLayoutDirty() {
 		return layoutDirty;
 	}

@@ -10,7 +10,8 @@ import com.ferox.resource.VectorBuffer;
  * <p>
  * Teapot is the classical teapot model in computer graphices. Constructing a
  * Teapot automatically configures itself with vertices, normals, and texture
- * coordinates (on the 0th unit), as well as indices.
+ * coordinates (on the 0th unit), as well as indices. The vertex data is from
+ * "http://www.sjbaker.org/teapot/".
  * </p>
  * <p>
  * By default, a Teapot is configured to have its vertices, normals and texture
@@ -21,7 +22,7 @@ import com.ferox.resource.VectorBuffer;
  * coordinates.
  * </p>
  * 
- * @author Michael Ludwig {@link "http://www.sjbaker.org/teapot/"}
+ * @author Michael Ludwig
  */
 public class Teapot extends PrimitiveGeometry {
 	/**

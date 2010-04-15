@@ -75,7 +75,7 @@ public interface BoundVolume {
 	 * @return FrustumIntersection result
 	 * @throws NullPointerException if view is null
 	 */
-	public FrustumIntersection testFrustum(Frustum frustum, PlaneState planeState);
+	public FrustumIntersection intersects(Frustum frustum, PlaneState planeState);
 
 	/**
 	 * Compute the farthest extent of this volume along the given direction

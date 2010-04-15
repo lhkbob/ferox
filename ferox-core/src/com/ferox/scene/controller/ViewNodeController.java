@@ -1,9 +1,13 @@
 package com.ferox.scene.controller;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
+import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ViewNode;
 import com.ferox.util.Bag;
@@ -22,12 +26,13 @@ import com.ferox.util.entity.EntitySystem;
  * that it reflects the location and orientation of the SceneElement. The y-axis
  * is considered up and the z-axis is considered to be the direction.</li>
  * <li>If {@link ViewNode#getAutoUpdateProjection()} returns true, modify the
- * projection as described in ViewNode to match its RenderSurface's dimensions.</li>
+ * viewport and projection as described in ViewNode to match its RenderSurface's
+ * dimensions.</li>
  * <li>Invoke {@link Frustum#updateFrustumPlanes()} so the Frustum is up to
  * date.</li>
- * <li>Use the EntitySystem's attached {@link SceneController} to determine the
- * visible entities within the ViewNode and flag them as visible:
- * {@link SceneElement#isPotentiallyVisible()}.</li>
+ * <li>Query any {@link SpatialHierarchyComponent} within the system with the
+ * ViewNode's Frustum and mark the returned SceneElements as visible using
+ * {@link SceneElement#setVisible(Frustum, boolean)}</li>
  * </ol>
  * 
  * @author Michael Ludwig
@@ -35,46 +40,49 @@ import com.ferox.util.entity.EntitySystem;
 public class ViewNodeController implements Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
-	private static final ComponentId<VisibleEntities> VE_ID = Component.getComponentId(VisibleEntities.class);
+
+	private Map<ViewNode, Dimension> dimensions;
+	private final Bag<Entity> queryCache;
+	private final SpatialHierarchy<Entity> hierarchy;
 
 	/**
-	 * Create a ViewNodeController.
-	 */
-	public ViewNodeController() { }
-
-	/**
-	 * Overridden to perform the following operations:
-	 * <ol>
-	 * <li>Update all ViewNodes to reflect their attached SceneElements, if
-	 * possible.</li>
-	 * <li>Update the ViewNodes' projections to match dimension changes, if
-	 * necessary.</li>
-	 * <li>Compute the visibility sets for each ViewNode in the system.</li>
-	 * </ol>
-	 * After process() completes, {@link #getVisibleEntities(ViewNode)} will
-	 * return meaningful results for the ViewNodes encountered within the
-	 * EntitySystem. Subsequent processing will overwrite the previous results.
+	 * Create a ViewNodeController. Because it requires a SpatialHierarchy to
+	 * perform queries based on a ViewNode's Frustum, a ViewNodeController
+	 * should not be used with multiple EntitySystems. The SpatialHierarchy
+	 * specified should only contain Entities from the appropriate system. It
+	 * should also be the hierarchy that is used by the other Controllers which
+	 * process the system (e.g. {@link SceneController}).
 	 * 
-	 * @throws NullPointerException if system is null
+	 * @param hierarchy SpatialHierarchy that will contain Entities of the
+	 *            EntitySystem that this controller is to process.
+	 * @throws NullPointerException if hierarchy is null
 	 */
+	public ViewNodeController(SpatialHierarchy<Entity> hierarchy) {
+		if (hierarchy == null)
+			throw new NullPointerException("SpatialHierarchy cannot be null");
+		this.hierarchy = hierarchy;
+		
+		dimensions = new HashMap<ViewNode, Dimension>();
+		queryCache = new Bag<Entity>();
+	}
+
 	@Override
 	public void process(EntitySystem system) {
-		SpatialHierarchyUtil scene = new SpatialHierarchyUtil(system);
+		// make sure we have an index over ViewNodes
+		system.addIndex(VN_ID);
+		
+		Map<ViewNode, Dimension> nextDimensions = new HashMap<ViewNode, Dimension>();
+		
 		Iterator<Entity> it = system.iterator(VN_ID);
 		while(it.hasNext()) {
-			process(it.next(), scene);
+			// process each viewnode independently
+			process(it.next(), nextDimensions);
 		}
 		
-		// FIXME: how do we clean up these book-keeping components that aren't managed
-		// by the user but are shared across multiple controllers (complication is that
-		// not just the viewnodecontroller creates the visibleentities components, so
-		// we can't just iterate and remove all ve's that are no longer vn's)
-		//
-		// we could make it so that ve has a creator, and this controller only cleans
-		// up those that it owns.
+		dimensions = nextDimensions;
 	}
 	
-	private void process(Entity e, SpatialHierarchyUtil scene) {
+	private void process(Entity e, Map<ViewNode, Dimension> store) {
 		ViewNode vn = e.get(VN_ID);
 		SceneElement se = e.get(SE_ID);
 		
@@ -89,19 +97,44 @@ public class ViewNodeController implements Controller {
 			f.getLocation().set(se.getTransform().getTranslation());
 		}
 		
-		if (vn.getAutoUpdateProjection()) {
-			int width = vn.getRenderSurface().getWidth();
-			int height = vn.getRenderSurface().getHeight();
+		if (vn.getAutoUpdateViewport()) {
+			RenderSurface surface = vn.getRenderSurface();
+			
+			int width = surface.getWidth();
+			int height = surface.getHeight();
+			
+			Dimension dim = dimensions.get(surface);
+			if (dim == null) {
+				dim = new Dimension();
+				dim.width = width;
+				dim.height = height;
+			}
+			
+			float scaleX = (float) width / dim.width;
+			float scaleY = (float) height / dim.height;
+			
+			int vpLeft = (int) Math.max(0, Math.min(scaleX * vn.getLeft(), width));
+			int vpRight = (int) Math.max(0, Math.min(scaleX * vn.getRight(), width));
+			int vpBottom = (int) Math.max(0, Math.min(scaleY * vn.getBottom(), height));
+			int vpTop = (int) Math.max(0, Math.min(scaleY * vn.getTop(), height));
+			
+			// assign the new viewport
+			vn.setViewport(vpLeft, vpRight, vpBottom, vpTop);
 			
 			if (f.isOrthogonalProjection()) {
 				// modify the frustum so that it spans the entire RS
-				f.setFrustum(0, width, 0, height, f.getFrustumNear(), f.getFrustumFar());
+				f.setFrustum(true, scaleX * f.getFrustumLeft(), scaleX * f.getFrustumRight(), 
+							 scaleY * f.getFrustumBottom(), scaleY * f.getFrustumTop(), 
+							 f.getFrustumNear(), f.getFrustumFar());
 			} else {
 				// modify the frustum to use the correct aspect ratio
-				float oldHeight = ((f.getFrustumTop() - f.getFrustumBottom()) / 2f);
-				float fov = (float) Math.toDegrees(Math.atan(2 * oldHeight / f.getFrustumNear()));
-				f.setPerspective(fov, width / (float) height, f.getFrustumNear(), f.getFrustumFar());
+				float fov = f.getFieldOfView();
+				f.setPerspective(fov, (vpRight - vpLeft) / (float) (vpTop - vpBottom), 
+								 f.getFrustumNear(), f.getFrustumFar());
 			}
+			
+			// remember surface's dimension for next process
+			store.put(vn, dim);
 			
 			// setFrustum and setPerspective auto update the frustum, so 
 			// set needsUpdate to false so we don't do it again
@@ -112,22 +145,20 @@ public class ViewNodeController implements Controller {
 			f.updateFrustumPlanes();
 		
 		// frustum is up-to-date, so now we perform a visibility query
-		VisibleEntities ve = e.get(VE_ID);
-		if (ve == null) {
-			ve = new VisibleEntities();
-			e.add(ve);
-		}
-		ve.resetVisibility();
-		
-		Bag<Entity> query = ve.getEntities();
-		scene.query(f, query);
+		queryCache.clear(true);
+		hierarchy.query(f, queryCache);
 
 		// modify all scene elements to be potentially visible
-		int ct = query.size();
+		int ct = queryCache.size();
 		for (int i = 0; i < ct; i++) {
-			se = (SceneElement) query.get(i).get(SE_ID);
+			se = (SceneElement) queryCache.get(i).get(SE_ID);
 			if (se != null)
-				se.setPotentiallyVisible(true);
+				se.setVisible(f, true);
 		}
+	}
+	
+	private static class Dimension {
+		int width;
+		int height;
 	}
 }

@@ -1,6 +1,7 @@
 package com.ferox.util.entity;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -13,6 +14,18 @@ public class EntitySystem implements Iterable<Entity> {
 	
 	public EntitySystem() {
 		allEntities = new Bag<Entity>();
+		tables = new ComponentTable[0];
+		tableCounts = new int[0];
+	}
+	
+	public void process(Controller controller) {
+		// functions like a 1-element Collection, so
+		// the controller executes on the calling thread
+		controller.process(this);
+	}
+	
+	public void process(Collection<Controller> controllers) {
+		
 	}
 	
 	@Override

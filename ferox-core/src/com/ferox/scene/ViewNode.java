@@ -20,19 +20,17 @@ import com.ferox.util.entity.AbstractComponent;
  * perspective projections that are centered on the RenderSurface, or of
  * orthographic projections that span the RenderSurface (useful for UI's and 2D
  * pixel work). Each ViewNode has an auto-update policy that defaults to true.
- * When it is true, a {@link ViewNodeController} will update the frustum to match
- * changes to the RenderSurface's dimensions while keeping the updated frustum
- * equivalent in form to a frustum created via
- * {@link #ViewNode(RenderSurface, float, float)} or
- * {@link #ViewNode(RenderSurface, float, float, float)}.
+ * When it is true, a {@link ViewNodeController} will update its frustum and
+ * viewport to match changes to the RenderSurface's dimensions while keeping
+ * them relatively equivalent.
  * </p>
  * <p>
  * Initially each Frustum (and thus ViewNode) uses a location of (0, 0, 0) with
  * a right-handed coordinate system pointing down the negative z-axis. A
  * ViewNode can be positioned manually by updating the orientation of its
  * associated Frustum. Alternatively, Entities which are both
- * {@link SceneElement}s and ViewNodes will by updated by a ViewNodeController so
- * that the frustum's orientation matches the transformation of the Entity's
+ * {@link SceneElement}s and ViewNodes will by updated by a ViewNodeController
+ * so that the frustum's orientation matches the transformation of the Entity's
  * SceneElement.
  * </p>
  * 
@@ -40,9 +38,13 @@ import com.ferox.util.entity.AbstractComponent;
  * @author Michael Ludwig
  */
 public final class ViewNode extends AbstractComponent<ViewNode> {
-	// FIXME: add dimensions (which are not percentages, updated based on auto-update)
 	private RenderSurface surface;
 	private boolean matchSurfaceDim;
+	
+	private int top;
+	private int bottom;
+	private int left;
+	private int right;
 	
 	private final Frustum frustum;
 
@@ -75,7 +77,8 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 	public ViewNode(RenderSurface surface, float fov, float znear, float zfar) {
 		super(ViewNode.class);
 		setRenderSurface(surface);
-		setAutoUpdateProjection(true);
+		setAutoUpdateViewport(true);
+		setViewport(0, surface.getWidth(), 0, surface.getHeight());
 		
 		frustum = new Frustum(fov, surface.getWidth() / (float) surface.getHeight(), znear, zfar);
 	}
@@ -96,11 +99,94 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 	public ViewNode(RenderSurface surface, float znear, float zfar) {
 		super(ViewNode.class);
 		setRenderSurface(surface);
-		setAutoUpdateProjection(true);
+		setAutoUpdateViewport(true);
+		setViewport(0, surface.getWidth(), 0, surface.getHeight());
 		
 		frustum = new Frustum(true, 0f, surface.getWidth(), 0f, surface.getHeight(), znear, zfar);
 	}
 
+	/**
+	 * <p>
+	 * Set the dimensions of the view port used by this ViewNode when rendering
+	 * content into its associated {@link #getRenderSurface() RenderSurface}.
+	 * The values specified are in the pixel-space of the surface, which means
+	 * that <tt>left</tt> and <tt>right</tt> can range from 0 to the surface's
+	 * width, and <tt>bottom</tt> and <tt>top</tt> can range from 0 to the
+	 * surface's height.
+	 * </p>
+	 * <p>
+	 * The coordinate (0, 0) represents the surface's lower-left coordinate, and
+	 * (width, height) represents the upper-right. If
+	 * {@link #getAutoUpdateViewport()} returns true, these values will be
+	 * modified by a {@link ViewNodeController} to maintain the ViewNode's
+	 * relative position within the RenderSurface.
+	 * </p>
+	 * 
+	 * @param left The location of the left edge of the viewport, measured in
+	 *            pixels from the left edge of the surface
+	 * @param right The location of the right edge of the viewport, measured in
+	 *            pixels from the left edge of the surface
+	 * @param bottom The location of the bottom edge of the viewport, measured
+	 *            in pixels from the bottom of the surface
+	 * @param top The location of the top edge of the viewport, measured in
+	 *            pixels from the bottom of the surface
+	 * @throws IllegalArgumentException if any dimension is less than 0, or if
+	 *             the dimensions extend beyond the size of the RenderSurface,
+	 *             or if left > right or if bottom > top
+	 */
+	public void setViewport(int left, int right, int bottom, int top) {
+		if (left < 0 || left > surface.getWidth())
+			throw new IllegalArgumentException("left dimension outside of surface range: " + left);
+		if (right < 0 || right > surface.getWidth())
+			throw new IllegalArgumentException("right dimension outside of surface range: " + left);
+		if (bottom < 0 || bottom > surface.getHeight())
+			throw new IllegalArgumentException("bottom dimension outside of surface range: " + left);
+		if (top < 0 || top > surface.getHeight())
+			throw new IllegalArgumentException("top dimension outside of surface range: " + left);
+		
+		if (left > right)
+			throw new IllegalArgumentException("left must be less than or equal to right (left = " + left + ", right = " + right + ")");
+		if (bottom > top)
+			throw new IllegalArgumentException("bottom must be less than or equal to top (bottom = " + bottom + ", top = " + top + ")");
+		
+		this.left = left;
+		this.right = right;
+		this.top = top;
+		this.bottom = bottom;
+	}
+
+	/**
+	 * @return The location of the left edge of the viewport, in pixels measured
+	 *         from the left of the surface.
+	 */
+	public int getLeft() {
+		return left;
+	}
+	
+	/**
+	 * @return The location of the right edge of the viewport, in pixels measured
+	 *         from the left of the surface.
+	 */
+	public int getRight() {
+		return right;
+	}
+	
+	/**
+	 * @return The location of the bottom edge of the viewport, in pixels measured
+	 *         from the bottom of the surface.
+	 */
+	public int getBottom() {
+		return bottom;
+	}
+	
+	/**
+	 * @return The location of the top edge of the viewport, in pixels measured
+	 *         from the top of the surface.
+	 */
+	public int getTop() {
+		return top;
+	}
+	
 	/**
 	 * <p>
 	 * Return the Frustum instance that represents how a rendered image should
@@ -147,13 +233,20 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 	/**
 	 * <p>
 	 * Return whether or not a {@link ViewNodeController} should update the
-	 * Frustum's projection to match changes in this ViewNode's linked
-	 * RenderSurface. If this returns false, any updates to the Frustum's
-	 * projection must be done manually. If it returns true, two possible
-	 * updates could occur:
+	 * ViewNode's viewport to match changes in its linked RenderSurface. If this
+	 * returns false, the viewport will remain in a fixed position (barring
+	 * other calls to {@link #setViewport(int, int, int, int)}), regardless of
+	 * changes to the RenderSurface. If it returns true, the pixel dimensions of
+	 * the viewport will be updated to place the new viewport in the same
+	 * relative position within the surface.
+	 * </p>
+	 * <p>
+	 * Additionally, the Frustum will be modified to reflect the changes within
+	 * the viewport. Depending on the type of Frustum, there can be two
+	 * modifications:
 	 * <ol>
-	 * <li>If the Frustum is orthographic, the frustum region is forced to be
-	 * (0, 0) to (width, height), but the z distances are left unmodified.</li>
+	 * <li>If the Frustum is orthographic, the frustum region is modified so that
+	 * it scales by the same amount as the changes in viewport dimensions.</li>
 	 * <li>If the Frustum is perspective, the aspect ratio is forced to be width
 	 * / height, but the other perspective parameters are left unmodified.</li>
 	 * </ol>
@@ -166,23 +259,23 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 	 * is also a SceneElement.
 	 * </p>
 	 * 
-	 * @return True if the Frustum is updated to reflect surface dimension
+	 * @return True if the ViewNode is updated to reflect surface dimension
 	 *         changes.
 	 */
-	public boolean getAutoUpdateProjection() {
+	public boolean getAutoUpdateViewport() {
 		return matchSurfaceDim;
 	}
 
 	/**
-	 * Set whether or not this ViewNode's Frustum should be updated by a
-	 * {@link ViewNodeController} to reflect changes in its linked
+	 * Set whether or not this ViewNode's viewport should be updated
+	 * by a {@link ViewNodeController} to reflect changes in its linked
 	 * RenderSurface's dimensions. See {@link #getAutoUpdateProjection()} for
 	 * details of what is updated.
 	 * 
-	 * @param matchDim True if Frustum should automatically match changes to the
-	 *            surface's dimensions
+	 * @param matchDim True if ViewNode should automatically match changes to
+	 *            the surface's dimensions
 	 */
-	public void setAutoUpdateProjection(boolean matchDim) {
+	public void setAutoUpdateViewport(boolean matchDim) {
 		matchSurfaceDim = matchDim;
 	}
 }

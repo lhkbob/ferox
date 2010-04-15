@@ -12,7 +12,11 @@ public class SpotLight extends AbstractComponent<SpotLight> {
 	
 	private float cutoffAngle;
 
-	public SpotLight(Color4f color, Vector3f direction) {
+	public SpotLight(Color4f color, Vector3f position) {
+		this(color, position, 180f, new Vector3f(0f, 0f, 1f));
+	}
+	
+	public SpotLight(Color4f color, Vector3f position, float cutoffAngle, Vector3f direction) {
 		super(SpotLight.class);
 		
 		this.direction = new Vector3f();
@@ -20,6 +24,8 @@ public class SpotLight extends AbstractComponent<SpotLight> {
 		this.color = new Color4f();
 		
 		setDirection(direction);
+		setPosition(position);
+		setCutoffAngle(cutoffAngle);
 		setColor(color);
 	}
 	

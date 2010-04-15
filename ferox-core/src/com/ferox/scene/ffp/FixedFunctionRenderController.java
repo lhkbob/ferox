@@ -2,27 +2,17 @@ package com.ferox.scene.ffp;
 
 import java.util.Iterator;
 
-import javax.media.j3d.Light;
-
-import com.ferox.math.Color4f;
 import com.ferox.math.Frustum;
-import com.ferox.renderer.DisplayOptions;
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.RenderThreadingOrganizer;
 import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.DisplayOptions.DepthFormat;
-import com.ferox.renderer.DisplayOptions.PixelFormat;
-import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.Geometry;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.DepthMode;
-import com.ferox.resource.TextureImage.Filter;
-import com.ferox.resource.TextureImage.TextureTarget;
-import com.ferox.resource.TextureImage.TextureWrap;
-import com.ferox.scene.SceneElement;
+import com.ferox.scene.AmbientLight;
+import com.ferox.scene.DirectionLight;
+import com.ferox.scene.Renderable;
+import com.ferox.scene.SpotLight;
 import com.ferox.scene.ViewNode;
-import com.ferox.scene.controller.ViewNodeController;
-import com.ferox.util.Bag;
+import com.ferox.scene.ffp.RenderConnection.Stream;
+import com.ferox.scene.ffp.ShadowMapFrustumController.ShadowMapFrustum;
 import com.ferox.util.entity.Component;
 import com.ferox.util.entity.ComponentId;
 import com.ferox.util.entity.Controller;
@@ -31,111 +21,138 @@ import com.ferox.util.entity.EntitySystem;
 
 public class FixedFunctionRenderController implements Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+	private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
+	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
+	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
+	private static final ComponentId<AmbientLight> AL_ID = Component.getComponentId(AmbientLight.class);
+	
+	private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
 	
 	private final EntityAtomBuilder entityBuilder;
 	private final FixedFunctionAtomRenderer renderer;
 	
-	public FixedFunctionRenderController(Framework framework) {
-		this(framework, 512);
+	public FixedFunctionRenderController(RenderThreadingOrganizer organizer) {
+		this(organizer, 512);
 	}
 	
-	public FixedFunctionRenderController(Framework framework, int shadowMapSize) {
-		this(framework, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
+	public FixedFunctionRenderController(RenderThreadingOrganizer organizer, int shadowMapSize) {
+		this(organizer, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
 			 Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
 	}
 	
-	public FixedFunctionRenderController(Framework framework, int shadowMapSize,
+	public FixedFunctionRenderController(RenderThreadingOrganizer organizer, int shadowMapSize,
 										 String vertexBinding, String normalBinding, String texCoordBinding) {
-		renderer = new FixedFunctionAtomRenderer(framework, shadowMapSize, vertexBinding, normalBinding, texCoordBinding);
+		this(new FixedFunctionAtomRenderer(organizer, shadowMapSize, vertexBinding, normalBinding, texCoordBinding));
+	}
+	
+	public FixedFunctionRenderController(FixedFunctionAtomRenderer renderer) {
+		if (renderer == null)
+			throw new NullPointerException("FixedFunctionAtomRenderer cannot be null");
+		this.renderer = renderer;
 		entityBuilder = new EntityAtomBuilder();
 	}
 	
-	public Framework getFramework() {
-		return framework;
+	public FixedFunctionAtomRenderer getAtomRenderer() {
+		return renderer;
+	}
+	
+	public RenderThreadingOrganizer getRenderThreadingOrganizer() {
+		return renderer.getRenderThreadingOrganizer();
 	}
 	
 	public TextureSurface getShadowMap() {
-		return shadowMap;
+		return renderer.getShadowMap();
 	}
 	
 	@Override
 	public void process(EntitySystem system) {
-		LightAndFrustum shadowLight = system.getResults().getResult(ShadowMapFrustumController.class);
+		// add an index for view nodes, renderables and light types
+		system.addIndex(VN_ID);
+		system.addIndex(SL_ID);
+		system.addIndex(DL_ID);
+		system.addIndex(AL_ID);
+		system.addIndex(R_ID);
 		
-		ShadowMapFrustumController smController = system.getController(ShadowMapFrustumController.class);
-		ViewNodeController vnController = system.getController(ViewNodeController.class);
+		// process every view, we use a threading organizer so that
+		// actual rendering can be managed externally without worrying about
+		// which thread executed this controller
+		Iterator<Entity> views = system.iterator(VN_ID);
+		while(views.hasNext()) {
+			processView(system, views.next());
+		}
+	}
 	
-		if (vnController != null) {
-			processLights();
-
-			Iterator<Entity> views = system.iterator(VN_ID);
-			while(views.hasNext()) {
-				Entity e = views.next();
-				ViewNode vn = (ViewNode) e.get(VN_ID);
-
-				if (smController != null) {
-					Frustum smf = smController.getShadowMapFrustum(vn);
-					processView(e, vnController.getVisibleEntities(vn.getFrustum()), smController.getShadowMapLight(vn),
-								smf, smController.getShadowMapEntities(smf));
+	private void processView(EntitySystem system, Entity view) {
+		ViewNode vn = view.get(VN_ID);
+		if (vn == null)
+			return; // don't have anything to render
+		
+		Frustum f = vn.getFrustum();
+		RenderConnection con = renderer.getConnection(vn.getRenderSurface());
+	
+		// process all entities
+		Stream<RenderAtom> raStream = con.getRenderAtomStream();
+		Stream<LightAtom> laStream = con.getLightAtomStream();
+		Stream<ShadowAtom> saStream = con.getShadowAtomStream();
+		
+		// determine shadowing info for the view
+		ShadowMapFrustum smf = view.get(SMF_ID);
+		LightAtom shadowLightAtom = null;
+		Frustum shadowFrustum = null;
+		Entity shadowEntity = null;
+		if (smf != null) {
+			shadowFrustum = smf.getFrustum();
+			shadowEntity = smf.getLight();
+			
+			if (shadowFrustum != null) {
+				// generate the light atoms for this entity now so it can be skipped later
+				// note that null is used for a frustum to force the chosen shadow caster to be built
+				if (smf.isSpotLight()) {
+					shadowLightAtom = entityBuilder.buildSpotLightAtom(shadowEntity, null, laStream);
+					entityBuilder.buildDirectionLightAtom(shadowEntity, f, laStream);
 				} else {
-					processView(e, vnController.getVisibleEntities(vn.getFrustum()), null, null, null);
+					shadowLightAtom = entityBuilder.buildDirectionLightAtom(shadowEntity, null, laStream);
+					entityBuilder.buildSpotLightAtom(shadowEntity, f, laStream);
 				}
 			}
 		}
 		
-		Iterator<Entity> tcs = system.iterator(TC_ID);
-		while(tcs.hasNext()) {
-			if (tcs.next().get(VN_ID) == null)
-				tcs.remove(); // clean up entities that aren't viewnodes anymore
-		}
-	}
-	
-	private void processView(Entity view, Bag<Entity> visible, Entity shadowLight, Frustum shadowFrustum, Bag<Entity> shadows) {
-		ViewNode vn = (ViewNode) view.get(VN_ID);
-		TargetComponent tc = (TargetComponent) view.get(TC_ID);
-		if (tc == null) {
-			tc = new TargetComponent(this);
-			view.add(tc);
+		// process all renderables (and shadow casters)
+		Entity e;
+		Iterator<Entity> it = system.iterator(R_ID);
+		while(it.hasNext()) {
+			e = it.next();
+			if (shadowFrustum != null)
+				entityBuilder.buildShadowAtom(e, shadowFrustum, saStream);
+			entityBuilder.buildRenderAtom(e, f, raStream);
 		}
 		
-		// handle normal lighting
-		LightAtom sl = (shadowLight == null ? null : getLight(shadowLight));
-		tc.normalAtoms.clear(true);
-		int sz = visible.size();
-		for (int i = 0; i < sz; i++) {
-			RenderAtom atom = getAtom(visible.get(i));
-			if (atom != null)
-				tc.normalAtoms.add(atom);
-		}
-		tc.normalAtoms.sort(RenderAtom.COMPARATOR);
-		tc.basePass.setPass(vn.getFrustum(), tc.normalAtoms, lights, sl);
+		// process all ambient lights
+		it = system.iterator(AL_ID);
+		while(it.hasNext())
+			entityBuilder.buildAmbientLightAtom(it.next(), f, laStream);
 		
-		boolean queueShadows = false;
-		if (shadowLight != null && renderMode.isShadowsEnabled()) {
-			// handle shadows
-			tc.shadowAtoms.clear(true);
-			sz = shadows.size();
-			for (int i = 0; i < sz; i++) {
-				RenderAtom atom = getAtom(shadows.get(i));
-				if (atom != null && atom.castsShadow)
-					tc.shadowAtoms.add(atom);
-			}
-			tc.shadowAtoms.sort(RenderAtom.COMPARATOR);
-			
-			tc.shadowPass.setPass(shadowFrustum, tc.shadowAtoms, lights, sl);
-			tc.lightPass.setPass(vn.getFrustum(), tc.normalAtoms, lights, sl);
-			tc.lightPass.setShadowFrustum(shadowFrustum);
-			
-			queueShadows = true;
+		// process all spot lights except for the shadow caster
+		it = system.iterator(SL_ID);
+		while(it.hasNext()) {
+			e = it.next();
+			if (e != shadowEntity)
+				entityBuilder.buildSpotLightAtom(e, f, laStream);
 		}
 		
-		// queue render passes on surface
-		if (queueShadows) {
-			framework.queue(shadowMap, tc.shadowPass, true, true, false); // must always clear this surface
-			framework.queue(vn.getRenderSurface(), tc.basePass);
-			framework.queue(vn.getRenderSurface(), tc.lightPass);
-		} else {
-			framework.queue(vn.getRenderSurface(), tc.basePass);
+		// process all direction lights except for the shadow caster
+		it = system.iterator(DL_ID);
+		while(it.hasNext()) {
+			e = it.next();
+			if (e != shadowEntity)
+				entityBuilder.buildDirectionLightAtom(e, f, laStream);
 		}
+		
+		// configure the connection to use the correct views
+		con.setShadowLight(shadowFrustum, shadowLightAtom);
+		con.setView(vn.getFrustum(), vn.getLeft(), vn.getRight(), vn.getBottom(), vn.getTop());
+		
+		// finish the queueing up
+		con.close();
 	}
 }

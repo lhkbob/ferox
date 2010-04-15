@@ -1,6 +1,5 @@
 package com.ferox.util.entity;
 
-
 /**
  * <p>
  * Component represents the abstract super-type for any bean-like object that
@@ -17,6 +16,11 @@ package com.ferox.util.entity;
  * declared as final to re-iterate this point. The entity system implemented
  * within this package assumes that Component implementations do not have
  * subclasses of their own.
+ * </p>
+ * <p>
+ * The one exception to this rule is the {@link AbstractComponent} which
+ * provides "syntactic sugar" not useful at the Component level. It is
+ * recommended that most Component types extend from AbstractComponent.
  * </p>
  * <p>
  * Every Component subclass is assigned a {@link ComponentId} at runtime

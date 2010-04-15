@@ -194,7 +194,7 @@ public class BoundSphere extends AbstractBoundVolume {
 	}
 
 	@Override
-	public FrustumIntersection testFrustum(Frustum frustum, PlaneState planeState) {
+	public FrustumIntersection intersects(Frustum frustum, PlaneState planeState) {
 		if (frustum == null)
 			throw new NullPointerException("Cannot test a null frustum");
 
