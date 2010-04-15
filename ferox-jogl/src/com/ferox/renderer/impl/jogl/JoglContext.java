@@ -42,7 +42,7 @@ public class JoglContext implements Context {
 	private static final Logger log = Logger.getLogger(JoglFramework.class.getPackage().getName());
 	
 	private static final ThreadLocal<JoglContext> current = new ThreadLocal<JoglContext>();
-	private static final Map<JoglContext, Thread> contextThreads = new IdentityHashMap<JoglContext, Thread>();
+	private static final Map<JoglContext, Thread> contextThreads = Collections.synchronizedMap(new IdentityHashMap<JoglContext, Thread>());
 	
 	private final Renderer renderer;
 	private final GLContext context;
@@ -321,7 +321,7 @@ public class JoglContext implements Context {
 			}
 		}
 		
-		// destroy any fbos that have been destroyed
+		// destroy any fbos that are no longer in use
 		cleanupZombieFbos();
 		
 		log.log(Level.FINER, "Context made current", this);

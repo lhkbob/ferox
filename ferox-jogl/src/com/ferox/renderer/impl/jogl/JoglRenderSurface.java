@@ -3,12 +3,14 @@ package com.ferox.renderer.impl.jogl;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import com.ferox.renderer.Framework;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.DisplayOptions.DepthFormat;
 import com.ferox.renderer.DisplayOptions.PixelFormat;
 import com.ferox.renderer.DisplayOptions.StencilFormat;
 import com.ferox.renderer.impl.AbstractRenderSurface;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
+import com.ferox.renderer.impl.SurfaceAwareRenderer;
 
 /**
  * JoglRenderSurface is the abstract RenderSurface that all createable
@@ -150,7 +152,10 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface {
 				renderedOnce = true;
 			}
 			
-			JoglContext.getCurrent().getGL().glViewport(0, 0, getWidth(), getHeight());
+			Renderer r = JoglContext.getCurrent().getRenderer();
+			if (r instanceof SurfaceAwareRenderer)
+				((SurfaceAwareRenderer) r).setRenderSurface(JoglRenderSurface.this);
+			
 			preRender();
 		}
 	}

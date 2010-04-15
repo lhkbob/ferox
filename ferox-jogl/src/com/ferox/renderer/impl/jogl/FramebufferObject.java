@@ -113,7 +113,7 @@ public class FramebufferObject {
 				msg = "Fbo read buffer improperly enabled";
 				break;
 			case GL.GL_FRAMEBUFFER_UNSUPPORTED:
-				msg = "TextureEnvironment/Renderbuffer combinations aren't supported on the hardware";
+				msg = "Texture/Renderbuffer combinations aren't supported on the hardware";
 				break;
 			case 0:
 				msg = "glCheckFramebufferStatusEXT() had an error while checking fbo status";

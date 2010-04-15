@@ -202,4 +202,9 @@ public final class JoglRendererDelegate extends RendererDelegate {
 		int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
 		context.getGL().glStencilOpSeparate(face, sf, df, dp);
 	}
+
+	@Override
+	protected void glViewport(int x, int y, int width, int height) {
+		context.getGL().glViewport(x, y, width, height);
+	}
 }

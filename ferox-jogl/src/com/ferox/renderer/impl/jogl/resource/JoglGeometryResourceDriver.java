@@ -382,6 +382,9 @@ public class JoglGeometryResourceDriver implements ResourceDriver {
 		return (type == CompileType.RESIDENT_STATIC ? GL2GL3.GL_STATIC_DRAW : GL2GL3.GL_STREAM_DRAW);
 	}
 	
+	// FIXME: this doesn't work in situations where the data gets shortened after one dirty state
+	// claims its at 10, then is switched to 5 -> dirty range still has a length of 10.  Must clamp to length
+	// of actual data
 	private void glArrayData(GL2GL3 gl, int vboType, int vboOffset, int dataOffset, int len, float[] data) {
 		FloatBuffer fb = FloatBuffer.wrap(data, dataOffset, len);
 		gl.glBufferSubData(GL2GL3.GL_ARRAY_BUFFER, vboOffset, len * 4, fb);
