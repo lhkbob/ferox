@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.SceneElement;

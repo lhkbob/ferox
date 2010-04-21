@@ -1,10 +1,10 @@
 package com.ferox.scene.ffp;
 
 import com.ferox.math.Color4f;
-import com.ferox.math.Frustum;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RenderSurface;
@@ -168,6 +168,7 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 			setLightColor(light, atom, asShadow);
 			lightPos.set(-atom.direction.x, -atom.direction.y, -atom.direction.z, 0f);
 			renderer.setLightPosition(light, lightPos);
+			renderer.setLightEnabled(light, true);
 			break;
 		case SPOTLIGHT:
 			// this can also be a point light, in which case direction is ignored by OpenGL
@@ -177,6 +178,7 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 
 			renderer.setLightPosition(light, lightPos);
 			renderer.setSpotlight(light, lightDir, atom.cutoffAngle);
+			renderer.setLightEnabled(light, true);
 			break;
 		}
 	}
@@ -186,7 +188,7 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 			// no specular highlight and dim other light contributions
 			dimmedLight.set(.1f * atom.diffuse.getRed(), .1f * atom.diffuse.getGreen(), .1f * atom.diffuse.getBlue(), 1f);
 			dimmedAmbient.set(.2f * atom.diffuse.getRed(), .2f * atom.diffuse.getGreen(), .2f * atom.diffuse.getBlue(), 1f);
-			renderer.setLightColor(light, dimmedAmbient, dimmedLight, BLACK);
+			renderer.setLightColor(light, BLACK, BLACK, BLACK);
 		} else {
 			// set colors
 			renderer.setLightColor(light, BLACK, atom.diffuse, atom.specular);

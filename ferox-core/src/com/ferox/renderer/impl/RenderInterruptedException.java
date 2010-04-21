@@ -1,5 +1,7 @@
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.RenderException;
+
 /**
  * A RuntimeException that can be thrown when a rendering is interrupted. It is
  * very similar in purpose to an {@link InterruptedException} except that it is
@@ -7,7 +9,7 @@ package com.ferox.renderer.impl;
  * 
  * @author Michael Ludwig
  */
-public class RenderInterruptedException extends RuntimeException {
+public class RenderInterruptedException extends RenderException {
 	private static final long serialVersionUID = 1L;
 
 	public RenderInterruptedException() { }

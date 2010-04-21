@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.WindowSurface;
 import com.ferox.scene.controller.ViewNodeController;

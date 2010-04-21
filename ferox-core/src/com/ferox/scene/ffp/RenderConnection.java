@@ -1,6 +1,6 @@
 package com.ferox.scene.ffp;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 
 public interface RenderConnection {
 	public static interface Stream<T> {

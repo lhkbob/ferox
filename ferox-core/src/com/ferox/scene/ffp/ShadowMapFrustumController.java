@@ -3,8 +3,8 @@ package com.ferox.scene.ffp;
 import java.util.Iterator;
 
 import com.ferox.math.Color4f;
-import com.ferox.math.Frustum;
 import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.SceneElement;
@@ -177,7 +177,6 @@ public class ShadowMapFrustumController implements Controller {
 	
 	private void computeVisibility(Frustum f) {
 		visCache.clear(true);
-		
 		hierarchy.query(f, visCache);
 		
 		// modify all scene elements to be potentially visible
@@ -222,7 +221,7 @@ public class ShadowMapFrustumController implements Controller {
 		
 		float height = (view.isOrthogonalProjection() ? (view.getFrustumTop() - view.getFrustumBottom()) : 
 														(float) (distance * Math.tan(Math.toRadians(view.getFieldOfView()))));
-		light.getDirection().scaleAdd(height, loc, loc);
+		light.getDirection().scaleAdd(-height, loc, loc);
 		
 		result.setOrientation(loc, light.getDirection(), view.getUp());
 		return result;

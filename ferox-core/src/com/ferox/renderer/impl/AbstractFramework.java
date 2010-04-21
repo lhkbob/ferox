@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -233,6 +234,23 @@ public abstract class AbstractFramework implements Framework {
 		} finally {
 			stateLock.readLock().unlock();
 		}
+	}
+	
+	@Override
+	public FrameStatistics renderAndWait() {
+			try {
+				return render().get();
+			} catch (InterruptedException e) {
+				if (e.getCause() instanceof RenderInterruptedException)
+					throw (RenderInterruptedException) e.getCause();
+				else
+					throw new RenderInterruptedException("Rendering was interrupted", e);
+			} catch (ExecutionException e) {
+				if (e.getCause() instanceof RenderException)
+					throw (RenderException) e.getCause();
+				else
+					throw new RenderException("Exception occured while rendering", e);
+			}
 	}
 
 	@Override

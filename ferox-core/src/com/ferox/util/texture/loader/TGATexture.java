@@ -77,8 +77,7 @@ public class TGATexture {
 			throw new NullPointerException("Cannot test a null stream");
 
 		if (!(stream instanceof BufferedInputStream))
-			stream = new BufferedInputStream(stream); // this way marking is
-		// supported
+			stream = new BufferedInputStream(stream); // this way marking is supported
 		Header header;
 		try {
 			stream.mark(18);

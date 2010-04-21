@@ -107,7 +107,9 @@ public abstract class RendererDelegate {
 		setStencilTestEnabled(false);
 		setStencilWriteMask(~0);
 		
-		setViewport(0, 0, viewSurfaceWidth, viewSurfaceHeight);
+		// only reset viewport if we've been assigned valid dimensions
+		if (viewSurfaceHeight >= 0 && viewSurfaceWidth >= 0)
+			setViewport(0, 0, viewSurfaceWidth, viewSurfaceHeight);
 	}
 	
 	public void setBaseViewport(int width, int height) {

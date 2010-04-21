@@ -2,7 +2,7 @@ package com.ferox.scene.ffp;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.BoundVolume;
+import com.ferox.math.bounds.AxisAlignedBox;
 
 public class LightAtom {
 	public static enum Type {
@@ -10,7 +10,7 @@ public class LightAtom {
 	}
 
 	public Type type; // depending on type, certain properties are undefined
-	public BoundVolume worldBounds;
+	public AxisAlignedBox worldBounds;
 	
 	// all light properties
 	public Color4f diffuse;

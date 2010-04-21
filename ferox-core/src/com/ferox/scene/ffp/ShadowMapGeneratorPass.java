@@ -1,6 +1,6 @@
 package com.ferox.scene.ffp;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.util.Bag;

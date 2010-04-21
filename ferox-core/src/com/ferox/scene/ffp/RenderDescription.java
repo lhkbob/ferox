@@ -2,7 +2,7 @@ package com.ferox.scene.ffp;
 
 import java.util.Comparator;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.util.Bag;
 
 public class RenderDescription {

@@ -3,10 +3,10 @@ package com.ferox.scene;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
-import com.ferox.math.bounds.BoundVolume;
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.util.entity.AbstractComponent;
 import com.ferox.util.entity.Controller;
 
@@ -31,8 +31,8 @@ import com.ferox.util.entity.Controller;
 public final class SceneElement extends AbstractComponent<SceneElement> {
 	private final Transform transform;
 	
-	private BoundVolume localBounds;
-	private BoundVolume worldBounds;
+	private AxisAlignedBox localBounds;
+	private AxisAlignedBox worldBounds;
 
 	private final Set<Frustum> visibility;
 	
@@ -63,7 +63,7 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
 	 * <tt>f</tt>. The method is provided as is to allow for Controller
 	 * implementations to fine-grain or optimize the actual frustum testing
 	 * performed (instead of this method invoking
-	 * {@link BoundVolume#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
+	 * {@link AxisAlignedBox#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
 	 * automatically.
 	 * 
 	 * @param f The Frustum whose visibility is assigned
@@ -134,16 +134,16 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
 	 * 
 	 * @param bounds The new local bounds
 	 */
-	public void setLocalBounds(BoundVolume bounds) {
+	public void setLocalBounds(AxisAlignedBox bounds) {
 		localBounds = bounds;
 	}
 
 	/**
 	 * <p>
-	 * Return the local BoundVolume instance used by this SceneElement. The
+	 * Return the local AxisAlignedBox instance used by this SceneElement. The
 	 * local bound volume is in the local coordinate space of this SceneElement,
 	 * and {@link #getTransform()} is used to compute the world bounds based
-	 * using {@link BoundVolume#transform(Transform)}.
+	 * using {@link AxisAlignedBox#transform(Transform)}.
 	 * </p>
 	 * <p>
 	 * The returned instance is not a defensive copy.
@@ -157,32 +157,32 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
 	 * 
 	 * @return The local bounds
 	 */
-	public BoundVolume getLocalBounds() {
+	public AxisAlignedBox getLocalBounds() {
 		return localBounds;
 	}
 
 	/**
-	 * Set the BoundVolume instance that represents the computed world bounds,
+	 * Set the AxisAlignedBox instance that represents the computed world bounds,
 	 * based off of {@link #getTransform()} and {@link #getLocalBounds()}. This
 	 * should not be called directly, but is intended for use by a
 	 * SceneController.
 	 * 
-	 * @param bounds The new BoundVolume instance stored for world bounds
+	 * @param bounds The new AxisAlignedBox instance stored for world bounds
 	 */
-	public void setWorldBounds(BoundVolume bounds) {
+	public void setWorldBounds(AxisAlignedBox bounds) {
 		worldBounds = bounds;
 	}
 
 	/**
 	 * Get the world bounds that was last assigned via
-	 * {@link #setWorldBounds(BoundVolume)}. The SceneController computes the
+	 * {@link #setWorldBounds(AxisAlignedBox)}. The SceneController computes the
 	 * world bounds based off of the assigned local bounds and the current
 	 * transform. If the local bounds are null, the world bounds will also be
 	 * null.
 	 * 
 	 * @return The world bounds of this SceneElement
 	 */
-	public BoundVolume getWorldBounds() {
+	public AxisAlignedBox getWorldBounds() {
 		return worldBounds;
 	}
 }

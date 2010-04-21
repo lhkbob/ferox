@@ -540,6 +540,18 @@ public interface Framework {
 	public Future<FrameStatistics> render();
 
 	/**
+	 * Perform the equivalent operations as {@link #render()}, except that this
+	 * method will block until the rendering is completed and return the
+	 * FrameStatistics instead of a {@link Future}.
+	 * 
+	 * @return FrameStatistics information about the timing of the frame
+	 * @throws RenderException if the Framework has been destroyed or if any
+	 *             exception occurred while rendering that prevented the frame
+	 *             from completing.
+	 */
+	public FrameStatistics renderAndWait();
+
+	/**
 	 * <p>
 	 * Get the current status of the given resource. Return UNSUPPORTED if the
 	 * Framework cannot support the given Resource type.

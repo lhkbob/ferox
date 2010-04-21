@@ -2,7 +2,7 @@ package com.ferox.scene.ffp;
 
 import java.util.WeakHashMap;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderSurface;
@@ -29,17 +29,7 @@ public class FixedFunctionAtomRenderer {
 	private final String vertexBinding;
 	private final String normalBinding;
 	private final String texCoordBinding;
-	
-	// FIXME: use a ThreadingOrganizer, and make sure the surface is assigned to 
-	// an appropriate group -> this is tricky because 1 surface must go into multiple groups
-	// add an explicit group name to the queue operations, but then we must figure out how
-	// to handle multithreading that all need shadow map data
-	// FIXME: maybe this is less an issue if we generate the shadow map once for all views in a system
-	// - this would change how shadow atoms come into the system
-	// - open another render connection-like thing for shadow atoms, could just be stream<shadowAtom>
-	// - shadow generator pass gets dumped into every RS's group
-	// - has synchronization inside itself to block other rendering threads until it's completed, and then
-	//   skip rendering when not needed
+
 	public FixedFunctionAtomRenderer(RenderThreadingOrganizer organizer, int shadowMapSize, 
 									 String vertexBinding, String normalBinding, String texCoordBinding) {
 		if (organizer == null)
@@ -183,7 +173,11 @@ public class FixedFunctionAtomRenderer {
 				defaultLightPass.setRenderDescription(descr);
 				shadowLightPass.setRenderDescription(descr);
 				
-				organizer.queue(shadowMap, shadowGenPass, true, true, true); // always clear shadow map
+				String surfaceGroup = organizer.getSurfaceGroup(surface);
+				
+				// always clear shadow map
+				organizer.queue(surfaceGroup, shadowMap, shadowGenPass, true, true, true, 
+								shadowMap.getClearColor(), shadowMap.getClearDepth(), shadowMap.getClearStencil()); 
 				organizer.queue(surface, defaultLightPass, false, false, false);
 				organizer.queue(surface, shadowLightPass, false, false, false);
 			}

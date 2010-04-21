@@ -2,7 +2,7 @@ package com.ferox.scene.ffp;
 
 import java.util.BitSet;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.util.Bag;
 
@@ -63,7 +63,7 @@ public class DefaultLightingPass extends AbstractFfpRenderPass {
 		}
 		
 		// go through all lights that aren't active and apply them
-		int nextLightIndex = activeLights.nextSetBit(0);
+		int nextLightIndex = activeLights.nextClearBit(0);
 		int lightCount = lights.size();
 		for (int i = 0; i < lightCount; i++) {
 			if (nextLightIndex < 0)
@@ -72,7 +72,7 @@ public class DefaultLightingPass extends AbstractFfpRenderPass {
 			la = lights.get(i);
 			if (!la.active && enableLight(nextLightIndex, ra, la)) {
 				// light was applied, so advance the nextLightIndex
-				nextLightIndex = activeLights.nextSetBit(nextLightIndex + 1);
+				nextLightIndex = activeLights.nextClearBit(nextLightIndex + 1);
 			}
 		}
 		

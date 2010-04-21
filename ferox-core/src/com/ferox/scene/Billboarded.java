@@ -58,7 +58,8 @@ public class Billboarded extends AbstractComponent<Billboarded> {
 	 * towards the point after each update by the SceneController. If the
 	 * {@link #getConstraintVector()} is non-null, then the rotation matrix will
 	 * be constrained to that vector after it's been set to point towards
-	 * <tt>pointTowards</tt>
+	 * <tt>pointTowards</tt>. The vector will not be copied, any modifications
+	 * will be reflected in this Billboarded.
 	 * 
 	 * @param pointTowards The point that this SceneElement will be directed to
 	 * @param axis The direction axis
@@ -98,7 +99,8 @@ public class Billboarded extends AbstractComponent<Billboarded> {
 	/**
 	 * Set the vector and axis that will be constrained after the SceneElement
 	 * has been updated, and then billboarded. If the vector is null, then no
-	 * axis will be constrained.
+	 * axis will be constrained. Note that the vector value is not copied, any
+	 * modifications to <tt>vector</tt> will affect this Billboarded.
 	 * 
 	 * @param vector The vector that the given axis will be set to
 	 * @param axis The axis that will be constrained

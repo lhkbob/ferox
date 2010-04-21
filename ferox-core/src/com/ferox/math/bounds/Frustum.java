@@ -1,4 +1,8 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
+
+import com.ferox.math.Matrix4f;
+import com.ferox.math.Vector3f;
+import com.ferox.math.Vector4f;
 
 /**
  * <p>
@@ -51,7 +55,7 @@ public class Frustum {
 	
 	// planes representing frustum, adjusted for
 	// position, direction and up
-	private final Plane[] worldPlanes;
+	private final Vector4f[] worldPlanes;
 	
 	/**
 	 * Instantiate a new Frustum that's positioned at the origin, looking down
@@ -89,7 +93,7 @@ public class Frustum {
 	
 	// initialize everything
 	private Frustum() {
-		worldPlanes = new Plane[6];
+		worldPlanes = new Vector4f[6];
 
 		location = new Vector3f();
 		up = new Vector3f(0f, 1f, 0f);
@@ -421,12 +425,14 @@ public class Frustum {
 		else
 			computePerspectiveWorldPlanes();
 	}
-	
+
 	/**
 	 * <p>
 	 * Return a plane representing the given plane of the view frustum, in world
-	 * coordinates. This plane should not be modified.  The returned plane's normal
-	 * is configured so that it points into the center of the Frustum.
+	 * coordinates. This plane should not be modified. The returned plane's
+	 * normal is configured so that it points into the center of the Frustum.
+	 * The returned {@link Vector4f} is encoded as a plane as defined in
+	 * {@link Plane}; it is also normalized.
 	 * </p>
 	 * <p>
 	 * This will be stale if the location, direction, and up vectors are changed
@@ -436,10 +442,11 @@ public class Frustum {
 	 * </p>
 	 * 
 	 * @param plane The requested plane
-	 * @return The Plane instance for the requested plane, in world coordinates
+	 * @return The Vector4f instance for the requested plane, in world
+	 *         coordinates
 	 * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
 	 */
-	public Plane getFrustumPlane(int i) {
+	public Vector4f getFrustumPlane(int i) {
 		return worldPlanes[i];
 	}
 
@@ -527,13 +534,13 @@ public class Frustum {
 
 	// set the given world plane, with the 4 values, and then normalize it
 	private void setWorldPlane(int plane, float a, float b, float c, float d) {
-		Plane cp = worldPlanes[plane];
+		Vector4f cp = worldPlanes[plane];
 		if (cp == null) {
-			cp = new Plane(a, b, c, d);
+			cp = new Vector4f(a, b, c, d);
 			worldPlanes[plane] = cp;
 		} else
-			cp.setPlane(a, b, c, d);
-		cp.normalize();
+			cp.set(a, b, c, d);
+		Plane.normalize(cp);
 	}
 
 	// computes an orthogonal projection matrix given the frustum values.

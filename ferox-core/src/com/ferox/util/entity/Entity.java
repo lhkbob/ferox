@@ -1,20 +1,19 @@
 package com.ferox.util.entity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class Entity implements Iterable<Component> {
 	EntitySystem owner;
 	int systemIndex; // index into owner.allEntities
+	final ReadWriteLock lock; // FIXME: remove this, I'd prefer a spin lock ... or no synchronization but that's risky
 	
-	// FIXME: decision, we do action-only locks to ensure integrity
-	// of the tables, etc. any loss of item from being swapped is unfortunate,
-	// but you shouldn't be parallelizing controllers in those situations
-	// FIXME: alternative is to do no locking and have a ControllerExecutor service
-	// that makes the synchronization occur -> does this map okay to the rendering
-	// framework being completely multi-threaded? Yes I think they're independent
-	
+	private final List<EntityListener> listeners; // FIXME: actually invoke these appropriately
 	private EntityComponentLink[] components;
 
 	/**
@@ -39,6 +38,8 @@ public final class Entity implements Iterable<Component> {
 		owner = null;
 		systemIndex = -1;
 		components = new EntityComponentLink[4];
+		listeners = new ArrayList<EntityListener>();
+		lock = new ReentrantReadWriteLock();
 		
 		if (comps != null) {
 			for (int i = 0; i < comps.length; i++)
@@ -46,6 +47,49 @@ public final class Entity implements Iterable<Component> {
 		}
 	}
 
+	/**
+	 * Add the given EntityListener to this Entity. Future changes to the state
+	 * of this Entity will invoke the appropriate listener function on
+	 * <tt>listener</tt>. If the listener has already been added to this Entity,
+	 * this will do nothing.
+	 * 
+	 * @param listener The EntityListener to listen upon this Entity
+	 * @throws NullPointerException if listener is null
+	 */
+	public void addListener(EntityListener listener) {
+		if (listener == null)
+			throw new NullPointerException("EntityListener cannot be null");
+		
+		try {
+			lock.writeLock().lock();
+			if (!listeners.contains(listener))
+				listeners.remove(listener);
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Remove the given EntityListener from this Entity. Future changes to the
+	 * state of this Entity will not invoke the appropriate listener function on
+	 * <tt>listener</tt>.  If the listener has not been added to this Entity, then
+	 * this call do nothing.
+	 * 
+	 * @param listener The EntityListener to remove
+	 * @throws NullPointerException if listener is null
+	 */
+	public void removeListener(EntityListener listener) {
+		if (listener == null)
+			throw new NullPointerException("EntityListener cannot be null");
+		
+		try {
+			lock.writeLock().lock();
+			listeners.remove(listener);
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+	
 	/**
 	 * Get the EntitySystem owner of this Entity. If null is returned, the
 	 * Entity is not a member of any EntitySystem. An Entity becomes owned by

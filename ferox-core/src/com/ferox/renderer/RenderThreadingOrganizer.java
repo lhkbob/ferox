@@ -94,6 +94,7 @@ public class RenderThreadingOrganizer {
 		// assumes that the organizer is already locked
 		for (QueueEvent e: queue)
 			e.execute();
+		queue.clear();
 	}
 	
 	private void queue(String group, QueueEvent event) {

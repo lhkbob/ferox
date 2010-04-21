@@ -2,7 +2,7 @@ package com.ferox.scene.ffp;
 
 import java.util.Iterator;
 
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.RenderThreadingOrganizer;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.resource.Geometry;
@@ -96,7 +96,7 @@ public class FixedFunctionRenderController implements Controller {
 		Stream<ShadowAtom> saStream = con.getShadowAtomStream();
 		
 		// determine shadowing info for the view
-		ShadowMapFrustum smf = view.get(SMF_ID);
+		ShadowMapFrustum smf = view.getMeta(vn, SMF_ID);
 		LightAtom shadowLightAtom = null;
 		Frustum shadowFrustum = null;
 		Entity shadowEntity = null;
