@@ -80,6 +80,8 @@ public class JoglRenderManager implements RenderManager {
 		else
 			sync.cancel(false);
 		
+		// FIXME: if we're running on current thread, don't bother queuing
+		// it up (see above)
 		if (workerThread == null) {
 			// not serialized, so run it on the current thread
 			sync.run();

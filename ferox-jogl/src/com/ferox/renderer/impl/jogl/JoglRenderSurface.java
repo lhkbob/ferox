@@ -152,7 +152,7 @@ public abstract class JoglRenderSurface extends AbstractRenderSurface {
 				renderedOnce = true;
 			}
 			
-			Renderer r = JoglContext.getCurrent().getRenderer();
+			Renderer r = context.getRenderer();
 			if (r instanceof SurfaceAwareRenderer)
 				((SurfaceAwareRenderer) r).setRenderSurface(JoglRenderSurface.this);
 			
