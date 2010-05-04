@@ -69,6 +69,30 @@ public final class Vector3f implements Cloneable {
 	}
 
 	/**
+	 * Compute the distance between this vector and <tt>v</tt>, treating both
+	 * vectors as 3D points.
+	 * 
+	 * @param v The other vector
+	 * @return The distance between this and v
+	 * @throws NullPointerException if v is null
+	 */
+	public float distance(Vector3f v) {
+		return (float) Math.sqrt(distanceSquared(v));
+	}
+
+	/**
+	 * Compute the square of the distance between this and <tt>v</tt>, treating
+	 * both vectors as 3D points.
+	 * 
+	 * @param v The other vector
+	 * @return The distance between this and v
+	 * @throws NullPointerException if v is null
+	 */
+	public float distanceSquared(Vector3f v) {
+		return (x - v.x) * (x - v.x) + (y - v.y) * (y - v.y) + (z - v.z) * (z - v.z);
+	}
+
+	/**
 	 * Compute and return the shortest angle between this vector and v. The
 	 * returned angle must be in radians.
 	 * 

@@ -26,7 +26,20 @@ import com.ferox.math.Vector4f;
 public class Frustum {
 	/** Result of a frustum test against a BoundVolume. */
 	public static enum FrustumIntersection {
-		INSIDE, OUTSIDE, INTERSECT
+	    /**
+         * Returned when a candidate object is fully enclosed by the Frustum.
+         */
+		INSIDE, 
+		/**
+         * Returned when a candidate object is completely outside of the
+         * Frustum.
+         */
+		OUTSIDE,
+        /**
+         * Returned when a candidate object intersects the Frustum but is not
+         * completely contained.
+         */
+		INTERSECT
 	}
 	
 	public static final int NUM_PLANES = 6;

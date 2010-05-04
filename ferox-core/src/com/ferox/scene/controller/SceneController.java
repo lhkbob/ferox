@@ -13,13 +13,56 @@ import com.ferox.util.entity.Entity;
 import com.ferox.util.entity.EntityListener;
 import com.ferox.util.entity.EntitySystem;
 
+/**
+ * <p>
+ * SceneController is a Controller implementation that handles the processing
+ * and updating of {@link SceneElement SceneElements} within a scene. It is
+ * responsible for managing a {@link SpatialHierarchy} and for reseting an
+ * element's visibility. For each Entity that is a SceneElement, a
+ * SceneController performs the following operations:
+ * <ol>
+ * <li>Reset the visibility of the SceneElement, see
+ * {@link SceneElement#resetVisibility()}.</li>
+ * <li>Determine if a SceneElement has had its transform changed.</li>
+ * <li>For modified elements, transform the element's local bound to world space
+ * and store the computed world bounds on the element.</li>
+ * <li>Add the element to the SceneController's SpatialHierarchy, or update the
+ * element if needed (
+ * {@link SpatialHierarchy#update(Object, AxisAlignedBox, Object)}).</li>
+ * </ol>
+ * </p>
+ * <p>
+ * The SceneController is intended to be the Controller that manages a
+ * SpatialHierarchy. In general, Controllers which update the local bounds or
+ * transform of a SceneElement should process a scene before the
+ * SceneController. Any Controller that relies on the SpatialHierarchy for the
+ * scene should process the scene after the SceneController runs.
+ * </p>
+ * 
+ * @see SceneElement
+ * @see SpatialHierarchy
+ * @author Michael Ludwig
+ */
 public class SceneController implements Controller {
 	private static final ComponentId<ElementData> ED_ID = Component.getComponentId(ElementData.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
 	private final SpatialHierarchy<Entity> hierarchy;
 	private final SceneElementListener listener;
-	
+
+    /**
+     * Create a new SceneController that will use <tt>hierarchy</tt> to organize
+     * the Entities within the EntitySystem that this controller will process.
+     * It is assumed that the SceneController is the manager of which Entities
+     * are added and removed from the hierarchy. If this is not true, duplicate
+     * or undefined results may occur. Additionally, the SceneController should
+     * ever process a single EntitySystem, or Entities from various systems can
+     * corrupt the hierarchy.
+     * 
+     * @param hierarchy The SpatialHierarchy instance to use, which is expected
+     *            to be empty at this point
+     * @throws NullPointerException if hierarchy is null
+     */
 	public SceneController(SpatialHierarchy<Entity> hierarchy) {
 		if (hierarchy == null)
 			throw new NullPointerException("SpatialHierarchy cannot be null");
@@ -95,9 +138,10 @@ public class SceneController implements Controller {
 	}
 	
 	private void placeElement(Entity e, SceneElement s, ElementData d) {
-		Object newKey = hierarchy.insert(e, s.getWorldBounds(), d.hierarchyKey);
-		d.hierarchyKey = newKey;
-
+		if (d.hierarchyKey == null)
+			d.hierarchyKey = hierarchy.add(e, s.getWorldBounds());
+		else
+			hierarchy.update(e, s.getWorldBounds(), d.hierarchyKey);
 	}
 	
 	private class SceneElementListener implements EntityListener {

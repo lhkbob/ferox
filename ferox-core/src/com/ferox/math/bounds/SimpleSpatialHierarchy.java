@@ -3,42 +3,33 @@ package com.ferox.math.bounds;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.util.Bag;
 
+/**
+ * SimpleSpatialHierarchy is a SpatialHierarchy that performs no spatial
+ * organization. Each query performs a linear scan through the elements within
+ * the hierarchy. Inserts, updates and removals are always constant time, and
+ * the SimpleSpatialHierarchy always accepts every element added to it. It is
+ * intended that this hierarchy be used to test the validity of other
+ * implementations.
+ * 
+ * @author Michael Ludwig
+ * @param <T> The Class type of elements within this hierarchy
+ */
 public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
 	private final Bag<SimpleKey<T>> elements;
 	
+	/**
+     * Create a new SimpleSpatialHierarchy that is initially empty.
+     */
 	public SimpleSpatialHierarchy() {
 		elements = new Bag<SimpleKey<T>>();
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
-	public Object insert(T item, AxisAlignedBox bounds, Object key) {
+	public Object add(T item, AxisAlignedBox bounds) {
 		if (item == null)
 			throw new NullPointerException("Item cannot be null");
-		
-		if (key instanceof SimpleKey) {
-			SimpleKey sk = (SimpleKey) key;
-			if (sk.owner == this) {
-				 // key is valid and we already own it, update bounds
-				sk.bounds = bounds;
-				return sk;
-			}
-			// else bad key, fall through to perform an insert
-		}
-		
-		int sz = elements.size();
-		for (int i = 0; i < sz; i++) {
-			if (elements.get(i).data == item) {
-				// item already in hierarchy, update bounds
-				elements.get(i).bounds = bounds;
-				return elements.get(i); 
-			}
-		}
-		
-		// item is not in the hierarchy, insert a new key
-		SimpleKey<T> newKey = new SimpleKey<T>(this);
-		newKey.data = item;
-		newKey.index = sz;
+		SimpleKey<T> newKey = new SimpleKey<T>(this, item);
+		newKey.index = elements.size();
 		newKey.bounds = bounds;
 		
 		elements.add(newKey);
@@ -47,37 +38,48 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
 	
 	@Override
 	@SuppressWarnings("unchecked")
+	public void update(T item, AxisAlignedBox bounds, Object key) {
+		if (item == null)
+			throw new NullPointerException("Item cannot be null");
+		if (key == null)
+			throw new NullPointerException("Key cannot be null");
+		
+		if (key instanceof SimpleKey) {
+			SimpleKey sk = (SimpleKey) key;
+			if (sk.owner == this && sk.data == item) {
+				// key is valid, update bounds and return
+				sk.bounds = bounds;
+				return;
+			}
+		}
+		
+		// else key was invalid (not a SimpleKey or the wrong hierarchy)
+		throw new IllegalArgumentException("Invalid key: " + key);
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
 	public void remove(T item, Object key) {
 		if (item == null)
 			throw new NullPointerException("Item cannot be null");
+		if (key == null)
+			throw new NullPointerException("Key cannot be null");
 		
 		if (key instanceof SimpleKey) {
-			// remove quickly based on the key
 			SimpleKey sk = (SimpleKey) key;
-			if (sk.owner == this) {
-				removeKey((SimpleKey<T>) sk);
-				return;
-			}
-			// else bad key, fall through to perform a linear search
-		}
-		
-		int sz = elements.size();
-		for (int i = 0; i < sz; i++) {
-			if (elements.get(i).data == item) {
-				removeKey(elements.get(i));
+			if (sk.owner == this && sk.data == item) {
+				// remove quickly based on the key
+				elements.remove(sk.index);
+				if (sk.index != elements.size()) {
+					// update index of swapped item
+					elements.get(sk.index).index = sk.index;
+				}
 				return;
 			}
 		}
 		
-		// item is not within the hierarchy
-	}
-	
-	private void removeKey(SimpleKey<T> key) {
-		elements.remove(key.index);
-		if (key.index != elements.size()) {
-			// update index of swapped item
-			elements.get(key.index).index = key.index;
-		}
+		// else key was invalid 
+		throw new IllegalArgumentException("Invalid key: " + key);
 	}
 
 	@Override
@@ -111,6 +113,8 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
 		int sz = elements.size();
 		for (int i = 0; i < sz; i++) {
 			key = elements.get(i);
+			// we can't use a PlaneState because each item has no spatial locality
+			// with the items around it in elements
 			if (key.bounds == null || key.bounds.intersects(frustum, null) != FrustumIntersection.OUTSIDE)
 				results.add(key.data);
 		}
@@ -119,14 +123,15 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
 	}
 
 	private static class SimpleKey<T> {
-		private T data;
+		private final T data;
 		private AxisAlignedBox bounds;
 		
 		private int index;
 		private final SimpleSpatialHierarchy<T> owner;
 		
-		public SimpleKey(SimpleSpatialHierarchy<T> owner) {
+		public SimpleKey(SimpleSpatialHierarchy<T> owner, T data) {
 			this.owner = owner;
+			this.data = data;
 		}
 	}
 }

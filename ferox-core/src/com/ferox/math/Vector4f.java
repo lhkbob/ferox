@@ -68,6 +68,30 @@ public final class Vector4f implements Cloneable {
 	public float lengthSquared() {
 		return x * x + y * y + z * z + w * w;
 	}
+	
+	/**
+	 * Compute the distance between this vector and <tt>v</tt>, treating both
+	 * vectors as 4D points.
+	 * 
+	 * @param v The other vector
+	 * @return The distance between this and v
+	 * @throws NullPointerException if v is null
+	 */
+	public float distance(Vector4f v) {
+		return (float) Math.sqrt(distanceSquared(v));
+	}
+
+	/**
+	 * Compute the square of the distance between this and <tt>v</tt>, treating
+	 * both vectors as 4D points.
+	 * 
+	 * @param v The other vector
+	 * @return The distance between this and v
+	 * @throws NullPointerException if v is null
+	 */
+	public float distanceSquared(Vector4f v) {
+		return (x - v.x) * (x - v.x) + (y - v.y) * (y - v.y) + (z - v.z) * (z - v.z) + (w - v.w) * (w - v.w);
+	}
 
 	/**
 	 * Compute and return the shortest angle between this vector and v. The

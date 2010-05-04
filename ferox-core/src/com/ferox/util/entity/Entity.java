@@ -8,6 +8,20 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+// FIXME: rewrite and simplify this to avoid the use of bags
+// and we'll use a linked list structure instead.
+//
+// also, because the linked list is more compact (embedded in component links),
+// a entity system will always have indices available for each component type that it has entities of
+//
+// also, with these we have better opportunities for synchronization because removal from
+// the linked list doesn't reorder everything.  the only thing we have to synchronize on is
+// additions and removals of components.  just need to figure out how to preserve iterators if
+// someone else removes the component on another thread -> don't want it to continue reporting stuff
+// - maybe a fail-fast iterator is acceptable?
+// - other option is to potentially report a removed component, so long as we can't destroy structure of the list
+// -- could tell when a link is removed when the link in iterator no longer points to a component,
+// -- continue walking along chain until the link has a component (e.g. truly in the list)
 public final class Entity implements Iterable<Component> {
 	EntitySystem owner;
 	int systemIndex; // index into owner.allEntities
