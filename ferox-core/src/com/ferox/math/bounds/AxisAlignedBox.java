@@ -451,6 +451,19 @@ public class AxisAlignedBox {
 		return result;
 	}
 	
+	@Override
+	public int hashCode() {
+	    return min.hashCode() ^ max.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+	    if (!(o instanceof AxisAlignedBox))
+	        return false;
+	    AxisAlignedBox that = (AxisAlignedBox) o;
+	    return min.equals(that.min) && max.equals(that.max);
+	}
+	
 	private void extent(Vector4f plane, boolean reverseDir, Vector3f result) {
 		Vector3f sourceMin = (reverseDir ? max : min);
 		Vector3f sourceMax = (reverseDir ? min : max);
