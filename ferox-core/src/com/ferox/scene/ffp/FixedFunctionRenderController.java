@@ -13,13 +13,13 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.ViewNode;
 import com.ferox.scene.ffp.RenderConnection.Stream;
 import com.ferox.scene.ffp.ShadowMapFrustumController.ShadowMapFrustum;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Controller;
-import com.ferox.util.entity.Entity;
-import com.ferox.util.entity.EntitySystem;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Controller;
+import com.ferox.entity.Entity;
+import com.ferox.entity.EntitySystem;
 
-public class FixedFunctionRenderController implements Controller {
+public class FixedFunctionRenderController extends Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
 	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
@@ -31,21 +31,22 @@ public class FixedFunctionRenderController implements Controller {
 	private final EntityAtomBuilder entityBuilder;
 	private final FixedFunctionAtomRenderer renderer;
 	
-	public FixedFunctionRenderController(RenderThreadingOrganizer organizer) {
-		this(organizer, 512);
+	public FixedFunctionRenderController(EntitySystem system, RenderThreadingOrganizer organizer) {
+		this(system, organizer, 512);
 	}
 	
-	public FixedFunctionRenderController(RenderThreadingOrganizer organizer, int shadowMapSize) {
-		this(organizer, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
+	public FixedFunctionRenderController(EntitySystem system, RenderThreadingOrganizer organizer, int shadowMapSize) {
+		this(system, organizer, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
 			 Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
 	}
 	
-	public FixedFunctionRenderController(RenderThreadingOrganizer organizer, int shadowMapSize,
+	public FixedFunctionRenderController(EntitySystem system, RenderThreadingOrganizer organizer, int shadowMapSize,
 										 String vertexBinding, String normalBinding, String texCoordBinding) {
-		this(new FixedFunctionAtomRenderer(organizer, shadowMapSize, vertexBinding, normalBinding, texCoordBinding));
+		this(system, new FixedFunctionAtomRenderer(organizer, shadowMapSize, vertexBinding, normalBinding, texCoordBinding));
 	}
 	
-	public FixedFunctionRenderController(FixedFunctionAtomRenderer renderer) {
+	public FixedFunctionRenderController(EntitySystem system, FixedFunctionAtomRenderer renderer) {
+	    super(system);
 		if (renderer == null)
 			throw new NullPointerException("FixedFunctionAtomRenderer cannot be null");
 		this.renderer = renderer;
@@ -65,14 +66,7 @@ public class FixedFunctionRenderController implements Controller {
 	}
 	
 	@Override
-	public void process(EntitySystem system) {
-		// add an index for view nodes, renderables and light types
-		system.addIndex(VN_ID);
-		system.addIndex(SL_ID);
-		system.addIndex(DL_ID);
-		system.addIndex(AL_ID);
-		system.addIndex(R_ID);
-		
+	public void process() {
 		// process every view, we use a threading organizer so that
 		// actual rendering can be managed externally without worrying about
 		// which thread executed this controller

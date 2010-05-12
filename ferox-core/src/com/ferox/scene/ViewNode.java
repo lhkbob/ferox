@@ -4,7 +4,7 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.RenderSurface;
 import com.ferox.renderer.WindowSurface;
 import com.ferox.scene.controller.ViewNodeController;
-import com.ferox.util.entity.AbstractComponent;
+import com.ferox.entity.AbstractComponent;
 
 /**
  * <p>
@@ -138,11 +138,11 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 		if (left < 0 || left > surface.getWidth())
 			throw new IllegalArgumentException("left dimension outside of surface range: " + left);
 		if (right < 0 || right > surface.getWidth())
-			throw new IllegalArgumentException("right dimension outside of surface range: " + left);
+			throw new IllegalArgumentException("right dimension outside of surface range: " + right);
 		if (bottom < 0 || bottom > surface.getHeight())
-			throw new IllegalArgumentException("bottom dimension outside of surface range: " + left);
+			throw new IllegalArgumentException("bottom dimension outside of surface range: " + bottom);
 		if (top < 0 || top > surface.getHeight())
-			throw new IllegalArgumentException("top dimension outside of surface range: " + left);
+			throw new IllegalArgumentException("top dimension outside of surface range: " + top);
 		
 		if (left > right)
 			throw new IllegalArgumentException("left must be less than or equal to right (left = " + left + ", right = " + right + ")");
@@ -196,7 +196,7 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 	 * <p>
 	 * However, if an Entity with this ViewNode is also a SceneElement a
 	 * ViewNodeController may overwrite changes to the Frustum's orientation.
-	 * Similarly, if {@link #getAutoUpdateProjection()} returns true, the aspect
+	 * Similarly, if {@link #getAutoUpdateViewport()} returns true, the aspect
 	 * ratio or frustum dimensions may be changed to match changes in the linked
 	 * RenderSurface's dimensions.
 	 * </p>
@@ -219,7 +219,7 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 
 	/**
 	 * Set the RenderSurface that this ViewNode is linked to. If
-	 * {@link #getAutoUpdateProjection()} returns true, this may cause the Frustum
+	 * {@link #getAutoUpdateViewport()} returns true, this may cause the Frustum
 	 * to be updated if the given surface's dimensions differ from the previous
 	 * surface. This can also occur if the surface is a {@link WindowSurface}
 	 * that is resizable.
@@ -269,7 +269,7 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
 	/**
 	 * Set whether or not this ViewNode's viewport should be updated
 	 * by a {@link ViewNodeController} to reflect changes in its linked
-	 * RenderSurface's dimensions. See {@link #getAutoUpdateProjection()} for
+	 * RenderSurface's dimensions. See {@link #getAutoUpdateViewport()} for
 	 * details of what is updated.
 	 * 
 	 * @param matchDim True if ViewNode should automatically match changes to

@@ -1,6 +1,7 @@
 package com.ferox.scene.ffp;
 
-import java.util.WeakHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.DisplayOptions;
@@ -20,7 +21,8 @@ import com.ferox.scene.ffp.RenderConnection.Stream;
 import com.ferox.util.Bag;
 
 public class FixedFunctionAtomRenderer {
-	private final WeakHashMap<RenderSurface, RenderConnection> connections;
+    private final List<RenderConnectionImpl> connectionPool;
+	
 	private final RenderThreadingOrganizer organizer;
 	
 	private final TextureSurface shadowMap;
@@ -73,18 +75,19 @@ public class FixedFunctionAtomRenderer {
 			shadowMap = null;
 		}
 		
-		connections = new WeakHashMap<RenderSurface, RenderConnection>();
+		connectionPool = new ArrayList<RenderConnectionImpl>();
 	}
 	
 	public RenderConnection getConnection(RenderSurface surface) {
-		synchronized(connections) {
-			RenderConnection con = connections.get(surface);
-			if (con == null) {
-				con = new RenderConnectionImpl(surface);
-				connections.put(surface, con);
-			}
-
-			return con;
+		synchronized(connectionPool) {
+		    RenderConnectionImpl con;
+		    if (connectionPool.size() > 0)
+		        con = connectionPool.remove(connectionPool.size() - 1);
+		    else
+		        con = new RenderConnectionImpl();
+		    
+		    con.setSurface(surface);
+		    return con;
 		}
 	}
 	
@@ -97,7 +100,23 @@ public class FixedFunctionAtomRenderer {
 	}
 	
 	private class RenderConnectionImpl implements RenderConnection {
-		private final RenderSurface surface;
+	    private class ReturnConnectionFence implements Fence {
+            @Override
+            public void onRenderBatchEnd() {
+                synchronized(connectionPool) {
+                    connectionPool.add(RenderConnectionImpl.this);
+                    // FIXME: release lock on SM, see below
+                }
+            }
+
+            @Override
+            public void onRenderBatchStart() {
+                // do nothing
+            }
+	    }
+	    // FIXME: add additional fence to wait for SM to be available
+	    
+		private RenderSurface surface;
 		
 		// streams that contain render data
 		private final RenderAtomStream renderAtomStream;
@@ -124,8 +143,7 @@ public class FixedFunctionAtomRenderer {
 		private final ShadowedLightingPass shadowLightPass;
 		private final ShadowMapGeneratorPass shadowGenPass;
 		
-		public RenderConnectionImpl(RenderSurface surface) {
-			this.surface = surface;
+		public RenderConnectionImpl() {
 			renderAtomStream = new RenderAtomStream();
 			lightAtomStream = new LightAtomStream();
 			shadowAtomStream = new ShadowAtomStream();
@@ -144,10 +162,16 @@ public class FixedFunctionAtomRenderer {
 				shadowGenPass = new ShadowMapGeneratorPass(maxMaterialTexUnits, vertexBinding);
 				shadowLightPass = new ShadowedLightingPass(shadowMap.getDepthBuffer(), maxMaterialTexUnits, 
 														   vertexBinding, normalBinding, texCoordBinding);
+				shadowLightPass.setFence(new ReturnConnectionFence());
 			} else {
 				shadowGenPass = null;
 				shadowLightPass = null;
+				defaultLightPass.setFence(new ReturnConnectionFence());
 			}
+		}
+		
+		void setSurface(RenderSurface surface) {
+		    this.surface = surface;
 		}
 		
 		@Override
@@ -191,6 +215,8 @@ public class FixedFunctionAtomRenderer {
 			shadowLight = null;
 			shadowFrustum = null;
 			viewFrustum = null;
+			
+			surface = null;
 		}
 
 		@Override

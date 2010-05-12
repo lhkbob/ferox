@@ -33,6 +33,7 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 	
 	// per-pass variables
 	private FixedFunctionRenderer renderer;
+	private Fence fence;
 	protected RenderDescription renderDescr;
 	
 	public AbstractFfpRenderPass(int maxMaterialTexUnits, String vertexBinding, String normalBinding, 
@@ -55,12 +56,19 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		projection = new Matrix4f();
 	}
 	
+	public void setFence(Fence fence) {
+	    this.fence = fence;
+	}
+	
 	public void setRenderDescription(RenderDescription renderDescr) {
 		this.renderDescr = renderDescr;
 	}
 
 	@Override
 	public void render(Renderer renderer, RenderSurface surface) {
+	    if (fence != null)
+            fence.onRenderBatchStart();
+	    
 		if (renderer instanceof FixedFunctionRenderer && getFrustum() != null) {
 			// render only when we have an ffp renderer, the description is complete
 			// and this pass can determine a proper frustum to use
@@ -71,6 +79,8 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		}
 		
 		renderDescr = null; // reset
+		if (fence != null)
+            fence.onRenderBatchEnd();
 	}
 	
 	private void init(RenderSurface surface) {

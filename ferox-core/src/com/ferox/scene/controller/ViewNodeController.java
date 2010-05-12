@@ -11,11 +11,11 @@ import com.ferox.renderer.RenderSurface;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ViewNode;
 import com.ferox.util.Bag;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Controller;
-import com.ferox.util.entity.Entity;
-import com.ferox.util.entity.EntitySystem;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Controller;
+import com.ferox.entity.Entity;
+import com.ferox.entity.EntitySystem;
 
 /**
  * ViewNodeController is a Controller implementation that handles the processing
@@ -25,19 +25,19 @@ import com.ferox.util.entity.EntitySystem;
  * <li>If the entity is also a SceneElement, modify the ViewNode's Frustum so
  * that it reflects the location and orientation of the SceneElement. The y-axis
  * is considered up and the z-axis is considered to be the direction.</li>
- * <li>If {@link ViewNode#getAutoUpdateProjection()} returns true, modify the
+ * <li>If {@link ViewNode#getAutoUpdateViewport()} returns true, modify the
  * viewport and projection as described in ViewNode to match its RenderSurface's
  * dimensions.</li>
  * <li>Invoke {@link Frustum#updateFrustumPlanes()} so the Frustum is up to
  * date.</li>
- * <li>Query any {@link SpatialHierarchyComponent} within the system with the
- * ViewNode's Frustum and mark the returned SceneElements as visible using
+ * <li>Query the {@link SpatialHierarchy} of the system with the ViewNode's
+ * Frustum and mark the returned SceneElements as visible using
  * {@link SceneElement#setVisible(Frustum, boolean)}</li>
  * </ol>
  * 
  * @author Michael Ludwig
  */
-public class ViewNodeController implements Controller {
+public class ViewNodeController extends Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
@@ -53,11 +53,13 @@ public class ViewNodeController implements Controller {
 	 * should also be the hierarchy that is used by the other Controllers which
 	 * process the system (e.g. {@link SceneController}).
 	 * 
+	 * @param system The EntitySystem processed by this controller
 	 * @param hierarchy SpatialHierarchy that will contain Entities of the
 	 *            EntitySystem that this controller is to process.
 	 * @throws NullPointerException if hierarchy is null
 	 */
-	public ViewNodeController(SpatialHierarchy<Entity> hierarchy) {
+	public ViewNodeController(EntitySystem system, SpatialHierarchy<Entity> hierarchy) {
+	    super(system);
 		if (hierarchy == null)
 			throw new NullPointerException("SpatialHierarchy cannot be null");
 		this.hierarchy = hierarchy;
@@ -67,10 +69,7 @@ public class ViewNodeController implements Controller {
 	}
 
 	@Override
-	public void process(EntitySystem system) {
-		// make sure we have an index over ViewNodes
-		system.addIndex(VN_ID);
-		
+	public void process() {
 		Map<ViewNode, Dimension> nextDimensions = new HashMap<ViewNode, Dimension>();
 		
 		Iterator<Entity> it = system.iterator(VN_ID);
@@ -103,7 +102,7 @@ public class ViewNodeController implements Controller {
 			int width = surface.getWidth();
 			int height = surface.getHeight();
 			
-			Dimension dim = dimensions.get(surface);
+			Dimension dim = dimensions.get(vn);
 			if (dim == null) {
 				dim = new Dimension();
 				dim.width = width;
@@ -134,6 +133,8 @@ public class ViewNodeController implements Controller {
 			}
 			
 			// remember surface's dimension for next process
+			dim.width = width;
+			dim.height = height;
 			store.put(vn, dim);
 			
 			// setFrustum and setPerspective auto update the frustum, so 

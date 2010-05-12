@@ -5,11 +5,11 @@ import java.util.Iterator;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.SpotLight;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Controller;
-import com.ferox.util.entity.Entity;
-import com.ferox.util.entity.EntitySystem;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Controller;
+import com.ferox.entity.Entity;
+import com.ferox.entity.EntitySystem;
 
 /**
  * <p>
@@ -36,19 +36,18 @@ import com.ferox.util.entity.EntitySystem;
  * 
  * @author Michael Ludwig
  */
-public class LightUpdateController implements Controller {
+public class LightUpdateController extends Controller {
 	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
 	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
 	
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 	
+	public LightUpdateController(EntitySystem system) {
+	    super(system);
+	}
 	
 	@Override
-	public void process(EntitySystem system) {
-		// ensure that we have indices within the system
-		system.addIndex(SL_ID);
-		system.addIndex(DL_ID);
-		
+	public void process() {
 		// update all direction lights so their direction vector
 		// matches the z-axis of an attached scene element
 		Entity e;

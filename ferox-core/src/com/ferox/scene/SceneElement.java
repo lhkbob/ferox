@@ -7,8 +7,8 @@ import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Controller;
+import com.ferox.entity.AbstractComponent;
+import com.ferox.entity.Controller;
 
 /**
  * <p>
@@ -143,7 +143,7 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
 	 * Return the local AxisAlignedBox instance used by this SceneElement. The
 	 * local bound volume is in the local coordinate space of this SceneElement,
 	 * and {@link #getTransform()} is used to compute the world bounds based
-	 * using {@link AxisAlignedBox#transform(Transform)}.
+	 * using {@link AxisAlignedBox#transform(Transform, AxisAlignedBox)}.
 	 * </p>
 	 * <p>
 	 * The returned instance is not a defensive copy.

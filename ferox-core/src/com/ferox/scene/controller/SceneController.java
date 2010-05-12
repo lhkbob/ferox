@@ -6,12 +6,12 @@ import com.ferox.math.Transform;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.SceneElement;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Controller;
-import com.ferox.util.entity.Entity;
-import com.ferox.util.entity.EntityListener;
-import com.ferox.util.entity.EntitySystem;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Controller;
+import com.ferox.entity.Entity;
+import com.ferox.entity.EntityListener;
+import com.ferox.entity.EntitySystem;
 
 /**
  * <p>
@@ -43,7 +43,7 @@ import com.ferox.util.entity.EntitySystem;
  * @see SpatialHierarchy
  * @author Michael Ludwig
  */
-public class SceneController implements Controller {
+public class SceneController extends Controller {
 	private static final ComponentId<ElementData> ED_ID = Component.getComponentId(ElementData.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
@@ -59,11 +59,14 @@ public class SceneController implements Controller {
      * ever process a single EntitySystem, or Entities from various systems can
      * corrupt the hierarchy.
      * 
+     * @param system The EntitySystem this controller processes
      * @param hierarchy The SpatialHierarchy instance to use, which is expected
      *            to be empty at this point
      * @throws NullPointerException if hierarchy is null
      */
-	public SceneController(SpatialHierarchy<Entity> hierarchy) {
+	public SceneController(EntitySystem system, SpatialHierarchy<Entity> hierarchy) {
+	    super(system);
+	    
 		if (hierarchy == null)
 			throw new NullPointerException("SpatialHierarchy cannot be null");
 		this.hierarchy = hierarchy;
@@ -71,10 +74,7 @@ public class SceneController implements Controller {
 	}
 	
 	@Override
-	public void process(EntitySystem system) {
-		// make sure we have an index over SceneElements
-		system.addIndex(SE_ID);
-		
+	public void process() {
 		// process all SceneElements
 		Entity e;
 		SceneElement element;

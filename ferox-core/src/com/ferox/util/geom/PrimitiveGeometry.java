@@ -1,6 +1,5 @@
 package com.ferox.util.geom;
 
-import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.VectorBuffer;
 
@@ -105,7 +104,7 @@ public abstract class PrimitiveGeometry extends Geometry {
 	 * coordinates are assigned attributes using the default names defined in
 	 * Geometry. When invoking this method it transfers the VectorBuffers over
 	 * to the given names. It will also reuse these names each time
-	 * {@link #setData(Vector3f, Vector3f)} is called again.
+	 * {@link #setAttribute(String, VectorBuffer)} is called again.
 	 * 
 	 * @param vertices New attribute name for vertices
 	 * @param normals New attribute name for normals

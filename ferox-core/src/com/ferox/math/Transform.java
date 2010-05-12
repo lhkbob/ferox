@@ -194,7 +194,7 @@ public class Transform {
 	 * It is safe to call with result as this transform.
 	 * 
 	 * @param t1 Right-hand transform in multiplication
-	 * @param t2 Result of the multiplication
+	 * @param result Result of the multiplication
 	 * @return result, or a new Transform if null
 	 * @throws NullPointerException if t1 is null
 	 */

@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.entity.AbstractComponent;
+import com.ferox.entity.Entity;
 import com.ferox.math.Transform;
-import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Entity;
 
 public class Attached extends AbstractComponent<Attached> {
 	private Entity attachedTo;
@@ -47,8 +47,8 @@ public class Attached extends AbstractComponent<Attached> {
 	 * and the updated Entities will not have their Transforms modified (it will
 	 * not throw an exception, however).
 	 * 
-	 * @param attachTo The new attachment Entity
-	 * @throws NullPointerException if attachTo is null
+	 * @param attachedTo The new attachment Entity
+	 * @throws NullPointerException if attachedTo is null
 	 */
 	public void setAttachment(Entity attachedTo) {
 		if (attachedTo == null)

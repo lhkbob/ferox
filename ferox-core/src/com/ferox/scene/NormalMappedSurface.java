@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.resource.TextureImage;
-import com.ferox.util.entity.AbstractComponent;
+import com.ferox.entity.AbstractComponent;
 
 public final class NormalMappedSurface extends AbstractComponent<NormalMappedSurface> {
 	private TextureImage normalMap;

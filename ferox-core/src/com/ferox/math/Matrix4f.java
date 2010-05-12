@@ -319,7 +319,10 @@ public final class Matrix4f implements Cloneable {
 	 * computation is stored in result; if result is null, then create a new
 	 * Vector4f to hold it and return.
 	 * 
-	 * @param r Vector to be interpreted as a 4x1 matrix in the multiplication
+	 * @param x 1st row value of the 4x1 matrix
+     * @param y 2nd row value of the 4x1 matrix
+     * @param z 3rd row value of the 4x1 matrix
+     * @param w 4th row value of the 4x1 matrix
 	 * @param result Vector holding the resultant transformed vector
 	 * @return result, or a new Vector4f if null, holding [this] x
 	 *         [[x][y][z][w]]

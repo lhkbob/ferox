@@ -18,9 +18,9 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.ffp.LightAtom.Type;
 import com.ferox.scene.ffp.RenderConnection.Stream;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Entity;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Entity;
 import com.ferox.util.geom.Box;
 
 public class EntityAtomBuilder {

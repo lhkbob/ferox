@@ -6,11 +6,11 @@ import java.util.Set;
 
 import com.ferox.scene.Attached;
 import com.ferox.scene.SceneElement;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Controller;
-import com.ferox.util.entity.Entity;
-import com.ferox.util.entity.EntitySystem;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Controller;
+import com.ferox.entity.Entity;
+import com.ferox.entity.EntitySystem;
 
 /**
  * <p>
@@ -38,15 +38,16 @@ import com.ferox.util.entity.EntitySystem;
  * 
  * @author Michael Ludwig
  */
-public class AttachmentController implements Controller {
+public class AttachmentController extends Controller {
 	private static final ComponentId<Attached> A_ID = Component.getComponentId(Attached.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 	
+	public AttachmentController(EntitySystem system) {
+	    super(system);
+	}
+	
 	@Override
-	public void process(EntitySystem system) {
-		// make sure we have an index over Attachments
-		system.addIndex(A_ID);
-		
+	public void process() {
 		Set<Entity> alreadyProcessed = new HashSet<Entity>();
 		Iterator<Entity> it = system.iterator(A_ID);
 		while(it.hasNext()) {

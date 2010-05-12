@@ -265,7 +265,9 @@ public final class Matrix3f implements Cloneable {
 	 * computation is stored in result; if result is null, then create a new
 	 * Vector3f to hold it and return.
 	 * 
-	 * @param r Vector to be interpreted as a 3x1 matrix in the multiplication
+	 * @param x 1st row value of the 3x1 matrix
+	 * @param y 2nd row value of the 3x1 matrix
+	 * @param z 3rd row value of the 3x1 matrix
 	 * @param result Vector holding the resultant transformed vector
 	 * @return result, or a new Vector3f if null, holding [this] x [[x][y][z]]
 	 */

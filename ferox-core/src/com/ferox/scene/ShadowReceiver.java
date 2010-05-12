@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.util.entity.AbstractComponent;
+import com.ferox.entity.AbstractComponent;
 
 public class ShadowReceiver extends AbstractComponent<ShadowReceiver> {
 	public ShadowReceiver() {

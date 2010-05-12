@@ -1,9 +1,7 @@
 package com.ferox.scene;
 
-import javax.media.j3d.Light;
-
 import com.ferox.resource.Geometry;
-import com.ferox.util.entity.AbstractComponent;
+import com.ferox.entity.AbstractComponent;
 
 /**
  * <p>
@@ -12,7 +10,7 @@ import com.ferox.util.entity.AbstractComponent;
  * when combined with other Components. Some examples include adding additional
  * Components to describe the surface color, in which case this Shape can then
  * be rendered. It may be possible to describe the detailed region of fog, or
- * can be used to give a {@link Light} visible shape (such as with a light
+ * can be used to give a light a visible shape (such as with a light
  * bulb).
  * </p>
  * <p>

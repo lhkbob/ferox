@@ -2,7 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Vector3f;
-import com.ferox.util.entity.AbstractComponent;
+import com.ferox.entity.AbstractComponent;
 
 public class SpotLight extends AbstractComponent<SpotLight> {
 	private final Vector3f direction;

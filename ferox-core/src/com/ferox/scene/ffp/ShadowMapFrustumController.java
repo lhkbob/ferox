@@ -12,14 +12,14 @@ import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.ViewNode;
 import com.ferox.util.Bag;
-import com.ferox.util.entity.AbstractComponent;
-import com.ferox.util.entity.Component;
-import com.ferox.util.entity.ComponentId;
-import com.ferox.util.entity.Controller;
-import com.ferox.util.entity.Entity;
-import com.ferox.util.entity.EntitySystem;
+import com.ferox.entity.AbstractComponent;
+import com.ferox.entity.Component;
+import com.ferox.entity.ComponentId;
+import com.ferox.entity.Controller;
+import com.ferox.entity.Entity;
+import com.ferox.entity.EntitySystem;
 
-public class ShadowMapFrustumController implements Controller {
+public class ShadowMapFrustumController extends Controller {
 	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
 	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
 	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
@@ -75,7 +75,10 @@ public class ShadowMapFrustumController implements Controller {
 	private float shadowMapScale;
 	private final int shadowMapSize;
 	
-	public ShadowMapFrustumController(SpatialHierarchy<Entity> hierarchy, float shadowMapScale, int shadowMapSize) {
+	public ShadowMapFrustumController(EntitySystem system, SpatialHierarchy<Entity> hierarchy, 
+	                                  float shadowMapScale, int shadowMapSize) {
+	    super(system);
+	    
 		if (hierarchy == null)
 			throw new NullPointerException("SpatialHierarchy cannot be null");
 		if (shadowMapSize < 1)
@@ -98,12 +101,7 @@ public class ShadowMapFrustumController implements Controller {
 	}
 	
 	@Override
-	public void process(EntitySystem system) {
-		// make sure we have indices for viewnodes, and the two supported light types
-		system.addIndex(VN_ID);
-		system.addIndex(DL_ID);
-		system.addIndex(SL_ID);
-		
+	public void process() {
 		Iterator<Entity> vi = system.iterator(VN_ID);
 		while(vi.hasNext()) {
 			Entity e = vi.next();

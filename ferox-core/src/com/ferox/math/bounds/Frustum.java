@@ -116,7 +116,7 @@ public class Frustum {
 	/**
 	 * Get the left edge of the near frustum plane.
 	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
 	 * @return The left edge of the near frustum plane
 	 */
 	public float getFrustumLeft() {
@@ -126,7 +126,7 @@ public class Frustum {
 	/**
 	 * Get the right edge of the near frustum plane.
 	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
 	 * @return The right edge of the near frustum plane
 	 */
 	public float getFrustumRight() {
@@ -136,7 +136,7 @@ public class Frustum {
 	/**
 	 * Get the top edge of the near frustum plane.
 	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
 	 * @return The top edge of the near frustum plane
 	 */
 	public float getFrustumTop() {
@@ -146,7 +146,7 @@ public class Frustum {
 	/**
 	 * Get the bottom edge of the near frustum plane.
 	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
 	 * @return The bottom edge of the near frustum plane
 	 */
 	public float getFrustumBottom() {
@@ -157,7 +157,7 @@ public class Frustum {
 	 * Get the distance to the near frustum plane from the origin, in camera
 	 * coords.
 	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
 	 * @return The distance to the near frustum plane
 	 */
 	public float getFrustumNear() {
@@ -168,7 +168,7 @@ public class Frustum {
 	 * Get the distance to the far frustum plane from the origin, in camera
 	 * coords.
 	 * 
-	 * @see #setFrustum(float, float, float, float, float, float)
+	 * @see #setFrustum(boolean, float, float, float, float, float, float)
 	 * @return The distance to the far frustum plane
 	 */
 	public float getFrustumFar() {
@@ -454,7 +454,7 @@ public class Frustum {
 	 * setOrthogonalProjection() will automatically update the frustum planes.
 	 * </p>
 	 * 
-	 * @param plane The requested plane
+	 * @param i The requested plane index
 	 * @return The Vector4f instance for the requested plane, in world
 	 *         coordinates
 	 * @throws IndexOutOfBoundsException if plane isn't in [0, 5]

@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
+import com.ferox.entity.AbstractComponent;
 import com.ferox.math.Color4f;
-import com.ferox.util.entity.AbstractComponent;
 
 public class AmbientLight extends AbstractComponent<AmbientLight>{
 	private final Color4f color;

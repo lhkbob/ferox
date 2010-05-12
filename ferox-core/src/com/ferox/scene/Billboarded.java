@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
+import com.ferox.entity.AbstractComponent;
 import com.ferox.math.Vector3f;
-import com.ferox.util.entity.AbstractComponent;
 
 public class Billboarded extends AbstractComponent<Billboarded> {
 	/**

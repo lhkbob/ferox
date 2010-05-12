@@ -118,7 +118,7 @@ public abstract class RendererDelegate {
 	}
 	
 	/**
-	 * Perform identical operations to {@link Renderer#clear()}
+	 * Perform identical operations to {@link Renderer#clear(boolean, boolean, boolean, Color4f, float, int)}
 	 */
 	public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
 

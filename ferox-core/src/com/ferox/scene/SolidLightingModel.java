@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.math.Color4f;
-import com.ferox.util.entity.AbstractComponent;
+import com.ferox.entity.AbstractComponent;
 
 public final class SolidLightingModel extends AbstractComponent<SolidLightingModel> {
 	private final Color4f color;
