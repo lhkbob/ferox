@@ -312,6 +312,7 @@ public class JoglContext implements Context {
 			// make some state assumptions valid
 			gl.glEnable(GL.GL_DEPTH_TEST);
 			gl.glEnable(GL.GL_CULL_FACE);
+			gl.glEnable(GL.GL_SCISSOR_TEST);
 			
 			if (gl.isGL2()) {
 				// additional state for fixed-pipeline

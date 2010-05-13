@@ -70,7 +70,9 @@ public class FboSurfaceDelegate extends TextureSurfaceDelegate {
 		}
 		
 		JoglContext current = JoglContext.getCurrent();
-		fbos.get(current).release();
+		FramebufferObject fbo = fbos.get(current);
+		if (fbo != null)
+			fbo.release(); // this can be null if preRender() failed to create the fbo
 	}
 
 	@Override

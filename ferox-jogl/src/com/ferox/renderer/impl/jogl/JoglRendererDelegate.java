@@ -205,6 +205,8 @@ public final class JoglRendererDelegate extends RendererDelegate {
 
 	@Override
 	protected void glViewport(int x, int y, int width, int height) {
-		context.getGL().glViewport(x, y, width, height);
+	    GL2GL3 gl = context.getGL();
+	    gl.glScissor(x, y, width, height);
+	    gl.glViewport(x, y, width, height);
 	}
 }

@@ -52,7 +52,7 @@ public class RenderCapabilitiesDetector {
 	public RenderCapabilities detect(GLProfile profile, int forceBits) {
 		RenderCapabilities caps = null;
 		
-		if (!isSet(FORCE_NO_PBUFFER, forceBits) && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer()) {
+		if (!isSet(FORCE_NO_PBUFFER, forceBits) && false) {
 			// use a pbuffer to query the capabilities
 			GLPbuffer pbuffer = GLDrawableFactory.getFactory(profile).createGLPbuffer(new GLCapabilities(profile), 
 				new DefaultGLCapabilitiesChooser(), 
@@ -134,7 +134,7 @@ public class RenderCapabilitiesDetector {
 		boolean ffpSupported = !isSet(FORCE_NO_FFP, forceBits) && vNum <= 3f;
 		boolean glslSupported = vNum >= 2f && glslNum >= 1f;
 		boolean fboSupported = !isSet(FORCE_NO_FBO, forceBits) && (gl.isExtensionAvailable("GL_EXT_framebuffer_object") || vNum >= 3f);
-		boolean pbufferSupported = !isSet(FORCE_NO_PBUFFER, forceBits) && GLDrawableFactory.getFactory(gl.getGLProfile()).canCreateGLPbuffer();
+		boolean pbufferSupported = !isSet(FORCE_NO_PBUFFER, forceBits) && false;
 
 		boolean multiTexSupported = vNum >= 1.3f;
 		boolean npotTextures = vNum >= 2.0f || gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
