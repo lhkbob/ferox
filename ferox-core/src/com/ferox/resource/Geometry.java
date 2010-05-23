@@ -6,14 +6,14 @@ import java.util.Map;
 
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.Surface;
 import com.ferox.renderer.Renderer;
 
 /**
  * <p>
  * Geometry is perhaps one of the most important Resource types that is used by
  * a Framework. A Geometry embodies the shapes and primitives that are rendered
- * onto a {@link RenderSurface} by a {@link Renderer}. The approach taken to
+ * onto a {@link Surface} by a {@link Renderer}. The approach taken to
  * describe geometry is as follows:
  * <ul>
  * <li>Every vertex has a set of attributes, which are the same for each vertex
@@ -329,7 +329,7 @@ public class Geometry extends Resource {
 		
 		if (dirty == null)
 			dirty = new GeometryDirtyState();
-		dirty.updateAttribute(name, offset, length, false);
+		dirty = dirty.updateAttribute(name, offset, length, false);
 	}
 
 	@Override

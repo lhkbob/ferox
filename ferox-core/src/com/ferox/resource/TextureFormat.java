@@ -1,6 +1,10 @@
 package com.ferox.resource;
 
-import com.ferox.resource.BufferData.DataType;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 /**
  * <p>
@@ -70,55 +74,55 @@ import com.ferox.resource.BufferData.DataType;
  */
 public enum TextureFormat {
 	RGBA(null, 4, 4, true), 
-	RGBA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	RGBA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
-	RGBA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	RGBA_FLOAT(DataType.FLOAT, 4, 4, true),
+	RGBA_4444(ShortBuffer.class, 1, 4, true, true), 
+	RGBA_8888(IntBuffer.class, 1, 4, true, true), 
+	RGBA_5551(ShortBuffer.class, 1, 4, true, true), 
+	RGBA_FLOAT(FloatBuffer.class, 4, 4, true),
 
-	RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, 4, true), 
-	RGBA_DXT3(DataType.UNSIGNED_BYTE, -1, 4, true),
-	RGBA_DXT5(DataType.UNSIGNED_BYTE, -1, 4, true),
+	RGBA_DXT1(ByteBuffer.class, -1, 4, true), 
+	RGBA_DXT3(ByteBuffer.class, -1, 4, true),
+	RGBA_DXT5(ByteBuffer.class, -1, 4, true),
 
 	BGRA(null, 4, 4, true), 
-	BGRA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	BGRA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
-	BGRA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true),
+	BGRA_4444(ShortBuffer.class, 1, 4, true, true), 
+	BGRA_8888(IntBuffer.class, 1, 4, true, true), 
+	BGRA_5551(ShortBuffer.class, 1, 4, true, true),
 
-	ARGB_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	ARGB_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	ARGB_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
+	ARGB_4444(ShortBuffer.class, 1, 4, true, true), 
+	ARGB_1555(ShortBuffer.class, 1, 4, true, true), 
+	ARGB_8888(IntBuffer.class, 1, 4, true, true),
 
-	ABGR_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	ABGR_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-	ABGR_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
+	ABGR_4444(ShortBuffer.class, 1, 4, true, true), 
+	ABGR_1555(ShortBuffer.class, 1, 4, true, true), 
+	ABGR_8888(IntBuffer.class, 1, 4, true, true),
 
 	RGB(null, 3, 3, false), 
-	RGB_565(DataType.UNSIGNED_SHORT, 1, 3, false, true), 
-	RGB_FLOAT(DataType.FLOAT, 3, 3, false), 
-	RGB_DXT1(DataType.UNSIGNED_BYTE, -1, 3, false),
+	RGB_565(ShortBuffer.class, 1, 3, false, true), 
+	RGB_FLOAT(FloatBuffer.class, 3, 3, false), 
+	RGB_DXT1(ByteBuffer.class, -1, 3, false),
 
 	BGR(null, 3, 3, false), 
-	BGR_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
+	BGR_565(ShortBuffer.class, 1, 3, false, true),
 
 	LUMINANCE_ALPHA(null, 2, 2, true), 
 	LUMINANCE(null, 1, 1, false), 
 	ALPHA(null, 1, 1, true),
 
-	LUMINANCE_ALPHA_FLOAT(DataType.FLOAT, 2, 2, true), 
-	LUMINANCE_FLOAT(DataType.FLOAT, 1, 1, false), 
-	ALPHA_FLOAT(DataType.FLOAT, 1, 1, true),
+	LUMINANCE_ALPHA_FLOAT(FloatBuffer.class, 2, 2, true), 
+	LUMINANCE_FLOAT(FloatBuffer.class, 1, 1, false), 
+	ALPHA_FLOAT(FloatBuffer.class, 1, 1, true),
 
 	DEPTH(null, 1, 1, false);
 
-	private DataType type;
+	private Class<? extends Buffer> type;
 	private boolean hasAlpha, isPacked;
 	private int pPerC, numC;
 
-	private TextureFormat(DataType type, int pPerC, int numC, boolean alpha) {
+	private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha) {
 		this(type, pPerC, numC, alpha, false);
 	}
 
-	private TextureFormat(DataType type, int pPerC, int numC, boolean alpha, boolean packed) {
+	private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha, boolean packed) {
 		this.type = type;
 		this.pPerC = pPerC;
 		hasAlpha = alpha;
@@ -136,8 +140,8 @@ public enum TextureFormat {
 	}
 	
 	/**
-	 * Return the number of components representing the color. An rgb color
-	 * would have 3 components and an rgba color would have 4, etc.
+	 * Return the number of components representing the color. An RGB color
+	 * would have 3 components and an RGBA color would have 4, etc.
 	 * 
 	 * @return The number of components in this format
 	 */
@@ -174,57 +178,79 @@ public enum TextureFormat {
 		return hasAlpha;
 	}
 
-	/**
-	 * Return the data type that is required by the TextureFormat. If null is
-	 * returned, then any of the UNSIGNED_X types are allowed, as well as FLOAT.
-	 * 
-	 * @return The required DataType of texture data for this format, may be
-	 *         null
-	 */
-	public DataType getSupportedType() {
+    /**
+     * Return the Buffer type that is required by the TextureFormat. If null is
+     * returned, then any of ByteBuffer, IntBuffer, ShortBuffer or FloatBuffer
+     * are allowed
+     * 
+     * @return The required DataType of texture data for this format, may be
+     *         null
+     */
+	public Class<? extends Buffer> getSupportedType() {
 		return type;
 	}
 
-	/**
-	 * Whether or not the given type is supported by this format. Returns false
-	 * if type is null.
-	 * 
-	 * @see #getSupportedType()
-	 * @param type The DataType to check for support by this format
-	 * @return True if this format can be used with type
-	 */
-	public boolean isTypeValid(DataType type) {
-		if (type == null)
-			return false;
+    /**
+     * Whether or not the Buffer is supported by this format.
+     * 
+     * @see #getSupportedType()
+     * @param buffer The Buffer meant to hold data in this format
+     * @return True if this format can be used with buffer
+     * @throws NullPointerException if buffer is null
+     */
+	public boolean isBufferValid(Buffer buffer) {
+		if (buffer == null)
+			throw new NullPointerException("Buffer cannot be null");
 
-		if (this.type == null)
-			return type == DataType.FLOAT || type.isUnsigned();
+		if (type == null)
+			return buffer instanceof FloatBuffer || buffer instanceof ByteBuffer || 
+			       buffer instanceof ShortBuffer || buffer instanceof IntBuffer;
 		else
-			return type == this.type;
+			return type.isInstance(buffer);
 	}
 
-	/**
-	 * <p>
-	 * Compute the size of a texture, in primitive elements, for this format and
-	 * the given dimensions. For one-dimensional or two-dimensional textures
-	 * that don't need a dimension, a value of 1 should be used.
-	 * </p>
-	 * <p>
-	 * For formats that are compressed, the depth value is ignored because they
-	 * are currently only supported for two-dimensional textures.
-	 * </p>
-	 * <p>
-	 * Returns -1 if any of the dimensions are <= 0, or if width and height
-	 * aren't multiples of 4 for compressed textures (the exceptions are if the
-	 * values are 1 or 2, which are also allowed).
-	 * </p>
-	 * 
-	 * @param width The width of the texture image
-	 * @param height The height of the texture image
-	 * @param depth The depth of the texture image
-	 * @return The number of primitives required to hold all texture data for a
-	 *         texture of the given dimensions with this format
-	 */
+    /**
+     * Whether or not the Buffer type is supported by this format.
+     * 
+     * @see #getSupportedType()
+     * @param type The Buffer class meant to hold data in this format
+     * @return True if this type can be used with type
+     * @throws NullPointerException if type is null
+     */
+	public boolean isTypeValid(Class<? extends Buffer> type) {
+	    if (type == null)
+	        throw new NullPointerException("Type cannot be null");
+	    
+	    if (this.type == null)
+	        return FloatBuffer.class.isAssignableFrom(type) || ByteBuffer.class.isAssignableFrom(type) ||
+	               ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type);
+	    else
+	        return this.type.isAssignableFrom(type);
+	}
+
+    /**
+     * <p>
+     * Compute the size of a texture, in primitive elements, for this format and
+     * the given dimensions. For one-dimensional or two-dimensional textures
+     * that don't need a dimension, a value of 1 should be used.
+     * </p>
+     * <p>
+     * For formats that are compressed, the depth value is ignored because they
+     * are currently only supported for two-dimensional textures.
+     * </p>
+     * <p>
+     * Returns -1 if any of the dimensions are <= 0, or if width and height
+     * aren't multiples of 4 for compressed textures (the exceptions are if the
+     * values are 1 or 2, which are also allowed). If depth is not 1 for
+     * compressed textures, -1 is returned.
+     * </p>
+     * 
+     * @param width The width of the texture image
+     * @param height The height of the texture image
+     * @param depth The depth of the texture image
+     * @return The number of primitives required to hold all texture data for a
+     *         texture of the given dimensions with this format
+     */
 	public int getBufferSize(int width, int height, int depth) {
 		if (width <= 0 || height <= 0 || depth <= 0)
 			return -1;
@@ -232,6 +258,8 @@ public enum TextureFormat {
 			// compression needs to have multiple of 4 dimensions
 			if (width != 1 && width != 2 && height != 1 && height != 2)
 				return -1;
+		if (isCompressed() && depth != 1)
+		    return -1;
 
 		if (isCompressed())
 			return (int) ((this == RGBA_DXT1 || this == RGB_DXT1 ? 8 : 16) * Math.ceil(width / 4f) * Math.ceil(height / 4f));

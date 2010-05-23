@@ -5,7 +5,7 @@ package com.ferox.resource;
  * An abstract class that represents some type of data stored on the graphics
  * card. A resource is fairly abstract so there many things can be represented
  * (assuming there are hardware capabilities supporting it). Some examples
- * include TextureImage, Geometry, and GlslProgram.
+ * include Texture, Geometry, and GlslProgram.
  * </p>
  * <p>
  * There are multiple ways that a Resource can be managed with a Framework. A
@@ -55,6 +55,13 @@ public abstract class Resource {
 		 * modify the Resource to change this status.
 		 */
 		UNSUPPORTED,
+        /**
+         * The Framework's connection to the graphics card was lost and the
+         * Resource's internal data has been invalidated. The Framework will
+         * automatically change the Resource's status back to READY when
+         * possible.
+         */
+		DISCONNECTED,
 		/**
 		 * The Framework has no internal representations of the Resource (never
 		 * updated, or it's been disposed).
