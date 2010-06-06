@@ -131,13 +131,15 @@ class ComponentIndex implements Iterable<Entity> {
         }
         
         private boolean advance() {
-            if (current == null)
-                next = head;
-            else
-                next = current.next;
-            
-            while(next != null && next.getOwner() == null)
-                next = next.next;
+            synchronized(lock) {
+                if (current == null)
+                    next = head;
+                else
+                    next = current.next;
+
+                while(next != null && next.getOwner() == null)
+                    next = next.next;
+            }
             return next != null;
         }
     }

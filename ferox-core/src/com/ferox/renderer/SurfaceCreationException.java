@@ -2,7 +2,7 @@ package com.ferox.renderer;
 
 /**
  * An exception that should be thrown when there is a problem creating a new
- * RenderSurface.
+ * Surface.
  * 
  * @author Michael Ludwig
  */

@@ -3,7 +3,7 @@ package com.ferox.math.bounds;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.scene.controller.SceneController;
 import com.ferox.util.Bag;
-import com.ferox.util.entity.Entity;
+import com.ferox.entity.Entity;
 
 /**
  * <p>

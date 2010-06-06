@@ -18,7 +18,7 @@ import com.ferox.renderer.Renderer.StencilOp;
  * </p>
  * <p>
  * It is recommended that the RendererDelegate is used with a
- * {@link FixedFunctionRendererDelegate} or a {@link GlslRendererDelegate} to
+ * {@link AbstractFixedFunctionRenderer} or a {@link GlslRendererDelegate} to
  * create the complete functionality of the different Renderer types.
  * </p>
  * 
@@ -87,7 +87,16 @@ public abstract class RendererDelegate {
 	protected int viewSurfaceWidth = -1;
 	protected int viewSurfaceHeight = -1;
 	
+	private boolean initialized = false;
+	
+	protected abstract void init();
+	
 	public void reset() {
+	    if (!initialized) {
+	        init();
+	        initialized = true;
+	    }
+	    
 		// reset the portion of state described in Renderer
 		setBlendColor(DEFAULT_BLEND_COLOR);
 		setBlendMode(BlendFunction.ADD, BlendFactor.ONE, BlendFactor.ZERO);
@@ -112,7 +121,7 @@ public abstract class RendererDelegate {
 			setViewport(0, 0, viewSurfaceWidth, viewSurfaceHeight);
 	}
 	
-	public void setBaseViewport(int width, int height) {
+	public void setSurfaceSize(int width, int height) {
 		viewSurfaceWidth = width;
 		viewSurfaceHeight = height;
 	}

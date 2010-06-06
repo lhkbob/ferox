@@ -24,14 +24,17 @@ package com.ferox.resource;
  * have any remaining Resource's internal data disposed, too.
  * </p>
  * <p>
- * It is not required that Resource implementations be thread-safe. A Framework
- * is responsible for acquiring a lock. Even so, care should be given when
- * modifying Resources that have a pending update or dispose task for a
- * Framework.
+ * It is not required that Resource implementations be thread-safe. Instead,
+ * each Thread that intends to modify or use the Resource (e.g. worker threads
+ * of a Framework) must synchronize on the Resource instance. To prevent
+ * deadlocks, each Thread should only acquire one lock at a time.
  * </p>
  * 
  * @author Michael Ludwig
  */
+// FIXME: thread safety of resource impl's should be improved, simple functions, etc should
+// have locking present since it won't add overhead -> but we then must just document special
+// case for when long-term lock must be acquired
 public abstract class Resource {
 	/**
 	 * Each resource will have a status with the active renderer. A Resource is

@@ -46,6 +46,9 @@ import java.util.Set;
 public final class Entity implements Iterable<Component> {
     private final List<EntityListener> listeners;
     
+    // We use implicit locking because most entity locks should be
+    // uncontended across threads, the controller pattern is not intended
+    // to manipulate the same entity at the same time.
     private final Object lock;
     private ComponentAttachment[] components;
     
@@ -191,12 +194,14 @@ public final class Entity implements Iterable<Component> {
         if (id == null)
             throw new NullPointerException("ComponentId cannot be null");
         
-        int index = id.getId();
-        if (index < components.length) {
-            ComponentAttachment a = components[index];
-            return (a != null ? (T) a.getComponent() : null);
-        } else
-            return null;
+        synchronized(lock) {
+            int index = id.getId();
+            if (index < components.length) {
+                ComponentAttachment a = components[index];
+                return (a != null ? (T) a.getComponent() : null);
+            } else
+                return null;
+        }
     }
 
     /**
@@ -484,19 +489,23 @@ public final class Entity implements Iterable<Component> {
         
         @Override
         public boolean hasNext() {
-            for (int i = index + 1; i <= maxComponentId; i++) {
-                if (components[i] != null)
-                    return true;
+            synchronized(lock) {
+                for (int i = index + 1; i <= maxComponentId; i++) {
+                    if (components[i] != null)
+                        return true;
+                }
             }
             return false;
         }
 
         @Override
         public Component next() {
-            for (int i = index + 1; i <= maxComponentId; i++) {
-                if (components[i] != null) {
-                    index = i;
-                    return components[i].getComponent();
+            synchronized(lock) {
+                for (int i = index + 1; i <= maxComponentId; i++) {
+                    if (components[i] != null) {
+                        index = i;
+                        return components[i].getComponent();
+                    }
                 }
             }
             throw new NoSuchElementException();
@@ -506,11 +515,13 @@ public final class Entity implements Iterable<Component> {
         public void remove() {
             if (index < 0)
                 throw new IllegalStateException("Must call next() before first calling remove()");
-            if (components[index] == null)
-                throw new IllegalStateException("Already called remove()");
-            
-            ComponentId<?> id = components[index].getComponent().getComponentId();
-            Entity.this.remove(id);
+            synchronized(lock) {
+                if (components[index] == null)
+                    throw new IllegalStateException("Already called remove()");
+
+                ComponentId<?> id = components[index].getComponent().getComponentId();
+                Entity.this.remove(id);
+            }
         }
     }
 }

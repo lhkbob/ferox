@@ -18,7 +18,7 @@ import com.ferox.math.Color4f;
  * 
  * @author Michael Ludwig
  */
-public interface RenderSurface {
+public interface Surface {
 	/**
 	 * Return true if this surface has a depth buffer, allowing depth testing to
 	 * work correctly.
@@ -74,21 +74,6 @@ public interface RenderSurface {
 	 * @return The height of the drawable area
 	 */
 	public int getHeight();
-
-	/**
-	 * <p>
-	 * Get the display options that describe the size and type of surface that
-	 * was created. May not be the same as the options requested when the
-	 * surface was created.
-	 * </p>
-	 * <p>
-	 * If the options can't be determined right away, return the requested
-	 * options until the correct options are determined.
-	 * </p>
-	 * 
-	 * @return The DisplayOptions of this surface
-	 */
-	public DisplayOptions getDisplayOptions();
 
 	/**
 	 * Get the Framework that created this surface.

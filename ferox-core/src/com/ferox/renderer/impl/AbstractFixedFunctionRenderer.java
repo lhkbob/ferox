@@ -8,19 +8,12 @@ import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
-import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
-import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
-import com.ferox.renderer.FixedFunctionRenderer.EnvMode;
-import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
-import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
-import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.Geometry;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.Texture;
+import com.ferox.resource.Texture.Target;
 
 /**
- * The FixedFunctionRendererDelegate is a utility class that exposes the same
+ * The AbstractFixedFunctionRenderer is a utility class that exposes the same
  * methods as {@link FixedFunctionRenderer}, minus any of the functionality that
  * can be handled by {@link RendererDelegate}. These public facing methods track
  * the current state, and when necessary, delegate to protected abstract methods
@@ -28,7 +21,7 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * 
  * @author Michael Ludwig
  */
-public abstract class FixedFunctionRendererDelegate {
+public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer implements FixedFunctionRenderer {
 	/**
 	 * FogMode represents the three different eye fog modes that are available
 	 * in OpenGL.
@@ -57,7 +50,7 @@ public abstract class FixedFunctionRendererDelegate {
 	/**
 	 * An inner class that contains per-light state. Although it's accessible to
 	 * sub-classes, it should be considered read-only because the
-	 * FixedFunctionRendererDelegate manages the updates to its variables.
+	 * AbstractFixedFunctionRenderer manages the updates to its variables.
 	 */
 	protected static class LightState {
 		// LightState does not track position or direction since
@@ -80,7 +73,7 @@ public abstract class FixedFunctionRendererDelegate {
 	/**
 	 * An inner class that contains per-texture unit state. Although it's
 	 * accessible to sub-classes, it should be considered read-only because the
-	 * FixedFunctionRendererDelegate manages the updates to its variables.
+	 * AbstractFixedFunctionRenderer manages the updates to its variables.
 	 */
 	protected static class TextureState {
 		// TextureState does not track texture transforms, or eye planes
@@ -88,7 +81,7 @@ public abstract class FixedFunctionRendererDelegate {
 		private boolean modifiedSinceReset = false;
 		
 		public boolean enabled = false;
-		public TextureImage image = null;
+		public Texture image = null;
 		
 		public EnvMode envMode = EnvMode.MODULATE;
 		public Color4f color = new Color4f(0f, 0f, 0f, 0f);
@@ -184,17 +177,20 @@ public abstract class FixedFunctionRendererDelegate {
 	protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
 	private Matrix4f dirtyModelView = null; // last set model view that hasn't been sent yet
 
-	/**
-	 * Create a FixedFunctionRendererDelegate that is configured to use the given
-	 * number of lights and textures. It is assumed that numLights and
-	 * numTextures represent the hardware-reported limits to the number of
-	 * lights and textures available. If not, undefined results may occur.
-	 * 
-	 * @param numLights The maximum number of lights
-	 * @param numTextures The maximum number of texture units
-	 * @throws IllegalArgumentException if numLights < 8, or numTextures < 0
-	 */
-	public FixedFunctionRendererDelegate(int numLights, int numTextures) {
+    /**
+     * Create an AbstractFixedFunctionRenderer that is configured to use the
+     * given number of lights and textures. It is assumed that numLights and
+     * numTextures represent the hardware-reported limits to the number of
+     * lights and textures available. If not, undefined results may occur.
+     * 
+     * @param delegate The RendererDelegate that completes the implementations
+     *            Renderer behavior
+     * @param numLights The maximum number of lights
+     * @param numTextures The maximum number of texture units
+     * @throws IllegalArgumentException if numLights < 8, or numTextures < 0
+     */
+	public AbstractFixedFunctionRenderer(RendererDelegate delegate, int numLights, int numTextures) {
+	    super(delegate);
 		if (numLights < 8)
 			throw new IllegalArgumentException("numLights is below required hardware minimum of 8: " + numLights);
 		if (numTextures < 0)
@@ -227,7 +223,10 @@ public abstract class FixedFunctionRendererDelegate {
 		return 0;
 	}
 	
+	@Override
 	public void reset() {
+	    super.reset();
+	    
 		setModelViewMatrix(null);
 		setProjectionMatrix(null);
 		
@@ -309,6 +308,7 @@ public abstract class FixedFunctionRendererDelegate {
 		setBindings(Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, restoreTexBindings);
 	}
 	
+	@Override
 	public void setModelViewMatrix(Matrix4f matrix) {
 		if (matrix == null)
 			matrix = IDENTITY;
@@ -340,6 +340,7 @@ public abstract class FixedFunctionRendererDelegate {
 		}
 	}
 	
+	@Override
 	public void setProjectionMatrix(Matrix4f matrix) {
 		if (matrix == null)
 			matrix = IDENTITY;
@@ -348,6 +349,7 @@ public abstract class FixedFunctionRendererDelegate {
 		glSetMatrix(matrix);
 	}
 	
+	@Override
 	public void setAlphaTest(Comparison test, float refValue) {
 		if (test == null)
 			throw new NullPointerException("Null comparison");
@@ -363,6 +365,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glAlphaTest(Comparison test, float ref);
 
+	@Override
 	public void setFogColor(Color4f color) {
 		if (color == null)
 			throw new NullPointerException("Null fog color");
@@ -377,6 +380,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glFogColor(Color4f color);
 
+	@Override
 	public void setFogEnabled(boolean enable) {
 		if (fogEnabled != enable) {
 			fogEnabled = enable;
@@ -389,6 +393,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnableFog(boolean enable);
 
+	@Override
 	public void setFogExponential(float density, boolean squared) {
 		if (density < 0f)
 			throw new IllegalArgumentException("Density must be >= 0, not: " + density);
@@ -412,6 +417,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glFogDensity(float density);
 
+	@Override
 	public void setFogLinear(float start, float end) {
 		if (end <= start)
 			throw new IllegalArgumentException("Illegal start/end range: " + start + ", " + end);
@@ -438,6 +444,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glFogMode(FogMode fog);
 
+	@Override
 	public void setGlobalAmbientLight(Color4f ambient) {
 		if (ambient == null)
 			throw new NullPointerException("Null global ambient color");
@@ -452,6 +459,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glGlobalLighting(Color4f ambient);
 	
+	@Override
 	public void setLightColor(int light, Color4f amb, Color4f diff, Color4f spec) {
 		if (light < 0 || light >= lights.length)
 			return; // ignore it
@@ -478,6 +486,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glLightColor(int light, LightColor lc, Color4f color);
 
+	@Override
 	public void setLightEnabled(int light, boolean enable) {
 		if (light < 0 || light >= lights.length)
 			return; // ignore it
@@ -493,6 +502,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnableLight(int light, boolean enable);
 
+	@Override
 	public void setLightPosition(int light, Vector4f pos) {
 		if (light < 0 || light >= lights.length)
 			return; // ignore it
@@ -513,6 +523,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glLightPosition(int light, Vector4f pos);
 	
+	@Override
 	public void setSpotlight(int light, Vector3f dir, float angle) {
 		if (light < 0 || light >= lights.length)
 			return; // ignore it
@@ -544,6 +555,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glLightAngle(int light, float angle);
 
+	@Override
 	public void setLightAttenuation(int light, float constant, float linear, float quadratic) {
 		if (light < 0 || light >= lights.length)
 			return; // ignore it
@@ -568,6 +580,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glLightAttenuation(int light, float constant, float linear, float quadratic);
 	
+	@Override
 	public void setLightingEnabled(boolean enable) {
 		if (lightingEnabled != enable) {
 			lightingEnabled = enable;
@@ -580,6 +593,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnableLighting(boolean enable);
 	
+	@Override
 	public void setLightingModel(boolean smoothed, boolean twoSided) {
 		if (lightingSmoothed != smoothed) {
 			lightingSmoothed = smoothed;
@@ -602,6 +616,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnableTwoSidedLighting(boolean enable);
 	
+	@Override
 	public void setLineAntiAliasingEnabled(boolean enable) {
 		if (lineAAEnabled != enable) {
 			lineAAEnabled = enable;
@@ -614,6 +629,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnableLineAntiAliasing(boolean enable);
 
+	@Override
 	public void setLineSize(float width) {
 		if (width < 1f)
 			throw new IllegalArgumentException("Line width must be at least 1, not: " + width);
@@ -628,6 +644,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glLineWidth(float width);
 
+	@Override
 	public void setMaterial(Color4f amb, Color4f diff, Color4f spec, Color4f emm) {
 		if (amb == null || diff == null || spec == null || emm == null)
 			throw new NullPointerException("Material colors can't be null: " + amb + ", " + diff + ", " + spec + ", " + emm);
@@ -657,6 +674,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glMaterialColor(LightColor component, Color4f color);
 	
+	@Override
 	public void setMaterialShininess(float shininess) {
 		if (shininess < 0f || shininess > 128f)
 			throw new IllegalArgumentException("Shininess must be in [0, 128], not: " + shininess);
@@ -671,6 +689,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glMaterialShininess(float shininess);
 
+	@Override
 	public void setPointAntiAliasingEnabled(boolean enable) {
 		if (pointAAEnabled != enable) {
 			pointAAEnabled = enable;
@@ -683,6 +702,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnablePointAntiAliasing(boolean enable);
 
+	@Override
 	public void setPointSize(float width) {
 		if (width < 1f)
 			throw new IllegalArgumentException("Point width must be at least 1, not: " + width);
@@ -697,6 +717,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glPointWidth(float width);
 	
+	@Override
 	public void setPolygonAntiAliasingEnabled(boolean enable) {
 		if (polyAAEnabled != enable) {
 			polyAAEnabled = enable;
@@ -709,7 +730,8 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnablePolyAntiAliasing(boolean enable);
 	
-	public void setTexture(int tex, TextureImage image) {
+	@Override
+	public void setTexture(int tex, Texture image) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
 		
@@ -746,10 +768,11 @@ public abstract class FixedFunctionRendererDelegate {
 	}
 	
 	/**
-	 * Invoke OpenGL calls to bind a TextureImage to the active texture
+	 * Invoke OpenGL calls to bind a Texture to the active texture
 	 */
-	protected abstract void glBindTexture(TextureTarget target, TextureImage img);
+	protected abstract void glBindTexture(Target target, Texture img);
 	
+	@Override
 	public void setTextureEnabled(int tex, boolean enable) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -760,7 +783,7 @@ public abstract class FixedFunctionRendererDelegate {
 			
 			if (t.image != null) {
 				// we only enable it when we have a bound texture,
-				// setTextre() takes care of it when setting an image for the first time
+				// setTexture() takes care of it when setting an image for the first time
 				setTextureUnit(tex);
 				glEnableTexture(t.image.getTarget(), enable);
 			}
@@ -770,8 +793,9 @@ public abstract class FixedFunctionRendererDelegate {
 	/**
 	 * Invoke OpenGL to enable the active texture unit
 	 */
-	protected abstract void glEnableTexture(TextureTarget target, boolean enable);
+	protected abstract void glEnableTexture(Target target, boolean enable);
 
+	@Override
 	public void setTextureColor(int tex, Color4f color) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -791,6 +815,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glTextureColor(Color4f color);
 
+	@Override
 	public void setTextureCombineFunction(int tex, CombineFunction rgbFunc, CombineFunction alphaFunc) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -818,6 +843,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glCombineFunction(CombineFunction func, boolean rgb);
 	
+	@Override
 	public void setTextureCombineOpAlpha(int tex, int operand, CombineSource src, CombineOp op) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -852,6 +878,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glCombineOp(int operand, CombineOp op, boolean rgb);
 	
+	@Override
 	public void setTextureCombineOpRgb(int tex, int operand, CombineSource src, CombineOp op) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -874,6 +901,7 @@ public abstract class FixedFunctionRendererDelegate {
 		}
 	}
 
+	@Override
 	public void setTextureCoordGeneration(int tex, TexCoordSource gen) {
 		setTextureCoordGeneration(tex, TexCoord.S, gen);
 		setTextureCoordGeneration(tex, TexCoord.T, gen);
@@ -881,6 +909,7 @@ public abstract class FixedFunctionRendererDelegate {
 		setTextureCoordGeneration(tex, TexCoord.Q, gen);
 	}
 
+	@Override
 	public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -952,6 +981,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glEnableTexGen(TexCoord coord, boolean enable);
 
+	@Override
 	public void setTextureEyePlane(int tex, TexCoord coord, Vector4f plane) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -973,6 +1003,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glTexEyePlane(TexCoord coord, Vector4f plane);
 
+	@Override
 	public void setTextureMode(int tex, EnvMode mode) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -992,6 +1023,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glTexEnvMode(EnvMode mode);
 
+	@Override
 	public void setTextureObjectPlane(int tex, TexCoord coord, Vector4f plane) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -1038,6 +1070,7 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glTexObjPlane(TexCoord coord, Vector4f plane);
 	
+	@Override
 	public void setTextureTransform(int tex, Matrix4f matrix) {
 		if (tex < 0 || tex >= textures.length)
 			return; // ignore it
@@ -1064,14 +1097,17 @@ public abstract class FixedFunctionRendererDelegate {
 	 */
 	protected abstract void glActiveTexture(int unit);
 	
+	@Override
 	public void setNormalBinding(String name) {
 		normalBinding = name;
 	}
 	
+	@Override
 	public void setVertexBinding(String name) {
 		vertexBinding = name;
 	}
 	
+	@Override
 	public void setTextureCoordinateBinding(int tex, String name) {
 		if (tex < 0 || tex > texBindings.length)
 			return; // ignore it
@@ -1079,6 +1115,7 @@ public abstract class FixedFunctionRendererDelegate {
 		texBindings[tex] = name;
 	}
 	
+	@Override
 	public void setBindings(String vertices, String normals, String[] texCoords) {
 		vertexBinding = vertices;
 		normalBinding = normals;

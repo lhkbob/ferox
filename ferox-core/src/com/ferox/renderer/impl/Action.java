@@ -1,38 +1,38 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.Surface;
 
 /**
  * Action represents some performable action that needs to be invoked on a
  * OpenGL capable Thread. It is expected that the Framework implementation
  * properly prepares OpenGL contexts so that when the Action's
- * {@link #perform(Context, Action)} method is invoked, it's RenderSurface is
+ * {@link #perform(Context, Action)} method is invoked, it's Surface is
  * current on the Thread.
  * 
  * @author Michael Ludwig
  */
 public abstract class Action {
-	private final RenderSurface surface;
+	private final Surface surface;
 
 	/**
-	 * Create a new Action that's associated with the given RenderSurface. If
+	 * Create a new Action that's associated with the given Surface. If
 	 * the surface is null, then this Action can be invoked on any valid OpenGL
 	 * context.
 	 * 
-	 * @param surface The RenderSurface that must be current when the Action is
-	 *            peformed
+	 * @param surface The Surface that must be current when the Action is
+	 *            performed
 	 */
-	public Action(RenderSurface surface) {
+	public Action(Surface surface) {
 		this.surface = surface;
 	}
 
 	/**
-	 * Return the RenderSurface that this Action is attached to, or null if no
-	 * specific RenderSurface is required.
+	 * Return the Surface that this Action is attached to, or null if no
+	 * specific Surface is required.
 	 * 
-	 * @return This Action's RenderSurface
+	 * @return This Action's Surface
 	 */
-	public RenderSurface getRenderSurface() {
+	public Surface getSurface() {
 		return surface;
 	}
 
@@ -40,7 +40,7 @@ public abstract class Action {
 	 * Prepare this Action for being invoked. This is called by the Framework
 	 * before it invokes any actions, and provides a mechanism to reject the
 	 * Action if it's no longer valid. The current implementation returns true
-	 * as long as the associated RenderSurface has not been destroyed.
+	 * as long as the associated Surface has not been destroyed.
 	 * 
 	 * @return True if this Action should still be performed
 	 */

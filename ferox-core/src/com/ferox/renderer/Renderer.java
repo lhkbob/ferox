@@ -8,8 +8,8 @@ import com.ferox.resource.Resource.Status;
  * <p>
  * Renderer is interface that enables access to low-level rendering operations.
  * It is intended to be used by {@link RenderPass}s, which are implemented to
- * render meaningful content into a RenderSurface. The link between a Renderer
- * and a RenderSurface is not visible, and is managed by Framework
+ * render meaningful content into a Surface. The link between a Renderer
+ * and a Surface is not visible, and is managed by Framework
  * implementations.
  * </p>
  * <p>
@@ -228,7 +228,7 @@ public interface Renderer {
 
 	/**
 	 * <p>
-	 * When the stencil test is enabled, and the RenderSurface has a stencil
+	 * When the stencil test is enabled, and the Surface has a stencil
 	 * buffer, the stencil test can be performed. When the test is active, there
 	 * are three stages where incoming pixels can affect the values within the
 	 * stencil buffer.
@@ -242,7 +242,7 @@ public interface Renderer {
 	 * </p>
 	 * <p>
 	 * Keep in mind that the precision of a stencil buffer is wholly dependent
-	 * on the number of bits within a RenderSurface's stencil buffer (which is
+	 * on the number of bits within a Surface's stencil buffer (which is
 	 * usually limited to 2 to 8).
 	 * </p>
 	 */
@@ -493,7 +493,7 @@ public interface Renderer {
 	 * <p>
 	 * <tt>m</tt> is computed as the length of the vector <dz/dx, dz/dy>.
 	 * <tt>r</tt> is implementation dependent since it depends on the size and
-	 * format of the depth buffer in use for a RenderSurface.
+	 * format of the depth buffer in use for a Surface.
 	 * </p>
 	 * 
 	 * @param factor The scale factor applied to a polygon's max depth slope
@@ -663,7 +663,7 @@ public interface Renderer {
 	 * </p>
 	 * <p>
 	 * If the Geometry is ready for use, then it will be rendered onto the
-	 * active RenderSurface. The mapping from vertex attributes in the Geometry
+	 * active Surface. The mapping from vertex attributes in the Geometry
 	 * to the coordinates rendered by the Renderer are determined by
 	 * sub-interface configuration. In FixedFunctionRenderer, the attribute name
 	 * for vertices, normals, and texture coordinates must be specified. In
@@ -696,8 +696,8 @@ public interface Renderer {
 
 	/**
 	 * <p>
-	 * Clear the framebuffers of the current RenderSurface, as described in
-	 * {@link Framework#queue(RenderSurface, RenderPass, boolean, boolean, boolean, Color4f, float, int)}
+	 * Clear the framebuffers of the current Surface, as described in
+	 * {@link Framework#queue(Surface, RenderPass, boolean, boolean, boolean, Color4f, float, int)}
 	 * . There is one primary difference, however. If the color buffer is
 	 * cleared, the color value written into the buffer is affected by the
 	 * current color mask state. If the depth buffer is cleared, the depth value
@@ -707,7 +707,7 @@ public interface Renderer {
 	 * </p>
 	 * <p>
 	 * RenderPasses are not required to invoke this method since buffer clearing
-	 * can be scheduled when a RenderPass and RenderSurface are scheduled. This
+	 * can be scheduled when a RenderPass and Surface are scheduled. This
 	 * is provided in case complex graphical effects require different buffer
 	 * clearing behavior in the middle of a RenderPass operation.
 	 * </p>
@@ -726,18 +726,18 @@ public interface Renderer {
 
 	/**
 	 * <p>
-	 * Set the active region of the current RenderSurface. This effectively
+	 * Set the active region of the current Surface. This effectively
 	 * changes the location and size of the area being rendered into. The (x,y)
 	 * coordinates represent the lower-left corner of the viewport, relative to
-	 * the lower left corner of the current RenderSurface. The width and height
-	 * can extend beyond the edges of the RenderSurface, but are clamped to
+	 * the lower left corner of the current Surface. The width and height
+	 * can extend beyond the edges of the Surface, but are clamped to
 	 * implementation maximums.
 	 * </p>
 	 * <p>
 	 * At the beginning of each pass, the viewport is set to span the entire
-	 * content of the RenderSurface. When a RenderSurface is cleared (either
+	 * content of the Surface. When a Surface is cleared (either
 	 * based on parameters specified to
-	 * {@link Framework#queue(RenderSurface, RenderPass) queue()} or to
+	 * {@link Framework#queue(Surface, RenderPass) queue()} or to
 	 * {@link #clear(boolean, boolean, boolean, Color4f, float, int) clear()}),
 	 * it uses the current viewport, and only clears the content within it.
 	 * </p>

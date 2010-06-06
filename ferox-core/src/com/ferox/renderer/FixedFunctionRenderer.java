@@ -5,7 +5,7 @@ import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.resource.Geometry;
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.Texture;
 
 /**
  * <p>
@@ -346,7 +346,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * access a texture. Each texture can be accessed by up to four coordinates:
 	 * (s, t, r, q). Often however, only the first two or three are used. When
 	 * all four are specified, the q coordinate acts as a homogeneous coordinate.
-	 * If r is not provided for when a TextureImage requires three coordinates,
+	 * If r is not provided for when a Texture requires three coordinates,
 	 * undefined results occur.
 	 */
 	public static enum TexCoord {
@@ -361,7 +361,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	}
 
 	/**
-	 * When mapping a TextureImage onto a rendered Geometry, texture coordinates
+	 * When mapping a Texture onto a rendered Geometry, texture coordinates
 	 * are used to wrap the image about the shape. There are multiple options
 	 * for how these coordinates are derived.
 	 */
@@ -396,7 +396,7 @@ public interface FixedFunctionRenderer extends Renderer {
 		 */
 		OBJECT,
 		/**
-		 * Texture coordinates are generated to correctly look up a TextureImage
+		 * Texture coordinates are generated to correctly look up a Texture
 		 * whose pixel data is organized as a spherical reflection map.
 		 */
 		SPHERE,
@@ -473,7 +473,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * Set to true to cause points to be rendered as anti-aliased circles
 	 * instead of squares. When anti-aliasing is enabled, the final point width
 	 * may not be exactly the requested point size. This anti-aliasing is
-	 * independent of any anti-aliasing performed by the RenderSurface.
+	 * independent of any anti-aliasing performed by the Surface.
 	 * 
 	 * @param enable True if points should be anti-aliased
 	 */
@@ -482,7 +482,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	/**
 	 * Set to true to cause lines to be rendered as anti-aliased lines. When
 	 * enabled, the actual line width may not be exactly the requested line
-	 * width. This anti-aliasing is independent of the RenderSurface
+	 * width. This anti-aliasing is independent of the Surface
 	 * anti-aliasing.
 	 * 
 	 * @param enable True if lines should be anti-aliased
@@ -748,8 +748,8 @@ public interface FixedFunctionRenderer extends Renderer {
 	/**
 	 * <p>
 	 * Set whether or not a texture is enabled. When a texture unit is disabled,
-	 * it will not modify the color of a pixel based on a bound TextureImage. If
-	 * a texture is enabled but has no bound TextureImage, it has the same
+	 * it will not modify the color of a pixel based on a bound Texture. If
+	 * a texture is enabled but has no bound Texture, it has the same
 	 * impact on rendering as if the unit were disabled.
 	 * </p>
 	 * <p>
@@ -757,7 +757,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * request should be ignored.
 	 * </p>
 	 * 
-	 * @see #setTexture(int, TextureImage)
+	 * @see #setTexture(int, Texture)
 	 * @param tex The texture unit
 	 * @param enable True if the texture unit should be enabled
 	 */
@@ -765,10 +765,10 @@ public interface FixedFunctionRenderer extends Renderer {
 
 	/**
 	 * <p>
-	 * Set the TextureImage to be bound to the given unit. In order for a
-	 * texture to affect the rendering, it must have a READY TextureImage bound
+	 * Set the Texture to be bound to the given unit. In order for a
+	 * texture to affect the rendering, it must have a READY Texture bound
 	 * and the unit must be enabled via {@link #setTextureEnabled(int, boolean)}
-	 * Specifying a null image unbinds the previous TextureImage.
+	 * Specifying a null image unbinds the previous Texture.
 	 * </p>
 	 * <p>
 	 * If tex is outside the valid range of available texture units, this
@@ -776,9 +776,9 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * </p>
 	 * 
 	 * @param tex The texture unit
-	 * @param image The TextureImage to be bound to tex
+	 * @param image The Texture to be bound to tex
 	 */
-	public void setTexture(int tex, TextureImage image);
+	public void setTexture(int tex, Texture image);
 
 	/**
 	 * <p>
@@ -836,11 +836,11 @@ public interface FixedFunctionRenderer extends Renderer {
 	 * <p>
 	 * Set the texture coordinate source for the specified texture coordinate on
 	 * the given texture unit. Each usable texture unit has an associated
-	 * TextureImage. However, there must be a mapping between the image value
+	 * Texture. However, there must be a mapping between the image value
 	 * and the rendered Geometry, which is in essence, how does the Geometry
 	 * unwrap onto the image? This is accomplished by using texture coordinates
 	 * that are per-vertex vectors much like vertices or normals that represent
-	 * how to access the TextureImage. These texture coordinates can be
+	 * how to access the Texture. These texture coordinates can be
 	 * auto-generated or specified as part of the Geometry. See
 	 * {@link TexCoordSource} for a description of each source.
 	 * </p>
@@ -903,7 +903,7 @@ public interface FixedFunctionRenderer extends Renderer {
 	/**
 	 * <p>
 	 * In addition to texture coordinates on each unit, these coordinates can be
-	 * transformed by a matrix before accessing the TextureImage. When
+	 * transformed by a matrix before accessing the Texture. When
 	 * performing this transformation, each texture coordinate uses reasonable
 	 * default values for coordinates that aren't provided: the 3rd coordinate
 	 * is mapped to 0 and the 4th coordinate is mapped to 1.

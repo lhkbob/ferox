@@ -30,6 +30,10 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
 		this.task = task;
 	}
 	
+	public Callable<V> getTask() {
+	    return task;
+	}
+	
 	public boolean isCancelled() {
 		return getState() == CANCELLED;
 	}
@@ -90,7 +94,7 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
          }
 	}
 	
-	private void set(V v) {
+	public void set(V v) {
 		for (;;) {
 			int s = getState();
 			if (s == COMPLETED)

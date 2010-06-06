@@ -1,24 +1,23 @@
 package com.ferox.renderer.impl;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.ferox.math.Color4f;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
+import com.ferox.renderer.OnscreenSurface;
+import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
 import com.ferox.renderer.RenderPass;
-import com.ferox.renderer.RenderSurface;
-import com.ferox.resource.DirtyState;
+import com.ferox.renderer.Surface;
+import com.ferox.renderer.TextureSurface;
+import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
@@ -46,10 +45,9 @@ public abstract class AbstractFramework implements Framework {
 	private RenderManager renderManager;
 	private RenderCapabilities renderCaps;
 	
-	private final Set<RenderSurface> validSurfaces;
+	private final Set<AbstractSurface> validSurfaces;
 	
-	private final Object surfaceLock;
-	private final ReadWriteLock stateLock;
+	private final ReentrantReadWriteLock stateLock;
 
 	/**
 	 * Create a new AbstractFramework. This framework is not usable until its
@@ -58,12 +56,11 @@ public abstract class AbstractFramework implements Framework {
 	 * from within their constructor after super() has been invoked.
 	 */
 	public AbstractFramework() {
-		validSurfaces = Collections.synchronizedSet(new HashSet<RenderSurface>());
+		validSurfaces = new HashSet<AbstractSurface>();
 		queue = new ThreadLocal<List<Action>>();
 		destroyed = false;
 		
 		stateLock = new ReentrantReadWriteLock();
-		surfaceLock = new Object();
 	}
 	
 	@Override
@@ -71,13 +68,57 @@ public abstract class AbstractFramework implements Framework {
 		return renderCaps;
 	}
 	
+	 @Override
+	 public OnscreenSurface createSurface(OnscreenSurfaceOptions options) {
+         stateLock.writeLock().lock();
+	     try {
+	         ensureNotDestroyed();
+	         
+	         OnscreenSurface s = createSurfaceImpl(options);
+	         if (!(s instanceof AbstractSurface)) // shouldn't happen
+	             throw new UnsupportedOperationException("AbstractFramework implementation does not return a Surface of type AbstractSurface");
+	         
+	         AbstractSurface as = (AbstractSurface) s;
+	         Context c = as.getContext();
+	         if (resourceManager.getContext() == null && c != null)
+	             resourceManager.setContext(c);
+	         
+	         validSurfaces.add(as);
+	         return s;
+	     } finally {
+	         stateLock.writeLock().unlock();
+	     }
+	 }
+
+	 @Override
+	 public TextureSurface createSurface(TextureSurfaceOptions options) {
+         stateLock.writeLock().lock();
+	     try {
+             ensureNotDestroyed();
+             
+             TextureSurface s = createSurfaceImpl(options);
+             if (!(s instanceof AbstractTextureSurface)) // shouldn't happen
+                 throw new UnsupportedOperationException("AbstractFramework implementation does not return a TextureSurface of type AbstractTextureSurface");
+             
+             AbstractTextureSurface as = (AbstractTextureSurface) s;
+             Context c = as.getContext();
+             if (resourceManager.getContext() == null && c != null)
+                 resourceManager.setContext(c);
+             
+             validSurfaces.add(as);
+             return s;
+         } finally {
+             stateLock.writeLock().unlock();
+         }
+	 }
+	
 	@Override
-	public Future<Object> dispose(Resource resource) {
+	public Future<Void> dispose(Resource resource) {
 		if (resource == null)
 			throw new NullPointerException("Cannot cleanup a null Resource");
 		
+        stateLock.readLock().lock();
 		try {
-			stateLock.readLock().lock();
 			ensureNotDestroyed();
 			return resourceManager.scheduleDispose(resource);
 		} finally {
@@ -86,42 +127,51 @@ public abstract class AbstractFramework implements Framework {
 	}
 	
 	@Override
-	public void destroy(RenderSurface surface) {
+	public void destroy(Surface surface) {
 		if (surface == null)
-			throw new NullPointerException("Cannot destroy a null RenderSurface");
+			throw new NullPointerException("Cannot destroy a null Surface");
 
+        stateLock.writeLock().lock();
 		try {
-			stateLock.readLock().lock();
 			ensureNotDestroyed();
 			
-			synchronized(surfaceLock) {
-				if (surface.isDestroyed())
-					return;
-				if (!validSurfaces.contains(surface))
-					throw new IllegalArgumentException("Cannot destroy a RenderSurface created by another Framework");
+			if (surface.isDestroyed())
+			    return;
+			if (!validSurfaces.contains(surface))
+			    throw new IllegalArgumentException("Cannot destroy a Surface created by another Framework");
 
-				innerDestroy(surface);
+			validSurfaces.remove(surface);
+			Context c = ((AbstractSurface) surface).getContext();
+			if (c != null && resourceManager.getContext() == c) {
+			    c = null;
+			    for (AbstractSurface s: validSurfaces) {
+			        c = s.getContext();
+			        if (c != null)
+			            break;
+			    }
+			    resourceManager.setContext(c);
 			}
+			
+			((AbstractSurface) surface).destroy();
 		} finally {
-			stateLock.readLock().unlock();
+			stateLock.writeLock().unlock();
 		}
 	}
 	
 	@Override
 	public void destroy() {
+        stateLock.writeLock().lock();
 		try {
-			stateLock.writeLock().lock();
 			ensureNotDestroyed();
 		
 			renderManager.destroy();
 			resourceManager.destroy();
 			
-			Set<RenderSurface> surfaces = new HashSet<RenderSurface>(validSurfaces);
-			for (RenderSurface s: surfaces) {
-				destroy(s);
-			}
+            for (AbstractSurface s: validSurfaces)
+                s.destroy();
+            validSurfaces.clear();
 			
-			innerDestroy();
+			destroyImpl();
 			destroyed = true;
 		} finally {
 			stateLock.writeLock().unlock();
@@ -133,8 +183,8 @@ public abstract class AbstractFramework implements Framework {
 		if (resource == null)
 			throw new NullPointerException("Cannot retrieve Status for a null Resource");
 		
+        stateLock.readLock().lock();
 		try {
-			stateLock.readLock().lock();
 			ensureNotDestroyed();
 			return resourceManager.getStatus(resource);
 		} finally {
@@ -147,8 +197,8 @@ public abstract class AbstractFramework implements Framework {
 		if (resource == null)
 			throw new NullPointerException("Cannot retrieve status message for a null Resource");
 		
+        stateLock.readLock().lock();
 		try {
-			stateLock.readLock().lock();
 			ensureNotDestroyed();
 			return resourceManager.getStatusMessage(resource);
 		} finally {
@@ -157,74 +207,55 @@ public abstract class AbstractFramework implements Framework {
 	}
 
 	@Override
-	public void queue(RenderSurface surface, RenderPass pass) {
-		List<Action> threadQueue = queue.get();
-		boolean found = false;
-		if (threadQueue != null) {
-			int size = threadQueue.size();
-			for (int i = 0; i < size; i++) {
-				if (threadQueue.get(i).getRenderSurface() == surface) {
-					found = true;
-					break;
-				}
-			}
-		}
-		
-		queue(surface, pass, !found, !found, !found);
+	public void queue(Surface surface, RenderPass pass) {
+	    // special case when surface is a TextureSurface
+	    if (surface instanceof TextureSurface) {
+	        TextureSurface s = (TextureSurface) surface;
+	        queue(s, s.getActiveLayer(), s.getActiveDepthPlane(), pass);
+	    } else
+	        queue(surface, pass, new RenderPassAction(surface, pass));
 	}
-
+	
 	@Override
-	public void queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil) {
-		if (surface != null) {
-			queue(surface, pass, clearColor, clearDepth, clearStencil, 
-				  surface.getClearColor(), surface.getClearDepth(), surface.getClearStencil());
-		}
+	public void queue(TextureSurface surface, int layer, int atDepth, RenderPass pass) {
+	    if (!(surface instanceof AbstractTextureSurface))
+	        throw new IllegalArgumentException("Surface was not created by this Framework");
+	    
+	    TextureRenderPassAction action = new TextureRenderPassAction((AbstractTextureSurface) surface, pass, 
+	                                                                 layer, atDepth);
+	    if (layer < 0 || layer >= surface.getNumLayers())
+	        throw new IllegalArgumentException("Invalid layer argument: " + layer);
+	    if (atDepth < 0 || atDepth >= surface.getDepth())
+	        throw new IllegalArgumentException("Invalid depth argument: " + atDepth);
+	    queue(surface, pass, action);
 	}
-
-	@Override
-	public void queue(RenderSurface surface, RenderPass pass, boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil) {
-		try {
-			stateLock.readLock().lock();
-			ensureNotDestroyed();
-
-			if (surface == null || pass == null)
-				throw new NullPointerException("Cannot queue a null RenderSurface or RenderPass");
-			if (depth < 0f || depth > 1f)
-				throw new IllegalArgumentException("Invalid depth clear value: " + depth);
-			
-			if (color == null)
-				color = new Color4f();
-			
-			// we use a simple heuristic for invalid surfaces, if it's not destroyed it must be in validSurfaces
-			// if it was created by this Framework.
-			if (surface.isDestroyed())
-				return;
-			if (!validSurfaces.contains(surface))
-				throw new IllegalArgumentException("RenderSurface was not created by this Framework");
-
-			List<Action> threadQueue = queue.get();
-			if (threadQueue == null) {
-				threadQueue = new LinkedList<Action>();
-				queue.set(threadQueue);
-			}
-
-			if (clearColor || clearDepth || clearStencil) {
-				ClearSurfaceAction c = new ClearSurfaceAction(surface, clearColor, clearDepth, clearStencil, 
-															  color, depth, stencil);
-				threadQueue.add(c);
-			}
-
-			RenderPassAction a = new RenderPassAction(surface, pass);
-			threadQueue.add(a);
-		} finally {
-			stateLock.readLock().unlock();
-		}
+	
+	private void queue(Surface surface, RenderPass pass, RenderPassAction action) {
+	    stateLock.readLock().lock();
+	    try {
+	        ensureNotDestroyed();
+	        
+	        if (surface.isDestroyed())
+	            return;
+	        if (!validSurfaces.contains(surface))
+	            throw new IllegalArgumentException("Surface was not created by this Framework");
+	        
+	        List<Action> threadQueue = queue.get();
+	        if (threadQueue == null) {
+	            threadQueue = new ArrayList<Action>();
+	            queue.set(threadQueue);
+	        }
+	        
+	        threadQueue.add(action);
+	    } finally {
+	        stateLock.readLock().unlock();
+	    }
 	}
 
 	@Override
 	public Future<FrameStatistics> render() {
+        stateLock.readLock().lock();
 		try {
-			stateLock.readLock().lock();
 			ensureNotDestroyed();
 
 			List<Action> queuedActions = queue.get();
@@ -238,67 +269,33 @@ public abstract class AbstractFramework implements Framework {
 	
 	@Override
 	public FrameStatistics renderAndWait() {
-			try {
-				return render().get();
-			} catch (InterruptedException e) {
-				if (e.getCause() instanceof RenderInterruptedException)
-					throw (RenderInterruptedException) e.getCause();
-				else
-					throw new RenderInterruptedException("Rendering was interrupted", e);
-			} catch (ExecutionException e) {
-				if (e.getCause() instanceof RenderException)
-					throw (RenderException) e.getCause();
-				else
-					throw new RenderException("Exception occured while rendering", e);
-			}
+	    try {
+	        return render().get();
+	    } catch (InterruptedException e) {
+	        if (e.getCause() instanceof RenderInterruptedException)
+	            throw (RenderInterruptedException) e.getCause();
+	        else
+	            throw new RenderInterruptedException("Rendering was interrupted", e);
+	    } catch (ExecutionException e) {
+	        if (e.getCause() instanceof RenderException)
+	            throw (RenderException) e.getCause();
+	        else
+	            throw new RenderException("Exception occured while rendering", e);
+	    }
 	}
 
 	@Override
 	public Future<Status> update(Resource resource, boolean forceFullUpdate) {
 		if (resource == null)
 			throw new NullPointerException("Cannot update a null Resource");
-		
+        stateLock.readLock().lock();
 		try {
-			stateLock.readLock().lock();
 			ensureNotDestroyed();
-
 			// perform descriptor clear now
-			DirtyState<?> dirtyDescriptor = resource.getDirtyState();
-			return resourceManager.scheduleUpdate(resource, (forceFullUpdate ? null : dirtyDescriptor));
+			return resourceManager.scheduleUpdate(resource, forceFullUpdate);
 		} finally {
 			stateLock.readLock().unlock();
 		}
-	}
-
-	/**
-	 * Return the Lock that should be acquired before any Framework operation
-	 * should be performed. Subclasses must use this when implementing the
-	 * create RenderSurface methods. When this lock is acquired, any
-	 * {@link #destroy()} call will block until this lock is released.
-	 * 
-	 * @return A Lock that prevents
-	 */
-	protected final Lock getFrameworkLock() {
-		return stateLock.readLock();
-	}
-
-	/**
-	 * <p>
-	 * The surface lock is related to the framework lock, and must be acquired
-	 * any time a RenderSurface is being created or being destroyed. Because
-	 * {@link #destroy(RenderSurface)} correctly acquires this lock, only the
-	 * create RenderSurface methods must do so. Synchronize on the returned
-	 * instance to acquire the lock.
-	 * </p>
-	 * <p>
-	 * The primary reason that this lock is necessary is to prevent the creation
-	 * of a WindowSurface and a FullscreenSurface at the same time.
-	 * </p>
-	 * 
-	 * @return The lock needed when creating or destroying surfaces
-	 */
-	protected final Object getSurfaceLock() {
-		return surfaceLock;
 	}
 
 	/**
@@ -309,25 +306,6 @@ public abstract class AbstractFramework implements Framework {
 	protected final void ensureNotDestroyed() {
 		if (destroyed)
 			throw new RenderException("Framework is destroyed");
-	}
-
-	/**
-	 * This must be called by subclasses when they successfully create a new
-	 * RenderSurface.
-	 * 
-	 * @param surface The RenderSurface that was just created
-	 */
-	protected void addNotify(RenderSurface surface) {
-		validSurfaces.add(surface);
-	}
-
-	/**
-	 * This must be called by subclasses after they have been destroyed.
-	 * 
-	 * @param surface The RenderSurface that's no longer usable
-	 */
-	protected void removeNotify(RenderSurface surface) {
-		validSurfaces.remove(surface);
 	}
 
 	/**
@@ -355,15 +333,37 @@ public abstract class AbstractFramework implements Framework {
 		if (renderManager == null)
 			throw new NullPointerException("RenderManager cannot be null");
 		
-		this.resourceManager = resourceManager;
-		this.renderManager = renderManager;
-		this.renderCaps = caps;
+		stateLock.writeLock().lock();
+		try {
+		    this.resourceManager = resourceManager;
+		    this.renderManager = renderManager;
+		    this.renderCaps = caps;
+
+		    resourceManager.initialize(stateLock);
+		    renderManager.initialize(stateLock);
+		} finally {
+		    stateLock.writeLock().unlock();
+		}
 	}
 
 	/**
+	 * @return The RenderManager assigned by {@link #init(ResourceManager, RenderManager, RenderCapabilities)}
+	 */
+	protected final RenderManager getRenderManager() {
+	    return renderManager;
+	}
+	
+	/**
+	 * @return The ResourceManager assigned by {@link #init(ResourceManager, RenderManager, RenderCapabilities)}
+	 */
+	protected final ResourceManager getResourceManager() {
+	    return resourceManager;
+	}
+	
+	/**
 	 * <p>
 	 * Although {@link #destroy()} is implemented and may, in fact, destroy all
-	 * that's necessary, innerDestroy() is provided to allow subclasses to
+	 * that's necessary, destroyImpl() is provided to allow subclasses to
 	 * clean-up any other objects that aren't under the direct control of the
 	 * AbstractFramework.
 	 * </p>
@@ -373,23 +373,27 @@ public abstract class AbstractFramework implements Framework {
 	 * {@link #destroy()} handles this already.
 	 * </p>
 	 */
-	protected abstract void innerDestroy();
+	protected abstract void destroyImpl();
 
-	/**
-	 * <p>
-	 * Like with {@link #innerDestroy()}, this method is provided to complete
-	 * any necessary destruction required for cleaning up a RenderSurface. This
-	 * method can assume that s has not already been destroyed and that all
-	 * necessary locks have been acquired.
-	 * </p>
-	 * <p>
-	 * Except for those things, this method is responsible for handling anything
-	 * else necessary for cleaning up the RenderSurface. This includes making
-	 * any OnscreenSurfaces no longer visible, and calling
-	 * {@link #removeNotify(RenderSurface)} when appropriate.
-	 * </p>
-	 * 
-	 * @param s The RenderSurface to destroy
-	 */
-	protected abstract void innerDestroy(RenderSurface s);
+    /**
+     * Create a new OnscreenSurface based on <tt>options</tt> as required by
+     * {@link #createSurface(OnscreenSurfaceOptions)}. This method must return
+     * an OnscreenSurface that extends from {@link AbstractSurface}. The
+     * implementation does not need to worry about synchronization.
+     * 
+     * @param options
+     * @return A valid OnscreenSurface that's also an AbstractSurface
+     */
+	protected abstract OnscreenSurface createSurfaceImpl(OnscreenSurfaceOptions options);
+
+    /**
+     * Create a new TextureSurface based on <tt>options</tt> as required by
+     * {@link #createSurface(TextureSurfaceOptions)}. This method must return an
+     * TextureSurface that extends from {@link AbstractSurface}. The
+     * implementation does not need to worry about synchronization.
+     * 
+     * @param options
+     * @return A valid TextureSurface that's also an AbstractSurface
+     */
+	protected abstract TextureSurface createSurfaceImpl(TextureSurfaceOptions options);
 }

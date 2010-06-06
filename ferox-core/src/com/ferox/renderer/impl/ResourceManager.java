@@ -1,10 +1,10 @@
 package com.ferox.renderer.impl;
 
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.ferox.renderer.Framework;
-import com.ferox.renderer.UnsupportedResourceException;
-import com.ferox.resource.DirtyState;
+import com.ferox.renderer.RenderException;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
@@ -24,21 +24,18 @@ import com.ferox.resource.Resource.Status;
  * @author Michael Ludwig
  */
 public interface ResourceManager {
-	/**
-	 * Schedule an update for the given Resource. This is called directly by an
-	 * AbstractFramework after ensuring the Resource is not null. It also
-	 * provides the DirtyDescriptor at the time the method was called. This
-	 * method is responsible for performing, or setting in motion, all actions
-	 * necessary to follow {@link Framework#update(Resource, boolean)}'s
-	 * specification.
-	 * 
-	 * @param resource The Resource to be updated
-	 * @param dirtyDescriptor The DirtyDescriptor of the resource, or null if
-	 *            the update was forced to be a full update
-	 * @return A Future tied to this update task
-	 * @throws UnsupportedResourceException if resource isn't supported
-	 */
-	public Future<Status> scheduleUpdate(Resource resource, DirtyState<?> dirtyDescriptor);
+    /**
+     * Schedule an update for the given Resource. This is called directly by an
+     * AbstractFramework after ensuring the Resource is not null. This method is
+     * responsible for performing, or setting in motion, all actions necessary
+     * to follow {@link Framework#update(Resource, boolean)}'s specification.
+     * 
+     * @param resource The Resource to be updated
+     * @param forceFull The equivalent boolean parameter for the Framework
+     *            method
+     * @return A Future tied to this update task
+     */
+	public Future<Status> scheduleUpdate(Resource resource, boolean forceFull);
 
 	/**
 	 * Schedule the disposal of the given Resource. This is called directly by
@@ -49,9 +46,8 @@ public interface ResourceManager {
 	 * 
 	 * @param resource The Resource to be disposed of
 	 * @return A Future tied this disposal task
-	 * @throws UnsupportedResourceException if resource isn't supported
 	 */
-	public Future<Object> scheduleDispose(Resource resource);
+	public Future<Void> scheduleDispose(Resource resource);
 
 	/**
 	 * <p>
@@ -72,21 +68,18 @@ public interface ResourceManager {
 	 * 
 	 * @param resource The Resource whose handle is returned
 	 * @return The ResourceHandle for resource, this will not be null
-	 * @throws UnsupportedResourceException if resource isn't supported
 	 */
 	public ResourceHandle getHandle(Resource resource);
 
 	/**
 	 * @param resource The Resource whose Status is returned
-	 * @return Return the current Status of resource, or null if it's
-	 *         unsupported
+	 * @return Return the current Status of resource
 	 */
 	public Status getStatus(Resource resource);
 
 	/**
 	 * @param resource The Resource whose status message is returned
-	 * @return Return the current status message of resource, or null if it's
-	 *         unsupported
+	 * @return Return the current status message of resource
 	 */
 	public String getStatusMessage(Resource resource);
 
@@ -97,4 +90,74 @@ public interface ResourceManager {
 	 * terminates quickly.
 	 */
 	public void destroy();
+
+    /**
+     * Complete the initialization of the ResourceManager and begin any Threads
+     * needed for correct functioning.
+     * 
+     * @param lock The lock controlling access to the Framework using this
+     *            manager, the lock should be used to manage the work of any
+     *            started Threads
+     */
+	public void initialize(ReentrantReadWriteLock lock);
+
+    /**
+     * Lock the given Resource so that it may not be disposed of until it has
+     * been unlocked. This should be used on the TextureImages used by any
+     * created TextureSurfaces. This does nothing if a resource is locked
+     * multiple times.
+     * 
+     * @param r The Resource to lock
+     * @throws NullPointerException if r is null
+     */
+	public void lock(Resource r);
+
+    /**
+     * Unlock the given Resource so that it may be disposed of. This should be
+     * called on the TextureImages used by created TextureSurfaces when they are
+     * destroyed. This does nothing if the resource was alread unlocked.
+     * 
+     * @param r The Resource to unlock
+     * @throws NullPointerException if r is null
+     */
+	public void unlock(Resource r);
+
+    /**
+     * <p>
+     * Assign the Context that this ResourceManager will use to perform updates
+     * and disposals. The AbstractFramework will notify the ResourceManager the
+     * first time a surface is created with a non-null Context if the manager
+     * does not already have a context. It will also set it to null if the
+     * surface becomes destroyed later on.
+     * </p>
+     * <p>
+     * When this is set to null, the ResourceManager assumes that all resources
+     * have been disconnected. If a non-surface Context is used, it is assumed
+     * that its lifetime matches the Framework's and that created surfaces share
+     * resources across their context. If this is not true, whoever owns the
+     * Context must manually set the context to null when it becomes invalid.
+     * </p>
+     * 
+     * @param context The Context to use by this ResourceManager
+     * @throws RenderException if {@link #getContext()} returns a non-null
+     *             Context and context is also non-null
+     */
+	public void setContext(Context context);
+	
+	/**
+     * @return The currently assigned Context used by this ResourceManager
+     */
+	public Context getContext();
+
+    /**
+     * Utility to invoke the given Runnable on the currently assigned resource
+     * Context. This should be preferred to using
+     * <code>getContext().runWithLock(run)</code> because the ResourceManager
+     * may be managing which Thread the Context is current on.
+     * 
+     * @param run The Runnable to run
+     * @throws NullPointerException if run is null
+     * @throws RenderException if the ResourceManager has no resource Context
+     */
+	public void runOnResourceThread(Runnable run);
 }
