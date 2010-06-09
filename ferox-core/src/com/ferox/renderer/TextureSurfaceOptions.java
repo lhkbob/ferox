@@ -45,9 +45,9 @@ public final class TextureSurfaceOptions {
         this(Target.T_2D, new TextureFormat[] { TextureFormat.RGB }, 1, 1, 1, false, 0, 0);
     }
     
-    public TextureSurfaceOptions(Target target, TextureFormat[] colorFormats, 
-                                 int width, int height, int depth, boolean useDepthTexture,
-                                 int activeLayer, int activeDepth) {
+    private TextureSurfaceOptions(Target target, TextureFormat[] colorFormats, 
+                                  int width, int height, int depth, boolean useDepthTexture,
+                                  int activeLayer, int activeDepth) {
         if (target == null)
             throw new NullPointerException("Target cannot be null");
         if (colorFormats == null)
@@ -198,7 +198,7 @@ public final class TextureSurfaceOptions {
      *         new active depth slice
      * @throws IllegalArgumentException if activeDepthPlane < 0
      */
-    public TextureSurfaceOptions setActiveDepthLayer(int activeDepthPlane) {
+    public TextureSurfaceOptions setActiveDepthPlane(int activeDepthPlane) {
         return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
@@ -256,5 +256,5 @@ public final class TextureSurfaceOptions {
     /**
      * @return The initial active depth layer for 3D textures
      */
-    public int getActiveDepthLayer() { return activeDepthPlane; }
+    public int getActiveDepthPlane() { return activeDepthPlane; }
 }
