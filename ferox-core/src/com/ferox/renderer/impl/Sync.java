@@ -10,7 +10,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-// TODO: document, and give credit to FutureTask.Sync
+/**
+ * <p>
+ * Sync is an AQS implementation that wraps a Callable and provides the
+ * necessary logic needed for a Future to monitor the Sync and wait for the
+ * Callable to complete. The Sync provides a {@link #run()} that executes the
+ * Callable on the calling Thread. Additionally, it exposes a
+ * {@link #set(Object)} method to manually override the result to return, which
+ * can be useful in some situations where you don't want to cancel the task but
+ * don't want to run the actual Callable.
+ * </p>
+ * <p>
+ * This implementation was extracted from the java.util.concurrent package,
+ * where it was originally an inner class within FutureTask.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @param <V>
+ */
 public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
 	private static final long serialVersionUID = 1L;
 	

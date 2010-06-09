@@ -1,7 +1,6 @@
 package com.ferox.renderer.impl;
 
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.ferox.math.Color4f;
 import com.ferox.renderer.Framework;
@@ -28,7 +27,7 @@ public abstract class AbstractSurface implements Surface {
     private boolean renderedOnce;
     private volatile boolean destroyed;
     
-    private final ReadWriteLock lock;
+    private final ReentrantLock lock;
     private final Framework framework;
 
 	public AbstractSurface(Framework framework) {
@@ -42,7 +41,7 @@ public abstract class AbstractSurface implements Surface {
         renderedOnce = false;
         destroyed = false;
 
-        lock = new ReentrantReadWriteLock();
+        lock = new ReentrantLock();
         
 		clearColor = new Color4f(DEFAULT_CLEAR_COLOR);
 		setClearDepth(1f);
@@ -118,14 +117,14 @@ public abstract class AbstractSurface implements Surface {
      */
     public void destroy() {
         try {
-            lock.writeLock().lock();
+            lock.lock();
             if (destroyed)
                 return;
             
             destroyed = true;
             destroyImpl();
         } finally {
-            lock.writeLock().unlock();
+            lock.unlock();
         }
     }
 
@@ -172,7 +171,7 @@ public abstract class AbstractSurface implements Surface {
             if (destroyed)
                 return;
             
-            lock.readLock().lock(); // will be unlocked with post render action
+            lock.lock(); // will be unlocked with post render action
             if (!renderedOnce) {
                 init();
                 renderedOnce = true;
@@ -198,7 +197,7 @@ public abstract class AbstractSurface implements Surface {
             } finally {
                 // must always unlock this, even if postRender throws
                 // an exception
-                lock.readLock().unlock();
+                lock.unlock();
             }
         }
     }
