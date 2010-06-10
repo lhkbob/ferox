@@ -176,6 +176,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 	// matrix
 	protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
 	private Matrix4f dirtyModelView = null; // last set model view that hasn't been sent yet
+	
+	protected final ResourceManager resourceManager;
 
     /**
      * Create an AbstractFixedFunctionRenderer that is configured to use the
@@ -185,17 +187,18 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * 
      * @param delegate The RendererDelegate that completes the implementations
      *            Renderer behavior
-     * @param numLights The maximum number of lights
-     * @param numTextures The maximum number of texture units
-     * @throws IllegalArgumentException if numLights < 8, or numTextures < 0
+     * @param framework The AbstractFramework that will use the created Renderer
+     * @throws NullPointerException if either argument is null
      */
-	public AbstractFixedFunctionRenderer(RendererDelegate delegate, int numLights, int numTextures) {
+	public AbstractFixedFunctionRenderer(RendererDelegate delegate, AbstractFramework framework) {
 	    super(delegate);
-		if (numLights < 8)
-			throw new IllegalArgumentException("numLights is below required hardware minimum of 8: " + numLights);
-		if (numTextures < 0)
-			throw new IllegalArgumentException("numTextures below required minimum of 0");
-		
+	    if (framework == null)
+	        throw new NullPointerException("Framework cannot be null");
+	    int numLights = framework.getCapabilities().getMaxActiveLights();
+	    int numTextures = framework.getCapabilities().getMaxFixedPipelineTextures();
+
+	    resourceManager = framework.getResourceManager();
+	    
 		lights = new LightState[numLights];
 		for (int i = 0; i < lights.length; i++)
 			lights[i] = new LightState();
@@ -739,7 +742,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 		if (t.image != image) {
 			// update the low-level enabled state
 			setTextureUnit(tex);
-
+			
 			if (image == null) {
 				// always disable target on unbind (but don't clear our 'enabled' state)
 				glEnableTexture(t.image.getTarget(), false);
@@ -762,6 +765,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 				glBindTexture(image.getTarget(), image);
 			}
 			
+			
+			
 			// store new bound image
 			t.image = image;
 		}
@@ -770,7 +775,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 	/**
 	 * Invoke OpenGL calls to bind a Texture to the active texture
 	 */
-	protected abstract void glBindTexture(Target target, Texture img);
+	protected abstract void glBindTexture(Target target, Texture image);
 	
 	@Override
 	public void setTextureEnabled(int tex, boolean enable) {

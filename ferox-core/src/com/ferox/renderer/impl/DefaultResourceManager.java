@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -69,7 +71,6 @@ public class DefaultResourceManager implements ResourceManager {
     private final Map<Class<? extends Resource>, ResourceDriver> drivers;
 
     private final Object contextLock = new Object(); // used to guard access to resourceContext
-    private final Object updateLock = new Object(); // used within getHandle() to wait for an update
     private volatile ReentrantReadWriteLock frameworkLock;
 
     private final AtomicBoolean destroyed;
@@ -180,7 +181,6 @@ public class DefaultResourceManager implements ResourceManager {
             return null;
         
         Sync<Status> forceSync = null;
-        boolean isHandleLocked = false;
         synchronized(resource) {
             ResourceData rd = getResourceData(resource);
             DirtyState<?> ds = resource.getDirtyState();
@@ -218,10 +218,10 @@ public class DefaultResourceManager implements ResourceManager {
                 }
 
                 if (forceSync != null) {
-                    if (Thread.currentThread() == taskThread) {
-                        // this can only happen if a resource driver invokes getHandle()
-                        // while processing a different resource, so we should have a valid 
-                        // context to run on
+                    if (Context.getCurrent() != null) {
+                        // this will only happen if getHandle() is called by a Renderer or ResourceDriver,
+                        // so the execution path is already within a valid context lock and we can
+                        // just execute the sync now without waiting
                         forceSync.run();
                         forceSync = null; // null this so we don't wait later on
                     } else
@@ -232,28 +232,20 @@ public class DefaultResourceManager implements ResourceManager {
             // return now if possible to avoid double synchronization
             if (forceSync == null)
                 return (rd.handle.getStatus() == Status.READY ? rd.handle : null);
-            isHandleLocked = rd.handle != null && rd.handle.isLocked();
         }
         
-        if (forceSync != null && !isHandleLocked) {
-            // block until update is completed, the resource is released so it can continue
-            // if the calling thread has locked the handle, however, we can't wait
-            // because the resource thread won't be able to proceed -> deadlock
-            synchronized(updateLock) {
-                try {
-                    while(resourceContext != null && !forceSync.isDone())
-                        updateLock.wait();
-                } catch (InterruptedException ie) {
-                    throw new RenderInterruptedException("Interrupted while waiting for Resource", ie);
+        try {
+            Status status = forceSync.get(500, TimeUnit.MILLISECONDS);
+            if (status == Status.READY) {
+                synchronized(resource) {
+                    return getResourceData(resource).handle;
                 }
-            }
-        }
-
-        synchronized(resource) {
-            // re-synchronize and re-fetch now that the update has completed
-            // this is slower but shouldn't happen very often
-            ResourceData rd = getResourceData(resource);
-            return (resourceContext != null && rd.handle.getStatus() == Status.READY ? rd.handle : null);
+            } else
+                return null;
+        } catch(TimeoutException te) {
+            return null;
+        } catch(Exception e) {
+            throw new RenderException(e);
         }
     }
 
@@ -453,11 +445,6 @@ public class DefaultResourceManager implements ResourceManager {
      * Invoked when resourceContext has been invalidated or destroyed.
      */
     private void disconnect() {
-        synchronized(updateLock) {
-            // wake up any blocked getHandle() requests first
-            updateLock.notifyAll();
-        }
-        
         ResourceData rd;
         Resource r;
         Iterator<ResourceData> it = resourceData.values().iterator();
@@ -542,11 +529,6 @@ public class DefaultResourceManager implements ResourceManager {
                     } finally {
                         frameworkLock.readLock().unlock();
                     }
-
-                    synchronized(updateLock) {
-                        // wake-up any thread blocking on getHandle()
-                        updateLock.notifyAll();
-                    }
                 } catch(InterruptedException ie) {
                     // do nothing
                 }
@@ -601,9 +583,8 @@ public class DefaultResourceManager implements ResourceManager {
                         handle = rd.driver.init(toUpdate);
                         rd.handle = handle;
                     } else {
-                        // perform an update
-                        handle.lock();
                         try {
+                            // perform an update
                             rd.driver.update(toUpdate, handle, dirtyState);
                         } catch(RuntimeException re) {
                             // note that we cannot do a similar ERROR status if
@@ -612,8 +593,6 @@ public class DefaultResourceManager implements ResourceManager {
                             handle.setStatus(Status.ERROR);
                             handle.setStatusMessage("Exception thrown during update");
                             throw re;
-                        } finally {
-                            handle.unlock();
                         }
                     }
                 } finally {
@@ -642,13 +621,8 @@ public class DefaultResourceManager implements ResourceManager {
                 try {
                     if (rd != null && rd.hasContextData()) {
                         // dispose resource
-                        rd.handle.lock();
-                        try {
-                            rd.driver.dispose(rd.handle);
-                            rd.handle.setStatus(Status.DISPOSED);
-                        } finally {
-                            rd.handle.unlock();
-                        }
+                        rd.driver.dispose(rd.handle);
+                        rd.handle.setStatus(Status.DISPOSED);
                     }
                 } finally {
                     // must be certain to clear clear the sync
@@ -675,13 +649,8 @@ public class DefaultResourceManager implements ResourceManager {
         public Void call() throws Exception {
             if (data.hasContextData()) {
                 ResourceHandle handle = data.handle;
-                handle.lock();
-                try {
-                    data.driver.dispose(handle);
-                    handle.setStatus(Status.DISPOSED);
-                } finally {
-                    handle.unlock();
-                }
+                data.driver.dispose(handle);
+                handle.setStatus(Status.DISPOSED);
             }
             
             return null;

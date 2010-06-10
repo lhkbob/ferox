@@ -12,13 +12,22 @@ import com.ferox.renderer.Renderer;
  * 
  * @author Michael Ludwig
  */
-public interface Context {
+public abstract class Context {
+    private static final ThreadLocal<Context> current = new ThreadLocal<Context>();
+    
+    private final ThreadLocal<FrameStatistics> frameStats;
+    private volatile Thread currentThread;
+    
+    public Context() {
+        frameStats = new ThreadLocal<FrameStatistics>();
+    }
+    
 	/**
 	 * Return the unique Renderer instance associated with this Context.
 	 * 
 	 * @return This Context's Renderer
 	 */
-	public Renderer getRenderer();
+	public abstract AbstractRenderer getRenderer();
 
     /**
      * Invoke the given Runnable within a valid lock, and with its underlying
@@ -28,13 +37,15 @@ public interface Context {
      * 
      * @param run The Runnable to invoke
      */
-	public void runWithLock(Runnable run);
+	public abstract void runWithLock(Runnable run);
 	
 	/**
      * @return A ThreadLocal FrameStatistics instance last assigned via
      *         {@link #setFrameStatistics(FrameStatistics)}
      */
-	public FrameStatistics getFrameStatistics();
+	public FrameStatistics getFrameStatistics() {
+	    return frameStats.get();
+	}
 
     /**
      * Assign <tt>stats</tt> to this Context's thread local current
@@ -44,5 +55,33 @@ public interface Context {
      * 
      * @param stats The new FrameStatistics, may be null
      */
-	public void setFrameStatistics(FrameStatistics stats);
+	public void setFrameStatistics(FrameStatistics stats) {
+	    frameStats.set(stats);
+	}
+	
+	/**
+     * @return The Thread this Context is current on, or null if it is not
+     *         active
+     */
+	public Thread getContextThread() {
+	    return currentThread;
+	}
+	
+	/**
+     * @return The Context that is current on the calling Thread, or null if no
+     *         Context is current
+     */
+	public static Context getCurrent() {
+	    return current.get();
+	}
+	
+	protected void notifyCurrent() {
+	    current.set(this);
+	    currentThread = Thread.currentThread();
+	}
+	
+	protected void notifyRelease() {
+	    currentThread = null;
+	    current.set(null);
+	}
 }

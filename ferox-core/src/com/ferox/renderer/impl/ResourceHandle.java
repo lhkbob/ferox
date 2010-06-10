@@ -1,7 +1,5 @@
 package com.ferox.renderer.impl;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 import com.ferox.resource.Resource.Status;
 
 /**
@@ -25,7 +23,6 @@ import com.ferox.resource.Resource.Status;
  */
 public abstract class ResourceHandle {
 	private final int id;
-	private final ReentrantLock lock;
 	
 	private Status status;
 	private String statusMessage;
@@ -38,33 +35,9 @@ public abstract class ResourceHandle {
 	 * @param id The ResourceHandle's id
 	 */
 	public ResourceHandle(int id) {
-	    lock = new ReentrantLock();
 		this.id = id;
 		setStatus(Status.DISPOSED);
 		setStatusMessage("");
-	}
-
-    /**
-     * Lock this ResourceHandle so the calling Thread has exclusive access.
-     */
-	public void lock() {
-	    lock.lock();
-	}
-
-    /**
-     * Unlock a previously held lock on this ResourceHandle, this should only be
-     * called after a successful invocation of {@link #unlock()}. A handle must
-     * always be unlocked.
-     */
-	public void unlock() {
-	    lock.unlock();
-	}
-	
-	/**
-	 * @return True if the calling Thread has locked the ResourceHandl.
-	 */
-	public boolean isLocked() {
-	    return lock.isHeldByCurrentThread();
 	}
 	
 	/**
