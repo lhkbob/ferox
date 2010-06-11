@@ -1,4 +1,4 @@
-package com.ferox.renderer.impl;
+package com.ferox.renderer.impl.resource;
 
 import com.ferox.resource.Resource.Status;
 

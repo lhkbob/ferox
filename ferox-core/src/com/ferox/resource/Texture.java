@@ -106,6 +106,16 @@ public class Texture extends Resource {
     public static enum Filter {
         NEAREST, LINEAR, MIPMAP_NEAREST, MIPMAP_LINEAR
     }
+    
+    /**
+     * Layer indices for Textures with target {@link Target#T_CUBEMAP}.
+     */
+    public static final int PX = 0;
+    public static final int PY = 1;
+    public static final int PZ = 2;
+    public static final int NX = 3;
+    public static final int NY = 4;
+    public static final int NZ = 5;
 
     private WrapMode wrapS;
     private WrapMode wrapT;
@@ -246,6 +256,30 @@ public class Texture extends Resource {
         enableDepthCompare = false;
         depthCompareTest = Comparison.GREATER;
         dirty = null;
+    }
+
+    /**
+     * @return The width of the top-most mipmap level of each layer in the
+     *         Texture
+     */
+    public int getWidth() {
+        return layers[0].getWidth(0);
+    }
+    
+    /**
+     * @return The height of the top-most mipmap level of each layer in the
+     *         Texture
+     */
+    public int getHeight() {
+        return layers[0].getHeight(0);
+    }
+    
+    /**
+     * @return The depth of the top-most mipmap level of each layer in the
+     *         Texture
+     */
+    public int getDepth() {
+        return layers[0].getDepth(0);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.ferox.resource;
 
+import java.nio.IntBuffer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class Geometry extends Resource {
 	private final Map<String, VectorBuffer> attributes;
 	private final Map<String, VectorBuffer> readOnlyAttributes;
 	
-	private int[] indices;
+	private IntBuffer indices;
 	private PolygonType polyType;
 	
 	private GeometryDirtyState dirty;
@@ -141,7 +142,7 @@ public class Geometry extends Resource {
 	 * 
 	 * @return The indices array for this Geometry
 	 */
-	public int[] getIndices() {
+	public IntBuffer getIndices() {
 		return indices;
 	}
 
@@ -165,24 +166,35 @@ public class Geometry extends Resource {
 	 * @return The polygon count, or 0 if indices is null
 	 */
 	public int getPolygonCount() {
-		return (indices == null ? 0 : polyType.getPolygonCount(indices.length));
+		return (indices == null ? 0 : polyType.getPolygonCount(indices.capacity()));
 	}
 
-	/**
-	 * Set the index information and PolygonType that will be used by this
-	 * Geometry. If <tt>type</tt> is null, then {@link PolygonType#POINTS} will
-	 * be used instead. It is permissible for the indices to be null, as that is
-	 * the initial state that every created Geometry is in. However, a Geometry
-	 * that's rendered with null indices will be ignored because it's impossible
-	 * to construct meaningful shapes from it.
-	 * 
-	 * @param indices The new index information for the Geometry
-	 * @param type The new PolygonType for the Geometry
-	 */
-	public void setIndices(int[] indices, PolygonType type) {
+    /**
+     * <p>
+     * Set the index information and PolygonType that will be used by this
+     * Geometry. If <tt>type</tt> is null, then {@link PolygonType#POINTS} will
+     * be used instead. It is permissible for the indices to be null, as that is
+     * the initial state that every created Geometry is in. However, a Geometry
+     * that's rendered with null indices will be ignored because it's impossible
+     * to construct meaningful shapes from it.
+     * </p>
+     * <p>
+     * The entire contents of the given IntBuffer will be used as the list of
+     * indices. The current position and limit are ignored, indices start at
+     * position 0 and go to the capacity of the buffer. The given buffer must be
+     * direct.
+     * </p>
+     * 
+     * @param indices The new index information for the Geometry
+     * @param type The new PolygonType for the Geometry
+     * @throws IllegalArgumentException if indices is not null and is not direct
+     */
+	public void setIndices(IntBuffer indices, PolygonType type) {
+	    if (indices != null && !indices.isDirect())
+	        throw new IllegalArgumentException("Specified IntBuffer must be direct");
 		this.indices = indices;
 		polyType = (type == null ? PolygonType.POINTS : type);
-		markIndicesDirty(0, indices.length);
+		markIndicesDirty(0, indices.capacity());
 	}
 
 	/**
@@ -233,7 +245,7 @@ public class Geometry extends Resource {
 			
 			if (dirty == null)
 				dirty = new GeometryDirtyState();
-			dirty = dirty.updateAttribute(name, 0, values.getData().length, old == null);
+			dirty = dirty.updateAttribute(name, 0, values.getData().capacity(), old == null);
 		} else
 			removeAttribute(name);
 	}

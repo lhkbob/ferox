@@ -5,6 +5,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderException;
+import com.ferox.renderer.impl.resource.ResourceHandle;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 

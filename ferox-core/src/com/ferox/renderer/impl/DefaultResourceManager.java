@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.ferox.renderer.RenderException;
+import com.ferox.renderer.impl.resource.ResourceDriver;
+import com.ferox.renderer.impl.resource.ResourceHandle;
 import com.ferox.resource.DirtyState;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
@@ -67,7 +69,7 @@ public class DefaultResourceManager implements ResourceManager {
     private static final AtomicInteger threadCounter = new AtomicInteger(0);
 
     private final BlockingDeque<Sync<?>> pendingTasks;
-    private final ConcurrentMap<Integer, ResourceData> resourceData;
+    private final ConcurrentMap<Resource, ResourceData> resourceData;
     private final Map<Class<? extends Resource>, ResourceDriver> drivers;
 
     private final Object contextLock = new Object(); // used to guard access to resourceContext
@@ -96,7 +98,7 @@ public class DefaultResourceManager implements ResourceManager {
 
         destroyed = new AtomicBoolean(false);
         resourceContext = null;
-        resourceData = new ConcurrentHashMap<Integer, ResourceData>();
+        resourceData = new ConcurrentHashMap<Resource, ResourceData>();
         
         pendingTasks = new LinkedBlockingDeque<Sync<?>>();
 
@@ -490,16 +492,14 @@ public class DefaultResourceManager implements ResourceManager {
     }
     
     private ResourceData getResourceData(Resource r) {
-        Integer key = Integer.valueOf(r.getId());
-        return resourceData.get(key);
+        return resourceData.get(r);
     }
     
     private void setResourceData(Resource r, ResourceData rd) {
-        Integer key = Integer.valueOf(r.getId());
         if (rd == null)
-            resourceData.remove(key);
+            resourceData.remove(r);
         else
-            resourceData.put(key, rd);
+            resourceData.put(r, rd);
     }
     
     /* Inner classes that provide much grunt work */

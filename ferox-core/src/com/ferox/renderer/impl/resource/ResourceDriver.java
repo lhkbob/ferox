@@ -1,6 +1,7 @@
-package com.ferox.renderer.impl;
+package com.ferox.renderer.impl.resource;
 
-import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.renderer.impl.DefaultResourceManager;
+import com.ferox.renderer.impl.resource.ResourceHandle;
 import com.ferox.resource.DirtyState;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;

@@ -1,5 +1,7 @@
 package com.ferox.resource;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * <p>
  * An abstract class that represents some type of data stored on the graphics
@@ -32,9 +34,6 @@ package com.ferox.resource;
  * 
  * @author Michael Ludwig
  */
-// FIXME: thread safety of resource impl's should be improved, simple functions, etc should
-// have locking present since it won't add overhead -> but we then must just document special
-// case for when long-term lock must be acquired
 public abstract class Resource {
 	/**
 	 * Each resource will have a status with the active renderer. A Resource is
@@ -72,15 +71,12 @@ public abstract class Resource {
 		DISPOSED
 	}
 	
-	private static int resourceId = 0;
-	private static final Object ID_LOCK = new Object();
+	private static AtomicInteger idCounter = new AtomicInteger(0);
 	
 	private final int id;
 	
 	public Resource() {
-		synchronized(ID_LOCK) {
-			id = resourceId++;
-		}
+		id = idCounter.getAndIncrement();
 	}
 
 	/**
@@ -131,4 +127,14 @@ public abstract class Resource {
 	 *         Resource are dirty
 	 */
 	public abstract DirtyState<?> getDirtyState();
+	
+	@Override
+	public int hashCode() {
+	    return id;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+	    return o == this;
+	}
 }
