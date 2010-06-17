@@ -12,15 +12,22 @@ import com.ferox.renderer.impl.resource.TextureHandle;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.Texture.WrapMode;
 
-// FIXME: see Lwjgl driver for OpenGL version/ext requirements and avoid
-// unsupported calls based on this
 public class JoglTextureDriver extends AbstractTextureResourceDriver {
+    private final boolean hasClampEdge;
+    private final boolean hasMirrorRepeat;
+    private final boolean hasFixedFunction;
+    
     private final ThreadLocal<Integer> texBinding;
     private final ThreadLocal<Integer> texTarget;
 
     public JoglTextureDriver(RenderCapabilities caps) {
         super(caps);
+        hasClampEdge = caps.getClampToEdgeSupport();
+        hasMirrorRepeat = caps.getMirrorWrapModeSupport();
+        hasFixedFunction = caps.getVersion() < 3f; // need true ffp, not just a ffp renderer
+        
         texBinding = new ThreadLocal<Integer>();
         texTarget = new ThreadLocal<Integer>();
     }
@@ -124,6 +131,14 @@ public class JoglTextureDriver extends AbstractTextureResourceDriver {
             break;
         }
     }
+    
+    private int getWrapMode(WrapMode mode) {
+        if (!hasClampEdge && mode == WrapMode.CLAMP)
+            return GL2.GL_CLAMP;
+        if (!hasMirrorRepeat && mode == WrapMode.MIRROR)
+            return GL2GL3.GL_REPEAT;
+        return Utils.getGLWrapMode(mode);
+    }
 
     @Override
     protected void glTextureParameters(Texture tex, TextureHandle handle) {
@@ -142,33 +157,36 @@ public class JoglTextureDriver extends AbstractTextureResourceDriver {
         // wrap s/t/r
         if (handle.wrapS != tex.getWrapModeS()) {
             handle.wrapS = tex.getWrapModeS();
-            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_WRAP_S, Utils.getGLWrapMode(handle.wrapS));
+            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_WRAP_S, getWrapMode(handle.wrapS));
         }
         if (handle.wrapT != tex.getWrapModeT()) {
             handle.wrapT = tex.getWrapModeT();
-            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_WRAP_T, Utils.getGLWrapMode(handle.wrapT));
+            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_WRAP_T, getWrapMode(handle.wrapT));
         }
         if (handle.wrapR != tex.getWrapModeS()) {
             handle.wrapR = tex.getWrapModeS();
-            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_WRAP_R, Utils.getGLWrapMode(handle.wrapR));
+            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_WRAP_R, getWrapMode(handle.wrapR));
         }
         
         // depth test
-        if (handle.depthTest != tex.getDepthComparison()) {
-            handle.depthTest = tex.getDepthComparison();
-            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_FUNC, Utils.getGLPixelTest(handle.depthTest));
-        }
-        if (handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
-            handle.enableDepthCompare = tex.isDepthCompareEnabled();
-            // FIXME: this is fixed-function only so we need to know when not to call it
-            getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_FUNC, (handle.enableDepthCompare ? GL2.GL_COMPARE_R_TO_TEXTURE : GL2GL3.GL_NONE));
+        if (depthSupported && hasFixedFunction) {
+            if (handle.depthTest != tex.getDepthComparison()) {
+                handle.depthTest = tex.getDepthComparison();
+                getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_FUNC, Utils.getGLPixelTest(handle.depthTest));
+            }
+            if (handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
+                handle.enableDepthCompare = tex.isDepthCompareEnabled();
+                getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_FUNC, (handle.enableDepthCompare ? GL2.GL_COMPARE_R_TO_TEXTURE : GL2GL3.GL_NONE));
+            }
         }
         
         // anisotropic filtering
-        if (handle.anisoLevel != tex.getAnisotropicFilterLevel()) {
-            handle.anisoLevel = tex.getAnisotropicFilterLevel();
-            float amount = handle.anisoLevel * maxAnisoLevel + 1f;
-            getGL().glTexParameterf(target, GL2GL3.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+        if (maxAnisoLevel > 0) {
+            if (handle.anisoLevel != tex.getAnisotropicFilterLevel()) {
+                handle.anisoLevel = tex.getAnisotropicFilterLevel();
+                float amount = handle.anisoLevel * maxAnisoLevel + 1f;
+                getGL().glTexParameterf(target, GL2GL3.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
+            }
         }
         
         // mipmap range

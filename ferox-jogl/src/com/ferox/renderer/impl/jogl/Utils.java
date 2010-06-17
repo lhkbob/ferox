@@ -562,16 +562,16 @@ public class Utils {
 	}
 
 	/** Op must not be null. */
-	public static int getGLStencilOp(StencilOp op) {
+	public static int getGLStencilOp(StencilOp op, boolean wrapSupported) {
 		switch (op) {
 		case DECREMENT:
 			return GL2.GL_DECR;
 		case DECREMENT_WRAP:
-			return GL2.GL_DECR_WRAP;
+			return (wrapSupported ? GL2.GL_DECR_WRAP : GL2.GL_DECR);
 		case INCREMENT:
 			return GL2.GL_INCR;
 		case INCREMENT_WRAP:
-			return GL2.GL_INCR_WRAP;
+			return (wrapSupported ? GL2.GL_INCR_WRAP : GL2.GL_INCR);
 		case ZERO:
 			return GL2.GL_ZERO;
 		case KEEP:

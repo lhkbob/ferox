@@ -5,15 +5,22 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 
 import com.ferox.math.Color4f;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.renderer.impl.RendererDelegate;
-import com.ferox.renderer.impl.jogl.Utils;
 
 public class JoglRendererDelegate extends RendererDelegate {
+    // capabilities
+    private final boolean supportsBlending;
+    private final boolean supportsSeparateBlending;
+    private final boolean supportsSeparateStencil;
+    private final boolean supportsStencilWrap;
+    
+    // cached context so we can get a GL instance a little faster
     private JoglContext context;
     
     // state tracking for buffer clearing
@@ -25,6 +32,13 @@ public class JoglRendererDelegate extends RendererDelegate {
     private boolean cullEnabled = true;
     private int frontPolyMode = GL2GL3.GL_FILL;
     private int backPolyMode = GL2GL3.GL_FILL;
+    
+    public JoglRendererDelegate(RenderCapabilities caps) {
+        supportsBlending = caps.isBlendingSupported();
+        supportsSeparateBlending = caps.getSeparateBlendSupport();
+        supportsSeparateStencil = caps.getSeparateStencilSupport();
+        supportsStencilWrap = caps.getVersion() >= 1.4f;
+    }
 
     private GL2GL3 getGL() {
         // we cache the context the first time we need it,
@@ -70,19 +84,28 @@ public class JoglRendererDelegate extends RendererDelegate {
 
     @Override
     protected void glBlendColor(Color4f color) {
-        getGL().glBlendColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+        if (supportsBlending)
+            getGL().glBlendColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 
     @Override
     protected void glBlendEquations(BlendFunction funcRgb, BlendFunction funcAlpha) {
-        getGL().glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb), 
-                                        Utils.getGLBlendEquation(funcAlpha));
+        if (supportsBlending) {
+            if (supportsSeparateBlending)
+                getGL().glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb), 
+                                                Utils.getGLBlendEquation(funcAlpha));
+            else
+                getGL().glBlendEquation(Utils.getGLBlendEquation(funcRgb));
+        }
     }
 
     @Override
     protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha) {
-        getGL().glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb), 
-                                    Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
+        if (supportsBlending) {
+            // separate blend functions were supported before separate blend equations
+            getGL().glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb), 
+                                        Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
+        }
     }
 
     @Override
@@ -175,24 +198,39 @@ public class JoglRendererDelegate extends RendererDelegate {
 
     @Override
     protected void glStencilMask(boolean front, int mask) {
-        int face = (front ? GL.GL_FRONT : GL.GL_BACK);
-        getGL().glStencilMaskSeparate(face, mask);
+        if (supportsSeparateStencil) {
+            int face = (front ? GL.GL_FRONT : GL.GL_BACK);
+            getGL().glStencilMaskSeparate(face, mask);
+        } else if (front) { 
+            // fallback to use front mask
+            getGL().glStencilMask(mask);
+        }
     }
 
     @Override
     protected void glStencilTest(Comparison test, int refValue, int mask, boolean isFront) {
-        int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
-        getGL().glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
+        if (supportsSeparateStencil) {
+            int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
+            getGL().glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
+        } else if (isFront) { 
+            // fallback to use front mask
+            getGL().glStencilFunc(Utils.getGLPixelTest(test), refValue, mask);
+        }
     }
 
     @Override
     protected void glStencilUpdate(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass, boolean isFront) {
-        int sf = Utils.getGLStencilOp(stencilFail);
-        int df = Utils.getGLStencilOp(depthFail);
-        int dp = Utils.getGLStencilOp(depthPass);
+        int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
+        int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
+        int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
         
-        int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
-        getGL().glStencilOpSeparate(face, sf, df, dp);
+        if (supportsSeparateStencil) {
+            int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
+            getGL().glStencilOpSeparate(face, sf, df, dp);
+        } else if (isFront) {
+            // fallback to use the front mask
+            getGL().glStencilOp(sf, df, dp);
+        }
     }
 
     @Override

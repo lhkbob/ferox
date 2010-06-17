@@ -34,8 +34,7 @@ public abstract class JoglFramework extends AbstractFramework {
         if (Threading.isSingleThreaded())
             Threading.disableSingleThreading();
         
-        RenderCapabilitiesDetector detector = new RenderCapabilitiesDetector();
-        RenderCapabilities caps = detector.detect(profile, capForceBits);
+        RenderCapabilities caps = new JoglRenderCapabilities(profile, capForceBits);
         
         Map<Class<? extends Resource>, ResourceDriver> drivers = new HashMap<Class<? extends Resource>, ResourceDriver>();
         drivers.put(Geometry.class, new JoglGeometryDriver(caps));

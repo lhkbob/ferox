@@ -1,5 +1,7 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.util.EnumSet;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
@@ -7,9 +9,9 @@ import com.ferox.math.Color4f;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.RenderInterruptedException;
-import com.ferox.renderer.impl.jogl.Utils;
 import com.ferox.renderer.impl.resource.GeometryHandle;
 import com.ferox.renderer.impl.resource.ResourceHandle;
 import com.ferox.renderer.impl.resource.VertexArray;
@@ -19,6 +21,12 @@ import com.ferox.resource.Geometry.CompileType;
 import com.ferox.resource.Texture.Target;
 
 public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
+    // capabilities
+    private final boolean supportsMultitexture;
+    private final boolean supportsCombine;
+    private final EnumSet<Target> supportedTargets;
+    
+    // context cache to support faster GL lookups
     private JoglContext context;
     
     private final float[] colorBuffer;
@@ -41,7 +49,12 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
      * @param framework The JoglFramework that created the JoglContext
      */
     public JoglFixedFunctionRenderer(JoglFramework framework) {
-        super(new JoglRendererDelegate(), framework);
+        super(new JoglRendererDelegate(framework.getCapabilities()), framework);
+        
+        RenderCapabilities caps = framework.getCapabilities();
+        supportsMultitexture = caps.getMaxFixedPipelineTextures() > 1;
+        supportsCombine = caps.getCombineEnvModeSupport();
+        supportedTargets = caps.getSupportedTextureTargets();
         
         colorBuffer = new float[4];
         matrixBuffer = new float[16];
@@ -71,8 +84,10 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glActiveTexture(int unit) {
-        GL2 gl = getGL();
-        context.getRecord().setActiveTexture(gl, unit);
+        if (supportsMultitexture) {
+            GL2 gl = getGL();
+            context.getRecord().setActiveTexture(gl, unit);
+        } // else unit will always be 0 anyway
     }
 
     @Override
@@ -129,8 +144,10 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnableTexture(Target target, boolean enable) {
-        int type = Utils.getGLTextureTarget(target);
-        glEnable(type, enable);
+        if (supportedTargets.contains(target)) {
+            int type = Utils.getGLTextureTarget(target);
+            glEnable(type, enable);
+        }
     }
 
     @Override
@@ -286,13 +303,18 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glCombineFunction(CombineFunction func, boolean rgb) {
-        int c = Utils.getGLCombineFunc(func);
-        int target = (rgb ? GL2.GL_COMBINE_RGB : GL2.GL_COMBINE_ALPHA);
-        getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, target, c);
+        if (supportsCombine) {
+            int c = Utils.getGLCombineFunc(func);
+            int target = (rgb ? GL2.GL_COMBINE_RGB : GL2.GL_COMBINE_ALPHA);
+            getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, target, c);
+        }
     }
 
     @Override
     protected void glCombineOp(int operand, CombineOp op, boolean rgb) {
+        if (!supportsCombine)
+            return;
+        
         int o = Utils.getGLCombineOp(op);
         int target = -1;
         if (rgb) {
@@ -314,6 +336,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glCombineSrc(int operand, CombineSource src, boolean rgb) {
+        if (!supportsCombine)
+            return;
+        
         int o = Utils.getGLCombineSrc(src);
         int target = -1;
         if (rgb) {
@@ -335,6 +360,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glTexEnvMode(EnvMode mode) {
+        if (mode == EnvMode.COMBINE && !supportsCombine)
+            mode = EnvMode.MODULATE;
+        
         int envMode = Utils.getGLTexEnvMode(mode);
         getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, envMode);
     }
@@ -350,6 +378,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glTexGen(TexCoord coord, TexCoordSource gen) {
         if (gen == TexCoordSource.ATTRIBUTE)
             return; // don't need to do anything, it's already disabled
+        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) && !supportedTargets.contains(Target.T_CUBEMAP))
+            gen = TexCoordSource.OBJECT;
         
         int mode = Utils.getGLTexGen(gen);
         int tc = Utils.getGLTexCoord(coord, false);
@@ -376,15 +406,17 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     
     @Override
     protected void glBindTexture(Target target, Texture img) {
-        int glTarget = Utils.getGLTextureTarget(target);
-        ResourceHandle handle = (img == null ? null : resourceManager.getHandle(img));
-        
-        // the BoundObjectState takes care of the same id for us
-        GL2 gl = getGL();
-        if (handle == null) {
-            context.getRecord().bindTexture(gl, glTarget, 0);
-        } else {
-            context.getRecord().bindTexture(gl, glTarget, handle.getId());
+        if (supportedTargets.contains(target)) {
+            int glTarget = Utils.getGLTextureTarget(target);
+            ResourceHandle handle = (img == null ? null : resourceManager.getHandle(img));
+
+            // the BoundObjectState takes care of the same id for us
+            GL2 gl = getGL();
+            if (handle == null) {
+                context.getRecord().bindTexture(gl, glTarget, 0);
+            } else {
+                context.getRecord().bindTexture(gl, glTarget, handle.getId());
+            }
         }
     }
     
@@ -409,7 +441,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         }
         for (int i = 0; i < texBindings.length; i++) {
             if (boundTexCoords[i] != null) {
-                gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
+                if (supportsMultitexture)
+                    gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
                 gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
                 boundTexCoords[i] = null;
             }
@@ -483,7 +516,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 if (textures[i].enabled && state.getTexture(i) != 0 && tcs != null) {
                     if (boundTexCoords[i] != tcs) {
                         // update pointer
-                        gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
+                        if (supportsMultitexture)
+                            gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
                         if (boundTexCoords[i] == null)
                             gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
                         glTexCoordPointer(gl, tcs, useVbos);
@@ -492,7 +526,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 } else {
                     // disable texcoords
                     if (boundTexCoords[i] != null) {
-                        gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
+                        if (supportsMultitexture)
+                            gl.glClientActiveTexture(GL.GL_TEXTURE0 + i);
                         gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
                         boundTexCoords[i] = null;
                     }

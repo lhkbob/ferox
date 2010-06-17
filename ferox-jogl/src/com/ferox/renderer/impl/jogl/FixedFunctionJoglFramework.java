@@ -18,7 +18,7 @@ import com.ferox.renderer.Framework;
  * @author Michael Ludwig
  */
 public class FixedFunctionJoglFramework extends JoglFramework {
-	private static final int FORCE_BITS = RenderCapabilitiesDetector.FORCE_NO_GLSL;
+	private static final int FORCE_BITS = JoglRenderCapabilities.FORCE_NO_GLSL;
 
     /**
      * Create a new FixedFunctionJoglFramework that uses two internal threads,
