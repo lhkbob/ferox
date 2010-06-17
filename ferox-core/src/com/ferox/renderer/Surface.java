@@ -20,31 +20,6 @@ import com.ferox.math.Color4f;
  */
 public interface Surface {
 	/**
-	 * Return true if this surface has a depth buffer, allowing depth testing to
-	 * work correctly.
-	 * 
-	 * @return True if this surface has a usable depth buffer for depth-testing
-	 */
-	public boolean hasDepthBuffer();
-
-	/**
-	 * Return true if this surface has a stencil buffer, allowing stencil
-	 * testing to work correctly.
-	 * 
-	 * @return True if this surface has a usable stencil buffer for
-	 *         stencil-testing
-	 */
-	public boolean hasStencilBuffer();
-
-	/**
-	 * Return true if this surface has one or more color buffers, allowing color
-	 * data and color testing to work correctly.
-	 * 
-	 * @return True if this surface has a usable color buffer for rendering
-	 */
-	public boolean hasColorBuffer();
-
-	/**
 	 * <p>
 	 * Return whether or not the surface has been destroyed.
 	 * </p>

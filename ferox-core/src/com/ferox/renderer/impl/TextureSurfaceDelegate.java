@@ -23,13 +23,13 @@ public abstract class TextureSurfaceDelegate {
     
     public abstract Context getContext();
 
-    public abstract void setLayer(int layer, int depth);
+    public void setLayer(int layer, int depth) { }
     
-    public abstract void flushLayer();
+    public void flushLayer() { }
     
-    public abstract void init();
+    public void init() { }
     
-    public abstract void preRender();
+    public void preRender() { }
     
-    public abstract void postRender(Action next);
+    public void postRender(Action next) { }
 }

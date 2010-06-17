@@ -326,6 +326,10 @@ public abstract class AbstractFramework implements Framework {
 	 * @param renderManager The RenderManager to use
 	 * @param caps The RenderCapabilities of the system
 	 */
+	// FIXME: we need to add a general initialize() method to Framework that will
+	// invoke the initialize() on each manager -> so threads don't start in constructor,
+	// we'll wait though until I have the FrameworkFactory ready to go since it can
+	// automatically init for the caller
 	protected final void init(ResourceManager resourceManager, RenderManager renderManager, 
 							  RenderCapabilities caps) {
 		if (resourceManager == null)
@@ -346,17 +350,21 @@ public abstract class AbstractFramework implements Framework {
 		}
 	}
 
-	/**
-	 * @return The RenderManager assigned by {@link #init(ResourceManager, RenderManager, RenderCapabilities)}
-	 */
-	protected final RenderManager getRenderManager() {
+    /**
+     * @return The RenderManager assigned by
+     *         {@link #init(ResourceManager, RenderManager, RenderCapabilities)}
+     *         . This is only provided for ease of the implementation.
+     */
+	public final RenderManager getRenderManager() {
 	    return renderManager;
 	}
-	
-	/**
-	 * @return The ResourceManager assigned by {@link #init(ResourceManager, RenderManager, RenderCapabilities)}
-	 */
-	protected final ResourceManager getResourceManager() {
+
+    /**
+     * @return The ResourceManager assigned by
+     *         {@link #init(ResourceManager, RenderManager, RenderCapabilities)}
+     *         . This is only provided for ease of the implementation.
+     */
+	public final ResourceManager getResourceManager() {
 	    return resourceManager;
 	}
 	

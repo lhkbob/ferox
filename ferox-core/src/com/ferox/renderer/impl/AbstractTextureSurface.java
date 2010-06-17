@@ -23,8 +23,8 @@ import com.ferox.resource.Texture.Target;
  * @author Michael Ludwig
  */
 public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
-    private int activeLayer;
-    private int activeDepth;
+    private volatile int activeLayer;
+    private volatile int activeDepth;
     
     private int renderLayer;
     private int renderDepth;
@@ -187,21 +187,6 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     @Override
     public int getDepth() {
         return options.getDepth();
-    }
-
-    @Override
-    public boolean hasColorBuffer() {
-        return delegate.getColorBuffers().length > 0;
-    }
-
-    @Override
-    public boolean hasDepthBuffer() {
-        return delegate.getDepthBuffer() != null;
-    }
-
-    @Override
-    public boolean hasStencilBuffer() {
-        return false;
     }
 
     @Override

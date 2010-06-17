@@ -27,8 +27,8 @@ public abstract class AbstractSurface implements Surface {
     private boolean renderedOnce;
     private volatile boolean destroyed;
     
-    private final ReentrantLock lock;
-    private final Framework framework;
+    protected final ReentrantLock lock;
+    protected final Framework framework;
 
 	public AbstractSurface(Framework framework) {
 	    if (framework == null)

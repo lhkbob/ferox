@@ -1,5 +1,7 @@
 package com.ferox.renderer.impl;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Renderer;
 
@@ -16,9 +18,14 @@ public abstract class Context {
     private static final ThreadLocal<Context> current = new ThreadLocal<Context>();
     
     private final ThreadLocal<FrameStatistics> frameStats;
-    private volatile Thread currentThread;
+    private final AbstractRenderer renderer;
+    protected final ReentrantLock lock;
     
-    public Context() {
+    public Context(AbstractRenderer renderer, ReentrantLock surfaceLock) {
+        if (renderer == null)
+            throw new NullPointerException("Renderer cannot be null");
+        this.renderer = renderer;
+        lock = (surfaceLock == null ? new ReentrantLock() : surfaceLock);
         frameStats = new ThreadLocal<FrameStatistics>();
     }
     
@@ -27,7 +34,9 @@ public abstract class Context {
 	 * 
 	 * @return This Context's Renderer
 	 */
-	public abstract AbstractRenderer getRenderer();
+	public AbstractRenderer getRenderer() {
+	    return renderer;
+	}
 
     /**
      * Invoke the given Runnable within a valid lock, and with its underlying
@@ -37,7 +46,16 @@ public abstract class Context {
      * 
      * @param run The Runnable to invoke
      */
-	public abstract void runWithLock(Runnable run);
+	public void runWithLock(Runnable run) {
+	    lock.lock();
+	    try {
+	        makeCurrent();
+	        run.run();
+	        release();
+	    } finally {
+	        lock.unlock();
+	    }
+	}
 	
 	/**
      * @return A ThreadLocal FrameStatistics instance last assigned via
@@ -58,15 +76,7 @@ public abstract class Context {
 	public void setFrameStatistics(FrameStatistics stats) {
 	    frameStats.set(stats);
 	}
-	
-	/**
-     * @return The Thread this Context is current on, or null if it is not
-     *         active
-     */
-	public Thread getContextThread() {
-	    return currentThread;
-	}
-	
+
 	/**
      * @return The Context that is current on the calling Thread, or null if no
      *         Context is current
@@ -75,13 +85,12 @@ public abstract class Context {
 	    return current.get();
 	}
 	
-	protected void notifyCurrent() {
+	protected void makeCurrent() {
 	    current.set(this);
-	    currentThread = Thread.currentThread();
 	}
 	
-	protected void notifyRelease() {
-	    currentThread = null;
-	    current.set(null);
+	protected void release() {
+	    if (current.get() == this)
+	        current.set(null);
 	}
 }
