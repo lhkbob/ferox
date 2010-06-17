@@ -2,6 +2,8 @@ package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.GL2GL3;
 
+import com.ferox.renderer.impl.jogl.JoglContext;
+
 /**
  * BoundObjectState represents a per-context record of the OpenGL objects that
  * are bound to it. The correctness of the bound object tracking is dependent on

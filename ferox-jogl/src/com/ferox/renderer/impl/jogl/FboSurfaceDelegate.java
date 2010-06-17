@@ -1,82 +1,60 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.util.IdentityHashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import com.ferox.renderer.DisplayOptions;
-import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.Action;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.renderer.impl.TextureSurfaceDelegate;
+import com.ferox.resource.Texture;
 
-/**
- * FboSurfaceDelegate is a TextureSurfaceDelegate that uses
- * {@link FramebufferObject}'s to render to textures.  This should
- * not be created directly, but is created internally by a {@link JoglTextureSurface}.
- * 
- * @author Michael Ludwig
- */
 public class FboSurfaceDelegate extends TextureSurfaceDelegate {
-	private final JoglFramework framework;
-	
-	private final IdentityHashMap<JoglContext, FramebufferObject> fbos;
-	private final boolean useDepthRB;
+    private final JoglFramework framework;
+    private final ConcurrentMap<JoglContext, FramebufferObject> fbos;
+    
+    public FboSurfaceDelegate(JoglFramework framework, Texture[] colorTextures, Texture depthTexture) {
+        super(colorTextures, depthTexture);
+        if (framework == null)
+            throw new NullPointerException("Framework cannot be null");
+        this.framework = framework;
+        fbos = new ConcurrentHashMap<JoglContext, FramebufferObject>();
+    }
 
-	public FboSurfaceDelegate(JoglFramework framework, DisplayOptions options, 
-					   		  TextureTarget colorTarget, TextureTarget depthTarget, 
-					   		  int width, int height, TextureImage[] colors, TextureImage depth, 
-					   		  boolean useDepthRenderBuffer) {
-		super(options, colorTarget, depthTarget, width, height, colors, depth);
-		this.framework = framework;
-		
-		fbos = new IdentityHashMap<JoglContext, FramebufferObject>();
-		useDepthRB = useDepthRenderBuffer;
-	}
+    @Override
+    public void destroy() {
+        for (Entry<JoglContext, FramebufferObject> e: fbos.entrySet())
+            e.getKey().notifyFboZombie(e.getValue());
+    }
+    
+    @Override
+    public JoglContext getContext() {
+        // no context to use
+        return null;
+    }
 
-	@Override
-	public JoglContext getContext() {
-		return null;
-	}
+    @Override
+    public void postRender(Action next) {
+        // the only surface to have a null context in this framework
+        // is a surface using an fbo, in which case the next setLayer()
+        // will take care of unbinding this fbo
+        if (next != null && ((AbstractSurface) next.getSurface()).getContext() == null)
+            return;
+        
+        FramebufferObject fbo = fbos.get(JoglContext.getCurrent());
+        if (fbo != null)
+            fbo.release();
+    }
 
-	@Override
-	public void destroy() {
-		for (Entry<JoglContext, FramebufferObject> e : fbos.entrySet())
-			e.getKey().notifyFboZombie(e.getValue());
-	}
-
-	@Override
-	public void preRender(int layer) {
-		JoglContext current = JoglContext.getCurrent();
-		FramebufferObject fbo = fbos.get(current);
-		if (fbo == null) {
-			fbo = new FramebufferObject(framework, getWidth(), getHeight(), 
-										getColorTarget(), getDepthTarget(), 
-										getColorBuffers(), getDepthBuffer(), 
-										layer, useDepthRB);
-			fbos.put(current, fbo);
-		}
-		fbo.bind(layer);
-	}
-
-	@Override
-	public void postRender(Action next) {
-		if (next != null) {
-			RenderSurface s = next.getRenderSurface();
-			if (s instanceof JoglTextureSurface) {
-				TextureSurfaceDelegate ts = ((JoglTextureSurface) s).getDelegate();
-				if (ts instanceof FboSurfaceDelegate)
-					return; // preRenderAction() will take care of everything
-			}
-		}
-		
-		JoglContext current = JoglContext.getCurrent();
-		FramebufferObject fbo = fbos.get(current);
-		if (fbo != null)
-			fbo.release(); // this can be null if preRender() failed to create the fbo
-	}
-
-	@Override
-	public void init() {
-		// do nothing
-	}
+    @Override
+    public void setLayer(int layer, int depth) {
+        JoglContext context = JoglContext.getCurrent();
+        FramebufferObject fbo = fbos.get(context);
+        if (fbo == null) {
+            fbo = new FramebufferObject(framework, getColorBuffers(), getDepthBuffer());
+            fbos.put(context, fbo);
+        }
+        
+        fbo.bind(layer, depth);
+    }
 }

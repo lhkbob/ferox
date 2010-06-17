@@ -4,10 +4,10 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 
 import com.ferox.renderer.RenderException;
-import com.ferox.renderer.impl.ResourceHandle;
-import com.ferox.resource.TextureCubeMap;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.renderer.impl.jogl.Utils;
+import com.ferox.renderer.impl.resource.ResourceHandle;
+import com.ferox.resource.Texture;
+import com.ferox.resource.Texture.Target;
 
 /**
  * FramebufferObject is a low-level wrapper around an OpenGL fbo and can be used
@@ -17,191 +17,163 @@ import com.ferox.resource.TextureImage.TextureTarget;
  * @author Michael Ludwig
  */
 public class FramebufferObject {
-	private final int fboId;
-	private int renderBufferId;
+    private final int fboId;
+    private int renderBufferId;
 
-	private final TextureTarget colorTarget;
+    private final Target target;
 
-	private int boundLayer;
-	private int[] colorImageIds;
+    private int boundLayer;
+    private int[] colorImageIds;
 
-	public FramebufferObject(JoglFramework framework, int width, int height, 
-				   			 TextureTarget colorTarget, TextureTarget depthTarget, 
-				   			 TextureImage[] colors, TextureImage depth, 
-				   			 int layer, boolean useDepthRenderBuffer) {
-		JoglContext context = JoglContext.getCurrent();
-		if (context == null)
-			throw new RenderException("FramebufferObject's can only be constructed when there's a current context");
-		if (!framework.getCapabilities().getFboSupport())
-			throw new RenderException("Current hardware doesn't support the creation of fbos");
+    public FramebufferObject(JoglFramework framework, Texture[] colors, Texture depth) {
+        JoglContext context = JoglContext.getCurrent();
+        if (context == null)
+            throw new RenderException("FramebufferObject's can only be constructed when there's a current context");
+        if (!framework.getCapabilities().getFboSupport())
+            throw new RenderException("Current hardware doesn't support the creation of fbos");
 
-		GL2GL3 gl = context.getGL();
+        GL2GL3 gl = context.getGL();
+        
+        boundLayer = 0;
+        int width, height;
+        if (colors != null) {
+            width = colors[0].getWidth();
+            height = colors[0].getHeight();
+            target = colors[0].getTarget();
+        } else {
+            width = depth.getWidth();
+            height = depth.getHeight();
+            target = depth.getTarget();
+        }
 
-		this.colorTarget = colorTarget;
+        int[] id = new int[1];
+        gl.glGenFramebuffers(1, id, 0);
+        fboId = id[0];
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
 
-		int[] id = new int[1];
-		gl.glGenFramebuffers(1, id, 0);
-		fboId = id[0];
-		gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
+        int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(0) : Utils.getGLTextureTarget(target));
+        if (depth != null) {
+            // attach the depth texture
+            ResourceHandle h = framework.getResourceManager().getHandle(depth);
+            attachImage(gl, glTarget, h.getId(), 0, GL.GL_DEPTH_ATTACHMENT);
 
-		if (depth != null) {
-			// attach the depth texture
-			int glDepthTarget = getGlTarget(depthTarget, layer);
+            renderBufferId = 0;
+        } else {
+            // make and attach the render buffer
+            gl.glGenRenderbuffers(1, id, 0);
+            renderBufferId = id[0];
 
-			ResourceHandle h = framework.getResourceManager().getHandle(depth);
-			attachImage(gl, glDepthTarget, h.getId(), layer, GL.GL_DEPTH_ATTACHMENT);
+            gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, renderBufferId);
+            gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2GL3.GL_DEPTH_COMPONENT, width, height);
 
-			renderBufferId = 0;
-		} else if (useDepthRenderBuffer) {
-			// make and attach the render buffer
-			gl.glGenRenderbuffers(1, id, 0);
-			renderBufferId = id[0];
+            if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
+                gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
+                destroy();
+                throw new RenderException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
+            } else
+                gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
+            gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, 
+                                         GL.GL_RENDERBUFFER, renderBufferId);
+        }
 
-			gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, renderBufferId);
-			gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2GL3.GL_DEPTH_COMPONENT, width, height);
+        if (colors != null && colors.length > 0) {
+            // attach all of the images
+            colorImageIds = new int[colors.length];
+            ResourceHandle h;
+            for (int i = 0; i < colors.length; i++) {
+                h = framework.getResourceManager().getHandle(colors[i]);
+                attachImage(gl, glTarget, h.getId(), 0, GL.GL_COLOR_ATTACHMENT0 + i);
+                colorImageIds[i] = h.getId();
+            }
+        } else
+            colorImageIds = null;
 
-			if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
-				gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
-				destroy();
-				throw new RenderException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
-			} else
-				gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
-			gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, 
-										 GL.GL_RENDERBUFFER, renderBufferId);
-		}
+        // Enable/disable the read/draw buffers to make the fbo "complete"
+        gl.glReadBuffer(GL.GL_NONE);
+        if (colorImageIds != null) {
+            int[] drawBuffers = new int[colorImageIds.length];
+            for (int i = 0; i < drawBuffers.length; i++)
+                drawBuffers[i] = GL.GL_COLOR_ATTACHMENT0 + i;
+            gl.glDrawBuffers(drawBuffers.length, drawBuffers, 0);
+        } else
+            gl.glDrawBuffer(GL.GL_NONE);
 
-		if (colors != null && colors.length > 0) {
-			// attach all of the images
-			int glColorTarget = getGlTarget(colorTarget, layer);
+        int complete = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+        if (complete != GL.GL_FRAMEBUFFER_COMPLETE) {
+            String msg = "FBO failed completion test, unable to render";
+            switch (complete) {
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                msg = "Fbo attachments aren't complete";
+                break;
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                msg = "Fbo needs at least one attachment";
+                break;
+            case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                msg = "Fbo draw buffers improperly enabled";
+                break;
+            case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                msg = "Fbo read buffer improperly enabled";
+                break;
+            case GL.GL_FRAMEBUFFER_UNSUPPORTED:
+                msg = "Texture/Renderbuffer combinations aren't supported on the hardware";
+                break;
+            case 0:
+                msg = "glCheckFramebufferStatusEXT() had an error while checking fbo status";
+                break;
+            }
+            // clean-up and then throw an exception
+            destroy();
+            throw new RenderException(msg);
+        }
 
-			colorImageIds = new int[colors.length];
-			ResourceHandle h;
-			for (int i = 0; i < colors.length; i++) {
-				h = framework.getResourceManager().getHandle(colors[i]);
-				attachImage(gl, glColorTarget, h.getId(), layer, GL.GL_COLOR_ATTACHMENT0 + i);
-				colorImageIds[i] = h.getId();
-			}
-		} else
-			colorImageIds = null;
+        // restore the old binding
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, context.getRecord().getFbo());
+    }
 
-		boundLayer = layer;
+    public void bind(int layer, int depth) {
+        JoglContext context = JoglContext.getCurrent();
+        GL2GL3 gl = context.getGL();
+        
+        // bind the fbo if needed
+        context.getRecord().bindFbo(gl, fboId);
 
-		// Enable/disable the read/draw buffers to make the fbo "complete"
-		gl.glReadBuffer(GL.GL_NONE);
-		if (colorImageIds != null) {
-			int[] drawBuffers = new int[colorImageIds.length];
-			for (int i = 0; i < drawBuffers.length; i++)
-				drawBuffers[i] = GL.GL_COLOR_ATTACHMENT0 + i;
-			gl.glDrawBuffers(drawBuffers.length, drawBuffers, 0);
-		} else
-			gl.glDrawBuffer(GL.GL_NONE);
+        // possibly re-attach the images (in the case of cubemaps or 3d textures)
+        int toBind = (target == Target.T_CUBEMAP ? layer : depth);
+        int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(target));
+        if (toBind != boundLayer) {
+            if (colorImageIds != null) {
+                for (int i = 0; i < colorImageIds.length; i++)
+                    attachImage(gl, glTarget, colorImageIds[i], toBind, 
+                                GL.GL_COLOR_ATTACHMENT0 + i);
+            }
+            // we don't have to re-attach depth images -> 1 layer only
+            boundLayer = toBind;
+        }
+    }
 
-		int complete = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
-		if (complete != GL.GL_FRAMEBUFFER_COMPLETE) {
-			String msg = "FBO failed completion test, unable to render";
-			switch (complete) {
-			case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-				msg = "Fbo attachments aren't complete";
-				break;
-			case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-				msg = "Fbo needs at least one attachment";
-				break;
-			case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-				msg = "Fbo draw buffers improperly enabled";
-				break;
-			case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-				msg = "Fbo read buffer improperly enabled";
-				break;
-			case GL.GL_FRAMEBUFFER_UNSUPPORTED:
-				msg = "Texture/Renderbuffer combinations aren't supported on the hardware";
-				break;
-			case 0:
-				msg = "glCheckFramebufferStatusEXT() had an error while checking fbo status";
-				break;
-			}
-			// clean-up and then throw an exception
-			destroy();
-			throw new RenderException(msg);
-		}
+    public void release() {
+        JoglContext context = JoglContext.getCurrent();
+        context.getRecord().bindFbo(context.getGL(), 0);
+    }
 
-		// restore the old binding
-		gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, context.getRecord().getFbo());
-	}
+    public void destroy() {
+        GL2GL3 gl = JoglContext.getCurrent().getGL();
+        gl.glDeleteFramebuffers(1, new int[] { fboId }, 0);
+        if (renderBufferId != 0)
+            gl.glDeleteRenderbuffers(1, new int[] { renderBufferId }, 0);
+    }
 
-	public void bind(int layer) {
-		JoglContext context = JoglContext.getCurrent();
-		GL2GL3 gl = context.getGL();
-		
-		// bind the fbo if needed
-		context.getRecord().bindFbo(gl, fboId);
-
-		// possibly re-attach the images (in the case of cubemaps or 3d textures)
-		if (layer != boundLayer) {
-			if (colorImageIds != null) {
-				int target = getGlTarget(colorTarget, layer);
-				for (int i = 0; i < colorImageIds.length; i++)
-					attachImage(gl, target, colorImageIds[i], layer, 
-								GL.GL_COLOR_ATTACHMENT0 + i);
-			}
-			// we don't have to re-attach depth images -> will always be 1d/2d/rect -> 1 layer only
-			boundLayer = layer;
-		}
-	}
-
-	public void release() {
-		JoglContext context = JoglContext.getCurrent();
-		context.getRecord().bindFbo(context.getGL(), 0);
-	}
-
-	public void destroy() {
-		GL2GL3 gl = JoglContext.getCurrent().getGL();
-		gl.glDeleteFramebuffers(1, new int[] { fboId }, 0);
-		if (renderBufferId != 0)
-			gl.glDeleteRenderbuffers(1, new int[] { renderBufferId }, 0);
-	}
-
-	// Get the appropriate texture target based on the layer and high-level target
-	private static int getGlTarget(TextureTarget target, int layer) {
-		switch (target) {
-		case T_1D:
-			return GL2GL3.GL_TEXTURE_1D;
-		case T_2D:
-			return GL2GL3.GL_TEXTURE_2D;
-		case T_3D:
-			return GL2GL3.GL_TEXTURE_3D;
-		case T_RECT:
-			return GL2GL3.GL_TEXTURE_RECTANGLE_ARB;
-		case T_CUBEMAP:
-			switch (layer) {
-			case TextureCubeMap.PX:
-				return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-			case TextureCubeMap.NX:
-				return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
-			case TextureCubeMap.PY:
-				return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
-			case TextureCubeMap.NY:
-				return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
-			case TextureCubeMap.PZ:
-				return GL.GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
-			case TextureCubeMap.NZ:
-				return GL.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
-			}
-		}
-
-		return -1;
-	}
-
-	// Attach the given texture image to the currently bound fbo (on target FRAMEBUFFER)
-	private static void attachImage(GL2GL3 gl, int target, int id, int layer, int attachment) {
-		switch (target) {
-		case GL2GL3.GL_TEXTURE_1D:
-			gl.glFramebufferTexture1D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
-			break;
-		case GL2GL3.GL_TEXTURE_3D:
-			gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0, layer);
-			break;
-		default: // 2d, rect, or a cubemap face
-			gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
-		}
-	}
+    // Attach the given texture image to the currently bound fbo (on target FRAMEBUFFER)
+    private void attachImage(GL2GL3 gl, int target, int id, int layer, int attachment) {
+        switch (target) {
+        case GL2GL3.GL_TEXTURE_1D:
+            gl.glFramebufferTexture1D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
+            break;
+        case GL2GL3.GL_TEXTURE_3D:
+            gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0, layer);
+            break;
+        default: // 2d or a cubemap face
+            gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
+        }
+    }
 }

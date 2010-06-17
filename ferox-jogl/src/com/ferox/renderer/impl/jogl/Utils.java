@@ -1,6 +1,11 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL2;
 import javax.swing.SwingUtilities;
@@ -18,15 +23,13 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.resource.PolygonType;
-import com.ferox.resource.TextureCubeMap;
+import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.GlslVertexAttribute.AttributeType;
-import com.ferox.resource.TextureImage.DepthMode;
-import com.ferox.resource.TextureImage.Filter;
-import com.ferox.resource.TextureImage.TextureTarget;
-import com.ferox.resource.TextureImage.TextureWrap;
+import com.ferox.resource.Texture.Filter;
+import com.ferox.resource.Texture.Target;
+import com.ferox.resource.Texture.WrapMode;
 
 /**
  * Utils provides conversions for the commonly used enums in Resources and Renderers
@@ -103,14 +106,10 @@ public class Utils {
 			return UniformType.SAMPLER_3D;
 		case GL2.GL_SAMPLER_CUBE:
 			return UniformType.SAMPLER_CUBEMAP;
-		case GL2.GL_SAMPLER_2D_RECT_ARB:
-			return UniformType.SAMPLER_RECT;
 		case GL2.GL_SAMPLER_2D_SHADOW:
 			return UniformType.SAMPLER_2D_SHADOW;
 		case GL2.GL_SAMPLER_1D_SHADOW:
 			return UniformType.SAMPLER_1D_SHADOW;
-		case GL2.GL_SAMPLER_2D_RECT_SHADOW_ARB:
-			return UniformType.SAMPLER_RECT_SHADOW;
 		}
 
 		return null;
@@ -223,7 +222,7 @@ public class Utils {
 	}
 
 	/** Wrap must not be null. */
-	public static int getGLWrapMode(TextureWrap wrap) {
+	public static int getGLWrapMode(WrapMode wrap) {
 		switch (wrap) {
 		case CLAMP:
 			return GL2.GL_CLAMP_TO_EDGE;
@@ -239,17 +238,17 @@ public class Utils {
 	/** Face must be one of the constants in TextureCubeMap (0 - 5). */
 	public static int getGLCubeFace(int face) {
 		switch (face) {
-		case TextureCubeMap.PX:
+		case Texture.PX:
 			return GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-		case TextureCubeMap.NX:
+		case Texture.NX:
 			return GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
-		case TextureCubeMap.PY:
+		case Texture.PY:
 			return GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
-		case TextureCubeMap.NY:
+		case Texture.NY:
 			return GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
-		case TextureCubeMap.PZ:
+		case Texture.PZ:
 			return GL2.GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
-		case TextureCubeMap.NZ:
+		case Texture.NZ:
 			return GL2.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
 		}
 
@@ -257,7 +256,7 @@ public class Utils {
 	}
 
 	/** Target must not be null. */
-	public static int getGLTextureTarget(TextureTarget tar) {
+	public static int getGLTextureTarget(Target tar) {
 		switch (tar) {
 		case T_1D:
 			return GL2.GL_TEXTURE_1D;
@@ -267,8 +266,6 @@ public class Utils {
 			return GL2.GL_TEXTURE_3D;
 		case T_CUBEMAP:
 			return GL2.GL_TEXTURE_CUBE_MAP;
-		case T_RECT:
-			return GL2.GL_TEXTURE_RECTANGLE_ARB;
 		}
 
 		return -1;
@@ -348,7 +345,7 @@ public class Utils {
 	 * Format and type can't be null. Returns an enum for the dst format in
 	 * glTexImage.
 	 */
-	public static int getGLDstFormat(TextureFormat format, DataType type) {
+	public static int getGLDstFormat(TextureFormat format, Class<? extends Buffer> type) {
 		switch (format) {
 		// packed RGB5_A1
 		case ABGR_1555:
@@ -401,68 +398,51 @@ public class Utils {
 			// if we've gotten here, we have a type-less format, and have to
 			// take the type into account
 		case ALPHA:
-			switch (type) {
-			case UNSIGNED_BYTE:
-				return GL2.GL_ALPHA8;
-			case UNSIGNED_SHORT:
-			case UNSIGNED_INT:
-				return GL2.GL_ALPHA16;
-			default:
-				return GL2.GL_ALPHA;
-			}
-		case LUMINANCE:
-			switch (type) {
-			case UNSIGNED_BYTE:
-				return GL2.GL_LUMINANCE8;
-			case UNSIGNED_SHORT:
-			case UNSIGNED_INT:
-				return GL2.GL_LUMINANCE16;
-			default:
-				return GL2.GL_LUMINANCE;
-			}
-		case LUMINANCE_ALPHA:
-			switch (type) {
-			case UNSIGNED_BYTE:
-				return GL2.GL_LUMINANCE8_ALPHA8;
-			case UNSIGNED_SHORT:
-			case UNSIGNED_INT:
-				return GL2.GL_LUMINANCE16_ALPHA16;
-			default:
-				return GL2.GL_LUMINANCE_ALPHA;
-			}
-		case DEPTH:
-			switch (type) {
-			case UNSIGNED_BYTE:
-				return GL2.GL_DEPTH_COMPONENT16;
-			case UNSIGNED_SHORT:
-				return GL2.GL_DEPTH_COMPONENT24;
-			case UNSIGNED_INT:
-				return GL2.GL_DEPTH_COMPONENT32;
-			default:
-				return GL2.GL_DEPTH_COMPONENT;
-			}
-		case RGB:
-		case BGR:
-			switch (type) {
-			case UNSIGNED_BYTE:
-				return GL2.GL_RGB8;
-			case UNSIGNED_SHORT:
-			case UNSIGNED_INT:
-				return GL2.GL_RGB16;
-			default:
-				return GL2.GL_RGB;
-			}
-		case RGBA:
-		case BGRA:
-			switch (type) {
-			case UNSIGNED_BYTE:
-				return GL2.GL_RGBA8;
-			case UNSIGNED_SHORT:
-			case UNSIGNED_INT:
-				return GL2.GL_RGBA16;
-			default:
-				return GL2.GL_RGBA;
-			}
+            if (ByteBuffer.class.isAssignableFrom(type))
+                return GL2.GL_ALPHA8;
+            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+                return GL2.GL_ALPHA16;
+            else
+                return GL2.GL_ALPHA;
+        case LUMINANCE:
+            if (ByteBuffer.class.isAssignableFrom(type))
+                return GL2.GL_LUMINANCE8;
+            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+                return GL2.GL_LUMINANCE16;
+            else
+                return GL2.GL_LUMINANCE;
+        case LUMINANCE_ALPHA:
+            if (ByteBuffer.class.isAssignableFrom(type))
+                return GL2.GL_LUMINANCE8_ALPHA8;
+            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+                return GL2.GL_LUMINANCE16_ALPHA16;
+            else
+                return GL2.GL_LUMINANCE_ALPHA;
+        case DEPTH:
+            if (ByteBuffer.class.isAssignableFrom(type))
+                return GL2.GL_DEPTH_COMPONENT16;
+            else if (ShortBuffer.class.isAssignableFrom(type))
+                return GL2.GL_DEPTH_COMPONENT24;
+            else if (IntBuffer.class.isAssignableFrom(type))
+                return GL2.GL_DEPTH_COMPONENT32;
+            else
+                return GL2.GL_DEPTH_COMPONENT;
+        case RGB:
+        case BGR:
+            if (ByteBuffer.class.isAssignableFrom(type))
+                return GL2.GL_RGB8;
+            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+                return GL2.GL_RGB16;
+            else
+                return GL2.GL_RGB;
+        case RGBA:
+        case BGRA:
+            if (ByteBuffer.class.isAssignableFrom(type))
+                return GL2.GL_RGBA8;
+            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+                return GL2.GL_RGBA16;
+            else
+                return GL2.GL_RGBA;
 		}
 
 		return -1;
@@ -509,43 +489,21 @@ public class Utils {
 	}
 
 	/**
-	 * EffectType must not be null. This shouldn't be used for packed data
+	 * This shouldn't be used for packed data
 	 * types.
 	 */
-	public static int getGLType(DataType type) {
-		switch (type) {
-		case BYTE:
-			return GL2.GL_BYTE;
-		case FLOAT:
-			return GL2.GL_FLOAT;
-		case INT:
-			return GL2.GL_INT;
-		case SHORT:
-			return GL2.GL_SHORT;
-		case UNSIGNED_BYTE:
-			return GL2.GL_UNSIGNED_BYTE;
-		case UNSIGNED_INT:
-			return GL2.GL_UNSIGNED_INT;
-		case UNSIGNED_SHORT:
-			return GL2.GL_UNSIGNED_SHORT;
-		}
+	public static int getGLType(Class<? extends Buffer> type, boolean unsigned) {
+        if (ByteBuffer.class.isAssignableFrom(type))
+            return (unsigned ? GL2.GL_UNSIGNED_BYTE : GL2.GL_BYTE);
+        else if (ShortBuffer.class.isAssignableFrom(type))
+            return (unsigned ? GL2.GL_UNSIGNED_SHORT : GL2.GL_SHORT);
+        else if (IntBuffer.class.isAssignableFrom(type))
+            return (unsigned ? GL2.GL_UNSIGNED_INT : GL2.GL_INT);
+        else if (FloatBuffer.class.isAssignableFrom(type))
+            return GL2.GL_FLOAT;
 
-		return -1;
-	}
-
-	/** Depth must not be null. */
-	public static int getGLDepthMode(DepthMode depth) {
-		switch (depth) {
-		case ALPHA:
-			return GL2.GL_ALPHA;
-		case INTENSITY:
-			return GL2.GL_INTENSITY;
-		case LUMINANCE:
-			return GL2.GL_LUMINANCE;
-		}
-
-		return -1;
-	}
+        return -1;
+    }
 
 	/** Func must not be null. */
 	public static int getGLBlendEquation(BlendFunction func) {

@@ -5,8 +5,6 @@ import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Framework;
-import com.ferox.renderer.Renderer;
-import com.ferox.renderer.impl.FixedFunctionRendererImpl;
 
 /**
  * FixedFunctionJoglFramework is a complete implementation of {@link Framework}
@@ -22,45 +20,45 @@ import com.ferox.renderer.impl.FixedFunctionRendererImpl;
 public class FixedFunctionJoglFramework extends JoglFramework {
 	private static final int FORCE_BITS = RenderCapabilitiesDetector.FORCE_NO_GLSL;
 
-	/**
-	 * Create a new FixedFunctionJoglFramework where all invocations of
-	 * {@link Framework#render()} are serialized onto a single internal Thread.
-	 * 
-	 * @throws GLException If a fixed-function implementation of OpenGL is
-	 *             unavailable
-	 */
+    /**
+     * Create a new FixedFunctionJoglFramework that uses two internal threads,
+     * one that handles all rendering and one that handles all resource actions.
+     * This enables resources to be processed in parallel to rendering. It is
+     * capable of processing resources even when no surface has been created.
+     * 
+     * @throws GLException If a fixed-function implementation of OpenGL is
+     *             unavailable
+     */
 	public FixedFunctionJoglFramework() {
 		this(true);
 	}
 
-	/**
-	 * <p>
-	 * Create a new FixedFunctionJoglFramework that's rendering behavior is
-	 * controlled by the boolean, <tt>serializeRenders</tt>. If
-	 * <tt>serializeRenders</tt> is true then all invocations of
-	 * {@link Framework#render()} are serialized onto a single internal Thread.
-	 * If it is false, then all calls to render() will be executed on the Thread
-	 * that it was called on.
-	 * </p>
-	 * <p>
-	 * De-serializing the renders can lead to increased performance when
-	 * rendering to multiple RenderSurfaces. A RenderSurface cannot be rendered
-	 * into from multiple Threads at the same time, however.
-	 * </p>
-	 * 
-	 * @param serializeRenders True if all renders should be done on a single,
-	 *            internal thread
-	 * @throws GLException If a fixed-function implementation of OpenGL is
-	 *             unavailable
-	 */
-	public FixedFunctionJoglFramework(boolean serializeRenders) {
-		super(GLProfile.get(GLProfile.GL2), FORCE_BITS, serializeRenders);
+    /**
+     * <p>
+     * Create a new FixedFunctionJoglFramework that has its resource and
+     * rendering behavior specified by <tt>forceNoBackgroundContext</tt>. If
+     * this is true, then the Framework can only use OpenGL contexts created for
+     * a Surface to perform the resource actions. It's possible to disconnect
+     * resources using this mode, but it may be more stable.
+     * </p>
+     * <p>
+     * When it is false, an internal context will be managed on a separate
+     * thread from the renderer that shares its resources with the contexts of
+     * created surfaces. This allows parallel resource updates and ensures that
+     * the resources will not become disconnected if every surface is destroyed.
+     * </p>
+     * 
+     * @param forceNoBackgroundContext True if no internal context should be
+     *            used for resource processing
+     * @throws GLException If a fixed-function implementation of OpenGL is
+     *             unavailable
+     */
+	public FixedFunctionJoglFramework(boolean forceNoBackgroundContext) {
+		super(GLProfile.get(GLProfile.GL2), FORCE_BITS, forceNoBackgroundContext);
 	}
 
 	@Override
-	protected Renderer createRenderer(JoglContext context) {
-		JoglFixedFunctionRendererDelegate ffp = new JoglFixedFunctionRendererDelegate(context, this);
-		JoglRendererDelegate core = new JoglRendererDelegate(context);
-		return new FixedFunctionRendererImpl(core, ffp);
+	protected JoglFixedFunctionRenderer createRenderer() {
+	    return new JoglFixedFunctionRenderer(this);
 	}
 }
