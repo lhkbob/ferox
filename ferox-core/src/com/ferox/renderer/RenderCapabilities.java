@@ -1,5 +1,10 @@
 package com.ferox.renderer;
 
+import java.util.EnumSet;
+
+import com.ferox.resource.Texture;
+import com.ferox.resource.Texture.Target;
+
 /**
  * <p>
  * RenderCapabilities holds onto a set of different parameters describing more
@@ -8,175 +13,188 @@ package com.ferox.renderer;
  * <p>
  * Because Ferox was designed to be implemented with an OpenGL system, the
  * capabilities here reflect that and allow for lower-level inspection of the
- * current hardware.
+ * current hardware. Framework implementations are expected to extend
+ * RenderCapabilities to provide the correct values for each parameter.
  * </p>
  * 
  * @author Michael Ludwig
  */
 public class RenderCapabilities {
 	// texture properties
-	private final int maxVertexShaderTextures;
-	private final int maxFragmentShaderTextures;
-	private final int maxFixedPipelineTextures;
-	private final int maxCombinedTextures;
-	private final float maxAnisoLevel;
+	protected int maxVertexShaderTextures = 0; //
+	protected int maxFragmentShaderTextures = 0; //
+	protected int maxFixedPipelineTextures = 0; //
+	protected int maxCombinedTextures = 0; //
+	
+	protected float maxAnisoLevel = 0f; //
+	
+	protected boolean hasDepthTextures = false; //
+	protected boolean hasEnvCombine = false; //
+	protected boolean hasMirrorRepeat = false; //
+	protected boolean hasClampEdge = false; //
 
 	// texture + renderbuffer dimensions
-	private final int maxTextureSize;
-	private final int maxTextureRectSize;
-	private final int maxTextureCubeMapSize;
-	private final int maxTexture3DSize;
-	private final int maxRenderbufferSize;
+	protected int maxTextureSize = 0; //
+	protected int maxTextureCubeMapSize = 0; //
+	protected int maxTexture3DSize = 0; //
+	protected int maxRenderbufferSize = 0; //
 
 	// type of supported textures
-	private final boolean fpTextures;
-	private final boolean npotTextures;
-	private final boolean rectTextures;
-	private final boolean s3tcTextures;
+	protected boolean fpTextures = false; //
+	protected boolean npotTextures = false; //
+	protected boolean s3tcTextures = false; //
+	
+	protected EnumSet<Target> supportedTargets = EnumSet.noneOf(Target.class); //
 
 	// geometry properties
-	private final int maxVertexAttributes;
-	private final int maxTextureCoordinates;
-	private final int maxRecommendedIndices;
-	private final int maxRecommendedVertices;
-	private final boolean vboSupported;
+	protected int maxVertexAttributes = 0; //
+	protected int maxTextureCoordinates = 0; //
+	protected boolean vboSupported = false; // 
 
 	// misc
-	private final int maxActiveLights;
-	private final boolean hasFfpRenderer;
-	private final boolean hasGlslRenderer;
+	protected int maxActiveLights = 0; //
+	protected boolean blendSupported = false; //
+	protected boolean hasSeparateBlend = false; //
+	protected boolean hasSeparateStencil = false; //
 	
-	private final float glslVersion;
+	protected boolean hasFfpRenderer = false; //
+	protected boolean hasGlslRenderer = false; //
 	
-	private final String vendor;
-	private final float version;
+	protected float glslVersion = 0; // 
+	
+	protected String vendor = ""; // 
+	protected float version = 0f; // 
 	
 	// frame properties
-	private final boolean fboSupported;
-	private final boolean pbuffersSupported;
-	private final int maxColorTargets;
-
+	protected boolean fboSupported = false; //
+	protected boolean pbuffersSupported = false; //
+	protected int maxColorTargets = 0; //
+	
 	/**
-	 * Create a render capabilities object with the given properties. There is
-	 * no validation checking, it is assumed that renderer's will be responsible
-	 * and fill each value with a meaningful number, etc.
-	 */
-	public RenderCapabilities(int maxVertexShaderTextures, int maxFragmentShaderTextures, 
-							  int maxFixedPipelineTextures, int maxCombinedTextures, 
-							  float maxAnisoLevel, int maxTextureSize, int maxTextureRectSize,
-							  int maxTextureCubeMapSize, int maxTexture3DSize, int maxRenderbufferSize,
-							  boolean fpTextures, boolean npotTextures, boolean rectTextures, 
-							  boolean s3tcTextures, int maxVertexAttributes, int maxTextureCoordinates, 
-							  int maxRecommendedIndices, int maxRecommendedVertices, boolean vboSupported, 
-							  int maxActiveLights, boolean glslSupported, boolean ffpSupported,
-							  boolean fboSupported, boolean pbuffersSupported, int maxColorTargets, 
-							  String vendor, float version, float glslVersion) {
-		this.maxVertexShaderTextures = maxVertexShaderTextures;
-		this.maxFragmentShaderTextures = maxFragmentShaderTextures;
-		this.maxFixedPipelineTextures = maxFixedPipelineTextures;
-		this.maxCombinedTextures = maxCombinedTextures;
-		this.maxAnisoLevel = maxAnisoLevel;
-
-		this.maxTextureSize = maxTextureSize;
-		this.maxTextureCubeMapSize = maxTextureCubeMapSize;
-		this.maxTextureRectSize = maxTextureRectSize;
-		this.maxTexture3DSize = maxTexture3DSize;
-		this.maxRenderbufferSize = maxRenderbufferSize;
-
-		this.fpTextures = fpTextures;
-		this.npotTextures = npotTextures;
-		this.rectTextures = rectTextures;
-		this.s3tcTextures = s3tcTextures;
-
-		this.maxVertexAttributes = maxVertexAttributes;
-		this.maxTextureCoordinates = maxTextureCoordinates;
-		this.maxRecommendedIndices = maxRecommendedIndices;
-		this.maxRecommendedVertices = maxRecommendedVertices;
-		this.vboSupported = vboSupported;
-
-		this.maxActiveLights = maxActiveLights;
-		this.hasFfpRenderer = ffpSupported;
-		this.hasGlslRenderer = glslSupported;
-
-		this.fboSupported = fboSupported;
-		this.pbuffersSupported = pbuffersSupported;
-		this.maxColorTargets = maxColorTargets;
-
-		this.vendor = vendor;
-		this.version = version;
-		this.glslVersion = glslVersion;
+     * @return True if the blending operation exposed in {@link Renderer} is
+     *         supported.
+     */
+	public boolean isBlendingSupported() {
+	    return blendSupported;
+	}
+	
+	/**
+     * @return The set of supported texture Targets on this hardware.
+     */
+	public EnumSet<Target> getSupportedTextureTargets() {
+	    return supportedTargets;
 	}
 
 	/**
-	 * Return the maximum side length of a Texture1D or Texture2D.
-	 * 
-	 * @return Maximum size of a 1d or 2d texture
+	 * @return True if the DEPTH TextureFormat is supported
 	 */
+	public boolean getDepthTextureSupport() {
+	    return hasDepthTextures;
+	}
+	
+	/**
+     * @return True if the COMBINE EnvMode is supported by FixedFunctionRenderers
+     */
+	public boolean getCombineEnvModeSupport() {
+	    return hasEnvCombine;
+	}
+	
+	/**
+	 * @return True if the MIRROR WrapMode is supported
+	 */
+	public boolean getMirrorWrapModeSupport() {
+	    return hasMirrorRepeat;
+	}
+
+    /**
+     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE extension,
+     *         which improves appearance, or false when it must fallback to
+     *         GL_CLAMP
+     */
+	public boolean getClampToEdgeSupport() {
+	    return hasClampEdge;
+	}
+	
+	/**
+     * @return True if blending can be correctly separated across front and back
+     *         facing polygons.
+     */
+	public boolean getSeparateBlendSupport() {
+	    return hasSeparateBlend;
+	}
+
+    /**
+     * @return True if stencil operations can be correctly separated across
+     *         front and back facing polygons.
+     */
+	public boolean getSeparateStencilSupport() {
+	    return hasSeparateStencil;
+	}
+	
+    /**
+     * Return the maximum side dimension of a Texture with targets of T_1D or
+     * T_2D.
+     * 
+     * @return Maximum size of a 1d or 2d texture
+     */
 	public int getMaxTextureSize() {
 		return maxTextureSize;
 	}
 
-	/**
-	 * Return the maximum side length of a TextureRectangle.
-	 * 
-	 * @return Maximum size of a rectangular texture
-	 */
-	public int getMaxTextureRectangleSize() {
-		return maxTextureRectSize;
-	}
-
-	/**
-	 * Return the maximum side length of a Texture3D.
-	 * 
-	 * @return Maximum size of a 3d texture
-	 */
+    /**
+     * Return the maximum side dimension of a Texture with the target of T_3D.
+     * 
+     * @return Maximum size of a 3d texture
+     */
 	public int getMaxTexture3DSize() {
 		return maxTexture3DSize;
 	}
 
-	/**
-	 * Return the maximum side length of a face of a TextureCubeMap.
-	 * 
-	 * @return Maximum size of a cube map
-	 */
+    /**
+     * Return the maximum side dimension of a face of a Texture with the target
+     * of T_CUBEMAP.
+     * 
+     * @return Maximum size of a cube map
+     */
 	public int getMaxTextureCubeMapSize() {
 		return maxTextureCubeMapSize;
 	}
 
 	/**
-	 * Return the maximum side length of a texture used with a TextureSurface.
+	 * Return the maximum dimension of any Texture used with a TextureSurface.
 	 * 
 	 * @return Maximum dimension of a TextureSurface
 	 */
-	public int getMaxRenderbufferSize() {
+	public int getMaxTextureSurfaceSize() {
 		return maxRenderbufferSize;
 	}
 
-	/**
-	 * Return the maximum number of color buffers that can be rendered into
-	 * simultaneously with a GLSL program.
-	 * 
-	 * @return Number of color targets allowed for TextureSurfaces
-	 */
-	public int getMaxColorTargets() {
+    /**
+     * Return the maximum number of color buffers that can be rendered into
+     * simultaneously with a GLSL program when using a TextureSurface. An
+     * OnscreenSurface always has only one color buffer.
+     * 
+     * @return Number of color targets allowed for TextureSurfaces
+     */
+	public int getMaxColorBuffers() {
 		return maxColorTargets;
 	}
 
-	/**
-	 * Get max number of textures allowed in the vertex shader stage of a glsl
-	 * program. Should be set to 0 if glsl programs aren't allowed, otherwise >=
-	 * 0.
-	 * 
-	 * @return Number of textures allowed in a vertex shader
-	 */
+    /**
+     * Get max number of textures allowed in the vertex shader stage of a GLSL
+     * program. This will return a number <= 0 if GLSL shaders are not
+     * supported.
+     * 
+     * @return Number of textures allowed in a vertex shader
+     */
 	public int getMaxVertexShaderTextures() {
 		return maxVertexShaderTextures;
 	}
 
 	/**
-	 * Get the max number of textures allowed in the fragment shader of glsl
-	 * program. Should be set to 0 if glsl programs aren't allowed, otherwise >=
-	 * 0.
+	 * Get the max number of textures allowed in the fragment shader of GLSL
+	 * program. This will return a number <= 0 if GLSL shaders are not
+     * supported.
 	 * 
 	 * @return Number of textures allowed in a fragment shader
 	 */
@@ -184,33 +202,36 @@ public class RenderCapabilities {
 		return maxFragmentShaderTextures;
 	}
 
-	/**
-	 * Get the max number of textures usable when fixed function RenderQueue is
-	 * enabled. Textures beyond this will be ignored when no glsl program is
-	 * bound.
-	 * 
-	 * @return Total number of textures usable in fixed-function
-	 */
+    /**
+     * Get the max number of textures usable by a {@link FixedFunctionRenderer}.
+     * Textures beyond this will be ignored when using a fixed function
+     * renderer, GLSL renderers may support more available textures.
+     * 
+     * @return Total number of textures usable in fixed-function
+     */
 	public int getMaxFixedPipelineTextures() {
 		return maxFixedPipelineTextures;
 	}
 
-	/**
-	 * Get the max number of textures allowed in an entire shader program. Each
-	 * reference to a texture increases the total for a given program.
-	 * 
-	 * @return Total number of texture samplers in a shader
-	 */
+    /**
+     * Get the max number of textures used by an entire GLSL program. This may
+     * be less than the sum of {@link #getMaxVertexShaderTextures()} and
+     * {@link #getMaxFragmentShaderTextures()}.
+     * 
+     * @return Total number of texture samplers in a GLSL program
+     */
 	public int getMaxCombinedTextures() {
 		return maxCombinedTextures;
 	}
 
-	/**
-	 * Get the max supported level of anisotropic filtering for textures. Should
-	 * be >= 0.
-	 * 
-	 * @return Maximum level of anistropic filtering
-	 */
+    /**
+     * Get the max supported level of anisotropic filtering for textures. If
+     * anisotropic filtering is not supported, this should return a number <= 0.
+     * A value of 1 in {@link Texture#getAnisotropicFilterLevel()} will be
+     * scaled by the Framework to the returned number.
+     * 
+     * @return Maximum level of anistropic filtering
+     */
 	public float getMaxAnisotropicLevel() {
 		return maxAnisoLevel;
 	}
@@ -236,17 +257,6 @@ public class RenderCapabilities {
 	}
 
 	/**
-	 * Whether or not rectangular textures are supported (if false, textures
-	 * must be squares). Rectangular textures and square textures use different
-	 * texture coordinates for access.
-	 * 
-	 * @return If the rectangular texture target is allowed
-	 */
-	public boolean getRectangularTextureSupport() {
-		return rectTextures;
-	}
-
-	/**
 	 * Whether or not the S3TC extension is present. This allows for DXT1, DXT3,
 	 * and DXT5 texture compression on the graphics card.
 	 * 
@@ -266,54 +276,31 @@ public class RenderCapabilities {
 		return maxVertexAttributes;
 	}
 
-	/**
-	 * Get the maximum number of texture coordinates for each vertex. This may
-	 * be different then the allowed number of textures in fixed RenderQueue or
-	 * graphics card.
-	 * 
-	 * @return Number of texture coordinates
-	 */
+    /**
+     * Get the maximum number of texture coordinates for each vertex. This may
+     * be different then the maximum number of textures.
+     * 
+     * @return Number of texture coordinates
+     */
 	public int getMaxTextureCoordinates() {
 		return maxTextureCoordinates;
 	}
 
 	/**
-	 * Get the max recommended indices in rendered geometry. Numbers greater
-	 * than this are supported, but they may suffer performance issues (not as
-	 * optimized).
-	 * 
-	 * @return Recommended index size for vbo geometry
-	 */
-	public int getMaxRecommendedIndices() {
-		return maxRecommendedIndices;
-	}
-
-	/**
-	 * Get the max recommended vertices in rendered geometry. Numbers greater
-	 * than this are supported, but they may suffer from less
-	 * optimization/caching.
-	 * 
-	 * @return Recommended vertex size for vbo geometry
-	 */
-	public int getMaxRecommendedVertices() {
-		return maxRecommendedVertices;
-	}
-
-	/**
 	 * Whether or not vertex buffers are supported.
 	 * 
-	 * @return True if the VBO compile option will work
+	 * @return True if the RESIDENT_x compile options will be supported
 	 */
 	public boolean getVertexBufferSupport() {
 		return vboSupported;
 	}
 
-	/**
-	 * Get the maximum number of lights that can affect a rendered object at one
-	 * time.
-	 * 
-	 * @return Total number of simultaneous lights
-	 */
+    /**
+     * Get the maximum number of lights that can affect a rendered object at one
+     * time when using a {@link FixedFunctionRenderer}.
+     * 
+     * @return Total number of simultaneous lights
+     */
 	public int getMaxActiveLights() {
 		return maxActiveLights;
 	}
@@ -338,34 +325,33 @@ public class RenderCapabilities {
 		return hasFfpRenderer;
 	}
 
-	/**
-	 * Whether or not offscreen surfaces can be implemented using frame buffer
-	 * objects, significantly faster (especially when true context sharing is
-	 * used).
-	 * 
-	 * @return True if fbos can be used
-	 */
+    /**
+     * Whether or not offscreen surfaces can be implemented using frame buffer
+     * objects, which is significantly faster than relying on pbuffers.
+     * 
+     * @return True if fbos can be used
+     */
 	public boolean getFboSupport() {
 		return fboSupported;
 	}
 
-	/**
-	 * Whether or not pbuffers (different than pixel buffers) are supported for
-	 * offscreen surfaces. Pbuffers are slower than fbos but are sometimes
-	 * necessary when no other context is available.
-	 * 
-	 * @return True if pbuffers can be used
-	 */
+    /**
+     * Whether or not pbuffers (different than pixel buffers) are supported for
+     * offscreen surfaces. Pbuffers are slower than fbos but are supported on
+     * more hardware.
+     * 
+     * @return True if pbuffers can be used
+     */
 	public boolean getPbufferSupport() {
 		return pbuffersSupported;
 	}
 
-	/**
-	 * Get the vendor returned string that describes the OpenGL drivers on
-	 * installed on the computer.
-	 * 
-	 * @return Implementation vendor description
-	 */
+    /**
+     * Get the vendor returned string that describes the OpenGL drivers
+     * installed on the computer.
+     * 
+     * @return Implementation vendor description
+     */
 	public String getVendor() {
 		return vendor;
 	}
@@ -379,11 +365,12 @@ public class RenderCapabilities {
 		return version;
 	}
 
-	/**
-	 * Get the GLSL shading language available on the computer.
-	 * 
-	 * @return Version to one decimal point
-	 */
+    /**
+     * Get the GLSL shading language available on the computer. If
+     * {@link #hasGlslRenderer()} returns false, this value is meaningless.
+     * 
+     * @return Version to one decimal point
+     */
 	public float getGlslVersion() {
 		return glslVersion;
 	}

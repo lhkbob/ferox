@@ -202,7 +202,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
      */
     
     private static TextureSurfaceOptions validateFormat(TextureSurfaceOptions options, RenderCapabilities caps) {
-        int numBuffers = Math.min(caps.getMaxColorTargets(), options.getNumColorBuffers());
+        int numBuffers = Math.min(caps.getMaxColorBuffers(), options.getNumColorBuffers());
         
         TextureFormat[] formats = new TextureFormat[numBuffers];
         for (int i = 0; i < formats.length; i++) {
@@ -218,7 +218,9 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         // FIXME: update capabilities to encode support for depth cubemaps
         options = options.setColorBufferFormats(formats);
         if (options.hasDepthTexture() && (options.getTarget() == Target.T_CUBEMAP || options.getTarget() == Target.T_3D))
-            options.setUseDepthTexture(false);
+            options = options.setUseDepthTexture(false);
+        if (options.hasDepthTexture() && !caps.getDepthTextureSupport())
+            options = options.setUseDepthTexture(false);
         return options;
     }
     
@@ -263,7 +265,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             maxDimension = caps.getMaxTexture3DSize();
             break;
         }
-        maxDimension = Math.min(maxDimension, caps.getMaxRenderbufferSize());
+        maxDimension = Math.min(maxDimension, caps.getMaxTextureSurfaceSize());
         
         options = options.setWidth(Math.min(options.getWidth(), maxDimension))
                          .setHeight(Math.min(options.getHeight(), maxDimension))

@@ -1,6 +1,7 @@
 package com.ferox.renderer.impl.resource;
 
 import java.nio.Buffer;
+import java.util.EnumSet;
 
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.resource.DirtyState;
@@ -25,6 +26,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     // extensions present
     protected final boolean npotSupported;
     protected final boolean unclampledFloatSupported;
+    protected final boolean depthSupported;
+    protected final EnumSet<Target> supportedTargets;
     
     // maximum dimensions
     protected final int maxCubeSize;
@@ -38,6 +41,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             throw new NullPointerException("Capabilities cannot be null");
         npotSupported = caps.getNpotTextureSupport();
         unclampledFloatSupported = caps.getUnclampedFloatTextureSupport();
+        depthSupported = caps.getDepthTextureSupport();
+        supportedTargets = caps.getSupportedTextureTargets();
         
         maxCubeSize = caps.getMaxTextureCubeMapSize();
         max3dSize = caps.getMaxTexture3DSize();
@@ -120,16 +125,28 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     }
 
     /**
+     * <p>
      * Return a String specifying the error status message if the given Texture
      * is unsupported. If the texture is supported (e.g. format/type), then
      * return null. This should only return a non-null error String based on the
      * immutable properties of the Texture, such that an unsupported texture
      * cannot be modified to become supported.
+     * </p>
+     * <p>
+     * Base implementation verifies Target support, depth texture support, npot
+     * support, and maximum valid dimensions.
+     * </p>
      * 
      * @param tex
      * @return
      */
     protected String getUnsupportedMessage(Texture tex) {
+        if (!supportedTargets.contains(tex.getTarget()))
+            return "Texture Target (" + tex.getTarget() + ") is not supported";
+        
+        if (!depthSupported && tex.getFormat() == TextureFormat.DEPTH)
+            return "Depth textures are not supported";
+        
         if (!npotSupported) {
             if (tex.getWidth() != ceilPot(tex.getWidth()) || 
                 tex.getHeight() != ceilPot(tex.getHeight()) ||
@@ -154,7 +171,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
         if (tex.getWidth() > maxSize || tex.getHeight() > maxSize || tex.getDepth() > maxSize)
             return "Dimensions excede supported maximum of " + maxSize;
         
-        // dimensions are at least valid, subclasses can override to support more validation
+        // so far valid, subclasses can override to support more validation
         return null;
     }
 

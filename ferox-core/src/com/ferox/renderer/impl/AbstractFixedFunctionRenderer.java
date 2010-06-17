@@ -765,8 +765,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 				glBindTexture(image.getTarget(), image);
 			}
 			
-			
-			
 			// store new bound image
 			t.image = image;
 		}
