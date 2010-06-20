@@ -7,7 +7,7 @@ import java.util.Map;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.SpatialHierarchy;
-import com.ferox.renderer.RenderSurface;
+import com.ferox.renderer.Surface;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ViewNode;
 import com.ferox.util.Bag;
@@ -26,7 +26,7 @@ import com.ferox.entity.EntitySystem;
  * that it reflects the location and orientation of the SceneElement. The y-axis
  * is considered up and the z-axis is considered to be the direction.</li>
  * <li>If {@link ViewNode#getAutoUpdateViewport()} returns true, modify the
- * viewport and projection as described in ViewNode to match its RenderSurface's
+ * viewport and projection as described in ViewNode to match its Surface's
  * dimensions.</li>
  * <li>Invoke {@link Frustum#updateFrustumPlanes()} so the Frustum is up to
  * date.</li>
@@ -97,7 +97,7 @@ public class ViewNodeController extends Controller {
 		}
 		
 		if (vn.getAutoUpdateViewport()) {
-			RenderSurface surface = vn.getRenderSurface();
+			Surface surface = vn.getRenderSurface();
 			
 			int width = surface.getWidth();
 			int height = surface.getHeight();

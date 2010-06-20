@@ -1,17 +1,17 @@
 package com.ferox.scene;
 
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.Texture;
 import com.ferox.entity.AbstractComponent;
 
 public final class NormalMappedSurface extends AbstractComponent<NormalMappedSurface> {
-	private TextureImage normalMap;
+	private Texture normalMap;
 	
-	public NormalMappedSurface(TextureImage normalMap) {
+	public NormalMappedSurface(Texture normalMap) {
 		super(NormalMappedSurface.class);
 		setNormalMap(normalMap);
 	}
 	
-	public void setNormalMap(TextureImage normalMap) {
+	public void setNormalMap(Texture normalMap) {
 		if (normalMap == null)
 			throw new NullPointerException("Normal map must be non-null");
 		if (normalMap.getFormat().getNumComponents() != 3)
@@ -20,7 +20,7 @@ public final class NormalMappedSurface extends AbstractComponent<NormalMappedSur
 		this.normalMap = normalMap;
 	}
 	
-	public TextureImage getNormalMap() {
+	public Texture getNormalMap() {
 		return normalMap;
 	}
 }

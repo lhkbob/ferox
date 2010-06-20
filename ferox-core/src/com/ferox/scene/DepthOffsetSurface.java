@@ -1,17 +1,17 @@
 package com.ferox.scene;
 
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.Texture;
 import com.ferox.entity.AbstractComponent;
 
 public final class DepthOffsetSurface extends AbstractComponent<DepthOffsetSurface> {
-	private TextureImage depthMap;
+	private Texture depthMap;
 	
-	public DepthOffsetSurface(TextureImage depthmap) {
+	public DepthOffsetSurface(Texture depthmap) {
 		super(DepthOffsetSurface.class);
 		setDepthMap(depthMap);
 	}
 	
-	public void setDepthMap(TextureImage depthMap) {
+	public void setDepthMap(Texture depthMap) {
 		if (depthMap == null)
 			throw new NullPointerException("Cannot specify a null depth map");
 		if (depthMap.getFormat().getNumComponents() != 1)
@@ -20,7 +20,7 @@ public final class DepthOffsetSurface extends AbstractComponent<DepthOffsetSurfa
 		this.depthMap = depthMap;
 	}
 	
-	public TextureImage getDepthMap() {
+	public Texture getDepthMap() {
 		return depthMap;
 	}
 }
