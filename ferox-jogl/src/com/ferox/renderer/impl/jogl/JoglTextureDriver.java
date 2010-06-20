@@ -90,7 +90,8 @@ public class JoglTextureDriver extends AbstractTextureResourceDriver {
         int dstFormat = Utils.getGLDstFormat(h.format, h.type);
         int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type, true));
         
-        data.clear();
+        if (data != null)
+            data.clear();
         switch(h.target) {
         case T_1D:
             getGL().glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type, data);
@@ -176,7 +177,7 @@ public class JoglTextureDriver extends AbstractTextureResourceDriver {
             }
             if (handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
                 handle.enableDepthCompare = tex.isDepthCompareEnabled();
-                getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_FUNC, (handle.enableDepthCompare ? GL2.GL_COMPARE_R_TO_TEXTURE : GL2GL3.GL_NONE));
+                getGL().glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_MODE, (handle.enableDepthCompare ? GL2.GL_COMPARE_R_TO_TEXTURE : GL2GL3.GL_NONE));
             }
         }
         

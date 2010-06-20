@@ -36,7 +36,7 @@ public class FramebufferObject {
         
         boundLayer = 0;
         int width, height;
-        if (colors != null) {
+        if (colors != null && colors.length > 0) {
             width = colors[0].getWidth();
             height = colors[0].getHeight();
             target = colors[0].getTarget();

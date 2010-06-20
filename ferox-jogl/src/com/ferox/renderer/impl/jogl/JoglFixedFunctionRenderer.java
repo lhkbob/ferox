@@ -11,7 +11,6 @@ import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
-import com.ferox.renderer.impl.RenderInterruptedException;
 import com.ferox.renderer.impl.resource.GeometryHandle;
 import com.ferox.renderer.impl.resource.ResourceHandle;
 import com.ferox.renderer.impl.resource.VertexArray;
@@ -454,9 +453,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     public int render(Geometry geom) {
-        if (Thread.interrupted())
-            throw new RenderInterruptedException();
-        
         ResourceHandle handle = resourceManager.getHandle(geom);
         if (handle != null) {
             super.render(geom);

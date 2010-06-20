@@ -9,7 +9,7 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="ferox-jogl/lib/native/macosx"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/jogl.all.jar">
+	<classpathentry kind="lib" path="lib/jogl.all.jar" sourcepath="/Users/michaelludwig/Desktop/IDONEUS_/jogl-mac-build/jogl/src/jogl/classes">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="ferox-jogl/lib/native/macosx"/>
 		</attributes>

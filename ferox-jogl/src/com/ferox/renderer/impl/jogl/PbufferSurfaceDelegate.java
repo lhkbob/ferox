@@ -51,6 +51,7 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
         GLCapabilities caps = chooseCapabilities(framework.getProfile(), colorTextures, depthTexture);
         pbuffer = GLDrawableFactory.getFactory(framework.getProfile()).createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(), 
                                                                                        width, height, (shareWith == null ? null : shareWith.getGLContext()));
+        pbuffer.setAutoSwapBufferMode(false);
         context = new JoglContext(framework, pbuffer.getContext(), surfaceLock);
         swapBuffersLayer = 0;
     }
@@ -68,6 +69,7 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
     
     @Override
     public void flushLayer() {
+        pbuffer.swapBuffers();
         Texture color = getColorBuffers().length > 0 ? getColorBuffers()[0] : null; // will be 1 color target at max
         Texture depth = getDepthBuffer();
 
@@ -113,7 +115,6 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
             gl.glCopyTexSubImage1D(glTarget, 0, 0, 0, 0, width);
             break;
         case GL2GL3.GL_TEXTURE_2D:
-        case GL2GL3.GL_TEXTURE_RECTANGLE_ARB:
             gl.glCopyTexSubImage2D(glTarget, 0, 0, 0, 0, 0, width, height);
             break;
         case GL2GL3.GL_TEXTURE_CUBE_MAP:

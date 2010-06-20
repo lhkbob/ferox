@@ -1,7 +1,5 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.io.File;
-
 import com.ferox.entity.Component;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
@@ -10,13 +8,13 @@ import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.SpatialHierarchy;
-import com.ferox.renderer.DisplayOptions;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.RenderThreadingOrganizer;
-import com.ferox.renderer.DisplayOptions.AntiAliasMode;
-import com.ferox.renderer.DisplayOptions.PixelFormat;
+import com.ferox.renderer.OnscreenSurfaceOptions;
+import com.ferox.renderer.ThreadQueueManager;
+import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
+import com.ferox.renderer.OnscreenSurfaceOptions.PixelFormat;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.resource.Geometry.CompileType;
 import com.ferox.scene.AmbientLight;
@@ -29,21 +27,19 @@ import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.ShadowReceiver;
 import com.ferox.scene.Shape;
 import com.ferox.scene.SpotLight;
-import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.ViewNode;
 import com.ferox.scene.Billboarded.Axis;
 import com.ferox.scene.controller.BillboardController;
 import com.ferox.scene.controller.LightUpdateController;
 import com.ferox.scene.controller.SceneController;
 import com.ferox.scene.controller.ViewNodeController;
-import com.ferox.scene.ffp.FixedFunctionRenderController;
-import com.ferox.scene.ffp.ShadowMapFrustumController;
+import com.ferox.scene.controller.ffp.FixedFunctionRenderController;
+import com.ferox.scene.controller.ffp.ShadowMapFrustumController;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.PrimitiveGeometry;
 import com.ferox.util.geom.Rectangle;
 import com.ferox.util.geom.Sphere;
 import com.ferox.util.geom.Teapot;
-import com.ferox.util.texture.loader.TextureLoader;
 
 public class FixedFunctionSceneCompositorTest {
 	private static final boolean USE_VBOS = true;
@@ -52,7 +48,7 @@ public class FixedFunctionSceneCompositorTest {
 	
 	public static void main(String[] args) throws Exception {
 		Framework framework = new FixedFunctionJoglFramework(true);
-		RenderThreadingOrganizer organizer = new RenderThreadingOrganizer(framework);
+		ThreadQueueManager organizer = new ThreadQueueManager(framework);
 		
 		EntitySystem system = new EntitySystem();
 		SpatialHierarchy<Entity> sh = new Octree<Entity>(new AxisAlignedBox(new Vector3f(-BOUNDS, -BOUNDS, -BOUNDS), 
@@ -63,8 +59,8 @@ public class FixedFunctionSceneCompositorTest {
 		LightUpdateController c2 = new LightUpdateController(system);
 		ViewNodeController c3 = new ViewNodeController(system, sh);
 		// FIXME: make this sizing/placement of shadowmap better and more intuitive
-		ShadowMapFrustumController c4 = new ShadowMapFrustumController(system, sh, .1f, 1024);
-		FixedFunctionRenderController c5 = new FixedFunctionRenderController(system, organizer, 1024);
+		ShadowMapFrustumController c4 = new ShadowMapFrustumController(system, sh, .075f, 1024);
+		FixedFunctionRenderController c5 = new FixedFunctionRenderController(system, organizer, 2048);
 		
 		buildScene(system);
 		
@@ -97,12 +93,12 @@ public class FixedFunctionSceneCompositorTest {
 				theta += .007;
 				phi += .007;
 				
-				c0.process();
-				c1.process();
-				c2.process();
-				c3.process();
-				c4.process();
-				c5.process();
+				c0.processWithProfile();
+				c1.processWithProfile();
+				c2.processWithProfile();
+				c3.processWithProfile();
+				c4.processWithProfile();
+				c5.processWithProfile();
 				
 				// begin rendering the frame
 				organizer.flush("ffp_sct");
@@ -134,10 +130,15 @@ public class FixedFunctionSceneCompositorTest {
 	}
 	
 	private static OnscreenSurface buildSurface(Framework framework, EntitySystem system) {
-		DisplayOptions options = new DisplayOptions(PixelFormat.RGB_24BIT, AntiAliasMode.EIGHT_X);
-		OnscreenSurface surface = framework.createWindowSurface(options, 0, 0, 800, 600, true, false);
+	    OnscreenSurfaceOptions options = new OnscreenSurfaceOptions().setPixelFormat(PixelFormat.RGB_24BIT)
+	                                                                 .setAntiAliasMode(AntiAliasMode.EIGHT_X)
+	                                                                 .setWidth(800)
+	                                                                 .setHeight(600)
+	                                                                 .setUndecorated(false)
+	                                                                 .setResizable(true);
+	    OnscreenSurface surface = framework.createSurface(options);
 		surface.setClearColor(new Color4f(.5f, .5f, .5f, 1f));
-		surface.setVSyncEnabled(true);
+//		surface.setVSyncEnabled(true);
 
 		// camera
 		ViewNode vn = new ViewNode(surface, 60f, 1f, 3 * BOUNDS);
@@ -170,7 +171,7 @@ public class FixedFunctionSceneCompositorTest {
 		ShadowCaster sc = new ShadowCaster();
 		ShadowReceiver sr = new ShadowReceiver();
 		
-		TexturedMaterial texture = new TexturedMaterial(TextureLoader.readTexture(new File("ferox-gl.png")));
+		//TexturedMaterial texture = new TexturedMaterial(TextureLoader.readTexture(new File("ferox-gl.png")));
 		BlinnPhongLightingModel material = new BlinnPhongLightingModel(new Color4f(1f, 1f, 1f), new Color4f(.2f, 0f, .1f));
 		
 		for (int i = 0; i < NUM_SHAPES; i++) {
@@ -209,13 +210,13 @@ public class FixedFunctionSceneCompositorTest {
 		pos.getTransform().setTranslation(BOUNDS, 0f, 0f);
 		pos.setLocalBounds(new AxisAlignedBox(backWall.getVertices().getData()));
 		
-		scene.add(new Entity(texture, pos, new Shape(backWall), material, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
+		scene.add(new Entity(pos, new Shape(backWall), material, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 		
 		Rectangle bottomWall = new Rectangle(new Vector3f(1f, 0f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS, -BOUNDS, BOUNDS);
 		pos = new SceneElement();
 		pos.getTransform().setTranslation(0f, -BOUNDS, 0f);
 		pos.setLocalBounds(new AxisAlignedBox(bottomWall.getVertices().getData()));
-		scene.add(new Entity(texture, pos, new Shape(bottomWall), material, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
+		scene.add(new Entity(pos, new Shape(bottomWall), material, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 
 		// ambient light
 		scene.add(new Entity(new AmbientLight(new Color4f(.2f, .2f, .2f, 1f))));

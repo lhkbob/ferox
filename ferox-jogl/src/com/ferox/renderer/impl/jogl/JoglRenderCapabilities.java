@@ -190,6 +190,7 @@ public class JoglRenderCapabilities extends RenderCapabilities {
         if (fboSupported) {
             gl.glGetIntegerv(GL2.GL_MAX_RENDERBUFFER_SIZE, store, 0);
             maxRenderbufferSize = store[0];
-        }
+        } else
+            maxRenderbufferSize = maxTextureSize;
     }
 }

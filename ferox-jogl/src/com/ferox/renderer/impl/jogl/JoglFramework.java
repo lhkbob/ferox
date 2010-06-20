@@ -43,6 +43,8 @@ public abstract class JoglFramework extends AbstractFramework {
         ResourceManager res = new DefaultResourceManager(drivers);
         RenderManager render = new DefaultRenderManager(res);
         
+        init(res, render, caps);
+        
         if (useShadowContext) {
             if (caps.getPbufferSupport())
                 shadowContext = PbufferShadowContext.create(this, profile);
@@ -51,7 +53,6 @@ public abstract class JoglFramework extends AbstractFramework {
         } else
             shadowContext = null;
         res.setContext(shadowContext);
-        init(res, render, caps);
     }
     
     public GLProfile getProfile() {
