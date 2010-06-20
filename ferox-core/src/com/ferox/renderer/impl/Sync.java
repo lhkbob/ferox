@@ -86,8 +86,8 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
 		return result;
 	}
 	
-	public V get(long nanos, TimeUnit units) throws InterruptedException, ExecutionException, TimeoutException {
-		if (!tryAcquireSharedNanos(0, nanos))
+	public V get(long timeout, TimeUnit units) throws InterruptedException, ExecutionException, TimeoutException {
+		if (!tryAcquireSharedNanos(0, units.toNanos(timeout)))
 			throw new TimeoutException();
 		if (getState() == CANCELLED)
 			throw new CancellationException();

@@ -15,7 +15,7 @@ public class ShadowMapGeneratorPass extends AbstractFfpRenderPass {
 	@Override
 	protected void render(FixedFunctionRenderer ffp) {
 		// set style to be just depth, while drawing only back faces
-		ffp.setColorWriteMask(false, false, false, false);
+//		ffp.setColorWriteMask(false, false, false, false);
 		ffp.setDrawStyle(DrawStyle.NONE, DrawStyle.SOLID);
 		
 		// move everything backwards slightly to account for floating errors

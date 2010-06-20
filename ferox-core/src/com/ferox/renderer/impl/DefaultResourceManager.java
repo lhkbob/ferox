@@ -69,7 +69,7 @@ public class DefaultResourceManager implements ResourceManager {
     private static final AtomicInteger threadCounter = new AtomicInteger(0);
 
     private final BlockingDeque<Sync<?>> pendingTasks;
-    private final ConcurrentMap<Resource, ResourceData> resourceData;
+    private final ConcurrentMap<Integer, ResourceData> resourceData;
     private final Map<Class<? extends Resource>, ResourceDriver> drivers;
 
     private final Object contextLock = new Object(); // used to guard access to resourceContext
@@ -98,7 +98,7 @@ public class DefaultResourceManager implements ResourceManager {
 
         destroyed = new AtomicBoolean(false);
         resourceContext = null;
-        resourceData = new ConcurrentHashMap<Resource, ResourceData>();
+        resourceData = new ConcurrentHashMap<Integer, ResourceData>();
         
         pendingTasks = new LinkedBlockingDeque<Sync<?>>();
 
@@ -236,8 +236,10 @@ public class DefaultResourceManager implements ResourceManager {
                 return (rd.handle.getStatus() == Status.READY ? rd.handle : null);
         }
         
+        boolean unlockNeeded = frameworkLock.isWriteLockedByCurrentThread();
+        frameworkLock.writeLock().unlock();
         try {
-            Status status = forceSync.get(500, TimeUnit.MILLISECONDS);
+            Status status = forceSync.get(500, TimeUnit.SECONDS);
             if (status == Status.READY) {
                 synchronized(resource) {
                     return getResourceData(resource).handle;
@@ -248,6 +250,9 @@ public class DefaultResourceManager implements ResourceManager {
             return null;
         } catch(Exception e) {
             throw new RenderException(e);
+        } finally {
+            if (unlockNeeded)
+                frameworkLock.writeLock().lock();
         }
     }
 
@@ -492,14 +497,16 @@ public class DefaultResourceManager implements ResourceManager {
     }
     
     private ResourceData getResourceData(Resource r) {
-        return resourceData.get(r);
+        Integer key = Integer.valueOf(r.getId());
+        return resourceData.get(key);
     }
     
     private void setResourceData(Resource r, ResourceData rd) {
+        Integer key = Integer.valueOf(r.getId());
         if (rd == null)
-            resourceData.remove(r);
+            resourceData.remove(key);
         else
-            resourceData.put(r, rd);
+            resourceData.put(key, rd);
     }
     
     /* Inner classes that provide much grunt work */

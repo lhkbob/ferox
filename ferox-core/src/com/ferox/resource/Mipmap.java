@@ -87,7 +87,7 @@ public class Mipmap {
         
         int mipCount = getMipmapCount(width, height, depth);
         this.dataType = getCanonicalType(dataType);
-        levels = new Buffer[mipmap ? 1 : mipCount];
+        levels = new Buffer[mipmap ? mipCount : 1];
         
         this.width = width;
         this.height = height;

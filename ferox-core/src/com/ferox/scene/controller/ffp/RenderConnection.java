@@ -2,6 +2,7 @@ package com.ferox.scene.controller.ffp;
 
 import com.ferox.entity.Component;
 import com.ferox.entity.Entity;
+import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Surface;
@@ -9,6 +10,8 @@ import com.ferox.scene.Fog;
 import com.ferox.util.Bag;
 
 public abstract class RenderConnection {
+    private static final AxisAlignedBox INFINITE = new AxisAlignedBox(new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY),
+                                                                      new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY));
     private final Bag<Entity> renderEntities;
     private final Bag<Entity> shadowEntities;
     
@@ -39,6 +42,9 @@ public abstract class RenderConnection {
     }
     
     public void addLight(Component light, AxisAlignedBox lightBounds, Frustum shadowFrustum) {
+        if (lightBounds == null)
+            lightBounds = INFINITE;
+        
         this.lightBounds.add(lightBounds);
         lights.add(light);
         

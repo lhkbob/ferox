@@ -77,6 +77,11 @@ public abstract class Component {
 	public ComponentId<?> getComponentId() {
 		return id;
 	}
+	
+	@Override
+	public String toString() {
+	    return getClass().getSimpleName();
+	}
 
 	/**
 	 * Return the unique ComponentId instance for the given <tt>type</tt>. If a

@@ -32,6 +32,10 @@ public class ThreadQueueManager {
 		queue(getSurfaceGroup(surface), new QueueEvent(framework, surface, pass));
 	}
 	
+	public void queue(String group, Surface surface, RenderPass pass) {
+	    queue(group, new QueueEvent(framework, surface, pass));
+	}
+	
 	public void flush(String group) {
 		if (group == null)
 			throw new NullPointerException("Group cannot be null");

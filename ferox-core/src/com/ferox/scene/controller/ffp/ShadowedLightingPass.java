@@ -51,7 +51,7 @@ public class ShadowedLightingPass extends AbstractFfpRenderPass {
 		// enable additive blending
 		ffp.setBlendingEnabled(true);
 		ffp.setBlendMode(BlendFunction.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE);
-		
+
 		// setup shadow map texture
 		int smUnit = maxMaterialTexUnits;
 		ffp.setTextureEnabled(smUnit, true);
@@ -82,8 +82,7 @@ public class ShadowedLightingPass extends AbstractFfpRenderPass {
 			if (atom.get(SR_ID) != null) {
 			    // only update entities that are shadow receivers and
 			    // that are influenced by the shadow light
-			    if (se == null || se.getWorldBounds() == null || shadowBounds == null ||
-			        shadowBounds.intersects(se.getWorldBounds()))
+			    if (se == null || se.getWorldBounds() == null || shadowBounds.intersects(se.getWorldBounds()))
 			        render(atom);
 			}
 		}

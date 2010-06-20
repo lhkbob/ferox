@@ -94,7 +94,7 @@ public class DefaultLightingPass extends AbstractFfpRenderPass {
 	
 	private boolean enableLight(int light, AxisAlignedBox rBounds, boolean receivesShadow, 
 	                            Component la, AxisAlignedBox lBounds) {
-	    if (rBounds == null || lBounds == null || lBounds.intersects(rBounds)) {
+	    if (rBounds == null || lBounds.intersects(rBounds)) {
 	        if (lightMap[light] != la || la == connection.getShadowCastingLight()) {
 	            if (la != connection.getShadowCastingLight() || !receivesShadow)
 	                setLight(light, la);

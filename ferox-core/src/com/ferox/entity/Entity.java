@@ -401,6 +401,28 @@ public final class Entity implements Iterable<Component> {
     public Iterator<Component> iterator() {
         return new ComponentIterator();
     }
+    
+    @Override
+    public String toString() {
+        synchronized(lock) {
+            StringBuilder b = new StringBuilder();
+            boolean first = true;
+            b.append('{');
+            for (int i = 0; i < components.length; i++) {
+                if (components[i] != null) {
+                    if (!first) {
+                        b.append(',');
+                        b.append(' ');
+                    } else
+                        first = false;
+                    b.append(components[i].toString());
+                }
+            }
+            
+            b.append('}');
+            return b.toString();
+        }
+    }
 
     /**
      * @return The EntityNode that was last assigned to this Entity by

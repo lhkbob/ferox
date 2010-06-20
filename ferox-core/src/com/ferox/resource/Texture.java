@@ -226,7 +226,7 @@ public class Texture extends Resource {
             
             // perform default detection of valid mipmap levels
             for (int j = 0; j < mipmaps[i].getNumMipmaps(); j++) {
-                if (mipmaps[j].getData(j) != null) {
+                if (mipmaps[i].getData(j) != null) {
                     baseLevel = Math.min(baseLevel, j);
                     maxLevel = Math.max(maxLevel, j);
                 }

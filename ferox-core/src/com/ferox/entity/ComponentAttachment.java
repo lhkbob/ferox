@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 /**
  * <p>
@@ -236,5 +237,26 @@ class ComponentAttachment {
         // if we're being removed from the system, we have a non-null index
         index.notifyComponentRemove(this);
         return new ComponentAttachment(this, null); // don't use any index anymore
+    }
+    
+    @Override
+    public String toString() {
+        if (metaComponents != null) {
+            StringBuilder b = new StringBuilder(component.toString());
+            boolean first = true;
+            b.append('(');
+            for (Entry<ComponentId<?>, Component> e: metaComponents.entrySet()) {
+                if (!first) {
+                    b.append(',');
+                    b.append(' ');
+                } else
+                    first = false;
+                b.append(e.getValue().toString());
+            }
+            b.append(')');
+            
+            return b.toString();
+        } else
+            return component.toString();
     }
 }

@@ -1,6 +1,5 @@
 package com.ferox.scene.controller.ffp;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -33,6 +32,7 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.ViewNode;
 import com.ferox.scene.controller.ffp.ShadowMapFrustumController.ShadowMapFrustum;
+import com.ferox.util.HashFunction;
 
 public class FixedFunctionRenderController extends Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
@@ -207,7 +207,7 @@ public class FixedFunctionRenderController extends Controller {
 	    private final DefaultLightingPass defaultPass;
 	    private final ShadowedLightingPass shadowLightPass;
 	    
-	    private final Semaphore shadowMapAccessor;
+	    private final Semaphore shadowMapAccessor; // FIXME: this needs to be up a level so all connections share this
 	    
 	    public RenderConnectionImpl() {
 	        shadowMapAccessor = new Semaphore(1, false);
@@ -227,10 +227,10 @@ public class FixedFunctionRenderController extends Controller {
 
         @Override
         public void flush(Surface surface) {
-            getRenderedEntities().sort(RA_COMPARATOR);
-            getShadowCastingEntities().sort(SA_COMPARATOR);
+            getRenderedEntities().sort(ENTITY_HASHER);
+            getShadowCastingEntities().sort(ENTITY_HASHER);
             
-            if (shadowMap == null) {
+            if (shadowMap == null || getShadowFrustum() == null) {
                 // just do the default pass
                 manager.queue(surface, defaultPass);
             } else {
@@ -250,7 +250,7 @@ public class FixedFunctionRenderController extends Controller {
 
         @Override
         public void notifyBaseLightingPassEnd() {
-            if (shadowMap == null) {
+            if (shadowMap == null || getShadowFrustum() == null) {
                 // if there's no shadow map, this is the final stage
                 // so we must close up shop
                 close();
@@ -295,48 +295,17 @@ public class FixedFunctionRenderController extends Controller {
         }
 	}
 	
-	private static final Comparator<Entity> RA_COMPARATOR = new Comparator<Entity>() {
+	private static final HashFunction<Entity> ENTITY_HASHER = new HashFunction<Entity>() {
         @Override
-        public int compare(Entity o1, Entity o2) {
-            // sort first on geometry
-            Shape s1 = o1.get(S_ID);
-            Shape s2 = o2.get(S_ID);
+        public int hashCode(Entity value) {
+            Shape s = value.get(S_ID);
+            int geomId = (s == null ? 0 : s.getGeometry().getId());
             
-            Geometry g1 = (s1 == null ? null : s1.getGeometry());
-            Geometry g2 = (s2 == null ? null : s2.getGeometry());
-            if (g1 != g2)
-                return System.identityHashCode(g1) - System.identityHashCode(g2);
+            TexturedMaterial tm = value.get(T_ID);
+            int tpId = (tm == null ? 0 : (tm.getPrimaryTexture() == null ? 0 : tm.getPrimaryTexture().getId()));
+            int tdId = (tm == null ? 0 : (tm.getDecalTexture() == null ? 0 : tm.getDecalTexture().getId()));
             
-            // then on textures
-            TexturedMaterial tm1 = o1.get(T_ID);
-            TexturedMaterial tm2 = o2.get(T_ID);
-            
-            Texture t1 = (tm1 == null ? null : tm1.getPrimaryTexture());
-            Texture t2 = (tm2 == null ? null : tm2.getPrimaryTexture());
-            if (t1 != t2)
-                return System.identityHashCode(t1) - System.identityHashCode(t2);
-            
-            t1 = (tm1 == null ? null : tm1.getDecalTexture());
-            t2 = (tm2 == null ? null : tm2.getDecalTexture());
-            if (t1 != t2)
-                return System.identityHashCode(t1) - System.identityHashCode(t2);
-            
-            return System.identityHashCode(o1) - System.identityHashCode(o2);
+            return ((geomId << 20) | (tpId << 10) | (tdId));
         }
-    };
-    
-    private static final Comparator<Entity> SA_COMPARATOR = new Comparator<Entity>() {
-        @Override
-        public int compare(Entity o1, Entity o2) {
-            // sort only on geometry for shadow mapping
-            Shape s1 = o1.get(S_ID);
-            Shape s2 = o2.get(S_ID);
-            
-            Geometry g1 = (s1 == null ? null : s1.getGeometry());
-            Geometry g2 = (s2 == null ? null : s2.getGeometry());
-            if (g1 != g2)
-                return System.identityHashCode(g1) - System.identityHashCode(g2);
-            return System.identityHashCode(o1) - System.identityHashCode(o2);
-        }
-    };
+	};
 }

@@ -11,7 +11,6 @@ import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.ferox.resource.Resource.Status;
 import com.ferox.resource.Texture.Target;
 
 /**
@@ -52,8 +51,8 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         activeLayer = options.getActiveLayer();
         activeDepth = options.getActiveDepthPlane();
         
-        renderLayer = 0;
-        renderDepth = 0;
+        renderLayer = -1;
+        renderDepth = -1;
         passRendered = false;
         try {
             // delegate to the subclass to provide true implementation of texture surface
@@ -113,6 +112,8 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             delegate.flushLayer();
         delegate.postRender(next);
         passRendered = false;
+        renderDepth = -1;
+        renderLayer = -1;
     }
 
     @Override
@@ -319,7 +320,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     
     private static void updateTextures(Texture[] color, Texture depth, ResourceManager manager) {
         for (int i = 0; i < color.length; i++) {
-            if (manager.getHandle(color[i]).getStatus() != Status.READY) {
+            if (manager.getHandle(color[i]) == null) {
                 // something went wrong, so we should fail
                 for (int j = 0; j <= i; j++)
                     manager.scheduleDispose(color[i]);
@@ -327,7 +328,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             }
         }
         if (depth != null) {
-            if (manager.getHandle(depth).getStatus() != Status.READY) {
+            if (manager.getHandle(depth) == null) {
                 // fail like before
                 for (int i = 0; i < color.length; i++)
                     manager.scheduleDispose(color[i]);

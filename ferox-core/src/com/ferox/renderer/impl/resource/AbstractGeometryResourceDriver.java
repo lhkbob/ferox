@@ -322,6 +322,7 @@ public abstract class AbstractGeometryResourceDriver implements ResourceDriver {
             
             va.buffer = vb.getData();
             va.elementSize = vb.getElementSize();
+            vas.add(va);
         }
         
         // now update the indices as well

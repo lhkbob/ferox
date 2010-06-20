@@ -1,5 +1,7 @@
 package com.ferox.math.bounds;
 
+import java.nio.FloatBuffer;
+
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
@@ -104,8 +106,38 @@ public class AxisAlignedBox {
 			throw new IllegalArgumentException("Vertices length must be a multiple of 3, and at least 3: " + vertices.length);
 		
 		int vertexCount = vertices.length / 3;
+		max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+		min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+
 		for (int i = 0; i < vertexCount; i++)
 			enclosePoint(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]); 
+	}
+
+    /**
+     * Equivalent constructor to {@link #AxisAlignedBox(float[])} except that
+     * the vertices are stored within a FloatBuffer. The vertices are accessed
+     * from position to 0 up to the capacity, the position and limit are
+     * ignored.
+     * 
+     * @param vertices A set of 3D vertices representing a shape, either a point
+     *            cloud or something more complex
+     * @throws NullPointerException if vertices is null
+     * @throws IllegalArgumentException if vertices.capacity() isn't a multiple
+     *             of 3, or if it has fewer than 3 elements
+     */
+	public AxisAlignedBox(FloatBuffer vertices) {
+	    this();
+        if (vertices == null)
+            throw new NullPointerException("Vertices cannot be null");
+        if (vertices.capacity() % 3 != 0 || vertices.capacity() < 3)
+            throw new IllegalArgumentException("Vertices length must be a multiple of 3, and at least 3: " + vertices.capacity());
+        
+        int vertexCount = vertices.capacity() / 3;
+        max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+        min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+        
+        for (int i = 0; i < vertexCount; i++)
+            enclosePoint(vertices.get(i * 3), vertices.get(i * 3 + 1), vertices.get(i * 3 + 2)); 
 	}
 	
 	private void enclosePoint(float x, float y, float z) {
@@ -462,6 +494,11 @@ public class AxisAlignedBox {
 	        return false;
 	    AxisAlignedBox that = (AxisAlignedBox) o;
 	    return min.equals(that.min) && max.equals(that.max);
+	}
+	
+	@Override
+	public String toString() {
+	    return "(min=" + min + ", max=" + max + ")";
 	}
 	
 	private void extent(Vector4f plane, boolean reverseDir, Vector3f result) {

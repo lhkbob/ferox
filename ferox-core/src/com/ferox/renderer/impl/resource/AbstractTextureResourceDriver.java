@@ -230,7 +230,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     private void doTexImage(Texture tex, TextureHandle handle, boolean newTex) {
         int w, h, d;
         
-        for (int i = tex.getBaseMipmapLevel(); i < tex.getMaxMipmapLevel(); i++) {
+        for (int i = tex.getBaseMipmapLevel(); i <= tex.getMaxMipmapLevel(); i++) {
             w = Math.max(1, tex.getWidth() >> i);
             h = Math.max(1, tex.getHeight() >> i);
             d = Math.max(1, tex.getDepth() >> i);
@@ -252,7 +252,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     private void doTexSubImage(Texture tex, TextureHandle handle, TextureDirtyState dirty) {
         int w, h, d;
         
-        for (int i = tex.getBaseMipmapLevel(); i < tex.getMaxMipmapLevel(); i++) {
+        for (int i = tex.getBaseMipmapLevel(); i <= tex.getMaxMipmapLevel(); i++) {
             w = Math.max(1, tex.getWidth() >> i);
             h = Math.max(1, tex.getHeight() >> i);
             d = Math.max(1, tex.getDepth() >> i);
