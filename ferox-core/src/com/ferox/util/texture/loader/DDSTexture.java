@@ -3,15 +3,17 @@ package com.ferox.util.texture.loader;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
-import com.ferox.resource.BufferData;
-import com.ferox.resource.Texture2D;
-import com.ferox.resource.Texture3D;
-import com.ferox.resource.TextureCubeMap;
+import com.ferox.resource.Mipmap;
+import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.ferox.resource.TextureImage;
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.TextureImage.TextureTarget;
+import com.ferox.resource.Texture.Target;
 
 /**
  * <p>
@@ -31,19 +33,19 @@ public class DDSTexture {
 	private final DDSHeader header;
 
 	// representation of the dds texture
-	private DataType type;
+	private Class<? extends Buffer> type;
 	private TextureFormat format;
-	private TextureTarget target;
+	private Target target;
 
 	private int mipmapCount; // at least 1
 	// depth may be unused for cube maps and 2d textures 
 	// (in which case it's set to 1)
 	private int width, height, depth;
-	private BufferData[][] data; // accessed [face][mipmap]
+	private Buffer[][] data; // accessed [face][mipmap]
 
 	/**
 	 *<p>
-	 * Read in and create a new TextureImage from the given stream. This image
+	 * Read in and create a new Texture from the given stream. This image
 	 * will be a Texture2D, Texture3D, or TextureCubeMap. An IOException will be
 	 * thrown if the stream doesn't represent a valid DDS texture or if its
 	 * header can't be identified to a supported TextureFormat, etc.
@@ -54,29 +56,19 @@ public class DDSTexture {
 	 * </p>
 	 * 
 	 * @param stream The InputStream to read the texture from
-	 * @return The TextureImage read from stream
+	 * @return The Texture read from stream
 	 * @throws IOException if an IOException occurs while reading, or if the
 	 *             stream is an invalid or unsupported DDS texture
 	 */
-	public static TextureImage readTexture(InputStream stream) throws IOException {
+	public static Texture readTexture(InputStream stream) throws IOException {
 		if (stream == null)
 			throw new IOException("Cannot read a texture from a null stream");
 
 		DDSTexture texture = new DDSTexture(stream);
-		switch (texture.target) {
-		case T_2D:
-			return new Texture2D(texture.data[0], texture.width, texture.height, 
-							  	 texture.format, texture.type);
-		case T_3D:
-			return new Texture3D(texture.data[0], texture.width, texture.height, texture.depth, 
-								 texture.format, texture.type);
-		case T_CUBEMAP:
-			return new TextureCubeMap(texture.data[0], texture.data[2], texture.data[4], 
-									  texture.data[1], texture.data[3], texture.data[5], 
-									  texture.width, texture.format, texture.type);
-		default:
-			throw new IOException("Unsupported texture target type: " + texture.target);
-		}
+		Mipmap[] mips = new Mipmap[texture.data.length];
+		for (int i = 0; i < mips.length; i++)
+		    mips[i] = new Mipmap(texture.data[i], texture.width, texture.height, texture.depth, texture.format);
+		return new Texture(texture.target, mips);
 	}
 
 	/**
@@ -237,21 +229,21 @@ public class DDSTexture {
 	private static enum DXGIPixelFormat {
 		DXGI_FORMAT_UNKNOWN, 
 		DXGI_FORMAT_R32G32B32A32_TYPELESS, 
-		DXGI_FORMAT_R32G32B32A32_FLOAT(DataType.FLOAT, TextureFormat.RGBA_FLOAT),
+		DXGI_FORMAT_R32G32B32A32_FLOAT(FloatBuffer.class, TextureFormat.RGBA_FLOAT),
 		DXGI_FORMAT_R32G32B32A32_UINT, 
 		DXGI_FORMAT_R32G32B32A32_SINT, 
 		DXGI_FORMAT_R32G32B32_TYPELESS, 
-		DXGI_FORMAT_R32G32B32_FLOAT(DataType.FLOAT, TextureFormat.RGB_FLOAT), 
+		DXGI_FORMAT_R32G32B32_FLOAT(FloatBuffer.class, TextureFormat.RGB_FLOAT), 
 		DXGI_FORMAT_R32G32B32_UINT, 
 		DXGI_FORMAT_R32G32B32_SINT, 
 		DXGI_FORMAT_R16G16B16A16_TYPELESS, 
 		DXGI_FORMAT_R16G16B16A16_FLOAT, 
-		DXGI_FORMAT_R16G16B16A16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.RGBA),
+		DXGI_FORMAT_R16G16B16A16_UNORM(ShortBuffer.class, TextureFormat.RGBA),
 		DXGI_FORMAT_R16G16B16A16_UINT, 
 		DXGI_FORMAT_R16G16B16A16_SNORM, 
 		DXGI_FORMAT_R16G16B16A16_SINT,
 		DXGI_FORMAT_R32G32_TYPELESS,
-		DXGI_FORMAT_R32G32_FLOAT(DataType.FLOAT, TextureFormat.LUMINANCE_ALPHA_FLOAT), 
+		DXGI_FORMAT_R32G32_FLOAT(FloatBuffer.class, TextureFormat.LUMINANCE_ALPHA_FLOAT), 
 		DXGI_FORMAT_R32G32_UINT, 
 		DXGI_FORMAT_R32G32_SINT, 
 		DXGI_FORMAT_R32G8X24_TYPELESS,
@@ -263,21 +255,21 @@ public class DDSTexture {
 		DXGI_FORMAT_R10G10B10A2_UINT, 
 		DXGI_FORMAT_R11G11B10_FLOAT, 
 		DXGI_FORMAT_R8G8B8A8_TYPELESS, 
-		DXGI_FORMAT_R8G8B8A8_UNORM(DataType.UNSIGNED_INT, TextureFormat.RGBA_8888), 
-		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB(DataType.UNSIGNED_INT, TextureFormat.RGBA_8888), 
+		DXGI_FORMAT_R8G8B8A8_UNORM(IntBuffer.class, TextureFormat.RGBA_8888), 
+		DXGI_FORMAT_R8G8B8A8_UNORM_SRGB(IntBuffer.class, TextureFormat.RGBA_8888), 
 		DXGI_FORMAT_R8G8B8A8_UINT, 
 		DXGI_FORMAT_R8G8B8A8_SNORM,
 		DXGI_FORMAT_R8G8B8A8_SINT, 
 		DXGI_FORMAT_R16G16_TYPELESS, 
 		DXGI_FORMAT_R16G16_FLOAT, 
-		DXGI_FORMAT_R16G16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.LUMINANCE_ALPHA), 
+		DXGI_FORMAT_R16G16_UNORM(ShortBuffer.class, TextureFormat.LUMINANCE_ALPHA), 
 		DXGI_FORMAT_R16G16_UINT, 
 		DXGI_FORMAT_R16G16_SNORM, 
 		DXGI_FORMAT_R16G16_SINT, 
 		DXGI_FORMAT_R32_TYPELESS, 
-		DXGI_FORMAT_D32_FLOAT(DataType.FLOAT, TextureFormat.DEPTH),
+		DXGI_FORMAT_D32_FLOAT(FloatBuffer.class, TextureFormat.DEPTH),
 		// not the best mapping, but it works
-		DXGI_FORMAT_R32_FLOAT(DataType.FLOAT, TextureFormat.LUMINANCE_FLOAT), 
+		DXGI_FORMAT_R32_FLOAT(FloatBuffer.class, TextureFormat.LUMINANCE_FLOAT), 
 		DXGI_FORMAT_R32_UINT, 
 		DXGI_FORMAT_R32_SINT, 
 		DXGI_FORMAT_R24G8_TYPELESS, 
@@ -286,49 +278,49 @@ public class DDSTexture {
 		DXGI_FORMAT_X24_TYPELESS_G8_UINT, 
 		DXGI_FORMAT_R8G8_TYPELESS,
 		// not the best mapping, but it works
-		DXGI_FORMAT_R8G8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE_ALPHA), 
+		DXGI_FORMAT_R8G8_UNORM(ByteBuffer.class, TextureFormat.LUMINANCE_ALPHA), 
 		DXGI_FORMAT_R8G8_UINT,
 		DXGI_FORMAT_R8G8_SNORM, 
 		DXGI_FORMAT_R8G8_SINT,
 		DXGI_FORMAT_R16_TYPELESS, 
 		DXGI_FORMAT_R16_FLOAT,
-		DXGI_FORMAT_D16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.DEPTH), 
-		DXGI_FORMAT_R16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.LUMINANCE), 
+		DXGI_FORMAT_D16_UNORM(ShortBuffer.class, TextureFormat.DEPTH), 
+		DXGI_FORMAT_R16_UNORM(ShortBuffer.class, TextureFormat.LUMINANCE), 
 		DXGI_FORMAT_R16_UINT,
 		DXGI_FORMAT_R16_SNORM,
 		DXGI_FORMAT_R16_SINT, 
 		DXGI_FORMAT_R8_TYPELESS, 
-		DXGI_FORMAT_R8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE),
+		DXGI_FORMAT_R8_UNORM(ByteBuffer.class, TextureFormat.LUMINANCE),
 		DXGI_FORMAT_R8_UINT, 
 		DXGI_FORMAT_R8_SNORM, 
 		DXGI_FORMAT_R8_SINT, 
-		DXGI_FORMAT_A8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA), 
+		DXGI_FORMAT_A8_UNORM(ByteBuffer.class, TextureFormat.ALPHA), 
 		DXGI_FORMAT_R1_UNORM, 
 		DXGI_FORMAT_R9G9B9E5_SHAREDEXP, 
 		DXGI_FORMAT_R8G8_B8G8_UNORM, 
 		DXGI_FORMAT_G8R8_G8B8_UNORM, 
 		DXGI_FORMAT_BC1_TYPELESS, 
-		DXGI_FORMAT_BC1_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.RGB_DXT1), 
-		DXGI_FORMAT_BC1_UNORM_SRGB(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT1), 
+		DXGI_FORMAT_BC1_UNORM(ByteBuffer.class, TextureFormat.RGB_DXT1), 
+		DXGI_FORMAT_BC1_UNORM_SRGB(ByteBuffer.class, TextureFormat.RGBA_DXT1), 
 		DXGI_FORMAT_BC2_TYPELESS, 
-		DXGI_FORMAT_BC2_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT3), 
-		DXGI_FORMAT_BC2_UNORM_SRGB(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT3),
+		DXGI_FORMAT_BC2_UNORM(ByteBuffer.class, TextureFormat.RGBA_DXT3), 
+		DXGI_FORMAT_BC2_UNORM_SRGB(ByteBuffer.class, TextureFormat.RGBA_DXT3),
 		DXGI_FORMAT_BC3_TYPELESS, 
-		DXGI_FORMAT_BC3_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT5),
-		DXGI_FORMAT_BC3_UNORM_SRGB(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT5), 
+		DXGI_FORMAT_BC3_UNORM(ByteBuffer.class, TextureFormat.RGBA_DXT5),
+		DXGI_FORMAT_BC3_UNORM_SRGB(ByteBuffer.class, TextureFormat.RGBA_DXT5), 
 		DXGI_FORMAT_BC4_TYPELESS, 
 		DXGI_FORMAT_BC4_UNORM, 
 		DXGI_FORMAT_BC4_SNORM,
 		DXGI_FORMAT_BC5_TYPELESS,
 		DXGI_FORMAT_BC5_UNORM, 
 		DXGI_FORMAT_BC5_SNORM,
-		DXGI_FORMAT_B5G6R5_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.BGR_565), 
-		DXGI_FORMAT_B5G5R5A1_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.BGRA_5551), 
-		DXGI_FORMAT_B8G8R8A8_UNORM(DataType.UNSIGNED_INT, TextureFormat.BGRA_8888), 
+		DXGI_FORMAT_B5G6R5_UNORM(ShortBuffer.class, TextureFormat.BGR_565), 
+		DXGI_FORMAT_B5G5R5A1_UNORM(ShortBuffer.class, TextureFormat.BGRA_5551), 
+		DXGI_FORMAT_B8G8R8A8_UNORM(IntBuffer.class, TextureFormat.BGRA_8888), 
 		DXGI_FORMAT_B8G8R8X8_UNORM;
 
 		boolean supported;
-		DataType type;
+		Class<? extends Buffer> type;
 		TextureFormat format;
 
 		int typeByteSize; // number of bytes of each primitive element for
@@ -342,7 +334,7 @@ public class DDSTexture {
 			supported = false;
 		}
 
-		private DXGIPixelFormat(DataType type, TextureFormat format) {
+		private DXGIPixelFormat(Class<? extends Buffer> type, TextureFormat format) {
 			supported = true;
 			this.format = format;
 			this.type = type;
@@ -364,10 +356,10 @@ public class DDSTexture {
 		int aMask;
 
 		TextureFormat format;
-		DataType type;
+		Class<? extends Buffer> type;
 
 		public DDPFMap(int bitCount, int rMask, int gMask, int bMask, int aMask, 
-					   DataType type, TextureFormat format) {
+					   Class<? extends Buffer> type, TextureFormat format) {
 			this.bitCount = bitCount;
 			this.rMask = rMask;
 			this.gMask = gMask;
@@ -395,33 +387,33 @@ public class DDSTexture {
 
 	// Supported RGB types
 	private static final DDPFMap[] pfRGB = new DDPFMap[] {
-		new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0, DataType.UNSIGNED_BYTE, TextureFormat.RGB),
-		new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0, DataType.UNSIGNED_BYTE, TextureFormat.BGR),
-		new DDPFMap(16, 0xf800, 0x7e0, 0x1f, 0, DataType.UNSIGNED_BYTE, TextureFormat.RGB_565), 
-		new DDPFMap(16, 0x1f, 0x7e0, 0xf800, 0, DataType.UNSIGNED_BYTE, TextureFormat.BGR_565)
+		new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0, ByteBuffer.class, TextureFormat.RGB),
+		new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0, ByteBuffer.class, TextureFormat.BGR),
+		new DDPFMap(16, 0xf800, 0x7e0, 0x1f, 0, ByteBuffer.class, TextureFormat.RGB_565), 
+		new DDPFMap(16, 0x1f, 0x7e0, 0xf800, 0, ByteBuffer.class, TextureFormat.BGR_565)
 	};
 
 	// Supported RGBA types
 	private static final DDPFMap[] pfRGBA = new DDPFMap[] { 
-		new DDPFMap(32, 0xff0000, 0xff00, 0xff, 0xff000000, DataType.UNSIGNED_INT, TextureFormat.ARGB_8888), 
-		new DDPFMap(32, 0xff000000, 0xff0000, 0xff00, 0x000000ff, DataType.UNSIGNED_INT, TextureFormat.RGBA_8888), 
-		new DDPFMap(32, 0xff, 0xff00, 0xff0000, 0xff000000, DataType.UNSIGNED_INT, TextureFormat.ABGR_8888), 
-		new DDPFMap(32, 0xff00, 0xff0000, 0xff000000, 0xff, DataType.UNSIGNED_INT, TextureFormat.BGRA_8888)
+		new DDPFMap(32, 0xff0000, 0xff00, 0xff, 0xff000000, IntBuffer.class, TextureFormat.ARGB_8888), 
+		new DDPFMap(32, 0xff000000, 0xff0000, 0xff00, 0x000000ff, IntBuffer.class, TextureFormat.RGBA_8888), 
+		new DDPFMap(32, 0xff, 0xff00, 0xff0000, 0xff000000, IntBuffer.class, TextureFormat.ABGR_8888), 
+		new DDPFMap(32, 0xff00, 0xff0000, 0xff000000, 0xff, IntBuffer.class, TextureFormat.BGRA_8888)
 	};
 
 	// Supported Luminance types
 	private static final DDPFMap[] pfL = new DDPFMap[] { 
-		new DDPFMap(8, 0xff, 0, 0, 0, DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE) 
+		new DDPFMap(8, 0xff, 0, 0, 0, ByteBuffer.class, TextureFormat.LUMINANCE) 
 	};
 
 	// Supported Luminance/Alpha types
 	private static final DDPFMap[] pfLA = new DDPFMap[] { 
-		new DDPFMap(16, 0xff, 0, 0, 0xff00, DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE_ALPHA)
+		new DDPFMap(16, 0xff, 0, 0, 0xff00, ByteBuffer.class, TextureFormat.LUMINANCE_ALPHA)
 	};
 
 	// Supported Alpha types
 	private static final DDPFMap[] pfA = new DDPFMap[] { 
-		new DDPFMap(8, 0, 0, 0, 0xff, DataType.UNSIGNED_BYTE, TextureFormat.ALPHA) 
+		new DDPFMap(8, 0, 0, 0, 0xff, ByteBuffer.class, TextureFormat.ALPHA) 
 	};
 
 	/*
@@ -535,20 +527,20 @@ public class DDSTexture {
 		// We won't check for DDSCAPS_COMPLEX, since some files seem to ignore
 		// it when creating cube maps or 3d textures
 		if (isFlagSet(header.caps2, DDSCAPS2_VOLUME))
-			target = TextureTarget.T_3D;
+			target = Target.T_3D;
 		else if (isFlagSet(header.caps2, DDSCAPS2_CUBEMAP))
-			target = TextureTarget.T_CUBEMAP;
+			target = Target.T_CUBEMAP;
 		else
-			target = TextureTarget.T_2D;
+			target = Target.T_2D;
 
 		depth = 1;
 		// further validate the dimensions
-		if (target == TextureTarget.T_3D) {
+		if (target == Target.T_3D) {
 			if (isFlagSet(header.flags, DDSD_DEPTH))
 				depth = header.depth;
 			else
 				throw new IOException("DDSD header is missing required flag DDSD_DEPTH for a volume texture");
-		} else if (target == TextureTarget.T_CUBEMAP) {
+		} else if (target == Target.T_CUBEMAP) {
 			if (!isFlagSet(header.caps2, DDSCAPS2_CUBEMAP_ALL_FACES))
 				throw new IOException("Cube map must have 6 faces present");
 			if (width != height)
@@ -557,17 +549,17 @@ public class DDSTexture {
 
 		// validate the DX10 header as well
 		if (header.headerDX10 != null)
-			if (target == TextureTarget.T_2D) {
+			if (target == Target.T_2D) {
 				if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE2D)
 					throw new IOException("DX10 header and surface caps are inconsistent");
 				if (header.headerDX10.arraySize > 1)
 					throw new IOException("Texture arrays aren't supported");
-			} else if (target == TextureTarget.T_3D) {
+			} else if (target == Target.T_3D) {
 				if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE3D)
 					throw new IOException("DX10 header and surface caps are inconsistent");
 				if (header.headerDX10.arraySize > 1)
 					throw new IOException("Texture arrays aren't supported");
-			} else if (target == TextureTarget.T_CUBEMAP)
+			} else if (target == Target.T_CUBEMAP)
 				if (header.headerDX10.resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
 					// nvidia sets the dx10 header to be a 2d tex, with
 					// arraySize = 6 for cubemaps
@@ -607,9 +599,8 @@ public class DDSTexture {
 				type = header.headerDX10.dxgiFormat.type;
 			}
 		} else if (isFlagSet(header.pixelFormat.flags, DDPF_FOURCC)) {
-			// interpret the FOURCC flag. Currently only supports DXT1,
-			// DXT3, and DXT5
-			type = DataType.UNSIGNED_BYTE;
+			// interpret the FOURCC flag. Currently only supports DXT1, DXT3, and DXT5
+			type = ByteBuffer.class;
 			format = null;
 
 			if (header.pixelFormat.fourCC == FOURCC_DXT1) {
@@ -656,7 +647,7 @@ public class DDSTexture {
 			throw new IOException("Unsupported pixel format: " + header.pixelFormat);
 		}
 
-		if (format.getPrimitivesPerColor() < 0 && target == TextureTarget.T_3D)
+		if (format.getPrimitivesPerColor() < 0 && target == Target.T_3D)
 			throw new IOException("Compressed textures are only allowed to have targets of T_CUBEMAP or T_2D");
 	}
 
@@ -719,16 +710,16 @@ public class DDSTexture {
 	private void readData(InputStream in) throws IOException {
 		int width, height, depth, size;
 		int arrayCount = 1;
-		if (target == TextureTarget.T_CUBEMAP)
+		if (target == Target.T_CUBEMAP)
 			arrayCount = 6; // faces are ordered px, nx, py, ny, pz, nz
-		data = new BufferData[arrayCount][mipmapCount];
+		data = new Buffer[arrayCount][mipmapCount];
 		byte[] image;
 		for (int i = 0; i < arrayCount; i++) {
 			width = this.width;
 			height = this.height;
 			depth = this.depth;
 			for (int m = 0; m < mipmapCount; m++) {
-				size = format.getBufferSize(width, height, depth) * type.getByteSize();
+				size = format.getBufferSize(width, height, depth) * getByteSize(type);
 
 				image = new byte[size];
 				readAll(in, image);
@@ -743,36 +734,45 @@ public class DDSTexture {
 
 	// create an appropriately typed nio buffer based the DDSTexture's glType and the byte[] image.
 	// for int, short, and float primitive types, it converts the byte ordering into big endian.
-	private BufferData createBuffer(byte[] image) throws IOException {
-		switch (type) {
-		case UNSIGNED_INT: {
-			int[] data = new int[image.length / 4];
-			for (int i = 0; i < data.length; i++)
-				data[i] = bytesToInt(image, i << 2);
-			return new BufferData(data, true);
-		}
-		case UNSIGNED_SHORT: {
-			short[] data = new short[image.length / 2];
-			for (int i = 0; i < data.length; i++)
-				data[i] = bytesToShort(image, i << 1);
-			return new BufferData(data, true);
-		}
-		case FLOAT: {
-			float[] data = new float[image.length / 2];
-			for (int i = 0; i < data.length; i++)
-				data[i] = bytesToFloat(image, i << 2);
-			return new BufferData(data, false);
-		}
-		case UNSIGNED_BYTE: {
-			return new BufferData(image, true);
-		}
-		}
-		throw new IOException("Unsupported opengl texture data type: " + type);
+	private Buffer createBuffer(byte[] image) throws IOException {
+	    if (FloatBuffer.class.isAssignableFrom(type)) {
+	        FloatBuffer data = ByteBuffer.allocateDirect(image.length).order(ByteOrder.nativeOrder()).asFloatBuffer();
+            for (int i = 0; i < data.capacity(); i++)
+                data.put(i, bytesToFloat(image, i << 2));
+            return data;
+	    } else if (IntBuffer.class.isAssignableFrom(type)) {
+	        IntBuffer data = ByteBuffer.allocateDirect(image.length).order(ByteOrder.nativeOrder()).asIntBuffer();
+	        for (int i = 0; i < data.capacity(); i++)
+	            data.put(i, bytesToInt(image, i << 2));
+	        return data;
+	    } else if (ShortBuffer.class.isAssignableFrom(type)) {
+	        ShortBuffer data = ByteBuffer.allocateDirect(image.length).order(ByteOrder.nativeOrder()).asShortBuffer();
+            for (int i = 0; i < data.capacity(); i++)
+                data.put(i, bytesToShort(image, i << 2));
+            return data;
+	    } else if (ByteBuffer.class.isAssignableFrom(type)) {
+	        ByteBuffer data = ByteBuffer.allocateDirect(image.length).order(ByteOrder.nativeOrder());
+	        data.put(image);
+	        return data;
+	    }
+	    throw new IOException("Unsupported texture data type: " + type);
 	}
 
 	/*
 	 * Utility methods relating to I/O and the DDS file format
 	 */
+	
+	private static int getByteSize(Class<? extends Buffer> type) {
+	    if (FloatBuffer.class.isAssignableFrom(type))
+	        return 4;
+	    if (IntBuffer.class.isAssignableFrom(type))
+            return 4;
+	    if (ShortBuffer.class.isAssignableFrom(type))
+            return 2;
+	    if (ByteBuffer.class.isAssignableFrom(type))
+            return 1;
+	    return -1;
+	}
 
 	// check whether or not flag is set in the flags bit field
 	private static boolean isFlagSet(int flags, int flag) {

@@ -3,10 +3,15 @@ package com.ferox.util.texture.loader;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 
-import com.ferox.resource.BufferData;
-import com.ferox.resource.Texture2D;
+import com.ferox.resource.Mipmap;
+import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
+import com.ferox.resource.Texture.Target;
 
 /**
  * <p>
@@ -28,11 +33,11 @@ import com.ferox.resource.TextureFormat;
 public class TGATexture {
 	private final Header header;
 	private TextureFormat format;
-	private BufferData data;
+	private Buffer data;
 
 	/**
 	 * <p>
-	 * Load in a Targa image from the given stream as a Texture2D. This loader
+	 * Load in a Targa image from the given stream as a 2D texture. This loader
 	 * supports true color and color maps with pixel depths of 16, 24, and 32
 	 * bits. The image will be flipped if necessary.
 	 * </p>
@@ -43,16 +48,15 @@ public class TGATexture {
 	 * </p>
 	 * 
 	 * @param stream The InputStream to read the tga texture from
-	 * @return The read Texture2D
+	 * @return The read Texture with a target of T_2D
 	 * @throws IOException if there was an IO error or if the tga file is
 	 *             invalid or unsupported
 	 */
-	public static Texture2D readTexture(InputStream stream) throws IOException {
+	public static Texture readTexture(InputStream stream) throws IOException {
 		if (stream == null)
 			throw new IOException("Cannot read from a null stream");
 		TGATexture res = new TGATexture(stream);
-		return new Texture2D(new BufferData[] { res.data }, res.header.width, res.header.height, 
-							 res.format, res.data.getType());
+		return new Texture(Target.T_2D, new Mipmap(res.data, res.header.width, res.header.height, 1, res.format));
 	}
 
 	/**
@@ -391,7 +395,7 @@ public class TGATexture {
 		int i; // input row index
 		int y; // output row index
 		int c; // column index
-		short[] tmpData = new short[header.width * header.height];
+		ShortBuffer tmpData = ByteBuffer.allocateDirect(header.width * header.height * 2).order(ByteOrder.nativeOrder()).asShortBuffer();
 
 		format = (cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
 		if (header.pixelDepth == 8) {
@@ -404,7 +408,7 @@ public class TGATexture {
 
 				for (c = 0; c < header.width; c++) {
 					index = bytesToLittleEndianShort(rawIndices, c << 1);
-					tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
+					tmpData.put(y * header.width + c, (short) bytesToLittleEndianShort(cm.colorMapData, index));
 				}
 			}
 		} else {
@@ -417,12 +421,12 @@ public class TGATexture {
 
 				for (c = 0; c < header.width; c++) {
 					index = rawIndices[c];
-					tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
+					tmpData.put(y * header.width + c, (short) bytesToLittleEndianShort(cm.colorMapData, index));
 				}
 			}
 		}
 
-		data = new BufferData(tmpData, true);
+		data = tmpData;
 	}
 
 	/*
@@ -433,8 +437,7 @@ public class TGATexture {
 		int i; // input row index
 		int y; // output row index
 		int c; // column index
-		int rawWidth = header.width * cm.elementByteCount; // length of expanded
-		// color row
+		int rawWidth = header.width * cm.elementByteCount; // length of expanded color row
 		byte[] tmpData = new byte[rawWidth * header.height];
 
 		format = (cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
@@ -465,7 +468,9 @@ public class TGATexture {
 			}
 		}
 
-		data = new BufferData(tmpData, true);
+		data = ByteBuffer.allocateDirect(tmpData.length)
+		                 .order(ByteOrder.nativeOrder())
+		                 .put(tmpData);
 	}
 
 	/* This assumes that the body is a 16 bit ARGB_1555 image. */
@@ -488,7 +493,10 @@ public class TGATexture {
 			System.arraycopy(swapRow, 0, tmpData, y * header.width, swapRow.length);
 		}
 
-		data = new BufferData(tmpData, true);
+		data = ByteBuffer.allocateDirect(tmpData.length * 2)
+		                 .order(ByteOrder.nativeOrder())
+		                 .asShortBuffer()
+		                 .put(tmpData);
 	}
 
 	/*
@@ -511,7 +519,9 @@ public class TGATexture {
 			System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
 		}
 
-		data = new BufferData(tmpData, true);
+		data = ByteBuffer.allocateDirect(tmpData.length)
+		                 .order(ByteOrder.nativeOrder())
+		                 .put(tmpData);
 	}
 
 	// read bytes from the given stream until the array is full

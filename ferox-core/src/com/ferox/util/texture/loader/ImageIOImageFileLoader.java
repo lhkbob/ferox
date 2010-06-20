@@ -6,7 +6,7 @@ import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.Texture;
 
 /**
  * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files
@@ -16,7 +16,7 @@ import com.ferox.resource.TextureImage;
  */
 public class ImageIOImageFileLoader implements ImageFileLoader {
 	@Override
-	public TextureImage readImage(InputStream stream) throws IOException {
+	public Texture readImage(InputStream stream) throws IOException {
 		// I'm assuming that read() will restore the stream's position
 		// if no reader is found
 

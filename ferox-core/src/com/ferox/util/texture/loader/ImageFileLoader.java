@@ -3,7 +3,7 @@ package com.ferox.util.texture.loader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.Texture;
 
 /**
  * <p>
@@ -21,7 +21,7 @@ import com.ferox.resource.TextureImage;
 public interface ImageFileLoader {
 	/**
 	 * <p>
-	 * Process the data from the given stream and return a TextureImage
+	 * Process the data from the given stream and return a Texture
 	 * representing its contents.
 	 * </p>
 	 * <p>
@@ -35,9 +35,9 @@ public interface ImageFileLoader {
 	 * </p>
 	 * 
 	 * @param stream The InputStream to attempt to read an image from
-	 * @return The read TextureImage, or null if this stream doesn't match a
+	 * @return The read Texture, or null if this stream doesn't match a
 	 *         supported format
 	 * @throws IOException if there are any problems reading the texture
 	 */
-	public TextureImage readImage(InputStream stream) throws IOException;
+	public Texture readImage(InputStream stream) throws IOException;
 }

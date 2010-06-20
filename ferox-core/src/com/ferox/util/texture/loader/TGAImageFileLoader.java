@@ -3,7 +3,7 @@ package com.ferox.util.texture.loader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.ferox.resource.TextureImage;
+import com.ferox.resource.Texture;
 
 /**
  * An implementation of ImageFileLoader that relies on TGATexture to load .tga
@@ -13,7 +13,7 @@ import com.ferox.resource.TextureImage;
  */
 public class TGAImageFileLoader implements ImageFileLoader {
 	@Override
-	public TextureImage readImage(InputStream stream) throws IOException {
+	public Texture readImage(InputStream stream) throws IOException {
 		if (TGATexture.isTGATexture(stream))
 			return TGATexture.readTexture(stream);
 		else
