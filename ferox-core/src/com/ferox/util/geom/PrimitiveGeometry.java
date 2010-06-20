@@ -1,5 +1,10 @@
 package com.ferox.util.geom;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import com.ferox.resource.Geometry;
 import com.ferox.resource.VectorBuffer;
 
@@ -126,5 +131,17 @@ public abstract class PrimitiveGeometry extends Geometry {
 		vertexName = vertices;
 		normalName = normals;
 		tcName = texCoords;
+	}
+	
+	protected FloatBuffer newFloatBuffer(int size) {
+	    ByteBuffer buff = ByteBuffer.allocateDirect(size * 4);
+	    buff.order(ByteOrder.nativeOrder());
+	    return buff.asFloatBuffer();
+	}
+	
+	protected IntBuffer newIntBuffer(int size) {
+	    ByteBuffer buff = ByteBuffer.allocateDirect(size * 4);
+        buff.order(ByteOrder.nativeOrder());
+        return buff.asIntBuffer();
 	}
 }

@@ -1,5 +1,8 @@
 package com.ferox.util.geom;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
@@ -116,9 +119,10 @@ public class Box extends PrimitiveGeometry {
 		float yExtent = maxPoint.y - center.y;
 		float zExtent = maxPoint.z - center.z;
 
-		float[] v = new float[72];
-		float[] n = new float[72];
-		float[] t = new float[48];
+		
+		FloatBuffer v = newFloatBuffer(72);
+		FloatBuffer n = newFloatBuffer(72);
+		FloatBuffer t = newFloatBuffer(48);
 
 		float minX = center.x - xExtent;
 		float maxX = center.x + xExtent;
@@ -132,48 +136,50 @@ public class Box extends PrimitiveGeometry {
 		int vi = 0;
 
 		// back
-		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = minX; v[vi++] = minY; v[vi++] = minZ;
-		t[ti++] = 0f; t[ti++] = 0f;	n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = minZ;
-		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = minZ;
-		t[ti++] = 1f; t[ti++] = 1f;	n[ni++] = 0f; n[ni++] = 0f; n[ni++] = -1f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = minZ;
+		t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, minZ);
+		t.put(ti++, 0f); t.put(ti++, 0f);	n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, minZ);
+		t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, minZ);
+		t.put(ti++, 1f); t.put(ti++, 1f);	n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, minZ);
 
 		// right
-		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = minZ;
-		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = maxZ;
-		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = minZ;
+		t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, minZ);
+		t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, maxZ);
+		t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, minZ);
 
 		// front
-		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = minX; v[vi++] = minY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = maxZ;
-		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 0f; n[ni++] = 1f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = maxZ;
+		t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, maxZ);
+		t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, maxZ);
 
 		// left
-		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY;v[vi++] = minZ;
-		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = minZ;
-		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = -1f; n[ni++] = 0f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = maxZ;
+		t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY);v.put(vi++, minZ);
+		t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, minZ);
+		t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, maxZ);
 
 		// top
-		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = maxY; v[vi++] = minZ;
-		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = 1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = maxY; v[vi++] = minZ;
+		t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, minZ);
+		t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, minZ);
 
 		// bottom
-		t[ti++] = 1f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 0f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = maxZ;
-		t[ti++] = 0f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = maxX; v[vi++] = minY; v[vi++] = minZ;
-		t[ti++] = 1f; t[ti++] = 1f; n[ni++] = 0f; n[ni++] = -1f; n[ni++] = 0f; v[vi++] = minX; v[vi++] = minY; v[vi++] = minZ;
+		t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, maxZ);
+		t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, minZ);
+		t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, minZ);
 
 		// indices
-		int[] indices = new int[] { 2, 1, 0, 3, 2, 0, // back
-		6, 5, 4, 7, 6, 4, // right
-		10, 9, 8, 11, 10, 8, // front
-		14, 13, 12, 15, 14, 12, // left
-		18, 17, 16, 19, 18, 16, // top
-		22, 21, 20, 23, 22, 20 }; // bottom
+		IntBuffer indices = newIntBuffer(36);
+		indices.put(new int[] { 2, 1, 0, 3, 2, 0, // back
+		                        6, 5, 4, 7, 6, 4, // right
+		                        10, 9, 8, 11, 10, 8, // front
+		                        14, 13, 12, 15, 14, 12, // left
+		                        18, 17, 16, 19, 18, 16, // top
+		                        22, 21, 20, 23, 22, 20 // bottom
+		            });
 
 		setAttribute(getVertexName(), new VectorBuffer(v, 3));
 		setAttribute(getNormalName(), new VectorBuffer(n, 3));

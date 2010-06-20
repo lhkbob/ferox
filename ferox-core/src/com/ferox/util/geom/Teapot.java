@@ -1,6 +1,7 @@
 package com.ferox.util.geom;
 
-import java.util.Arrays;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
@@ -59,16 +60,22 @@ public class Teapot extends PrimitiveGeometry {
 		super(type, vertexName, normalName, tcName);
 
 		// copy the teapot so that each instance can be modified separately
-		float[] verts = Arrays.copyOf(TEAPOT.vertices, TEAPOT.vertices.length);
-		float[] norms = Arrays.copyOf(TEAPOT.normals, TEAPOT.normals.length);
-		float[] tcs = Arrays.copyOf(TEAPOT.texCoords, TEAPOT.texCoords.length);
+		FloatBuffer verts = newFloatBuffer(TEAPOT.vertices.length);
+		verts.put(TEAPOT.vertices);
+		
+		FloatBuffer norms = newFloatBuffer(TEAPOT.normals.length);
+		norms.put(TEAPOT.normals);
+		
+		FloatBuffer tcs = newFloatBuffer(TEAPOT.texCoords.length);
+		tcs.put(TEAPOT.texCoords);
 
-		int[] indices = new int[TEAPOT.indices.length];
-		System.arraycopy(TEAPOT.indices, 0, indices, 0, indices.length);
+		IntBuffer indices = newIntBuffer(TEAPOT.indices.length);
+		indices.put(TEAPOT.indices);
 
-		if (scale != 1f)
-			for (int i = 0; i < verts.length; i++)
-				verts[i] *= scale;
+		if (scale != 1f) {
+			for (int i = 0; i < verts.capacity(); i++)
+			    verts.put(i, verts.get(i) * scale);
+		}
 
 		setAttribute(getVertexName(), new VectorBuffer(verts, 3));
 		setAttribute(getNormalName(), new VectorBuffer(norms, 3));

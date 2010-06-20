@@ -1,5 +1,8 @@
 package com.ferox.util.geom;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
@@ -112,64 +115,61 @@ public class Rectangle extends PrimitiveGeometry {
 
 		Vector3f normal = xAxis.cross(yAxis, null);
 
-		float[] vertices = new float[12];
-		float[] normals = new float[12];
-		float[] texCoords = new float[8];
-		int[] indices = new int[4];
+		FloatBuffer vertices = newFloatBuffer(12);
+		FloatBuffer normals = newFloatBuffer(12);
+		FloatBuffer texCoords = newFloatBuffer(8);
+		IntBuffer indices = newIntBuffer(4);
 
 		// lower-left
-		vertices[0] = xAxis.x * left + yAxis.x * bottom;
-		vertices[1] = xAxis.y * left + yAxis.y * bottom;
-		vertices[2] = xAxis.z * left + yAxis.z * bottom;
+		vertices.put(0, xAxis.x * left + yAxis.x * bottom);
+		vertices.put(1, xAxis.y * left + yAxis.y * bottom);
+		vertices.put(2, xAxis.z * left + yAxis.z * bottom);
 
-		normals[0] = normal.x;
-		normals[1] = normal.y;
-		normals[2] = normal.z;
+		normals.put(0, normal.x);
+		normals.put(1, normal.y);
+		normals.put(2, normal.z);
 
-		texCoords[0] = 0f;
-		texCoords[1] = 0f;
+		texCoords.put(0, 0f);
+		texCoords.put(1, 0f);
 
 		// lower-right
-		vertices[3] = xAxis.x * right + yAxis.x * bottom;
-		vertices[4] = xAxis.y * right + yAxis.y * bottom;
-		vertices[5] = xAxis.z * right + yAxis.z * bottom;
+		vertices.put(3, xAxis.x * right + yAxis.x * bottom);
+		vertices.put(4, xAxis.y * right + yAxis.y * bottom);
+		vertices.put(5, xAxis.z * right + yAxis.z * bottom);
 
-		normals[3] = normal.x;
-		normals[4] = normal.y;
-		normals[5] = normal.z;
+		normals.put(3, normal.x);
+		normals.put(4, normal.y);
+		normals.put(5, normal.z);
 
-		texCoords[2] = 1f;
-		texCoords[3] = 0f;
+		texCoords.put(2, 1f);
+		texCoords.put(3, 0f);
 
 		// uppper-right
-		vertices[6] = xAxis.x * right + yAxis.x * top;
-		vertices[7] = xAxis.y * right + yAxis.y * top;
-		vertices[8] = xAxis.z * right + yAxis.z * top;
+		vertices.put(6, xAxis.x * right + yAxis.x * top);
+		vertices.put(7, xAxis.y * right + yAxis.y * top);
+		vertices.put(8, xAxis.z * right + yAxis.z * top);
 
-		normals[6] = normal.x;
-		normals[7] = normal.y;
-		normals[8] = normal.z;
+		normals.put(6, normal.x);
+		normals.put(7, normal.y);
+		normals.put(8, normal.z);
 
-		texCoords[4] = 1f;
-		texCoords[5] = 1f;
+		texCoords.put(4, 1f);
+		texCoords.put(5, 1f);
 
 		// upper-left
-		vertices[9] = xAxis.x * left + yAxis.x * top;
-		vertices[10] = xAxis.y * left + yAxis.y * top;
-		vertices[11] = xAxis.z * left + yAxis.z * top;
+		vertices.put(9, xAxis.x * left + yAxis.x * top);
+		vertices.put(10, xAxis.y * left + yAxis.y * top);
+		vertices.put(11, xAxis.z * left + yAxis.z * top);
 
-		normals[9] = normal.x;
-		normals[10] = normal.y;
-		normals[11] = normal.z;
+		normals.put(9, normal.x);
+		normals.put(10, normal.y);
+		normals.put(11, normal.z);
 
-		texCoords[6] = 0f;
-		texCoords[7] = 1f;
+		texCoords.put(6, 0f);
+		texCoords.put(7, 1f);
 
 		// indices
-		indices[0] = 0;
-		indices[1] = 1;
-		indices[2] = 2;
-		indices[3] = 3;
+		indices.put(0, 0).put(1, 1).put(2, 2).put(3, 3);
 		
 		setAttribute(getVertexName(), new VectorBuffer(vertices, 3));
 		setAttribute(getNormalName(), new VectorBuffer(normals, 3));

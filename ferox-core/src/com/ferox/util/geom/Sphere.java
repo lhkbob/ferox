@@ -1,5 +1,8 @@
 package com.ferox.util.geom;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
 import com.ferox.resource.VectorBuffer;
@@ -131,9 +134,9 @@ public class Sphere extends PrimitiveGeometry {
 		zCoord[res] = zCoord[0];
 		u[res] = 1f;
 		
-		float[] vertices = new float[vertexCount * 3];
-		float[] normals = new float[vertexCount * 3];
-		float[] tcs = new float[vertexCount * 2];
+		FloatBuffer vertices = newFloatBuffer(vertexCount * 3);
+		FloatBuffer normals = newFloatBuffer(vertexCount * 3);
+		FloatBuffer tcs = newFloatBuffer(vertexCount * 2);
 		
 		float yAngle = PI;
 		float dY = -PI / (res - 1);
@@ -150,16 +153,16 @@ public class Sphere extends PrimitiveGeometry {
 			for (int du = 0; du <= res; du++) {
 				// place vertices, normals and texcoords
 				ri = index * 3;
-				normals[ri] = r * xCoord[du];
-				normals[ri + 1] = y;
-				normals[ri + 2] = r * zCoord[du];
+				normals.put(ri, r * xCoord[du]);
+				normals.put(ri + 1, y);
+				normals.put(ri + 2, r * zCoord[du]);
 				
-				vertices[ri] = radius * normals[ri];
-				vertices[ri + 1] = radius * normals[ri + 1];
-				vertices[ri + 2] = radius * normals[ri + 2];
+				vertices.put(ri, radius * normals.get(ri));
+				vertices.put(ri + 1, radius * normals.get(ri + 1));
+				vertices.put(ri + 2, radius * normals.get(ri + 2));
 				
-				tcs[index * 2] = u[du];
-				tcs[index * 2 + 1] = tv;
+				tcs.put(index * 2, u[du]);
+				tcs.put(index * 2 + 1, tv);
 				
 				// update index
 				index++; 
@@ -167,18 +170,18 @@ public class Sphere extends PrimitiveGeometry {
 		}
 		
 		// build up indices
-		int[] indices = new int[(res - 1) * (2 * res + 2)];
+		IntBuffer indices = newIntBuffer((res - 1) * (2 * res + 2));
 		index = 0;
 		int v1, v2;
 		for (int dv = 0; dv < res - 1; dv++) {
 			v1 = dv * (res + 1);
 			v2 = (dv + 1) * (res + 1);
 			// start off the strip
-			indices[index++] = v1++;
-			indices[index++] = v2++;
+			indices.put(index++, v1++);
+			indices.put(index++, v2++);
 			for (int du = 0; du < res; du++) {
-				indices[index++] = v1++;
-				indices[index++] = v2++;
+			    indices.put(index++, v1++);
+			    indices.put(index++, v2++);
 			}
 		}
 		
