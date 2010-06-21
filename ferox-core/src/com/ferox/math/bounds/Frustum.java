@@ -6,25 +6,33 @@ import com.ferox.math.Vector4f;
 
 /**
  * <p>
- * Frustum represents the mathematical construction of a frustum.
- * It is described as a 6 sided convex hull, where at least two
- * planes are parallel to each other.  It supports generating frustums
- * that represent perspective projections (a truncated pyramid), or
- * orthographic projections (a rectangular prism).
+ * Frustum represents the mathematical construction of a frustum. It is
+ * described as a 6 sided convex hull, where at least two planes are parallel to
+ * each other. It supports generating frustums that represent perspective
+ * projections (a truncated pyramid), or orthographic projections (a rectangular
+ * prism).
  * </p>
  * <p>
- * Each frustum has a direction vector and an up vector.  These
- * vectors define an orthonormal basis for the frustum.  The two
- * parallel planes of the frustum are specified as distances along
- * the direction vector (near and far).  The additional planes are
- * computed based on the locations of the four corners of the near
- * plane intersection.
+ * Each frustum has a direction vector and an up vector. These vectors define an
+ * orthonormal basis for the frustum. The two parallel planes of the frustum are
+ * specified as distances along the direction vector (near and far). The
+ * additional planes are computed based on the locations of the four corners of
+ * the near plane intersection.
  * </p>
- *
+ * <p>
+ * The mapping from world space to frustum space is not as straight-forward as
+ * is implied by the above state. Frustum provides the functionality to get the
+ * {@link #getProjectionMatrix(Matrix4f) project matrix} and
+ * {@link #getViewMatrix(Matrix4f) modelview matrix} suitable for use in an
+ * OpenGL system. The camera within an OpenGL system looks down its local
+ * negative z-axis. Thus the provided direction in this Frustum represents the
+ * negative z-axis within camera space.
+ * </p>
+ * 
  * @author Michael Ludwig
  */
 public class Frustum {
-	/** Result of a frustum test against a BoundVolume. */
+	/** Result of a frustum test against a {@link AxisAlignedBox}. */
 	public static enum FrustumIntersection {
 	    /**
          * Returned when a candidate object is fully enclosed by the Frustum.
