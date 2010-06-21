@@ -18,7 +18,7 @@ import com.ferox.renderer.Framework;
  * @author Michael Ludwig
  */
 public class FixedFunctionJoglFramework extends JoglFramework {
-	private static final int FORCE_BITS = JoglRenderCapabilities.FORCE_NO_GLSL;
+    private static final int FORCE_BITS = JoglRenderCapabilities.FORCE_NO_GLSL;
 
     /**
      * Create a new FixedFunctionJoglFramework that uses two internal threads,
@@ -29,9 +29,9 @@ public class FixedFunctionJoglFramework extends JoglFramework {
      * @throws GLException If a fixed-function implementation of OpenGL is
      *             unavailable
      */
-	public FixedFunctionJoglFramework() {
-		this(true);
-	}
+    public FixedFunctionJoglFramework() {
+        this(true);
+    }
 
     /**
      * <p>
@@ -53,12 +53,12 @@ public class FixedFunctionJoglFramework extends JoglFramework {
      * @throws GLException If a fixed-function implementation of OpenGL is
      *             unavailable
      */
-	public FixedFunctionJoglFramework(boolean forceNoBackgroundContext) {
-		super(GLProfile.get(GLProfile.GL2), FORCE_BITS, forceNoBackgroundContext);
-	}
+    public FixedFunctionJoglFramework(boolean forceNoBackgroundContext) {
+        super(GLProfile.get(GLProfile.GL2), FORCE_BITS, forceNoBackgroundContext);
+    }
 
-	@Override
-	protected JoglFixedFunctionRenderer createRenderer() {
-	    return new JoglFixedFunctionRenderer(this);
-	}
+    @Override
+    protected JoglFixedFunctionRenderer createRenderer() {
+        return new JoglFixedFunctionRenderer(this);
+    }
 }

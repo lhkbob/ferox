@@ -24,23 +24,23 @@ import javax.media.opengl.awt.GLCanvas;
  * @author Michael Ludwig
  */
 public class PaintDisabledGLCanvas extends GLCanvas {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public PaintDisabledGLCanvas() {
-		super();
-	}
+    public PaintDisabledGLCanvas() {
+        super();
+    }
 
-	public PaintDisabledGLCanvas(GLCapabilities capabilities) {
-		super(capabilities);
-	}
+    public PaintDisabledGLCanvas(GLCapabilities capabilities) {
+        super(capabilities);
+    }
 
-	public PaintDisabledGLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser,
-								 GLContext shareWith, GraphicsDevice device) {
-		super(capabilities, chooser, shareWith, device);
-	}
-	
-	@Override
-	public void paint(Graphics g) {
-		// do nothing, DO NOT call super.paint() since that invokes display
-	}
+    public PaintDisabledGLCanvas(GLCapabilities capabilities, GLCapabilitiesChooser chooser,
+                                 GLContext shareWith, GraphicsDevice device) {
+        super(capabilities, chooser, shareWith, device);
+    }
+    
+    @Override
+    public void paint(Graphics g) {
+        // do nothing, DO NOT call super.paint() since that invokes display
+    }
 }
