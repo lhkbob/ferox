@@ -19,7 +19,15 @@ import com.ferox.scene.SceneElement;
 import com.ferox.scene.ShadowReceiver;
 import com.ferox.util.Bag;
 
-public class ShadowedLightingPass extends AbstractFfpRenderPass {
+/**
+ * ShadowedLightingPass is a RenderPass implementation that is the final stage
+ * of shadow mapping. It using depth comparisons in the generated shadow map to
+ * conditionally enable/disable the lighting, and uses additive blending to
+ * contribute this lighting into the final rendering.
+ * 
+ * @author Michael Ludwig
+ */
+public class ShadowedLightingPass extends AbstractFixedFunctionRenderPass {
     private static final ComponentId<ShadowReceiver> SR_ID = Component.getComponentId(ShadowReceiver.class);
     private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
     

@@ -11,14 +11,35 @@ import com.ferox.scene.SceneElement;
 import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.ViewNode;
+import com.ferox.scene.controller.SceneController;
 import com.ferox.util.Bag;
-import com.ferox.entity.AbstractComponent;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
 
+/**
+ * <p>
+ * ShadowMapFrustumController is a Controller that determines the information
+ * necessary to add shadows to a rendered scene using the shadow-mapping
+ * algorithm. Using different weighting parameters, it chooses an Entity that is
+ * a {@link SpotLight} or {@link DirectionLight} as the shadow caster for each
+ * {@link ViewNode} within a scene.
+ * </p>
+ * <p>
+ * Once a shadow-casting light is chosen, it computes a Frustum representing the
+ * necessary projection information to use with shadow mapping and the given
+ * light. This information is stored in a {@link ShadowMapFrustum} and is
+ * attached to each {@link ViewNode} as a meta-Component.
+ * </p>
+ * <p>
+ * This controller should process the scene after the scene has been updated but
+ * before controllers which depend on visibility information are executed.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public class ShadowMapFrustumController extends Controller {
 	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
 	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
@@ -28,44 +49,29 @@ public class ShadowMapFrustumController extends Controller {
 	
 	private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
 	
-	public static class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
-		private Frustum frustum;
-		private Component shadowLight;
-		
-		public ShadowMapFrustum(Frustum f, Component light) {
-			super(ShadowMapFrustum.class);
-			setFrustum(f);
-			setLight(light);
-		}
-		
-		public void setLight(Component light) {
-		    if (light == null)
-		        throw new NullPointerException("Light cannot be null");
-		    
-		    shadowLight = light;
-		}
-		
-		public Component getLight() {
-		    return shadowLight;
-		}
-		
-		public Frustum getFrustum() {
-			return frustum;
-		}
-		
-		public void setFrustum(Frustum f) {
-			if (f == null)
-				throw new NullPointerException("Frustum cannot be null");
-			frustum = f;
-		}
-	}
-	
 	private final Bag<Entity> visCache;
 	private final SpatialHierarchy<Entity> hierarchy;
 	
 	private float shadowMapScale;
 	private final int shadowMapSize;
-	
+
+    /**
+     * Create a ShadowMapFrustumController for the given EntitySystem. The
+     * created controller will use the given {@link SpatialHierarchy} to
+     * determine visibility information when detecting the Entities that cast
+     * shadows for shadow-mapping purposes. <tt>shadowMapSize</tt> is the
+     * dimension size of the shadow-map. <tt>shadowMapScale</tt> is an
+     * implementation parameter that controls the size of generated frustums.
+     * 
+     * @param system The EntitySystem which owns this controller
+     * @param hierarchy The SpatialHierarchy used to access the system's scene
+     *            data, should be the same as provided to the
+     *            {@link SceneController}
+     * @param shadowMapScale The scale parameter for frustum sizing
+     * @param shadowMapSize The dimension of the shadow map
+     * @throws NullPointerException if hierarchy or system are null
+     * @throws IllegalArgumentException if shadowMapSize < 1
+     */
 	public ShadowMapFrustumController(EntitySystem system, SpatialHierarchy<Entity> hierarchy, 
 	                                  float shadowMapScale, int shadowMapSize) {
 	    super(system);
@@ -92,7 +98,7 @@ public class ShadowMapFrustumController extends Controller {
 	}
 	
 	@Override
-	public void process() {
+    protected void processImpl() {
 		Iterator<Entity> vi = system.iterator(VN_ID);
 		while(vi.hasNext()) {
 			Entity e = vi.next();

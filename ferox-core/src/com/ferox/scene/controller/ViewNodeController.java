@@ -69,7 +69,7 @@ public class ViewNodeController extends Controller {
 	}
 
 	@Override
-	public void process() {
+    protected void processImpl() {
 		Map<ViewNode, Dimension> nextDimensions = new HashMap<ViewNode, Dimension>();
 		
 		Iterator<Entity> it = system.iterator(VN_ID);

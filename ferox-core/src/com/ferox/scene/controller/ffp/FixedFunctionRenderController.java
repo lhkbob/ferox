@@ -11,6 +11,7 @@ import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
 import com.ferox.math.bounds.Frustum;
+import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.TextureSurface;
@@ -31,9 +32,27 @@ import com.ferox.scene.Shape;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.ViewNode;
-import com.ferox.scene.controller.ffp.ShadowMapFrustumController.ShadowMapFrustum;
 import com.ferox.util.HashFunction;
 
+/**
+ * FixedFunctionRenderController is a controller implementation that processes
+ * scenes described by the com.ferox.scene Components and renders them using the
+ * fixed-function pipeline exposed by {@link FixedFunctionRenderer}. Currently,
+ * it supports:
+ * <ul>
+ * <li>Renderable - only these entities will be rendered</li>
+ * <li>SceneElement - specifies the transform of the renderable</li>
+ * <li>ShadowCaster - whether a light or renderable casts shadows</li>
+ * <li>ShadowReceiver - whether a renderable should receive shadows</li>
+ * <li>Shape - provides geometry to render</li>
+ * <li>BlinnPhongLightingModel - the only available lighting model in OpenGL</li>
+ * <li>SolidLightingModel - supported, effectively disables lighting</li>
+ * <li>TexturedMaterial - may ignore one or both Textures depending on hardware
+ * capabilities</li>
+ * </ul>
+ * 
+ * @author Michael Ludwig
+ */
 public class FixedFunctionRenderController extends Controller {
 	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
 	private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
@@ -59,17 +78,62 @@ public class FixedFunctionRenderController extends Controller {
 	private final String vertexBinding;
 	private final String normalBinding;
 	private final String texCoordBinding;
-	
-	
+
+    /**
+     * Create a FixedFunctionRenderController that is attached to the given
+     * EntitySystem. The provided ThreadQueueManager is used to queue the
+     * necessary RenderPasses to render the scene description contained within
+     * <tt>system</tt>. The controller will use a shadow-map that has a width
+     * and height of 512.
+     * 
+     * @param system The EntitySystem owning this controller
+     * @param manager The ThreadQueueManager used for queuing RenderPasses
+     * @throws NullPointerException if system or manager are null
+     */
 	public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager) {
 		this(system, manager, 512);
 	}
-	
+
+    /**
+     * Create a FixedFunctionRenderController that is attached to the given
+     * EntitySystem. The provided ThreadQueueManager is used to queue the
+     * necessary RenderPasses to render the scene description contained within
+     * <tt>system</tt>. The controller will create a shadow map with a width and
+     * height equal to <tt>shadowMapSize</tt>. If this parameter is negative,
+     * shadow mapping will be disabled.
+     * 
+     * @param system The EntitySystem owning this controller
+     * @param manager The ThreadQueueManager used for queuing RenderPasses
+     * @param shadowMapSize The width and height of the shadow map to use, or
+     *            negative if now shadows are to be rendered
+     * @throws NullPointerException if system or manager are null
+     */
 	public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize) {
 		this(system, manager, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
 			 Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
 	}
-	
+
+    /**
+     * Create a FixedFunctionRenderController that is attached to the given
+     * EntitySystem. The provided ThreadQueueManager is used to queue the
+     * necessary RenderPasses to render the scene description contained within
+     * <tt>system</tt>. The controller will create a shadow map with a width and
+     * height equal to <tt>shadowMapSize</tt>. If this parameter is negative,
+     * shadow mapping will be disabled. In addition, <tt>vertexBinding</tt>,
+     * <tt>normalBinding</tt> and <tt>texCoordBinding</tt> specify the attribute
+     * names within rendered geometries if they are to differ from the defaults
+     * defined in {@link Geometry}.
+     * 
+     * @param system The EntitySystem owning this controller
+     * @param manager The ThreadQueueManager used for queuing RenderPasses
+     * @param shadowMapSize The width and height of the shadow map to use, or
+     *            negative if now shadows are to be rendered
+     * @param vertexBinding The attribute name for vertices
+     * @param normalBinding The attribute name for normals
+     * @param texCoordBinding The attribute name for texture coordinates
+     * @throws NullPointerException if system, manager, vertexBinding,
+     *             normalBinding, or texCoordBinding are null
+     */
 	public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize,
 										 String vertexBinding, String normalBinding, String texCoordBinding) {
 	    super(system);
@@ -120,16 +184,27 @@ public class FixedFunctionRenderController extends Controller {
         }
 	}
 	
-	public ThreadQueueManager getThreadQueueOrganizer() {
+	/**
+     * @return The ThreadQueueManager used by this FixedFunctionRenderController
+     */
+	public ThreadQueueManager getThreadQueueManager() {
 		return manager;
 	}
-	
+
+    /**
+     * @return The TextureSurface created by the FixedFunctionRenderController
+     *         for shadow map generation. This may be null if shadow mapping is
+     *         not supported on the current hardware, or if shadow mapping was
+     *         disabled. If this controller's lifetime does not match that of
+     *         the Framework it's tied to, this surface must be manually
+     *         destroyed.
+     */
 	public TextureSurface getShadowMap() {
 		return shadowMap;
 	}
 	
 	@Override
-	public void process() {
+    protected void processImpl() {
 		// process every view, we use a ThreadQueueManager so that
 		// actual rendering can be managed externally without worrying about
 		// which thread executed this controller
@@ -198,7 +273,7 @@ public class FixedFunctionRenderController extends Controller {
 		processLights(DL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
 		
 		// configure the view
-		con.setView(viewFrustum, vn.getLeft(), vn.getRight(), vn.getBottom(), vn.getTop());
+		con.setView(vn);
 		con.flush(vn.getRenderSurface());
 	}
 	

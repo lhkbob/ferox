@@ -40,7 +40,7 @@ public class BillboardController extends Controller {
 	}
 	
 	@Override
-	public void process() {
+    protected void processImpl() {
 		Iterator<Entity> it = system.iterator(B_ID);
 		while(it.hasNext()) {
 			process(it.next());

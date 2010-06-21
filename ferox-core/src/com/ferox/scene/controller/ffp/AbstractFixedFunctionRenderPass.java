@@ -25,7 +25,14 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.util.geom.Box;
 
-public abstract class AbstractFfpRenderPass implements RenderPass {
+/**
+ * AbstractFixedFunctionRenderPass is an abstract RenderPass that provides many
+ * utilities and support for more specific pass implementations that render
+ * Entities based off of the Components defined in com.ferox.scene.
+ * 
+ * @author Michael Ludwig
+ */
+public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
     private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
     private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
     private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
@@ -57,9 +64,21 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 	
 	// per-pass variables
 	private FixedFunctionRenderer renderer;
-	
-	public AbstractFfpRenderPass(RenderConnection connection,int maxMaterialTexUnits, 
-	                             String vertexBinding, String normalBinding, String texCoordBinding) {
+
+    /**
+     * Create a new AbstractFixedFunctionRenderPass. The specified parameters
+     * are not validated but should not be null. <tt>maxMaterialTexUnits</tt> is
+     * expected to be 0, 1, or 2. The provided RenderConnection must be the
+     * connection that provides the Entity data to be rendered.
+     * 
+     * @param connection
+     * @param maxMaterialTexUnits
+     * @param vertexBinding
+     * @param normalBinding
+     * @param texCoordBinding
+     */
+	public AbstractFixedFunctionRenderPass(RenderConnection connection, int maxMaterialTexUnits, 
+	                                       String vertexBinding, String normalBinding, String texCoordBinding) {
 	    this.connection = connection;
 		this.maxMaterialTexUnits = maxMaterialTexUnits;
 
@@ -118,10 +137,18 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		renderer.setProjectionMatrix(projection);
 		renderer.setModelViewMatrix(view);
 	}
-	
+
+    /**
+     * Utility function to render the given Entity.
+     * 
+     * @param atom The Entity to render
+     * @throws NullPointerException if atom is null
+     */
 	protected void render(Entity atom) {
 		// set draw mode
 	    Renderable render = atom.get(R_ID);
+	    if (render == null)
+	        return; // not supposed to render it 
 		renderer.setDrawStyle(render.getDrawStyleFront(), render.getDrawStyleBack());
 		
 		// set materials
@@ -164,7 +191,17 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		// render it
 		renderGeometry(atom);
 	}
-	
+
+    /**
+     * Utility function to render the {@link Geometry} attached to <tt>atom</tt>
+     * via a {@link Shape} at the world transform of the Entity, defined by its
+     * {@link SceneElement}. If it has no Shape, a default Geometry is used. If
+     * it has no transform, the identity is used. These transforms are properly
+     * converted into camera space by the view matrix of the Frustum returned by
+     * {@link #getFrustum()}.
+     * 
+     * @param atom The atom to render
+     */
 	protected void renderGeometry(Entity atom) {
 	    // get the shape
 	    Shape shape = atom.get(S_ID);
@@ -185,7 +222,17 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 		// restore the view
 		renderer.setModelViewMatrix(view);
 	}
-	
+
+    /**
+     * Utility function to update the light state at the given light to match
+     * that of <tt>lightComponent</tt>. If the light component is null, the
+     * light index is disabled. Otherwise, the renderer's state is updated
+     * appropriately depending on if the component is an {@link AmbientLight}, a
+     * {@link SpotLight}, or a {@link DirectionLight}.
+     * 
+     * @param light The light's index to update
+     * @param lightComponent The Component specifying the light properties
+     */
 	protected void setLight(int light, Component lightComponent) {
 	    if (lightComponent == null) {
 	        // disable the light and return
@@ -216,14 +263,43 @@ public abstract class AbstractFfpRenderPass implements RenderPass {
 	        renderer.setLightEnabled(light, true);
 	    }
 	}
-	
+
+    /**
+     * Perform the meat of the rendering operation, using the provided renderer.
+     * This is invoked after geometry attribute bindings are configured, the
+     * view/projection matrices are set up, and the viewport is properly
+     * cleared. The view port set up clearing is delegated to
+     * {@link #configureViewport(FixedFunctionRenderer, Surface)}
+     * 
+     * @param renderer The renderer to use
+     */
 	protected abstract void render(FixedFunctionRenderer renderer);
-	
+
+    /**
+     * Configure the given renderer's viewport as needed for this pass. This may
+     * clear the viewport, it may define its extents based on this pass's
+     * connection's defined view bounds.
+     * 
+     * @param renderer The renderer to use
+     * @param surface The Surface currently being rendered into
+     */
 	protected abstract void configureViewport(FixedFunctionRenderer renderer, Surface surface);
 
+	/**
+     * @return A non-null Frustum to use that defines the view and projection
+     *         matrices
+     */
 	protected abstract Frustum getFrustum();
-	
+
+    /**
+     * Invoke the appropriate notifyXBegin() on this pass's connection, or do
+     * nothing, based on the stage of this pass within the pipeline.
+     */
 	protected abstract void notifyPassBegin();
-	
+
+    /**
+     * Invoke the appropriate notifyXEnd() on this pass's connection, or do
+     * nothing, based on the stage of this pass within the pipeline.
+     */
 	protected abstract void notifyPassEnd();
 }

@@ -47,7 +47,7 @@ public class LightUpdateController extends Controller {
 	}
 	
 	@Override
-	public void process() {
+    protected void processImpl() {
 		// update all direction lights so their direction vector
 		// matches the z-axis of an attached scene element
 		Entity e;

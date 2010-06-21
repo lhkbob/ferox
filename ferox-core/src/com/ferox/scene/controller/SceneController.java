@@ -74,7 +74,7 @@ public class SceneController extends Controller {
 	}
 	
 	@Override
-	public void process() {
+    protected void processImpl() {
 		// process all SceneElements
 		Entity e;
 		SceneElement element;

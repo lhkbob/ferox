@@ -8,12 +8,21 @@ import com.ferox.entity.Entity;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Surface;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ShadowReceiver;
 import com.ferox.util.Bag;
 
-public class DefaultLightingPass extends AbstractFfpRenderPass {
+/**
+ * DefaultLightingPass is a {@link RenderPass} implementation that renders the
+ * contents of a {@link RenderConnection} such that its entities are lit without
+ * shadows using standard OpenGL lighting. This is the base lighting pass within
+ * the shadow mapping algorithm before the shadowed lighting is applied.
+ * 
+ * @author Michael Ludwig
+ */
+public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
     private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
     private static final ComponentId<ShadowReceiver> SR_ID = Component.getComponentId(ShadowReceiver.class);
     
@@ -43,7 +52,7 @@ public class DefaultLightingPass extends AbstractFfpRenderPass {
 			// configure lighting for the render atom
 			assignLights(atom, lightAtoms, boundAtoms);
 			
-			// render it, AbstractFfpRenderPass takes care of state setting
+			// render it, AbstractFixedFunctionRenderPass takes care of state setting
 			render(atom);
 		}
 		

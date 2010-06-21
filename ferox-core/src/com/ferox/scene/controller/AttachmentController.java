@@ -47,7 +47,7 @@ public class AttachmentController extends Controller {
 	}
 	
 	@Override
-	public void process() {
+    protected void processImpl() {
 		Set<Entity> alreadyProcessed = new HashSet<Entity>();
 		Iterator<Entity> it = system.iterator(A_ID);
 		while(it.hasNext()) {
