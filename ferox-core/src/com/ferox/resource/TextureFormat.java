@@ -73,110 +73,110 @@ import java.nio.ShortBuffer;
  * @author Michael Ludwig
  */
 public enum TextureFormat {
-	RGBA(null, 4, 4, true), 
-	RGBA_4444(ShortBuffer.class, 1, 4, true, true), 
-	RGBA_8888(IntBuffer.class, 1, 4, true, true), 
-	RGBA_5551(ShortBuffer.class, 1, 4, true, true), 
-	RGBA_FLOAT(FloatBuffer.class, 4, 4, true),
+    RGBA(null, 4, 4, true), 
+    RGBA_4444(ShortBuffer.class, 1, 4, true, true), 
+    RGBA_8888(IntBuffer.class, 1, 4, true, true), 
+    RGBA_5551(ShortBuffer.class, 1, 4, true, true), 
+    RGBA_FLOAT(FloatBuffer.class, 4, 4, true),
 
-	RGBA_DXT1(ByteBuffer.class, -1, 4, true), 
-	RGBA_DXT3(ByteBuffer.class, -1, 4, true),
-	RGBA_DXT5(ByteBuffer.class, -1, 4, true),
+    RGBA_DXT1(ByteBuffer.class, -1, 4, true), 
+    RGBA_DXT3(ByteBuffer.class, -1, 4, true),
+    RGBA_DXT5(ByteBuffer.class, -1, 4, true),
 
-	BGRA(null, 4, 4, true), 
-	BGRA_4444(ShortBuffer.class, 1, 4, true, true), 
-	BGRA_8888(IntBuffer.class, 1, 4, true, true), 
-	BGRA_5551(ShortBuffer.class, 1, 4, true, true),
+    BGRA(null, 4, 4, true), 
+    BGRA_4444(ShortBuffer.class, 1, 4, true, true), 
+    BGRA_8888(IntBuffer.class, 1, 4, true, true), 
+    BGRA_5551(ShortBuffer.class, 1, 4, true, true),
 
-	ARGB_4444(ShortBuffer.class, 1, 4, true, true), 
-	ARGB_1555(ShortBuffer.class, 1, 4, true, true), 
-	ARGB_8888(IntBuffer.class, 1, 4, true, true),
+    ARGB_4444(ShortBuffer.class, 1, 4, true, true), 
+    ARGB_1555(ShortBuffer.class, 1, 4, true, true), 
+    ARGB_8888(IntBuffer.class, 1, 4, true, true),
 
-	ABGR_4444(ShortBuffer.class, 1, 4, true, true), 
-	ABGR_1555(ShortBuffer.class, 1, 4, true, true), 
-	ABGR_8888(IntBuffer.class, 1, 4, true, true),
+    ABGR_4444(ShortBuffer.class, 1, 4, true, true), 
+    ABGR_1555(ShortBuffer.class, 1, 4, true, true), 
+    ABGR_8888(IntBuffer.class, 1, 4, true, true),
 
-	RGB(null, 3, 3, false), 
-	RGB_565(ShortBuffer.class, 1, 3, false, true), 
-	RGB_FLOAT(FloatBuffer.class, 3, 3, false), 
-	RGB_DXT1(ByteBuffer.class, -1, 3, false),
+    RGB(null, 3, 3, false), 
+    RGB_565(ShortBuffer.class, 1, 3, false, true), 
+    RGB_FLOAT(FloatBuffer.class, 3, 3, false), 
+    RGB_DXT1(ByteBuffer.class, -1, 3, false),
 
-	BGR(null, 3, 3, false), 
-	BGR_565(ShortBuffer.class, 1, 3, false, true),
+    BGR(null, 3, 3, false), 
+    BGR_565(ShortBuffer.class, 1, 3, false, true),
 
-	LUMINANCE_ALPHA(null, 2, 2, true), 
-	LUMINANCE(null, 1, 1, false), 
-	ALPHA(null, 1, 1, true),
+    LUMINANCE_ALPHA(null, 2, 2, true), 
+    LUMINANCE(null, 1, 1, false), 
+    ALPHA(null, 1, 1, true),
 
-	LUMINANCE_ALPHA_FLOAT(FloatBuffer.class, 2, 2, true), 
-	LUMINANCE_FLOAT(FloatBuffer.class, 1, 1, false), 
-	ALPHA_FLOAT(FloatBuffer.class, 1, 1, true),
+    LUMINANCE_ALPHA_FLOAT(FloatBuffer.class, 2, 2, true), 
+    LUMINANCE_FLOAT(FloatBuffer.class, 1, 1, false), 
+    ALPHA_FLOAT(FloatBuffer.class, 1, 1, true),
 
-	DEPTH(null, 1, 1, false);
+    DEPTH(null, 1, 1, false);
 
-	private Class<? extends Buffer> type;
-	private boolean hasAlpha, isPacked;
-	private int pPerC, numC;
+    private Class<? extends Buffer> type;
+    private boolean hasAlpha, isPacked;
+    private int pPerC, numC;
 
-	private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha) {
-		this(type, pPerC, numC, alpha, false);
-	}
+    private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha) {
+        this(type, pPerC, numC, alpha, false);
+    }
 
-	private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha, boolean packed) {
-		this.type = type;
-		this.pPerC = pPerC;
-		hasAlpha = alpha;
-		isPacked = packed;
-	}
+    private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha, boolean packed) {
+        this.type = type;
+        this.pPerC = pPerC;
+        hasAlpha = alpha;
+        isPacked = packed;
+    }
 
-	/**
-	 * Return true if this format has its color components packed into a single
-	 * primitive.
-	 * 
-	 * @return Whether or not colors are packed into one primitive
-	 */
-	public boolean isPackedFormat() {
-		return isPacked;
-	}
-	
-	/**
-	 * Return the number of components representing the color. An RGB color
-	 * would have 3 components and an RGBA color would have 4, etc.
-	 * 
-	 * @return The number of components in this format
-	 */
-	public int getNumComponents() {
-		return numC;
-	}
+    /**
+     * Return true if this format has its color components packed into a single
+     * primitive.
+     * 
+     * @return Whether or not colors are packed into one primitive
+     */
+    public boolean isPackedFormat() {
+        return isPacked;
+    }
+    
+    /**
+     * Return the number of components representing the color. An RGB color
+     * would have 3 components and an RGBA color would have 4, etc.
+     * 
+     * @return The number of components in this format
+     */
+    public int getNumComponents() {
+        return numC;
+    }
 
-	/**
-	 * Get the number of primitive elements per each color element. Returns -1
-	 * if the format is client compressed, since there is no meaningful
-	 * primitive/component value.
-	 * 
-	 * @return The number of primitives used to hold an entire color
-	 */
-	public int getPrimitivesPerColor() {
-		return pPerC;
-	}
+    /**
+     * Get the number of primitive elements per each color element. Returns -1
+     * if the format is client compressed, since there is no meaningful
+     * primitive/component value.
+     * 
+     * @return The number of primitives used to hold an entire color
+     */
+    public int getPrimitivesPerColor() {
+        return pPerC;
+    }
 
-	/**
-	 * Whether or not this texture has image data that is client compressed.
-	 * 
-	 * @return Whether or not the texture data is compressed
-	 */
-	public boolean isCompressed() {
-		return pPerC <= 0;
-	}
+    /**
+     * Whether or not this texture has image data that is client compressed.
+     * 
+     * @return Whether or not the texture data is compressed
+     */
+    public boolean isCompressed() {
+        return pPerC <= 0;
+    }
 
-	/**
-	 * Whether or not this texture has image data with alpha values.
-	 * 
-	 * @return Whether or not the format stores alpha information
-	 */
-	public boolean hasAlpha() {
-		return hasAlpha;
-	}
+    /**
+     * Whether or not this texture has image data with alpha values.
+     * 
+     * @return Whether or not the format stores alpha information
+     */
+    public boolean hasAlpha() {
+        return hasAlpha;
+    }
 
     /**
      * Return the Buffer type that is required by the TextureFormat. If null is
@@ -186,9 +186,9 @@ public enum TextureFormat {
      * @return The required DataType of texture data for this format, may be
      *         null
      */
-	public Class<? extends Buffer> getSupportedType() {
-		return type;
-	}
+    public Class<? extends Buffer> getSupportedType() {
+        return type;
+    }
 
     /**
      * Whether or not the Buffer is supported by this format.
@@ -198,16 +198,16 @@ public enum TextureFormat {
      * @return True if this format can be used with buffer
      * @throws NullPointerException if buffer is null
      */
-	public boolean isBufferValid(Buffer buffer) {
-		if (buffer == null)
-			throw new NullPointerException("Buffer cannot be null");
+    public boolean isBufferValid(Buffer buffer) {
+        if (buffer == null)
+            throw new NullPointerException("Buffer cannot be null");
 
-		if (type == null)
-			return buffer instanceof FloatBuffer || buffer instanceof ByteBuffer || 
-			       buffer instanceof ShortBuffer || buffer instanceof IntBuffer;
-		else
-			return type.isInstance(buffer);
-	}
+        if (type == null)
+            return buffer instanceof FloatBuffer || buffer instanceof ByteBuffer || 
+                   buffer instanceof ShortBuffer || buffer instanceof IntBuffer;
+        else
+            return type.isInstance(buffer);
+    }
 
     /**
      * Whether or not the Buffer type is supported by this format.
@@ -217,16 +217,16 @@ public enum TextureFormat {
      * @return True if this type can be used with type
      * @throws NullPointerException if type is null
      */
-	public boolean isTypeValid(Class<? extends Buffer> type) {
-	    if (type == null)
-	        throw new NullPointerException("Type cannot be null");
-	    
-	    if (this.type == null)
-	        return FloatBuffer.class.isAssignableFrom(type) || ByteBuffer.class.isAssignableFrom(type) ||
-	               ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type);
-	    else
-	        return this.type.isAssignableFrom(type);
-	}
+    public boolean isTypeValid(Class<? extends Buffer> type) {
+        if (type == null)
+            throw new NullPointerException("Type cannot be null");
+        
+        if (this.type == null)
+            return FloatBuffer.class.isAssignableFrom(type) || ByteBuffer.class.isAssignableFrom(type) ||
+                   ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type);
+        else
+            return this.type.isAssignableFrom(type);
+    }
 
     /**
      * <p>
@@ -251,19 +251,19 @@ public enum TextureFormat {
      * @return The number of primitives required to hold all texture data for a
      *         texture of the given dimensions with this format
      */
-	public int getBufferSize(int width, int height, int depth) {
-		if (width <= 0 || height <= 0 || depth <= 0)
-			return -1;
-		if (isCompressed() && (width % 4 != 0 || height % 4 != 0))
-			// compression needs to have multiple of 4 dimensions
-			if (width != 1 && width != 2 && height != 1 && height != 2)
-				return -1;
-		if (isCompressed() && depth != 1)
-		    return -1;
+    public int getBufferSize(int width, int height, int depth) {
+        if (width <= 0 || height <= 0 || depth <= 0)
+            return -1;
+        if (isCompressed() && (width % 4 != 0 || height % 4 != 0))
+            // compression needs to have multiple of 4 dimensions
+            if (width != 1 && width != 2 && height != 1 && height != 2)
+                return -1;
+        if (isCompressed() && depth != 1)
+            return -1;
 
-		if (isCompressed())
-			return (int) ((this == RGBA_DXT1 || this == RGB_DXT1 ? 8 : 16) * Math.ceil(width / 4f) * Math.ceil(height / 4f));
-		else
-			return width * height * depth * getPrimitivesPerColor();
-	}
+        if (isCompressed())
+            return (int) ((this == RGBA_DXT1 || this == RGB_DXT1 ? 8 : 16) * Math.ceil(width / 4f) * Math.ceil(height / 4f));
+        else
+            return width * height * depth * getPrimitivesPerColor();
+    }
 }

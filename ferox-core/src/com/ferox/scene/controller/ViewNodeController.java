@@ -38,128 +38,128 @@ import com.ferox.entity.EntitySystem;
  * @author Michael Ludwig
  */
 public class ViewNodeController extends Controller {
-	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
-	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
-	private Map<ViewNode, Dimension> dimensions;
-	private final Bag<Entity> queryCache;
-	private final SpatialHierarchy<Entity> hierarchy;
+    private Map<ViewNode, Dimension> dimensions;
+    private final Bag<Entity> queryCache;
+    private final SpatialHierarchy<Entity> hierarchy;
 
-	/**
-	 * Create a ViewNodeController. Because it requires a SpatialHierarchy to
-	 * perform queries based on a ViewNode's Frustum, a ViewNodeController
-	 * should not be used with multiple EntitySystems. The SpatialHierarchy
-	 * specified should only contain Entities from the appropriate system. It
-	 * should also be the hierarchy that is used by the other Controllers which
-	 * process the system (e.g. {@link SceneController}).
-	 * 
-	 * @param system The EntitySystem processed by this controller
-	 * @param hierarchy SpatialHierarchy that will contain Entities of the
-	 *            EntitySystem that this controller is to process.
-	 * @throws NullPointerException if hierarchy is null
-	 */
-	public ViewNodeController(EntitySystem system, SpatialHierarchy<Entity> hierarchy) {
-	    super(system);
-		if (hierarchy == null)
-			throw new NullPointerException("SpatialHierarchy cannot be null");
-		this.hierarchy = hierarchy;
-		
-		dimensions = new HashMap<ViewNode, Dimension>();
-		queryCache = new Bag<Entity>();
-	}
+    /**
+     * Create a ViewNodeController. Because it requires a SpatialHierarchy to
+     * perform queries based on a ViewNode's Frustum, a ViewNodeController
+     * should not be used with multiple EntitySystems. The SpatialHierarchy
+     * specified should only contain Entities from the appropriate system. It
+     * should also be the hierarchy that is used by the other Controllers which
+     * process the system (e.g. {@link SceneController}).
+     * 
+     * @param system The EntitySystem processed by this controller
+     * @param hierarchy SpatialHierarchy that will contain Entities of the
+     *            EntitySystem that this controller is to process.
+     * @throws NullPointerException if hierarchy is null
+     */
+    public ViewNodeController(EntitySystem system, SpatialHierarchy<Entity> hierarchy) {
+        super(system);
+        if (hierarchy == null)
+            throw new NullPointerException("SpatialHierarchy cannot be null");
+        this.hierarchy = hierarchy;
+        
+        dimensions = new HashMap<ViewNode, Dimension>();
+        queryCache = new Bag<Entity>();
+    }
 
-	@Override
+    @Override
     protected void processImpl() {
-		Map<ViewNode, Dimension> nextDimensions = new HashMap<ViewNode, Dimension>();
-		
-		Iterator<Entity> it = system.iterator(VN_ID);
-		while(it.hasNext()) {
-			// process each viewnode independently
-			process(it.next(), nextDimensions);
-		}
-		
-		dimensions = nextDimensions;
-	}
-	
-	private void process(Entity e, Map<ViewNode, Dimension> store) {
-		ViewNode vn = e.get(VN_ID);
-		SceneElement se = e.get(SE_ID);
-		
-		Frustum f = vn.getFrustum();
-		boolean needsUpdate = true;
-		if (se != null) {
-			// modify the frustum so that it matches the scene element 
-			// location and orientation
-			Matrix3f m = se.getTransform().getRotation();
-			m.getCol(1, f.getUp());
-			m.getCol(2, f.getDirection());
-			f.getLocation().set(se.getTransform().getTranslation());
-		}
-		
-		if (vn.getAutoUpdateViewport()) {
-			Surface surface = vn.getRenderSurface();
-			
-			int width = surface.getWidth();
-			int height = surface.getHeight();
-			
-			Dimension dim = dimensions.get(vn);
-			if (dim == null) {
-				dim = new Dimension();
-				dim.width = width;
-				dim.height = height;
-			}
-			
-			float scaleX = (float) width / dim.width;
-			float scaleY = (float) height / dim.height;
-			
-			int vpLeft = (int) Math.max(0, Math.min(scaleX * vn.getLeft(), width));
-			int vpRight = (int) Math.max(0, Math.min(scaleX * vn.getRight(), width));
-			int vpBottom = (int) Math.max(0, Math.min(scaleY * vn.getBottom(), height));
-			int vpTop = (int) Math.max(0, Math.min(scaleY * vn.getTop(), height));
-			
-			// assign the new viewport
-			vn.setViewport(vpLeft, vpRight, vpBottom, vpTop);
-			
-			if (f.isOrthogonalProjection()) {
-				// modify the frustum so that it spans the entire RS
-				f.setFrustum(true, scaleX * f.getFrustumLeft(), scaleX * f.getFrustumRight(), 
-							 scaleY * f.getFrustumBottom(), scaleY * f.getFrustumTop(), 
-							 f.getFrustumNear(), f.getFrustumFar());
-			} else {
-				// modify the frustum to use the correct aspect ratio
-				float fov = f.getFieldOfView();
-				f.setPerspective(fov, (vpRight - vpLeft) / (float) (vpTop - vpBottom), 
-								 f.getFrustumNear(), f.getFrustumFar());
-			}
-			
-			// remember surface's dimension for next process
-			dim.width = width;
-			dim.height = height;
-			store.put(vn, dim);
-			
-			// setFrustum and setPerspective auto update the frustum, so 
-			// set needsUpdate to false so we don't do it again
-			needsUpdate = false;
-		}
-		
-		if (needsUpdate)
-			f.updateFrustumPlanes();
-		
-		// frustum is up-to-date, so now we perform a visibility query
-		queryCache.clear(true);
-		hierarchy.query(f, queryCache);
+        Map<ViewNode, Dimension> nextDimensions = new HashMap<ViewNode, Dimension>();
+        
+        Iterator<Entity> it = system.iterator(VN_ID);
+        while(it.hasNext()) {
+            // process each viewnode independently
+            process(it.next(), nextDimensions);
+        }
+        
+        dimensions = nextDimensions;
+    }
+    
+    private void process(Entity e, Map<ViewNode, Dimension> store) {
+        ViewNode vn = e.get(VN_ID);
+        SceneElement se = e.get(SE_ID);
+        
+        Frustum f = vn.getFrustum();
+        boolean needsUpdate = true;
+        if (se != null) {
+            // modify the frustum so that it matches the scene element 
+            // location and orientation
+            Matrix3f m = se.getTransform().getRotation();
+            m.getCol(1, f.getUp());
+            m.getCol(2, f.getDirection());
+            f.getLocation().set(se.getTransform().getTranslation());
+        }
+        
+        if (vn.getAutoUpdateViewport()) {
+            Surface surface = vn.getRenderSurface();
+            
+            int width = surface.getWidth();
+            int height = surface.getHeight();
+            
+            Dimension dim = dimensions.get(vn);
+            if (dim == null) {
+                dim = new Dimension();
+                dim.width = width;
+                dim.height = height;
+            }
+            
+            float scaleX = (float) width / dim.width;
+            float scaleY = (float) height / dim.height;
+            
+            int vpLeft = (int) Math.max(0, Math.min(scaleX * vn.getLeft(), width));
+            int vpRight = (int) Math.max(0, Math.min(scaleX * vn.getRight(), width));
+            int vpBottom = (int) Math.max(0, Math.min(scaleY * vn.getBottom(), height));
+            int vpTop = (int) Math.max(0, Math.min(scaleY * vn.getTop(), height));
+            
+            // assign the new viewport
+            vn.setViewport(vpLeft, vpRight, vpBottom, vpTop);
+            
+            if (f.isOrthogonalProjection()) {
+                // modify the frustum so that it spans the entire RS
+                f.setFrustum(true, scaleX * f.getFrustumLeft(), scaleX * f.getFrustumRight(), 
+                             scaleY * f.getFrustumBottom(), scaleY * f.getFrustumTop(), 
+                             f.getFrustumNear(), f.getFrustumFar());
+            } else {
+                // modify the frustum to use the correct aspect ratio
+                float fov = f.getFieldOfView();
+                f.setPerspective(fov, (vpRight - vpLeft) / (float) (vpTop - vpBottom), 
+                                 f.getFrustumNear(), f.getFrustumFar());
+            }
+            
+            // remember surface's dimension for next process
+            dim.width = width;
+            dim.height = height;
+            store.put(vn, dim);
+            
+            // setFrustum and setPerspective auto update the frustum, so 
+            // set needsUpdate to false so we don't do it again
+            needsUpdate = false;
+        }
+        
+        if (needsUpdate)
+            f.updateFrustumPlanes();
+        
+        // frustum is up-to-date, so now we perform a visibility query
+        queryCache.clear(true);
+        hierarchy.query(f, queryCache);
 
-		// modify all scene elements to be potentially visible
-		int ct = queryCache.size();
-		for (int i = 0; i < ct; i++) {
-			se = (SceneElement) queryCache.get(i).get(SE_ID);
-			if (se != null)
-				se.setVisible(f, true);
-		}
-	}
-	
-	private static class Dimension {
-		int width;
-		int height;
-	}
+        // modify all scene elements to be potentially visible
+        int ct = queryCache.size();
+        for (int i = 0; i < ct; i++) {
+            se = (SceneElement) queryCache.get(i).get(SE_ID);
+            if (se != null)
+                se.setVisible(f, true);
+        }
+    }
+    
+    private static class Dimension {
+        int width;
+        int height;
+    }
 }

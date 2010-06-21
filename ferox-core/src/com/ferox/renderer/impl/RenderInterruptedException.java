@@ -10,19 +10,19 @@ import com.ferox.renderer.RenderException;
  * @author Michael Ludwig
  */
 public class RenderInterruptedException extends RenderException {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public RenderInterruptedException() { }
+    public RenderInterruptedException() { }
 
-	public RenderInterruptedException(String message) {
-		super(message);
-	}
+    public RenderInterruptedException(String message) {
+        super(message);
+    }
 
-	public RenderInterruptedException(Throwable cause) {
-		super(cause);
-	}
+    public RenderInterruptedException(Throwable cause) {
+        super(cause);
+    }
 
-	public RenderInterruptedException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public RenderInterruptedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

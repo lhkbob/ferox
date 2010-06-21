@@ -128,119 +128,119 @@ public abstract class RenderConnection {
      * @param vn The ViewNode that represents the primary viewing location
      * @throws NullPointerException if vn is null
      */
-	public void setView(ViewNode vn) {
-	    viewFrustum = vn.getFrustum();
-	    viewLeft = vn.getLeft();
-	    viewRight = vn.getRight();
-	    viewBottom = vn.getBottom();
-	    viewTop = vn.getTop();
-	}
+    public void setView(ViewNode vn) {
+        viewFrustum = vn.getFrustum();
+        viewLeft = vn.getLeft();
+        viewRight = vn.getRight();
+        viewBottom = vn.getBottom();
+        viewTop = vn.getTop();
+    }
 
     /**
      * @return The list of Entities that cast shadows for the shadow map
      */
-	public Bag<Entity> getShadowCastingEntities() {
-	    return shadowEntities;
-	}
+    public Bag<Entity> getShadowCastingEntities() {
+        return shadowEntities;
+    }
 
     /**
      * @return The list of Entities that embody the scene to render
      */
-	public Bag<Entity> getRenderedEntities() {
-	    return renderEntities;
-	}
+    public Bag<Entity> getRenderedEntities() {
+        return renderEntities;
+    }
 
     /**
      * @return The list of lights which influence the scene
      */
-	public Bag<Component> getLights() {
-	    return lights;
-	}
+    public Bag<Component> getLights() {
+        return lights;
+    }
 
     /**
      * @return The list of light bounds. Each element in the returned Bag is
      *         paired with a light Component at the same index from the lights
      *         returned by {@link #getLights()}
      */
-	public Bag<AxisAlignedBox> getLightBounds() {
-	    return lightBounds;
-	}
-	
-	/**
+    public Bag<AxisAlignedBox> getLightBounds() {
+        return lightBounds;
+    }
+    
+    /**
      * @return The primary viewing Frustum
      */
-	public Frustum getViewFrustum() {
-	    return viewFrustum;
-	}
+    public Frustum getViewFrustum() {
+        return viewFrustum;
+    }
 
     /**
      * @return The Frustum to use for shadow-map generation, may be null, in
      *         which case the shadow map passes should not be rendered
      */
-	public Frustum getShadowFrustum() {
-	    return shadowFrustum;
-	}
+    public Frustum getShadowFrustum() {
+        return shadowFrustum;
+    }
 
     /**
      * @return The light Component that casts shadows, which can be null. This
      *         returned component will be in the Bag returned by
      *         {@link #getLights()}
      */
-	public Component getShadowCastingLight() {
-	    return shadowLight;
-	}
+    public Component getShadowCastingLight() {
+        return shadowLight;
+    }
 
     /**
      * @return The bounds of the shadow-casting light. This will be null only
      *         when {@link #getShadowCastingLight()} is null
      */
-	public AxisAlignedBox getShadowCastingLightBounds() {
-	    return shadowBounds;
-	}
-	
-	/**
-	 * @return The left edge of the primary viewport
-	 */
-	public int getViewportLeft() {
-	    return viewLeft;
-	}
-	
-	/**
-	 * @return The right edge of the primary viewport
-	 */
-	public int getViewportRight() {
-	    return viewRight;
-	}
-	
-	/**
-	 * @return The bottom edge of the primary viewport
-	 */
-	public int getViewportBottom() {
-	    return viewBottom;
-	}
-	
-	/**
-	 * @return The top edge of the primary viewport
-	 */
-	public int getViewportTop() {
-	    return viewTop;
-	}
+    public AxisAlignedBox getShadowCastingLightBounds() {
+        return shadowBounds;
+    }
+    
+    /**
+     * @return The left edge of the primary viewport
+     */
+    public int getViewportLeft() {
+        return viewLeft;
+    }
+    
+    /**
+     * @return The right edge of the primary viewport
+     */
+    public int getViewportRight() {
+        return viewRight;
+    }
+    
+    /**
+     * @return The bottom edge of the primary viewport
+     */
+    public int getViewportBottom() {
+        return viewBottom;
+    }
+    
+    /**
+     * @return The top edge of the primary viewport
+     */
+    public int getViewportTop() {
+        return viewTop;
+    }
 
     /**
      * Reset all internal datastructures so that this RenderConnection
      * represents an empty scene again.
      */
-	public void reset() {
-	    viewFrustum = null;
-	    shadowFrustum = null;
-	    shadowLight = null;
-	    shadowBounds = null;
-	    
-	    renderEntities.clear(true);
-	    shadowEntities.clear(true);
-	    lights.clear(true);
-	    lightBounds.clear(true);
-	}
+    public void reset() {
+        viewFrustum = null;
+        shadowFrustum = null;
+        shadowLight = null;
+        shadowBounds = null;
+        
+        renderEntities.clear(true);
+        shadowEntities.clear(true);
+        lights.clear(true);
+        lightBounds.clear(true);
+    }
 
     /**
      * Queue all necessary RenderPasses to render the contents of this
@@ -249,40 +249,40 @@ public abstract class RenderConnection {
      * @param surface The Surface that will be rendered into for the primary
      *            view
      */
-	public abstract void flush(Surface surface);
+    public abstract void flush(Surface surface);
 
     /**
      * To be invoked by a RenderPass that's beginning the generation of the
      * shadow map.
      */
-	public abstract void notifyShadowMapBegin();
+    public abstract void notifyShadowMapBegin();
 
     /**
      * To be invoked by a RenderPass that's ending the generation of the shadow
      * map.
      */
-	public abstract void notifyShadowMapEnd();
-	
-	/**
+    public abstract void notifyShadowMapEnd();
+    
+    /**
      * To be invoked by a RenderPass that's beginning the base/default lighting
      * pass.
      */
-	public abstract void notifyBaseLightingPassBegin();
-	
-	/**
+    public abstract void notifyBaseLightingPassBegin();
+    
+    /**
      * To be invoked by a RenderPass that's ending the base/default lighting
      * pass.
      */
-	public abstract void notifyBaseLightingPassEnd();
+    public abstract void notifyBaseLightingPassEnd();
 
     /**
      * To be invoked by a RenderPass that's beginning the shadowed lighting
      * pass.
      */
-	public abstract void notifyShadowedLightingPassBegin();
-	
-	/**
+    public abstract void notifyShadowedLightingPassBegin();
+    
+    /**
      * To be invoked by a RenderPass that's ending the shadowed lighting pass.
      */
-	public abstract void notifyShadowedLightingPassEnd();
+    public abstract void notifyShadowedLightingPassEnd();
 }

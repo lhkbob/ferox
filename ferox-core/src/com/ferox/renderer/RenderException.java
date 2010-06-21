@@ -8,21 +8,21 @@ package com.ferox.renderer;
  * @author Michael Ludwig
  */
 public class RenderException extends RuntimeException {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public RenderException() {
-		super();
-	}
+    public RenderException() {
+        super();
+    }
 
-	public RenderException(String arg0) {
-		super(arg0);
-	}
+    public RenderException(String arg0) {
+        super(arg0);
+    }
 
-	public RenderException(Throwable arg0) {
-		super(arg0);
-	}
+    public RenderException(Throwable arg0) {
+        super(arg0);
+    }
 
-	public RenderException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    public RenderException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 }

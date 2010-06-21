@@ -16,32 +16,32 @@ import com.ferox.util.Bag;
  * @author Michael Ludwig
  */
 public class ShadowMapGeneratorPass extends AbstractFixedFunctionRenderPass {
-	public ShadowMapGeneratorPass(RenderConnection connection, int maxMaterialTexUnits, String vertexBinding) {
-		super(connection, maxMaterialTexUnits, vertexBinding, null, null);
-	}
+    public ShadowMapGeneratorPass(RenderConnection connection, int maxMaterialTexUnits, String vertexBinding) {
+        super(connection, maxMaterialTexUnits, vertexBinding, null, null);
+    }
 
-	@Override
-	protected void render(FixedFunctionRenderer ffp) {
-		// set style to be just depth, while drawing only back faces
-		ffp.setColorWriteMask(false, false, false, false);
-		ffp.setDrawStyle(DrawStyle.NONE, DrawStyle.SOLID);
-		
-		// move everything backwards slightly to account for floating errors
-		ffp.setDepthOffsets(0f, 5f);
-		ffp.setDepthOffsetsEnabled(true);
-		
-		Bag<Entity> shadowAtoms = connection.getShadowCastingEntities();
-		int ct = shadowAtoms.size();
-		for (int i = 0; i < ct; i++) {
-		    // we bypass the material setup normally used for render atoms
-		    renderGeometry(shadowAtoms.get(i));
-		}
-	}
+    @Override
+    protected void render(FixedFunctionRenderer ffp) {
+        // set style to be just depth, while drawing only back faces
+        ffp.setColorWriteMask(false, false, false, false);
+        ffp.setDrawStyle(DrawStyle.NONE, DrawStyle.SOLID);
+        
+        // move everything backwards slightly to account for floating errors
+        ffp.setDepthOffsets(0f, 5f);
+        ffp.setDepthOffsetsEnabled(true);
+        
+        Bag<Entity> shadowAtoms = connection.getShadowCastingEntities();
+        int ct = shadowAtoms.size();
+        for (int i = 0; i < ct; i++) {
+            // we bypass the material setup normally used for render atoms
+            renderGeometry(shadowAtoms.get(i));
+        }
+    }
 
-	@Override
-	protected Frustum getFrustum() {
-	    return connection.getShadowFrustum();
-	}
+    @Override
+    protected Frustum getFrustum() {
+        return connection.getShadowFrustum();
+    }
 
     @Override
     protected void configureViewport(FixedFunctionRenderer renderer, Surface surface) {

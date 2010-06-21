@@ -29,160 +29,160 @@ import com.ferox.entity.Controller;
  * @author Michael Ludwig
  */
 public final class SceneElement extends AbstractComponent<SceneElement> {
-	private final Transform transform;
-	
-	private AxisAlignedBox localBounds;
-	private AxisAlignedBox worldBounds;
+    private final Transform transform;
+    
+    private AxisAlignedBox localBounds;
+    private AxisAlignedBox worldBounds;
 
-	private final Set<Frustum> visibility;
-	
-	public SceneElement() {
-		super(SceneElement.class);
-		transform = new Transform();
-		visibility = new HashSet<Frustum>();
-	}
+    private final Set<Frustum> visibility;
+    
+    public SceneElement() {
+        super(SceneElement.class);
+        transform = new Transform();
+        visibility = new HashSet<Frustum>();
+    }
 
-	/**
-	 * Return true if this SceneElement has been flagged as visible to the
-	 * Frustum <tt>f</tt>. Implementations of {@link Controller} are responsible
-	 * for assigning this as appropriate. If a SceneElement has no world bounds,
-	 * the controllers should consider the element "visible".
-	 * 
-	 * @param f The Frustum to check visibility
-	 * @return Whether or not the SceneElement is visible to f
-	 * @throws NullPointerException if f is null
-	 */
-	public boolean isVisible(Frustum f) {
-		if (f == null)
-			throw new NullPointerException("Frustum cannot be null");
-		return visibility.contains(f);
-	}
+    /**
+     * Return true if this SceneElement has been flagged as visible to the
+     * Frustum <tt>f</tt>. Implementations of {@link Controller} are responsible
+     * for assigning this as appropriate. If a SceneElement has no world bounds,
+     * the controllers should consider the element "visible".
+     * 
+     * @param f The Frustum to check visibility
+     * @return Whether or not the SceneElement is visible to f
+     * @throws NullPointerException if f is null
+     */
+    public boolean isVisible(Frustum f) {
+        if (f == null)
+            throw new NullPointerException("Frustum cannot be null");
+        return visibility.contains(f);
+    }
 
-	/**
-	 * Set whether or not this SceneElement is considered visible to the Frustum
-	 * <tt>f</tt>. The method is provided as is to allow for Controller
-	 * implementations to fine-grain or optimize the actual frustum testing
-	 * performed (instead of this method invoking
-	 * {@link AxisAlignedBox#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
-	 * automatically.
-	 * 
-	 * @param f The Frustum whose visibility is assigned
-	 * @param pv Whether or not the SceneElement is visible to f
-	 * @throws NullPointerException if f is null
-	 */
-	public void setVisible(Frustum f, boolean pv) {
-		if (f == null)
-			throw new NullPointerException("Frustum cannot be null");
-		if (pv)
-			visibility.add(f);
-		else
-			visibility.remove(f);
-	}
+    /**
+     * Set whether or not this SceneElement is considered visible to the Frustum
+     * <tt>f</tt>. The method is provided as is to allow for Controller
+     * implementations to fine-grain or optimize the actual frustum testing
+     * performed (instead of this method invoking
+     * {@link AxisAlignedBox#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
+     * automatically.
+     * 
+     * @param f The Frustum whose visibility is assigned
+     * @param pv Whether or not the SceneElement is visible to f
+     * @throws NullPointerException if f is null
+     */
+    public void setVisible(Frustum f, boolean pv) {
+        if (f == null)
+            throw new NullPointerException("Frustum cannot be null");
+        if (pv)
+            visibility.add(f);
+        else
+            visibility.remove(f);
+    }
 
-	/**
-	 * Reset the visibility flags of this SceneElement so that is no longer
-	 * visible to any Frustums. Subsequent calls to
-	 * {@link #isVisible(Frustum)} will return false until a Frustum
-	 * has been flagged as visible via
-	 * {@link #setVisible(Frustum, boolean)}.
-	 */
-	public void resetVisibility() {
-		visibility.clear();
-	}
+    /**
+     * Reset the visibility flags of this SceneElement so that is no longer
+     * visible to any Frustums. Subsequent calls to
+     * {@link #isVisible(Frustum)} will return false until a Frustum
+     * has been flagged as visible via
+     * {@link #setVisible(Frustum, boolean)}.
+     */
+    public void resetVisibility() {
+        visibility.clear();
+    }
 
-	/**
-	 * Copy the given rotation matrix into this SceneElement's rotation matrix.
-	 * The SceneElement will also be flagged as updated.
-	 * 
-	 * @param m The new rotation matrix
-	 * @throws NullPointerException if m is null
-	 */
-	public void setRotation(Matrix3f m) {
-		transform.setRotation(m);
-	}
+    /**
+     * Copy the given rotation matrix into this SceneElement's rotation matrix.
+     * The SceneElement will also be flagged as updated.
+     * 
+     * @param m The new rotation matrix
+     * @throws NullPointerException if m is null
+     */
+    public void setRotation(Matrix3f m) {
+        transform.setRotation(m);
+    }
 
-	/**
-	 * @return The Transform that represents the 3D position and orientation of
-	 *         this SceneElement.
-	 */
-	public Transform getTransform() {
-		return transform;
-	}
+    /**
+     * @return The Transform that represents the 3D position and orientation of
+     *         this SceneElement.
+     */
+    public Transform getTransform() {
+        return transform;
+    }
 
-	/**
-	 * Copy t into this SceneElement's Transform.
-	 * 
-	 * @param t The new Transform for this SceneElement
-	 * @throws NullPointerException if t is null
-	 */
-	public void setTransform(Transform t) {
-		transform.set(t);
-	}
+    /**
+     * Copy t into this SceneElement's Transform.
+     * 
+     * @param t The new Transform for this SceneElement
+     * @throws NullPointerException if t is null
+     */
+    public void setTransform(Transform t) {
+        transform.set(t);
+    }
 
-	/**
-	 * <p>
-	 * Set the local bounds that represent the extents of this SceneElement
-	 * within its local coordinate space. If <tt>bounds</tt> is null, then this
-	 * element has no bounds and the SceneController will assign a null world
-	 * bounds. Otherwise the local bounds will be transformed into world space
-	 * using {@link #getTransform()} to compute the world bounds.
-	 * </p>
-	 * <p>
-	 * This instance is not copied, so any changes to it later will be reflected by the
-	 * SceneElement.
-	 * </p>
-	 * 
-	 * @param bounds The new local bounds
-	 */
-	public void setLocalBounds(AxisAlignedBox bounds) {
-		localBounds = bounds;
-	}
+    /**
+     * <p>
+     * Set the local bounds that represent the extents of this SceneElement
+     * within its local coordinate space. If <tt>bounds</tt> is null, then this
+     * element has no bounds and the SceneController will assign a null world
+     * bounds. Otherwise the local bounds will be transformed into world space
+     * using {@link #getTransform()} to compute the world bounds.
+     * </p>
+     * <p>
+     * This instance is not copied, so any changes to it later will be reflected by the
+     * SceneElement.
+     * </p>
+     * 
+     * @param bounds The new local bounds
+     */
+    public void setLocalBounds(AxisAlignedBox bounds) {
+        localBounds = bounds;
+    }
 
-	/**
-	 * <p>
-	 * Return the local AxisAlignedBox instance used by this SceneElement. The
-	 * local bound volume is in the local coordinate space of this SceneElement,
-	 * and {@link #getTransform()} is used to compute the world bounds based
-	 * using {@link AxisAlignedBox#transform(Transform, AxisAlignedBox)}.
-	 * </p>
-	 * <p>
-	 * The returned instance is not a defensive copy.
-	 * </p>
-	 * <p>
-	 * This may return a null local bounds if the SceneElement is not bounded.
-	 * In this case, the world bounds should also return null after an update.
-	 * The returned instance must be different than the instance used to store
-	 * world bounds.
-	 * </p>
-	 * 
-	 * @return The local bounds
-	 */
-	public AxisAlignedBox getLocalBounds() {
-		return localBounds;
-	}
+    /**
+     * <p>
+     * Return the local AxisAlignedBox instance used by this SceneElement. The
+     * local bound volume is in the local coordinate space of this SceneElement,
+     * and {@link #getTransform()} is used to compute the world bounds based
+     * using {@link AxisAlignedBox#transform(Transform, AxisAlignedBox)}.
+     * </p>
+     * <p>
+     * The returned instance is not a defensive copy.
+     * </p>
+     * <p>
+     * This may return a null local bounds if the SceneElement is not bounded.
+     * In this case, the world bounds should also return null after an update.
+     * The returned instance must be different than the instance used to store
+     * world bounds.
+     * </p>
+     * 
+     * @return The local bounds
+     */
+    public AxisAlignedBox getLocalBounds() {
+        return localBounds;
+    }
 
-	/**
-	 * Set the AxisAlignedBox instance that represents the computed world bounds,
-	 * based off of {@link #getTransform()} and {@link #getLocalBounds()}. This
-	 * should not be called directly, but is intended for use by a
-	 * SceneController.
-	 * 
-	 * @param bounds The new AxisAlignedBox instance stored for world bounds
-	 */
-	public void setWorldBounds(AxisAlignedBox bounds) {
-		worldBounds = bounds;
-	}
+    /**
+     * Set the AxisAlignedBox instance that represents the computed world bounds,
+     * based off of {@link #getTransform()} and {@link #getLocalBounds()}. This
+     * should not be called directly, but is intended for use by a
+     * SceneController.
+     * 
+     * @param bounds The new AxisAlignedBox instance stored for world bounds
+     */
+    public void setWorldBounds(AxisAlignedBox bounds) {
+        worldBounds = bounds;
+    }
 
-	/**
-	 * Get the world bounds that was last assigned via
-	 * {@link #setWorldBounds(AxisAlignedBox)}. The SceneController computes the
-	 * world bounds based off of the assigned local bounds and the current
-	 * transform. If the local bounds are null, the world bounds will also be
-	 * null.
-	 * 
-	 * @return The world bounds of this SceneElement
-	 */
-	public AxisAlignedBox getWorldBounds() {
-		return worldBounds;
-	}
+    /**
+     * Get the world bounds that was last assigned via
+     * {@link #setWorldBounds(AxisAlignedBox)}. The SceneController computes the
+     * world bounds based off of the assigned local bounds and the current
+     * transform. If the local bounds are null, the world bounds will also be
+     * null.
+     * 
+     * @return The world bounds of this SceneElement
+     */
+    public AxisAlignedBox getWorldBounds() {
+        return worldBounds;
+    }
 }

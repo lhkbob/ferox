@@ -22,9 +22,9 @@ public class Plane {
      * @param plane The plane to be normalized
      * @throws NullPointerException if plane is null
      */
-	public static void normalize(Vector4f plane) {
-		plane.scale(1f / length(plane));
-	}
+    public static void normalize(Vector4f plane) {
+        plane.scale(1f / length(plane));
+    }
 
     /**
      * Compute the signed distance between the plane stored in <tt>plane</tt>
@@ -39,9 +39,9 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-	public static float getSignedDistance(Vector4f plane, Vector3f point) {
-		return getSignedDistance(plane, point, false);
-	}
+    public static float getSignedDistance(Vector4f plane, Vector3f point) {
+        return getSignedDistance(plane, point, false);
+    }
 
     /**
      * Compute the signed distance between <tt>plane</tt> and <tt>point</tt>. If
@@ -58,12 +58,12 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-	public static float getSignedDistance(Vector4f plane, Vector3f point, boolean assumeNormalized) {
-		float num = point.dot(plane.x, plane.y, plane.z) + plane.w;
-		return (assumeNormalized ? num : num / length(plane));
-	}
-	
-	private static float length(Vector4f v) {
-		return (float) Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-	}
+    public static float getSignedDistance(Vector4f plane, Vector3f point, boolean assumeNormalized) {
+        float num = point.dot(plane.x, plane.y, plane.z) + plane.w;
+        return (assumeNormalized ? num : num / length(plane));
+    }
+    
+    private static float length(Vector4f v) {
+        return (float) Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    }
 }

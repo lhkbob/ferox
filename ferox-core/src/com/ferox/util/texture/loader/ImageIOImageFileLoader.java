@@ -15,19 +15,19 @@ import com.ferox.resource.Texture;
  * @author Michael Ludwig
  */
 public class ImageIOImageFileLoader implements ImageFileLoader {
-	@Override
-	public Texture readImage(InputStream stream) throws IOException {
-		// I'm assuming that read() will restore the stream's position
-		// if no reader is found
+    @Override
+    public Texture readImage(InputStream stream) throws IOException {
+        // I'm assuming that read() will restore the stream's position
+        // if no reader is found
 
-		BufferedImage b = ImageIO.read(stream);
-		if (b != null) {
-			if (b.getHeight() == 1)
-				return TextureLoader.createTexture1D(b);
-			else
-				return TextureLoader.createTexture2D(b);
-		} else
-			return null;
-	}
+        BufferedImage b = ImageIO.read(stream);
+        if (b != null) {
+            if (b.getHeight() == 1)
+                return TextureLoader.createTexture1D(b);
+            else
+                return TextureLoader.createTexture2D(b);
+        } else
+            return null;
+    }
 
 }

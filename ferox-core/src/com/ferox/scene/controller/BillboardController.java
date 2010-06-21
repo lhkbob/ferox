@@ -30,53 +30,53 @@ import com.ferox.entity.EntitySystem;
  * @author Michael Ludwig
  */
 public class BillboardController extends Controller {
-	private static final ComponentId<Billboarded> B_ID = Component.getComponentId(Billboarded.class);
-	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
-	
-	private static final Vector3f ZERO = new Vector3f();
-	
-	public BillboardController(EntitySystem system) {
-	    super(system);
-	}
-	
-	@Override
+    private static final ComponentId<Billboarded> B_ID = Component.getComponentId(Billboarded.class);
+    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    
+    private static final Vector3f ZERO = new Vector3f();
+    
+    public BillboardController(EntitySystem system) {
+        super(system);
+    }
+    
+    @Override
     protected void processImpl() {
-		Iterator<Entity> it = system.iterator(B_ID);
-		while(it.hasNext()) {
-			process(it.next());
-		}
-	}
+        Iterator<Entity> it = system.iterator(B_ID);
+        while(it.hasNext()) {
+            process(it.next());
+        }
+    }
 
-	private void process(Entity e) {
-		Billboarded b = e.get(B_ID);
-		SceneElement se = e.get(SE_ID);
-		if (b != null && se != null) {
-			Transform t = se.getTransform();
-			if (b.getBillboardPoint() != null) {
-				// X = 0, Y = 1, Z = 2
-				int o = b.getBillboardDirectionAxis().ordinal();
-				Matrix3f r = t.getRotation();
+    private void process(Entity e) {
+        Billboarded b = e.get(B_ID);
+        SceneElement se = e.get(SE_ID);
+        if (b != null && se != null) {
+            Transform t = se.getTransform();
+            if (b.getBillboardPoint() != null) {
+                // X = 0, Y = 1, Z = 2
+                int o = b.getBillboardDirectionAxis().ordinal();
+                Matrix3f r = t.getRotation();
 
-				Vector3f d = b.getBillboardPoint().sub(t.getTranslation(), null).normalize();
-				Vector3f a = r.getCol((o + 2) % 3, null).ortho(d);
-				
-				updateMatrix(r, d, a, o);
-			}
-			if (b.getConstraintVector() != null) {
-				// X = 0, Y = 1, Z = 2
-				int o = b.getConstraintAxis().ordinal();
-				Matrix3f r = t.getRotation();
+                Vector3f d = b.getBillboardPoint().sub(t.getTranslation(), null).normalize();
+                Vector3f a = r.getCol((o + 2) % 3, null).ortho(d);
+                
+                updateMatrix(r, d, a, o);
+            }
+            if (b.getConstraintVector() != null) {
+                // X = 0, Y = 1, Z = 2
+                int o = b.getConstraintAxis().ordinal();
+                Matrix3f r = t.getRotation();
 
-				Vector3f d = b.getConstraintVector().normalize(null);
-				Vector3f a = r.getCol((o + 2) % 3, null).ortho(d);
-				
-				updateMatrix(r, d, a, o);
-			}
-		}
-	}
-	
-	private void updateMatrix(Matrix3f r, Vector3f d, Vector3f a, int o) {
-	    if (!a.epsilonEquals(ZERO, .0001f)) {
+                Vector3f d = b.getConstraintVector().normalize(null);
+                Vector3f a = r.getCol((o + 2) % 3, null).ortho(d);
+                
+                updateMatrix(r, d, a, o);
+            }
+        }
+    }
+    
+    private void updateMatrix(Matrix3f r, Vector3f d, Vector3f a, int o) {
+        if (!a.epsilonEquals(ZERO, .0001f)) {
             // properly perpendicular so we can update matrix
             a.normalize();
             
@@ -91,5 +91,5 @@ public class BillboardController extends Controller {
             r.setCol((o + 1) % 3, a);
             r.setCol((o + 2) % 3, d.cross(a, a));
         }
-	}
+    }
 }

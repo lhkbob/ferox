@@ -13,25 +13,25 @@ package com.ferox.renderer;
  * @author Michael Ludwig
  */
 public interface RenderPass {
-	/**
-	 * <p>
-	 * Render the graphical content that's described by this RenderPass. The
-	 * RenderPass is responsible for modifying the Renderer state as needed and
-	 * then invoking {@link Renderer#render(com.ferox.resource.Geometry)} as
-	 * needed. Each time this pass is rendered, the Renderer has its state
-	 * restored to its default.
-	 * </p>
-	 * <p>
-	 * This should only be called by the Framework when the Renderer is allowed
-	 * to be used. The Renderer should not be stored outside of this method
-	 * implementation, because the Renderer is likely a light-weight object tied
-	 * to a specific Thread or Surface used by a Framework.
-	 * </p>
-	 * 
-	 * @param renderer The Renderer that is actively rendering on the calling
-	 *            Thread
-	 * @param surface The Surface that this RenderPass will be rendered
-	 *            into
-	 */
-	public void render(Renderer renderer, Surface surface);
+    /**
+     * <p>
+     * Render the graphical content that's described by this RenderPass. The
+     * RenderPass is responsible for modifying the Renderer state as needed and
+     * then invoking {@link Renderer#render(com.ferox.resource.Geometry)} as
+     * needed. Each time this pass is rendered, the Renderer has its state
+     * restored to its default.
+     * </p>
+     * <p>
+     * This should only be called by the Framework when the Renderer is allowed
+     * to be used. The Renderer should not be stored outside of this method
+     * implementation, because the Renderer is likely a light-weight object tied
+     * to a specific Thread or Surface used by a Framework.
+     * </p>
+     * 
+     * @param renderer The Renderer that is actively rendering on the calling
+     *            Thread
+     * @param surface The Surface that this RenderPass will be rendered
+     *            into
+     */
+    public void render(Renderer renderer, Surface surface);
 }

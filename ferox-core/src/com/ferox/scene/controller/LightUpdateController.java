@@ -37,50 +37,50 @@ import com.ferox.entity.EntitySystem;
  * @author Michael Ludwig
  */
 public class LightUpdateController extends Controller {
-	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
-	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
-	
-	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
-	
-	public LightUpdateController(EntitySystem system) {
-	    super(system);
-	}
-	
-	@Override
+    private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
+    private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
+    
+    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    
+    public LightUpdateController(EntitySystem system) {
+        super(system);
+    }
+    
+    @Override
     protected void processImpl() {
-		// update all direction lights so their direction vector
-		// matches the z-axis of an attached scene element
-		Entity e;
-		Iterator<Entity> it = system.iterator(DL_ID);
-		while(it.hasNext()) {
-			e = it.next();
-			processDirectionLight(e.get(DL_ID), e.get(SE_ID));
-		}
-		
-		// update all spot lights so their direction vector
-		// matches the z-axis, and their position matches the
-		// that of any attached scene element
-		it = system.iterator(SL_ID);
-		while(it.hasNext()) {
-			e = it.next();
-			processSpotLight(e.get(SL_ID), e.get(SE_ID));
-		}
-	}
-	
-	private void processDirectionLight(DirectionLight dl, SceneElement se) {
-		if (se != null) {
-			// copy the 3rd column into dl's direction
-			se.getTransform().getRotation().getCol(3, dl.getDirection());
-		}
-	}
-	
-	private void processSpotLight(SpotLight sl, SceneElement se) {
-		if (se != null) {
-			// copy the 3rd column into sl's direction
-			se.getTransform().getRotation().getCol(3, sl.getDirection());
-			
-			// copy the translation into sl's position
-			sl.getPosition().set(se.getTransform().getTranslation());
-		}
-	}
+        // update all direction lights so their direction vector
+        // matches the z-axis of an attached scene element
+        Entity e;
+        Iterator<Entity> it = system.iterator(DL_ID);
+        while(it.hasNext()) {
+            e = it.next();
+            processDirectionLight(e.get(DL_ID), e.get(SE_ID));
+        }
+        
+        // update all spot lights so their direction vector
+        // matches the z-axis, and their position matches the
+        // that of any attached scene element
+        it = system.iterator(SL_ID);
+        while(it.hasNext()) {
+            e = it.next();
+            processSpotLight(e.get(SL_ID), e.get(SE_ID));
+        }
+    }
+    
+    private void processDirectionLight(DirectionLight dl, SceneElement se) {
+        if (se != null) {
+            // copy the 3rd column into dl's direction
+            se.getTransform().getRotation().getCol(3, dl.getDirection());
+        }
+    }
+    
+    private void processSpotLight(SpotLight sl, SceneElement se) {
+        if (se != null) {
+            // copy the 3rd column into sl's direction
+            se.getTransform().getRotation().getCol(3, sl.getDirection());
+            
+            // copy the translation into sl's position
+            sl.getPosition().set(se.getTransform().getTranslation());
+        }
+    }
 }

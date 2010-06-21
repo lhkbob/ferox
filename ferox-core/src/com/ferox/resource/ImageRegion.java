@@ -31,11 +31,11 @@ package com.ferox.resource;
  * @author Michael Ludwig
  */
 public class ImageRegion {
-	private final int maxWidth;
-	private final int maxHeight;
-	private final int maxDepth;
-	
-	private int x, y, z, width, height, depth;
+    private final int maxWidth;
+    private final int maxHeight;
+    private final int maxDepth;
+    
+    private int x, y, z, width, height, depth;
 
     /**
      * Convenience constructor to create an ImageRegion for a 1D texture that is
@@ -46,9 +46,9 @@ public class ImageRegion {
      * @param width The number of pixels from x that are dirty
      * @throws IllegalArgumentException if width < 1
      */
-	public ImageRegion(int x, int width) {
-	    this(x, 0, width, 1);
-	}
+    public ImageRegion(int x, int width) {
+        this(x, 0, width, 1);
+    }
 
     /**
      * Convenience constructor to create an ImageRegion for a 2D texture that is
@@ -61,9 +61,9 @@ public class ImageRegion {
      * @param height The height of the dirty region, from y
      * @throws IllegalArgumentException if width, height < 1
      */
-	public ImageRegion(int x, int y, int width, int height) {
-	    this(x, y, 0, width, height, 1);
-	}
+    public ImageRegion(int x, int y, int width, int height) {
+        this(x, y, 0, width, height, 1);
+    }
 
     /**
      * <p>
@@ -88,9 +88,9 @@ public class ImageRegion {
      * @param depth Initial depth of region, must be at least 1
      * @throws IllegalArgumentException if width, height, depth < 1
      */
-	public ImageRegion(int x, int y, int z, int width, int height, int depth) {
-	    this(x, y, z, width, height, depth, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-	}
+    public ImageRegion(int x, int y, int z, int width, int height, int depth) {
+        this(x, y, z, width, height, depth, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+    }
 
     /**
      * Create a new ImageRegion that matches <tt>r</tt> except that its
@@ -105,89 +105,89 @@ public class ImageRegion {
      * @param maxDepth The maximum allowed depth
      * @throws IllegalArgumentException if maxWidth, maxHeight, or maxDepth < 1
      */
-	public ImageRegion(ImageRegion r, int maxWidth, int maxHeight, int maxDepth) {
-	    this(r.x, r.y, r.z, r.width, r.height, r.depth, maxWidth, maxHeight, maxDepth);
-	}
+    public ImageRegion(ImageRegion r, int maxWidth, int maxHeight, int maxDepth) {
+        this(r.x, r.y, r.z, r.width, r.height, r.depth, maxWidth, maxHeight, maxDepth);
+    }
 
-	private ImageRegion(int x, int y, int z, int width, int height, int depth, 
-					   int maxWidth, int maxHeight, int maxDepth) {
-		if (width < 1 || height < 1 || depth < 1)
-			throw new IllegalArgumentException("Cannot have dimensions less than 1");
-		if (maxWidth < 1 || maxHeight < 1 || maxDepth < 1)
-			throw new IllegalArgumentException("Cannot have maximum dimensions less than 1");
-		
-		this.maxWidth = maxWidth;
-		this.maxHeight = maxHeight;
-		this.maxDepth = maxDepth;
-		
-		this.x = Math.max(0, Math.min(x, maxWidth - 1));
-		this.y = Math.max(0, Math.min(y, maxHeight - 1));
-		this.z = Math.max(0, Math.min(z, maxDepth - 1));
-		
-		this.width = Math.min(width, maxWidth - this.x);
-		this.height = Math.min(height, maxHeight - this.y);
-		this.depth = Math.min(depth, maxDepth - this.z);
-	}
-	
-	/**
-	 * Return the x offset of this region within the image block.
-	 * 
-	 * @return The x offset, will be between [0, maxWidth]
-	 */
-	public int getXOffset() {
-		return x;
-	}
+    private ImageRegion(int x, int y, int z, int width, int height, int depth, 
+                       int maxWidth, int maxHeight, int maxDepth) {
+        if (width < 1 || height < 1 || depth < 1)
+            throw new IllegalArgumentException("Cannot have dimensions less than 1");
+        if (maxWidth < 1 || maxHeight < 1 || maxDepth < 1)
+            throw new IllegalArgumentException("Cannot have maximum dimensions less than 1");
+        
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+        this.maxDepth = maxDepth;
+        
+        this.x = Math.max(0, Math.min(x, maxWidth - 1));
+        this.y = Math.max(0, Math.min(y, maxHeight - 1));
+        this.z = Math.max(0, Math.min(z, maxDepth - 1));
+        
+        this.width = Math.min(width, maxWidth - this.x);
+        this.height = Math.min(height, maxHeight - this.y);
+        this.depth = Math.min(depth, maxDepth - this.z);
+    }
+    
+    /**
+     * Return the x offset of this region within the image block.
+     * 
+     * @return The x offset, will be between [0, maxWidth]
+     */
+    public int getXOffset() {
+        return x;
+    }
 
-	/**
-	 * Return the y offset of this region within the image block.
-	 * 
-	 * @return The y offset, will be between [0, maxHeight]
-	 */
-	public int getYOffset() {
-		return y;
-	}
+    /**
+     * Return the y offset of this region within the image block.
+     * 
+     * @return The y offset, will be between [0, maxHeight]
+     */
+    public int getYOffset() {
+        return y;
+    }
 
-	/**
-	 * Return the z offset of this region within the image block.
-	 * 
-	 * @return The z offset, will be between [0, maxDepth]
-	 */
-	public int getZOffset() {
-		return z;
-	}
+    /**
+     * Return the z offset of this region within the image block.
+     * 
+     * @return The z offset, will be between [0, maxDepth]
+     */
+    public int getZOffset() {
+        return z;
+    }
 
-	/**
-	 * Return the width of this region within the image block. The returned
-	 * width will not cause the region to extend beyond the maxWidth, based on
-	 * the x offset.
-	 * 
-	 * @return Width of region
-	 */
-	public int getWidth() {
-		return width;
-	}
+    /**
+     * Return the width of this region within the image block. The returned
+     * width will not cause the region to extend beyond the maxWidth, based on
+     * the x offset.
+     * 
+     * @return Width of region
+     */
+    public int getWidth() {
+        return width;
+    }
 
-	/**
-	 * Return the height of this region within the image block. The returned
-	 * height will not cause the region to extend beyond the maxHeight, based on
-	 * the y offset.
-	 * 
-	 * @return Height of region
-	 */
-	public int getHeight() {
-		return height;
-	}
+    /**
+     * Return the height of this region within the image block. The returned
+     * height will not cause the region to extend beyond the maxHeight, based on
+     * the y offset.
+     * 
+     * @return Height of region
+     */
+    public int getHeight() {
+        return height;
+    }
 
-	/**
-	 * Return the depth of this region within the image block. The returned
-	 * depth will not cause the region to extend beyond the maxDepth, based on
-	 * the z offset.
-	 * 
-	 * @return Depth of region
-	 */
-	public int getDepth() {
-		return depth;
-	}
+    /**
+     * Return the depth of this region within the image block. The returned
+     * depth will not cause the region to extend beyond the maxDepth, based on
+     * the z offset.
+     * 
+     * @return Depth of region
+     */
+    public int getDepth() {
+        return depth;
+    }
 
     /**
      * Construct a new ImageRegion that is the union of this ImageRegion, and
@@ -205,37 +205,37 @@ public class ImageRegion {
      * @return New ImageRegion representing the combined region
      * @throws IllegalArgumentException if width, height, depth < 1
      */
-	public ImageRegion merge(int x, int y, int z, 
-						 	 int width, int height, int depth) {
-		if (width < 1 || height < 1 || depth < 1)
-			throw new IllegalArgumentException("Cannot have dimensions less than 1");
-		
-		// extents of the dirty region
-		int minX = Math.min(x, this.x);
-		int minY = Math.min(y, this.y);
-		int minZ = Math.min(z, this.z);
-		int maxX = Math.max(x + width, this.x + this.width);
-		int maxY = Math.max(y + height, this.y + this.height);
-		int maxZ = Math.max(z + depth, this.z + this.depth);
-		
-		// constrained to valid region
-		return new ImageRegion(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ,
-							   maxWidth, maxHeight, maxDepth);
-	}
+    public ImageRegion merge(int x, int y, int z, 
+                             int width, int height, int depth) {
+        if (width < 1 || height < 1 || depth < 1)
+            throw new IllegalArgumentException("Cannot have dimensions less than 1");
+        
+        // extents of the dirty region
+        int minX = Math.min(x, this.x);
+        int minY = Math.min(y, this.y);
+        int minZ = Math.min(z, this.z);
+        int maxX = Math.max(x + width, this.x + this.width);
+        int maxY = Math.max(y + height, this.y + this.height);
+        int maxZ = Math.max(z + depth, this.z + this.depth);
+        
+        // constrained to valid region
+        return new ImageRegion(minX, minY, minZ, maxX - minX, maxY - minY, maxZ - minZ,
+                               maxWidth, maxHeight, maxDepth);
+    }
 
-	/**
-	 * Construct a new ImageRegion that is the union of this ImageRegion and the
-	 * given ImageRegion. The constructed region will be constrained to the
-	 * maximum dimensions of this ImageRegion. If region is null, it returns this
-	 * ImageRegion.
-	 * 
-	 * @param region The ImageRegion to merge with
-	 * @return A new ImageRegion representing the union
-	 */
-	public ImageRegion merge(ImageRegion region) {
-		if (region == null)
-			return this;
-		else
-			return merge(region.x, region.y, region.z, region.width, region.height, region.depth);
-	}
+    /**
+     * Construct a new ImageRegion that is the union of this ImageRegion and the
+     * given ImageRegion. The constructed region will be constrained to the
+     * maximum dimensions of this ImageRegion. If region is null, it returns this
+     * ImageRegion.
+     * 
+     * @param region The ImageRegion to merge with
+     * @return A new ImageRegion representing the union
+     */
+    public ImageRegion merge(ImageRegion region) {
+        if (region == null)
+            return this;
+        else
+            return merge(region.x, region.y, region.z, region.width, region.height, region.depth);
+    }
 }

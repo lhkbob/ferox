@@ -48,58 +48,58 @@ package com.ferox.entity;
  * @author Michael Ludwig
  */
 public abstract class Component {
-	private final ComponentId<?> id;
+    private final ComponentId<?> id;
 
-	/**
-	 * Create a new Component that determines its ComponentId by storing the
-	 * result of {@link #getComponentId(Class)}.
-	 */
-	public Component() {
-		Class<? extends Component> type = getClass();
-		id = getComponentId(type);
-	}
+    /**
+     * Create a new Component that determines its ComponentId by storing the
+     * result of {@link #getComponentId(Class)}.
+     */
+    public Component() {
+        Class<? extends Component> type = getClass();
+        id = getComponentId(type);
+    }
 
-	/**
-	 * <p>
-	 * Return the unique ComponentId associated with this Component's class
-	 * type. If the concrete Component is of type T, then the returned id is
-	 * actually of type ComponentId<T>. All Components of the same class will
-	 * return this id, too.
-	 * </p>
-	 * <p>
-	 * It is recommended that implementations override this method to use the
-	 * proper return type. Component does not perform this cast to avoid a
-	 * parametrizing Component.
-	 * </p>
-	 * 
-	 * @return The ComponentId of this Component
-	 */
-	public ComponentId<?> getComponentId() {
-		return id;
-	}
-	
-	@Override
-	public String toString() {
-	    return getClass().getSimpleName();
-	}
+    /**
+     * <p>
+     * Return the unique ComponentId associated with this Component's class
+     * type. If the concrete Component is of type T, then the returned id is
+     * actually of type ComponentId<T>. All Components of the same class will
+     * return this id, too.
+     * </p>
+     * <p>
+     * It is recommended that implementations override this method to use the
+     * proper return type. Component does not perform this cast to avoid a
+     * parametrizing Component.
+     * </p>
+     * 
+     * @return The ComponentId of this Component
+     */
+    public ComponentId<?> getComponentId() {
+        return id;
+    }
+    
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 
-	/**
-	 * Return the unique ComponentId instance for the given <tt>type</tt>. If a
-	 * ComponentId hasn't yet been created a new one is instantiated with the
-	 * next numeric id in the internal id sequence. The new ComponentId is
-	 * stored for later, so that subsequent calls to
-	 * {@link #getComponentId(Class)} with <tt>type</tt> will return the same
-	 * instance. {@link Component#Component()} implicitly calls this method when
-	 * a Component is created.
-	 * 
-	 * @param <T> The Component class type
-	 * @param type The Class whose ComponentId is fetched, which must be a
-	 *            subclass of Component
-	 * @return A unique ComponentId associated with the given type
-	 * @throws NullPointerException if type is null
-	 * @throws IllegalArgumentException if type is not actual
-	 */
-	public static <T extends Component> ComponentId<T> getComponentId(Class<T> type) {
-		return ComponentId.getComponentId(type);
-	}
+    /**
+     * Return the unique ComponentId instance for the given <tt>type</tt>. If a
+     * ComponentId hasn't yet been created a new one is instantiated with the
+     * next numeric id in the internal id sequence. The new ComponentId is
+     * stored for later, so that subsequent calls to
+     * {@link #getComponentId(Class)} with <tt>type</tt> will return the same
+     * instance. {@link Component#Component()} implicitly calls this method when
+     * a Component is created.
+     * 
+     * @param <T> The Component class type
+     * @param type The Class whose ComponentId is fetched, which must be a
+     *            subclass of Component
+     * @return A unique ComponentId associated with the given type
+     * @throws NullPointerException if type is null
+     * @throws IllegalArgumentException if type is not actual
+     */
+    public static <T extends Component> ComponentId<T> getComponentId(Class<T> type) {
+        return ComponentId.getComponentId(type);
+    }
 }

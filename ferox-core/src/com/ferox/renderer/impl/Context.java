@@ -29,14 +29,14 @@ public abstract class Context {
         frameStats = new ThreadLocal<FrameStatistics>();
     }
     
-	/**
-	 * Return the unique Renderer instance associated with this Context.
-	 * 
-	 * @return This Context's Renderer
-	 */
-	public AbstractRenderer getRenderer() {
-	    return renderer;
-	}
+    /**
+     * Return the unique Renderer instance associated with this Context.
+     * 
+     * @return This Context's Renderer
+     */
+    public AbstractRenderer getRenderer() {
+        return renderer;
+    }
 
     /**
      * Invoke the given Runnable within a valid lock, and with its underlying
@@ -46,24 +46,24 @@ public abstract class Context {
      * 
      * @param run The Runnable to invoke
      */
-	public void runWithLock(Runnable run) {
-	    lock.lock();
-	    try {
-	        makeCurrent();
-	        run.run();
-	        release();
-	    } finally {
-	        lock.unlock();
-	    }
-	}
-	
-	/**
+    public void runWithLock(Runnable run) {
+        lock.lock();
+        try {
+            makeCurrent();
+            run.run();
+            release();
+        } finally {
+            lock.unlock();
+        }
+    }
+    
+    /**
      * @return A ThreadLocal FrameStatistics instance last assigned via
      *         {@link #setFrameStatistics(FrameStatistics)}
      */
-	public FrameStatistics getFrameStatistics() {
-	    return frameStats.get();
-	}
+    public FrameStatistics getFrameStatistics() {
+        return frameStats.get();
+    }
 
     /**
      * Assign <tt>stats</tt> to this Context's thread local current
@@ -73,24 +73,24 @@ public abstract class Context {
      * 
      * @param stats The new FrameStatistics, may be null
      */
-	public void setFrameStatistics(FrameStatistics stats) {
-	    frameStats.set(stats);
-	}
+    public void setFrameStatistics(FrameStatistics stats) {
+        frameStats.set(stats);
+    }
 
-	/**
+    /**
      * @return The Context that is current on the calling Thread, or null if no
      *         Context is current
      */
-	public static Context getCurrent() {
-	    return current.get();
-	}
-	
-	protected void makeCurrent() {
-	    current.set(this);
-	}
-	
-	protected void release() {
-	    if (current.get() == this)
-	        current.set(null);
-	}
+    public static Context getCurrent() {
+        return current.get();
+    }
+    
+    protected void makeCurrent() {
+        current.set(this);
+    }
+    
+    protected void release() {
+        if (current.get() == this)
+            current.set(null);
+    }
 }

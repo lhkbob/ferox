@@ -19,25 +19,25 @@ import com.ferox.resource.Texture;
  * @author Michael Ludwig
  */
 public interface ImageFileLoader {
-	/**
-	 * <p>
-	 * Process the data from the given stream and return a Texture
-	 * representing its contents.
-	 * </p>
-	 * <p>
-	 * Return null if the stream doesn't represent an image of any supported
-	 * format. If it is an image of the expected type, but is otherwise invalid
-	 * or unsupported, then throw an exception.
-	 * </p>
-	 * <p>
-	 * If null is returned, the stream should not have its position modified. <br>
-	 * <i>The stream should not be closed</i>
-	 * </p>
-	 * 
-	 * @param stream The InputStream to attempt to read an image from
-	 * @return The read Texture, or null if this stream doesn't match a
-	 *         supported format
-	 * @throws IOException if there are any problems reading the texture
-	 */
-	public Texture readImage(InputStream stream) throws IOException;
+    /**
+     * <p>
+     * Process the data from the given stream and return a Texture
+     * representing its contents.
+     * </p>
+     * <p>
+     * Return null if the stream doesn't represent an image of any supported
+     * format. If it is an image of the expected type, but is otherwise invalid
+     * or unsupported, then throw an exception.
+     * </p>
+     * <p>
+     * If null is returned, the stream should not have its position modified. <br>
+     * <i>The stream should not be closed</i>
+     * </p>
+     * 
+     * @param stream The InputStream to attempt to read an image from
+     * @return The read Texture, or null if this stream doesn't match a
+     *         supported format
+     * @throws IOException if there are any problems reading the texture
+     */
+    public Texture readImage(InputStream stream) throws IOException;
 }

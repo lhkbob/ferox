@@ -9,19 +9,19 @@ package com.ferox.resource;
  * @param <T> The actual implementation of DirtyState
  */
 public interface DirtyState<T extends DirtyState<T>> {
-	/**
-	 * <p>
-	 * Create a new DirtyState instance of this type that represents the union
-	 * of this DirtyState and the specified DirtyState. If state is null, the
-	 * returned instance should be an effective clone of this DirtyState.
-	 * </p>
-	 * <p>
-	 * When the ordering of operations is important for merging two DirtyStats,
-	 * <tt>state</tt> should be considered the older of the two states.
-	 * </p>
-	 * 
-	 * @param state The other DirtyState in the union
-	 * @return A new DirtyState that's a union of this and state
-	 */
-	public T merge(T state);
+    /**
+     * <p>
+     * Create a new DirtyState instance of this type that represents the union
+     * of this DirtyState and the specified DirtyState. If state is null, the
+     * returned instance should be an effective clone of this DirtyState.
+     * </p>
+     * <p>
+     * When the ordering of operations is important for merging two DirtyStats,
+     * <tt>state</tt> should be considered the older of the two states.
+     * </p>
+     * 
+     * @param state The other DirtyState in the union
+     * @return A new DirtyState that's a union of this and state
+     */
+    public T merge(T state);
 }

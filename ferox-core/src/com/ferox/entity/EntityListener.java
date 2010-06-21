@@ -47,7 +47,7 @@ public interface EntityListener {
      * @param e The Entity which is having the given Component added
      * @param c The Component that's being added to e
      */
-	public void onComponentAdd(Entity e, Component c);
+    public void onComponentAdd(Entity e, Component c);
 
     /**
      * <p>
@@ -69,7 +69,7 @@ public interface EntityListener {
      * @param e The Entity which is having the given Component removed
      * @param c The Component that's being removed from e
      */
-	public void onComponentRemove(Entity e, Component c);
+    public void onComponentRemove(Entity e, Component c);
 
     /**
      * <p>
@@ -89,7 +89,7 @@ public interface EntityListener {
      * @param e The Entity that is being added to system
      * @param system The EntitySystem which subsequently own e
      */
-	public void onSystemAdd(Entity e, EntitySystem system);
+    public void onSystemAdd(Entity e, EntitySystem system);
 
     /**
      * <p>
@@ -110,5 +110,5 @@ public interface EntityListener {
      * @param e The Entity that is being removed from system
      * @param system The EntitySystem that is having e removed
      */
-	public void onSystemRemove(Entity e, EntitySystem system);
+    public void onSystemRemove(Entity e, EntitySystem system);
 }

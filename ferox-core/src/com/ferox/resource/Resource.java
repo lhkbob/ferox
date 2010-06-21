@@ -35,106 +35,106 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Michael Ludwig
  */
 public abstract class Resource {
-	/**
-	 * Each resource will have a status with the active renderer. A Resource is
-	 * usable if it has a status of READY. Resources that are DISPOSED will be
-	 * auto-updated when used. A Resource that has a status of ERROR is unusable
-	 * until it's been repaired.
-	 */
-	public static enum Status {
-		/** The resource has been updated successfully and is ready to use. */
-		READY,
-		/**
-		 * The Framework has tried to update the resource and there may be
-		 * internal data for the Resource, but something is wrong and the
-		 * Resource isn't usable.
-		 */
-		ERROR,
-		/**
-		 * The Framework has no support for the Resource sub-class. Like ERROR
-		 * it means the Resource is unusable. Unlike ERROR, the Resource cannot
-		 * be used without an exception being thrown, and it's impossible to
-		 * modify the Resource to change this status.
-		 */
-		UNSUPPORTED,
+    /**
+     * Each resource will have a status with the active renderer. A Resource is
+     * usable if it has a status of READY. Resources that are DISPOSED will be
+     * auto-updated when used. A Resource that has a status of ERROR is unusable
+     * until it's been repaired.
+     */
+    public static enum Status {
+        /** The resource has been updated successfully and is ready to use. */
+        READY,
+        /**
+         * The Framework has tried to update the resource and there may be
+         * internal data for the Resource, but something is wrong and the
+         * Resource isn't usable.
+         */
+        ERROR,
+        /**
+         * The Framework has no support for the Resource sub-class. Like ERROR
+         * it means the Resource is unusable. Unlike ERROR, the Resource cannot
+         * be used without an exception being thrown, and it's impossible to
+         * modify the Resource to change this status.
+         */
+        UNSUPPORTED,
         /**
          * The Framework's connection to the graphics card was lost and the
          * Resource's internal data has been invalidated. The Framework will
          * automatically change the Resource's status back to READY when
          * possible.
          */
-		DISCONNECTED,
-		/**
-		 * The Framework has no internal representations of the Resource (never
-		 * updated, or it's been disposed).
-		 */
-		DISPOSED
-	}
-	
-	private static AtomicInteger idCounter = new AtomicInteger(0);
-	
-	private final int id;
-	
-	public Resource() {
-		id = idCounter.getAndIncrement();
-	}
+        DISCONNECTED,
+        /**
+         * The Framework has no internal representations of the Resource (never
+         * updated, or it's been disposed).
+         */
+        DISPOSED
+    }
+    
+    private static AtomicInteger idCounter = new AtomicInteger(0);
+    
+    private final int id;
+    
+    public Resource() {
+        id = idCounter.getAndIncrement();
+    }
 
-	/**
-	 * Return a unique numeric id that's assigned to this Resource instance.
-	 * Each instantiated Resource is assigned an id, starting at 0, which is
-	 * valid only for the lifetime of the current JVM.
-	 * 
-	 * @return This Resource's unique id
-	 */
-	public final int getId() {
-		return id;
-	}
+    /**
+     * Return a unique numeric id that's assigned to this Resource instance.
+     * Each instantiated Resource is assigned an id, starting at 0, which is
+     * valid only for the lifetime of the current JVM.
+     * 
+     * @return This Resource's unique id
+     */
+    public final int getId() {
+        return id;
+    }
 
-	/**
-	 * <p>
-	 * Return an object that describes what regions of the Resource are dirty.
-	 * When this returns a non-null instance, and the Resource is used in a
-	 * frame, then the Framework should automatically update the Resource based
-	 * on the returned dirty state. If null is returned, then this Resource
-	 * has not be modified (or marked as modified).
-	 * </p>
-	 * <p>
-	 * Implementations should document what type of object is returned, and
-	 * override the return type. The returned dirty state must be an
-	 * immutable object. Every time the dirty state must be expanded to
-	 * represent more state, a new instance should be created that has a
-	 * superset of the dirty attributes of the previous instance.
-	 * </p>
-	 * <p>
-	 * Because there is only one dirty state per Resource, care must be
-	 * given when using multiple Frameworks at the same time.
-	 * </p>
-	 * <p>
-	 * The state is the minimal set of values needed to be updated.
-	 * Frameworks should not update less than what is described by the object.
-	 * If a Resource is manually updated and it's state is null, the entire
-	 * Resource should be updated, for lack of a better alternative.
-	 * </p>
-	 * <p>
-	 * Invoking this method resets the dirty state of a Resource, so a second
-	 * call to this method will return null, until the Resource has again
-	 * been flagged as dirty. Because of this, this should only be called by
-	 * Framework implementations at the appropriate time to look up the dirty
-	 * state.
-	 * </p>
-	 * 
-	 * @return Implementations specific object describing what parts of the
-	 *         Resource are dirty
-	 */
-	public abstract DirtyState<?> getDirtyState();
-	
-	@Override
-	public int hashCode() {
-	    return id;
-	}
-	
-	@Override
-	public boolean equals(Object o) {
-	    return o == this;
-	}
+    /**
+     * <p>
+     * Return an object that describes what regions of the Resource are dirty.
+     * When this returns a non-null instance, and the Resource is used in a
+     * frame, then the Framework should automatically update the Resource based
+     * on the returned dirty state. If null is returned, then this Resource
+     * has not be modified (or marked as modified).
+     * </p>
+     * <p>
+     * Implementations should document what type of object is returned, and
+     * override the return type. The returned dirty state must be an
+     * immutable object. Every time the dirty state must be expanded to
+     * represent more state, a new instance should be created that has a
+     * superset of the dirty attributes of the previous instance.
+     * </p>
+     * <p>
+     * Because there is only one dirty state per Resource, care must be
+     * given when using multiple Frameworks at the same time.
+     * </p>
+     * <p>
+     * The state is the minimal set of values needed to be updated.
+     * Frameworks should not update less than what is described by the object.
+     * If a Resource is manually updated and it's state is null, the entire
+     * Resource should be updated, for lack of a better alternative.
+     * </p>
+     * <p>
+     * Invoking this method resets the dirty state of a Resource, so a second
+     * call to this method will return null, until the Resource has again
+     * been flagged as dirty. Because of this, this should only be called by
+     * Framework implementations at the appropriate time to look up the dirty
+     * state.
+     * </p>
+     * 
+     * @return Implementations specific object describing what parts of the
+     *         Resource are dirty
+     */
+    public abstract DirtyState<?> getDirtyState();
+    
+    @Override
+    public int hashCode() {
+        return id;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        return o == this;
+    }
 }

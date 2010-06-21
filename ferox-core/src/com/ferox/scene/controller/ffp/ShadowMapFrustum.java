@@ -13,8 +13,8 @@ import com.ferox.math.bounds.Frustum;
  * @author Michael Ludwig
  */
 public class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
-	private Frustum frustum;
-	private Component shadowLight;
+    private Frustum frustum;
+    private Component shadowLight;
 
     /**
      * Create a ShadowMapFrustum that stores the given Frustum and light. See
@@ -24,11 +24,11 @@ public class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
      * @param light
      * @throws NullPointerException if f and light are null
      */
-	public ShadowMapFrustum(Frustum f, Component light) {
-		super(ShadowMapFrustum.class);
-		setFrustum(f);
-		setLight(light);
-	}
+    public ShadowMapFrustum(Frustum f, Component light) {
+        super(ShadowMapFrustum.class);
+        setFrustum(f);
+        setLight(light);
+    }
 
     /**
      * Set the light Component that represents the shadow-casting light.
@@ -36,29 +36,29 @@ public class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
      * @param light The new shadow-casting light
      * @throws NullPointerException if light is null
      */
-	public void setLight(Component light) {
-	    if (light == null)
-	        throw new NullPointerException("Light cannot be null");
-	    
-	    shadowLight = light;
-	}
-	
-	/**
+    public void setLight(Component light) {
+        if (light == null)
+            throw new NullPointerException("Light cannot be null");
+        
+        shadowLight = light;
+    }
+    
+    /**
      * @return The shadow-casting light component, either a DirectionLight or a
      *         SpotLight.
      */
-	public Component getLight() {
-	    return shadowLight;
-	}
+    public Component getLight() {
+        return shadowLight;
+    }
 
     /**
      * @return A Frustum that represents the projection information to render a
      *         depth-image from the perspective of the light returned by
      *         {@link #getLight()}
      */
-	public Frustum getFrustum() {
-		return frustum;
-	}
+    public Frustum getFrustum() {
+        return frustum;
+    }
 
     /**
      * Set the Frustum that stores the shadow-mapping projection to use.
@@ -66,9 +66,9 @@ public class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
      * @param f The new shadow-mapping frustum
      * @throws NullPointerException if f is null
      */
-	public void setFrustum(Frustum f) {
-		if (f == null)
-			throw new NullPointerException("Frustum cannot be null");
-		frustum = f;
-	}
+    public void setFrustum(Frustum f) {
+        if (f == null)
+            throw new NullPointerException("Frustum cannot be null");
+        frustum = f;
+    }
 }

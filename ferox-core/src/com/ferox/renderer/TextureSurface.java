@@ -120,7 +120,7 @@ public interface TextureSurface extends Surface {
      * @throws IndexOutOfBoundsException if buffer < 0 or >=
      *             {@link #getNumColorBuffers()}
      */
-	public Texture getColorBuffer(int buffer);
+    public Texture getColorBuffer(int buffer);
 
     /**
      * Return the number of color buffers usable by this surface. This can be a
@@ -131,7 +131,7 @@ public interface TextureSurface extends Surface {
      * @return The number of color buffers (and thus Textures storing color
      *         data)
      */
-	public int getNumColorBuffers();
+    public int getNumColorBuffers();
 
     /**
      * Return the Texture image that stores the depth information that is
@@ -142,7 +142,7 @@ public interface TextureSurface extends Surface {
      * 
      * @return The Texture holding the depth information
      */
-	public Texture getDepthBuffer();
+    public Texture getDepthBuffer();
 
     /**
      * Return the texture target that every Texture used with this
@@ -150,5 +150,5 @@ public interface TextureSurface extends Surface {
      * 
      * @return The Target used for all Textures in this surface
      */
-	public Target getTarget();
+    public Target getTarget();
 }

@@ -24,35 +24,35 @@ import com.ferox.entity.AbstractComponent;
  * @author Michael Ludwig
  */
 public final class Shape extends AbstractComponent<Shape> {
-	private Geometry geometry;
+    private Geometry geometry;
 
-	/**
-	 * Create a new Shape that uses the given Geometry instance.
-	 * 
-	 * @param geom The Geometry that this Shape represents
-	 * @throws NullPointerException if geom is null
-	 */
-	public Shape(Geometry geom) {
-		super(Shape.class);
-		setGeometry(geom);
-	}
+    /**
+     * Create a new Shape that uses the given Geometry instance.
+     * 
+     * @param geom The Geometry that this Shape represents
+     * @throws NullPointerException if geom is null
+     */
+    public Shape(Geometry geom) {
+        super(Shape.class);
+        setGeometry(geom);
+    }
 
-	/**
-	 * Assign a new Geometry instance to this Shape.
-	 * 
-	 * @param geom The Geometry to use
-	 * @throws NullPointerException if geom is null
-	 */
-	public void setGeometry(Geometry geom) {
-		if (geom == null)
-			throw new NullPointerException("Geometry cannot be null");
-		geometry = geom;
-	}
-	
-	/**
-	 * @return The Geometry that this Shape embodies
-	 */
-	public Geometry getGeometry() {
-		return geometry;
-	}
+    /**
+     * Assign a new Geometry instance to this Shape.
+     * 
+     * @param geom The Geometry to use
+     * @throws NullPointerException if geom is null
+     */
+    public void setGeometry(Geometry geom) {
+        if (geom == null)
+            throw new NullPointerException("Geometry cannot be null");
+        geometry = geom;
+    }
+    
+    /**
+     * @return The Geometry that this Shape embodies
+     */
+    public Geometry getGeometry() {
+        return geometry;
+    }
 }

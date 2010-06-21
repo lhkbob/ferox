@@ -35,7 +35,11 @@ package com.ferox.entity;
  * @author Michael Ludwig
  */
 public abstract class Controller {
+    private static final int MAX_INVOKE_COUNT = 0;
     protected final EntitySystem system;
+    
+    private int invokeCount;
+    private long invokeNanos;
 
     /**
      * Create a Controller that will process the given EntitySystem each time
@@ -74,5 +78,30 @@ public abstract class Controller {
      * Controllers.
      * </p>
      */
-	public abstract void process();
+    public void process() {
+        long nanos = -System.nanoTime();
+        processImpl();
+        nanos += System.nanoTime();
+        
+        if (invokeCount > MAX_INVOKE_COUNT) {
+            invokeCount = 1;
+            invokeNanos = nanos;
+        } else {
+            invokeCount++;
+            invokeNanos += nanos;
+        }
+    }
+    
+    /**
+     * @return The average nanosecond runtime of this Controller's
+     *         {@link #process()}
+     */
+    public long getAverageNanos() {
+        if (invokeCount == 0)
+            return 0;
+        else
+            return (invokeNanos / invokeCount);
+    }
+    
+    protected abstract void processImpl();
 }

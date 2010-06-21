@@ -11,7 +11,7 @@ import com.ferox.renderer.Surface;
  * @author Michael Ludwig
  */
 public class RenderPassAction extends Action {
-	private final RenderPass renderPass;
+    private final RenderPass renderPass;
 
     /**
      * Create a RenderPassAction that will render the given pass on the surface.
@@ -21,16 +21,16 @@ public class RenderPassAction extends Action {
      * @param pass The RenderPass that will be rendered
      * @throws NullPointerException if surface or pass are null
      */
-	public RenderPassAction(Surface surface, RenderPass pass) {
-		super(surface);
-		if (surface == null || pass == null)
-			throw new NullPointerException("Cannot queue a null Surface or RenderPass");
-		renderPass = pass;
-	}
+    public RenderPassAction(Surface surface, RenderPass pass) {
+        super(surface);
+        if (surface == null || pass == null)
+            throw new NullPointerException("Cannot queue a null Surface or RenderPass");
+        renderPass = pass;
+    }
 
-	@Override
-	public void perform(Context context, Action next) {
-		context.getRenderer().reset();
-		renderPass.render(context.getRenderer(), getSurface());
-	}
+    @Override
+    public void perform(Context context, Action next) {
+        context.getRenderer().reset();
+        renderPass.render(context.getRenderer(), getSurface());
+    }
 }

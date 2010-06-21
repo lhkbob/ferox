@@ -43,19 +43,19 @@ import com.ferox.resource.Geometry;
  * @author Michael Ludwig
  */
 public class AxisAlignedBox {
-	private final Vector3f min;
-	private final Vector3f max;
-	private int lastFailedPlane;
+    private final Vector3f min;
+    private final Vector3f max;
+    private int lastFailedPlane;
 
     /**
      * Create a new AxisAlignedBox that has its minimum and maximum at the
      * origin.
      */
-	public AxisAlignedBox() {
-		min = new Vector3f();
-		max = new Vector3f();
-		lastFailedPlane = -1;
-	}
+    public AxisAlignedBox() {
+        min = new Vector3f();
+        max = new Vector3f();
+        lastFailedPlane = -1;
+    }
 
     /**
      * Create a new AxisAlignedBox that uses the given minimum and maximum
@@ -67,11 +67,11 @@ public class AxisAlignedBox {
      * @param max The vector coordinate to use as the maximum control point
      * @throws NullPointerException if min or max are null
      */
-	public AxisAlignedBox(Vector3f min, Vector3f max) {
-		this();
-		setMin(min);
-		setMax(max);
-	}
+    public AxisAlignedBox(Vector3f min, Vector3f max) {
+        this();
+        setMin(min);
+        setMax(max);
+    }
 
     /**
      * Create a new AxisAlignedBox that is a clone of <tt>aabb</tt>.
@@ -79,10 +79,10 @@ public class AxisAlignedBox {
      * @param aabb The AxisAlignedBox to copy
      * @throws NullPointerException if aabb is null
      */
-	public AxisAlignedBox(AxisAlignedBox aabb) {
-		this();
-		set(aabb);
-	}
+    public AxisAlignedBox(AxisAlignedBox aabb) {
+        this();
+        set(aabb);
+    }
 
     /**
      * Create a new AxisAlignedBox that is fitted to the coordinate data stored
@@ -98,20 +98,20 @@ public class AxisAlignedBox {
      * @throws IllegalArgumentException if vertices.length isn't a multiple of
      *             3, or if it has fewer than 3 elements
      */
-	public AxisAlignedBox(float[] vertices) {
-		this();
-		if (vertices == null)
-			throw new NullPointerException("Vertices cannot be null");
-		if (vertices.length % 3 != 0 || vertices.length < 3)
-			throw new IllegalArgumentException("Vertices length must be a multiple of 3, and at least 3: " + vertices.length);
-		
-		int vertexCount = vertices.length / 3;
-		max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
-		min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
+    public AxisAlignedBox(float[] vertices) {
+        this();
+        if (vertices == null)
+            throw new NullPointerException("Vertices cannot be null");
+        if (vertices.length % 3 != 0 || vertices.length < 3)
+            throw new IllegalArgumentException("Vertices length must be a multiple of 3, and at least 3: " + vertices.length);
+        
+        int vertexCount = vertices.length / 3;
+        max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+        min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 
-		for (int i = 0; i < vertexCount; i++)
-			enclosePoint(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]); 
-	}
+        for (int i = 0; i < vertexCount; i++)
+            enclosePoint(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]); 
+    }
 
     /**
      * Equivalent constructor to {@link #AxisAlignedBox(float[])} except that
@@ -125,8 +125,8 @@ public class AxisAlignedBox {
      * @throws IllegalArgumentException if vertices.capacity() isn't a multiple
      *             of 3, or if it has fewer than 3 elements
      */
-	public AxisAlignedBox(FloatBuffer vertices) {
-	    this();
+    public AxisAlignedBox(FloatBuffer vertices) {
+        this();
         if (vertices == null)
             throw new NullPointerException("Vertices cannot be null");
         if (vertices.capacity() % 3 != 0 || vertices.capacity() < 3)
@@ -138,17 +138,17 @@ public class AxisAlignedBox {
         
         for (int i = 0; i < vertexCount; i++)
             enclosePoint(vertices.get(i * 3), vertices.get(i * 3 + 1), vertices.get(i * 3 + 2)); 
-	}
-	
-	private void enclosePoint(float x, float y, float z) {
-		max.x = Math.max(max.x, x);
-		max.y = Math.max(max.y, y);
-		max.z = Math.max(max.z, z);
+    }
+    
+    private void enclosePoint(float x, float y, float z) {
+        max.x = Math.max(max.x, x);
+        max.y = Math.max(max.y, y);
+        max.z = Math.max(max.z, z);
 
-		min.x = Math.min(min.x, x);
-		min.y = Math.min(min.y, y);
-		min.z = Math.min(min.z, z);
-	}
+        min.x = Math.min(min.x, x);
+        min.y = Math.min(min.y, y);
+        min.z = Math.min(min.z, z);
+    }
 
     /**
      * Copy the state of <tt>aabb</tt> into this AxisAlignedBox so that this
@@ -157,10 +157,10 @@ public class AxisAlignedBox {
      * @param aabb The AxisAlignedBox to clone
      * @throws NullPointerException if aabb is null
      */
-	public void set(AxisAlignedBox aabb) {
-		min.set(aabb.min);
-		max.set(aabb.max);
-	}
+    public void set(AxisAlignedBox aabb) {
+        min.set(aabb.min);
+        max.set(aabb.max);
+    }
 
     /**
      * Copy <tt>min</tt> into the vector storing this AxisAlignedBox's minimum
@@ -171,11 +171,11 @@ public class AxisAlignedBox {
      * @param min The new coordinate value for the box's minimum corner
      * @throws NullPointerException if min is null
      */
-	public void setMin(Vector3f min) {
-		this.min.set(min);
-	}
-	
-	/**
+    public void setMin(Vector3f min) {
+        this.min.set(min);
+    }
+    
+    /**
      * Copy <tt>max</tt> into the vector storing this AxisAlignedBox's maximum
      * control point. Validation is not performed to guarantee that the new
      * maximum is greater than the bound's min. If this is not the case, the
@@ -184,9 +184,9 @@ public class AxisAlignedBox {
      * @param max The new coordinate value for the box's maximum corner
      * @throws NullPointerException if max is null
      */
-	public void setMax(Vector3f max) {
-		this.max.set(max);
-	}
+    public void setMax(Vector3f max) {
+        this.max.set(max);
+    }
 
     /**
      * Return the vector coordinate of this AxisAlignedBox's minimum corner. Any
@@ -195,20 +195,20 @@ public class AxisAlignedBox {
      * @return The minimum corner of the AxisAlignedBox, in its current
      *         transform space
      */
-	public Vector3f getMin() {
-		return min;
-	}
-	
-	/**
+    public Vector3f getMin() {
+        return min;
+    }
+    
+    /**
      * Return the vector coordinate of this AxisAlignedBox's maximum corner. Any
      * modifications to the returned vector will modify this AxisAlignedBox.
      * 
      * @return The maximum corner of the AxisAlignedBox, in its current
      *         transform space
      */
-	public Vector3f getMax() {
-		return max;
-	}
+    public Vector3f getMax() {
+        return max;
+    }
 
     /**
      * Create and return a new Vector3f containing the center location of this
@@ -217,9 +217,9 @@ public class AxisAlignedBox {
      * 
      * @return A new Vector3f storing the center of this box
      */
-	public Vector3f getCenter() {
-		return getCenter(null);
-	}
+    public Vector3f getCenter() {
+        return getCenter(null);
+    }
 
     /**
      * Compute the center location of this AxisAlignedBox and store it within
@@ -230,9 +230,9 @@ public class AxisAlignedBox {
      * @param result The Vector3f to store the center location
      * @return result or a new Vector3f if result is null
      */
-	public Vector3f getCenter(Vector3f result) {
-		return min.add(max, result).scale(.5f);
-	}
+    public Vector3f getCenter(Vector3f result) {
+        return min.add(max, result).scale(.5f);
+    }
 
     /**
      * <p>
@@ -274,59 +274,59 @@ public class AxisAlignedBox {
      *         related
      * @throws NullPointerException if f is null
      */
-	public FrustumIntersection intersects(Frustum f, PlaneState planeState) {
-	    if (f == null)
-	        throw new NullPointerException("Frustum cannot be null");
-	    
-		FrustumIntersection result = FrustumIntersection.INSIDE;
-		float distMax;
-		float distMin;
-		int plane = 0;
+    public FrustumIntersection intersects(Frustum f, PlaneState planeState) {
+        if (f == null)
+            throw new NullPointerException("Frustum cannot be null");
+        
+        FrustumIntersection result = FrustumIntersection.INSIDE;
+        float distMax;
+        float distMin;
+        int plane = 0;
 
-		Vector3f c = TEMP1.get();
+        Vector3f c = TEMP1.get();
 
-		Vector4f p;
-		for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
-			// skip the last failed plane since that was is checked first,
-			// or skip the default first check if we haven't failed yet
-			if (i == lastFailedPlane || (i == Frustum.NUM_PLANES && lastFailedPlane < 0))
-				continue;
+        Vector4f p;
+        for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
+            // skip the last failed plane since that was is checked first,
+            // or skip the default first check if we haven't failed yet
+            if (i == lastFailedPlane || (i == Frustum.NUM_PLANES && lastFailedPlane < 0))
+                continue;
 
-			// check the last failed plane first, since we're likely to fail there again
-			plane = (i == Frustum.NUM_PLANES ? lastFailedPlane : i);
-			if (planeState == null || planeState.isTestRequired(plane)) {
-				p = f.getFrustumPlane(plane);
-				extent(p, false, c);
-				distMax = Plane.getSignedDistance(p, c, true);
-				
-				if (distMax < 0) {
-				    // the point closest to the plane is behind the plane, so
-				    // we know the bounds must be outside of the frustum
-					lastFailedPlane = plane;
-					return FrustumIntersection.OUTSIDE;
-				} else {
+            // check the last failed plane first, since we're likely to fail there again
+            plane = (i == Frustum.NUM_PLANES ? lastFailedPlane : i);
+            if (planeState == null || planeState.isTestRequired(plane)) {
+                p = f.getFrustumPlane(plane);
+                extent(p, false, c);
+                distMax = Plane.getSignedDistance(p, c, true);
+                
+                if (distMax < 0) {
+                    // the point closest to the plane is behind the plane, so
+                    // we know the bounds must be outside of the frustum
+                    lastFailedPlane = plane;
+                    return FrustumIntersection.OUTSIDE;
+                } else {
                     // the point closest to the plane is in front of the plane,
-				    // but we need to check the farthest away point
+                    // but we need to check the farthest away point
 
-				    extent(p, true, c);
-	                distMin = Plane.getSignedDistance(p, c, true);
-	                
-				    if (distMin < 0) {
-				        // the farthest point is behind the plane, so at best
-				        // this box will be intersecting the frustum
-				        result = FrustumIntersection.INTERSECT;
-	                } else {
-	                    // the box is completely contained by the plane, so
-	                    // the return result can be INSIDE or INTERSECT (if set by another plane)
-	                    if (planeState != null)
-	                        planeState.setTestRequired(plane, false);
-				    }
-				}
-			}
-		}
-		
-		return result;
-	}
+                    extent(p, true, c);
+                    distMin = Plane.getSignedDistance(p, c, true);
+                    
+                    if (distMin < 0) {
+                        // the farthest point is behind the plane, so at best
+                        // this box will be intersecting the frustum
+                        result = FrustumIntersection.INTERSECT;
+                    } else {
+                        // the box is completely contained by the plane, so
+                        // the return result can be INSIDE or INTERSECT (if set by another plane)
+                        if (planeState != null)
+                            planeState.setTestRequired(plane, false);
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
 
     /**
      * Return true if this AxisAlignedBox and <tt>other</tt> intersect. It is
@@ -337,11 +337,11 @@ public class AxisAlignedBox {
      * @return True if this box and other intersect each other
      * @throws NullPointerException if other is null
      */
-	public boolean intersects(AxisAlignedBox other) {
-		return (max.x >= other.min.x && min.x <= other.max.x) &&
-			   (max.y >= other.min.y && min.y <= other.max.y) &&
-			   (max.z >= other.min.z && min.z <= other.max.z);
-	}
+    public boolean intersects(AxisAlignedBox other) {
+        return (max.x >= other.min.x && min.x <= other.max.x) &&
+               (max.y >= other.min.y && min.y <= other.max.y) &&
+               (max.z >= other.min.z && min.z <= other.max.z);
+    }
 
     /**
      * Return true if <tt>other</tt> is completely contained within the extents
@@ -352,11 +352,11 @@ public class AxisAlignedBox {
      * @return True when other is contained in this box
      * @throws NullPointerException if other is null
      */
-	public boolean contains(AxisAlignedBox other) {
-		return (min.x <= other.min.x && max.x >= other.max.x) &&
-			   (min.y <= other.min.y && max.y >= other.max.y) &&
-			   (min.z <= other.min.z && max.z >= other.max.z);
-	}
+    public boolean contains(AxisAlignedBox other) {
+        return (min.x <= other.min.x && max.x >= other.max.x) &&
+               (min.y <= other.min.y && max.y >= other.max.y) &&
+               (min.z <= other.min.z && max.z >= other.max.z);
+    }
 
     /**
      * Compute the intersection of this AxisAlignedBox and <tt>other</tt> and
@@ -373,19 +373,19 @@ public class AxisAlignedBox {
      *         intersection of this and other
      * @throws NullPointerException if other is null
      */
-	public AxisAlignedBox intersect(AxisAlignedBox other, AxisAlignedBox result) {
-		if (result == null)
-			result = new AxisAlignedBox();
-		
-		// in the event that min > max, there is no true intersection
-		result.min.set(Math.max(min.x, other.min.x), 
-					   Math.max(min.y, other.min.y), 
-					   Math.max(min.z, other.min.z));
-		result.max.set(Math.min(max.x, other.max.x), 
-			   		   Math.min(max.y, other.max.y), 
-			   		   Math.min(max.z, other.max.z));
-		return result;
-	}
+    public AxisAlignedBox intersect(AxisAlignedBox other, AxisAlignedBox result) {
+        if (result == null)
+            result = new AxisAlignedBox();
+        
+        // in the event that min > max, there is no true intersection
+        result.min.set(Math.max(min.x, other.min.x), 
+                       Math.max(min.y, other.min.y), 
+                       Math.max(min.z, other.min.z));
+        result.max.set(Math.min(max.x, other.max.x), 
+                       Math.min(max.y, other.max.y), 
+                       Math.min(max.z, other.max.z));
+        return result;
+    }
 
     /**
      * Compute the union of this AxisAlignedBox and <tt>other</tt>, storing the
@@ -400,18 +400,18 @@ public class AxisAlignedBox {
      *         union of this and other
      * @throws NullPointerException if other is null
      */
-	public AxisAlignedBox union(AxisAlignedBox other, AxisAlignedBox result) {
-		if (result == null)
-			result = new AxisAlignedBox();
-		
-		result.min.set(Math.min(min.x, other.min.x), 
-					   Math.min(min.y, other.min.y), 
-					   Math.min(min.z, other.min.z));
-		result.max.set(Math.max(max.x, other.max.x), 
-			   		   Math.max(max.y, other.max.y), 
-			   		   Math.max(max.z, other.max.z));
-		return result;
-	}
+    public AxisAlignedBox union(AxisAlignedBox other, AxisAlignedBox result) {
+        if (result == null)
+            result = new AxisAlignedBox();
+        
+        result.min.set(Math.min(min.x, other.min.x), 
+                       Math.min(min.y, other.min.y), 
+                       Math.min(min.z, other.min.z));
+        result.max.set(Math.max(max.x, other.max.x), 
+                       Math.max(max.y, other.max.y), 
+                       Math.max(max.z, other.max.z));
+        return result;
+    }
 
     /**
      * Transform this AxisAlignedBox by <tt>t</tt> and store the new
@@ -425,9 +425,9 @@ public class AxisAlignedBox {
      *         transformed box
      * @throws NullPointerException if t is null
      */
-	public AxisAlignedBox transform(Transform t, AxisAlignedBox result) {
-		return transform(t.get(TEMPM.get()), result);
-	}
+    public AxisAlignedBox transform(Transform t, AxisAlignedBox result) {
+        return transform(t.get(TEMPM.get()), result);
+    }
 
     /**
      * <p>
@@ -450,98 +450,98 @@ public class AxisAlignedBox {
      *         transformed box
      * @throws NullPointerException if m is null
      */
-	public AxisAlignedBox transform(Matrix4f m, AxisAlignedBox result) {
-		// we use temporary vectors because this method isn't atomic,
-		// and result might be this box
-		Vector3f newMin = TEMP1.get().set(m.m03, m.m13, m.m23);
-		Vector3f newMax = TEMP2.get().set(m.m03, m.m13, m.m23);
-		
-		float av, bv, cv;
-		int i, j;
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j < 3; j++) {
-				cv = m.get(i, j);
-				av = cv * min.get(j);
-				bv = cv * max.get(j);
-				
-				if (av < bv) {
-					newMin.set(i, newMin.get(i) + av);
-					newMax.set(i, newMax.get(i) + bv);
-				} else {
-					newMin.set(i, newMin.get(i) + bv);
-					newMax.set(i, newMax.get(i) + av);
-				}
-			}
-		}
-		
-		// assign temporary vectors to the result
-		if (result != null) {
-			result.min.set(newMin);
-			result.max.set(newMax);
-		} else
-			result = new AxisAlignedBox(newMin, newMax);
-		return result;
-	}
-	
-	@Override
-	public int hashCode() {
-	    return min.hashCode() ^ max.hashCode();
-	}
-	
-	@Override
-	public boolean equals(Object o) {
-	    if (!(o instanceof AxisAlignedBox))
-	        return false;
-	    AxisAlignedBox that = (AxisAlignedBox) o;
-	    return min.equals(that.min) && max.equals(that.max);
-	}
-	
-	@Override
-	public String toString() {
-	    return "(min=" + min + ", max=" + max + ")";
-	}
-	
-	private void extent(Vector4f plane, boolean reverseDir, Vector3f result) {
-		Vector3f sourceMin = (reverseDir ? max : min);
-		Vector3f sourceMax = (reverseDir ? min : max);
-		
-		if (plane.x > 0) {
-			if (plane.y > 0) {
-				if (plane.z > 0)
-					result.set(sourceMax.x, sourceMax.y, sourceMax.z);
-				else
-					result.set(sourceMax.x, sourceMax.y, sourceMin.z);
-			} else {
-				if (plane.z > 0)
-					result.set(sourceMax.x, sourceMin.y, sourceMax.z);
-				else
-					result.set(sourceMax.x, sourceMin.y, sourceMin.z);
-			}
-		} else {
-			if (plane.y > 0) {
-				if (plane.z > 0)
-					result.set(sourceMin.x, sourceMax.y, sourceMax.z);
-				else
-					result.set(sourceMin.x, sourceMax.y, sourceMin.z);
-			} else {
-				if (plane.z > 0)
-					result.set(sourceMin.x, sourceMin.y, sourceMax.z);
-				else
-					result.set(sourceMin.x, sourceMin.y, sourceMin.z);
-			}
-		}
-	}
-	
-	private static final ThreadLocal<Matrix4f> TEMPM = new ThreadLocal<Matrix4f>() {
-		@Override
-		protected Matrix4f initialValue() { return new Matrix4f(); }
-	};
-	private static final ThreadLocal<Vector3f> TEMP1 = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() { return new Vector3f(); }
-	};
-	private static final ThreadLocal<Vector3f> TEMP2 = new ThreadLocal<Vector3f>() {
-		@Override
-		protected Vector3f initialValue() { return new Vector3f(); }
-	};
+    public AxisAlignedBox transform(Matrix4f m, AxisAlignedBox result) {
+        // we use temporary vectors because this method isn't atomic,
+        // and result might be this box
+        Vector3f newMin = TEMP1.get().set(m.m03, m.m13, m.m23);
+        Vector3f newMax = TEMP2.get().set(m.m03, m.m13, m.m23);
+        
+        float av, bv, cv;
+        int i, j;
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 3; j++) {
+                cv = m.get(i, j);
+                av = cv * min.get(j);
+                bv = cv * max.get(j);
+                
+                if (av < bv) {
+                    newMin.set(i, newMin.get(i) + av);
+                    newMax.set(i, newMax.get(i) + bv);
+                } else {
+                    newMin.set(i, newMin.get(i) + bv);
+                    newMax.set(i, newMax.get(i) + av);
+                }
+            }
+        }
+        
+        // assign temporary vectors to the result
+        if (result != null) {
+            result.min.set(newMin);
+            result.max.set(newMax);
+        } else
+            result = new AxisAlignedBox(newMin, newMax);
+        return result;
+    }
+    
+    @Override
+    public int hashCode() {
+        return min.hashCode() ^ max.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof AxisAlignedBox))
+            return false;
+        AxisAlignedBox that = (AxisAlignedBox) o;
+        return min.equals(that.min) && max.equals(that.max);
+    }
+    
+    @Override
+    public String toString() {
+        return "(min=" + min + ", max=" + max + ")";
+    }
+    
+    private void extent(Vector4f plane, boolean reverseDir, Vector3f result) {
+        Vector3f sourceMin = (reverseDir ? max : min);
+        Vector3f sourceMax = (reverseDir ? min : max);
+        
+        if (plane.x > 0) {
+            if (plane.y > 0) {
+                if (plane.z > 0)
+                    result.set(sourceMax.x, sourceMax.y, sourceMax.z);
+                else
+                    result.set(sourceMax.x, sourceMax.y, sourceMin.z);
+            } else {
+                if (plane.z > 0)
+                    result.set(sourceMax.x, sourceMin.y, sourceMax.z);
+                else
+                    result.set(sourceMax.x, sourceMin.y, sourceMin.z);
+            }
+        } else {
+            if (plane.y > 0) {
+                if (plane.z > 0)
+                    result.set(sourceMin.x, sourceMax.y, sourceMax.z);
+                else
+                    result.set(sourceMin.x, sourceMax.y, sourceMin.z);
+            } else {
+                if (plane.z > 0)
+                    result.set(sourceMin.x, sourceMin.y, sourceMax.z);
+                else
+                    result.set(sourceMin.x, sourceMin.y, sourceMin.z);
+            }
+        }
+    }
+    
+    private static final ThreadLocal<Matrix4f> TEMPM = new ThreadLocal<Matrix4f>() {
+        @Override
+        protected Matrix4f initialValue() { return new Matrix4f(); }
+    };
+    private static final ThreadLocal<Vector3f> TEMP1 = new ThreadLocal<Vector3f>() {
+        @Override
+        protected Vector3f initialValue() { return new Vector3f(); }
+    };
+    private static final ThreadLocal<Vector3f> TEMP2 = new ThreadLocal<Vector3f>() {
+        @Override
+        protected Vector3f initialValue() { return new Vector3f(); }
+    };
 }

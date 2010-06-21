@@ -7,21 +7,21 @@ package com.ferox.renderer;
  * @author Michael Ludwig
  */
 public class SurfaceCreationException extends RenderException {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public SurfaceCreationException() {
-		super();
-	}
+    public SurfaceCreationException() {
+        super();
+    }
 
-	public SurfaceCreationException(String arg0) {
-		super(arg0);
-	}
+    public SurfaceCreationException(String arg0) {
+        super(arg0);
+    }
 
-	public SurfaceCreationException(Throwable arg0) {
-		super(arg0);
-	}
+    public SurfaceCreationException(Throwable arg0) {
+        super(arg0);
+    }
 
-	public SurfaceCreationException(String arg0, Throwable arg1) {
-		super(arg0, arg1);
-	}
+    public SurfaceCreationException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 }

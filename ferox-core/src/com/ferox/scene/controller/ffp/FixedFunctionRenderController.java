@@ -54,30 +54,30 @@ import com.ferox.util.HashFunction;
  * @author Michael Ludwig
  */
 public class FixedFunctionRenderController extends Controller {
-	private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
-	private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
+    private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+    private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
 
-	private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
-	private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
-	private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
-	
-	private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
-	private static final ComponentId<TexturedMaterial> T_ID = Component.getComponentId(TexturedMaterial.class);
-	
-	private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
-	private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
-	private static final ComponentId<AmbientLight> AL_ID = Component.getComponentId(AmbientLight.class);
-	
-	
-	private final ThreadQueueManager manager;
-	private final TextureSurface shadowMap;
-	
-	private final Queue<RenderConnectionImpl> connectionPool;
+    private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
+    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
+    
+    private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
+    private static final ComponentId<TexturedMaterial> T_ID = Component.getComponentId(TexturedMaterial.class);
+    
+    private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
+    private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
+    private static final ComponentId<AmbientLight> AL_ID = Component.getComponentId(AmbientLight.class);
+    
+    
+    private final ThreadQueueManager manager;
+    private final TextureSurface shadowMap;
+    
+    private final Queue<RenderConnectionImpl> connectionPool;
     private final int maxMaterialTextureUnits;
 
-	private final String vertexBinding;
-	private final String normalBinding;
-	private final String texCoordBinding;
+    private final String vertexBinding;
+    private final String normalBinding;
+    private final String texCoordBinding;
 
     /**
      * Create a FixedFunctionRenderController that is attached to the given
@@ -90,9 +90,9 @@ public class FixedFunctionRenderController extends Controller {
      * @param manager The ThreadQueueManager used for queuing RenderPasses
      * @throws NullPointerException if system or manager are null
      */
-	public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager) {
-		this(system, manager, 512);
-	}
+    public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager) {
+        this(system, manager, 512);
+    }
 
     /**
      * Create a FixedFunctionRenderController that is attached to the given
@@ -108,10 +108,10 @@ public class FixedFunctionRenderController extends Controller {
      *            negative if now shadows are to be rendered
      * @throws NullPointerException if system or manager are null
      */
-	public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize) {
-		this(system, manager, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
-			 Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
-	}
+    public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize) {
+        this(system, manager, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
+             Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
+    }
 
     /**
      * Create a FixedFunctionRenderController that is attached to the given
@@ -134,15 +134,15 @@ public class FixedFunctionRenderController extends Controller {
      * @throws NullPointerException if system, manager, vertexBinding,
      *             normalBinding, or texCoordBinding are null
      */
-	public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize,
-										 String vertexBinding, String normalBinding, String texCoordBinding) {
-	    super(system);
-	    if (manager == null)
-	        throw new NullPointerException("ThreadQueueManager cannot be null");
-	    if (vertexBinding == null || normalBinding == null || texCoordBinding == null)
+    public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize,
+                                         String vertexBinding, String normalBinding, String texCoordBinding) {
+        super(system);
+        if (manager == null)
+            throw new NullPointerException("ThreadQueueManager cannot be null");
+        if (vertexBinding == null || normalBinding == null || texCoordBinding == null)
             throw new NullPointerException("Attribute bindings cannot be null");
-	    
-	    RenderCapabilities caps = manager.getFramework().getCapabilities();
+        
+        RenderCapabilities caps = manager.getFramework().getCapabilities();
         if (!caps.hasFixedFunctionRenderer())
             throw new IllegalArgumentException("Framework must support a FixedFunctionRenderer");
         
@@ -152,7 +152,7 @@ public class FixedFunctionRenderController extends Controller {
         this.texCoordBinding = texCoordBinding;
         
         connectionPool = new ConcurrentLinkedQueue<RenderConnectionImpl>();
-	    
+        
         int numTex = caps.getMaxFixedPipelineTextures();
         boolean shadowsRequested = shadowMapSize > 0; // size is positive
         boolean shadowSupport = (caps.getFboSupport() || caps.getPbufferSupport()) && 
@@ -182,14 +182,14 @@ public class FixedFunctionRenderController extends Controller {
             maxMaterialTextureUnits = 2;
             shadowMap = null;
         }
-	}
-	
-	/**
+    }
+    
+    /**
      * @return The ThreadQueueManager used by this FixedFunctionRenderController
      */
-	public ThreadQueueManager getThreadQueueManager() {
-		return manager;
-	}
+    public ThreadQueueManager getThreadQueueManager() {
+        return manager;
+    }
 
     /**
      * @return The TextureSurface created by the FixedFunctionRenderController
@@ -199,106 +199,106 @@ public class FixedFunctionRenderController extends Controller {
      *         the Framework it's tied to, this surface must be manually
      *         destroyed.
      */
-	public TextureSurface getShadowMap() {
-		return shadowMap;
-	}
-	
-	@Override
+    public TextureSurface getShadowMap() {
+        return shadowMap;
+    }
+    
+    @Override
     protected void processImpl() {
-		// process every view, we use a ThreadQueueManager so that
-		// actual rendering can be managed externally without worrying about
-		// which thread executed this controller
-		Iterator<Entity> views = system.iterator(VN_ID);
-		while(views.hasNext()) {
-			processView(system, views.next());
-		}
-	}
-	
-	private void processLights(ComponentId<?> lightType, Frustum viewFrustum, 
-	                           Frustum shadowFrustum, Component shadowLight, RenderConnection con) {
-	    Entity e;
-	    SceneElement se;
-	    Component light;
-	    
-	    Iterator<Entity> it = system.iterator(lightType);
-	    while(it.hasNext()) {
-	        e = it.next();
-	        se = e.get(SE_ID);
-	        light = e.get(lightType);
-	        
-	        if (se == null || viewFrustum == null || se.isVisible(viewFrustum)) {
-	            con.addLight(light, (se == null ? null : se.getWorldBounds()), 
-	                         (light == shadowLight ? shadowFrustum : null));
-	        }
-	    }
-	}
-	
-	private void processView(EntitySystem system, Entity view) {
-		ViewNode vn = view.get(VN_ID);
-		if (vn == null)
-			return; // don't have anything to render
-		
-		RenderConnection con = connectionPool.poll();
-		if (con == null)
-		    con = new RenderConnectionImpl();
-		
-		// prepare the rendering
-		Frustum viewFrustum = vn.getFrustum();
-		Frustum shadowFrustum = null;
-		Component shadowCaster = null;
-		
-		// first take care of shadowing information
-		ShadowMapFrustum smf = view.getMeta(vn, SMF_ID);
-		if (smf != null && shadowMap != null) {
-		    shadowFrustum = smf.getFrustum();
-		    shadowCaster = smf.getLight();
-		}
-		
-		// process all renderables (and shadow casters)
-		Entity e;
-		SceneElement se;
-		Iterator<Entity> it = system.iterator(R_ID);
-		while(it.hasNext()) {
-		    e = it.next();
-		    se = e.get(SE_ID);
-		    if ((se == null || shadowFrustum == null || se.isVisible(shadowFrustum)) &&
-		        (e.get(SC_ID) != null || e.getMeta(e.get(R_ID), SC_ID) != null))
-		        con.addShadowCastingEntity(e);
-		    if (se == null || viewFrustum == null || se.isVisible(viewFrustum))
-		        con.addRenderedEntity(e);
-		}
-		
-		processLights(AL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
-		processLights(SL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
-		processLights(DL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
-		
-		// configure the view
-		con.setView(vn);
-		con.flush(vn.getRenderSurface());
-	}
-	
-	private class RenderConnectionImpl extends RenderConnection {
-	    private final ShadowMapGeneratorPass shadowMapPass;
-	    private final DefaultLightingPass defaultPass;
-	    private final ShadowedLightingPass shadowLightPass;
-	    
-	    private final Semaphore shadowMapAccessor; // FIXME: this needs to be up a level so all connections share this
-	    
-	    public RenderConnectionImpl() {
-	        shadowMapAccessor = new Semaphore(1, false);
-	        
-	        defaultPass = new DefaultLightingPass(this, manager.getFramework().getCapabilities().getMaxActiveLights(), 
+        // process every view, we use a ThreadQueueManager so that
+        // actual rendering can be managed externally without worrying about
+        // which thread executed this controller
+        Iterator<Entity> views = system.iterator(VN_ID);
+        while(views.hasNext()) {
+            processView(system, views.next());
+        }
+    }
+    
+    private void processLights(ComponentId<?> lightType, Frustum viewFrustum, 
+                               Frustum shadowFrustum, Component shadowLight, RenderConnection con) {
+        Entity e;
+        SceneElement se;
+        Component light;
+        
+        Iterator<Entity> it = system.iterator(lightType);
+        while(it.hasNext()) {
+            e = it.next();
+            se = e.get(SE_ID);
+            light = e.get(lightType);
+            
+            if (se == null || viewFrustum == null || se.isVisible(viewFrustum)) {
+                con.addLight(light, (se == null ? null : se.getWorldBounds()), 
+                             (light == shadowLight ? shadowFrustum : null));
+            }
+        }
+    }
+    
+    private void processView(EntitySystem system, Entity view) {
+        ViewNode vn = view.get(VN_ID);
+        if (vn == null)
+            return; // don't have anything to render
+        
+        RenderConnection con = connectionPool.poll();
+        if (con == null)
+            con = new RenderConnectionImpl();
+        
+        // prepare the rendering
+        Frustum viewFrustum = vn.getFrustum();
+        Frustum shadowFrustum = null;
+        Component shadowCaster = null;
+        
+        // first take care of shadowing information
+        ShadowMapFrustum smf = view.getMeta(vn, SMF_ID);
+        if (smf != null && shadowMap != null) {
+            shadowFrustum = smf.getFrustum();
+            shadowCaster = smf.getLight();
+        }
+        
+        // process all renderables (and shadow casters)
+        Entity e;
+        SceneElement se;
+        Iterator<Entity> it = system.iterator(R_ID);
+        while(it.hasNext()) {
+            e = it.next();
+            se = e.get(SE_ID);
+            if ((se == null || shadowFrustum == null || se.isVisible(shadowFrustum)) &&
+                (e.get(SC_ID) != null || e.getMeta(e.get(R_ID), SC_ID) != null))
+                con.addShadowCastingEntity(e);
+            if (se == null || viewFrustum == null || se.isVisible(viewFrustum))
+                con.addRenderedEntity(e);
+        }
+        
+        processLights(AL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
+        processLights(SL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
+        processLights(DL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
+        
+        // configure the view
+        con.setView(vn);
+        con.flush(vn.getRenderSurface());
+    }
+    
+    private class RenderConnectionImpl extends RenderConnection {
+        private final ShadowMapGeneratorPass shadowMapPass;
+        private final DefaultLightingPass defaultPass;
+        private final ShadowedLightingPass shadowLightPass;
+        
+        private final Semaphore shadowMapAccessor; // FIXME: this needs to be up a level so all connections share this
+        
+        public RenderConnectionImpl() {
+            shadowMapAccessor = new Semaphore(1, false);
+            
+            defaultPass = new DefaultLightingPass(this, manager.getFramework().getCapabilities().getMaxActiveLights(), 
                                                   maxMaterialTextureUnits, vertexBinding, normalBinding, texCoordBinding);
 
-	        if (shadowMap == null) {
-	            shadowMapPass = null;
-	            shadowLightPass = null;
-	        } else {
-	            shadowMapPass = new ShadowMapGeneratorPass(this, maxMaterialTextureUnits, vertexBinding);
-	            shadowLightPass = new ShadowedLightingPass(this, shadowMap.getDepthBuffer(), maxMaterialTextureUnits,
-	                                                       vertexBinding, normalBinding, texCoordBinding);
-	        }
-	    }
+            if (shadowMap == null) {
+                shadowMapPass = null;
+                shadowLightPass = null;
+            } else {
+                shadowMapPass = new ShadowMapGeneratorPass(this, maxMaterialTextureUnits, vertexBinding);
+                shadowLightPass = new ShadowedLightingPass(this, shadowMap.getDepthBuffer(), maxMaterialTextureUnits,
+                                                           vertexBinding, normalBinding, texCoordBinding);
+            }
+        }
 
         @Override
         public void flush(Surface surface) {
@@ -368,9 +368,9 @@ public class FixedFunctionRenderController extends Controller {
             reset();
             connectionPool.add(this);
         }
-	}
-	
-	private static final HashFunction<Entity> ENTITY_HASHER = new HashFunction<Entity>() {
+    }
+    
+    private static final HashFunction<Entity> ENTITY_HASHER = new HashFunction<Entity>() {
         @Override
         public int hashCode(Entity value) {
             Shape s = value.get(S_ID);
@@ -382,5 +382,5 @@ public class FixedFunctionRenderController extends Controller {
             
             return ((geomId << 20) | (tpId << 10) | (tdId));
         }
-	};
+    };
 }

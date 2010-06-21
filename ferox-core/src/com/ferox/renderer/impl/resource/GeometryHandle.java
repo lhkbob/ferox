@@ -17,33 +17,33 @@ import com.ferox.resource.Geometry.CompileType;
  * @author Michael Ludwig
  */
 public class GeometryHandle extends ResourceHandle {
-	public final List<VertexArray> compiledPointers;
-	
-	// array vbo to use for RESIDENT_x
-	public int arrayVbo;
-	public int arrayVboSize;
+    public final List<VertexArray> compiledPointers;
+    
+    // array vbo to use for RESIDENT_x
+    public int arrayVbo;
+    public int arrayVboSize;
 
-	// values for polygon tracking, used by vertex arrays and vbos
-	public PolygonType polyType;
-	public int polyCount;
+    // values for polygon tracking, used by vertex arrays and vbos
+    public PolygonType polyType;
+    public int polyCount;
 
-	public int indexCount;
-	
-	public int minIndex;
-	public int maxIndex;
+    public int indexCount;
+    
+    public int minIndex;
+    public int maxIndex;
 
-	// if null, use elementVbo
-	public IntBuffer indices;
-	
-	// element vbo for use with RESIDENT_x
-	public int elementVboSize;
-	public int elementVbo;
+    // if null, use elementVbo
+    public IntBuffer indices;
+    
+    // element vbo for use with RESIDENT_x
+    public int elementVboSize;
+    public int elementVbo;
 
-	public final CompileType compile;
+    public final CompileType compile;
 
-	public GeometryHandle(CompileType type) {
-		super(-1); // geom has no single id
-		compile = type;
-		compiledPointers = new ArrayList<VertexArray>();
-	}
+    public GeometryHandle(CompileType type) {
+        super(-1); // geom has no single id
+        compile = type;
+        compiledPointers = new ArrayList<VertexArray>();
+    }
 }
