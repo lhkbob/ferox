@@ -31,7 +31,7 @@ import com.ferox.renderer.impl.jogl.PaintDisabledGLCanvas;
 import com.ferox.renderer.impl.jogl.Utils;
 
 public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurface, WindowListener {
-    private static AtomicBoolean fullscreenActive;
+    private static AtomicBoolean fullscreenActive = new AtomicBoolean(false);
     
     private final JoglContext context;
     private final GLCanvas canvas;
@@ -92,11 +92,12 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
         
         if (finalOptions.getFullscreenMode() != null) {
             // find best display mode match
+            com.ferox.renderer.DisplayMode goal = finalOptions.getFullscreenMode();
             DisplayMode bestMode = null;
             int bestMatch = Integer.MAX_VALUE;
             for (int i = 0; i < availableModes.length; i++) {
-                int diff = Math.abs(availableModes[i].getWidth() - finalOptions.getWidth()) +
-                           Math.abs(availableModes[i].getHeight() - finalOptions.getHeight());
+                int diff = Math.abs(availableModes[i].getWidth() - goal.getWidth()) +
+                           Math.abs(availableModes[i].getHeight() - goal.getHeight());
                 if (diff < bestMatch) {
                     bestMode = availableModes[i];
                     bestMatch = diff;
@@ -135,7 +136,11 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
 
     @Override
     protected void postRender(Action next) {
+        long now = -System.currentTimeMillis();
         canvas.swapBuffers();
+        now += System.currentTimeMillis();
+        if (now > 40)
+            System.out.println("slow swap time was: " + now);
     }
 
     @Override
@@ -226,6 +231,7 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
             selected = original;
         graphicsDevice.setFullScreenWindow(frame);
         if (graphicsDevice.isDisplayChangeSupported()) {
+            System.out.println(graphicsDevice.isFullScreenSupported() + " " + graphicsDevice.isDisplayChangeSupported());
             graphicsDevice.setDisplayMode(selected);
         } else
             selected = original;
@@ -318,7 +324,12 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
         // what about correctly reported dimensions while running?
         EventQueue.invokeLater(new Runnable() {
            public void run() {
-               frame.setSize(width, height);
+               lock.lock();
+               try {
+                   frame.setSize(width, height);
+               } finally {
+                   lock.unlock();
+               }
            }
         });
     }
@@ -554,7 +565,10 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
             DisplayMode real = dimensionMap.get(key);
             if (real != null) {
                 // choose the DisplayMode with the bit depth closest matching requested
-                if (Math.abs(bitDepth - real.getBitDepth()) > Math.abs(bitDepth - available[i].getBitDepth()))
+                // ignore modes where the bit depth is unknown (0)
+                // in the case of a tie, use the mode with the higher bit depth
+                int bitDiff = Math.abs(bitDepth - available[i].getBitDepth()) - Math.abs(bitDepth - real.getBitDepth());
+                if (available[i].getBitDepth() != 0 && (bitDiff < 0 || (bitDiff == 0 && available[i].getBitDepth() > real.getBitDepth())))
                     dimensionMap.put(key, available[i]);
             } else {
                 // add in first mode with these dimensions
