@@ -56,19 +56,13 @@ public abstract class AbstractGeometryResourceDriver implements ResourceDriver {
     public ResourceHandle init(Resource res) {
         Geometry g = (Geometry) res;
         CompileType compile = g.getCompileType();
-        String statusMsg = "";
         
-        if (compile != CompileType.NONE && !hasVboSupport) {
+        if (compile != CompileType.NONE && !hasVboSupport)
             compile = CompileType.NONE;
-            statusMsg = "Cannot support " + compile + ", defaulting to CompileType.NONE";
-        }
         
         GeometryHandle handle = new GeometryHandle(compile);
         if (compile != CompileType.NONE)
             glCreateBuffers(handle);
-        
-        handle.setStatus(Status.READY);
-        handle.setStatusMessage(statusMsg);
         
         update(g, handle, null);
         return handle;
@@ -105,6 +99,10 @@ public abstract class AbstractGeometryResourceDriver implements ResourceDriver {
             handle.setStatusMessage("Geometry vertex attributes have mismatched element counts");
             return;
         }
+        
+        // this is no longer an error, so clear it
+        handle.setStatus(Status.READY);
+        handle.setStatusMessage((handle.compile != g.getCompileType() ? "Cannot support " + g.getCompileType() + ", defaulting to CompileType.NONE" : ""));
         
         handle.indexCount = g.getIndices().capacity();
         handle.polyType = g.getPolygonType();

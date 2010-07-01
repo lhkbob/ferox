@@ -696,19 +696,19 @@ public interface Renderer {
 
     /**
      * <p>
-     * Clear the framebuffers of the current Surface, as described in
-     * {@link Framework#queue(Surface, RenderPass, boolean, boolean, boolean, Color4f, float, int)}
-     * . There is one primary difference, however. If the color buffer is
-     * cleared, the color value written into the buffer is affected by the
-     * current color mask state. If the depth buffer is cleared, the depth value
-     * written is affected by the current depth mask state. If the stencil
-     * buffer is cleared, the stencil value written is affected by the current
-     * stencil mask configured for front-facing polygons.
+     * Clear the framebuffers of the current Surface based on
+     * <tt>clearColor</tt>, <tt>clearDepth</tt>, and <tt>clearStencil</tt>.
+     * There is one primary difference, however. If the color buffer is cleared,
+     * the color value written into the buffer is affected by the current color
+     * mask state. If the depth buffer is cleared, the depth value written is
+     * affected by the current depth mask state. If the stencil buffer is
+     * cleared, the stencil value written is affected by the current stencil
+     * mask configured for front-facing polygons.
      * </p>
      * <p>
      * RenderPasses are not required to invoke this method since buffer clearing
-     * can be scheduled when a RenderPass and Surface are scheduled. This
-     * is provided in case complex graphical effects require different buffer
+     * can be scheduled when a RenderPass and Surface are scheduled. This is
+     * provided in case complex graphical effects require different buffer
      * clearing behavior in the middle of a RenderPass operation.
      * </p>
      * 

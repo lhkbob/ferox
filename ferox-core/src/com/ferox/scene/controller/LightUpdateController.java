@@ -23,7 +23,7 @@ import com.ferox.entity.EntitySystem;
  * </p>
  * <p>
  * The LightUpdateController performs the following operations during
- * {@link #process(EntitySystem)}:
+ * {@link #process()}:
  * <ol>
  * <li>For Entities that are both DirectionLights and SceneElements, the
  * direction light's direction vector is set to the 3rd column of the scene

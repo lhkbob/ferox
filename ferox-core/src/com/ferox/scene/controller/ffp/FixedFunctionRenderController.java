@@ -10,6 +10,7 @@ import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
+import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderCapabilities;
@@ -31,6 +32,7 @@ import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.Shape;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
+import com.ferox.scene.Transparent;
 import com.ferox.scene.ViewNode;
 import com.ferox.util.HashFunction;
 
@@ -63,6 +65,7 @@ public class FixedFunctionRenderController extends Controller {
     
     private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
     private static final ComponentId<TexturedMaterial> T_ID = Component.getComponentId(TexturedMaterial.class);
+    private static final ComponentId<Transparent> TR_ID = Component.getComponentId(Transparent.class);
     
     private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
     private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
@@ -302,8 +305,8 @@ public class FixedFunctionRenderController extends Controller {
 
         @Override
         public void flush(Surface surface) {
-            getRenderedEntities().sort(ENTITY_HASHER);
-            getShadowCastingEntities().sort(ENTITY_HASHER);
+            getRenderedEntities().sort(new EntityHasher(getViewFrustum()));
+            getShadowCastingEntities().sort(new EntityHasher(null));
             
             if (shadowMap == null || getShadowFrustum() == null) {
                 // just do the default pass
@@ -370,17 +373,44 @@ public class FixedFunctionRenderController extends Controller {
         }
     }
     
-    private static final HashFunction<Entity> ENTITY_HASHER = new HashFunction<Entity>() {
+    private static class EntityHasher implements HashFunction<Entity> {
+        // all non-transparent hashes have this set to ensure the final
+        // hash is negative, and force transparent entities to be at the end
+        private static final int NON_TRANSPARENT_BIT = 1 << 31;
+        private static final float DIST_SCALE = 100000f;
+        
+        private final Frustum view;
+        private final Vector3f proj;
+        
+        public EntityHasher(Frustum frustum) {
+            proj = new Vector3f();
+            view = frustum;
+        }
+        
         @Override
         public int hashCode(Entity value) {
-            Shape s = value.get(S_ID);
-            int geomId = (s == null ? 0 : s.getGeometry().getId());
-            
-            TexturedMaterial tm = value.get(T_ID);
-            int tpId = (tm == null ? 0 : (tm.getPrimaryTexture() == null ? 0 : tm.getPrimaryTexture().getId()));
-            int tdId = (tm == null ? 0 : (tm.getDecalTexture() == null ? 0 : tm.getDecalTexture().getId()));
-            
-            return ((geomId << 20) | (tpId << 10) | (tdId));
+            Transparent t = value.get(TR_ID);
+            if (t == null || view == null) {
+                Shape s = value.get(S_ID);
+                int geomId = (s == null ? 0 : s.getGeometry().getId());
+
+                TexturedMaterial tm = value.get(T_ID);
+                int tpId = (tm == null ? 0 : (tm.getPrimaryTexture() == null ? 0 : tm.getPrimaryTexture().getId()));
+                int tdId = (tm == null ? 0 : (tm.getDecalTexture() == null ? 0 : tm.getDecalTexture().getId()));
+
+                return (NON_TRANSPARENT_BIT | (geomId << 20) | (tpId << 10) | (tdId));
+            } else {
+                SceneElement se = value.get(SE_ID);
+                if (se != null)
+                    se.getTransform().getTranslation().sub(view.getLocation(), proj);
+                else
+                    view.getLocation().scale(-1f, proj);
+                // computing the square root is worth it because we'd like to on-average
+                // deal with smaller numbers
+                float dst = DIST_SCALE - proj.project(view.getDirection()).length();
+                
+                return (~NON_TRANSPARENT_BIT) & ((int) (dst * DIST_SCALE));
+            }
         }
-    };
+    }
 }

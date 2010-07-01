@@ -1,6 +1,10 @@
 package com.ferox.util.geom.text;
 
 import java.awt.font.LineMetrics;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
@@ -10,7 +14,7 @@ import com.ferox.util.geom.PrimitiveGeometry;
 /**
  * <p>
  * Text represents a Geometry that can generate laid-out text based on a
- * CharacterSet. It assumes that the text is laid-out left to right and
+ * {@link CharacterSet}. It assumes that the text is laid-out left to right and
  * Unicode-16 is untested.
  * </p>
  * <p>
@@ -19,32 +23,25 @@ import com.ferox.util.geom.PrimitiveGeometry;
  * \n\r. Spaces are not placed at the beginning of a new line, so that text is
  * justified to the left-edge (this is ignored for the 1st line). The layout
  * policy attempts to make a reasonably attractive block of text, suitable for a
- * text area, etc.
+ * text area, etc. The texture coordinates generated are intended to access the
+ * Text's CharacterSet. The normals are generated such that they are forward
+ * facing when text is aligned left to right.
  * </p>
  * <p>
- * Text requires that a specific type of Appearance be used:
- * <ol>
- * <li>Has a TextureEnvironment or MultiTexture with the CharacterSet's Texture2D on the
- * 0th texture unit.</li>
- * <li>It must use a BlendMode or AlphaTest to properly discard the transparent
- * pixels.</li>
- * <li>DepthTest may be useful, but is not required.</li>
- * <li>Text does not generate any normal information, but renderers should set a
- * normal to <0, 0, 1> so that lighting can still work.</li>
- * </ol>
+ * Text requires that a specific set of Renderer states be used to render the
+ * text appropriately. The "characters" within a Text instance are appropriately
+ * sized quads intended to access its CharacterSet's Texture. Thus, a Renderer
+ * must be configured to use the CharacterSet's texture and be accessed by the
+ * texture coordinates defined by the text geometry. Additionally, blending or
+ * alpha testing should be used so that the CharacterSet's transparent
+ * background is properly ignored.
  * </p>
  * <p>
- * There are two phases of updates for Text. A Text's layout must be updated if
- * its text string changes, or its wrapping width changes. These events mark its
- * layout as dirty. A call to layoutText() will generate the coordinates for the
- * Text that look up the correctly sized positions in its CharacterSet.
- * </p>
- * <p>
- * If the Text's compile type is not NONE, it must also be updated with a
- * Framework, since Text is a geometry. Renderers must layout the text if
- * isLayoutDirty() returns true when updating Text. After making changes that
- * cause isLayoutDirty() to return true, the Text should be updated with the
- * Framework.
+ * After modifying a Text's textual content, via {@link #setText(String)}, or by
+ * modifying its layout parameters, via {@link #setWrapWidth(float)} or
+ * {@link #setCharacterSet(CharacterSet)}, the Text will become dirty and will
+ * require an update with the Framework. As always, this update can occur
+ * automatically.
  * </p>
  * <p>
  * It is HIGHLY recommended that CharacterSets are shared by multiple instances
@@ -64,9 +61,8 @@ public class Text extends PrimitiveGeometry {
     private float height;
 
     private float maxTextWidth; // if <= 0, then no wrapping is done
-
-    private boolean layoutDirty;
-
+    private float scale;
+    
     /**
      * Create a Text that uses the given CharacterSet and has its text set to
      * the empty string.
@@ -88,7 +84,7 @@ public class Text extends PrimitiveGeometry {
      * @throws NullPointerException if charSet is null
      */
     public Text(CharacterSet charSet, String text, CompileType type) {
-        this(charSet, text, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
+        this(charSet, text, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
     }
 
     /**
@@ -103,14 +99,44 @@ public class Text extends PrimitiveGeometry {
      * @param tcName The texture coordinate name
      * @throws NullPointerException if charSet is null
      */
-    public Text(CharacterSet charSet, String text, CompileType type, String vertexName, String tcName) {
-        super(type, vertexName, Geometry.DEFAULT_NORMALS_NAME, tcName);
+    public Text(CharacterSet charSet, String text, CompileType type, 
+                String vertexName, String normalName, String tcName) {
+        super(type, vertexName, normalName, tcName);
 
-        setCharacterSet(charSet);
-        setText(text);
-        setWrapWidth(-1f);
+        // avoid the setters so we can do one layout at the end
+        if (charSet == null)
+            throw new NullPointerException("CharacterSet cannot be null");
+        this.charSet = charSet;
+        this.text = (text == null ? "" : text);
+        maxTextWidth = -1f;
+        scale = 1f;
 
-        layoutText(); // give us some valid values for the other properties
+        layoutText();
+    }
+    
+    /**
+     * @return The current scale factor used to scale the vertices within this
+     *         Text instance
+     */
+    public float getScale() {
+        return scale;
+    }
+
+    /**
+     * Set the scale factor that scales the vertices of each quad within the
+     * Text geometry. If scale is one, the quads are sized so the text appears
+     * the appropriate size when using an orthographic projection with a 1x1
+     * pixel mapping. If using other projections, it may be desired to use a
+     * higher-point Font but still use small quads.
+     * 
+     * @param scale The new scale factor
+     * @throws IllegalArgumentException if scale is less than or equal to 0
+     */
+    public void setScale(float scale) {
+        if (scale <= 0f)
+            throw new IllegalArgumentException("Text scale cannot be negative: " + scale);
+        this.scale = scale;
+        layoutText();
     }
 
     /**
@@ -123,13 +149,14 @@ public class Text extends PrimitiveGeometry {
 
     /**
      * <p>
-     * Get the current width of this Text. This is only valid if isLayoutDirty()
-     * returns false. The returned value is suitable for drawing a tightly
-     * packed box around the text.
+     * Get the current width of this Text. The returned value is suitable for
+     * drawing a tightly packed box around the text.
      * </p>
      * <p>
-     * It is measured from the left edge of the lines of text, to the right edge
-     * of the longest line of text.
+     * The center of the block of text is considered to be the origin, and the
+     * left edge extends to an x-value with
+     * <code>-{@link #getTextWidth()} / 2</code> and the right edge extends to
+     * an x-value with <code>{@link #getTextWidth()} / 2</code>.
      * </p>
      * 
      * @return The width of the text
@@ -140,13 +167,15 @@ public class Text extends PrimitiveGeometry {
 
     /**
      * <p>
-     * Get the current height of this Text. This is only valid if
-     * isLayoutDirty() returns false. The returned value can be used to draw a
-     * tightly packed box around the text.
+     * Get the current height of this Text. The returned value can be used to
+     * draw a tightly packed box around the text.
      * </p>
      * <p>
-     * It is measured from the top edge of the text, to the bottom edge of the
-     * last line of text. This includes the ascent and descent of the font.
+     * The center of the block of text is considered to be the origin, and the
+     * bottom edge extends to a y-value with
+     * <code>-{@link #getTextWidth()} / 2</code> and the top edge extends to an
+     * y-value with <code>{@link #getTextWidth()} / 2</code>. This includes the ascent and
+     * descent of the font.
      * </p>
      * 
      * @return The height of the text
@@ -159,7 +188,7 @@ public class Text extends PrimitiveGeometry {
      * <p>
      * Set the wrap width that determines how text is laid out. A value <= 0
      * implies that no wrapping is formed. In this case text will only be on
-     * multiple lines if \n, \r or \n\r are encountered.
+     * multiple lines if '\n', '\r' or '\n\r' are encountered.
      * </p>
      * <p>
      * If it's positive, then this value represents the maximum allowed width of
@@ -168,30 +197,32 @@ public class Text extends PrimitiveGeometry {
      * Punctuation proceeding words are treated as part of the word.
      * </p>
      * <p>
-     * As far as layout works, the upper left corner of the first character of
-     * text represents the origin. Subsequent lines start at progressively
-     * negative y-values. A rectangle with corners (0,0) and (getTextWidth(),
-     * getTextHeight()) would tightly enclose the body of text.
+     * As far as layout works, the text is centered about its local origin. See
+     * {@link #getTextWidth()} and {@link #getTextHeight()} for details. In
+     * multiline text, subsequent lines start at progressively negative
+     * y-values. A rectangle with corners (-getTextWidth()/2,-getTextHeight()/2)
+     * and (getTextWidth()/2, getTextHeight()/2) would tightly enclose the body
+     * of text.
      * </p>
      * <p>
      * Characters that are not present in the CharacterSet are rendered with the
      * missing glyph for that set's font.
      * </p>
      * <p>
-     * This causes the Text's layout to be flagged as dirty.
+     * This causes the Text's layout to be recomputed.
      * </p>
      * 
      * @param maxWidth The maximum width of the laid-out text
      */
     public void setWrapWidth(float maxWidth) {
         maxTextWidth = maxWidth;
-        layoutDirty = true;
+        layoutText();
     }
 
     /**
      * <p>
      * Set the text that will be rendered. If null is given, the empty string is
-     * used instead.This causes the Text's layout to be flagged as dirty.
+     * used instead.This causes the Text's layout to be recomputed.
      * </p>
      * 
      * @see #setWrapWidth(float)
@@ -202,13 +233,13 @@ public class Text extends PrimitiveGeometry {
             text = "";
 
         this.text = text;
-        layoutDirty = true;
+        layoutText();
     }
 
     /**
      * Return the text that should be rendered by this geometry, assuming that
-     * it's layout is not dirty, and that it's up-to-date with the Framework
-     * (depending on the compile type, of course).
+     * it's layout is not dirty, and that it's up-to-date with the Framework.
+     * This will not be null.
      * 
      * @return The text that will be rendered
      */
@@ -225,8 +256,10 @@ public class Text extends PrimitiveGeometry {
 
     /**
      * <p>
-     * Set the CharacterSet used to render individual characters in the set
-     * String for this Text.This marks the Text's layout as dirty.
+     * Set the CharacterSet that determines the size and font of the rendered
+     * characters within this Text instance. This should be shared across Text
+     * instances that use the same font. This causes the layout to be
+     * recomputed.
      * </p>
      * 
      * @param set The new CharacterSet for rendering characters
@@ -237,71 +270,77 @@ public class Text extends PrimitiveGeometry {
             throw new NullPointerException("Cannot use a null CharacterSet");
 
         charSet = set;
-        layoutDirty = true;
+        layoutText();
+    }
+    
+    private FloatBuffer reuseBuffer(VectorBuffer old, int newLen) {
+        if (old == null || old.getData().capacity() < newLen || old.getData().capacity() * .75f > newLen) {
+            // no old data, or old data is too small, or old data is too big
+            return ByteBuffer.allocateDirect(newLen * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        } else
+            return old.getData();
+    }
+    
+    private IntBuffer reuseBuffer(IntBuffer old, int newLen) {
+        // unlike reusing float buffers, which can contain garbage, we need
+        // an exact match for indices
+        if (old == null || old.capacity() != newLen)
+            return ByteBuffer.allocateDirect(newLen * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
+        else
+            return old;
     }
 
-    /**
-     * <p>
-     * Return whether or not this Text needs to be re-laid out. It can be more
-     * efficient to make many changes that require re-laying out, and then
-     * perform the layout at the end.
-     * </p>
-     * <p>
-     * This will be true if setCharacterSet(), setWrapWidth() or setText() have
-     * been called after the last call to layoutText().
-     * </p>
-     * 
-     * @return True if the text layout is dirty
-     */
-    // FIXME: keep this internally, but then in the dirty descriptor, check to see
-    // if it's true and then perform layout to generate the proper dirty descriptor.
-    public boolean isLayoutDirty() {
-        return layoutDirty;
-    }
-
-    /**
-     * <p>
-     * Perform the layout computations for this Text. This performs the same
-     * operations even if isLayoutDirty() returns false, so use only when
-     * necessary.
-     * </p>
-     * <p>
-     * If the compile type of this Text is not NONE, then it must be updated by
-     * a Framework, too, before the newly laid out text is visible in rendering.
-     * </p>
-     */
-    public void layoutText() {
+    private void layoutText() {
         LineMetrics lm = charSet.getFont().getLineMetrics(text, charSet.getFontRenderContext());
         TextLayout tl = new TextLayout(charSet, lm, maxTextWidth);
-        float[] it2v3 = tl.doLayout(text);
+        float[] it2v2 = tl.doLayout(text);
+        
+        width = scale * tl.getMaxWidth();
+        height = scale * tl.getMaxHeight();
 
-        // extract individual arrays from interleaved array
-        float[] v = new float[it2v3.length / 5 * 3];
-        float[] t = new float[it2v3.length / 5 * 2];
-        int[] i = new int[it2v3.length / 5];
+        int vertexCount = it2v2.length / 4;
+        if (vertexCount > 0) {
+            FloatBuffer v = reuseBuffer(getVertices(), vertexCount * 3);
+            FloatBuffer n = reuseBuffer(getNormals(), vertexCount * 3);
+            FloatBuffer t = reuseBuffer(getTextureCoordinates(), vertexCount * 2);
 
-        for (int j = 0; j < i.length; j++) {
-            // tex
-            t[j * 2 + 0] = it2v3[j * 5 + 0];
-            t[j * 2 + 1] = it2v3[j * 5 + 1];
+            IntBuffer i = reuseBuffer(getIndices(), vertexCount);
+            
+            // compute centering information
+            float xOffset = -width / 2f;//0f;
+            float yOffset = height / 2f;//0f;
 
-            // coord
-            v[j * 3 + 0] = it2v3[j * 5 + 2];
-            v[j * 3 + 1] = it2v3[j * 5 + 3];
-            v[j * 3 + 2] = it2v3[j * 5 + 4];
+            // extract individual arrays from interleaved array into nio buffers
+            for (int j = 0; j < vertexCount; j++) {
+                // tex
+                t.put(j * 2 + 0, it2v2[j * 4 + 0]);
+                t.put(j * 2 + 1, it2v2[j * 4 + 1]);
 
-            // index
-            i[j] = j;
+                // vertex
+                v.put(j * 3 + 0, scale * it2v2[j * 4 + 2] + xOffset);
+                v.put(j * 3 + 1, scale * it2v2[j * 4 + 3] + yOffset);
+                v.put(j * 3 + 2, 0f);
+
+                // normal
+                n.put(j * 3 + 0, 0f);
+                n.put(j * 3 + 1, 0f);
+                n.put(j * 3 + 2, 1f);
+
+                // index
+                i.put(j, j);
+            }
+
+            setAttribute(getVertexName(), new VectorBuffer(v, 3));
+            setAttribute(getNormalName(), new VectorBuffer(n, 3));
+            setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
+            setIndices(i, PolygonType.QUADS);
+        } else {
+            // empty the geometry
+            removeAttribute(getVertexName());
+            removeAttribute(getNormalName());
+            removeAttribute(getTextureCoordinateName());
+            setIndices(null, PolygonType.QUADS);
         }
-
-        setAttribute(getVertexName(), new VectorBuffer(v, 3));
-        setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
-        setIndices(i, PolygonType.QUADS);
-
-        width = tl.getMaxWidth();
-        height = tl.getMaxHeight();
-
-        layoutDirty = false;
     }
 
     /** Helper class to place the characters into a multi-line block of text. */
@@ -360,7 +399,7 @@ public class Text extends PrimitiveGeometry {
 
         /*
          * Layout out the given text, returning an array of coords with a usage
-         * pattern of T2F_V3F
+         * pattern of T2F_V2F
          */
         public float[] doLayout(String text) {
             // reset values for the layout
@@ -371,7 +410,7 @@ public class Text extends PrimitiveGeometry {
 
             // we're being conservative here, but memory is cheap
             int len = text.length();
-            int numPrims = len * 20;
+            int numPrims = len * 16;
             float[] coords = new float[numPrims];
 
             int coordIndex = 0;
@@ -398,7 +437,7 @@ public class Text extends PrimitiveGeometry {
             coordIndex = placeWord(currentWord, coords, coordIndex);
 
             maxWidth = Math.max(maxWidth, cursorX);
-            numGlyphs = coordIndex / 20;
+            numGlyphs = coordIndex / 16;
 
             return coords;
         }
@@ -455,7 +494,7 @@ public class Text extends PrimitiveGeometry {
                     break;
                 case ' ':
                     // just advance the space width, but don't place glyphs
-                    // only place space if we've moved off of left edge
+                    // only place space if we've moved off of left edge, or on first line
                     g = charSet.getGlyph(' ');
                     if (cursorX > leftEdge || cursorY == -ascent)
                         cursorX += g.getAdvance();
@@ -464,12 +503,13 @@ public class Text extends PrimitiveGeometry {
                     // place a glyph for the char
                     g = charSet.getGlyph(chr);
 
-                    if (wrapWidth > 0f)
+                    if (wrapWidth > 0f) {
                         // place a newline if the char can't fit on this line
                         // and it wasn't the first char for the line (we always
                         // put 1 char)
                         if (cursorX > leftEdge && cursorX + g.getAdvance() > wrapWidth)
                             newline();
+                    }
                     index = placeGlyph(g, coords, index);
                     break;
                 }
@@ -501,28 +541,24 @@ public class Text extends PrimitiveGeometry {
             coords[index++] = tcB;
             coords[index++] = vtL;
             coords[index++] = vtB;
-            coords[index++] = 0f;
 
             // lower right
             coords[index++] = tcR;
             coords[index++] = tcB;
             coords[index++] = vtR;
             coords[index++] = vtB;
-            coords[index++] = 0f;
 
             // upper right
             coords[index++] = tcR;
             coords[index++] = tcT;
             coords[index++] = vtR;
             coords[index++] = vtT;
-            coords[index++] = 0f;
 
             // upper left
             coords[index++] = tcL;
             coords[index++] = tcT;
             coords[index++] = vtL;
             coords[index++] = vtT;
-            coords[index++] = 0f;
 
             // advance the x position
             cursorX += g.getAdvance();

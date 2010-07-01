@@ -36,7 +36,7 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
     private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
     private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
     private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
-    private static final ComponentId<TexturedMaterial> T_ID = Component.getComponentId(TexturedMaterial.class);
+    private static final ComponentId<TexturedMaterial> TM_ID = Component.getComponentId(TexturedMaterial.class);
     private static final ComponentId<BlinnPhongLightingModel> BP_ID = Component.getComponentId(BlinnPhongLightingModel.class);
     private static final ComponentId<SolidLightingModel> SL_ID = Component.getComponentId(SolidLightingModel.class);
     
@@ -145,11 +145,9 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
      * @throws NullPointerException if atom is null
      */
     protected void render(Entity atom) {
-        // set draw mode
         Renderable render = atom.get(R_ID);
         if (render == null)
             return; // not supposed to render it 
-        renderer.setDrawStyle(render.getDrawStyleFront(), render.getDrawStyleBack());
         
         // set materials
         BlinnPhongLightingModel bp = atom.get(BP_ID);
@@ -168,7 +166,7 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
         }
         
         // set textures
-        TexturedMaterial tm = atom.get(T_ID);
+        TexturedMaterial tm = atom.get(TM_ID);
         Texture decal = (tm == null ? null : tm.getDecalTexture());
         Texture primary = (tm == null ? null : tm.getPrimaryTexture());
         switch(maxMaterialTexUnits) {
@@ -189,6 +187,7 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
         }
         
         // render it
+        renderer.setDrawStyle(render.getDrawStyleFront(), render.getDrawStyleBack());
         renderGeometry(atom);
     }
 

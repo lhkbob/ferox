@@ -166,7 +166,7 @@ public interface OnscreenSurface extends Surface {
 
     /**
      * Return true if the window is resizable by user action. The surface can
-     * still be resized by calling {@link #setSize(int, int)} programatically.
+     * still be resized by calling {@link #setWindowSize(int, int)} programatically.
      * 
      * @return True if the displayed window is resizable by the user
      */

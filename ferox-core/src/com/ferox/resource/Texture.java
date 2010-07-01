@@ -516,8 +516,8 @@ public class Texture extends Resource {
     /**
      * <p>
      * Set whether or not depth comparisons should be used when rendering with
-     * this Texture. This parameter is ignored if the image's TextureFormat
-     * is not DEPTH. When a texture is a depth texture, the depth values can be
+     * this Texture. This parameter is ignored if the image's TextureFormat is
+     * not DEPTH. When a texture is a depth texture, the depth values can be
      * interpreted in multiple ways. When depth comparison is disabled, each
      * depth value is treated as a grayscale color that's rendered like any
      * other texture value.

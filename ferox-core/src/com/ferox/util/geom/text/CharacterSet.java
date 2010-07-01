@@ -10,26 +10,28 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.ferox.resource.BufferData;
-import com.ferox.resource.Texture2D;
+import com.ferox.resource.Mipmap;
+import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.TextureImage.Filter;
+import com.ferox.resource.Texture.Target;
 import com.ferox.util.geom.text.RectanglePacker.Rectangle;
 
 /**
  * <p>
  * CharacterSet represents a packed character sheet for a set of characters and
  * a Font that they are rendered with. It provides mappings to access the
- * locations of specific characters within its Texture2D.
+ * locations of specific characters within its 2D Texture.
  * </p>
  * <p>
- * The generated Texture2D can be configured to be a power-of-two texture or
+ * The generated 2D Texture can be configured to be a power-of-two texture or
  * not. This should be chosen based on the hardware constraints. If supported, a
  * npot texture may provide a more efficient use of space.
  * </p>
@@ -61,7 +63,7 @@ public class CharacterSet {
         DEFAULT_CHAR_SET = b.toString();
     }
 
-    private Texture2D characters;
+    private Texture characters;
     private final Font font;
     private FontRenderContext context;
     private final boolean antiAlias;
@@ -147,7 +149,7 @@ public class CharacterSet {
 
     /**
      * <p>
-     * Return the Texture2D that contains the character sheet for all characters
+     * Return the 2D Texture that contains the character sheet for all characters
      * of this CharacterSet. Use the character metrics returned by getGlyph() to
      * access the image data.
      * </p>
@@ -156,9 +158,9 @@ public class CharacterSet {
      * rendered in white.
      * </p>
      * 
-     * @return The Texture2D holding all rendered characters
+     * @return The Texture holding all rendered characters
      */
-    public Texture2D getCharacterSet() {
+    public Texture getTexture() {
         return characters;
     }
 
@@ -181,7 +183,9 @@ public class CharacterSet {
         return antiAlias;
     }
 
-    /** @return The FontRenderContext used to layout this CharacterSet */
+    /**
+     * @return The FontRenderContext used to layout this CharacterSet
+     */
     public FontRenderContext getFontRenderContext() {
         return context;
     }
@@ -243,10 +247,10 @@ public class CharacterSet {
             glyphBounds = g.getBounds2D();
 
             glyph = new Glyph(g.getAdvance(), // advance
-            (float) r.getX() / width, (float) (r.getX() + r.getWidth()) / width, // left-right
-            (float) (height - r.getY()) / height, (float) (height - r.getY() - r.getHeight()) / height, // top-bottom
-            (float) glyphBounds.getX(), (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // x-y
-            (float) glyphBounds.getWidth() + CHAR_PADDING * 2, (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
+                              (float) r.getX() / width, (float) (r.getX() + r.getWidth()) / width, // left-right
+                              (float) (height - r.getY() - r.getHeight()) / height, (float) (height - r.getY()) / height, // bottom-top
+                              (float) glyphBounds.getX(), (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // x-y
+                              (float) glyphBounds.getWidth() + CHAR_PADDING * 2, (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
             metrics.put(Character.valueOf(characters[i]), glyph);
 
             g2d.drawChars(characters, i, 1, r.getX() - (int) glyphBounds.getX() + CHAR_PADDING, 
@@ -256,9 +260,9 @@ public class CharacterSet {
 
         // create the texture
         int[] data = ((DataBufferInt) charSet.getRaster().getDataBuffer()).getData();
-        BufferData[] imageData = { new BufferData(data, true) };
-        this.characters = new Texture2D(imageData, width, height, 
-                                        TextureFormat.ARGB_8888, DataType.UNSIGNED_INT, Filter.LINEAR);
+        IntBuffer imageData = ByteBuffer.allocateDirect(data.length * 4).order(ByteOrder.nativeOrder()).asIntBuffer().put(data);
+        this.characters = new Texture(Target.T_2D, new Mipmap(imageData, width, height, 1,
+                                                              TextureFormat.ARGB_8888));
     }
 
     /*

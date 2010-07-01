@@ -112,10 +112,10 @@ public class ViewNodeController extends Controller {
             float scaleX = (float) width / dim.width;
             float scaleY = (float) height / dim.height;
             
-            int vpLeft = (int) Math.max(0, Math.min(scaleX * vn.getLeft(), width));
-            int vpRight = (int) Math.max(0, Math.min(scaleX * vn.getRight(), width));
-            int vpBottom = (int) Math.max(0, Math.min(scaleY * vn.getBottom(), height));
-            int vpTop = (int) Math.max(0, Math.min(scaleY * vn.getTop(), height));
+            int vpLeft = (int) Math.ceil(Math.max(0, Math.min(scaleX * vn.getLeft(), width)));
+            int vpRight = (int) Math.ceil(Math.max(0, Math.min(scaleX * vn.getRight(), width)));
+            int vpBottom = (int) Math.ceil(Math.max(0, Math.min(scaleY * vn.getBottom(), height)));
+            int vpTop = (int) Math.ceil(Math.max(0, Math.min(scaleY * vn.getTop(), height)));
             
             // assign the new viewport
             vn.setViewport(vpLeft, vpRight, vpBottom, vpTop);

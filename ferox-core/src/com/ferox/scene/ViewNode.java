@@ -2,6 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.entity.AbstractComponent;
 import com.ferox.math.bounds.Frustum;
+import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.Surface;
 import com.ferox.scene.controller.ViewNodeController;
 
@@ -220,8 +221,7 @@ public final class ViewNode extends AbstractComponent<ViewNode> {
      * Set the Surface that this ViewNode is linked to. If
      * {@link #getAutoUpdateViewport()} returns true, this may cause the Frustum
      * to be updated if the given surface's dimensions differ from the previous
-     * surface. This can also occur if the surface is a {@link WindowSurface}
-     * that is resizable.
+     * surface. This can also occur if the surface is a resizable {@link OnscreenSurface}
      * 
      * @param surface The Surface that this
      */

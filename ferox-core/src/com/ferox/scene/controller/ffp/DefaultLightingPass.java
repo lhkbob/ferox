@@ -10,8 +10,11 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Surface;
+import com.ferox.renderer.Renderer.BlendFactor;
+import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ShadowReceiver;
+import com.ferox.scene.Transparent;
 import com.ferox.util.Bag;
 
 /**
@@ -25,6 +28,7 @@ import com.ferox.util.Bag;
 public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
     private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
     private static final ComponentId<ShadowReceiver> SR_ID = Component.getComponentId(ShadowReceiver.class);
+    private static final ComponentId<Transparent> T_ID = Component.getComponentId(Transparent.class);
     
     private final Component[] lightMap;
     private final AxisAlignedBox[] boundMap;
@@ -45,6 +49,9 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
         Bag<AxisAlignedBox> boundAtoms = connection.getLightBounds();
         Bag<Entity> renderAtoms = connection.getRenderedEntities();
         
+        // setup state for handling blending when needed
+        ffp.setBlendMode(BlendFunction.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA);
+        
         Entity atom;
         int renderCount = renderAtoms.size();
         for (int ri = 0; ri < renderCount; ri++) {
@@ -52,6 +59,15 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
             // configure lighting for the render atom
             assignLights(atom, lightAtoms, boundAtoms);
             
+            // handle transparency, since this is the only pass that needs it
+            if (atom.get(T_ID) != null) {
+                ffp.setBlendingEnabled(true);
+                ffp.setDepthWriteMask(false);
+            } else {
+                ffp.setBlendingEnabled(false);
+                ffp.setDepthWriteMask(true);
+            }
+
             // render it, AbstractFixedFunctionRenderPass takes care of state setting
             render(atom);
         }

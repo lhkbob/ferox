@@ -38,7 +38,7 @@ public final class TextureSurfaceOptions {
      * <li>{@link #getDepth()} returns 1</li>
      * <li>{@link #hasDepthTexture()} returns false</li>
      * <li>{@link #getActiveLayer()} returns 0</li>
-     * <li>{@link #getActiveDepth()} returns 0</li>
+     * <li>{@link #getActiveDepthPlane()} returns 0</li>
      * </ul>
      */
     public TextureSurfaceOptions() {

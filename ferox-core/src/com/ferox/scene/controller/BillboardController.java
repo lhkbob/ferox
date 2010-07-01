@@ -7,6 +7,7 @@ import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.scene.Billboarded;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.Billboarded.Axis;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
@@ -51,27 +52,29 @@ public class BillboardController extends Controller {
         Billboarded b = e.get(B_ID);
         SceneElement se = e.get(SE_ID);
         if (b != null && se != null) {
-            Transform t = se.getTransform();
-            if (b.getBillboardPoint() != null) {
-                // X = 0, Y = 1, Z = 2
-                int o = b.getBillboardDirectionAxis().ordinal();
-                Matrix3f r = t.getRotation();
-
-                Vector3f d = b.getBillboardPoint().sub(t.getTranslation(), null).normalize();
-                Vector3f a = r.getCol((o + 2) % 3, null).ortho(d);
-                
-                updateMatrix(r, d, a, o);
-            }
-            if (b.getConstraintVector() != null) {
-                // X = 0, Y = 1, Z = 2
-                int o = b.getConstraintAxis().ordinal();
-                Matrix3f r = t.getRotation();
-
-                Vector3f d = b.getConstraintVector().normalize(null);
-                Vector3f a = r.getCol((o + 2) % 3, null).ortho(d);
-                
-                updateMatrix(r, d, a, o);
-            }
+            satisfyConstraint(b, se.getTransform(), Axis.X);
+            satisfyConstraint(b, se.getTransform(), Axis.Y);
+            satisfyConstraint(b, se.getTransform(), Axis.Z);
+        }
+    }
+    
+    private void satisfyConstraint(Billboarded b, Transform t, Axis axis) {
+        // X = 0, Y = 1, Z = 2
+        int o = axis.ordinal();
+        Vector3f constraint = b.getConstraint(axis);
+        
+        if (constraint != null) {
+            Vector3f d;
+            if (b.isPositionConstraint(axis))
+                d = constraint.sub(t.getTranslation(), null).normalize();
+            else
+                d = constraint.normalize(null);
+            
+            if (b.isConstraintAxisNegated(axis))
+                d.scale(-1f);
+            
+            Vector3f a = t.getRotation().getCol((o + 2) % 3, null).ortho(d);
+            updateMatrix(t.getRotation(), d, a, o);
         }
     }
     

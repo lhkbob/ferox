@@ -11,104 +11,123 @@ public class Billboarded extends AbstractComponent<Billboarded> {
      * direction axis for billboarding points.
      */
     public static enum Axis {
-        X, Y, Z
+        X, Y, Z,
     }
     
-    private Vector3f pointTowards;
-    private Axis pointAxis;
-    
-    private Vector3f constrainVector;
-    private Axis constrainAxis;
-    
+    private final Vector3f[] constrainVectors; // as a direction or location
+    private final boolean[] positionConstraint;
+    private final boolean[] negateAxisDirection;
+
+    /**
+     * Create a new Billboarded instance, with its initial state to have no axis
+     * constrained.
+     */
     public Billboarded() {
         super(Billboarded.class);
-    }
-    
-    /**
-     * Get the point that this SceneElement will point towards. If the returned
-     * Vector3f is null, then this SceneElement will use the rotation matrix
-     * that was last set by its SceneElementUpdater (or manually). When the
-     * vector is non-null, the SceneController will adjust the rotation matrix
-     * so that the local axis specified by {@link #getBillboardDirectionAxis()}
-     * points towards this vector. After this, matrix will be updated so that
-     * the constraint axis is met.
-     * 
-     * @return The point that this SceneElement will point towards, as best its
-     *         able
-     */
-    public Vector3f getBillboardPoint() {
-        return pointTowards;
+        constrainVectors = new Vector3f[Axis.values().length];
+        positionConstraint = new boolean[constrainVectors.length];
+        negateAxisDirection = new boolean[constrainVectors.length];
     }
 
     /**
-     * Get the Axis that determines which of the local axis represents the
-     * 'direction' that will line up towards the point returned by
-     * {@link #getBillboardPoint()}. This will return null if
-     * {@link #getBillboardPoint()} is null.
+     * <p>
+     * Get the Vector3f that represents the constraint on the provided axis. The
+     * returned Vector3f is null when the axis is unconstrained. When not null,
+     * the returned vector represents the a constraint. This constraint is
+     * interpreted in different ways depending on
+     * {@link #isPositionConstraint(Axis)} and
+     * {@link #isConstraintAxisNegated(Axis)}.
+     * </p>
+     * <p>
+     * If the constraint is a position constraint, the local axis' direction
+     * will be constrained such that it points towards the constraint. When
+     * false, the axis' direction will be the normalized vector parallel to the
+     * constraint. If {@link #isConstraintAxisNegated(Axis)} is true, the
+     * computed axis as described above are simply negated.
+     * </p>
      * 
-     * @return The direction Axis
+     * @param axis The Axis that may be constrained
+     * @return A Vector3f describing the constraint, or null
+     * @throws NullPointerException if axis is null
      */
-    public Axis getBillboardDirectionAxis() {
-        return pointAxis;
+    public Vector3f getConstraint(Axis axis) {
+        return constrainVectors[axis.ordinal()];
     }
 
     /**
-     * Set the billboard point and direction vector. If <tt>pointTowards</tt> is
-     * non-null, the SceneElement will have its local <tt>axis</tt> directed
-     * towards the point after each update by the SceneController. If the
-     * {@link #getConstraintVector()} is non-null, then the rotation matrix will
-     * be constrained to that vector after it's been set to point towards
-     * <tt>pointTowards</tt>. The vector will not be copied, any modifications
-     * will be reflected in this Billboarded.
+     * Return true if the vector returned by {@link #getConstraint(Axis)}
+     * represents a position the Billboarded entity must face. If false, the
+     * vector represents a simple direction vector.
      * 
-     * @param pointTowards The point that this SceneElement will be directed to
-     * @param axis The direction axis
-     * @throws NullPointerException if pointTowards is not null, but axis is
-     *             null
+     * @param axis The constrained axis
+     * @return Whether or not the given axis' constraint is a position
+     *         constraint
      */
-    public void setBillboardPoint(Vector3f pointTowards, Axis axis) {
-        if (pointTowards != null && axis == null)
-            throw new NullPointerException("Axis must be non-null when pointTowards is not null");
-        this.pointTowards = pointTowards;
-        pointAxis = (pointTowards == null ? null : axis);
+    public boolean isPositionConstraint(Axis axis) {
+        return constrainVectors[axis.ordinal()] != null && positionConstraint[axis.ordinal()];
     }
 
     /**
-     * Get the Axis that determines which of the three local axis are
-     * constrained to match {@link #getConstraintVector()}. This will be null if
-     * the constraint vector is null.
+     * Return true if computed axis direction for the given axis should be
+     * negated before updating the entity's transform.
      * 
-     * @return The constrained axis
+     * @param axis The constrained axis
+     * @return Whether or not the given axis' direction is reversed from what it
+     *         would normally be, e.g. it faces away from instead of towards
      */
-    public Axis getConstraintAxis() {
-        return constrainAxis;
+    public boolean isConstraintAxisNegated(Axis axis) {
+        return constrainVectors[axis.ordinal()] != null && negateAxisDirection[axis.ordinal()];
     }
 
     /**
-     * Get the vector that one of the local axis of this SceneElement will be
-     * constrained to. This can be used to force elements to remain vertical,
-     * and to limit the degrees of freedom used when billboarding points. If the
-     * vector is null, then no axis are constrained.
+     * Set the constraint on the given axis to be a directional constraint that
+     * is not negated. The constraint will use the provided vector. Subsequent
+     * changes to <tt>vec</tt> will correctly update the desired position for a
+     * Billboarded entity. If <tt>vec</tt> is null, the constraint is cleared
+     * for the provided axis.
      * 
-     * @return The vector that {@link #getConstraintAxis()} will be set to
+     * @param axis The axis to constrain
+     * @param vec The Vector3f specifying the desired axis direction in world
+     *            space
+     * @throws NullPointerException if axis is null
      */
-    public Vector3f getConstraintVector() {
-        return constrainVector;
+    public void setConstraint(Axis axis, Vector3f vec) {
+        setConstraint(axis, vec, false);
     }
 
     /**
-     * Set the vector and axis that will be constrained after the SceneElement
-     * has been updated, and then billboarded. If the vector is null, then no
-     * axis will be constrained. Note that the vector value is not copied, any
-     * modifications to <tt>vector</tt> will affect this Billboarded.
+     * Set the constraint on the given axis to use the provided Vector3f. If
+     * <tt>isPosition</tt> is true, the provided vector will be a position
+     * constraint. The created constraint will not negate the axis direction. If
+     * <tt>vec</tt> is null, the constraint is cleared for the provided axis.
      * 
-     * @param vector The vector that the given axis will be set to
-     * @param axis The axis that will be constrained
+     * @param axis The axis to constrain
+     * @param vec The Vector3f specifying the desired axis direction or facing
+     *            location
+     * @param isPosition True if the constraint vector is a position
+     * @throws NullPointerException if axis is null
      */
-    public void setConstraintAxis(Vector3f vector, Axis axis) {
-        if (vector != null && axis == null)
-            throw new NullPointerException("Axis must be non-null when vector is not null");
-        constrainVector = vector;
-        constrainAxis = (vector == null ? null : axis);
+    public void setConstraint(Axis axis, Vector3f vec, boolean isPosition) {
+        setConstraint(axis, vec, isPosition, false);
+    }
+
+    /**
+     * Set the constraint on the given axis to use the provided Vector3f. If
+     * <tt>isPosition</tt> is true, the provided vector will be a position
+     * constraint. If <tt>negate</tt> is true, the computed axis' directions for
+     * this axis will be automatically negated. If <tt>vec</tt> is null, the
+     * constraint is cleared for the provided axis.
+     * 
+     * @param axis The axis to constrain
+     * @param vec The Vector3f specifying the desired axis direction or facing
+     *            location
+     * @param isPosition True if the constraint vector is a position
+     * @param negate True if computed axis directions should be negated
+     * @throws NullPointerException if axis is null
+     */
+    public void setConstraint(Axis axis, Vector3f vec, boolean isPosition, boolean negate) {
+        constrainVectors[axis.ordinal()] = vec;
+        positionConstraint[axis.ordinal()] = isPosition;
+        negateAxisDirection[axis.ordinal()] = negate;
     }
 }

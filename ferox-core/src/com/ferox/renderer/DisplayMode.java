@@ -31,4 +31,9 @@ public class DisplayMode {
     public int hashCode() {
         return (37 * height) ^ (17 * width);
     }
+    
+    @Override
+    public String toString() {
+        return "[DisplayMode width=" + width + ", height=" + height + "]";
+    }
 }

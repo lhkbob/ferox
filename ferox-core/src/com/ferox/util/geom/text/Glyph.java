@@ -37,10 +37,14 @@ public class Glyph {
      * @param advance The advance needed for the character
      * @param tcL The texture coordinate for the left edge
      * @param tcR The texture coordinate for the right edge
-     * @param tcT The texture coordinate for the top edge
      * @param tcB The texture coordinate for the bottom edge
+     * @param tcT The texture coordinate for the top edge
+     * @param x The x offset of this character from its origin
+     * @param y The y offset of this character from its origin
+     * @param width The width of the character
+     * @param height The height of the character
      */
-    public Glyph(float advance, float tcL, float tcR, float tcT, float tcB, 
+    public Glyph(float advance, float tcL, float tcR, float tcB, float tcT, 
                  float x, float y, float width, float height) {
         this.advance = advance;
         this.tcL = tcL;

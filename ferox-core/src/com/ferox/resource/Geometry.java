@@ -192,9 +192,13 @@ public class Geometry extends Resource {
     public void setIndices(IntBuffer indices, PolygonType type) {
         if (indices != null && !indices.isDirect())
             throw new IllegalArgumentException("Specified IntBuffer must be direct");
+        if (indices == null && this.indices != null)
+            markIndicesDirty(0, this.indices.capacity());
+        else if (indices != null)
+            markIndicesDirty(0, indices.capacity());
+        
         this.indices = indices;
         polyType = (type == null ? PolygonType.POINTS : type);
-        markIndicesDirty(0, indices.capacity());
     }
 
     /**

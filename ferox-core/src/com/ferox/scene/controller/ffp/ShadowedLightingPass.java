@@ -79,6 +79,7 @@ public class ShadowedLightingPass extends AbstractFixedFunctionRenderPass {
         ffp.setDepthOffsetsEnabled(true);
         ffp.setDepthOffsets(0f, -5f);
         ffp.setDepthTest(Comparison.LEQUAL);
+        ffp.setDepthWriteMask(false); // depth buffer should be unchanged from last pass
         
         Entity atom;
         SceneElement se;
