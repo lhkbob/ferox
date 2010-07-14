@@ -1,8 +1,5 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
-import com.ferox.math.Matrix4f;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
 
 /**
  * <p>

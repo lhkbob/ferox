@@ -3,10 +3,10 @@ package com.ferox.scene;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
-import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.Frustum;
 import com.ferox.entity.AbstractComponent;
 import com.ferox.entity.Controller;
 

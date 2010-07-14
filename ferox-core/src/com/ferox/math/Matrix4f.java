@@ -1275,7 +1275,12 @@ public final class Matrix4f implements Cloneable {
 
     @Override
     public Matrix4f clone() {
-        return new Matrix4f(this);
+        try {
+            return (Matrix4f) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // shouldn't happen since Matrix4f implements Cloneable
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     @Override

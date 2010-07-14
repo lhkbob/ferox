@@ -1,12 +1,8 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
 import java.nio.FloatBuffer;
 
-import com.ferox.math.Matrix4f;
-import com.ferox.math.Transform;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
-import com.ferox.math.bounds.Frustum.FrustumIntersection;
+import com.ferox.math.Frustum.FrustumIntersection;
 import com.ferox.resource.Geometry;
 
 /**

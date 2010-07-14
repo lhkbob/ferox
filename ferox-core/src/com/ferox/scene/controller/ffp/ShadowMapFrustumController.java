@@ -3,9 +3,9 @@ package com.ferox.scene.controller.ffp;
 import java.util.Iterator;
 
 import com.ferox.math.Color4f;
+import com.ferox.math.Frustum;
+import com.ferox.math.SpatialHierarchy;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.Frustum;
-import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.SceneElement;
 import com.ferox.scene.ShadowCaster;

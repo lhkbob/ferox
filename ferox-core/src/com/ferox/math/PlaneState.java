@@ -1,4 +1,4 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
 /**
  * PlaneState keeps track of the intermediate test results of a BoundVolume's

@@ -5,9 +5,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.ferox.math.Color4f;
+import com.ferox.math.Frustum;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Renderer;

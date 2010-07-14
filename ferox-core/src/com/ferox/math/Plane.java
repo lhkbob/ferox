@@ -1,7 +1,5 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
 
 /**
  * The Plane class consists of a few static methods that can be used to
@@ -14,6 +12,7 @@ import com.ferox.math.Vector4f;
  * @author Michael Ludwig
  */
 public class Plane {
+    private static final float ROOT_2_OVER_2 = .7071067811865f;
     /**
      * Interpret <tt>plane</tt> as a plane within the 3D coordinate space. The
      * plane is normalized by dividing all four coordinates by the magnitude of
@@ -61,6 +60,26 @@ public class Plane {
     public static float getSignedDistance(Vector4f plane, Vector3f point, boolean assumeNormalized) {
         float num = point.dot(plane.x, plane.y, plane.z) + plane.w;
         return (assumeNormalized ? num : num / length(plane));
+    }
+    
+    public static void getTangentSpace(Vector3f normal, Vector3f tan0, Vector3f tan1) {
+        // Gratz to Erwin Couman's and Bullet for this code
+        
+        if (normal.z > ROOT_2_OVER_2) {
+            // choose p in y-z plane
+            float a = normal.y * normal.y + normal.z * normal.z;
+            float k = 1f / (float) Math.sqrt(a);
+            
+            tan0.set(0f, -normal.z * k, normal.y * k);
+            tan1.set(a * k, -normal.x * tan0.z, normal.x * tan0.y); // n x tan0
+        } else {
+            // choose p in x-y plane
+            float a = normal.x * normal.x + normal.z * normal.z;
+            float k = 1f / (float) Math.sqrt(a);
+            
+            tan0.set(-normal.y * k, normal.x * k, 0f);
+            tan1.set(-normal.z * tan0.y, normal.z * tan0.x, a * k); // n x tan0
+        }
     }
     
     private static float length(Vector4f v) {

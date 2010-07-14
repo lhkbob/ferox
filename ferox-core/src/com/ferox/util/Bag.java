@@ -332,8 +332,8 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
      * <p>
      * However, this sort is often much faster than the above code (orders of
      * magnitude depending on the complexity of the Comparator). This is best
-     * used when there's not a precise definition of order. If <tt>hasher</tt>,
-     * the "natural" hashing function is used (e.g. each element's
+     * used when there's not a precise definition of order. If <tt>hasher</tt>
+     * is null, the "natural" hashing function is used (e.g. each element's
      * {@link Object#hashCode() hashCode()}).
      * </p>
      * 

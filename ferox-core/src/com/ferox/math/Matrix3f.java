@@ -580,6 +580,31 @@ public final class Matrix3f implements Cloneable {
     public Matrix3f transpose() {
         return transpose(this);
     }
+    
+    /**
+     * Set this Matrix3f to be the rotation matrix representing
+     * the same rotation that is stored by <tt>q</tt>.
+     * @param q The quaternion to convert to matrix form
+     * @return This matrix for chaining
+     * @throws NullPointerException if q is null
+     * @throws ArithmeticException if the length of q is 0
+     */
+    public Matrix3f set(Quat4f q) {
+        float d = q.lengthSquared();
+        if (d == 0f)
+            throw new ArithmeticException("Quaternion length is 0");
+        
+        float s = 2f / d;
+        
+        float xs = q.x * s,  ys = q.y * s, zs = q.z * s;
+        float wx = q.w * xs, wy = q.w * ys, wz = q.z * zs;
+        float xx = q.x * xs, xy = q.x * ys, xz = q.x * zs;
+        float yy = q.y * ys, yz = q.y * zs, zz = q.z * zs;
+        
+        return set(1f - (yy + zz), xy - wz, xz + wy,
+                   xy + wz, 1f - (xx + zz), yz - wx,
+                   xz - wy, yz + wx, 1f - (xx + yy));
+    }
 
     /**
      * Return the value of the matrix entry at the given row and column. row and
@@ -1070,7 +1095,12 @@ public final class Matrix3f implements Cloneable {
 
     @Override
     public Matrix3f clone() {
-        return new Matrix3f(this);
+        try {
+            return (Matrix3f) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // shouldn't happen since Matrix3f implements Cloneable
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     @Override

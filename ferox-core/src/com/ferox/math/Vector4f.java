@@ -411,7 +411,12 @@ public final class Vector4f implements Cloneable {
 
     @Override
     public Vector4f clone() {
-        return new Vector4f(this);
+        try {
+            return (Vector4f) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // shouldn't happen since Vector4f implements Cloneable
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     /**

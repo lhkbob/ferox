@@ -2,9 +2,9 @@ package com.ferox.scene.controller;
 
 import java.util.Iterator;
 
+import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.SpatialHierarchy;
 import com.ferox.math.Transform;
-import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.SceneElement;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;

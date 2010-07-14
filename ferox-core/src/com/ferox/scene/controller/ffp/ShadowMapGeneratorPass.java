@@ -1,7 +1,7 @@
 package com.ferox.scene.controller.ffp;
 
 import com.ferox.entity.Entity;
-import com.ferox.math.bounds.Frustum;
+import com.ferox.math.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Renderer.DrawStyle;

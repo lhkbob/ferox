@@ -1,6 +1,6 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
-import com.ferox.math.bounds.Frustum.FrustumIntersection;
+import com.ferox.math.Frustum.FrustumIntersection;
 import com.ferox.scene.controller.SceneController;
 import com.ferox.util.Bag;
 import com.ferox.entity.Entity;

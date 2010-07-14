@@ -1,7 +1,6 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
-import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.Frustum.FrustumIntersection;
+import com.ferox.math.Frustum.FrustumIntersection;
 import com.ferox.util.Bag;
 
 /**

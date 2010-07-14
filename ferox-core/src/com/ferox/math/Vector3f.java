@@ -117,6 +117,38 @@ public final class Vector3f implements Cloneable {
         float len = x * x + y * y + z * z;
         return (float) Math.acos(dot(x, y, z) / (length() * len));
     }
+    
+    public Quat4f arc(Vector3f v) {
+        return arc(v, null);
+    }
+    
+    public Quat4f arc(Vector3f v, Quat4f result) {
+        if (result == null)
+            result = new Quat4f();
+        
+        // make sure that both this and v are normalized
+        // if they aren't unit length, get the normalized version as new vectors
+        // FIXME: can we do this better?
+        // FIXME: is it worth it, or should we just always call normalize(null)
+        float d0 = lengthSquared();
+        float d1 = lengthSquared();
+        Vector3f v0 = (d0 == 1f ? this : scale(1f / (float) Math.sqrt(d0), null));
+        Vector3f v1 = (d1 == 1f ? v : v.scale(1f / (float) Math.sqrt(d1), null));
+        
+        float d = v0.dot(v1);
+        if (d < 1f) {
+            Vector3f n = new Vector3f();
+            Plane.getTangentSpace(v0, n, new Vector3f());
+            
+            return result.set(n.x, n.y, n.z, 0f);
+        } else {
+            Vector3f c = v0.cross(v1, null);
+            float s = (float) Math.sqrt(2f * (1f + d));
+            float rs = 1f / s;
+            
+            return result.set(c.x * rs, c.y * rs, c.z * rs, .5f * s);
+        }
+    }
 
     /**
      * Compute and return the dot product between this vector and the given
@@ -442,7 +474,12 @@ public final class Vector3f implements Cloneable {
 
     @Override
     public Vector3f clone() {
-        return new Vector3f(this);
+        try {
+            return (Vector3f) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // shouldn't happen since Vector3f implements Cloneable
+            throw new UnsupportedOperationException(e);
+        }
     }
 
     /**
