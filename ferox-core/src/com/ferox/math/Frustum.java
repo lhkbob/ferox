@@ -71,6 +71,9 @@ public class Frustum {
     private final Vector3f direction;
     private final Vector3f location;
     
+    private final Matrix4f projection;
+    private final Matrix4f view;
+    
     // planes representing frustum, adjusted for
     // position, direction and up
     private final Vector4f[] worldPlanes;
@@ -116,6 +119,9 @@ public class Frustum {
         location = new Vector3f();
         up = new Vector3f(0f, 1f, 0f);
         direction = new Vector3f(0f, 0f, -1f);
+        
+        view = new Matrix4f();
+        projection = new Matrix4f();
     }
     
     /**
@@ -221,7 +227,7 @@ public class Frustum {
         
         useOrtho = ortho;
         
-        updateFrustumPlanes();
+        update();
     }
 
     /**
@@ -274,53 +280,45 @@ public class Frustum {
     public boolean isOrthogonalProjection() {
         return useOrtho;
     }
-    
+
     /**
      * <p>
-     * Get the location vector of this view, in world space.
+     * Get the location vector of this view, in world space. The returned vector
+     * is read-only. Modifications to the frustum's view paratmers must be done
+     * through {@link #setOrientation(Vector3f, Vector3f, Vector3f)}.
      * </p>
-     * <p>
-     * This does not return a defensive copy, so modifications to the vector
-     * require a subsequent call to updateFrustumPlanes() to see the effects
-     * reflected in the frustum planes.
      * 
      * @return The location of the view
      */
-    public Vector3f getLocation() {
+    public ReadOnlyVector3f getLocation() {
         return location;
     }
 
     /**
      * <p>
      * Get the up vector of this view, in world space. Together up and direction
-     * form a right-handed coordinate system.
-     * </p>
-     * <p>
-     * This does not return a defensive copy, so modifications to the vector
-     * require a subsequent call to updateFrustumPlanes() to see the effects
-     * reflected in the frustum planes.
+     * form a right-handed coordinate system. The returned vector is read-only.
+     * Modifications to the frustum's view parameters must be done through
+     * {@link #setOrientation(Vector3f, Vector3f, Vector3f)}.
      * </p>
      * 
      * @return The up vector of this view
      */
-    public Vector3f getUp() {
+    public ReadOnlyVector3f getUp() {
         return up;
     }
 
     /**
      * <p>
      * Get the direction vector of this frustum, in world space. Together up and
-     * direction form a right-handed coordinate system.
-     * </p>
-     * <p>
-     * This does not return a defensive copy, so modifications to the vector
-     * require a subsequent call to updateFrustumPlanes() to see the effects
-     * reflected in the frustum planes.
+     * direction form a right-handed coordinate system. The returned vector is
+     * read-only. Modifications to the frustum's view parameters must be done
+     * through {@link #setOrientation(Vector3f, Vector3f, Vector3f)}.
      * </p>
      * 
      * @return The current direction that this frustum is pointing
      */
-    public Vector3f getDirection() {
+    public ReadOnlyVector3f getDirection() {
         return direction;
     }
 
@@ -343,61 +341,39 @@ public class Frustum {
     }
 
     /**
-     * Compute and return the 4x4 projection matrix that represents the
-     * mathematical projection from the frustum to homogenous device coordinates
-     * (essentially the unit cube).
+     * <p>
+     * Return the 4x4 projection matrix that represents the mathematical
+     * projection from the frustum to homogenous device coordinates (essentially
+     * the unit cube).
+     * </p>
+     * <p>
+     * The returned matrix is read-only and will be updated automatically as the
+     * projection of the Frustum changes.
+     * </p>
      * 
-     * @param projection The matrix is stored in <tt>projection</tt> if not null
-     * @return projection, or a new Matrix4f if it was null
+     * @return The projection matrix
      */
-    public Matrix4f getProjectionMatrix(Matrix4f projection) {
-        if (projection == null)
-            projection = new Matrix4f();
-        projection.set(0, 0, 0, 0, 
-                       0, 0, 0, 0, 
-                       0, 0, 0, 0, 
-                       0, 0, 0, 0);
-        if (useOrtho)
-            orthoMatrix(frustumRight, frustumLeft, 
-                        frustumTop, frustumBottom, 
-                        frustumNear, frustumFar, projection);
-        else
-            projMatrix(frustumRight, frustumLeft, 
-                       frustumTop, frustumBottom,
-                       frustumNear, frustumFar, projection);
-        
+    public ReadOnlyMatrix4f getProjectionMatrix() {
         return projection;
     }
 
     /**
      * <p>
-     * Compute and return the 'view' transform this Frustum. The view transform
-     * represents the the coordinate space transformation from world space to
+     * Return the 'view' transform of this Frustum. The view transform
+     * represents the coordinate space transformation from world space to
      * camera/frustum space. The local basis of the Frustum is formed by the
-     * left, up and direction vectors of the Frustum. The left vector is up X
-     * direction, and up and direction are user defined vectors.
+     * left, up and direction vectors of the Frustum. The left vector is
+     * <code>up X
+     * direction</code>, and up and direction are user defined vectors.
      * </p>
      * <p>
-     * The result matrix is stored in <tt>view</tt> if it's not null. If it is
-     * null, a new matrix is created and returned.
+     * The returned matrix is read-only and will be updated automatically as
+     * {@link #setOrientation(Vector3f, Vector3f, Vector3f)} is invoked.
      * </p>
      * 
-     * @param view The result matrix to hold the computation
-     * @return view, or a new Matrix4f if view was null
+     * @return The view matrix
      */
-    public Matrix4f getViewMatrix(Matrix4f view) {
-        if (view == null)
-            view = new Matrix4f();
-        
-        Vector3f n = direction.scale(-1f, null).normalize();
-        Vector3f u = up.normalize().cross(n, null);
-        Vector3f v = n.cross(u, null);
-        
-        view.m00 = u.x; view.m01 = u.y; view.m02 = u.z; view.m03 = -location.dot(u);
-        view.m10 = v.x; view.m11 = v.y; view.m12 = v.z; view.m13 = -location.dot(v);
-        view.m20 = n.x; view.m21 = n.y; view.m22 = n.z; view.m23 = -location.dot(n);
-        view.m30 = 0f; view.m31 = 0f; view.m32 = 0f; view.m33 = 1f;
-
+    public ReadOnlyMatrix4f getViewMatrix() {
         return view;
     }
 
@@ -409,7 +385,8 @@ public class Frustum {
      * </p>
      * <p>
      * Any later changes to the vectors' x, y, and z values will not be
-     * reflected in the frustum planes until updateFrustumPlanes() is called.
+     * reflected in the frustum planes or view transform, unless this method is
+     * called again.
      * </p>
      * 
      * @param location The new location vector
@@ -426,22 +403,7 @@ public class Frustum {
         this.direction.set(direction);
         this.up.set(up);
         
-        updateFrustumPlanes();
-    }
-    
-    /**
-     * Update the plane instances returned by getFrustumPlane() to reflect any
-     * changes to the frustum's local parameters or orientation.
-     */
-    public void updateFrustumPlanes() {
-        // compute the right-handed basis vectors of the frustum
-        Vector3f left = up.normalize().cross(direction, Frustum.p.get()).normalize();
-        direction.normalize().cross(left, up);
-        
-        if (useOrtho)
-            computeOrthoWorldPlanes();
-        else
-            computePerspectiveWorldPlanes();
+        update();
     }
 
     /**
@@ -453,19 +415,53 @@ public class Frustum {
      * {@link Plane}; it is also normalized.
      * </p>
      * <p>
-     * This will be stale if the location, direction, and up vectors are changed
-     * without a subsequent call to updateFrustumPlanes(). A call to
-     * setOrientation(), setFrustum(), setPerspective, or
-     * setOrthogonalProjection() will automatically update the frustum planes.
+     * The returned plane vector is read-only. It will be updated automatically
+     * when the projection or view parameters change.
      * </p>
      * 
      * @param i The requested plane index
-     * @return The Vector4f instance for the requested plane, in world
+     * @return The ReadOnlyVector4f instance for the requested plane, in world
      *         coordinates
      * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
      */
-    public Vector4f getFrustumPlane(int i) {
+    public ReadOnlyVector4f getFrustumPlane(int i) {
         return worldPlanes[i];
+    }
+    
+    /*
+     * Update the plane instances returned by getFrustumPlane() to reflect any
+     * changes to the frustum's local parameters or orientation. Also update the
+     * view transform and projection matrix.
+     */
+    private void update() {
+        // compute the right-handed basis vectors of the frustum
+        Vector3f n = direction.normalize().scale(-1f, Frustum.n.get());
+        Vector3f u = up.normalize().cross(n, Frustum.p.get());
+        Vector3f v = n.cross(u, up);
+        
+        // view matrix
+        view.set(u.getX(), u.getY(), u.getZ(), -location.dot(u),
+                 v.getX(), v.getY(), v.getZ(), -location.dot(v),
+                 n.getX(), n.getY(), n.getZ(), -location.dot(n),
+                 0f, 0f, 0f, 1f);
+        
+        // projection matrix
+        if (useOrtho)
+            projection.set(2f / (frustumRight - frustumLeft), 0f, 0f, -(frustumRight + frustumLeft) / (frustumRight - frustumLeft),
+                           0f, 2f / (frustumTop - frustumBottom), 0f, -(frustumTop + frustumBottom) / (frustumTop - frustumBottom),
+                           0f, 0f, 2f / (frustumNear - frustumFar), -(frustumFar + frustumNear) / (frustumFar - frustumNear),
+                           0f, 0f, 0f, 1f);
+        else
+            projection.set(2f * frustumNear / (frustumRight - frustumLeft), 0f, (frustumRight + frustumLeft) / (frustumRight - frustumLeft), 0f,
+                           0f, 2f * frustumNear / (frustumTop - frustumBottom), (frustumTop + frustumBottom) / (frustumTop - frustumBottom), 0f,
+                           0f, 0f, -(frustumFar + frustumNear) / (frustumFar - frustumNear), -2f * frustumFar * frustumNear / (frustumFar - frustumNear),
+                           0f, 0f, -1f, 0f);
+        
+        // generate world-space frustum planes
+        if (useOrtho)
+            computeOrthoWorldPlanes();
+        else
+            computePerspectiveWorldPlanes();
     }
 
     private void computeOrthoWorldPlanes() {
@@ -547,7 +543,7 @@ public class Frustum {
     // set the given world plane so it's a plane with the given normal
     // that passes through pos, and then normalize it
     private void setWorldPlane(int plane, Vector3f normal, Vector3f pos) {
-        setWorldPlane(plane, normal.x, normal.y, normal.z, -normal.dot(pos));
+        setWorldPlane(plane, normal.getX(), normal.getY(), normal.getZ(), -normal.dot(pos));
     }
 
     // set the given world plane, with the 4 values, and then normalize it
@@ -559,31 +555,6 @@ public class Frustum {
         } else
             cp.set(a, b, c, d);
         Plane.normalize(cp);
-    }
-
-    // computes an orthogonal projection matrix given the frustum values.
-    private static void orthoMatrix(float fr, float fl, float ft, float fb, float fn, float ff, Matrix4f out) {
-        out.m00 = 2f / (fr - fl);
-        out.m11 = 2f / (ft - fb);
-        out.m22 = 2f / (fn - ff);
-        out.m33 = 1f;
-
-        out.m03 = -(fr + fl) / (fr - fl);
-        out.m13 = -(ft + fb) / (ft - fb);
-        out.m23 = -(ff + fn) / (ff - fn);
-    }
-
-    // computes a perspective projection matrix given the frustum values.
-    private static void projMatrix(float fr, float fl, float ft, float fb, float fn, float ff, Matrix4f out) {
-        out.m00 = 2f * fn / (fr - fl);
-        out.m11 = 2f * fn / (ft - fb);
-
-        out.m02 = (fr + fl) / (fr - fl);
-        out.m12 = (ft + fb) / (ft - fb);
-        out.m22 = -(ff + fn) / (ff - fn);
-        out.m32 = -1f;
-
-        out.m23 = -2f * ff * fn / (ff - fn);
     }
     
     private static final ThreadLocal<Vector3f> n = new ThreadLocal<Vector3f>() {

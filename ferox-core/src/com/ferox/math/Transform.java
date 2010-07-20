@@ -38,7 +38,7 @@ public class Transform {
      * 
      * @param trans The translation vector to use
      */
-    public Transform(Vector3f trans) {
+    public Transform(ReadOnlyVector3f trans) {
         this();
         this.setTranslation(trans);
     }
@@ -50,7 +50,7 @@ public class Transform {
      * @param scale Uniform scale to use
      * @throws IllegalArgumentException if scale < .0001
      */
-    public Transform(Vector3f trans, float scale) {
+    public Transform(ReadOnlyVector3f trans, float scale) {
         this();
         setTranslation(trans);
         setScale(scale);
@@ -63,7 +63,7 @@ public class Transform {
      * @param trans The translation vector to use
      * @param rot The 3x3 matrix representing the orientation
      */
-    public Transform(Vector3f trans, Matrix3f rot) {
+    public Transform(ReadOnlyVector3f trans, ReadOnlyMatrix3f rot) {
         this();
         setTranslation(trans);
         setRotation(rot);
@@ -77,7 +77,7 @@ public class Transform {
      * @param scale Uniform scale to use
      * @throws IllegalArgumentException if scale < .0001
      */
-    public Transform(Vector3f trans, Matrix3f rot, float scale) {
+    public Transform(ReadOnlyVector3f trans, ReadOnlyMatrix3f rot, float scale) {
         this();
         setTranslation(trans);
         setScale(scale);
@@ -90,7 +90,7 @@ public class Transform {
      * 
      * @return Translation vector
      */
-    public Vector3f getTranslation() {
+    public ReadOnlyVector3f getTranslation() {
         return trans;
     }
 
@@ -110,20 +110,18 @@ public class Transform {
      * 
      * @return Rotation matrix
      */
-    public Matrix3f getRotation() {
+    public ReadOnlyMatrix3f getRotation() {
         return rot;
     }
 
     /**
      * Copies the vector as the translation component of this Transform.
      * 
-     * @param t New translation vector, if null uses <0, 0, 0>
+     * @param t New translation vector
+     * @throws NullPointerException if t is null
      */
-    public void setTranslation(Vector3f t) {
-        if (t == null)
-            trans.set(0f, 0f, 0f);
-        else
-            trans.set(t);
+    public void setTranslation(ReadOnlyVector3f t) {
+        trans.set(t);
     }
 
     /**
@@ -152,13 +150,11 @@ public class Transform {
     /**
      * Copies the matrix as the rotation of this Transform.
      * 
-     * @param rot The rotation matrix to copy, null implies the identity matrix
+     * @param rot The rotation matrix to copy
+     * @throws NullPointerException if rot is null
      */
-    public void setRotation(Matrix3f rot) {
-        if (rot == null)
-            this.rot.setIdentity();
-        else
-            this.rot.set(rot);
+    public void setRotation(ReadOnlyMatrix3f rot) {
+        this.rot.set(rot);
     }
 
     /**
@@ -170,7 +166,7 @@ public class Transform {
      * @throws NullPointerException if other is null
      */
     public float distance(Transform other) {
-        return (float) Math.sqrt(distanceSquared(other));
+        return trans.distance(other.trans);
     }
 
     /**
@@ -182,11 +178,7 @@ public class Transform {
      * @throws NullPointerException if other is null
      */
     public float distanceSquared(Transform other) {
-        float dx = trans.x - other.trans.x;
-        float dy = trans.y - other.trans.y;
-        float dz = trans.z - other.trans.z;
-
-        return dx * dx + dy * dy + dz * dz;
+        return trans.distanceSquared(other.trans);
     }
 
     /**
@@ -273,7 +265,7 @@ public class Transform {
      * @throws IllegalArgumentException if t is this Transform's translation
      *             vector
      */
-    public Vector3f transform(Vector3f t, Vector3f result) {
+    public Vector3f transform(ReadOnlyVector3f t, Vector3f result) {
         if (t == null)
             throw new NullPointerException("Can't transform a null vector");
         if (result == trans)
@@ -310,7 +302,7 @@ public class Transform {
      * @throws IllegalArgumentException if t is this Transform's translation
      *             vector
      */
-    public Vector3f inverseTransform(Vector3f t, Vector3f result) {
+    public Vector3f inverseTransform(ReadOnlyVector3f t, Vector3f result) {
         if (t == null)
             throw new NullPointerException("Can't transform a null vector");
         if (result == trans)
@@ -354,26 +346,10 @@ public class Transform {
         if (result == null)
             result = new Matrix4f();
         
-        result.m00 = scale * rot.m00;
-        result.m10 = scale * rot.m10;
-        result.m20 = scale * rot.m20;
-        result.m30 = 0;
-        
-        result.m01 = scale * rot.m01;
-        result.m11 = scale * rot.m11;
-        result.m21 = scale * rot.m21;
-        result.m31 = 0;
-        
-        result.m02 = scale * rot.m02;
-        result.m12 = scale * rot.m12;
-        result.m22 = scale * rot.m22;
-        result.m32 = 0;
-        
-        result.m03 = trans.x;
-        result.m13 = trans.y;
-        result.m23 = trans.z;
-        result.m33 = 1;
-        
+        result.set(scale * rot.get(0, 0), scale * rot.get(0, 1), scale * rot.get(0, 2), trans.getX(),
+                   scale * rot.get(1, 0), scale * rot.get(1, 1), scale * rot.get(1, 2), trans.getY(),
+                   scale * rot.get(2, 0), scale * rot.get(2, 1), scale * rot.get(2, 2), trans.getZ(),
+                   0f, 0f, 0f, 1f);
         return result;
     }
 

@@ -1,193 +1,176 @@
 package com.ferox.math;
 
-public class Quat4f implements Cloneable {
-    public float x;
-    public float y;
-    public float z;
-    public float w;
+/**
+ * <p>
+ * Quat4f is a mutable extension to ReadOnlyQuat4f. When returned as a
+ * ReadOnlyQuat4f is will function as if it is read-only. However, it exposes
+ * a number of ways to modify its four components. Any changes to its component
+ * values will then be reflected in the accessors defined in ReadOnlyQuat4f.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
+public class Quat4f extends ReadOnlyQuat4f implements Cloneable {
+    private float x;
+    private float y;
+    private float z;
+    private float w;
+
+    /**
+     * Create a new Quat4f initialized to the identity quaternion.
+     */
+    public Quat4f() {
+        setIdentity();
+    }
+
+    /**
+     * Create a new Quat4f that copies its values from those in <tt>q</tt>.
+     * 
+     * @param q The quaternion to clone
+     * @throws NullPointerException if q is null
+     */
+    public Quat4f(ReadOnlyQuat4f q) {
+        set(q);
+    }
+
+    /**
+     * Create a new Quat4f that takes its initial values as (x, y, z, w).
+     * 
+     * @param x
+     * @param y
+     * @param z
+     * @param w
+     */
+    public Quat4f(float x, float y, float z, float w) {
+        set(x, y, z, w);
+    }
     
-    public Quat4f add(Quat4f q) {
+    /**
+     * As {@link #add(ReadOnlyQuat4f, Quat4f)} where result is this quaternion.
+     * 
+     * @param q
+     * @return This quaternion
+     * @throws NullPointerException if q is null
+     */
+    public Quat4f add(ReadOnlyQuat4f q) {
         return add(q, this);
     }
-    
-    public Quat4f add(Quat4f q, Quat4f result) {
-        return add(q.x, q.y, q.z, q.w, result);
-    }
-    
-    public Quat4f add(float x, float y, float z, float w, Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        return result.set(this.x + x, this.y + y, this.z + z, this.w + w);
-    }
-    
-    public Quat4f sub(Quat4f q) {
+
+    /**
+     * As {@link #sub(ReadOnlyQuat4f, Quat4f)} where result is this quaternion.
+     * 
+     * @param q
+     * @return This quaternion
+     * @throws NullPointerException if q is null
+     */
+    public Quat4f sub(ReadOnlyQuat4f q) {
         return sub(q, this);
     }
-    
-    public Quat4f sub(Quat4f q, Quat4f result) {
-        return sub(q.x, q.y, q.z, q.w, result);
-    }
-    
-    public Quat4f sub(float x, float y, float z, float w, Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        return result.set(this.x - x, this.y - y, this.z - z, this.w - w);
-    }
-    
-    public Quat4f mul(Quat4f q) {
+
+    /**
+     * As {@link #mul(ReadOnlyQuat4f, Quat4f)} where result is this quaternion.
+     * 
+     * @param q
+     * @return This quaternion
+     * @throws NullPointerException if q is null
+     */
+    public Quat4f mul(ReadOnlyQuat4f q) {
         return mul(q, this);
     }
-    
-    public Quat4f mul(Quat4f q, Quat4f result) {
-        return mul(q.x, q.y, q.z, q.w, result);
-    }
-    
-    public Quat4f mul(float x, float y, float z, float w, Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        return result.set(this.w * x + this.x * w + this.y * z - this.z * y,
-                          this.w * y + this.y * w + this.z * x - this.x * z,
-                          this.w * z + this.z * w + this.x * y - this.y * x,
-                          this.w * w - this.x * x - this.y * y - this.z * z);
-    }
-    
-    public Quat4f mul(Vector3f v) {
+
+    /**
+     * As {@link #mul(ReadOnlyVector3f, Quat4f)} where result is this
+     * quaternion.
+     * 
+     * @param v
+     * @return This quaternion
+     * @throws NullPointerException if q is null 
+     */
+    public Quat4f mul(ReadOnlyVector3f v) {
         return mul(v, this);
     }
-    
-    public Quat4f mul(Vector3f v, Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        
-        return result.set(w * v.x + y * v.z - z * v.y,
-                          w * v.y + z * v.x - x * v.z,
-                          w * v.z + x * v.y - y * v.x,
-                          -x * v.x - y * v.y - z * v.z);
-    }
-    
-    public Vector3f rotate(Vector3f v, Vector3f result) {
-        // FIXME: generates garbage
-        Quat4f q = mul(v, null).mul(inverse(null));
-        if (result == null)
-            return new Vector3f(q.x, q.y, q.z);
-        else
-            return result.set(q.x, q.y, q.z);
-    }
-    
+
+    /**
+     * As {@link #scale(float, Quat4f)} where result is this quaternion
+     * 
+     * @param s
+     * @return This quaternion
+     * @throws NullPointerException if q is null
+     */
     public Quat4f scale(float s) {
         return scale(s, this);
     }
-    
-    public Quat4f scale(float s, Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        return result.set(s * x, s * y, s * z, s * w);
-    }
-    
+
+    /**
+     * Normalize this quaternion in place, equivalent to
+     * {@link #normalize(Quat4f)} where result is this quaternion.
+     * 
+     * @return This quaternion
+     * @throws ArithmeticException if this quaternion cannot be normalized
+     */
     public Quat4f normalize() {
         return normalize(this);
     }
-    
-    public Quat4f normalize(Quat4f result) {
-        return scale(1f / length(), result);
-    }
-    
-    public float length() {
-        return (float) Math.sqrt(lengthSquared());
-    }
-    
-    public float lengthSquared() {
-        return x * x + y * y + z * z + w * w;
-    }
-    
-    public float dot(Quat4f q) {
-        return x * q.x + y * q.y + z * q.z + w * q.w;
-    }
-    
-    public float dot(float x, float y, float z, float w) {
-        return this.x * x + this.y * y +  this.z * z + this.w * w;
-    }
-    
-    public float getAxisAngle() {
-        return (float) (2 * Math.acos(w));
-    }
-    
-    public Vector3f getAxis() {
-        return getAxis(null);
-    }
-    
-    public Vector3f getAxis(Vector3f result) {
-        if (result == null)
-            result = new Vector3f();
-        
-        float s2 = 1f - w * w;
-        if (s2 < .0001f)
-            return result.set(1f, 0f, 0f); // arbitrary
-        
-        float s = (float) Math.sqrt(s2);
-        return result.set(x / s, y / s, z / s);
-    }
-    
-    public float angle(Quat4f q) {
-        return angle(q.x, q.y, q.z, q.w);
-    }
-    
-    public float angle(float x, float y, float z, float w) {
-        float s = (float) Math.sqrt(lengthSquared() * (x * x + y * y + z * z + w * w));
-        if (s == 0f)
-            throw new ArithmeticException("Undefined angle between two quaternions");
-        
-        return (float) Math.acos(dot(x, y, z, w) / s);
-    }
-    
+
+    /**
+     * Invert this quaternion in place, equivalent to {@link #inverse(Quat4f)}
+     * where result is this quaternion.
+     * 
+     * @return This quaternion
+     */
     public Quat4f inverse() {
         return inverse(this);
     }
-    
-    public Quat4f inverse(Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        return result.set(-x, -y, -z, w);
-    }
-    
-    public Quat4f slerp(Quat4f q, float t) {
+
+    /**
+     * As {@link #slerp(ReadOnlyQuat4f, float, Quat4f)} where result is this
+     * quaternion.
+     * 
+     * @param q
+     * @param t
+     * @return This quaternion
+     * @throws NullPointerException if q is null
+     */
+    public Quat4f slerp(ReadOnlyQuat4f q, float t) {
         return slerp(q, t, this);
     }
-    
-    public Quat4f slerp(Quat4f q, float t, Quat4f result) {
-        if (result == null)
-            result = new Quat4f();
-        
-        float theta = angle(q);
-        if (theta != 0f) {
-            float d = 1f / (float) Math.sin(theta);
-            float s0 = (float) Math.sin((1 - t) * theta);
-            float s1 = (float) Math.sin(t * theta);
-            
-            if (dot(q) < 0) // long angle case, see http://en.wikipedia.org/wiki/Slerp
-                s1 *= -1;
-            
-            return result.set((x * s0 + q.x * s1) * d,
-                              (y * s0 + q.y * s1) * d,
-                              (z * s0 + q.z * s1) * d,
-                              (w * s0 + q.w * s1) * d);
-        } else
-            return result.set(this);
-    }
-    
+
+    /**
+     * Set this quaternion to the identity quaternion, which is (0, 0, 0, 1).
+     * 
+     * @return This quaternion
+     */
     public Quat4f setIdentity() {
         return set(0f, 0f, 0f, 1f);
     }
-                                
-    public Quat4f setAxisAngle(Vector3f axis, float angle) {
+
+    /**
+     * Set this quaternion to be the rotation of <tt>angle</tt> radians about
+     * the specified <tt>axis</tt>.
+     * 
+     * @param axis The axis of rotation, should not be the 0 vector
+     * @param angle The angle of rotation, in radians
+     * @return This quaternion
+     * @throws NullPointerException if axis is null
+     */
+    public Quat4f setAxisAngle(ReadOnlyVector3f axis, float angle) {
         float d = axis.length();
         float s = (float) Math.sin(.5f * angle) / d;
-        return set(axis.x * s, axis.y * s, axis.z * s, (float) Math.cos(.5f * angle));
+        return set(axis.getX() * s, axis.getY() * s, axis.getZ() * s, (float) Math.cos(.5f * angle));
     }
     
-    // yaw = angle around y
-    // pitch = angle around x
-    // roll = angle around z
+    /**
+     * Set this quaternion to be the rotation described by the Euler angles:
+     * <tt>yaw</tt>, <tt>pitch</tt> and <tt>roll</tt>. Yaw is the rotation
+     * around the y-axis, pitch is the rotation around the x-axis, and roll is
+     * the rotation around the z-axis. The final rotation is formed by rotating
+     * first Y, then X and then Z.
+     * 
+     * @param yaw Rotation around the y-axis in radians
+     * @param pitch Rotation around the x-axis in radians
+     * @param roll Rotation around the z-axis in radians
+     * @return This quaternion
+     */
     public Quat4f setEuler(float yaw, float pitch, float roll) {
         float cosYaw = (float) Math.cos(.5f * yaw);
         float sinYaw = (float) Math.sin(.5f * yaw);
@@ -204,24 +187,29 @@ public class Quat4f implements Cloneable {
                    cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw);
     }
     
-    // FIXME: figure out what quatRotate, and the vector mul operations are for
-    // FIXME: add the shortestArcQuat(vec, vec) to the Vector3f class
-    // FIXME: document
-    // FIXME: tuple4f/3f?
-    
-    public Quat4f set(Matrix3f e) {
-        float trace = e.m00 + e.m11 + e.m22;
+    /**
+     * Set the value of this quaternion to represent the rotation of the given
+     * matrix, <tt>e</tt>. It is assumed that <tt>e</tt> contains a rotation
+     * matrix and does not include scale factors, or other form of 3x3 matrix.
+     * 
+     * @param e The rotation matrix to convert to quaternion form
+     * @return This quaternion
+     * @throws NullPointerException if e is null
+     */
+    public Quat4f set(ReadOnlyMatrix3f e) {
+        float trace = e.get(0, 0) + e.get(1, 1) + e.get(2, 2);
         if (trace > 0f) {
             float s = (float) Math.sqrt(trace + 1f);
             w = .5f * s;
             s = .5f / s;
             
-            x = (e.m21 - e.m12) * s;
-            y = (e.m02 - e.m20) * s;
-            z = (e.m10 - e.m01) * s;
+            x = (e.get(2, 1) - e.get(1, 2)) * s;
+            y = (e.get(0, 2) - e.get(2, 0)) * s;
+            z = (e.get(1, 0) - e.get(0, 1)) * s;
         } else {
-            int i = (e.m00 < e.m11 ? (e.m11 < e.m22 ? 2 : 1)
-                                   : (e.m00 < e.m22 ? 2 : 0));
+            // get the column that has the highest diagonal element
+            int i = (e.get(0, 0) < e.get(1, 1) ? (e.get(1, 1) < e.get(2, 2) ? 2 : 1)
+                                               : (e.get(0, 0) < e.get(2, 2) ? 2 : 0));
             int j = (i + 1) % 3;
             int k = (i + 2) % 3;
             
@@ -245,48 +233,6 @@ public class Quat4f implements Cloneable {
             // shouldn't happen since Quat4f implements Cloneable
             throw new UnsupportedOperationException(e);
         }
-    }
-
-    /**
-     * Get the given component from this quaternion; index must be 0 (x), 1 (y),
-     * 2 (z), or 3 (w)
-     * 
-     * @param index The quaternion component to retrieve
-     * @return The component at the given index
-     * @throws IndexOutOfBoundsException if index is invalid
-     */
-    public float get(int index) {
-        switch (index) {
-        case 0:
-            return x;
-        case 1:
-            return y;
-        case 2:
-            return z;
-        case 3:
-            return w;
-        default:
-            throw new IndexOutOfBoundsException("Index must be in [0, 3]");
-        }
-    }
-
-    /**
-     * Store the four component values of this quaternion into vals, starting at
-     * offset. The components should be placed consecutively, ordered x, y, z,
-     * and w. It is assumed that the array has at least four positions
-     * available, starting at offset.
-     * 
-     * @param vals Array to store this quaternion in
-     * @param offset First array index to hold the x value
-     * @throws NullPointerException if vals is null
-     * @throws ArrayIndexOutOfBoundsException if there isn't enough room to
-     *             store this vector at offset
-     */
-    public void get(float[] vals, int offset) {
-        vals[offset] = x;
-        vals[offset + 1] = y;
-        vals[offset + 2] = z;
-        vals[offset + 3] = w;
     }
 
     /**
@@ -326,8 +272,8 @@ public class Quat4f implements Cloneable {
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f set(Quat4f q) {
-        return set(q.x, q.y, q.z, q.w);
+    public Quat4f set(ReadOnlyQuat4f q) {
+        return set(q.getX(), q.getY(), q.getZ(), q.getW());
     }
 
     /**
@@ -356,6 +302,7 @@ public class Quat4f implements Cloneable {
      * @param vals Array to take 4 component values from
      * @param offset Index of the x coordinate
      * @return This quaternion
+     * @throws NullPointerException if vals is null
      * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
      *             starting at offset
      */
@@ -364,60 +311,22 @@ public class Quat4f implements Cloneable {
     }
 
     @Override
-    public String toString() {
-        return "[" + x + ", " + y + ", " + z + ", " + w + "]";
+    public float getW() {
+        return w;
     }
 
     @Override
-    public int hashCode() {
-        int result = 17;
-
-        result += 31 * result + Float.floatToIntBits(x);
-        result += 31 * result + Float.floatToIntBits(y);
-        result += 31 * result + Float.floatToIntBits(z);
-        result += 31 * result + Float.floatToIntBits(w);
-
-        return result;
+    public float getX() {
+        return x;
     }
 
     @Override
-    public boolean equals(Object v) {
-        // this conditional correctly handles null values
-        if (!(v instanceof Quat4f))
-            return false;
-        else
-            return equals((Quat4f) v);
+    public float getY() {
+        return y;
     }
 
-    /**
-     * Return true if these two quaternions are numerically equal. Returns false if
-     * v is null.
-     * 
-     * @param v Vector to test equality with
-     * @return True if these quaternions are numerically equal
-     */
-    public boolean equals(Vector4f v) {
-        return v != null && x == v.x && y == v.y && z == v.z && w == v.w;
-    }
-
-    /**
-     * Determine if these two quaternions are equal, within an error range of eps.
-     * Returns false if q is null.
-     * 
-     * @param q Quaternion to check approximate equality to
-     * @param eps Error tolerance of each component
-     * @return True if all component values are within eps of the corresponding
-     *         component of q
-     */
-    public boolean epsilonEquals(Quat4f q, float eps) {
-        if (q == null)
-            return false;
-
-        float tx = Math.abs(x - q.x);
-        float ty = Math.abs(y - q.y);
-        float tz = Math.abs(z - q.z);
-        float tw = Math.abs(w - q.w);
-
-        return tx <= eps && ty <= eps && tz <= eps && tw <= eps;
+    @Override
+    public float getZ() {
+        return z;
     }
 }

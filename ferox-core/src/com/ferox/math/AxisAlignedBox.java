@@ -63,7 +63,7 @@ public class AxisAlignedBox {
      * @param max The vector coordinate to use as the maximum control point
      * @throws NullPointerException if min or max are null
      */
-    public AxisAlignedBox(Vector3f min, Vector3f max) {
+    public AxisAlignedBox(ReadOnlyVector3f min, ReadOnlyVector3f max) {
         this();
         setMin(min);
         setMax(max);
@@ -137,13 +137,8 @@ public class AxisAlignedBox {
     }
     
     private void enclosePoint(float x, float y, float z) {
-        max.x = Math.max(max.x, x);
-        max.y = Math.max(max.y, y);
-        max.z = Math.max(max.z, z);
-
-        min.x = Math.min(min.x, x);
-        min.y = Math.min(min.y, y);
-        min.z = Math.min(min.z, z);
+        max.set(Math.max(max.getX(), x), Math.max(max.getY(), y), Math.max(max.getZ(), z));
+        min.set(Math.min(min.getX(), x), Math.min(min.getY(), y), Math.min(min.getZ(), z));
     }
 
     /**
@@ -167,7 +162,7 @@ public class AxisAlignedBox {
      * @param min The new coordinate value for the box's minimum corner
      * @throws NullPointerException if min is null
      */
-    public void setMin(Vector3f min) {
+    public void setMin(ReadOnlyVector3f min) {
         this.min.set(min);
     }
     
@@ -180,7 +175,7 @@ public class AxisAlignedBox {
      * @param max The new coordinate value for the box's maximum corner
      * @throws NullPointerException if max is null
      */
-    public void setMax(Vector3f max) {
+    public void setMax(ReadOnlyVector3f max) {
         this.max.set(max);
     }
 
@@ -281,7 +276,7 @@ public class AxisAlignedBox {
 
         Vector3f c = TEMP1.get();
 
-        Vector4f p;
+        ReadOnlyVector4f p;
         for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
             // skip the last failed plane since that was is checked first,
             // or skip the default first check if we haven't failed yet
@@ -334,9 +329,9 @@ public class AxisAlignedBox {
      * @throws NullPointerException if other is null
      */
     public boolean intersects(AxisAlignedBox other) {
-        return (max.x >= other.min.x && min.x <= other.max.x) &&
-               (max.y >= other.min.y && min.y <= other.max.y) &&
-               (max.z >= other.min.z && min.z <= other.max.z);
+        return (max.getX() >= other.min.getX() && min.getX() <= other.max.getX()) &&
+               (max.getY() >= other.min.getY() && min.getY() <= other.max.getY()) &&
+               (max.getZ() >= other.min.getZ() && min.getZ() <= other.max.getZ());
     }
 
     /**
@@ -349,9 +344,9 @@ public class AxisAlignedBox {
      * @throws NullPointerException if other is null
      */
     public boolean contains(AxisAlignedBox other) {
-        return (min.x <= other.min.x && max.x >= other.max.x) &&
-               (min.y <= other.min.y && max.y >= other.max.y) &&
-               (min.z <= other.min.z && max.z >= other.max.z);
+        return (min.getX() <= other.min.getX() && max.getX() >= other.max.getX()) &&
+               (min.getY() <= other.min.getY() && max.getY() >= other.max.getY()) &&
+               (min.getZ() <= other.min.getZ() && max.getZ() >= other.max.getZ());
     }
 
     /**
@@ -374,12 +369,12 @@ public class AxisAlignedBox {
             result = new AxisAlignedBox();
         
         // in the event that min > max, there is no true intersection
-        result.min.set(Math.max(min.x, other.min.x), 
-                       Math.max(min.y, other.min.y), 
-                       Math.max(min.z, other.min.z));
-        result.max.set(Math.min(max.x, other.max.x), 
-                       Math.min(max.y, other.max.y), 
-                       Math.min(max.z, other.max.z));
+        result.min.set(Math.max(min.getX(), other.min.getX()), 
+                       Math.max(min.getY(), other.min.getY()), 
+                       Math.max(min.getZ(), other.min.getZ()));
+        result.max.set(Math.min(max.getX(), other.max.getX()), 
+                       Math.min(max.getY(), other.max.getY()), 
+                       Math.min(max.getZ(), other.max.getZ()));
         return result;
     }
 
@@ -400,12 +395,12 @@ public class AxisAlignedBox {
         if (result == null)
             result = new AxisAlignedBox();
         
-        result.min.set(Math.min(min.x, other.min.x), 
-                       Math.min(min.y, other.min.y), 
-                       Math.min(min.z, other.min.z));
-        result.max.set(Math.max(max.x, other.max.x), 
-                       Math.max(max.y, other.max.y), 
-                       Math.max(max.z, other.max.z));
+        result.min.set(Math.min(min.getX(), other.min.getX()), 
+                       Math.min(min.getY(), other.min.getY()), 
+                       Math.min(min.getZ(), other.min.getZ()));
+        result.max.set(Math.max(max.getX(), other.max.getX()), 
+                       Math.max(max.getY(), other.max.getY()), 
+                       Math.max(max.getZ(), other.max.getZ()));
         return result;
     }
 
@@ -449,8 +444,8 @@ public class AxisAlignedBox {
     public AxisAlignedBox transform(Matrix4f m, AxisAlignedBox result) {
         // we use temporary vectors because this method isn't atomic,
         // and result might be this box
-        Vector3f newMin = TEMP1.get().set(m.m03, m.m13, m.m23);
-        Vector3f newMax = TEMP2.get().set(m.m03, m.m13, m.m23);
+        Vector3f newMin = TEMP1.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
+        Vector3f newMax = TEMP2.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
         
         float av, bv, cv;
         int i, j;
@@ -497,33 +492,33 @@ public class AxisAlignedBox {
         return "(min=" + min + ", max=" + max + ")";
     }
     
-    private void extent(Vector4f plane, boolean reverseDir, Vector3f result) {
+    private void extent(ReadOnlyVector4f plane, boolean reverseDir, Vector3f result) {
         Vector3f sourceMin = (reverseDir ? max : min);
         Vector3f sourceMax = (reverseDir ? min : max);
         
-        if (plane.x > 0) {
-            if (plane.y > 0) {
-                if (plane.z > 0)
-                    result.set(sourceMax.x, sourceMax.y, sourceMax.z);
+        if (plane.getX() > 0) {
+            if (plane.getY() > 0) {
+                if (plane.getZ() > 0)
+                    result.set(sourceMax.getX(), sourceMax.getY(), sourceMax.getZ());
                 else
-                    result.set(sourceMax.x, sourceMax.y, sourceMin.z);
+                    result.set(sourceMax.getX(), sourceMax.getY(), sourceMin.getZ());
             } else {
-                if (plane.z > 0)
-                    result.set(sourceMax.x, sourceMin.y, sourceMax.z);
+                if (plane.getZ() > 0)
+                    result.set(sourceMax.getX(), sourceMin.getY(), sourceMax.getZ());
                 else
-                    result.set(sourceMax.x, sourceMin.y, sourceMin.z);
+                    result.set(sourceMax.getX(), sourceMin.getY(), sourceMin.getZ());
             }
         } else {
-            if (plane.y > 0) {
-                if (plane.z > 0)
-                    result.set(sourceMin.x, sourceMax.y, sourceMax.z);
+            if (plane.getY() > 0) {
+                if (plane.getZ() > 0)
+                    result.set(sourceMin.getX(), sourceMax.getY(), sourceMax.getZ());
                 else
-                    result.set(sourceMin.x, sourceMax.y, sourceMin.z);
+                    result.set(sourceMin.getX(), sourceMax.getY(), sourceMin.getZ());
             } else {
-                if (plane.z > 0)
-                    result.set(sourceMin.x, sourceMin.y, sourceMax.z);
+                if (plane.getZ() > 0)
+                    result.set(sourceMin.getX(), sourceMin.getY(), sourceMax.getZ());
                 else
-                    result.set(sourceMin.x, sourceMin.y, sourceMin.z);
+                    result.set(sourceMin.getX(), sourceMin.getY(), sourceMin.getZ());
             }
         }
     }

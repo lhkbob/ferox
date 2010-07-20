@@ -96,7 +96,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
     
     @SuppressWarnings("unchecked")
     private void expandOctree(AxisAlignedBox dataBounds) {
-        Vector3f dMin = dataBounds.getMin();
+        ReadOnlyVector3f dMin = dataBounds.getMin();
         
         Vector3f extents = new Vector3f();
         Vector3f center = new Vector3f();
@@ -105,7 +105,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         OctreeNode<T> newRoot;
         
         OctreeKey<T> e;
-        Vector3f rMin, rMax;
+        ReadOnlyVector3f rMin, rMax;
         int rootChildIndex, elementSize;
         while(!root.bounds.contains(dataBounds)) {
             // the current root will be placed within the positive 
@@ -114,28 +114,28 @@ public class Octree<T> implements SpatialHierarchy<T> {
             rootChildIndex = 0;
             rMin = root.bounds.getMin();
             rMax = root.bounds.getMax();
-            if (rMin.x > dMin.x) {
+            if (rMin.getX() > dMin.getX()) {
                 rootChildIndex |= POS_X;
-                center.x = rMin.x;
+                center.setX(rMin.getX());
             } else
-                center.x = rMax.x;
+                center.setX(rMax.getX());
             
-            if (rMin.y > dMin.y) {
+            if (rMin.getY() > dMin.getY()) {
                 rootChildIndex |= POS_Y;
-                center.x = rMin.y;
+                center.setY(rMin.getY());
             } else
-                center.y = rMax.y;
+                center.setY(rMax.getY());
             
-            if (rMin.z > dMin.z) {
+            if (rMin.getZ() > dMin.getZ()) {
                 rootChildIndex |= POS_Z;
-                center.z = rMin.z;
+                center.setZ(rMin.getZ());
             } else
-                center.z = rMax.z;
+                center.setZ(rMax.getZ());
             
             rMax.sub(rMin, extents); // get axis lengths of the root
             newRootBounds = new AxisAlignedBox();
-            newRootBounds.getMin().set(center.x - extents.x, center.y - extents.y, center.z - extents.z);
-            newRootBounds.getMax().set(center.x + extents.x, center.y + extents.y, center.z + extents.z);
+            newRootBounds.getMin().set(center.getX() - extents.getX(), center.getY() - extents.getY(), center.getZ() - extents.getZ());
+            newRootBounds.getMax().set(center.getX() + extents.getX(), center.getY() + extents.getY(), center.getZ() + extents.getZ());
             
             newRoot = new OctreeNode<T>(null, newRootBounds);
             newRoot.children = new OctreeNode[8];
@@ -336,11 +336,11 @@ public class Octree<T> implements SpatialHierarchy<T> {
         
         public int getChildIndex(Vector3f extent) {
             int index = 0;
-            if (center.x < extent.x)
+            if (center.getX() < extent.getX())
                 index |= POS_X;
-            if (center.y < extent.y)
+            if (center.getY() < extent.getY())
                 index |= POS_Y;
-            if (center.z < extent.z)
+            if (center.getZ() < extent.getZ())
                 index |= POS_Z;
             return index;
         }
@@ -356,19 +356,19 @@ public class Octree<T> implements SpatialHierarchy<T> {
                 AxisAlignedBox childBounds = new AxisAlignedBox(center, center);
                 
                 if ((index & POS_X) != 0)
-                    childBounds.getMax().x = bounds.getMax().x;
+                    childBounds.getMax().setX(bounds.getMax().getX());
                 else
-                    childBounds.getMin().x = bounds.getMin().x;
+                    childBounds.getMin().setX(bounds.getMin().getX());
                 
                 if ((index & POS_Y) != 0)
-                    childBounds.getMax().y = bounds.getMax().y;
+                    childBounds.getMax().setY(bounds.getMax().getY());
                 else
-                    childBounds.getMin().y = bounds.getMin().y;
+                    childBounds.getMin().setY(bounds.getMin().getY());
                 
                 if ((index & POS_Z) != 0)
-                    childBounds.getMax().z = bounds.getMax().z;
+                    childBounds.getMax().setZ(bounds.getMax().getZ());
                 else
-                    childBounds.getMin().z = bounds.getMin().z;
+                    childBounds.getMin().setZ(bounds.getMin().getZ());
                 
                 // insert new child node
                 OctreeNode<T> child = new OctreeNode<T>(this, childBounds);

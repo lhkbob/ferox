@@ -22,7 +22,7 @@ public class Plane {
      * @throws NullPointerException if plane is null
      */
     public static void normalize(Vector4f plane) {
-        plane.scale(1f / length(plane));
+        plane.scale(1f / lengthAs3(plane));
     }
 
     /**
@@ -38,7 +38,7 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-    public static float getSignedDistance(Vector4f plane, Vector3f point) {
+    public static float getSignedDistance(ReadOnlyVector4f plane, ReadOnlyVector3f point) {
         return getSignedDistance(plane, point, false);
     }
 
@@ -57,32 +57,33 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-    public static float getSignedDistance(Vector4f plane, Vector3f point, boolean assumeNormalized) {
-        float num = point.dot(plane.x, plane.y, plane.z) + plane.w;
-        return (assumeNormalized ? num : num / length(plane));
+    public static float getSignedDistance(ReadOnlyVector4f plane, ReadOnlyVector3f point, boolean assumeNormalized) {
+        float num = point.dot(plane.getX(), plane.getY(), plane.getZ()) + plane.getW();
+        return (assumeNormalized ? num : num / lengthAs3(plane));
     }
     
-    public static void getTangentSpace(Vector3f normal, Vector3f tan0, Vector3f tan1) {
+    // FIXME: verify behavior, math and document behavior
+    public static void getTangentSpace(ReadOnlyVector3f normal, Vector3f tan0, Vector3f tan1) {
         // Gratz to Erwin Couman's and Bullet for this code
         
-        if (normal.z > ROOT_2_OVER_2) {
+        if (normal.getZ() > ROOT_2_OVER_2) {
             // choose p in y-z plane
-            float a = normal.y * normal.y + normal.z * normal.z;
+            float a = normal.getY() * normal.getY() + normal.getZ() * normal.getZ();
             float k = 1f / (float) Math.sqrt(a);
             
-            tan0.set(0f, -normal.z * k, normal.y * k);
-            tan1.set(a * k, -normal.x * tan0.z, normal.x * tan0.y); // n x tan0
+            tan0.set(0f, -normal.getZ() * k, normal.getY() * k);
+            tan1.set(a * k, -normal.getX() * tan0.getZ(), normal.getX() * tan0.getY()); // n x tan0
         } else {
             // choose p in x-y plane
-            float a = normal.x * normal.x + normal.z * normal.z;
+            float a = normal.getX() * normal.getX() + normal.getZ() * normal.getZ();
             float k = 1f / (float) Math.sqrt(a);
             
-            tan0.set(-normal.y * k, normal.x * k, 0f);
-            tan1.set(-normal.z * tan0.y, normal.z * tan0.x, a * k); // n x tan0
+            tan0.set(-normal.getY() * k, normal.getX() * k, 0f);
+            tan1.set(-normal.getZ() * tan0.getY(), normal.getZ() * tan0.getX(), a * k); // n x tan0
         }
     }
     
-    private static float length(Vector4f v) {
-        return (float) Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+    private static float lengthAs3(ReadOnlyVector4f v) {
+        return (float) Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ());
     }
 }
