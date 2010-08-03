@@ -1,31 +1,34 @@
 package com.ferox.physics.collision;
 
-import java.util.BitSet;
-
 import com.ferox.math.Matrix4f;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.ReadOnlyMatrix4f;
 
 public class Collidable {
     private final Matrix4f worldTransform;
-    private final Matrix4f predictedWorldTransform;
+//    private final Matrix4f predictedWorldTransform;
     
-    private final AxisAlignedBox localAabb;
-    private final AxisAlignedBox sweptWorldAabb;
+//    private final AxisAlignedBox localAabb;
+//    private final AxisAlignedBox sweptWorldAabb;
     
-    private final BitSet collisionGroups;
-    private final BitSet collisionMask;
+//    private final BitSet collisionGroups;
+//    private final BitSet collisionMask;
     
     private ConvexShape bounds;
     
-    public Collidable() {
-        
+    public Collidable(ReadOnlyMatrix4f t, ConvexShape shape) {
+        worldTransform = new Matrix4f(t);
+        bounds = shape;
     }
     
-    public Matrix4f getWorldTransform() {
-        
+    public ReadOnlyMatrix4f getWorldTransform() {
+        return worldTransform;
     }
     
-    public Matrix4f getPredictedWorldTransform() {
-        
+    public ConvexShape getShape() {
+        return bounds;
     }
+    
+//    public Matrix4f getPredictedWorldTransform() {
+        
+//    }
 }

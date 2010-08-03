@@ -1,5 +1,21 @@
 package com.ferox.physics.collision.shape;
 
-public class Sphere {
+import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Vector3f;
+import com.ferox.physics.collision.ConvexShape;
 
+public class Sphere implements ConvexShape {
+    private float radius;
+    
+    @Override
+    public Vector3f computeSupport(ReadOnlyVector3f v, Vector3f result) {
+        return v.normalize(result).scale(radius);
+    }
+
+    @Override
+    public AxisAlignedBox getBounds() {
+        return new AxisAlignedBox(new Vector3f(-radius, -radius, -radius), 
+                                  new Vector3f(radius, radius, radius));
+    }
 }
