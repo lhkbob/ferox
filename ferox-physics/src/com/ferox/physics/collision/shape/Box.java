@@ -7,9 +7,13 @@ import com.ferox.physics.collision.ConvexShape;
 
 public class Box implements ConvexShape {
     private final Vector3f halfExtents;
+    private final AxisAlignedBox aabb;
     
     public Box(float xExtent, float yExtent, float zExtent) {
         halfExtents = new Vector3f(xExtent / 2f, yExtent / 2f, zExtent / 2f);
+        aabb = new AxisAlignedBox();
+        aabb.getMin().set(halfExtents).scale(-1f);
+        aabb.getMax().set(halfExtents);
     }
     
     @Override
@@ -25,7 +29,6 @@ public class Box implements ConvexShape {
 
     @Override
     public AxisAlignedBox getBounds() {
-        // FIXME: scale is wrong, also do we need to do a new AABB each time?
-        return new AxisAlignedBox(halfExtents.scale(-1f), halfExtents);
+        return aabb;
     }
 }

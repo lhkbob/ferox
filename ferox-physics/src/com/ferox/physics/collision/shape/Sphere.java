@@ -6,7 +6,15 @@ import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.ConvexShape;
 
 public class Sphere implements ConvexShape {
-    private float radius;
+    private final float radius;
+    private final AxisAlignedBox aabb;
+    
+    public Sphere(float radius) {
+        this.radius = radius;
+        aabb = new AxisAlignedBox(new Vector3f(-radius, -radius, -radius), 
+                                  new Vector3f(radius, radius, radius));
+    }
+    
     
     @Override
     public Vector3f computeSupport(ReadOnlyVector3f v, Vector3f result) {
@@ -15,7 +23,6 @@ public class Sphere implements ConvexShape {
 
     @Override
     public AxisAlignedBox getBounds() {
-        return new AxisAlignedBox(new Vector3f(-radius, -radius, -radius), 
-                                  new Vector3f(radius, radius, radius));
+        return aabb;
     }
 }
