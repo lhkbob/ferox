@@ -9,12 +9,12 @@ public class GjkTest {
      */
     public static void main(String[] args) {
         Matrix4f t1 = new Matrix4f(1f, 0f, 0f, 0f,
-                                   0f, 1f, 0f, .8f,
+                                   0f, 1f, 0f, 1001.5001f,
                                    0f, 0f, 1f, 0f,
                                    0f, 0f, 0f, 1f);
         
         Matrix4f t2 = new Matrix4f(1f, 0f, 0f, 0f,
-                                   0f, 1f, 0f, 0f,
+                                   0f, 1f, 0f, 1000f,
                                    0f, 0f, 1f, 0f,
                                    0f, 0f, 0f, 1f);
         

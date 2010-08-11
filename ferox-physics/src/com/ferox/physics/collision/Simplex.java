@@ -37,13 +37,13 @@ public class Simplex {
     }
     
     Simplex(SupportSample c1) {
-        vertices = new SupportSample[] { c1, null, null, null };
+        vertices = new SupportSample[] { c1, new SupportSample(), new SupportSample(), new SupportSample() };
         weights = new float[] { 1f, 0f, 0f, 0f };
         rank = 1;
     }
     
     Simplex(SupportSample c1, SupportSample c2, SupportSample c3, float w1, float w2, float w3) {
-        vertices = new SupportSample[] { c1, c2, c3, null };
+        vertices = new SupportSample[] { c1, c2, c3, new SupportSample() };
         weights = new float[] { w1, w2, w3, 0f };
         rank = 3;
     }
