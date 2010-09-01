@@ -1,6 +1,5 @@
 package com.ferox.physics.collision;
 
-
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 

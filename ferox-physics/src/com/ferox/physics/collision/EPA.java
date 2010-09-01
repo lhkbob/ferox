@@ -165,9 +165,6 @@ public class EPA {
         if (simplex.getRank() > 1 && simplex.encloseOrigin(shape)) {
             status = Status.VALID;
             
-            // orient simplex
-            simplex.orient();
-            
             // build initial hull
             Face f1 = new Face(simplex.getSample(0), simplex.getSample(1), simplex.getSample(2), true);
             Face f2 = new Face(simplex.getSample(1), simplex.getSample(0), simplex.getSample(3), true);

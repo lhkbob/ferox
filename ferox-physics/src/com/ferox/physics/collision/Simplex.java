@@ -5,6 +5,29 @@ import java.util.Arrays;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
+/**
+ * <p>
+ * In the mathematical sense, a Simplex is the generalization of a triangle to
+ * arbitrary dimensions. In other terms, it's the smallest convex set containing
+ * a set of vertices: a 0-simplex is a point, a 1-simplex is a line, a 2-simplex
+ * is a triangle, etc. This implementation of Simplex is tied to the details of
+ * the {@link GJK} and {@link EPA} algorithms and provides the storage they need
+ * to represent their solutions.
+ * </p>
+ * <p>
+ * Because of this, Simplex is not heavily configurable. It is not possible to
+ * add arbitrary vertices but vertices are added by evaluating the support of
+ * the MinkowskiDifference involved in the algorithms' iterations.
+ * </p>
+ * <p>
+ * Like the GJK and EPA classes, much of this code is a port and clean-up of the
+ * code from "BulletCollision/NarrowPhase/btGjkEpa2.cpp" written by Nathanael
+ * Presson for the Bullet physics engine.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @author Nathanael Presson
+ */
 public class Simplex {
     static class SupportSample {
         final Vector3f input = new Vector3f();
@@ -24,13 +47,15 @@ public class Simplex {
         }
     };
     
-    
     private final SupportSample[] vertices;
     private final float[] weights;
     private int rank; // 0 -> 3
     
     private int[] mask; // for use with SimplexUtil
     
+    /**
+     * Create a Simplex that is initially empty and has a rank of 0.
+     */
     public Simplex() {
         vertices = new SupportSample[4];
         weights = new float[4];
@@ -40,44 +65,161 @@ public class Simplex {
         for (int i = 0; i < 4; i++)
             vertices[i] = new SupportSample();
     }
-    
+
+    /**
+     * Create a Simplex that uses the given sample as its only vertex. It will
+     * have a rank of 1, and the samples weight will be 1.
+     * 
+     * @param c1 The support sample used for the only vertex
+     * @throws NullPointerException if c1 is null
+     */
     Simplex(SupportSample c1) {
+        if (c1 == null)
+            throw new NullPointerException("SupportSample cannot be null");
         vertices = new SupportSample[] { c1, new SupportSample(), new SupportSample(), new SupportSample() };
         weights = new float[] { 1f, 0f, 0f, 0f };
         rank = 1;
     }
-    
+
+    /**
+     * Create a Simplex that uses the given samples and weights as its three
+     * vertices. It will have a rank of 3, and it is assumed that the three
+     * provided weights sum to 1.
+     * 
+     * @param c1 The first vertex sample
+     * @param c2 The second vertex sample
+     * @param c3 The third vertex sample
+     * @param w1 The first vertex's weight
+     * @param w2 The second vertex's weight
+     * @param w3 The third vertex's weight
+     * @throws NullPointerException if c1, c2, or c3 are null
+     */
     Simplex(SupportSample c1, SupportSample c2, SupportSample c3, float w1, float w2, float w3) {
+        if (c1 == null || c2 == null || c3 == null)
+            throw new NullPointerException("SupportSamples cannot be null");
         vertices = new SupportSample[] { c1, c2, c3, new SupportSample() };
         weights = new float[] { w1, w2, w3, 0f };
         rank = 3;
     }
-    
+
+    /**
+     * @param i The sample to return, assumed to be in [0, rank - 1]
+     * @return The SupportSample instance holding the support data for the given
+     *         vertex index
+     * @throws IndexOutOfBoundsException if i is invalid
+     */
     SupportSample getSample(int i) {
         return vertices[i];
     }
-    
+
+    /**
+     * Return the rank, or number of vertices, of the Simplex. The rank can
+     * range from 0 to 4. A rank of 0 is an empty simplex, a rank of 1 is a
+     * point, 2 is a line, 3 is a triangle, and 4 is a tetrahedron.
+     * 
+     * @return The current rank
+     */
     public int getRank() {
         return rank;
     }
-    
+
+    /**
+     * Return the weight assigned to the given vertex of this simplex. The
+     * weight is determined by the last call to {@link #setWeight(int, float)},
+     * or can be updated automatically after a call to {@link #reduce()}. A
+     * simplex's vertex inputs can be linearly combined with its weights to
+     * construct the closest points between two hulls.
+     * 
+     * @param vertex The vertex index, from 0 to {@link #getRank()} - 1
+     * @return The vertex weight
+     * @throws IndexOutOfBoundsException if vertex is invalid
+     */
     public float getWeight(int vertex) {
+        if (vertex < 0 || vertex >= rank)
+            throw new IndexOutOfBoundsException("Invalid index: " + vertex + ", must be in [0, " + (rank - 1) + "]");
         return weights[vertex];
     }
-    
-    public void setWeight(int vertex, float weight) {
+
+    /**
+     * Forcibly assign the weight for a given vertex of this simplex. It is
+     * assumed that the constraint that all weights sum to one is still met,
+     * after all weights are updated.
+     * 
+     * @param vertex The vertex index, as in {@link #getWeight(int)}
+     * @param weight The new vertex weight
+     * @throws IndexOutOfBoundsException if vertex is invalid
+     */
+    void setWeight(int vertex, float weight) {
+        if (vertex < 0 || vertex >= rank)
+            throw new IndexOutOfBoundsException("Invalid index: " + vertex + ", must be in [0, " + (rank - 1) + "]");
         weights[vertex] = weight;
     }
-    
+
+    /**
+     * <p>
+     * Return the vertex of this Simplex. The returned vector is within the
+     * coordinate space of the MinkowskiDifference used to generate the vertices
+     * of the simplex (see
+     * {@link #addVertex(MinkowskiDifference, ReadOnlyVector3f)}).
+     * </p>
+     * <p>
+     * The returned vector is the support of the vector returned by
+     * {@link #getSupportInput(int)} when using the original
+     * MinkowskiDifference.
+     * </p>
+     * 
+     * @param vertex The vertex index as in {@link #getWeight(int)}
+     * @return The vertex at the given index
+     * @throws IndexOutOfBoundsException if vertex is invalid
+     */
     public ReadOnlyVector3f getVertex(int vertex) {
+        if (vertex < 0 || vertex >= rank)
+            throw new IndexOutOfBoundsException("Invalid index: " + vertex + ", must be in [0, " + (rank - 1) + "]");
         return vertices[vertex].support;
     }
-    
+
+    /**
+     * Return the vector representing the input to
+     * {@link MinkowskiDifference#getSupport(ReadOnlyVector3f, Vector3f)}. The
+     * values within the vector are identical or the negation of the input
+     * vector passed into
+     * {@link #addVertex(MinkowskiDifference, ReadOnlyVector3f, boolean)} for
+     * the newly added vertex.
+     * 
+     * @param vertex The vertex index
+     * @return The support input passed to
+     *         {@link #addVertex(MinkowskiDifference, ReadOnlyVector3f)}
+     * @throws IndexOutOfBoundsException if vertex is invalid
+     */
     public ReadOnlyVector3f getSupportInput(int vertex) {
+        if (vertex < 0 || vertex >= rank)
+            throw new IndexOutOfBoundsException("Invalid index: " + vertex + ", must be in [0, " + (rank - 1) + "]");
         return vertices[vertex].input;
     }
-    
+
+    /**
+     * Manipulate this simplex so that its vertices will enclose the origin.
+     * This is a necessary initial condition of the EPA algorithm after the GJK
+     * algorithm has been applied. The specified MinkowskiDifference is assumed
+     * to be the same shape that seeded the vertices of this Simplex.
+     * 
+     * @param shape The MinkowskiDifference controlling the support evaluation
+     *            for this Simplex
+     * @return True if the simplex could be modified to enclose the origin
+     * @throws NullPointerException if shape is null
+     */
     public boolean encloseOrigin(MinkowskiDifference shape) {
+        if (shape == null)
+            throw new NullPointerException("MinkowskiDifference cannot be null");
+        
+        if (encloseOriginImpl(shape)) {
+            orient();
+            return true;
+        } else
+            return false;
+    }
+    
+    private boolean encloseOriginImpl(MinkowskiDifference shape) {
         switch(rank) {
         case 1: {
             Vector3f axis = new Vector3f();
@@ -133,8 +275,7 @@ public class Simplex {
         return false;
     }
     
-    // FIXME: hide this, since I don't really know what it's meant for (maybe put it in encloseOrigin() ?)
-    public void orient() {
+    private void orient() {
         if (SimplexUtil.det(vertices[0].support.sub(vertices[3].support, null),
                             vertices[1].support.sub(vertices[3].support, null),
                             vertices[2].support.sub(vertices[3].support, null)) < 0f) {
@@ -153,11 +294,30 @@ public class Simplex {
             weights[1] = tt;
         }
     }
-    
+
+    /**
+     * Add a new vertex to the Simplex by evaluating the support of the given
+     * MinkowskiDifference with the input vector <tt>d</tt>. The new vertex is
+     * added to the end and the simplex's rank is increased by 1.
+     * 
+     * @param s The MinkowskiDifference whose support function is evaluated
+     * @param d The input to the support function
+     * @throws NullPointerException if s or d are null
+     */
     public void addVertex(MinkowskiDifference s, ReadOnlyVector3f d) {
         addVertex(s, d, false);
     }
-    
+
+    /**
+     * Equivalent to {@link #addVertex(MinkowskiDifference, ReadOnlyVector3f)}
+     * except that if <tt>negate</tt> is true, the negation of the input vector
+     * is used to evaluate the support function.
+     * 
+     * @param s The MinkowskiDifference whose support function is evaluated
+     * @param d The support function input
+     * @param negate True if <tt>d</tt> should be negated before being passed to
+     *            the support function
+     */
     public void addVertex(MinkowskiDifference s, ReadOnlyVector3f d, boolean negate) {
         weights[rank] = 0f;
         if (negate)
@@ -169,32 +329,21 @@ public class Simplex {
         rank++;
     }
     
+    /**
+     * Remove the last added vertex from the Simplex and reduce its rank by one.
+     */
     public void removeVertex() {
         rank--;
     }
     
-    private boolean projectOrigin() {
-        Arrays.fill(weights, 0f);
-        mask[0] = 0;
-        
-        float sqdist = 0f;
-        switch(rank) {
-        case 2:
-            sqdist = simplexUtil.get().projectOrigin2(vertices[0].support, vertices[1].support, 
-                                                      weights, mask);
-            break;
-        case 3:
-            sqdist = simplexUtil.get().projectOrigin3(vertices[0].support, vertices[1].support,
-                                                      vertices[2].support, weights, mask);
-            break;
-        case 4:
-            sqdist = simplexUtil.get().projectOrigin4(vertices[0].support, vertices[1].support, 
-                                                      vertices[2].support, vertices[3].support, weights, mask);
-            break;
-        }
-        return sqdist > 0f;
-    }
-    
+    /**
+     * Update the Simplex so that it represents the smallest sub-simplex of its
+     * vertices that still contains the last added vertex. If false is returned,
+     * the simplex could not be reduced further.
+     * 
+     * @return True if the simplex was successfully reduced, i.e. can be used
+     *         again in another iteration of the GJK algorithm
+     */
     public boolean reduce() {
         if (projectOrigin()) {
             // the simplex is still valid, so compact it
@@ -250,6 +399,31 @@ public class Simplex {
         b.append(")");
         
         return b.toString();
+    }
+    
+    /*
+     * Update the weights and mask to perform the actual math needed by reduce()
+     */
+    private boolean projectOrigin() {
+        Arrays.fill(weights, 0f);
+        mask[0] = 0;
+        
+        float sqdist = 0f;
+        switch(rank) {
+        case 2:
+            sqdist = simplexUtil.get().projectOrigin2(vertices[0].support, vertices[1].support, 
+                                                      weights, mask);
+            break;
+        case 3:
+            sqdist = simplexUtil.get().projectOrigin3(vertices[0].support, vertices[1].support,
+                                                      vertices[2].support, weights, mask);
+            break;
+        case 4:
+            sqdist = simplexUtil.get().projectOrigin4(vertices[0].support, vertices[1].support, 
+                                                      vertices[2].support, vertices[3].support, weights, mask);
+            break;
+        }
+        return sqdist > 0f;
     }
     
     private static class SimplexUtil {
