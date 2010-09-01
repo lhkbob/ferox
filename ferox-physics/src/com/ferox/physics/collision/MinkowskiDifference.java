@@ -91,7 +91,7 @@ public class MinkowskiDifference {
         Vector4f s = transformCache.get();
         
         // first step is to transform d by the transpose of the upper 3x3
-        // we avoid this by wrapping d and setting w = 0
+        // we do this by wrapping d in a 4-vector and setting w = 0
         s.set(d.getX(), d.getY(), d.getZ(), 0f);
         t.mulPre(s);
         
@@ -103,7 +103,7 @@ public class MinkowskiDifference {
         
         // then transform that by the complete affine transform
         s.set(result.getX(), result.getY(), result.getZ(), 1f);
-        t.mul(s, s);
+        t.mul(s);
         
         return result.set(s.getX(), s.getY(), s.getZ());
     }

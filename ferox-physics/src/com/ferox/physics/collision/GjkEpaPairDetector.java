@@ -4,19 +4,57 @@ package com.ferox.physics.collision;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
+/**
+ * <p>
+ * The GjkEpaPairDetector is a PairDetector implementation that uses {@link GJK}
+ * and {@link EPA} to compute accurate closest pair information between two
+ * convex hulls. If the two objects are separated, it can rely solely on the GJK
+ * algorithm otherwise it will automatically use the EPA algorithm and report an
+ * intersection.
+ * </p>
+ * <p>
+ * This pair detector implementation also uses a trick to improve efficiency.
+ * The GJK algorithm is much faster than the EPA algorithm. When testing pairs
+ * of objects, the detector 'shrinks' each object so that in many cases
+ * intersection between the original pair of objects is a separation between the
+ * smaller pair. This separation can be accurately computed with only GJK and
+ * the GjkEpaPairDetector can quickly transform the pair back to the original
+ * collision space.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public class GjkEpaPairDetector implements PairDetector {
-    private final float margin;
+    private static final float CONTACT_NORMAL_ACCURACY = .001f;
     
+    private final float margin;
+
+    /**
+     * Create a new GjkEpaPairDetector that's configured to use a margin of
+     * <code>.05</code>.
+     */
     public GjkEpaPairDetector() {
         this(.05f);
     }
-    
+
+    /**
+     * Create a new GjkEpaPairDetector that's configured to use the specified
+     * margin. If the margin is less than or equal to 0 disables the automated
+     * shrinking of shapes that improves performance. This can be useful or
+     * needed if collision shapes are smaller than the margin.
+     * 
+     * @param margin The margin to use when calling
+     *            {@link #getClosestPair(Collidable, Collidable)}
+     */
     public GjkEpaPairDetector(float margin) {
         this.margin = margin;
     }
     
     @Override
     public ClosestPair getClosestPair(Collidable objA, Collidable objB) {
+        if (objA == null || objB == null)
+            throw new NullPointerException("Collidable objects cannot be null");
+        
         MinkowskiDifference shape = new MinkowskiDifference(objA, objB, margin);
         GJK gjk = new GJK(shape);
         
@@ -53,18 +91,16 @@ public class GjkEpaPairDetector implements PairDetector {
         Vector3f normal = wB.sub(wA); // wB becomes the normal here
         float distance = normal.length() * (intersecting ? -1f : 1f);
         
-        if (Math.abs(distance) < .00001f) {
-            // special case for very close contact points - essentially touching contacts
+        if (Math.abs(distance) < CONTACT_NORMAL_ACCURACY) {
+            // special case for very close contact points, where the normal might become inaccurate
             if (contactNormal != null) {
                 // if provided, use computed normal from before
                 contactNormal.normalize(normal).scale(intersecting ? -1f : 1f);
-                distance = 0f;
             } else {
                 // compute normal from within-margin closest pair
                 normal = shape.getClosestPointB(simplex, true, normal)
                               .sub(shape.getClosestPointA(simplex, true, null));
                 normal.normalize().scale(intersecting ? -1f : 1f);
-                distance = 0f;
             }
         } else {
             // normalize, and possibly flip the normal based on intersection

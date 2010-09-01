@@ -3,45 +3,105 @@ package com.ferox.physics.collision;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
+/**
+ * <p>
+ * GJK is a low-level implementation of the Gilbert-Johnson-Keerth algorithm for
+ * detecting the closest pairs between two non-intersecting convex hulls. The
+ * algorithm was originally presented in a paper titled: "A Fast Procedure for
+ * Computing the Distance Between Complex Objects in Three-Dimensional Space".
+ * </p>
+ * <p>
+ * The code within this class is a Java port, refactoring and clean-up of the
+ * GJK implementation contained in the Bullet physics engine. Specifically, the
+ * code in "/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp" by Nathanael
+ * Presson.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @author Nathanael Presson
+ */
 public class GJK {
     public static final int GJK_MAX_ITERATIONS = 128;
-    public static final float GJK_MIN_DISTANCE = .0001f;
-    public static final float GJK_DUPLICATE_EPS = .0001f;
-    public static final float GJK_ACCURACY = .0001f;
-    
+    public static final float GJK_MIN_DISTANCE = .00001f;
+    public static final float GJK_DUPLICATE_EPS = .00001f;
+    public static final float GJK_ACCURACY = .00001f;
+
+    /**
+     * Status represents the three states that a GJK evaluation can take. A
+     * state of VALID means that the convex shapes involved are not
+     * intersecting. A state of INSIDE means the shapes are intersecting, but
+     * contact points are unknown. A state of FAILED implies inconsistent data
+     * means the GJK evaluation failed.
+     */
     public static enum Status {
         VALID, INSIDE, FAILED
     }
     
     private final MinkowskiDifference shape;
     private Simplex simplex;
-    private float distance;
     private Status status;
-    
+
+    /**
+     * Create a new GJK instance that will evaluate the pair of convex shapes
+     * represented by the given {@link MinkowskiDifference}.
+     * 
+     * @param shape The MinkowskiDifference to evaluate
+     * @throws NullPointerException if shape is null
+     */
     public GJK(MinkowskiDifference shape) {
+        if (shape == null)
+            throw new NullPointerException("MinkowskiDifference cannot be null");
+        
         this.shape = shape;
         status = Status.FAILED;
         simplex = null;
-        distance = 0f;
     }
     
+    /**
+     * Return the MinkowskiDifference tuned to this GJK instance.
+     * @return The MinkowskiDifference
+     */
     public MinkowskiDifference getMinkowskiDifference() {
         return shape;
     }
-    
+
+    /**
+     * Return the status after the last call to {@link #evaluate(ReadOnlyVector3f)}. If
+     * the status is {@link Status#VALID}, the Simplex returned by
+     * {@link #getSimplex()} is suitable for reconstructing the closest pairs.
+     * If it is {@link Status#INSIDE}, it can be used with {@link EPA}.
+     * Otherwise the simplex is invalid.
+     * 
+     * @return The Status from the last call to
+     *         {@link #evaluate(ReadOnlyVector3f)}
+     */
     public Status getStatus() {
         return status;
     }
-    
+
+    /**
+     * Return the Simplex containing the results of the last run to
+     * {@link #evaluate(ReadOnlyVector3f)}. If {@link #getStatus()} returns
+     * VALID, the returned Simplex can be used to reconstruct the closest pair.
+     * A status of INSIDE means the returned Simplex can be used with
+     * {@link EPA}. Otherwise the returned Simplex should be considered invalid.
+     */
     public Simplex getSimplex() {
         return simplex;
     }
-    
-    public float getDistance() {
-        return distance;
-    }
-    
+
+    /**
+     * Run the GJK algorithm on the {@link MinkowskiDifference} specified when
+     * the instance was constructed.
+     * 
+     * @param guess An initial guess as to the contact normal between the two
+     *            convex shapes
+     * @throws NullPointerException if guess is null
+     */
     public void evaluate(ReadOnlyVector3f guess) {
+        if (guess == null)
+            throw new NullPointerException("Guess cannot be null");
+        
         Status status = Status.VALID;
         simplex = new Simplex();
         Vector3f ray = new Vector3f(guess);
@@ -76,7 +136,7 @@ public class GJK {
             // check for duplicates
             boolean duplicate = false;
             for (int i = 0; i < 4; i++) {
-                if (support.distanceSquared(oldSupports[i]) < GJK_DUPLICATE_EPS) {
+                if (support.epsilonEquals(oldSupports[i], GJK_DUPLICATE_EPS)) {
                     duplicate = true;
                     break;
                 }
@@ -121,7 +181,6 @@ public class GJK {
                 status = Status.FAILED;
         }
         
-        distance = (status == Status.VALID ? ray.length() : 0f);
         this.status = status;
     }
 }

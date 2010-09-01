@@ -9,6 +9,11 @@ public class Simplex {
     static class SupportSample {
         final Vector3f input = new Vector3f();
         final Vector3f support = new Vector3f();
+        
+        @Override
+        public String toString() {
+            return "{" + input + ", " + support + "}";
+        }
     }
     
     // because projecting takes up so much extra storage, we cache a SimplexUtil per thread
@@ -128,6 +133,7 @@ public class Simplex {
         return false;
     }
     
+    // FIXME: hide this, since I don't really know what it's meant for (maybe put it in encloseOrigin() ?)
     public void orient() {
         if (SimplexUtil.det(vertices[0].support.sub(vertices[3].support, null),
                             vertices[1].support.sub(vertices[3].support, null),
@@ -167,7 +173,7 @@ public class Simplex {
         rank--;
     }
     
-    public boolean reduce() {
+    private boolean projectOrigin() {
         Arrays.fill(weights, 0f);
         mask[0] = 0;
         
@@ -186,8 +192,11 @@ public class Simplex {
                                                       vertices[2].support, vertices[3].support, weights, mask);
             break;
         }
-        
-        if (sqdist >= 0f) {
+        return sqdist > 0f;
+    }
+    
+    public boolean reduce() {
+        if (projectOrigin()) {
             // the simplex is still valid, so compact it
             int m = mask[0];
             for (int i = 0; i < rank; i++) {
@@ -227,11 +236,27 @@ public class Simplex {
             return false;
     }
     
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("(Simplex: rank=");
+        b.append(rank);
+        
+        b.append(", vertices=");
+        b.append(Arrays.toString(Arrays.copyOf(vertices, rank)));
+        
+        b.append(", weights=");
+        b.append(Arrays.toString(Arrays.copyOf(weights, rank)));
+        b.append(")");
+        
+        return b.toString();
+    }
+    
     private static class SimplexUtil {
         private static final int[] IMD3 = new int[] {1, 2, 0};
 
         // used only in projectOrigin2
-        private final Vector3f p1D = new Vector3f(); 
+        private final Vector3f p2 = new Vector3f(); 
         
         // used only in projectOrigin3
         private final ReadOnlyVector3f[] vt3 = new ReadOnlyVector3f[3];
@@ -254,7 +279,7 @@ public class Simplex {
         
         
         public float projectOrigin2(ReadOnlyVector3f a, ReadOnlyVector3f b, float[] weights, int[] mask) {
-            Vector3f d = b.sub(a, p1D);
+            Vector3f d = b.sub(a, p2);
             float l = d.lengthSquared();
             
             if (l > 0f) {

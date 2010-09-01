@@ -5,16 +5,39 @@ import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.Simplex.SupportSample;
 import com.ferox.util.Bag;
 
+/**
+ * <p>
+ * EPA is a low-level implementation of the Expanding Polytope Algorithm for
+ * detecting the closest pairs between two intersecting convex hulls. The
+ * algorithm was originally presented in
+ * "Proximity Queries and Penetration Depth Computation on 3D Game Objects" by
+ * Gino van den Bergen (as far as I can this was the first).
+ * </p>
+ * <p>
+ * The code within this class is a Java port, refactoring and clean-up of the
+ * EPA implementation contained in the Bullet physics engine. Specifically, the
+ * code in "/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp" by Nathanael
+ * Presson.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @author Nathanael Presson
+ */
 public class EPA {
+    /**
+     * The Status enum represents the various states that an evaluation of EPA
+     * can take. Only the state VALID represents a correct run of the EPA
+     * algorithm.
+     */
     public static enum Status {
         VALID, DEGENERATED, NON_CONVEX, INVALID_HULL,
         ACCURACY_REACHED, FALLBACK, FAILED
     }
     
     private static final int EPA_MAX_ITERATIONS = 255;
-    private static final float EPA_ACCURACY = .0001f;
+    private static final float EPA_ACCURACY = .00001f;
     private static final float EPA_PLANE_EPS = .00001f;
-    private static final float EPA_INSIDE_EPS = .01f;
+    private static final float EPA_INSIDE_EPS = .0001f;
     
     private static final int[] I1M3 = new int[] { 1, 2, 0 };
     private static final int[] I2M3 = new int[] { 2, 0, 1 };
@@ -39,7 +62,15 @@ public class EPA {
     private Simplex simplex;
     private float depth;
     private Status status;
-    
+
+    /**
+     * Construct an EPA instance that will use the end result of the given GJK
+     * to determine the correct intersection between the two convex hulls.
+     * 
+     * @param gjk GJK that has already been evaluated with a status of INSIDE
+     * @throws NullPointerException if gjk is null
+     * @throws IllegalArgumentException if the gjk's status is not INSIDE
+     */
     public EPA(GJK gjk) {
         if (gjk == null)
             throw new NullPointerException("GJK cannot be null");
@@ -53,28 +84,79 @@ public class EPA {
         depth = 0f;
         status = Status.FAILED;
     }
-    
+
+    /**
+     * Return the GJK instance used to construct this EPA instance.
+     * 
+     * @return The GJK used to create this EPA
+     */
     public GJK getGJK() {
         return gjk;
     }
-    
+
+    /**
+     * Return the simplex containing the information needed to reconstruct the closest
+     * pair, if the status returned by {@link #getStatus()} is VALID. Any other
+     * status implies that the Simplex may be inaccurate or invalid.
+     * 
+     * @return The Simplex after running the EPA algorithm.
+     */
     public Simplex getSimplex() {
         return simplex;
     }
-    
+
+    /**
+     * Return the depth of penetration after {@link #evaluate(ReadOnlyVector3f)}
+     * is invoked. If the status of EPA is not VALID, the depth is invalid.
+     * 
+     * @return The penetration depth
+     */
     public float getDepth() {
         return depth;
     }
-    
+
+    /**
+     * Return the contact normal between the two intersecting convex hulls.
+     * 
+     * @return Contact normal
+     */
     public ReadOnlyVector3f getNormal() {
         return normal;
     }
-    
+
+    /**
+     * Return the status from the last call to
+     * {@link #evaluate(ReadOnlyVector3f)}.
+     * 
+     * @return The status of the EPA system
+     */
     public Status getStatus() {
         return status;
     }
-    
+
+    /**
+     * <p>
+     * Evaluate the EPA algorithm using the given vector as the initial guess
+     * for contact normal between the two intersecting shapes. The EPA is
+     * performed using the simplex of the GJK passed into the constructor. It is
+     * assumed that said simplex has been left unmodified since the GJK was
+     * evaluated.
+     * </p>
+     * <p>
+     * After this method is invoked, {@link #getStatus()} returns the Status
+     * enum specifying the correctness or validity of the EPA computaitons. If
+     * it is not VALID, then the simplex returned by {@link #getSimplex()} is
+     * invalid, otherwise it can be used to reconstruct the closest pair of
+     * points on each convex hull.
+     * </p>
+     * 
+     * @param guess The initial guess
+     * @throws NullPointerException if guess is null
+     */
     public void evaluate(ReadOnlyVector3f guess) {
+        if (guess == null)
+            throw new NullPointerException("Guess cannot be null");
+        
         // we assume that the simplex of the GJK contains
         // the origin, otherwise behavior is undefined
         Simplex simplex = gjk.getSimplex();
