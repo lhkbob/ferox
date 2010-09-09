@@ -9,7 +9,7 @@ public class KeyTypedCondition implements Condition {
     private long startTime;
     
     public KeyTypedCondition(KeyCode code) {
-        this(code, 150L);
+        this(code, 250L);
     }
     
     public KeyTypedCondition(KeyCode code, long typeDuration) {

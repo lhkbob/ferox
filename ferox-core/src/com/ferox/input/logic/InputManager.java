@@ -26,7 +26,7 @@ public class InputManager {
         triggers = new ArrayList<TriggerAndCondition>();
         
         listener = new InternalListener();
-        lastState = null;
+        lastState = new InputState();
         lastProcessedState = new InputState();
         setEventSource(source);
     }
@@ -96,13 +96,23 @@ public class InputManager {
                 processTriggers(prev, next);
                 prev = next;
             }
-            
+            lastProcessedState = new InputState(lastState);
+            processTriggers(prev, lastProcessedState);
             stateQueue.clear();
-            if (lastState != null)
-                lastProcessedState = lastState;
         }
     }
     
+    // FIXME: how do we handle continuous events/triggers better?
+    // For the style Mouse/KeyHeld conditions, if they were the last state,
+    // subsequent processes will not run any triggers until the OS generates
+    // another 'pressed' event which continues to detect that it's being held
+    //
+    // instead we'd need continuous trigger evaluation during process,
+    // to do some special signal for a frame with no events. Best would be
+    // to have the last state be the clone of the last recorded state but
+    // with an updated timestamp - could use that event to fill in any
+    // left-over gaps from the last recorded event to the process() runtime even
+    // when the state queue is non-empty
     private void processTriggers(InputState prev, InputState next) {
         int ct = triggers.size();
         for (int i = 0; i < ct; i++)

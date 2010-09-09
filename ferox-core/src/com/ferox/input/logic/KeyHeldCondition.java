@@ -9,7 +9,6 @@ public class KeyHeldCondition implements Condition {
         this.code = code;
     }
     
-    
     @Override
     public boolean apply(InputState prev, InputState next) {
         return next.getKeyboardState().isKeyDown(code);

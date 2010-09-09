@@ -16,6 +16,13 @@ public class InputState {
         timestamp = System.currentTimeMillis();
     }
     
+    public InputState(InputState is) {
+        keyboard = is.keyboard;
+        mouse = is.mouse;
+        
+        timestamp = System.currentTimeMillis();
+    }
+    
     public InputState(InputState prev, KeyEvent event) {
         if (prev != null) {
             keyboard = new KeyboardState(prev.keyboard, event);
