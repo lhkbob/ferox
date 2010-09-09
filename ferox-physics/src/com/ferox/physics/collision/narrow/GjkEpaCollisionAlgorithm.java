@@ -1,15 +1,20 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.narrow;
 
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
+import com.ferox.physics.collision.ClosestPair;
+import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.CollisionAlgorithm;
+import com.ferox.physics.collision.ConvexShape;
+import com.ferox.physics.collision.Shape;
 
 /**
  * <p>
- * The GjkEpaPairDetector is a PairDetector implementation that uses {@link GJK}
- * and {@link EPA} to compute accurate closest pair information between two
- * convex hulls. If the two objects are separated, it can rely solely on the GJK
- * algorithm otherwise it will automatically use the EPA algorithm and report an
- * intersection.
+ * The GjkEpaCollisionAlgorithm is a CollisionAlgorithm implementation that uses
+ * {@link GJK} and {@link EPA} to compute accurate closest pair information
+ * between two convex hulls. If the two objects are separated, it can rely
+ * solely on the GJK algorithm otherwise it will automatically use the EPA
+ * algorithm and report an intersection.
  * </p>
  * <p>
  * This pair detector implementation also uses a trick to improve efficiency.
@@ -17,27 +22,31 @@ import com.ferox.math.Vector3f;
  * of objects, the detector 'shrinks' each object so that in many cases
  * intersection between the original pair of objects is a separation between the
  * smaller pair. This separation can be accurately computed with only GJK and
- * the GjkEpaPairDetector can quickly transform the pair back to the original
- * collision space.
+ * the GjkEpaCollisionAlgorithm can quickly transform the pair back to the
+ * original collision space.
+ * </p>
+ * <p>
+ * This CollisionAlgorithm only supports collisions between {@link ConvexShape
+ * ConvexShapes}.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public class GjkEpaPairDetector implements PairDetector {
+public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm {
     private static final float CONTACT_NORMAL_ACCURACY = .001f;
     
     private final float margin;
 
     /**
-     * Create a new GjkEpaPairDetector that's configured to use a margin of
+     * Create a new GjkEpaCollisionAlgorithm that's configured to use a margin of
      * <code>.05</code>.
      */
-    public GjkEpaPairDetector() {
+    public GjkEpaCollisionAlgorithm() {
         this(.05f);
     }
 
     /**
-     * Create a new GjkEpaPairDetector that's configured to use the specified
+     * Create a new GjkEpaCollisionAlgorithm that's configured to use the specified
      * margin. If the margin is less than or equal to 0 disables the automated
      * shrinking of shapes that improves performance. This can be useful or
      * needed if collision shapes are smaller than the margin.
@@ -45,15 +54,13 @@ public class GjkEpaPairDetector implements PairDetector {
      * @param margin The margin to use when calling
      *            {@link #getClosestPair(Collidable, Collidable)}
      */
-    public GjkEpaPairDetector(float margin) {
+    public GjkEpaCollisionAlgorithm(float margin) {
         this.margin = margin;
     }
     
     @Override
     public ClosestPair getClosestPair(Collidable objA, Collidable objB) {
-        if (objA == null || objB == null)
-            throw new NullPointerException("Collidable objects cannot be null");
-        
+        // MinkowskiDifference does the error checking for GjkEpaCollisionAlgorithm
         MinkowskiDifference shape = new MinkowskiDifference(objA, objB, margin);
         GJK gjk = new GJK(shape);
         
@@ -107,5 +114,10 @@ public class GjkEpaPairDetector implements PairDetector {
         }
         
         return new ClosestPair(wA, normal, distance);
+    }
+
+    @Override
+    public boolean isShapeSupported(Shape s) {
+        return (s instanceof ConvexShape);
     }
 }

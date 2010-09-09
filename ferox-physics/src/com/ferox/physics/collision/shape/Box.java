@@ -1,8 +1,8 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.physics.collision.ConvexShape;
 
 public class Box implements ConvexShape {

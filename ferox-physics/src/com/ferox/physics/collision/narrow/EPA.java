@@ -1,8 +1,8 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.narrow;
 
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.physics.collision.Simplex.SupportSample;
+import com.ferox.physics.collision.narrow.Simplex.SupportSample;
 import com.ferox.util.Bag;
 
 /**

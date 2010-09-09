@@ -1,9 +1,11 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.narrow;
 
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
+import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.ConvexShape;
 
 /**
  * MinkowskiDifference represents the mathematical concept of a Minkowski sum
@@ -50,15 +52,21 @@ public class MinkowskiDifference {
      * @param margin An automatic distance to shrink each convex shape by,
      *            locally, unless it is negative
      * @throws NullPointerException if objA or objB are null
+     * @throws UnsupportedOperationException if objA or objB have a Shape that's
+     *             not a ConvexShape
      */
     public MinkowskiDifference(Collidable objA, Collidable objB, float margin) {
         if (objA == null || objB == null)
             throw new NullPointerException("Collidable objects cannot be null");
+        if (!(objA.getShape() instanceof ConvexShape))
+            throw new UnsupportedOperationException("Collidable does not have a ConvexShape, instead it has: " + objA.getShape().getClass());
+        if (!(objB.getShape() instanceof ConvexShape))
+            throw new UnsupportedOperationException("Collidable does not have a ConvexShape, instead it has: " + objB.getShape().getClass());
         
-        shapeA = objA.getShape();
+        shapeA = (ConvexShape) objA.getShape();
         transA = objA.getWorldTransform();
         
-        shapeB = objB.getShape();
+        shapeB = (ConvexShape) objB.getShape();
         transB = objB.getWorldTransform();
         
         this.margin = margin;

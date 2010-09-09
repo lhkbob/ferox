@@ -1,8 +1,8 @@
 package com.ferox.physics.dynamics;
 
 import com.ferox.math.Vector3f;
-import com.ferox.physics.collision.BroadphaseManager;
-import com.ferox.physics.collision.PairDetector;
+import com.ferox.physics.collision.CollisionManager;
+import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.util.Bag;
 
 public class PhysicsWorld {
@@ -13,14 +13,13 @@ public class PhysicsWorld {
     private final Bag<Constraint> constraints;
     private final Bag<Constraint> singleStepConstraints;
     
-    private BroadphaseManager broadphase;
-    private PairDetector narrowphase;
+    private CollisionManager broadphase;
     
     public PhysicsWorld() {
         
     }
     
-    public PhysicsWorld(BroadphaseManager broadphase, PairDetector narrowphase) {
+    public PhysicsWorld(CollisionManager broadphase, CollisionAlgorithm narrowphase) {
         
     }
     
@@ -48,19 +47,19 @@ public class PhysicsWorld {
         
     }
     
-    public BroadphaseManager getBroadphaseManager() {
+    public CollisionManager getBroadphaseManager() {
         
     }
     
-    public void setBroadphaseManager(BroadphaseManager broadphase) {
+    public void setBroadphaseManager(CollisionManager broadphase) {
         
     }
     
-    public PairDetector getCollisionDetector() {
+    public CollisionAlgorithm getCollisionDetector() {
         
     }
     
-    public void setCollisionDetector(PairDetector narrowphase) {
+    public void setCollisionDetector(CollisionAlgorithm narrowphase) {
         
     }
     

@@ -1,4 +1,4 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.narrow;
 
 import java.util.Arrays;
 

@@ -5,7 +5,7 @@ import com.ferox.math.ReadOnlyVector3f;
 /**
  * ClosestPair is a data-storage class that contains the closest pair of points
  * between two Collidables, A and B. It can differentiate between separated
- * objects and intersecting objects. It is used by a {@link PairDetector} to
+ * objects and intersecting objects. It is used by a {@link CollisionAlgorithm} to
  * compute accurate collision information between pairs of objects.
  * 
  * @author Michael Ludwig
@@ -32,7 +32,8 @@ public class ClosestPair {
      * @throws NullPointerException if pointOnA or contactNormal are null
      */
     public ClosestPair(ReadOnlyVector3f pointOnA, ReadOnlyVector3f contactNormal, float distance) {
-        // FIXME: validate
+        if (pointOnA == null || contactNormal == null)
+            throw new NullPointerException("Input cannot be null");
         this.distance = distance;
 
         contactNormalFromA = contactNormal;

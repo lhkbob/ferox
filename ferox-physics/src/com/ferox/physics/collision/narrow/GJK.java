@@ -1,4 +1,4 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.narrow;
 
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;

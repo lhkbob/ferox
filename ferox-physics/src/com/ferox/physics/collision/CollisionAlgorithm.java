@@ -1,15 +1,24 @@
 package com.ferox.physics.collision;
 
 /**
- * PairDetector is an interface encapsulating the narrow-phase of a collision
- * detection system. PairDetector implementations are responsible for computing
- * two vectors within world space. Each vector represents the closest point on
- * one {@link Collidable} to the other. Implementations must handle cases where
- * the two objects are intersecting each other, too.
+ * <p>
+ * CollisionAlgorithm is an interface encapsulating the narrow-phase of a
+ * collision detection system. CollisionAlgorithm implementations are
+ * responsible for computing two vectors within world space. Each vector
+ * represents the closest point on one {@link Collidable} to the other.
+ * Implementations must handle cases where the two objects are intersecting each
+ * other, too.
+ * </p>
+ * <p>
+ * CollisionAlgorithms must be thread-safe because it is likely that code
+ * relying on the algorithms will reuse the same instance. This should not be
+ * difficult as each invocation of
+ * {@link #getClosestPair(Collidable, Collidable)} should be independent.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public interface PairDetector {
+public interface CollisionAlgorithm {
     /**
      * <p>
      * Compute the closest pair of points in world space between <tt>objA</tt>
@@ -33,6 +42,18 @@ public interface PairDetector {
      * @return The closest pair of points on the surfaces of objA and objB, or
      *         null if no pair could be computed
      * @throws NullPointerException if objA or objB are null
+     * @throws UnsupportedOperationException if the shape in objA or objB is unsupported
      */
     public ClosestPair getClosestPair(Collidable objA, Collidable objB);
+
+    /**
+     * Return whether or not this CollisionAlgorithm can support the given
+     * Shape. If false is returned, the Collidable owning the provided Shape
+     * should not be passed to {@link #getClosestPair(Collidable, Collidable)}.
+     * 
+     * @param s The shape to test for support
+     * @return True or false if this algorithm can detect collisions with the
+     *         given shape
+     */
+    public boolean isShapeSupported(Shape s);
 }
