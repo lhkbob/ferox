@@ -3,10 +3,10 @@ package com.ferox.scene;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.Frustum;
 import com.ferox.math.Matrix3f;
 import com.ferox.math.Transform;
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.entity.AbstractComponent;
 import com.ferox.entity.Controller;
 
@@ -98,7 +98,7 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
      * @throws NullPointerException if m is null
      */
     public void setRotation(Matrix3f m) {
-        transform.setRotation(m);
+        transform.getRotation().set(m);
     }
 
     /**
@@ -107,16 +107,6 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
      */
     public Transform getTransform() {
         return transform;
-    }
-
-    /**
-     * Copy t into this SceneElement's Transform.
-     * 
-     * @param t The new Transform for this SceneElement
-     * @throws NullPointerException if t is null
-     */
-    public void setTransform(Transform t) {
-        transform.set(t);
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.entity.AbstractComponent;
-import com.ferox.math.Vector3f;
+import com.ferox.math.ReadOnlyVector3f;
 
 public class Billboarded extends AbstractComponent<Billboarded> {
     /**
@@ -14,7 +14,7 @@ public class Billboarded extends AbstractComponent<Billboarded> {
         X, Y, Z,
     }
     
-    private final Vector3f[] constrainVectors; // as a direction or location
+    private final ReadOnlyVector3f[] constrainVectors; // as a direction or location
     private final boolean[] positionConstraint;
     private final boolean[] negateAxisDirection;
 
@@ -24,7 +24,7 @@ public class Billboarded extends AbstractComponent<Billboarded> {
      */
     public Billboarded() {
         super(Billboarded.class);
-        constrainVectors = new Vector3f[Axis.values().length];
+        constrainVectors = new ReadOnlyVector3f[Axis.values().length];
         positionConstraint = new boolean[constrainVectors.length];
         negateAxisDirection = new boolean[constrainVectors.length];
     }
@@ -50,7 +50,7 @@ public class Billboarded extends AbstractComponent<Billboarded> {
      * @return A Vector3f describing the constraint, or null
      * @throws NullPointerException if axis is null
      */
-    public Vector3f getConstraint(Axis axis) {
+    public ReadOnlyVector3f getConstraint(Axis axis) {
         return constrainVectors[axis.ordinal()];
     }
 
@@ -91,7 +91,7 @@ public class Billboarded extends AbstractComponent<Billboarded> {
      *            space
      * @throws NullPointerException if axis is null
      */
-    public void setConstraint(Axis axis, Vector3f vec) {
+    public void setConstraint(Axis axis, ReadOnlyVector3f vec) {
         setConstraint(axis, vec, false);
     }
 
@@ -107,7 +107,7 @@ public class Billboarded extends AbstractComponent<Billboarded> {
      * @param isPosition True if the constraint vector is a position
      * @throws NullPointerException if axis is null
      */
-    public void setConstraint(Axis axis, Vector3f vec, boolean isPosition) {
+    public void setConstraint(Axis axis, ReadOnlyVector3f vec, boolean isPosition) {
         setConstraint(axis, vec, isPosition, false);
     }
 
@@ -125,7 +125,7 @@ public class Billboarded extends AbstractComponent<Billboarded> {
      * @param negate True if computed axis directions should be negated
      * @throws NullPointerException if axis is null
      */
-    public void setConstraint(Axis axis, Vector3f vec, boolean isPosition, boolean negate) {
+    public void setConstraint(Axis axis, ReadOnlyVector3f vec, boolean isPosition, boolean negate) {
         constrainVectors[axis.ordinal()] = vec;
         positionConstraint[axis.ordinal()] = isPosition;
         negateAxisDirection[axis.ordinal()] = negate;

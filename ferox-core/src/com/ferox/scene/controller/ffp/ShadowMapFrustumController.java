@@ -2,22 +2,21 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.Iterator;
 
-import com.ferox.math.Color4f;
-import com.ferox.math.Frustum;
-import com.ferox.math.SpatialHierarchy;
-import com.ferox.math.Vector3f;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.SceneElement;
-import com.ferox.scene.ShadowCaster;
-import com.ferox.scene.SpotLight;
-import com.ferox.scene.ViewNode;
-import com.ferox.scene.controller.SceneController;
-import com.ferox.util.Bag;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
+import com.ferox.math.Color4f;
+import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.Frustum;
+import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.scene.DirectionLight;
+import com.ferox.scene.ShadowCaster;
+import com.ferox.scene.SpotLight;
+import com.ferox.scene.ViewNode;
+import com.ferox.scene.controller.SceneController;
+import com.ferox.scene.controller.VisibilityCallback;
 
 /**
  * <p>
@@ -43,13 +42,11 @@ import com.ferox.entity.EntitySystem;
 public class ShadowMapFrustumController extends Controller {
     private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
     private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
     private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
     private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
     
     private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
     
-    private final Bag<Entity> visCache;
     private final SpatialHierarchy<Entity> hierarchy;
     
     private float shadowMapScale;
@@ -83,7 +80,6 @@ public class ShadowMapFrustumController extends Controller {
         this.shadowMapSize = shadowMapSize;
         this.hierarchy = hierarchy;
         
-        visCache = new Bag<Entity>();
         setShadowMapScale(shadowMapScale);
     }
     
@@ -159,25 +155,12 @@ public class ShadowMapFrustumController extends Controller {
                     lf.setLight(bestLight);
                 }
                 
-                computeVisibility(f);
+                // modify all scene elements to be potentially visible
+                hierarchy.query(f, new VisibilityCallback(f));
             } else {
                 // no more shadow mapping
                 e.removeMeta(viewNode, SMF_ID);
             }
-        }
-    }
-    
-    private void computeVisibility(Frustum f) {
-        visCache.clear(true);
-        hierarchy.query(f, visCache);
-        
-        // modify all scene elements to be potentially visible
-        SceneElement se;
-        int ct = visCache.size();
-        for (int i = 0; i < ct; i++) {
-            se = visCache.get(i).get(SE_ID);
-            if (se != null)
-                se.setVisible(f, true);
         }
     }
     
@@ -234,10 +217,8 @@ public class ShadowMapFrustumController extends Controller {
         
         // [0, 1] - bonuses lights that are near the camera location:
         // proximity increases importance of shadows generated from light
-        Vector3f p1 = light.getPosition();
-        Vector3f p2 = view.getLocation();
         float scale = view.getFrustumFar() - view.getFrustumNear();
-        float distance = (float) Math.sqrt(p1.x * p2.x + p1.y * p2.y + p1.z * p2.z);
+        float distance = view.getLocation().distance(light.getPosition());
         float position = Math.max(scale - distance, 0f) / scale;
         
         // [0, 1] - bonuses the previous shadow light: to avoid flickering

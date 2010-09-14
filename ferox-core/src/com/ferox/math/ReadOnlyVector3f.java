@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import com.ferox.math.bounds.Plane;
+
 /**
  * <p>
  * ReadOnlyVector3f provides the foundation class for the implementation of a

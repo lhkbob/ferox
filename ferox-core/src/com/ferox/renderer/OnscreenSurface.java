@@ -1,5 +1,9 @@
 package com.ferox.renderer;
 
+import com.ferox.input.KeyEventSource;
+import com.ferox.input.MouseEventSource;
+import com.ferox.input.MouseKeyEventSource;
+
 /**
  * <p>
  * A renderable Surface that has a visible element, either because it's a window or
@@ -7,7 +11,7 @@ package com.ferox.renderer;
  * 
  * @author Michael Ludwig
  */
-public interface OnscreenSurface extends Surface {
+public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     /**
      * @return The options used to create this Surface. Any changes to the
      *         returned options will not be reflected by the Surface or future

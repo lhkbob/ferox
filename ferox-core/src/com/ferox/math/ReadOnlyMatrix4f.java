@@ -563,9 +563,9 @@ public abstract class ReadOnlyMatrix4f {
      */
     public void getCol(int col, float[] store, int offset) {
         store[offset] = get(0, col);
-        store[offset] = get(1, col);
-        store[offset] = get(2, col);
-        store[offset] = get(3, col);
+        store[offset + 1] = get(1, col);
+        store[offset + 2] = get(2, col);
+        store[offset + 3] = get(3, col);
     }
 
     /**

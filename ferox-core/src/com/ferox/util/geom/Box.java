@@ -3,6 +3,7 @@ package com.ferox.util.geom;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
@@ -39,7 +40,7 @@ public class Box extends PrimitiveGeometry {
      * @param max Maximum corner of the box
      * @throws NullPointerException if min or max are null
      */
-    public Box(Vector3f min, Vector3f max) {
+    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max) {
         this(min, max, CompileType.NONE);
     }
 
@@ -64,7 +65,7 @@ public class Box extends PrimitiveGeometry {
      * @param type The compile type to use for the Box
      * @throws NullPointerException if min or max are null
      */
-    public Box(Vector3f min, Vector3f max, CompileType type) {
+    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max, CompileType type) {
         this(min, max, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
              Geometry.DEFAULT_TEXCOORD_NAME);
     }
@@ -84,7 +85,7 @@ public class Box extends PrimitiveGeometry {
      * @throws NullPointerException if min, max, vertexName, normalName or
      *             tcName are null
      */
-    public Box(Vector3f min, Vector3f max, CompileType type, String vertexName, String normalName, String tcName) {
+    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max, CompileType type, String vertexName, String normalName, String tcName) {
         super(type, vertexName, normalName, tcName);
         setData(min, max);
     }
@@ -109,27 +110,27 @@ public class Box extends PrimitiveGeometry {
      * @param maxPoint Maximum corner of the box
      * @throws NullPointerException if minPoint or maxPoint are null
      */
-    public void setData(Vector3f minPoint, Vector3f maxPoint) {
+    public void setData(ReadOnlyVector3f minPoint, ReadOnlyVector3f maxPoint) {
         if (minPoint == null || maxPoint == null)
             throw new NullPointerException("minPoint and maxPoint cannot be null");
 
         Vector3f center = minPoint.add(maxPoint, null).scale(.5f);
 
-        float xExtent = maxPoint.x - center.x;
-        float yExtent = maxPoint.y - center.y;
-        float zExtent = maxPoint.z - center.z;
+        float xExtent = maxPoint.getX() - center.getX();
+        float yExtent = maxPoint.getY() - center.getY();
+        float zExtent = maxPoint.getZ() - center.getZ();
 
         
         FloatBuffer v = newFloatBuffer(72);
         FloatBuffer n = newFloatBuffer(72);
         FloatBuffer t = newFloatBuffer(48);
 
-        float minX = center.x - xExtent;
-        float maxX = center.x + xExtent;
-        float minY = center.y - yExtent;
-        float maxY = center.y + yExtent;
-        float minZ = center.z - zExtent;
-        float maxZ = center.z + zExtent;
+        float minX = center.getX() - xExtent;
+        float maxX = center.getX() + xExtent;
+        float minY = center.getY() - yExtent;
+        float maxY = center.getY() + yExtent;
+        float minZ = center.getZ() - zExtent;
+        float maxZ = center.getZ() + zExtent;
 
         int ti = 0;
         int ni = 0;

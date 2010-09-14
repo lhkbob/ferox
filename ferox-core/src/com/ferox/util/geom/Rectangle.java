@@ -3,6 +3,7 @@ package com.ferox.util.geom;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.PolygonType;
@@ -60,7 +61,7 @@ public class Rectangle extends PrimitiveGeometry {
      * @param top The top edge of the rectangle
      * @throws IllegalArgumentException if left > right or bottom > top
      */
-    public Rectangle(Vector3f xAxis, Vector3f yAxis, 
+    public Rectangle(ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis, 
                      float left, float right, float bottom, float top) {
         this(xAxis, yAxis, left, right, bottom, top, CompileType.NONE,
              Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
@@ -83,7 +84,7 @@ public class Rectangle extends PrimitiveGeometry {
      * @param normalName The name for the normals attribute
      * @param tcName The name for the texture coordinates attribute
      */
-    public Rectangle(Vector3f xAxis, Vector3f yAxis, 
+    public Rectangle(ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis, 
                      float left, float right, float bottom, float top, 
                      CompileType type, String vertexName, String normalName, String tcName) {
         super(type, vertexName, normalName, tcName);
@@ -103,7 +104,7 @@ public class Rectangle extends PrimitiveGeometry {
      * @param top The top edge of the rectangle
      * @throws IllegalArgumentException if left > right or bottom > top
      */
-    public void setData(Vector3f xAxis, Vector3f yAxis, 
+    public void setData(ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis, 
                         float left, float right, float bottom, float top) {
         if (left > right || bottom > top)
             throw new IllegalArgumentException("Side positions of the square are incorrect");
@@ -121,49 +122,49 @@ public class Rectangle extends PrimitiveGeometry {
         IntBuffer indices = newIntBuffer(4);
 
         // lower-left
-        vertices.put(0, xAxis.x * left + yAxis.x * bottom);
-        vertices.put(1, xAxis.y * left + yAxis.y * bottom);
-        vertices.put(2, xAxis.z * left + yAxis.z * bottom);
+        vertices.put(0, xAxis.getX() * left + yAxis.getX() * bottom);
+        vertices.put(1, xAxis.getY() * left + yAxis.getY() * bottom);
+        vertices.put(2, xAxis.getZ() * left + yAxis.getZ() * bottom);
 
-        normals.put(0, normal.x);
-        normals.put(1, normal.y);
-        normals.put(2, normal.z);
+        normals.put(0, normal.getX());
+        normals.put(1, normal.getY());
+        normals.put(2, normal.getZ());
 
         texCoords.put(0, 0f);
         texCoords.put(1, 0f);
 
         // lower-right
-        vertices.put(3, xAxis.x * right + yAxis.x * bottom);
-        vertices.put(4, xAxis.y * right + yAxis.y * bottom);
-        vertices.put(5, xAxis.z * right + yAxis.z * bottom);
+        vertices.put(3, xAxis.getX() * right + yAxis.getX() * bottom);
+        vertices.put(4, xAxis.getY() * right + yAxis.getY() * bottom);
+        vertices.put(5, xAxis.getZ() * right + yAxis.getZ() * bottom);
 
-        normals.put(3, normal.x);
-        normals.put(4, normal.y);
-        normals.put(5, normal.z);
+        normals.put(3, normal.getX());
+        normals.put(4, normal.getY());
+        normals.put(5, normal.getZ());
 
         texCoords.put(2, 1f);
         texCoords.put(3, 0f);
 
         // uppper-right
-        vertices.put(6, xAxis.x * right + yAxis.x * top);
-        vertices.put(7, xAxis.y * right + yAxis.y * top);
-        vertices.put(8, xAxis.z * right + yAxis.z * top);
+        vertices.put(6, xAxis.getX() * right + yAxis.getX() * top);
+        vertices.put(7, xAxis.getY() * right + yAxis.getY() * top);
+        vertices.put(8, xAxis.getZ() * right + yAxis.getZ() * top);
 
-        normals.put(6, normal.x);
-        normals.put(7, normal.y);
-        normals.put(8, normal.z);
+        normals.put(6, normal.getX());
+        normals.put(7, normal.getY());
+        normals.put(8, normal.getZ());
 
         texCoords.put(4, 1f);
         texCoords.put(5, 1f);
 
         // upper-left
-        vertices.put(9, xAxis.x * left + yAxis.x * top);
-        vertices.put(10, xAxis.y * left + yAxis.y * top);
-        vertices.put(11, xAxis.z * left + yAxis.z * top);
+        vertices.put(9, xAxis.getX() * left + yAxis.getX() * top);
+        vertices.put(10, xAxis.getY() * left + yAxis.getY() * top);
+        vertices.put(11, xAxis.getZ() * left + yAxis.getZ() * top);
 
-        normals.put(9, normal.x);
-        normals.put(10, normal.y);
-        normals.put(11, normal.z);
+        normals.put(9, normal.getX());
+        normals.put(10, normal.getY());
+        normals.put(11, normal.getZ());
 
         texCoords.put(6, 0f);
         texCoords.put(7, 1f);

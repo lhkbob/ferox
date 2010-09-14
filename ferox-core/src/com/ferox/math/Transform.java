@@ -40,7 +40,7 @@ public class Transform {
      */
     public Transform(ReadOnlyVector3f trans) {
         this();
-        this.setTranslation(trans);
+        this.trans.set(trans);
     }
 
     /**
@@ -52,7 +52,7 @@ public class Transform {
      */
     public Transform(ReadOnlyVector3f trans, float scale) {
         this();
-        setTranslation(trans);
+        this.trans.set(trans);
         setScale(scale);
     }
 
@@ -65,8 +65,8 @@ public class Transform {
      */
     public Transform(ReadOnlyVector3f trans, ReadOnlyMatrix3f rot) {
         this();
-        setTranslation(trans);
-        setRotation(rot);
+        this.trans.set(trans);
+        this.rot.set(rot);
     }
 
     /**
@@ -79,9 +79,9 @@ public class Transform {
      */
     public Transform(ReadOnlyVector3f trans, ReadOnlyMatrix3f rot, float scale) {
         this();
-        setTranslation(trans);
+        this.trans.set(trans);
+        this.rot.set(rot);
         setScale(scale);
-        setRotation(rot);
     }
 
     /**
@@ -90,7 +90,7 @@ public class Transform {
      * 
      * @return Translation vector
      */
-    public ReadOnlyVector3f getTranslation() {
+    public Vector3f getTranslation() {
         return trans;
     }
 
@@ -110,29 +110,8 @@ public class Transform {
      * 
      * @return Rotation matrix
      */
-    public ReadOnlyMatrix3f getRotation() {
+    public Matrix3f getRotation() {
         return rot;
-    }
-
-    /**
-     * Copies the vector as the translation component of this Transform.
-     * 
-     * @param t New translation vector
-     * @throws NullPointerException if t is null
-     */
-    public void setTranslation(ReadOnlyVector3f t) {
-        trans.set(t);
-    }
-
-    /**
-     * Sets this transform's translation vector
-     * 
-     * @param x New x translation
-     * @param y New y translation
-     * @param z New z translation
-     */
-    public void setTranslation(float x, float y, float z) {
-        trans.set(x, y, z);
     }
 
     /**
@@ -145,16 +124,6 @@ public class Transform {
         if (scale < .0001f)
             throw new IllegalArgumentException("Can't set a scale smaller than .0001: " + scale);
         this.scale = scale;
-    }
-
-    /**
-     * Copies the matrix as the rotation of this Transform.
-     * 
-     * @param rot The rotation matrix to copy
-     * @throws NullPointerException if rot is null
-     */
-    public void setRotation(ReadOnlyMatrix3f rot) {
-        this.rot.set(rot);
     }
 
     /**

@@ -2,16 +2,15 @@ package com.ferox.scene.controller;
 
 import java.util.Iterator;
 
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.SpatialHierarchy;
-import com.ferox.math.Transform;
-import com.ferox.scene.SceneElement;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntityListener;
 import com.ferox.entity.EntitySystem;
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.scene.SceneElement;
 
 /**
  * <p>
@@ -97,51 +96,20 @@ public class SceneController extends Controller {
     }
     
     private void processEntity(Entity e, SceneElement se, ElementData ed) {
-        boolean updated = false;
+        AxisAlignedBox local = se.getLocalBounds();
+        AxisAlignedBox world = null;
         
-        Transform t = se.getTransform();
-        // check if the transform has changed
-        if (!ed.oldTransform.equals(t)) {
-            ed.oldTransform.set(t);
-            updated = true;
-        }
+        if (local != null)
+            world = local.transform(se.getTransform(), se.getWorldBounds());
+        se.setWorldBounds(world);
         
-        // check if the local bounds have changed
-        if (se.getLocalBounds() == null) {
-            if (ed.oldLocalBounds != null) {
-                ed.oldLocalBounds = null;
-                updated = true;
-            }
-        } else {
-            if (ed.oldLocalBounds == null || !ed.oldLocalBounds.equals(se.getLocalBounds())) {
-                if (ed.oldLocalBounds == null)
-                    ed.oldLocalBounds = new AxisAlignedBox(se.getLocalBounds());
-                else
-                    ed.oldLocalBounds.set(se.getLocalBounds());
-                updated = true;
-            }
-        }
-        
-        if (updated) {
-            // compute new world bounds
-            AxisAlignedBox world = null;
-            if (ed.oldLocalBounds != null)
-                world = ed.oldLocalBounds.transform(ed.oldTransform, se.getWorldBounds());
-            se.setWorldBounds(world);
-        }
-        
-        if (updated || ed.hierarchyKey == null)
-            placeElement(e, se, ed);
+        if (ed.hierarchyKey == null)
+            ed.hierarchyKey = hierarchy.add(e, se.getWorldBounds());
+        else
+            hierarchy.update(e, se.getWorldBounds(), ed.hierarchyKey);
         
         // reset visibility
         se.resetVisibility();
-    }
-    
-    private void placeElement(Entity e, SceneElement s, ElementData d) {
-        if (d.hierarchyKey == null)
-            d.hierarchyKey = hierarchy.add(e, s.getWorldBounds());
-        else
-            hierarchy.update(e, s.getWorldBounds(), d.hierarchyKey);
     }
     
     private class SceneElementListener implements EntityListener {
@@ -199,14 +167,6 @@ public class SceneController extends Controller {
      * inserts and changes to the spatial-hierarchies
      */
     private static class ElementData extends Component {
-        final Transform oldTransform;
-        AxisAlignedBox oldLocalBounds;
-        
         Object hierarchyKey;
-        
-        public ElementData() {
-            oldTransform = new Transform();
-            oldLocalBounds = new AxisAlignedBox();
-        }
     }
 }

@@ -3,7 +3,6 @@ package com.ferox.renderer.impl;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
-import com.ferox.renderer.Framework;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
@@ -32,7 +31,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     private final TextureSurfaceDelegate delegate;
     private final TextureSurfaceOptions options;
     
-    public AbstractTextureSurface(Framework framework, TextureSurfaceOptions options) {
+    public AbstractTextureSurface(AbstractFramework framework, TextureSurfaceOptions options) {
         super(framework);
         if (options == null)
             options = new TextureSurfaceOptions();

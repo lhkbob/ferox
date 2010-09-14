@@ -2,7 +2,9 @@ package com.ferox.renderer;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Matrix4f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector4f;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture;
@@ -615,7 +617,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if pos is null
      * @throws IllegalArgumentException if pos.w is not 0 or 1
      */
-    public void setLightPosition(int light, Vector4f pos);
+    public void setLightPosition(int light, ReadOnlyVector4f pos);
 
     /**
      * <p>
@@ -670,7 +672,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws IllegalArgumentException if angle is not in [0, 90] or equal to
      *             180
      */
-    public void setSpotlight(int light, Vector3f dir, float angle);
+    public void setSpotlight(int light, ReadOnlyVector3f dir, float angle);
 
     /**
      * <p>
@@ -898,7 +900,7 @@ public interface FixedFunctionRenderer extends Renderer {
      *            modelview multiplication
      * @throws NullPointerException if coord or plane are null
      */
-    public void setTextureEyePlane(int tex, TexCoord coord, Vector4f plane);
+    public void setTextureEyePlane(int tex, TexCoord coord, ReadOnlyVector4f plane);
 
     /**
      * <p>
@@ -920,7 +922,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param tex The texture unit
      * @param matrix The texture coordinate transform matrix
      */
-    public void setTextureTransform(int tex, Matrix4f matrix);
+    public void setTextureTransform(int tex, ReadOnlyMatrix4f matrix);
 
     /**
      * Set the rgb and alpha {@link CombineFunction}s that will be used if the
@@ -998,7 +1000,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * 
      * @param projection The new projection matrix
      */
-    public void setProjectionMatrix(Matrix4f projection);
+    public void setProjectionMatrix(ReadOnlyMatrix4f projection);
 
     /**
      * <p>
@@ -1025,7 +1027,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * 
      * @param modelView The new modelview matrix
      */
-    public void setModelViewMatrix(Matrix4f modelView);
+    public void setModelViewMatrix(ReadOnlyMatrix4f modelView);
 
     /**
      * Set the name of the Geometry attribute that holds the vertices of the

@@ -399,8 +399,6 @@ public abstract class ReadOnlyVector4f {
         return tx <= eps && ty <= eps && tz <= eps && tw <= eps;
     }
     
-    // FIXME: should this instead treat it as a Homogenous vector
-    // and automatically divide by w?
     private class ReducedVector extends ReadOnlyVector3f {
         @Override
         public float getX() {

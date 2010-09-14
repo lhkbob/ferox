@@ -3,6 +3,7 @@ package com.ferox.scene.controller;
 import java.util.Iterator;
 
 import com.ferox.math.Matrix3f;
+import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.scene.Billboarded;
@@ -61,7 +62,7 @@ public class BillboardController extends Controller {
     private void satisfyConstraint(Billboarded b, Transform t, Axis axis) {
         // X = 0, Y = 1, Z = 2
         int o = axis.ordinal();
-        Vector3f constraint = b.getConstraint(axis);
+        ReadOnlyVector3f constraint = b.getConstraint(axis);
         
         if (constraint != null) {
             Vector3f d;

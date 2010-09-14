@@ -1,6 +1,6 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
-import com.ferox.math.Frustum.FrustumIntersection;
+import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.util.Bag;
 
 /**
@@ -83,31 +83,27 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     }
 
     @Override
-    public Bag<T> query(AxisAlignedBox volume, Bag<T> results) {
+    public void query(AxisAlignedBox volume, QueryCallback<T> callback) {
         if (volume == null)
             throw new NullPointerException("Query bound volume cannot be null");
-        
-        if (results == null)
-            results = new Bag<T>();
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
         
         SimpleKey<T> key;
         int sz = elements.size();
         for (int i = 0; i < sz; i++) {
             key = elements.get(i);
             if (key.bounds == null || key.bounds.intersects(volume))
-                results.add(key.data);
+                callback.process(key.data);
         }
-
-        return results;
     }
 
     @Override
-    public Bag<T> query(Frustum frustum, Bag<T> results) {
+    public void query(Frustum frustum, QueryCallback<T> callback) {
         if (frustum == null)
             throw new NullPointerException("Query Frustum cannot be null");
-        
-        if (results == null)
-            results = new Bag<T>();
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
         
         SimpleKey<T> key;
         int sz = elements.size();
@@ -116,10 +112,25 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
             // we can't use a PlaneState because each item has no spatial locality
             // with the items around it in elements
             if (key.bounds == null || key.bounds.intersects(frustum, null) != FrustumIntersection.OUTSIDE)
-                results.add(key.data);
+                callback.process(key.data);
         }
-
-        return results;
+    }
+    
+    @Override
+    public void query(IntersectionCallback<T> callback) {
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
+        
+        int ct = elements.size();
+        SimpleKey<T> e1, e2;
+        for (int i = 0; i < ct; i++) {
+            e1 = elements.get(i);
+            for (int j = i + 1; j < ct; j++) {
+                e2 = elements.get(j);
+                if (e1.bounds == null || e2.bounds == null || e1.bounds.intersects(e2.bounds))
+                    callback.process(e1.data, e2.data);
+            }
+        }
     }
 
     private static class SimpleKey<T> {

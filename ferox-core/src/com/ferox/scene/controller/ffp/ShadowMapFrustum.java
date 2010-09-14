@@ -2,7 +2,7 @@ package com.ferox.scene.controller.ffp;
 
 import com.ferox.entity.AbstractComponent;
 import com.ferox.entity.Component;
-import com.ferox.math.Frustum;
+import com.ferox.math.bounds.Frustum;
 
 /**
  * ShadowMapFrustum is a meta-Component that associates the shadow casting

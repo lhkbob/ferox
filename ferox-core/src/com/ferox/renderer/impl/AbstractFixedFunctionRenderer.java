@@ -4,6 +4,9 @@ import java.util.Arrays;
 
 import com.ferox.math.Color4f;
 import com.ferox.math.Matrix4f;
+import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.renderer.FixedFunctionRenderer;
@@ -175,7 +178,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     
     // matrix
     protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
-    private Matrix4f dirtyModelView = null; // last set model view that hasn't been sent yet
+    private final Matrix4f dirtyModelView = new Matrix4f(); // last set model view that hasn't been sent yet
+    private boolean isDirty = true;
     
     protected final ResourceManager resourceManager;
 
@@ -312,10 +316,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     @Override
-    public void setModelViewMatrix(Matrix4f matrix) {
+    public void setModelViewMatrix(ReadOnlyMatrix4f matrix) {
         if (matrix == null)
             matrix = IDENTITY;
-        dirtyModelView = matrix;
+        dirtyModelView.set(matrix);
+        isDirty = true;
     }
     
     /**
@@ -326,7 +331,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set the matrix for the current mode
      */
-    protected abstract void glSetMatrix(Matrix4f matrix);
+    protected abstract void glSetMatrix(ReadOnlyMatrix4f matrix);
     
     private void setMatrixMode(MatrixMode mode) {
         if (matrixMode != mode) {
@@ -336,15 +341,15 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     private void flushModelView() {
-        if (dirtyModelView != null) {
+        if (isDirty) {
             setMatrixMode(MatrixMode.MODELVIEW);
             glSetMatrix(dirtyModelView);
-            dirtyModelView = null;
+            isDirty = false;
         }
     }
     
     @Override
-    public void setProjectionMatrix(Matrix4f matrix) {
+    public void setProjectionMatrix(ReadOnlyMatrix4f matrix) {
         if (matrix == null)
             matrix = IDENTITY;
         
@@ -506,13 +511,13 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glEnableLight(int light, boolean enable);
 
     @Override
-    public void setLightPosition(int light, Vector4f pos) {
+    public void setLightPosition(int light, ReadOnlyVector4f pos) {
         if (light < 0 || light >= lights.length)
             return; // ignore it
         if (pos == null)
             throw new NullPointerException("Light position can't be null");
-        if (pos.w != 0f && pos.w != 1f)
-            throw new NullPointerException("pos.w must be 0 or 1, not: " + pos.w);
+        if (pos.getW() != 0f && pos.getW() != 1f)
+            throw new NullPointerException("pos.w must be 0 or 1, not: " + pos.getW());
         
         // always set the light position since pos will be transformed by
         // the current matrix
@@ -524,10 +529,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set a light's position vector
      */
-    protected abstract void glLightPosition(int light, Vector4f pos);
+    protected abstract void glLightPosition(int light, ReadOnlyVector4f pos);
     
     @Override
-    public void setSpotlight(int light, Vector3f dir, float angle) {
+    public void setSpotlight(int light, ReadOnlyVector3f dir, float angle) {
         if (light < 0 || light >= lights.length)
             return; // ignore it
         if (dir == null)
@@ -551,7 +556,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set a light's spotlight direction
      */
-    protected abstract void glLightDirection(int light, Vector3f dir);
+    protected abstract void glLightDirection(int light, ReadOnlyVector3f dir);
     
     /**
      * Invoke OpenGL calls to set a light's spotlight angle
@@ -985,7 +990,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glEnableTexGen(TexCoord coord, boolean enable);
 
     @Override
-    public void setTextureEyePlane(int tex, TexCoord coord, Vector4f plane) {
+    public void setTextureEyePlane(int tex, TexCoord coord, ReadOnlyVector4f plane) {
         if (tex < 0 || tex >= textures.length)
             return; // ignore it
         if (plane == null)
@@ -1004,7 +1009,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL to set the eye plane for the given coordinate on the active texture
      */
-    protected abstract void glTexEyePlane(TexCoord coord, Vector4f plane);
+    protected abstract void glTexEyePlane(TexCoord coord, ReadOnlyVector4f plane);
 
     @Override
     public void setTextureMode(int tex, EnvMode mode) {
@@ -1074,7 +1079,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glTexObjPlane(TexCoord coord, Vector4f plane);
     
     @Override
-    public void setTextureTransform(int tex, Matrix4f matrix) {
+    public void setTextureTransform(int tex, ReadOnlyMatrix4f matrix) {
         if (tex < 0 || tex >= textures.length)
             return; // ignore it
         if (matrix == null)

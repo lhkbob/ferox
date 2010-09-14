@@ -1,4 +1,11 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
+
+import com.ferox.math.Matrix4f;
+import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Vector3f;
+import com.ferox.math.Vector4f;
 
 
 /**
@@ -28,6 +35,7 @@ package com.ferox.math;
  * 
  * @author Michael Ludwig
  */
+// FIXME: I think I broke this or the ViewNodeController or something when I changed the maths around
 public class Frustum {
     /** Result of a frustum test against a {@link AxisAlignedBox}. */
     public static enum FrustumIntersection {
@@ -394,7 +402,7 @@ public class Frustum {
      * @param up The new up vector
      * @throws NullPointerException if location, direction or up is null
      */
-    public void setOrientation(Vector3f location, Vector3f direction, Vector3f up) {
+    public void setOrientation(ReadOnlyVector3f location, ReadOnlyVector3f direction, ReadOnlyVector3f up) {
         if (location == null || direction == null || up == null)
             throw new NullPointerException("Orientation vectors cannot be null: " + 
                                            location + " " + direction + " " + up);

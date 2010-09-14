@@ -27,7 +27,7 @@ public final class Matrix4f extends ReadOnlyMatrix4f implements Cloneable {
      * @param o Matrix to clone
      * @throws NullPointerException if o is null
      */
-    public Matrix4f(Matrix4f o) {
+    public Matrix4f(ReadOnlyMatrix4f o) {
         set(o);
     }
 
@@ -361,7 +361,7 @@ public final class Matrix4f extends ReadOnlyMatrix4f implements Cloneable {
         m[8] = m02;
         m[9] = m12;
         m[10] = m22;
-        m[11] = m23;
+        m[11] = m32;
         
         m[12] = m03;
         m[13] = m13;

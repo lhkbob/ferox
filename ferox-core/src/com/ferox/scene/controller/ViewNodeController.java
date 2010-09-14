@@ -4,18 +4,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.ferox.math.Frustum;
-import com.ferox.math.Matrix3f;
-import com.ferox.math.SpatialHierarchy;
-import com.ferox.renderer.Surface;
-import com.ferox.scene.SceneElement;
-import com.ferox.scene.ViewNode;
-import com.ferox.util.Bag;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
+import com.ferox.math.Matrix3f;
+import com.ferox.math.bounds.Frustum;
+import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.renderer.Surface;
+import com.ferox.scene.SceneElement;
+import com.ferox.scene.ViewNode;
 
 /**
  * ViewNodeController is a Controller implementation that handles the processing
@@ -39,10 +38,9 @@ import com.ferox.entity.EntitySystem;
  */
 public class ViewNodeController extends Controller {
     private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
 
     private Map<ViewNode, Dimension> dimensions;
-    private final Bag<Entity> queryCache;
     private final SpatialHierarchy<Entity> hierarchy;
 
     /**
@@ -65,7 +63,6 @@ public class ViewNodeController extends Controller {
         this.hierarchy = hierarchy;
         
         dimensions = new HashMap<ViewNode, Dimension>();
-        queryCache = new Bag<Entity>();
     }
 
     @Override
@@ -86,14 +83,11 @@ public class ViewNodeController extends Controller {
         SceneElement se = e.get(SE_ID);
         
         Frustum f = vn.getFrustum();
-        boolean needsUpdate = true;
         if (se != null) {
             // modify the frustum so that it matches the scene element 
             // location and orientation
             Matrix3f m = se.getTransform().getRotation();
-            m.getCol(1, f.getUp());
-            m.getCol(2, f.getDirection());
-            f.getLocation().set(se.getTransform().getTranslation());
+            f.setOrientation(se.getTransform().getTranslation(), m.getCol(2), m.getCol(1));
         }
         
         if (vn.getAutoUpdateViewport()) {
@@ -136,26 +130,10 @@ public class ViewNodeController extends Controller {
             dim.width = width;
             dim.height = height;
             store.put(vn, dim);
-            
-            // setFrustum and setPerspective auto update the frustum, so 
-            // set needsUpdate to false so we don't do it again
-            needsUpdate = false;
         }
-        
-        if (needsUpdate)
-            f.updateFrustumPlanes();
         
         // frustum is up-to-date, so now we perform a visibility query
-        queryCache.clear(true);
-        hierarchy.query(f, queryCache);
-
-        // modify all scene elements to be potentially visible
-        int ct = queryCache.size();
-        for (int i = 0; i < ct; i++) {
-            se = (SceneElement) queryCache.get(i).get(SE_ID);
-            if (se != null)
-                se.setVisible(f, true);
-        }
+        hierarchy.query(f, new VisibilityCallback(f));
     }
     
     private static class Dimension {

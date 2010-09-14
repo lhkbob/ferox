@@ -34,40 +34,19 @@ public final class BlinnPhongLightingModel extends AbstractComponent<BlinnPhongL
     public BlinnPhongLightingModel(Color4f ambient, Color4f diffuse, Color4f specular, float shininess) {
         super(BlinnPhongLightingModel.class);
         
-        this.ambient = new Color4f();
-        this.diffuse = new Color4f();
-        this.specular = new Color4f();
+        this.ambient = new Color4f(ambient);
+        this.diffuse = new Color4f(diffuse);
+        this.specular = new Color4f(specular);
         
-        setAmbient(ambient);
-        setDiffuse(diffuse);
-        setSpecular(specular);
         setShininess(shininess);
-    }
-    
-    public void setAmbient(Color4f amb) {
-        if (amb == null)
-            throw new NullPointerException("Ambient cannot be null");
-        ambient.set(amb);
     }
     
     public Color4f getAmbient() {
         return ambient;
     }
     
-    public void setDiffuse(Color4f diff) {
-        if (diff == null)
-            throw new NullPointerException("Diffuse cannot be null");
-        diffuse.set(diff);
-    }
-    
     public Color4f getDiffuse() {
         return diffuse;
-    }
-    
-    public void setSpecular(Color4f spec) {
-        if (spec == null)
-            throw new NullPointerException("Specular cannot be null");
-        specular.set(spec);
     }
     
     public Color4f getSpecular() {

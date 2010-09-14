@@ -28,9 +28,9 @@ public abstract class AbstractSurface implements Surface {
     private volatile boolean destroyed;
     
     protected final ReentrantLock lock;
-    protected final Framework framework;
+    protected final AbstractFramework framework;
 
-    public AbstractSurface(Framework framework) {
+    public AbstractSurface(AbstractFramework framework) {
         if (framework == null)
             throw new NullPointerException("Framework cannot be null");
         this.framework = framework;

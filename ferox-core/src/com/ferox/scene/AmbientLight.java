@@ -8,14 +8,7 @@ public class AmbientLight extends AbstractComponent<AmbientLight>{
     
     public AmbientLight(Color4f color) {
         super(AmbientLight.class);
-        this.color = new Color4f();
-        setColor(color);
-    }
-    
-    public void setColor(Color4f color) {
-        if (color == null)
-            throw new NullPointerException("Color cannot be null");
-        this.color.set(color);
+        this.color = new Color4f(color);
     }
     
     public Color4f getColor() {

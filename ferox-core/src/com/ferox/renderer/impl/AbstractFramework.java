@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.ferox.input.EventQueue;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -38,6 +39,7 @@ import com.ferox.resource.Resource.Status;
  * @author Michael Ludwig
  */
 public abstract class AbstractFramework implements Framework {
+    private final EventQueue eventQueue;
     private final ThreadLocal<List<Action>> queue;
     private volatile boolean destroyed;
     
@@ -58,6 +60,7 @@ public abstract class AbstractFramework implements Framework {
     public AbstractFramework() {
         validSurfaces = new HashSet<AbstractSurface>();
         queue = new ThreadLocal<List<Action>>();
+        eventQueue = new EventQueue();
         destroyed = false;
         
         stateLock = new ReentrantReadWriteLock();
@@ -166,6 +169,7 @@ public abstract class AbstractFramework implements Framework {
         
             renderManager.destroy();
             resourceManager.destroy();
+            eventQueue.shutdown();
             
             for (AbstractSurface s: validSurfaces)
                 s.destroy();
@@ -366,6 +370,14 @@ public abstract class AbstractFramework implements Framework {
      */
     public final ResourceManager getResourceManager() {
         return resourceManager;
+    }
+
+    /**
+     * @return The EventQueue that should be shared by all OnscreenSurfaces
+     *         created by this AbstractFramework.
+     */
+    public final EventQueue getEventQueue() {
+        return eventQueue;
     }
     
     /**

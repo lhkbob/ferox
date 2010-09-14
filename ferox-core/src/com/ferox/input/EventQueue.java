@@ -16,6 +16,7 @@ public class EventQueue {
     
     public void postEvent(Event e) {
         EventDispatcher dispatcher = e.getSource().getDispatcher();
+        // FIXME: can fail if event is posted after executor is shut down
         executor.submit(new EventTask(dispatcher, e));
     }
     

@@ -236,8 +236,12 @@ public class DefaultResourceManager implements ResourceManager {
                 return (rd.handle.getStatus() == Status.READY ? rd.handle : null);
         }
         
+        // must unlock the write lock, in the case of setting up resources during
+        // initialization/surface creation, etc. so that the ResourceWorker thread
+        // can actually process the sync we just added to the pending tasks
         boolean unlockNeeded = frameworkLock.isWriteLockedByCurrentThread();
-        frameworkLock.writeLock().unlock();
+        if (unlockNeeded)
+            frameworkLock.writeLock().unlock();
         try {
             Status status = forceSync.get(500, TimeUnit.SECONDS);
             if (status == Status.READY) {

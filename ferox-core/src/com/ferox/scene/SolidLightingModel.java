@@ -8,17 +8,10 @@ public final class SolidLightingModel extends AbstractComponent<SolidLightingMod
     
     public SolidLightingModel(Color4f color) {
         super(SolidLightingModel.class);
-        this.color = new Color4f();
-        setColor(color);
+        this.color = new Color4f(color);
     }
     
     public Color4f getColor() {
         return color;
-    }
-    
-    public void setColor(Color4f color) {
-        if (color == null)
-            throw new NullPointerException("Color cannot be null");
-        this.color.set(color);
     }
 }

@@ -4,10 +4,10 @@ import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Entity;
 import com.ferox.math.Color4f;
-import com.ferox.math.Frustum;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Renderer;
@@ -60,7 +60,6 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
     
     private final Matrix4f view;
     private final Matrix4f modelView;
-    private final Matrix4f projection;
     
     // per-pass variables
     private FixedFunctionRenderer renderer;
@@ -92,7 +91,6 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
 
         modelView = new Matrix4f();
         view = new Matrix4f();
-        projection = new Matrix4f();
     }
 
     @Override
@@ -130,11 +128,10 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
         
         // get matrix forms from the frustum
         Frustum frustum = getFrustum();
-        frustum.getProjectionMatrix(projection);
-        frustum.getViewMatrix(view);
+        view.set(frustum.getViewMatrix());
         
         // set projection matrix and view matrices on renderer
-        renderer.setProjectionMatrix(projection);
+        renderer.setProjectionMatrix(frustum.getProjectionMatrix());
         renderer.setModelViewMatrix(view);
     }
 
@@ -247,14 +244,14 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
         } else if (lightComponent instanceof DirectionLight) {
             DirectionLight dl = (DirectionLight) lightComponent;
             
-            lightPos.set(-dl.getDirection().x, -dl.getDirection().y, -dl.getDirection().z, 0f);
+            lightPos.set(-dl.getDirection().getX(), -dl.getDirection().getY(), -dl.getDirection().getZ(), 0f);
             renderer.setLightPosition(light, lightPos);
             renderer.setLightColor(light, BLACK, dl.getColor(), dl.getColor());
             renderer.setLightEnabled(light, true);
         } else if (lightComponent instanceof SpotLight) {
             SpotLight sl = (SpotLight) lightComponent;
             
-            lightPos.set(sl.getPosition().x, sl.getPosition().y, sl.getPosition().z, 1f);
+            lightPos.set(sl.getPosition().getX(), sl.getPosition().getY(), sl.getPosition().getZ(), 1f);
             sl.getDirection().normalize(lightDir);
             renderer.setLightPosition(light, lightPos);
             renderer.setSpotlight(light, lightDir, sl.getCutoffAngle());

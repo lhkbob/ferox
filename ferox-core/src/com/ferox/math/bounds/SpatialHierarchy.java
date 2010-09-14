@@ -1,9 +1,8 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
-import com.ferox.math.Frustum.FrustumIntersection;
-import com.ferox.scene.controller.SceneController;
-import com.ferox.util.Bag;
 import com.ferox.entity.Entity;
+import com.ferox.math.bounds.Frustum.FrustumIntersection;
+import com.ferox.scene.controller.SceneController;
 
 /**
  * <p>
@@ -94,31 +93,28 @@ public interface SpatialHierarchy<T> {
 
     /**
      * <p>
-     * Query this SpatialHierarchy to return all previously added items that
-     * have their provided bounds
-     * {@link AxisAlignedBox#intersects(AxisAlignedBox) intersecting} with
-     * <tt>volume</tt>. Additionally, any item that was added with a null bounds
-     * will always be considered as intersecting the query volume.
+     * Query this SpatialHierarchy for all previously added items that have
+     * their provided bounds {@link AxisAlignedBox#intersects(AxisAlignedBox)
+     * intersecting} with <tt>volume</tt>. Additionally, any item that was added
+     * with a null bounds will always be considered as intersecting the query
+     * volume.
      * </p>
      * <p>
-     * If <tt>results</tt> is not null, any intersecting items are appended to
-     * the bag and results will then be returned. If <tt>results</tt> is null, a
-     * new Bag is created, filled with items and then returned.
+     * The provided QueryCallback has its {@link QueryCallback#process(Object)}
+     * for each intersecting item. An item will be passed to the callback once
+     * per query.
      * </p>
      * 
      * @param volume The volume representing the spatial query
-     * @param results A Bag to hold the query results, or null if a new Bag is
-     *            to be created.
-     * @return results filled with all intersecting items, or a new Bag if
-     *         results was null
-     * @throws NullPointerException if volume is null
+     * @param callback A QueryCallback to run on each item within the query
+     * @throws NullPointerException if volume or callback is null
      */
-    public Bag<T> query(AxisAlignedBox volume, Bag<T> results);
+    public void query(AxisAlignedBox volume, QueryCallback<T> callback);
 
     /**
      * <p>
-     * Query this SpatialHierarchy to return all previously added items that
-     * have their provided bounds
+     * Query this SpatialHierarchy for all previously added items that have
+     * their provided bounds
      * {@link AxisAlignedBox#intersects(Frustum, PlaneState) intersecting} with
      * <tt>frustum</tt>. An item's bounds intersects with the Frustum if its
      * FrustumIntersection is not {@link FrustumIntersection#OUTSIDE}.
@@ -126,17 +122,36 @@ public interface SpatialHierarchy<T> {
      * considered as intersecting the query volume.
      * </p>
      * <p>
-     * If <tt>results</tt> is not null, any intersecting items are appended to
-     * the bag and results will be returned. If <tt>results</tt> is null, a new
-     * Bag is created, filled with items and then returned.
+     * The provided QueryCallback has its {@link QueryCallback#process(Object)}
+     * for each intersecting item. An item will be passed to the callback once
+     * per query.
      * </p>
      * 
      * @param frustum The frustum representing the spatial query
-     * @param results A Bag to hold the query results, or null if a new Bag is
-     *            to be created
-     * @return results filled with all intersecting iems, or a new Bag if
-     *         results was null
-     * @throws NullPointerException if frustum is null
+     * @param callback A QueryCallback to run on each item within the query
+     * @throws NullPointerException if frustum or callback is null
      */
-    public Bag<T> query(Frustum frustum, Bag<T> results);
+    public void query(Frustum f, QueryCallback<T> callback);
+
+    /**
+     * <p>
+     * Query this SpatialHierarchy for all pairs of intersecting items that have
+     * been added to this hierarchy. Intersections are determined by
+     * {@link AxisAlignedBox#intersects(AxisAlignedBox)}, between the bounds
+     * provided with the items when they were added or updated.
+     * </p>
+     * <p>
+     * A pair of items is considered unique, and any combination of two items
+     * that intersect will not be passed to the callback more than once. Unlike
+     * the other queries, items with null bounds are ignored when determining
+     * the number of intersecting pairs, because the performance hit is much
+     * worse in this O(N^2) problem compared to the O(N) problems for
+     * visibility.
+     * </p>
+     * 
+     * @param callback The IntersectionCallback to run on each pair that is
+     *            intersecting
+     * @throws NullPointerException if callback is null
+     */
+    public void query(IntersectionCallback<T> callback);
 }

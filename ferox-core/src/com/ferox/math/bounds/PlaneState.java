@@ -1,4 +1,4 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
 /**
  * PlaneState keeps track of the intermediate test results of a BoundVolume's
@@ -8,7 +8,17 @@ package com.ferox.math;
  * @author Michael Ludwig
  */
 public class PlaneState {
+    private static final int PLANE_MASK = 0x3f;
+    
     private int planeBits;
+
+    /**
+     * @return True if any plane returns true from
+     *         {@link #isTestRequired(int)}
+     */
+    public boolean getTestsRequired() {
+        return (planeBits & PLANE_MASK) != PLANE_MASK;
+    }
     
     /**
      * <p>

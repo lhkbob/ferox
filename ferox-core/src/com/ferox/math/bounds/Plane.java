@@ -1,4 +1,9 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
+
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Vector3f;
+import com.ferox.math.Vector4f;
 
 
 /**
@@ -22,7 +27,7 @@ public class Plane {
      * @throws NullPointerException if plane is null
      */
     public static void normalize(Vector4f plane) {
-        plane.scale(1f / lengthAs3(plane));
+        plane.scale(1f / lengthAsVector3f(plane));
     }
 
     /**
@@ -59,7 +64,7 @@ public class Plane {
      */
     public static float getSignedDistance(ReadOnlyVector4f plane, ReadOnlyVector3f point, boolean assumeNormalized) {
         float num = point.dot(plane.getX(), plane.getY(), plane.getZ()) + plane.getW();
-        return (assumeNormalized ? num : num / lengthAs3(plane));
+        return (assumeNormalized ? num : num / lengthAsVector3f(plane));
     }
     
     // FIXME: verify behavior, math and document behavior
@@ -83,7 +88,7 @@ public class Plane {
         }
     }
     
-    private static float lengthAs3(ReadOnlyVector4f v) {
+    private static float lengthAsVector3f(ReadOnlyVector4f v) {
         return (float) Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ());
     }
 }

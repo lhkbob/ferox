@@ -1,20 +1,20 @@
 package com.ferox.scene;
 
-import com.ferox.math.Color4f;
-import com.ferox.math.Vector3f;
 import com.ferox.entity.AbstractComponent;
+import com.ferox.math.Color4f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Vector3f;
 
 public class DirectionLight extends AbstractComponent<DirectionLight> {
     private final Vector3f direction;
     private final Color4f color;
 
-    public DirectionLight(Color4f color, Vector3f direction) {
+    public DirectionLight(Color4f color, ReadOnlyVector3f direction) {
         super(DirectionLight.class);
         
-        this.direction = new Vector3f();
+        this.direction = new Vector3f(direction);
         this.color = new Color4f();
         
-        setDirection(direction);
         setColor(color);
     }
     
@@ -30,11 +30,5 @@ public class DirectionLight extends AbstractComponent<DirectionLight> {
     
     public Vector3f getDirection() {
         return direction;
-    }
-    
-    public void setDirection(Vector3f direction) {
-        if (direction == null)
-            throw new NullPointerException("Direction cannot be null");
-        this.direction.set(direction);
     }
 }

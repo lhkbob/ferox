@@ -3,10 +3,10 @@ package com.ferox.scene.controller.ffp;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Entity;
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.Frustum;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector4f;
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
@@ -68,7 +68,7 @@ public class ShadowedLightingPass extends AbstractFixedFunctionRenderPass {
         
         Vector4f plane = new Vector4f();
         Matrix4f texM = new Matrix4f();
-        bias.mul(shadowFrustum.getProjectionMatrix(texM), texM).mul(shadowFrustum.getViewMatrix(null));
+        bias.mul(shadowFrustum.getProjectionMatrix(), texM).mul(shadowFrustum.getViewMatrix());
         
         ffp.setTextureEyePlane(smUnit, TexCoord.S, texM.getRow(0, plane));
         ffp.setTextureEyePlane(smUnit, TexCoord.T, texM.getRow(1, plane));

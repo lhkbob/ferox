@@ -1,8 +1,14 @@
-package com.ferox.math;
+package com.ferox.math.bounds;
 
 import java.nio.FloatBuffer;
 
-import com.ferox.math.Frustum.FrustumIntersection;
+import com.ferox.math.Matrix4f;
+import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.resource.Geometry;
 
 /**
@@ -65,8 +71,8 @@ public class AxisAlignedBox {
      */
     public AxisAlignedBox(ReadOnlyVector3f min, ReadOnlyVector3f max) {
         this();
-        setMin(min);
-        setMax(max);
+        this.min.set(min);
+        this.max.set(max);
     }
 
     /**
@@ -151,32 +157,6 @@ public class AxisAlignedBox {
     public void set(AxisAlignedBox aabb) {
         min.set(aabb.min);
         max.set(aabb.max);
-    }
-
-    /**
-     * Copy <tt>min</tt> into the vector storing this AxisAlignedBox's minimum
-     * control point. Validation is not performed to guarantee that the new
-     * minimum is less than the bound's max. If this is not the case, the
-     * AxisAlignedBox is inconsistent until corrected.
-     * 
-     * @param min The new coordinate value for the box's minimum corner
-     * @throws NullPointerException if min is null
-     */
-    public void setMin(ReadOnlyVector3f min) {
-        this.min.set(min);
-    }
-    
-    /**
-     * Copy <tt>max</tt> into the vector storing this AxisAlignedBox's maximum
-     * control point. Validation is not performed to guarantee that the new
-     * maximum is greater than the bound's min. If this is not the case, the
-     * AxisAlignedBox is inconsistent until corrected.
-     * 
-     * @param max The new coordinate value for the box's maximum corner
-     * @throws NullPointerException if max is null
-     */
-    public void setMax(ReadOnlyVector3f max) {
-        this.max.set(max);
     }
 
     /**
@@ -268,6 +248,10 @@ public class AxisAlignedBox {
     public FrustumIntersection intersects(Frustum f, PlaneState planeState) {
         if (f == null)
             throw new NullPointerException("Frustum cannot be null");
+        
+        // early escape for potentially deeply nested nodes in a tree
+        if (planeState != null && !planeState.getTestsRequired())
+            return FrustumIntersection.INSIDE;
         
         FrustumIntersection result = FrustumIntersection.INSIDE;
         float distMax;
@@ -441,7 +425,7 @@ public class AxisAlignedBox {
      *         transformed box
      * @throws NullPointerException if m is null
      */
-    public AxisAlignedBox transform(Matrix4f m, AxisAlignedBox result) {
+    public AxisAlignedBox transform(ReadOnlyMatrix4f m, AxisAlignedBox result) {
         // we use temporary vectors because this method isn't atomic,
         // and result might be this box
         Vector3f newMin = TEMP1.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));

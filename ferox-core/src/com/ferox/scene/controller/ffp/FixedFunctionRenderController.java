@@ -10,8 +10,8 @@ import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
-import com.ferox.math.Frustum;
 import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Surface;
@@ -400,6 +400,7 @@ public class FixedFunctionRenderController extends Controller {
 
                 return (NON_TRANSPARENT_BIT | (geomId << 20) | (tpId << 10) | (tdId));
             } else {
+                // FIXME: this depth sorting doesn't scale well enough
                 SceneElement se = value.get(SE_ID);
                 if (se != null)
                     se.getTransform().getTranslation().sub(view.getLocation(), proj);

@@ -15,8 +15,8 @@ public class Attached extends AbstractComponent<Attached> {
     public Attached(Entity attachedTo, Transform offset) {
         super(Attached.class);
         this.offset = new Transform();
+        this.offset.set(offset);
         setAttachment(attachedTo);
-        setOffset(offset);
     }
     
     /**
@@ -54,19 +54,5 @@ public class Attached extends AbstractComponent<Attached> {
         if (attachedTo == null)
             throw new NullPointerException("Entity attachedTo cannot be null");
         this.attachedTo = attachedTo;
-    }
-    
-    /**
-     * Copy <tt>offset</tt> into the internal Transform that stores the offset
-     * used when computing an updated Entity's final Transform. This offset can
-     * include, or be solely rotational in nature; it does not need to just be
-     * translations.
-     * 
-     * @param offset The new offset
-     */
-    public void setOffset(Transform offset) {
-        if (offset == null)
-            throw new NullPointerException("Transform cannot be null");
-        this.offset.set(offset);
     }
 }
