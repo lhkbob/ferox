@@ -10,10 +10,43 @@ public class Box implements ConvexShape {
     private final AxisAlignedBox aabb;
     
     public Box(float xExtent, float yExtent, float zExtent) {
-        halfExtents = new Vector3f(xExtent / 2f, yExtent / 2f, zExtent / 2f);
+        halfExtents = new Vector3f();
         aabb = new AxisAlignedBox();
-        aabb.getMin().set(halfExtents).scale(-1f);
+        
+        setExtents(xExtent, yExtent, zExtent);
+    }
+    
+    public ReadOnlyVector3f getHalfExtents() {
+        return halfExtents;
+    }
+    
+    public ReadOnlyVector3f getExtents() {
+        return halfExtents.scale(2f, null);
+    }
+    
+    public void setExtents(float width, float height, float depth) {
+        if (width <= 0)
+            throw new IllegalArgumentException("Invalid width, must be greater than 0, not: " + width);
+        if (height <= 0)
+            throw new IllegalArgumentException("Invalid height, must be greater than 0, not: " + height);
+        if (depth <= 0)
+            throw new IllegalArgumentException("Invalid depth, must be greater than 0, not: " + depth);
+        
+        halfExtents.set(width / 2f, height / 2f, depth / 2f);
         aabb.getMax().set(halfExtents);
+        aabb.getMin().set(halfExtents).scale(-1f);
+    }
+    
+    public float getWidth() {
+        return halfExtents.getX() * 2f;
+    }
+    
+    public float getHeight() {
+        return halfExtents.getY() * 2f;
+    }
+    
+    public float getDepth() {
+        return halfExtents.getZ() * 2f;
     }
     
     @Override

@@ -61,6 +61,9 @@ public abstract class AbstractCollisionManager implements CollisionManager {
     }
     
     protected ClosestPair getClosestPair(Collidable objA, Collidable objB) {
+        if (!objA.canCollide(objB))
+            return null;
+        
         synchronized(algorithms) {
             Shape sa = objA.getShape();
             Shape sb = objB.getShape();
