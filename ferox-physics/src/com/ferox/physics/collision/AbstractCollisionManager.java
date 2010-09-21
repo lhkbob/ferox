@@ -3,11 +3,14 @@ package com.ferox.physics.collision;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ferox.physics.collision.narrow.GjkEpaCollisionAlgorithm;
+
 public abstract class AbstractCollisionManager implements CollisionManager {
     private final List<CollisionAlgorithm> algorithms;
     
     public AbstractCollisionManager() {
         algorithms = new ArrayList<CollisionAlgorithm>();
+        register(new GjkEpaCollisionAlgorithm());
     }
 
     @Override

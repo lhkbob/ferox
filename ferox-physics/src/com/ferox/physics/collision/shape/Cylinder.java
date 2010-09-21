@@ -1,5 +1,6 @@
 package com.ferox.physics.collision.shape;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
@@ -40,7 +41,7 @@ public class Cylinder extends AxisSweptShape {
     }
 
     @Override
-    public Vector3f computeSupport(ReadOnlyVector3f v, Vector3f result) {
+    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         

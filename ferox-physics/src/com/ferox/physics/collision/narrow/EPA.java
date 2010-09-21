@@ -1,5 +1,6 @@
 package com.ferox.physics.collision.narrow;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.narrow.Simplex.SupportSample;
@@ -223,7 +224,7 @@ public class EPA {
                     }
                 }
                 
-                Vector3f projection = outer.normal.scale(outer.d, temp1.get());
+                MutableVector3f projection = outer.normal.scale(outer.d, temp1.get());
                 normal.set(outer.normal);
                 depth = outer.d;
                 
@@ -311,7 +312,7 @@ public class EPA {
     }
     
     private class Face {
-        final Vector3f normal;
+        final MutableVector3f normal;
         float d;
         float p;
         

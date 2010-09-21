@@ -1,5 +1,6 @@
 package com.ferox.physics.collision.narrow;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
@@ -95,7 +96,7 @@ public class MinkowskiDifference {
      *         result was null
      * @throws NullPointerException if simplex is null
      */
-    public Vector3f getClosestPointA(Simplex simplex, boolean useMargin, Vector3f result) {
+    public MutableVector3f getClosestPointA(Simplex simplex, boolean useMargin, MutableVector3f result) {
         if (simplex == null)
             throw new NullPointerException("Simplex cannot be null");
         Vector3f t = supportCache.get();
@@ -124,7 +125,7 @@ public class MinkowskiDifference {
      *         result was null
      * @throws NullPointerException if simplex is null
      */
-    public Vector3f getClosestPointB(Simplex simplex, boolean useMargin, Vector3f result) {
+    public MutableVector3f getClosestPointB(Simplex simplex, boolean useMargin, MutableVector3f result) {
         if (simplex == null)
             throw new NullPointerException("Simplex cannot be null");
         Vector3f t = supportCache.get();
@@ -161,15 +162,15 @@ public class MinkowskiDifference {
      * @return The support, stored in result or a new vector if result was null
      * @throws NullPointerException if d is null
      */
-    public Vector3f getSupport(ReadOnlyVector3f d, Vector3f result) {
+    public MutableVector3f getSupport(ReadOnlyVector3f d, MutableVector3f result) {
         Vector3f t = supportCache.get();
         
-        Vector3f sa = getAffineSupport(shapeA, transA, d, true, result);
-        Vector3f sb = getAffineSupport(shapeB, transB, d.scale(-1f, t), true, t);
+        MutableVector3f sa = getAffineSupport(shapeA, transA, d, true, result);
+        MutableVector3f sb = getAffineSupport(shapeB, transB, d.scale(-1f, t), true, t);
         return sa.sub(sb);
     }
     
-    private Vector3f getAffineSupport(ConvexShape shape, ReadOnlyMatrix4f t, ReadOnlyVector3f d, boolean useMargin, Vector3f result) {
+    private MutableVector3f getAffineSupport(ConvexShape shape, ReadOnlyMatrix4f t, ReadOnlyVector3f d, boolean useMargin, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         

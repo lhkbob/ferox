@@ -1,5 +1,6 @@
 package com.ferox.physics.collision;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 
 /**
@@ -26,4 +27,16 @@ public interface Shape {
      * @return The Shape's local bounds
      */
     public AxisAlignedBox getBounds();
+
+    /**
+     * Return the vector containing the inertia tensor for this shape, in its
+     * local transform space. The returned instance should remain consistent
+     * with any changes to the Shape.
+     * 
+     * @param mass The mass of this shape
+     * @param result A vector to hold the computed tensor, can be null
+     * @return The Shape's local inertia tensor in result if it was not null,
+     *         otherwise a new vector
+     */
+    public MutableVector3f getInertiaTensor(float mass, MutableVector3f result);
 }

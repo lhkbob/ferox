@@ -1,7 +1,7 @@
 package com.ferox.physics.collision.narrow;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.CollisionAlgorithm;
@@ -67,7 +67,7 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm {
         ReadOnlyVector3f pa = objA.getWorldTransform().getCol(3).getAsVector3f();
         ReadOnlyVector3f pb = objB.getWorldTransform().getCol(3).getAsVector3f();
         
-        Vector3f guess = pb.sub(pa, null);
+        MutableVector3f guess = pb.sub(pa, null);
         gjk.evaluate(guess);
         
         if (gjk.getStatus() == GJK.Status.VALID) {
@@ -89,12 +89,12 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm {
     
     private ClosestPair constructPair(MinkowskiDifference shape, Simplex simplex, ReadOnlyVector3f contactNormal, 
                                       ReadOnlyVector3f pA, ReadOnlyVector3f pB) {
-        Vector3f wA = shape.getClosestPointA(simplex, false, null);
-        Vector3f wB = shape.getClosestPointB(simplex, false, null);
+        MutableVector3f wA = shape.getClosestPointA(simplex, false, null);
+        MutableVector3f wB = shape.getClosestPointB(simplex, false, null);
         
         boolean intersecting = (pA.distanceSquared(wB) < pA.distanceSquared(wA)) && 
                                (pB.distanceSquared(wA) < pB.distanceSquared(wB));
-        Vector3f normal = wB.sub(wA); // wB becomes the normal here
+        MutableVector3f normal = wB.sub(wA); // wB becomes the normal here
         float distance = normal.length() * (intersecting ? -1f : 1f);
         
         if (Math.abs(distance) < CONTACT_NORMAL_ACCURACY) {

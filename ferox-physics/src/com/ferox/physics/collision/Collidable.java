@@ -2,24 +2,22 @@ package com.ferox.physics.collision;
 
 import java.util.BitSet;
 
-import com.ferox.math.Matrix4f;
 import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.Transform;
+import com.ferox.math.bounds.AxisAlignedBox;
 
 public class Collidable {
-    private final Matrix4f worldTransform;
-//    private final Matrix4f predictedWorldTransform;
-    
-//    private final AxisAlignedBox localAabb;
-//    private final AxisAlignedBox sweptWorldAabb;
-    
     private final BitSet collisionGroups;
     private final BitSet collisionMask;
-    
+
+    private final Transform worldTransform;
+    private final AxisAlignedBox worldAabb;
     private Shape bounds;
     
     public Collidable(ReadOnlyMatrix4f t, Shape shape) {
-        worldTransform = new Matrix4f(t);
+        worldTransform = new Transform(t);
         bounds = shape;
+        worldAabb = new AxisAlignedBox();
         
         collisionGroups = new BitSet();
         collisionMask = new BitSet();
@@ -27,6 +25,7 @@ public class Collidable {
         // every Collidable starts out in a group
         setMemberOfGroup(0, true);
         setCollidesWithGroup(0, true);
+        updateBounds();
     }
     
     public boolean canCollide(Collidable other) {
@@ -53,15 +52,33 @@ public class Collidable {
         collisionMask.set(group, collide);
     }
     
-    public ReadOnlyMatrix4f getWorldTransform() {
+    public Transform getWorldTransform() {
         return worldTransform;
+    }
+    
+    public void setShape(Shape shape) {
+        if (shape == null)
+            throw new NullPointerException("Shape cannot be null");
+        bounds = shape;
+        updateBounds();
     }
     
     public Shape getShape() {
         return bounds;
     }
     
-//    public Matrix4f getPredictedWorldTransform() {
-        
-//    }
+    public void setWorldTransform(ReadOnlyMatrix4f t) {
+        if (t == null)
+            throw new NullPointerException("Transform cannot be null");
+        worldTransform.set(t);
+        updateBounds();
+    }
+    
+    public AxisAlignedBox getWorldBounds() {
+        return worldAabb;
+    }
+    
+    private void updateBounds() {
+        bounds.getBounds().transform(worldTransform, worldAabb);
+    }
 }

@@ -1,7 +1,7 @@
 package com.ferox.physics.collision.shape;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.physics.collision.ConvexShape;
 
@@ -28,7 +28,7 @@ public class Sphere implements ConvexShape {
     }
     
     @Override
-    public Vector3f computeSupport(ReadOnlyVector3f v, Vector3f result) {
+    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
         return v.normalize(result).scale(radius);
     }
 

@@ -2,6 +2,7 @@ package com.ferox.physics.collision.narrow;
 
 import java.util.Arrays;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
@@ -235,7 +236,7 @@ public class Simplex {
             }
             break; }
         case 2: {
-            Vector3f d = vertices[1].support.sub(vertices[0].support, null);
+            MutableVector3f d = vertices[1].support.sub(vertices[0].support, null);
             Vector3f axis = new Vector3f();
             
             for (int i = 0; i < 3; i++) {
@@ -253,7 +254,7 @@ public class Simplex {
             }
             break; }
         case 3: {
-            Vector3f n = vertices[1].support.sub(vertices[0].support, null).cross(vertices[2].support.sub(vertices[0].support, null));
+            MutableVector3f n = vertices[1].support.sub(vertices[0].support, null).cross(vertices[2].support.sub(vertices[0].support, null));
             if (n.lengthSquared() > 0) {
                 addVertex(shape, n);
                 if (encloseOrigin(shape))
@@ -405,6 +406,9 @@ public class Simplex {
      * Update the weights and mask to perform the actual math needed by reduce()
      */
     private boolean projectOrigin() {
+        float[] weights = weightCache.get();
+        int[] mask = maskCache.get();
+        
         Arrays.fill(weights, 0f);
         mask[0] = 0;
         
@@ -423,8 +427,24 @@ public class Simplex {
                                                       vertices[2].support, vertices[3].support, weights, mask);
             break;
         }
-        return sqdist > 0f;
+        
+        if (sqdist > 0f) {
+            // copy weights back into member variables
+            System.arraycopy(weights, 0, this.weights, 0, 4);
+            this.mask[0] = mask[0];
+            return true;
+        } else
+            return false;
     }
+    
+    private static final ThreadLocal<float[]> weightCache = new ThreadLocal<float[]>() {
+        @Override
+        protected float[] initialValue() { return new float[4]; }
+    };
+    private static final ThreadLocal<int[]> maskCache = new ThreadLocal<int[]>() {
+        @Override
+        protected int[] initialValue() { return new int[1]; }
+    };
     
     private static class SimplexUtil {
         private static final int[] IMD3 = new int[] {1, 2, 0};
@@ -453,7 +473,7 @@ public class Simplex {
         
         
         public float projectOrigin2(ReadOnlyVector3f a, ReadOnlyVector3f b, float[] weights, int[] mask) {
-            Vector3f d = b.sub(a, p2);
+            MutableVector3f d = b.sub(a, p2);
             float l = d.lengthSquared();
             
             if (l > 0f) {

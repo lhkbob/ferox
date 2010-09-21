@@ -1,7 +1,7 @@
 package com.ferox.physics.collision;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.narrow.GjkEpaCollisionAlgorithm;
 
 /**
@@ -34,5 +34,5 @@ public interface ConvexShape extends Shape {
      * @return The computed support in result, or a new vector if result is null
      * @throws NullPointerException if v is null
      */
-    public Vector3f computeSupport(ReadOnlyVector3f v, Vector3f result);
+    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result);
 }
