@@ -1,6 +1,7 @@
 package com.ferox.math.bounds;
 
 import com.ferox.math.Matrix4f;
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
@@ -443,9 +444,9 @@ public class Frustum {
      */
     private void update() {
         // compute the right-handed basis vectors of the frustum
-        Vector3f n = direction.normalize().scale(-1f, Frustum.n.get());
-        Vector3f u = up.normalize().cross(n, Frustum.p.get());
-        Vector3f v = n.cross(u, up);
+        MutableVector3f n = direction.normalize().scale(-1f, Frustum.n.get());
+        MutableVector3f u = up.normalize().cross(n, Frustum.p.get());
+        MutableVector3f v = n.cross(u, up);
         
         // view matrix
         view.set(u.getX(), u.getY(), u.getZ(), -location.dot(u),

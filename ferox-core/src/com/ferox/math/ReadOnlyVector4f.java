@@ -127,7 +127,7 @@ public abstract class ReadOnlyVector4f {
      *         to proj, based off of this vector
      * @throws NullPointerException if proj is null
      */
-    public Vector4f ortho(ReadOnlyVector4f proj, Vector4f result) {
+    public MutableVector4f ortho(ReadOnlyVector4f proj, MutableVector4f result) {
         // remember this vector, in case it's the same as result
         float tx = getX();
         float ty = getY();
@@ -150,7 +150,7 @@ public abstract class ReadOnlyVector4f {
      *         vector onto proj
      * @throws NullPointerException if proj is null
      */
-    public Vector4f project(ReadOnlyVector4f proj, Vector4f result) {
+    public MutableVector4f project(ReadOnlyVector4f proj, MutableVector4f result) {
         return proj.scale(dot(proj) / proj.lengthSquared(), result);
     }
 
@@ -163,7 +163,7 @@ public abstract class ReadOnlyVector4f {
      * @return result, or a new Vector4f if null, holding the addition result
      * @throws NullPointerException if v is null
      */
-    public Vector4f add(ReadOnlyVector4f v, Vector4f result) {
+    public MutableVector4f add(ReadOnlyVector4f v, MutableVector4f result) {
         return add(v.getX(), v.getY(), v.getZ(), v.getW(), result);
     }
 
@@ -179,7 +179,7 @@ public abstract class ReadOnlyVector4f {
      * @param result Vector to store the result, or null
      * @return result, or a new Vector4f if null, holding the addition result
      */
-    public Vector4f add(float x, float y, float z, float w, Vector4f result) {
+    public MutableVector4f add(float x, float y, float z, float w, MutableVector4f result) {
         if (result == null)
             result = new Vector4f();
         return result.set(getX() + x, getY() + y, getZ() + z, getW() + w);
@@ -194,7 +194,7 @@ public abstract class ReadOnlyVector4f {
      * @return result, or a new Vector4f if null, holding the subtraction result
      * @throws NullPointerException if v is null
      */
-    public Vector4f sub(ReadOnlyVector4f v, Vector4f result) {
+    public MutableVector4f sub(ReadOnlyVector4f v, MutableVector4f result) {
         return sub(v.getX(), v.getY(), v.getZ(), v.getW(), result);
     }
 
@@ -210,7 +210,7 @@ public abstract class ReadOnlyVector4f {
      * @param result Vector to store the result, or null
      * @return result, or a new Vector4f if null, holding the subtraction result
      */
-    public Vector4f sub(float x, float y, float z, float w, Vector4f result) {
+    public MutableVector4f sub(float x, float y, float z, float w, MutableVector4f result) {
         if (result == null)
             result = new Vector4f();
         return result.set(getX() - x, getY() - y, getZ() - z, getW() - w);
@@ -227,7 +227,7 @@ public abstract class ReadOnlyVector4f {
      * @return result, or a new Vector4f if null, holding the subtraction result
      * @throws NullPointerException if v is null
      */
-    public Vector4f scaleAdd(float scalar, ReadOnlyVector4f add, Vector4f result) {
+    public MutableVector4f scaleAdd(float scalar, ReadOnlyVector4f add, MutableVector4f result) {
         if (result == null)
             result = new Vector4f();
         return result.set(scalar * getX() + add.getX(), 
@@ -244,7 +244,7 @@ public abstract class ReadOnlyVector4f {
      * @param result Vector to store the result, or null
      * @return result, or a new Vector4f if null, holding the scaled vector
      */
-    public Vector4f scale(float scalar, Vector4f result) {
+    public MutableVector4f scale(float scalar, MutableVector4f result) {
         if (result == null)
             result = new Vector4f();
         return result.set(scalar * getX(), scalar * getY(), scalar * getZ(), scalar * getW());
@@ -260,7 +260,7 @@ public abstract class ReadOnlyVector4f {
      * @return result, or a new Vector4f if null, holding the subtraction result
      * @throws ArithmeticException if this vector can't be normalized
      */
-    public Vector4f normalize(Vector4f result) {
+    public MutableVector4f normalize(MutableVector4f result) {
         float d = length();
         if (d == 0f)
             throw new ArithmeticException("Cannot normalize 0 vector");

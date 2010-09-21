@@ -2,14 +2,14 @@ package com.ferox.scene.controller;
 
 import java.util.Iterator;
 
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.SceneElement;
-import com.ferox.scene.SpotLight;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
+import com.ferox.scene.DirectionLight;
+import com.ferox.scene.SceneElement;
+import com.ferox.scene.SpotLight;
 
 /**
  * <p>
@@ -70,14 +70,14 @@ public class LightUpdateController extends Controller {
     private void processDirectionLight(DirectionLight dl, SceneElement se) {
         if (se != null) {
             // copy the 3rd column into dl's direction
-            se.getTransform().getRotation().getCol(3, dl.getDirection());
+            se.getTransform().getRotation().getCol(2, dl.getDirection());
         }
     }
     
     private void processSpotLight(SpotLight sl, SceneElement se) {
         if (se != null) {
             // copy the 3rd column into sl's direction
-            se.getTransform().getRotation().getCol(3, sl.getDirection());
+            se.getTransform().getRotation().getCol(2, sl.getDirection());
             
             // copy the translation into sl's position
             sl.getPosition().set(se.getTransform().getTranslation());

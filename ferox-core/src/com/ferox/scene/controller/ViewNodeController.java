@@ -86,8 +86,9 @@ public class ViewNodeController extends Controller {
         if (se != null) {
             // modify the frustum so that it matches the scene element 
             // location and orientation
-            Matrix3f m = se.getTransform().getRotation();
-            f.setOrientation(se.getTransform().getTranslation(), m.getCol(2), m.getCol(1));
+            Matrix3f t = se.getTransform().getRotation();
+            f.setOrientation(se.getTransform().getTranslation(), 
+                             t.getCol(2), t.getCol(1));
         }
         
         if (vn.getAutoUpdateViewport()) {

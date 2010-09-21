@@ -1,4 +1,4 @@
-#Wed Jul 01 19:57:21 CDT 2009
+#Thu Sep 16 10:58:31 CDT 2010
 cleanup.add_default_serial_version_id=true
 cleanup.add_generated_serial_version_id=false
 cleanup.add_missing_annotations=true
@@ -52,6 +52,6 @@ cleanup.use_this_for_non_static_method_access_only_if_necessary=true
 cleanup_profile=_Ferox2
 cleanup_settings_version=2
 eclipse.preferences.version=1
-formatter_profile=_Ferox2
+formatter_profile=_Ferox
 formatter_settings_version=11
 org.eclipse.jdt.ui.text.custom_code_templates=<?xml version\="1.0" encoding\="UTF-8"?><templates/>

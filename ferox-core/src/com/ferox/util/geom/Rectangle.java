@@ -3,6 +3,7 @@ package com.ferox.util.geom;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
@@ -114,7 +115,7 @@ public class Rectangle extends PrimitiveGeometry {
         if (yAxis == null)
             yAxis = new Vector3f(0f, 1f, 0f);
 
-        Vector3f normal = xAxis.cross(yAxis, null);
+        MutableVector3f normal = xAxis.cross(yAxis, null);
 
         FloatBuffer vertices = newFloatBuffer(12);
         FloatBuffer normals = newFloatBuffer(12);

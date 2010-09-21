@@ -3,6 +3,7 @@ package com.ferox.util.geom;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.resource.Geometry;
@@ -114,7 +115,7 @@ public class Box extends PrimitiveGeometry {
         if (minPoint == null || maxPoint == null)
             throw new NullPointerException("minPoint and maxPoint cannot be null");
 
-        Vector3f center = minPoint.add(maxPoint, null).scale(.5f);
+        MutableVector3f center = minPoint.add(maxPoint, null).scale(.5f);
 
         float xExtent = maxPoint.getX() - center.getX();
         float yExtent = maxPoint.getY() - center.getY();

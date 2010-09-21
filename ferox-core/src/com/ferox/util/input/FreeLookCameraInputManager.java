@@ -87,9 +87,11 @@ public class FreeLookCameraInputManager extends InputManager {
             // takes control of the transform of any otherwise present viewnode
             SceneElement se = camera.get(SE_ID);
             if (se != null) {
-                translate(se.getTransform().getRotation().getCol(2),
-                          se.getTransform().getRotation().getCol(1),
-                          se.getTransform().getTranslation(), dt);
+                Vector3f trans = new Vector3f(se.getTransform().getCol(3).getAsVector3f());
+                translate(se.getTransform().getCol(2).getAsVector3f(),
+                          se.getTransform().getCol(1).getAsVector3f(),
+                          trans, dt);
+                se.setTranslation(trans);
                 return;
             }
             

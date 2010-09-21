@@ -357,8 +357,6 @@ public class Text extends PrimitiveGeometry {
         private float maxWidth;
         private final float wrapWidth;
 
-        private int numGlyphs;
-
         private final CharacterSet charSet;
 
         /*
@@ -390,11 +388,6 @@ public class Text extends PrimitiveGeometry {
          */
         public float getMaxWidth() {
             return maxWidth;
-        }
-
-        /* Return the number of placed glyphs after the last layout. */
-        public int getNumGlyphs() {
-            return numGlyphs;
         }
 
         /*
@@ -437,8 +430,6 @@ public class Text extends PrimitiveGeometry {
             coordIndex = placeWord(currentWord, coords, coordIndex);
 
             maxWidth = Math.max(maxWidth, cursorX);
-            numGlyphs = coordIndex / 16;
-
             return coords;
         }
 

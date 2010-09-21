@@ -31,7 +31,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the addition
      * @throws NullPointerException if r is null
      */
-    public Matrix3f add(ReadOnlyMatrix3f r, Matrix3f result) {
+    public MutableMatrix3f add(ReadOnlyMatrix3f r, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
 
@@ -49,7 +49,7 @@ public abstract class ReadOnlyMatrix3f {
      * @param result Matrix to hold the addition result
      * @return result, or a new Matrix3f if null, holding the addition
      */
-    public Matrix3f add(float c, Matrix3f result) {
+    public MutableMatrix3f add(float c, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
 
@@ -82,7 +82,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the inverse
      * @throws ArithmeticException if this matrix isn't invertible
      */
-    public Matrix3f inverse(Matrix3f result) {
+    public MutableMatrix3f inverse(MutableMatrix3f result) {
         float invDet = determinant();
         if (Math.abs(invDet) < .0001f)
             throw new ArithmeticException("Singular or ill-formed matrix");
@@ -132,7 +132,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix3f mul(ReadOnlyMatrix3f r, Matrix3f result) {
+    public MutableMatrix3f mul(ReadOnlyMatrix3f r, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
         return result.set(get(0, 0) * r.get(0, 0) + get(0, 1) * r.get(1, 0) + get(0, 2) * r.get(2, 0), 
@@ -158,7 +158,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Vector3f if null, holding [this] x [r]
      * @throws NullPointerException if r is null
      */
-    public Vector3f mul(ReadOnlyVector3f r, Vector3f result) {
+    public MutableVector3f mul(ReadOnlyVector3f r, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(get(0, 0) * r.getX() + get(0, 1) * r.getY() + get(0, 2) * r.getZ(), 
@@ -174,7 +174,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return The input vector r, after being transformed by this matrix
      * @throws NullPointerException if r is null
      */
-    public Vector3f mul(Vector3f r) {
+    public MutableVector3f mul(MutableVector3f r) {
         return mul(r, r);
     }
 
@@ -189,7 +189,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the multiplication
      * @throws NullPointerException if diag is null
      */
-    public Matrix3f mulDiagonal(ReadOnlyVector3f diag, Matrix3f result) {
+    public MutableMatrix3f mulDiagonal(ReadOnlyVector3f diag, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
         return result.set(get(0, 0) * diag.getX(), get(0, 1) * diag.getY(), get(0, 2) * diag.getZ(),
@@ -209,7 +209,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Vector3f if null, holding [x, y, z] x [this]
      * @throws NullPointerException if r is null
      */
-    public Vector3f mulPre(ReadOnlyVector3f r, Vector3f result) {
+    public MutableVector3f mulPre(ReadOnlyVector3f r, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(get(0, 0) * r.getX() + get(1, 0) * r.getY() + get(2, 0) * r.getZ(), 
@@ -225,7 +225,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return r
      * @throws NullPointerException if r is null
      */
-    public Vector3f mulPre(Vector3f r) {
+    public MutableVector3f mulPre(MutableVector3f r) {
         return mulPre(r, r);
     }
 
@@ -245,7 +245,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix3f mulTransposeBoth(ReadOnlyMatrix3f r, Matrix3f result) {
+    public MutableMatrix3f mulTransposeBoth(ReadOnlyMatrix3f r, MutableMatrix3f result) {
         return r.mul(this, result).transpose();
     }
 
@@ -259,7 +259,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix3f mulTransposeLeft(ReadOnlyMatrix3f r, Matrix3f result) {
+    public MutableMatrix3f mulTransposeLeft(ReadOnlyMatrix3f r, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
         return result.set(get(0, 0) * r.get(0, 0) + get(1, 0) * r.get(1, 0) + get(2, 0) * r.get(2, 0), 
@@ -284,7 +284,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Matrix3f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix3f mulTransposeRight(ReadOnlyMatrix3f r, Matrix3f result) {
+    public MutableMatrix3f mulTransposeRight(ReadOnlyMatrix3f r, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
         return result.set(get(0, 0) * r.get(0, 0) + get(0, 1) * r.get(0, 1) + get(0, 2) * r.get(0, 2), 
@@ -306,7 +306,7 @@ public abstract class ReadOnlyMatrix3f {
      * @param result Matrix to hold the scaled version of this matrix
      * @return result, or a new Matrix3f if null, holding the addition
      */
-    public Matrix3f scale(float scalar, Matrix3f result) {
+    public MutableMatrix3f scale(float scalar, MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
 
@@ -335,7 +335,7 @@ public abstract class ReadOnlyMatrix3f {
      * @throws ArithmeticException if no solution or an infinite solutions exist
      * @throws NullPointerException if ans is null
      */
-    public Vector3f solve(ReadOnlyVector3f ans, Vector3f result) {
+    public MutableVector3f solve(ReadOnlyVector3f ans, MutableVector3f result) {
         return solve(ans.getX(), ans.getY(), ans.getZ(), result);
     }
 
@@ -359,7 +359,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return result, or a new Vector3f if null, holding the solutions
      * @throws ArithmeticException if no solution or an infinite solutions exist
      */
-    public Vector3f solve(float ax, float ay, float az, Vector3f result) {
+    public MutableVector3f solve(float ax, float ay, float az, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         float invDet = determinant();
@@ -391,7 +391,7 @@ public abstract class ReadOnlyMatrix3f {
      * @param result Matrix to hold the transpose
      * @return result, or a new Matrix3f if null, holding the transpose
      */
-    public Matrix3f transpose(Matrix3f result) {
+    public MutableMatrix3f transpose(MutableMatrix3f result) {
         if (result == null)
             result = new Matrix3f();
         return result.set(get(0, 0), get(1, 0), get(2, 0),
@@ -451,7 +451,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return store, or a new Vector3f if null, holding the matrix column
      * @throws IndexOutOfBoundsException if col is invalid
      */
-    public Vector3f getCol(int col, Vector3f store) {
+    public MutableVector3f getCol(int col, MutableVector3f store) {
         if (store == null)
             store = new Vector3f();
         return store.set(get(0, col), get(1, col), get(2, col));
@@ -499,7 +499,7 @@ public abstract class ReadOnlyMatrix3f {
      * @return store, or a new Vector3f if null, holding the matrix row
      * @throws IndexOutOfBoundsException if row is invalid
      */
-    public Vector3f getRow(int row, Vector3f store) {
+    public MutableVector3f getRow(int row, MutableVector3f store) {
         if (store == null)
             store = new Vector3f();
         return store.set(get(row, 0), get(row, 1), get(row, 2));
@@ -568,7 +568,7 @@ public abstract class ReadOnlyMatrix3f {
      * @param e Matrix to test equality with
      * @return True if these vectors are numerically equal
      */
-    public boolean equals(Matrix3f e) {
+    public boolean equals(ReadOnlyMatrix3f e) {
         return e != null && 
                get(0, 0) == e.get(0, 0) && get(0, 1) == e.get(0, 1) && get(0, 2) == e.get(0, 2) && 
                get(1, 0) == e.get(1, 0) && get(1, 1) == e.get(1, 1) && get(1, 2) == e.get(1, 2) && 

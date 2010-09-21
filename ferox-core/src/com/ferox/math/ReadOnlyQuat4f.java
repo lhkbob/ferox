@@ -55,7 +55,7 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Quat4f if null
      * @throws NullPointerException if q is null
      */
-    public Quat4f add(ReadOnlyQuat4f q, Quat4f result) {
+    public MutableQuat4f add(ReadOnlyQuat4f q, MutableQuat4f result) {
         return add(q.getX(), q.getY(), q.getZ(), q.getW(), result);
     }
 
@@ -70,7 +70,7 @@ public abstract class ReadOnlyQuat4f {
      * @param result 
      * @return result, or a new Quat4f if null
      */
-    public Quat4f add(float x, float y, float z, float w, Quat4f result) {
+    public MutableQuat4f add(float x, float y, float z, float w, MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         return result.set(getX() + x, getY() + y, getZ() + z, getW() + w);
@@ -86,7 +86,7 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Quat4f if null
      * @throws NullPointerException if q is null
      */
-    public Quat4f sub(ReadOnlyQuat4f q, Quat4f result) {
+    public MutableQuat4f sub(ReadOnlyQuat4f q, MutableQuat4f result) {
         return sub(q.getX(), q.getY(), q.getZ(), q.getW(), result);
     }
 
@@ -101,7 +101,7 @@ public abstract class ReadOnlyQuat4f {
      * @param result
      * @return result, or a new Quat4f if null
      */
-    public Quat4f sub(float x, float y, float z, float w, Quat4f result) {
+    public MutableQuat4f sub(float x, float y, float z, float w, MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         return result.set(getX() - x, getY() - y, getZ() - z, getW() - w);
@@ -118,7 +118,7 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Quat4f if null
      * @throws NullPointerException if q is null
      */
-    public Quat4f mul(ReadOnlyQuat4f q, Quat4f result) {
+    public MutableQuat4f mul(ReadOnlyQuat4f q, MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         return result.set(getW() * q.getX() + getX() * q.getW() + getY() * q.getZ() - getZ() * q.getY(),
@@ -138,7 +138,7 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Quat4f if null
      * @throws NullPointerException if v is null
      */
-    public Quat4f mul(ReadOnlyVector3f v, Quat4f result) {
+    public MutableQuat4f mul(ReadOnlyVector3f v, MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         
@@ -157,9 +157,9 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Vector3f if null
      * @throws NullPointerException if v is null
      */
-    public Vector3f rotate(ReadOnlyVector3f v, Vector3f result) {
+    public MutableVector3f rotate(ReadOnlyVector3f v, MutableVector3f result) {
         // FIXME: generates garbage
-        Quat4f q = mul(v, null).mul(inverse(null));
+        MutableQuat4f q = mul(v, null).mul(inverse(null));
         if (result == null)
             return new Vector3f(q.getX(), q.getY(), q.getZ());
         else
@@ -175,7 +175,7 @@ public abstract class ReadOnlyQuat4f {
      * @param result The Quat4f containing the scaled results, or null
      * @return result, or a new Quat4f if null
      */
-    public Quat4f scale(float s, Quat4f result) {
+    public MutableQuat4f scale(float s, MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         return result.set(s * getX(), s * getY(), s * getZ(), s * getW());
@@ -190,7 +190,7 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Quat4f if null
      * @throws ArithmeticException if this quaternion cannot be normalized
      */
-    public Quat4f normalize(Quat4f result) {
+    public MutableQuat4f normalize(MutableQuat4f result) {
         float d = length();
         if (d == 0f)
             throw new ArithmeticException("Cannot normalize quaternion with 0 length");
@@ -250,7 +250,7 @@ public abstract class ReadOnlyQuat4f {
      * @return A new Vector3f containing the axis of rotation for this
      *         quaternion
      */
-    public Vector3f getAxis() {
+    public MutableVector3f getAxis() {
         return getAxis(null);
     }
 
@@ -262,7 +262,7 @@ public abstract class ReadOnlyQuat4f {
      * @param result The vector to contain the axis
      * @return result, or a new Vector3f if null
      */
-    public Vector3f getAxis(Vector3f result) {
+    public MutableVector3f getAxis(MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         
@@ -296,7 +296,7 @@ public abstract class ReadOnlyQuat4f {
      * @param result The quaternion to hold the inverse, or null
      * @return result, or a new Quat4f if null
      */
-    public Quat4f inverse(Quat4f result) {
+    public MutableQuat4f inverse(MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         return result.set(-getX(), -getY(), -getZ(), getW());
@@ -313,7 +313,7 @@ public abstract class ReadOnlyQuat4f {
      * @return result, or a new Quat4f if null
      * @throws IllegalArgumentException if t is not in the range [0, 1]
      */
-    public Quat4f slerp(ReadOnlyQuat4f q, float t, Quat4f result) {
+    public MutableQuat4f slerp(ReadOnlyQuat4f q, float t, MutableQuat4f result) {
         if (t < 0 || t > 1)
             throw new IllegalArgumentException("t must be in [0, 1], not: " + t);
         

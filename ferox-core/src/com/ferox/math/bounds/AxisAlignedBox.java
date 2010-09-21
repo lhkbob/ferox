@@ -2,11 +2,10 @@ package com.ferox.math.bounds;
 
 import java.nio.FloatBuffer;
 
-import com.ferox.math.Matrix4f;
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.resource.Geometry;
@@ -188,7 +187,7 @@ public class AxisAlignedBox {
      * 
      * @return A new Vector3f storing the center of this box
      */
-    public Vector3f getCenter() {
+    public MutableVector3f getCenter() {
         return getCenter(null);
     }
 
@@ -201,7 +200,7 @@ public class AxisAlignedBox {
      * @param result The Vector3f to store the center location
      * @return result or a new Vector3f if result is null
      */
-    public Vector3f getCenter(Vector3f result) {
+    public MutableVector3f getCenter(MutableVector3f result) {
         return min.add(max, result).scale(.5f);
     }
 
@@ -389,22 +388,6 @@ public class AxisAlignedBox {
     }
 
     /**
-     * Transform this AxisAlignedBox by <tt>t</tt> and store the new
-     * AxisAlignedBox in <tt>result</tt>. This is equivalent to
-     * {@link #transform(Matrix4f, AxisAlignedBox)} with <tt>t</tt> treated as a
-     * 4x4 matrix.
-     * 
-     * @param t The Transform to apply to this AxisAlignedBox
-     * @param result The AxisAlignedBox that will hold the transformed result
-     * @return result, or a new AxisAlignedBox if result is null, containing the
-     *         transformed box
-     * @throws NullPointerException if t is null
-     */
-    public AxisAlignedBox transform(Transform t, AxisAlignedBox result) {
-        return transform(t.get(TEMPM.get()), result);
-    }
-
-    /**
      * <p>
      * Transform this AxisAlignedBox by <tt>m</tt> and store the new
      * AxisAlignedBox in <tt>result</tt>. This can be used to transform an
@@ -428,8 +411,8 @@ public class AxisAlignedBox {
     public AxisAlignedBox transform(ReadOnlyMatrix4f m, AxisAlignedBox result) {
         // we use temporary vectors because this method isn't atomic,
         // and result might be this box
-        Vector3f newMin = TEMP1.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
-        Vector3f newMax = TEMP2.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
+        MutableVector3f newMin = TEMP1.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
+        MutableVector3f newMax = TEMP2.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
         
         float av, bv, cv;
         int i, j;
@@ -506,11 +489,7 @@ public class AxisAlignedBox {
             }
         }
     }
-    
-    private static final ThreadLocal<Matrix4f> TEMPM = new ThreadLocal<Matrix4f>() {
-        @Override
-        protected Matrix4f initialValue() { return new Matrix4f(); }
-    };
+
     private static final ThreadLocal<Vector3f> TEMP1 = new ThreadLocal<Vector3f>() {
         @Override
         protected Vector3f initialValue() { return new Vector3f(); }

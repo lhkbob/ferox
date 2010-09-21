@@ -206,10 +206,9 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
         // determine complete model view
         SceneElement se = atom.get(SE_ID);
         if (se == null)
-            modelView.setIdentity();
+            modelView.set(view);
         else
-            se.getTransform().get(modelView);
-        view.mul(modelView, modelView);
+            view.mul(se.getTransform(), modelView);
 
         // render with correct transform
         renderer.setModelViewMatrix(modelView);

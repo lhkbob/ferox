@@ -2,20 +2,20 @@ package com.ferox.scene;
 
 import com.ferox.entity.AbstractComponent;
 import com.ferox.entity.Entity;
-import com.ferox.math.Transform;
+import com.ferox.math.Matrix4f;
+import com.ferox.math.ReadOnlyMatrix4f;
 
 public class Attached extends AbstractComponent<Attached> {
     private Entity attachedTo;
-    private final Transform offset;
+    private final Matrix4f offset;
     
     public Attached(Entity attachedTo) {
-        this(attachedTo, new Transform());
+        this(attachedTo, new Matrix4f().setIdentity());
     }
     
-    public Attached(Entity attachedTo, Transform offset) {
+    public Attached(Entity attachedTo, ReadOnlyMatrix4f offset) {
         super(Attached.class);
-        this.offset = new Transform();
-        this.offset.set(offset);
+        this.offset = new Matrix4f(offset);
         setAttachment(attachedTo);
     }
     
@@ -30,14 +30,15 @@ public class Attached extends AbstractComponent<Attached> {
     public Entity getAttachment() {
         return attachedTo;
     }
-    
+
     /**
-     * Return the Transform offset that separates any updated Entity from the
-     * the attachment Entity.
+     * Return the matrix transform offset that separates any updated Entity from
+     * the the attachment Entity. Any changes to the returned instance will be
+     * reflected in anything with this Attached component.
      * 
      * @return The offset used
      */
-    public Transform getOffset() {
+    public Matrix4f getOffset() {
         return offset;
     }
     

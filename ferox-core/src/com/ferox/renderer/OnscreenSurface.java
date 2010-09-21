@@ -1,7 +1,5 @@
 package com.ferox.renderer;
 
-import com.ferox.input.KeyEventSource;
-import com.ferox.input.MouseEventSource;
 import com.ferox.input.MouseKeyEventSource;
 
 /**

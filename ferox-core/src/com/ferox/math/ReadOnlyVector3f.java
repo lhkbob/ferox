@@ -89,7 +89,7 @@ public abstract class ReadOnlyVector3f {
      * @param v The other vector
      * @return A new Quat4f containing the rotation from this to v
      */
-    public Quat4f arc(ReadOnlyVector3f v) {
+    public MutableQuat4f arc(ReadOnlyVector3f v) {
         return arc(v, null);
     }
 
@@ -103,7 +103,7 @@ public abstract class ReadOnlyVector3f {
      * @return result, or a new Quat4f if it was null
      * @throws NullPointerException if v was null
      */
-    public Quat4f arc(ReadOnlyVector3f v, Quat4f result) {
+    public MutableQuat4f arc(ReadOnlyVector3f v, MutableQuat4f result) {
         if (result == null)
             result = new Quat4f();
         
@@ -124,7 +124,7 @@ public abstract class ReadOnlyVector3f {
             
             return result.set(n.getX(), n.getY(), n.getZ(), 0f);
         } else {
-            Vector3f c = v0.cross(v1, null);
+            MutableVector3f c = v0.cross(v1, null);
             float s = (float) Math.sqrt(2f * (1f + d));
             float rs = 1f / s;
             
@@ -176,7 +176,7 @@ public abstract class ReadOnlyVector3f {
      *         to proj, based off of this vector
      * @throws NullPointerException if proj is null
      */
-    public Vector3f ortho(ReadOnlyVector3f proj, Vector3f result) {
+    public MutableVector3f ortho(ReadOnlyVector3f proj, MutableVector3f result) {
         // remember this vector, in case it's the same as result
         float tx = getX();
         float ty = getY();
@@ -198,7 +198,7 @@ public abstract class ReadOnlyVector3f {
      *         vector onto proj
      * @throws NullPointerException if proj is null
      */
-    public Vector3f project(ReadOnlyVector3f proj, Vector3f result) {
+    public MutableVector3f project(ReadOnlyVector3f proj, MutableVector3f result) {
         return proj.scale(dot(proj) / proj.lengthSquared(), result);
     }
 
@@ -211,7 +211,7 @@ public abstract class ReadOnlyVector3f {
      * @return result, or a new Vector3f if null, holding the cross product
      * @throws NullPointerException if v is null
      */
-    public Vector3f cross(ReadOnlyVector3f v, Vector3f result) {
+    public MutableVector3f cross(ReadOnlyVector3f v, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(getY() * v.getZ() - v.getY() * getZ(), 
@@ -228,7 +228,7 @@ public abstract class ReadOnlyVector3f {
      * @return result, or a new Vector3f if null, holding the addition result
      * @throws NullPointerException if v is null
      */
-    public Vector3f add(ReadOnlyVector3f v, Vector3f result) {
+    public MutableVector3f add(ReadOnlyVector3f v, MutableVector3f result) {
         return add(v.getX(), v.getY(), v.getZ(), result);
     }
 
@@ -243,7 +243,7 @@ public abstract class ReadOnlyVector3f {
      * @param result Vector to store the result, or null
      * @return result, or a new Vector3f if null, holding the addition result
      */
-    public Vector3f add(float x, float y, float z, Vector3f result) {
+    public MutableVector3f add(float x, float y, float z, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(getX() + x, getY() + y, getZ() + z);
@@ -258,7 +258,7 @@ public abstract class ReadOnlyVector3f {
      * @return result, or a new Vector3f if null, holding the subtraction result
      * @throws NullPointerException if v is null
      */
-    public Vector3f sub(ReadOnlyVector3f v, Vector3f result) {
+    public MutableVector3f sub(ReadOnlyVector3f v, MutableVector3f result) {
         return sub(v.getX(), v.getY(), v.getZ(), result);
     }
 
@@ -273,7 +273,7 @@ public abstract class ReadOnlyVector3f {
      * @param result Vector to store the result, or null
      * @return result, or a new Vector3f if null, holding the subtraction result
      */
-    public Vector3f sub(float x, float y, float z, Vector3f result) {
+    public MutableVector3f sub(float x, float y, float z, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(getX() - x, getY() - y, getZ() - z);
@@ -290,7 +290,7 @@ public abstract class ReadOnlyVector3f {
      * @return result, or a new Vector3f if null, holding the subtraction result
      * @throws NullPointerException if v is null
      */
-    public Vector3f scaleAdd(float scalar, ReadOnlyVector3f add, Vector3f result) {
+    public MutableVector3f scaleAdd(float scalar, ReadOnlyVector3f add, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(scalar * getX() + add.getX(), 
@@ -306,7 +306,7 @@ public abstract class ReadOnlyVector3f {
      * @param result Vector to store the result, or null
      * @return result, or a new Vector3f if null, holding the scaled vector
      */
-    public Vector3f scale(float scalar, Vector3f result) {
+    public MutableVector3f scale(float scalar, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
         return result.set(scalar * getX(), scalar * getY(), scalar * getZ());
@@ -322,7 +322,7 @@ public abstract class ReadOnlyVector3f {
      * @return result, or a new Vector3f if null, holding the subtraction result
      * @throws ArithmeticException if this vector can't be normalized
      */
-    public Vector3f normalize(Vector3f result) {
+    public MutableVector3f normalize(MutableVector3f result) {
         float d = length();
         if (d == 0f)
             throw new ArithmeticException("Can't normalize 0 vector");

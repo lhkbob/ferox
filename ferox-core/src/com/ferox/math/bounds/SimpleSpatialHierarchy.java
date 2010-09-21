@@ -37,7 +37,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     }
     
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void update(T item, AxisAlignedBox bounds, Object key) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
@@ -58,7 +58,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     }
     
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public void remove(T item, Object key) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");

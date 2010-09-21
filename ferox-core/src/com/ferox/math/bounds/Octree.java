@@ -657,6 +657,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
     }
     
     private static class Key<T>  {
+        @SuppressWarnings("rawtypes")
         private static final Node MULTI_PARENT = new Node(null, 0);
 
         final Octree<T> owner;

@@ -38,7 +38,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the addition
      * @throws NullPointerException if r is null
      */
-    public Matrix4f add(ReadOnlyMatrix4f r, Matrix4f result) {
+    public MutableMatrix4f add(ReadOnlyMatrix4f r, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
 
@@ -57,7 +57,7 @@ public abstract class ReadOnlyMatrix4f {
      * @param result Matrix to hold the addition result
      * @return result, or a new Matrix4f if null, holding the addition
      */
-    public Matrix4f add(float c, Matrix4f result) {
+    public MutableMatrix4f add(float c, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
 
@@ -101,7 +101,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the inverse
      * @throws ArithmeticException if this matrix isn't invertible
      */
-    public Matrix4f inverse(Matrix4f result) {
+    public MutableMatrix4f inverse(MutableMatrix4f result) {
         // Also, thanks to Ardor3D for the inverse code
         if (result == null)
             result = new Matrix4f();
@@ -173,7 +173,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix4f mul(ReadOnlyMatrix4f r, Matrix4f result) {
+    public MutableMatrix4f mul(ReadOnlyMatrix4f r, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
         return result.set(get(0, 0) * r.get(0, 0) + get(0, 1) * r.get(1, 0) + get(0, 2) * r.get(2, 0) + get(0, 3) * r.get(3, 0),
@@ -206,7 +206,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Vector4f if null, holding [this] x [r]
      * @throws NullPointerException if r is null
      */
-    public Vector4f mul(ReadOnlyVector4f r, Vector4f result) {
+    public MutableVector4f mul(ReadOnlyVector4f r, MutableVector4f result) {
         if (result == null)
             result = new Vector4f();
         return result.set(get(0, 0) * r.getX() + get(0, 1) * r.getY() + get(0, 2) * r.getZ() + get(0, 3) * r.getW(), 
@@ -223,7 +223,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return r
      * @throws NullPointerException if r is null
      */
-    public Vector4f mul(Vector4f r) {
+    public MutableVector4f mul(MutableVector4f r) {
         return mul(r, r);
     }
 
@@ -239,7 +239,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the multiplication
      * @throws NullPointerException if diag is null
      */
-    public Matrix4f mulDiagonal(ReadOnlyVector4f diag, Matrix4f result) {
+    public MutableMatrix4f mulDiagonal(ReadOnlyVector4f diag, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
         return result.set(get(0, 0) * diag.getX(), get(0, 1) * diag.getY(), get(0, 2) * diag.getZ(), get(0, 3) * diag.getW(), 
@@ -259,7 +259,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Vector4f if null, holding [r]^T x [this]
      * @throws NullPointerException if r is null
      */
-    public Vector4f mulPre(ReadOnlyVector4f r, Vector4f result) {
+    public MutableVector4f mulPre(ReadOnlyVector4f r, MutableVector4f result) {
         if (result == null)
             result = new Vector4f();
         return result.set(get(0, 0) * r.getX() + get(1, 0) * r.getY() + get(2, 0) * r.getZ() + get(3, 0) * r.getW(), 
@@ -275,7 +275,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return r
      * @throws NullPointerException if r is null
      */
-    public Vector4f mulPre(Vector4f r) {
+    public MutableVector4f mulPre(MutableVector4f r) {
         return mulPre(r, r);
     }
 
@@ -295,7 +295,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix4f mulTransposeBoth(ReadOnlyMatrix4f r, Matrix4f result) {
+    public MutableMatrix4f mulTransposeBoth(ReadOnlyMatrix4f r, MutableMatrix4f result) {
         return r.mul(this, result).transpose();
     }
 
@@ -309,7 +309,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix4f mulTransposeLeft(ReadOnlyMatrix4f r, Matrix4f result) {
+    public MutableMatrix4f mulTransposeLeft(ReadOnlyMatrix4f r, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
         return result.set(get(0, 0) * r.get(0, 0) + get(1, 0) * r.get(1, 0) + get(2, 0) * r.get(2, 0) + get(3, 0) * r.get(3, 0), 
@@ -341,7 +341,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Matrix4f if null, holding the multiplication
      * @throws NullPointerException if r is null
      */
-    public Matrix4f mulTransposeRight(ReadOnlyMatrix4f r, Matrix4f result) {
+    public MutableMatrix4f mulTransposeRight(ReadOnlyMatrix4f r, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
         return result.set(get(0, 0) * r.get(0, 0) + get(0, 1) * r.get(0, 1) + get(0, 2) * r.get(0, 2) + get(0, 3) * r.get(0, 3), 
@@ -370,7 +370,7 @@ public abstract class ReadOnlyMatrix4f {
      * @param result Matrix to hold the scaled version of this matrix
      * @return result, or a new Matrix4f if null, holding the addition
      */
-    public Matrix4f scale(float scalar, Matrix4f result) {
+    public MutableMatrix4f scale(float scalar, MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
 
@@ -401,10 +401,10 @@ public abstract class ReadOnlyMatrix4f {
      * @throws ArithmeticException if no solution or an infinite solutions exist
      * @throws NullPointerException if ans is null
      */
-    public Vector4f solve(ReadOnlyVector4f ans, Vector4f result) {
+    public MutableVector4f solve(ReadOnlyVector4f ans, MutableVector4f result) {
         // the system is b = [A]x and we're solving for x
         // which becomes [A]^-1 b = x
-        Matrix4f inv = inverse(inverse.get());
+        MutableMatrix4f inv = inverse(inverse.get());
         return inv.mul(ans, result);
     }
 
@@ -430,7 +430,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return result, or a new Vector4f if null, holding the solutions
      * @throws ArithmeticException if no solution or an infinite solutions exist
      */
-    public Vector4f solve(float ax, float ay, float az, float aw, Vector4f result) {
+    public MutableVector4f solve(float ax, float ay, float az, float aw, MutableVector4f result) {
         return solve(new Vector4f(ax, ay, az, aw), result);
     }
 
@@ -451,7 +451,7 @@ public abstract class ReadOnlyMatrix4f {
      * @param result Matrix to hold the transpose
      * @return result, or a new Matrix4f if null, holding the transpose
      */
-    public Matrix4f transpose(Matrix4f result) {
+    public MutableMatrix4f transpose(MutableMatrix4f result) {
         if (result == null)
             result = new Matrix4f();
         return result.set(get(0, 0), get(1, 0), get(2, 0), get(3, 0),
@@ -517,7 +517,7 @@ public abstract class ReadOnlyMatrix4f {
     public ReadOnlyMatrix3f getUpperMatrix() {
         return new Upper3x3Matrix();
     }
-
+    
     /**
      * Store the four column values for the given column index into the vector
      * store. If store is null, a new Vector4f should be created and returned.
@@ -527,7 +527,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return store, or a new Vector4f if null, holding the matrix column
      * @throws IndexOutOfBoundsException if col is invalid
      */
-    public Vector4f getCol(int col, Vector4f store) {
+    public MutableVector4f getCol(int col, MutableVector4f store) {
         if (store == null)
             store = new Vector4f();
         
@@ -577,7 +577,7 @@ public abstract class ReadOnlyMatrix4f {
      * @return store, or a new Vector4f if null, holding the matrix row
      * @throws IndexOutOfBoundsException if row is invalid
      */
-    public Vector4f getRow(int row, Vector4f store) {
+    public MutableVector4f getRow(int row, MutableVector4f store) {
         if (store == null)
             store = new Vector4f();
         return store.set(get(row, 0), get(row, 1), get(row, 2), get(row, 3));

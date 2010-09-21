@@ -112,6 +112,10 @@ public class SceneController extends Controller {
         se.resetVisibility();
     }
     
+    // FIXME: extract this into a useful listener that sets things up to be
+    // a meta-data listener for lifecycle of an entity in the situation
+    // like this where we care about what happens if a specific type of component
+    // gets added/removed -> have the clean-up method be abstract
     private class SceneElementListener implements EntityListener {
         @Override
         public void onComponentAdd(Entity e, Component c) {

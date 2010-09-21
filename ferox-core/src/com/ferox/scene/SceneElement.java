@@ -3,12 +3,13 @@ package com.ferox.scene;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ferox.math.Matrix3f;
+import com.ferox.entity.AbstractComponent;
+import com.ferox.entity.Controller;
+import com.ferox.math.ReadOnlyMatrix3f;
+import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Transform;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.entity.AbstractComponent;
-import com.ferox.entity.Controller;
 
 /**
  * <p>
@@ -91,19 +92,30 @@ public final class SceneElement extends AbstractComponent<SceneElement> {
     }
 
     /**
-     * Copy the given rotation matrix into this SceneElement's rotation matrix.
-     * The SceneElement will also be flagged as updated.
+     * Copy the given rotation matrix into this SceneElement's transform matrix.
      * 
      * @param m The new rotation matrix
      * @throws NullPointerException if m is null
      */
-    public void setRotation(Matrix3f m) {
+    public void setRotation(ReadOnlyMatrix3f m) {
         transform.getRotation().set(m);
     }
 
     /**
-     * @return The Transform that represents the 3D position and orientation of
-     *         this SceneElement.
+     * Copy the given translation into the 4th column of the 4x4 matrix of this
+     * SceneElement's transform matrix.
+     * 
+     * @param t The new translation
+     * @throws NullPointerException if t is null
+     */
+    public void setTranslation(ReadOnlyVector3f t) {
+        transform.getTranslation().set(t);
+    }
+
+    /**
+     * @return The matrix that represents the 3D position and orientation of
+     *         this SceneElement. Changes to the returned instance are visible
+     *         in the SceneElement
      */
     public Transform getTransform() {
         return transform;

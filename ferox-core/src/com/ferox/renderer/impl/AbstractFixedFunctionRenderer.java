@@ -109,7 +109,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         public final CombineSource[] srcAlpha = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
     }
     
-    private static final Matrix4f IDENTITY = new Matrix4f().setIdentity();
+    private static final Matrix4f IDENTITY = new Matrix4f();
     
     // cached defaults
     private static final Color4f DEFAULT_MAT_A_COLOR = new Color4f(.2f, .2f, .2f, 1f);

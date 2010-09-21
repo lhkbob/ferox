@@ -480,7 +480,7 @@ public class DefaultResourceManager implements ResourceManager {
      * synchronize this explicitly because it should only be invoked within
      * a lock for the Resource that owned both dirty state instances.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private DirtyState<?> merge(DirtyState<?> newDs, DirtyState<?> oldDs) {
         if (newDs == null || oldDs == null)
             return null;
@@ -684,7 +684,6 @@ public class DefaultResourceManager implements ResourceManager {
     
     private static class ResourceData {
         final ResourceDriver driver;
-        final int id;
         final WeakReference<Resource> resource;
 
         /*
@@ -700,7 +699,6 @@ public class DefaultResourceManager implements ResourceManager {
             this.driver = driver;
 
             resource = new WeakReference<Resource>(r);
-            id = r.getId();
         }
         
         public boolean hasContextData() {

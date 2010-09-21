@@ -2,18 +2,19 @@ package com.ferox.scene.controller;
 
 import java.util.Iterator;
 
-import com.ferox.math.Matrix3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Transform;
-import com.ferox.math.Vector3f;
-import com.ferox.scene.Billboarded;
-import com.ferox.scene.SceneElement;
-import com.ferox.scene.Billboarded.Axis;
 import com.ferox.entity.Component;
 import com.ferox.entity.ComponentId;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
+import com.ferox.math.Matrix3f;
+import com.ferox.math.MutableVector3f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Transform;
+import com.ferox.math.Vector3f;
+import com.ferox.scene.Billboarded;
+import com.ferox.scene.Billboarded.Axis;
+import com.ferox.scene.SceneElement;
 
 /**
  * <p>
@@ -63,37 +64,34 @@ public class BillboardController extends Controller {
         // X = 0, Y = 1, Z = 2
         int o = axis.ordinal();
         ReadOnlyVector3f constraint = b.getConstraint(axis);
+        Matrix3f rotation = t.getRotation();
         
         if (constraint != null) {
-            Vector3f d;
+            Vector3f d = new Vector3f();
             if (b.isPositionConstraint(axis))
-                d = constraint.sub(t.getTranslation(), null).normalize();
+                constraint.sub(t.getTranslation(), d).normalize();
             else
-                d = constraint.normalize(null);
+                constraint.normalize(d);
             
             if (b.isConstraintAxisNegated(axis))
                 d.scale(-1f);
             
-            Vector3f a = t.getRotation().getCol((o + 2) % 3, null).ortho(d);
-            updateMatrix(t.getRotation(), d, a, o);
-        }
-    }
-    
-    private void updateMatrix(Matrix3f r, Vector3f d, Vector3f a, int o) {
-        if (!a.epsilonEquals(ZERO, .0001f)) {
-            // properly perpendicular so we can update matrix
-            a.normalize();
-            
-            r.setCol(o, d);
-            r.setCol((o + 2) % 3, a);
-            r.setCol((o + 1) % 3, a.cross(d, a));
-        } else {
-            // singularity for ortho axis (equals desired direction)
-            r.getCol((o + 1) % 3, a).ortho(d).normalize();
-            
-            r.setCol(o, d);
-            r.setCol((o + 1) % 3, a);
-            r.setCol((o + 2) % 3, d.cross(a, a));
+            MutableVector3f a = rotation.getCol((o + 2) % 3, null).ortho(d);
+            if (!a.epsilonEquals(ZERO, .0001f)) {
+                // properly perpendicular so we can update matrix
+                a.normalize();
+                
+                rotation.setCol(o, d);
+                rotation.setCol((o + 2) % 3, a);
+                rotation.setCol((o + 1) % 3, a.cross(d));
+            } else {
+                // singularity for ortho axis (it equals desired direction)
+                rotation.getCol((o + 1) % 3, a).ortho(d).normalize();
+                
+                rotation.setCol(o, d);
+                rotation.setCol((o + 1) % 3, a);
+                rotation.setCol((o + 2) % 3, d.cross(a));
+            }
         }
     }
 }
