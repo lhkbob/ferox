@@ -4,6 +4,7 @@ import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.shape.Box;
 
 public class GjkTest {

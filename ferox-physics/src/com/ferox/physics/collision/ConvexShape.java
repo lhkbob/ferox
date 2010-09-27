@@ -2,7 +2,7 @@ package com.ferox.physics.collision;
 
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.physics.collision.narrow.GjkEpaCollisionAlgorithm;
+import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
 /**
  * ConvexShape is a Shape type that represents a convex hull. It itself is not a

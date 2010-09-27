@@ -1,4 +1,4 @@
-package com.ferox.physics.collision.narrow;
+package com.ferox.physics.collision.algorithm;
 
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
@@ -42,33 +42,28 @@ public class MinkowskiDifference {
     private final float margin;
 
     /**
-     * Create a new MinkowskiDifference between the two Collidable objects. The
-     * MinkowskiDifference will automatically apply the world transforms of each
-     * Collidable, and apply the configured margin. If the margin is less than
-     * or equal to 0, no margin will be applied to the convex shapes of the
-     * Collidables.
+     * Create a new MinkowskiDifference between the two Shape objects. The
+     * MinkowskiDifference will automatically apply the provided world transforms
+     * associated with each shape, and apply the configured margin. If the margin is less than
+     * or equal to 0, no margin will be applied to the convex shapes.
      * 
-     * @param objA The first object involved in the minkowski difference
-     * @param objB The second object involved in the minkowski difference
+     * @param shapeA The first shape involved in the minkowski difference
+     * @param transA The first shape's world transform
+     * @param shapeB The second object involved in the minkowski difference
+     * @param transB The second shape's world transform
      * @param margin An automatic distance to shrink each convex shape by,
      *            locally, unless it is negative
-     * @throws NullPointerException if objA or objB are null
-     * @throws UnsupportedOperationException if objA or objB have a Shape that's
-     *             not a ConvexShape
+     * @throws NullPointerException if any arguments are null
      */
-    public MinkowskiDifference(Collidable objA, Collidable objB, float margin) {
-        if (objA == null || objB == null)
-            throw new NullPointerException("Collidable objects cannot be null");
-        if (!(objA.getShape() instanceof ConvexShape))
-            throw new UnsupportedOperationException("Collidable does not have a ConvexShape, instead it has: " + objA.getShape().getClass());
-        if (!(objB.getShape() instanceof ConvexShape))
-            throw new UnsupportedOperationException("Collidable does not have a ConvexShape, instead it has: " + objB.getShape().getClass());
+    public MinkowskiDifference(ConvexShape shapeA, ReadOnlyMatrix4f transA,
+                               ConvexShape shapeB, ReadOnlyMatrix4f transB, float margin) {
+        if (shapeA == null || shapeB == null || transA == null || transB == null)
+            throw new NullPointerException("Arguments cannot be null");
         
-        shapeA = (ConvexShape) objA.getShape();
-        transA = objA.getWorldTransform();
-        
-        shapeB = (ConvexShape) objB.getShape();
-        transB = objB.getWorldTransform();
+        this.shapeA = shapeA;
+        this.shapeB = shapeB;
+        this.transA = transA;
+        this.transB = transB;
         
         this.margin = margin;
     }

@@ -9,20 +9,41 @@ import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.physics.collision.algorithm.GeneralCollisionAlgorithm;
 
-public class SpatialHierarchyCollisionManager extends AbstractCollisionManager {
+public class SpatialHierarchyCollisionManager implements CollisionManager {
     private final SpatialHierarchy<Collidable> hierarchy;
     private final Map<Collidable, KeyWithBounds> hierarchyKeys;
+    
+    private volatile CollisionAlgorithm<Shape, Shape> algorithm;
     
     public SpatialHierarchyCollisionManager() {
         this(new Octree<Collidable>(Strategy.STATIC));
     }
     
     public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy) {
+        this(hierarchy, new GeneralCollisionAlgorithm());
+    }
+    
+    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy, CollisionAlgorithm<Shape, Shape> algorithm) {
         if (hierarchy == null)
             throw new NullPointerException("SpatialHierarchy cannot be null");
         this.hierarchy = hierarchy;
         hierarchyKeys = new HashMap<Collidable, KeyWithBounds>();
+        
+        setGeneralCollisionAlgorithm(algorithm);
+    }
+    
+    @Override
+    public CollisionAlgorithm<Shape, Shape> getGeneralCollisionAlgorithm() {
+        return algorithm;
+    }
+
+    @Override
+    public void setGeneralCollisionAlgorithm(CollisionAlgorithm<Shape, Shape> shape) {
+        if (shape == null)
+            throw new NullPointerException("General CollisionAlgorithm cannot be null");
+        algorithm = shape;
     }
     
     @Override
@@ -84,8 +105,7 @@ public class SpatialHierarchyCollisionManager extends AbstractCollisionManager {
         
         @Override
         public void process(Collidable item1, Collidable item2) {
-            CollisionAlgorithm algo = getAlgorithm(item1, item2);
-            delegate.process(item1, item2, algo);
+            delegate.process(item1, item2, algorithm);
         }
     }
 }

@@ -8,9 +8,7 @@ public interface CollisionManager {
 
     public void processCollisions(CollisionCallback callback);
     
-    public void register(CollisionAlgorithm algorithm);
+    public CollisionAlgorithm<Shape, Shape> getGeneralCollisionAlgorithm();
     
-    public void unregister(CollisionAlgorithm algorithm);
-    
-    public void unregister(Class<? extends CollisionAlgorithm> type);
+    public void setGeneralCollisionAlgorithm(CollisionAlgorithm<Shape, Shape> shape);
 }

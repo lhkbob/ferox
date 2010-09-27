@@ -1,12 +1,11 @@
-package com.ferox.physics.collision.narrow;
+package com.ferox.physics.collision.algorithm;
 
 import com.ferox.math.MutableVector3f;
+import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.physics.collision.ClosestPair;
-import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.ConvexShape;
-import com.ferox.physics.collision.Shape;
 
 /**
  * <p>
@@ -32,7 +31,7 @@ import com.ferox.physics.collision.Shape;
  * 
  * @author Michael Ludwig
  */
-public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm {
+public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
     private static final float CONTACT_NORMAL_ACCURACY = .001f;
     
     private final float margin;
@@ -52,20 +51,21 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm {
      * needed if collision shapes are smaller than the margin.
      * 
      * @param margin The margin to use when calling
-     *            {@link #getClosestPair(Collidable, Collidable)}
+     *            {@link #getClosestPair(ConvexShape, ReadOnlyMatrix4f, ConvexShape, ReadOnlyMatrix4f)
      */
     public GjkEpaCollisionAlgorithm(float margin) {
         this.margin = margin;
     }
     
     @Override
-    public ClosestPair getClosestPair(Collidable objA, Collidable objB) {
+    public ClosestPair getClosestPair(ConvexShape shapeA, ReadOnlyMatrix4f transA,
+                                      ConvexShape shapeB, ReadOnlyMatrix4f transB) {
         // MinkowskiDifference does the error checking for GjkEpaCollisionAlgorithm
-        MinkowskiDifference shape = new MinkowskiDifference(objA, objB, margin);
+        MinkowskiDifference shape = new MinkowskiDifference(shapeA, transA, shapeB, transB, margin);
         GJK gjk = new GJK(shape);
         
-        ReadOnlyVector3f pa = objA.getWorldTransform().getCol(3).getAsVector3f();
-        ReadOnlyVector3f pb = objB.getWorldTransform().getCol(3).getAsVector3f();
+        ReadOnlyVector3f pa = transA.getCol(3).getAsVector3f();
+        ReadOnlyVector3f pb = transB.getCol(3).getAsVector3f();
         
         MutableVector3f guess = pb.sub(pa, null);
         gjk.evaluate(guess);
@@ -114,10 +114,5 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm {
         }
         
         return new ClosestPair(wA, normal, distance);
-    }
-
-    @Override
-    public boolean isShapeSupported(Shape s) {
-        return (s instanceof ConvexShape);
     }
 }
