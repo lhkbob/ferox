@@ -63,7 +63,7 @@ public abstract class AbstractCollisionManager implements CollisionManager {
         }
     }
     
-    protected ClosestPair getClosestPair(Collidable objA, Collidable objB) {
+    protected CollisionAlgorithm getAlgorithm(Collidable objA, Collidable objB) {
         if (!objA.canCollide(objB))
             return null;
         
@@ -71,22 +71,16 @@ public abstract class AbstractCollisionManager implements CollisionManager {
             Shape sa = objA.getShape();
             Shape sb = objB.getShape();
             
-            ClosestPair pair = null;
             CollisionAlgorithm algo;
             int ct = algorithms.size();
             for (int i = 0; i < ct; i++) {
                 algo = algorithms.get(i);
                 if (algo.isShapeSupported(sa) && algo.isShapeSupported(sb)) {
                     // this algorithm supports collisions between A and B
-                    pair = algo.getClosestPair(objA, objB);
-                    if (pair != null)
-                        break;
-                    // otherwise, maybe another algorithm can figure it out
+                    return algo;
                 }
             }
-            
-            if (pair != null && pair.isIntersecting())
-                return pair;
+
             return null;
         }
     }

@@ -1,5 +1,5 @@
 package com.ferox.physics.dynamics;
 
-public interface Constraint {
+public class ContactManifold {
 
 }

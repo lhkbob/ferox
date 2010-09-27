@@ -9,5 +9,5 @@ public interface ConstraintSolver {
     // to useful examples
     //
     // then the physics world has to generate constraints for friction and contacts
-    public void solve(Bag<Constraint> constraints);
+    public void solve(Bag<LinearNormalConstraint> linearNormalConstraints);
 }

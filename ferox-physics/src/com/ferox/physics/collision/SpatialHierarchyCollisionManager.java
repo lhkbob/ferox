@@ -7,9 +7,8 @@ import java.util.Map.Entry;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.Octree;
-import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.math.bounds.Octree.Strategy;
-import com.ferox.util.Bag;
+import com.ferox.math.bounds.SpatialHierarchy;
 
 public class SpatialHierarchyCollisionManager extends AbstractCollisionManager {
     private final SpatialHierarchy<Collidable> hierarchy;
@@ -47,10 +46,10 @@ public class SpatialHierarchyCollisionManager extends AbstractCollisionManager {
     }
     
     @Override
-    public Bag<ClosestPair> getClosestPairs(Bag<ClosestPair> results) {
+    public void processCollisions(CollisionCallback callback) {
         synchronized(hierarchy) {
-            if (results == null)
-                results = new Bag<ClosestPair>();
+            if (callback == null)
+                throw new NullPointerException("Callback cannot be null");
             
             // update every known collidable within the hierarchy
             KeyWithBounds key;
@@ -67,8 +66,7 @@ public class SpatialHierarchyCollisionManager extends AbstractCollisionManager {
                     hierarchy.update(shape, key.bounds, key.key);
             }
             
-            hierarchy.query(new ClosestPairIntersectionCallback(results));
-            return results;
+            hierarchy.query(new CollisionIntersectionCallback(callback));
         }
     }
     
@@ -77,18 +75,17 @@ public class SpatialHierarchyCollisionManager extends AbstractCollisionManager {
         final AxisAlignedBox bounds = new AxisAlignedBox();
     }
     
-    private class ClosestPairIntersectionCallback implements IntersectionCallback<Collidable> {
-        private final Bag<ClosestPair> intersections;
+    private class CollisionIntersectionCallback implements IntersectionCallback<Collidable> {
+        private final CollisionCallback delegate;
         
-        public ClosestPairIntersectionCallback(Bag<ClosestPair> results) {
-            intersections = results;
+        public CollisionIntersectionCallback(CollisionCallback callback) {
+            delegate = callback;
         }
         
         @Override
         public void process(Collidable item1, Collidable item2) {
-            ClosestPair pair = getClosestPair(item1, item2);
-            if (pair != null)
-                intersections.add(pair);
+            CollisionAlgorithm algo = getAlgorithm(item1, item2);
+            delegate.process(item1, item2, algo);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.ferox.math.Matrix3f;
 import com.ferox.math.MutableQuat4f;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.Quat4f;
+import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Transform;
@@ -18,7 +19,7 @@ public class RigidBody extends Collidable {
     private final Transform predictedTransform;
 
     private float inverseMass; // 1 / mass
-    private final Matrix3f inertiaTensorWorld;
+    private final Matrix3f inertiaTensorWorldInverse;
 
     private ReadOnlyVector3f explicitGravity; // null if gravity is taken from world
 
@@ -27,12 +28,17 @@ public class RigidBody extends Collidable {
     private final Vector3f totalForce;
     private final Vector3f totalTorque;
 
+    private final Vector3f deltaLinearVelocity;
+    private final Vector3f deltaAngularVelocity;
+    
     public RigidBody(ReadOnlyMatrix4f t, Shape shape, float mass) {
         super(t, shape);
 
         velocity = new Vector3f();
         angularVelocity = new Vector3f();
-        inertiaTensorWorld = new Matrix3f();
+        inertiaTensorWorldInverse = new Matrix3f();
+        deltaLinearVelocity = new Vector3f();
+        deltaAngularVelocity = new Vector3f();
 
         totalForce = new Vector3f();
         totalTorque = new Vector3f();
@@ -42,6 +48,29 @@ public class RigidBody extends Collidable {
         setMass(mass);
     }
     
+    public ReadOnlyVector3f getDeltaLinearVelocity() {
+        return deltaLinearVelocity;
+    }
+    
+    public ReadOnlyVector3f getDeltaAngularVelocity() {
+        return deltaAngularVelocity;
+    }
+
+    public void addDeltaImpulse(ReadOnlyVector3f linear, ReadOnlyVector3f angular, float magnitude) {
+        // FIXME: don't do anything if kinematic
+        linear.scaleAdd(magnitude, deltaLinearVelocity, deltaLinearVelocity);
+        angular.scaleAdd(magnitude, deltaAngularVelocity, deltaAngularVelocity);
+    }
+    
+    public void applyDeltaImpulse() {
+        // FIXME: dont' do anything for kinematic
+        velocity.add(deltaLinearVelocity);
+        angularVelocity.add(deltaAngularVelocity);
+        
+        deltaLinearVelocity.set(0f, 0f, 0f);
+        deltaAngularVelocity.set(0f, 0f, 0f);
+    }
+    
     @Override
     public void setWorldTransform(ReadOnlyMatrix4f t) {
         super.setWorldTransform(t);
@@ -49,11 +78,15 @@ public class RigidBody extends Collidable {
         // FIXME: what about kinematic objects? they don't get inertia really
         ReadOnlyVector3f inertia = getShape().getInertiaTensor(getMass(), temp3.get());
         Transform toWorld = getWorldTransform();
-        toWorld.getRotation().mulDiagonal(inertia, inertiaTensorWorld).mulTransposeRight(toWorld.getRotation());
+        toWorld.getRotation().mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(toWorld.getRotation());
     }
     
     public ReadOnlyMatrix4f getPredictedTransform() {
         return predictedTransform;
+    }
+    
+    public ReadOnlyMatrix3f getInertiaTensorInverse() {
+        return inertiaTensorWorldInverse;
     }
     
     public void predictMotion(float dt) {
@@ -72,7 +105,7 @@ public class RigidBody extends Collidable {
             
             // we can store transformed torque in totalTorque because
             // we're resetting the forces anyway
-            angularVelocity.add(inertiaTensorWorld.mul(totalTorque).scale(dt));
+            angularVelocity.add(inertiaTensorWorldInverse.mul(totalTorque).scale(dt));
             
             // clamp angular velocity or collision detection can fail
             float angvel = angularVelocity.length() * dt;
@@ -128,7 +161,7 @@ public class RigidBody extends Collidable {
         
         if (relPos != null) {
             MutableVector3f torque = relPos.cross(impulse, temp3.get());
-            angularVelocity.add(inertiaTensorWorld.mul(torque));
+            angularVelocity.add(inertiaTensorWorldInverse.mul(torque));
         }
     }
     
