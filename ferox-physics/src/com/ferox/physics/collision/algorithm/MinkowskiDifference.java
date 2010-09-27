@@ -6,7 +6,7 @@ import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.ConvexShape;
+import com.ferox.physics.collision.shape.ConvexShape;
 
 /**
  * MinkowskiDifference represents the mathematical concept of a Minkowski sum

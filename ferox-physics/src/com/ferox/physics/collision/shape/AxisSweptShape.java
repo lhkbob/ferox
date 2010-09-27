@@ -2,7 +2,6 @@ package com.ferox.physics.collision.shape;
 
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.physics.collision.ConvexShape;
 
 public abstract class AxisSweptShape implements ConvexShape {
     public static enum Axis {

@@ -5,6 +5,7 @@ import java.util.BitSet;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.Transform;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.physics.collision.shape.Shape;
 
 public class Collidable {
     private final BitSet collisionGroups;

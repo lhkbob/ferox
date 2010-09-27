@@ -3,7 +3,6 @@ package com.ferox.physics.collision.shape;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.physics.collision.ConvexShape;
 
 public class Sphere implements ConvexShape {
     private float radius;

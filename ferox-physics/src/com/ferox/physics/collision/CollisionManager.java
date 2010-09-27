@@ -1,6 +1,5 @@
 package com.ferox.physics.collision;
 
-
 public interface CollisionManager {
     public void add(Collidable collidable);
     
@@ -8,7 +7,7 @@ public interface CollisionManager {
 
     public void processCollisions(CollisionCallback callback);
     
-    public CollisionAlgorithm<Shape, Shape> getGeneralCollisionAlgorithm();
+    public CollisionHandler getCollisionHandler();
     
-    public void setGeneralCollisionAlgorithm(CollisionAlgorithm<Shape, Shape> shape);
+    public void setCollisionHandler(CollisionHandler handler);
 }

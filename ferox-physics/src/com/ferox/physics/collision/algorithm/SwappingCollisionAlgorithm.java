@@ -1,9 +1,7 @@
 package com.ferox.physics.collision.algorithm;
 
 import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.physics.collision.ClosestPair;
-import com.ferox.physics.collision.CollisionAlgorithm;
-import com.ferox.physics.collision.Shape;
+import com.ferox.physics.collision.shape.Shape;
 
 /**
  * SwappingCollisionAlgorithm is a utility to swap the shape types that a true
@@ -42,5 +40,15 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape> implem
         // swap the points and contact normal
         return new ClosestPair(original.getClosestPointOnB(), original.getContactNormal().scale(-1f, null), 
                                original.getDistance());
+    }
+
+    @Override
+    public Class<A> getShapeTypeA() {
+        return delegate.getShapeTypeB();
+    }
+
+    @Override
+    public Class<B> getShapeTypeB() {
+        return delegate.getShapeTypeA();
     }
 }

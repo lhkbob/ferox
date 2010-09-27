@@ -3,9 +3,7 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.physics.collision.ClosestPair;
-import com.ferox.physics.collision.CollisionAlgorithm;
-import com.ferox.physics.collision.ConvexShape;
+import com.ferox.physics.collision.shape.ConvexShape;
 
 /**
  * <p>
@@ -114,5 +112,15 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
         }
         
         return new ClosestPair(wA, normal, distance);
+    }
+
+    @Override
+    public Class<ConvexShape> getShapeTypeA() {
+        return ConvexShape.class;
+    }
+
+    @Override
+    public Class<ConvexShape> getShapeTypeB() {
+        return ConvexShape.class;
     }
 }

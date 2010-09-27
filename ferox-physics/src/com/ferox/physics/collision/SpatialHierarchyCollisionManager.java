@@ -4,46 +4,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
-import com.ferox.physics.collision.algorithm.GeneralCollisionAlgorithm;
 
 public class SpatialHierarchyCollisionManager implements CollisionManager {
     private final SpatialHierarchy<Collidable> hierarchy;
-    private final Map<Collidable, KeyWithBounds> hierarchyKeys;
+    private final Map<Collidable, Key> hierarchyKeys;
     
-    private volatile CollisionAlgorithm<Shape, Shape> algorithm;
+    private volatile CollisionHandler handler;
     
     public SpatialHierarchyCollisionManager() {
         this(new Octree<Collidable>(Strategy.STATIC));
     }
     
     public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy) {
-        this(hierarchy, new GeneralCollisionAlgorithm());
+        this(hierarchy, new DefaultCollisionHandler());
     }
     
-    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy, CollisionAlgorithm<Shape, Shape> algorithm) {
+    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy, CollisionHandler handler) {
         if (hierarchy == null)
             throw new NullPointerException("SpatialHierarchy cannot be null");
         this.hierarchy = hierarchy;
-        hierarchyKeys = new HashMap<Collidable, KeyWithBounds>();
+        hierarchyKeys = new HashMap<Collidable, Key>();
         
-        setGeneralCollisionAlgorithm(algorithm);
+        setCollisionHandler(handler);
     }
     
     @Override
-    public CollisionAlgorithm<Shape, Shape> getGeneralCollisionAlgorithm() {
-        return algorithm;
+    public CollisionHandler getCollisionHandler() {
+        return handler;
     }
 
     @Override
-    public void setGeneralCollisionAlgorithm(CollisionAlgorithm<Shape, Shape> shape) {
-        if (shape == null)
-            throw new NullPointerException("General CollisionAlgorithm cannot be null");
-        algorithm = shape;
+    public void setCollisionHandler(CollisionHandler handler) {
+        if (handler == null)
+            throw new NullPointerException("CollisionHandler cannot be null");
+        this.handler = handler;
     }
     
     @Override
@@ -53,14 +51,14 @@ public class SpatialHierarchyCollisionManager implements CollisionManager {
                 return; // don't re-add
             
             // don't add to the hierarchy yet, that's done during getClosestPairs()
-            hierarchyKeys.put(collidable, new KeyWithBounds());
+            hierarchyKeys.put(collidable, new Key());
         }
     }
 
     @Override
     public void remove(Collidable collidable) {
         synchronized(hierarchy) {
-            KeyWithBounds key = hierarchyKeys.remove(collidable);
+            Key key = hierarchyKeys.remove(collidable);
             if (key != null && key.key != null)
                 hierarchy.remove(collidable, key.key);
         }
@@ -73,27 +71,27 @@ public class SpatialHierarchyCollisionManager implements CollisionManager {
                 throw new NullPointerException("Callback cannot be null");
             
             // update every known collidable within the hierarchy
-            KeyWithBounds key;
+            Key key;
             Collidable shape;
-            for (Entry<Collidable, KeyWithBounds> c: hierarchyKeys.entrySet()) {
+            for (Entry<Collidable, Key> c: hierarchyKeys.entrySet()) {
                 shape = c.getKey();
                 key = c.getValue();
                 
                 // compute world bounds
-                shape.getShape().getBounds().transform(shape.getWorldTransform(), key.bounds);
                 if (key.key == null)
-                    key.key = hierarchy.add(shape, key.bounds);
+                    key.key = hierarchy.add(shape, shape.getWorldBounds());
                 else
-                    hierarchy.update(shape, key.bounds, key.key);
+                    hierarchy.update(shape, shape.getWorldBounds(), key.key);
             }
             
             hierarchy.query(new CollisionIntersectionCallback(callback));
         }
     }
     
-    private static class KeyWithBounds {
+    private static class Key {
+        // we only have this wrapper so we can track when something
+        // is in the hierarchy or not
         Object key = null;
-        final AxisAlignedBox bounds = new AxisAlignedBox();
     }
     
     private class CollisionIntersectionCallback implements IntersectionCallback<Collidable> {
@@ -105,7 +103,7 @@ public class SpatialHierarchyCollisionManager implements CollisionManager {
         
         @Override
         public void process(Collidable item1, Collidable item2) {
-            delegate.process(item1, item2, algorithm);
+            delegate.process(item1, item2, handler);
         }
     }
 }

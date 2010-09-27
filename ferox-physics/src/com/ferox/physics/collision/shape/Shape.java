@@ -1,7 +1,8 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.shape;
 
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 
 /**
  * <p>

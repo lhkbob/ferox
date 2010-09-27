@@ -1,6 +1,8 @@
-package com.ferox.physics.collision;
+package com.ferox.physics.collision.algorithm;
 
 import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.shape.Shape;
 
 /**
  * <p>
@@ -53,4 +55,14 @@ public interface CollisionAlgorithm<A extends Shape, B extends Shape> {
      */
     public ClosestPair getClosestPair(A shapeA, ReadOnlyMatrix4f transA, 
                                       B shapeB, ReadOnlyMatrix4f transB);
+    
+    /**
+     * @return The Class representing the type A
+     */
+    public Class<A> getShapeTypeA();
+    
+    /**
+     * @return The Class representing the type B
+     */
+    public Class<B> getShapeTypeB();
 }
