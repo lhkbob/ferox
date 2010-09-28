@@ -30,14 +30,14 @@ public class Cone extends AxisSweptShape {
         if (height <= 0f)
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
         this.halfHeight = height / 2f;
-        updateBounds();
+        update();
     }
     
     public void setBaseRadius(float radius) {
         if (radius <= 0f)
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         baseRadius = radius;
-        updateBounds();
+        update();
     }
     
     @Override
@@ -82,22 +82,28 @@ public class Cone extends AxisSweptShape {
         return result;
     }
     
-    private void updateBounds() {
+    private void update() {
         Vector3f min = aabb.getMin();
         Vector3f max = aabb.getMax();
+        
+        float m1 = 4f / 10f * halfHeight * halfHeight + 3f / 20f * baseRadius * baseRadius;
+        float m2 = 3f/ 10f * baseRadius * baseRadius;
         
         switch(dominantAxis) {
         case X:
             min.set(-halfHeight / 2f, -baseRadius, -baseRadius);
             max.set(halfHeight / 2f, baseRadius, baseRadius);
+            inertiaTensorPartial.set(m2, m1, m1);
             break;
         case Y:
             min.set(-baseRadius, -halfHeight / 2f, -baseRadius);
             max.set(baseRadius, halfHeight / 2f, baseRadius);
+            inertiaTensorPartial.set(m1, m2, m1);
             break;
         case Z:
             min.set(-baseRadius, -baseRadius, -halfHeight / 2f);
             max.set(baseRadius, baseRadius, halfHeight / 2f);
+            inertiaTensorPartial.set(m1, m1, m2);
             break;
         }
     }

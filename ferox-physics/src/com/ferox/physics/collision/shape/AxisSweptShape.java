@@ -1,6 +1,8 @@
 package com.ferox.physics.collision.shape;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 
 public abstract class AxisSweptShape implements ConvexShape {
@@ -8,6 +10,7 @@ public abstract class AxisSweptShape implements ConvexShape {
         X, Y, Z
     }
     
+    protected final Vector3f inertiaTensorPartial;
     protected final Axis dominantAxis;
     protected final AxisAlignedBox aabb;
     
@@ -16,6 +19,7 @@ public abstract class AxisSweptShape implements ConvexShape {
             throw new NullPointerException("Axis cannot be null");
         this.dominantAxis = dominantAxis;
         aabb = new AxisAlignedBox();
+        inertiaTensorPartial = new Vector3f();
     }
     
     public Axis getDominantAxis() {
@@ -25,6 +29,11 @@ public abstract class AxisSweptShape implements ConvexShape {
     @Override
     public AxisAlignedBox getBounds() {
         return aabb;
+    }
+    
+    @Override
+    public MutableVector3f getInertiaTensor(float mass, MutableVector3f result) {
+        return inertiaTensorPartial.scale(mass, result);
     }
     
     protected int sign(ReadOnlyVector3f v) {
