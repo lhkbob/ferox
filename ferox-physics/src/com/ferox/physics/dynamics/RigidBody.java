@@ -1,23 +1,16 @@
 package com.ferox.physics.dynamics;
 
 import com.ferox.math.Matrix3f;
-import com.ferox.math.MutableQuat4f;
 import com.ferox.math.MutableVector3f;
-import com.ferox.math.Quat4f;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.Shape;
+import com.ferox.physics.collision.shape.Shape;
 
 public class RigidBody extends Collidable {
-    private static final float ANGULAR_MOTION_THRESHOLD = (float) Math.PI / 4f;
-    private static final float MAX_ANGULAR_VELOCITY = (float) Math.PI  / 2f;
-    
-    private final Transform predictedTransform;
-
     private float inverseMass; // 1 / mass
     private final Matrix3f inertiaTensorWorldInverse;
 
@@ -43,8 +36,6 @@ public class RigidBody extends Collidable {
         totalForce = new Vector3f();
         totalTorque = new Vector3f();
         
-        predictedTransform = new Transform();
-
         setMass(mass);
     }
     
@@ -56,6 +47,7 @@ public class RigidBody extends Collidable {
         return deltaAngularVelocity;
     }
 
+    // FIXME: do we want these to be publically available?
     public void addDeltaImpulse(ReadOnlyVector3f linear, ReadOnlyVector3f angular, float magnitude) {
         // FIXME: don't do anything if kinematic
         linear.scaleAdd(magnitude, deltaLinearVelocity, deltaLinearVelocity);
@@ -77,71 +69,31 @@ public class RigidBody extends Collidable {
         
         // FIXME: what about kinematic objects? they don't get inertia really
         ReadOnlyVector3f inertia = getShape().getInertiaTensor(getMass(), temp3.get());
-        Transform toWorld = getWorldTransform();
-        toWorld.getRotation().mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(toWorld.getRotation());
-    }
-    
-    public ReadOnlyMatrix4f getPredictedTransform() {
-        return predictedTransform;
+        ReadOnlyMatrix3f rotation = getWorldTransform().getUpperMatrix(); // since Collidable uses Transform, this doesn't create an object
+        rotation.mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(rotation);
     }
     
     public ReadOnlyMatrix3f getInertiaTensorInverse() {
         return inertiaTensorWorldInverse;
     }
     
-    public void predictMotion(float dt) {
+    public void applyForces(Integrator integrator, float dt) {
         if (dt <= 0f)
             throw new IllegalArgumentException("Time delta must be positive, not: " + dt);
         
-        if (inverseMass <= 0f) {
-            // handle kinematic bodies differently
-            // FIXME: get velocity from (transform - predTransform) / dt
-            // then set predTransform = transform
-            // and return
-            predictedTransform.set(getWorldTransform());
-        } else {
-            // integrate accumulated forces into the velocity
-            totalForce.scaleAdd(dt * inverseMass, velocity, velocity);
-            
-            // we can store transformed torque in totalTorque because
-            // we're resetting the forces anyway
-            angularVelocity.add(inertiaTensorWorldInverse.mul(totalTorque).scale(dt));
-            
-            // clamp angular velocity or collision detection can fail
-            float angvel = angularVelocity.length() * dt;
-            if (angvel > MAX_ANGULAR_VELOCITY)
-                angularVelocity.scale(MAX_ANGULAR_VELOCITY / angvel);
-
-            
-            // reset all forces // FIXME: do we really want to do this here?
-            clearForces();
-            
-            // now integrate velocities into predicted transform
-            velocity.scaleAdd(dt, getWorldTransform().getTranslation(), predictedTransform.getTranslation());
-            
-            // angular velocity uses the exponential map method
-            // "Practical Parametrization of Rotations Using the Exponential Map", F. Sebastian Grassia
-            Vector3f axis = temp3.get();
-            float fAngle = angularVelocity.length();
-            // limit the angular motion
-            if (fAngle * dt > ANGULAR_MOTION_THRESHOLD)
-                fAngle = ANGULAR_MOTION_THRESHOLD / dt;
-            
-            if (fAngle < .001f) {
-                // use Taylor's expansions of sync function
-                angularVelocity.scale((.5f * dt) - (dt * dt * dt) * (.02083333333333f * fAngle * fAngle), axis);
-            } else {
-                // sync(fAngle) = sin(c * fAngle) / t
-                angularVelocity.scale((float) Math.sin(.5f * fAngle * dt) / fAngle, axis);
-            }
-            
-            MutableQuat4f newRot = tempq1.get().set(axis.getX(), axis.getY(), axis.getZ(), (float) Math.cos(.5f * fAngle * dt));
-            MutableQuat4f oldRot = tempq2.get().set(getWorldTransform().getRotation());
-            newRot.mul(oldRot).normalize();
-            
-            // store computed transform into predicted transform
-            predictedTransform.getRotation().set(newRot);
-        }
+        integrator.integrateLinearAcceleration(totalForce.scale(inverseMass), dt, velocity);
+        integrator.integrateAngularAcceleration(inertiaTensorWorldInverse.mul(totalTorque), dt, angularVelocity);
+        clearForces();
+    }
+    
+    public void predictMotion(Integrator integrator, float dt, Transform result) {
+        if (dt <= 0f)
+            throw new IllegalArgumentException("Time delta must be positive, not: " + dt);
+        
+        // FIXME what about kinematic objects?
+        result.set(getWorldTransform());
+        integrator.integrateLinearVelocity(velocity, dt, result.getTranslation());
+        integrator.integrateAngularVelocity(angularVelocity, dt, result.getRotation());
     }
     
     public void addForce(ReadOnlyVector3f force, ReadOnlyVector3f relPos) {
@@ -180,16 +132,12 @@ public class RigidBody extends Collidable {
 
     public void setMass(float mass) {
         if (mass <= 0f)
-            inverseMass = -1f;
-        else
-            inverseMass = 1f / mass;
+            throw new IllegalArgumentException("Mass must be positive");
+        inverseMass = 1f / mass;
     }
 
     public float getMass() {
-        if (inverseMass <= 0f)
-            return -1f;
-        else
-            return 1f / inverseMass;
+        return 1f / inverseMass;
     }
 
     public float getInverseMass() {
@@ -203,11 +151,6 @@ public class RigidBody extends Collidable {
     public ReadOnlyVector3f getAngularVelocity() {
         return angularVelocity;
     }
-
-    public boolean isKinematic() {
-        return inverseMass <= 0f;
-    }
-    
     
     /* 
      * ThreadLocals for computations. 
@@ -216,13 +159,5 @@ public class RigidBody extends Collidable {
     private static final ThreadLocal<Vector3f> temp3 = new ThreadLocal<Vector3f>() {
         @Override
         protected Vector3f initialValue() { return new Vector3f(); }
-    };
-    private static final ThreadLocal<Quat4f> tempq1 = new ThreadLocal<Quat4f>() {
-        @Override
-        protected Quat4f initialValue() { return new Quat4f(); }
-    };
-    private static final ThreadLocal<Quat4f> tempq2 = new ThreadLocal<Quat4f>() {
-        @Override
-        protected Quat4f initialValue() { return new Quat4f(); }
     };
 }

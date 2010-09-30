@@ -1,7 +1,7 @@
 package com.ferox.physics.entity;
 
 import com.ferox.entity.AbstractComponent;
-import com.ferox.physics.collision.Shape;
+import com.ferox.physics.collision.shape.Shape;
 
 // FIXME: really we should just expose the RigidBody here so that
 // everything can be managed directly by custom controllers easier

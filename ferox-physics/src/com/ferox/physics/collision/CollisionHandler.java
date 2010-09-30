@@ -6,6 +6,8 @@ import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 public interface CollisionHandler {
     public ClosestPair getClosestPair(Collidable objA, Collidable objB);
     
+    public CollisionAlgorithm<?, ?> getAlgorithm(Collidable objA, Collidable objB);
+    
     public void register(CollisionAlgorithm<?, ?> algorithm);
     
     public void unregister(Class<? extends CollisionAlgorithm<?, ?>> algorithmType);

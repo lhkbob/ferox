@@ -29,6 +29,16 @@ public class DefaultCollisionHandler implements CollisionHandler {
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public ClosestPair getClosestPair(Collidable objA, Collidable objB) {
+        CollisionAlgorithm algo = getAlgorithm(objA, objB);
+        if (algo == null)
+            return null; // no way to check for collisions
+        else
+            return algo.getClosestPair(objA.getShape(), objA.getWorldTransform(), 
+                                       objB.getShape(), objB.getWorldTransform());
+    }
+    
+    @Override
+    public CollisionAlgorithm<?, ?> getAlgorithm(Collidable objA, Collidable objB) {
         if (objA == null || objB == null)
             throw new NullPointerException("Collidables cannot be null");
         
@@ -38,7 +48,7 @@ public class DefaultCollisionHandler implements CollisionHandler {
             key.shapeA = objA.getShape().getClass();
             key.shapeB = objB.getShape().getClass();
             
-            CollisionAlgorithm algo = algorithmCache.get(key);
+            CollisionAlgorithm<?, ?> algo = algorithmCache.get(key);
             if (algo == null) {
                 // update the algorithm cache for this pair
                 algo = getAlgorithm(key.shapeA, key.shapeB);
@@ -48,9 +58,8 @@ public class DefaultCollisionHandler implements CollisionHandler {
                 // if algorithm is still null, we don't support it right now
                 return null;
             } else {
-                // use world transform of collidables with the provided algorithm
-                return algo.getClosestPair(objA.getShape(), objA.getWorldTransform(), 
-                                           objB.getShape(), objB.getWorldTransform());
+                // else we've found it some how so just return it
+                return algo;
             }
         } finally {
             lock.readLock().unlock();

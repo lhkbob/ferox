@@ -53,7 +53,7 @@ public class Collidable {
         collisionMask.set(group, collide);
     }
     
-    public Transform getWorldTransform() {
+    public ReadOnlyMatrix4f getWorldTransform() {
         return worldTransform;
     }
     

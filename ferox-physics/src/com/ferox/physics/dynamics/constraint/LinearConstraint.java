@@ -1,8 +1,9 @@
-package com.ferox.physics.dynamics;
+package com.ferox.physics.dynamics.constraint;
 
 import com.ferox.math.Vector3f;
+import com.ferox.physics.dynamics.RigidBody;
 
-public class LinearNormalConstraint {
+public class LinearConstraint {
     public final Vector3f relposACrossNormal;
     public final Vector3f relposBCrossNormal;
     
@@ -24,7 +25,7 @@ public class LinearNormalConstraint {
     
     public float appliedImpulse;
     
-    public LinearNormalConstraint() {
+    public LinearConstraint() {
         relposACrossNormal = new Vector3f();
         relposBCrossNormal = new Vector3f();
         constraintNormal = new Vector3f();
