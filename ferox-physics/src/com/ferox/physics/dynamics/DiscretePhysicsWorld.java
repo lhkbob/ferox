@@ -77,8 +77,6 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
                 gravity.scale(b.getMass(), gravForce);
 
             b.addForce(gravity, null); // gravity is a central force, applies no torque
-//            b.addForce(new Vector3f((float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1),
-//                       new Vector3f((float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1, (float) Math.random() * 2 - 1));
             b.applyForces(integrator, dt);
         }
         
@@ -187,7 +185,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
             if (!(objA instanceof RigidBody) && !(objB instanceof RigidBody))
                 return; // ignore collisions between only static objects
             ClosestPair pair = handler.getClosestPair(objA, objB);
-            if (pair != null)
+            if (pair != null && pair.isIntersecting())
                 contactCache.addContact(objA, objB, pair);
         }
     }

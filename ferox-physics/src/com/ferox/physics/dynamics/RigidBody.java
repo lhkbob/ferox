@@ -49,12 +49,22 @@ public class RigidBody extends Collidable {
 
     // FIXME: do we want these to be publically available?
     public void addDeltaImpulse(ReadOnlyVector3f linear, ReadOnlyVector3f angular, float magnitude) {
+        if (Float.isNaN(linear.getX()) || Float.isNaN(angular.getX()) || Float.isNaN(magnitude)) {
+            return;
+        }
         // FIXME: don't do anything if kinematic
         linear.scaleAdd(magnitude, deltaLinearVelocity, deltaLinearVelocity);
         angular.scaleAdd(magnitude, deltaAngularVelocity, deltaAngularVelocity);
+        
+        if (Float.isNaN(deltaLinearVelocity.getX()) || Float.isNaN(deltaAngularVelocity.getX())) {
+            return;
+        }
     }
     
     public void applyDeltaImpulse() {
+        if (Float.isNaN(deltaLinearVelocity.getX())) {
+            return;
+        }
         // FIXME: dont' do anything for kinematic
         velocity.add(deltaLinearVelocity);
         angularVelocity.add(deltaAngularVelocity);
@@ -68,7 +78,10 @@ public class RigidBody extends Collidable {
         super.setWorldTransform(t);
         
         // FIXME: what about kinematic objects? they don't get inertia really
-        ReadOnlyVector3f inertia = getShape().getInertiaTensor(getMass(), temp3.get());
+        // FIXME: the inertia tensor needs to be inverted (e.g. 1/x, 1/y, 1/z) here
+        MutableVector3f inertia = getShape().getInertiaTensor(getMass(), temp3.get());
+        inertia.set(1f / inertia.getX(), 1f / inertia.getY(), 1f / inertia.getZ());
+        
         ReadOnlyMatrix3f rotation = getWorldTransform().getUpperMatrix(); // since Collidable uses Transform, this doesn't create an object
         rotation.mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(rotation);
     }

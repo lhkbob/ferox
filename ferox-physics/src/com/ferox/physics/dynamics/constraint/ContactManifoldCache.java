@@ -39,10 +39,10 @@ public class ContactManifoldCache {
     public void addContact(Collidable objA, Collidable objB, ClosestPair pair) {
         query.a = objA;
         query.b = objB;
-        
+
         ContactManifold oldManifold = manifolds.get(query);
         if (oldManifold != null) {
-            // objects already in contact, just update existing manifold
+            // object are already in contact, just update existing manifold
             oldManifold.addContact(pair, objA == oldManifold.getCollidableB());
             return;
         }

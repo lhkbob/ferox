@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.ferox.physics.collision.algorithm.ClosestPair;
 import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
+import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
 import com.ferox.physics.collision.shape.Shape;
 
@@ -24,6 +25,8 @@ public class DefaultCollisionHandler implements CollisionHandler {
         
         algorithmCache = new ConcurrentHashMap<DefaultCollisionHandler.TypePair, CollisionAlgorithm<?,?>>();
         lookup = new ThreadLocal<TypePair>();
+        
+        register(new GjkEpaCollisionAlgorithm());
     }
     
     @Override
@@ -45,6 +48,11 @@ public class DefaultCollisionHandler implements CollisionHandler {
         lock.readLock().lock();
         try {
             TypePair key = lookup.get();
+            if (key == null) {
+                key = new TypePair();
+                lookup.set(key);
+            }
+            
             key.shapeA = objA.getShape().getClass();
             key.shapeB = objB.getShape().getClass();
             

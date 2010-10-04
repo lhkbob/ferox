@@ -33,11 +33,6 @@ public class Simplex {
     static class SupportSample {
         final Vector3f input = new Vector3f();
         final Vector3f support = new Vector3f();
-        
-        @Override
-        public String toString() {
-            return "{" + input + ", " + support + "}";
-        }
     }
     
     // because projecting takes up so much extra storage, we cache a SimplexUtil per thread
@@ -326,7 +321,6 @@ public class Simplex {
         else
             d.normalize(vertices[rank].input);
         s.getSupport(vertices[rank].input, vertices[rank].support);
-        
         rank++;
     }
     
@@ -389,15 +383,19 @@ public class Simplex {
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
-        b.append("(Simplex: rank=");
+        b.append("Simplex: rank=");
         b.append(rank);
+        b.append('\n');
         
-        b.append(", vertices=");
-        b.append(Arrays.toString(Arrays.copyOf(vertices, rank)));
-        
-        b.append(", weights=");
-        b.append(Arrays.toString(Arrays.copyOf(weights, rank)));
-        b.append(")");
+        for (int i = 0; i < rank; i++) {
+            b.append("  Vertex: ");
+            b.append(vertices[i].input);
+            b.append(", ");
+            b.append(vertices[i].support);
+            b.append(" weight=");
+            b.append(weights[i]);
+            b.append('\n');
+        }
         
         return b.toString();
     }
@@ -428,7 +426,7 @@ public class Simplex {
             break;
         }
         
-        if (sqdist > 0f) {
+        if (sqdist >= 0f) {
             // copy weights back into member variables
             System.arraycopy(weights, 0, this.weights, 0, 4);
             this.mask[0] = mask[0];

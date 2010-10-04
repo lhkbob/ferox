@@ -105,6 +105,8 @@ public class GJK {
         Status status = Status.VALID;
         simplex = new Simplex();
         Vector3f ray = new Vector3f(guess);
+        if (ray.lengthSquared() < GJK_MIN_DISTANCE * GJK_MIN_DISTANCE)
+            ray.set(-1f, 0f, 0f); // for 0-vector guess, choose arbitrary vector to start
         
         int iterations = 0;
         float alpha = 0f;

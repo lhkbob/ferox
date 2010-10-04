@@ -1,5 +1,6 @@
 package com.ferox.physics.dynamics.constraint;
 
+import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.Bag;
 
 public class LinearConstraintPool {
@@ -9,21 +10,17 @@ public class LinearConstraintPool {
         constraints = new Bag<LinearConstraint>();
     }
     
-    public LinearConstraint get() {
+    public LinearConstraint get(RigidBody bodyA, RigidBody bodyB) {
         if (!constraints.isEmpty()) {
             LinearConstraint constraint = constraints.remove(constraints.size() - 1);
-            reset(constraint);
+            constraint.reset(bodyA, bodyB);
             return constraint;
         } else
-            return new LinearConstraint();
+            return new LinearConstraint(bodyA, bodyB);
             
     }
     
     public void add(LinearConstraint constraint) {
         constraints.add(constraint);
-    }
-    
-    private void reset(LinearConstraint constraint) {
-        
     }
 }

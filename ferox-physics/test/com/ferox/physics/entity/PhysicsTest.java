@@ -18,7 +18,8 @@ import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.SpatialHierarchyCollisionManager;
-import com.ferox.physics.dynamics.PhysicsWorld;
+import com.ferox.physics.dynamics.DiscretePhysicsWorld;
+import com.ferox.physics.dynamics.PhysicsWorldConfiguration;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -50,6 +51,7 @@ import com.ferox.scene.controller.ffp.ShadowMapFrustumController;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.PrimitiveGeometry;
 import com.ferox.util.geom.Rectangle;
+import com.ferox.util.geom.Sphere;
 import com.ferox.util.geom.text.CharacterSet;
 import com.ferox.util.geom.text.Text;
 import com.ferox.util.geom.text.TextRenderPass;
@@ -59,7 +61,11 @@ import com.ferox.util.texture.loader.TextureLoader;
 public class PhysicsTest {
     private static final CompileType COMPILE_TYPE = CompileType.RESIDENT_STATIC;
     private static final int BOUNDS = 40;
-    private static final int NUM_SHAPES = 1000;
+    
+    private static final int NUM_X = 1;
+    private static final int NUM_Y = 1;
+    private static final int NUM_Z = 1;
+    private static final float SCALE = 2.000f;
     
     private static final CharacterSet DEFAULT_CHARSET = new CharacterSet(Font.decode("FranklinGothic-Medium 24"), true, true);
     
@@ -76,9 +82,11 @@ public class PhysicsTest {
         EntitySystem system = new EntitySystem();
         SpatialHierarchy<Entity> sh = new Octree<Entity>(Strategy.STATIC, BOUNDS, 3);
         
+        PhysicsWorldConfiguration config = new PhysicsWorldConfiguration().setCollisionManager(new SpatialHierarchyCollisionManager(new Octree<Collidable>(Strategy.STATIC, BOUNDS, 3)));
+        
         AttachmentController c1 = new AttachmentController(system);
         BillboardController c2 = new BillboardController(system);
-        PhysicsController c3 = new PhysicsController(system, new PhysicsWorld(new SpatialHierarchyCollisionManager(new Octree<Collidable>(Strategy.STATIC, BOUNDS, 3))));
+        PhysicsController c3 = new PhysicsController(system, new DiscretePhysicsWorld(config));
         SceneController c4 = new SceneController(system, sh);
         LightUpdateController c5 = new LightUpdateController(system);
         ViewNodeController c6 = new ViewNodeController(system, sh);
@@ -176,7 +184,7 @@ public class PhysicsTest {
         // camera
         ViewNode vn = new ViewNode(surface, 60f, 1f, 3 * BOUNDS);
         SceneElement el = new SceneElement();
-        el.setTranslation(new Vector3f(0f, 0f, -1f * BOUNDS));
+        el.setTranslation(new Vector3f(0f, -BOUNDS / 2f, -1f * BOUNDS));
         
         system.add(new Entity(el, vn));
         return surface;
@@ -184,10 +192,16 @@ public class PhysicsTest {
     
     private static void buildScene(EntitySystem scene) throws Exception {
         // shapes
-        PrimitiveGeometry geom = new Box(2f, COMPILE_TYPE);
-        AxisAlignedBox bounds = new AxisAlignedBox(geom.getVertices().getData());
-        Shape geomShape = new Shape(geom);
-        com.ferox.physics.collision.Shape physShape = new com.ferox.physics.collision.shape.Box(2f, 2f, 2f);
+        PrimitiveGeometry box = new Box(2f, COMPILE_TYPE);
+        AxisAlignedBox boxBounds = new AxisAlignedBox(box.getVertices().getData());
+        PrimitiveGeometry sphere = new Sphere(1f, 16, COMPILE_TYPE);
+        AxisAlignedBox sphereBounds = new AxisAlignedBox(sphere.getVertices().getData());
+        
+        Shape boxElem = new Shape(box);
+        Shape sphereElem = new Shape(sphere);
+        
+        com.ferox.physics.collision.shape.Shape boxShape = new com.ferox.physics.collision.shape.Box(2f, 2f, 2f);
+        com.ferox.physics.collision.shape.Shape sphereShape = new com.ferox.physics.collision.shape.Sphere(1f);
         
         Renderable toRender = new Renderable();
         ShadowCaster sc = new ShadowCaster();
@@ -196,18 +210,31 @@ public class PhysicsTest {
         TexturedMaterial texture = new TexturedMaterial(TextureLoader.readTexture(new File("ferox-gl.tga")));
         BlinnPhongLightingModel material = new BlinnPhongLightingModel(new Color4f(1f, 1f, 1f, .4f), new Color4f(.2f, 0f, .1f));
         
-        for (int i = 0; i < NUM_SHAPES; i++) {
-            float x = (float) (Math.random() * BOUNDS - BOUNDS / 2);
-            float y = (float) (Math.random() * BOUNDS - BOUNDS / 2);
-            float z = (float) (Math.random() * BOUNDS - BOUNDS / 2);
-            
-            SceneElement element = new SceneElement();
-            element.setTranslation(new Vector3f(x, y, z));
-            element.setLocalBounds(bounds);
-            
-            Entity e = new Entity(element, toRender, material, sc, sr, geomShape,
-                                  new PhysicsBody(physShape, 10f));
-            scene.add(e);
+        for (int z = 0; z < NUM_Z; z++) {
+            for (int y = 0; y < NUM_Y; y++) {
+                for (int x = 0; x < NUM_X; x++) {
+                    com.ferox.physics.collision.shape.Shape physShape;
+                    AxisAlignedBox bounds;
+                    Shape geomShape;
+                    
+                    if (Math.random() > 1f) {
+                        physShape = sphereShape;
+                        bounds = sphereBounds;
+                        geomShape = sphereElem;
+                    } else {
+                        physShape = boxShape;
+                        bounds = boxBounds;
+                        geomShape = boxElem;
+                    }
+                    
+                    SceneElement element = new SceneElement();
+                    element.setTranslation(new Vector3f(SCALE * x + 1f, SCALE * y, SCALE * z));
+                    element.setLocalBounds(bounds);
+                    Entity e = new Entity(element, toRender, material, sc, sr, geomShape,
+                                          new PhysicsBody(physShape, 10f));
+                    scene.add(e);
+                }
+            }
         }
         
         // some walls
@@ -221,8 +248,10 @@ public class PhysicsTest {
         pos = new SceneElement();
         pos.setTranslation(new Vector3f(0f, -BOUNDS, 0f));
         pos.setLocalBounds(new AxisAlignedBox(bottomWall.getVertices().getData()));
+        
         scene.add(new Entity(pos, new Shape(bottomWall), material, texture, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 
+        
         // ambient light
         scene.add(new Entity(new AmbientLight(new Color4f(.2f, .2f, .2f, 1f))));
         
