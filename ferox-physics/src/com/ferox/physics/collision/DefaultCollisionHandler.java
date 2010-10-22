@@ -85,6 +85,9 @@ public class DefaultCollisionHandler implements CollisionHandler {
         if (algo != null) {
             // return a wrapped instance of the algorithm that swaps everything
             // and store it in the cache
+            key.shapeA = aType;
+            key.shapeB = bType;
+            
             algo = new SwappingCollisionAlgorithm(algo);
             algorithmCache.put(key, algo);
             return algo;
@@ -103,10 +106,16 @@ public class DefaultCollisionHandler implements CollisionHandler {
         // find best match with swapped ordering
         algo = getBestMatch(bType, aType);
         if (algo != null) {
+            // store original algorithm so we don't get swaps of swaps later on
+            TypePair orig = new TypePair();
+            orig.shapeA = bType;
+            orig.shapeB = aType;
+            algorithmCache.put(orig, algo);
+            
             // store swapped algorithm
             algo = new SwappingCollisionAlgorithm(algo);
-            key.shapeA = bType;
-            key.shapeB = aType;
+            key.shapeA = aType;
+            key.shapeB = bType;
             
             algorithmCache.put(key, algo);
             return algo;
@@ -219,6 +228,11 @@ public class DefaultCollisionHandler implements CollisionHandler {
                 return false;
             TypePair that = (TypePair) o;
             return (shapeA.equals(that.shapeA) && shapeB.equals(that.shapeB));
+        }
+        
+        @Override
+        public String toString() {
+            return "Pair(" + shapeA.getSimpleName() + ", " + shapeB.getSimpleName() + ")";
         }
     }
 }
