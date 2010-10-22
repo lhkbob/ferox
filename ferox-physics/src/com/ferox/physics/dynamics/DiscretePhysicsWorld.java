@@ -36,7 +36,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
         if (config == null)
             throw new NullPointerException("Configuration cannot be null");
         
-        gravity = new Vector3f(0f, -9.82f, 0f);
+        gravity = new Vector3f(0f, -10f, 0f);
         
         bodies = new HashSet<Collidable>();
         rigidBodies = new Bag<RigidBody>();
@@ -61,9 +61,14 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
         this.gravity.set(gravity);
     }
 
+    long collideTime = 0;
+    long constraintTime = 0;
+    long intTime = 0;
+    int steps = 0;
     @Override
     public void step(float dt) {
         // FIXME use time step interpolation to maintain a fixed time step rate like in bullet
+        intTime -= System.nanoTime();
         RigidBody b;
         Vector3f gravForce = new Vector3f();
         int ct = rigidBodies.size();
@@ -76,14 +81,21 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
             else
                 gravity.scale(b.getMass(), gravForce);
 
-            b.addForce(gravity, null); // gravity is a central force, applies no torque
+            b.addForce(gravForce, null); // gravity is a central force, applies no torque
             b.applyForces(integrator, dt);
         }
+        intTime += System.nanoTime();
         
+        collideTime -= System.nanoTime();
         contactCache.update();
         collisionManager.processCollisions(new ContactManifoldCallback());
+        collideTime += System.nanoTime();
+
+        constraintTime -= System.nanoTime();
         constraintSolver.solve(new ChainedCollection<Constraint>(constraints, contactCache.getContacts()), dt);
+        constraintTime += System.nanoTime();
         
+        intTime -= System.nanoTime();
         Transform t = new Transform();
         for (int i = 0; i < ct; i++) {
             b = rigidBodies.get(i);
@@ -94,8 +106,19 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
             b.predictMotion(integrator, dt, t);
             b.setWorldTransform(t);
         }
+        intTime += System.nanoTime();
+        
+        
+        steps++;
+        if (steps > 10) {
+            System.out.println("integrate: " + (intTime / (steps * 1e6f)) + " collide: " + (collideTime / (steps * 1e6f)) + " constraint: " + (constraintTime / (steps * 1e6f)));
+            intTime = 0;
+            collideTime = 0;
+            constraintTime = 0;
+            steps = 0;
+        }
     }
-
+    
     @Override
     public void add(Collidable c) {
         if (c == null)

@@ -36,7 +36,8 @@ public class Box implements ConvexShape {
         
         halfExtents.set(width / 2f, height / 2f, depth / 2f);
         aabb.getMax().set(halfExtents);
-        aabb.getMin().set(halfExtents).scale(-1f);
+        aabb.getMax().add(new Vector3f(.05f, .05f, .05f));
+        aabb.getMin().set(aabb.getMax()).scale(-1f);
         
         localTensorPartial.set((height * height + depth * depth) / 12f,
                                (width * width + depth * depth) / 12f,
@@ -56,14 +57,19 @@ public class Box implements ConvexShape {
     }
     
     @Override
-    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
+    public boolean computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
+        // FIXME: maybe break this into two methods, isSmooth() and computeSupport()
         float x = (v.getX() < 0f ? -halfExtents.getX() : halfExtents.getX());
         float y = (v.getY() < 0f ? -halfExtents.getY() : halfExtents.getY());
         float z = (v.getZ() < 0f ? -halfExtents.getZ() : halfExtents.getZ());
         
-        if (result == null)
-            result = new Vector3f();
-        return result.set(x, y, z);
+        if (result != null)
+            result.set(x, y, z);
+        float ax = Math.abs(v.getX());
+        float ay = Math.abs(v.getY());
+        float az = Math.abs(v.getZ());
+        
+        return !(Math.abs(ax - ay) < .0001f || Math.abs(ax - az) < .0001f || Math.abs(ay - az) < .0001f);
     }
 
     @Override

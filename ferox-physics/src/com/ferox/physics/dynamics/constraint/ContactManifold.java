@@ -39,7 +39,31 @@ public class ContactManifold extends NormalizableConstraint {
         manifold = new ArrayList<ContactManifold.ManifoldPoint>(MANIFOLD_POINT_SIZE);
     }
     
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("(Contact ");
+        sb.append(objA.hashCode());
+        sb.append(", ");
+        sb.append(objB.hashCode());
+        sb.append(", [");
+        for (int i = 0; i < manifold.size(); i++) {
+            if (i > 0)
+                sb.append(", ");
+            sb.append('(');
+            sb.append(manifold.get(i).distance);
+            sb.append(", ");
+            sb.append(manifold.get(i).lifetime);
+            sb.append(')');
+        }
+        sb.append("])");
+        
+        return sb.toString();
+    }
+    
     public void addContact(ClosestPair pair, boolean swap) {
+//        if (pair.getDistance() < -.001f)
+//            System.out.println("Penetration: " + pair);
+//        System.out.println("Adding point: " + pair);
         ManifoldPoint newPoint = new ManifoldPoint(objA.getWorldTransform(), objB.getWorldTransform(),
                                                    pair, swap);
         
@@ -198,6 +222,7 @@ public class ContactManifold extends NormalizableConstraint {
         relPosB.set(pt.worldB.getX() - tb.get(0, 3),
                     pt.worldB.getY() - tb.get(1, 3),
                     pt.worldB.getZ() - tb.get(2, 3));
+//        System.out.println("relposA: " + relPosA + " relposB: " + relPosB);
         
         // FIXME: need more thread-locals or maybe not? ThreadLocal seems slower than new
         // compute torque axis
@@ -215,6 +240,7 @@ public class ContactManifold extends NormalizableConstraint {
             rbB.getInertiaTensorInverse().mul(constraint.getTorqueAxisB(), temp).cross(relPosB);
             denomB = rbB.getInverseMass() - pt.worldNormalInB.dot(temp);
         }
+//        System.out.println("prepare: " + denomA + " " + denomB);
         constraint.setJacobianInverse(1f / (denomA + denomB));
         constraint.setConstraintAxis(pt.worldNormalInB);
         
@@ -250,16 +276,15 @@ public class ContactManifold extends NormalizableConstraint {
             velDotN += (constraint.getConstraintAxis().dot(rbA.getVelocity()) + constraint.getTorqueAxisA().dot(rbA.getAngularVelocity()));
         if (rbB != null)
             velDotN += (-constraint.getConstraintAxis().dot(rbB.getVelocity()) + constraint.getTorqueAxisB().dot(rbB.getAngularVelocity()));
-        
         float positionalError = -pt.distance * ERP / dt;
         float velocityError = restitution - velDotN;
-        
+//        System.out.println(" velocities: " + (rbA != null ? rbA.getVelocity() : "NULL") + " " + (rbB != null ? rbB.getVelocity() : "NULL"));
+//        System.out.println(" rel-vel: " + velDotN + " pos: " + positionalError + " vel: " + velocityError);
+
         float penetrationImpulse = positionalError * constraint.getJacobianInverse();
         float velocityImpulse = velocityError * constraint.getJacobianInverse();
         constraint.setSolutionParameters(penetrationImpulse + velocityImpulse, 0f);
         constraint.setLimits(0f, Float.MAX_VALUE);
-        
-//        System.out.printf("constraint: %.4f %.4f %.4f %.4f\n", velDotN, positionalError, velocityError, constraint.getRightHandSide());
     }
     
     private static class ManifoldPoint {

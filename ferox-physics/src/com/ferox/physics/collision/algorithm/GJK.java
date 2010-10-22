@@ -22,9 +22,9 @@ import com.ferox.math.Vector3f;
  */
 public class GJK {
     public static final int GJK_MAX_ITERATIONS = 128;
-    public static final float GJK_MIN_DISTANCE = .00001f;
-    public static final float GJK_DUPLICATE_EPS = .00001f;
-    public static final float GJK_ACCURACY = .00001f;
+    public static final double GJK_MIN_DISTANCE = .0001f;
+    public static final double GJK_DUPLICATE_EPS = .0001f;
+    public static final double GJK_ACCURACY = .0001f;
 
     /**
      * Status represents the three states that a GJK evaluation can take. A
@@ -37,7 +37,7 @@ public class GJK {
         VALID, INSIDE, FAILED
     }
     
-    private final MinkowskiDifference shape;
+    private final MinkowskiDifference function;
     private Simplex simplex;
     private Status status;
 
@@ -48,21 +48,21 @@ public class GJK {
      * @param shape The MinkowskiDifference to evaluate
      * @throws NullPointerException if shape is null
      */
-    public GJK(MinkowskiDifference shape) {
-        if (shape == null)
+    public GJK(MinkowskiDifference support) {
+        if (support == null)
             throw new NullPointerException("MinkowskiDifference cannot be null");
         
-        this.shape = shape;
+        function = support;
         status = Status.FAILED;
         simplex = null;
     }
     
     /**
-     * Return the MinkowskiDifference tuned to this GJK instance.
+     * Return the MinkowskiDifference used to build this GJK's Simplex.
      * @return The MinkowskiDifference
      */
     public MinkowskiDifference getMinkowskiDifference() {
-        return shape;
+        return function;
     }
 
     /**
@@ -109,36 +109,37 @@ public class GJK {
             ray.set(-1f, 0f, 0f); // for 0-vector guess, choose arbitrary vector to start
         
         int iterations = 0;
-        float alpha = 0f;
+        double alpha = 0f;
         
-        simplex.addVertex(shape, ray, true);
+        simplex.addVertex(function, ray, true);
         simplex.setWeight(0, 1f);
         ray.set(simplex.getVertex(0));
-        
         // old support values are tracked so we can terminate when a duplicate is 
         // returned in subsequent iterations
         Vector3f[] oldSupports = new Vector3f[] { new Vector3f(ray), new Vector3f(ray), 
                                                   new Vector3f(ray), new Vector3f(ray) };
         int lastSupportIndex = 0;
         
-        float rayLength;
+        double rayLength;
         ReadOnlyVector3f support;
         while(status == Status.VALID) {
             rayLength = ray.length();
+//            System.out.println("ray on iter: " + iterations + " -> " + ray);
             if (rayLength < GJK_MIN_DISTANCE) {
                 // touching or inside
                 status = Status.INSIDE;
                 break;
             }
-            
+//            System.out.println(iterations + " " + simplex);
+
             // add the new vertex
-            simplex.addVertex(shape, ray, true);
+            simplex.addVertex(function, ray, true);
             support = simplex.getVertex(simplex.getRank() - 1);
             
             // check for duplicates
             boolean duplicate = false;
             for (int i = 0; i < 4; i++) {
-                if (support.epsilonEquals(oldSupports[i], GJK_DUPLICATE_EPS)) {
+                if (support.epsilonEquals(oldSupports[i], (float) GJK_DUPLICATE_EPS)) {
                     duplicate = true;
                     break;
                 }
@@ -147,6 +148,7 @@ public class GJK {
             if (duplicate) {
                 // return the old simplex since we didn't add any vertices
                 simplex.removeVertex();
+//                System.err.println("DUPLICATE TERMINATION");
                 break;
             } else {
                 // update the old support storage
@@ -167,14 +169,16 @@ public class GJK {
                 // the simplex is valid, compute next guess
                 ray.set(0f, 0f, 0f);
                 for (int i = 0; i < simplex.getRank(); i++)
-                    simplex.getVertex(i).scaleAdd(simplex.getWeight(i), ray, ray);
+                    simplex.getVertex(i).scaleAdd((float) simplex.getWeight(i), ray, ray);
                 
                 // terminate if the simplex is full
+//                System.out.println("computed ray for next iter: " + ray);
                 if (simplex.getRank() == 4)
                     status = Status.INSIDE;
             } else {
                 // terminate using the old simplex
                 simplex.removeVertex();
+                status = Status.FAILED;
                 break;
             }
             

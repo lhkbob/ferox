@@ -4,6 +4,7 @@ import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.physics.collision.shape.ConvexShape;
+import com.ferox.physics.collision.shape.Sphere;
 
 /**
  * <p>
@@ -30,88 +31,75 @@ import com.ferox.physics.collision.shape.ConvexShape;
  * @author Michael Ludwig
  */
 public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
-    private static final float CONTACT_NORMAL_ACCURACY = .001f;
+    public static int NUM_GJK_CHECKS = 0;
+    public static int NUM_EPA_CHECKS = 0;
     
-    private final float margin;
+    private final float scale;
 
     /**
-     * Create a new GjkEpaCollisionAlgorithm that's configured to use a margin of
-     * <code>.05</code>.
+     * Create a new GjkEpaCollisionAlgorithm that's configured to use a scale of
+     * <code>.9</code>.
      */
     public GjkEpaCollisionAlgorithm() {
-        this(.05f);
+        this(0.95f);
     }
 
     /**
-     * Create a new GjkEpaCollisionAlgorithm that's configured to use the specified
-     * margin. If the margin is less than or equal to 0 disables the automated
-     * shrinking of shapes that improves performance. This can be useful or
-     * needed if collision shapes are smaller than the margin.
+     * Create a new GjkEpaCollisionAlgorithm that's configured to use the
+     * specified margin. If the scale is less than or equal to 0 disables the
+     * automated shrinking of shapes that improves performance.
      * 
-     * @param margin The margin to use when calling
+     * @param scale The scale to use when calling
      *            {@link #getClosestPair(ConvexShape, ReadOnlyMatrix4f, ConvexShape, ReadOnlyMatrix4f)
+
      */
-    public GjkEpaCollisionAlgorithm(float margin) {
-        this.margin = margin;
+    public GjkEpaCollisionAlgorithm(float scale) {
+        if (scale > 1f)
+            throw new IllegalArgumentException("Scale factor must be less than 1, not: " + scale);
+        this.scale = scale;
     }
     
     @Override
     public ClosestPair getClosestPair(ConvexShape shapeA, ReadOnlyMatrix4f transA,
                                       ConvexShape shapeB, ReadOnlyMatrix4f transB) {
         // MinkowskiDifference does the error checking for GjkEpaCollisionAlgorithm
-        MinkowskiDifference shape = new MinkowskiDifference(shapeA, transA, shapeB, transB, margin);
-        GJK gjk = new GJK(shape);
+        MinkowskiDifference support = new MinkowskiDifference(shapeA, transA, shapeB, transB, .05f);
+        support.setIgnoreMargin(true);
+        GJK gjk = new GJK(support);
         
         ReadOnlyVector3f pa = transA.getCol(3).getAsVector3f();
         ReadOnlyVector3f pb = transB.getCol(3).getAsVector3f();
         
         MutableVector3f guess = pb.sub(pa, null);
         gjk.evaluate(guess);
-        
+        NUM_GJK_CHECKS++;
         if (gjk.getStatus() == GJK.Status.VALID) {
             // non-intersecting pair
-            return constructPair(shape, gjk.getSimplex(), null, pa, pb);
-        } else if (gjk.getStatus() == GJK.Status.INSIDE) {
-            // intersection, fall back onto EPA
-            EPA epa = new EPA(gjk);
-            epa.evaluate(guess);
-            
-            if (epa.getStatus() != EPA.Status.FAILED) {
-                // epa successfully determined an intersection
-                return constructPair(shape, epa.getSimplex(), epa.getNormal(), pa, pb);
-            } else
-                return null;
-        } else
-            return null;
-    }
-    
-    private ClosestPair constructPair(MinkowskiDifference shape, Simplex simplex, ReadOnlyVector3f contactNormal, 
-                                      ReadOnlyVector3f pA, ReadOnlyVector3f pB) {
-        MutableVector3f wA = shape.getClosestPointA(simplex, false, null);
-        MutableVector3f wB = shape.getClosestPointB(simplex, false, null);
+           ClosestPair p = support.getClosestPair(gjk.getSimplex(), null);
+           if (p != null)
+               return p;
+        } 
         
-        boolean intersecting = (pA.distanceSquared(wB) < pA.distanceSquared(wA)) && 
-                               (pB.distanceSquared(wA) < pB.distanceSquared(wB));
-        MutableVector3f normal = wB.sub(wA); // wB becomes the normal here
-        float distance = normal.length() * (intersecting ? -1f : 1f);
-        
-        if (Math.abs(distance) < CONTACT_NORMAL_ACCURACY) {
-            // special case for very close contact points, where the normal might become inaccurate
-            if (contactNormal != null) {
-                // if provided, use computed normal from before
-                contactNormal.normalize(normal).scale(intersecting ? -1f : 1f);
-            } else {
-                // compute normal from within-margin closest pair
-                normal = shape.getClosestPointB(simplex, true, normal)
-                              .sub(shape.getClosestPointA(simplex, true, null));
-                normal.normalize().scale(intersecting ? -1f : 1f);
-            }
-        } else {
-            // normalize, and possibly flip the normal based on intersection
-            normal.scale(1f / distance);
+        // intersection or failure, fall back onto EPA
+        // must re-run the GJK without scaling so that the simplex is in the correct space
+        support.setIgnoreMargin(false);
+        // FIXME: use a better guess based on the last run
+        gjk.evaluate(guess);
+        if (gjk.getStatus() == GJK.Status.VALID)
+            return support.getClosestPair(gjk.getSimplex(), null);
+//        else if (gjk.getStatus() == GJK.Status.FAILED)
+//            return support.getClosestPair(gjk.getSimplex(), null); // double failure maybe?
+
+        NUM_EPA_CHECKS++;
+        EPA epa = new EPA(gjk);
+        epa.evaluate(guess);
+
+        if (epa.getStatus() == EPA.Status.VALID || epa.getStatus() == EPA.Status.ACCURACY_REACHED
+            || epa.getStatus() == EPA.Status.FALLBACK) {
+            // epa successfully determined an intersection
+            return support.getClosestPair(epa.getSimplex(), epa.getNormal());
         }
-        
-        return new ClosestPair(wA, normal, distance);
+        return null;
     }
 
     @Override

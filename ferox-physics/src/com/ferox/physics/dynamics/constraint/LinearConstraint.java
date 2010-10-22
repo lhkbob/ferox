@@ -191,6 +191,11 @@ public class LinearConstraint {
         bodyB = b;
     }
     
+    @Override
+    public String toString() {
+        return "Constraint along " + constraintNormal + " (A: " + angularComponentA + ", B: " + angularComponentB + "), jac: " + jacobianDiagInverse + ", rhs: " + rhs + ", applied: " + appliedImpulse;
+    }
+    
     private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
         @Override
         protected Vector3f initialValue() { return new Vector3f(); }

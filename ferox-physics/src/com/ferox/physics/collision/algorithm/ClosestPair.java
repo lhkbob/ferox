@@ -97,4 +97,9 @@ public class ClosestPair {
     public boolean isIntersecting() {
         return distance <= 0f;
     }
+    
+    @Override
+    public String toString() {
+        return "Pair(normal: " + contactNormalFromA + ", a: " + closestPointOnA + ", b: " + closestPointOnB + ", dist: " + distance + ")";
+    }
 }

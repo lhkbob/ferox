@@ -36,9 +36,9 @@ public class EPA {
     }
     
     private static final int EPA_MAX_ITERATIONS = 255;
-    private static final float EPA_ACCURACY = .00001f;
-    private static final float EPA_PLANE_EPS = .00001f;
-    private static final float EPA_INSIDE_EPS = .0001f;
+    private static final double EPA_ACCURACY = .0001f;
+    private static final double EPA_PLANE_EPS = .00001f;
+    private static final double EPA_INSIDE_EPS = .01f;
     
     private static final int[] I1M3 = new int[] { 1, 2, 0 };
     private static final int[] I2M3 = new int[] { 2, 0, 1 };
@@ -61,7 +61,7 @@ public class EPA {
     private final Bag<Face> hull;
     
     private Simplex simplex;
-    private float depth;
+    private double depth;
     private Status status;
 
     /**
@@ -75,8 +75,8 @@ public class EPA {
     public EPA(GJK gjk) {
         if (gjk == null)
             throw new NullPointerException("GJK cannot be null");
-        if (gjk.getStatus() != GJK.Status.INSIDE)
-            throw new IllegalArgumentException("GJK must have a status of INSIDE");
+//        if (gjk.getStatus() != GJK.Status.INSIDE)
+//            throw new IllegalArgumentException("GJK must have a status of INSIDE");
         
         this.gjk = gjk;
         normal = new Vector3f();
@@ -112,7 +112,7 @@ public class EPA {
      * 
      * @return The penetration depth
      */
-    public float getDepth() {
+    public double getDepth() {
         return depth;
     }
 
@@ -161,9 +161,9 @@ public class EPA {
         // we assume that the simplex of the GJK contains
         // the origin, otherwise behavior is undefined
         Simplex simplex = gjk.getSimplex();
-        MinkowskiDifference shape = gjk.getMinkowskiDifference();
+        MinkowskiDifference function = gjk.getMinkowskiDifference();
         
-        if (simplex.getRank() > 1 && simplex.encloseOrigin(shape)) {
+        if (simplex.getRank() > 1 && simplex.encloseOrigin(function)) {
             status = Status.VALID;
             
             // build initial hull
@@ -186,7 +186,7 @@ public class EPA {
                 
                 Horizon horizon = new Horizon();
                 boolean valid;
-                float wdist;
+                double wdist;
                 for (int iter = 0; iter < EPA_MAX_ITERATIONS; iter++) {
                     // reset the horizon for the next iteration
                     horizon.cf = null; 
@@ -199,7 +199,7 @@ public class EPA {
                     best.pass = ++pass;
                     
                     best.normal.normalize(w.input);
-                    shape.getSupport(w.input, w.support);
+                    function.getSupport(w.input, w.support);
                     wdist = best.normal.dot(w.support) - best.d;
                     
                     if (wdist > EPA_ACCURACY) {
@@ -224,18 +224,18 @@ public class EPA {
                     }
                 }
                 
-                MutableVector3f projection = outer.normal.scale(outer.d, temp1.get());
+                MutableVector3f projection = outer.normal.scale((float) outer.d, temp1.get());
                 normal.set(outer.normal);
                 depth = outer.d;
                 
                 Vector3f t1 = temp2.get();
                 Vector3f t2 = temp3.get();
                 
-                float w1 = outer.vertices[1].support.sub(projection, t1).cross(outer.vertices[2].support.sub(projection, t2)).length();
-                float w2 = outer.vertices[2].support.sub(projection, t1).cross(outer.vertices[0].support.sub(projection, t2)).length();
-                float w3 = outer.vertices[0].support.sub(projection, t1).cross(outer.vertices[1].support.sub(projection, t2)).length();
+                double w1 = outer.vertices[1].support.sub(projection, t1).cross(outer.vertices[2].support.sub(projection, t2)).length();
+                double w2 = outer.vertices[2].support.sub(projection, t1).cross(outer.vertices[0].support.sub(projection, t2)).length();
+                double w3 = outer.vertices[0].support.sub(projection, t1).cross(outer.vertices[1].support.sub(projection, t2)).length();
                 
-                float sum = w1 + w2 + w3;
+                double sum = w1 + w2 + w3;
                 this.simplex = new Simplex(outer.vertices[0], outer.vertices[1], outer.vertices[2],
                                            w1 / sum, w2 / sum, w3 / sum);
                 return;
@@ -245,9 +245,9 @@ public class EPA {
         // fallback
         status = Status.FALLBACK;
         guess.scale(-1f, normal);
-        float nl = normal.length();
+        double nl = normal.length();
         if (nl > 0)
-            normal.scale(1f / nl);
+            normal.scale((float) (1.0 / nl));
         else
             normal.set(1f, 0f, 0f);
         depth = 0f;
@@ -256,11 +256,11 @@ public class EPA {
         
     private Face findBest() {
         Face minf = hull.get(0);
-        float mind = minf.d * minf.d;
-        float maxp = minf.p;
+        double mind = minf.d * minf.d;
+        double maxp = minf.p;
         
         Face f;
-        float sqd;
+        double sqd;
         int ct = hull.size();
         for (int i = 1; i < ct; i++) {
             f = hull.get(i);
@@ -313,8 +313,8 @@ public class EPA {
     
     private class Face {
         final MutableVector3f normal;
-        float d;
-        float p;
+        double d;
+        double p;
         
         final SupportSample[] vertices;
         final Face[] adjacent;
@@ -332,13 +332,13 @@ public class EPA {
             
             vertices = new SupportSample[] { a, b, c };
             normal = b.support.sub(a.support, null).cross(c.support.sub(a.support, t));
-            float l = normal.length();
+            double l = normal.length();
             boolean v = l > EPA_ACCURACY;
             
-            float invL = 1f / l;
-            float d1 = a.support.dot(normal.cross(a.support.sub(b.support, t), t));
-            float d2 = b.support.dot(normal.cross(b.support.sub(c.support, t), t));
-            float d3 = c.support.dot(normal.cross(c.support.sub(a.support, t), t));
+            double invL = 1f / l;
+            double d1 = a.support.dot(normal.cross(a.support.sub(b.support, t), t));
+            double d2 = b.support.dot(normal.cross(b.support.sub(c.support, t), t));
+            double d3 = c.support.dot(normal.cross(c.support.sub(a.support, t), t));
             p = Math.min(Math.min(d1, d2), d3) * (v ? invL : 1f);
             if (p >= -EPA_INSIDE_EPS)
                 p = 0;
@@ -346,7 +346,7 @@ public class EPA {
             hullIndex = -1;
             if (v) {
                 d = a.support.dot(normal) * invL;
-                normal.scale(invL);
+                normal.scale((float) invL);
                 if (force || d >= EPA_PLANE_EPS) {
                     hull.add(this);
                     hullIndex = hull.size() - 1;

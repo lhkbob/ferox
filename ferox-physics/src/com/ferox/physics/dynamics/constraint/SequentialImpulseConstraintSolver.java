@@ -2,7 +2,6 @@ package com.ferox.physics.dynamics.constraint;
 
 import java.util.Collection;
 
-import com.ferox.math.Vector3f;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.Bag;
 
@@ -96,8 +95,9 @@ public class SequentialImpulseConstraintSolver implements ConstraintSolver {
         int ct = constraints.size();
         for (int i = 0; i < internalIterations; i++) {
 //            System.err.println("------- STARTING ITER: " + i + " ---------");
-            for (int j = 0; j < ct; j++)
+            for (int j = 0; j < ct; j++) {
                 solveSingleConstraint(constraints.get(j));
+            }
         }
         
         // return constraints to the pool

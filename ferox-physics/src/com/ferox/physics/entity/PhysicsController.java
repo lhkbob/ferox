@@ -16,6 +16,7 @@ import com.ferox.physics.dynamics.PhysicsWorld;
 import com.ferox.physics.dynamics.PhysicsWorldConfiguration;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.scene.SceneElement;
+import com.ferox.scene.Transparent;
 
 public class PhysicsController extends Controller {
     private static final ComponentId<PhysicsBody> P_ID = Component.getComponentId(PhysicsBody.class);
@@ -33,10 +34,9 @@ public class PhysicsController extends Controller {
         super(system);
         world = physicsWorld;
         
-        Box box = new Box(80, 2, 80);
-        Collidable co = new Collidable(new Transform(new Vector3f(0f, -41f, 0f)), box);
+        Box box = new Box(100, 100, 100);
+        Collidable co = new Collidable(new Transform(new Vector3f(0f, -50f, 0f)), box);
         world.add(co);
-        world.add(new Collidable(new Transform(new Vector3f(41f, 0f, 0f)), new Box(2, 80, 80)));
         lastFrame = -1;
     }
 
@@ -56,7 +56,7 @@ public class PhysicsController extends Controller {
         while(it.hasNext()) {
             postProcess(it.next());
         }
-        lastFrame = System.nanoTime();
+        //lastFrame = System.nanoTime();
     }
     
     private void preProcess(Entity e) {
