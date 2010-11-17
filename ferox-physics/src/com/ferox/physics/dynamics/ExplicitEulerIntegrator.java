@@ -10,7 +10,12 @@ import com.ferox.math.Vector3f;
 public class ExplicitEulerIntegrator implements Integrator {
     private static final float MAX_ANGULAR_VELOCITY = (float) Math.PI  / 2f;
     private static final float ANGULAR_MOTION_THRESHOLD = (float) Math.PI / 4f;
+    private static final float ANGULAR_VELOCITY_DAMPING = .5f;
 
+    private final Vector3f tempv = new Vector3f();
+    private final Quat4f tempq1 = new Quat4f();
+    private final Quat4f tempq2 = new Quat4f();
+    
     @Override
     public void integrateLinearAcceleration(ReadOnlyVector3f a, float dt, MutableVector3f velocity) {
         integrateVector(a, dt, velocity);
@@ -20,6 +25,11 @@ public class ExplicitEulerIntegrator implements Integrator {
     public void integrateAngularAcceleration(ReadOnlyVector3f a, float dt,
                                              MutableVector3f angularVelocity) {
         integrateVector(a, dt, angularVelocity);
+        applyDamping(angularVelocity, dt, ANGULAR_VELOCITY_DAMPING);
+    }
+    
+    private void applyDamping(MutableVector3f v, float dt, float damping) {
+        v.scale((float) Math.pow(1f - damping, dt));
     }
 
     @Override
@@ -30,7 +40,7 @@ public class ExplicitEulerIntegrator implements Integrator {
     @Override
     public void integrateAngularVelocity(ReadOnlyVector3f v, float dt, MutableMatrix3f orientation) {
         // clamp angular velocity
-        Vector3f axis = temp3.get();
+        Vector3f axis = tempv;
 
         float veclength = v.length();
         float angvel = veclength;
@@ -57,8 +67,8 @@ public class ExplicitEulerIntegrator implements Integrator {
             axis.scale((float) Math.sin(.5f * fAngle * dt) / fAngle);
         }
         
-        MutableQuat4f newRot = tempq1.get().set(axis.getX(), axis.getY(), axis.getZ(), (float) Math.cos(.5f * fAngle * dt));
-        MutableQuat4f oldRot = tempq2.get().set(orientation);
+        MutableQuat4f newRot = tempq1.set(axis.getX(), axis.getY(), axis.getZ(), (float) Math.cos(.5f * fAngle * dt));
+        MutableQuat4f oldRot = tempq2.set(orientation);
         newRot.mul(oldRot).normalize();
         
         orientation.set(newRot);
@@ -69,21 +79,4 @@ public class ExplicitEulerIntegrator implements Integrator {
             throw new NullPointerException("Arguments cannot be null");
         deriv.scaleAdd(dt, func, func);
     }
-
-    /* 
-     * ThreadLocals for computations. 
-     */
-    
-    private static final ThreadLocal<Vector3f> temp3 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
-    private static final ThreadLocal<Quat4f> tempq1 = new ThreadLocal<Quat4f>() {
-        @Override
-        protected Quat4f initialValue() { return new Quat4f(); }
-    };
-    private static final ThreadLocal<Quat4f> tempq2 = new ThreadLocal<Quat4f>() {
-        @Override
-        protected Quat4f initialValue() { return new Quat4f(); }
-    };
 }

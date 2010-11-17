@@ -21,6 +21,8 @@ public class LinearConstraintPool {
     }
     
     public void add(LinearConstraint constraint) {
+        constraint.setImpulseListener(null);
+        constraint.setDynamicLimits(null, 0f);
         constraints.add(constraint);
     }
 }

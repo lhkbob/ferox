@@ -10,13 +10,13 @@ import com.ferox.entity.EntitySystem;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
 import com.ferox.physics.collision.shape.Box;
 import com.ferox.physics.dynamics.DiscretePhysicsWorld;
 import com.ferox.physics.dynamics.PhysicsWorld;
 import com.ferox.physics.dynamics.PhysicsWorldConfiguration;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.scene.SceneElement;
-import com.ferox.scene.Transparent;
 
 public class PhysicsController extends Controller {
     private static final ComponentId<PhysicsBody> P_ID = Component.getComponentId(PhysicsBody.class);
@@ -33,6 +33,7 @@ public class PhysicsController extends Controller {
     public PhysicsController(EntitySystem system, PhysicsWorld physicsWorld) {
         super(system);
         world = physicsWorld;
+        world.getCollisionManager().getCollisionHandler().register(new SphereSphereCollisionAlgorithm());
         
         Box box = new Box(100, 100, 100);
         Collidable co = new Collidable(new Transform(new Vector3f(0f, -50f, 0f)), box);
@@ -50,13 +51,13 @@ public class PhysicsController extends Controller {
         if (lastFrame < 0)
             world.step(1f / 60f);
         else
-            world.step((System.nanoTime() - lastFrame) / 1e9f);
+            world.step(Math.min(1f / 60f, (System.nanoTime() - lastFrame) / 1e9f));
         
         it = system.iterator(P_ID);
         while(it.hasNext()) {
             postProcess(it.next());
         }
-        //lastFrame = System.nanoTime();
+//        lastFrame = System.nanoTime();
     }
     
     private void preProcess(Entity e) {

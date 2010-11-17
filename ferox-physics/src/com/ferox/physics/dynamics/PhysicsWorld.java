@@ -6,6 +6,9 @@ import com.ferox.physics.collision.CollisionManager;
 import com.ferox.physics.dynamics.constraint.Constraint;
 import com.ferox.physics.dynamics.constraint.ConstraintSolver;
 
+// FIXME: remove the physics world configuration and make the components of the physics world
+// final, and to be configured via guice injection
+// must also figure out thread-safety of components -> currently its mixed multithreaded and single-threaded
 public interface PhysicsWorld {
     public void add(Collidable c);
     

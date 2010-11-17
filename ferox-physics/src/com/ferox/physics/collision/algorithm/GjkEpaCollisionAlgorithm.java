@@ -30,7 +30,8 @@ import com.ferox.physics.collision.shape.ConvexShape;
  * @author Michael Ludwig
  */
 public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
-
+    private static final int MAX_EPA_CHECKS = 4;
+    
     @Override
     public ClosestPair getClosestPair(ConvexShape shapeA, ReadOnlyMatrix4f transA,
                                       ConvexShape shapeB, ReadOnlyMatrix4f transB) {
@@ -52,7 +53,7 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
         } 
         
         EPA epa = new EPA(gjk);
-        for (int i = 1; i < 15; i++) {
+        for (int i = 1; i < MAX_EPA_CHECKS; i++) {
             // intersection or failure, fall back onto EPA
             // must re-run the GJK without scaling so that the simplex is in the correct space
             support.setNumAppliedMargins(i);

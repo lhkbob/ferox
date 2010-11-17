@@ -6,7 +6,8 @@ public abstract class NormalizableConstraint implements Constraint {
     // FIXME: thread-safety
     private static SequentialImpulseConstraintSolver defaultSolver = null;
     
-    public abstract void normalize(float dt, Bag<LinearConstraint> constraints, LinearConstraintPool pool);
+    // FIXME: change this interface to allow for a priority of constraints, or something like that
+    public abstract void normalize(float dt, Bag<LinearConstraint> constraints, Bag<LinearConstraint> friction, LinearConstraintPool pool);
 
     @Override
     public void solve(float dt) {

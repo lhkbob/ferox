@@ -3,6 +3,7 @@ package com.ferox.physics.dynamics.constraint;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.MutableVector4f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
@@ -10,9 +11,11 @@ import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
+import com.ferox.math.bounds.Plane;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.algorithm.ClosestPair;
 import com.ferox.physics.dynamics.RigidBody;
+import com.ferox.physics.dynamics.constraint.LinearConstraint.ImpulseListener;
 import com.ferox.util.Bag;
 
 public class ContactManifold extends NormalizableConstraint {
@@ -28,6 +31,9 @@ public class ContactManifold extends NormalizableConstraint {
     
     private final List<ManifoldPoint> manifold;
     
+    private final float combinedRestitution;
+    private final float combinedFriction;
+    
     public ContactManifold(Collidable objA, Collidable objB, 
                            float processThreshold, float breakThreshold) {
         this.objA = objA;
@@ -36,44 +42,47 @@ public class ContactManifold extends NormalizableConstraint {
         contactProcessingThreshold = processThreshold;
         contactBreakingThreshold = breakThreshold;
         
+        combinedRestitution = objA.getRestitution() * objB.getRestitution();
+        combinedFriction = Math.min(10f, Math.max(objA.getFriction() * objB.getFriction(), -10f));
+        
         manifold = new ArrayList<ContactManifold.ManifoldPoint>(MANIFOLD_POINT_SIZE);
     }
     
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("(Contact ");
-        sb.append(objA.hashCode());
-        sb.append(", ");
-        sb.append(objB.hashCode());
-        sb.append(", [");
-        for (int i = 0; i < manifold.size(); i++) {
-            if (i > 0)
-                sb.append(", ");
-            sb.append('(');
-            sb.append(manifold.get(i).distance);
-            sb.append(", ");
-            sb.append(manifold.get(i).lifetime);
-            sb.append(')');
-        }
-        sb.append("])");
-        
-        return sb.toString();
-    }
-    
     public void addContact(ClosestPair pair, boolean swap) {
-//        if (pair.getDistance() < -.001f)
-//            System.out.println("Penetration: " + pair);
-//        System.out.println("Adding point: " + pair);
         ManifoldPoint newPoint = new ManifoldPoint(objA.getWorldTransform(), objB.getWorldTransform(),
                                                    pair, swap);
         
-        if (manifold.size() == MANIFOLD_POINT_SIZE) {
+        int replaceIndex = findNearPoint(newPoint);
+        if (replaceIndex >= 0) {
+            ManifoldPoint oldPoint = manifold.set(replaceIndex, newPoint);
+            newPoint.appliedImpulse = oldPoint.appliedImpulse;
+            newPoint.appliedFrictionImpulse = oldPoint.appliedFrictionImpulse;
+        } else if (manifold.size() == MANIFOLD_POINT_SIZE) {
             // must remove a point
             replaceWorstPoint(newPoint);
         } else {
             // just add point to the manifold
             manifold.add(newPoint);
         }
+    }
+    
+    private int findNearPoint(ManifoldPoint newPoint) {
+        float shortestDist = contactBreakingThreshold * contactBreakingThreshold;
+        int nearestPoint = -1;
+        Vector4f diffA = new Vector4f();
+        ManifoldPoint mp;
+        for (int i = manifold.size() - 1; i >= 0; i--) {
+            mp = manifold.get(i);
+            mp.localA.sub(newPoint.localA, diffA);
+            float distToOld = diffA.lengthSquared();
+            
+            if (distToOld < shortestDist) {
+                shortestDist = distToOld;
+                nearestPoint = i;
+            }
+        }
+        
+        return nearestPoint;
     }
     
     private void replaceWorstPoint(ManifoldPoint pt) {
@@ -165,8 +174,9 @@ public class ContactManifold extends NormalizableConstraint {
                 projectedDifference.set(mp.worldB.getX() - projectedPoint.getX(),
                                         mp.worldB.getY() - projectedPoint.getY(),
                                         mp.worldB.getZ() - projectedPoint.getZ());
-                if (projectedDifference.lengthSquared() > contactBreakingThreshold * contactBreakingThreshold)
+                if (projectedDifference.lengthSquared() > contactBreakingThreshold * contactBreakingThreshold) {
                     manifold.remove(i);
+                }
             }
         }
     }
@@ -190,43 +200,73 @@ public class ContactManifold extends NormalizableConstraint {
     }
 
     @Override
-    public void normalize(float dt, Bag<LinearConstraint> constraints, LinearConstraintPool pool) {
+    public void normalize(float dt, Bag<LinearConstraint> constraints, Bag<LinearConstraint> friction, LinearConstraintPool pool) {
         ManifoldPoint p;
-        LinearConstraint c;
+        LinearConstraint contact;
+        LinearConstraint fric1;
+        
+        RigidBody rbA = getBodyA();
+        RigidBody rbB = getBodyB();
+        
+        ReadOnlyMatrix4f ta = objA.getWorldTransform();
+        ReadOnlyMatrix4f tb = objB.getWorldTransform();
+        
         int ct = manifold.size();
         for (int i = 0; i < ct; i++) {
             p = manifold.get(i);
             if (p.distance <= contactProcessingThreshold) {
-                // compute linear constraint for manifold point
-                c = pool.get(getBodyA(), getBodyB());
-                setupContactConstraint(p, c, dt);
-                constraints.add(c);
+                Vector3f relPosA = temp1.get();
+                Vector3f relPosB = temp2.get();
+                
+                relPosA.set(p.worldA.getX() - ta.get(0, 3),
+                            p.worldA.getY() - ta.get(1, 3),
+                            p.worldA.getZ() - ta.get(2, 3));
+                relPosB.set(p.worldB.getX() - tb.get(0, 3),
+                            p.worldB.getY() - tb.get(1, 3),
+                            p.worldB.getZ() - tb.get(2, 3));
+                
+                // compute contact constraint for manifold point
+                contact = pool.get(rbA, rbB);
+                setupConstraint(rbA, rbB, p.worldNormalInB, relPosA, relPosB, -p.distance * ERP / dt, p.appliedImpulse, p.lifetime, contact);
+                contact.setImpulseListener(p);
+                constraints.add(contact);
+                
+                if (!p.frictionDirInitialized) {
+                    // compute lateral friction directions
+                    MutableVector3f velA = (rbA == null ? new Vector3f() : rbA.getAngularVelocity().cross(relPosA, null).add(rbA.getVelocity()));
+                    MutableVector3f velB = (rbB == null ? new Vector3f() : rbB.getAngularVelocity().cross(relPosB, null).add(rbB.getVelocity()));
+                    MutableVector3f vel = velA.sub(velB);
+                    float relVelocity = p.worldNormalInB.dot(vel);
+                    
+                    p.worldNormalInB.scale(-relVelocity, p.frictionDir).add(vel);
+                    float lateralRelVelocity = p.frictionDir.length();
+                    if (lateralRelVelocity > .0001f) {
+                        p.frictionDir.scale(1f / lateralRelVelocity);
+                    } else {
+                        Plane.getTangentSpace(p.worldNormalInB, p.frictionDir, temp1.get());
+                        p.frictionDir.normalize();
+                    }
+                    
+                    p.frictionDirInitialized = true;
+                }
+                
+                // setup both friction direction constraints
+                fric1 = pool.get(rbA, rbB);
+                setupConstraint(rbA, rbB, p.frictionDir, relPosA, relPosB, 0f, p.appliedFrictionImpulse, -1, fric1);
+                fric1.setImpulseListener(p);
+                fric1.setDynamicLimits(contact, combinedFriction);
+
+                friction.add(fric1);
             }
         }
     }
     
-    private void setupContactConstraint(ManifoldPoint pt, LinearConstraint constraint, float dt) {
-        // FIXME: must add restitution and friction coefficients in ManifoldPoints
-        ReadOnlyMatrix4f ta = objA.getWorldTransform();
-        ReadOnlyMatrix4f tb = objB.getWorldTransform();
-        RigidBody rbA = getBodyA();
-        RigidBody rbB = getBodyB();
-        
-        
-        Vector3f relPosA = temp1.get();
-        Vector3f relPosB = temp2.get();
-        
-        relPosA.set(pt.worldA.getX() - ta.get(0, 3),
-                    pt.worldA.getY() - ta.get(1, 3),
-                    pt.worldA.getZ() - ta.get(2, 3));
-        relPosB.set(pt.worldB.getX() - tb.get(0, 3),
-                    pt.worldB.getY() - tb.get(1, 3),
-                    pt.worldB.getZ() - tb.get(2, 3));
-//        System.out.println("relposA: " + relPosA + " relposB: " + relPosB);
-        
+    private void setupConstraint(RigidBody rbA, RigidBody rbB, ReadOnlyVector3f constraintAxis, 
+                                 ReadOnlyVector3f relPosA, ReadOnlyVector3f relPosB, 
+                                 float positionalError, float appliedImpulse, int lifetime, LinearConstraint constraint) {
         // FIXME: need more thread-locals or maybe not? ThreadLocal seems slower than new
         // compute torque axis
-        constraint.setTorqueAxis(relPosA.cross(pt.worldNormalInB, null), relPosB.cross(pt.worldNormalInB, null).scale(-1f));
+        constraint.setTorqueAxis(relPosA.cross(constraintAxis, null), relPosB.cross(constraintAxis, null));
         
         // compute jacobian inverse for this constraint row
         float denomA = 0f;
@@ -234,71 +274,59 @@ public class ContactManifold extends NormalizableConstraint {
         Vector3f temp = new Vector3f();
         if (rbA != null) {
             rbA.getInertiaTensorInverse().mul(constraint.getTorqueAxisA(), temp).cross(relPosA);
-            denomA = rbA.getInverseMass() + pt.worldNormalInB.dot(temp); 
+            denomA = rbA.getInverseMass() + constraintAxis.dot(temp); 
         }
         if (rbB != null) {
             rbB.getInertiaTensorInverse().mul(constraint.getTorqueAxisB(), temp).cross(relPosB);
-            denomB = rbB.getInverseMass() - pt.worldNormalInB.dot(temp);
+            denomB = rbB.getInverseMass() + constraintAxis.dot(temp);
         }
-//        System.out.println("prepare: " + denomA + " " + denomB);
         constraint.setJacobianInverse(1f / (denomA + denomB));
-        constraint.setConstraintAxis(pt.worldNormalInB);
+        constraint.setConstraintAxis(constraintAxis);
         
-//        System.out.println("Setup constraint");
-//        System.out.println("A: " + rbA + " B: " + rbB);
-//        ReadOnlyVector3f torqueAxisA = constraint.getTorqueAxisA();
-//        ReadOnlyVector3f torqueAxisB = constraint.getTorqueAxisB();
-//        System.out.printf("%.4f %.4f %.4f | %.4f %.4f %.4f\n", torqueAxisA.getX(), torqueAxisA.getY(), torqueAxisA.getZ(),
-//                          torqueAxisB.getX(), torqueAxisB.getY(), torqueAxisB.getZ());
-        
-        Vector3f vel1 = temp; // reuse as much as possible
-        Vector3f vel2 = new Vector3f();
+        float relativeVelocity = 0f;
         if (rbA != null)
-            rbA.getAngularVelocity().cross(relPosA, vel1).add(rbA.getVelocity());
-        else
-            vel1.set(0f, 0f, 0f);
+            relativeVelocity += (constraint.getConstraintAxis().dot(rbA.getVelocity()) + constraint.getTorqueAxisA().dot(rbA.getAngularVelocity()));
         if (rbB != null)
-            rbB.getAngularVelocity().cross(relPosB, vel2).add(rbB.getVelocity());
-        else
-            vel2.set(0f, 0f, 0f);
-        float relVelocity = pt.worldNormalInB.dot(vel1.sub(vel2)); // FIXME: vel2 - vel1 gets returned for friction constraint setup
-        // FIXME: relVelocity, here does too (later rel_vel is not since it's redeclared)
+            relativeVelocity -= (constraint.getConstraintAxis().dot(rbB.getVelocity()) + constraint.getTorqueAxisB().dot(rbB.getAngularVelocity()));
         
         float restitution = 0f;
-        /*if (pt.lifetime <= RESTING_CONTACT_THRESHOLD) {
-            restitution = -relVelocity * pt.combinedRestitution;
+        if (lifetime <= RESTING_CONTACT_THRESHOLD && lifetime >= 0) {
+            restitution = -relativeVelocity * combinedRestitution;
             if (restitution < 0f)
                 restitution = 0f;
-        }*/
+        }
         
-        float velDotN = 0f;
-        if (rbA != null)
-            velDotN += (constraint.getConstraintAxis().dot(rbA.getVelocity()) + constraint.getTorqueAxisA().dot(rbA.getAngularVelocity()));
-        if (rbB != null)
-            velDotN += (-constraint.getConstraintAxis().dot(rbB.getVelocity()) + constraint.getTorqueAxisB().dot(rbB.getAngularVelocity()));
-        float positionalError = -pt.distance * ERP / dt;
-        float velocityError = restitution - velDotN;
-//        System.out.println(" velocities: " + (rbA != null ? rbA.getVelocity() : "NULL") + " " + (rbB != null ? rbB.getVelocity() : "NULL"));
-//        System.out.println(" rel-vel: " + velDotN + " pos: " + positionalError + " vel: " + velocityError);
+        { // warmstarting, add switch? FIXME
+            constraint.addDeltaImpulse(appliedImpulse * .85f);
+        }
+        
+        float velocityError = restitution - relativeVelocity;
 
         float penetrationImpulse = positionalError * constraint.getJacobianInverse();
         float velocityImpulse = velocityError * constraint.getJacobianInverse();
+        
         constraint.setSolutionParameters(penetrationImpulse + velocityImpulse, 0f);
         constraint.setLimits(0f, Float.MAX_VALUE);
     }
     
-    private static class ManifoldPoint {
-        // FIXME: what about friction directions? etc.?
+    private static class ManifoldPoint implements ImpulseListener {
         final MutableVector4f localA;
         final MutableVector4f localB;
         
         final MutableVector4f worldA;
         final MutableVector4f worldB;
         
-        final ReadOnlyVector3f worldNormalInB; // points from A to B
+        final ReadOnlyVector3f worldNormalInB;
         
         float distance;
         int lifetime;
+        
+        // constraint parameters
+        float appliedImpulse;
+        float appliedFrictionImpulse;
+        
+        final Vector3f frictionDir;
+        boolean frictionDirInitialized;
         
         public ManifoldPoint(ReadOnlyMatrix4f ta, ReadOnlyMatrix4f tb, ClosestPair pair, boolean swap) {
             ReadOnlyVector3f wa, wb, na;
@@ -319,8 +347,13 @@ public class ContactManifold extends NormalizableConstraint {
             
             localA = ta.inverse(tempt.get()).mul(worldA, null);
             localB = tb.inverse(tempt.get()).mul(worldB, null);
+            
+            frictionDir = new Vector3f();
+            
             distance = pair.getDistance();
             lifetime = 0;
+            appliedImpulse = 0f;
+            appliedFrictionImpulse = 0f;
         }
         
         void update(ReadOnlyMatrix4f ta, ReadOnlyMatrix4f tb) {
@@ -333,6 +366,14 @@ public class ContactManifold extends NormalizableConstraint {
         
         static float dot(ReadOnlyVector4f v1, ReadOnlyVector3f v2) {
             return v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ();
+        }
+
+        @Override
+        public void onApplyImpulse(LinearConstraint lc) {
+            if (lc.getConstraintAxis().epsilonEquals(worldNormalInB, .0001f))
+                appliedImpulse = lc.getAppliedImpulse();
+            else
+                appliedFrictionImpulse = lc.getAppliedImpulse();
         }
     }
     

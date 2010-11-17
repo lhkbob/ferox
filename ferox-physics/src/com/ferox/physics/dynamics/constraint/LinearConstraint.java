@@ -5,6 +5,10 @@ import com.ferox.math.Vector3f;
 import com.ferox.physics.dynamics.RigidBody;
 
 public class LinearConstraint {
+    public interface ImpulseListener {
+        public void onApplyImpulse(LinearConstraint lc);
+    }
+    
     private final Vector3f relposACrossNormal;
     private final Vector3f relposBCrossNormal;
     
@@ -23,6 +27,7 @@ public class LinearConstraint {
     private float lowerLimit;
     private float upperLimit;
     
+    private ImpulseListener listener;
     private LinearConstraint dynamicLimitConstraint;
     private float dynamicLimitFactor;
     
@@ -98,8 +103,6 @@ public class LinearConstraint {
     }
     
     public void setJacobianInverse(float diag) {
-//        if (diag <= 0f)
-//            throw new IllegalArgumentException("Jacobian is meant to be positive, semi-definate. Can't have a negative element: " + diag);
         jacobianDiagInverse = diag;
     }
     
@@ -146,9 +149,6 @@ public class LinearConstraint {
     }
     
     public void setSolutionParameters(float rhs, float cfm) {
-        if (rhs > 0 || cfm > 0) {
-//            System.out.println("bad constraint: " + rhs);
-        }
         this.rhs = rhs;
         this.cfm = cfm;
     }
@@ -172,6 +172,11 @@ public class LinearConstraint {
         dynamicLimitFactor = 0f;
         
         appliedImpulse = 0f;
+        listener = null;
+    }
+    
+    public void setImpulseListener(ImpulseListener listener) {
+        this.listener = listener;
     }
     
     public void addDeltaImpulse(float delta) {
@@ -181,7 +186,10 @@ public class LinearConstraint {
         if (bodyA != null)
             bodyA.addDeltaImpulse(constraintNormal.scale(bodyA.getInverseMass(), t), angularComponentA, delta);
         if (bodyB != null)
-            bodyB.addDeltaImpulse(constraintNormal.scale(-bodyB.getInverseMass(), t), angularComponentB, delta);
+            bodyB.addDeltaImpulse(constraintNormal.scale(bodyB.getInverseMass(), t), angularComponentB, -delta);
+        
+        if (listener != null)
+            listener.onApplyImpulse(this);
     }
     
     private void setRigidBodies(RigidBody a, RigidBody b) {
@@ -193,7 +201,8 @@ public class LinearConstraint {
     
     @Override
     public String toString() {
-        return "Constraint along " + constraintNormal + " (A: " + angularComponentA + ", B: " + angularComponentB + "), jac: " + jacobianDiagInverse + ", rhs: " + rhs + ", applied: " + appliedImpulse;
+        return "Constraint: " + constraintNormal + ", " + angularComponentA + ", " + angularComponentB + ", " + rhs 
+               + ", " + cfm + ", " + getLowerLimit() + ", " + getUpperLimit() + ", " + appliedImpulse;
     }
     
     private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {

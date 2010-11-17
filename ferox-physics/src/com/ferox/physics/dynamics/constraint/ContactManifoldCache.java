@@ -17,23 +17,19 @@ public class ContactManifoldCache {
     private final float contactProcessingThreshold;
     
     public ContactManifoldCache() {
-        this(0f, .02f);
+        this(.1f, .0343f);
     }
     
     public ContactManifoldCache(float contactProcessingThreshold, float contactBreakingThreshold) {
-        if (contactProcessingThreshold > contactBreakingThreshold)
-            throw new IllegalArgumentException("Processing threshold (" + contactProcessingThreshold + 
-                                               ") must be greater than breaking threshold (" + contactBreakingThreshold + ")");
+        if (contactProcessingThreshold < 0f || contactBreakingThreshold < 0f)
+            throw new IllegalArgumentException("Contact processing and breaking thresholds must be positive, not: " 
+                                               + contactProcessingThreshold + ", " + contactBreakingThreshold);
         
         this.contactBreakingThreshold = contactBreakingThreshold;
         this.contactProcessingThreshold = contactProcessingThreshold;
         
         manifolds = new HashMap<CollidablePair, ContactManifold>();
         query = new CollidablePair();
-    }
-
-    public String toString() {
-        return manifolds.values().toString();
     }
     
     public Collection<ContactManifold> getContacts() {
@@ -66,8 +62,9 @@ public class ContactManifoldCache {
         while(it.hasNext()) {
             ContactManifold cm = it.next().getValue();
             cm.update();
-            if (cm.getManifoldSize() == 0)
+            if (cm.getManifoldSize() == 0) {
                 it.remove();
+            }
         }
     }
     
