@@ -83,28 +83,20 @@ public class Cone extends AxisSweptShape {
     }
     
     private void update() {
-        Vector3f min = aabb.getMin();
-        Vector3f max = aabb.getMax();
-        
         float m1 = 4f / 10f * halfHeight * halfHeight + 3f / 20f * baseRadius * baseRadius;
         float m2 = 3f/ 10f * baseRadius * baseRadius;
         
         switch(dominantAxis) {
         case X:
-            min.set(-halfHeight / 2f, -baseRadius, -baseRadius);
-            max.set(halfHeight / 2f, baseRadius, baseRadius);
             inertiaTensorPartial.set(m2, m1, m1);
             break;
         case Y:
-            min.set(-baseRadius, -halfHeight / 2f, -baseRadius);
-            max.set(baseRadius, halfHeight / 2f, baseRadius);
             inertiaTensorPartial.set(m1, m2, m1);
             break;
         case Z:
-            min.set(-baseRadius, -baseRadius, -halfHeight / 2f);
-            max.set(baseRadius, baseRadius, halfHeight / 2f);
             inertiaTensorPartial.set(m1, m1, m2);
             break;
         }
+        updateBounds();
     }
 }

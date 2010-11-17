@@ -4,7 +4,6 @@ import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.physics.collision.shape.ConvexShape;
-import com.ferox.physics.collision.shape.Sphere;
 
 /**
  * <p>
@@ -31,74 +30,49 @@ import com.ferox.physics.collision.shape.Sphere;
  * @author Michael Ludwig
  */
 public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
-    public static int NUM_GJK_CHECKS = 0;
-    public static int NUM_EPA_CHECKS = 0;
-    
-    private final float scale;
 
-    /**
-     * Create a new GjkEpaCollisionAlgorithm that's configured to use a scale of
-     * <code>.9</code>.
-     */
-    public GjkEpaCollisionAlgorithm() {
-        this(0.95f);
-    }
-
-    /**
-     * Create a new GjkEpaCollisionAlgorithm that's configured to use the
-     * specified margin. If the scale is less than or equal to 0 disables the
-     * automated shrinking of shapes that improves performance.
-     * 
-     * @param scale The scale to use when calling
-     *            {@link #getClosestPair(ConvexShape, ReadOnlyMatrix4f, ConvexShape, ReadOnlyMatrix4f)
-
-     */
-    public GjkEpaCollisionAlgorithm(float scale) {
-        if (scale > 1f)
-            throw new IllegalArgumentException("Scale factor must be less than 1, not: " + scale);
-        this.scale = scale;
-    }
-    
     @Override
     public ClosestPair getClosestPair(ConvexShape shapeA, ReadOnlyMatrix4f transA,
                                       ConvexShape shapeB, ReadOnlyMatrix4f transB) {
         // MinkowskiDifference does the error checking for GjkEpaCollisionAlgorithm
-        MinkowskiDifference support = new MinkowskiDifference(shapeA, transA, shapeB, transB, .05f);
-        support.setIgnoreMargin(true);
+        MinkowskiDifference support = new MinkowskiDifference(shapeA, transA, shapeB, transB);
+        support.setNumAppliedMargins(0);
         GJK gjk = new GJK(support);
         
         ReadOnlyVector3f pa = transA.getCol(3).getAsVector3f();
         ReadOnlyVector3f pb = transB.getCol(3).getAsVector3f();
         
+        ClosestPair p = null;
         MutableVector3f guess = pb.sub(pa, null);
-        gjk.evaluate(guess);
-        NUM_GJK_CHECKS++;
-        if (gjk.getStatus() == GJK.Status.VALID) {
+        if (gjk.evaluate(guess) == GJK.Status.VALID) {
             // non-intersecting pair
-           ClosestPair p = support.getClosestPair(gjk.getSimplex(), null);
+           p = support.getClosestPair(gjk.getSimplex(), null);
            if (p != null)
                return p;
         } 
         
-        // intersection or failure, fall back onto EPA
-        // must re-run the GJK without scaling so that the simplex is in the correct space
-        support.setIgnoreMargin(false);
-        // FIXME: use a better guess based on the last run
-        gjk.evaluate(guess);
-        if (gjk.getStatus() == GJK.Status.VALID)
-            return support.getClosestPair(gjk.getSimplex(), null);
-//        else if (gjk.getStatus() == GJK.Status.FAILED)
-//            return support.getClosestPair(gjk.getSimplex(), null); // double failure maybe?
-
-        NUM_EPA_CHECKS++;
         EPA epa = new EPA(gjk);
-        epa.evaluate(guess);
+        for (int i = 1; i < 15; i++) {
+            // intersection or failure, fall back onto EPA
+            // must re-run the GJK without scaling so that the simplex is in the correct space
+            support.setNumAppliedMargins(i);
 
-        if (epa.getStatus() == EPA.Status.VALID || epa.getStatus() == EPA.Status.ACCURACY_REACHED
-            || epa.getStatus() == EPA.Status.FALLBACK) {
-            // epa successfully determined an intersection
-            return support.getClosestPair(epa.getSimplex(), epa.getNormal());
+            // FIXME: use a better guess based on the last run
+            if (gjk.evaluate(guess) == GJK.Status.VALID) {
+                p = support.getClosestPair(gjk.getSimplex(), null);
+                if (p != null)
+                    return p;
+            }
+
+            EPA.Status status = epa.evaluate(guess);
+            if (status == EPA.Status.VALID) {
+                // epa successfully determined an intersection
+                p = support.getClosestPair(epa.getSimplex(), epa.getNormal());
+                if (p != null)
+                    return p;
+            }
         }
+        
         return null;
     }
 

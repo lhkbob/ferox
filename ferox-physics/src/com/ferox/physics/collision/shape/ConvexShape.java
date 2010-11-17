@@ -2,6 +2,8 @@ package com.ferox.physics.collision.shape;
 
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
 /**
@@ -14,15 +16,21 @@ import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
  * @author Michael Ludwig
  * @see GjkEpaCollisionAlgorithm
  */
-public interface ConvexShape extends Shape {
+public abstract class ConvexShape implements Shape {
+    private float margin;
+    private final AxisAlignedBox bounds;
+    
+    public ConvexShape() {
+        bounds = new AxisAlignedBox();
+        margin = .05f; // avoid setter so we don't call updateBounds()
+    }
+
     /**
      * <p>
      * Compute and return the evaluation of this convex shape's support
      * function, on input <tt>v</tt>. The support should be stored and returned
-     * in <tt>result</tt>. A NullPointerException is thrown if result is null.
-     * This breaks the pattern of most methods that return the result vector
-     * because the smoothness of the support function is returned by the
-     * function instead.
+     * in <tt>result</tt>. If result is null, a new vector should be created and
+     * returned. The support function should not include the margin.
      * </p>
      * <p>
      * The support of a convex shape is a function <tt>Sc</tt> that maps a
@@ -33,9 +41,54 @@ public interface ConvexShape extends Shape {
      * 
      * @param v The support input
      * @param result A vector to contain the result
-     * @return True if the derivative of the support function is continuous at v
-     *         (or true if the support function is smooth)
-     * @throws NullPointerException if v or result are null
+     * @return result, or a new vector, if result was null
+     * @throws NullPointerException if v is null
      */
-    public boolean computeSupport(ReadOnlyVector3f v, MutableVector3f result);
+    public abstract MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result);
+
+    @Override
+    public AxisAlignedBox getBounds() {
+        return bounds;
+    }
+
+    @Override
+    public void setMargin(float margin) {
+        if (margin < 0f)
+            throw new IllegalArgumentException("Margin must be at least 0, not: " + margin);
+        this.margin = margin;
+        updateBounds();
+    }
+
+    @Override
+    public float getMargin() {
+        return margin;
+    }
+
+    /**
+     * Recomputes the new bounds by evaluating the support function along the
+     * six principal axis. Subclasses should call this any time their parameters
+     * affecting the bounds are changed.
+     */
+    protected void updateBounds() {
+        Vector3f d = new Vector3f();
+        Vector3f t = new Vector3f();
+        
+        computeSupport(d.set(1f, 0f, 0f), t);
+        float maxX = t.getX() + 2 * margin;
+        computeSupport(d.set(-1f, 0f, 0f), t);
+        float minX = t.getX() - 2 * margin;
+        
+        computeSupport(d.set(0f, 1f, 0f), t);
+        float maxY = t.getY() + 2 * margin;
+        computeSupport(d.set(0f, -1f, 0f), t);
+        float minY = t.getY() - 2 * margin;
+        
+        computeSupport(d.set(0f, 0f, 1f), t);
+        float maxZ = t.getZ() + 2 * margin;
+        computeSupport(d.set(0f, 0f, -1f), t);
+        float minZ = t.getZ() - 2 * margin;
+        
+        bounds.getMax().set(maxX, maxY, maxZ);
+        bounds.getMin().set(minX, minY, minZ);
+    }
 }

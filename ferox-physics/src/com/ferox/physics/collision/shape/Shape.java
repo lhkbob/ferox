@@ -14,7 +14,7 @@ import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
  * <p>
  * Collisions between Shapes and different shape types are not the
  * responsibility of Shape implementations. Instead {@link CollisionAlgorithm
- * CollisionAlgorithms} are implemented that support a small set of shape types.
+ * CollisionAlgorithms} are implemented that support limited sets of shape types.
  * </p>
  * 
  * @author Michael Ludwig
@@ -23,7 +23,7 @@ public interface Shape {
     /**
      * Return the local-space bounds approximation of this Shape. The returned
      * instance should be considered read-only and can be modified by the Shape
-     * instance.
+     * instance at any time
      * 
      * @return The Shape's local bounds
      */
@@ -40,4 +40,27 @@ public interface Shape {
      *         otherwise a new vector
      */
     public MutableVector3f getInertiaTensor(float mass, MutableVector3f result);
+
+    /**
+     * <p>
+     * Set the margin of padding around the shape. Every shape has a very small
+     * amount of padding that extends its effective bounds. This is a mechanism
+     * meant to help ease collision detection and response, but it means that
+     * graphical models must be updated to correctly account for a margin.
+     * </p>
+     * <p>
+     * The resulting shape, after applying the margin, is equivalent to
+     * Minkowski sum of this shape and a sphere with a radius equal to the
+     * margin.
+     * </p>
+     * 
+     * @param margin The new margin, must be greater than or equal to 0
+     * @throws IllegalArgumentException if margin is less than 0
+     */
+    public void setMargin(float margin);
+    
+    /**
+     * @return Return the current margin for this shape, defaults to .05
+     */
+    public float getMargin();
 }

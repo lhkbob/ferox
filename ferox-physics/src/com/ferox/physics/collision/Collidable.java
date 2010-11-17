@@ -15,6 +15,9 @@ public class Collidable {
     private final AxisAlignedBox worldAabb;
     private Shape bounds;
     
+    private float restitution;
+    private float friction;
+    
     public Collidable(ReadOnlyMatrix4f t, Shape shape) {
         worldTransform = new Transform(t);
         bounds = shape;
@@ -26,7 +29,27 @@ public class Collidable {
         // every Collidable starts out in a group
         setMemberOfGroup(0, true);
         setCollidesWithGroup(0, true);
+        setFriction(.5f);
+        setRestitution(0f);
         updateBounds();
+    }
+    
+    public float getFriction() {
+        return friction;
+    }
+    
+    public void setFriction(float friction) {
+        // FIXME: what are the bounds on this, just > 0?
+        this.friction = friction;
+    }
+    
+    public float getRestitution() {
+        return restitution;
+    }
+    
+    public void setRestitution(float restitution) {
+        // FIXME: what are the bounds on this?
+        this.restitution = restitution;
     }
     
     public boolean canCollide(Collidable other) {

@@ -65,28 +65,20 @@ public class Cylinder extends AxisSweptShape {
     }
     
     private void update() {
-        Vector3f min = aabb.getMin();
-        Vector3f max = aabb.getMax();
-        
         float m1 = (3f * capRadius * capRadius + 4f * halfHeight * halfHeight) / 12f;
         float m2 = capRadius * capRadius / 2f;
         
         switch(dominantAxis) {
         case X:
-            min.set(-halfHeight, -capRadius, -capRadius);
-            max.set(halfHeight, capRadius, capRadius);
             inertiaTensorPartial.set(m2, m1, m1);
             break;
         case Y:
-            min.set(-capRadius, -halfHeight, -capRadius);
-            max.set(capRadius, halfHeight, capRadius);
             inertiaTensorPartial.set(m1, m2, m1);
             break;
         case Z:
-            min.set(-capRadius, -capRadius, -halfHeight);
-            max.set(capRadius, capRadius, halfHeight);
             inertiaTensorPartial.set(m1, m1, m2);
             break;
         }
+        updateBounds();
     }
 }

@@ -22,9 +22,9 @@ import com.ferox.math.Vector3f;
  */
 public class GJK {
     public static final int GJK_MAX_ITERATIONS = 128;
-    public static final double GJK_MIN_DISTANCE = .0001f;
-    public static final double GJK_DUPLICATE_EPS = .0001f;
-    public static final double GJK_ACCURACY = .0001f;
+    public static final float GJK_MIN_DISTANCE = .0001f;
+    public static final float GJK_DUPLICATE_EPS = .0001f;
+    public static final float GJK_ACCURACY = .0001f;
 
     /**
      * Status represents the three states that a GJK evaluation can take. A
@@ -39,7 +39,6 @@ public class GJK {
     
     private final MinkowskiDifference function;
     private Simplex simplex;
-    private Status status;
 
     /**
      * Create a new GJK instance that will evaluate the pair of convex shapes
@@ -53,12 +52,12 @@ public class GJK {
             throw new NullPointerException("MinkowskiDifference cannot be null");
         
         function = support;
-        status = Status.FAILED;
         simplex = null;
     }
-    
+
     /**
      * Return the MinkowskiDifference used to build this GJK's Simplex.
+     * 
      * @return The MinkowskiDifference
      */
     public MinkowskiDifference getMinkowskiDifference() {
@@ -66,25 +65,14 @@ public class GJK {
     }
 
     /**
-     * Return the status after the last call to {@link #evaluate(ReadOnlyVector3f)}. If
-     * the status is {@link Status#VALID}, the Simplex returned by
-     * {@link #getSimplex()} is suitable for reconstructing the closest pairs.
-     * If it is {@link Status#INSIDE}, it can be used with {@link EPA}.
-     * Otherwise the simplex is invalid.
-     * 
-     * @return The Status from the last call to
-     *         {@link #evaluate(ReadOnlyVector3f)}
-     */
-    public Status getStatus() {
-        return status;
-    }
-
-    /**
      * Return the Simplex containing the results of the last run to
-     * {@link #evaluate(ReadOnlyVector3f)}. If {@link #getStatus()} returns
-     * VALID, the returned Simplex can be used to reconstruct the closest pair.
-     * A status of INSIDE means the returned Simplex can be used with
-     * {@link EPA}. Otherwise the returned Simplex should be considered invalid.
+     * {@link #evaluate(ReadOnlyVector3f)}. If the GJK evaluation was VALID, the
+     * returned Simplex can be used to reconstruct the closest pair. A status of
+     * INSIDE means the returned Simplex can be used with {@link EPA}. A status
+     * of FAILURE means the Simplex may be suitable for use with an EPA, but
+     * numerical errors may result.
+     * 
+     * @return The Simplex formed from the last evaluation
      */
     public Simplex getSimplex() {
         return simplex;
@@ -96,9 +84,10 @@ public class GJK {
      * 
      * @param guess An initial guess as to the contact normal between the two
      *            convex shapes
+     * @return The status of the evaluation
      * @throws NullPointerException if guess is null
      */
-    public void evaluate(ReadOnlyVector3f guess) {
+    public Status evaluate(ReadOnlyVector3f guess) {
         if (guess == null)
             throw new NullPointerException("Guess cannot be null");
         
@@ -109,32 +98,30 @@ public class GJK {
             ray.set(-1f, 0f, 0f); // for 0-vector guess, choose arbitrary vector to start
         
         int iterations = 0;
-        double alpha = 0f;
+        float alpha = 0f;
         
         simplex.addVertex(function, ray, true);
-        simplex.setWeight(0, 1f);
-        ray.set(simplex.getVertex(0));
+        simplex.getVertex(0).setWeight(1f);
+        ray.set(simplex.getVertex(0).getVertex());
         // old support values are tracked so we can terminate when a duplicate is 
         // returned in subsequent iterations
         Vector3f[] oldSupports = new Vector3f[] { new Vector3f(ray), new Vector3f(ray), 
                                                   new Vector3f(ray), new Vector3f(ray) };
         int lastSupportIndex = 0;
         
-        double rayLength;
+        float rayLength;
         ReadOnlyVector3f support;
         while(status == Status.VALID) {
             rayLength = ray.length();
-//            System.out.println("ray on iter: " + iterations + " -> " + ray);
             if (rayLength < GJK_MIN_DISTANCE) {
                 // touching or inside
                 status = Status.INSIDE;
                 break;
             }
-//            System.out.println(iterations + " " + simplex);
 
             // add the new vertex
             simplex.addVertex(function, ray, true);
-            support = simplex.getVertex(simplex.getRank() - 1);
+            support = simplex.getVertex(simplex.getRank() - 1).getVertex();
             
             // check for duplicates
             boolean duplicate = false;
@@ -148,7 +135,6 @@ public class GJK {
             if (duplicate) {
                 // return the old simplex since we didn't add any vertices
                 simplex.removeVertex();
-//                System.err.println("DUPLICATE TERMINATION");
                 break;
             } else {
                 // update the old support storage
@@ -169,10 +155,9 @@ public class GJK {
                 // the simplex is valid, compute next guess
                 ray.set(0f, 0f, 0f);
                 for (int i = 0; i < simplex.getRank(); i++)
-                    simplex.getVertex(i).scaleAdd((float) simplex.getWeight(i), ray, ray);
+                    simplex.getVertex(i).getVertex().scaleAdd(simplex.getVertex(i).getWeight(), ray, ray);
                 
                 // terminate if the simplex is full
-//                System.out.println("computed ray for next iter: " + ray);
                 if (simplex.getRank() == 4)
                     status = Status.INSIDE;
             } else {
@@ -187,6 +172,6 @@ public class GJK {
                 status = Status.FAILED;
         }
         
-        this.status = status;
+        return status;
     }
 }

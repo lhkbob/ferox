@@ -3,17 +3,14 @@ package com.ferox.physics.collision.shape;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.AxisAlignedBox;
 
-public class Box implements ConvexShape {
+public class Box extends ConvexShape {
     private final Vector3f localTensorPartial;
     private final Vector3f halfExtents;
-    private final AxisAlignedBox aabb;
     
     public Box(float xExtent, float yExtent, float zExtent) {
         localTensorPartial = new Vector3f();
         halfExtents = new Vector3f();
-        aabb = new AxisAlignedBox();
         
         setExtents(xExtent, yExtent, zExtent);
     }
@@ -35,13 +32,10 @@ public class Box implements ConvexShape {
             throw new IllegalArgumentException("Invalid depth, must be greater than 0, not: " + depth);
         
         halfExtents.set(width / 2f, height / 2f, depth / 2f);
-        aabb.getMax().set(halfExtents);
-        aabb.getMax().add(new Vector3f(.05f, .05f, .05f));
-        aabb.getMin().set(aabb.getMax()).scale(-1f);
-        
         localTensorPartial.set((height * height + depth * depth) / 12f,
                                (width * width + depth * depth) / 12f,
                                (width * width + height * height) / 12f);
+        updateBounds();
     }
     
     public float getWidth() {
@@ -57,24 +51,15 @@ public class Box implements ConvexShape {
     }
     
     @Override
-    public boolean computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
-        // FIXME: maybe break this into two methods, isSmooth() and computeSupport()
+    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
+        if (result == null)
+            result = new Vector3f();
+        
         float x = (v.getX() < 0f ? -halfExtents.getX() : halfExtents.getX());
         float y = (v.getY() < 0f ? -halfExtents.getY() : halfExtents.getY());
         float z = (v.getZ() < 0f ? -halfExtents.getZ() : halfExtents.getZ());
         
-        if (result != null)
-            result.set(x, y, z);
-        float ax = Math.abs(v.getX());
-        float ay = Math.abs(v.getY());
-        float az = Math.abs(v.getZ());
-        
-        return !(Math.abs(ax - ay) < .0001f || Math.abs(ax - az) < .0001f || Math.abs(ay - az) < .0001f);
-    }
-
-    @Override
-    public AxisAlignedBox getBounds() {
-        return aabb;
+        return result.set(x, y, z);
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.physics.collision.algorithm.Simplex.SupportSample;
+import com.ferox.physics.collision.algorithm.Simplex.Vertex;
 import com.ferox.util.Bag;
 
 /**
@@ -31,59 +31,43 @@ public class EPA {
      * algorithm.
      */
     public static enum Status {
-        VALID, DEGENERATED, NON_CONVEX, INVALID_HULL,
-        ACCURACY_REACHED, FALLBACK, FAILED
+        VALID, DEGENERATED, NON_CONVEX, INVALID_HULL, FAILED
     }
     
     private static final int EPA_MAX_ITERATIONS = 255;
-    private static final double EPA_ACCURACY = .0001f;
-    private static final double EPA_PLANE_EPS = .00001f;
-    private static final double EPA_INSIDE_EPS = .01f;
+    private static final float EPA_ACCURACY = .00001f;
+    private static final float EPA_PLANE_EPS = .00001f;
+    private static final float EPA_INSIDE_EPS = .00001f;
     
     private static final int[] I1M3 = new int[] { 1, 2, 0 };
     private static final int[] I2M3 = new int[] { 2, 0, 1 };
     
-    private static final ThreadLocal<Vector3f> temp1 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
-    private static final ThreadLocal<Vector3f> temp2 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
-    private static final ThreadLocal<Vector3f> temp3 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
     
     private final GJK gjk;
-    private final Vector3f normal;
-    private final Bag<Face> hull;
+    private final Vector3f tempCache;
+    
+    
+    private Vector3f normal;
+    private Bag<Face> hull;
     
     private Simplex simplex;
-    private double depth;
+    private float depth;
     private Status status;
 
     /**
      * Construct an EPA instance that will use the end result of the given GJK
      * to determine the correct intersection between the two convex hulls.
      * 
-     * @param gjk GJK that has already been evaluated with a status of INSIDE
+     * @param gjk GJK whose evaluated simplex is used to start the EPA algorithm
      * @throws NullPointerException if gjk is null
-     * @throws IllegalArgumentException if the gjk's status is not INSIDE
      */
     public EPA(GJK gjk) {
         if (gjk == null)
             throw new NullPointerException("GJK cannot be null");
-//        if (gjk.getStatus() != GJK.Status.INSIDE)
-//            throw new IllegalArgumentException("GJK must have a status of INSIDE");
         
         this.gjk = gjk;
-        normal = new Vector3f();
-        hull = new Bag<Face>();
-        
         depth = 0f;
-        status = Status.FAILED;
+        tempCache = new Vector3f();
     }
 
     /**
@@ -112,27 +96,19 @@ public class EPA {
      * 
      * @return The penetration depth
      */
-    public double getDepth() {
+    public float getDepth() {
         return depth;
     }
 
     /**
-     * Return the contact normal between the two intersecting convex hulls.
+     * Return the contact normal between the two intersecting convex hulls from
+     * the last invocation of {@link #evaluate(ReadOnlyVector3f)}. If the status
+     * is not VALID, the returned normal is invalid and possibly null.
      * 
-     * @return Contact normal
+     * @return The contact normal from A to B
      */
     public ReadOnlyVector3f getNormal() {
         return normal;
-    }
-
-    /**
-     * Return the status from the last call to
-     * {@link #evaluate(ReadOnlyVector3f)}.
-     * 
-     * @return The status of the EPA system
-     */
-    public Status getStatus() {
-        return status;
     }
 
     /**
@@ -152,9 +128,10 @@ public class EPA {
      * </p>
      * 
      * @param guess The initial guess
+     * @return The Status of the evaluation
      * @throws NullPointerException if guess is null
      */
-    public void evaluate(ReadOnlyVector3f guess) {
+    public Status evaluate(ReadOnlyVector3f guess) {
         if (guess == null)
             throw new NullPointerException("Guess cannot be null");
         
@@ -163,14 +140,18 @@ public class EPA {
         Simplex simplex = gjk.getSimplex();
         MinkowskiDifference function = gjk.getMinkowskiDifference();
         
+        normal = new Vector3f();
+        hull = new Bag<Face>();
+        status = Status.FAILED;
+        
         if (simplex.getRank() > 1 && simplex.encloseOrigin(function)) {
             status = Status.VALID;
             
             // build initial hull
-            Face f1 = new Face(simplex.getSample(0), simplex.getSample(1), simplex.getSample(2), true);
-            Face f2 = new Face(simplex.getSample(1), simplex.getSample(0), simplex.getSample(3), true);
-            Face f3 = new Face(simplex.getSample(2), simplex.getSample(1), simplex.getSample(3), true);
-            Face f4 = new Face(simplex.getSample(0), simplex.getSample(2), simplex.getSample(3), true);
+            Face f1 = new Face(simplex.getVertex(0), simplex.getVertex(1), simplex.getVertex(2), true);
+            Face f2 = new Face(simplex.getVertex(1), simplex.getVertex(0), simplex.getVertex(3), true);
+            Face f3 = new Face(simplex.getVertex(2), simplex.getVertex(1), simplex.getVertex(3), true);
+            Face f4 = new Face(simplex.getVertex(0), simplex.getVertex(2), simplex.getVertex(3), true);
             
             if (hull.size() == 4) {
                 Face best = findBest();
@@ -186,7 +167,7 @@ public class EPA {
                 
                 Horizon horizon = new Horizon();
                 boolean valid;
-                double wdist;
+                float wdist;
                 for (int iter = 0; iter < EPA_MAX_ITERATIONS; iter++) {
                     // reset the horizon for the next iteration
                     horizon.cf = null; 
@@ -194,13 +175,13 @@ public class EPA {
                     horizon.numFaces = 0;
                     
                     // calculate the next vertex to go into the hull
-                    SupportSample w = new SupportSample();
+                    Vertex w = new Vertex();
                     valid = true;
                     best.pass = ++pass;
                     
                     best.normal.normalize(w.input);
-                    function.getSupport(w.input, w.support);
-                    wdist = best.normal.dot(w.support) - best.d;
+                    function.getSupport(w.input, w.vertex);
+                    wdist = best.normal.dot(w.vertex) - best.d;
                     
                     if (wdist > EPA_ACCURACY) {
                         for (int j = 0; j < 3 && valid; j++) {
@@ -219,48 +200,42 @@ public class EPA {
                             break;
                         }
                     } else {
-                        status = Status.ACCURACY_REACHED;
+                        // accuracy reached, but the simplex should be valid
                         break;
                     }
                 }
                 
-                MutableVector3f projection = outer.normal.scale((float) outer.d, temp1.get());
+                MutableVector3f projection = outer.normal.scale((float) outer.d, tempCache);
                 normal.set(outer.normal);
                 depth = outer.d;
                 
-                Vector3f t1 = temp2.get();
-                Vector3f t2 = temp3.get();
+                Vector3f t1 = new Vector3f();
+                Vector3f t2 = new Vector3f();
                 
-                double w1 = outer.vertices[1].support.sub(projection, t1).cross(outer.vertices[2].support.sub(projection, t2)).length();
-                double w2 = outer.vertices[2].support.sub(projection, t1).cross(outer.vertices[0].support.sub(projection, t2)).length();
-                double w3 = outer.vertices[0].support.sub(projection, t1).cross(outer.vertices[1].support.sub(projection, t2)).length();
+                float w1 = outer.vertices[1].vertex.sub(projection, t1).cross(outer.vertices[2].vertex.sub(projection, t2)).length();
+                float w2 = outer.vertices[2].vertex.sub(projection, t1).cross(outer.vertices[0].vertex.sub(projection, t2)).length();
+                float w3 = outer.vertices[0].vertex.sub(projection, t1).cross(outer.vertices[1].vertex.sub(projection, t2)).length();
                 
-                double sum = w1 + w2 + w3;
-                this.simplex = new Simplex(outer.vertices[0], outer.vertices[1], outer.vertices[2],
-                                           w1 / sum, w2 / sum, w3 / sum);
-                return;
+                float sum = w1 + w2 + w3;
+                
+                outer.vertices[0].setWeight(w1 / sum);
+                outer.vertices[1].setWeight(w2 / sum);
+                outer.vertices[2].setWeight(w3 / sum);
+                this.simplex = new Simplex(outer.vertices[0], outer.vertices[1], outer.vertices[2]);
+                return status;
             }
         }
         
-        // fallback
-        status = Status.FALLBACK;
-        guess.scale(-1f, normal);
-        double nl = normal.length();
-        if (nl > 0)
-            normal.scale((float) (1.0 / nl));
-        else
-            normal.set(1f, 0f, 0f);
-        depth = 0f;
-        this.simplex = new Simplex(simplex.getSample(0));
+        return Status.FAILED;
     }
         
     private Face findBest() {
         Face minf = hull.get(0);
-        double mind = minf.d * minf.d;
-        double maxp = minf.p;
+        float mind = minf.d * minf.d;
+        float maxp = minf.p;
         
         Face f;
-        double sqd;
+        float sqd;
         int ct = hull.size();
         for (int i = 1; i < ct; i++) {
             f = hull.get(i);
@@ -275,10 +250,10 @@ public class EPA {
         return minf;
     }
     
-    private boolean expand(int pass, SupportSample w, Face face, int index, Horizon horizon) {
+    private boolean expand(int pass, Vertex w, Face face, int index, Horizon horizon) {
         if (face.pass != pass) {
             int e1 = I1M3[index];
-            if (face.normal.dot(w.support) - face.d < -EPA_PLANE_EPS) {
+            if (face.normal.dot(w.vertex) - face.d < -EPA_PLANE_EPS) {
                 Face nf = new Face(face.vertices[e1], face.vertices[index], w, false);
                 if (nf.hullIndex >= 0) {
                     bind(nf, 0, face, index);
@@ -313,41 +288,39 @@ public class EPA {
     
     private class Face {
         final MutableVector3f normal;
-        double d;
-        double p;
+        float d;
+        float p;
         
-        final SupportSample[] vertices;
+        final Vertex[] vertices;
         final Face[] adjacent;
         final int[] faceIndex;
         
         int pass;
         int hullIndex;
         
-        public Face(SupportSample a, SupportSample b, SupportSample c, boolean force) {
-            Vector3f t = temp1.get();
-            
+        public Face(Vertex a, Vertex b, Vertex c, boolean force) {
             adjacent = new Face[3];
             faceIndex = new int[3];
             pass = 0;
             
-            vertices = new SupportSample[] { a, b, c };
-            normal = b.support.sub(a.support, null).cross(c.support.sub(a.support, t));
-            double l = normal.length();
+            vertices = new Vertex[] { a, b, c };
+            normal = b.vertex.sub(a.vertex, null).cross(c.vertex.sub(a.vertex, tempCache));
+            float l = normal.length();
             boolean v = l > EPA_ACCURACY;
             
-            double invL = 1f / l;
-            double d1 = a.support.dot(normal.cross(a.support.sub(b.support, t), t));
-            double d2 = b.support.dot(normal.cross(b.support.sub(c.support, t), t));
-            double d3 = c.support.dot(normal.cross(c.support.sub(a.support, t), t));
+            float invL = 1f / l;
+            float d1 = a.vertex.dot(normal.cross(a.vertex.sub(b.vertex, tempCache), tempCache));
+            float d2 = b.vertex.dot(normal.cross(b.vertex.sub(c.vertex, tempCache), tempCache));
+            float d3 = c.vertex.dot(normal.cross(c.vertex.sub(a.vertex, tempCache), tempCache));
             p = Math.min(Math.min(d1, d2), d3) * (v ? invL : 1f);
             if (p >= -EPA_INSIDE_EPS)
                 p = 0;
             
             hullIndex = -1;
             if (v) {
-                d = a.support.dot(normal) * invL;
+                d = a.vertex.dot(normal) * invL;
                 normal.scale((float) invL);
-                if (force || d >= EPA_PLANE_EPS) {
+                if (force || d >= -EPA_PLANE_EPS) {
                     hull.add(this);
                     hullIndex = hull.size() - 1;
                 } else

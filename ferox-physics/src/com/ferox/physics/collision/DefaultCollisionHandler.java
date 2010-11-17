@@ -60,6 +60,7 @@ public class DefaultCollisionHandler implements CollisionHandler {
             if (algo == null) {
                 // update the algorithm cache for this pair
                 algo = getAlgorithm(key.shapeA, key.shapeB);
+                System.out.println("Current algorithms: " + algorithmCache);
             }
             
             if (algo == null) {

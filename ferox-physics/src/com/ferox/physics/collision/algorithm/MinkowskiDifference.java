@@ -20,7 +20,7 @@ import com.ferox.physics.collision.shape.ConvexShape;
  * @author Michael Ludwig
  */
 public class MinkowskiDifference {
-    private static final float CONTACT_NORMAL_ACCURACY = .001f;
+    private static final float CONTACT_NORMAL_ACCURACY = .0001f;
     
     private final ConvexShape shapeA;
     private final ConvexShape shapeB;
@@ -28,41 +28,73 @@ public class MinkowskiDifference {
     private final ReadOnlyMatrix4f transA; // transforms a to world
     private final ReadOnlyMatrix4f transB; // transforms b to world
     
-    private final float margin;
-    private boolean ignoreMarginOnEval;
+    private int appliedMargins;
+    
+    // final variables to reuse during computations, should be faster than thread-local
+    private final Vector3f supportCache;
+    private final Vector3f dirCache;
+    private final Vector4f transformCache;
 
     /**
      * Create a new MinkowskiDifference between the two Shape objects. The
-     * MinkowskiDifference will automatically apply the provided world transforms
-     * associated with each shape, and apply the configured scale. If the scale is less than
-     * or equal to 0, no scale will be applied to the convex shapes.
+     * MinkowskiDifference will automatically apply the provided world
+     * transforms associated with each shape, and take into account the margins
+     * of the Shapes.
      * 
      * @param shapeA The first shape involved in the minkowski difference
      * @param transA The first shape's world transform
      * @param shapeB The second object involved in the minkowski difference
      * @param transB The second shape's world transform
-     * @param scale An automatic scale factor to shrink each convex shape by,
-     *            locally, unless it is negative
      * @throws NullPointerException if any arguments are null
      */
     public MinkowskiDifference(ConvexShape shapeA, ReadOnlyMatrix4f transA,
-                               ConvexShape shapeB, ReadOnlyMatrix4f transB, float scale) {
+                               ConvexShape shapeB, ReadOnlyMatrix4f transB) {
         if (shapeA == null || shapeB == null || transA == null || transB == null)
             throw new NullPointerException("Arguments cannot be null");
+        
+        supportCache = new Vector3f();
+        dirCache = new Vector3f();
+        transformCache = new Vector4f();
         
         this.shapeA = shapeA;
         this.shapeB = shapeB;
         this.transA = transA;
         this.transB = transB;
         
-        this.margin = scale;
-        ignoreMarginOnEval = false;
+        appliedMargins = 1;
     }
-    
-    public void setIgnoreMargin(boolean ignore) {
-        ignoreMarginOnEval = ignore;
+
+    /**
+     * Set the number of times the MinkowskiDifference will apply each
+     * ConvexShape's margin when
+     * {@link #getSupport(ReadOnlyVector3f, MutableVector3f)} is called. This
+     * number does not affect the result of
+     * {@link #getClosestPair(Simplex, ReadOnlyVector3f)}, which always applies
+     * a single margin for each shape.
+     * 
+     * @param num The number of margin applications
+     * @throws IllegalArgumentException if num is less than 0
+     */
+    public void setNumAppliedMargins(int num) {
+        if (num < 0)
+            throw new IllegalArgumentException("Number of applied margins must be at least 0, not: " + num);
+        appliedMargins = num;
     }
-    
+
+    /**
+     * Build a closest pair from the given Simplex and this MinkowskiDifference.
+     * The specified simplex should have been built by the GJK or EPA algorithms
+     * using this MinkowskiDifference. The returned pair will always applied a
+     * single margin to each ConvexShape, regardless of
+     * {@link #setNumAppliedMargins(int)}.
+     * 
+     * @param simplex The simplex used to build the closest pair
+     * @param zeroNormal An optional normal vector to use when the closest
+     *            pair's distance is 0
+     * @return A ClosestPair formed by the simplex, or null if it could not be
+     *         computed
+     * @throws NullPointerException if simplex is null
+     */
     public ClosestPair getClosestPair(Simplex simplex, ReadOnlyVector3f zeroNormal) {
         ReadOnlyVector3f pa = transA.getCol(3).getAsVector3f();
         ReadOnlyVector3f pb = transB.getCol(3).getAsVector3f();
@@ -83,17 +115,31 @@ public class MinkowskiDifference {
 
         if (Math.abs(distance) < CONTACT_NORMAL_ACCURACY) {
             // special case for very close contact points, where the normal might become inaccurate
-            if (zeroNormal != null)
+            if (zeroNormal != null) {
                 zeroNormal.normalize(normal);
-            return null;
+                if (intersecting)
+                    normal.scale(-1f);
+            } else
+                return null;
         } else {
             // normalize, and possibly flip the normal based on intersection
             normal.scale(1f / distance);
         }
         
-        if (ignoreMarginOnEval) {
-            distance -= 2f * margin;
-            normal.scaleAdd(margin, wA, wA); 
+        if (appliedMargins != 1) {
+            int scale = Math.abs(appliedMargins - 1);
+            float distDelta = scale * shapeA.getMargin() + scale * shapeB.getMargin();
+            if (intersecting)
+                distDelta *= -1f;
+            
+            normal.scaleAdd(-(appliedMargins - 1) * shapeA.getMargin(), wA, wA);
+            if ((appliedMargins == 0 && intersecting) || (appliedMargins > 1 && !intersecting)) {
+                // moving to one margin increases distance
+                distance += distDelta;
+            } else {
+                // moving to one margin decreases distance
+                distance -= distDelta;
+            }
         }
 
         return new ClosestPair(wA, normal, distance);
@@ -102,22 +148,20 @@ public class MinkowskiDifference {
 
     private Vector3f getClosestPointA(Simplex simplex) {
         Vector3f result = new Vector3f();
-        Vector3f t = supportCache.get();
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
-            getAffineSupport(shapeA, transA, simplex.getSupportInput(i), t);
-            t.scaleAdd((float) simplex.getWeight(i), result, result);
+            getAffineSupport(shapeA, transA, simplex.getVertex(i).getInputVector(), supportCache);
+            supportCache.scaleAdd(simplex.getVertex(i).getWeight(), result, result);
         }
         return result;
     }
 
     private Vector3f getClosestPointB(Simplex simplex) {
         Vector3f result = new Vector3f();
-        Vector3f t = supportCache.get();
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
-            getAffineSupport(shapeB, transB, simplex.getSupportInput(i).scale(-1f, t), t);
-            t.scaleAdd((float) simplex.getWeight(i), result, result);
+            getAffineSupport(shapeB, transB, simplex.getVertex(i).getInputVector().scale(-1f, supportCache), supportCache);
+            supportCache.scaleAdd(simplex.getVertex(i).getWeight(), result, result);
         }
         return result;
     }
@@ -127,9 +171,9 @@ public class MinkowskiDifference {
      * Compute the support function of this MinkowskiDifference. The support of
      * a minkowski difference is <code>Sa(d) - Sb(-d)</code> where <tt>Sa</tt>
      * and <tt>Sb</tt> are the support functions of the convex shapes after
-     * applying their world transforms. If the MinkowskiDifference is configured
-     * to have a scale, the scale will be applied when evaluating the local
-     * support function.
+     * applying their world transforms. Each ConvexShape will have their
+     * configured margins applied a number of times depending on the last call
+     * to {@link #setNumAppliedMargins(int)}.
      * </p>
      * <p>
      * The support is stored in result if result is non-null. If result is null
@@ -145,41 +189,32 @@ public class MinkowskiDifference {
     public MutableVector3f getSupport(ReadOnlyVector3f d, MutableVector3f result) {
         if (result == null)
             result = new Vector3f();
-        Vector3f sb = supportCache.get();
         
         getAffineSupport(shapeA, transA, d, result);
-        getAffineSupport(shapeB, transB, d.scale(-1f, sb), sb);
-        return result.sub(sb);
+        getAffineSupport(shapeB, transB, d.scale(-1f, supportCache), supportCache);
+        return result.sub(supportCache);
     }
     
     private void getAffineSupport(ConvexShape shape, ReadOnlyMatrix4f t, ReadOnlyVector3f d, MutableVector3f result) {
-        Vector4f s = transformCache.get();
-        
         // first step is to transform d by the transpose of the upper 3x3
         // we do this by wrapping d in a 4-vector and setting w = 0
-        s.set(d.getX(), d.getY(), d.getZ(), 0f);
-        t.mulPre(s);
+        transformCache.set(d.getX(), d.getY(), d.getZ(), 0f);
+        t.mulPre(transformCache);
         
         // second step is to compute the actual support
-        result.set(s.getX(), s.getY(), s.getZ());
+        result.set(transformCache.getX(), transformCache.getY(), transformCache.getZ());
+        dirCache.set(result);
+        
         shape.computeSupport(result, result);
         
-        // apply scale factor, and check if input is a vertex
-        if (!ignoreMarginOnEval)
-            d.scaleAdd(margin, result, result);
+        if (appliedMargins > 0) {
+            // apply a number of margin offsets, as if a sphere is added to the convex shape
+            dirCache.scaleAdd(appliedMargins * shape.getMargin(), result, result);
+        }
         
         // then transform that by the complete affine transform, so w = 1
-        s.set(result.getX(), result.getY(), result.getZ(), 1f);
-        t.mul(s);
-        result.set(s.getX(), s.getY(), s.getZ());
+        transformCache.set(result.getX(), result.getY(), result.getZ(), 1f);
+        t.mul(transformCache);
+        result.set(transformCache.getX(), transformCache.getY(), transformCache.getZ());
     }
-    
-    private static final ThreadLocal<Vector3f> supportCache = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
-    private static final ThreadLocal<Vector4f> transformCache = new ThreadLocal<Vector4f>() {
-        @Override
-        protected Vector4f initialValue() { return new Vector4f(); }
-    };
 }
