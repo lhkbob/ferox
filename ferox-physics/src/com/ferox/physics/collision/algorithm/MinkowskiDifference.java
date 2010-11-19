@@ -22,11 +22,11 @@ import com.ferox.physics.collision.shape.ConvexShape;
 public class MinkowskiDifference {
     private static final float CONTACT_NORMAL_ACCURACY = .0001f;
     
-    private final ConvexShape shapeA;
-    private final ConvexShape shapeB;
+    private ConvexShape shapeA;
+    private ConvexShape shapeB;
     
-    private final ReadOnlyMatrix4f transA; // transforms a to world
-    private final ReadOnlyMatrix4f transB; // transforms b to world
+    private ReadOnlyMatrix4f transA; // transforms a to world
+    private ReadOnlyMatrix4f transB; // transforms b to world
     
     private int appliedMargins;
     
@@ -51,7 +51,6 @@ public class MinkowskiDifference {
                                ConvexShape shapeB, ReadOnlyMatrix4f transB) {
         if (shapeA == null || shapeB == null || transA == null || transB == null)
             throw new NullPointerException("Arguments cannot be null");
-        
         supportCache = new Vector3f();
         dirCache = new Vector3f();
         transformCache = new Vector4f();

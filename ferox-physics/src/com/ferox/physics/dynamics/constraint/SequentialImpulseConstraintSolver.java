@@ -1,16 +1,16 @@
 package com.ferox.physics.dynamics.constraint;
 
 import java.util.Collection;
+import java.util.Random;
 
-import com.ferox.physics.dynamics.RigidBody;
-import com.ferox.util.Bag;
+import com.ferox.physics.dynamics.constraint.LinearConstraintAccumulator.ConstraintLevel;
 
 public class SequentialImpulseConstraintSolver implements ConstraintSolver {
     private final int internalIterations;
     private final LinearConstraintPool constraintPool;
+    private final LinearConstraintAccumulator constraints;
     
-    private final Bag<LinearConstraint> contacts;
-    private final Bag<LinearConstraint> friction;
+    private final Random shuffler;
     
     public SequentialImpulseConstraintSolver() {
         this(10);
@@ -21,84 +21,97 @@ public class SequentialImpulseConstraintSolver implements ConstraintSolver {
             throw new IllegalArgumentException("Number of iterations must be at least 1, not: " + numIters);
         internalIterations = numIters;
         constraintPool = new LinearConstraintPool();
-        contacts = new Bag<LinearConstraint>();
-        friction = new Bag<LinearConstraint>();
+        constraints = new LinearConstraintAccumulator();
+        shuffler = new Random();
     }
     
     @Override
     public void solve(Collection<Constraint> solve, float dt) {
-        contacts.clear(true);
-        friction.clear(true);
-        
         for (Constraint c: solve) {
             if (c instanceof NormalizableConstraint) {
                 // normalize constraint to be solved uniformly later
-                ((NormalizableConstraint) c).normalize(dt, contacts, friction, constraintPool);
+                ((NormalizableConstraint) c).normalize(dt, constraints, constraintPool);
             } else {
                 // don't know how to solve it, will rely on its solve() method
                 c.solve(dt);
             }
         }
-     
+        
         solveLinearConstraints();
     }
 
     @Override
     public void solve(Constraint c, float dt) {
         if (c instanceof NormalizableConstraint) {
-            ((NormalizableConstraint) c).normalize(dt, contacts, friction, constraintPool);
+            ((NormalizableConstraint) c).normalize(dt, constraints, constraintPool);
             solveLinearConstraints();
         } else
             c.solve(dt);
     }
     
     private void solveSingleConstraint(LinearConstraint c) {
-        RigidBody ba = c.getRigidBodyA();
-        RigidBody bb = c.getRigidBodyB();
+        SolverBody ba = c.bodyA;
+        SolverBody bb = c.bodyB;
         
-        float deltaImpulse = c.getRightHandSide() - c.getAppliedImpulse() * c.getConstraintForceMix();
+        float deltaImpulse;// = c.rhs;
         float deltaVelADotN = 0f;
         float deltaVelBDotN = 0f;
         
         if (ba != null)
-            deltaVelADotN = c.getConstraintAxis().dot(ba.getDeltaLinearVelocity()) + c.getTorqueAxisA().dot(ba.getDeltaAngularVelocity());
+            deltaVelADotN = -c.jacobianDiagInverse * (c.nX * ba.dlX + c.nY * ba.dlY + c.nZ * ba.dlZ + c.taX * ba.daX + c.taY * ba.daY + c.taZ * ba.daZ);
         if (bb != null)
-            deltaVelBDotN = c.getConstraintAxis().dot(bb.getDeltaLinearVelocity()) + c.getTorqueAxisB().dot(bb.getDeltaAngularVelocity());
+            deltaVelBDotN = c.jacobianDiagInverse * (c.nX * bb.dlX + c.nY * bb.dlY + c.nZ * bb.dlZ + c.tbX * bb.daX + c.tbY * bb.daY + c.tbZ * bb.daZ);
+    
+        deltaImpulse = c.rhs + deltaVelADotN + deltaVelBDotN;
         
-        deltaImpulse -= deltaVelADotN * c.getJacobianInverse();
-        deltaImpulse += deltaVelBDotN * c.getJacobianInverse();
-        
-        float sum = c.getAppliedImpulse() + deltaImpulse;
-        if (sum < c.getLowerLimit()) {
-            // clamp to lower
-            deltaImpulse = c.getLowerLimit() - c.getAppliedImpulse();
-        } else if (sum > c.getUpperLimit()) {
-            // clamp to upper
-            deltaImpulse = c.getUpperLimit() - c.getAppliedImpulse();
-        }
+        float sum = c.appliedImpulse + deltaImpulse;
+        if (sum < c.getLowerLimit())
+            deltaImpulse = c.getLowerLimit() - c.appliedImpulse;
+        else if (sum > c.getUpperLimit())
+            deltaImpulse = c.getUpperLimit() - c.appliedImpulse;
 
         c.addDeltaImpulse(deltaImpulse);
     }
     
     private void solveLinearConstraints() {
-        int ct = contacts.size();
-        int ct2 = friction.size();
+        // fetch all constraints from the accumulator
+        int genericCount = constraints.getConstraintCount(ConstraintLevel.GENERIC);
+        int contactCount = constraints.getConstraintCount(ConstraintLevel.CONTACT);
+        int frictionCount = constraints.getConstraintCount(ConstraintLevel.FRICTION);
+        
+        LinearConstraint[] gar = constraints.getConstraints(ConstraintLevel.GENERIC);
+        LinearConstraint[] car = constraints.getConstraints(ConstraintLevel.CONTACT);
+        LinearConstraint[] far = constraints.getConstraints(ConstraintLevel.FRICTION);
+        
+        
+        // iterate over all constraints X times, each time they are shuffled
+        int j;
         for (int i = 0; i < internalIterations; i++) {
-                contacts.shuffle();
-                friction.shuffle();
-            
-            for (int j = 0; j < ct; j++)
-                solveSingleConstraint(contacts.get(j));
-            for (int j = 0; j < ct2; j++)
-                solveSingleConstraint(friction.get(j));
+            shuffle(gar, genericCount);
+            shuffle(car, contactCount);
+            shuffle(far, frictionCount);
+
+            for (j = genericCount - 1; j >= 0; j--)
+                solveSingleConstraint(gar[j]);
+            for (j = contactCount - 1; j >= 0; j--)
+                solveSingleConstraint(car[j]);
+            for (j = frictionCount - 1; j >= 0; j--)
+                solveSingleConstraint(far[j]);
         }
         
         // return constraints to the pool
-        for (int i = 0; i < ct; i++)
-            constraintPool.add(contacts.get(i));
-        for (int i = 0; i < ct2; i++)
-            constraintPool.add(friction.get(i));
-        contacts.clear(true);
-        friction.clear(true);
+        constraints.clear(constraintPool);
+    }
+    
+    private void shuffle(LinearConstraint[] array, int size) {
+        for (int i = size; i >= 1; i--) {
+            swap(array, i - 1, shuffler.nextInt(i));
+        }
+    }
+    
+    private void swap(LinearConstraint[] elements, int a, int b) {
+        LinearConstraint t = elements[a];
+        elements[a] = elements[b];
+        elements[b] = t;
     }
 }

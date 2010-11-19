@@ -44,7 +44,7 @@ public class GJK {
      * Create a new GJK instance that will evaluate the pair of convex shapes
      * represented by the given {@link MinkowskiDifference}.
      * 
-     * @param shape The MinkowskiDifference to evaluate
+     * @param support The MinkowskiDifference to evaluate
      * @throws NullPointerException if shape is null
      */
     public GJK(MinkowskiDifference support) {
@@ -54,7 +54,7 @@ public class GJK {
         function = support;
         simplex = null;
     }
-
+    
     /**
      * Return the MinkowskiDifference used to build this GJK's Simplex.
      * 
@@ -78,6 +78,7 @@ public class GJK {
         return simplex;
     }
 
+    
     /**
      * Run the GJK algorithm on the {@link MinkowskiDifference} specified when
      * the instance was constructed.
@@ -107,6 +108,7 @@ public class GJK {
         // returned in subsequent iterations
         Vector3f[] oldSupports = new Vector3f[] { new Vector3f(ray), new Vector3f(ray), 
                                                   new Vector3f(ray), new Vector3f(ray) };
+        
         int lastSupportIndex = 0;
         
         float rayLength;

@@ -16,7 +16,7 @@ import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.algorithm.ClosestPair;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.physics.dynamics.constraint.LinearConstraint.ImpulseListener;
-import com.ferox.util.Bag;
+import com.ferox.physics.dynamics.constraint.LinearConstraintAccumulator.ConstraintLevel;
 
 public class ContactManifold extends NormalizableConstraint {
     private static final int MANIFOLD_POINT_SIZE = 4;
@@ -200,7 +200,7 @@ public class ContactManifold extends NormalizableConstraint {
     }
 
     @Override
-    public void normalize(float dt, Bag<LinearConstraint> constraints, Bag<LinearConstraint> friction, LinearConstraintPool pool) {
+    public void normalize(float dt, LinearConstraintAccumulator accum, LinearConstraintPool pool) {
         ManifoldPoint p;
         LinearConstraint contact;
         LinearConstraint fric1;
@@ -228,8 +228,8 @@ public class ContactManifold extends NormalizableConstraint {
                 // compute contact constraint for manifold point
                 contact = pool.get(rbA, rbB);
                 setupConstraint(rbA, rbB, p.worldNormalInB, relPosA, relPosB, -p.distance * ERP / dt, p.appliedImpulse, p.lifetime, contact);
-                contact.setImpulseListener(p);
-                constraints.add(contact);
+                contact.setImpulseListener(p.nImpulse);
+                accum.add(contact, ConstraintLevel.CONTACT);
                 
                 if (!p.frictionDirInitialized) {
                     // compute lateral friction directions
@@ -253,10 +253,9 @@ public class ContactManifold extends NormalizableConstraint {
                 // setup both friction direction constraints
                 fric1 = pool.get(rbA, rbB);
                 setupConstraint(rbA, rbB, p.frictionDir, relPosA, relPosB, 0f, p.appliedFrictionImpulse, -1, fric1);
-                fric1.setImpulseListener(p);
+                fric1.setImpulseListener(p.fImpulse);
                 fric1.setDynamicLimits(contact, combinedFriction);
-
-                friction.add(fric1);
+                accum.add(fric1, ConstraintLevel.FRICTION);
             }
         }
     }
@@ -264,30 +263,26 @@ public class ContactManifold extends NormalizableConstraint {
     private void setupConstraint(RigidBody rbA, RigidBody rbB, ReadOnlyVector3f constraintAxis, 
                                  ReadOnlyVector3f relPosA, ReadOnlyVector3f relPosB, 
                                  float positionalError, float appliedImpulse, int lifetime, LinearConstraint constraint) {
-        // FIXME: need more thread-locals or maybe not? ThreadLocal seems slower than new
-        // compute torque axis
-        constraint.setTorqueAxis(relPosA.cross(constraintAxis, null), relPosB.cross(constraintAxis, null));
+        Vector3f t1 = temp3.get();
+        Vector3f t2 = temp4.get();
+        
+        // compute constraint basis
+        constraint.setConstraintAxis(constraintAxis, relPosA.cross(constraintAxis, t1), 
+                                     relPosB.cross(constraintAxis, t2));
         
         // compute jacobian inverse for this constraint row
         float denomA = 0f;
         float denomB = 0f;
-        Vector3f temp = new Vector3f();
-        if (rbA != null) {
-            rbA.getInertiaTensorInverse().mul(constraint.getTorqueAxisA(), temp).cross(relPosA);
-            denomA = rbA.getInverseMass() + constraintAxis.dot(temp); 
-        }
-        if (rbB != null) {
-            rbB.getInertiaTensorInverse().mul(constraint.getTorqueAxisB(), temp).cross(relPosB);
-            denomB = rbB.getInverseMass() + constraintAxis.dot(temp);
-        }
-        constraint.setJacobianInverse(1f / (denomA + denomB));
-        constraint.setConstraintAxis(constraintAxis);
-        
-        float relativeVelocity = 0f;
         if (rbA != null)
-            relativeVelocity += (constraint.getConstraintAxis().dot(rbA.getVelocity()) + constraint.getTorqueAxisA().dot(rbA.getAngularVelocity()));
+            denomA = rbA.getInverseMass() + rbA.getInertiaTensorInverse().mul(constraint.getTorqueAxisA(t1)).cross(relPosA).dot(constraintAxis); 
         if (rbB != null)
-            relativeVelocity -= (constraint.getConstraintAxis().dot(rbB.getVelocity()) + constraint.getTorqueAxisB().dot(rbB.getAngularVelocity()));
+            denomB = rbB.getInverseMass() + rbB.getInertiaTensorInverse().mul(constraint.getTorqueAxisB(t2)).cross(relPosB).dot(constraintAxis);
+        constraint.setJacobianInverse(1f / (denomA + denomB));
+        float relativeVelocity = 0f;
+        if (rbA != null) 
+            relativeVelocity += (constraint.getConstraintAxis(t1).dot(rbA.getVelocity()) + constraint.getTorqueAxisA(t2).dot(rbA.getAngularVelocity()));
+        if (rbB != null)
+            relativeVelocity -= (constraint.getConstraintAxis(t1).dot(rbB.getVelocity()) + constraint.getTorqueAxisB(t2).dot(rbB.getAngularVelocity()));
         
         float restitution = 0f;
         if (lifetime <= RESTING_CONTACT_THRESHOLD && lifetime >= 0) {
@@ -309,7 +304,7 @@ public class ContactManifold extends NormalizableConstraint {
         constraint.setLimits(0f, Float.MAX_VALUE);
     }
     
-    private static class ManifoldPoint implements ImpulseListener {
+    private static class ManifoldPoint {
         final MutableVector4f localA;
         final MutableVector4f localB;
         
@@ -327,6 +322,9 @@ public class ContactManifold extends NormalizableConstraint {
         
         final Vector3f frictionDir;
         boolean frictionDirInitialized;
+        
+        final FrictionImpulseListener fImpulse;
+        final NormalImpulseListener nImpulse;
         
         public ManifoldPoint(ReadOnlyMatrix4f ta, ReadOnlyMatrix4f tb, ClosestPair pair, boolean swap) {
             ReadOnlyVector3f wa, wb, na;
@@ -354,6 +352,9 @@ public class ContactManifold extends NormalizableConstraint {
             lifetime = 0;
             appliedImpulse = 0f;
             appliedFrictionImpulse = 0f;
+            
+            fImpulse = new FrictionImpulseListener(this);
+            nImpulse = new NormalImpulseListener(this);
         }
         
         void update(ReadOnlyMatrix4f ta, ReadOnlyMatrix4f tb) {
@@ -367,13 +368,27 @@ public class ContactManifold extends NormalizableConstraint {
         static float dot(ReadOnlyVector4f v1, ReadOnlyVector3f v2) {
             return v1.getX() * v2.getX() + v1.getY() * v2.getY() + v1.getZ() * v2.getZ();
         }
-
+    }
+    
+    private static class NormalImpulseListener implements ImpulseListener {
+        final ManifoldPoint p;
+        
+        public NormalImpulseListener(ManifoldPoint p) { this.p = p; }
+        
         @Override
         public void onApplyImpulse(LinearConstraint lc) {
-            if (lc.getConstraintAxis().epsilonEquals(worldNormalInB, .0001f))
-                appliedImpulse = lc.getAppliedImpulse();
-            else
-                appliedFrictionImpulse = lc.getAppliedImpulse();
+            p.appliedImpulse = lc.getAppliedImpulse();
+        }
+    }
+    
+    private static class FrictionImpulseListener implements ImpulseListener {
+        final ManifoldPoint p;
+        
+        public FrictionImpulseListener(ManifoldPoint p) { this.p = p; }
+        
+        @Override
+        public void onApplyImpulse(LinearConstraint lc) {
+            p.appliedFrictionImpulse = lc.getAppliedImpulse();
         }
     }
     
@@ -382,6 +397,14 @@ public class ContactManifold extends NormalizableConstraint {
         protected Vector3f initialValue() { return new Vector3f(); };
     };
     private static final ThreadLocal<Vector3f> temp2 = new ThreadLocal<Vector3f>() {
+        @Override
+        protected Vector3f initialValue() { return new Vector3f(); };
+    };
+    private static final ThreadLocal<Vector3f> temp3 = new ThreadLocal<Vector3f>() {
+        @Override
+        protected Vector3f initialValue() { return new Vector3f(); };
+    };
+    private static final ThreadLocal<Vector3f> temp4 = new ThreadLocal<Vector3f>() {
         @Override
         protected Vector3f initialValue() { return new Vector3f(); };
     };

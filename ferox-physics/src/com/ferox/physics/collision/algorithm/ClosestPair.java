@@ -95,7 +95,7 @@ public class ClosestPair {
      * @return True if the two involved objects are intersecting
      */
     public boolean isIntersecting() {
-        return distance <= 0f;
+        return distance <= .00001f;
     }
     
     @Override

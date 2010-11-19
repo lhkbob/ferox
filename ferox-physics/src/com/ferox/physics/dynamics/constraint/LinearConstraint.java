@@ -1,5 +1,6 @@
 package com.ferox.physics.dynamics.constraint;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.dynamics.RigidBody;
@@ -9,21 +10,20 @@ public class LinearConstraint {
         public void onApplyImpulse(LinearConstraint lc);
     }
     
-    private final Vector3f relposACrossNormal;
-    private final Vector3f relposBCrossNormal;
+    float taX, taY, taZ, tbX, tbY, tbZ;
+    float nX, nY, nZ, laX, laY, laZ, lbX, lbY, lbZ;
+    float aaX, aaY, aaZ, abX, abY, abZ;
     
-    private final Vector3f constraintNormal;
+    float jacobianDiagInverse;
     
-    private final Vector3f angularComponentA;
-    private final Vector3f angularComponentB;
+    SolverBody bodyA;
+    SolverBody bodyB;
     
-    private float jacobianDiagInverse;
+    float rhs; // right-hand-side of differential equation being solved
+    float cfm; // constraint force mixing for soft constraints
+   
+    float appliedImpulse;
     
-    private RigidBody bodyA;
-    private RigidBody bodyB;
-    
-    private float rhs; // right-hand-side of differential equation being solved
-    private float cfm; // constraint force mixing for soft constraints
     private float lowerLimit;
     private float upperLimit;
     
@@ -31,29 +31,27 @@ public class LinearConstraint {
     private LinearConstraint dynamicLimitConstraint;
     private float dynamicLimitFactor;
     
-    private float appliedImpulse;
-    
     public LinearConstraint(RigidBody bodyA, RigidBody bodyB) {
         setRigidBodies(bodyA, bodyB);
-        
-        relposACrossNormal = new Vector3f();
-        relposBCrossNormal = new Vector3f();
-        constraintNormal = new Vector3f();
-        
-        angularComponentA = new Vector3f();
-        angularComponentB = new Vector3f();
     }
     
-    public ReadOnlyVector3f getTorqueAxisA() {
-        return relposACrossNormal;
+    public MutableVector3f getTorqueAxisA(MutableVector3f result) {
+        return getVector(taX, taY, taZ, result);
     }
     
-    public ReadOnlyVector3f getTorqueAxisB() {
-        return relposBCrossNormal;
+    public MutableVector3f getTorqueAxisB(MutableVector3f result) {
+        return getVector(tbX, tbY, tbZ, result);
     }
     
-    public ReadOnlyVector3f getConstraintAxis() {
-        return constraintNormal;
+    public MutableVector3f getConstraintAxis(MutableVector3f result) {
+        return getVector(nX, nY, nZ, result);
+    }
+    
+    private MutableVector3f getVector(float x, float y, float z, MutableVector3f result) {
+        if (result == null)
+            return new Vector3f(x, y, z);
+        else
+            return result.set(x, y, z);
     }
     
     public float getJacobianInverse() {
@@ -61,11 +59,11 @@ public class LinearConstraint {
     }
     
     public RigidBody getRigidBodyA() {
-        return bodyA;
+        return (bodyA == null ? null : bodyA.body);
     }
     
     public RigidBody getRigidBodyB() {
-        return bodyB;
+        return (bodyB == null ? null : bodyB.body);
     }
     
     public float getRightHandSide() {
@@ -130,22 +128,29 @@ public class LinearConstraint {
         dynamicLimitFactor = scale;
     }
     
-    public void setTorqueAxis(ReadOnlyVector3f torqueA, ReadOnlyVector3f torqueB) {
-        relposACrossNormal.set(torqueA);
-        if (bodyA != null)
-            bodyA.getInertiaTensorInverse().mul(torqueA, angularComponentA);
-        else
-            angularComponentA.set(0f, 0f, 0f);
+    public void setConstraintAxis(ReadOnlyVector3f normal, ReadOnlyVector3f torqueA, ReadOnlyVector3f torqueB) {
+        nX = normal.getX(); nY = normal.getY(); nZ = normal.getZ();
+        taX = torqueA.getX(); taY = torqueA.getY(); taZ = torqueA.getZ();
+        tbX = torqueB.getX(); tbY = torqueB.getY(); tbZ = torqueB.getZ();
+
+        Vector3f t = new Vector3f();
+        if (bodyA != null) {
+            laX = nX * bodyA.inverseMass;
+            laY = nY * bodyA.inverseMass;
+            laZ = nZ * bodyA.inverseMass;
+            
+            bodyA.body.getInertiaTensorInverse().mul(torqueA, t);
+            aaX = t.getX(); aaY = t.getY(); aaZ = t.getZ();
+        }
         
-        relposBCrossNormal.set(torqueB);
-        if (bodyB != null)
-            bodyB.getInertiaTensorInverse().mul(torqueB, angularComponentB);
-        else
-            angularComponentB.set(0f, 0f, 0f);
-    }
-    
-    public void setConstraintAxis(ReadOnlyVector3f normal) {
-        constraintNormal.set(normal);
+        if (bodyB != null) {
+            lbX = nX * bodyB.inverseMass;
+            lbY = nY * bodyB.inverseMass;
+            lbZ = nZ * bodyB.inverseMass;
+            
+            bodyB.body.getInertiaTensorInverse().mul(torqueB, t);
+            abX = t.getX(); abY = t.getY(); abZ = t.getZ();
+        }
     }
     
     public void setSolutionParameters(float rhs, float cfm) {
@@ -156,11 +161,15 @@ public class LinearConstraint {
     public void reset(RigidBody bodyA, RigidBody bodyB) {
         setRigidBodies(bodyA, bodyB);
         
-        relposACrossNormal.set(0f, 0f, 0f);
-        relposBCrossNormal.set(0f, 0f, 0f);
-        constraintNormal.set(0f, 0f, 0f);
-        angularComponentA.set(0f, 0f, 0f);
-        angularComponentB.set(0f, 0f, 0f);
+        nX = 0f; nY = 0f; nZ = 0f; 
+        laX = 0f; laY = 0f; laZ = 0f; 
+        lbX = 0f; lbY = 0f; lbZ = 0f;
+        
+        taX = 0f; taY = 0f; taZ = 0f; 
+        tbX = 0f; tbY = 0f; tbZ = 0f;
+        
+        aaX = 0f; aaY = 0f; aaZ = 0f; 
+        abX = 0f; abY = 0f; abZ = 0f;
         
         jacobianDiagInverse = 0f;
         rhs = 0f;
@@ -182,11 +191,25 @@ public class LinearConstraint {
     public void addDeltaImpulse(float delta) {
         appliedImpulse += delta;
         
-        Vector3f t = temp.get();
-        if (bodyA != null)
-            bodyA.addDeltaImpulse(constraintNormal.scale(bodyA.getInverseMass(), t), angularComponentA, delta);
-        if (bodyB != null)
-            bodyB.addDeltaImpulse(constraintNormal.scale(bodyB.getInverseMass(), t), angularComponentB, -delta);
+        if (bodyA != null) {
+            bodyA.dlX += delta * laX;
+            bodyA.dlY += delta * laY;
+            bodyA.dlZ += delta * laZ;
+            
+            bodyA.daX += delta * aaX;
+            bodyA.daY += delta * aaY;
+            bodyA.daZ += delta * aaZ;
+        }
+        
+        if (bodyB != null) {
+            bodyB.dlX -= delta * lbX;
+            bodyB.dlY -= delta * lbY;
+            bodyB.dlZ -= delta * lbZ;
+            
+            bodyB.daX -= delta * abX;
+            bodyB.daY -= delta * abY;
+            bodyB.daZ -= delta * abZ;
+        }
         
         if (listener != null)
             listener.onApplyImpulse(this);
@@ -195,18 +218,13 @@ public class LinearConstraint {
     private void setRigidBodies(RigidBody a, RigidBody b) {
         if (a == null && b == null)
             throw new NullPointerException("Both RigidBodies cannot be null");
-        bodyA = a;
-        bodyB = b;
+        bodyA = (a == null ? null : a.getSolverBody());
+        bodyB = (b == null ? null : b.getSolverBody());
     }
     
     @Override
     public String toString() {
-        return "Constraint: " + constraintNormal + ", " + angularComponentA + ", " + angularComponentB + ", " + rhs 
-               + ", " + cfm + ", " + getLowerLimit() + ", " + getUpperLimit() + ", " + appliedImpulse;
+        return String.format("Constraint: [%.6f, %.6f, %.6f], [%.6f, %.6f, %.6f], [%.6f, %.6f, %.6f], %.6f, %.6f, %.6f, %.6f, %.6f",
+                             nX, nY, nZ, aaX, aaY, aaZ, abX, abY, abZ, rhs, cfm, getLowerLimit(), getUpperLimit(), appliedImpulse);
     }
-    
-    private static final ThreadLocal<Vector3f> temp = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
 }

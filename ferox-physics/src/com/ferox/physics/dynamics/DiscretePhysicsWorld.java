@@ -11,6 +11,7 @@ import com.ferox.physics.collision.CollisionCallback;
 import com.ferox.physics.collision.CollisionHandler;
 import com.ferox.physics.collision.CollisionManager;
 import com.ferox.physics.collision.algorithm.ClosestPair;
+import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 import com.ferox.physics.dynamics.constraint.Constraint;
 import com.ferox.physics.dynamics.constraint.ConstraintSolver;
 import com.ferox.physics.dynamics.constraint.ContactManifoldCache;
@@ -82,16 +83,14 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
         
         collisionManager.processCollisions(new ContactManifoldCallback());
         contactCache.update();
-
         constraintSolver.solve(new ChainedCollection<Constraint>(constraints, contactCache.getContacts()), dt);
         
+        // recompute next frame position after constraint solving
+        // and store it in the world transform
         Transform t = new Transform();
         for (int i = 0; i < ct; i++) {
             b = rigidBodies.get(i);
-            
-            // recompute next frame position after constraint solving
-            // and store it in the world transform
-            b.applyDeltaImpulse();
+            b.updateFromSolverBody();
             b.predictMotion(integrator, dt, t);
             b.setWorldTransform(t);
         }
@@ -117,6 +116,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
         
         if (bodies.remove(c)) {
             collisionManager.remove(c);
+            contactCache.remove(c);
             if (c instanceof RigidBody)
                 rigidBodies.remove(c);
         }
@@ -182,13 +182,18 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
     
     private class ContactManifoldCallback implements CollisionCallback {
         @Override
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         public void process(Collidable objA, Collidable objB, CollisionHandler handler) {
             if (!(objA instanceof RigidBody) && !(objB instanceof RigidBody))
                 return; // ignore collisions between only static objects
             
-            ClosestPair pair = handler.getClosestPair(objA, objB);
-            if (pair != null && pair.isIntersecting())
-                contactCache.addContact(objA, objB, pair);
+            CollisionAlgorithm algo = handler.getAlgorithm(objA.getShape().getClass(), objB.getShape().getClass());
+            if (algo != null) {
+                ClosestPair pair = algo.getClosestPair(objA.getShape(), objA.getWorldTransform(), objB.getShape(), objB.getWorldTransform());
+                if (pair != null && pair.isIntersecting())
+                    contactCache.addContact(objA, objB, pair);
+            }
+            
         }
     }
 }

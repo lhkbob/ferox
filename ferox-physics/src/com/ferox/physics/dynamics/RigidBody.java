@@ -9,6 +9,7 @@ import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.shape.Shape;
+import com.ferox.physics.dynamics.constraint.SolverBody;
 
 public class RigidBody extends Collidable {
     private float inverseMass; // 1 / mass
@@ -20,47 +21,40 @@ public class RigidBody extends Collidable {
     private final Vector3f angularVelocity;
     private final Vector3f totalForce;
     private final Vector3f totalTorque;
-
-    private final Vector3f deltaLinearVelocity;
-    private final Vector3f deltaAngularVelocity;
     
+    private final SolverBody solverBody;
+
     public RigidBody(ReadOnlyMatrix4f t, Shape shape, float mass) {
         super(t, shape);
 
         velocity = new Vector3f();
         angularVelocity = new Vector3f();
         inertiaTensorWorldInverse = new Matrix3f();
-        deltaLinearVelocity = new Vector3f();
-        deltaAngularVelocity = new Vector3f();
 
         totalForce = new Vector3f();
         totalTorque = new Vector3f();
         
+        solverBody = new SolverBody();
+        
         setMass(mass);
     }
     
-    public ReadOnlyVector3f getDeltaLinearVelocity() {
-        return deltaLinearVelocity;
+    public SolverBody getSolverBody() {
+        solverBody.inverseMass = inverseMass;
+        solverBody.body = this;
+        return solverBody;
     }
     
-    public ReadOnlyVector3f getDeltaAngularVelocity() {
-        return deltaAngularVelocity;
-    }
-
-    // FIXME: do we want these to be publically available?
-    public void addDeltaImpulse(ReadOnlyVector3f linear, ReadOnlyVector3f angular, float magnitude) {
-        // FIXME: don't do anything if kinematic
-        linear.scaleAdd(magnitude, deltaLinearVelocity, deltaLinearVelocity);
-        angular.scaleAdd(magnitude, deltaAngularVelocity, deltaAngularVelocity);
-    }
-    
-    public void applyDeltaImpulse() {
-        // FIXME: dont' do anything for kinematic
-        velocity.add(deltaLinearVelocity);
-        angularVelocity.add(deltaAngularVelocity);
+    public void updateFromSolverBody() {
+        velocity.set(velocity.getX() + solverBody.dlX,
+                     velocity.getY() + solverBody.dlY,
+                     velocity.getZ() + solverBody.dlZ);
+        angularVelocity.set(angularVelocity.getX() + solverBody.daX,
+                            angularVelocity.getY() + solverBody.daY,
+                            angularVelocity.getZ() + solverBody.daZ);
         
-        deltaLinearVelocity.set(0f, 0f, 0f);
-        deltaAngularVelocity.set(0f, 0f, 0f);
+        solverBody.dlX = 0f; solverBody.dlY = 0f; solverBody.dlZ = 0f;
+        solverBody.daX = 0f; solverBody.daY = 0f; solverBody.daZ = 0f;
     }
     
     @Override

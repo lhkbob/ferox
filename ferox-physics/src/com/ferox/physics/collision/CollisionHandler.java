@@ -1,12 +1,10 @@
 package com.ferox.physics.collision;
 
-import com.ferox.physics.collision.algorithm.ClosestPair;
 import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
+import com.ferox.physics.collision.shape.Shape;
 
 public interface CollisionHandler {
-    public ClosestPair getClosestPair(Collidable objA, Collidable objB);
-    
-    public CollisionAlgorithm<?, ?> getAlgorithm(Collidable objA, Collidable objB);
+    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> shapeA, Class<B> shapeB);
     
     public void register(CollisionAlgorithm<?, ?> algorithm);
     

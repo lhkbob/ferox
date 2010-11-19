@@ -36,11 +36,14 @@ public class ContactManifoldCache {
         return manifolds.values();
     }
     
-    public void addContact(Collidable objA, Collidable objB, ClosestPair pair) {
+    public ContactManifold getContactManifold(Collidable objA, Collidable objB) {
         query.a = objA;
         query.b = objB;
-        
-        ContactManifold oldManifold = manifolds.get(query);
+        return manifolds.get(query);
+    }
+    
+    public void addContact(Collidable objA, Collidable objB, ClosestPair pair) {
+        ContactManifold oldManifold = getContactManifold(objA, objB);
         if (oldManifold != null) {
             // object are already in contact, just update existing manifold
             oldManifold.addContact(pair, objA == oldManifold.getCollidableB());
@@ -55,6 +58,15 @@ public class ContactManifoldCache {
         contact.b = objB;
         
         manifolds.put(contact, newManifold);
+    }
+    
+    public void remove(Collidable c) {
+        Iterator<Entry<CollidablePair, ContactManifold>> it = manifolds.entrySet().iterator();
+        while(it.hasNext()) {
+            CollidablePair cp = it.next().getKey();
+            if (cp.a == c || cp.b == c)
+                it.remove();
+        }
     }
     
     public void update() {

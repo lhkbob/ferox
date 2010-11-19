@@ -11,6 +11,7 @@ import com.ferox.input.logic.InputState;
 import com.ferox.input.logic.KeyTypedCondition;
 import com.ferox.input.logic.Trigger;
 import com.ferox.math.Color4f;
+import com.ferox.math.Transform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Octree;
@@ -18,7 +19,6 @@ import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.SpatialHierarchyCollisionManager;
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.dynamics.DiscretePhysicsWorld;
 import com.ferox.physics.dynamics.PhysicsWorldConfiguration;
 import com.ferox.renderer.FrameStatistics;
@@ -62,19 +62,21 @@ import com.ferox.util.texture.loader.TextureLoader;
 public class PhysicsTest {
     private static final CompileType COMPILE_TYPE = CompileType.RESIDENT_STATIC;
     private static final int BOUNDS = 50;
-    
+   
     private static final int NUM_X = 10;
-    private static final int NUM_Y = 40;
+    private static final int NUM_Y = 10;
     private static final int NUM_Z = 10;
-    private static final float SCALE_X = 2.1f;
-    private static final float SCALE_Y = 2.1f;
-    private static final float SCALE_Z = 2.1f;
+    private static final float SCALE_X = 2.0f;
+    private static final float SCALE_Y = 2.0f;
+    private static final float SCALE_Z = 2.0f;
+    
+    private static final float MARGIN = .05f;
 
     private static final float PERCENT = 1f;
     private static final float RANDOM = 0f;
     
     private static final float START_POS_X = -5;
-    private static final float START_POS_Y = -5;
+    private static final float START_POS_Y = 1 + 2 * MARGIN;
     private static final float START_POS_Z = -3;
     
     private static final CharacterSet DEFAULT_CHARSET = new CharacterSet(Font.decode("FranklinGothic-Medium 24"), true, true);
@@ -85,11 +87,11 @@ public class PhysicsTest {
     }
     
     public static void main(String[] args) throws Exception {
-        final Framework framework = new FixedFunctionJoglFramework(true);
+        final Framework framework = new FixedFunctionJoglFramework(false);
         System.out.println("OpenGL: " + framework.getCapabilities().getVendor() + " " + framework.getCapabilities().getVersion());
         ThreadQueueManager organizer = new ThreadQueueManager(framework);
         
-        EntitySystem system = new EntitySystem();
+        final EntitySystem system = new EntitySystem();
         SpatialHierarchy<Entity> sh = new Octree<Entity>(Strategy.STATIC, BOUNDS, 3);
         
         PhysicsWorldConfiguration config = new PhysicsWorldConfiguration().setCollisionManager(new SpatialHierarchyCollisionManager(new Octree<Collidable>(Strategy.STATIC, BOUNDS, 3)));
@@ -114,7 +116,7 @@ public class PhysicsTest {
         buildScene(system);
         
         // scene element controlling the viewnode
-        Entity camera = system.iterator(Component.getComponentId(ViewNode.class)).next();
+        final Entity camera = system.iterator(Component.getComponentId(ViewNode.class)).next();
         FreeLookCameraInputManager ioManager = new FreeLookCameraInputManager(surface, camera);
         ioManager.addTrigger(new Trigger() {
             @Override
@@ -122,6 +124,25 @@ public class PhysicsTest {
                 framework.destroy();
                 System.exit(0);
             }}, new KeyTypedCondition(KeyCode.ESCAPE));
+        ioManager.addTrigger(new Trigger() {
+            @Override
+            public void onTrigger(InputState prev, InputState next) {
+                SceneElement se = new SceneElement();
+                Transform camT = camera.get(Component.getComponentId(SceneElement.class)).getTransform();
+                se.getTransform().set(camT);
+                camT.getRow(2).getAsVector3f().scaleAdd(30f, se.getTransform().getTranslation(), se.getTransform().getTranslation());
+                
+                Renderable toRender = new Renderable();
+                ShadowCaster sc = new ShadowCaster();
+                ShadowReceiver sr = new ShadowReceiver();
+                
+                BlinnPhongLightingModel material = new BlinnPhongLightingModel(new Color4f(.5f, .5f, .5f, .4f), new Color4f(.2f, 0f, .1f));
+
+                
+                Entity e = new Entity(se, toRender, sc, sr, material, new Shape(new Box(4f + MARGIN)));
+                e.add(new PhysicsBody(new com.ferox.physics.collision.shape.Box(4f, 4f, 4f), 10f));
+                system.add(e);
+            }}, new KeyTypedCondition(KeyCode.B));
         organizer.setSurfaceGroup(surface, "ffp_sct");
         
         try {
@@ -130,12 +151,13 @@ public class PhysicsTest {
             long start = System.nanoTime();
             long renderTime = 0;
             int framesCompleted = 0;
-            
+            int i = 0;
             int numFramesPerUpdate = 4;
             while(true) {
                 if (surface.isDestroyed())
                     break;
                 
+//                System.out.println("step " + i++);
                 ioManager.process();
                 
                 c1.process();
@@ -153,6 +175,7 @@ public class PhysicsTest {
                 FrameStatistics frameStats = framework.renderAndWait();
                 renderTime += frameStats.getRenderTime();
                 framesCompleted++;
+//                Thread.sleep(100);
                 
                 if (frameStats.getRenderTime() / 1e6f > 100)
                     System.out.println("Exceptionally slow frame: " + (frameStats.getRenderTime() / 1e6f));
@@ -164,11 +187,10 @@ public class PhysicsTest {
                     int timeInRender = (int) (renderTime / (1e6f * numFramesPerUpdate));
                     int timeInProcess = (int) ((now - start) / (1e6f * numFramesPerUpdate)) - timeInRender;
                     
-                    stats.setText(String.format("FPS: %.2f (%d + %d)\nPolys: %d\nMem: %.2f\nPhysics: %.2f  #GJK: %d #EPA: %d", 
+                    stats.setText(String.format("FPS: %.2f (%d + %d)\nPolys: %d\nMem: %.2f\nPhysics: %.2f", 
                                                 fps, timeInProcess, timeInRender, frameStats.getPolygonCount(),
                                                 (r.totalMemory() - r.freeMemory()) / (1024f * 1024f),
-                                                c3.getAverageNanos() / 1e6f, GjkEpaCollisionAlgorithm.NUM_GJK_CHECKS,
-                                                GjkEpaCollisionAlgorithm.NUM_EPA_CHECKS));
+                                                c3.getAverageNanos() / 1e6f));
                     
                     // reset counters
                     start = now;
@@ -203,9 +225,9 @@ public class PhysicsTest {
     
     private static void buildScene(EntitySystem scene) throws Exception {
         // shapes
-        PrimitiveGeometry box = new Box(2.1f, COMPILE_TYPE);
+        PrimitiveGeometry box = new Box(2 + 2 * MARGIN, COMPILE_TYPE);
         AxisAlignedBox boxBounds = new AxisAlignedBox(box.getVertices().getData());
-        PrimitiveGeometry sphere = new Sphere(1.05f, 16, COMPILE_TYPE);
+        PrimitiveGeometry sphere = new Sphere(1 + MARGIN, 16, COMPILE_TYPE);
         AxisAlignedBox sphereBounds = new AxisAlignedBox(sphere.getVertices().getData());
         
         Shape boxElem = new Shape(box);
@@ -213,6 +235,8 @@ public class PhysicsTest {
         
         com.ferox.physics.collision.shape.Shape boxShape = new com.ferox.physics.collision.shape.Box(2f, 2f, 2f);
         com.ferox.physics.collision.shape.Shape sphereShape = new com.ferox.physics.collision.shape.Sphere(1f);
+        boxShape.setMargin(MARGIN);
+        sphereShape.setMargin(MARGIN);
         
         Renderable toRender = new Renderable();
         ShadowCaster sc = new ShadowCaster();
@@ -222,7 +246,7 @@ public class PhysicsTest {
         BlinnPhongLightingModel material = new BlinnPhongLightingModel(new Color4f(1f, 1f, 1f, .4f), new Color4f(.2f, 0f, .1f));
         
         float startX = START_POS_X - NUM_X / 2;
-        float startY = START_POS_Y + 20f;
+        float startY = START_POS_Y;
         float startZ = START_POS_Z - NUM_Z / 2;
         
         float randXLim = RANDOM * (SCALE_X - 2f) / 2f;
@@ -252,12 +276,12 @@ public class PhysicsTest {
                     float ry = (float) (Math.random() * randYLim - randYLim / 2f);
                     float rz = (float) (Math.random() * randZLim - randZLim / 2f);
 
-                    element.setTranslation(new Vector3f(SCALE_X * x + rx + startX, 
-                                                        SCALE_Y * y + ry + startY, 
-                                                        SCALE_Z * z + rz + startZ));
+                    element.setTranslation(new Vector3f((SCALE_X + 2 * MARGIN) * x + rx + startX, 
+                                                        (SCALE_Y + 2 * MARGIN) * y + ry + startY, 
+                                                        (SCALE_Z + 2 * MARGIN) * z + rz + startZ));
                     element.setLocalBounds(bounds);
                     Entity e = new Entity(element, toRender, material, sc, sr, geomShape,
-                                          new PhysicsBody(physShape, 10f));
+                                          new PhysicsBody(physShape, 1f));
                     scene.add(e);
                 }
             }

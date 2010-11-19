@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.ferox.physics.collision.algorithm.ClosestPair;
 import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
+import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
 import com.ferox.physics.collision.shape.Shape;
 
@@ -23,73 +23,58 @@ public class DefaultCollisionHandler implements CollisionHandler {
         algorithms = new ArrayList<CollisionAlgorithm<?,?>>();
         lock = new ReentrantReadWriteLock();
         
-        algorithmCache = new ConcurrentHashMap<DefaultCollisionHandler.TypePair, CollisionAlgorithm<?,?>>();
+        algorithmCache = new ConcurrentHashMap<TypePair, CollisionAlgorithm<?,?>>();
         lookup = new ThreadLocal<TypePair>();
         
         register(new GjkEpaCollisionAlgorithm());
+        register(new SphereSphereCollisionAlgorithm());
     }
-    
+
     @Override
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public ClosestPair getClosestPair(Collidable objA, Collidable objB) {
-        CollisionAlgorithm algo = getAlgorithm(objA, objB);
-        if (algo == null)
-            return null; // no way to check for collisions
-        else
-            return algo.getClosestPair(objA.getShape(), objA.getWorldTransform(), 
-                                       objB.getShape(), objB.getWorldTransform());
-    }
-    
-    @Override
-    public CollisionAlgorithm<?, ?> getAlgorithm(Collidable objA, Collidable objB) {
-        if (objA == null || objB == null)
-            throw new NullPointerException("Collidables cannot be null");
+    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> shapeA, Class<B> shapeB) {
+        if (shapeA == null || shapeB == null)
+            throw new NullPointerException("Shape types cannot be null");
         
         lock.readLock().lock();
         try {
-            TypePair key = lookup.get();
-            if (key == null) {
-                key = new TypePair();
-                lookup.set(key);
-            }
-            
-            key.shapeA = objA.getShape().getClass();
-            key.shapeB = objB.getShape().getClass();
-            
-            CollisionAlgorithm<?, ?> algo = algorithmCache.get(key);
-            if (algo == null) {
-                // update the algorithm cache for this pair
-                algo = getAlgorithm(key.shapeA, key.shapeB);
-                System.out.println("Current algorithms: " + algorithmCache);
-            }
-            
-            if (algo == null) {
-                // if algorithm is still null, we don't support it right now
+            CollisionAlgorithm<A, B> algo = getAlgorithmFactory(shapeA, shapeB);
+            if (algo == null)
                 return null;
-            } else {
-                // else we've found it some how so just return it
+            else
                 return algo;
-            }
         } finally {
             lock.readLock().unlock();
         }
     }
     
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private CollisionAlgorithm<?, ?> getAlgorithm(Class<? extends Shape> aType, Class<? extends Shape> bType) {
-        // look for a swapped type
-        TypePair key = new TypePair();
-        key.shapeA = bType;
-        key.shapeB = aType;
-
-        CollisionAlgorithm algo = algorithmCache.get(key);
-        if (algo != null) {
+    @SuppressWarnings("unchecked")
+    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithmFactory(Class<A> aType, Class<B> bType) {
+        // look for type with current order
+        TypePair key = lookup.get();
+        if (key == null) {
+            key = new TypePair(aType, bType);
+            lookup.set(key);
+        }
+        
+        key.shapeA = aType;
+        key.shapeB = bType;
+        
+        CollisionAlgorithm<A, B> algo = (CollisionAlgorithm<A, B>) algorithmCache.get(key);
+        if (algo != null)
+            return algo;
+        
+        // didn't find original type, look for a swapped type
+        key = new TypePair(bType, aType);
+        CollisionAlgorithm<B, A> swapped = (CollisionAlgorithm<B, A>) algorithmCache.get(key);
+        
+        // re-swap key parameters
+        key.shapeA = aType;
+        key.shapeB = bType;
+        
+        if (swapped != null) {
             // return a wrapped instance of the algorithm that swaps everything
             // and store it in the cache
-            key.shapeA = aType;
-            key.shapeB = bType;
-            
-            algo = new SwappingCollisionAlgorithm(algo);
+            algo = new SwappingCollisionAlgorithm<A, B>(swapped);
             algorithmCache.put(key, algo);
             return algo;
         }
@@ -97,27 +82,19 @@ public class DefaultCollisionHandler implements CollisionHandler {
         // find best match with current ordering
         algo = getBestMatch(aType, bType);
         if (algo != null) {
-            key.shapeA = aType;
-            key.shapeB = bType;
-            
             algorithmCache.put(key, algo);
             return algo;
         }
         
         // find best match with swapped ordering
-        algo = getBestMatch(bType, aType);
-        if (algo != null) {
+        swapped = getBestMatch(bType, aType);
+        if (swapped != null) {
             // store original algorithm so we don't get swaps of swaps later on
-            TypePair orig = new TypePair();
-            orig.shapeA = bType;
-            orig.shapeB = aType;
+            TypePair orig = new TypePair(bType, aType);
             algorithmCache.put(orig, algo);
             
             // store swapped algorithm
-            algo = new SwappingCollisionAlgorithm(algo);
-            key.shapeA = aType;
-            key.shapeB = bType;
-            
+            algo = new SwappingCollisionAlgorithm<A, B>(swapped);
             algorithmCache.put(key, algo);
             return algo;
         }
@@ -126,7 +103,8 @@ public class DefaultCollisionHandler implements CollisionHandler {
         return null;
     }
     
-    private CollisionAlgorithm<?, ?> getBestMatch(Class<? extends Shape> aType, Class<? extends Shape> bType) {
+    @SuppressWarnings("unchecked")
+    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getBestMatch(Class<A> aType, Class<B> bType) {
         int bestDepth = 0;
         CollisionAlgorithm<?, ?> bestAlgo = null;
         
@@ -140,7 +118,7 @@ public class DefaultCollisionHandler implements CollisionHandler {
                 int depth = depthA * depthA + depthB * depthB; // this selects for more balanced depths
                 if (depth == 0) {
                     // best match possible, return now
-                    return algo;
+                    return (CollisionAlgorithm<A, B>) algo;
                 }
                 
                 if (bestAlgo == null || depth < bestDepth) {
@@ -151,7 +129,7 @@ public class DefaultCollisionHandler implements CollisionHandler {
             }
         }
         
-        return bestAlgo;
+        return (CollisionAlgorithm<A, B>) bestAlgo;
     }
     
     private int depth(Class<?> child, Class<?> parent) {
@@ -214,6 +192,11 @@ public class DefaultCollisionHandler implements CollisionHandler {
     private static class TypePair {
         Class<? extends Shape> shapeA;
         Class<? extends Shape> shapeB;
+        
+        public TypePair(Class<? extends Shape> shapeA, Class<? extends Shape> shapeB) {
+            this.shapeA = shapeA;
+            this.shapeB = shapeB;
+        }
         
         @Override
         public int hashCode() {

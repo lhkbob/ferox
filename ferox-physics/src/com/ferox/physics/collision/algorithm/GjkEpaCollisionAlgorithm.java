@@ -58,7 +58,6 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
             // must re-run the GJK without scaling so that the simplex is in the correct space
             support.setNumAppliedMargins(i);
 
-            // FIXME: use a better guess based on the last run
             if (gjk.evaluate(guess) == GJK.Status.VALID) {
                 p = support.getClosestPair(gjk.getSimplex(), null);
                 if (p != null)

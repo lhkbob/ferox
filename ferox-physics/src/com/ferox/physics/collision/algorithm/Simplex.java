@@ -129,6 +129,10 @@ public class Simplex {
         maskCache = new int[1];
         weightCache = new float[4];
     }
+    
+    public void clear() {
+        rank = 0;
+    }
 
     /**
      * Return the vertex at the given index within this Simplex.
