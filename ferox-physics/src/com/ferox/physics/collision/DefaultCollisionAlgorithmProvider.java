@@ -6,20 +6,33 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
-import com.ferox.physics.collision.shape.Shape;
 
-public class DefaultCollisionHandler implements CollisionHandler {
+/**
+ * DefaultCollisionAlgorithmProvider is the default implementation of
+ * CollisionAlgorithmProvider. It is thread safe and supports efficient lookups
+ * of algorithms based on shape type pairs. It caches the algorithm selection so
+ * that class hierarchy matching is not required after an algorithm has been
+ * found for a pair type. Additionally, it uses the
+ * {@link SwappingCollisionAlgorithm} to support extra type pairs.
+ * 
+ * @author Michael Ludwig
+ */
+public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProvider {
     private final Map<TypePair, CollisionAlgorithm<?, ?>> algorithmCache;
     private final ThreadLocal<TypePair> lookup;
     
     private final List<CollisionAlgorithm<?, ?>> algorithms;
     private final ReentrantReadWriteLock lock;
-    
-    public DefaultCollisionHandler() {
+
+    /**
+     * Create a new DefaultCollisionAlgorithmProvider. It initially has a
+     * {@link GjkEpaCollisionAlgorithm} and a
+     * {@link SphereSphereCollisionAlgorithm} registered.
+     */
+    public DefaultCollisionAlgorithmProvider() {
         algorithms = new ArrayList<CollisionAlgorithm<?,?>>();
         lock = new ReentrantReadWriteLock();
         
@@ -37,18 +50,14 @@ public class DefaultCollisionHandler implements CollisionHandler {
         
         lock.readLock().lock();
         try {
-            CollisionAlgorithm<A, B> algo = getAlgorithmFactory(shapeA, shapeB);
-            if (algo == null)
-                return null;
-            else
-                return algo;
+            return getAlgorithmImpl(shapeA, shapeB);
         } finally {
             lock.readLock().unlock();
         }
     }
     
     @SuppressWarnings("unchecked")
-    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithmFactory(Class<A> aType, Class<B> bType) {
+    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithmImpl(Class<A> aType, Class<B> bType) {
         // look for type with current order
         TypePair key = lookup.get();
         if (key == null) {

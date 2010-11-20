@@ -9,21 +9,53 @@ import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
 
+/**
+ * SpatialHierarchyCollisionManager is a CollisionManager implementation
+ * that relies on the {@link SpatialHierarchy} implementations to determine
+ * the set of potentially intersecting objects.
+ * @author Michael Ludwig
+ *
+ */
 public class SpatialHierarchyCollisionManager implements CollisionManager {
     private final SpatialHierarchy<Collidable> hierarchy;
     private final Map<Collidable, Key> hierarchyKeys;
     
-    private volatile CollisionHandler handler;
-    
+    private volatile CollisionAlgorithmProvider handler;
+
+    /**
+     * Create a new SpatialHierarchyCollisionManager that uses a static
+     * {@link Octree} with the default initial tree depth. It initially uses a
+     * DefaultCollisionAlgorithmProvider.
+     */
     public SpatialHierarchyCollisionManager() {
         this(new Octree<Collidable>(Strategy.STATIC));
     }
-    
+
+    /**
+     * Create a new SpatialHierarchyCollisionManager that uses the provided
+     * SpatialHierarchy. It initially uses a DefaultCollisionAlgorithmProvider.
+     * The manager assumes ownership over the hierarchy, and the hierarchy
+     * should not be used by the caller anymore (it should also be empty when
+     * passed to this constructor).
+     * 
+     * @param hierarchy The SpatialHierarchy instance to use
+     * @throws NullPointerException if hierarchy is null
+     */
     public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy) {
-        this(hierarchy, new DefaultCollisionHandler());
+        this(hierarchy, new DefaultCollisionAlgorithmProvider());
     }
-    
-    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy, CollisionHandler handler) {
+
+    /**
+     * Create a new SpatialHierarchyCollisionManager with the provided
+     * SpatialHierarchy and CollisionAlgorithmProvider. The manager assumes
+     * ownership over the hierarchy, and the hierarchy should not be used by the
+     * caller anymore (it should also be empty when passed to this constructor).
+     * 
+     * @param hierarchy The SpatialHierarchy instance to use
+     * @param handler The CollisionAlgorithProvider to use
+     * @throws NullPointerException if hierarchy or handler are null
+     */
+    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy, CollisionAlgorithmProvider handler) {
         if (hierarchy == null)
             throw new NullPointerException("SpatialHierarchy cannot be null");
         this.hierarchy = hierarchy;
@@ -33,14 +65,14 @@ public class SpatialHierarchyCollisionManager implements CollisionManager {
     }
     
     @Override
-    public CollisionHandler getCollisionHandler() {
+    public CollisionAlgorithmProvider getCollisionHandler() {
         return handler;
     }
 
     @Override
-    public void setCollisionHandler(CollisionHandler handler) {
+    public void setCollisionHandler(CollisionAlgorithmProvider handler) {
         if (handler == null)
-            throw new NullPointerException("CollisionHandler cannot be null");
+            throw new NullPointerException("CollisionAlgorithmProvider cannot be null");
         this.handler = handler;
     }
     

@@ -1,6 +1,7 @@
 package com.ferox.physics.collision.algorithm;
 
 import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.physics.collision.CollisionAlgorithm;
 
 /**
  * ClosestPair is a data-storage class that contains the closest pair of points

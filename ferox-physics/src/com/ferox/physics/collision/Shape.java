@@ -1,8 +1,7 @@
-package com.ferox.physics.collision.shape;
+package com.ferox.physics.collision;
 
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 
 /**
  * <p>
@@ -23,7 +22,10 @@ public interface Shape {
     /**
      * Return the local-space bounds approximation of this Shape. The returned
      * instance should be considered read-only and can be modified by the Shape
-     * instance at any time
+     * instance at any time. The computed bounds should take into account the
+     * configured margin, plus an additional unspecified epsilon so that shapes
+     * with touching bounds are correctly detected in the event of minor
+     * floating point errors.
      * 
      * @return The Shape's local bounds
      */

@@ -1,8 +1,7 @@
-package com.ferox.physics.collision.algorithm;
+package com.ferox.physics.collision;
 
 import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.shape.Shape;
+import com.ferox.physics.collision.algorithm.ClosestPair;
 
 /**
  * <p>

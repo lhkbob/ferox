@@ -3,6 +3,7 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.Vector3f;
+import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.Sphere;
 
 /**
@@ -22,6 +23,7 @@ public class SphereSphereCollisionAlgorithm implements CollisionAlgorithm<Sphere
         float rb = shapeB.getRadius() + shapeB.getMargin();
         float dist = ca.distance(cb) - ra - rb;
         
+        // FIXME: doesn't work if spheres are centered on each other
         MutableVector3f normal = cb.sub(ca).normalize();
         normal.scaleAdd(ra, ca, ca);
 

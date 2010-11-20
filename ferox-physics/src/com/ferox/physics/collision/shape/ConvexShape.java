@@ -4,6 +4,7 @@ import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.physics.collision.Shape;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
 /**

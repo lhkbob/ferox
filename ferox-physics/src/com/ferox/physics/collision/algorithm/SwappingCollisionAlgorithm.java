@@ -1,7 +1,8 @@
 package com.ferox.physics.collision.algorithm;
 
 import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.physics.collision.shape.Shape;
+import com.ferox.physics.collision.CollisionAlgorithm;
+import com.ferox.physics.collision.Shape;
 
 /**
  * SwappingCollisionAlgorithm is a utility to swap the shape types that a true

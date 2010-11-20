@@ -3,6 +3,7 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 
 /**
