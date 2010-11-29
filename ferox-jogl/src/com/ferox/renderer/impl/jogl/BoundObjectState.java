@@ -24,6 +24,8 @@ public class BoundObjectState {
     
     private int fbo;
 
+    private int glslProgram;
+    
     /**
      * Create a new BoundObjectState that is configured to use the given number
      * of textures.
@@ -43,6 +45,15 @@ public class BoundObjectState {
         elementVbo = 0;
         
         fbo = 0;
+        
+        glslProgram = 0;
+    }
+    
+    /**
+     * @return The id of the GLSL program object currently in use
+     */
+    public int getGlslProgram() {
+        return glslProgram;
     }
     
     /**
@@ -87,6 +98,20 @@ public class BoundObjectState {
      */
     public int getTextureTarget(int tex) {
         return boundTargets[tex];
+    }
+
+    /**
+     * Bind the given glsl program so that it will be in use for the next
+     * rendering call.
+     * 
+     * @param gl The GL to use
+     * @param program The program id to bind
+     */
+    public void bindGlslProgram(GL2GL3 gl, int program) {
+        if (program != glslProgram) {
+            glslProgram = program;
+            gl.glUseProgram(program);
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
 import javax.swing.SwingUtilities;
 
 import com.ferox.math.Color4f;
@@ -23,6 +24,7 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.resource.GlslShader.AttributeType;
+import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.PolygonType;
 import com.ferox.resource.Texture;
@@ -131,6 +133,22 @@ public class Utils {
         }
 
         return null;
+    }
+    
+    /**
+     * Return the GL shader type enum for the given type.
+     */
+    public static int getGLShaderType(ShaderType type) {
+        switch(type) {
+        case FRAGMENT:
+            return GL2GL3.GL_FRAGMENT_SHADER;
+        case GEOMETRY:
+            return GL2GL3.GL_GEOMETRY_SHADER;
+        case VERTEX:
+            return GL2GL3.GL_VERTEX_SHADER;
+        default:
+            return -1;
+        }
     }
 
     /** EffectType can't be null. */

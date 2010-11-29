@@ -97,11 +97,15 @@ public class JoglRenderCapabilities extends RenderCapabilities {
 
         vendor = gl.glGetString(GL2GL3.GL_VENDOR) + "-" + gl.glGetString(GL2GL3.GL_RENDERER);
         version = formatVersion(gl.glGetString(GL2GL3.GL_VERSION));
-        if (version >= 2f & !isSet(FORCE_NO_GLSL))
-            glslVersion = formatVersion(gl.glGetString(GL2GL3.GL_SHADING_LANGUAGE_VERSION));
+        
+        if (version >= 2f & !isSet(FORCE_NO_GLSL)) {
+            float glslVersionNum = formatVersion(gl.glGetString(GL2GL3.GL_SHADING_LANGUAGE_VERSION));
+            // FIXME: turn glslVersionNum into a Version enum value
+        } else
+            glslVersion = null;
 
         hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
-        hasGlslRenderer = glslVersion >= 1f;
+        hasGlslRenderer = glslVersion != null;
         pbuffersSupported = !isSet(FORCE_NO_PBUFFER) && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null);
         
         fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || gl.isExtensionAvailable("GL_EXT_framebuffer_object"));

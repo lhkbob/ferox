@@ -403,11 +403,14 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     
     @Override
     public void reset() {
-        super.reset();
         GL2 gl = getGL();
+        BoundObjectState state = context.getRecord();
+        // ensure there is no glsl program in use
+        state.bindGlslProgram(gl, 0);
+        
+        super.reset();
         
         // unbind vbos
-        BoundObjectState state = context.getRecord();
         state.bindArrayVbo(gl, 0);
         state.bindElementVbo(gl, 0);
         
@@ -434,6 +437,30 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         
         // clear context cache
         context = null;
+    }
+    
+    /*
+     * Must reset the geometry handle any time the binding changes so
+     * that the vbo's get correctly updated during the next rener,
+     * even if it's the same geometry instance.
+     */
+    
+    @Override
+    public void setVertexBinding(String name) {
+        super.setVertexBinding(name);
+        lastGeometry = null;
+    }
+    
+    @Override
+    public void setNormalBinding(String name) {
+        super.setNormalBinding(name);
+        lastGeometry = null;
+    }
+    
+    @Override
+    public void setTextureCoordinateBinding(int tex, String name) {
+        super.setTextureCoordinateBinding(tex, name);
+        lastGeometry = null;
     }
 
     @Override

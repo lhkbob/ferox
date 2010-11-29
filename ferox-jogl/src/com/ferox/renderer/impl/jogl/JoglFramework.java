@@ -61,7 +61,9 @@ public class JoglFramework extends AbstractFramework {
         Map<Class<? extends Resource>, ResourceDriver> drivers = new HashMap<Class<? extends Resource>, ResourceDriver>();
         drivers.put(Geometry.class, new JoglGeometryDriver(caps));
         drivers.put(Texture.class, new JoglTextureDriver(caps));
-        drivers.put(GlslShader.class, new JoglGlslShaderDriver());
+        
+        if (caps.hasGlslRenderer())
+            drivers.put(GlslShader.class, new JoglGlslShaderDriver(caps));
         
         ResourceManager res = new DefaultResourceManager(drivers);
         RenderManager render = new DefaultRenderManager(res);
