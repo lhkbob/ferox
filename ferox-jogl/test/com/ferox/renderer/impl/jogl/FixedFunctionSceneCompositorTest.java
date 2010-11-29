@@ -1,31 +1,36 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.io.File;
 
 import com.ferox.entity.Component;
 import com.ferox.entity.Entity;
 import com.ferox.entity.EntitySystem;
+import com.ferox.input.KeyEvent.KeyCode;
+import com.ferox.input.logic.InputState;
+import com.ferox.input.logic.KeyTypedCondition;
+import com.ferox.input.logic.Trigger;
 import com.ferox.math.Color4f;
-import com.ferox.math.Transform;
+import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.Octree;
+import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.ThreadQueueManager;
 import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
 import com.ferox.renderer.OnscreenSurfaceOptions.PixelFormat;
 import com.ferox.renderer.Renderer.DrawStyle;
+import com.ferox.renderer.ThreadQueueManager;
 import com.ferox.resource.Geometry.CompileType;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.Attached;
 import com.ferox.scene.Billboarded;
+import com.ferox.scene.Billboarded.Axis;
 import com.ferox.scene.BlinnPhongLightingModel;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Renderable;
@@ -38,7 +43,6 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.Transparent;
 import com.ferox.scene.ViewNode;
-import com.ferox.scene.Billboarded.Axis;
 import com.ferox.scene.controller.AttachmentController;
 import com.ferox.scene.controller.BillboardController;
 import com.ferox.scene.controller.LightUpdateController;
@@ -54,30 +58,32 @@ import com.ferox.util.geom.Teapot;
 import com.ferox.util.geom.text.CharacterSet;
 import com.ferox.util.geom.text.Text;
 import com.ferox.util.geom.text.TextRenderPass;
+import com.ferox.util.input.FreeLookCameraInputManager;
 import com.ferox.util.texture.loader.TextureLoader;
 
 public class FixedFunctionSceneCompositorTest {
-    private static final boolean USE_VBOS = true;
+    private static final CompileType COMPILE_TYPE = CompileType.RESIDENT_STATIC;
     private static final int BOUNDS = 70;
-    private static final int NUM_SHAPES = 100;
+    private static final int NUM_SHAPES = 10000;
     
-    private static final CharacterSet DEFAULT_CHARSET = new CharacterSet(Font.decode("FranklinGothic-Medium 24"), true, true);
+    private static final CharacterSet DEFAULT_CHARSET = new CharacterSet(Font.decode("FranklinGothic-Medium 36"), true, true);
     
     static {
-        System.out.println("Available fonts:");
-        for (Font f: GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts()) {
-            System.out.println("\t" + f.getFontName());
-        }
+//        System.out.println("Available fonts:");
+//        for (Font f: GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts()) {
+//            System.out.println("\t" + f.getFontName());
+//        }
         System.out.println("Chosen font: " + DEFAULT_CHARSET.getFont().getFontName());
+        System.out.println("Character set dimensions: " + DEFAULT_CHARSET.getTexture().getWidth() + " " + DEFAULT_CHARSET.getTexture().getHeight());
     }
     
     public static void main(String[] args) throws Exception {
-        Framework framework = new FixedFunctionJoglFramework(true);
+        final Framework framework = new JoglFramework(false, false, true);
+        System.out.println("OpenGL: " + framework.getCapabilities().getVendor() + " " + framework.getCapabilities().getVersion());
         ThreadQueueManager organizer = new ThreadQueueManager(framework);
         
         EntitySystem system = new EntitySystem();
-        SpatialHierarchy<Entity> sh = new Octree<Entity>(new AxisAlignedBox(new Vector3f(-BOUNDS, -BOUNDS, -BOUNDS), 
-                                                                            new Vector3f(BOUNDS, BOUNDS, BOUNDS)));
+        SpatialHierarchy<Entity> sh = new Octree<Entity>(Strategy.STATIC, BOUNDS, 3);
         
         AttachmentController c1 = new AttachmentController(system);
         BillboardController c2 = new BillboardController(system);
@@ -96,17 +102,20 @@ public class FixedFunctionSceneCompositorTest {
         
         OnscreenSurface surface = buildSurface(framework, system);
         buildScene(system);
+        
+        // scene element controlling the viewnode
+        Entity camera = system.iterator(Component.getComponentId(ViewNode.class)).next();
+        FreeLookCameraInputManager ioManager = new FreeLookCameraInputManager(surface, camera);
+        ioManager.addTrigger(new Trigger() {
+            @Override
+            public void onTrigger(InputState prev, InputState next) {
+                framework.destroy();
+                System.exit(0);
+            }}, new KeyTypedCondition(KeyCode.ESCAPE));
         organizer.setSurfaceGroup(surface, "ffp_sct");
         
         try {
             Runtime r = Runtime.getRuntime();
-            
-            // scene element controlling the viewnode
-            SceneElement vse = system.iterator(Component.getComponentId(ViewNode.class)).next().get(Component.getComponentId(SceneElement.class));
-            float radius = vse.getTransform().getTranslation().length();
-            
-            float phi = 0;
-            float theta = 0;
             
             long start = System.nanoTime();
             long renderTime = 0;
@@ -117,12 +126,7 @@ public class FixedFunctionSceneCompositorTest {
                 if (surface.isDestroyed())
                     break;
                 
-                // animate the viewnode
-                vse.getTransform().setTranslation((float) (radius * Math.cos(theta) * Math.sin(phi)), 
-                                                  (float) (radius * Math.sin(theta) * Math.sin(phi)), 
-                                                  (float) (radius * Math.cos(phi)));
-                theta += .007;
-                phi += .007;
+                ioManager.process();
                 
                 c1.process();
                 c2.process();
@@ -146,11 +150,11 @@ public class FixedFunctionSceneCompositorTest {
                     // update statistics
                     long now = System.nanoTime();
                     float fps = numFramesPerUpdate * 1e9f / (now - start);
-                    int timeInRender = (int) (renderTime / 1e6f) / numFramesPerUpdate;
-                    int timeInProcess = (int) ((now - start) / 1e6f) / numFramesPerUpdate - timeInRender;
+                    int timeInRender = (int) (renderTime / (1e6f * numFramesPerUpdate));
+                    int timeInProcess = (int) ((now - start) / (1e6f * numFramesPerUpdate)) - timeInRender;
                     
-                    stats.setText(String.format("FPS: %.2f (%d + %d)\nPolys: %d\n Mem: %.2f", 
-                                                fps, timeInRender, timeInProcess, frameStats.getPolygonCount(),
+                    stats.setText(String.format("FPS: %.2f (%d + %d)\nPolys: %d\nMem: %.2f", 
+                                                fps, timeInProcess, timeInRender, frameStats.getPolygonCount(),
                                                 (r.totalMemory() - r.freeMemory()) / (1024f * 1024f)));
                     
                     // reset counters
@@ -172,26 +176,23 @@ public class FixedFunctionSceneCompositorTest {
                                                                      .setHeight(600);
         OnscreenSurface surface = framework.createSurface(options);
         surface.setClearColor(new Color4f(.5f, .5f, .5f, 1f));
-        surface.setVSyncEnabled(true);
+//        surface.setVSyncEnabled(true);
         surface.setTitle(FixedFunctionSceneCompositorTest.class.getSimpleName());
 
         // camera
         ViewNode vn = new ViewNode(surface, 60f, 1f, 3 * BOUNDS);
         SceneElement el = new SceneElement();
-        el.getTransform().setTranslation(0f, 0f, 1f * BOUNDS);
+        el.setTranslation(new Vector3f(0f, 0f, -1f * BOUNDS));
         
-        Billboarded bb = new Billboarded();
-        bb.setConstraint(Axis.Z, new Vector3f(), true);
-        
-        system.add(new Entity(el, vn, bb));
+        system.add(new Entity(el, vn));
         return surface;
     }
     
     private static void buildScene(EntitySystem scene) throws Exception {
         // shapes
-        PrimitiveGeometry geom = new Box(2f, (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE));
-        PrimitiveGeometry geom2 = new Sphere(4f, 32, (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE));
-        PrimitiveGeometry geom3 = new Teapot(2f, (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE));
+        PrimitiveGeometry geom = new Box(2f, COMPILE_TYPE);
+        PrimitiveGeometry geom2 = new Sphere(4f, 32, COMPILE_TYPE);
+        PrimitiveGeometry geom3 = new Teapot(2f, COMPILE_TYPE);
         
         AxisAlignedBox bounds1 = new AxisAlignedBox(geom.getVertices().getData());
         AxisAlignedBox bounds2 = new AxisAlignedBox(geom2.getVertices().getData());
@@ -218,21 +219,24 @@ public class FixedFunctionSceneCompositorTest {
             float y = (float) (Math.random() * BOUNDS - BOUNDS / 2);
             float z = (float) (Math.random() * BOUNDS - BOUNDS / 2);
             
-            int choice = (int) (Math.random() * 3 + 1);
+            int choice = 1;//(int) (Math.random() * 6 + 1);
             
             SceneElement element = new SceneElement();
-            element.getTransform().setTranslation(x, y, z);
+            element.setTranslation(new Vector3f(x, y, z));
             
             Entity e = new Entity(element, toRender, material, sc, sr);
-            if (Math.random() > .9f) {
+            if (Math.random() > 1f) {
                 Billboarded b = new Billboarded();
                 b.setConstraint(Axis.Z, cam.getDirection(), false, true);
                 b.setConstraint(Axis.Y, cam.getUp());
                 
-                Text text = new Text(DEFAULT_CHARSET, "Hello, World!", (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE));
+                Text text = new Text(DEFAULT_CHARSET, "Hello, World!", COMPILE_TYPE);
                 text.setScale(.15f);
                 
-                Entity t = new Entity(new SceneElement(), new Attached(e, new Transform(new Vector3f(0f, text.getTextHeight(), 0f))), 
+                Entity t = new Entity(new SceneElement(), new Attached(e, new Matrix4f(1f, 0f, 0f, 0f,
+                                                                                       0f, 1f, 0f, text.getTextHeight(),
+                                                                                       0f, 0f, 1f, 0f,
+                                                                                       0f, 0f, 0f, 1f)), 
                                       new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), new SolidLightingModel(new Color4f(1f, 1f, 1f)),
                                       new TexturedMaterial(text.getCharacterSet().getTexture()), 
                                       new Shape(text), b, trans);
@@ -242,16 +246,19 @@ public class FixedFunctionSceneCompositorTest {
             }
             
             switch(choice) {
-            case 1:
+            case 1: case 2: case 3:
                 e.add(shape1);
+//                e.add(new Shape(new Box(2f, (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE))));
                 element.setLocalBounds(bounds1);
                 break;
-            case 2:
+            case 4: case 5:
                 e.add(shape2);
+//                e.add(new Shape(new Sphere(4f, 32, (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE))));
                 element.setLocalBounds(bounds2);
                 break;
-            case 3:
+            case 6:
                 e.add(shape3);
+//                e.add(new Shape(new Teapot(2f, (USE_VBOS ? CompileType.RESIDENT_STATIC : CompileType.NONE))));
                 element.setLocalBounds(bounds3);
                 break;
             }
@@ -262,14 +269,13 @@ public class FixedFunctionSceneCompositorTest {
         // some walls
         Rectangle backWall = new Rectangle(new Vector3f(0f, 1f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS, -BOUNDS, BOUNDS);
         SceneElement pos = new SceneElement();
-        pos.getTransform().setTranslation(BOUNDS, 0f, 0f);
+        pos.setTranslation(new Vector3f(BOUNDS, 0f, 0f));
         pos.setLocalBounds(new AxisAlignedBox(backWall.getVertices().getData()));
-        
         scene.add(new Entity(pos, new Shape(backWall), material, texture, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
         
         Rectangle bottomWall = new Rectangle(new Vector3f(1f, 0f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS, -BOUNDS, BOUNDS);
         pos = new SceneElement();
-        pos.getTransform().setTranslation(0f, -BOUNDS, 0f);
+        pos.setTranslation(new Vector3f(0f, -BOUNDS, 0f));
         pos.setLocalBounds(new AxisAlignedBox(bottomWall.getVertices().getData()));
         scene.add(new Entity(pos, new Shape(bottomWall), material, texture, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 

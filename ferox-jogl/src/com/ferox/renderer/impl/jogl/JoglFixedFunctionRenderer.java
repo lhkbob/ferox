@@ -6,8 +6,9 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
 import com.ferox.math.Color4f;
-import com.ferox.math.Matrix4f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector4f;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
@@ -214,13 +215,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightDirection(int light, Vector3f dir) {
+    protected void glLightDirection(int light, ReadOnlyVector3f dir) {
         dir.get(vector3Buffer, 0);
         getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_DIRECTION, vector3Buffer, 0);
     }
 
     @Override
-    protected void glLightPosition(int light, Vector4f pos) {
+    protected void glLightPosition(int light, ReadOnlyVector4f pos) {
         pos.get(vector4Buffer, 0);
         getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_POSITION, vector4Buffer, 0);
     }
@@ -276,27 +277,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glSetMatrix(Matrix4f matrix) {
-        matrixBuffer[0] = matrix.m00;
-        matrixBuffer[1] = matrix.m10;
-        matrixBuffer[2] = matrix.m20;
-        matrixBuffer[3] = matrix.m30;
-        
-        matrixBuffer[4] = matrix.m01;
-        matrixBuffer[5] = matrix.m11;
-        matrixBuffer[6] = matrix.m21;
-        matrixBuffer[7] = matrix.m31;
-        
-        matrixBuffer[8] = matrix.m02;
-        matrixBuffer[9] = matrix.m12;
-        matrixBuffer[10] = matrix.m22;
-        matrixBuffer[11] = matrix.m32;
-        
-        matrixBuffer[12] = matrix.m03;
-        matrixBuffer[13] = matrix.m13;
-        matrixBuffer[14] = matrix.m23;
-        matrixBuffer[15] = matrix.m33;
-        
+    protected void glSetMatrix(ReadOnlyMatrix4f matrix) {
+        matrix.get(matrixBuffer, 0, false);
         getGL().glLoadMatrixf(matrixBuffer, 0);
     }
 
@@ -367,7 +349,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTexEyePlane(TexCoord coord, Vector4f plane) {
+    protected void glTexEyePlane(TexCoord coord, ReadOnlyVector4f plane) {
         plane.get(vector4Buffer, 0);
         int tc = Utils.getGLTexCoord(coord, false);
         getGL().glTexGenfv(tc, GL2.GL_EYE_PLANE, vector4Buffer, 0);
@@ -449,6 +431,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         
         // reset geom tracker
         lastGeometry = null;
+        
+        // clear context cache
+        context = null;
     }
 
     @Override

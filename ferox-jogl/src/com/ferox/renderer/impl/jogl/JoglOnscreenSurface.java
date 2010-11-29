@@ -18,6 +18,10 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
+import com.ferox.input.AWTEventAdapter;
+import com.ferox.input.EventDispatcher;
+import com.ferox.input.KeyListener;
+import com.ferox.input.MouseListener;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
@@ -27,11 +31,11 @@ import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.Action;
 import com.ferox.renderer.impl.Context;
-import com.ferox.renderer.impl.jogl.PaintDisabledGLCanvas;
-import com.ferox.renderer.impl.jogl.Utils;
 
 public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurface, WindowListener {
     private static AtomicBoolean fullscreenActive = new AtomicBoolean(false);
+    
+    private final AWTEventAdapter adapter;
     
     private final JoglContext context;
     private final GLCanvas canvas;
@@ -109,6 +113,8 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
             setFullscreen(true);
         } else
             selected = null;
+        
+        adapter = new AWTEventAdapter(this, canvas, true);
     }
     
     @Override
@@ -136,11 +142,7 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
 
     @Override
     protected void postRender(Action next) {
-        long now = -System.currentTimeMillis();
         canvas.swapBuffers();
-        now += System.currentTimeMillis();
-        if (now > 40)
-            System.out.println("slow swap time was: " + now);
     }
 
     @Override
@@ -226,7 +228,9 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
     private void activeFullscreen() {
         if (!fullscreenActive.compareAndSet(false, true))
             throw new IllegalStateException("Another OnscreenSurface is already in fullscreen");
-        
+        // FIXME: this doesn't seem to work because it keeps the frame decorated if it
+        // was already, need to figure out if this behavior is accurate across jvms
+        // and if i need to set the policy that fullscreen really is done once
         if (selected == null)
             selected = original;
         graphicsDevice.setFullScreenWindow(frame);
@@ -342,6 +346,42 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
     @Override
     public int getWidth() {
         return canvas.getWidth();
+    }
+    
+    /* EventSource */
+    
+    @Override
+    public void addKeyListener(KeyListener listener) {
+        adapter.addKeyListener(listener);
+    }
+
+    @Override
+    public void removeKeyListener(KeyListener listener) {
+        adapter.removeKeyListener(listener);
+    }
+
+    @Override
+    public EventDispatcher getDispatcher() {
+        return adapter.getDispatcher();
+    }
+
+    @Override
+    public com.ferox.input.EventQueue getQueue() {
+        return framework.getEventQueue();
+    }
+
+    @Override
+    public void addMouseListener(MouseListener listener) {
+        if (listener == null)
+            throw new NullPointerException("Null KeyListeners are not permitted");
+        adapter.addMouseListener(listener);
+    }
+
+    @Override
+    public void removeMouseListener(MouseListener listener) {
+        if (listener == null)
+            throw new NullPointerException("Null KeyListener not permitted");
+        adapter.removeMouseListener(listener);
     }
     
     /* WindowListener */

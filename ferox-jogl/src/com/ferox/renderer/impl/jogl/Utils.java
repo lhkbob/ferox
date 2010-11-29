@@ -22,14 +22,14 @@ import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.resource.GlslShader.AttributeType;
+import com.ferox.resource.GlslUniform.UniformType;
 import com.ferox.resource.PolygonType;
 import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.GlslUniform.UniformType;
-import com.ferox.resource.GlslVertexAttribute.AttributeType;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
+import com.ferox.resource.TextureFormat;
 
 /**
  * Utils provides conversions for the commonly used enums in Resources and Renderers
@@ -91,25 +91,17 @@ public class Utils {
 
         case GL2.GL_BOOL:
             return UniformType.BOOL;
-        case GL2.GL_BOOL_VEC2:
-            return UniformType.BOOL_VEC2;
-        case GL2.GL_BOOL_VEC3:
-            return UniformType.BOOL_VEC3;
-        case GL2.GL_BOOL_VEC4:
-            return UniformType.BOOL_VEC4;
 
         case GL2.GL_SAMPLER_1D:
-            return UniformType.SAMPLER_1D;
+            return UniformType.TEXTURE_1D;
         case GL2.GL_SAMPLER_2D:
-            return UniformType.SAMPLER_2D;
+            return UniformType.TEXTURE_2D;
         case GL2.GL_SAMPLER_3D:
-            return UniformType.SAMPLER_3D;
+            return UniformType.TEXTURE_3D;
         case GL2.GL_SAMPLER_CUBE:
-            return UniformType.SAMPLER_CUBEMAP;
+            return UniformType.TEXTURE_CUBEMAP;
         case GL2.GL_SAMPLER_2D_SHADOW:
-            return UniformType.SAMPLER_2D_SHADOW;
-        case GL2.GL_SAMPLER_1D_SHADOW:
-            return UniformType.SAMPLER_1D_SHADOW;
+            return UniformType.SHADOW_MAP;
         }
 
         return null;
@@ -125,17 +117,17 @@ public class Utils {
         case GL2.GL_FLOAT:
             return AttributeType.FLOAT;
         case GL2.GL_FLOAT_VEC2:
-            return AttributeType.VEC2F;
+            return AttributeType.FLOAT_VEC2;
         case GL2.GL_FLOAT_VEC3:
-            return AttributeType.VEC3F;
+            return AttributeType.FLOAT_VEC3;
         case GL2.GL_FLOAT_VEC4:
-            return AttributeType.VEC4F;
+            return AttributeType.FLOAT_VEC4;
         case GL2.GL_FLOAT_MAT2:
-            return AttributeType.MAT2F;
+            return AttributeType.FLOAT_MAT2;
         case GL2.GL_FLOAT_MAT3:
-            return AttributeType.MAT3F;
+            return AttributeType.FLOAT_MAT3;
         case GL2.GL_FLOAT_MAT4:
-            return AttributeType.MAT4F;
+            return AttributeType.FLOAT_MAT4;
         }
 
         return null;

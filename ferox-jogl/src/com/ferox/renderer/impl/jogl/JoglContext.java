@@ -19,7 +19,7 @@ public class JoglContext extends Context {
     private final List<FramebufferObject> zombieFbos;
     
     public JoglContext(JoglFramework framework, GLContext context, ReentrantLock surfaceLock) {
-        super(framework.createRenderer(), surfaceLock);
+        super(framework.createGlslRenderer(), framework.createFixedFunctionRenderer(), surfaceLock);
         if (context == null)
             throw new NullPointerException("GLContext cannot be null");
         this.context = context;

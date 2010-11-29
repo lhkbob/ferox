@@ -30,11 +30,7 @@ public class JoglRenderCapabilities extends RenderCapabilities {
      * programmable shaders.
      */
     public static final int FORCE_NO_GLSL = 0x4;
-    /**
-     * Force the returned RenderCapabilities to report no support for the
-     * fixed-function pipeline.
-     */
-    public static final int FORCE_NO_FFP = 0x8;
+
     
     private final GLProfile profile;
     private final int forceBits;
@@ -104,7 +100,7 @@ public class JoglRenderCapabilities extends RenderCapabilities {
         if (version >= 2f & !isSet(FORCE_NO_GLSL))
             glslVersion = formatVersion(gl.glGetString(GL2GL3.GL_SHADING_LANGUAGE_VERSION));
 
-        hasFfpRenderer = !isSet(FORCE_NO_FFP) && version <= 3f;
+        hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
         hasGlslRenderer = glslVersion >= 1f;
         pbuffersSupported = !isSet(FORCE_NO_PBUFFER) && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null);
         
