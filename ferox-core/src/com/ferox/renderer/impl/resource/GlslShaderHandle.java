@@ -1,9 +1,11 @@
 package com.ferox.renderer.impl.resource;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.ferox.resource.GlslShader.AttributeType;
+import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslUniform;
 
 public class GlslShaderHandle extends ResourceHandle {
@@ -34,11 +36,13 @@ public class GlslShaderHandle extends ResourceHandle {
     
     public final Map<String, Attribute> attributes;
     public final Map<String, Uniform> uniforms;
+    public final EnumMap<ShaderType, Integer> shaders;
     
     public GlslShaderHandle(int id) {
         super(id);
         
         attributes = new HashMap<String, Attribute>();
         uniforms = new HashMap<String, Uniform>();
+        shaders = new EnumMap<ShaderType, Integer>(ShaderType.class);
     }
 }

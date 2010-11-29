@@ -2,6 +2,8 @@ package com.ferox.renderer;
 
 import java.util.EnumSet;
 
+import com.ferox.resource.GlslShader.ShaderType;
+import com.ferox.resource.GlslShader.Version;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
 
@@ -58,9 +60,11 @@ public class RenderCapabilities {
     protected boolean hasSeparateStencil = false; //
     
     protected boolean hasFfpRenderer = false; //
-    protected boolean hasGlslRenderer = false; //
     
-    protected float glslVersion = 0; // 
+    // glsl
+    protected boolean hasGlslRenderer = false; //
+    protected EnumSet<ShaderType> supportedShaders = EnumSet.noneOf(ShaderType.class);
+    protected Version glslVersion;
     
     protected String vendor = ""; // 
     protected float version = 0f; // 
@@ -367,11 +371,20 @@ public class RenderCapabilities {
 
     /**
      * Get the GLSL shading language available on the computer. If
-     * {@link #hasGlslRenderer()} returns false, this value is meaningless.
+     * {@link #hasGlslRenderer()} returns false, this value is null.
      * 
      * @return Version to one decimal point
      */
-    public float getGlslVersion() {
+    public Version getGlslVersion() {
         return glslVersion;
+    }
+
+    /**
+     * Get the supported types of GLSL shaders available on the computer.
+     * 
+     * @return Set of available shaders
+     */
+    public EnumSet<ShaderType> getSupportedShaderTypes() {
+        return supportedShaders;
     }
 }

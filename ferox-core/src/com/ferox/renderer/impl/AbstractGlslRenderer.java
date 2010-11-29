@@ -16,6 +16,7 @@ import com.ferox.renderer.impl.resource.GlslShaderHandle;
 import com.ferox.renderer.impl.resource.GlslShaderHandle.Attribute;
 import com.ferox.renderer.impl.resource.GlslShaderHandle.Uniform;
 import com.ferox.renderer.impl.resource.TextureHandle;
+import com.ferox.resource.Geometry;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
@@ -236,6 +237,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (attributeBindings[i].attr == a) {
                 attributeBindings[i].columnNames[column] = geometryAttrName;
                 attributeBindings[i].columnValuesValid[column] = false; // clear any generic attr values
+                onBindAttribute(glslAttrName);
                 break;
             }
         }
@@ -292,24 +294,28 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     public void bindAttribute(String glslAttrName, float val) {
         AttributeBinding ab = getAttributeBinding(glslAttrName);
         bindAttribute(ab, 0, 1, val, -1f, -1f, -1f);
+        onBindAttribute(glslAttrName);
     }
 
     @Override
     public void bindAttribute(String glslAttrName, float v1, float v2) {
         AttributeBinding ab = getAttributeBinding(glslAttrName);
         bindAttribute(ab, 0, 2, v1, v2, -1f, -1f);
+        onBindAttribute(glslAttrName);
     }
 
     @Override
     public void bindAttribute(String glslAttrName, ReadOnlyVector3f v) {
         AttributeBinding ab = getAttributeBinding(glslAttrName);
         bindAttribute(ab, 0, 3, v.getX(), v.getY(), v.getZ(), -1f);
+        onBindAttribute(glslAttrName);
     }
 
     @Override
     public void bindAttribute(String glslAttrName, ReadOnlyVector4f v) {
         AttributeBinding ab = getAttributeBinding(glslAttrName);
         bindAttribute(ab, 0, 4, v.getX(), v.getY(), v.getZ(), v.getW());
+        onBindAttribute(glslAttrName);
     }
 
     @Override
@@ -320,6 +326,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         bindAttribute(ab, 2, 3, v.get(0, 2), v.get(1, 2), v.get(2, 2), -1f);
         bindAttribute(ab, 1, 3, v.get(0, 1), v.get(1, 1), v.get(2, 1), -1f);
         bindAttribute(ab, 0, 3, v.get(0, 0), v.get(1, 0), v.get(2, 0), -1f);
+        
+        onBindAttribute(glslAttrName);
     }
 
     @Override
@@ -331,7 +339,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         bindAttribute(ab, 2, 4, v.get(0, 2), v.get(1, 2), v.get(2, 2), v.get(3, 2));
         bindAttribute(ab, 1, 4, v.get(0, 1), v.get(1, 1), v.get(2, 1), v.get(3, 1));
         bindAttribute(ab, 0, 4, v.get(0, 0), v.get(1, 0), v.get(2, 0), v.get(3, 0));
+        
+        onBindAttribute(glslAttrName);
     }
+    
+    protected abstract void onBindAttribute(String glslAttrName);
     
     private UniformBinding verifyUniform(String name, UniformType[] validTypes) {
         if (name == null)
@@ -696,6 +708,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
      */
     protected abstract void glBindTexture(int tex, Target target, TextureHandle handle);
 
+    @Override
+    public int render(Geometry geom) {
+        verifyShader();
+        return 0;
+    }
+    
     @Override
     public void reset() {
         super.reset();
