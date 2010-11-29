@@ -30,6 +30,9 @@ class ComponentAttachment {
     private Component component; // set to null when attachment is broken
     private Map<ComponentId<?>, Component> metaComponents; // null when empty
     
+    private ComponentId<?> lastMetaKey;
+    private Component lastMetaValue;
+    
     private final ComponentIndex index;
     
     // linked-list fields used/managed by ComponentIndex
@@ -136,7 +139,14 @@ class ComponentAttachment {
      */
     @SuppressWarnings("unchecked")
     public <T extends Component> T getMetaComponent(ComponentId<T> id) {
-        return (metaComponents == null ? null : (T) metaComponents.get(id));
+        if (metaComponents == null)
+            return null;
+        if (id != lastMetaKey) {
+            lastMetaKey = id;
+            lastMetaValue = metaComponents.get(id);
+        }
+        
+        return (T) lastMetaValue;
     }
 
     /**
@@ -156,6 +166,9 @@ class ComponentAttachment {
             T old = (T) metaComponents.remove(id);
             if (metaComponents.isEmpty())
                 metaComponents = null;
+            
+            lastMetaKey = null;
+            lastMetaValue = null;
             return old;
         } else
             return null;
@@ -175,6 +188,8 @@ class ComponentAttachment {
     public void addMetaComponent(Component c) {
         if (metaComponents == null)
             metaComponents = new HashMap<ComponentId<?>, Component>();
+        lastMetaKey = null;
+        lastMetaValue = null;
         metaComponents.put(c.getComponentId(), c);
     }
     

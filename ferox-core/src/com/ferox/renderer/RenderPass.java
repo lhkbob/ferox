@@ -22,16 +22,17 @@ public interface RenderPass {
      * restored to its default.
      * </p>
      * <p>
-     * This should only be called by the Framework when the Renderer is allowed
-     * to be used. The Renderer should not be stored outside of this method
-     * implementation, because the Renderer is likely a light-weight object tied
-     * to a specific Thread or Surface used by a Framework.
+     * This should only be called by the Framework when the RendererProvider is
+     * allowed to be used. The RendererProvider should not be stored outside of
+     * this method implementation, because the RendererProvider is likely a
+     * light-weight object tied to a specific Thread or Surface used by a
+     * Framework. Similarly, the Renderers provided by the provider should not
+     * be used outside of a single render call.
      * </p>
      * 
-     * @param renderer The Renderer that is actively rendering on the calling
-     *            Thread
-     * @param surface The Surface that this RenderPass will be rendered
-     *            into
+     * @param renderer The RendererProvider that provides Renderers for actively
+     *            rendering on the calling Thread
+     * @param surface The Surface that this RenderPass will be rendered into
      */
-    public void render(Renderer renderer, Surface surface);
+    public void render(RendererProvider renderer, Surface surface);
 }

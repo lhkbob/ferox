@@ -1,5 +1,6 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector3f;
@@ -68,10 +69,10 @@ public class Plane {
     }
     
     // FIXME: verify behavior, math and document behavior
-    public static void getTangentSpace(ReadOnlyVector3f normal, Vector3f tan0, Vector3f tan1) {
+    public static void getTangentSpace(ReadOnlyVector3f normal, MutableVector3f tan0, MutableVector3f tan1) {
         // Gratz to Erwin Couman's and Bullet for this code
         
-        if (normal.getZ() > ROOT_2_OVER_2) {
+        if (Math.abs(normal.getZ()) > ROOT_2_OVER_2) {
             // choose p in y-z plane
             float a = normal.getY() * normal.getY() + normal.getZ() * normal.getZ();
             float k = 1f / (float) Math.sqrt(a);
@@ -80,7 +81,7 @@ public class Plane {
             tan1.set(a * k, -normal.getX() * tan0.getZ(), normal.getX() * tan0.getY()); // n x tan0
         } else {
             // choose p in x-y plane
-            float a = normal.getX() * normal.getX() + normal.getZ() * normal.getZ();
+            float a = normal.getX() * normal.getX() + normal.getY() * normal.getY();
             float k = 1f / (float) Math.sqrt(a);
             
             tan0.set(-normal.getY() * k, normal.getX() * k, 0f);

@@ -211,7 +211,8 @@ public class DefaultRenderManager implements RenderManager {
             AbstractSurface lastSurface = null;
             try {
                 context.setFrameStatistics(stats);
-                context.getRenderer().reset();
+                context.resetRenderers();
+                
                 int size = actions.size();
                 for (int i = 0; i < size; i++) {
                     if (destroyed.get())

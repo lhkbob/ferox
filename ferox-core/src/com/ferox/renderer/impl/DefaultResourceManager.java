@@ -417,7 +417,7 @@ public class DefaultResourceManager implements ResourceManager {
     @Override
     public void runOnResourceThread(Runnable run) {
         if (resourceContext == null)
-            throw new RenderException("ResourceManager has no usable context");
+            return;
         
         Sync<Void> sync = new Sync<Void>(new RunnableTask(run));
         pendingTasks.addFirst(sync);

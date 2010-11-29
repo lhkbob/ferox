@@ -10,11 +10,11 @@ import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
-import com.ferox.renderer.Renderer;
-import com.ferox.renderer.Surface;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
+import com.ferox.renderer.RendererProvider;
+import com.ferox.renderer.Surface;
 
 public class TextRenderPass implements RenderPass {
     private static final Color4f BLACK = new Color4f(0f, 0f, 0f, 1f);
@@ -53,10 +53,12 @@ public class TextRenderPass implements RenderPass {
     }
     
     @Override
-    public void render(Renderer renderer, Surface surface) {
-        if (!(renderer instanceof FixedFunctionRenderer))
+    public void render(RendererProvider renderer, Surface surface) {
+        if (!renderer.hasFixedFunctionRenderer())
             return;
-        FixedFunctionRenderer ffp = (FixedFunctionRenderer) renderer;
+        
+        // FIXME: write a shader that does the same thing
+        FixedFunctionRenderer ffp = renderer.getFixedFunctionRenderer();
         Matrix4f mv = new Matrix4f();
         
         frustum.setOrtho(0, surface.getWidth(), 0, surface.getHeight());

@@ -10,7 +10,7 @@ import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.RendererProvider;
 import com.ferox.renderer.Surface;
 import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture;
@@ -94,10 +94,10 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
     }
 
     @Override
-    public void render(Renderer renderer, Surface surface) {
-        if (renderer instanceof FixedFunctionRenderer) {
+    public void render(RendererProvider renderer, Surface surface) {
+        if (renderer.hasFixedFunctionRenderer()) {
             // render only when we have an ffp renderer
-            this.renderer = (FixedFunctionRenderer) renderer;
+            this.renderer = renderer.getFixedFunctionRenderer();
             notifyPassBegin();
             init(surface);
             render(this.renderer);

@@ -319,7 +319,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     
     private static void updateTextures(Texture[] color, Texture depth, ResourceManager manager) {
         for (int i = 0; i < color.length; i++) {
-            if (manager.getHandle(color[i]) == null) {
+            if (manager.getHandle(color[i]) == null && manager.getContext() != null) {
                 // something went wrong, so we should fail
                 for (int j = 0; j <= i; j++)
                     manager.scheduleDispose(color[i]);
@@ -327,7 +327,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             }
         }
         if (depth != null) {
-            if (manager.getHandle(depth) == null) {
+            if (manager.getHandle(depth) == null && manager.getContext() != null) {
                 // fail like before
                 for (int i = 0; i < color.length; i++)
                     manager.scheduleDispose(color[i]);

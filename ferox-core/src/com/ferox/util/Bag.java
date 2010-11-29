@@ -3,9 +3,12 @@ package com.ferox.util;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.RandomAccess;
 
 /**
  * Provides a useful implementation of the Bag data structure. Much like an
@@ -17,12 +20,14 @@ import java.util.NoSuchElementException;
  * @author Michael Ludwig
  * @param <E> The element type stored in this bag
  */
-public class Bag<E> implements Collection<E>, Iterable<E> {
+public class Bag<E> implements Collection<E>, RandomAccess {
     public static final int DEFAULT_CAPACITY = 8;
     public static final float DEFAULT_FACTOR = 2f;
     public static final int DEFAULT_GROWTH = 0;
     
-    @SuppressWarnings("unchecked")
+    private static final Random shuffler = new Random();
+    
+    @SuppressWarnings("rawtypes")
     private static final HashFunction NATURAL_HASHER = new HashFunction() {
         @Override
         public int hashCode(Object o) {
@@ -350,6 +355,17 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
             keys[i] = hasher.hashCode(elements[i]);
         quickSort(keys, 0, size);
     }
+    
+    /**
+     * Shuffle the elements within this bag randomly. This performs
+     * equivalently to {@link Collections#shuffle(java.util.List)} except
+     * that it operates on the Bag instead of a List.
+     */
+    public void shuffle() {
+        for (int i = size; i >= 1; i--) {
+            swap(i - 1, shuffler.nextInt(i));
+        }
+    }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
@@ -516,14 +532,16 @@ public class Bag<E> implements Collection<E>, Iterable<E> {
 
     // swaps the elements at indices a and b, along with the hashes in x
     private void swap(int[] x, int a, int b) {
-        E t = elements[a];
         int k = x[a];
-        
-        elements[a] = elements[b];
         x[a] = x[b];
-        
-        elements[b] = t;
         x[b] = k;
+        swap(a, b);
+    }
+    
+    private void swap(int a, int b) {
+        E t = elements[a];
+        elements[a] = elements[b];
+        elements[b] = t;
     }
 
     // swaps n elements starting at a and b, such that (a,b), (a+1, b+1), etc. are swapped

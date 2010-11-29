@@ -506,6 +506,10 @@ public class Octree<T> implements SpatialHierarchy<T> {
             
             if (index < 0)
                 index = items.indexOf(key);
+            if (index < 0) {
+                // wat? FIXME something is buggy here
+                return;
+            }
             items.remove(index);
             
             if (isRemovable())
@@ -866,16 +870,18 @@ public class Octree<T> implements SpatialHierarchy<T> {
                 int ct = node.items.size();
                 for (int i = 0; i < ct; i++) {
                     ki = node.items.get(i);
-                    iPastX = ki.bounds.getMin().getX() < nx;
-                    iPastY = ki.bounds.getMin().getY() < ny;
-                    iPastZ = ki.bounds.getMin().getZ() < nz;
+                    iPastX = ki.bounds.getMin().getX() <= nx;
+                    iPastY = ki.bounds.getMin().getY() <= ny;
+                    iPastZ = ki.bounds.getMin().getZ() <= nz;
                     
                     // check same-node intersections
                     for (int j = i + 1; j < ct; j++) {
+                        // FIXME: what happens when we're at the left edge of root bounds?
+                        // then we want to still include things
                         kj = node.items.get(j);
-                        skipX = iPastX && kj.bounds.getMin().getX() < nx;
-                        skipY = iPastY && kj.bounds.getMin().getY() < ny;
-                        skipZ = iPastZ && kj.bounds.getMin().getZ() < nz;
+                        skipX = iPastX && kj.bounds.getMin().getX() <= nx;
+                        skipY = iPastY && kj.bounds.getMin().getY() <= ny;
+                        skipZ = iPastZ && kj.bounds.getMin().getZ() <= nz;
                         
                         if (!skipX && !skipY && !skipZ) {
                             // this is the most negative node that both items exist in,

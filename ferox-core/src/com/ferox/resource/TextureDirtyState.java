@@ -9,7 +9,7 @@ import java.util.Arrays;
  */
 public class TextureDirtyState implements DirtyState<TextureDirtyState> {
     private final ImageRegion[][] mipmaps;
-    private boolean parameters;
+    private final boolean parameters;
 
     /**
      * Create a new TextureDirtyState that can hold up to the given number of

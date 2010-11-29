@@ -445,11 +445,19 @@ public abstract class ReadOnlyVector3f {
         if (v == null)
             return false;
 
-        float tx = Math.abs(getX() - v.getX());
-        float ty = Math.abs(getY() - v.getY());
-        float tz = Math.abs(getZ() - v.getZ());
+//        float tx = Math.abs(getX() - v.getX());
+        if (Math.abs(getX() - v.getX()) > eps)
+            return false;
+        
+//        float ty = Math.abs(getY() - v.getY());
+        if (Math.abs(getY() - v.getY()) > eps)
+            return false;
+//        float tz = Math.abs(getZ() - v.getZ());
+        if (Math.abs(getZ() - v.getZ()) > eps)
+            return false;
 
-        return tx <= eps && ty <= eps && tz <= eps;
+//        return tx <= eps && ty <= eps && tz <= eps;
+        return true;
     }
     
     private class ExpandedVector extends ReadOnlyVector4f {

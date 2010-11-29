@@ -65,7 +65,7 @@ public class GeometryDirtyState implements DirtyState<GeometryDirtyState> {
     
     private final Map<String, BufferRange> dirtyAttributes;
     
-    private BufferRange dirtyIndices;
+    private final BufferRange dirtyIndices;
     
     /**
      * Create a new GeometryDirtyState that initially has nothing marked as

@@ -5,7 +5,7 @@ import com.ferox.renderer.Surface;
 
 /**
  * RenderPassAction is an Action that, when performed, invokes
- * {@link RenderPass#render(com.ferox.renderer.Renderer, Surface)} using
+ * {@link RenderPass#render(com.ferox.renderer.RendererProvider, Surface)} using
  * the Renderer associated with the current Context.
  * 
  * @author Michael Ludwig
@@ -30,7 +30,7 @@ public class RenderPassAction extends Action {
 
     @Override
     public void perform(Context context, Action next) {
-        context.getRenderer().reset();
-        renderPass.render(context.getRenderer(), getSurface());
+        context.resetRenderers();
+        renderPass.render(context.getRendererProvider(), getSurface());
     }
 }

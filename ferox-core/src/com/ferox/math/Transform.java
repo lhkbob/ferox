@@ -72,6 +72,31 @@ public class Transform extends MutableMatrix4f {
     }
     
     @Override
+    public ReadOnlyMatrix3f getUpperMatrix() {
+        // we don't need to create a special wrapper matrix
+        return rotation;
+    }
+    
+    /*@Override
+    public MutableMatrix4f inverse(MutableMatrix4f result) {
+        if (result == null)
+            result = new Transform();
+        
+        if (result instanceof Transform) {
+            // fast path for inverting Transforms
+            Transform t = (Transform) result;
+            rotation.transpose(t.rotation);
+            translation.scale(-1f, t.translation);
+            return t;
+        } else {
+            return result.set(rotation.get(0, 0), rotation.get(1, 0), rotation.get(2, 0), -translation.getX(),
+                              rotation.get(0, 1), rotation.get(1, 1), rotation.get(2, 1), -translation.getY(), 
+                              rotation.get(0, 2), rotation.get(1, 2), rotation.get(2, 2), -translation.getZ(), 
+                              0f, 0f, 0f, 1f);
+        }
+    } */
+    
+    @Override
     public float get(int row, int col) {
         if (row == 3) {
             // last row is either 0 or 1

@@ -177,9 +177,7 @@ public abstract class AbstractSurface implements Surface {
                 renderedOnce = true;
             }
             
-            AbstractRenderer r = context.getRenderer();
-            r.setSurfaceSize(getWidth(), getHeight());
-            
+            context.setSurfaceSize(getWidth(), getHeight());
             preRender();
         }
     }

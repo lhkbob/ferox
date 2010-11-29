@@ -4,6 +4,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Renderer;
+import com.ferox.renderer.RendererProvider;
 
 /**
  * Context represents an OpenGL context. When a context is current, OpenGL calls
@@ -18,24 +19,71 @@ public abstract class Context {
     private static final ThreadLocal<Context> current = new ThreadLocal<Context>();
     
     private final ThreadLocal<FrameStatistics> frameStats;
-    private final AbstractRenderer renderer;
+    private final AbstractGlslRenderer glsl;
+    private final AbstractFixedFunctionRenderer ffp;
     protected final ReentrantLock lock;
     
-    public Context(AbstractRenderer renderer, ReentrantLock surfaceLock) {
-        if (renderer == null)
-            throw new NullPointerException("Renderer cannot be null");
-        this.renderer = renderer;
+    public Context(AbstractGlslRenderer glsl, AbstractFixedFunctionRenderer ffp, ReentrantLock surfaceLock) {
+        if (glsl == null && ffp == null)
+            throw new NullPointerException("Must provide at least one renderer");
+        this.glsl = glsl;
+        this.ffp = ffp;
+        
         lock = (surfaceLock == null ? new ReentrantLock() : surfaceLock);
         frameStats = new ThreadLocal<FrameStatistics>();
     }
     
     /**
-     * Return the unique Renderer instance associated with this Context.
-     * 
-     * @return This Context's Renderer
+     * Convenience function to invoke {@link Renderer#reset()} on this Context's
+     * renderers.
      */
-    public AbstractRenderer getRenderer() {
-        return renderer;
+    public void resetRenderers() {
+        if (ffp != null)
+            ffp.reset();
+        if (glsl != null)
+            glsl.reset();
+    }
+
+    /**
+     * Convenience function to invoke
+     * {@link AbstractRenderer#setSurfaceSize(int, int)} on this Context's
+     * renderers.
+     * 
+     * @param width The width of the surface
+     * @param height The height of the surface
+     */
+    public void setSurfaceSize(int width, int height) {
+        if (ffp != null)
+            ffp.setSurfaceSize(width, height);
+        if (glsl != null)
+            glsl.setSurfaceSize(width, height);
+    }
+
+    /**
+     * Return a new RendererProvider wrapping this Context's renderers.
+     * 
+     * @return A RendererProvider ready to pass into a RenderPass
+     */
+    public RendererProvider getRendererProvider() {
+        return new DefaultRendererProvider(glsl, ffp);
+    }
+
+    /**
+     * Return the unique GlslRenderer instance associated with this Context.
+     * 
+     * @return This Context's GlslRenderer
+     */
+    public AbstractGlslRenderer getGlslRenderer() {
+        return glsl;
+    }
+    
+    /**
+     * Return the unique FixedFunctionRenderer instance associated with this Context.
+     * 
+     * @return This Context's FixedFunctionRenderer
+     */
+    public AbstractFixedFunctionRenderer getFixedFunctionRenderer() {
+        return ffp;
     }
 
     /**
