@@ -2,8 +2,8 @@ package com.ferox.entity;
 
 /**
  * <p>
- * AbstractComponent extends Component and adds a parametrized type so that
- * {@link #getComponentId()} returns a correctly typed ComponentId. In addition
+ * AbstractComponent extends Component and adds a parameterized type so that
+ * {@link #getTypedId()} returns a correctly typed TypedId. In addition
  * its constructor enforces the recommendation that concrete Components be
  * final. It is strongly recommended that Component implementations extend
  * AbstractComponent.
@@ -20,7 +20,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> extends 
      * method. If that is not the case, then an exception is thrown.
      * </p>
      * <p>
-     * To properly implement a Component this way, it would like:
+     * To properly implement a Component this way, it should be:
      * 
      * <pre>
      * public class Tac extends AbstractComponent&lt;Tac&gt; {
@@ -47,7 +47,7 @@ public abstract class AbstractComponent<T extends AbstractComponent<T>> extends 
     
     @Override
     @SuppressWarnings("unchecked")
-    public ComponentId<T> getComponentId() {
-        return (ComponentId<T>) super.getComponentId();
+    public TypedId<T> getTypedId() {
+        return (TypedId<T>) super.getTypedId();
     }
 }

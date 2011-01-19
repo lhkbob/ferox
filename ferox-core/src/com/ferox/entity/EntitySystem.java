@@ -217,7 +217,7 @@ public class EntitySystem implements Iterable<Entity> {
      * @return An Iterator over the Entities that have Components of the desired
      *         type
      */
-    public Iterator<Entity> iterator(ComponentId<?> id) {
+    public Iterator<Entity> iterator(TypedId<? extends Component> id) {
         if (id == null)
             throw new NullPointerException("ComponentId cannot be null");
         
@@ -235,7 +235,7 @@ public class EntitySystem implements Iterable<Entity> {
      *         type)
      */
     ComponentIndex getIndex(Component c) {
-        int index = c.getComponentId().getId();
+        int index = c.getTypedId().getId();
         
         synchronized(systemLock) {
             if (index >= indices.length)

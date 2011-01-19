@@ -20,7 +20,8 @@ import java.util.Set;
  * describe the state of a system and {@link Controller Controllers} are used to
  * perform the logic as needed to move the system from one state to the next.
  * The behaviors produced by such Controllers are often dependent on the
- * relationships between the Components of an Entity. As an example, an Entity
+ * relationships between the Components of an Entity.</p>
+ * <p> As an example, an Entity
  * representing a bullet collides with an Entity containing a physics Component.
  * This triggers a handler that notices the hit Entity also has a health
  * Component, so hit points are removed. These fall below zero and a Controller
@@ -138,7 +139,7 @@ public final class Entity implements Iterable<Component> {
      * <p>
      * Attach the given Component, <tt>c</tt>, to this Entity. This will replace
      * any previously attached Component of the same type. If <tt>c</tt> is not
-     * equal to the current Component of the same type, all meta-Components are
+     * equal to the current Component of the same type, all MetaValues are
      * cleared for the component type. The following will always be true:
      * 
      * <pre>
@@ -148,7 +149,7 @@ public final class Entity implements Iterable<Component> {
      * </p>
      * <p>
      * If the Entity has an owner, the Entity will be included in the iterators
-     * returned from {@link EntitySystem#iterator(ComponentId)} if <tt>c</tt>'s
+     * returned from {@link EntitySystem#iterator(TypedId)} if <tt>c</tt>'s
      * ComponentId is used. Any {@link EntityListener listeners} on this Entity
      * will have their {@link EntityListener#onComponentAdd(Entity, Component)}
      * invoked before <tt>c</tt> overwrites any previously attached Component.
@@ -160,7 +161,7 @@ public final class Entity implements Iterable<Component> {
     public void add(Component c) {
         if (c == null)
             throw new NullPointerException("Component cannot be null");
-        int index = c.getComponentId().getId();
+        int index = c.getTypedId().getId();
         
         synchronized(lock) {
             for (int i = listeners.size() - 1; i >= 0; i--)
@@ -177,20 +178,19 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
+     * <p>
      * Get the Component instance attached to this Entity with the given
-     * ComponentId type. If this Entity has no Component of the given type, then
-     * null is returned. When determining if an Entity has the given Component,
-     * only Components that are added via {@link #add(Component)} are
-     * considered. Meta-Components are not included, and can only be retrieved
-     * via {@link #getMeta(Component, ComponentId)}.
+     * TypedId type. If this Entity has no Component of the given type, then
+     * null is returned.
+     * </p>
      * 
      * @param <T> The Component type to look-up
-     * @param id The ComponentId associated with T
+     * @param id The TypedId associated with T
      * @return The Component of type T that's been attached to this Entity
      * @throws NullPointerException if id is null
      */
     @SuppressWarnings("unchecked")
-    public <T extends Component> T get(ComponentId<T> id) {
+    public <T extends Component> T get(TypedId<T> id) {
         if (id == null)
             throw new NullPointerException("ComponentId cannot be null");
         
@@ -205,14 +205,16 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
+     * <p>
      * Remove and return the Component with the given id type. Null is returned
      * if this Entity has no Component of the given type (i.e. get(id) returns
      * null). After being removed, subsequent calls to get(id) will return null
      * and the Entity will no longer be reported in iterators from
-     * {@link EntitySystem#iterator(ComponentId)} using <tt>id</tt>.
-     * Additionally, any meta-Components assigned to the returned Component will
-     * be discarded. Even if the Component is re-added, the meta-Components will
-     * be lost until they are also re-added.
+     * {@link EntitySystem#iterator(TypedId)} using <tt>id</tt>. Additionally,
+     * any MetaValues assigned to the returned Component will be discarded. Even
+     * if the Component is re-added, the MetaValues will be lost until they are
+     * also re-added.
+     * </p>
      * 
      * @param <T> The Component type that is to be removed
      * @param id The ComponentId corresponding to type T
@@ -221,7 +223,7 @@ public final class Entity implements Iterable<Component> {
      * @throws NullPointerException if id is null
      */
     @SuppressWarnings("unchecked")
-    public <T extends Component> T remove(ComponentId<T> id) {
+    public <T extends Component> T remove(TypedId<T> id) {
         if (id == null)
             throw new NullPointerException("ComponentId cannot be null");
         
@@ -242,13 +244,15 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
+     * <p>
      * Remove the specific Component from this Entity. This functions
-     * identically to {@link #remove(ComponentId)} using <tt>c</tt>'s
-     * ComponentId, except that it is only removed if <tt>c</tt> is currently
-     * attached to this Entity. This returns true when <tt>c</tt>, and false
-     * when <tt>c</tt> was not removed because it was not attached to this
-     * Entity. '==' equality is used when determining if <tt>c</tt> is currently
+     * identically to {@link #remove(TypedId)} using <tt>c</tt>'s ComponentId,
+     * except that it is only removed if <tt>c</tt> is currently attached to
+     * this Entity. This returns true when <tt>c</tt> is removed, and false when
+     * <tt>c</tt> was not removed because it was not attached to this Entity.
+     * '==' equality is used when determining if <tt>c</tt> is currently
      * attached.
+     * </p>
      * 
      * @param c The Component to remove
      * @return True if <tt>c</tt> was removed
@@ -258,7 +262,7 @@ public final class Entity implements Iterable<Component> {
         if (c == null)
             throw new NullPointerException("ComponentId cannot be null");
         
-        int index = c.getComponentId().getId();
+        int index = c.getTypedId().getId();
         synchronized(lock) {
             if (index < components.length && components[index] != null && components[index].getComponent() == c) {
                 for (int i = listeners.size() - 1; i >= 0; i--)
@@ -275,40 +279,38 @@ public final class Entity implements Iterable<Component> {
     
     /**
      * <p>
-     * Attach the Component, <tt>meta</tt>, to this Entity as a meta-Component
-     * associated with <tt>c</tt>. A meta-Component is not considered
-     * attached to the Entity when {@link #get(ComponentId)} or
-     * {@link EntitySystem#iterator(ComponentId)} is invoked. A Component in an
+     * Attach the MetaValue, <tt>meta</tt>, to this Entity
+     * associated with <tt>c</tt>.  A Component in an
      * Entity can have multiple meta-Components associated with it, but only one
-     * meta-Component for a given type. This functions identically to how an
+     * MetaValue for a given type. This functions identically to how an
      * Entity can have multiple Components, but only one for each type.
      * </p>
      * <p>
-     * A meta-Component's lifetime is limited to the lifetime of the Component
+     * A MetaValue's lifetime is limited to the lifetime of the Component
      * it's associated with. When <tt>attach</tt> is removed from the Entity,
-     * all meta-Components on <tt>attach</tt> are removed as well. Because of
+     * all MetaValues on <tt>attach</tt> are removed as well. Because of
      * this, if <tt>attach</tt> is not attached to this Entity at the time
-     * {@link #addMeta(Component, Component)} is called, the meta-Component will
+     * {@link #addMetaValue(Component, MetaValue)} is called, the MetaValue will
      * not be assigned. True is returned when <tt>meta</tt> is correctly
      * associated and false when <tt>attach</tt> is not attached to this Entity.
      * </p>
      * 
-     * @param <T> The Component type of the meta-Component
-     * @param attach The Component in this Entity that the meta-Component is
+     * @param <T> The type of the MetaValue
+     * @param attach The Component in this Entity that the MetaValue is
      *            associated to
-     * @param meta The meta-Component that will be stored on <tt>attach</tt> for
+     * @param meta The MetaValue that will be stored on <tt>attach</tt> for
      *            this Entity
-     * @return True if the meta-Component is successfully added
+     * @return True if the MetaValue is successfully added
      * @throws NullPointerException if attach or meta are null
      */
-    public <T extends Component> boolean addMeta(Component attach, T meta) {
+    public <T extends MetaValue> boolean addMetaValue(Component attach, T meta) {
         if (attach == null || meta == null)
             throw new NullPointerException("Arguments cannot be null");
         
-        int index = attach.getComponentId().getId();
+        int index = attach.getTypedId().getId();
         synchronized(lock) {
             if (index < components.length && components[index] != null && components[index].getComponent() == attach) {
-                components[index].addMetaComponent(meta);
+                components[index].addMetaValue(meta);
                 return true;
             } else
                 return false;
@@ -316,83 +318,83 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
-     * Get the meta-Component instance that's associated with <tt>attach</tt>
+     * Get the MetaValue instance that's associated with <tt>attach</tt>
      * and has the specified id (<tt>meta</tt>). If <tt>attach</tt> is not a
-     * member of this Entity anymore, or if it has not had any meta-Component of
-     * the given type associated with it, null is returned. A non-null Component
-     * is returned only if {@link #addMeta(Component, Component)} has been
-     * previously invoked with <tt>attach</tt> and a meta-Component with the
-     * correct id, <b>and</b> <tt>attach</tt> has not already been removed from
+     * member of this Entity anymore, or if it has not had any MetaValue of
+     * the given type associated with it, null is returned. A non-null MetaValue
+     * is returned only if {@link #addMetaValue(Component, MetaValue)} has been
+     * previously invoked with <tt>attach</tt> and a MetaValue with the
+     * correct id, <b>and</b> <tt>attach</tt> has not been removed from
      * this Entity.
      * 
-     * @param <T> The Component type of the meta-Component to look-up
-     * @param attach The Component which specifies the set of meta-Components to
+     * @param <T> The type of the MetaValue to look-up
+     * @param attach The Component which specifies the set of MetaValue to
      *            search within
-     * @param meta The ComponentId of the type for the requested meta-Component
-     * @return The meta-Component of type T that's been associated with
+     * @param meta The TypedId of the type for the requested MetaValue
+     * @return The MetaValue of type T that's been associated with
      *         <tt>attach</tt>
      * @throws NullPointerException if attach or meta are null
      */
-    public <T extends Component> T getMeta(Component attach, ComponentId<T> meta) {
+    public <T extends MetaValue> T getMetaValue(Component attach, TypedId<T> meta) {
         if (attach == null || meta == null)
             throw new NullPointerException("Arguments cannot be null");
         
-        int index = attach.getComponentId().getId();
+        int index = attach.getTypedId().getId();
         if (index < components.length) {
             ComponentAttachment c = components[index];
             if (c != null && c.getComponent() == attach)
-                return c.getMetaComponent(meta);
+                return c.getMetaValue(meta);
         }
         
         return null;
     }
     
     /**
-     * Remove and return the meta-Component with id, <tt>meta</tt>, that's
+     * Remove and return the MetaValue with id, <tt>meta</tt>, that's
      * associated with <tt>attach</tt>. After a call to this method,
-     * {@link #getMeta(Component, ComponentId)} using <tt>attach</tt> and
+     * {@link #getMetaValue(Component, TypedId)} using <tt>attach</tt> and
      * <tt>meta</tt> will return null. If <tt>attach</tt> is not currently
-     * attached to this Entity, or if <tt>attach</tt> has no meta-Component of
+     * attached to this Entity, or if <tt>attach</tt> has no MetaValue of
      * the given id type.
      * 
-     * @param <T> The Component type of the meta-Component to remove
-     * @param attach The Component whose meta-Component will be removed
-     * @param meta The ComponentId matching type T
-     * @return The meta-Component of type T that was previously associated with
+     * @param <T> The type of the MetaValue to remove
+     * @param attach The Component whose MetaValue will be removed
+     * @param meta The TypedId matching type T
+     * @return The MetaValue of type T that was previously associated with
      *         <tt>attach</tt>, or null if <tt>attach</tt> was not attached to
      *         this Entity or had no meta-Component of type T
      * @throws NullPointerException if attach or meta are null
      */
-    public <T extends Component> T removeMeta(Component attach, ComponentId<T> meta) {
+    public <T extends MetaValue> T removeMeta(Component attach, TypedId<T> meta) {
         if (attach == null || meta == null)
             throw new NullPointerException("Arguments cannot be null");
         
-        int index = attach.getComponentId().getId();
+        int index = attach.getTypedId().getId();
         synchronized(lock) {
             if (index < components.length && components[index] != null && components[index].getComponent() == attach)
-                return components[index].removeMetaComponent(meta);
+                return components[index].removeMetaValue(meta);
             else
                 return null;
         }
     }
 
     /**
-     * Return an unmodifiable set of all meta-Components that are currently
+     * Return an unmodifiable set of all MetaValues that are currently
      * attached to the Component, <tt>c</tt> on this Entity. If <tt>c</tt> is
      * not attached to this Entity or it has no meta-Components the empty set is
-     * returned.
+     * returned. The returned set will not reflect future changes to MetaValues attached to <tt>c</tt>.
      * 
-     * @param c The Component whose meta-Components are queried for
-     * @return The current set of meta-Components on c
+     * @param c The Component whose MetaValues are returned
+     * @return The current set of MetaValues on c
      * @throws NullPointerException if c is null
      */
-    public Set<Component> getMetaComponents(Component c) {
+    public Set<MetaValue> getMetaValues(Component c) {
         if (c == null)
             throw new NullPointerException("Component cannot be null");
         
-        int index = c.getComponentId().getId();
+        int index = c.getTypedId().getId();
         if (index < components.length && components[index] != null)
-            return components[index].getMetaComponents();
+            return components[index].getMetaValues();
         else
             return Collections.emptySet();
     }
@@ -541,7 +543,7 @@ public final class Entity implements Iterable<Component> {
                 if (components[index] == null)
                     throw new IllegalStateException("Already called remove()");
 
-                ComponentId<?> id = components[index].getComponent().getComponentId();
+                TypedId<? extends Component> id = components[index].getComponent().getTypedId();
                 Entity.this.remove(id);
             }
         }

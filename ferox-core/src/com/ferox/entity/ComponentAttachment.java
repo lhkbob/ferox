@@ -28,10 +28,10 @@ class ComponentAttachment {
     private final Entity owner;
     
     private Component component; // set to null when attachment is broken
-    private Map<ComponentId<?>, Component> metaComponents; // null when empty
+    private Map<TypedId<? extends MetaValue>, MetaValue> metaComponents; // null when empty
     
-    private ComponentId<?> lastMetaKey;
-    private Component lastMetaValue;
+    private TypedId<? extends MetaValue> lastMetaKey;
+    private MetaValue lastMetaValue;
     
     private final ComponentIndex index;
     
@@ -129,16 +129,16 @@ class ComponentAttachment {
     }
 
     /**
-     * Return the meta-Component of the given type that has been associated with
-     * this Component attachment. This returns null if there is no attachment.
+     * Return the MetaValue of the given type that has been associated with this
+     * Component attachment. This returns null if there is no attachment.
      * 
-     * @param <T> The Component type of the returned meta-Component
-     * @param id The ComponentId type of the meta-Component
-     * @return The meta-Component of the correct id type, if available, or null
+     * @param <T> The MetaValue type of the returned meta-Component
+     * @param id The TypedId type of the MetaValue
+     * @return The MetaValue of the correct id type, if available, or null
      *         otherwise
      */
     @SuppressWarnings("unchecked")
-    public <T extends Component> T getMetaComponent(ComponentId<T> id) {
+    public <T extends MetaValue> T getMetaValue(TypedId<T> id) {
         if (metaComponents == null)
             return null;
         if (id != lastMetaKey) {
@@ -150,18 +150,18 @@ class ComponentAttachment {
     }
 
     /**
-     * Remove and return the meta-Component that is associated with this
+     * Remove and return MetaValue that is associated with this
      * Component attachment that has the given id type. If this attachment has
-     * no meta-Components or no component of the correct type, then null should
+     * no MetaValues or no MetaValue of the correct type, then null is
      * be returned.
      * 
-     * @param <T> The Component type of the removed meta-Component
-     * @param id The ComponentId of the component to remove
-     * @return The meta-Component that was previously assigned to this
+     * @param <T> The MetaValue type of the removed meta-Component
+     * @param id The TypedId of the MetaValue to remove
+     * @return The MetaValue that was previously assigned to this
      *         attachment
      */
     @SuppressWarnings("unchecked")
-    public <T extends Component> T removeMetaComponent(ComponentId<T> id) {
+    public <T extends MetaValue> T removeMetaValue(TypedId<T> id) {
         if (metaComponents != null) {
             T old = (T) metaComponents.remove(id);
             if (metaComponents.isEmpty())
@@ -175,33 +175,33 @@ class ComponentAttachment {
     }
 
     /**
-     * Add the given Component, <tt>c</tt>, as a meta-Component to be associated
+     * Add the given MetaValue to be associated
      * with the current Component of this attachment. If
      * {@link #setComponent(Component)} is invoked or
-     * {@link #removeMetaComponent(ComponentId)} is called with the appropriate
+     * {@link #removeMetaValue(TypedId)} is called with the appropriate
      * id, the given Component will be removed from this attachment. Otherwise,
-     * future calls to {@link #getMetaComponent(ComponentId)} can return
+     * future calls to {@link #getMetaValue(TypedId)} will return
      * <tt>c</tt>.
      * 
      * @param c The new meta-Component to add to this attachment
      */
-    public void addMetaComponent(Component c) {
+    public void addMetaValue(MetaValue c) {
         if (metaComponents == null)
-            metaComponents = new HashMap<ComponentId<?>, Component>();
+            metaComponents = new HashMap<TypedId<? extends MetaValue>, MetaValue>();
+        
         lastMetaKey = null;
         lastMetaValue = null;
-        metaComponents.put(c.getComponentId(), c);
+        metaComponents.put(c.getTypedId(), c);
     }
     
     /**
-     * @return An immutable set of the current Components stored as
-     *         meta-Components for this attachment.
+     * @return An immutable set of the current MetaValues for this attachment.
      */
-    public Set<Component> getMetaComponents() {
+    public Set<MetaValue> getMetaValues() {
         if (metaComponents == null)
             return Collections.emptySet();
         
-        Set<Component> values = new HashSet<Component>(metaComponents.values());
+        Set<MetaValue> values = new HashSet<MetaValue>(metaComponents.values());
         return Collections.unmodifiableSet(values);
     }
 
@@ -260,7 +260,7 @@ class ComponentAttachment {
             StringBuilder b = new StringBuilder(component.toString());
             boolean first = true;
             b.append('(');
-            for (Entry<ComponentId<?>, Component> e: metaComponents.entrySet()) {
+            for (Entry<TypedId<? extends MetaValue>, MetaValue> e: metaComponents.entrySet()) {
                 if (!first) {
                     b.append(',');
                     b.append(' ');
