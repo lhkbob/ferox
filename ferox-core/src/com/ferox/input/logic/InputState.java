@@ -17,8 +17,8 @@ public class InputState {
     }
     
     public InputState(InputState is) {
-        keyboard = is.keyboard;
-        mouse = is.mouse;
+        keyboard = new KeyboardState(is.keyboard);
+        mouse = new MouseState(is.mouse);
         
         timestamp = System.currentTimeMillis();
     }
@@ -26,7 +26,7 @@ public class InputState {
     public InputState(InputState prev, KeyEvent event) {
         if (prev != null) {
             keyboard = new KeyboardState(prev.keyboard, event);
-            mouse = prev.mouse;
+            mouse = new MouseState(prev.mouse);
         } else {
             keyboard = new KeyboardState(null, event);
             mouse = new MouseState();
@@ -37,7 +37,7 @@ public class InputState {
     
     public InputState(InputState prev, MouseEvent event) {
         if (prev != null) {
-            keyboard = prev.keyboard;
+            keyboard = new KeyboardState(prev.keyboard);
             mouse = new MouseState(prev.mouse, event);
         } else {
             keyboard = new KeyboardState();

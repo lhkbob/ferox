@@ -27,6 +27,17 @@ public class MouseState {
         scrollCount = 0;
     }
     
+    public MouseState(MouseState prev) {
+        x = prev.x;
+        y = prev.y;
+        
+        dx = 0;
+        dy = 0;
+        
+        buttonsDown = EnumSet.copyOf(prev.buttonsDown);
+        scrollCount = 0;
+    }
+    
     public MouseState(MouseState prev, MouseEvent event) {
         x = event.getX();
         y = event.getY();

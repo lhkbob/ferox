@@ -13,6 +13,10 @@ public class KeyboardState {
         keysDown = EnumSet.noneOf(KeyCode.class);
     }
     
+    public KeyboardState(KeyboardState prev) {
+        keysDown = EnumSet.copyOf(prev.keysDown);
+    }
+    
     public KeyboardState(KeyboardState prev, KeyEvent event) {
         if (prev != null)
             keysDown = EnumSet.copyOf(prev.keysDown);

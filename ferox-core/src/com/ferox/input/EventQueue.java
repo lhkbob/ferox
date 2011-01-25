@@ -2,6 +2,7 @@ package com.ferox.input;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 public class EventQueue {
     private final ExecutorService executor;
@@ -16,8 +17,11 @@ public class EventQueue {
     
     public void postEvent(Event e) {
         EventDispatcher dispatcher = e.getSource().getDispatcher();
-        // FIXME: can fail if event is posted after executor is shut down
-        executor.submit(new EventTask(dispatcher, e));
+        try {
+            executor.submit(new EventTask(dispatcher, e));
+        } catch(RejectedExecutionException ree) {
+            // ignore
+        }
     }
     
     private static class EventTask implements Runnable {
