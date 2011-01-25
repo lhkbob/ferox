@@ -1,6 +1,6 @@
 package com.ferox.math;
 
-public class Color4f extends ReadOnlyColor4f {
+public final class Color4f extends ReadOnlyColor4f {
     private static final int RED = 0;
     private static final int GREEN = 1;
     private static final int BLUE = 2;
@@ -12,6 +12,11 @@ public class Color4f extends ReadOnlyColor4f {
     public Color4f() {
         rgba = new float[] { 0f, 0f, 0f };
         rgbaHDR = new float[] { 0f, 0f, 0f };
+    }
+    
+    public Color4f(Color4f color) {
+        this();
+        set(color);
     }
     
     public Color4f(float red, float green, float blue) {
@@ -27,6 +32,10 @@ public class Color4f extends ReadOnlyColor4f {
     public Color4f(int rgba) {
         this();
         set(rgba);
+    }
+    
+    public Color4f set(ReadOnlyColor4f color) {
+        return set(color.getRedHDR(), color.getGreenHDR(), color.getBlueHDR(), color.getAlpha());
     }
     
     public Color4f set(int rgba) {
