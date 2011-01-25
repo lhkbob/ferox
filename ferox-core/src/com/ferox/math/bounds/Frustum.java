@@ -36,7 +36,6 @@ import com.ferox.math.Vector4f;
  * 
  * @author Michael Ludwig
  */
-// FIXME: I think I broke this or the ViewNodeController or something when I changed the maths around
 public class Frustum {
     /** Result of a frustum test against a {@link AxisAlignedBox}. */
     public static enum FrustumIntersection {

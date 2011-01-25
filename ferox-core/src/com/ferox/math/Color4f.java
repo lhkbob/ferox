@@ -1,193 +1,121 @@
 package com.ferox.math;
 
-/**
- * A simple class to hold onto the four color components, red, green, blue and
- * alpha. Whenever setting values on a ColorRgba, the components are clamped to
- * be within [0, 1].
- * 
- * @author Michael Ludwig
- */
-public class Color4f {
-    private float red;
-    private float green;
-    private float blue;
+public class Color4f extends ReadOnlyColor4f {
+    private static final int RED = 0;
+    private static final int GREEN = 1;
+    private static final int BLUE = 2;
+    
+    private final float[] rgba;
+    private final float[] rgbaHDR;
     private float alpha;
-
-    /** Creates a color <0, 0, 0, 1>. */
+    
     public Color4f() {
-        this(0f, 0f, 0f, 1f);
+        rgba = new float[] { 0f, 0f, 0f };
+        rgbaHDR = new float[] { 0f, 0f, 0f };
     }
-
-    /**
-     * Creates a color <red, green, blue, 1>.
-     * 
-     * @param red Red color value, clamped in [0, 1]
-     * @param green Green color value, clamped in [0, 1]
-     * @param blue Blue color value, clamped in [0, 1]
-     */
+    
     public Color4f(float red, float green, float blue) {
-        this(red, green, blue, 1f);
+        this();
+        set(red, green, blue);
     }
-
-    /**
-     * Creates a color <red, green, blue, alpha>.
-     * 
-     * @param red Red color value, clamped in [0, 1]
-     * @param green Green color value, clamped in [0, 1]
-     * @param blue Blue color value, clamped in [0, 1]
-     * @param alpha Alpha color value, clamped in [0, 1]
-     */
+    
     public Color4f(float red, float green, float blue, float alpha) {
-        this.set(red, green, blue, alpha);
+        this();
+        set(red, green, blue, alpha);
     }
-
-    /**
-     * Creates a color that is a copy of other, other can't be null.
-     * 
-     * @param other Color4f whose values are copied
-     * @throws NullPointerException if other is null
-     */
-    public Color4f(Color4f other) {
-        this(other.red, other.green, other.blue, other.alpha);
+    
+    public Color4f(int rgba) {
+        this();
+        set(rgba);
     }
-
-    /**
-     * Sets this color's components to be equal to other's.
-     * 
-     * @param other The Color4f to clone
-     * @return This Color4f
-     * @throws NullPointerException if other is null
-     */
-    public Color4f set(Color4f other) {
-        return set(other.red, other.green, other.blue, other.alpha);
+    
+    public Color4f set(int rgba) {
+        int r = (rgba >> 24) & 0xff;
+        int g = (rgba >> 16) & 0xff;
+        int b = (rgba >> 8) & 0xff;
+        int a = (rgba) & 0xff;
+        return set(r / 255f, g / 255f, b / 255f, a / 255f);
     }
-
-    /**
-     * Sets this color's components to be the given rgb values, and an alpha of
-     * 1.
-     * 
-     * @param red Red color value, clamped in [0, 1]
-     * @param green Green color value, clamped in [0, 1]
-     * @param blue Blue color value, clamped in [0, 1]
-     */
+    
     public Color4f set(float red, float green, float blue) {
         return set(red, green, blue, 1f);
     }
-
-    /**
-     * Sets this color's components to be the given rgba values.
-     * 
-     * @param red Red color value, clamped in [0, 1]
-     * @param green Green color value, clamped in [0, 1]
-     * @param blue Blue color value, clamped in [0, 1]
-     * @param alpha Alpha color value, clamped in [0, 1]
-     * @return This Color4f
-     */
+    
     public Color4f set(float red, float green, float blue, float alpha) {
-        return setRed(red).setGreen(green).setBlue(blue).setAlpha(alpha);
+        return setRed(red).
+               setGreen(green).
+               setBlue(blue).
+               setAlpha(alpha);
     }
-
-    /**
-     * Set the red component, clamped to [0, 1].
-     * 
-     * @param red Red color value, clamped in [0, 1]
-     * @return This Color4f
-     */
+    
     public Color4f setRed(float red) {
-        this.red = Math.max(0f, Math.min(1f, red));
-        return this;
+        return setValue(red, RED);
     }
-
-    /**
-     * Set the green component, clamped to [0, 1].
-     * 
-     * @param green Green color value, clamped in [0, 1]
-     * @return This Color4f
-     */
+    
     public Color4f setGreen(float green) {
-        this.green = Math.max(0f, Math.min(1f, green));
-        return this;
+        return setValue(green, GREEN);
     }
-
-    /**
-     * Set the blue component, clamped to [0, 1].
-     * 
-     * @param blue Blue color value, clamped in [0, 1]
-     * @return This Color4f
-     */
+    
     public Color4f setBlue(float blue) {
-        this.blue = Math.max(0f, Math.min(1f, blue));
-        return this;
+        return setValue(blue, BLUE);
     }
-
-    /**
-     * Set the alpha component, clamped to [0, 1].
-     * 
-     * @param alpha Alpha color value, clamped in [0, 1]
-     * @return This Color4f
-     */
+    
     public Color4f setAlpha(float alpha) {
-        this.alpha = Math.max(0f, Math.min(1f, alpha));
+        this.alpha = Math.max(0f, Math.min(alpha, 1f));
         return this;
     }
-
-    /**
-     * Get the red component.
-     * 
-     * @return The red component of this color
-     */
+    
+    private Color4f setValue(float v, int i) {
+        rgbaHDR[i] = Math.max(0f, v);
+        rgba[i] = Math.min(rgbaHDR[i], 1f);
+        return this;
+    }
+    
+    public Color4f set(int index, float value) {
+        if (index == 3)
+            return setAlpha(value);
+        else if (index >= 0 && index < 3)
+            return setValue(value, index);
+        else
+            throw new IndexOutOfBoundsException("Illegal index, must be in [0, 3], not: " + index);
+    }
+    
+    public Color4f set(float[] values, int offset) {
+        return set(values[offset], values[offset + 1], values[offset + 2], values[offset + 3]);
+    }
+    
+    @Override
     public float getRed() {
-        return red;
+        return rgba[RED];
     }
 
-    /**
-     * Get the green component.
-     * 
-     * @return The green component of this color
-     */
+    @Override
     public float getGreen() {
-        return green;
+        return rgba[GREEN];
     }
 
-    /**
-     * Get the blue component.
-     * 
-     * @return The blue component of this color
-     */
+    @Override
     public float getBlue() {
-        return blue;
+        return rgba[BLUE];
     }
 
-    /**
-     * Get the alpha component.
-     * 
-     * @return The alpha component of this color
-     */
+    @Override
     public float getAlpha() {
         return alpha;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == null || !(other instanceof Color4f))
-            return false;
-        if (other == this)
-            return true;
-        Color4f that = (Color4f) other;
-        return that.red == red && that.green == green && that.blue == blue && that.alpha == alpha;
+    public float getRedHDR() {
+        return rgbaHDR[RED];
     }
 
     @Override
-    public int hashCode() {
-        int r = Float.floatToIntBits(red);
-        int g = Float.floatToIntBits(green);
-        int b = Float.floatToIntBits(blue);
-        int a = Float.floatToIntBits(alpha);
-        return r ^ g ^ b ^ a;
+    public float getGreenHDR() {
+        return rgbaHDR[GREEN];
     }
 
     @Override
-    public String toString() {
-        return "(Color4f " + red + ", " + green + ", " + blue + ", " + alpha + ")";
+    public float getBlueHDR() {
+        return rgbaHDR[BLUE];
     }
 }

@@ -3,7 +3,7 @@ package com.ferox.math;
 /**
  * Matrix4f is the default complete implementation of a 4x4 matrix. It can be
  * used as both a mutable and as a read-only matrix. This implementation stores
- * its data in a 16 element float array. {@link Transform} is another 4x4 matrix
+ * its data in a 16 element float array. {@link AffineTransform} is another 4x4 matrix
  * implementation that separates the rotation and translation so it can more
  * easily represent an affine transform.
  * 
