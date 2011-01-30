@@ -1,10 +1,6 @@
 package com.ferox.resource;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
+import com.ferox.resource.BufferData.DataType;
 
 /**
  * <p>
@@ -74,55 +70,55 @@ import java.nio.ShortBuffer;
  */
 public enum TextureFormat {
     RGBA(null, 4, 4, true), 
-    RGBA_4444(ShortBuffer.class, 1, 4, true, true), 
-    RGBA_8888(IntBuffer.class, 1, 4, true, true), 
-    RGBA_5551(ShortBuffer.class, 1, 4, true, true), 
-    RGBA_FLOAT(FloatBuffer.class, 4, 4, true),
+    RGBA_4444(DataType.SHORT, 1, 4, true, true), 
+    RGBA_8888(DataType.INT, 1, 4, true, true), 
+    RGBA_5551(DataType.SHORT, 1, 4, true, true), 
+    RGBA_FLOAT(DataType.FLOAT, 4, 4, true),
 
-    RGBA_DXT1(ByteBuffer.class, -1, 4, true), 
-    RGBA_DXT3(ByteBuffer.class, -1, 4, true),
-    RGBA_DXT5(ByteBuffer.class, -1, 4, true),
+    RGBA_DXT1(DataType.BYTE, -1, 4, true), 
+    RGBA_DXT3(DataType.BYTE, -1, 4, true),
+    RGBA_DXT5(DataType.BYTE, -1, 4, true),
 
     BGRA(null, 4, 4, true), 
-    BGRA_4444(ShortBuffer.class, 1, 4, true, true), 
-    BGRA_8888(IntBuffer.class, 1, 4, true, true), 
-    BGRA_5551(ShortBuffer.class, 1, 4, true, true),
+    BGRA_4444(DataType.SHORT, 1, 4, true, true), 
+    BGRA_8888(DataType.INT, 1, 4, true, true), 
+    BGRA_5551(DataType.SHORT, 1, 4, true, true),
 
-    ARGB_4444(ShortBuffer.class, 1, 4, true, true), 
-    ARGB_1555(ShortBuffer.class, 1, 4, true, true), 
-    ARGB_8888(IntBuffer.class, 1, 4, true, true),
+    ARGB_4444(DataType.SHORT, 1, 4, true, true), 
+    ARGB_1555(DataType.SHORT, 1, 4, true, true), 
+    ARGB_8888(DataType.INT, 1, 4, true, true),
 
-    ABGR_4444(ShortBuffer.class, 1, 4, true, true), 
-    ABGR_1555(ShortBuffer.class, 1, 4, true, true), 
-    ABGR_8888(IntBuffer.class, 1, 4, true, true),
+    ABGR_4444(DataType.SHORT, 1, 4, true, true), 
+    ABGR_1555(DataType.SHORT, 1, 4, true, true), 
+    ABGR_8888(DataType.INT, 1, 4, true, true),
 
     RGB(null, 3, 3, false), 
-    RGB_565(ShortBuffer.class, 1, 3, false, true), 
-    RGB_FLOAT(FloatBuffer.class, 3, 3, false), 
-    RGB_DXT1(ByteBuffer.class, -1, 3, false),
+    RGB_565(DataType.SHORT, 1, 3, false, true), 
+    RGB_FLOAT(DataType.FLOAT, 3, 3, false), 
+    RGB_DXT1(DataType.BYTE, -1, 3, false),
 
     BGR(null, 3, 3, false), 
-    BGR_565(ShortBuffer.class, 1, 3, false, true),
+    BGR_565(DataType.SHORT, 1, 3, false, true),
 
     LUMINANCE_ALPHA(null, 2, 2, true), 
     LUMINANCE(null, 1, 1, false), 
     ALPHA(null, 1, 1, true),
 
-    LUMINANCE_ALPHA_FLOAT(FloatBuffer.class, 2, 2, true), 
-    LUMINANCE_FLOAT(FloatBuffer.class, 1, 1, false), 
-    ALPHA_FLOAT(FloatBuffer.class, 1, 1, true),
+    LUMINANCE_ALPHA_FLOAT(DataType.FLOAT, 2, 2, true), 
+    LUMINANCE_FLOAT(DataType.FLOAT, 1, 1, false), 
+    ALPHA_FLOAT(DataType.FLOAT, 1, 1, true),
 
     DEPTH(null, 1, 1, false);
 
-    private Class<? extends Buffer> type;
+    private DataType type;
     private boolean hasAlpha, isPacked;
     private int pPerC, numC;
 
-    private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha) {
+    private TextureFormat(DataType type, int pPerC, int numC, boolean alpha) {
         this(type, pPerC, numC, alpha, false);
     }
 
-    private TextureFormat(Class<? extends Buffer> type, int pPerC, int numC, boolean alpha, boolean packed) {
+    private TextureFormat(DataType type, int pPerC, int numC, boolean alpha, boolean packed) {
         this.type = type;
         this.pPerC = pPerC;
         hasAlpha = alpha;
@@ -179,53 +175,32 @@ public enum TextureFormat {
     }
 
     /**
-     * Return the Buffer type that is required by the TextureFormat. If null is
-     * returned, then any of ByteBuffer, IntBuffer, ShortBuffer or FloatBuffer
-     * are allowed
+     * Return the DataType that is required by the TextureFormat. If null is
+     * returned, then any DataType is allowed.
      * 
      * @return The required DataType of texture data for this format, may be
      *         null
      */
-    public Class<? extends Buffer> getSupportedType() {
+    public DataType getSupportedType() {
         return type;
     }
 
     /**
-     * Whether or not the Buffer is supported by this format.
-     * 
-     * @see #getSupportedType()
-     * @param buffer The Buffer meant to hold data in this format
-     * @return True if this format can be used with buffer
-     * @throws NullPointerException if buffer is null
-     */
-    public boolean isBufferValid(Buffer buffer) {
-        if (buffer == null)
-            throw new NullPointerException("Buffer cannot be null");
-
-        if (type == null)
-            return buffer instanceof FloatBuffer || buffer instanceof ByteBuffer || 
-                   buffer instanceof ShortBuffer || buffer instanceof IntBuffer;
-        else
-            return type.isInstance(buffer);
-    }
-
-    /**
-     * Whether or not the Buffer type is supported by this format.
+     * Whether or not the DataType is supported by this format.
      * 
      * @see #getSupportedType()
      * @param type The Buffer class meant to hold data in this format
      * @return True if this type can be used with type
      * @throws NullPointerException if type is null
      */
-    public boolean isTypeValid(Class<? extends Buffer> type) {
+    public boolean isTypeValid(DataType type) {
         if (type == null)
             throw new NullPointerException("Type cannot be null");
         
         if (this.type == null)
-            return FloatBuffer.class.isAssignableFrom(type) || ByteBuffer.class.isAssignableFrom(type) ||
-                   ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type);
+            return true;
         else
-            return this.type.isAssignableFrom(type);
+            return this.type.equals(type);
     }
 
     /**

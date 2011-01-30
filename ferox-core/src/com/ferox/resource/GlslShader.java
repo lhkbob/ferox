@@ -1,10 +1,11 @@
 package com.ferox.resource;
 
 import java.util.EnumMap;
+import java.util.Scanner;
 
 public class GlslShader extends Resource {
     public static enum Version {
-        V1_00, V1_10, V1_20, V1_30, V1_40, V1_50
+        V1_20, V1_30, V1_40, V1_50, V3_30, V4_00
     }
     
     public static enum AttributeType {
@@ -17,11 +18,11 @@ public class GlslShader extends Resource {
             row = r; col = c;
         }
         
-        public int getRows() {
+        public int getRowCount() {
             return row;
         }
         
-        public int getColumns() {
+        public int getColumnCount() {
             return col;
         }
     }
@@ -32,12 +33,10 @@ public class GlslShader extends Resource {
     
     private Version version;
     private EnumMap<ShaderType, String> shaders;
-    private GlslShaderDirtyState dirty;
     
     public GlslShader() {
-        version = Version.V1_00;
+        version = Version.V1_20;
         shaders = new EnumMap<ShaderType, String>(ShaderType.class);
-        dirty = null;
     }
     
     public String getShader(ShaderType type) {
@@ -49,15 +48,18 @@ public class GlslShader extends Resource {
     public void setShader(ShaderType type, String code) {
         if (type == null)
             throw new NullPointerException("ShaderType cannot be null");
-        if (code == null)
+        if (code == null) {
             shaders.remove(type);
-        else
-            shaders.put(type, code);
+            return;
+        }
+         
+        code = code.trim();
+        if (code.isEmpty())
+            throw new IllegalArgumentException("Shader code cannot be empty");
+        version = updateVersion(type, code);
+        shaders.put(type, code);
         
-        if (dirty == null)
-            dirty = new GlslShaderDirtyState(type);
-        else
-            dirty = dirty.setShaderDirty(type);
+        notifyChange(type);
     }
     
     public void removeShader(ShaderType type) {
@@ -68,21 +70,33 @@ public class GlslShader extends Resource {
         return version;
     }
     
-    public void setVersion(Version v) {
-        if (v == null)
-            throw new NullPointerException("Version cannot be null");
-        version = v;
+    private Version updateVersion(ShaderType type, String codeSrc) {
+        EnumMap<ShaderType, String> clone = new EnumMap<ShaderType, String>(shaders);
+        clone.put(type, codeSrc);
         
-        if (dirty == null)
-            dirty = new GlslShaderDirtyState(true);
-        else
-            dirty = dirty.setVersionDirty();
-    }
-
-    @Override
-    public DirtyState<?> getDirtyState() {
-        GlslShaderDirtyState d = dirty;
-        dirty = null;
-        return d;
+        Version detectedVersion = null;
+        for (String code: clone.values()) {
+            if (code.startsWith("#version")) {
+                Scanner s = new Scanner(code.substring(9));
+                int version = s.nextInt();
+                Version v = null;
+                
+                switch(version) {
+                case 120: v = Version.V1_20; break;
+                case 130: v = Version.V1_30; break;
+                case 140: v = Version.V1_40; break;
+                case 150: v = Version.V1_50; break;
+                case 330: v = Version.V3_30; break;
+                case 400: v = Version.V4_00; break;
+                }
+                
+                if (detectedVersion == null)
+                    detectedVersion = v;
+                else if (detectedVersion != v && v != null)
+                    throw new IllegalArgumentException("Shader version mismatch");
+            }
+        }
+        
+        return (detectedVersion == null ? Version.V1_20 : detectedVersion);
     }
 }

@@ -1,6 +1,10 @@
 package com.ferox.resource;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.ferox.renderer.Framework;
 
 /**
  * <p>
@@ -29,12 +33,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  * It is not required that Resource implementations be thread-safe. Instead,
  * each Thread that intends to modify or use the Resource (e.g. worker threads
  * of a Framework) must synchronize on the Resource instance. To prevent
- * deadlocks, each Thread should only acquire one lock at a time.
+ * deadlocks, each Thread should acquire only one resource lock at a time.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public abstract class Resource {
+public abstract class Resource {    
+    public static final Object FULL_UPDATE = new Object();
+    
     /**
      * Each resource will have a status with the active renderer. A Resource is
      * usable if it has a status of READY. Resources that are DISPOSED will be
@@ -70,13 +76,93 @@ public abstract class Resource {
          */
         DISPOSED
     }
+
+    /**
+     * The UpdatePolicy of a Resource controls the behavior of Frameworks and
+     * how they manage their Resources. By default, created Resources have the
+     * AUTOMATIC policy which applies changes automatically as they occur. The
+     * ON_DEMAND policy batches changes to minimize state changes and operations
+     * on a resource, and is a mix between AUTOMATIC and MANUAL. The MANUAL
+     * policy forces Resources to be updated manually with
+     * {@link Framework#update(Resource)} as needed.
+     */
+    public static enum UpdatePolicy {
+        /**
+         * Changes will be applied automatically as they are reported by the
+         * Resource to its ResourceListeners. If needed, all pending changes
+         * will be flushed before the Resource is used by a Framework. This is
+         * the default policy. Calling {@link Framework#update(Resource)} on an
+         * AUTOMATIC resource will return a Future that will block until all
+         * currently queued changes are flushed.
+         */
+        AUTOMATIC,
+        /**
+         * Like AUTOMATIC, changes are applied automatically, however, changes
+         * are only flushed before the Resource is used by a Framework. Calling
+         * {@link Framework#update(Resource)} on an ON_DEMAND resource will
+         * flush all pending changes and will return a FUTURE that blocks until
+         * they are completed. A scheduled update can be used to flush changes
+         * before a resource is needed.
+         */
+        ON_DEMAND,
+        /**
+         * Frameworks track changes to a Resource but do not apply the changes
+         * until specifically requested with a call to
+         * {@link Framework#update(Resource)}. Changes are not flushed even if
+         * the Resource is needed by the Framework.
+         */
+        MANUAL
+    }
     
     private static AtomicInteger idCounter = new AtomicInteger(0);
     
     private final int id;
+    private final List<ResourceListener> listeners;
+    
+    private UpdatePolicy policy;
     
     public Resource() {
         id = idCounter.getAndIncrement();
+        listeners = new ArrayList<ResourceListener>();
+        policy = UpdatePolicy.AUTOMATIC;
+    }
+    
+    public UpdatePolicy getUpdatePolicy() {
+        return policy;
+    }
+    
+    public void setUpdatePolicy(UpdatePolicy policy) {
+        if (policy == null)
+            throw new NullPointerException("UpdatePolicy cannot be null");
+        this.policy = policy;
+    }
+    
+    public void addResourceListener(ResourceListener listener) {
+        if (listener == null)
+            throw new NullPointerException("ResourceListener cannot be null");
+        
+        synchronized(this) {
+            if (!listeners.contains(listener))
+                listeners.add(listener);
+        }
+    }
+    
+    public void removeResourceListener(ResourceListener listener) {
+        if (listener == null)
+            throw new NullPointerException("ResourceListener cannot be null");
+        
+        synchronized(this) {
+            listeners.remove(listener);
+        }
+    }
+    
+    protected void notifyChange(Object changeDescriptor) {
+        synchronized(this) {
+            int ct = listeners.size();
+            for (int i = 0; i < ct; i++) {
+                listeners.get(i).onResourceChange(this, changeDescriptor);
+            }
+        }
     }
 
     /**
@@ -90,44 +176,6 @@ public abstract class Resource {
         return id;
     }
 
-    /**
-     * <p>
-     * Return an object that describes what regions of the Resource are dirty.
-     * When this returns a non-null instance, and the Resource is used in a
-     * frame, then the Framework should automatically update the Resource based
-     * on the returned dirty state. If null is returned, then this Resource
-     * has not be modified (or marked as modified).
-     * </p>
-     * <p>
-     * Implementations should document what type of object is returned, and
-     * override the return type. The returned dirty state must be an
-     * immutable object. Every time the dirty state must be expanded to
-     * represent more state, a new instance should be created that has a
-     * superset of the dirty attributes of the previous instance.
-     * </p>
-     * <p>
-     * Because there is only one dirty state per Resource, care must be
-     * given when using multiple Frameworks at the same time.
-     * </p>
-     * <p>
-     * The state is the minimal set of values needed to be updated.
-     * Frameworks should not update less than what is described by the object.
-     * If a Resource is manually updated and it's state is null, the entire
-     * Resource should be updated, for lack of a better alternative.
-     * </p>
-     * <p>
-     * Invoking this method resets the dirty state of a Resource, so a second
-     * call to this method will return null, until the Resource has again
-     * been flagged as dirty. Because of this, this should only be called by
-     * Framework implementations at the appropriate time to look up the dirty
-     * state.
-     * </p>
-     * 
-     * @return Implementations specific object describing what parts of the
-     *         Resource are dirty
-     */
-    public abstract DirtyState<?> getDirtyState();
-    
     @Override
     public int hashCode() {
         return id;
