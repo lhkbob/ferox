@@ -17,7 +17,7 @@ import com.ferox.entity.KeyedLinkedList.Key;
  * component containers such as Entities and Templates.
  * </p>
  * 
- * @author Michael Ludwgi
+ * @author Michael Ludwig
  */
 public class Entity extends ComponentContainer {
     private volatile EntitySystem owner;
@@ -98,8 +98,12 @@ public class Entity extends ComponentContainer {
      */
     boolean addToEntitySystem(EntitySystem newOwner) {
         synchronized(lock) {
-            if (owner != null)
-                return false;
+            if (owner != null) {
+                // This Entity is owned by a system already. If it's a different system from
+                // newOwner the add will fail. If it's already newOwner, we do nothing and
+                // return true to be nice.
+                return owner == newOwner;
+            }
             
             indexKey = newOwner.entityList.add(this);
             owner = newOwner;

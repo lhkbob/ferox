@@ -6,7 +6,50 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.ferox.entity.KeyedLinkedList.Key;
 
-public class Component {
+/**
+ * <p>
+ * Component represents a set of self-consistent state that can be added to an
+ * {@link Entity} or {@link Template}. Components added to a Template are used
+ * to specify a common configuration for Entities created from the template. The
+ * set of components of a ComponentContainer effectively create a composite
+ * class type based on all of the components. Components are intended to be data
+ * storage objects, so their definition should not contain methods for
+ * processing or updating (that is the responsibility of a {@link Controller}).
+ * </p>
+ * <p>
+ * The behavior or purpose of a Component should be well defined, even in
+ * isolation. Component definitions should not require an entity or template to
+ * have other components added to function correctly. Other components may be
+ * needed or desirable to get useful functionality. Often there is the case
+ * where a number of components have a common subset of properties, such as
+ * transform or bounds. In this case, it is better to have each Component define
+ * the transform and their other properties, and another Component define only a
+ * transform with a controller that would synchronize the complex Component with
+ * the transform.
+ * </p>
+ * <p>
+ * Each Component class gets a {@link TypedId}, which can be looked up with
+ * {@link #getTypedId(Class)}, passing in a desired class type. Because the
+ * entity-component design pattern does not follow common object-oriented
+ * principles, certain rules are followed when handling Component types in a
+ * class hierarchy:
+ * <ol>
+ * <li>Any abstract type extending Component cannot get a TypedId</li>
+ * <li>All concrete classes extending Component get separate TypedIds, even if
+ * they extend from the same intermediate class below Component.</li>
+ * <li>All intermediate classes in a Component type's hierarchy must be abstract
+ * or runtime exceptions will be thrown.</li>
+ * </ol>
+ * As an example, an abstract component could be Light, with concrete subclasses
+ * SpotLight and DirectionLight. SpotLight and DirectionLight would be separate
+ * component types as determined by TypedId. Light would not have any TypedId
+ * and only serves to consolidate property definition among related component
+ * types.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
+public abstract class Component {
     // Use a ConcurrentHashMap to perform reads. It is still synchronized completely to do
     // an insert to make sure a type doesn't try to use two different id values.
     private static final ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>> typeMap = new ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>>();
@@ -18,12 +61,45 @@ public class Component {
     // This is guarded by the lock of the current owner
     private Key<Component> indexKey;
     
+    /**
+     * Create a Component, which looks up the appropriate TypedId via {@link #getTypedId(Class)}.
+     * @throws 
+     */
     public Component() {
-        id = getTypedId();
+        id = getTypedId(getClass());
         owner = new AtomicReference<ComponentContainer>();
         indexKey = null;
     }
     
+    /**
+     * <p>
+     * Return the unique TypedId associated with this Component's class type.
+     * All Components of the same class will return this id, too.
+     * </p>
+     * <p>
+     * It is recommended that implementations override this method to use the
+     * proper return type. Component does not perform this cast to avoid
+     * parameterizing Component. Do not change the actual returned instance,
+     * though.
+     * </p>
+     * 
+     * @return The TypedId of this Component
+     */
+    public TypedId<? extends Component> getTypedId() {
+        return id;
+    }
+
+    /**
+     * Get the current ComponentContainer that owns this Component. The
+     * ComponentContainer will either be an Entity or a Template. If it is an
+     * Entity, it may be part of an EntitySystem, in which case this Component
+     * can be iterated over via {@link EntitySystem#iterator(TypedId)}. If null
+     * is returned, the Component is not owned by any container. A Component
+     * cannot be added to another container if it owned; it must be removed
+     * manually first.
+     * 
+     * @return The current owner
+     */
     public ComponentContainer getOwner() {
         return owner.get();
     }
@@ -34,7 +110,8 @@ public class Component {
      * the ComponentContainer cannot add the Component to its data structures.
      * This should only be called when the lock for newOwner is held. If the new
      * owner is in an EntitySystem, this Component will be attached to the
-     * system's component indices.
+     * system's component indices. This returns false if any container owns the
+     * component, including if newOwner already owns it.
      * 
      * @param newOwner The ComponentContainer that wants to own this Component
      * @return True if the the container now owns the component
@@ -124,24 +201,6 @@ public class Component {
         }
     }
     
-    /**
-     * <p>
-     * Return the unique TypedId associated with this Component's class type.
-     * All Components of the same class will return this id, too.
-     * </p>
-     * <p>
-     * It is recommended that implementations override this method to use the
-     * proper return type. Component does not perform this cast to avoid
-     * parameterizing Component. Do not change the actual returned instance,
-     * though.
-     * </p>
-     * 
-     * @return The TypedId of this Component
-     */
-    public TypedId<? extends Component> getTypedId() {
-        return id;
-    }
-    
     @Override
     public String toString() {
         return getClass().getSimpleName();
@@ -168,15 +227,28 @@ public class Component {
     public static <T extends Component> TypedId<T> getTypedId(Class<T> type) {
         if (type == null)
             throw new NullPointerException("Type cannot be null");
-        if (!Component.class.isAssignableFrom(type))
-            throw new IllegalArgumentException("Type must be a subclass of Component: " + type);
-        if (Modifier.isAbstract(type.getModifiers()))
-            throw new IllegalArgumentException("Component class type cannot be abstract: " + type);
-
+        
+        // Do a look up first without locking to avoid the synchronized lock and expensive
+        // error checking.  If we found one, we know it passed validation the first time, otherwise
+        // we'll validate it before creating a new TypedId.
         TypedId<T> id = (TypedId<T>) typeMap.get(type);
         if (id != null)
             return id; // Found an existing id
         
+        if (!Component.class.isAssignableFrom(type))
+            throw new IllegalArgumentException("Type must be a subclass of Component: " + type);
+        
+        // Validate the class hierarchy such that this class is not abstract, and all parent classes
+        // below Component are abstract (which includes AbstractComponent).
+        if (Modifier.isAbstract(type.getModifiers()))
+            throw new IllegalArgumentException("Component class type cannot be abstract: " + type);
+        Class<? super T> parent = type.getSuperclass();
+        while(!Component.class.equals(parent)) {
+            if (Modifier.isAbstract(parent.getModifiers()))
+                throw new IllegalComponentHierarchyException(type, parent);
+            parent = parent.getSuperclass();
+        }
+
         synchronized(typeMap) {
             // Must create a new id, we lock completely to prevent concurrent getTypedId() on the
             // same type using two different ids.  One would get overridden and its returned TypedId
