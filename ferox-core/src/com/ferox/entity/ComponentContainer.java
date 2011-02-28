@@ -246,25 +246,29 @@ public abstract class ComponentContainer implements Iterable<Component> {
             nextIndex = 0;
             nextValue = (maxLen > 0 ? components[0] : null);
             currentValue = null;
-            
-            if (nextValue == null)
-                advance();
         }
         
         @Override
         public boolean hasNext() {
+            if (nextValue == null)
+                advance();
             return nextValue != null;
         }
 
         @Override
         public Component next() {
-            if (nextValue == null)
+            // Use hasNext() instead of comparing directly against nextValue in
+            // case hasNext() wasn't called prior to next()
+            if (!hasNext())
                 throw new NoSuchElementException();
             
             // Store the current value for later in remove(), so
             // we can make sure to remove the proper Component
             currentValue = nextValue;
-            advance();
+            
+            // Set nextValue to null so that the next call to hasNext() or
+            // next() triggers an advance()
+            nextValue = null;
             return currentValue;
         }
 
@@ -278,11 +282,13 @@ public abstract class ComponentContainer implements Iterable<Component> {
         }
         
         private void advance() {
-            nextValue = null; // Reset nextValue so we iterate at least once
+            Component next = null;
             Component[] components = ComponentContainer.this.components;
-            while(nextValue == null && ++nextIndex < maxLen) {
-                nextValue = components[nextIndex];
+            while(next == null && ++nextIndex < maxLen) {
+                next = components[nextIndex];
             }
+            
+            nextValue = next;
         }
     }
 }

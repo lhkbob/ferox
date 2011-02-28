@@ -221,21 +221,20 @@ class KeyedLinkedList<T> implements Iterable<T> {
             next = head.get();
             nextValue = (next == null ? null : next.value.get());
             currentKey = null;
-            
-            if (nextValue == null) {
-                // Advance to the first real value, which might not be the head
-                advance();
-            }
         }
 
         @Override
         public boolean hasNext() {
+            if (nextValue == null)
+                advance();
             return nextValue != null;
         }
 
         @Override
         public T next() {
-            if (nextValue == null)
+            // Call hasNext() here instead of just checking nextValue in case
+            // hasNext() wasn't called prior to this call
+            if (!hasNext())
                 throw new NoSuchElementException();
 
             T current = nextValue;
@@ -245,7 +244,9 @@ class KeyedLinkedList<T> implements Iterable<T> {
             // that next.value.get() will be set to null before this returns.
             currentKey = next;
             
-            advance();
+            // Set nextValue to null so that the next call to next() or nextValue()
+            // correctly fires off an advance()
+            nextValue = null;
             return current;
         }
 
