@@ -49,7 +49,7 @@ import com.ferox.entity.KeyedLinkedList.Key;
  * 
  * @author Michael Ludwig
  */
-public abstract class Component {
+public abstract class Component implements Cloneable {
     // Use a ConcurrentHashMap to perform reads. It is still synchronized completely to do
     // an insert to make sure a type doesn't try to use two different id values.
     private static final ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>> typeMap = new ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>>();
@@ -60,10 +60,12 @@ public abstract class Component {
     
     // This is guarded by the lock of the current owner
     private Key<Component> indexKey;
-    
+
     /**
-     * Create a Component, which looks up the appropriate TypedId via {@link #getTypedId(Class)}.
-     * @throws 
+     * Create a Component, which looks up the appropriate TypedId via
+     * {@link #getTypedId(Class)}.
+     * 
+     * @throws IllegalComponentHierarchyException if getTypedId fails
      */
     public Component() {
         id = getTypedId(getClass());
@@ -239,7 +241,7 @@ public abstract class Component {
             throw new IllegalArgumentException("Type must be a subclass of Component: " + type);
         
         // Validate the class hierarchy such that this class is not abstract, and all parent classes
-        // below Component are abstract (which includes AbstractComponent).
+        // below Component are abstract (which includes TypedComponent).
         if (Modifier.isAbstract(type.getModifiers()))
             throw new IllegalArgumentException("Component class type cannot be abstract: " + type);
         Class<? super T> parent = type.getSuperclass();

@@ -7,27 +7,27 @@ package com.ferox.entity;
  * Components, which have no logical or processing capabilities by themselves.
  * An instance of a Controller is designed to process a single EntitySystem,
  * which makes it easier for Controller implementations to store meta-data about
- * the system that it processes.
+ * the system that it processes. Additionally, be sure to call
+ * {@link #destroy()} when a Controller is no longer used so that it can clean
+ * up its internal resources.
  * </p>
  * <p>
  * The effects of a Controller's processing are limited only by the Controller
  * implementations available at runtime. It is a general trend that Controllers
  * are specialized to a few or just one Component type, and only process the
  * Entities in a system with those Components attached. Controllers can be
- * multi-threaded within their {@link #process()} method, or multiple Controllers
- * can be executed in parallel over the same EntitySystem. In general, the
- * entity package is intended and designed to be thread safe, but it is
- * recommended that Controllers which modify the same type of Components on an
- * Entity be serialized to avoid lock contention.
+ * multi-threaded within their {@link #execute()} method, or multiple
+ * Controllers can be executed in parallel over the same EntitySystem. The
+ * {@link ControllerExecutor} is a utility class that makes parallelism across
+ * Controllers easy to achieve.
  * </p>
  * <p>
- * Additionally, it is likely that Controllers have some implicit ordering
- * needed when using multiple Controllers to process a system to completion.
- * This could be one Controller computing some function or result, and having
- * another Controller depend on this result to perform the next action. These
- * dependencies are generally obvious when considering the nature of each
- * Controller implementation, but should be documented by the Controller
- * subclasses anyway.
+ * To take advantage of the ControllerExecutor, controllers that can be
+ * multi-threaded should be annotated with the {@link Parallel} annotation. This
+ * annotation provides the information needed to work out which controllers can
+ * run in parallel, and is used by the executor. If a Controller does not have
+ * the annotation, it is assumed that it is too critical to be run in parallel
+ * with other controllers.
  * </p>
  * 
  * @see Entity
@@ -35,15 +35,19 @@ package com.ferox.entity;
  * @author Michael Ludwig
  */
 public abstract class Controller {
-    private static final int MAX_INVOKE_COUNT = 0;
+    private static final int MAX_INVOKE_COUNT = 10;
+    
     protected final EntitySystem system;
+    protected final Object lock;
+    
+    private boolean destroyed;
     
     private int invokeCount;
     private long invokeNanos;
 
     /**
      * Create a Controller that will process the given EntitySystem each time
-     * its {@link #process()} method is invoked.
+     * its {@link #execute()} method is invoked.
      * 
      * @param system The EntitySystem to be processed
      * @throws NullPointerException if system is null
@@ -52,6 +56,10 @@ public abstract class Controller {
         if (system == null)
             throw new NullPointerException("EntitySystem cannot be null");
         this.system = system;
+        lock = new Object();
+        destroyed = false;
+        invokeCount = 0;
+        invokeNanos = 0;
     }
     
     /**
@@ -59,6 +67,22 @@ public abstract class Controller {
      */
     public EntitySystem getEntitySystem() {
         return system;
+    }
+
+    /**
+     * Destroy the Controller, which lets it clean up any cached resources it
+     * may have been using to speed up its execution. It also allows it to
+     * remove any EntityListeners it added to the EntitySystem it processes.
+     * This must be invoked before discarding a Controller or memory leaks could
+     * occur.
+     */
+    public void destroy() {
+        synchronized(lock) {
+            if (destroyed)
+                return;
+            destroyed = true;
+            destroyImpl();
+        }
     }
 
     /**
@@ -78,30 +102,48 @@ public abstract class Controller {
      * Controllers.
      * </p>
      */
-    public void process() {
-        long nanos = -System.nanoTime();
-        processImpl();
-        nanos += System.nanoTime();
-        
-        if (invokeCount > MAX_INVOKE_COUNT) {
-            invokeCount = 1;
-            invokeNanos = nanos;
-        } else {
-            invokeCount++;
-            invokeNanos += nanos;
+    public void execute() {
+        synchronized(lock) {
+            if (destroyed)
+                return;
+
+            long nanos = -System.nanoTime();
+            executeImpl();
+            nanos += System.nanoTime();
+
+            if (invokeCount > MAX_INVOKE_COUNT) {
+                invokeCount = 1;
+                invokeNanos = nanos;
+            } else {
+                invokeCount++;
+                invokeNanos += nanos;
+            }
         }
     }
     
     /**
      * @return The average nanosecond runtime of this Controller's
-     *         {@link #process()}
+     *         {@link #execute()}
      */
     public long getAverageNanos() {
-        if (invokeCount == 0)
-            return 0;
-        else
-            return (invokeNanos / invokeCount);
+        synchronized(lock) {
+            if (invokeCount == 0)
+                return 0;
+            else
+                return (invokeNanos / invokeCount);
+        }
     }
-    
-    protected abstract void processImpl();
+
+    /**
+     * Perform execution of this Controller, will be within the controller's
+     * lock, and is only called by execute(). It will not be called if the
+     * Controller is destroyed.
+     */
+    protected abstract void executeImpl();
+
+    /**
+     * Perform any necessary clean-up, will be within the controller's lock, and
+     * will be called at most once.
+     */
+    protected abstract void destroyImpl();
 }

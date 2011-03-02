@@ -3,6 +3,7 @@ package com.ferox.entity;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * <p>
@@ -15,7 +16,7 @@ import java.util.NoSuchElementException;
  * <p>
  * Like the rest of the entity package, EntitySystem is intended to be
  * thread-safe. Controllers are capable of processing a single EntitySystem in
- * parallel. However, to prevent conflicts betwen multiple controllers (such as
+ * parallel. However, to prevent conflicts between multiple controllers (such as
  * one attempting to remove an Entity while another is processing it), it makes
  * more sense to execute multiple controllers in a well defined order.
  * </p>
@@ -29,6 +30,8 @@ public class EntitySystem implements Iterable<Entity> {
     @SuppressWarnings("rawtypes")
     private volatile KeyedLinkedList[] componentIndices;
     private final Object componentLock;
+    
+    private final CopyOnWriteArraySet<EntityListener> listeners;
 
     /**
      * The list of entities within the system. This is exposed only so that
@@ -45,8 +48,55 @@ public class EntitySystem implements Iterable<Entity> {
         componentLock = new Object();
         componentIndices = new KeyedLinkedList[0];
         entityList = new KeyedLinkedList<Entity>();
+        
+        listeners = new CopyOnWriteArraySet<EntityListener>();
     }
 
+    /**
+     * <p>
+     * Add an EntityListener to this EntitySystem, so that it will be notified
+     * of all added or removed Entities, or changes to the Components on the
+     * Entities in the system. This does nothing if the listener is already
+     * listening on this system.
+     * </p>
+     * <p>
+     * The added listener will not be notified of any changes that started being
+     * reported before this method was called.
+     * </p>
+     * 
+     * @param listener The EntityListener to add
+     * @throws NullPointerException if listener is null
+     */
+    public void addEntityListener(EntityListener listener) {
+        if (listener == null)
+            throw new NullPointerException("Null EntityListener is not allowed");
+        // Don't need any synchronization since listeners is thread safe
+        listeners.add(listener);
+    }
+
+    /**
+     * <p>
+     * Remove an EntityListener from this EntitySystem, so that it will be no
+     * longer be notified of added or removed Entities, or changes to the
+     * Components on the Entities in the system. This does nothing if the
+     * listener is not listening on the system.
+     * </p>
+     * <p>
+     * The removed listener may be notified of any changes that occurred during
+     * this method call, but will not be notified of changes that occur
+     * afterwards.
+     * </p>
+     * 
+     * @param listener The EntityListener to remove
+     * @throws NullPointerException if listener is null
+     */
+    public void removeEntityListener(EntityListener listener) {
+        if (listener == null)
+            throw new NullPointerException("Null EntityListener is not allowed");
+        // Don't need any synchronization since listeners is thread safe
+        listeners.remove(listener);
+    }
+    
     /**
      * <p>
      * Add the given Entity to the EntitySystem. An Entity can only be added if
@@ -104,9 +154,6 @@ public class EntitySystem implements Iterable<Entity> {
         return e.removeFromEntitySystem(this);
     }
     
-    // FIXME: what about adding controllers now, NO we need to add/remove EntityListeners
-    // since not all Controllers need to be notified of changes to the system.
-
     /**
      * <p>
      * Return an Iterator over all Entities within the EntitySystem. The
@@ -194,6 +241,58 @@ public class EntitySystem implements Iterable<Entity> {
             // and the volatile read above should make everything valid
             return (KeyedLinkedList<Component>) indices[index];
         }
+    }
+
+    /**
+     * Run all current EntityListeners' onComponentAdd() methods with the given
+     * ComponentEvent. To preserve ordering of events for a single Entity, this
+     * should be called within the Entity's lock. Ordering across multiple
+     * Entities is not guaranteed.
+     * 
+     * @param event The ComponentEvent, must not be null
+     */
+    void notifyComponentAdd(ComponentEvent event) {
+        for (EntityListener l: listeners)
+            l.onComponentAdd(event);
+    }
+
+    /**
+     * Run all current EntityListeners' onComponentRemove() methods with the
+     * given ComponentEvent. To preserve ordering of events for a single Entity,
+     * this should be called within the Entity's lock. Ordering across multiple
+     * Entities is not guaranteed.
+     * 
+     * @param event The ComponentEvent, must not be null
+     */
+    void notifyComponentRemove(ComponentEvent event) {
+        for (EntityListener l: listeners)
+            l.onComponentRemove(event);
+    }
+
+    /**
+     * Run all current EntityListeners' onEntityAdd() methods with the given
+     * EntityEvent. To preserve ordering of events for a single Entity, this
+     * should be called within the Entity's lock. Ordering across multiple
+     * Entities is not guaranteed.
+     * 
+     * @param event The ComponentEvent, must not be null
+     */
+    void notifyEntityAdd(EntityEvent event) {
+        for (EntityListener l: listeners)
+            l.onEntityAdd(event);
+    }
+
+    /**
+     * Run all current EntityListeners' onEntityAdd() methods with the given
+     * EntityEvent. To preserve ordering of events for a single Entity, this
+     * should be called within the Entity's lock. Ordering across multiple
+     * Entities is not guaranteed.
+     * 
+     * @param event The ComponentEvent, must not be null
+     */
+    void notifyEntityRemove(EntityEvent event) {
+        for (EntityListener l: listeners)
+            l.onEntityRemove(event);
     }
 
     /**

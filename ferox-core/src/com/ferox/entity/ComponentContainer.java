@@ -189,6 +189,27 @@ public abstract class ComponentContainer implements Iterable<Component> {
             return old;
         }
     }
+
+    /**
+     * Called within the lock after a Component has been removed. Does nothing
+     * in the base class.
+     * 
+     * @param removed The removed Component, will not be null
+     */
+    protected void onRemove(Component removed) {
+        // do nothing in base class
+    }
+
+    /**
+     * Called within the lock after a Component has been added. Does nothing in
+     * the base class.
+     * 
+     * @param added The added Component, will not be null
+     * @param old The old Component, may be null
+     */
+    protected void onAdd(Component added, Component old) {
+        // do nothing in base class
+    }
     
     @Override
     public String toString() {

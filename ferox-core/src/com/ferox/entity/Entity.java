@@ -44,6 +44,8 @@ public class Entity extends ComponentContainer {
      *             another container
      */
     public Entity(Component... components) {
+        owner = null;
+        
         if (components != null && components.length > 0) {
             for (Component c: components)
                 add(c);
@@ -61,6 +63,35 @@ public class Entity extends ComponentContainer {
      */
     public EntitySystem getEntitySystem() {
         return owner;
+    }
+
+    /**
+     * Override the base class to notify the Entity's owner of removed
+     * Components, if it has an owner.
+     * 
+     * @param removed
+     */
+    @Override
+    protected void onRemove(Component removed) {
+        if (owner != null) {
+            // Only notify the owner if we have an owner
+            owner.notifyComponentRemove(new ComponentEvent(this, owner, removed));
+        }
+    }
+
+    /**
+     * Override the base class to notify the Entity's owner of added Components,
+     * if it has an owner.
+     * 
+     * @param added
+     * @param old
+     */
+    @Override
+    protected void onAdd(Component added, Component old) {
+        if (owner != null) {
+            // Only notify the owner if we have an owner
+            owner.notifyComponentAdd(new ComponentEvent(this, owner, added, old));
+        }
     }
 
     /**
@@ -112,6 +143,8 @@ public class Entity extends ComponentContainer {
             // so this should be a safe operation.
             for (Component c: this)
                 c.attachComponent();
+            
+            newOwner.notifyEntityAdd(new EntityEvent(this, newOwner));
             return true;
         }
     }
@@ -119,7 +152,7 @@ public class Entity extends ComponentContainer {
     /**
      * Perform all operations necessary to remove this Entity from the given
      * EntitySystem. Like {@link #addToEntitySystem(EntitySystem)}, this is
-     * publically defined in EntitySystem but is easier implemented within
+     * publicly defined in EntitySystem but is easier implemented within
      * Entity.
      * 
      * @param expectedOwner The expected current owner, must not be null
@@ -141,6 +174,8 @@ public class Entity extends ComponentContainer {
             // so this should be a safe operation.
             for (Component c: this)
                 c.detachComponent();
+            
+            expectedOwner.notifyEntityRemove(new EntityEvent(this, expectedOwner));
             return true;
         }
     }
