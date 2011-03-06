@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Michael Ludwig
  * @param <T> The item type
  */
-class KeyedLinkedList<T> implements Iterable<T> {
+final class KeyedLinkedList<T> implements Iterable<T> {
     /**
      * Key represents a tie from a value back to its node or link within the
      * linked list. This is used to perform very fast removals of elements.

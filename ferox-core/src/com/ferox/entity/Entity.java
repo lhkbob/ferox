@@ -19,7 +19,7 @@ import com.ferox.entity.KeyedLinkedList.Key;
  * 
  * @author Michael Ludwig
  */
-public class Entity extends ComponentContainer {
+public final class Entity extends ComponentContainer {
     private volatile EntitySystem owner;
     private Key<Entity> indexKey;
 

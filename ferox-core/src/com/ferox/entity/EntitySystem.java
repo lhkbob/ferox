@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @see Controller
  * @author Michael Ludwig
  */
-public class EntitySystem implements Iterable<Entity> {
+public final class EntitySystem implements Iterable<Entity> {
     @SuppressWarnings("rawtypes")
     private volatile KeyedLinkedList[] componentIndices;
     private final Object componentLock;
