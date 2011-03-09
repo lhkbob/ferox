@@ -1,33 +1,22 @@
 package com.ferox.scene;
 
 import com.ferox.math.Color4f;
-import com.ferox.entity.AbstractComponent;
+import com.ferox.entity.Template;
+import com.ferox.entity.TypedComponent;
 
 /**
  * <p>
  * Fog is a Component that can add a visual approximation to fog to a rendered
- * scene. The way in which Fog affects a scene depends on which Components its
- * combined with on a given Entity:
- * <ul>
- * <li>If the Fog has a {@link SceneElement} represents a region of fog
- * constrained to the SceneElement's location and world bounds.</li>
- * <li>If the Fog has a SceneElement and a {@link Shape}, the fog is further
- * constrained to be within the Shape's geometry at the element's location.</li>
- * <li>When neither of these are present, the Fog is a global fog that is always
- * in effect.</li>
- * </ul>
- * </p>
- * <p>
- * The above description of behavior is the ideal scenario. It may not be
- * possible for certain hardware to render geometry constrained fog properly. It
- * is also difficult to combine multiple Fog's together when they intersect.
- * These situations should usually be resolved by blending the fog colors or
- * choosing the more dominant Fog.
+ * scene. This component models fog by using a density fall-off function and a
+ * distance through which the fog will become opaque. This model is compatible
+ * with the classic eye-space fog that is usable in a fixed-function OpenGL
+ * rendering engine and can be extended by more Component types to provide more
+ * advanced fogs, such as spatialized or shaped fogs.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public final class Fog extends AbstractComponent<Fog> {
+public final class Fog extends TypedComponent<Fog> {
     /**
      * Falloff represents how the visibility of fog decreases as distance
      * increases. The opacity of the fog, at some distance, can be considered as
@@ -95,7 +84,7 @@ public final class Fog extends AbstractComponent<Fog> {
      * @throws IllegalArgumentException if distanceToOpaque is negative
      */
     public Fog(Color4f color, Falloff falloff, float distanceToOpaque) {
-        super(Fog.class);
+        super(null, false);
         
         this.color = new Color4f();
         setColor(color);
@@ -104,16 +93,33 @@ public final class Fog extends AbstractComponent<Fog> {
     }
 
     /**
+     * Create a Fog that is a clone of <tt>clone</tt>, for use with a
+     * {@link Template}.
+     * 
+     * @param clone The Fog to clone
+     * @throws NullPointerException if clone is null
+     */
+    public Fog(Fog clone) {
+        super(clone, true);
+        
+        color = new Color4f(clone.color);
+        falloff = clone.falloff;
+        distanceToOpaque = clone.distanceToOpaque;
+    }
+
+    /**
      * Set the Falloff to use for this fog. See {@link #getFalloff()} and
      * {@link Falloff} for descriptions of what the Falloff accomplishes.
      * 
      * @param falloff The new falloff
+     * @return The new version, via {@link #notifyChange()}
      * @throws NullPointerException if falloff is null
      */
-    public void setFalloff(Falloff falloff) {
+    public int setFalloff(Falloff falloff) {
         if (falloff == null)
             throw new NullPointerException("Falloff cannot be null");
         this.falloff = falloff;
+        return notifyChange();
     }
 
     /**
@@ -136,12 +142,14 @@ public final class Fog extends AbstractComponent<Fog> {
      * {@link #getFalloff() falloff}.
      * 
      * @param dist The new opaque distance
+     * @return The new version, via {@link #notifyChange()}
      * @throws IllegalArgumentException if dist <= 0
      */
-    public void setOpaqueDistance(float dist) {
+    public int setOpaqueDistance(float dist) {
         if (dist <= 0f)
             throw new IllegalArgumentException("Distance must be positive, not: " + dist);
         distanceToOpaque = dist;
+        return notifyChange();
     }
 
     /**
@@ -160,11 +168,14 @@ public final class Fog extends AbstractComponent<Fog> {
      * the color of the fog when fully opaque.
      * 
      * @param color The new fog color
+     * @return The new version, via {@link #notifyChange()}
+     * @throws NullPointerException if color is null
      */
-    public void setColor(Color4f color) {
+    public int setColor(Color4f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
         this.color.set(color);
+        return notifyChange();
     }
 
     /**

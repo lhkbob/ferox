@@ -1,17 +1,32 @@
 package com.ferox.scene;
 
-import com.ferox.entity.AbstractComponent;
-import com.ferox.math.Color4f;
+import com.ferox.math.ReadOnlyColor4f;
 
-public class AmbientLight extends AbstractComponent<AmbientLight>{
-    private final Color4f color;
-    
-    public AmbientLight(Color4f color) {
-        super(AmbientLight.class);
-        this.color = new Color4f(color);
+/**
+ * AmbientLight represents a source of ambient light in a scene. Ambient lights
+ * contribute an equal amount of light intensity to every rendered object,
+ * regardless of direction.
+ * 
+ * @author Michael Ludwig
+ */
+public class AmbientLight extends Light<AmbientLight> {
+    /**
+     * Create an AmbientLight with the given color.
+     * 
+     * @param color The initial light color
+     */
+    public AmbientLight(ReadOnlyColor4f color) {
+        setColor(color);
     }
-    
-    public Color4f getColor() {
-        return color;
+
+    /**
+     * Create an AmbientLight that is a clone of the given AmbientLight.
+     * 
+     * @param clone The light to clone
+     * @throws NullPointerException if clone is null
+     */
+    public AmbientLight(AmbientLight clone) {
+        super(clone);
+        // Don't need to clone any more properties for AmbientLight
     }
 }
