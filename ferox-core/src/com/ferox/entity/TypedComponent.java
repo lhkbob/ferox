@@ -17,15 +17,17 @@ public abstract class TypedComponent<T extends TypedComponent<T>> extends Compon
      * This constructor does nothing, subclasses should expose a constructor
      * with the same argument as a clone constructor. However, they should also
      * provide constructors that are useful for creating the Component from
-     * scratch. In these situations, they may call <code>super(null);</code>
-     * without any side effects.
+     * scratch. In these situations, they may call
+     * <code>super(null, false);</code> without any side effects.
      * 
      * @param clone The Component to clone, or null if called from a non-clone
      *            constructor
+     * @throws NullPointerException if clone is null and failIfNull is true
      */
-    public TypedComponent(T clone) {
-        // Do nothing, just define this to force subclasses to
-        // make a constructor with this argument
+    protected TypedComponent(T clone, boolean failIfNull) {
+        // Convenience to check for a null instance
+        if (failIfNull && clone == null)
+            throw new NullPointerException("Component to clone cannot be null");
     }
     
     @Override

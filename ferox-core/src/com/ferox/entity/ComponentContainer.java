@@ -3,6 +3,7 @@ package com.ferox.entity;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
  * <p>
@@ -26,6 +27,7 @@ import java.util.NoSuchElementException;
  */
 public abstract class ComponentContainer implements Iterable<Component> {
     private volatile Component[] components;
+    private volatile AtomicIntegerArray versions;
     protected final Object lock;
 
     /**
@@ -34,7 +36,33 @@ public abstract class ComponentContainer implements Iterable<Component> {
      */
     public ComponentContainer() {
         components = new Component[0];
+        versions = new AtomicIntegerArray(16); // Versions doesn't shrink, so start with a larger base array
         lock = new Object();
+    }
+
+    /**
+     * Return an integer representing this ComponentContainer's version for the
+     * given type of Component. This version is incremented every time a
+     * Component of the given type is added or removed, or when a Component of
+     * the given type owned by this Container has its
+     * {@link Component#notifyChange()} method invoked.</p>
+     * <p>
+     * This can be used to process only Entities that have changed.
+     * Additionally, this can be checked before accessing the Component on the
+     * container.
+     * </p>
+     * 
+     * @param id The Component type
+     * @return The current version of the Component type in this container
+     * @throws NullPointerException if id is null
+     */
+    public int getVersion(TypedId<? extends Component> id) {
+        if (id == null)
+            throw new NullPointerException("TypedId cannot be null");
+        
+        int index = id.getId();
+        AtomicIntegerArray v = versions;
+        return  (index < v.length() ? v.get(index) : 0);
     }
 
     /**
@@ -85,6 +113,9 @@ public abstract class ComponentContainer implements Iterable<Component> {
             if (old != null)
                 old.setUnowned(this);
             this.components = components;
+            
+            // Must notify a change every time a Component is set on the container
+            notifyChange(index);
             return true;
         }
     }
@@ -182,11 +213,59 @@ public abstract class ComponentContainer implements Iterable<Component> {
                     components = Arrays.copyOf(this.components, newLen);
                     components[index] = null;
                     old.setUnowned(this);
+                    
+                    // Must increment version if a component is removed
+                    notifyChange(index);
                 }
             }
             
             this.components = components;
             return old;
+        }
+    }
+
+    /**
+     * Increment a change for the given Component type and return it.
+     * 
+     * @param id The type id whose version is incremented for this Entity
+     * @return The new version
+     * @throws IndexOutOfBoundsException if id is less than 0
+     */
+    int notifyChange(int index) {
+        AtomicIntegerArray v = versions;
+        if (v.length() <= index) {
+            // Grow array
+            synchronized(lock) {
+                v = versions; // Re-read versions within lock in case of a double update
+                if (v.length() <= index) {
+                    // Note that we perform the atomic write first so that other threads
+                    // start using the new reference ASAP. The old array will be added in later
+                    versions = new AtomicIntegerArray(index + 1);
+                    
+                    // Add the original version counters into the new array
+                    for (int i = 0; i < v.length(); i++)
+                        versions.addAndGet(i, v.get(i));
+                }
+            }
+        }
+        
+        while(true) {
+            int change = v.incrementAndGet(index);
+            
+            // If at this point, v == versions is true, we know that the
+            // above increment will be included in any future copy when 
+            // the array needs to grow.
+            // If it's not equal, there's a chance the incremented value will
+            // be included, but it might also have come in too slow
+            if (v == versions)
+                return change;
+            
+            // So to be safe, we update our array reference and try the
+            // increment again. This could cause multiple increments for a single
+            // "change" but that doesn't cause a problem if users of the version
+            // are aware of the possibility and just look for changes in value
+            // (instead of specific increment values).
+            v = versions;
         }
     }
 

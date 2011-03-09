@@ -107,6 +107,20 @@ public abstract class Component implements Cloneable {
     }
 
     /**
+     * Notify this Component's owner of a change that should update the owner's
+     * version for this Component's type. The new version is returned. It is
+     * recommended that subclasses automatically call this method and return the
+     * version in their exposes setter methods. If the Component has no owner,
+     * -1 is returned.
+     * 
+     * @return The new version
+     */
+    public int notifyChange() {
+        ComponentContainer owner = this.owner.get();
+        return (owner != null ? owner.notifyChange(id.getId()) : -1);
+    }
+
+    /**
      * Attempt to declare ownership of this Component for newOwner. This returns
      * false if another ComponentContainer gets ownership first, in which case
      * the ComponentContainer cannot add the Component to its data structures.
