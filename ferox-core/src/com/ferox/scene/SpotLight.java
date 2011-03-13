@@ -22,7 +22,7 @@ import com.ferox.math.Vector3f;
  * 
  * @author Michael Ludwig
  */
-public class SpotLight extends Light<SpotLight> {
+public final class SpotLight extends Light<SpotLight> {
     private final Vector3f direction;
     private float cutoffAngle;
     private float falloffDistance;

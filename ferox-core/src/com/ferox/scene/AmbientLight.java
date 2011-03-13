@@ -9,7 +9,7 @@ import com.ferox.math.ReadOnlyColor4f;
  * 
  * @author Michael Ludwig
  */
-public class AmbientLight extends Light<AmbientLight> {
+public final class AmbientLight extends Light<AmbientLight> {
     /**
      * Create an AmbientLight with the given color.
      * 

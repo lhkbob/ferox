@@ -90,8 +90,9 @@ public final class Transform extends TypedComponent<Transform> {
     }
 
     /**
-     * Return the matrix that stores the actual world transform. This instance
-     * will not change and will reflect any changes to the Transform. Use
+     * Return the matrix that stores the actual world transform. This will
+     * always return the same instance, and the instance will reflect any
+     * changes to the Transform. Use
      * {@link Entity#getVersion(com.ferox.entity.TypedId)} to determine if it
      * has been modified.
      * 

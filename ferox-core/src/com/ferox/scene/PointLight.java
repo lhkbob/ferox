@@ -19,7 +19,7 @@ import com.ferox.math.ReadOnlyColor4f;
  * 
  * @author Michael Ludwig
  */
-public class PointLight extends Light<PointLight> {
+public final class PointLight extends Light<PointLight> {
     private float falloffDistance;
 
     /**

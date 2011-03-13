@@ -17,7 +17,7 @@ import com.ferox.math.Vector3f;
  * 
  * @author Michael Ludwig
  */
-public class DirectionLight extends Light<DirectionLight> {
+public final class DirectionLight extends Light<DirectionLight> {
     private final Vector3f direction;
 
     /**

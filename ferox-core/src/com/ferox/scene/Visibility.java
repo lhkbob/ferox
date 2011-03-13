@@ -17,7 +17,7 @@ import com.ferox.math.bounds.Frustum;
  * 
  * @author Michael Ludwig
  */
-public class Visibility extends TypedComponent<Visibility> {
+public final class Visibility extends TypedComponent<Visibility> {
     private static final Object VALUE = new Object();
     
     // We'll use a concurrent hash map instead of a simple set because this datastructure
