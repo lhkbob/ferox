@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.math.Color4f;
+import com.ferox.math.Color3f;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedComponent;
 
@@ -42,7 +42,7 @@ public final class Fog extends TypedComponent<Fog> {
         EXPONENTIAL
     }
     
-    private final Color4f color;
+    private final Color3f color;
     private float distanceToOpaque;
     private Falloff falloff;
 
@@ -54,7 +54,7 @@ public final class Fog extends TypedComponent<Fog> {
      * @param color The initial color
      * @throws NullPointerException if color is null
      */
-    public Fog(Color4f color) {
+    public Fog(Color3f color) {
         this(color, Falloff.LINEAR);
     }
 
@@ -67,14 +67,14 @@ public final class Fog extends TypedComponent<Fog> {
      * @param falloff The initial falloff
      * @throws NullPointerException if color or falloff are null
      */
-    public Fog(Color4f color, Falloff falloff) {
+    public Fog(Color3f color, Falloff falloff) {
         this(color, falloff, 10f);
     }
 
     /**
      * Create a new Fog component that uses the given color, falloff and
      * distance to full opacity. These are the arguments passed to
-     * {@link #setColor(Color4f)}, {@link #setFalloff(Falloff)} and
+     * {@link #setColor(Color3f)}, {@link #setFalloff(Falloff)} and
      * {@link #setOpaqueDistance(float)}, respectively.
      * 
      * @param color The initial color
@@ -83,10 +83,10 @@ public final class Fog extends TypedComponent<Fog> {
      * @throws NullPointerException if color or falloff are null
      * @throws IllegalArgumentException if distanceToOpaque is negative
      */
-    public Fog(Color4f color, Falloff falloff, float distanceToOpaque) {
+    public Fog(Color3f color, Falloff falloff, float distanceToOpaque) {
         super(null, false);
         
-        this.color = new Color4f();
+        this.color = new Color3f();
         setColor(color);
         setFalloff(falloff);
         setOpaqueDistance(distanceToOpaque);
@@ -102,7 +102,7 @@ public final class Fog extends TypedComponent<Fog> {
     public Fog(Fog clone) {
         super(clone, true);
         
-        color = new Color4f(clone.color);
+        color = new Color3f(clone.color);
         falloff = clone.falloff;
         distanceToOpaque = clone.distanceToOpaque;
     }
@@ -171,7 +171,7 @@ public final class Fog extends TypedComponent<Fog> {
      * @return The new version, via {@link #notifyChange()}
      * @throws NullPointerException if color is null
      */
-    public int setColor(Color4f color) {
+    public int setColor(Color3f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
         this.color.set(color);
@@ -185,7 +185,7 @@ public final class Fog extends TypedComponent<Fog> {
      * 
      * @return The fog color
      */
-    public Color4f getColor() {
+    public Color3f getColor() {
         return color;
     }
 }

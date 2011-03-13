@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.math.ReadOnlyColor4f;
+import com.ferox.math.ReadOnlyColor3f;
 
 /**
  * AmbientLight represents a source of ambient light in a scene. Ambient lights
@@ -15,7 +15,7 @@ public final class AmbientLight extends Light<AmbientLight> {
      * 
      * @param color The initial light color
      */
-    public AmbientLight(ReadOnlyColor4f color) {
+    public AmbientLight(ReadOnlyColor3f color) {
         setColor(color);
     }
 

@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.entity.Template;
-import com.ferox.math.ReadOnlyColor4f;
+import com.ferox.math.ReadOnlyColor3f;
 
 /**
  * <p>
@@ -29,7 +29,7 @@ public final class PointLight extends Light<PointLight> {
      * @param color The starting color
      * @throws NullPointerException if color is null
      */
-    public PointLight(ReadOnlyColor4f color) {
+    public PointLight(ReadOnlyColor3f color) {
         this(color, -1f);
     }
 
@@ -41,7 +41,7 @@ public final class PointLight extends Light<PointLight> {
      * @param falloffDistance The initial falloff distance
      * @throws NullPointerException if color is null
      */
-    public PointLight(ReadOnlyColor4f color, float falloffDistance) {
+    public PointLight(ReadOnlyColor3f color, float falloffDistance) {
         setColor(color);
         setFalloffDistance(falloffDistance);
     }

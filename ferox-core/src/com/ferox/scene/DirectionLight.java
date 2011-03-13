@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.entity.Template;
-import com.ferox.math.ReadOnlyColor4f;
+import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
@@ -27,7 +27,7 @@ public final class DirectionLight extends Light<DirectionLight> {
      * @param color The starting light color
      * @throws NullPointerException if color is null
      */
-    public DirectionLight(ReadOnlyColor4f color) {
+    public DirectionLight(ReadOnlyColor3f color) {
         this(color, new Vector3f(0f, 0f, 1f));
     }
 
@@ -39,7 +39,7 @@ public final class DirectionLight extends Light<DirectionLight> {
      * @throws NullPointerException if color or direction are null
      * @throws ArithmeticException if direction cannot be normalized
      */
-    public DirectionLight(ReadOnlyColor4f color, ReadOnlyVector3f direction) {
+    public DirectionLight(ReadOnlyColor3f color, ReadOnlyVector3f direction) {
         this.direction = new Vector3f();
         setDirection(direction);
         setColor(color);

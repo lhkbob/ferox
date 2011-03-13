@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
-import com.ferox.resource.Texture;
 import com.ferox.entity.Template;
-import com.ferox.entity.TypedComponent;
+import com.ferox.resource.Texture;
+import com.ferox.resource.TextureFormat;
 
 /**
  * <p>
@@ -10,6 +10,14 @@ import com.ferox.entity.TypedComponent;
  * rendering an Entity. It must be combined with Components that enable lighting
  * for it to have any effect. The normal vectors are stored in a 3-component
  * texture and the vectors can be in object or tangent space.
+ * </p>
+ * <p>
+ * The normals within the Texture are assumed to be of unit length. If the
+ * format of the texture is {@link TextureFormat#RGB_FLOAT} the x, y, and z
+ * coordinates are taken as is from the red, green, and blue components of each
+ * texel. If the format is any other type, the x, y, and z coordinates are
+ * packed into the range, [0, 1] and are converted to [-1, 1] with
+ * <code>2 * [x,y,z] - 1</code>.
  * </p>
  * <p>
  * Tangent space normal vectors require the geometry of the Entity to provide
@@ -20,8 +28,7 @@ import com.ferox.entity.TypedComponent;
  * 
  * @author Michael Ludwig
  */
-public final class NormalMap extends TypedComponent<NormalMap> {
-    private Texture normalMap;
+public final class NormalMap extends TextureMap<NormalMap> {
     private boolean isObjectSpace;
 
     /**
@@ -34,17 +41,22 @@ public final class NormalMap extends TypedComponent<NormalMap> {
      *             texture
      */
     public NormalMap(Texture normalMap) {
-        this(normalMap, false);
+        super(normalMap);
     }
-    
+
     /**
+     * Create a NormalMap that uses the given Texture, and
+     * <tt>isObjectSpace</tt> determines whether or not the stored vectors are
+     * in object space or tangent space.
      * 
-     * @param normalMap
-     * @param isObjectSpace
+     * @param normalMap The normal map to use
+     * @param isObjectSpace True if normals are in object space
+     * @throws NullPointerException if normalMap is null
+     * @throws IllegalArgumentException if the normal map isn't a 3-component
+     *             texture
      */
     public NormalMap(Texture normalMap, boolean isObjectSpace) {
-        super(null, false);
-        setNormalMap(normalMap);
+        super(normalMap);
         setObjectSpace(isObjectSpace);
     }
 
@@ -56,8 +68,7 @@ public final class NormalMap extends TypedComponent<NormalMap> {
      * @throws NullPointerException if clone is null
      */
     public NormalMap(NormalMap clone) {
-        super(clone, true);
-        normalMap = clone.normalMap;
+        super(clone);
         isObjectSpace = clone.isObjectSpace;
     }
 
@@ -94,46 +105,10 @@ public final class NormalMap extends TypedComponent<NormalMap> {
         return notifyChange();
     }
 
-    /**
-     * <p>
-     * Set the Texture that will be used as a normal map to create a bump-mapped
-     * effect when rendering the Entity with lighting. If the Entity does not
-     * have a material that uses lights, this will not have any effect.
-     * </p>
-     * <p>
-     * The provided Texture must be a 3 component texture, where the x, y and z
-     * vector coordinates are stored in the red, green and blue components of
-     * each texel. If the format is not an unclamped floating point format, the
-     * coordinates are stored in the range [0, 1], but must be scaled and
-     * translated to [-1, 1] before use in a shader.
-     * </p>
-     * <p>
-     * Note that this is only storing the reference to the texture, so the
-     * NormalMap component will only report changes automatically if the
-     * reference changes. If changes to the actual resource are required,
-     * {@link #notifyChange()} must be called directly.
-     * </p>
-     * 
-     * @param normalMap The new texture map reference
-     * @throws NullPointerException if normalMap is null
-     * @throws IllegalArgumentException if the normal map doesn't have 3
-     *             components
-     */
-    public void setNormalMap(Texture normalMap) {
-        if (normalMap == null)
-            throw new NullPointerException("Normal map must be non-null");
-        if (normalMap.getFormat().getNumComponents() != 3)
+    @Override
+    protected void validate(Texture tex) {
+        if (tex.getFormat().getNumComponents() != 3)
             throw new IllegalArgumentException("Normal map must use a texture format with 3 components, not: " 
-                                               + normalMap.getFormat());
-        this.normalMap = normalMap;
-    }
-
-    /**
-     * Return the Texture to use as a normal map for the Entity.
-     * 
-     * @return The 3-component, non-null normal map texture
-     */
-    public Texture getNormalMap() {
-        return normalMap;
+                                               + tex.getFormat());
     }
 }

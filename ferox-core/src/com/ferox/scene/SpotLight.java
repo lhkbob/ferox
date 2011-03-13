@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.entity.Template;
-import com.ferox.math.Color4f;
+import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
@@ -35,7 +35,7 @@ public final class SpotLight extends Light<SpotLight> {
      * @param color The starting color
      * @throws NullPointerException if color is null
      */
-    public SpotLight(Color4f color) {
+    public SpotLight(Color3f color) {
         this(color, 30f);
     }
 
@@ -49,7 +49,7 @@ public final class SpotLight extends Light<SpotLight> {
      * @throws NullPointerException if color is null
      * @throws IllegalArgumentException if cutoffAngle is not in [0, 90]
      */
-    public SpotLight(Color4f color, float cutoffAngle) {
+    public SpotLight(Color3f color, float cutoffAngle) {
         this(color, cutoffAngle, new Vector3f(0f, 0f, 1f));
     }
 
@@ -64,7 +64,7 @@ public final class SpotLight extends Light<SpotLight> {
      * @throws IllegalArgumentException if cutoffAngle is not in [0, 90]
      * @throws ArithmeticException if direction cannot be normalized
      */
-    public SpotLight(Color4f color, float cutoffAngle, ReadOnlyVector3f direction) {
+    public SpotLight(Color3f color, float cutoffAngle, ReadOnlyVector3f direction) {
         this.direction = new Vector3f();
         setColor(color);
         setDirection(direction);
