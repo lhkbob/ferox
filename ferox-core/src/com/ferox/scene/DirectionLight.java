@@ -1,6 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
+import com.ferox.entity.TypedId;
 import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
@@ -18,6 +20,11 @@ import com.ferox.math.Vector3f;
  * @author Michael Ludwig
  */
 public final class DirectionLight extends Light<DirectionLight> {
+    /**
+     * The shared TypedId representing DirectionLight.
+     */
+    public static final TypedId<DirectionLight> ID = Component.getTypedId(DirectionLight.class);
+    
     private final Vector3f direction;
 
     /**

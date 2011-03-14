@@ -1,6 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
+import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 
@@ -29,6 +31,11 @@ import com.ferox.resource.TextureFormat;
  * @author Michael Ludwig
  */
 public final class NormalMap extends TextureMap<NormalMap> {
+    /**
+     * The shared TypedId representing NormalMap.
+     */
+    public static final TypedId<NormalMap> ID = Component.getTypedId(NormalMap.class);
+    
     private boolean isObjectSpace;
 
     /**

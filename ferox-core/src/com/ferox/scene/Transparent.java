@@ -1,7 +1,9 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedComponent;
+import com.ferox.entity.TypedId;
 
 /**
  * <p>
@@ -28,6 +30,11 @@ import com.ferox.entity.TypedComponent;
  * @author Michael Ludwig
  */
 public final class Transparent extends TypedComponent<Transparent> {
+    /**
+     * The shared TypedId representing Transparent.
+     */
+    public static final TypedId<Transparent> ID = Component.getTypedId(Transparent.class);
+    
     private float opacity;
 
     /**

@@ -1,5 +1,7 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
+import com.ferox.entity.TypedId;
 import com.ferox.math.ReadOnlyColor3f;
 
 /**
@@ -10,6 +12,11 @@ import com.ferox.math.ReadOnlyColor3f;
  * @author Michael Ludwig
  */
 public final class AmbientLight extends Light<AmbientLight> {
+    /**
+     * The shared TypedId representing AmbientLight.
+     */
+    public static final TypedId<AmbientLight> ID = Component.getTypedId(AmbientLight.class);
+    
     /**
      * Create an AmbientLight with the given color.
      * 

@@ -1,6 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
+import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 
@@ -23,6 +25,11 @@ import com.ferox.resource.TextureFormat;
  * @author Michael Ludwig
  */
 public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
+    /**
+     * The shared TypedId representing DepthOffsetMap.
+     */
+    public static final TypedId<DepthOffsetMap> ID = Component.getTypedId(DepthOffsetMap.class);
+    
     /**
      * Create a DepthOffsetMap that uses the given texture as its depth map.
      * 

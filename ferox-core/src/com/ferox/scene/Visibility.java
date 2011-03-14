@@ -2,9 +2,11 @@ package com.ferox.scene;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Controller;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedComponent;
+import com.ferox.entity.TypedId;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 
@@ -18,6 +20,11 @@ import com.ferox.math.bounds.Frustum;
  * @author Michael Ludwig
  */
 public final class Visibility extends TypedComponent<Visibility> {
+    /**
+     * The shared TypedId representing Visibility.
+     */
+    public static final TypedId<Visibility> ID = Component.getTypedId(Visibility.class);
+    
     private static final Object VALUE = new Object();
     
     // We'll use a concurrent hash map instead of a simple set because this datastructure

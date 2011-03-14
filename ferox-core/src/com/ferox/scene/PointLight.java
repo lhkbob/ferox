@@ -1,6 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
+import com.ferox.entity.TypedId;
 import com.ferox.math.ReadOnlyColor3f;
 
 /**
@@ -20,6 +22,11 @@ import com.ferox.math.ReadOnlyColor3f;
  * @author Michael Ludwig
  */
 public final class PointLight extends Light<PointLight> {
+    /**
+     * The shared TypedId representing PointLight.
+     */
+    public static final TypedId<PointLight> ID = Component.getTypedId(PointLight.class);
+    
     private float falloffDistance;
 
     /**

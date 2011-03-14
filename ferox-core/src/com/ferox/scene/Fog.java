@@ -1,8 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.math.Color3f;
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedComponent;
+import com.ferox.entity.TypedId;
+import com.ferox.math.Color3f;
 
 /**
  * <p>
@@ -17,6 +19,11 @@ import com.ferox.entity.TypedComponent;
  * @author Michael Ludwig
  */
 public final class Fog extends TypedComponent<Fog> {
+    /**
+     * The shared TypedId representing Fog.
+     */
+    public static final TypedId<Fog> ID = Component.getTypedId(Fog.class);
+    
     /**
      * Falloff represents how the visibility of fog decreases as distance
      * increases. The opacity of the fog, at some distance, can be considered as

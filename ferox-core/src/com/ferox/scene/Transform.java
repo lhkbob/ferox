@@ -1,8 +1,10 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Entity;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedComponent;
+import com.ferox.entity.TypedId;
 import com.ferox.math.AffineTransform;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
@@ -19,6 +21,11 @@ import com.ferox.math.ReadOnlyVector3f;
  * @author Michael Ludwig
  */
 public final class Transform extends TypedComponent<Transform> {
+    /**
+     * The shared TypedId representing Transform.
+     */
+    public static final TypedId<Transform> ID = Component.getTypedId(Transform.class);
+    
     private final AffineTransform affineTransform;
     
     /**

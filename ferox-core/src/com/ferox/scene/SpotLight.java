@@ -1,6 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
+import com.ferox.entity.TypedId;
 import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
@@ -23,6 +25,11 @@ import com.ferox.math.Vector3f;
  * @author Michael Ludwig
  */
 public final class SpotLight extends Light<SpotLight> {
+    /**
+     * The shared TypedId representing SpotLight.
+     */
+    public static final TypedId<SpotLight> ID = Component.getTypedId(SpotLight.class);
+    
     private final Vector3f direction;
     private float cutoffAngle;
     private float falloffDistance;

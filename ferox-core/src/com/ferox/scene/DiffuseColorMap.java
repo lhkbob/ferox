@@ -1,12 +1,53 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
+import com.ferox.entity.Template;
+import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
 
+/**
+ * <p>
+ * DiffuseColorMap provides diffuse material colors, much like
+ * {@link DiffuseColor}, except that it uses a {@link Texture} to have per-texel
+ * coloration instead of a single color across the entire Entity. It is not
+ * defined how the geometry of the Entity is mapped onto the texture, but will
+ * likely use texture coordinates stored in the geometry. This should be
+ * configured by the rendering controller, or in other component types.
+ * </p>
+ * <p>
+ * Alpha values within the texture map will be treated as per-texel opacity
+ * values, with the same definition as {@link Transparent}, although they will
+ * be ignored if the Transparent component is not added to the Entity. When the
+ * Entity is transparent, the opacity of the Transparent component and the
+ * texture are multiplied together to get the final opacity for a pixel.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public class DiffuseColorMap extends TextureMap<DiffuseColorMap> {
+    /**
+     * The shared TypedId representing DiffuseColorMap.
+     */
+    public static final TypedId<DiffuseColorMap> ID = Component.getTypedId(DiffuseColorMap.class);
+
+    /**
+     * Create a DiffuseColorMap that uses the given Texture as the source for
+     * per-pixel diffuse material colors.
+     * 
+     * @param diffuse The diffuse texture
+     * @throws NullPointerException if diffuse is null
+     */
     public DiffuseColorMap(Texture diffuse) {
         super(diffuse);
     }
-    
+
+    /**
+     * Create an DiffuseColorMap that is a clone of <tt>clone</tt> for use with
+     * a {@link Template}.
+     * 
+     * @param clone The component to clone
+     * @throws NullPointerException if clone is null
+     */
     public DiffuseColorMap(DiffuseColorMap clone) {
         super(clone);
     }

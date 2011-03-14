@@ -1,7 +1,9 @@
 package com.ferox.scene;
 
+import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedComponent;
+import com.ferox.entity.TypedId;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.util.geom.Geometry;
@@ -22,6 +24,11 @@ import com.ferox.util.geom.Geometry;
  * @author Michael Ludwig
  */
 public final class Renderable extends TypedComponent<Renderable> {
+    /**
+     * The shared TypedId representing Renderable.
+     */
+    public static final TypedId<Renderable> ID = Component.getTypedId(Renderable.class);
+    
     private DrawStyle frontStyle;
     private DrawStyle backStyle;
 
