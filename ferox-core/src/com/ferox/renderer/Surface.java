@@ -1,6 +1,5 @@
 package com.ferox.renderer;
 
-import com.ferox.math.Color4f;
 
 /**
  * <p>
@@ -24,9 +23,10 @@ public interface Surface {
      * Return whether or not the surface has been destroyed.
      * </p>
      * <p>
-     * Destruction could be because of an explicit call to destroy() or
-     * destroy(surface), or because implementations provide a way for them to be
-     * implicitly destroyed (such as a WindowSurface being closed by the user).
+     * Destruction could be because of an explicit call to {@link #destroy()} or
+     * {@link Framework#destroy()}, or because implementations provide a way for
+     * them to be implicitly destroyed (such as an OnscreenSurface being closed
+     * by the user).
      * </p>
      * 
      * @return True if this surface is no longer usable by its creating
@@ -35,8 +35,16 @@ public interface Surface {
     public boolean isDestroyed();
 
     /**
+     * Destroy this Surface, cleaning up internal resources connecting it to the
+     * low-level graphics layer and hiding any onscreen elements, such as a
+     * window. Destroying an already destroyed surface does nothing.
+     */
+    public void destroy();
+
+    /**
      * Return the width of the actual drawable area of the surface (doesn't
-     * include any border or frame).
+     * include any border or frame). This is allowed to return any value after
+     * the surface has been destroyed.
      * 
      * @return The width of the drawable area
      */
@@ -44,7 +52,8 @@ public interface Surface {
 
     /**
      * Return the height of the actual drawable area of the surface (doesn't
-     * include any border or frame).
+     * include any border or frame). This is allowed to return any value after
+     * the surface has been destroyed.
      * 
      * @return The height of the drawable area
      */
@@ -53,58 +62,7 @@ public interface Surface {
     /**
      * Get the Framework that created this surface.
      * 
-     * @return The Framework that created this surface, must not be null
+     * @return The Framework that created this surface, will not be null
      */
     public Framework getFramework();
-
-    /**
-     * Get the background color to use when the color buffer is cleared for this
-     * surface. A alpha value != 1 may be treated as 1 if the render surface
-     * can't hold onto alpha pixel data. Default should be black.
-     * 
-     * @return Color4f that the surface's color buffer is cleared to
-     */
-    public Color4f getClearColor();
-
-    /**
-     * Get the starting depth to use when the depth buffer is cleared. The value
-     * must be within 0 and 1, where 1 represents farthest away. Default should
-     * be 1.
-     * 
-     * @return Depth value that the depth buffer is cleared to, between 0 and 1
-     */
-    public float getClearDepth();
-
-    /**
-     * Get the starting stencil value used when the stencil buffer is cleared.
-     * This integer is treated as an unsigned integer. The default should be 0.
-     * 
-     * @return Stencil value that the stencil buffer is cleared to
-     */
-    public int getClearStencil();
-
-    /**
-     * Copy color as the background color to use when the color buffer is
-     * cleared for this surface. A non-one alpha value may be treated as one if
-     * the render surface can't hold onto alpha pixel data.
-     * 
-     * @param color New clear color to use, if null use black
-     */
-    public void setClearColor(Color4f color);
-
-    /**
-     * Set the starting depth to use when the depth buffer is cleared. The value
-     * must be within 0 and 1, where 1 represents farthest away.
-     * 
-     * @param depth New depth clear value
-     * @throws IllegalArgumentException if depth is < 0 or > 1
-     */
-    public void setClearDepth(float depth);
-
-    /**
-     * Set the starting stencil value used when the stencil buffer is cleared.
-     * 
-     * @param stencil New stencil clear value, as an unsigned integer
-     */
-    public void setClearStencil(int stencil);
 }

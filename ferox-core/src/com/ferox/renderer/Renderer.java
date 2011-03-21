@@ -1,8 +1,8 @@
 package com.ferox.renderer;
 
-import com.ferox.math.Color4f;
-import com.ferox.resource.Geometry;
-import com.ferox.resource.Resource.Status;
+import com.ferox.math.ReadOnlyColor3f;
+import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.resource.VertexBufferObject;
 
 /**
  * <p>
@@ -268,6 +268,67 @@ public interface Renderer {
         DECREMENT_WRAP
     }
 
+    /**
+     * Represents how consecutive elements in a Geometry's indices form
+     * polygons.
+     */
+    public static enum PolygonType {
+        /** Every index is treated as a single point. */
+        POINTS,
+        /**
+         * Every two indices form a line, so [i0, i1, i2, i3] creates 2 lines,
+         * one from i0 to i1 and another from i2 to i3.
+         */
+        LINES,
+        /**
+         * Every three indices form an individual triangle.
+         */
+        TRIANGLES,
+        /**
+         * Every four indices form a quadrilateral (should be planar and
+         * convex).
+         */
+        QUADS,
+        /**
+         * The first three indices form a triangle, and then every subsequent
+         * indices forms a triangle with the previous two indices.
+         */
+        TRIANGLE_STRIP,
+        /**
+         * The first four indices form a quad, and then every two indices form a
+         * quad with the previous two indices.
+         */
+        QUAD_STRIP;
+
+        /**
+         * Compute the number of polygons, based on the number of indices. This
+         * assumes that numVertices > 0.
+         * 
+         * @param numIndices The number of indices that build a shape with this
+         *            PolygonType.
+         * @return The polygon count
+         */
+        public int getPolygonCount(int numIndices) {
+            switch (this) {
+            case POINTS:
+                return numIndices;
+            case LINES:
+                return numIndices >> 1;
+            case TRIANGLES:
+                return numIndices / 3;
+            case QUADS:
+                return numIndices >> 2;
+
+            case TRIANGLE_STRIP:
+                return numIndices - 2;
+            case QUAD_STRIP:
+                return (numIndices - 2) >> 1;
+            }
+
+            return -1;
+        }
+    }
+    
     /**
      * <p>
      * When the stencil test is enabled, there are three stages where the
@@ -595,12 +656,13 @@ public interface Renderer {
 
     /**
      * Set the 'constant' blend color used by certain {@link BlendFactor} enum
-     * values.
+     * values. This accepts four arbitrary float values ordered red, green, blue
+     * and alpha. The values are clamped to [0, 1].
      * 
      * @param color The new blend color to use
      * @throws NullPointerException if color is null
      */
-    public void setBlendColor(Color4f color);
+    public void setBlendColor(ReadOnlyVector4f color);
 
     /**
      * Set the {@link BlendFunction} and source and destination
@@ -653,44 +715,78 @@ public interface Renderer {
 
     /**
      * <p>
-     * Render the given Geometry with the current state configuration of the
-     * Renderer. If the Geometry has any pending updates or hasn't been used by
-     * the Framework before, it will be updated as described in
-     * {@link Framework#update(com.ferox.resource.Resource, boolean)} before
-     * proceeding with the rendering as normal. If, after the Geometry is
-     * ensured to be up-to-date, and its status is not {@link Status#READY},
-     * then nothing will be rendered and 0 will be returned by this method.
+     * Render the polygons described in the indices buffer, <tt>indices</tt>.
+     * Polygons are formed from consecutive indices as determined by the
+     * provided polygon type. The first index is taken from <tt>offset</tt>. The
+     * indices point to the vertices and attributes in the other currently
+     * configured VertexBufferObjects. In OpenGL, this operation is equivalent
+     * to <code>glDrawElements</code>.
      * </p>
      * <p>
-     * If the Geometry is ready for use, then it will be rendered onto the
-     * active Surface. The mapping from vertex attributes in the Geometry
-     * to the coordinates rendered by the Renderer are determined by
-     * sub-interface configuration. In FixedFunctionRenderer, the attribute name
-     * for vertices, normals, and texture coordinates must be specified. In
-     * GlslRenderer, the attribute names are linked to GLSL shader attributes
-     * and then the GLSL shader computes vertices, etc. from these attributes.
+     * The VertexBufferObject might be updated before rendering depending on its
+     * update policy. The VertexBufferObject must have an integral data type of
+     * INT, SHORT, or BYTE. The integer indices are considered as unsigned
+     * values, even though unsigned integers do not exist in Java.
      * </p>
      * <p>
-     * Based on the attribute configurations, a Geometry not be rendered if it
-     * does not contain a vertex attribute of a required name. See the Renderer
-     * subtypes for more information.
+     * The Renderer interface does not provide a mechanism to configure the
+     * active set of vertex attributes needed to form the actual vertices.
+     * Specifying vertex attributes depends on the type of Renderer because the
+     * fixed-function pipeline and programmable shaders use different
+     * mechanisms. However, they can both perform the actual rendering in the
+     * same manner. It is possible that specific Renderer type will support more
+     * rendering methods, such as rendering multiple instances.
      * </p>
      * 
-     * @param g The Geometry to be rendered
-     * @return The number of polygons that were rendered, or 0 if the Geometry
-     *         was not rendered
-     * @throws NullPointerException if g is null
-     * @throws RenderException if this Renderer was interrupted by the Framework
-     *             so that it can be destroyed in a timely manner
+     * @param polyType The type of polygon to render
+     * @param indices An array of integer indices into the configured vertex
+     *            attributes
+     * @param offset The offset into indices
+     * @return The number of polygons rendered
+     * @throws NullPointerException if polyType or indices is null
+     * @throws IllegalArgumentException if offset is negative, or if indices
+     *             doesn't have an appropriate number of elements for the
+     *             polygon type, or if indices has a data type of FLOAT
+     * @throws IndexOutOfBoundsException if rendering would read an invalid
+     *             vertex
      */
-    public int render(Geometry g);
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset);
+
+    /**
+     * <p>
+     * Render polygons by iterating through <tt>count</tt> vertices in the
+     * currently configured vertex attributes. The first vertex is read from the
+     * index, <tt>first</tt>.The vertices form polygons based on the provided
+     * polygon type. In OpenGL, this operation is equivalent to
+     * <code>glDrawArray</code>.
+     * </p>
+     * <p>
+     * The Renderer interface does not provide a mechanism to configure the
+     * active set of vertex attributes needed to form the actual vertices.
+     * Specifying vertex attributes depends on the type of Renderer because the
+     * fixed-function pipeline and programmable shaders use different
+     * mechanisms. However, they can both perform the actual rendering in the
+     * same manner. It is possible that specific Renderer type will support more
+     * rendering methods, such as rendering multiple instances.
+     * </p>
+     * 
+     * @param polyType The type of polygon to render
+     * @param first The index of the first vertex to render
+     * @param count The number of vertices to render
+     * @return The number of polygons rendered
+     * @throws IllegalArgumentException if first or count are negative, or if
+     *             the number of vertices is incompatible with the polygon type
+     * @throws IndexOutOfBoundsException if rendering would read an invalid
+     *             vertex
+     */
+    public int render(PolygonType polyType, int first, int count);
 
     /**
      * Manually reset all of the OpenGL-related state in this Renderer to the
      * defaults described in the interface-level documentation. It is not
-     * necessary to invoke this method at the start of a RenderPass because the
-     * Framework will have already restored everything to the defaults for each
-     * pass invocation.
+     * necessary to invoke this method at the start of a Task because the
+     * Context will have already restored everything to the defaults at the
+     * start of the Task.
      */
     public void reset();
 
@@ -706,10 +802,14 @@ public interface Renderer {
      * mask configured for front-facing polygons.
      * </p>
      * <p>
-     * RenderPasses are not required to invoke this method since buffer clearing
-     * can be scheduled when a RenderPass and Surface are scheduled. This is
-     * provided in case complex graphical effects require different buffer
-     * clearing behavior in the middle of a RenderPass operation.
+     * Like {@link #setBlendColor(ReadOnlyVector4f)}, the color holds arbitrary
+     * values ordered red, green, blue and alpha. They are clamped to [0, 1]
+     * before clearing the color buffer.
+     * </p>
+     * <p>
+     * Tasks are responsible for invoking this method as needed to clear the
+     * Surface. Depending on what is rendered, it may not be necessary to clear
+     * the buffers, in which case performance might be improved.
      * </p>
      * 
      * @param clearColor True if the color buffer is cleared
@@ -722,8 +822,8 @@ public interface Renderer {
      * @throws IllegalArgumentException if depth is not in [0, 1] when
      *             clearDepth is true
      */
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil);
-
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, ReadOnlyVector4f color, float depth, int stencil);
+   
     /**
      * <p>
      * Set the active region of the current Surface. This effectively
@@ -738,7 +838,7 @@ public interface Renderer {
      * content of the Surface. When a Surface is cleared (either
      * based on parameters specified to
      * {@link Framework#queue(Surface, RenderPass) queue()} or to
-     * {@link #clear(boolean, boolean, boolean, Color4f, float, int) clear()}),
+     * {@link #clear(boolean, boolean, boolean, ReadOnlyColor3f, float, int) clear()}),
      * it uses the current viewport, and only clears the content within it.
      * </p>
      * 

@@ -2,6 +2,7 @@ package com.ferox.renderer;
 
 import java.util.Map;
 
+import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
@@ -10,9 +11,11 @@ import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslUniform;
 import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
 
 public interface GlslRenderer extends Renderer {
-
+    public void bindRenderTarget(String fragmentVariable, int target);
+    
     public void setShader(GlslShader shader);
     
     public Map<String, AttributeType> getAttributes();
@@ -20,9 +23,9 @@ public interface GlslRenderer extends Renderer {
     public Map<String, GlslUniform> getUniforms();
     
     
-    public void bindAttribute(String glslAttrName, String geometryAttrName);
+    public void bindAttribute(String glslAttrName, VertexAttribute attr);
     
-    public void bindAttribute(String glslAttrName, int column, String geometryAttrName);
+    public void bindAttribute(String glslAttrName, int column, VertexAttribute attr);
     
     public void bindAttribute(String glslAttrName, float val);
     
@@ -73,4 +76,8 @@ public interface GlslRenderer extends Renderer {
     
 
     public void setUniform(String name, Texture texture);
+    
+    public void setUniform(String name, ReadOnlyColor3f color);
+    
+    public void setUniform(String name, ReadOnlyColor3f color, boolean isHDR);
 }

@@ -28,11 +28,9 @@ import com.ferox.resource.Texture.Target;
  * {@link #getActiveDepthPlane() the active depth plane}. The active layer
  * selects which layer of every Texture in the surface will be rendered into,
  * and the active depth plane selects the depth plane from the active layer to
- * finally limit the rendering into a 2D plane. These parameters can be
- * overridden when a TextureSurface is queued by using
- * {@link Framework#queue(TextureSurface, int, int, RenderPass)}. Surfaces
- * without multiple layers or depth planes can effectively ignore these
- * parameters.
+ * finally limit the rendering into a 2D plane. These parameters are defaults
+ * used when {@link Context#setSurface(Surface) using a surface}. They can be
+ * explicitly specified with {@link Context#setSurface(TextureSurface, int)}.
  * </p>
  * <p>
  * Attached textures have a limited ability to be updated. The created Textures
@@ -41,7 +39,8 @@ import com.ferox.resource.Texture.Target;
  * subsequent renderings into the TextureSurface will overwrite the data.
  * Texture parameters are still updatable. The textures cannot be disposed of by
  * the Framework until the TextureSurface has been destroyed. The textures are
- * still usable after the surface has been destroyed, however.
+ * still usable after the surface has been destroyed, they will just no longer
+ * be rendered into by the TextureSurface.
  * </p>
  * 
  * @author Michael Ludwig
@@ -57,18 +56,18 @@ public interface TextureSurface extends Surface {
      *         TextureSurface
      */
     public int getNumLayers();
-    
+
     /**
-     * @return The active layer that is renderd into unless the TextureSurface
-     *         is queued via
-     *         {@link Framework#queue(TextureSurface, int, int, RenderPass)}
+     * @return The active layer that is rendered into unless the TextureSurface
+     *         is activated with
+     *         {@link HardwareAccessLayer#setActiveSurface(TextureSurface, int)}
      */
     public int getActiveLayer();
 
     /**
      * @return The active depth plane that is rendered into unless the
-     *         TextureSurface is queued via
-     *         {@link Framework#queue(TextureSurface, int, int, RenderPass)}
+     *         TextureSurface is activated with
+     *         {@link HardwareAccessLayer#setActiveSurface(TextureSurface, int)}
      */
     public int getActiveDepthPlane();
     
@@ -85,7 +84,7 @@ public interface TextureSurface extends Surface {
      * queue action that allows the depth plane and layer to be overridden. The
      * layer must be between 0 and the number of layers present in this
      * surface's textures. Because every target except T_CUBEMAP has only one
-     * layer, this is valuable only when a TextureSurface is rendering into a
+     * layer, this is meaningful only when a TextureSurface is rendering into a
      * cube map.
      * 
      * @param layer The new default layer that's rendered into
@@ -100,8 +99,8 @@ public interface TextureSurface extends Surface {
      * queue action that allows the depth plane and layer to be overridden. The
      * depth value must be between 0 and the maximum depth of the texture's
      * within this TextureSurface. Because every target except T_3D has a max
-     * depth of 1, this is valuable only when a TextureSurface is rendering into
-     * a 3D texture.
+     * depth of 1, this is meaningful only when a TextureSurface is rendering
+     * into a 3D texture.
      * 
      * @param depth The new default depth plane that's to be rendered into
      * @throws IllegalArgumentException if depth < 0 or depth >= max allowed

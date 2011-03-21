@@ -4,8 +4,10 @@ import com.ferox.input.MouseKeyEventSource;
 
 /**
  * <p>
- * A renderable Surface that has a visible element, either because it's a window or
- * it's fullscreen. Multiple OnscreenSurfaces can exist at a given time.
+ * A renderable Surface that has a visible element, either because it's a window
+ * or it's fullscreen. Multiple OnscreenSurfaces can exist at a given time. Like
+ * {@link Surface}, all methods exposed by OnscreenSurface have no defined
+ * return value after the surface has been destroyed.
  * 
  * @author Michael Ludwig
  */

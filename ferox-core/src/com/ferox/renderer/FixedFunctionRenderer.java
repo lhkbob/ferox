@@ -1,13 +1,11 @@
 package com.ferox.renderer;
 
-import com.ferox.math.Color4f;
-import com.ferox.math.Matrix4f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Vector4f;
-import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
+import com.ferox.util.geom.Geometry;
 
 /**
  * <p>
@@ -427,12 +425,14 @@ public interface FixedFunctionRenderer extends Renderer {
     public void setFogEnabled(boolean enable);
 
     /**
-     * Set the color used when fogging is enabled. The color cannot be null.
+     * Set the color used when fogging is enabled. The color cannot be null. The
+     * color components are clamped to [0, 1] and are ordered red, green, blue
+     * and alpha in the vector.
      * 
      * @param color The new fog color
      * @throws NullPointerException if color is null
      */
-    public void setFogColor(Color4f color);
+    public void setFogColor(ReadOnlyVector4f color);
 
     /**
      * <p>
@@ -547,12 +547,13 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * Set the ambient color that's always added to pixel colors when lighting
-     * is enabled. The color cannot be null.
+     * is enabled. The color cannot be null. Components in the vector are
+     * ordered red, green, blue, alpha and are clamped to be above 0.
      * 
      * @param ambient The new global ambient color
      * @throws NullPointerException if ambient is null
      */
-    public void setGlobalAmbientLight(Color4f ambient);
+    public void setGlobalAmbientLight(ReadOnlyVector4f ambient);
 
     /**
      * <p>
@@ -607,7 +608,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * when a Geometry is finally rendered.
      * </p>
      * <p>
-     * Any of value for w is not allowed. If the light index is outside of the
+     * Arbitrary values for w are not allowed. If the light index is outside of the
      * range of valid lights, then the request should be ignored.
      * </p>
      * 
@@ -622,11 +623,16 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * <p>
      * Set the ambient, diffuse and specular colors for the given light. Every
-     * enabled light's colors are multiplied with corresponding material
-     * component and is then modulated by the amount of contribution for the
-     * light. This scaled color is then added to final color. Thus a red diffuse
+     * enabled light's colors are multiplied with the corresponding material
+     * component and then modulated by the amount of contribution for the light.
+     * This scaled color is then added to the final color. Thus a red diffuse
      * material color and a green diffuse light color would become a black
      * contribution since (1, 0, 0, 1) * (0, 1, 0, 1) is (0, 0, 0, 1).
+     * </p>
+     * <p>
+     * The colors stored in <tt>amb</tt>, <tt>diff</tt> and <tt>spec</tt> have
+     * components ordered red, green, blue and alpha. The values are clamped to
+     * be above 0.
      * </p>
      * <p>
      * If the light index is outside of the range of valid lights, then the
@@ -639,8 +645,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param spec The new specular color of the light
      * @throws NullPointerException if amb, diff, or spec are null
      */
-    public void setLightColor(int light, Color4f amb, Color4f diff, Color4f spec);
-
+    public void setLightColor(int light, ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec);
+    
     /**
      * <p>
      * Set the spotlight direction and cutoff angle for the given light.
@@ -720,10 +726,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * modulation by the light's colors.
      * </p>
      * <p>
-     * When lighting is not enabled, then the diffuse color value is used as the
+     * When lighting is not enabled, the the diffuse color value is used as the
      * solid, unlit color for the rendered shape. This is because the diffuse
      * color generally represents the 'color' of a lit object while the other
      * color values serve as adding realism to it.
+     * </p>
+     * <p>
+     * The colors stored in <tt>amb</tt>, <tt>diff</tt>, <tt>spec</tt> and
+     * <tt>emm</tt> have components ordered red, green, blue and alpha. The
+     * values are clamped to be in [0, 1].
      * </p>
      * 
      * @param amb The ambient color of the material
@@ -731,8 +742,9 @@ public interface FixedFunctionRenderer extends Renderer {
      *            lighting is disabled
      * @param spec The specular color of the material
      * @param emm The emissive color of the material
+     * @throws NullPointerException if any color is null
      */
-    public void setMaterial(Color4f amb, Color4f diff, Color4f spec, Color4f emm);
+    public void setMaterial(ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec, ReadOnlyVector4f emm);
 
     /**
      * Set the material shininess to use when lighting is enabled. This
@@ -749,28 +761,9 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * <p>
-     * Set whether or not a texture is enabled. When a texture unit is disabled,
-     * it will not modify the color of a pixel based on a bound Texture. If
-     * a texture is enabled but has no bound Texture, it has the same
-     * impact on rendering as if the unit were disabled.
-     * </p>
-     * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
-     * </p>
-     * 
-     * @see #setTexture(int, Texture)
-     * @param tex The texture unit
-     * @param enable True if the texture unit should be enabled
-     */
-    public void setTextureEnabled(int tex, boolean enable);
-
-    /**
-     * <p>
-     * Set the Texture to be bound to the given unit. In order for a
-     * texture to affect the rendering, it must have a READY Texture bound
-     * and the unit must be enabled via {@link #setTextureEnabled(int, boolean)}
-     * Specifying a null image unbinds the previous Texture.
+     * Set the Texture to be bound to the given unit. Specifying a null image
+     * unbinds any previous Texture. A non-null Texture will affect the
+     * rendering based on the configured texture environment for the unit.
      * </p>
      * <p>
      * If tex is outside the valid range of available texture units, this
@@ -807,6 +800,9 @@ public interface FixedFunctionRenderer extends Renderer {
      * {@link CombineSource#CONST_COLOR}.
      * </p>
      * <p>
+     * The color components are ordered red, green, blue, and alpha in the
+     * vector. Values are clamped to the range [0, 1].
+     * <p>
      * If tex is outside the valid range of available texture units, this
      * request should be ignored.
      * </p>
@@ -815,7 +811,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param color The new constant texture color for the unit
      * @throws NullPointerException if color is null
      */
-    public void setTextureColor(int tex, Color4f color);
+    public void setTextureColor(int tex, ReadOnlyVector4f color);
 
     /**
      * <p>
@@ -877,7 +873,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param plane The object plane that's used for this unit and coordinate * @throws
      *            NullPointerException if coord or plane are null
      */
-    public void setTextureObjectPlane(int tex, TexCoord coord, Vector4f plane);
+    public void setTextureObjectPlane(int tex, TexCoord coord, ReadOnlyVector4f plane);
 
     /**
      * <p>
@@ -1030,91 +1026,87 @@ public interface FixedFunctionRenderer extends Renderer {
     public void setModelViewMatrix(ReadOnlyMatrix4f modelView);
 
     /**
-     * Set the name of the Geometry attribute that holds the vertices of the
-     * Geometry. A null name clears the currently assigned vertex name. In order
-     * for a Geometry to be rendered successfully, the following conditions must
-     * hold:
-     * <ol>
-     * <li>The vertex name binding is not null at the time of
-     * {@link #render(com.ferox.resource.Geometry)}</li>
-     * <li>The Geometry contains an attribute of the given name</li>
-     * <li>The attribute in the Geometry has an element size of 2, 3, or 4</li>
-     * </ol>
-     * In addition to these conditions, others exist as described in
-     * {@link #render(com.ferox.resource.Geometry)}
-     * 
-     * @param name The name of the attribute used for vertices
-     */
-    public void setVertexBinding(String name);
-
-    /**
-     * Set the name of the Geometry attribute that holds onto the normals for
-     * the Geometry. A null name clears the currently assigned normal name. In
-     * order for a Geometry to use normals while rendering, the following
-     * conditions must hold:
-     * <ol>
-     * <li>The normal name at the time of rendering cannot be null</li>
-     * <li>The Geometry must have an attribute with the given name</li>
-     * <li>The attribute must have an element size of 3</li>
-     * </ol>
-     * When a Geometry is rendered without normals, an undetermined normal is
-     * used for computing the lighting effects. Thus it is not necessary to
-     * specify normals when rendering with lighting disabled.
-     * 
-     * @param name The name of the attribute for normals
-     */
-    public void setNormalBinding(String name);
-
-    /**
      * <p>
-     * Set the name of the Geometry attribute that holds onto the texture
-     * coordinates used to access the texture unit at tex. A null name clears
-     * the currently assigned texture coordinate name for the given texture
-     * unit. In order for the Geometry to use the texture coordinates for the
-     * unit while rendering, the following must hold:
-     * <ol>
-     * <li>The texture coordinate name at the time of rendering cannot be null</li>
-     * <li>The Geometry must have the an attribute with the given name</li>
-     * </ol>
+     * Set the VertexAttribute that is used as the source of vertex positions
+     * when {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
+     * is invoked. The attribute can be of any type except BYTE, and integral
+     * types are interpreted as signed integers. The attribute can have an
+     * element size of 2, 3 or 4. If the 4th component is not provided, it
+     * defaults to 1. If the 3rd component is not provided, it defaults to 0.
      * </p>
      * <p>
-     * When rendering a Geometry without a set of texture coordinates, an
-     * undetermined texture coordinate is used to access the associated enabled
-     * texture unit. Because texture lookups are only performed on enabled
-     * units, it's not necessary to set a texture coordinate name for disabled
-     * texture units.
+     * This updates the currently bound vertex position attribute. The bound
+     * attribute will remain unchanged after rendering until this method is
+     * called again. Rendering will not be performed if no vertex positions are
+     * bound. The attribute can be unbound if a null VertexAttribute is
+     * provided.
+     * </p>
+     * 
+     * @param vertices The VertexAttribute holding the position data and access
+     *            information
+     * @throws IllegalArgumentException if vertices' buffer data has a type of
+     *             BYTE
+     */
+    public void setVertices(VertexAttribute vertices);
+
+    /**
+     * <p>
+     * Set the VertexAttribute that is used as a source of normal vectors when
+     * {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
+     * is invoked. The attribute data can be of any type and integral types are
+     * considered to be signed integers. The attribute must have an element size
+     * of 3.
+     * </p>
+     * <p>
+     * This updates the currently bound normal attribute. The bound
+     * attribute will remain unchanged after rendering until this method is
+     * called again. A normals attribute is not necessary if lighting is
+     * disabled. If normals aren't bound when rendering with lighting, an
+     * undefined normal vector is used. The attribute can be unbound if a null
+     * VertexAttribute is provided.
+     * </p>
+     * 
+     * @param normals The VertexAttribute holding the normal vector data and
+     *            access information
+     * @throws IllegalArgumentException if normals element size is not 3
+     */
+    public void setNormals(VertexAttribute normals);
+
+    /**
+     * <p>
+     * Set the VertexAttribute that is used as a source of texture coordinates
+     * on the texture unit, <tt>tex</tt> when
+     * {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
+     * is invoked. The attribute data can be of any type except BYTE and
+     * itnegral types are considered to be signed integers. The attribute
+     * element size can be any value between 1 and 4. If the element size of the
+     * attribute doesn't meet the expected coordinate size of the bound texture,
+     * a default is used for the missing components. The 2nd and 3rd components
+     * default to 0 and the 4th defaults to 1.
+     * </p>
+     * <p>
+     * This updates the currently bound texture coordinate attribute for the
+     * given texture unit. The bound attribute will remain unchanged after
+     * rendering until this method is called again for the same texture unit.
+     * Invoking this on one texture unit does not affect the binding of any
+     * other unit. Texture coordinate attributes do not need to be bound to a
+     * texture unit if there is no bound texture image. If a texture is bound
+     * without texture coordinates, an undefined texture coordinate is used. The
+     * attribute can be unbound from the texture unit if a null VertexAttribute
+     * is provided.
      * </p>
      * <p>
      * If tex is outside the range of available texture units, then this request
      * will be ignored.
      * </p>
      * 
-     * @param tex The texture unit that the name is assigned to
-     * @param name The name of the attribute for texture coordinates at the
-     *            given unit
+     * @param tex The texture unit to bind <tt>texCoords</tt> to
+     * @param texCoords The VertexAttribute holind the texture coordinate data
+     *            and access information
+     * @throws IllegalArgumentException if texCoords' data type is BYTE
      */
-    public void setTextureCoordinateBinding(int tex, String name);
-
-    /**
-     * <p>
-     * Convenience function to set the vertex, normal and texture coordinate
-     * name bindings all in one function call. vertices and normals function
-     * equivalently to the name values described in
-     * {@link #setVertexBinding(String)} and {@link #setNormalBinding(String)}.
-     * </p>
-     * <p>
-     * The texCoords array holds a texture coordinate name binding for each
-     * texture unit. The 0th unit's name is stored at index 0, etc. If there are
-     * more texture units than values in texCoords, they will have a null name.
-     * If texCoords contains null elements, their corresponding attributes will
-     * have null names. If texCoords is null, then all texture coordinate names
-     * will be set to null. Any indices above the available number of texture
-     * units will be ignored.
-     * </p>
-     * 
-     * @param vertices The new vertices name
-     * @param normals The new normals attribute name
-     * @param texCoords An array of texture coordinate attribute names
-     */
-    public void setBindings(String vertices, String normals, String[] texCoords);
+    public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }

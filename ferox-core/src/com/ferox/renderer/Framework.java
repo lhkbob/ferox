@@ -5,53 +5,49 @@ import java.util.concurrent.Future;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Resource.Status;
+import com.ferox.resource.Resource.UpdatePolicy;
 
 /**
  * <p>
  * The Framework is the core component for rendering with Ferox. It controls the
- * creation of Surfaces, which store the final render outputs, organizes
- * the Resources and, internally, handles all necessary operations for rendering
- * queued surfaces.
+ * creation of {@link Surface surfaces}, which store the final render outputs,
+ * and provides {@link Context} implementations that allow actual use of
+ * renderers and resources. A Framework acts as an advanced task execution
+ * service that queues up {@link Task tasks} to run on internal threads that
+ * have usable {@link Context contexts}. Most low-level graphics languages have
+ * the concept of a context, where a thread needs an active context to be able
+ * to communicate with the graphics hardware. The context provided by a
+ * Framework are on a much higher level but have a similar scope in usability;
+ * they only function on threads managed by the Framework that control the
+ * low-level driver access.
  * </p>
  * <p>
- * The lifecycle of a Framework often fits the following pattern:
- * <ol>
- * <li>Initialize the Framework and create the Surfaces necessary</li>
- * <li>Render some number of frames, which involves queuing the Surfaces
- * and then invoking {@link #render()}</li>
- * <li>At the same time as above, Resources may be updated and cleaned up based
- * on need of the application</li>
- * <li>The Framework is destroyed and is no longer usable</li>
- * </ol>
- * Another variant might represent a 3D editor where the Surfaces are
- * created and destroyed more dynamically in response to user action.
+ * A very important part of using a Framework is resource management. In the
+ * simplest cases, no explicit management is needed. All Frameworks are required
+ * to automatically clean up internal resource data when a resource is garbage
+ * collected. Because resources start with an update policy of
+ * {@link UpdatePolicy#ON_DEMAND ON_DEMAND}, resources will be automatically
+ * updated as renderers use them. If more explicit control is needed by an
+ * application, a resource can use the MANUAL update policy and tasks can be
+ * queued that invoke {@link Context#update(Resource)} and
+ * {@link Context#dispose(Resource)} as needed.
  * </p>
  * <p>
- * Framework implementations must be thread-safe such that all methods can be
- * invoked from any thread at any time. Depending on the type of action
- * performed by the action, the methods may return immediately with the result,
- * block until capable of performing the action, or schedule some future task
- * that will be performed automatically. Generally, blocking methods are methods
- * that are called infrequently such as Surface creation and destruction,
- * or Framework destruction. Methods that return immediately are queries to
- * immutable objects or the queuing of RenderPasses. Methods with future tasks are those that are performed
- * frequently and benefit most from the ability of multi-threading, such as
- * managing resources and rendering frames.
+ * Another important part is using a Framework to create concrete Surface
+ * objects. Surfaces can be onscreen windows or surfaces that render into
+ * {@link Texture textures}. Surfaces are created with
+ * {@link #createSurface(OnscreenSurfaceOptions)} and
+ * {@link #createSurface(TextureSurfaceOptions)}. A computer's hardware may not
+ * support TextureSurfaces, in which case the creation will fail. Surfaces can
+ * be destroyed with {@link Surface#destroy()} or by destroying the Framework
+ * that created them.
  * </p>
  * <p>
- * When queuing Surfaces for a frame, each Thread maintains its own
- * Surface queue. This is so that the queues from one Thread do not
- * contaminate the ordering of the queue in another Thread. When a frame is
- * rendered from a Thread, it uses the queue for the calling Thread (even if the
- * rendering logic is executed on another Thread entirely).
- * </p>
- * <p>
- * There are three primary interfaces that Frameworks rely on to describe the
- * specifics of a scene:<br>
- * 1. Resource - fairly static data stored on the graphics card. <br>
- * 2. Geometry - describes the shape of something to be rendered (it's also a
- * Resource).<br>
- * 3. Effect - modifies how the Geometry is rendered (e.g. surface description).
+ * Framework implementations must be thread safe so they can be used by multiple
+ * threads at the same time. All methods are intended to perform no effective
+ * operation if they are called on a destroyed Framework. It is invalid behavior
+ * to destroy a Framework from within a Task. See {@link Context} for more
+ * details on what interaction is allowed by executing tasks.
  * </p>
  * 
  * @author Michael Ludwig
@@ -71,9 +67,9 @@ public interface Framework {
      * 
      * @param options Requested pixel format and initial configuration of the
      *            surface
+     * @return The created surface, or null if the Framework has been destroyed
      * @throws SurfaceCreationException if the Framework cannot create the
      *             WindowSurface
-     * @throws RenderException if the Framework has been destroyed
      */
     public OnscreenSurface createSurface(OnscreenSurfaceOptions options);
 
@@ -83,8 +79,8 @@ public interface Framework {
      * Framework will create new textures that can be retrieved by calling the
      * returned surface's {@link TextureSurface#getColorBuffer(int)} and
      * {@link TextureSurface#getDepthBuffer()}. The size and texture format of
-     * the {@link Texture textures} used for the TextureSurface are
-     * determined by the provided <tt>options</tt>.
+     * the {@link Texture textures} used for the TextureSurface are determined
+     * by the provided <tt>options</tt>.
      * </p>
      * <p>
      * If <tt>options</tt> is null or unsupported, the Framework is permitted to
@@ -92,282 +88,197 @@ public interface Framework {
      * </p>
      * 
      * @param options The requested options for configuring the created surface
+     * @return The created surface, or null if the Framework has been destroyed
      * @throws SurfaceCreationException if the TextureSurface can't be created,
      *             because dimensions were invalid for the target, the layer was
      *             invalid (if not ignored), or if they are unsupported, etc.
-     * @throws RenderException if the Framework has already been destroyed
      */
     public TextureSurface createSurface(TextureSurfaceOptions options);
 
     /**
      * <p>
-     * Destroy the given Surface. After a call to this method, the surface
-     * will be ignored by calls to any of the queue() methods, and its
-     * isDestroyed() method will return true. The behavior of other methods of
-     * the surface are undefined after a call to this method.
+     * Destroy all remaining Surfaces and cancel any pending Tasks. Any running
+     * tasks are also canceled and interrupted. This will block until any
+     * running tasks that did not respond to interruption have completed.
      * </p>
      * <p>
-     * OnscreenSurfaces will no longer be visible after they are destroyed. When
-     * a FullscreenSurface is destroyed, the monitor should be restored to the
-     * original resolution when the surface was first created.
+     * All internal resource data will be disposed of so it is not necessary to
+     * manually dispose of every resource before calling this method.
      * </p>
      * <p>
-     * Invoking destroy(surface) on already destroyed surfaces is a no-op. If
-     * the given surface is being used in an actively rendering frame, this call
-     * will block until the frame has completed before it's destroyed.
+     * This method will block until the Framework has been completely destroyed.
+     * The Framework will act 'destroyed' to any other thread the moment this
+     * method is invoked, however. Calling destroy() on an already destroyed
+     * Framework does nothing.
      * </p>
-     * 
-     * @param surface The Surface to destroy
-     * @throws NullPointerException if surface is null
-     * @throws IllegalArgumentException if the surface wasn't created by this
-     *             Framework
-     * @throws RenderException if this Framework has been destroyed
-     */
-    public void destroy(Surface surface);
-
-    /**
-     * <p>
-     * Destroy all remaining active RenderSurfaces created by this Framework.
-     * This will cancel any pending disposals and updates and any frames that are
-     * currently being rendered.  Even though the dispose Futures are canceled,
-     * the internal data will be properly discarded.
-     * </p>
-     * <p>
-     * There is no matching isDestroyed() method because it is assumed that the
-     * Framework will be discarded after it is destroyed.
-     * </p>
-     * <p>
-     * This method will block until all tasks have completed that can't be
-     * canceled.
-     * </p>
-     * 
-     * @throws RenderException if it's already been destroyed
      */
     public void destroy();
+    
+    /**
+     * @return True if the Framework has been destroyed
+     */
+    public boolean isDestroyed();
 
     /**
      * <p>
-     * Schedule an update for the given resource. Every resource must be updated
-     * before it can be used by the Framework (including Geometries). If the
-     * resource has never been updated before by this Framework, or if
-     * forceFullUpdate is true, the resource will ignore the object returned by
-     * getDirtyState(). Otherwise, the Framework must update at least what's
-     * specified by the dirty description.
+     * Queue the given Task to be run as soon as possible by internal threads
+     * managed by the Framework. The queued task will be part of the specified
+     * task 'group' given by the string, <tt>group</tt>. All tasks in a group
+     * will be guaranteed to run in the order queued (although if multiple
+     * threads are queuing to the same group, there may not be an guaranteed
+     * order anyway). Tasks in separate groups can run in parallel depending on
+     * the number of threads used. It is likely, though not required, that tasks
+     * in the same group will run on the same thread.
      * </p>
      * <p>
-     * An important note about the update/disposal process of the Framework: If
-     * a resource hasn't been used before or has been disposed, but is needed
-     * when rendering, it will be automatically updated. If the resource has a
-     * non-null dirty descriptor when it's needed, it will also be updated.
+     * It is also possible for tasks with different groups to be interleaved and
+     * run on the same thread. As an example, one thread could queue two tasks
+     * with group 'A' and another thread could queue tasks as group 'B'. The
+     * Framework could run these as [A1, A2, B1] or [A1, B1, A2] or [B1, A1,
+     * A2]. A and B tasks can be interleaved on the same thread or in parallel.
+     * Only tasks with the same group have any guarantee.
      * </p>
      * <p>
-     * An update will be guaranteed completed before a Resource must be used by
-     * by a Renderer. The scheduling of an update will cancel any disposal
-     * requests that haven't yet been processed. An update can be canceled
-     * manually, by scheduling a disposal, or when the Framework is destroyed.
+     * Generally, all operations needed for a frame of rendering will use a
+     * single task group. Advanced applications may be able to parallelize their
+     * rendering logic and synchronize at key points. It is strongly recommended
+     * for Framework implementations to run tasks from different groups on
+     * separate threads to allow for parallelism.
      * </p>
      * <p>
-     * The update action should use the DirtyState instance returned by
-     * getDirtyState() at the time this method is invoked. If a subsequent
-     * update is scheduled before this one has been processed, it should return
-     * a Future linked to the same task, and the task's DirtyState should be
-     * updated to represent the union of the current dirty state and the
-     * original dirty state.
+     * Of course, tasks in one group may block another group. Two tasks are not
+     * allowed to use the same surface at the same time, and two tasks cannot
+     * update or dispose of a resource while it is being used by another task.
+     * In these cases, on thread will block until the other one releases the
+     * surface or resource.
      * </p>
      * <p>
-     * The correctness of the dirty state merging is dependent on
-     * {@link Resource#getDirtyState()} not being called elsewhere. Otherwise,
-     * an integral piece of dirtiness may be lost and the merged states will not
-     * reflect the actual picture. To prevent 'incomplete' updates when
-     * performing complex updates to a Resource, or using multiple Frameworks
-     * simultaneously, use <tt>forceFullUpdate</tt> set to true to ensure
-     * everything is completely up-to-date.
+     * If the Framework is destroyed before a Task has started, its returned
+     * Future will be canceled. Calls to this method are ignored if the
+     * Framework is already destroyed.
      * </p>
      * 
-     * @param resource The Resource to be updated
-     * @param forceFullUpdate Whether or not the update should ignore dirty
-     *            descriptions of the resource
-     * @return A Future that can be used to determine when the update completes,
-     *         the Status held by the Future is the new status of the Resource
+     * @param <T> The return type of the Task
+     * @param task The task to run with a valid context
+     * @param group The task group this task is part of
+     * @return A future linked to the given task
+     * @throws NullPointerException if the task or group are null
+     */
+    public <T> Future<T> queue(Task<T> task, String group);
+
+    /**
+     * <p>
+     * Convenience method to queue a Task that will update the given resource by
+     * calling {@link Context#update(Resource)}. To simplify the use of this
+     * method, the task group 'resource' is used. It is not recommended to use
+     * this method if resources are being updated and disposed of with custom
+     * Tasks.
+     * </p>
+     * <p>
+     * This method does nothing if the Framework has been destroyed. Since the
+     * Framework's destruction implies no resources can be used, this is not a
+     * problem. This will unblock and return if the Framework is destroyed while
+     * waiting for the update to complete.
+     * </p>
+     * 
+     * @param resource The resource to update
+     * @return The new Status for the resource, as would be returned by
+     *         {@link #getStatus(Resource)}
      * @throws NullPointerException if resource is null
      */
-    public Future<Status> update(Resource resource, boolean forceFullUpdate);
+    public Status update(Resource resource);
 
     /**
      * <p>
-     * Dispose the low-level, graphics hardware related data for the given
-     * Resource. This is a request to the Framework to dispose the Resource, and
-     * the Framework will process it at some time near in the future. If the
-     * Resource has been scheduled for an update that has yet to occur, this
-     * will cancel the update.
+     * Convenience method to queue a Task that will dispose the given resource
+     * by calling {@link Context#dispose(Resource)}. To simplify the use of this
+     * method, the task group 'resource' is used. It is not recommended to use
+     * this method if resources are being updated and disposed of with custom
+     * Tasks.
      * </p>
      * <p>
-     * Unlike the destroy() methods, a resource is still usable after it has
-     * been cleaned. Its attributes and data can be modified; the only
-     * requirement is that it must be updated again before it can be used
-     * correctly for rendering (explicitly or implicitly). Because resources are
-     * implicitly updated when needed, a resource should only be
-     * disposed if it's not to be used again for a long period of time.
-     * </p>
-     * <p>
-     * A disposal can be canceled by explicitly scheduling an update via
-     * {@link #update(Resource, boolean)}, or when the Framework has been
-     * destroyed, or by manually canceling the returned Future. An implicit
-     * update does not cancel the clean-up.
-     * </p>
-     * <p>
-     * This will do nothing if the resource has already been cleaned up or it
-     * was never updated by this Framework before. If a scheduled disposal has
-     * yet to be completed and dispose() is invoked again, this should return a
-     * Future linked to the same task.
-     * </p>
-     * <p>
-     * When a Resource is no longer strong referenced, and is capable of being
-     * garbage collected, the Framework should automatically schedule a disposal
-     * if the Resource's state is not UNSUPPORTED or DISPOSED already.
+     * This method does nothing if the Framework has been destroyed. Since the
+     * Framework's destruction disposes any resource data anyway, this is not a
+     * problem. This will unblock and return if the Framework is destroyed while
+     * waiting for the dispose to complete.
      * </p>
      * 
-     * @param resource The Resource to have its internal resources cleaned-up
-     * @return A Future that can be used to determine when the clean-up
-     *         completes, or if it is canceled by an update or Framework
-     *         destruction. The returned Future's get() method returns null.
+     * @param resource The resource to dispose
      * @throws NullPointerException if resource is null
-     * @throws IllegalArgumentException if the Resource is a Texture being
-     *             used by an undestroyed TextureSurface for this Framework
      */
-    public Future<Void> dispose(Resource resource);
+    public void dispose(Resource resource);
 
     /**
      * <p>
-     * Queue the given Surface so that the given RenderPass will be rendered
-     * during the next call to render() from this Thread. RenderSurfaces and
-     * their associated passes are rendered in the order that they were queued.
-     * Therefore, it's possible to render one pass into surface A, then another
-     * pass into surface B, and then render something else back into A.
+     * Convenience method to queue a Task with the given group that will flush
+     * the provided surface. If the flush is not being performed by already
+     * queued tasks, this is needed to ensure that any rendering is made visible
+     * to the surface. If the surface is a TextureSurface with multiple render
+     * targets, all layers are flushed by this method. If finer control is
+     * needed, a custom task will need to be queued instead. This method will
+     * block until the flush has been completed, so it also acts as a
+     * {@link #sync(String) sync} for the given group.
      * </p>
      * <p>
-     * When speaking of of the Surface queue, or performing a queue operation,
-     * each Thread has its own queue so that multiple calls from various Threads
-     * would not contaminate a single queue and create a non-deterministic
-     * ordering.
-     * </p>
-     * <p>
-     * Destroyed surfaces from this Framework are ignored; this applies to a
-     * destroyed surface at queue time and render time. This is to make it
-     * easier in a multi-threaded environment when the user explicitly closes
-     * a window via OS interaction.
+     * An exception is thrown if the surface is not owned by the Framework,
+     * however. If the provided surface has been destroyed, this method will do
+     * nothing.It is not best practice to queue or use surfaces that have been
+     * destroyed, but this behavior is done to play nicely with onscreen
+     * surfaces that can be closed by the user. If the Framework is destroyed,
+     * this will do nothing and return immediately. This will also return as a
+     * soon as a Framework is destroyed if this was actively blocking.
      * </p>
      * 
-     * @param surface The Surface that the given RenderPass will be rendered to
-     * @param pass The RenderPass that will be rendered
-     * @throws NullPointerException if surface or pass are null
-     * @throws IllegalArgumentException if surface wasn't created by this
+     * @param surface The surface to flush
+     * @param group The task group to use for the generated task
+     * @throws NullPointerException if surface or group are null
+     * @throws IllegalArgumentException if the surface was not created by this
      *             Framework
-     * @throws RenderException if the Framework has been destroyed
      */
-    public void queue(Surface surface, RenderPass pass);
+    public void flush(Surface surface, String group);
 
     /**
      * <p>
-     * Queue the given TextureSurface so that the provided RenderPass will be
-     * rendered during the next call to render() on this Thread. This performs
-     * the functionally equivalent operation to
-     * {@link #queue(Surface, RenderPass)} except that <tt>layer</tt> and
-     * <tt>atDepth</tt> override the active layer and active depth of the
-     * TextureSurface. This queue operation can be used to easily render into
-     * the various depths of a 3D texture, or into the 6 faces of a cube map.
+     * Synchronize the calling thread with the given group. This will block
+     * until all queued tasks for the given group have completed. Tasks queued
+     * to the group from other threads will not run until after sync() as
+     * returned. See {@link #queue(Task, String)} for details about task groups.
      * </p>
      * <p>
-     * When a TextureSurface is passed into {@link #queue(Surface, RenderPass)},
-     * the behavior is equivalent to calling
-     * <code>queue(surface, surface.getActiveLayer(), surface.getActiveDepth(), pass);</code>
-     * . The layer and depth specified in this queue operation must be valid for
-     * the TextureSurface being rendered into
+     * If the Framework is destroyed, this will return immediately. This will
+     * also return as soon as a Framework is destroyed if this was actively
+     * blocking.
      * </p>
      * 
-     * @param surface The Surface that the given RenderPass will be rendered
-     *            into
-     * @param layer The layer of the Textures to be rendered into, overrides
-     *            {@link TextureSurface#getActiveLayer()}
-     * @param atDepth The depth value that the Textures are rendered into,
-     *            overrides {@link TextureSurface#getActiveDepthPlane()}
-     * @param pass The RenderPass that will be rendered
-     * @throws NullPointerException if surface or pass are null
-     * @throws IllegalArgumentException if surface wasn't created by this
-     *             Framework, or if layer and atDepth would throw exceptions if
-     *             they were used as the active layer and depth for the surface
-     * @throws RenderException if the Framework has been destroyed
+     * @param group The group to sync to
+     * @throws NullPointerException if group is null
      */
-    public void queue(TextureSurface surface, int layer, int atDepth, RenderPass pass);
-
-    /**
-     * <p>
-     * Render a single frame for the queued RenderSurfaces of the calling
-     * Thread. For each queued (surface X pass), clear the surface based on the
-     * clear parameters when the surface was queued and render the pass. Queued
-     * surfaces that have been destroyed should be ignored.
-     * </p>
-     * <p>
-     * As specified in {@link #queue(Surface, RenderPass)}, each Thread
-     * maintains its own queue of RenderSurfaces for rendering. When render() is
-     * invoked, it uses the queue for the calling Thread. The actual rendering
-     * may be performed on this thread or on an internal thread, depending on
-     * the implementation. A RenderPass should be used in a synchronized manner
-     * so that it's only executed in Thread at a given time.
-     * </p>
-     * <p>
-     * If the frame is to be rendered on another Thread, the returned Future may
-     * not be completed when this returns. In this case it is cancel-able,
-     * leaving the frame unfinished. The state of the RenderSurfaces involved
-     * are not explicitly described here, but should be reasonable and must
-     * still be usable in subsequent renders without problems.
-     * </p>
-     * <p>
-     * If an exception is thrown, the rendering of the frame stops. Because of
-     * this, ResourceManagers, RenderPasses and other objects used in
-     * flushRenderer should be careful when they decide to throw an exception.
-     * The returned Future will then contain this Exception instead of a a
-     * FrameStatistics result.
-     * </p>
-     * 
-     * @return A Future that can be used to determine when a frame has
-     *         completed. Within it will contain FrameStatistics information
-     *         about the timing of the frame
-     * @throws RenderException if the Framework has been destroyed
-     */
-    public Future<FrameStatistics> render();
-
-    /**
-     * Perform the equivalent operations as {@link #render()}, except that this
-     * method will block until the rendering is completed and return the
-     * FrameStatistics instead of a {@link Future}.
-     * 
-     * @return FrameStatistics information about the timing of the frame
-     * @throws RenderException if the Framework has been destroyed or if any
-     *             exception occurred while rendering that prevented the frame
-     *             from completing.
-     */
-    public FrameStatistics renderAndWait();
+    public void sync(String group);
 
     /**
      * <p>
      * Get the current status of the given resource. Return UNSUPPORTED if the
-     * Framework cannot support the given Resource type.
+     * Framework cannot support the given Resource type. If the resource's
+     * update policy is ON_DEMAND, this will NOT automatically update the
+     * resource if needed. The automatic updates only occur when the resource is
+     * used by a Renderer.
      * </p>
      * <p>
-     * If ERROR is returned, the resource will be ignored when rendering.
+     * If ERROR is returned, the resource will be ignored when rendering. This
+     * will also return DISPOSED if the Framework has been destroyed.
      * </p>
      * 
      * @param resource The Resource whose status is requested
      * @return The Status of resource
      * @throws NullPointerException if resource is null
-     * @throws RenderException if the Framework has been destroyed
      */
     public Status getStatus(Resource resource);
 
     /**
      * Get a Framework status message that is more informative about the given
-     * resources's status.
+     * resources's status. A null message is returned if the Framework has been
+     * destroyed. If a Framework is not destroyed but has no message, the empty
+     * string should be returned so that the null return value is unique.
      * 
      * @param resource The Resource whose status message is requested
      * @return The status message for resource
@@ -377,10 +288,11 @@ public interface Framework {
     public String getStatusMessage(Resource resource);
 
     /**
-     * Get the capabilities of this Framework.
+     * Get the capabilities of this Framework. This is allowed to return null
+     * after the Framework is destroyed although Frameworks might not behave
+     * this way.
      * 
-     * @return The RenderCapabilities for this Framework, will not be null
-     * @throws RenderException if the Framework has been destroyed
+     * @return The RenderCapabilities for this Framework
      */
     public RenderCapabilities getCapabilities();
 }
