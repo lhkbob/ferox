@@ -37,10 +37,11 @@ import com.ferox.resource.Texture.Target;
  * will not be mipmapped, so each layer will only have a single mipmap level.
  * Although it's possible to assign new Buffer image data to these levels,
  * subsequent renderings into the TextureSurface will overwrite the data.
- * Texture parameters are still updatable. The textures cannot be disposed of by
- * the Framework until the TextureSurface has been destroyed. The textures are
- * still usable after the surface has been destroyed, they will just no longer
- * be rendered into by the TextureSurface.
+ * Texture parameters are still updateable. The textures cannot be disposed of
+ * by the Framework until the TextureSurface has been destroyed (an exception is
+ * thrown by {@link HardwareAccessLayer#dispose(com.ferox.resource.Resource)}).
+ * The textures are still usable after the surface has been destroyed, they will
+ * just no longer be rendered into by the TextureSurface.
  * </p>
  * 
  * @author Michael Ludwig

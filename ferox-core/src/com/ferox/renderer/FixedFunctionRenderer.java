@@ -1104,7 +1104,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * </p>
      * 
      * @param tex The texture unit to bind <tt>texCoords</tt> to
-     * @param texCoords The VertexAttribute holind the texture coordinate data
+     * @param texCoords The VertexAttribute holding the texture coordinate data
      *            and access information
      * @throws IllegalArgumentException if texCoords' data type is BYTE
      */

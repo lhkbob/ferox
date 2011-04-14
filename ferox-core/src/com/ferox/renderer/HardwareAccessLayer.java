@@ -36,8 +36,8 @@ public interface HardwareAccessLayer {
      * provided by the returned Context). This may be called multiple times by
      * the same Task, although only one Surface will be active for the task at a
      * given time. A Surface cannot be active on more than one thread at a time.
-     * This method will block until any other task running thread releases the
-     * surface (by returning or activating a different surface).
+     * This method will block until any other running task releases the surface
+     * (by returning or activating a different surface).
      * </p>
      * <p>
      * The returned Context is only valid while the specified surface is active.
@@ -63,20 +63,38 @@ public interface HardwareAccessLayer {
      * it has a cube map or 3D texture. Other texture types do not have multiple
      * layers to select so it does not matter.
      * </p>
+     * <p>
+     * If the surface has its {@link Surface#destroy()} method called before
+     * this it is activated, a null Context is returned. A Surface cannot be
+     * destroyed until it has been deactivated. The only exception to this is if
+     * the Thread running the Task calls destroy. In this case, the Surface is
+     * deactivated automatically and then destroyed.
+     * </p>
+     * <p>
+     * Generally Surfaces should not be destroyed within a Task since it can
+     * have unintended consequences. As an example, an OnscreenSurface might
+     * still be used to provide a Context for a TextureSurface. Destroying the
+     * OnscreenSurface while the TextureSurface is active would also have to
+     * deactivate the TextureSurface. Essentially, destroying the active surface
+     * while in a Task has well defined consequences; destroying other surfaces
+     * in a Task may or may not also deactivate the currently active surface.
+     * </p>
      * 
      * @param surface The Surface to activate, or null to deactivate the current
      *            surface
      * @return A Context to use for the activation lifetime of the given
-     *         Surface, or null if surface was null
+     *         Surface, or null if surface was null was or destroyed
      */
     public Context setActiveSurface(Surface surface);
 
     /**
+     * <p>
      * Set the active surface to be the given TextureSurface, overriding the
      * surface's active layer or depth plane. This functions identically to
      * {@link #setActiveSurface(Surface)} except that it overrides the
      * TextureSurface's active layer and does not allow the surface to be null.
-     * Deactivating surfaces can only be done with the first method. </p>
+     * Deactivating surfaces can only be done with the first method.
+     * </p>
      * <p>
      * The layer argument is interpreted differently depending on the type of
      * Texture used by the TextureSurface. If the texture is a cube map, the
@@ -86,12 +104,17 @@ public interface HardwareAccessLayer {
      * validated in the same manner that setting the default active layer or
      * active depth plane is. For 1D and 2D textures, it must always be 0.
      * </p>
+     * <p>
+     * See {@link #setActiveSurface(Surface)} for details on how destroyed
+     * Surfaces or destroying a Surface within a Task behaves.
+     * </p>
      * 
      * @param surface The TextureSurface to activate, cannot be null
      * @param layer The texture layer or depth plane to render into, depending
      *            on texture type of the surface
      * @return A Context to use for the activation lifetime of the given surface
-     * @throws NullPointerException if surface is null
+     * @throws NullPointerException if surface is null or destroyed
+     * @throws IllegalArgumentException if the layer is invalid
      */
     public Context setActiveSurface(TextureSurface surface, int layer);
 
@@ -120,7 +143,7 @@ public interface HardwareAccessLayer {
      * @return The new status of the resource
      * @throws NullPointerException if resource is null
      */
-    public Status update(Resource resource);
+    public <R extends Resource> Status update(R resource);
 
     /**
      * Dispose of all hardware level resources tied to the given Resource. The
@@ -131,8 +154,10 @@ public interface HardwareAccessLayer {
      * 
      * @param resource The Resource to clean up
      * @throws NullPointerException if the resource is null
+     * @throws IllegalStateException if the resource is a Texture that is owned
+     *             by an undestroyed TextureSurface
      */
-    public void dispose(Resource resource);
+    public <R extends Resource> void dispose(R resource);
 
     /**
      * Reset the internal state this Framework keeps for the given Resource, so
@@ -143,5 +168,5 @@ public interface HardwareAccessLayer {
      * @param resource The resource to reset
      * @throws NullPointerException if resource is null
      */
-    public void reset(Resource resource);
+    public <R extends Resource> void reset(R resource);
 }

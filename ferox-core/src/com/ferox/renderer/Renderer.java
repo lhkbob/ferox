@@ -328,7 +328,7 @@ public interface Renderer {
             return -1;
         }
     }
-    
+
     /**
      * <p>
      * When the stencil test is enabled, there are three stages where the
@@ -355,6 +355,7 @@ public interface Renderer {
      * @param stencilFail The StencilOp applied when the stencil test fails
      * @param depthFail The StencilOp applied when the depth test fails
      * @param depthPass The StencilOp applied when the depth test passes
+     * @throws NullPointerException if any enum is null
      */
     public void setStencilUpdateOps(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
 
@@ -370,6 +371,7 @@ public interface Renderer {
      *            front-facing polygons
      * @param depthPass The StencilOp applied when the depth test passes for
      *            front-facing polygons
+     * @throws NullPointerException if any enum is null
      */
     public void setStencilUpdateOpsFront(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
 
@@ -385,6 +387,7 @@ public interface Renderer {
      *            back-facing polygons
      * @param depthPass The StencilOp applied when the depth test passes for
      *            back-facing polygons
+     * @throws NullPointerException if any enum is null
      */
     public void setStencilUpdateOpsBack(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
 
