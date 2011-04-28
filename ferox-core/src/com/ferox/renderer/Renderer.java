@@ -269,64 +269,77 @@ public interface Renderer {
     }
 
     /**
-     * Represents how consecutive elements in a Geometry's indices form
-     * polygons.
+     * Represents how consecutive vertices form polygons.
      */
     public static enum PolygonType {
         /** Every index is treated as a single point. */
-        POINTS,
+        POINTS {
+            @Override
+            public int getPolygonCount(int count) {
+                return count;
+            }
+        },
         /**
          * Every two indices form a line, so [i0, i1, i2, i3] creates 2 lines,
          * one from i0 to i1 and another from i2 to i3.
          */
-        LINES,
+        LINES {
+            @Override
+            public int getPolygonCount(int count) {
+                return count >> 1;
+            }
+        },
         /**
          * Every three indices form an individual triangle.
          */
-        TRIANGLES,
+        TRIANGLES {
+            @Override
+            public int getPolygonCount(int count) {
+                return count / 3;
+            }
+        },
         /**
          * Every four indices form a quadrilateral (should be planar and
          * convex).
          */
-        QUADS,
+        QUADS {
+            @Override
+            public int getPolygonCount(int count) {
+                return count >> 2;
+            }
+        },
         /**
          * The first three indices form a triangle, and then every subsequent
          * indices forms a triangle with the previous two indices.
          */
-        TRIANGLE_STRIP,
+        TRIANGLE_STRIP {
+            @Override
+            public int getPolygonCount(int count) {
+                return Math.max(0, count - 2);
+            }
+        },
         /**
          * The first four indices form a quad, and then every two indices form a
          * quad with the previous two indices.
          */
-        QUAD_STRIP;
+        QUAD_STRIP {
+            @Override
+            public int getPolygonCount(int count) {
+                return Math.max(0, count - 2) >> 1;
+            }
+        };
 
         /**
          * Compute the number of polygons, based on the number of indices. This
-         * assumes that numVertices > 0.
+         * assumes that numIndices > 0. This will return undefined results if
+         * numIndices is not positive. This will return the minimum number of
+         * fully formed primitives, extra indices will be ignored.
          * 
          * @param numIndices The number of indices that build a shape with this
          *            PolygonType.
          * @return The polygon count
          */
-        public int getPolygonCount(int numIndices) {
-            switch (this) {
-            case POINTS:
-                return numIndices;
-            case LINES:
-                return numIndices >> 1;
-            case TRIANGLES:
-                return numIndices / 3;
-            case QUADS:
-                return numIndices >> 2;
-
-            case TRIANGLE_STRIP:
-                return numIndices - 2;
-            case QUAD_STRIP:
-                return (numIndices - 2) >> 1;
-            }
-
-            return -1;
-        }
+        public abstract int getPolygonCount(int numIndices);
     }
 
     /**
@@ -357,7 +370,8 @@ public interface Renderer {
      * @param depthPass The StencilOp applied when the depth test passes
      * @throws NullPointerException if any enum is null
      */
-    public void setStencilUpdateOps(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
+    public void setStencilUpdateOps(StencilOp stencilFail, StencilOp depthFail, 
+                                    StencilOp depthPass);
 
     /**
      * This method sets the StencilOps that are applied with front-facing
@@ -373,7 +387,8 @@ public interface Renderer {
      *            front-facing polygons
      * @throws NullPointerException if any enum is null
      */
-    public void setStencilUpdateOpsFront(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
+    public void setStencilUpdateOpsFront(StencilOp stencilFail, StencilOp depthFail, 
+                                         StencilOp depthPass);
 
     /**
      * This method sets the StencilOps that are applied with back-facing
@@ -389,7 +404,8 @@ public interface Renderer {
      *            back-facing polygons
      * @throws NullPointerException if any enum is null
      */
-    public void setStencilUpdateOpsBack(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass);
+    public void setStencilUpdateOpsBack(StencilOp stencilFail, StencilOp depthFail, 
+                                        StencilOp depthPass);
 
     /**
      * <p>
@@ -723,7 +739,10 @@ public interface Renderer {
      * provided polygon type. The first index is taken from <tt>offset</tt>. The
      * indices point to the vertices and attributes in the other currently
      * configured VertexBufferObjects. In OpenGL, this operation is equivalent
-     * to <code>glDrawElements</code>.
+     * to <code>glDrawElements</code>. For performance reasons, it is possible
+     * for <tt>indices</tt> to contain indices that reference vertices outside
+     * the range of configured vertices. If this happens, rendering will be
+     * undefined, and may cause the JVM to crash.
      * </p>
      * <p>
      * The VertexBufferObject might be updated before rendering depending on its
@@ -745,15 +764,13 @@ public interface Renderer {
      * @param indices An array of integer indices into the configured vertex
      *            attributes
      * @param offset The offset into indices
+     * @param count The number of indices to turn into polygons
      * @return The number of polygons rendered
      * @throws NullPointerException if polyType or indices is null
-     * @throws IllegalArgumentException if offset is negative, or if indices
-     *             doesn't have an appropriate number of elements for the
-     *             polygon type, or if indices has a data type of FLOAT
-     * @throws IndexOutOfBoundsException if rendering would read an invalid
-     *             vertex
+     * @throws IllegalArgumentException if offset is negative, or if indices has
+     *             a data type of FLOAT
      */
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset);
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count);
 
     /**
      * <p>
@@ -761,7 +778,11 @@ public interface Renderer {
      * currently configured vertex attributes. The first vertex is read from the
      * index, <tt>first</tt>.The vertices form polygons based on the provided
      * polygon type. In OpenGL, this operation is equivalent to
-     * <code>glDrawArray</code>.
+     * <code>glDrawArray</code>. If <tt>first</tt> and <tt>count</tt> would
+     * cause this to access undefined vertices, undefined and probably
+     * disastrous behavior will result. This will render
+     * {@link PolygonType#getPolygonCount(int)} primitives, with <tt>count</tt>
+     * as the argument.
      * </p>
      * <p>
      * The Renderer interface does not provide a mechanism to configure the
@@ -777,10 +798,7 @@ public interface Renderer {
      * @param first The index of the first vertex to render
      * @param count The number of vertices to render
      * @return The number of polygons rendered
-     * @throws IllegalArgumentException if first or count are negative, or if
-     *             the number of vertices is incompatible with the polygon type
-     * @throws IndexOutOfBoundsException if rendering would read an invalid
-     *             vertex
+     * @throws IllegalArgumentException if first or count are negative
      */
     public int render(PolygonType polyType, int first, int count);
 
@@ -825,7 +843,8 @@ public interface Renderer {
      * @throws IllegalArgumentException if depth is not in [0, 1] when
      *             clearDepth is true
      */
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, ReadOnlyVector4f color, float depth, int stencil);
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, 
+                      ReadOnlyVector4f color, float depth, int stencil);
    
     /**
      * <p>

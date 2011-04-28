@@ -376,7 +376,8 @@ public interface FixedFunctionRenderer extends Renderer {
          * <ul>
          * <li>(xe, ye, ze, we) is the vertex in eye coordinates</li>
          * <li>(p1, p2, p3, p4) is the configured plane equation</li>
-         * <li>M^-1 is the inverse of the modelview matrix when (p1, p2, p3, p4) were set</li>
+         * <li>M^-1 is the inverse of the modelview matrix when (p1, p2, p3, p4)
+         * were set</li>
          * <li>(p1', p2', p3', p4') = (p1, p2, p3, p4) x M^-1</li>
          * </ul>
          * Then the texture coordinate g is: <code>
@@ -579,12 +580,13 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * Set whether or not the given light is enabled. If it's set to true then
      * it will be used to compute lighting when the overall lighting system has
-     * been enabled. If the light index is outside of the range of valid lights,
-     * then the request should be ignored.
+     * been enabled. If light is larger than the highest available light unit
+     * for the hardware, this request will be ignored.
      * 
      * @param light The given light, from 0 to the maximum number of lights
      *            available (usually 8)
      * @param enable True if it's enabled
+     * @throws IllegalArgumentException if light is less than 0
      */
     public void setLightEnabled(int light, boolean enable);
 
@@ -599,7 +601,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * When the given pos vector has a w component of 1, the light will act as a
      * point or spotlight located at (x, y, z). When the w component is 0, then
      * the light is infinitely far away in the direction of (x, y, z). In effect
-     * the light is a directional light shining in (-x, -y, -z).
+     * the light is a directional light shining in (-x, -y, -z). Arbitrary
+     * values for w are not allowed.
      * </p>
      * <p>
      * The given position vector is transformed by the current modelview matrix
@@ -608,15 +611,16 @@ public interface FixedFunctionRenderer extends Renderer {
      * when a Geometry is finally rendered.
      * </p>
      * <p>
-     * Arbitrary values for w are not allowed. If the light index is outside of the
-     * range of valid lights, then the request should be ignored.
+     * If light is larger than the highest available light unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param light The given light, from 0 to the maximum number of lights
      *            available (usually 8)
      * @param pos The position vector for this light
      * @throws NullPointerException if pos is null
-     * @throws IllegalArgumentException if pos.w is not 0 or 1
+     * @throws IllegalArgumentException if pos.w is not 0 or 1 or if light is
+     *             less than 0
      */
     public void setLightPosition(int light, ReadOnlyVector4f pos);
 
@@ -635,8 +639,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * be above 0.
      * </p>
      * <p>
-     * If the light index is outside of the range of valid lights, then the
-     * request should be ignored.
+     * If light is larger than the highest available light unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param light The given light to configure
@@ -644,9 +648,11 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param diff The new diffuse color of the light
      * @param spec The new specular color of the light
      * @throws NullPointerException if amb, diff, or spec are null
+     * @throws IllegalArgumentException if light is less than 0
      */
-    public void setLightColor(int light, ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec);
-    
+    public void setLightColor(int light, ReadOnlyVector4f amb, ReadOnlyVector4f diff, 
+                              ReadOnlyVector4f spec);
+
     /**
      * <p>
      * Set the spotlight direction and cutoff angle for the given light.
@@ -667,8 +673,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * lighting.
      * </p>
      * <p>
-     * If the light index is outside the range of valid lights, then the request
-     * should be ignored.
+     * If light is larger than the highest available light unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param light The given light to configure
@@ -676,7 +682,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param angle The cutoff angle for the light from the spotlight
      * @throws NullPointerException if dir is null
      * @throws IllegalArgumentException if angle is not in [0, 90] or equal to
-     *             180
+     *             180 or if light is less than 0
      */
     public void setSpotlight(int light, ReadOnlyVector3f dir, float angle);
 
@@ -704,15 +710,16 @@ public interface FixedFunctionRenderer extends Renderer {
      * the divisor to equal 0.
      * </p>
      * <p>
-     * If the light index is outside of the range of valid lights, then the
-     * request should be ignored.
+     * If light is larger than the highest available light unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param light The given light to configure
      * @param constant The constant attenuation term, >= 0
      * @param linear The linear attenuation factor, >= 0
      * @param quadratic The quadratic attenuation factor, >= 0
-     * @throws IllegalArgumentException if constant, linear or quadratic < 0
+     * @throws IllegalArgumentException if constant, linear or quadratic < 0 or
+     *             if light is less than 0
      */
     public void setLightAttenuation(int light, float constant, float linear, float quadratic);
 
@@ -729,12 +736,13 @@ public interface FixedFunctionRenderer extends Renderer {
      * When lighting is not enabled, the the diffuse color value is used as the
      * solid, unlit color for the rendered shape. This is because the diffuse
      * color generally represents the 'color' of a lit object while the other
-     * color values serve as adding realism to it.
+     * color values add subtle shading to it.
      * </p>
      * <p>
      * The colors stored in <tt>amb</tt>, <tt>diff</tt>, <tt>spec</tt> and
      * <tt>emm</tt> have components ordered red, green, blue and alpha. The
-     * values are clamped to be in [0, 1].
+     * values for <tt>amb</tt>, <tt>diff</tt> and <tt>spec</tt> are clamped to
+     * be in [0, 1]. The values in <tt>emm</tt> are clamped to be above 0.
      * </p>
      * 
      * @param amb The ambient color of the material
@@ -744,7 +752,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param emm The emissive color of the material
      * @throws NullPointerException if any color is null
      */
-    public void setMaterial(ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec, ReadOnlyVector4f emm);
+    public void setMaterial(ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec,
+                            ReadOnlyVector4f emm);
 
     /**
      * Set the material shininess to use when lighting is enabled. This
@@ -766,12 +775,13 @@ public interface FixedFunctionRenderer extends Renderer {
      * rendering based on the configured texture environment for the unit.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param image The Texture to be bound to tex
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTexture(int tex, Texture image);
 
@@ -783,13 +793,14 @@ public interface FixedFunctionRenderer extends Renderer {
      * {@link EnvMode} for a detailed description of each EnvMode.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param mode The EnvMode for this unit
      * @throws NullPointerException if mode is null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureMode(int tex, EnvMode mode);
 
@@ -803,13 +814,14 @@ public interface FixedFunctionRenderer extends Renderer {
      * The color components are ordered red, green, blue, and alpha in the
      * vector. Values are clamped to the range [0, 1].
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param color The new constant texture color for the unit
      * @throws NullPointerException if color is null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureColor(int tex, ReadOnlyVector4f color);
 
@@ -819,14 +831,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * the given texture unit.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @see #setTextureCoordGeneration(int, TexCoord, TexCoordSource)
      * @param tex The texture unit
      * @param gen The TexCoordSource for all four coordinates
      * @throws NullPointerException if gen is null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureCoordGeneration(int tex, TexCoordSource gen);
 
@@ -834,23 +847,24 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Set the texture coordinate source for the specified texture coordinate on
      * the given texture unit. Each usable texture unit has an associated
-     * Texture. However, there must be a mapping between the image value
-     * and the rendered Geometry, which is in essence, how does the Geometry
-     * unwrap onto the image? This is accomplished by using texture coordinates
-     * that are per-vertex vectors much like vertices or normals that represent
-     * how to access the Texture. These texture coordinates can be
-     * auto-generated or specified as part of the Geometry. See
-     * {@link TexCoordSource} for a description of each source.
+     * Texture. However, there must be a mapping between the image value and the
+     * rendered Geometry, which is in essence, how does the Geometry unwrap onto
+     * the image? This is accomplished by using texture coordinates that are
+     * per-vertex vectors much like vertices or normals that represent how to
+     * access the Texture. These texture coordinates can be auto-generated or
+     * specified as part of the Geometry. See {@link TexCoordSource} for a
+     * description of each source.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param coord The coordinate that's source is to be modified
      * @param gen The new texture coordinate source
      * @throws NullPointerException if coord or gen are null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen);
 
@@ -864,14 +878,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * plane.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param coord The coordinate whose object plane will be set
-     * @param plane The object plane that's used for this unit and coordinate * @throws
-     *            NullPointerException if coord or plane are null
+     * @param plane The object plane that's used for this unit and coordinate
+     * @throws NullPointerException if coord or plane are null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureObjectPlane(int tex, TexCoord coord, ReadOnlyVector4f plane);
 
@@ -886,8 +901,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * independent from the object plane.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
@@ -895,28 +910,27 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param plane The eye plane to be specified, values are before inverse
      *            modelview multiplication
      * @throws NullPointerException if coord or plane are null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureEyePlane(int tex, TexCoord coord, ReadOnlyVector4f plane);
 
     /**
      * <p>
      * In addition to texture coordinates on each unit, these coordinates can be
-     * transformed by a matrix before accessing the Texture. When
-     * performing this transformation, each texture coordinate uses reasonable
-     * default values for coordinates that aren't provided: the 3rd coordinate
-     * is mapped to 0 and the 4th coordinate is mapped to 1.
+     * transformed by a matrix before accessing the Texture. When performing
+     * this transformation, each texture coordinate uses reasonable default
+     * values for coordinates that aren't provided: the 3rd coordinate is mapped
+     * to 0 and the 4th coordinate is mapped to 1.
      * </p>
      * <p>
-     * As a convenience, if a null matrix is specified, the transform is reset
-     * to the identity matrix.
-     * </p>
-     * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param matrix The texture coordinate transform matrix
+     * @throws NullPointerException if matrix is null
+     * @throws IllegalArgumentException if tex is less than 0
      */
     public void setTextureTransform(int tex, ReadOnlyMatrix4f matrix);
 
@@ -927,17 +941,19 @@ public interface FixedFunctionRenderer extends Renderer {
      * illegal to specify DOT3_RGB or DOT3_RGBA in alphaFunc.</p>
      * <p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
      * @param rgbFunc The CombineFunction used for rgb values
      * @param alphaFunc The CombineFunction used for the alpha component
      * @throws NullPointerException if rgbFunc or alphaFunc are null
-     * @throws IllegalArgumentException if alphaFunc is DOT3_RGB or DOT3_RGBA
+     * @throws IllegalArgumentException if alphaFunc is DOT3_RGB or DOT3_RGBA or
+     *             if tex is less than 0
      */
-    public void setTextureCombineFunction(int tex, CombineFunction rgbFunc, CombineFunction alphaFunc);
+    public void setTextureCombineFunction(int tex, CombineFunction rgbFunc, 
+                                          CombineFunction alphaFunc);
 
     /**
      * <p>
@@ -946,8 +962,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * argument that is used with the configured RGB CombineFunction.
      * </p>
      * <p>
-     * If tex is outside the valid range of available texture units, this
-     * request should be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit
@@ -955,7 +971,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param src The CombineSource for the operand
      * @param op The CombineOp that modifies the specified CombineSource
      * @throws NullPointerException if src or op are null
-     * @throws IllegalArgumentException if operand is not 0, 1 or 2
+     * @throws IllegalArgumentException if operand is not 0, 1 or 2 or if tex is
+     *             less than 0
      */
     public void setTextureCombineOpRgb(int tex, int operand, CombineSource src, CombineOp op);
 
@@ -972,7 +989,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param op The CombineOp that modifies the specified CombineSource
      * @throws NullPointerException if src or op are null
      * @throws IllegalArgumentException if operand is not 0, 1, or 2 or if op is
-     *             illegal
+     *             illegal or if tex is less than 0
      */
     public void setTextureCombineOpAlpha(int tex, int operand, CombineSource src, CombineOp op);
 
@@ -987,14 +1004,11 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * An important effect of this transformation is that it flips the z-axis
      * direction; after the modelview matrix, negative z values extend in front
-     * of and away from the view, and now positive z values are farther away.
-     * </p>
-     * <p>
-     * Like with the {@link #setTextureTransform(int, Matrix4f) texture matrix},
-     * a null matrix will reset the projection matrix to the identity.
+     * of and away from the view.
      * </p>
      * 
      * @param projection The new projection matrix
+     * @throws NullPointerException if projection is null
      */
     public void setProjectionMatrix(ReadOnlyMatrix4f projection);
 
@@ -1022,6 +1036,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * </p>
      * 
      * @param modelView The new modelview matrix
+     * @throws NullPointerException if modelView is null
      */
     public void setModelViewMatrix(ReadOnlyMatrix4f modelView);
 
@@ -1099,14 +1114,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * is provided.
      * </p>
      * <p>
-     * If tex is outside the range of available texture units, then this request
-     * will be ignored.
+     * If tex is larger than the highest available texture unit for the
+     * hardware, this request will be ignored.
      * </p>
      * 
      * @param tex The texture unit to bind <tt>texCoords</tt> to
      * @param texCoords The VertexAttribute holding the texture coordinate data
      *            and access information
-     * @throws IllegalArgumentException if texCoords' data type is BYTE
+     * @throws IllegalArgumentException if texCoords' data type is BYTE or if
+     *             tex is less than 0
      */
     public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }

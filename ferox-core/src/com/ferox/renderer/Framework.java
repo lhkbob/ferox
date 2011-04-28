@@ -11,26 +11,26 @@ import com.ferox.resource.Resource.UpdatePolicy;
  * <p>
  * The Framework is the core component for rendering with Ferox. It controls the
  * creation of {@link Surface surfaces}, which store the final render outputs,
- * and provides {@link Context} implementations that allow actual use of
- * renderers and resources. A Framework acts as an advanced task execution
- * service that queues up {@link Task tasks} to run on internal threads that
- * have usable {@link Context contexts}. Most low-level graphics languages have
- * the concept of a context, where a thread needs an active context to be able
- * to communicate with the graphics hardware. The context provided by a
- * Framework are on a much higher level but have a similar scope in usability;
- * they only function on threads managed by the Framework that control the
- * low-level driver access.
+ * and provides {@link HardwareAccessLayer} and {@link Context} implementations
+ * that allow actual use of renderers and resources. A Framework acts as an
+ * advanced task execution service that queues up {@link Task tasks} to run on
+ * internal threads that can communicate with low-level graphics drivers. Most
+ * low-level graphics languages have the concept of a context, where a thread
+ * needs an active context to be able to communicate with the graphics hardware.
+ * The contexts provided by a Framework are on a much higher level but have a
+ * similar scope of usability; they only function on threads managed by the
+ * Framework that control the low-level driver access.
  * </p>
  * <p>
  * A very important part of using a Framework is resource management. In the
  * simplest cases, no explicit management is needed. All Frameworks are required
- * to automatically clean up internal resource data when a resource is garbage
- * collected. Because resources start with an update policy of
+ * to automatically clean up internal resource data when a {@link Resource} is
+ * garbage collected. Because resources start with an update policy of
  * {@link UpdatePolicy#ON_DEMAND ON_DEMAND}, resources will be automatically
- * updated as renderers use them. If more explicit control is needed by an
+ * updated as Renderers use them. If more explicit control is needed by an
  * application, a resource can use the MANUAL update policy and tasks can be
- * queued that invoke {@link Context#update(Resource)} and
- * {@link Context#dispose(Resource)} as needed.
+ * queued that invoke {@link HardwareAccessLayer#update(Resource)} and
+ * {@link HardwareAccessLayer#dispose(Resource)} as needed.
  * </p>
  * <p>
  * Another important part is using a Framework to create concrete Surface
