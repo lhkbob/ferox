@@ -2,7 +2,7 @@ package com.ferox.resource;
 
 public class BufferData {
     public static enum DataType {
-        FLOAT, INT, SHORT, BYTE
+        FLOAT, UNSIGNED_INT, UNSIGNED_SHORT, UNSIGNED_BYTE
     }
     
     private Object data;
@@ -22,7 +22,7 @@ public class BufferData {
             throw new NullPointerException("Array cannot be null");
         this.data = data;
         length = data.length;
-        type = DataType.INT;
+        type = DataType.UNSIGNED_INT;
     }
     
     public BufferData(short[] data) {
@@ -30,7 +30,7 @@ public class BufferData {
             throw new NullPointerException("Array cannot be null");
         this.data = data;
         length = data.length;
-        type = DataType.SHORT;
+        type = DataType.UNSIGNED_SHORT;
     }
     
     public BufferData(byte[] data) {
@@ -38,7 +38,7 @@ public class BufferData {
             throw new NullPointerException("Array cannot be null");
         this.data = data;
         length = data.length;
-        type = DataType.BYTE;
+        type = DataType.UNSIGNED_BYTE;
     }
     
     public BufferData(DataType type, int length) {
@@ -75,8 +75,8 @@ public class BufferData {
     }
     
     public void setData(int[] data) {
-        if (type != DataType.INT)
-            throw new IllegalStateException("Incorrect DataType, INT is required but BufferData is " + type);
+        if (type != DataType.UNSIGNED_INT)
+            throw new IllegalStateException("Incorrect DataType, UNSIGNED_INT is required but BufferData is " + type);
         if (data != null && data.length != length)
             throw new IllegalArgumentException("Incorrect array length, must be " + length + ", but is " + data.length);
         
@@ -84,8 +84,8 @@ public class BufferData {
     }
     
     public void setData(short[] data) {
-        if (type != DataType.SHORT)
-            throw new IllegalStateException("Incorrect DataType, SHORT is required but BufferData is " + type);
+        if (type != DataType.UNSIGNED_SHORT)
+            throw new IllegalStateException("Incorrect DataType, UNSIGNED_SHORT is required but BufferData is " + type);
         if (data != null && data.length != length)
             throw new IllegalArgumentException("Incorrect array length, must be " + length + ", but is " + data.length);
         
@@ -93,8 +93,8 @@ public class BufferData {
     }
     
     public void setData(byte[] data) {
-        if (type != DataType.BYTE)
-            throw new IllegalStateException("Incorrect DataType, BYTE is required but BufferData is " + type);
+        if (type != DataType.UNSIGNED_BYTE)
+            throw new IllegalStateException("Incorrect DataType, UNSIGNED_BYTE is required but BufferData is " + type);
         if (data != null && data.length != length)
             throw new IllegalArgumentException("Incorrect array length, must be " + length + ", but is " + data.length);
         

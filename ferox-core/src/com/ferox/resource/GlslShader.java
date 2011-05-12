@@ -48,6 +48,7 @@ public class GlslShader extends Resource {
     public void setShader(ShaderType type, String code) {
         if (type == null)
             throw new NullPointerException("ShaderType cannot be null");
+        
         if (code == null) {
             shaders.remove(type);
             return;
@@ -58,8 +59,6 @@ public class GlslShader extends Resource {
             throw new IllegalArgumentException("Shader code cannot be empty");
         version = updateVersion(type, code);
         shaders.put(type, code);
-        
-        notifyChange(type);
     }
     
     public void removeShader(ShaderType type) {

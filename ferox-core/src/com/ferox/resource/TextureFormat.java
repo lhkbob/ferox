@@ -70,36 +70,39 @@ import com.ferox.resource.BufferData.DataType;
  */
 public enum TextureFormat {
     RGBA(null, 4, 4, true), 
-    RGBA_4444(DataType.SHORT, 1, 4, true, true), 
-    RGBA_8888(DataType.INT, 1, 4, true, true), 
-    RGBA_5551(DataType.SHORT, 1, 4, true, true), 
+    RGBA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    RGBA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
+    RGBA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
     RGBA_FLOAT(DataType.FLOAT, 4, 4, true),
 
-    RGBA_DXT1(DataType.BYTE, -1, 4, true), 
-    RGBA_DXT3(DataType.BYTE, -1, 4, true),
-    RGBA_DXT5(DataType.BYTE, -1, 4, true),
+    RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, 4, true), 
+    RGBA_DXT3(DataType.UNSIGNED_BYTE, -1, 4, true),
+    RGBA_DXT5(DataType.UNSIGNED_BYTE, -1, 4, true),
 
     BGRA(null, 4, 4, true), 
-    BGRA_4444(DataType.SHORT, 1, 4, true, true), 
-    BGRA_8888(DataType.INT, 1, 4, true, true), 
-    BGRA_5551(DataType.SHORT, 1, 4, true, true),
+    BGRA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    BGRA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
+    BGRA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true),
 
-    ARGB_4444(DataType.SHORT, 1, 4, true, true), 
-    ARGB_1555(DataType.SHORT, 1, 4, true, true), 
-    ARGB_8888(DataType.INT, 1, 4, true, true),
+    ARGB_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    ARGB_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    ARGB_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
 
-    ABGR_4444(DataType.SHORT, 1, 4, true, true), 
-    ABGR_1555(DataType.SHORT, 1, 4, true, true), 
-    ABGR_8888(DataType.INT, 1, 4, true, true),
+    ABGR_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    ABGR_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    ABGR_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
 
     RGB(null, 3, 3, false), 
-    RGB_565(DataType.SHORT, 1, 3, false, true), 
+    RGB_565(DataType.UNSIGNED_SHORT, 1, 3, false, true), 
     RGB_FLOAT(DataType.FLOAT, 3, 3, false), 
-    RGB_DXT1(DataType.BYTE, -1, 3, false),
+    RGB_DXT1(DataType.UNSIGNED_BYTE, -1, 3, false),
 
     BGR(null, 3, 3, false), 
-    BGR_565(DataType.SHORT, 1, 3, false, true),
+    BGR_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
 
+    // FIXME: remove these types and replace with R and RG, and R_FLOAT and RG_FLOAT
+    // I must determine the proper mapping of format type for FFP mode, though
+    // Should R be alpha or luminance?  I would think it should be alpha but that is kind of limiting
     LUMINANCE_ALPHA(null, 2, 2, true), 
     LUMINANCE(null, 1, 1, false), 
     ALPHA(null, 1, 1, true),

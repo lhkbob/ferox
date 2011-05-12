@@ -96,12 +96,7 @@ public class VertexAttribute {
      * Compute the array index that can be used to lookup the component value
      * for the specific vertex and component. The component must be between 0
      * and <code>({@link #getElementSize()} - 1)</code>. The vertex index must
-     * be at least 0.
-     * </p>
-     * <p>
-     * This method does not check if <tt>vertex</tt> is too large, so it is
-     * possible for returned array indices to reference elements past the size
-     * of the data array.
+     * be at least 0 and less than {@link #getMaximumNumVertices()}.
      * </p>
      * 
      * @param vertex The vertex index, where each value refers to an entire
@@ -110,12 +105,13 @@ public class VertexAttribute {
      * @return An array index that can be used with the data array backing this
      *         VertexAttribute to lookup the attribute value for the given
      *         vertex and component
-     * @throws IndexOutOfBoundsException if vertex is less than 0, or if
-     *             component is not in [0, {@link #getElementSize()} - 1]
+     * @throws IndexOutOfBoundsException if vertex is not in [0,
+     *             {@link #getMaximumNumVertices()} - 1], or if component is not
+     *             in [0, {@link #getElementSize()} - 1]
      */
     public int getArrayIndex(int vertex, int component) {
-        if (vertex < 0)
-            throw new IndexOutOfBoundsException("Vertex index must be at least 0, not: " + vertex);
+        if (vertex < 0 || vertex >= getMaximumNumVertices())
+            throw new IndexOutOfBoundsException("Vertex index is out of range: " + vertex);
         if (component < 0 || component >= elementSize)
             throw new IndexOutOfBoundsException("Component index is out of range: " + component);
         return offset + (elementSize + stride) * vertex + component;
@@ -149,5 +145,29 @@ public class VertexAttribute {
      */
     public VertexBufferObject getData() {
         return buffer;
+    }
+
+    /**
+     * <p>
+     * Return the maximum number of vertices that can be accessed using this
+     * vertex attribute configuration. This is a maximum in the sense that some
+     * vertex packing scheme might place one attribute at the start of the VBO
+     * and another attribute has an offset starting at the end of the first.
+     * </p>
+     * <p>
+     * In this case, the first VertexAttribute has no way of knowing that later
+     * vertices are "owned" by another attribute. The maximum number of vertices
+     * assumes that the vertices for the attribute are defined from the offset
+     * to the end of the buffer.
+     * </p>
+     * <p>
+     * This can be used to prevent illegal index access.
+     * </p>
+     * 
+     * @return The maximum number of vertices storable in this attribute's
+     *         buffer
+     */
+    public int getMaximumNumVertices() {
+        return (buffer.getData().getLength() - offset) / (elementSize + stride);
     }
 }

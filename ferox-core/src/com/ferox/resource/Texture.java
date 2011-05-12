@@ -130,6 +130,8 @@ public class Texture extends Resource {
      */
     public static final Object PARAMETERS_CHANGED = new Object();
 
+    private final BulkChangeQueue<MipmapRegion> changeQueue;
+    
     private WrapMode wrapS;
     private WrapMode wrapT;
     private WrapMode wrapR;
@@ -140,7 +142,7 @@ public class Texture extends Resource {
     private boolean enableDepthCompare;
     private Comparison depthCompareTest;
     
-    private final Target target;
+    private Target target;
     private Mipmap[] layers;
     private int baseLevel, maxLevel;
     
@@ -196,6 +198,7 @@ public class Texture extends Resource {
     public Texture(Target target, Mipmap[] mipmaps) {
         if (target == null)
             throw new NullPointerException("Target cannot be null");
+        changeQueue = new BulkChangeQueue<MipmapRegion>();
         this.target = target;
         setLayers(mipmaps);
         
@@ -212,18 +215,37 @@ public class Texture extends Resource {
     }
 
     /**
+     * Return the BulkChangeQueue used to track a small set of edits to the
+     * vbo's buffer data so that Frameworks can quickly determine if an update
+     * must be performed. Reads and modifications of the queue must only perform
+     * within synchronized block of this Texture.
+     * 
+     * @return The vbo's change queue
+     */
+    public BulkChangeQueue<MipmapRegion> getChangeQueue() {
+        return changeQueue;
+    }
+    
+    
+    // FIXME: figure out how to make target, format and dimensions completely
+    // flexible (I think format and dimensions already are)
+    // and make sure that it works with FBOs -> should just be a rebind/validate
+    //   when FBO detects that the texture had critical updates
+    //   (also need to make sure they can't edit texture while it's bound for FBO)
+    /**
      * Set the texture image data for the entire texture. This can be used to
      * change the dimensions of the texture because the previous mipmaps are
      * discarded when this is invoked. The provided mipmaps are subject to the
      * same validation rules as in {@link #Texture(Target, Mipmap[])}.
      * 
      * @param mipmaps The new set of Mipmaps for each layer of the Texture
+     * @return The new version reported by this texture's change queue
      * @throws NullPointerException if target or mipmaps is null, or if mipmaps
      *             contains any null elements
      * @throws IllegalArgumentException if any of the conditions described in
      *             {@link #Texture(Target, Mipmap[])}
      */
-    public void setLayers(Mipmap[] mipmaps) {
+    public int setLayers(Mipmap[] mipmaps) {
         if (mipmaps == null)
             throw new NullPointerException("Mipmap array cannot be null");
 
@@ -282,14 +304,14 @@ public class Texture extends Resource {
         }
         
         setValidMipmapLevels(baseLevel, maxLevel);
-        notifyChange(Resource.FULL_UPDATE);
+        return changeQueue.clear();
     }
     
     /**
      * @return The width of the top-most mipmap level of each layer in the
      *         Texture
      */
-    public int getWidth() {
+    public synchronized int getWidth() {
         return layers[0].getWidth(0);
     }
     
@@ -297,7 +319,7 @@ public class Texture extends Resource {
      * @return The height of the top-most mipmap level of each layer in the
      *         Texture
      */
-    public int getHeight() {
+    public synchronized int getHeight() {
         return layers[0].getHeight(0);
     }
     
@@ -305,14 +327,14 @@ public class Texture extends Resource {
      * @return The depth of the top-most mipmap level of each layer in the
      *         Texture
      */
-    public int getDepth() {
+    public synchronized int getDepth() {
         return layers[0].getDepth(0);
     }
 
     /**
      * @return The TextureFormat of every Mipmap layer within this Texture
      */
-    public TextureFormat getFormat() {
+    public synchronized TextureFormat getFormat() {
         return layers[0].getFormat();
     }
     
@@ -320,7 +342,7 @@ public class Texture extends Resource {
      * @return The Buffer class type of all the Buffer data within each Mipmap
      *         layer within this Texture
      */
-    public DataType getDataType() {
+    public synchronized DataType getDataType() {
         return layers[0].getDataType();
     }
     
@@ -330,7 +352,7 @@ public class Texture extends Resource {
      * @param wrap The new WrapMode for every coordinate
      * @throws NullPointerException if wrap is null
      */
-    public void setWrapMode(WrapMode wrap) {
+    public synchronized void setWrapMode(WrapMode wrap) {
         setWrapMode(wrap, wrap, wrap);
     }
 
@@ -343,13 +365,12 @@ public class Texture extends Resource {
      * @param r The new WrapMode for the R coordinate
      * @throws NullPointerException if s, t, or r are null
      */
-    public void setWrapMode(WrapMode s, WrapMode t, WrapMode r) {
+    public synchronized void setWrapMode(WrapMode s, WrapMode t, WrapMode r) {
         if (s == null || t == null || r == null)
             throw new NullPointerException("WrapModes cannot be null: " + s + ", " + t + ", " + r);
         wrapS = s;
         wrapT = t;
         wrapR = r;
-        markParametersDirty();
     }
     
     /**
@@ -358,7 +379,7 @@ public class Texture extends Resource {
      * 
      * @return The WrapMode for the S coordinate
      */
-    public WrapMode getWrapModeS() {
+    public synchronized WrapMode getWrapModeS() {
         return wrapS;
     }
     
@@ -368,7 +389,7 @@ public class Texture extends Resource {
      * 
      * @return The WrapMode for the T coordinate
      */
-    public WrapMode getWrapModeT() {
+    public synchronized WrapMode getWrapModeT() {
         return wrapT;
     }
     
@@ -378,7 +399,7 @@ public class Texture extends Resource {
      * 
      * @return The WrapMode for the R coordinate
      */
-    public WrapMode getWrapModeR() {
+    public synchronized WrapMode getWrapModeR() {
         return wrapR;
     }
 
@@ -392,7 +413,7 @@ public class Texture extends Resource {
      * @param filter The new Filter
      * @throws NullPointerException if filter is null
      */
-    public void setFilter(Filter filter) {
+    public synchronized void setFilter(Filter filter) {
         if (filter == null)
             throw new NullPointerException("Filter cannot be null");
         if (!layers[0].isMipmapped()) {
@@ -403,13 +424,12 @@ public class Texture extends Resource {
         }
         
         this.filter = filter;
-        markParametersDirty();
     }
     
     /**
      * @return The Filter to apply to the texels when rendering the texture
      */
-    public Filter getFilter() {
+    public synchronized Filter getFilter() {
         return filter;
     }
 
@@ -422,17 +442,16 @@ public class Texture extends Resource {
      * @param level The amount of anisotropic filtering to use
      * @throws IllegalArgumentException if level is outside of [0, 1]
      */
-    public void setAnisotropicFilterLevel(float level) {
+    public synchronized void setAnisotropicFilterLevel(float level) {
         if (level < 0f || level > 1f)
             throw new IllegalArgumentException("Invalid level, must be in [0, 1], not: " + level);
         anisoLevel = level;
-        markParametersDirty();
     }
     
     /**
      * @return The amount of anisotropic filtering from 0 to 1
      */
-    public float getAnisotropicFilterLevel() {
+    public synchronized float getAnisotropicFilterLevel() {
         return anisoLevel;
     }
 
@@ -456,7 +475,7 @@ public class Texture extends Resource {
      * @throws IllegalArgumentException if base < 0, if max >= # mipmaps, or if
      *             base > max
      */
-    public void setValidMipmapLevels(int base, int max) {
+    public synchronized void setValidMipmapLevels(int base, int max) {
         if (base < 0)
             throw new IllegalArgumentException("Base level must be at least 0, not: " + base);
         if (max >= layers[0].getNumMipmaps())
@@ -466,20 +485,19 @@ public class Texture extends Resource {
         
         baseLevel = base;
         maxLevel = max;
-        markParametersDirty();
     }
     
     /**
      * @return The lowest valid mipmap level to use during rasterization
      */
-    public int getBaseMipmapLevel() {
+    public synchronized int getBaseMipmapLevel() {
         return baseLevel;
     }
     
     /**
      * @return The highest valid mipmap level to use during rasterization
      */
-    public int getMaxMipmapLevel() {
+    public synchronized int getMaxMipmapLevel() {
         return maxLevel;
     }
 
@@ -497,7 +515,7 @@ public class Texture extends Resource {
      * 
      * @return The Target of this Texture
      */
-    public Target getTarget() {
+    public synchronized Target getTarget() {
         return target;
     }
 
@@ -520,14 +538,14 @@ public class Texture extends Resource {
      * @throws IndexOutOfBoundsException if layer < 0 or layer >=
      *             {@link #getNumLayers()}
      */
-    public Mipmap getMipmap(int layer) {
+    public synchronized Mipmap getMipmap(int layer) {
         return layers[layer];
     }
     
     /**
      * @return The number of layers present in this Texture
      */
-    public int getNumLayers() {
+    public synchronized int getNumLayers() {
         return layers.length;
     }
 
@@ -536,7 +554,7 @@ public class Texture extends Resource {
      * @return True if depth comparison is enabled when the TextureFormat of the
      *         Texture is {@link TextureFormat#DEPTH}
      */
-    public boolean isDepthCompareEnabled() {
+    public synchronized boolean isDepthCompareEnabled() {
         return enableDepthCompare;
     }
 
@@ -559,16 +577,15 @@ public class Texture extends Resource {
      * 
      * @param enable True if depth comparisons are enabled
      */
-    public void setDepthCompareEnabled(boolean enable) {
+    public synchronized void setDepthCompareEnabled(boolean enable) {
         enableDepthCompare = enable;
-        markParametersDirty();
     }
     
     /**
      * @return The Comparison function used when depth comparisons are enabled
      *         for depth textures
      */
-    public Comparison getDepthComparison() {
+    public synchronized Comparison getDepthComparison() {
         return depthCompareTest;
     }
 
@@ -581,35 +598,28 @@ public class Texture extends Resource {
      * @param compare The new Comparison function
      * @throws NullPointerException if compare is null
      */
-    public void setDepthComparison(Comparison compare) {
+    public synchronized void setDepthComparison(Comparison compare) {
         if (compare == null)
             throw new NullPointerException("Comparison cannot be null");
         depthCompareTest = compare;
-        markParametersDirty();
     }
 
     /**
-     * Mark the specified image region as dirty within the image data pointed to
-     * by layer and level. The specified <tt>region</tt> will automatically be
-     * constrained to the maximum dimensions of the given level.
+     * Mark the specified image region as dirty within the image. It is
+     * permitted to specify dimensions, layer or mipmap level that do not exist
+     * in the image. Those parts of the region that extend past valid areas of
+     * the image should be silently ignored by sytems processing the change
+     * queue.
      * 
      * @param region The MipmapRegion representing the dirty pixels in layer and
      *            level
-     * @param layer The layer whose mipmap is being marked dirty
-     * @param level The level which is being marked dirty
+     * @return The new version of the texture's change queue
      * @throws NullPointerException if region is null
-     * @throws IndexOutOfBoundsException if layer < 0 or layer >=
-     *             {@link #getNumLayers()}, or if level < 0 or level >= #
-     *             mipmaps
      */
-    public void markDirty(MipmapRegion region, int layer, int level) {
-        Mipmap m = getMipmap(layer);
-        int levelWidth = m.getWidth(level);
-        int levelHeight = m.getHeight(level);
-        int levelDepth = m.getDepth(level);
-        
-        MipmapRegion constrain = new MipmapRegion(region, levelWidth, levelHeight, levelDepth, layer, level);
-        notifyChange(constrain);
+    public synchronized int markDirty(MipmapRegion region) {
+        if (region == null)
+            throw new NullPointerException("MipmapRegion cannot be null");
+        return changeQueue.push(region);
     }
 
     /**
@@ -620,43 +630,45 @@ public class Texture extends Resource {
      * 
      * @param layer The layer whose mipmap will be marked dirty
      * @param level The level within layer that will be marked dirty
-     * @throws IndexOutOfBoundsException if layer < 0 or layer >=
-     *             {@link #getNumLayers()}, or if level < 0 or level >= #
-     *             mipmaps
+     * @return The new version reported by this texture's change queue
+     * @throws IndexOutOfBoundsException if layer < 0 or level < 0
      */
-    public void markDirty(int layer, int level) {
+    public synchronized int markDirty(int layer, int level) {
         Mipmap m = getMipmap(layer);
-        markDirty(new MipmapRegion(0, 0, 0, m.getWidth(level), m.getHeight(level), m.getDepth(level)), 
-                  layer, level);
+        return markDirty(new MipmapRegion(layer, level, 0, 0, 0, 
+                                          m.getWidth(level), 
+                                          m.getHeight(level),
+                                          m.getDepth(level)));
     }
 
     /**
      * Mark every mipmap level dirty for the given <tt>layer</tt> of the
-     * Texture. This can be used to mark a single face of a cube map dirty
-     * for example. This is a convenience for invoking
-     * {@link #markDirty(int, int)} for every mipmap level within the given
-     * <tt>layer</tt>
+     * Texture. This can be used to mark a single face of a cube map dirty for
+     * example. This is a convenience for invoking {@link #markDirty(int, int)}
+     * for every mipmap level within the given <tt>layer</tt>
      * 
      * @param layer The layer to mark completely dirty
-     * @throws IndexOutOfBoundsException if layer < 0 or layer >=
-     *             {@link #getNumLayers()}
+     * @return The new version reported by this texture's change queue
+     * @throws IndexOutOfBoundsException if layer < 0
      */
-    public void markDirty(int layer) {
+    public synchronized int markDirty(int layer) {
+        int lastVersion = 0;
         for (int i = 0; i < layers[layer].getNumMipmaps(); i++)
-            markDirty(layer, i);
+            lastVersion = markDirty(layer, i);
+        return lastVersion;
     }
 
     /**
      * Mark the entirety of the Texture's image data dirty. This is a
-     * convenience for invoking {@link #markDirty(int)} for each layer of
-     * the Texture.
+     * convenience for invoking {@link #markDirty(int)} for each layer of the
+     * Texture.
+     * 
+     * @return The new version reported by this texture's change queue
      */
-    public void markDirty() {
+    public synchronized int markDirty() {
+        int lastVersion = 0;
         for (int i = 0; i < layers.length; i++)
-            markDirty(i);
-    }
-    
-    private void markParametersDirty() {
-        notifyChange(PARAMETERS_CHANGED);
+            lastVersion = markDirty(i);
+        return lastVersion;
     }
 }
