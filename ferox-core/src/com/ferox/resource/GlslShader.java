@@ -39,13 +39,13 @@ public class GlslShader extends Resource {
         shaders = new EnumMap<ShaderType, String>(ShaderType.class);
     }
     
-    public String getShader(ShaderType type) {
+    public synchronized String getShader(ShaderType type) {
         if (type == null)
             throw new NullPointerException("ShaderType cannot be null");
         return shaders.get(type);
     }
     
-    public void setShader(ShaderType type, String code) {
+    public synchronized void setShader(ShaderType type, String code) {
         if (type == null)
             throw new NullPointerException("ShaderType cannot be null");
         
@@ -61,11 +61,11 @@ public class GlslShader extends Resource {
         shaders.put(type, code);
     }
     
-    public void removeShader(ShaderType type) {
+    public synchronized void removeShader(ShaderType type) {
         setShader(type, null);
     }
     
-    public Version getVersion() {
+    public synchronized Version getVersion() {
         return version;
     }
     

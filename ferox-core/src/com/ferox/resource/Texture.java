@@ -123,13 +123,6 @@ public class Texture extends Resource {
     public static final int NY = 4;
     public static final int NZ = 5;
 
-    /**
-     * A change flag sent to listeners when any parameter of a Texture is
-     * changed that is not the actual mipmap image data of the Texture. Mipmap
-     * changes send MipmapRegion instances.
-     */
-    public static final Object PARAMETERS_CHANGED = new Object();
-
     private final BulkChangeQueue<MipmapRegion> changeQueue;
     
     private WrapMode wrapS;
@@ -145,19 +138,19 @@ public class Texture extends Resource {
     private Target target;
     private Mipmap[] layers;
     private int baseLevel, maxLevel;
-    
+
     /**
-     * Create a Texture that uses the specified target and uses the given
-     * Mipmap as its source of image data. The created Texture has a single
-     * layer, so this constructor should only be used for Targets that are not
-     * {@link Target#T_CUBEMAP}, which requires 6 layers. This is equivalent to
+     * Create a Texture that uses the specified target and uses the given Mipmap
+     * as its source of image data. The created Texture has a single layer, so
+     * this constructor only works for targets with a single layer (i.e. not
+     * T_CUBEMAP). This is equivalent to
      * <code>Texture(target, new Mipmap[] {mipmap})</code>. See
-     * {@link #Texture(Target, Mipmap[])} for more details on the
-     * validation performed.
+     * {@link #setLayers(Target, Mipmap[])} for how the parameters are
+     * validated.
      * 
      * @param target The Target which specifies how the Texture is accessed
-     * @param mipmap The Mipmap data for use in the constructed Texture's
-     *            single layer
+     * @param mipmap The Mipmap data for use in the constructed Texture's single
+     *            layer
      * @throws NullPointerException if target or mipmap are null
      */
     public Texture(Target target, Mipmap mipmap) {
@@ -167,51 +160,27 @@ public class Texture extends Resource {
     /**
      * <p>
      * Create a Texture that uses the specified target and array of Mipmap
-     * layers. The mipmap layers are interpreted differently depending on the
-     * chosen Target for the Texture. If target is one of T_1D, T_2D or T_3D,
-     * <tt>mipmaps</tt> must have a length of 1 because those targets only
-     * expect a single layer. If the target is T_CUBEMAP, <tt>mipmaps</tt> must
-     * have a length of 6, one for each face of a cube.
-     * </p>
-     * <p>
-     * The provided mipmap layers cannot have any null elements within it.
-     * Additionally, the Buffer type, dimensions and TextureFormat for each
-     * Mipmap within <tt>mipmaps</tt> must match each other. Additionally,
-     * mipmaps for T_1D must have a height and depth of 1; mipmaps for T_2D must
-     * have a depth of 1; mipmaps for T_CUBEMAP must have a depth of 1 and must
-     * be square. It is invalid to create a Texture with 0 layers. In the
-     * future, new Targets may allow for different interpretations of the mipmap
-     * layers.
-     * </p>
-     * <p>
-     * The order of the mipmap layers when <tt>target</tt> is T_CUBEMAP is
-     * important. See {@link #getMipmap(int)} for the required ordering.
-     * </p>
+     * layers. This constructor is used primarily for creating cubemaps. Other
+     * targets can use {@link #Texture(Target, Mipmap)}. See
+     * {@link #setLayers(Target, Mipmap[])} for how the parameters are
+     * validated.
      * 
      * @param target The Target which specifies how the Texture is accessed
      * @param mipmaps An array of Mipmaps representing the layers of the Texture
      * @throws NullPointerException if target or mipmaps is null, or if mipmaps
      *             contains any null elements
-     * @throws IllegalArgumentException if any of the conditions described above
-     *             are not met
+     * @throws IllegalArgumentException if the mipmaps have differing formats
+     *             are the number of layers is incorrect for the target
      */
     public Texture(Target target, Mipmap[] mipmaps) {
-        if (target == null)
-            throw new NullPointerException("Target cannot be null");
         changeQueue = new BulkChangeQueue<MipmapRegion>();
-        this.target = target;
-        setLayers(mipmaps);
         
-        // don't use setters to avoid creation of dirty states
-        wrapS = WrapMode.CLAMP;
-        wrapT = WrapMode.CLAMP;
-        wrapR = WrapMode.CLAMP;
-        
-        filter = Filter.LINEAR;
-        anisoLevel = 1f;
-        
-        enableDepthCompare = false;
-        depthCompareTest = Comparison.GREATER;
+        setLayers(target, mipmaps);
+        setWrapMode(WrapMode.CLAMP);
+        setFilter(Filter.LINEAR);
+        setAnisotropicFilterLevel(1f);
+        setDepthCompareEnabled(false);
+        setDepthComparison(Comparison.GREATER);
     }
 
     /**
@@ -220,32 +189,59 @@ public class Texture extends Resource {
      * must be performed. Reads and modifications of the queue must only perform
      * within synchronized block of this Texture.
      * 
-     * @return The vbo's change queue
+     * @return The texture's change queue
      */
     public BulkChangeQueue<MipmapRegion> getChangeQueue() {
         return changeQueue;
     }
-    
-    
-    // FIXME: figure out how to make target, format and dimensions completely
-    // flexible (I think format and dimensions already are)
-    // and make sure that it works with FBOs -> should just be a rebind/validate
-    //   when FBO detects that the texture had critical updates
-    //   (also need to make sure they can't edit texture while it's bound for FBO)
+
     /**
-     * Set the texture image data for the entire texture. This can be used to
-     * change the dimensions of the texture because the previous mipmaps are
-     * discarded when this is invoked. The provided mipmaps are subject to the
-     * same validation rules as in {@link #Texture(Target, Mipmap[])}.
+     * <p>
+     * Update the Texture to use the new set of mipmaps with the given target.
+     * The texture target and the format and dimensions of the mipmaps can be
+     * different from the previous configuration of the texture. It is possible
+     * for a 2D texture to become a cubemap, for example. The change queue is
+     * cleared and all of the new image data is marked dirty.
+     * </p>
+     * <p>
+     * This also updates the valid mipmap range to best fit the mipmap levels
+     * that contain BufferData's with non-null arrays. If all mipmap levels have
+     * BufferData's with null arrays the full range of mipmaps is used.
+     * </p>
+     * <p>
+     * The mipmap layers are intepreted differently depending on the specified
+     * target. If the target is one of T_1D, T_2D, or T_3D, <tt>mipmaps</tt>
+     * must have a length of 1 as these targets expect a single layer. If the
+     * target is T_CUBEMAP, <tt>mipmaps</tt> must have a length of 6, one for
+     * each face of the cube.
+     * </p>
+     * <p>
+     * The mipmaps array cannot have any null elements. Additionally, the
+     * dimensions, TextureFormat and DataType of every Mipmap within
+     * <tt>mipmaps</tt> must match. Additionally, there are dimension
+     * constraints depending on the target:
+     * <ul>
+     * <li>1D textures must have all mipmaps with a height and depth of 1.</li>
+     * <li>2D textures must have a depth of 1.</li>
+     * <li>cubemaps must have a depth of 1 and the width and height must be
+     * equal.</li>
+     * </ul>
+     * </p>
+     * <p>
+     * The order of the mipmap layers for a cubemap is described in
+     * {@link #getLayer(int)}.
+     * </p>
      * 
-     * @param mipmaps The new set of Mipmaps for each layer of the Texture
-     * @return The new version reported by this texture's change queue
-     * @throws NullPointerException if target or mipmaps is null, or if mipmaps
-     *             contains any null elements
-     * @throws IllegalArgumentException if any of the conditions described in
-     *             {@link #Texture(Target, Mipmap[])}
+     * @param target The new texture target to use
+     * @param mipmaps The array of new mipmap layers, its length is dependent on
+     *            target
+     * @return The new version of this texture's change queue
+     * @throws NullPointerException if target or mipmaps are null, or if mipmaps
+     *             has null elements
+     * @throws IllegalArgumentException if any of the above requirements are not
+     *             met
      */
-    public int setLayers(Mipmap[] mipmaps) {
+    public synchronized int setLayers(Target target, Mipmap[] mipmaps) {
         if (mipmaps == null)
             throw new NullPointerException("Mipmap array cannot be null");
 
@@ -296,7 +292,7 @@ public class Texture extends Resource {
         
         // at this point we know things are as valid as we can determine them,
         layers = Arrays.copyOf(mipmaps, mipmaps.length); // defensive copy
-        
+        this.target = target;
         if (baseLevel > maxLevel) {
             // weren't able to find a valid range, default to entire mipmap range
             baseLevel = 0;
@@ -304,7 +300,62 @@ public class Texture extends Resource {
         }
         
         setValidMipmapLevels(baseLevel, maxLevel);
-        return changeQueue.clear();
+        changeQueue.clear();
+        return markDirty();
+    }
+
+    /**
+     * Update the set of mipmap layers used by this Texture. The target of the
+     * texture remains unchanged, so the provided mipmaps must be compatible
+     * with the current target. This is a shortcut for
+     * <code>setLayers(getTarget(), mipmaps)</code>, so it will also update the
+     * valid range of mipmaps.
+     * 
+     * @param mipmaps The new set of mipmaps
+     * @return The new version of this texture's change queue
+     * @throws NullPointerException if mipmaps is null or has null elements
+     * @throws IllegalArgumentException if mipmaps are invalid as described in
+     *             {@link #setLayers(Target, Mipmap[])}
+     */
+    public synchronized int setLayers(Mipmap[] mipmaps) {
+        return setLayers(target, mipmaps);
+    }
+
+    /**
+     * Set the given layer to be the provided mipmap. This new mipmap must have
+     * the same DataType, TextureFormat, dimensions and number of mipmaps as the
+     * previous mipmap at the given layer. Unlike the setLayers() methods, this
+     * does not change the valid range of mipmaps. This will also mark the given
+     * layer as dirty in the change queue.
+     * 
+     * @param layer The layer to update
+     * @param mipmap The new mipmap
+     * @return The new version of this texture's change queue
+     * @throws NullPointerException if mipmap is null
+     * @throws IndexOutOfBoundsException if layer is less than 0 or greater than
+     *             or equal to the number of layers in this texture
+     * @throws IllegalArgumentException if the mipmap's datatype, dimensions,
+     *             format and number of mipmaps differ from the last mipmap
+     */
+    public synchronized int setLayer(int layer, Mipmap mipmap) {
+        if (layer < 0 || layer >= layers.length)
+            throw new IndexOutOfBoundsException("Illegal layer argument: " + layer);
+        if (mipmap == null)
+            throw new NullPointerException("Mipmap cannot be null");
+        
+        Mipmap old = layers[layer];
+        if (old.getDataType() != mipmap.getDataType())
+            throw new IllegalArgumentException("New mipmap does not have expected type (" + old.getDataType() + "), but was " + mipmap.getDataType());
+        if (old.getFormat() != mipmap.getFormat())
+            throw new IllegalArgumentException("New mipmap does not have expected format (" + old.getFormat() + "), but was " + mipmap.getFormat());
+        if (old.getWidth(0) != mipmap.getWidth(0) || old.getHeight(0) != mipmap.getHeight(0)
+            || old.getDepth(0) != mipmap.getDepth(0))
+            throw new IllegalArgumentException("New mipmap does not match required dimensions");
+        if (old.getNumMipmaps() != mipmap.getNumMipmaps())
+            throw new IllegalArgumentException("New mipmap does not have expected number of mipmaps");
+        
+        layers[layer] = mipmap;
+        return markDirty(layer);
     }
     
     /**
@@ -538,7 +589,7 @@ public class Texture extends Resource {
      * @throws IndexOutOfBoundsException if layer < 0 or layer >=
      *             {@link #getNumLayers()}
      */
-    public synchronized Mipmap getMipmap(int layer) {
+    public synchronized Mipmap getLayer(int layer) {
         return layers[layer];
     }
     
@@ -631,10 +682,12 @@ public class Texture extends Resource {
      * @param layer The layer whose mipmap will be marked dirty
      * @param level The level within layer that will be marked dirty
      * @return The new version reported by this texture's change queue
-     * @throws IndexOutOfBoundsException if layer < 0 or level < 0
+     * @throws IndexOutOfBoundsException if layer < 0 or >=
+     *             {@link #getNumLayers()}
+     * @throws IllegalArgumentException if level < 0
      */
     public synchronized int markDirty(int layer, int level) {
-        Mipmap m = getMipmap(layer);
+        Mipmap m = getLayer(layer);
         return markDirty(new MipmapRegion(layer, level, 0, 0, 0, 
                                           m.getWidth(level), 
                                           m.getHeight(level),
@@ -649,7 +702,8 @@ public class Texture extends Resource {
      * 
      * @param layer The layer to mark completely dirty
      * @return The new version reported by this texture's change queue
-     * @throws IndexOutOfBoundsException if layer < 0
+     * @throws IndexOutOfBoundsException if layer < 0 or >=
+     *             {@link #getNumLayers()}
      */
     public synchronized int markDirty(int layer) {
         int lastVersion = 0;

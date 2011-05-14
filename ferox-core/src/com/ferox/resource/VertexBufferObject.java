@@ -118,7 +118,7 @@ public class VertexBufferObject extends Resource {
      * Assign the specified BufferData to this VertexBufferObject. Although the
      * storage mode of a vbo will never change, its length and type can. This
      * will also clear the change queue of any pushed DataRanges that referred
-     * to the old BufferData.
+     * to the old BufferData, and will queue a dirty range over the new array.
      * 
      * @param data The new BufferData to use
      * @return The new version reported by the vbo's change queue
@@ -129,7 +129,8 @@ public class VertexBufferObject extends Resource {
             throw new NullPointerException("BufferData cannot be null");
         
         this.data = data;
-        return changeQueue.clear();
+        changeQueue.clear();
+        return markDirty(0, data.getLength());
     }
 
     /**
