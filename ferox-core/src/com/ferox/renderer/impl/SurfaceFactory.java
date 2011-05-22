@@ -28,7 +28,7 @@ public interface SurfaceFactory {
      * @throws NullPointerException if any of the arguments are null
      */
     public AbstractTextureSurface createTextureSurface(AbstractFramework framework, TextureSurfaceOptions options, 
-                                                       OpenGLContextAdapter sharedContext);
+                                                       OpenGLContext sharedContext);
 
     /**
      * Create an AbstractOnscreenSurface implementation. This is used by the
@@ -45,18 +45,18 @@ public interface SurfaceFactory {
      * @throws NullPointerException if any of the arguments are null
      */
     public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework, OnscreenSurfaceOptions options, 
-                                                         OpenGLContextAdapter sharedContext);
+                                                         OpenGLContext sharedContext);
 
     /**
-     * Create an OpenGLContextAdapter that wraps an underlying OpenGL context.
+     * Create an OpenGLContext that wraps an underlying OpenGL context.
      * The context should be "offscreen" and not attached to a Surface. This can
      * be a context owned by a pbuffer, or it can be a context attached to a 1x1
      * hidden window. The term "offscreen" is loosely defined but should not be
      * noticeable by a user.
      * 
-     * @param sharedContext An OpenGLContextAdapter to share all resources with,
+     * @param sharedContext An OpenGLContext to share all resources with,
      *            if this is null then no sharing is done
      * @return An offscreen context
      */
-    public OpenGLContextAdapter createShadowContext(OpenGLContextAdapter sharedContext);
+    public OpenGLContext createShadowContext(OpenGLContext sharedContext);
 }

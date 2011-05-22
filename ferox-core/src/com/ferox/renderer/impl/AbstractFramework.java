@@ -37,7 +37,7 @@ public abstract class AbstractFramework implements Framework {
     private final CopyOnWriteArraySet<AbstractSurface> surfaces;
     
     private final SurfaceFactory surfaceFactory;
-    private final OpenGLContextAdapter sharedContext;
+    private final OpenGLContext sharedContext;
     private RenderCapabilities renderCaps; // final after initialize() has been called.
     
     private final LifeCycleManager lifecycleManager;
@@ -104,7 +104,7 @@ public abstract class AbstractFramework implements Framework {
                 Future<RenderCapabilities> caps = contextManager.queue(new Callable<RenderCapabilities>() {
                     @Override
                     public RenderCapabilities call() throws Exception {
-                        OpenGLContextAdapter context = contextManager.ensureContext();
+                        OpenGLContext context = contextManager.ensureContext();
                         return context.getRenderCapabilities();
                     }
                 }, DEFAULT_RESOURCE_TASK_GROUP);
@@ -135,7 +135,13 @@ public abstract class AbstractFramework implements Framework {
         try {
             if (lifecycleManager.getStatus() == LifeCycleManager.Status.ACTIVE) {
                 AbstractTextureSurface created = surfaceFactory.createTextureSurface(this, options, sharedContext);
-                // FIXME: lock all textures owned by this surface
+                
+                // Mark all textures as non-disposable
+                if (created.getDepthBuffer() != null)
+                    resourceManager.setDisposable(created.getDepthBuffer(), false);
+                for (int i = 0; i < created.getNumColorBuffers(); i++)
+                    resourceManager.setDisposable(created.getColorBuffer(i), false);
+                
                 surfaces.add(created);
                 return created;
             } else
@@ -252,8 +258,17 @@ public abstract class AbstractFramework implements Framework {
     void markSurfaceDestroyed(AbstractSurface surface) {
         if (surface == null)
             throw new NullPointerException("Surface cannot be null");
-        // FIXME: if texturesurface, unlock all owned textures
-        surfaces.remove(surface);
+        
+        if (surfaces.remove(surface)) {
+            if (surface instanceof TextureSurface) {
+                // Mark all textures as non-disposable
+                TextureSurface ts = (TextureSurface) surface;
+                if (ts.getDepthBuffer() != null)
+                    resourceManager.setDisposable(ts.getDepthBuffer(), false);
+                for (int i = 0; i < ts.getNumColorBuffers(); i++)
+                    resourceManager.setDisposable(ts.getColorBuffer(i), false);
+            }
+        }
     }
     
     /*

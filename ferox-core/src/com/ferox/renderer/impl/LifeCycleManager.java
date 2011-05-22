@@ -282,16 +282,20 @@ public class LifeCycleManager {
             // This iteration does not need to worry about changes to the thread-list
             // since the shutdown task is only started after the status is set to STOPPING
             // at which point no threads can be added to the managed group.
-            for (Thread managed: managedThreads) {
-                while(managed.isAlive()) {
-                    try {
-                        managed.join();
-                    } catch (InterruptedException e) {
-                        // ignore interruption if we've been interrupted, we need to make
-                        // sure all of the threads have terminated
+            boolean loop = false;
+            do {
+                loop = false;
+                for (Thread managed: managedThreads) {
+                    while(managed.isAlive()) {
+                        try {
+                            managed.join();
+                        } catch (InterruptedException e) {
+                            // remember that this thread may not be dead, so loop again
+                            loop = true;
+                        }
                     }
                 }
-            }
+            } while(loop);
             
             // All managed threads have terminated, so we 
             onDestroy.run();

@@ -38,13 +38,13 @@ public abstract class AbstractSurface implements Surface {
     }
 
     /**
-     * Return the OpenGLContextAdapter that must be current in order to render
+     * Return the OpenGLContext that must be current in order to render
      * into this Surface. It can be null to signal that the surface requires any
      * other context to use (such as when a TextureSurface is backed by an FBO).
      * 
      * @return The context of this surface
      */
-    public abstract OpenGLContextAdapter getContext();
+    public abstract OpenGLContext getContext();
 
     /**
      * <p>
@@ -67,7 +67,7 @@ public abstract class AbstractSurface implements Surface {
      * @param layer The layer to activate if the surface is a TextureSurface of
      *            an appropriate target
      */
-    public void onSurfaceActivate(OpenGLContextAdapter context, int layer) {
+    public void onSurfaceActivate(OpenGLContext context, int layer) {
         // Set the viewport of the renderers to match the surface
         FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
         if (ffp != null) {
@@ -93,7 +93,7 @@ public abstract class AbstractSurface implements Surface {
      * 
      * @param context The current context
      */
-    public void onSurfaceDeactivate(OpenGLContextAdapter context) {
+    public void onSurfaceDeactivate(OpenGLContext context) {
         // Reset the renderers so that the next task sees a clean slate
         // and any locked resources get released
         FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
@@ -109,7 +109,7 @@ public abstract class AbstractSurface implements Surface {
      * Perform the actual destruction of this surface. This will only be called
      * once and the surface's lock will already be held. If the surface has a
      * context, this method is responsible for invoking
-     * {@link OpenGLContextAdapter#destroy()}.
+     * {@link OpenGLContext#destroy()}.
      */
     protected abstract void destroyImpl();
 

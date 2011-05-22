@@ -2,7 +2,6 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.resource.Resource;
-import com.ferox.resource.Resource.Status;
 
 /**
  * <p>
@@ -21,31 +20,19 @@ import com.ferox.resource.Resource.Status;
  */
 public interface ResourceDriver<R extends Resource> {
     /**
-     * Initialize a Resource. This includes determining it's low-level handle id
-     * for the first time and then completing the equivalent of a full update.
-     * This is responsible for performing any error checks that would make the
-     * Resource unusable.
-     *
-     * @param context The current context 
-     * @param res The Resource to initialize
-     * @return The ResourceHandle that will now be associated to res
-     */
-    public ResourceHandle init(OpenGLContextAdapter context, R res);
-
-    /**
-     * Perform an update on the given resource based on the dirty state. The
-     * ResourceHandle is the ResourceHandle instance previously returned by an
-     * {@link #init(Resource)} call on this driver for res. This is responsible
-     * for performing any error checks that would make the Resource unusable.
-     * This is responsible for performing the operations required by
-     * {@link HardwareAccessLayer#update(Resource)}.
+     * Perform an update on the given resource. The ResourceHandle is the
+     * ResourceHandle instance previously returned by the last call to update()
+     * with this resource. If the resource has not been updated, this handle
+     * will be null. This is responsible for performing any error checks that
+     * would make the Resource unusable. This is responsible for performing the
+     * operations required by {@link HardwareAccessLayer#update(Resource)}.
      * 
      * @param context The current context
      * @param res The Resource to update
-     * @param handle The ResourceHandle associated with res
-     * @return The new Status of the Resource
+     * @param handle The ResourceHandle associated with res, may be null
+     * @return The ResourceHandle to use until the next update
      */
-    public Status update(OpenGLContextAdapter context, R res, ResourceHandle handle);
+    public ResourceHandle update(OpenGLContext context, R res, ResourceHandle handle);
 
     /**
      * Reset any internal data that is tracking the state of the resource so
@@ -71,7 +58,7 @@ public interface ResourceDriver<R extends Resource> {
      * @param context The current context
      * @param handle The ResourceHandle to dispose of
      */
-    public void dispose(OpenGLContextAdapter context, ResourceHandle handle);
+    public void dispose(OpenGLContext context, ResourceHandle handle);
 
     /**
      * Return the class type that this ResourceDriver can process. This should

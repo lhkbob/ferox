@@ -6,7 +6,7 @@ import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.RenderCapabilities;
 
 /**
- * OpenGLContextAdapter is a wrapper around an OpenGL context that has been
+ * OpenGLContext is a wrapper around an OpenGL context that has been
  * created by some low-level OpenGL wrapper for Java (such as JOGL or LWJGL). An
  * OpenGL context can be current on a single thread at a time, and a context
  * must be current in order to perform graphics operations. This adapter
@@ -16,12 +16,12 @@ import com.ferox.renderer.RenderCapabilities;
  * 
  * @author Michael Ludwig
  */
-public abstract class OpenGLContextAdapter implements Context {
+public abstract class OpenGLContext implements Context {
     private final GlslRenderer glslRenderer;
     private final FixedFunctionRenderer ffpRenderer;
 
     /**
-     * Create a new OpenGLContextAdapter that will use the given fixed function
+     * Create a new OpenGLContext that will use the given fixed function
      * and glsl renderers. It is acceptable to provide both or only one of the
      * fixed function or glsl renderers. Both arguments cannot be null, at least
      * one renderer must be available for the context.
@@ -31,7 +31,7 @@ public abstract class OpenGLContextAdapter implements Context {
      * @throws NullPointerException if both ffpRenderer and glslRenderer are
      *             null
      */
-    public OpenGLContextAdapter(FixedFunctionRenderer ffpRenderer, GlslRenderer glslRenderer) {
+    public OpenGLContext(FixedFunctionRenderer ffpRenderer, GlslRenderer glslRenderer) {
         if (ffpRenderer == null && glslRenderer == null)
             throw new NullPointerException("Must provide at least one non-null renderer");
         this.glslRenderer = glslRenderer;

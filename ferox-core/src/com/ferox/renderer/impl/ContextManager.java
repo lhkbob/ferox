@@ -34,7 +34,7 @@ public class ContextManager {
     private LifeCycleManager lifecycleManager; // "final" after initialize() is called
     
     private final SurfaceFactory surfaceFactory;
-    private final OpenGLContextAdapter sharedContext;
+    private final OpenGLContext sharedContext;
     
     private final ConcurrentMap<String, ContextThread> groupAffinity; // A group will be placed in this map at most once
     private final ConcurrentMap<AbstractSurface, ContextThread> persistentSurfaceLocks;
@@ -63,7 +63,7 @@ public class ContextManager {
      *            queued tasks
      * @throws NullPointerException if contextFactory or sharedContext are null
      */
-    public ContextManager(SurfaceFactory contextFactory, OpenGLContextAdapter sharedContext, int numThreads) {
+    public ContextManager(SurfaceFactory contextFactory, OpenGLContext sharedContext, int numThreads) {
         if (contextFactory == null)
             throw new NullPointerException("SurfaceFactory cannot be null");
         if (sharedContext == null)
@@ -339,7 +339,7 @@ public class ContextManager {
      * <p>
      * Activate the provided Surface on the current thread. The surface will be
      * locked for the duration that it is active, or until the end of running
-     * Task. If the surface has its own OpenGLContextAdapter, that context is
+     * Task. If the surface has its own OpenGLContext, that context is
      * made current on the thread. If it does not have a context, the surface
      * piggybacks on the last surface's context or on an internal offscreen
      * context.
@@ -368,11 +368,11 @@ public class ContextManager {
      * @param surface The AbstractSurface to activate
      * @param layer The layer to activate, will be passed directly to
      *            {@link AbstractSurface#onSurfaceActivate(int)}
-     * @return The OpenGLContextAdapter that is current after this surface has
+     * @return The OpenGLContext that is current after this surface has
      *         been activated
      * @throws IllegalStateException if {@link #isContextThread()} returns false
      */
-    public OpenGLContextAdapter setActiveSurface(AbstractSurface surface, int layer) {
+    public OpenGLContext setActiveSurface(AbstractSurface surface, int layer) {
         // Further validation is handled in the ContextThread after the lock is made
         
         Thread current = Thread.currentThread();
@@ -403,7 +403,7 @@ public class ContextManager {
      * @return The current context
      * @throws IllegalStateException if {@link #isContextThread()} returns false
      */
-    public OpenGLContextAdapter ensureContext() {
+    public OpenGLContext ensureContext() {
         Thread current = Thread.currentThread();
         if (current instanceof ContextThread) {
             // Delegate to the thread implementation
@@ -423,13 +423,13 @@ public class ContextManager {
      * provide a context, it will lazily create a "shadow" context.
      */
     private class ContextThread extends Thread {
-        private OpenGLContextAdapter shadowContext; // may be null
+        private OpenGLContext shadowContext; // may be null
         private final boolean ownsShadowContext;
 
         private AbstractSurface activeSurface;
         private AbstractSurface contextProvider;
         
-        private OpenGLContextAdapter currentContext;
+        private OpenGLContext currentContext;
         
         private final BlockingDeque<Sync<?>> tasks;
         
@@ -437,7 +437,7 @@ public class ContextManager {
             this(group, name, null);
         }
         
-        public ContextThread(ThreadGroup group, String name, OpenGLContextAdapter shadowContext) {
+        public ContextThread(ThreadGroup group, String name, OpenGLContext shadowContext) {
             super(group, name);
             this.shadowContext = shadowContext;
             ownsShadowContext = shadowContext == null;
@@ -446,7 +446,7 @@ public class ContextManager {
             setDaemon(true);
         }
         
-        public OpenGLContextAdapter ensureContext() {
+        public OpenGLContext ensureContext() {
             if (currentContext == null) {
                 // There is no contextProvider to piggy-back off of, so we we use the shadowContext
                 // - The shadow context is unique to this thread, so we don't need to lock
@@ -461,7 +461,7 @@ public class ContextManager {
             return currentContext;
         }
         
-        public OpenGLContextAdapter setActiveSurface(AbstractSurface surface, int layer) {
+        public OpenGLContext setActiveSurface(AbstractSurface surface, int layer) {
             if (surface != activeSurface) {
                 // The new surface is different from the active surface, so
                 // we must deactivate and unlock the last active surface.
@@ -473,7 +473,7 @@ public class ContextManager {
                     return null;
                 
                 // Now check to see if the underlying context needs to change
-                OpenGLContextAdapter newContext = surface.getContext();
+                OpenGLContext newContext = surface.getContext();
                 if (newContext != null) {
                     // New surface needs its own context, so release and unlock the current context
                     releaseContext();

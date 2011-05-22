@@ -10,13 +10,13 @@ import com.ferox.renderer.Renderer;
  * actual implementation of the Renderer interface. It is extended by both
  * {@link AbstractFixedFunctionRenderer} and {@link AbstractGlslRenderer}, which
  * complete the implementations for the respective renderer types. It is
- * recommended that if an OpenGLContextAdapter provides both a
+ * recommended that if an OpenGLContext provides both a
  * FixedFunctionRenderer and a GlslRenderer that both use the same
  * RendererDelegate instance since that state is shared by the context.
  * </p>
  * <p>
  * AbstractRenderer adds the
- * {@link #activate(AbstractSurface, OpenGLContextAdapter, ResourceManager)}
+ * {@link #activate(AbstractSurface, OpenGLContext, ResourceManager)}
  * method which is invoked by AbstractSurface when it is activated. This
  * provides a hook for renderers to perform custom initialization of the OpenGL
  * state.
@@ -27,7 +27,7 @@ import com.ferox.renderer.Renderer;
 public abstract class AbstractRenderer implements Renderer {
     private final RendererDelegate delegate;
     
-    protected OpenGLContextAdapter context;
+    protected OpenGLContext context;
     protected ResourceManager resourceManager;
     
     public AbstractRenderer(RendererDelegate delegate) {
@@ -166,7 +166,7 @@ public abstract class AbstractRenderer implements Renderer {
      * @param context The current context
      * @param resourceManager The ResourceManager to use
      */
-    public void activate(AbstractSurface active, OpenGLContextAdapter context, ResourceManager resourceManager) {
+    public void activate(AbstractSurface active, OpenGLContext context, ResourceManager resourceManager) {
         delegate.activate(active, context, resourceManager);
         
         this.context = context;

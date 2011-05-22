@@ -325,7 +325,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     @Override
-    public void activate(AbstractSurface surface, OpenGLContextAdapter context, ResourceManager resourceManager) {
+    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager resourceManager) {
         super.activate(surface, context, resourceManager);
         
         // Complete initialization the first time we're activated. We can't do this
@@ -448,6 +448,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (indexBinding.lock != null) {
             glBindElementVbo(null);
             resourceManager.unlock(indexBinding.lock);
+            indexBinding.lock = null;
         }
     }
     

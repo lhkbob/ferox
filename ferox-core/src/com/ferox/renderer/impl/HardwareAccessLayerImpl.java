@@ -81,13 +81,13 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
 
     @Override
     public <R extends Resource> Status update(R resource) {
-        OpenGLContextAdapter context = framework.getContextManager().ensureContext();
+        OpenGLContext context = framework.getContextManager().ensureContext();
         return framework.getResourceManager().update(context, resource);
     }
 
     @Override
     public <R extends Resource> void dispose(R resource) {
-        OpenGLContextAdapter context = framework.getContextManager().ensureContext();
+        OpenGLContext context = framework.getContextManager().ensureContext();
         framework.getResourceManager().dispose(context, resource);
     }
 

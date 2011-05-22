@@ -1,16 +1,15 @@
 package com.ferox.renderer.impl;
 
+import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
 /**
  * <p>
  * ResourceHandle represents the top-level class containing information about
  * Resources that have been updated and are stored on the graphics card. Each
- * ResourceHandle has an associated id, Status and a status message. The Status
- * and status message are what is reported back whenever a Resource's status or
- * message is queried. A ResourceHandle's id is the low-level id associated with
- * the OpenGL object stored on the graphics card (e.g. a texture id, or program
- * id).
+ * ResourceHandle has a Status and a status message. The Status and status
+ * message are what is reported back whenever a Resource's status or message is
+ * queried.
  * </p>
  * <p>
  * It is assumed that ResourceManagers and Renderers properly lock the owning
@@ -21,30 +20,31 @@ import com.ferox.resource.Resource.Status;
  * 
  * @author Michael Ludwig
  */
-public abstract class ResourceHandle {
-    private final int id;
+public class ResourceHandle {
+    private final Resource resource;
     
     private Status status;
     private String statusMessage;
 
     /**
-     * Create a new ResourceHandle that will use the given id. If the Resource
-     * that holds onto this handle has no id, then use a value of -1. The
-     * initial Status will be DISPOSED and the message is the empty string.
+     * Create a new ResourceHandle. The initial Status will be DISPOSED and the
+     * message is the empty string.
      * 
-     * @param id The ResourceHandle's id
+     * @param resource The Resource associated with this handle
      */
-    public ResourceHandle(int id) {
-        this.id = id;
+    public ResourceHandle(Resource resource) {
+        if (resource == null)
+            throw new NullPointerException("Resource cannot be null");
+        this.resource = resource;
         setStatus(Status.DISPOSED);
         setStatusMessage("");
     }
     
     /**
-     * @return This ResourceHandle's id
+     * @return The Resource associated with this ResourceHandle
      */
-    public final int getId() {
-        return id;
+    public Resource getResource() {
+        return resource;
     }
 
     /**

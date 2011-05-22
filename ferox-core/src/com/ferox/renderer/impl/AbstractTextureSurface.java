@@ -243,7 +243,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         ContextManager contextManager = framework.getContextManager();
         if (contextManager.isContextThread()) {
             // Don't use the Framework methods since then we'll deadblock
-            OpenGLContextAdapter context = contextManager.ensureContext();
+            OpenGLContext context = contextManager.ensureContext();
             ResourceManager resourceManager = framework.getResourceManager();
             
             for (int i = 0; i < color.length; i++) {

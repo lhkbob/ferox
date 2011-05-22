@@ -30,7 +30,6 @@ import com.ferox.resource.Resource.UpdatePolicy;
  * @author Michael Ludwig
  */
 public class ResourceManager {
-    
     // These are final after "initialize()" is called
     private LifeCycleManager lifecycleManager;
     private Thread garbageCollector;
@@ -262,8 +261,8 @@ public class ResourceManager {
      * order, the ResourceManager may need to unlock and re-order all held locks
      * on the current thread to prevent deadlocks. This is also done if a read
      * lock must be upgrade to a write lock (i.e. if
-     * {@link #update(OpenGLContextAdapter, Resource)} or
-     * {@link #dispose(OpenGLContextAdapter, Resource)} is called when the
+     * {@link #update(OpenGLContext, Resource)} or
+     * {@link #dispose(OpenGLContext, Resource)} is called when the
      * resource is bound to a renderer).
      * </p>
      * <p>
@@ -296,7 +295,7 @@ public class ResourceManager {
      *         resource is of an unsupported type
      * @throws NullPointerException if context or r are null
      */
-    public <R extends Resource> LockToken<R> lock(OpenGLContextAdapter context, R r, LockListener<R> listener) {
+    public <R extends Resource> LockToken<R> lock(OpenGLContext context, R r, LockListener<R> listener) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         if (context == null)
@@ -336,7 +335,7 @@ public class ResourceManager {
      * @return The new status of r
      * @throws NullPointerException if context or r are null
      */
-    public <R extends Resource> Status update(OpenGLContextAdapter context, R r) {
+    public <R extends Resource> Status update(OpenGLContext context, R r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         if (context == null)
@@ -362,7 +361,7 @@ public class ResourceManager {
      * code in the case of lock()). If an exception is thrown, then the resource
      * is unlocked.
      */
-    private <R extends Resource> LockToken<R> update(OpenGLContextAdapter context, ResourceData<R> data, LockListener<R> listener) {
+    private <R extends Resource> LockToken<R> update(OpenGLContext context, ResourceData<R> data, LockListener<R> listener) {
         R r = data.get();
         if (r == null)
             return null;
@@ -375,14 +374,7 @@ public class ResourceManager {
             // multiple locks - and we trust outside threads to only have one resource locked
             // at a time.
             synchronized(r) {
-                // Check for a handle if we have one, we can skip the init()
-                if (data.handle == null) {
-                    // No such luck, do a full init (but we don't need an update later)
-                    data.handle = data.driver.init(context, r);
-                } else {
-                    // Just do a regular update
-                    data.driver.update(context, r, data.handle);
-                }
+                data.handle = data.driver.update(context, r, data.handle);
                 return token;
             }
         } catch(RuntimeException re) {
@@ -408,7 +400,7 @@ public class ResourceManager {
      * @throws IllegalStateException if r cannot be disposed of (see
      *             {@link #setDisposable(Resource, boolean)}).
      */
-    public <R extends Resource> void dispose(OpenGLContextAdapter context, R r) {
+    public <R extends Resource> void dispose(OpenGLContext context, R r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         if (context == null)
@@ -473,7 +465,7 @@ public class ResourceManager {
     /**
      * Set whether or not the given resource, <tt>r</tt>, is disposable. If it
      * is not disposable, an exception is thrown when
-     * {@link #dispose(OpenGLContextAdapter, Resource)} is invoked. This should
+     * {@link #dispose(OpenGLContext, Resource)} is invoked. This should
      * be used to prevent the textures used by a TextureSurface from being
      * disposed of until the surface is destroyed. This does nothing if r is an
      * unsupported resource type.
@@ -609,7 +601,7 @@ public class ResourceManager {
      * may be able to hold read-only locks on the same resource at the same
      * time. LockTokens must be held onto until the resource is unlocked.
      * 
-     * @see ResourceManager#lock(OpenGLContextAdapter, Resource, LockListener)
+     * @see ResourceManager#lock(OpenGLContext, Resource, LockListener)
      * @see ResourceManager#unlock(LockToken)
      * @param <R> The Resource type that is locked
      */
@@ -741,7 +733,7 @@ public class ResourceManager {
         
         @Override
         public Void call() throws Exception {
-            OpenGLContextAdapter context = contextManager.ensureContext();
+            OpenGLContext context = contextManager.ensureContext();
             
             // We don't need to worry about the disposable property at this point,
             // if the Resource has been GC'ed, we need the handle disposed of no matter what.

@@ -88,7 +88,7 @@ public abstract class RendererDelegate {
     protected int viewSurfaceWidth = -1;
     protected int viewSurfaceHeight = -1;
     
-    protected OpenGLContextAdapter context;
+    protected OpenGLContext context;
     protected ResourceManager resourceManager;
     
     /**
@@ -101,7 +101,7 @@ public abstract class RendererDelegate {
      * @param context The current context
      * @param resourceManager The ResourceManager to use
      */
-    public void activate(AbstractSurface surface, OpenGLContextAdapter context, ResourceManager resourceManager) {
+    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager resourceManager) {
         this.context = context;
         this.resourceManager = resourceManager;
         

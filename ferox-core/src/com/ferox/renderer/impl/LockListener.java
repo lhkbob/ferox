@@ -11,7 +11,7 @@ import com.ferox.resource.Resource;
  * </p>
  * <p>
  * When
- * {@link ResourceManager#lock(OpenGLContextAdapter, Resource, LockListener)
+ * {@link ResourceManager#lock(OpenGLContext, Resource, LockListener)
  * locking} a resource, the manager attempts to lock without blocking. If that
  * fails, it releases all currently held resource locks and calls
  * {@link #onForceUnlock(LockToken)} for each registered LockListener. It then
