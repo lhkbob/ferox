@@ -2,6 +2,7 @@ package com.ferox.renderer.impl;
 
 import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.renderer.Renderer;
+import com.ferox.resource.VertexBufferObject;
 
 /**
  * <p>
@@ -154,6 +155,16 @@ public abstract class AbstractRenderer implements Renderer {
     @Override
     public void setViewport(int x, int y, int width, int height) {
         delegate.setViewport(x, y, width, height);
+    }
+    
+    @Override
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+        return delegate.render(polyType, indices, offset, count);
+    }
+
+    @Override
+    public int render(PolygonType polyType, int first, int count) {
+        return delegate.render(polyType, first, count);
     }
 
     /**

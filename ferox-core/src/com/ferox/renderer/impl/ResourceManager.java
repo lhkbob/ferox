@@ -606,11 +606,11 @@ public class ResourceManager {
      * @param <R> The Resource type that is locked
      */
     public static class LockToken<R extends Resource> implements Comparable<LockToken<?>> {
-        final R resource; // Have an actual reference to the resource so it doesn't get GC'ed
-        final ResourceData<R> data;
-        final LockListener<? super R> listener;
+        private final R resource; // Have an actual reference to the resource so it doesn't get GC'ed
+        private final ResourceData<R> data;
+        private final LockListener<? super R> listener;
         
-        final boolean writeLock;
+        private final boolean writeLock;
 
         private LockToken(R resource, ResourceData<R> data, LockListener<? super R> listener, boolean writeLockHeld) {
             this.resource = resource;

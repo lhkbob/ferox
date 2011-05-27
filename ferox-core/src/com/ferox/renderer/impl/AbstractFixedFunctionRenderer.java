@@ -208,34 +208,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         }
     }
     
-    protected class IndexState implements LockListener<VertexBufferObject> {
-        public LockToken<? extends VertexBufferObject> lock;
-        
-        @Override
-        public boolean onRelock(LockToken<? extends VertexBufferObject> token) {
-            if (token != lock)
-                throw new IllegalStateException("Resource locks have been confused");
-            
-            if (token.getResourceHandle() == null || token.getResourceHandle().getStatus() != Status.READY) {
-                // Resource has been removed, so reset the lock
-                lock = null;
-                return false;
-            } else {
-                // Re-bind the VBO
-                glBindElementVbo(token.getResourceHandle());
-                return true;
-            }
-        }
-
-        @Override
-        public boolean onForceUnlock(LockToken<? extends VertexBufferObject> token) {
-            if (token != lock)
-                throw new IllegalStateException("Resource locks have been confused");
-            glBindElementVbo(null);
-            return true;
-        }
-    }
-    
     private static final Matrix4f IDENTITY = new Matrix4f();
     
     // cached defaults
@@ -301,7 +273,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected final VertexState normalBinding = new VertexState(VertexTarget.NORMALS, 0);
     protected VertexState[] texBindings = null; // "final"
 
-    protected final IndexState indexBinding = new IndexState();
     protected VertexBufferObject arrayVboBinding = null;
     protected int activeArrayVbos = 0;
     protected int activeClientTex = 0;
@@ -443,13 +414,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         setNormals(null);
         for (int i = 0; i < texBindings.length; i++)
             setTextureCoordinates(i, null);
-        
-        // manually unbind the index vbo
-        if (indexBinding.lock != null) {
-            glBindElementVbo(null);
-            resourceManager.unlock(indexBinding.lock);
-            indexBinding.lock = null;
-        }
     }
     
     @Override
@@ -1281,81 +1245,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glActiveTexture(int unit);
 
     @Override
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
-        if (polyType == null || indices == null)
-            throw new NullPointerException("PolygonType and indices cannot be null");
-        if (offset < 0 || count < 0)
-            throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
-        
-        // Early escape if we have no vertices to use
-        if (vertexBinding.lock == null)
-            return 0;
-        
-        if (indexBinding.lock == null || indexBinding.lock.getResource() != indices) {
-            // Must bind a new element vbo
-            boolean hadOldIndices = indexBinding.lock != null;
-            if (hadOldIndices) {
-                // Unlock old vbo first
-                resourceManager.unlock(indexBinding.lock);
-                indexBinding.lock = null;
-            }
-            
-            LockToken<? extends VertexBufferObject> newLock = resourceManager.lock(context, indices, indexBinding);
-            if (newLock != null && (newLock.getResourceHandle() == null 
-                                    || newLock.getResourceHandle().getStatus() != Status.READY)) {
-                // index buffer is unusable
-                resourceManager.unlock(newLock);
-                newLock = null;
-            }
-            
-            // Handle actual binding of the vbo
-            if (newLock != null) {
-                indexBinding.lock = newLock;
-                glBindElementVbo(newLock.getResourceHandle());
-            } else if (hadOldIndices) {
-                // Since we can't bind the new vbo, make sure the old
-                // one is unbound since we've already unlocked it
-                glBindElementVbo(null);
-            }
-        }
-        
-        if (indexBinding.lock == null) {
-            // No element vbo to work with, so we can't render anything
-            return 0;
-        } else {
-            // Element vbo is bound this time (or from a previous rendering)
-            glDrawElements(polyType, indexBinding.lock.getResourceHandle(), offset, count);
-        }
-        
-        return polyType.getPolygonCount(count);
-    }
-
-    /**
-     * Perform the glDrawElements rendering command. The inputs will be valid.
-     */
-    protected abstract void glDrawElements(PolygonType type, ResourceHandle handle, int offset, int count);
-
-    @Override
-    public int render(PolygonType polyType, int first, int count) {
-        if (polyType == null)
-            throw new NullPointerException("PolygonType cannot be null");
-        if (first < 0 || count < 0)
-            throw new IllegalArgumentException("First and count must be at least 0, not: " + first + ", " + count);
-
-        // Can't render anything if we don't have any vertices
-        if (vertexBinding.lock == null)
-            return 0;
-        
-        glDrawArrays(polyType, first, count);
-        return polyType.getPolygonCount(count);
-    }
-    
-    /**
-     * Perform the glDrawArrays rendering command. The inputs will be valid.
-     */
-    protected abstract void glDrawArrays(PolygonType type, int first, int count);
-
-    @Override
     public void setVertices(VertexAttribute vertices) {
         setAttribute(vertexBinding, vertices);
     }
@@ -1478,12 +1367,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * array vbo.
      */
     protected abstract void glBindArrayVbo(ResourceHandle handle);
-
-    /**
-     * Bind the given resource handle as the element array vbo. If null, unbind
-     * the array vbo.
-     */
-    protected abstract void glBindElementVbo(ResourceHandle handle);
 
     /**
      * Invoke OpenGL commands to set the given attribute pointer. The resource

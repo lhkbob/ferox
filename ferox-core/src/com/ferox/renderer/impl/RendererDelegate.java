@@ -7,7 +7,11 @@ import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
+import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.renderer.impl.ResourceManager.LockToken;
+import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.Resource.Status;
 
 /**
  * <p>
@@ -27,6 +31,34 @@ import com.ferox.renderer.Renderer.StencilOp;
  */
 public abstract class RendererDelegate {
     private static final ReadOnlyVector4f DEFAULT_BLEND_COLOR = new Vector4f(0f, 0f, 0f, 0f);
+    
+    protected class IndexState implements LockListener<VertexBufferObject> {
+        public LockToken<? extends VertexBufferObject> lock;
+        
+        @Override
+        public boolean onRelock(LockToken<? extends VertexBufferObject> token) {
+            if (token != lock)
+                throw new IllegalStateException("Resource locks have been confused");
+            
+            if (token.getResourceHandle() == null || token.getResourceHandle().getStatus() != Status.READY) {
+                // Resource has been removed, so reset the lock
+                lock = null;
+                return false;
+            } else {
+                // Re-bind the VBO
+                glBindElementVbo(token.getResourceHandle());
+                return true;
+            }
+        }
+
+        @Override
+        public boolean onForceUnlock(LockToken<? extends VertexBufferObject> token) {
+            if (token != lock)
+                throw new IllegalStateException("Resource locks have been confused");
+            glBindElementVbo(null);
+            return true;
+        }
+    }
     
     // blending
     protected final Vector4f blendColor = new Vector4f();
@@ -88,6 +120,10 @@ public abstract class RendererDelegate {
     protected int viewSurfaceWidth = -1;
     protected int viewSurfaceHeight = -1;
     
+    // rendering
+    protected final IndexState indexBinding = new IndexState();
+
+    
     protected OpenGLContext context;
     protected ResourceManager resourceManager;
     
@@ -128,6 +164,13 @@ public abstract class RendererDelegate {
         setStencilUpdateOps(StencilOp.KEEP, StencilOp.KEEP, StencilOp.KEEP);
         setStencilTestEnabled(false);
         setStencilWriteMask(~0);
+        
+        // manually unbind the index vbo
+        if (indexBinding.lock != null) {
+            glBindElementVbo(null);
+            resourceManager.unlock(indexBinding.lock);
+            indexBinding.lock = null;
+        }
         
         // only reset viewport if we've been assigned valid dimensions
         if (viewSurfaceHeight >= 0 && viewSurfaceWidth >= 0)
@@ -421,4 +464,75 @@ public abstract class RendererDelegate {
      * Invoke OpenGL calls to set the viewport
      */
     protected abstract void glViewport(int x, int y, int width, int height);
+    
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+        if (polyType == null || indices == null)
+            throw new NullPointerException("PolygonType and indices cannot be null");
+        if (offset < 0 || count < 0)
+            throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
+        
+        if (indexBinding.lock == null || indexBinding.lock.getResource() != indices) {
+            // Must bind a new element vbo
+            boolean hadOldIndices = indexBinding.lock != null;
+            if (hadOldIndices) {
+                // Unlock old vbo first
+                resourceManager.unlock(indexBinding.lock);
+                indexBinding.lock = null;
+            }
+            
+            LockToken<? extends VertexBufferObject> newLock = resourceManager.lock(context, indices, indexBinding);
+            if (newLock != null && (newLock.getResourceHandle() == null 
+                                    || newLock.getResourceHandle().getStatus() != Status.READY)) {
+                // index buffer is unusable
+                resourceManager.unlock(newLock);
+                newLock = null;
+            }
+            
+            // Handle actual binding of the vbo
+            if (newLock != null) {
+                indexBinding.lock = newLock;
+                glBindElementVbo(newLock.getResourceHandle());
+            } else if (hadOldIndices) {
+                // Since we can't bind the new vbo, make sure the old
+                // one is unbound since we've already unlocked it
+                glBindElementVbo(null);
+            }
+        }
+        
+        if (indexBinding.lock == null) {
+            // No element vbo to work with, so we can't render anything
+            return 0;
+        } else {
+            // Element vbo is bound this time (or from a previous rendering)
+            glDrawElements(polyType, indexBinding.lock.getResourceHandle(), offset, count);
+        }
+        
+        return polyType.getPolygonCount(count);
+    }
+
+    /**
+     * Perform the glDrawElements rendering command. The inputs will be valid.
+     */
+    protected abstract void glDrawElements(PolygonType type, ResourceHandle handle, int offset, int count);
+
+    public int render(PolygonType polyType, int first, int count) {
+        if (polyType == null)
+            throw new NullPointerException("PolygonType cannot be null");
+        if (first < 0 || count < 0)
+            throw new IllegalArgumentException("First and count must be at least 0, not: " + first + ", " + count);
+
+        glDrawArrays(polyType, first, count);
+        return polyType.getPolygonCount(count);
+    }
+    
+    /**
+     * Perform the glDrawArrays rendering command. The inputs will be valid.
+     */
+    protected abstract void glDrawArrays(PolygonType type, int first, int count);
+    
+    /**
+     * Bind the given resource handle as the element array vbo. If null, unbind
+     * the array vbo.
+     */
+    protected abstract void glBindElementVbo(ResourceHandle handle);
 }

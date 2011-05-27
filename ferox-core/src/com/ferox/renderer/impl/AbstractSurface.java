@@ -149,7 +149,7 @@ public abstract class AbstractSurface implements Surface {
                 destroyImpl();
             } finally {
                 // ContextManager.lock() doesn't create a persistent lock so
-                // we can use unlock directly on our lock object. 
+                // we can use unlock directly on our lock object.
                 lock.unlock();
             }
         }

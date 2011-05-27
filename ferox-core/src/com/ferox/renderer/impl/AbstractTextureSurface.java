@@ -19,6 +19,7 @@ import com.ferox.resource.TextureFormat;
  * 
  * @author Michael Ludwig
  */
+// FIXME: figure out how to handle mutating textures, that change dimensions/types, etc.
 public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
     private volatile int activeLayer;
     private volatile int activeDepth;
