@@ -14,6 +14,10 @@ import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 
 public interface GlslRenderer extends Renderer {
+    // FIXME: for advanced shaders, this is the fragment variable to GL_COLOR_ATTACHMENT0+target
+    //    and is configured with glBindFragDataLocation
+    // for older shaders, they have to write to glFragData[target], so maybe switch
+    //  order of arguments, and say null reverts to default output (e.g. glFragData())
     public void bindRenderTarget(String fragmentVariable, int target);
     
     public void setShader(GlslShader shader);

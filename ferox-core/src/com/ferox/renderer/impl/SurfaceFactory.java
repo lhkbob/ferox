@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.TextureSurfaceOptions;
@@ -59,4 +60,16 @@ public interface SurfaceFactory {
      * @return An offscreen context
      */
     public OpenGLContext createShadowContext(OpenGLContext sharedContext);
+
+    /**
+     * @return The default display mode, as required
+     *         {@link Framework#getDefaultDisplayMode()}
+     */
+    public DisplayMode getDefaultDisplayMode();
+    
+    /**
+     * @return Available display modes, as required by
+     *         {@link Framework#getAvailableDisplayModes()}
+     */
+    public DisplayMode[] getAvailableDisplayModes();
 }

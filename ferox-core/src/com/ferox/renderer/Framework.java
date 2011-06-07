@@ -54,6 +54,42 @@ import com.ferox.resource.Resource.UpdatePolicy;
  */
 public interface Framework {
     /**
+     * Return an array of available DisplayModes that can be used when creating
+     * fullscreen surfaces with {@link #createSurface(OnscreenSurfaceOptions)}.
+     * The returned array can be modified because a defensive copy is returned.
+     * 
+     * @return All available display modes on the system
+     */
+    public DisplayMode[] getAvailableDisplayModes();
+    
+    /**
+     * Return the DisplayMode representing the default display mode selected
+     * when the surface is no longer fullscreen. This will be the original
+     * display mode selected by the user before they started the application.
+     * 
+     * @return The default DisplayMode.
+     */
+    public DisplayMode getDefaultDisplayMode();
+
+    /**
+     * <p>
+     * Return the current exclusive fullscreen surface. There can only be one
+     * fullscreen surface at a time. While this returns a non-null value,
+     * attempts to create new OnscreenSurfaces that are fullscreen will fail.
+     * Null is returned if there is no fullscreen surface or after the exclusive
+     * surface gets destroyed.
+     * </p>
+     * <p>
+     * If a non-null surface is returned, its
+     * {@link OnscreenSurface#isFullscreen() isFullscreen()} method will return
+     * true.
+     * </p>
+     * 
+     * @return The current fullscreen surface, may be null
+     */
+    public OnscreenSurface getFullscreenSurface();
+
+    /**
      * <p>
      * Create a OnscreenSurface with the given options.. These parameters are
      * requests to the underlying Framework, which will try its best to follow
@@ -64,12 +100,19 @@ public interface Framework {
      * If options is null, or any of the other parameters have unsupported
      * values, the Framework may change them to successfully create a surface.
      * </p>
+     * <p>
+     * If there is already a fullscreen surface and <tt>options</tt> would
+     * create a new fullscreen surface, an exception is thrown. It is possible
+     * to have standard windowed surfaces and fullscreen surface, although the
+     * windowed surfaces will be hidden until the fullscreen surface is
+     * destroyed.
+     * </p>
      * 
      * @param options Requested pixel format and initial configuration of the
      *            surface
      * @return The created surface, or null if the Framework has been destroyed
      * @throws SurfaceCreationException if the Framework cannot create the
-     *             WindowSurface
+     *             OnscreenSurface
      */
     public OnscreenSurface createSurface(OnscreenSurfaceOptions options);
 

@@ -47,8 +47,6 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                 // Do some clean-up depending on the storage mode change
                 if (oldIsGPU && !newIsGPU)
                     glDeleteBuffer(context, h);
-                else if (h.inmemoryBuffer != null && newIsGPU)
-                    BufferUtil.returnBuffer(h.inmemoryBuffer);
             }
             
             if (storageModeChange || h.lastSyncedKey != res.getData().getKey() 
@@ -56,26 +54,27 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                 // Must push the whole buffer
                 if (newIsGPU) {
                     // Operate on an actual VBO
-                    Buffer nioData = (res.getData().getArray() == null ? null : BufferUtil.leaseBuffer(res.getData()));
-                    if (isElementBuffer) {
-                        glBindElementBuffer(context, h);
-                        glElementBufferData(context, nioData, res.getData().getDataType(), res.getData().getLength(), newMode);
-                        glRestoreElementBuffer(context);
-                    } else {
-                        glBindArrayBuffer(context, h);
-                        glArrayBufferData(context, nioData, res.getData().getDataType(), res.getData().getLength(), newMode);
-                        glRestoreArrayBuffer(context);
-                    }
+                    Buffer nioData = bufferAlloc(res.getData(), h.inmemoryBuffer);
                     
-                    if (nioData != null)
-                        BufferUtil.returnBuffer(nioData);
+                    if (nioData != null || h.lastSyncedKey == null) {
+                        if (isElementBuffer) {
+                            glBindElementBuffer(context, h);
+                            glElementBufferData(context, nioData, res.getData().getDataType(), res.getData().getLength(), newMode);
+                            glRestoreElementBuffer(context);
+                        } else {
+                            glBindArrayBuffer(context, h);
+                            glArrayBufferData(context, nioData, res.getData().getDataType(), res.getData().getLength(), newMode);
+                            glRestoreArrayBuffer(context);
+                        }
+                    } // no data and we've allocated data before, so don't change anything
+                    
+                    h.inmemoryBuffer = (res.getStorageMode() == StorageMode.GPU_DYNAMIC ? nioData : null);
                 } else {
                     // Storage mode is IN_MEMORY so we want a buffer
-                    if (h.inmemoryBuffer != null)
-                        BufferUtil.returnBuffer(h.inmemoryBuffer);
-                    
-                    h.inmemoryBuffer = (res.getData().getArray() == null ? BufferUtil.leaseBuffer(res.getData().getDataType(), res.getData().getLength())
-                                                                         : BufferUtil.leaseBuffer(res.getData()));
+                    Buffer nioData = bufferAlloc(res.getData(), h.inmemoryBuffer);
+                    if (nioData == null)
+                        nioData = BufferUtil.newBuffer(res.getData().getDataType(), res.getData().getLength());
+                    h.inmemoryBuffer = nioData;
                 }
                 
                 // Update properties in handle that could have changed because of doing a full push
@@ -107,8 +106,13 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                             bulkPut(res.getData(), offset, length, h.inmemoryBuffer);
                             h.inmemoryBuffer.rewind();
                         } else {
-                            Buffer nioData = BufferUtil.leaseBuffer(res.getData().getDataType(), length);
-                            bulkPut(res.getData(), offset, length, nioData);
+                            Buffer nioData;
+                            if (h.mode == StorageMode.GPU_DYNAMIC && h.inmemoryBuffer != null) {
+                                nioData = h.inmemoryBuffer;
+                                nioData.limit(length).position(0);
+                            } else {
+                                nioData = BufferUtil.newBuffer(res.getData().getDataType(), length);
+                            }
                             nioData.rewind();
                             
                             if (isElementBuffer)
@@ -152,6 +156,28 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     @Override
     public Class<VertexBufferObject> getResourceType() {
         return VertexBufferObject.class;
+    }
+    
+    private Buffer bufferAlloc(BufferData data, Buffer result) {
+        if (data.getArray() != null) {
+            if (BufferUtil.getBufferType(data.getDataType()).isInstance(result)
+                && result.capacity() >= data.getLength()) {
+                result.limit(data.getLength()).position(0);
+
+                switch(data.getDataType()) {
+                case FLOAT: ((FloatBuffer) result).put(data.<float[]>getArray()); break;
+                case UNSIGNED_BYTE: ((ByteBuffer) result).put(data.<byte[]>getArray()); break;
+                case UNSIGNED_INT: ((IntBuffer) result).put(data.<int[]>getArray()); break;
+                case UNSIGNED_SHORT:((ShortBuffer) result).put(data.<short[]>getArray()); break; 
+                }
+
+                return result.rewind();
+            } else {
+                // alloc new data
+                return BufferUtil.newBuffer(data);
+            }
+        } else
+            return null;
     }
     
     private void bulkPut(BufferData data, int offset, int length, Buffer result) {

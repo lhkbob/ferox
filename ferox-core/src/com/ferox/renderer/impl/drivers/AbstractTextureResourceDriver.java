@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
@@ -227,9 +228,26 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver<Te
      * @return True if the texture can be updated
      */
     protected boolean validateTexture(OpenGLContext context, Texture tex, TextureHandle handle) {
-        RenderCapabilities caps = context.getRenderCapabilities();
         String errorMsg = null;
-        if (!caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH)
+        // error handling for textures that are owned by texture surfaces
+        //  1. They cannot change size from what is reported by the surface
+        //  2. They cannot change texture format or data type
+        //  3. They cannot be mipmapped -> this might go away
+        if (tex.getOwner() != null) {
+            TextureSurface owner = tex.getOwner();
+            if (tex.getWidth() != owner.getWidth() || tex.getHeight() != owner.getHeight()
+                || tex.getDepth() != owner.getDepth())
+                errorMsg = "Cannot change dimensions of a Texture owned by a TextureSurface";
+            else if (handle.format != null && tex.getFormat() != handle.format)
+                errorMsg = "Cannot change TextureFormat of a Texture owned by a TextureSurface";
+            else if (handle.type != null && tex.getDataType() != handle.type)
+                errorMsg = "Cannot change DataType of a Texture owned by a TextureSurface";
+            else if (tex.getLayer(0).isMipmapped())
+                errorMsg = "Cannot use multiple mipmap levels with a Texture owned by a TextureSurface";
+        }
+        
+        RenderCapabilities caps = context.getRenderCapabilities();
+        if (errorMsg == null && !caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH)
             errorMsg = "Depth textures are not supported";
         
         if (errorMsg == null && !caps.getNpotTextureSupport()) {
@@ -336,9 +354,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver<Te
         BufferData data = mipmap.getData(level);
         if (data.getArray() != null) {
             glUnpackRegion(context, 0, 0, 0, w, h);
-            Buffer nioData = BufferUtil.leaseBuffer(data);
+            Buffer nioData = BufferUtil.newBuffer(data);
             glTexImage(context, handle, layer, level, w, h, d, data.getLength(), nioData);
-            BufferUtil.returnBuffer(nioData);
         } else if (handle.lastSyncedKeys[layer][level] == null) {
             // First time for this texture handle, so alloc the image
             glTexImage(context, handle, layer, level, w, h, d, handle.format.getBufferSize(w, h, d), null);
@@ -364,9 +381,13 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver<Te
         int d = Math.min(dirty.getDepth(), maxDepth - z);
         
         glUnpackRegion(context, x, y, z, w, h);
-        Buffer nioData = BufferUtil.leaseBuffer(data);
+        Buffer nioData = BufferUtil.newBuffer(data);
+        // FIXME: would be awesome here to figure out how send/transfer a buffer that only
+        // contained the desired data, right now this newBuffer() could cost as much
+        // as actually sending a subimage to the gfx card
+        //  - it would modify the unpack region to change the x/y offset to 0
+        //  - have to fill the buffer manually from the array
         glTexSubImage(context, handle, dirty.getLayer(), dirty.getMipmapLevel(), x, y, z, w, h, d, nioData);
-        BufferUtil.returnBuffer(nioData);
     }
 
     private static int ceilPot(int num) {

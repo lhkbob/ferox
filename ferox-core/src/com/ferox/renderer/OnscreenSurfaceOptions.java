@@ -11,58 +11,86 @@ package com.ferox.renderer;
  */
 public final class OnscreenSurfaceOptions {
     /**
-     * The format for the color pixels of the surface. It is likely that the
-     * float options are only available for texture surfaces.
+     * The format for the depth component of the surface fragment.
      */
-    public static enum PixelFormat {
-        /**
-         * Red, green, and blue pixels will be packed together in a 5/6/5 bit
-         * scheme.
-         */
-        RGB_16BIT,
-        /**
-         * Red, green, and blue pixels are packed in a 8/8/8 bit scheme.
-         */
-        RGB_24BIT,
-        /**
-         * Red, green, blue, and alpha pixels are packed in a 8/8/8/8 scheme.
-         */
-        RGBA_32BIT
-    }
-
-    /** The format for the depth component of the surface fragment. */
     public static enum DepthFormat {
-        /** Use 16 bits to store depth information. */
+        /**
+         * Use 16 bits to store depth information.
+         */
         DEPTH_16BIT,
-        /** Use 24 bits to store depth information. */
+        /**
+         * Use 24 bits to store depth information.
+         */
         DEPTH_24BIT,
-        /** Use 32 bits to store depth information. */
+        /**
+         * Use 32 bits to store depth information.
+         */
         DEPTH_32BIT,
-        /** There should be no depth buffer. */
-        NONE
-    }
-
-    /** The format for the stencil buffer of the surface. */
-    public static enum StencilFormat {
-        /** Use 16 bits for each fragment. */
-        STENCIL_16BIT,
-        /** Use 8 bits for each fragment. */
-        STENCIL_8BIT,
-        /** Use 4 bits for each fragment. */
-        STENCIL_4BIT,
-        /** Use only 1 bit for each fragment. */
-        STENCIL_1BIT,
-        /** There shouldn't be any stencil buffer. */
-        NONE
+        /**
+         * There should be no depth buffer.
+         */
+        NONE,
+        /**
+         * Depth buffer exists but doesn't match specified enum values
+         */
+        UNKNOWN
     }
 
     /**
-     * The type of fullscreen anti-aliasing to apply to the surface. It is more
-     * likely that windowed and fullscreen surfaces can be anti-aliased, however
-     * newer hardware can support aa'ed texture surfaces.
+     * The format for the stencil buffer of the surface.
+     */
+    public static enum StencilFormat {
+        /**
+         * Use 16 bits for each fragment.
+         */
+        STENCIL_16BIT,
+        /**
+         * Use 8 bits for each fragment.
+         */
+        STENCIL_8BIT,
+        /**
+         * Use 4 bits for each fragment.
+         */
+        STENCIL_4BIT,
+        /**
+         * Use only 1 bit for each fragment.
+         */
+        STENCIL_1BIT,
+        /**
+         * There shouldn't be any stencil buffer.
+         */
+        NONE,
+        /**
+         * Stencil buffer exists but doesn't match specified enum values
+         */
+        UNKNOWN
+    }
+
+    /**
+     * The type of fullscreen anti-aliasing to apply to the surface.
      */
     public static enum AntiAliasMode {
-        TWO_X, FOUR_X, EIGHT_X, NONE
+        /**
+         * Two samples per-pixel multisampling.
+         */
+        TWO_X,
+        /**
+         * Four samples per-pixel multisampling.
+         */
+        FOUR_X,
+        /**
+         * Eight samples per-pixel multisampling.
+         */
+        EIGHT_X,
+        /**
+         * No fullscreen anti-aliasing is performed.
+         */
+        NONE,
+        /**
+         * Anti-aliasing is performed with a method that doesn't match known
+         * enum values.
+         */
+        UNKNOWN
     }
     
     private final boolean undecorated;
@@ -76,7 +104,6 @@ public final class OnscreenSurfaceOptions {
     
     private final DisplayMode fullMode;
     
-    private final PixelFormat pixel;
     private final DepthFormat depth;
     private final AntiAliasMode aa;
     private final StencilFormat stencil;
@@ -85,7 +112,6 @@ public final class OnscreenSurfaceOptions {
      * Create a new OnscreenSurfaceOptions with the following default
      * parameters:
      * <ul>
-     * <li>{@link #getPixelFormat()} returns RGB_24BIT</li>
      * <li>{@link #getDepthFormat()} returns DEPTH_24BIT</li>
      * <li>{@link #getAntiAliasMode()} returns NONE</li>
      * <li>{@link #getStencilFormat()} returns NONE</li>
@@ -99,14 +125,14 @@ public final class OnscreenSurfaceOptions {
      * </ul>
      */
     public OnscreenSurfaceOptions() {
-        this(PixelFormat.RGB_24BIT, DepthFormat.DEPTH_24BIT, AntiAliasMode.NONE, StencilFormat.NONE, 
+        this(DepthFormat.DEPTH_24BIT, AntiAliasMode.NONE, StencilFormat.NONE, 
              false, false, 0, 0, 600, 600, null);
     }
     
-    private OnscreenSurfaceOptions(PixelFormat p, DepthFormat d, AntiAliasMode a, StencilFormat s, 
+    private OnscreenSurfaceOptions(DepthFormat d, AntiAliasMode a, StencilFormat s, 
                                    boolean undecorated, boolean resizable, int x, int y, 
                                    int width, int height, DisplayMode ff) {
-        if (p == null || d == null || a == null || s == null)
+        if (d == null || a == null || s == null)
             throw new NullPointerException("Format options cannot be null");
         if (width < 1 || height < 1)
             throw new IllegalArgumentException("Window dimensions must be at least 1");
@@ -119,7 +145,6 @@ public final class OnscreenSurfaceOptions {
         this.y = y;
         
         fullMode = ff;
-        pixel = p;
         depth = d;
         aa = a;
         stencil = s;
@@ -134,7 +159,7 @@ public final class OnscreenSurfaceOptions {
      * @throws IllegalArgumentException if width < 1
      */
     public OnscreenSurfaceOptions setWidth(int width) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
     
@@ -147,7 +172,7 @@ public final class OnscreenSurfaceOptions {
      * @throws IllegalArgumentException if height < 1
      */
     public OnscreenSurfaceOptions setHeight(int height) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
     
@@ -159,7 +184,7 @@ public final class OnscreenSurfaceOptions {
      *         the new x value
      */
     public OnscreenSurfaceOptions setX(int x) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
     
@@ -171,23 +196,10 @@ public final class OnscreenSurfaceOptions {
      *         the new y value
      */
     public OnscreenSurfaceOptions setY(int y) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
 
-    /**
-     * Set the requested PixelFormat of the surface.
-     * 
-     * @param pixel The new PixelFormat
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new format
-     * @throws NullPointerException if pixel is null
-     */
-    public OnscreenSurfaceOptions setPixelFormat(PixelFormat pixel) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
-                                          width, height, fullMode);
-    }
-    
     /**
      * Set the requested DepthFormat of the surface.
      * 
@@ -197,7 +209,7 @@ public final class OnscreenSurfaceOptions {
      * @throws NullPointerException if depth is null
      */
     public OnscreenSurfaceOptions setDepthFormat(DepthFormat depth) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
     
@@ -210,7 +222,7 @@ public final class OnscreenSurfaceOptions {
      * @throws NullPointerException if stencil is null
      */
     public OnscreenSurfaceOptions setStencilFormat(StencilFormat stencil) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
 
@@ -223,7 +235,7 @@ public final class OnscreenSurfaceOptions {
      * @throws NullPointerException if aa is null
      */
     public OnscreenSurfaceOptions setAntiAliasMode(AntiAliasMode aa) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
 
@@ -235,7 +247,7 @@ public final class OnscreenSurfaceOptions {
      *         the new undecorated value
      */
     public OnscreenSurfaceOptions setUndecorated(boolean undecorated) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
     
@@ -247,7 +259,7 @@ public final class OnscreenSurfaceOptions {
      *         the new resizable value
      */
     public OnscreenSurfaceOptions setResizable(boolean resizable) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
 
@@ -262,7 +274,7 @@ public final class OnscreenSurfaceOptions {
      *         the new DisplayMode
      */
     public OnscreenSurfaceOptions setFullscreenMode(DisplayMode fullMode) {
-        return new OnscreenSurfaceOptions(pixel, depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
     
@@ -292,11 +304,6 @@ public final class OnscreenSurfaceOptions {
      *         supported DisplayMode closest to the requested
      */
     public DisplayMode getFullscreenMode() { return fullMode; }
-    
-    /**
-     * @return The requested PixelFormat for the color buffer
-     */
-    public PixelFormat getPixelFormat() { return pixel; }
     
     /**
      * @return The requested DepthFormat for the depth buffer

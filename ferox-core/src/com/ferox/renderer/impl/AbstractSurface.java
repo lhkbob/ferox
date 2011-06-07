@@ -3,9 +3,10 @@ package com.ferox.renderer.impl;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.ferox.renderer.Context;
 import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.Framework;
 import com.ferox.renderer.GlslRenderer;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Surface;
 
 /**
@@ -47,6 +48,14 @@ public abstract class AbstractSurface implements Surface {
     public abstract OpenGLContext getContext();
 
     /**
+     * Perform actions as needed to flush this surface, as required by
+     * {@link Context#flush()}.
+     * 
+     * @param context The current context
+     */
+    public abstract void flush(OpenGLContext context);
+
+    /**
      * <p>
      * onSurfaceActivate() is a listener method that is invoked by
      * ContextManager when a surface is activated. The provided context is the
@@ -68,20 +77,7 @@ public abstract class AbstractSurface implements Surface {
      *            an appropriate target
      */
     public void onSurfaceActivate(OpenGLContext context, int layer) {
-        // Set the viewport of the renderers to match the surface
-        FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
-        if (ffp != null) {
-            if (ffp instanceof AbstractRenderer)
-                ((AbstractRenderer) ffp).activate(this, context, framework.getResourceManager());
-            ffp.setViewport(0, 0, getWidth(), getHeight());
-        }
-        
-        GlslRenderer glsl = context.getGlslRenderer();
-        if (glsl != null) {
-            if (glsl instanceof AbstractRenderer)
-                ((AbstractRenderer) glsl).activate(this, context, framework.getResourceManager());
-            glsl.setViewport(0, 0, getWidth(), getHeight());
-        }
+        // do nothing
     }
 
     /**
@@ -96,11 +92,12 @@ public abstract class AbstractSurface implements Surface {
     public void onSurfaceDeactivate(OpenGLContext context) {
         // Reset the renderers so that the next task sees a clean slate
         // and any locked resources get released
-        FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
+        RenderCapabilities caps = context.getRenderCapabilities();
+        FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
         if (ffp != null)
             ffp.reset();
         
-        GlslRenderer glsl = context.getGlslRenderer();
+        GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
         if (glsl != null)
             glsl.reset();
     }
@@ -161,7 +158,7 @@ public abstract class AbstractSurface implements Surface {
     }
 
     @Override
-    public Framework getFramework() {
+    public AbstractFramework getFramework() {
         return framework;
     }
 }

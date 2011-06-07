@@ -27,7 +27,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
         if (handle == null) {
             // Create a new shader program, and check for GLSL support
-            if (supported.isEmpty()) {
+            if (supported.isEmpty() || context.getRenderCapabilities().getGlslVersion() == null) {
                 handle = new ResourceHandle(shader);
                 handle.setStatus(Status.UNSUPPORTED);
                 handle.setStatusMessage("GLSL is not supported on current hardware");

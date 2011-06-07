@@ -5,11 +5,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import com.ferox.input.EventQueue;
+import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Surface;
+import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.Task;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
@@ -43,6 +46,12 @@ public abstract class AbstractFramework implements Framework {
     private final LifeCycleManager lifecycleManager;
     private final ResourceManager resourceManager;
     private final ContextManager contextManager;
+    
+    private final EventQueue eventQueue;
+    
+    // fullscreen support
+    private final Object fullscreenLock;
+    private OnscreenSurface fullscreenSurface;
 
     /**
      * <p>
@@ -82,6 +91,21 @@ public abstract class AbstractFramework implements Framework {
         
         surfaces = new CopyOnWriteArraySet<AbstractSurface>();
         lifecycleManager = new LifeCycleManager("Ferox Framework");
+        
+        eventQueue = new EventQueue();
+        
+        fullscreenLock = new Object();
+        fullscreenSurface = null;
+    }
+
+    /**
+     * Return an EventQueue that can be shared by all onscreen surfaces created
+     * by the framework that need to generate input events.
+     * 
+     * @return The EventQueue for the framework
+     */
+    public EventQueue getEventQueue() {
+        return eventQueue;
     }
 
     /**
@@ -119,9 +143,17 @@ public abstract class AbstractFramework implements Framework {
         lifecycleManager.getLock().lock();
         try {
             if (lifecycleManager.getStatus() == LifeCycleManager.Status.ACTIVE) {
-                AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(this, options, sharedContext);
-                surfaces.add(created);
-                return created;
+                synchronized(fullscreenLock) {
+                    if (options.getFullscreenMode() != null && fullscreenSurface != null)
+                        throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");
+                    
+                    AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(this, options, sharedContext);
+                    surfaces.add(created);
+                    
+                    if (created.getOptions().getFullscreenMode() != null)
+                        fullscreenSurface = created;
+                    return created;
+                }
             } else
                 return null;
         } finally {
@@ -166,6 +198,9 @@ public abstract class AbstractFramework implements Framework {
                 
                 // Destroy the shared context
                 sharedContext.destroy();
+                
+                // Shutdown the event queue
+                eventQueue.shutdown();
             }
         });
     }
@@ -225,6 +260,23 @@ public abstract class AbstractFramework implements Framework {
         return renderCaps;
     }
     
+    @Override
+    public DisplayMode[] getAvailableDisplayModes() {
+        return surfaceFactory.getAvailableDisplayModes();
+    }
+
+    @Override
+    public DisplayMode getDefaultDisplayMode() {
+        return surfaceFactory.getDefaultDisplayMode();
+    }
+
+    @Override
+    public OnscreenSurface getFullscreenSurface() {
+        synchronized(fullscreenLock) {
+            return fullscreenSurface;
+        }
+    }
+    
     /**
      * @return The ResourceManager that handles the updates and disposals of all
      *         known resources
@@ -267,6 +319,14 @@ public abstract class AbstractFramework implements Framework {
                     resourceManager.setDisposable(ts.getDepthBuffer(), false);
                 for (int i = 0; i < ts.getNumColorBuffers(); i++)
                     resourceManager.setDisposable(ts.getColorBuffer(i), false);
+            } else if (surface instanceof OnscreenSurface) {
+                if (((OnscreenSurface) surface).getOptions().getFullscreenMode() != null) {
+                    synchronized(fullscreenLock) {
+                        // last double check (probably unneeded)
+                        if (fullscreenSurface == surface)
+                            fullscreenSurface = null;
+                    }
+                }
             }
         }
     }

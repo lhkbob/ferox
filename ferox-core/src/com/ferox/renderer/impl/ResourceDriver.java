@@ -23,9 +23,11 @@ public interface ResourceDriver<R extends Resource> {
      * Perform an update on the given resource. The ResourceHandle is the
      * ResourceHandle instance previously returned by the last call to update()
      * with this resource. If the resource has not been updated, this handle
-     * will be null. This is responsible for performing any error checks that
-     * would make the Resource unusable. This is responsible for performing the
-     * operations required by {@link HardwareAccessLayer#update(Resource)}.
+     * will be null. This must perform any error checks that would make the
+     * Resource unusable. This is responsible for performing the operations
+     * required by {@link HardwareAccessLayer#update(Resource)}. If
+     * <tt>handle</tt> is not null, then it is expected that <tt>handle</tt> is
+     * returned (although it can be modified).
      * 
      * @param context The current context
      * @param res The Resource to update

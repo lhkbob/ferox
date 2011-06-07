@@ -15,15 +15,32 @@ package com.ferox.renderer;
  */
 public interface Context {
     /**
+     * @return True if {@link #getGlslRenderer()} will return a non-null
+     *         renderer (ignoring which renderer was activated first)
+     */
+    public boolean hasGlslRenderer();
+
+    /**
+     * @return True if {@link #getFixedFunctionRenderer()} will return a
+     *         non-null renderer (ignoring which renderer was activated first)
+     */
+    public boolean hasFixedFunctionRenderer();
+    
+    /**
      * <p>
      * Return a GlslRenderer to render into the surface that is currently in
      * use. This will return null if the Context cannot support a GlslRenderer.
-     * A GlslRenderer and FixedFunctionRenderer can be used at the same time,
-     * although this is highly discouraged as it will hurt performance. Tasks
-     * should use a one renderer per returned Context.
+     * Tasks can only use a one renderer per returned Context.
+     * </p>
+     * <p>
+     * A GlslRenderer and FixedFunctionRenderer cannot be used at the same time.
+     * If this is called after a call to {@link #getFixedFunctionRenderer()} on
+     * the same context, an exception is thrown.
      * </p>
      * 
      * @return A GlslRenderer to render into this Context's active Surface
+     * @throws IllegalStateException if a FixedFunctionRenderer has already been
+     *             returned
      */
     public GlslRenderer getGlslRenderer();
 
@@ -31,13 +48,18 @@ public interface Context {
      * <p>
      * Return a FixedFunctionRenderer to render into the surface that is
      * currently in use. This will return null if the Context cannot support a
-     * FixedFunctionRenderer. A GlslRenderer and FixedFunctionRenderer can be
-     * used at the same time, although this is highly discouraged as it will
-     * hurt performance. Tasks should use a one renderer per returned Context.
+     * FixedFunctionRenderer. Tasks can only use a one renderer per returned
+     * Context.
+     * </p>
+     * <p>
+     * A FixedFunctionRenderer and GlslRenderer cannot be used at the same time.
+     * If this is called after a call to {@link #getGlslRenderer()} on the same
+     * context, an exception is thrown.
      * </p>
      * 
      * @return A FixedFunctionRenderer to render into this Context's active
      *         Surface
+     * @throws IllegalStateException if a GlslRenderer has already been returned
      */
     public FixedFunctionRenderer getFixedFunctionRenderer();
 
@@ -49,8 +71,8 @@ public interface Context {
      * copy the content from an offscreen buffer into the texture.
      * Alternatively, TextureSurfaces using fbo's will not perform any time
      * consuming operations because the textures are rendered into directly.
-     * Regardless, this method should be called regardless of type of surface
-     * because Tasks cannot know before hand what flushing will do.
+     * This method should be called regardless of type of surface because Tasks
+     * cannot know before hand what flushing will do.
      * </p>
      * <p>
      * When rendering in multiple passes, a flush only needs to be performed in

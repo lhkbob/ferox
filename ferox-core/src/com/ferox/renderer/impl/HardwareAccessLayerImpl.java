@@ -1,7 +1,10 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.renderer.Context;
+import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.resource.Resource;
@@ -53,7 +56,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         
         // Since this isn't a TextureSurface, there is no need to validate
         // the layer and we just use 0.
-        return framework.getContextManager().setActiveSurface((AbstractSurface) surface, 0);
+        OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, 0);
+        return new ContextImpl(context, (AbstractSurface) surface);
     }
 
     @Override
@@ -76,7 +80,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                 throw new IllegalArgumentException("Layer is out of range, must be in [0, " + maxLayer + "), not: " + layer);
         }
         
-        return framework.getContextManager().setActiveSurface((AbstractSurface) surface, layer);
+        OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, layer);
+        return new ContextImpl(context, (AbstractSurface) surface);
     }
 
     @Override
@@ -94,5 +99,72 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     @Override
     public <R extends Resource> void reset(R resource) {
         framework.getResourceManager().reset(resource);
+    }
+    
+    private class ContextImpl implements Context {
+        private final OpenGLContext context;
+        private final AbstractSurface surface;
+        
+        private Renderer selectedRenderer;
+        
+        public ContextImpl(OpenGLContext context, AbstractSurface surface) {
+            this.context = context;
+            this.surface = surface;
+        }
+
+        @Override
+        public GlslRenderer getGlslRenderer() {
+            if (selectedRenderer == null) {
+                // need to select a renderer
+                selectedRenderer = context.getRendererProvider().getGlslRenderer(context.getRenderCapabilities());
+                
+                if (selectedRenderer != null) {
+                    // have selected a GlslRenderer to use
+                    if (selectedRenderer instanceof AbstractRenderer)
+                        ((AbstractRenderer) selectedRenderer).activate(surface, context, framework.getResourceManager());
+                    selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
+                }
+            }
+            
+            if (selectedRenderer instanceof FixedFunctionRenderer)
+                throw new IllegalStateException("FixedFunctionRenderer already selected");
+            else
+                return (GlslRenderer) selectedRenderer; // may be null
+        }
+
+        @Override
+        public FixedFunctionRenderer getFixedFunctionRenderer() {
+            if (selectedRenderer == null) {
+                // need to select a renderer
+                selectedRenderer = context.getRendererProvider().getFixedFunctionRenderer(context.getRenderCapabilities());
+                
+                if (selectedRenderer != null) {
+                    // have selected a FixedFunctionRenderer to use
+                    if (selectedRenderer instanceof AbstractRenderer)
+                        ((AbstractRenderer) selectedRenderer).activate(surface, context, framework.getResourceManager());
+                    selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
+                }
+            }
+            
+            if (selectedRenderer instanceof GlslRenderer)
+                throw new IllegalStateException("GlslRenderer already selected");
+            else
+                return (FixedFunctionRenderer) selectedRenderer; // may be null
+        }
+
+        @Override
+        public void flush() {
+            surface.flush(context);
+        }
+
+        @Override
+        public boolean hasGlslRenderer() {
+            return context.getRendererProvider().getGlslRenderer(context.getRenderCapabilities()) != null;
+        }
+
+        @Override
+        public boolean hasFixedFunctionRenderer() {
+            return context.getRendererProvider().getFixedFunctionRenderer(context.getRenderCapabilities()) != null;
+        }
     }
 }

@@ -102,6 +102,9 @@ import com.ferox.util.geom.Geometry;
  * 
  * @author Michael Ludwig
  */
+// FIXME: update type requirements for attributes, only FLOAT is supported for norms/vertices/texCoords
+// FIXME: in impl, must be sure to check the handle and not the resource type, since that could for some
+// reason change on us (maybe I shouldn't allow that flexibility?)
 public interface FixedFunctionRenderer extends Renderer {
     /**
      * The CombineFunction enum describes the advanced texture combining

@@ -146,7 +146,7 @@ public class ResourceManager {
      */
     private <R extends Resource> LockToken<R> lockHandle(R resource, ResourceData<R> data, LockListener<R> listener, boolean writeLock) {
         List<LockToken<?>> threadLocks = locks.get();
-        LockToken<R> newToken = new LockToken<R>(resource, data, listener, writeLock);
+        LockToken<R> newToken = new LockToken<R>(resource, data, listener, writeLock, false);
         
         Lock lock = (writeLock ? data.lock.writeLock() : data.lock.readLock());
         
@@ -215,38 +215,12 @@ public class ResourceManager {
         if (token == null)
             throw new NullPointerException("LockToken cannot be null");
         
-        if (locks.get().remove(token)) {
+        if (token.fullLock || locks.get().remove(token)) {
             // Unlock token if it's still in the locks list
+            // or if it's a lock that wants to break all of the rules
             token.unlock();
         }
     }
-
-    /**
-     * Get the ResourceHandle associated with <tt>r</tt> if the resource is in
-     * the READY state. If the resource has an update policy of ON_DEMAND, the
-     * resource will automatically be updated. A null handle is returned if
-     * there is no handle associated with the resource or if the handle has any
-     * other status than READY. For ON_DEMAND resources, this check happens
-     * after it has been updated.</p>
-     * <p>
-     * Unlike the other resource operations in ResourceManager, this method
-     * assumes that r's lock has already been acquired by the calling thread.
-     * This is because getHandle() will likely only be used in Renderers that
-     * will need to lock the resource for longer periods of time than a single
-     * method invocation. The returned ResourceHandle should only be used while
-     * the calling thread has the resource lock.
-     * </p>
-     * <p>
-     * It is assumed that the provided context is the context current on this
-     * thread. If it is not, undefined behavior will result.
-     * </p>
-     * 
-     * @param context The current context on this thread
-     * @param r The resource whose handle is returned
-     * @return The ResourceHandle for r, or null if the resource cannot be used
-     *         for any reason (depends on update policy and status)
-     * @throws NullPointerException if context or r are null
-     */
 
     /**
      * <p>
@@ -319,6 +293,58 @@ public class ResourceManager {
         LockToken<R> token = (needsUpdate ? update(context, data, listener) 
                                           : lockHandle(r, data, listener, false));
         return token;
+    }
+
+    /**
+     * Exclusively lock the provided resource and block until its handle is
+     * available. The lock will not be automatically unlocked/relocked to
+     * prevent deadlock (as is the case with locks held by
+     * {@link #lock(OpenGLContext, Resource, LockListener)}). Because of this,
+     * thread safety becomes the responsibility of the color and it is preferred
+     * to use the regular lock method. If the resource has an update policy of
+     * ON_DEMAND, it will be updated if need be.
+     * 
+     * @param <R> The resource type being locked
+     * @param context The current context
+     * @param r The resource to exclusively lock
+     * @return The LockToken to use for unlocking this exclusive lock, returns
+     *         null if resource is unuspported
+     * @throws NullPointerException if r or context are null
+     */
+    public <R extends Resource> LockToken<R> acquireFullLock(OpenGLContext context, R r) {
+        if (r == null)
+            throw new NullPointerException("Resource cannot be null");
+        if (context == null)
+            throw new NullPointerException("Context cannot be null");
+        
+        boolean needsUpdate = false;
+        ResourceData<R> data;
+        synchronized(r) {
+            if (r.getUpdatePolicy() == UpdatePolicy.ON_DEMAND) {
+                data = getResourceData(r, true);
+                needsUpdate = true;
+            } else
+                data = getResourceData(r, false);
+        }
+        
+        if (data == null)
+            return null; // See comment in lock()
+        
+        // here is where we diverge from lock() and handle things differently
+        data.lock.writeLock().lock();
+        try {
+            if (needsUpdate) {
+                // perform an update action 
+                synchronized(r) {
+                    data.handle = data.driver.update(context, r, data.handle);
+                }
+            }
+            
+            return new LockToken<R>(r, data, null, true, true);
+        } catch(RuntimeException re) {
+            data.lock.writeLock().unlock();
+            throw re;
+        }
     }
 
     /**
@@ -611,13 +637,15 @@ public class ResourceManager {
         private final LockListener<? super R> listener;
         
         private final boolean writeLock;
+        private final boolean fullLock;
 
-        private LockToken(R resource, ResourceData<R> data, LockListener<? super R> listener, boolean writeLockHeld) {
+        private LockToken(R resource, ResourceData<R> data, LockListener<? super R> listener, boolean writeLockHeld, boolean fullLock) {
             this.resource = resource;
             this.data = data;
             this.listener = listener;
 
             writeLock = writeLockHeld;
+            this.fullLock = fullLock;
         }
         
         /**

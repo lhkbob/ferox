@@ -1,8 +1,5 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.RenderCapabilities;
 
 /**
@@ -16,38 +13,29 @@ import com.ferox.renderer.RenderCapabilities;
  * 
  * @author Michael Ludwig
  */
-public abstract class OpenGLContext implements Context {
-    private final GlslRenderer glslRenderer;
-    private final FixedFunctionRenderer ffpRenderer;
+public abstract class OpenGLContext {
+    private final RendererProvider rendererProvider;
 
     /**
-     * Create a new OpenGLContext that will use the given fixed function
-     * and glsl renderers. It is acceptable to provide both or only one of the
-     * fixed function or glsl renderers. Both arguments cannot be null, at least
-     * one renderer must be available for the context.
+     * Create a new OpenGLContext that will use the given RendererProvider.
      * 
-     * @param ffpRenderer The FixedFunctionRenderer implementation
-     * @param glslRenderer The GlslRenderer implementation
-     * @throws NullPointerException if both ffpRenderer and glslRenderer are
-     *             null
+     * @param provider The RendererProvider to use when the context has been
+     *            activated
+     * @throws NullPointerException if provider is null
      */
-    public OpenGLContext(FixedFunctionRenderer ffpRenderer, GlslRenderer glslRenderer) {
-        if (ffpRenderer == null && glslRenderer == null)
-            throw new NullPointerException("Must provide at least one non-null renderer");
-        this.glslRenderer = glslRenderer;
-        this.ffpRenderer = ffpRenderer;
+    public OpenGLContext(RendererProvider provider) {
+        if (provider == null)
+            throw new NullPointerException("RendererProvider cannot be null");
+        rendererProvider = provider;
     }
     
-    @Override
-    public GlslRenderer getGlslRenderer() {
-        return glslRenderer;
+    /**
+     * @return The RendererProvider for this context
+     */
+    public RendererProvider getRendererProvider() {
+        return rendererProvider;
     }
-
-    @Override
-    public FixedFunctionRenderer getFixedFunctionRenderer() {
-        return ffpRenderer;
-    }
-
+    
     /**
      * <p>
      * Determine the RenderCapabilities of the current context. Since a
