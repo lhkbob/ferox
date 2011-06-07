@@ -1,107 +1,102 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
-import java.util.concurrent.locks.ReentrantLock;
-
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
-import com.ferox.renderer.impl.Context;
-import com.ferox.renderer.impl.TextureSurfaceDelegate;
-import com.ferox.renderer.impl.jogl.Utils;
-import com.ferox.renderer.impl.resource.TextureHandle;
+import com.ferox.renderer.TextureSurfaceOptions;
+import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.AbstractTextureSurface;
+import com.ferox.renderer.impl.OpenGLContext;
+import com.ferox.renderer.impl.RendererProvider;
+import com.ferox.renderer.impl.drivers.TextureHandle;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.ferox.resource.Texture.Target;
 
-public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
-    private final JoglFramework framework;
+/**
+ * JoglPbufferTextureSurface is a TextureSurface implementation that relies on
+ * pbuffers to render into an offscreen buffer before using the glCopyTexImage
+ * command to move the buffer contents into a texture. PBuffers are slower than
+ * FBOs so {@link JoglFboTextureSurface} is favored when FBOs are supported.
+ * 
+ * @author Michael Ludwig
+ */
+public class JoglPbufferTextureSurface extends AbstractTextureSurface {
     private final GLPbuffer pbuffer;
     private final JoglContext context;
     
-    private final Target target;
-    private final int width, height;
+    private int activeLayerForFrame;
     
-    private int swapBuffersLayer;
-
-    public PbufferSurfaceDelegate(JoglFramework framework, Texture[] colorTextures, Texture depthTexture,
-                                  ReentrantLock surfaceLock) {
-        super(colorTextures, depthTexture);
-        if (framework == null)
-            throw new NullPointerException("Framework cannot be null");
-        this.framework = framework;
+    public JoglPbufferTextureSurface(AbstractFramework framework, JoglSurfaceFactory creator, 
+                                     TextureSurfaceOptions options, JoglContext shareWith,
+                                     RendererProvider provider) {
+        super(framework, options);
         
-        if (colorTextures != null && colorTextures.length > 0) {
-            width = colorTextures[0].getWidth();
-            height = colorTextures[0].getHeight();
-            target = colorTextures[0].getTarget();
-        } else {
-            width = depthTexture.getWidth();
-            height = depthTexture.getHeight();
-            target = depthTexture.getTarget();
-        }
+        Texture[] colorBuffers = new Texture[getNumColorBuffers()];
+        for (int i = 0; i < colorBuffers.length; i++)
+            colorBuffers[i] = getColorBuffer(i);
+          
         
-        JoglContext shareWith = (JoglContext) framework.getResourceManager().getContext();
-        GLCapabilities caps = chooseCapabilities(framework.getProfile(), colorTextures, depthTexture);
-        pbuffer = GLDrawableFactory.getFactory(framework.getProfile()).createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(), 
-                                                                                       width, height, (shareWith == null ? null : shareWith.getGLContext()));
+        GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
+        GLCapabilities caps = chooseCapabilities(creator.getGLProfile(), colorBuffers, getDepthBuffer());
+        pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(), 
+                                                                                       getWidth(), getHeight(), realShare);
         pbuffer.setAutoSwapBufferMode(false);
-        context = new JoglContext(framework, pbuffer.getContext(), surfaceLock);
-        swapBuffersLayer = 0;
+        
+        context = new JoglContext(creator, pbuffer.getContext(), provider);
+        activeLayerForFrame = 0;
     }
 
     @Override
-    public void destroy() {
-        context.destroy();
-        pbuffer.destroy();
-    }
-
-    @Override
-    public Context getContext() {
+    public OpenGLContext getContext() {
         return context;
     }
-    
+
     @Override
-    public void flushLayer() {
+    public void flush(OpenGLContext context) {
         pbuffer.swapBuffers();
-        Texture color = getColorBuffers().length > 0 ? getColorBuffers()[0] : null; // will be 1 color target at max
+        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0) : null; // will be 1 color target at max
         Texture depth = getDepthBuffer();
 
-        GL2GL3 gl = context.getGL();
+        GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
 
         int ct = -1;
         int dt = -1;
 
         if (color != null) {
-            TextureHandle handle = (TextureHandle) framework.getResourceManager().getHandle(color);
+            TextureHandle handle = (TextureHandle) getColorHandle(0);
             ct = Utils.getGLTextureTarget(handle.target);
 
-            gl.glBindTexture(ct, handle.getId());
+            gl.glBindTexture(ct, handle.texID);
             copySubImage(gl, handle);
         }
         if (depth != null) {
-            TextureHandle handle = (TextureHandle) framework.getResourceManager().getHandle(depth);
+            TextureHandle handle = (TextureHandle) getDepthHandle();
             dt = Utils.getGLTextureTarget(handle.target);
             
-            gl.glBindTexture(dt, handle.getId());
+            gl.glBindTexture(dt, handle.texID);
             copySubImage(gl, handle);
         }
         
-        restoreBindings(gl, context.getRecord(), ct, dt);
+        restoreBindings(gl, ct, dt);
+    }
+    
+    @Override
+    public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
+        super.onSurfaceActivate(context, activeLayer);
+        activeLayerForFrame = activeLayer;
     }
 
     @Override
-    public void setLayer(int layer, int depth) {
-        if (target == Target.T_CUBEMAP)
-            swapBuffersLayer = layer;
-        else
-            swapBuffersLayer = depth;
+    protected void destroyImpl() {
+        context.getGLContext().destroy();
+        pbuffer.destroy();
     }
     
     /*
@@ -112,25 +107,25 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
         int glTarget = Utils.getGLTextureTarget(handle.target);
         switch (glTarget) {
         case GL2GL3.GL_TEXTURE_1D:
-            gl.glCopyTexSubImage1D(glTarget, 0, 0, 0, 0, width);
+            gl.glCopyTexSubImage1D(glTarget, 0, 0, 0, 0, getWidth());
             break;
         case GL2GL3.GL_TEXTURE_2D:
-            gl.glCopyTexSubImage2D(glTarget, 0, 0, 0, 0, 0, width, height);
+            gl.glCopyTexSubImage2D(glTarget, 0, 0, 0, 0, 0, getWidth(), getHeight());
             break;
         case GL2GL3.GL_TEXTURE_CUBE_MAP:
-            int face = Utils.getGLCubeFace(swapBuffersLayer);
-            gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, width, height);
+            int face = Utils.getGLCubeFace(activeLayerForFrame);
+            gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
             break;
         case GL2GL3.GL_TEXTURE_3D:
-            gl.glCopyTexSubImage3D(glTarget, 0, 0, 0, swapBuffersLayer, 
-                                   0, 0, width, height);
+            gl.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 
+                                   0, 0, getWidth(), getHeight());
             break;
         }
     }
 
-    private void restoreBindings(GL gl, BoundObjectState state, int colorTarget, int depthTarget) {
-        int target = state.getTextureTarget(state.getActiveTexture());
-        int tex = state.getTexture(state.getActiveTexture());
+    private void restoreBindings(GL gl, int colorTarget, int depthTarget) {
+        int target = context.getTextureTarget(context.getActiveTexture());
+        int tex = context.getTexture(context.getActiveTexture());
         
         if (colorTarget > 0) {
             if (target == colorTarget)
@@ -197,9 +192,9 @@ public class PbufferSurfaceDelegate extends TextureSurfaceDelegate {
         }
         
         if (depth != null) {
-            if (ByteBuffer.class.isAssignableFrom(depth.getDataType()))
+            if (depth.getDataType() == DataType.UNSIGNED_BYTE)
                 caps.setDepthBits(16);
-            else if (ShortBuffer.class.isAssignableFrom(depth.getDataType()))
+            else if (depth.getDataType() == DataType.UNSIGNED_SHORT)
                 caps.setDepthBits(24);
             else
                 caps.setDepthBits(32);

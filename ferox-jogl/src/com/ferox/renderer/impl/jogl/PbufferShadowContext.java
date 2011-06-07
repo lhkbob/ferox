@@ -2,9 +2,11 @@ package com.ferox.renderer.impl.jogl;
 
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
-import javax.media.opengl.GLProfile;
+
+import com.ferox.renderer.impl.RendererProvider;
 
 /**
  * PbufferShadowContext is a special form of JoglContext that is suitable for
@@ -16,8 +18,8 @@ import javax.media.opengl.GLProfile;
 public class PbufferShadowContext extends JoglContext {
     private GLPbuffer pbuffer;
     
-    private PbufferShadowContext(JoglFramework framework, GLPbuffer surface) {
-        super(framework, surface.getContext(), null);
+    private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface, RendererProvider provider) {
+        super(creator, surface.getContext(), provider);
         this.pbuffer = surface;
     }
     
@@ -29,24 +31,32 @@ public class PbufferShadowContext extends JoglContext {
     }
 
     /**
-     * Create a new PbufferShadowContext that will be used for the given
-     * JoglFramework and will use the given GLProfile. The GLProfile must match
-     * the profile that the JoglFramework will eventually report.
+     * Create a new PbufferShadowContext that will be returned by
+     * {@link JoglSurfaceFactory#createShadowContext(com.ferox.renderer.impl.OpenGLContext)}
+     * .
      * 
-     * @param framework The JoglFramework using the returned
-     *            PbufferShadowContext
-     * @param profile The GLProfile of the framework
+     * @param creator The JoglSurfaceFactory that is creating the shadow context
+     * @param shareWith The JoglContext to share object data with
+     * @param ffp The FixedFunctionRenderer to use with the context
+     * @param glsl The GlslRenderer to use with the context
      * @return An PbufferShadowContext
      * @throws NullPointerException if framework or profile is null
      */
-    public static PbufferShadowContext create(JoglFramework framework, GLProfile profile) {
-        if (framework == null || profile == null)
-            throw new NullPointerException("Cannot create a PbufferShadowContext with a null JoglFramework or null GLProfile");
+    public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith, RendererProvider provider) {
+        if (creator == null)
+            throw new NullPointerException("Cannot create a PbufferShadowContext with a null JoglSurfaceFactory");
         
-        GLCapabilities glCaps = new GLCapabilities(profile);
-        GLPbuffer pbuffer = GLDrawableFactory.getFactory(profile).createGLPbuffer(glCaps, 
-                                                                                  new DefaultGLCapabilitiesChooser(), 
-                                                                                  1, 1, null);
-        return new PbufferShadowContext(framework, pbuffer);
+        GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
+        GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
+        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(glCaps, 
+                                                                                                 new DefaultGLCapabilitiesChooser(), 
+                                                                                                 1, 1, realShare);
+        try {
+            return new PbufferShadowContext(creator, pbuffer, provider);
+        } catch(RuntimeException re) {
+            // extra cleanup if we never finished constructing the shadow context
+            pbuffer.destroy();
+            throw re;
+        }
     }
 }

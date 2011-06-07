@@ -1,17 +1,11 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 import javax.swing.SwingUtilities;
 
-import com.ferox.math.Color4f;
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
@@ -22,11 +16,12 @@ import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
+import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslUniform.UniformType;
-import com.ferox.resource.PolygonType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
@@ -40,25 +35,6 @@ import com.ferox.resource.TextureFormat;
  * @author Michael Ludwig
  */
 public class Utils {
-    /** Store color into the 4-element float buffer. */
-    public static void get(Color4f color, float[] buffer) {
-        buffer[0] = color.getRed();
-        buffer[1] = color.getGreen();
-        buffer[2] = color.getBlue();
-        buffer[3] = color.getAlpha();
-    }
-
-    /**
-     * Return true if the 4 elements in buffer match the 4 color components of
-     * color.
-     */
-    public static boolean equals(Color4f color, float[] buffer) {
-        return color.getRed() == buffer[0] && 
-               color.getGreen() == buffer[1] && 
-               color.getBlue() == buffer[2] && 
-               color.getAlpha() == buffer[3];
-    }
-
     /**
      * Return the UniformType enum value associated with the returned GL2 enum
      * for uniform variable type. Returns null if there's no matching
@@ -355,7 +331,7 @@ public class Utils {
      * Format and type can't be null. Returns an enum for the dst format in
      * glTexImage.
      */
-    public static int getGLDstFormat(TextureFormat format, Class<? extends Buffer> type) {
+    public static int getGLDstFormat(TextureFormat format, DataType type) {
         switch (format) {
         // packed RGB5_A1
         case ABGR_1555:
@@ -408,48 +384,48 @@ public class Utils {
             // if we've gotten here, we have a type-less format, and have to
             // take the type into account
         case ALPHA:
-            if (ByteBuffer.class.isAssignableFrom(type))
+            if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_ALPHA8;
-            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
                 return GL2.GL_ALPHA16;
             else
                 return GL2.GL_ALPHA;
         case LUMINANCE:
-            if (ByteBuffer.class.isAssignableFrom(type))
+            if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_LUMINANCE8;
-            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
                 return GL2.GL_LUMINANCE16;
             else
                 return GL2.GL_LUMINANCE;
         case LUMINANCE_ALPHA:
-            if (ByteBuffer.class.isAssignableFrom(type))
+            if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_LUMINANCE8_ALPHA8;
-            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
                 return GL2.GL_LUMINANCE16_ALPHA16;
             else
                 return GL2.GL_LUMINANCE_ALPHA;
         case DEPTH:
-            if (ByteBuffer.class.isAssignableFrom(type))
+            if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_DEPTH_COMPONENT16;
-            else if (ShortBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_SHORT)
                 return GL2.GL_DEPTH_COMPONENT24;
-            else if (IntBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_INT)
                 return GL2.GL_DEPTH_COMPONENT32;
             else
                 return GL2.GL_DEPTH_COMPONENT;
         case RGB:
         case BGR:
-            if (ByteBuffer.class.isAssignableFrom(type))
+            if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_RGB8;
-            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
                 return GL2.GL_RGB16;
             else
                 return GL2.GL_RGB;
         case RGBA:
         case BGRA:
-            if (ByteBuffer.class.isAssignableFrom(type))
+            if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_RGBA8;
-            else if (ShortBuffer.class.isAssignableFrom(type) || IntBuffer.class.isAssignableFrom(type))
+            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
                 return GL2.GL_RGBA16;
             else
                 return GL2.GL_RGBA;
@@ -502,15 +478,13 @@ public class Utils {
      * This shouldn't be used for packed data
      * types.
      */
-    public static int getGLType(Class<? extends Buffer> type, boolean unsigned) {
-        if (ByteBuffer.class.isAssignableFrom(type))
-            return (unsigned ? GL2.GL_UNSIGNED_BYTE : GL2.GL_BYTE);
-        else if (ShortBuffer.class.isAssignableFrom(type))
-            return (unsigned ? GL2.GL_UNSIGNED_SHORT : GL2.GL_SHORT);
-        else if (IntBuffer.class.isAssignableFrom(type))
-            return (unsigned ? GL2.GL_UNSIGNED_INT : GL2.GL_INT);
-        else if (FloatBuffer.class.isAssignableFrom(type))
-            return GL2.GL_FLOAT;
+    public static int getGLType(DataType type) {
+        switch(type) {
+        case FLOAT: return GL2.GL_FLOAT;
+        case UNSIGNED_BYTE: return GL2.GL_UNSIGNED_BYTE;
+        case UNSIGNED_INT: return GL2.GL_UNSIGNED_INT;
+        case UNSIGNED_SHORT: return GL2.GL_UNSIGNED_SHORT;
+        }
 
         return -1;
     }
@@ -771,22 +745,27 @@ public class Utils {
 
     /**
      * Utility method to invoke a Runnable on the AWT event dispatch thread
-     * (e.g. for modifying AWT and Swing components). This will throw an runtime
+     * (e.g. for modifying AWT and Swing components). This will throw a runtime
      * exception if a problem occurs. It works properly if called from the AWT
      * thread. This should be used when EventQueue.invokeAndWait() or
      * SwingUtilities.invokeAndWait() would be used, except that this is thread
      * safe.
      */
-    public static void invokeOnAwtThread(Runnable r) {
-        if (SwingUtilities.isEventDispatchThread())
+    public static void invokeOnAWTThread(Runnable r, boolean block) {
+        if (SwingUtilities.isEventDispatchThread()) {
             r.run();
-        else
-            try {
-                SwingUtilities.invokeAndWait(r);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
+        } else {
+            if (block) {
+                try {
+                    SwingUtilities.invokeAndWait(r);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                SwingUtilities.invokeLater(r);
             }
+        }
     }
 }

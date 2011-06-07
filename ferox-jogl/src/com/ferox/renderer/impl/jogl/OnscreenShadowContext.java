@@ -1,13 +1,15 @@
 package com.ferox.renderer.impl.jogl;
 
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 
+import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.awt.GLCanvas;
 
-import com.ferox.renderer.impl.jogl.PaintDisabledGLCanvas;
-import com.ferox.renderer.impl.jogl.Utils;
+import com.ferox.renderer.impl.RendererProvider;
 
 /**
  * OnscreenShadowContext is a special JoglContext that is intended for use as
@@ -18,48 +20,50 @@ import com.ferox.renderer.impl.jogl.Utils;
  * @author Michael Ludwig
  */
 public class OnscreenShadowContext extends JoglContext {
-    private Frame frame;
+    private final Frame frame;
     
-    private OnscreenShadowContext(JoglFramework framework, Frame frame, GLCanvas surface) {
-        super(framework, surface.getContext(), null);
+    private OnscreenShadowContext(JoglSurfaceFactory creator, Frame frame, GLCanvas surface, RendererProvider provider) {
+        super(creator, surface.getContext(), provider);
         this.frame = frame;
     }
     
     @Override
     public void destroy() {
-        if (frame != null) {
-            Utils.invokeOnAwtThread(new Runnable() {
-                public void run() {
-                    frame.setVisible(false);
-                    frame.dispose();
-                }
-            });
-            frame = null;
-        }
-        
         super.destroy();
+
+        Utils.invokeOnAWTThread(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+                frame.dispose();
+            }
+        }, false);
     }
 
     /**
-     * Create a new OnscreenShadowContext that will be used for the given
-     * JoglFramework and will use the given GLProfile. The GLProfile must match
-     * the profile that the JoglFramework will eventually report.
+     * Create a new OnscreenShadowContext that will be returned by
+     * {@link JoglSurfaceFactory#createShadowContext(com.ferox.renderer.impl.OpenGLContext)}
      * 
-     * @param framework The JoglFramework using the returned
-     *            OnscreenShadowContext
-     * @param profile The GLProfile of the framework
+     * @param creator The JoglSurfaceFactory that is creating the shadow context
+     * @param shareWith The JoglContext to share object data with
+     * @param ffp The FixedFunctionRenderer to use with the context
+     * @param glsl The GlslRenderer to use with the context
      * @return An OnscreenShadowContext
      * @throws NullPointerException if framework or profile is null
      */
-    public static OnscreenShadowContext create(JoglFramework framework, GLProfile profile) {
-        if (framework == null || profile == null)
-            throw new NullPointerException("Cannot create an OnscreenShadowContext with a null JoglFramework or GLProfile");
-        final GLCanvas canvas = new PaintDisabledGLCanvas(new GLCapabilities(profile));
-        final Frame frame = new Frame();
+    public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith, RendererProvider provider) {
+        if (creator == null)
+            throw new NullPointerException("Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
         
+        GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
+        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        final GLCanvas canvas = new PaintDisabledGLCanvas(new GLCapabilities(creator.getGLProfile()),
+                                                          new DefaultGLCapabilitiesChooser(),
+                                                          realShare, device);
+        final Frame frame = new Frame();
+
         // unfortunately we have to make the Frame visible before we
         // have access to the context
-        Utils.invokeOnAwtThread(new Runnable() {
+        Utils.invokeOnAWTThread(new Runnable() {
             public void run() {
                 frame.setSize(1, 1);
                 frame.setResizable(false);
@@ -68,8 +72,21 @@ public class OnscreenShadowContext extends JoglContext {
                 frame.add(canvas);
                 frame.setVisible(true);
             }
-        });
+        }, true);
         
-        return new OnscreenShadowContext(framework, frame, canvas);
+        try {
+            return new OnscreenShadowContext(creator, frame, canvas, provider);
+        } catch(RuntimeException re) {
+            // last minute cleanup
+            canvas.destroy();
+            Utils.invokeOnAWTThread(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.dispose();
+                }
+            }, false);
+            
+            throw re;
+        }
     }
 }

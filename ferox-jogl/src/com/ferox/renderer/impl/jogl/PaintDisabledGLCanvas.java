@@ -10,15 +10,17 @@ import javax.media.opengl.awt.GLCanvas;
 
 /**
  * <p>
- * PaintDisabledGLCanvas is a GLCanvas that overrides the 'feature' of calling
+ * PaintDisabledGLCanvas is a GLCanvas that listens for when it is added and removed
+ * from the windowing system and properly controls its JoglContext with respect
+ * to those events. Additionally it overrides the 'feature' of calling
  * {@link #display()} every time the canvas's {@link #paint(Graphics)} method is
  * invoked.
  * </p>
  * <p>
- * This is necessary because the JoglRenderManager and JoglResourceManager
- * manage when a context can be current very carefully, and exceptions are
- * thrown when the default GLCanvas attempts to invoke display() from the AWT
- * thread when the JoglRenderManager is using it at the same time.
+ * This is necessary because the JoglFramework and ContextManager manage when a
+ * context can be current very carefully, and exceptions are thrown when the
+ * default GLCanvas attempts to invoke display() from the AWT thread when the
+ * JoglRenderManager is using it at the same time.
  * </p>
  * 
  * @author Michael Ludwig

@@ -1,354 +1,302 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.DisplayMode;
-import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
 import com.ferox.input.AWTEventAdapter;
-import com.ferox.input.EventDispatcher;
 import com.ferox.input.KeyListener;
 import com.ferox.input.MouseListener;
-import com.ferox.renderer.OnscreenSurface;
+import com.ferox.renderer.DisplayMode;
+import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
 import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
-import com.ferox.renderer.OnscreenSurfaceOptions.PixelFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
-import com.ferox.renderer.impl.AbstractSurface;
-import com.ferox.renderer.impl.Action;
-import com.ferox.renderer.impl.Context;
+import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.AbstractOnscreenSurface;
+import com.ferox.renderer.impl.OpenGLContext;
+import com.ferox.renderer.impl.RendererProvider;
 
-public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurface, WindowListener {
-    private static AtomicBoolean fullscreenActive = new AtomicBoolean(false);
+/**
+ * JoglOnscreenSurface is an AWT implementation of OnscreenSurface that uses a
+ * GLCanvas as its rendering surface.
+ * 
+ * @author Michael Ludwig
+ */
+public class JoglOnscreenSurface extends AbstractOnscreenSurface implements WindowListener {
+    private final Frame frame;
+    private final GLCanvas canvas;
+    private final JoglContext context;
     
     private final AWTEventAdapter adapter;
     
-    private final JoglContext context;
-    private final GLCanvas canvas;
-    private final Frame frame;
-    
-    private final GraphicsDevice graphicsDevice;
-    private final DisplayMode[] availableModes;
-    private final DisplayMode original;
-    private DisplayMode selected;
-    
-    private boolean fullscreen;
-    
     private volatile OnscreenSurfaceOptions options;
-    private volatile boolean iconified;
+    private boolean optionsNeedVerify;
     
-    private volatile boolean enableVSync;
-    private volatile boolean updateVSync;
+    private final Object surfaceLock; // guards editing properties of this surface
     
-    public JoglOnscreenSurface(JoglFramework framework, OnscreenSurfaceOptions options) {
+    private boolean vsync;
+    private boolean vsyncNeedsUpdate;
+    private boolean closable;
+
+    
+    public JoglOnscreenSurface(AbstractFramework framework, final JoglSurfaceFactory factory, 
+                               OnscreenSurfaceOptions options, JoglContext shareWith,
+                               RendererProvider provider) {
         super(framework);
+        surfaceLock = new Object();
         
-        final OnscreenSurfaceOptions finalOptions = (options == null ? new OnscreenSurfaceOptions() : options);
-        this.options = finalOptions; // will be updated during init
+        if (options == null)
+            options = new OnscreenSurfaceOptions();
         
-        JoglContext shareWith = (JoglContext) framework.getResourceManager().getContext();
-        canvas = new PaintDisabledGLCanvas(chooseCapabilities(framework.getProfile(), options), 
+        if (options.getFullscreenMode() != null)
+            options = options.setFullscreenMode(chooseCompatibleDisplayMode(options.getFullscreenMode(), factory.getAvailableDisplayModes()));
+        
+        DisplayMode fullscreen = options.getFullscreenMode();
+        if (fullscreen != null) {
+            options = options.setResizable(false)
+                             .setUndecorated(true)
+                             .setWidth(fullscreen.getWidth())
+                             .setHeight(fullscreen.getHeight())
+                             .setX(0)
+                             .setY(0);
+        }
+        this.options = options;
+        optionsNeedVerify = true;
+        
+        canvas = new PaintDisabledGLCanvas(chooseCapabilities(factory, options), 
                                            new DefaultGLCapabilitiesChooser(),
                                            (shareWith == null ? null : shareWith.getGLContext()), null);
         canvas.setAutoSwapBufferMode(false);
         
         frame = new Frame();
-        Utils.invokeOnAwtThread(new Runnable() {
+        Utils.invokeOnAWTThread(new Runnable() {
+            @Override
             public void run() {
-                frame.setResizable(finalOptions.isResizable());
-                frame.setUndecorated(finalOptions.isUndecorated());
-                frame.setBounds(finalOptions.getX(), finalOptions.getY(), 
-                                finalOptions.getWidth(), finalOptions.getHeight());
-
+                OnscreenSurfaceOptions options = JoglOnscreenSurface.this.options;
+                frame.setResizable(options.isResizable());
+                frame.setUndecorated(options.isUndecorated());
+                frame.setBounds(options.getX(), options.getY(), options.getWidth(), options.getHeight());
+                
                 frame.add(canvas);
-
+                
                 frame.setVisible(true);
                 canvas.requestFocusInWindow();
                 
                 frame.setIgnoreRepaint(true);
                 canvas.setIgnoreRepaint(true);
-            }
-        });
-        frame.addWindowListener(this);
-        
-        context = new JoglContext(framework, canvas.getContext(), lock);
-        enableVSync = false;
-        updateVSync = true;
-        
-        // fullscreen support
-        graphicsDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        availableModes = pruneDisplayModes(graphicsDevice.getDisplayModes(), finalOptions);
-        original = graphicsDevice.getDisplayMode();
-        
-        if (finalOptions.getFullscreenMode() != null) {
-            // find best display mode match
-            com.ferox.renderer.DisplayMode goal = finalOptions.getFullscreenMode();
-            DisplayMode bestMode = null;
-            int bestMatch = Integer.MAX_VALUE;
-            for (int i = 0; i < availableModes.length; i++) {
-                int diff = Math.abs(availableModes[i].getWidth() - goal.getWidth()) +
-                           Math.abs(availableModes[i].getHeight() - goal.getHeight());
-                if (diff < bestMatch) {
-                    bestMode = availableModes[i];
-                    bestMatch = diff;
+                
+                if (options.getFullscreenMode() != null) {
+                    // attempt fullscreen mode
+                    GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+                    device.setFullScreenWindow(frame);
+                    
+                    if (device.isFullScreenSupported()) {
+                        if (device.isDisplayChangeSupported()) {
+                            // perform display mode change
+                            device.setDisplayMode(factory.getAWTDisplayMode(options.getFullscreenMode()));
+                        } else {
+                            // must switch back to default display mode
+                            JoglOnscreenSurface.this.options = options.setFullscreenMode(factory.getDefaultDisplayMode());
+                        }
+                    } else {
+                        // must not claim fullscreen window anymore
+                        JoglOnscreenSurface.this.options = options.setFullscreenMode(null);
+                    }
                 }
             }
-            
-            // active fullscreen mode using best match
-            selected = bestMode;
-            setFullscreen(true);
-        } else
-            selected = null;
+        }, true);
+        
+        frame.addWindowListener(this);
+        context = new JoglContext(factory, canvas.getContext(), provider);
+        vsync = false;
+        vsyncNeedsUpdate = true;
         
         adapter = new AWTEventAdapter(this, canvas, true);
     }
     
     @Override
-    public Context getContext() {
+    public OpenGLContext getContext() {
         return context;
     }
-    
-    @Override
-    protected void destroyImpl() {
-        frame.removeWindowListener(this);
-        setFullscreen(false);
-        context.destroy();
-        Utils.invokeOnAwtThread(new Runnable() {
-           public void run() {
-               frame.setVisible(false);
-               frame.dispose();
-           }
-        });
-    }
 
     @Override
-    protected void init() {
-        options = detectOptions(context.getGL(), options);
-    }
-
-    @Override
-    protected void postRender(Action next) {
+    public void flush(OpenGLContext context) {
         canvas.swapBuffers();
     }
 
     @Override
-    protected void preRender() {
-        if (updateVSync) {
-            GL2GL3 gl = context.getGL();
-            if (enableVSync)
-                gl.setSwapInterval(1);
-            else
-                gl.setSwapInterval(0);
-            updateVSync = false;
-        }
-    }
-    
-    @Override
-    public void setDisplayMode(com.ferox.renderer.DisplayMode mode) {
-        lock.lock();
-        try {
-            if (mode == null)
-                mode = new com.ferox.renderer.DisplayMode(original.getWidth(), original.getHeight());
-
-            for (int i = 0; i < availableModes.length; i++) {
-                if (availableModes[i].getWidth() == mode.getWidth() && availableModes[i].getHeight() == mode.getHeight()) {
-                    // found a matching AWT display mode
-                    selected = availableModes[i];
-                    if (fullscreen && graphicsDevice.isDisplayChangeSupported())
-                        graphicsDevice.setDisplayMode(selected);
-                    return;
+    protected void destroyImpl() {
+        frame.removeWindowListener(this);
+        context.destroy();
+        
+        Utils.invokeOnAWTThread(new Runnable() {
+            @Override
+            public void run() {
+                if (getOptions().getFullscreenMode() != null) {
+                    // fullscreen window
+                    GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(null);
                 }
+                
+                frame.setVisible(false);
+                frame.dispose();
             }
-        } finally {
-            lock.unlock();
-        }
-        
-        throw new UnsupportedOperationException("Unavailable DisplayMode");
-    }
-
-    @Override
-    public com.ferox.renderer.DisplayMode[] getAvailableDisplayModes() {
-        com.ferox.renderer.DisplayMode[] modes = new com.ferox.renderer.DisplayMode[availableModes.length];
-        for (int i = 0; i < availableModes.length; i++)
-            modes[i] = new com.ferox.renderer.DisplayMode(availableModes[i].getWidth(), availableModes[i].getHeight());
-        return modes;
-    }
-
-    @Override
-    public com.ferox.renderer.DisplayMode getDisplayMode() {
-        lock.lock();
-        try {
-            DisplayMode active = fullscreen ? selected : original;
-            return new com.ferox.renderer.DisplayMode(active.getWidth(), active.getHeight());
-        } finally {
-            lock.unlock();
-        }
+        }, false);
     }
     
     @Override
-    public boolean isFullscreen() {
-        lock.lock();
-        try {
-            return fullscreen;
-        } finally {
-            lock.unlock();
+    public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
+        super.onSurfaceActivate(context, activeLayer);
+        GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
+        
+        if (optionsNeedVerify) {
+            detectOptions(gl);
+            optionsNeedVerify = false;
         }
         
-    }
-
-    @Override
-    public void setFullscreen(boolean fullscreen) {
-        lock.lock();
-        try {
-            if (this.fullscreen != fullscreen) {
-                if (fullscreen)
-                    activeFullscreen();
-                else
-                    deactiveFullscreen();
+        synchronized(surfaceLock) {
+            if (vsyncNeedsUpdate) {
+                gl.setSwapInterval(vsync ? 1 : 0);
+                vsyncNeedsUpdate = false;
             }
-        } finally {
-            lock.unlock();
         }
     }
-    
-    private void activeFullscreen() {
-        if (!fullscreenActive.compareAndSet(false, true))
-            throw new IllegalStateException("Another OnscreenSurface is already in fullscreen");
-        // FIXME: this doesn't seem to work because it keeps the frame decorated if it
-        // was already, need to figure out if this behavior is accurate across jvms
-        // and if i need to set the policy that fullscreen really is done once
-        if (selected == null)
-            selected = original;
-        graphicsDevice.setFullScreenWindow(frame);
-        if (graphicsDevice.isDisplayChangeSupported()) {
-            System.out.println(graphicsDevice.isFullScreenSupported() + " " + graphicsDevice.isDisplayChangeSupported());
-            graphicsDevice.setDisplayMode(selected);
-        } else
-            selected = original;
-        fullscreen = true;
-    }
-    
-    private void deactiveFullscreen() {
-        graphicsDevice.setFullScreenWindow(null);
-        fullscreen = false;
-        
-        fullscreenActive.compareAndSet(true, false); // no fail condition
-    }
-    
+
     @Override
     public OnscreenSurfaceOptions getOptions() {
         return options;
     }
 
     @Override
-    public String getTitle() {
-        return frame.getTitle();
-    }
-
-    @Override
-    public Object getWindowImpl() {
-        return frame;
-    }
-
-    @Override
-    public int getX() {
-        return frame.getX();
-    }
-
-    @Override
-    public int getY() {
-        return frame.getY();
-    }
-
-    @Override
-    public boolean isResizable() {
-        return frame.isResizable();
-    }
-
-    @Override
-    public boolean isUndecorated() {
-        return frame.isUndecorated();
-    }
-
-    @Override
     public boolean isVSyncEnabled() {
-        return enableVSync;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return !isDestroyed() && !iconified;
-    }
-
-    @Override
-    public void setLocation(final int x, final int y) {
-        EventQueue.invokeLater(new Runnable() {
-           public void run() {
-               frame.setLocation(x, y);
-           }
-        });
-    }
-
-    @Override
-    public void setTitle(final String title) {
-        EventQueue.invokeLater(new Runnable() {
-           public void run() {
-               frame.setTitle(title == null ? "" : title);
-           }
-        });
+        synchronized(surfaceLock) {
+            return vsync;
+        }
     }
 
     @Override
     public void setVSyncEnabled(boolean enable) {
-        enableVSync = enable;
-        updateVSync = true;
+        synchronized(surfaceLock) {
+            vsync = enable;
+            vsyncNeedsUpdate = true;
+        }
+    }
+
+    @Override
+    public String getTitle() {
+        synchronized(surfaceLock) {
+            return frame.getTitle();
+        }
+    }
+
+    @Override
+    public void setTitle(final String title) {
+        if (title == null)
+            throw new NullPointerException("Title cannot be null");
+        Utils.invokeOnAWTThread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized(surfaceLock) {
+                    frame.setTitle(title);
+                }
+            }
+        }, false);
+    }
+
+    @Override
+    public void setLocation(final int x, final int y) {
+        if (options.getFullscreenMode() != null)
+            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
+        
+        Utils.invokeOnAWTThread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized(surfaceLock) {
+                    frame.setLocation(x, y);
+                }
+            }
+        }, false);
+    }
+    
+    @Override
+    public int getX() {
+        synchronized(surfaceLock) {
+            return frame.getX();
+        }
+    }
+
+    @Override
+    public int getY() {
+        synchronized(surfaceLock) {
+            return frame.getY();
+        }
     }
 
     @Override
     public void setWindowSize(final int width, final int height) {
-        if (width <= 0 || height <= 0)
-            throw new IllegalArgumentException("Invalid window dimensions: " + width + " x " + height);
+        if (width < 1 || height < 1)
+            throw new IllegalArgumentException("Dimensions must be at least 1");
+        if (options.getFullscreenMode() != null)
+            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
         
-        // FIXME: how does this play into the new fullscreen handling,
-        // will it remember the correct size when it's no longer fullscreen?
-        // what about correctly reported dimensions while running?
-        EventQueue.invokeLater(new Runnable() {
-           public void run() {
-               lock.lock();
-               try {
-                   frame.setSize(width, height);
-               } finally {
-                   lock.unlock();
-               }
-           }
-        });
+        Utils.invokeOnAWTThread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized(surfaceLock) {
+                    frame.setSize(width, height);
+                }
+            }
+        }, false);
+    }
+    
+    @Override
+    public int getWidth() {
+        // Use canvas width because frame.getWidth() includes decorations
+        synchronized(surfaceLock) {
+            return canvas.getWidth();
+        }
     }
 
     @Override
     public int getHeight() {
-        return canvas.getHeight();
+        // Use canvas height because frame.getHeight() includes decorations
+        synchronized(surfaceLock) {
+            return canvas.getHeight();
+        }
     }
 
     @Override
-    public int getWidth() {
-        return canvas.getWidth();
+    public boolean isClosable() {
+        synchronized(surfaceLock) {
+            return closable;
+        }
     }
-    
-    /* EventSource */
+
+    @Override
+    public void setClosable(boolean userClosable) {
+        synchronized(surfaceLock) {
+            closable = userClosable;
+        }
+    }
+
+    @Override
+    public void addMouseListener(MouseListener listener) {
+        adapter.addMouseListener(listener);
+    }
+
+    @Override
+    public void removeMouseListener(MouseListener listener) {
+        adapter.removeMouseListener(listener);
+    }
     
     @Override
     public void addKeyListener(KeyListener listener) {
@@ -359,147 +307,43 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
     public void removeKeyListener(KeyListener listener) {
         adapter.removeKeyListener(listener);
     }
-
-    @Override
-    public EventDispatcher getDispatcher() {
-        return adapter.getDispatcher();
-    }
-
-    @Override
-    public com.ferox.input.EventQueue getQueue() {
-        return framework.getEventQueue();
-    }
-
-    @Override
-    public void addMouseListener(MouseListener listener) {
-        if (listener == null)
-            throw new NullPointerException("Null KeyListeners are not permitted");
-        adapter.addMouseListener(listener);
-    }
-
-    @Override
-    public void removeMouseListener(MouseListener listener) {
-        if (listener == null)
-            throw new NullPointerException("Null KeyListener not permitted");
-        adapter.removeMouseListener(listener);
-    }
     
-    /* WindowListener */
-
-    @Override
-    public void windowActivated(WindowEvent e) {
-    }
-
-    @Override
-    public void windowClosed(WindowEvent e) {
-    }
+    /*
+     * WindowListener implementation, we only care about windowClosing, though
+     */
 
     @Override
     public void windowClosing(WindowEvent e) {
-        framework.destroy(this);
-    }
-
-    @Override
-    public void windowDeactivated(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeiconified(WindowEvent e) {
-        iconified = false;
-    }
-
-    @Override
-    public void windowIconified(WindowEvent e) {
-        iconified = true;
-    }
-
-    @Override
-    public void windowOpened(WindowEvent e) {
-    }
-    
-    /* Utilities */
-    
-    private static GLCapabilities chooseCapabilities(GLProfile profile, OnscreenSurfaceOptions request) {
-        GLCapabilities caps = new GLCapabilities(profile);
-        
-        // try to update the caps fields
-        switch (request.getPixelFormat()) {
-        case RGB_16BIT:
-            caps.setRedBits(5);
-            caps.setGreenBits(6);
-            caps.setBlueBits(5);
-            caps.setAlphaBits(0);
-            break;
-        case RGB_24BIT:
-            caps.setRedBits(8);
-            caps.setGreenBits(8);
-            caps.setBlueBits(8);
-            caps.setAlphaBits(0);
-            break;
-        case RGBA_32BIT:
-            caps.setRedBits(8);
-            caps.setGreenBits(8);
-            caps.setBlueBits(8);
-            caps.setAlphaBits(8);
-            break;
-        }
-
-        switch (request.getDepthFormat()) {
-        case DEPTH_16BIT:
-            caps.setDepthBits(16);
-            break;
-        case DEPTH_24BIT:
-            caps.setDepthBits(24);
-            break;
-        case DEPTH_32BIT:
-            caps.setDepthBits(32);
-            break;
-        case NONE:
-            caps.setDepthBits(0);
-            break;
-        }
-
-        switch (request.getStencilFormat()) {
-        case STENCIL_16BIT:
-            caps.setStencilBits(16);
-            break;
-        case STENCIL_8BIT:
-            caps.setStencilBits(8);
-            break;
-        case STENCIL_4BIT:
-            caps.setStencilBits(4);
-            break;
-        case STENCIL_1BIT:
-            caps.setStencilBits(1);
-            break;
-        case NONE:
-            caps.setStencilBits(0);
-            break;
-        }
-
-        switch (request.getAntiAliasMode()) {
-        case EIGHT_X:
-            caps.setNumSamples(8);
-            caps.setSampleBuffers(true);
-            break;
-        case FOUR_X:
-            caps.setNumSamples(4);
-            caps.setSampleBuffers(true);
-            break;
-        case TWO_X:
-            caps.setNumSamples(2);
-            caps.setSampleBuffers(true);
-            break;
-        case NONE:
-            caps.setNumSamples(0);
-            caps.setSampleBuffers(false);
-            break;
+        synchronized(surfaceLock) {
+            // If the window is not user closable, we perform no action.
+            // windowClosing() listeners are responsible for disposing the window
+            if (!closable)
+                return;
         }
         
-        return caps;
+        // just call destroy() and let it take care of everything
+        destroy();
     }
+    
+    @Override
+    public void windowOpened(WindowEvent e) { }
 
-    private static OnscreenSurfaceOptions detectOptions(GL2GL3 gl, OnscreenSurfaceOptions base) {
+    @Override
+    public void windowClosed(WindowEvent e) { }
+
+    @Override
+    public void windowIconified(WindowEvent e) { }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) { }
+
+    @Override
+    public void windowActivated(WindowEvent e) { }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) { }
+    
+    private void detectOptions(GL2GL3 gl) {
         int[] t = new int[1];
         int red, green, blue, alpha, stencil, depth;
         int samples, sampleBuffers;
@@ -523,20 +367,15 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
         gl.glGetIntegerv(GL.GL_SAMPLE_BUFFERS, t, 0);
         sampleBuffers = t[0];
 
-        PixelFormat format = PixelFormat.RGB_24BIT;
-        switch (red + green + blue + alpha) {
-        case 32:
+        PixelFormat format = PixelFormat.UNKNOWN;
+        if (red == 8 && green == 8 && blue == 8 && alpha == 8)
             format = PixelFormat.RGBA_32BIT;
-            break;
-        case 24:
+        else if (red == 8 && green == 8 && blue == 8 && alpha == 0)
             format = PixelFormat.RGB_24BIT;
-            break;
-        case 16:
+        else if (red == 5 && green == 6 && blue == 5)
             format = PixelFormat.RGB_16BIT;
-            break;
-        }
-
-        DepthFormat df = DepthFormat.NONE;
+        
+        DepthFormat df = DepthFormat.UNKNOWN;
         switch (depth) {
         case 16:
             df = DepthFormat.DEPTH_16BIT;
@@ -547,9 +386,12 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
         case 32:
             df = DepthFormat.DEPTH_32BIT;
             break;
+        case 0:
+            df = DepthFormat.NONE;
+            break;
         }
 
-        StencilFormat sf = StencilFormat.NONE;
+        StencilFormat sf = StencilFormat.UNKNOWN;
         switch (stencil) {
         case 16:
             sf = StencilFormat.STENCIL_16BIT;
@@ -562,6 +404,9 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
             break;
         case 1:
             sf = StencilFormat.STENCIL_1BIT;
+            break;
+        case 0:
+            sf = StencilFormat.NONE;
             break;
         }
 
@@ -577,45 +422,137 @@ public class JoglOnscreenSurface extends AbstractSurface implements OnscreenSurf
             case 2:
                 aa = AntiAliasMode.TWO_X;
                 break;
+            default:
+                aa = AntiAliasMode.UNKNOWN;
             }
 
             gl.glEnable(GL.GL_MULTISAMPLE);
         } else
             gl.glDisable(GL.GL_MULTISAMPLE);
         
-        return base.setPixelFormat(format)
-                   .setDepthFormat(df)
-                   .setStencilFormat(sf)
-                   .setAntiAliasMode(aa);
+        if (options.getFullscreenMode() != null) {
+            DisplayMode fullscreen = options.getFullscreenMode();
+            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
+        }
+        
+        options = options.setAntiAliasMode(aa)
+                         .setDepthFormat(df)
+                         .setStencilFormat(sf);
     }
     
-    private static DisplayMode[] pruneDisplayModes(DisplayMode[] available, OnscreenSurfaceOptions options) {
-        // note that the ferox DisplayMode hashes and equals based on dimension
-        int bitDepth = 0;
-        switch(options.getPixelFormat()) {
-        case RGB_16BIT: bitDepth = 16; break;
-        case RGB_24BIT: bitDepth = 24; break;
-        case RGBA_32BIT: bitDepth = 32; break;
-        }
-        Map<com.ferox.renderer.DisplayMode, DisplayMode> dimensionMap = new HashMap<com.ferox.renderer.DisplayMode, DisplayMode>();
-        
-        for (int i = 0; i < available.length; i++) {
-            com.ferox.renderer.DisplayMode key = new com.ferox.renderer.DisplayMode(available[i].getWidth(),
-                                                                                    available[i].getHeight());
-            DisplayMode real = dimensionMap.get(key);
-            if (real != null) {
-                // choose the DisplayMode with the bit depth closest matching requested
-                // ignore modes where the bit depth is unknown (0)
-                // in the case of a tie, use the mode with the higher bit depth
-                int bitDiff = Math.abs(bitDepth - available[i].getBitDepth()) - Math.abs(bitDepth - real.getBitDepth());
-                if (available[i].getBitDepth() != 0 && (bitDiff < 0 || (bitDiff == 0 && available[i].getBitDepth() > real.getBitDepth())))
-                    dimensionMap.put(key, available[i]);
-            } else {
-                // add in first mode with these dimensions
-                dimensionMap.put(key, available[i]);
+    private static DisplayMode chooseCompatibleDisplayMode(DisplayMode requested, DisplayMode[] available) {
+        // we assume there is at least 1 (would be the default)
+        DisplayMode best = available[0];
+        int reqArea = requested.getWidth() * requested.getHeight();
+        int bestArea = best.getWidth() * best.getHeight();
+        for (int i = 1; i < available.length; i++) {
+            int area = available[i].getWidth() * available[i].getHeight();
+            if (Math.abs(area - reqArea) <= Math.abs(bestArea - reqArea)) {
+                // available[i] has a better or same match with screen resolution,
+                // now evaluate pixel format
+                
+                if (available[i].getPixelFormat() == requested.getPixelFormat()) {
+                    // exact match on format, go with available[i]
+                    best = available[i];
+                    bestArea = area;
+                } else {
+                    // go with the highest bit depth pixel format
+                    // PixelFormat's declared ordering is by bit depth so we can use compareTo
+                    if (available[i].getPixelFormat().compareTo(best.getPixelFormat()) >= 0) {
+                        best = available[i];
+                        bestArea = area;
+                    }
+                }
             }
         }
         
-        return dimensionMap.values().toArray(new DisplayMode[dimensionMap.size()]);
+        return best;
+    }
+    
+    private static GLCapabilities chooseCapabilities(JoglSurfaceFactory factory, OnscreenSurfaceOptions request) {
+        GLCapabilities caps = new GLCapabilities(factory.getGLProfile());
+        
+        // update the caps fields
+        PixelFormat pf;
+        if (request.getFullscreenMode() != null) {
+            pf = request.getFullscreenMode().getPixelFormat();
+        } else {
+            pf = factory.getDefaultDisplayMode().getPixelFormat();
+        }
+        
+        switch (pf) {
+        case RGB_16BIT:
+            caps.setRedBits(5);
+            caps.setGreenBits(6);
+            caps.setBlueBits(5);
+            caps.setAlphaBits(0);
+            break;
+        case RGB_24BIT: case UNKNOWN:
+            caps.setRedBits(8);
+            caps.setGreenBits(8);
+            caps.setBlueBits(8);
+            caps.setAlphaBits(0);
+            break;
+        case RGBA_32BIT:
+            caps.setRedBits(8);
+            caps.setGreenBits(8);
+            caps.setBlueBits(8);
+            caps.setAlphaBits(8);
+            break;
+        }
+
+        switch (request.getDepthFormat()) {
+        case DEPTH_16BIT:
+            caps.setDepthBits(16);
+            break;
+        case DEPTH_24BIT:
+            caps.setDepthBits(24);
+            break;
+        case DEPTH_32BIT:
+            caps.setDepthBits(32);
+            break;
+        case NONE: case UNKNOWN:
+            caps.setDepthBits(0);
+            break;
+        }
+
+        switch (request.getStencilFormat()) {
+        case STENCIL_16BIT:
+            caps.setStencilBits(16);
+            break;
+        case STENCIL_8BIT:
+            caps.setStencilBits(8);
+            break;
+        case STENCIL_4BIT:
+            caps.setStencilBits(4);
+            break;
+        case STENCIL_1BIT:
+            caps.setStencilBits(1);
+            break;
+        case NONE: case UNKNOWN:
+            caps.setStencilBits(0);
+            break;
+        }
+
+        switch (request.getAntiAliasMode()) {
+        case EIGHT_X:
+            caps.setNumSamples(8);
+            caps.setSampleBuffers(true);
+            break;
+        case FOUR_X:
+            caps.setNumSamples(4);
+            caps.setSampleBuffers(true);
+            break;
+        case TWO_X:
+            caps.setNumSamples(2);
+            caps.setSampleBuffers(true);
+            break;
+        case NONE: case UNKNOWN:
+            caps.setNumSamples(0);
+            caps.setSampleBuffers(false);
+            break;
+        }
+        
+        return caps;
     }
 }

@@ -1,30 +1,45 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.nio.Buffer;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 
-import com.ferox.math.Color4f;
+import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Vector4f;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
+import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.renderer.impl.AbstractSurface;
+import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
+import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.renderer.impl.ResourceManager;
+import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 
+/**
+ * JoglRendererDelegate is a concrete implementation of RendererDelegate that
+ * uses the JOGL OpenGL binding.
+ * 
+ * @author Michael Ludwig
+ */
 public class JoglRendererDelegate extends RendererDelegate {
     // capabilities
-    private final boolean supportsBlending;
-    private final boolean supportsSeparateBlending;
-    private final boolean supportsSeparateStencil;
-    private final boolean supportsStencilWrap;
+    private boolean supportsBlending;
+    private boolean supportsSeparateBlending;
+    private boolean supportsSeparateStencil;
+    private boolean supportsStencilWrap;
     
-    // cached context so we can get a GL instance a little faster
-    private JoglContext context;
+    private boolean initialized;
     
     // state tracking for buffer clearing
-    private final Color4f clearColor = new Color4f(0f, 0f, 0f, 0f);
+    private final Vector4f clearColor = new Vector4f(0f, 0f, 0f, 0f);
     private float clearDepth = 1f;
     private int clearStencil = 0;
     
@@ -33,59 +48,14 @@ public class JoglRendererDelegate extends RendererDelegate {
     private int frontPolyMode = GL2GL3.GL_FILL;
     private int backPolyMode = GL2GL3.GL_FILL;
     
-    public JoglRendererDelegate(RenderCapabilities caps) {
-        supportsBlending = caps.isBlendingSupported();
-        supportsSeparateBlending = caps.getSeparateBlendSupport();
-        supportsSeparateStencil = caps.getSeparateStencilSupport();
-        supportsStencilWrap = caps.getVersion() >= 1.4f;
-    }
-
     private GL2GL3 getGL() {
-        // we cache the context the first time we need it,
-        // a renderer will not be passed around amongst contexts
-        if (context == null)
-            context = JoglContext.getCurrent();
-        return context.getGL();
+        return ((JoglContext) context).getGLContext().getGL().getGL2GL3();
     }
     
     @Override
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, Color4f color, float depth, int stencil) {
-        if (color == null)
-            throw new NullPointerException("Clear color cannot be null");
-        if (depth < 0f || depth > 1f)
-            throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
-        
-        GL2GL3 gl = getGL();
-        
-        if (!this.clearColor.equals(color)) {
-            this.clearColor.set(color);
-            gl.glClearColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-        }
-        if (this.clearDepth != depth) {
-            this.clearDepth = depth;
-            gl.glClearDepthf(depth);
-        }
-        if (this.clearStencil != stencil) {
-            this.clearStencil = stencil;
-            gl.glClearStencil(stencil);
-        }
-        
-        int clearBits = 0;
-        if (clearColor)
-            clearBits |= GL.GL_COLOR_BUFFER_BIT;
-        if (clearDepth)
-            clearBits |= GL.GL_DEPTH_BUFFER_BIT;
-        if (clearStencil)
-            clearBits |= GL.GL_STENCIL_BUFFER_BIT;
-        
-        if (clearBits != 0)
-            gl.glClear(clearBits);
-    }
-
-    @Override
-    protected void glBlendColor(Color4f color) {
+    protected void glBlendColor(ReadOnlyVector4f color) {
         if (supportsBlending)
-            getGL().glBlendColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+            getGL().glBlendColor(color.getX(), color.getY(), color.getZ(), color.getW());
     }
 
     @Override
@@ -241,10 +211,101 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void init() {
+    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
+        super.activate(surface, context, manager);
+        
+        if (!initialized) {
+            // grab capabilities
+            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            supportsBlending = caps.isBlendingSupported();
+            supportsSeparateBlending = caps.getSeparateBlendSupport();
+            supportsSeparateStencil = caps.getSeparateStencilSupport();
+            supportsStencilWrap = caps.getVersion() >= 1.4f;
+            
+            // initial state configu
+            GL2GL3 gl = getGL();
+            gl.glEnable(GL2.GL_DEPTH_TEST);
+            gl.glEnable(GL2.GL_CULL_FACE);
+            gl.glEnable(GL2.GL_SCISSOR_TEST);
+            
+            initialized = true;
+        }
+    }
+
+    @Override
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
+                      ReadOnlyVector4f color, float depth, int stencil) {
+        if (color == null)
+            throw new NullPointerException("Clear color cannot be null");
+        if (depth < 0f || depth > 1f)
+            throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
+        
         GL2GL3 gl = getGL();
-        gl.glEnable(GL2.GL_DEPTH_TEST);
-        gl.glEnable(GL2.GL_CULL_FACE);
-        gl.glEnable(GL2.GL_SCISSOR_TEST);
+        
+        if (!this.clearColor.equals(color)) {
+            this.clearColor.set(color);
+            gl.glClearColor(color.getX(), color.getY(), color.getZ(), color.getW());
+        }
+        if (this.clearDepth != depth) {
+            this.clearDepth = depth;
+            gl.glClearDepthf(depth);
+        }
+        if (this.clearStencil != stencil) {
+            this.clearStencil = stencil;
+            gl.glClearStencil(stencil);
+        }
+        
+        int clearBits = 0;
+        if (clearColor)
+            clearBits |= GL.GL_COLOR_BUFFER_BIT;
+        if (clearDepth)
+            clearBits |= GL.GL_DEPTH_BUFFER_BIT;
+        if (clearStencil)
+            clearBits |= GL.GL_STENCIL_BUFFER_BIT;
+        
+        if (clearBits != 0)
+            gl.glClear(clearBits);
+    }
+
+    @Override
+    protected void glDrawElements(PolygonType type, ResourceHandle handle, int offset, int count) {
+        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+        int glPolyType = Utils.getGLPolygonConnectivity(type);
+        int glDataType = Utils.getGLType(h.dataType);
+        
+        if (h.mode == StorageMode.IN_MEMORY) {
+            Buffer data = h.inmemoryBuffer;
+            data.limit(offset + count).position(offset);
+            getGL().glDrawElements(glPolyType, count, glDataType, data);
+        } else {
+            getGL().glDrawElements(glPolyType, count, glDataType, offset * h.dataType.getByteCount());
+        }
+    }
+
+    @Override
+    protected void glDrawArrays(PolygonType type, int first, int count) {
+        int glPolyType = Utils.getGLPolygonConnectivity(type);
+        getGL().glDrawArrays(glPolyType, first, count);
+    }
+
+    @Override
+    protected void glBindElementVbo(ResourceHandle handle) {
+        GL2GL3 gl = getGL();
+        JoglContext ctx = (JoglContext) context;
+        
+        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+        
+        if (h != null) {
+            if (h.mode != StorageMode.IN_MEMORY) {
+                // Must bind the VBO
+                ctx.bindElementVbo(gl, h.vboID);
+            } else {
+                // Must unbind any old VBO, will grab the in-memory buffer during render call
+                ctx.bindElementVbo(gl, 0);
+            }
+        } else {
+            // Must unbind the vbo
+            ctx.bindElementVbo(gl, 0);
+        }
     }
 }

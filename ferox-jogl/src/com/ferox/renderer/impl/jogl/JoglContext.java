@@ -2,69 +2,250 @@ package com.ferox.renderer.impl.jogl;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GL3;
 import javax.media.opengl.GLContext;
 
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.RenderException;
-import com.ferox.renderer.impl.Context;
+import com.ferox.renderer.impl.OpenGLContext;
+import com.ferox.renderer.impl.RendererProvider;
+import com.ferox.resource.Resource;
 
-public class JoglContext extends Context {
+/**
+ * JoglContext is an implementation of OpenGLContext that uses the JOGL OpenGL
+ * binding.
+ * 
+ * @author Michael Ludwig
+ */
+public class JoglContext extends OpenGLContext {
+    private final JoglSurfaceFactory creator;
     private final GLContext context;
     
-    private final BoundObjectState objState;
-    private final List<FramebufferObject> zombieFbos;
+    private RenderCapabilities cachedCaps;
     
-    public JoglContext(JoglFramework framework, GLContext context, ReentrantLock surfaceLock) {
-        super(framework.createGlslRenderer(), framework.createFixedFunctionRenderer(), surfaceLock);
-        if (context == null)
-            throw new NullPointerException("GLContext cannot be null");
+    // cleanup
+    private List<Runnable> cleanupTasks;
+    
+    // bound object state
+    private boolean stateInitialized;
+    private int activeTexture;
+    
+    private int[] textures;
+    private int[] boundTargets;
+    
+    private int arrayVbo;
+    private int elementVbo;
+    
+    private int fbo;
+
+    private int glslProgram;
+
+    /**
+     * Create a JoglContext wrapper around the given GLContext. It is assumed
+     * that the given JoglSurfaceFactory is the creator.
+     * 
+     * @param factory The factory creating, or indirectly creating this context
+     * @param context The actual GLContext
+     * @param provider The provider of renderers
+     * @throws NullPointerException if factory, context, or provider are null
+     */
+    public JoglContext(JoglSurfaceFactory factory, GLContext context, RendererProvider provider) {
+        super(provider);
+        if (factory == null || context == null)
+            throw new NullPointerException("Factory and context cannot be null");
+        
         this.context = context;
-        
-        int ffp = framework.getCapabilities().getMaxFixedPipelineTextures();
-        int frag = framework.getCapabilities().getMaxFragmentShaderTextures();
-        int vert = framework.getCapabilities().getMaxVertexShaderTextures();
-        
-        int maxTextures = Math.max(ffp, Math.max(frag, vert));
-        objState = new BoundObjectState(maxTextures);
-        zombieFbos = new CopyOnWriteArrayList<FramebufferObject>();
+        creator = factory;
+        stateInitialized = false;
+        cleanupTasks = new CopyOnWriteArrayList<Runnable>();
+    }
+    
+    private void initializedMaybe() {
+        if (!stateInitialized) {
+            RenderCapabilities caps = getRenderCapabilities();
+            
+            int ffp = caps.getMaxFixedPipelineTextures();
+            int frag = caps.getMaxFragmentShaderTextures();
+            int vert = caps.getMaxVertexShaderTextures();
+            
+            int maxTextures = Math.max(ffp, Math.max(frag, vert));
+            textures = new int[maxTextures];
+            boundTargets = new int[maxTextures];
+            stateInitialized = true;
+        }
     }
 
     /**
-     * Destroy the underlying GLContext. This must only when the Framework is
-     * exclusively locked because this does not perform it's own locking (to
-     * prevent out-of-order deadblocks).
+     * <p>
+     * Queue the given task to be run the next time this context is bound.
+     * Queued tasks can be invoked in any order so they should be independent.
+     * These tasks are intended for cleanup of additional resources on the
+     * context that don't extend {@link Resource}.
+     * </p>
+     * <p>
+     * Tasks may not be executed if the context is destroyed before it is made
+     * current after the task has been queued. This behavior should be
+     * acceptable for tasks whose sole purpose is to cleanup resources tied to a
+     * context (which should be automatically destroyed when hardware context is
+     * destroyed).
+     * </p>
+     * 
+     * @param task The cleanup task to queue
+     * @throws NullPointerException if task is null
      */
-    public void destroy() {
-        if (context.isCurrent())
-            release();
-        context.destroy();
+    public void queueCleanupTask(Runnable task) {
+        if (task == null)
+            throw new NullPointerException("Task cannot be null");
+        cleanupTasks.add(task);
     }
     
     /**
-     * @return A GL2GL3 instance associated with this JoglContext
+     * @return The id of the GLSL program object currently in use
      */
-    public GL2GL3 getGL() {
-        return context.getGL().getGL2GL3();
+    public int getGlslProgram() {
+        return glslProgram;
+    }
+    
+    /**
+     * @return The id of the VBO bound to the ARRAY_BUFFER target
+     */
+    public int getArrayVbo() {
+        return arrayVbo;
+    }
+    
+    /**
+     * @return The id of the VBO bound to the ELEMENT_ARRAY_BUFFER target
+     */
+    public int getElementVbo() {
+        return elementVbo;
+    }
+    
+    /**
+     * @return The active texture, index from 0
+     */
+    public int getActiveTexture() {
+        return activeTexture;
+    }
+    
+    /**
+     * @return The id of the currently bound framebuffer object
+     */
+    public int getFbo() {
+        return fbo;
+    }
+    
+    /**
+     * @param tex The 0-based texture unit to lookup
+     * @return The id of the currently bound texture image
+     */
+    public int getTexture(int tex) {
+        return textures[tex];
     }
 
     /**
-     * @return A GL2 instance for this context. This assumes that GL2 is
-     *         supported by the framework's profile
+     * @param tex The 0-based texture unit to lookup
+     * @return The OpenGL texture target enum for the bound texture
      */
-    public GL2 getGL2() {
-        return context.getGL().getGL2();
+    public int getTextureTarget(int tex) {
+        return boundTargets[tex];
     }
 
     /**
-     * @return A GL3 instance for this context. This assumes that GL3 is
-     *         supported by the framework's profile
+     * Bind the given glsl program so that it will be in use for the next
+     * rendering call.
+     * 
+     * @param gl The GL to use
+     * @param program The program id to bind
      */
-    public GL3 getGL3() {
-        return context.getGL().getGL3();
+    public void bindGlslProgram(GL2GL3 gl, int program) {
+        initializedMaybe();
+        if (program != glslProgram) {
+            glslProgram = program;
+            gl.glUseProgram(program);
+        }
+    }
+
+    /**
+     * Bind the given vbo to the ARRAY_BUFFER target.
+     * 
+     * @param gl The GL to use
+     * @param vbo The VBO id to bind
+     */
+    public void bindArrayVbo(GL2GL3 gl, int vbo) {
+        initializedMaybe();
+        if (vbo != arrayVbo) {
+            arrayVbo = vbo;
+            gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, vbo);
+        }
+    }
+    
+    /**
+     * Bind the given vbo to the ARRAY_BUFFER target.
+     * 
+     * @param gl The GL to use
+     * @param vbo The VBO id to bind
+     */
+    public void bindElementVbo(GL2GL3 gl, int vbo) {
+        initializedMaybe();
+        if (vbo != elementVbo) {
+            elementVbo = vbo;
+            gl.glBindBuffer(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, vbo);
+        }
+    }
+
+    /**
+     * Set the active texture. This should be called before any texture
+     * operations are needed, since it switches which texture unit is active.
+     * 
+     * @param gl The GL to use
+     * @param tex The texture unit, 0 based
+     */
+    public void setActiveTexture(GL2GL3 gl, int tex) {
+        initializedMaybe();
+        if (activeTexture != tex) {
+            activeTexture = tex;
+            gl.glActiveTexture(GL2GL3.GL_TEXTURE0 + tex);
+        }
+    }
+
+    /**
+     * Bind a texture image to the current active texture. <tt>target</tt> must
+     * be one of GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
+     * 
+     * @param gl The GL to use
+     * @param target The valid OpenGL texture target enum for texture image
+     * @param texId The id of the texture image to bind
+     */
+    public void bindTexture(GL2GL3 gl, int target, int texId) {
+        initializedMaybe();
+        int prevTarget = boundTargets[activeTexture];
+        int prevTex = textures[activeTexture];
+        
+        if (prevTex != texId) {
+            if (prevTex != 0 && prevTarget != target) {
+                // unbind old texture
+                gl.glBindTexture(prevTarget, 0);
+            }
+            gl.glBindTexture(target, texId);
+            
+            boundTargets[activeTexture] = target;
+            textures[activeTexture] = texId;
+        }
+    }
+
+    /**
+     * Bind the given framebuffer object.
+     * 
+     * @param gl The GL to use
+     * @param fboId The id of the fbo
+     */
+    public void bindFbo(GL2GL3 gl, int fboId) {
+        initializedMaybe();
+        if (fbo != fboId) {
+            fbo = fboId;
+            gl.glBindFramebuffer(GL2GL3.GL_FRAMEBUFFER, fboId);
+        }
     }
     
     /**
@@ -74,53 +255,32 @@ public class JoglContext extends Context {
         return context;
     }
     
-    /**
-     * @return The BoundObjectState used by this JoglContext
-     */
-    public BoundObjectState getRecord() {
-        return objState;
-    }
-    
-    public static JoglContext getCurrent() {
-        Context c = Context.getCurrent();
-        if (c instanceof JoglContext)
-            return (JoglContext) c;
-        else
-            return null;
-    }
-    
     @Override
-    protected void makeCurrent() {
-        int res = context.makeCurrent();
-        if (res == GLContext.CONTEXT_NOT_CURRENT)
-            throw new RenderException("Unable to make GLContext current");
-        
-        cleanupZombieFbos();
-        super.makeCurrent();
-    }
-    
-    @Override
-    protected void release() {
-        if (context.isCurrent())
-            context.release();
-        super.release();
-    }
-    
-    /**
-     * Notify the context that a FramebufferObject should be destroyed on this
-     * context the next time it's made current. Assumes that the fbo is not
-     * null, hasn't been destroyed, and will no longer be used.
-     * 
-     * @param fbo The fbo to destroy eventually
-     */
-    void notifyFboZombie(FramebufferObject fbo) {
-        zombieFbos.add(fbo);
-    }
-    
-    private void cleanupZombieFbos() {
-        int size = zombieFbos.size();
-        for (int i = size - 1; i >= 0; i--) {
-            zombieFbos.remove(i).destroy();
+    public RenderCapabilities getRenderCapabilities() {
+        if (cachedCaps == null) {
+            cachedCaps = new JoglRenderCapabilities(context.getGL(), creator.getGLProfile(), creator.getCapabilityForceBits());
         }
+        
+        return cachedCaps;
+    }
+
+    @Override
+    public void destroy() {
+        context.destroy();
+    }
+
+    @Override
+    public void makeCurrent() {
+        int result = context.makeCurrent();
+        if (result == GLContext.CONTEXT_NOT_CURRENT)
+            throw new RenderException("Unable to make context current");
+        
+        for (Runnable task: cleanupTasks)
+            task.run();
+    }
+
+    @Override
+    public void release() {
+        context.release();
     }
 }
