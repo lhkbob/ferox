@@ -8,7 +8,7 @@ import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
-import com.ferox.resource.Geometry;
+import com.ferox.util.geom.Geometry;
 
 /**
  * <p>
@@ -43,6 +43,9 @@ import com.ferox.resource.Geometry;
  * 
  * @author Michael Ludwig
  */
+// FIXME: make a ReadOnlyAxisAlignedBox that has protected vectors so that AxisAlignedBox can properly
+// expose setters for min/max
+// FIXME: revisit this ReadOnly paradigm and see if the type abstraction is actually worth
 public class AxisAlignedBox {
     private final Vector3f min;
     private final Vector3f max;

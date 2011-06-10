@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
@@ -774,6 +775,22 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (v == null)
             throw new NullPointerException("Vector cannot be null");
         setUniform(name, v.getX(), v.getY(), v.getZ(), v.getW());
+    }
+    
+    @Override
+    public void setUniform(String name, ReadOnlyColor3f color) {
+        setUniform(name, color, false);
+    }
+
+    @Override
+    public void setUniform(String name, ReadOnlyColor3f color, boolean isHDR) {
+        if (color == null)
+            throw new NullPointerException("Color cannot be null");
+        
+        if (isHDR)
+            setUniform(name, color.getRedHDR(), color.getGreenHDR(), color.getBlueHDR());
+        else
+            setUniform(name, color.getRed(), color.getGreen(), color.getBlue());
     }
 
     @Override

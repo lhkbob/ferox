@@ -21,6 +21,10 @@ package com.ferox.math;
  * where HDR values are meaningless, such as with materials (where a value of 1
  * is the highest physically correct value).
  * </p>
+ * <p>
+ * It is a common practice to use a {@link ReadOnlyVector4f} when an RGBA color
+ * is needed, such as in the lower-level rendering APIs in com.ferox.renderer.
+ * </p>
  * 
  * @see Color3f
  * @author Michael Ludwig
