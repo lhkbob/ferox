@@ -10,7 +10,7 @@ import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.logic.InputState;
 import com.ferox.input.logic.KeyTypedCondition;
 import com.ferox.input.logic.Trigger;
-import com.ferox.math.Color4f;
+import com.ferox.math.Color3f;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
@@ -18,31 +18,30 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialHierarchy;
-import com.ferox.renderer.FrameStatistics;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
 import com.ferox.renderer.OnscreenSurfaceOptions.PixelFormat;
 import com.ferox.renderer.Renderer.DrawStyle;
+import com.ferox.renderer.pass.FrameStatistics;
 import com.ferox.renderer.ThreadQueueManager;
-import com.ferox.resource.Geometry.CompileType;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.Attached;
 import com.ferox.scene.Billboarded;
 import com.ferox.scene.Billboarded.Axis;
-import com.ferox.scene.BlinnPhongLightingModel;
+import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Renderable;
-import com.ferox.scene.SceneElement;
+import com.ferox.scene.Transform;
 import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.ShadowReceiver;
 import com.ferox.scene.Shape;
-import com.ferox.scene.SolidLightingModel;
+import com.ferox.scene.SolidMaterial;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.Transparent;
-import com.ferox.scene.ViewNode;
+import com.ferox.scene.Camera;
 import com.ferox.scene.controller.AttachmentController;
 import com.ferox.scene.controller.BillboardController;
 import com.ferox.scene.controller.LightUpdateController;
@@ -55,6 +54,7 @@ import com.ferox.util.geom.PrimitiveGeometry;
 import com.ferox.util.geom.Rectangle;
 import com.ferox.util.geom.Sphere;
 import com.ferox.util.geom.Teapot;
+import com.ferox.util.geom.Geometry.CompileType;
 import com.ferox.util.geom.text.CharacterSet;
 import com.ferox.util.geom.text.Text;
 import com.ferox.util.geom.text.TextRenderPass;
@@ -104,7 +104,7 @@ public class FixedFunctionSceneCompositorTest {
         buildScene(system);
         
         // scene element controlling the viewnode
-        Entity camera = system.iterator(Component.getComponentId(ViewNode.class)).next();
+        Entity camera = system.iterator(Component.getComponentId(Camera.class)).next();
         FreeLookCameraInputManager ioManager = new FreeLookCameraInputManager(surface, camera);
         ioManager.addTrigger(new Trigger() {
             @Override
@@ -128,13 +128,13 @@ public class FixedFunctionSceneCompositorTest {
                 
                 ioManager.process();
                 
-                c1.process();
-                c2.process();
-                c3.process();
-                c4.process();
-                c5.process();
-                c6.process();
-                c7.process();
+                c1.execute();
+                c2.execute();
+                c3.execute();
+                c4.execute();
+                c5.execute();
+                c6.execute();
+                c7.execute();
                 organizer.queue(surface, textPass);
                 
                 // begin rendering the frame
@@ -175,13 +175,13 @@ public class FixedFunctionSceneCompositorTest {
                                                                      .setWidth(800)
                                                                      .setHeight(600);
         OnscreenSurface surface = framework.createSurface(options);
-        surface.setClearColor(new Color4f(.5f, .5f, .5f, 1f));
+        surface.setClearColor(new Color3f(.5f, .5f, .5f, 1f));
 //        surface.setVSyncEnabled(true);
         surface.setTitle(FixedFunctionSceneCompositorTest.class.getSimpleName());
 
         // camera
-        ViewNode vn = new ViewNode(surface, 60f, 1f, 3 * BOUNDS);
-        SceneElement el = new SceneElement();
+        Camera vn = new Camera(surface, 60f, 1f, 3 * BOUNDS);
+        Transform el = new Transform();
         el.setTranslation(new Vector3f(0f, 0f, -1f * BOUNDS));
         
         system.add(new Entity(el, vn));
@@ -208,11 +208,11 @@ public class FixedFunctionSceneCompositorTest {
         ShadowReceiver sr = new ShadowReceiver();
         
         TexturedMaterial texture = new TexturedMaterial(TextureLoader.readTexture(new File("ferox-gl.tga")));
-        BlinnPhongLightingModel material = new BlinnPhongLightingModel(new Color4f(1f, 1f, 1f, .4f), new Color4f(.2f, 0f, .1f));
+        BlinnPhongMaterial material = new BlinnPhongMaterial(new Color3f(1f, 1f, 1f, .4f), new Color3f(.2f, 0f, .1f));
         Transparent trans = new Transparent();
         
         // grab camera location
-        Frustum cam = scene.iterator(Component.getComponentId(ViewNode.class)).next().get(Component.getComponentId(ViewNode.class)).getFrustum();
+        Frustum cam = scene.iterator(Component.getComponentId(Camera.class)).next().get(Component.getComponentId(Camera.class)).getFrustum();
         
         for (int i = 0; i < NUM_SHAPES; i++) {
             float x = (float) (Math.random() * BOUNDS - BOUNDS / 2);
@@ -221,7 +221,7 @@ public class FixedFunctionSceneCompositorTest {
             
             int choice = 1;//(int) (Math.random() * 6 + 1);
             
-            SceneElement element = new SceneElement();
+            Transform element = new Transform();
             element.setTranslation(new Vector3f(x, y, z));
             
             Entity e = new Entity(element, toRender, material, sc, sr);
@@ -233,11 +233,11 @@ public class FixedFunctionSceneCompositorTest {
                 Text text = new Text(DEFAULT_CHARSET, "Hello, World!", COMPILE_TYPE);
                 text.setScale(.15f);
                 
-                Entity t = new Entity(new SceneElement(), new Attached(e, new Matrix4f(1f, 0f, 0f, 0f,
+                Entity t = new Entity(new Transform(), new Attached(e, new Matrix4f(1f, 0f, 0f, 0f,
                                                                                        0f, 1f, 0f, text.getTextHeight(),
                                                                                        0f, 0f, 1f, 0f,
                                                                                        0f, 0f, 0f, 1f)), 
-                                      new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), new SolidLightingModel(new Color4f(1f, 1f, 1f)),
+                                      new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), new SolidMaterial(new Color3f(1f, 1f, 1f)),
                                       new TexturedMaterial(text.getCharacterSet().getTexture()), 
                                       new Shape(text), b, trans);
                 
@@ -268,26 +268,26 @@ public class FixedFunctionSceneCompositorTest {
         
         // some walls
         Rectangle backWall = new Rectangle(new Vector3f(0f, 1f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS, -BOUNDS, BOUNDS);
-        SceneElement pos = new SceneElement();
+        Transform pos = new Transform();
         pos.setTranslation(new Vector3f(BOUNDS, 0f, 0f));
         pos.setLocalBounds(new AxisAlignedBox(backWall.getVertices().getData()));
         scene.add(new Entity(pos, new Shape(backWall), material, texture, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
         
         Rectangle bottomWall = new Rectangle(new Vector3f(1f, 0f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS, -BOUNDS, BOUNDS);
-        pos = new SceneElement();
+        pos = new Transform();
         pos.setTranslation(new Vector3f(0f, -BOUNDS, 0f));
         pos.setLocalBounds(new AxisAlignedBox(bottomWall.getVertices().getData()));
         scene.add(new Entity(pos, new Shape(bottomWall), material, texture, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 
         // ambient light
-        scene.add(new Entity(new AmbientLight(new Color4f(.2f, .2f, .2f, 1f))));
+        scene.add(new Entity(new AmbientLight(new Color3f(.2f, .2f, .2f, 1f))));
         
         // a point light
-        scene.add(new Entity(new SpotLight(new Color4f(.5f, .8f, 0f), 
+        scene.add(new Entity(new SpotLight(new Color3f(.5f, .8f, 0f), 
                                            new Vector3f(BOUNDS / 2f, 0f, BOUNDS))));
         
         // a directed light, which casts shadows
-        scene.add(new Entity(new DirectionLight(new Color4f(1f, 1f, 1f),
+        scene.add(new Entity(new DirectionLight(new Color3f(1f, 1f, 1f),
                                                 new Vector3f(1f, -1f, -1f).normalize()),
                              sc));
     }

@@ -187,7 +187,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
                 if (caps.hasGlslRenderer()) {
                     if (sharedDelegate == null)
                         sharedDelegate = new JoglRendererDelegate();
-                    glsl = new JoglGlslRenderer2(sharedDelegate);
+                    glsl = new JoglGlslRenderer(sharedDelegate);
                 }
             }
             

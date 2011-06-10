@@ -390,11 +390,22 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glBindArrayVbo(ResourceHandle handle) {
+        JoglContext ctx = (JoglContext) context;
+        GL2 gl = getGL();
         VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
-        if (h != null)
-            ((JoglContext) context).bindArrayVbo(getGL(), h.vboID);
-        else
-            ((JoglContext) context).bindArrayVbo(getGL(), 0);
+        
+        if (h != null) {
+            if (h.mode != StorageMode.IN_MEMORY) {
+                // Must bind the VBO
+                ctx.bindArrayVbo(gl, h.vboID);
+            } else {
+                // Must unbind any old VBO, will grab the in-memory buffer during render call
+                ctx.bindArrayVbo(gl, 0);
+            }
+        } else {
+            // Must unbind the vbo
+            ctx.bindArrayVbo(gl, 0);
+        }
     }
 
     @Override
