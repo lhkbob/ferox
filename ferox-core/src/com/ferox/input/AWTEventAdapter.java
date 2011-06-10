@@ -11,7 +11,7 @@ import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.MouseEvent.MouseButton;
 
 
-public class AWTEventAdapter implements KeyEventSource, MouseEventSource, java.awt.event.KeyListener, java.awt.event.MouseListener, MouseMotionListener, MouseWheelListener {
+public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyListener, java.awt.event.MouseListener, MouseMotionListener, MouseWheelListener {
     private Component component;
     private boolean transformY;
     
@@ -82,11 +82,6 @@ public class AWTEventAdapter implements KeyEventSource, MouseEventSource, java.a
         synchronized(this) {
             keyListeners.remove(listener);
         }
-    }
-
-    @Override
-    public EventDispatcher getDispatcher() {
-        return dispatcher;
     }
 
     @Override
@@ -279,14 +274,14 @@ public class AWTEventAdapter implements KeyEventSource, MouseEventSource, java.a
     public void keyPressed(java.awt.event.KeyEvent e) {
         KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, (KeyEventSource) realSource, 
                                       getKeyCode(e), getCharacter(e));
-        realSource.getQueue().postEvent(event);
+        realSource.getQueue().postEvent(event, dispatcher);
     }
 
     @Override
     public void keyReleased(java.awt.event.KeyEvent e) {
         KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, (KeyEventSource) realSource,
                                       getKeyCode(e), getCharacter(e));
-        realSource.getQueue().postEvent(event);
+        realSource.getQueue().postEvent(event, dispatcher);
     }
 
     @Override
@@ -314,14 +309,14 @@ public class AWTEventAdapter implements KeyEventSource, MouseEventSource, java.a
     public void mousePressed(java.awt.event.MouseEvent e) {
         MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, (MouseEventSource) realSource, 
                                           e.getX(), getY(e), 0, getButton(e));
-        realSource.getQueue().postEvent(event);
+        realSource.getQueue().postEvent(event, dispatcher);
     }
 
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
         MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, (MouseEventSource) realSource, 
                                           e.getX(), getY(e), 0, getButton(e));
-        realSource.getQueue().postEvent(event);
+        realSource.getQueue().postEvent(event, dispatcher);
     }
 
     @Override
@@ -335,14 +330,14 @@ public class AWTEventAdapter implements KeyEventSource, MouseEventSource, java.a
     public void mouseMoved(java.awt.event.MouseEvent e) {
         MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, (MouseEventSource) realSource, 
                                           e.getX(), getY(e), 0, MouseButton.NONE);
-        realSource.getQueue().postEvent(event);
+        realSource.getQueue().postEvent(event, dispatcher);
     }
     
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, (MouseEventSource) realSource, 
                                           e.getX(), getY(e), e.getWheelRotation(), MouseButton.NONE);
-        realSource.getQueue().postEvent(event);
+        realSource.getQueue().postEvent(event, dispatcher);
     }
     
     /* 

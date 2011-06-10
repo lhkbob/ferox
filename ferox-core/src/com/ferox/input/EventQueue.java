@@ -15,8 +15,7 @@ public class EventQueue {
         executor.shutdownNow();
     }
     
-    public void postEvent(Event e) {
-        EventDispatcher dispatcher = e.getSource().getDispatcher();
+    public void postEvent(Event e, EventDispatcher dispatcher) {
         try {
             executor.submit(new EventTask(dispatcher, e));
         } catch(RejectedExecutionException ree) {
