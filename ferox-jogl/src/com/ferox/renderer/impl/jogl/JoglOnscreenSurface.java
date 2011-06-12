@@ -137,7 +137,6 @@ public class JoglOnscreenSurface extends AbstractOnscreenSurface implements Wind
     @Override
     protected void destroyImpl() {
         frame.removeWindowListener(this);
-        context.destroy();
         
         Utils.invokeOnAWTThread(new Runnable() {
             @Override
@@ -147,6 +146,8 @@ public class JoglOnscreenSurface extends AbstractOnscreenSurface implements Wind
                     GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(null);
                 }
                 
+                // This will also call context.destroy() when appropriate so we 
+                // have to do it ourselves
                 frame.setVisible(false);
                 frame.dispose();
             }

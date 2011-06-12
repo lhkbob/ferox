@@ -123,6 +123,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
+        System.out.println("in surface factory");
         return new JoglOnscreenSurface(framework, this, options, (JoglContext) sharedContext,
                                        new JoglRendererProvider());
     }

@@ -1,10 +1,10 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
-import javax.swing.SwingUtilities;
 
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
@@ -752,19 +752,20 @@ public class Utils {
      * safe.
      */
     public static void invokeOnAWTThread(Runnable r, boolean block) {
-        if (SwingUtilities.isEventDispatchThread()) {
+        if (EventQueue.isDispatchThread()) {
             r.run();
         } else {
             if (block) {
                 try {
-                    SwingUtilities.invokeAndWait(r);
+                    System.out.println("queueing awt task");
+                    EventQueue.invokeAndWait(r);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 } catch (InvocationTargetException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                SwingUtilities.invokeLater(r);
+                EventQueue.invokeLater(r);
             }
         }
     }

@@ -29,10 +29,11 @@ public class OnscreenShadowContext extends JoglContext {
     
     @Override
     public void destroy() {
-        super.destroy();
-
+        // We don't need to call super.destroy() because frame.dispose()
+        // will automatically call context.destroy() for us when appropriate.
         Utils.invokeOnAWTThread(new Runnable() {
             public void run() {
+                // must lock to see surface context update
                 frame.setVisible(false);
                 frame.dispose();
             }
@@ -64,12 +65,17 @@ public class OnscreenShadowContext extends JoglContext {
         // unfortunately we have to make the Frame visible before we
         // have access to the context
         Utils.invokeOnAWTThread(new Runnable() {
+            @Override
             public void run() {
                 frame.setSize(1, 1);
                 frame.setResizable(false);
                 frame.setUndecorated(true);
                 frame.setTitle("");
                 frame.add(canvas);
+                
+                frame.setIgnoreRepaint(false);
+                canvas.setIgnoreRepaint(false);
+                
                 frame.setVisible(true);
             }
         }, true);
@@ -77,8 +83,7 @@ public class OnscreenShadowContext extends JoglContext {
         try {
             return new OnscreenShadowContext(creator, frame, canvas, provider);
         } catch(RuntimeException re) {
-            // last minute cleanup
-            canvas.destroy();
+            // last minute cleanup - context will be destroyed automatically
             Utils.invokeOnAWTThread(new Runnable() {
                 public void run() {
                     frame.setVisible(false);
