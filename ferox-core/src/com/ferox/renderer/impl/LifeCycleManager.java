@@ -245,7 +245,7 @@ public class LifeCycleManager {
     public boolean startManagedThread(Thread thread) {
         if (thread == null)
             throw new NullPointerException("Thread cannot be null");
-        if (thread.getThreadGroup() != managedThreadGroup)
+        if (!managedThreadGroup.parentOf(thread.getThreadGroup()))
             throw new IllegalArgumentException("Managed thread must be in the ThreadGroup provided by this LifeCycleManager");
         
         lock.readLock().lock();

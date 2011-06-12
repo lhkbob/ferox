@@ -77,9 +77,19 @@ public abstract class AbstractSurface implements Surface {
      *            an appropriate target
      */
     public void onSurfaceActivate(OpenGLContext context, int layer) {
-        // do nothing
+        RenderCapabilities caps = context.getRenderCapabilities();
+        FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
+        if (ffp instanceof AbstractRenderer)
+            ((AbstractRenderer) ffp).activate(this, context, framework.getResourceManager());
+        
+        GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
+        if (glsl instanceof AbstractRenderer)
+            ((AbstractRenderer) glsl).activate(this, context, framework.getResourceManager());
     }
 
+    // FIXME: maybe add prev/next surfaces to these so that surfaces like fbo surface
+    // can choose what to do?
+    
     /**
      * onSurfaceDeactivate() is a listener method that is invoked by
      * ContextManager when a surface is deactivated. The provided context is the

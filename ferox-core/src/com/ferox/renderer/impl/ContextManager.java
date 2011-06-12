@@ -500,8 +500,9 @@ public class ContextManager {
                 surface.onSurfaceActivate(currentContext, layer);
                 activeSurface = surface;
             } else {
-                // This is the active surface, but we should call onSurfaceActivate again just in case
-                // there was a layer change or something like that
+                // This is the active surface, but cycle deactivate/activate to make
+                // it notice the switch
+                surface.onSurfaceDeactivate(currentContext);
                 surface.onSurfaceActivate(currentContext, layer);
             }
             

@@ -376,8 +376,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         
         // reset all textures
         for (int i = 0; i < textures.length; i++) {
-            setTextureTransform(i, IDENTITY);
-            
             setTexture(i, null);
             
             setTextureColor(i, ZERO);
@@ -395,7 +393,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             
             if (textures[i].transformModifiedSinceReset) {
                 // special check to only do it if something was modified
-                setTextureTransform(i, null);
+                setTextureTransform(i, IDENTITY);
                 setTextureEyePlane(i, TexCoord.S, DEFAULT_S_PLANE);
                 setTextureEyePlane(i, TexCoord.T, DEFAULT_T_PLANE);
                 setTextureEyePlane(i, TexCoord.R, DEFAULT_RQ_PLANE);
@@ -870,7 +868,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             return; // Ignore it
         
         TextureState t = textures[tex];
-        if ((t.lock == null && image != null) || t.lock.getResource() != image) {
+        if ((t.lock == null && image != null) || (t.lock != null && t.lock.getResource() != image)) {
             // Release current texture if need-be
             Target oldTarget = null;
             if (t.lock != null) {

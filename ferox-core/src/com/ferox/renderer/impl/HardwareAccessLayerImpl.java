@@ -120,8 +120,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                 
                 if (selectedRenderer != null) {
                     // have selected a GlslRenderer to use
-                    if (selectedRenderer instanceof AbstractRenderer)
-                        ((AbstractRenderer) selectedRenderer).activate(surface, context, framework.getResourceManager());
                     selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
                 }
             }
@@ -140,8 +138,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                 
                 if (selectedRenderer != null) {
                     // have selected a FixedFunctionRenderer to use
-                    if (selectedRenderer instanceof AbstractRenderer)
-                        ((AbstractRenderer) selectedRenderer).activate(surface, context, framework.getResourceManager());
                     selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
                 }
             }
