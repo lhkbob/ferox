@@ -5,6 +5,7 @@ import com.ferox.entity.Template;
 import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * <p>
@@ -34,11 +35,12 @@ public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
      * Create a DepthOffsetMap that uses the given texture as its depth map.
      * 
      * @param depthmap The depth map to use initially
-     * @throws NullPointerException if depthMap is null
+     * @param texCoords The texture coordinates to use
+     * @throws NullPointerException if depthMap or texCoords is null
      * @throws IllegalArgumentException if depthMap isn't a 1-component texture
      */
-    public DepthOffsetMap(Texture depthmap) {
-        super(depthmap);
+    public DepthOffsetMap(Texture depthmap, VertexAttribute texCoords) {
+        super(depthmap, texCoords);
     }
 
     /**

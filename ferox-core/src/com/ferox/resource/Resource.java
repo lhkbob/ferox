@@ -97,7 +97,7 @@ public abstract class Resource {
     private UpdatePolicy policy;
     
     public Resource() {
-        id = idCounter.getAndIncrement();
+        id = idCounter.incrementAndGet();
         policy = UpdatePolicy.ON_DEMAND;
     }
     

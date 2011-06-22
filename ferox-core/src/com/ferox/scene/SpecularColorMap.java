@@ -4,6 +4,7 @@ import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * <p>
@@ -35,10 +36,11 @@ public class SpecularColorMap extends TextureMap<SpecularColorMap> {
      * specular material colors.
      * 
      * @param spec The initial specular texture map
-     * @throws NullPointerException if spec is null
+     * @param texCoords The texture coordinates to access the specular texture map
+     * @throws NullPointerException if spec or texCorods is null
      */
-    public SpecularColorMap(Texture spec) {
-        super(spec);
+    public SpecularColorMap(Texture spec, VertexAttribute texCoords) {
+        super(spec, texCoords);
     }
 
     /**

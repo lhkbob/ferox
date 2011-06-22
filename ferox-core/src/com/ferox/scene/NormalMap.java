@@ -5,6 +5,7 @@ import com.ferox.entity.Template;
 import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * <p>
@@ -43,12 +44,13 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * for vector normals. This assumes the normal map is in tangent space.
      * 
      * @param normalMap The normal map to use
-     * @throws NullPointerException if normalMap is null
+     * @param texCoords The texture coordinates to access normalMap
+     * @throws NullPointerException if normalMap or texCoords is null
      * @throws IllegalArgumentException if the normal map isn't a 3-component
      *             texture
      */
-    public NormalMap(Texture normalMap) {
-        super(normalMap);
+    public NormalMap(Texture normalMap, VertexAttribute texCoords) {
+        this(normalMap, texCoords, false);
     }
 
     /**
@@ -57,13 +59,14 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * in object space or tangent space.
      * 
      * @param normalMap The normal map to use
+     * @param texCoords The texture coordinates to access normalMap
      * @param isObjectSpace True if normals are in object space
-     * @throws NullPointerException if normalMap is null
+     * @throws NullPointerException if normalMap or texCoords is null
      * @throws IllegalArgumentException if the normal map isn't a 3-component
      *             texture
      */
-    public NormalMap(Texture normalMap, boolean isObjectSpace) {
-        super(normalMap);
+    public NormalMap(Texture normalMap, VertexAttribute texCoords, boolean isObjectSpace) {
+        super(normalMap, texCoords);
         setObjectSpace(isObjectSpace);
     }
 

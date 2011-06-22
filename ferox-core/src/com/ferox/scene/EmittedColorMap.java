@@ -4,6 +4,7 @@ import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * <p>
@@ -38,10 +39,11 @@ public class EmittedColorMap extends TextureMap<EmittedColorMap> {
      * locally emitted light.
      * 
      * @param emitted The texture map to use
-     * @throws NullPointerException if emitted is null
+     * @param texCoords The texture coordinates to access emitted
+     * @throws NullPointerException if emitted or texCoords is null
      */
-    public EmittedColorMap(Texture emitted) {
-        super(emitted);
+    public EmittedColorMap(Texture emitted, VertexAttribute texCoords) {
+        super(emitted, texCoords);
     }
 
     /**

@@ -4,6 +4,7 @@ import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * <p>
@@ -35,15 +36,16 @@ public class DiffuseColorMap extends TextureMap<DiffuseColorMap> {
      * per-pixel diffuse material colors.
      * 
      * @param diffuse The diffuse texture
-     * @throws NullPointerException if diffuse is null
+     * @param texCoords The texture coordinates used to access diffuse
+     * @throws NullPointerException if diffuse or texCoords is null
      */
-    public DiffuseColorMap(Texture diffuse) {
-        super(diffuse);
+    public DiffuseColorMap(Texture diffuse, VertexAttribute texCoords) {
+        super(diffuse, texCoords);
     }
 
     /**
-     * Create an DiffuseColorMap that is a clone of <tt>clone</tt> for use with
-     * a {@link Template}.
+     * Create a DiffuseColorMap that is a clone of <tt>clone</tt> for use with a
+     * {@link Template}.
      * 
      * @param clone The component to clone
      * @throws NullPointerException if clone is null

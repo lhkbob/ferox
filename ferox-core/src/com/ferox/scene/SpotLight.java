@@ -24,6 +24,7 @@ import com.ferox.math.Vector3f;
  * 
  * @author Michael Ludwig
  */
+// FIXME: add local position to SpotLight and PointLight
 public final class SpotLight extends Light<SpotLight> {
     /**
      * The shared TypedId representing SpotLight.

@@ -49,7 +49,7 @@ import com.ferox.entity.KeyedLinkedList.Key;
  * 
  * @author Michael Ludwig
  */
-public abstract class Component implements Cloneable {
+public abstract class Component {
     // Use a ConcurrentHashMap to perform reads. It is still synchronized completely to do
     // an insert to make sure a type doesn't try to use two different id values.
     private static final ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>> typeMap = new ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>>();

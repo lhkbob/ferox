@@ -2,8 +2,8 @@ package com.ferox.scene;
 
 import com.ferox.entity.Component;
 import com.ferox.entity.Template;
-import com.ferox.entity.TypedComponent;
 import com.ferox.entity.TypedId;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * <p>
@@ -25,7 +25,7 @@ import com.ferox.entity.TypedId;
  * 
  * @author Michael Ludwig
  */
-public final class BlinnPhongMaterial extends TypedComponent<BlinnPhongMaterial> {
+public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
     /**
      * The shared TypedId representing BlinnPhongMaterial.
      */
@@ -35,20 +35,25 @@ public final class BlinnPhongMaterial extends TypedComponent<BlinnPhongMaterial>
 
     /**
      * Create a BlinnPhongMaterial with the default shininess exponent of 1.
+     * 
+     * @param normals The starting set of normal vectors for the entity
+     * @throws NullPointerException if normals is null
      */
-    public BlinnPhongMaterial() {
-        this(1f);
+    public BlinnPhongMaterial(VertexAttribute normals) {
+        this(normals, 1f);
     }
 
     /**
      * Create a BlinnPhongMaterial that uses the given shininess exponent. See
      * {@link #setShininess(float)} for more details.
      * 
+     * @param normals The starting set of normal vectors for the entity
      * @param shininess The starting shininess
+     * @throws NullPointerException if normals is null
      * @throws IllegalArgumentException if shininess is less than 0
      */
-    public BlinnPhongMaterial(float shininess) {
-        super(null, false);
+    public BlinnPhongMaterial(VertexAttribute normals, float shininess) {
+        super(normals);
         setShininess(shininess);
     }
 
@@ -60,7 +65,7 @@ public final class BlinnPhongMaterial extends TypedComponent<BlinnPhongMaterial>
      * @throws NullPointerException if clone is null
      */
     public BlinnPhongMaterial(BlinnPhongMaterial clone) {
-        super(clone, true);
+        super(clone);
         shininess = clone.shininess;
     }
 

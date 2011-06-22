@@ -3,6 +3,7 @@ package com.ferox.resource;
 import java.util.Arrays;
 
 import com.ferox.renderer.Renderer.Comparison;
+import com.ferox.renderer.TextureSurface;
 import com.ferox.resource.BufferData.DataType;
 
 /**
@@ -135,7 +136,7 @@ public class Texture extends Resource {
     private boolean enableDepthCompare;
     private Comparison depthCompareTest;
     
-    private Target target;
+    private final Target target;
     private Mipmap[] layers;
     private int baseLevel, maxLevel;
 
@@ -162,7 +163,7 @@ public class Texture extends Resource {
      * Create a Texture that uses the specified target and array of Mipmap
      * layers. This constructor is used primarily for creating cubemaps. Other
      * targets can use {@link #Texture(Target, Mipmap)}. See
-     * {@link #setLayers(Target, Mipmap[])} for how the parameters are
+     * {@link #setLayers(Mipmap[])} for how the parameters are
      * validated.
      * 
      * @param target The Target which specifies how the Texture is accessed
@@ -173,9 +174,12 @@ public class Texture extends Resource {
      *             are the number of layers is incorrect for the target
      */
     public Texture(Target target, Mipmap[] mipmaps) {
+        if (target == null)
+            throw new NullPointerException("Target cannot be null");
+        this.target = target;
         changeQueue = new BulkChangeQueue<MipmapRegion>();
         
-        setLayers(target, mipmaps);
+        setLayers(mipmaps);
         setWrapMode(WrapMode.CLAMP);
         setFilter(Filter.LINEAR);
         setAnisotropicFilterLevel(1f);
@@ -197,11 +201,10 @@ public class Texture extends Resource {
 
     /**
      * <p>
-     * Update the Texture to use the new set of mipmaps with the given target.
-     * The texture target and the format and dimensions of the mipmaps can be
-     * different from the previous configuration of the texture. It is possible
-     * for a 2D texture to become a cubemap, for example. The change queue is
-     * cleared and all of the new image data is marked dirty.
+     * Update the Texture to use the new set of mipmaps. The format and
+     * dimensions of the mipmaps can be different from the previous
+     * configuration of the texture. The change queue is cleared and all of the
+     * new image data is marked dirty.
      * </p>
      * <p>
      * This also updates the valid mipmap range to best fit the mipmap levels
@@ -232,16 +235,15 @@ public class Texture extends Resource {
      * {@link #getLayer(int)}.
      * </p>
      * 
-     * @param target The new texture target to use
      * @param mipmaps The array of new mipmap layers, its length is dependent on
      *            target
      * @return The new version of this texture's change queue
-     * @throws NullPointerException if target or mipmaps are null, or if mipmaps
-     *             has null elements
+     * @throws NullPointerException if mipmaps are null, or if mipmaps has null
+     *             elements
      * @throws IllegalArgumentException if any of the above requirements are not
      *             met
      */
-    public synchronized int setLayers(Target target, Mipmap[] mipmaps) {
+    public synchronized int setLayers(Mipmap[] mipmaps) {
         if (mipmaps == null)
             throw new NullPointerException("Mipmap array cannot be null");
 
@@ -282,7 +284,7 @@ public class Texture extends Resource {
             
             // perform default detection of valid mipmap levels
             for (int j = 0; j < mipmaps[i].getNumMipmaps(); j++) {
-                if (mipmaps[i].getData(j) != null) {
+                if (mipmaps[i].getData(j).getArray() != null) {
                     baseLevel = Math.min(baseLevel, j);
                     maxLevel = Math.max(maxLevel, j);
                 }
@@ -292,7 +294,6 @@ public class Texture extends Resource {
         
         // at this point we know things are as valid as we can determine them,
         layers = Arrays.copyOf(mipmaps, mipmaps.length); // defensive copy
-        this.target = target;
         if (baseLevel > maxLevel) {
             // weren't able to find a valid range, default to entire mipmap range
             baseLevel = 0;
@@ -300,25 +301,9 @@ public class Texture extends Resource {
         }
         
         setValidMipmapLevels(baseLevel, maxLevel);
+        setFilter(filter); // must call this in case we lose mipmaps
         changeQueue.clear();
         return markDirty();
-    }
-
-    /**
-     * Update the set of mipmap layers used by this Texture. The target of the
-     * texture remains unchanged, so the provided mipmaps must be compatible
-     * with the current target. This is a shortcut for
-     * <code>setLayers(getTarget(), mipmaps)</code>, so it will also update the
-     * valid range of mipmaps.
-     * 
-     * @param mipmaps The new set of mipmaps
-     * @return The new version of this texture's change queue
-     * @throws NullPointerException if mipmaps is null or has null elements
-     * @throws IllegalArgumentException if mipmaps are invalid as described in
-     *             {@link #setLayers(Target, Mipmap[])}
-     */
-    public synchronized int setLayers(Mipmap[] mipmaps) {
-        return setLayers(target, mipmaps);
     }
 
     /**
@@ -724,5 +709,17 @@ public class Texture extends Resource {
         for (int i = 0; i < layers.length; i++)
             lastVersion = markDirty(i);
         return lastVersion;
+    }
+
+    /**
+     * Return the TextureSurface that renders into this Texture. If the Texture
+     * was not created by a TextureSurface, this will return null. Textures with
+     * owners may have more restrictions on the updates that can be performed,
+     * such as a smaller texture size, etc.
+     * 
+     * @return The owning TextureSurface or null
+     */
+    public synchronized TextureSurface getOwner() {
+        return null;
     }
 }

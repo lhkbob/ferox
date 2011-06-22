@@ -91,7 +91,7 @@ public class MipmapRegion {
      * 
      * @return The mipmap level modified by this region
      */
-    public int getMipmapLayer() {
+    public int getMipmapLevel() {
         return mipmapLevel;
     }
 

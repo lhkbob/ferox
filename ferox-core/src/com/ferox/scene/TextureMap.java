@@ -2,6 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.entity.TypedComponent;
 import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
 
 /**
  * TextureMap is an abstract Component type that is shared by the Components
@@ -13,14 +14,17 @@ import com.ferox.resource.Texture;
  */
 public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent<T> {
     private Texture texture;
+    private VertexAttribute textureCoordinates;
 
     /**
-     * Create a TextureMap with the given Texture.
+     * Create a TextureMap with the given Texture and texture coordinates.
      * 
      * @param texture The starting texture
-     * @throws NullPointerException if texture is null
+     * @param textureCoordinates The texture coordinates used to access the
+     *            texture
+     * @throws NullPointerException if texture or textureCoordinates is null
      */
-    protected TextureMap(Texture texture) {
+    protected TextureMap(Texture texture, VertexAttribute textureCoordinates) {
         super(null, false);
         setTexture(texture);
     }
@@ -34,6 +38,32 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      */
     protected TextureMap(T clone) {
         super(clone, true);
+        texture = clone.texture;
+        textureCoordinates = clone.textureCoordinates;
+    }
+    
+    /**
+     * @return The texture coordinates used to access this TextureMap's texture
+     */
+    public VertexAttribute getTextureCoordinates() {
+        return textureCoordinates;
+    }
+
+    /**
+     * Set the texture coordinates used to access this TextureMap's texture.
+     * Texture coordinates are used when rendering an entity that is a
+     * {@link Renderable}. There must be one texture coordinate for every vertex
+     * used in the geometry of the Renderable.
+     * 
+     * @param texCoords The new vertex attribute holding texture coord data
+     * @return The new version of the component
+     * @throws NullPointerException if texCoords is null
+     */
+    public int setTextureCoordinates(VertexAttribute texCoords) {
+        if (texCoords == null)
+            throw new NullPointerException("Texture coordinates cannot be null");
+        textureCoordinates = texCoords;
+        return notifyChange();
     }
 
     /**

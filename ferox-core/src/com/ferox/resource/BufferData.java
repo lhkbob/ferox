@@ -1,13 +1,29 @@
 package com.ferox.resource;
 
+/**
+ * 
+ * @author michaelludwig
+ *
+ */
 public class BufferData {
+    /**
+     * 
+     * @author michaelludwig
+     *
+     */
     public static enum DataType {
-        FLOAT, UNSIGNED_INT, UNSIGNED_SHORT, UNSIGNED_BYTE
+        FLOAT(4), UNSIGNED_INT(4), UNSIGNED_SHORT(2), UNSIGNED_BYTE(1);
+        
+        private final int byteCount;
+        private DataType(int byteCount) { this.byteCount = byteCount; }
+        
+        public int getByteCount() { return byteCount; }
     }
     
     private Object data;
     private final int length;
     private final DataType type;
+    private final Object key = new Object();
     
     public BufferData(float[] data) {
         if (data == null)
@@ -52,6 +68,10 @@ public class BufferData {
         data = null;
     }
     
+    public Object getKey() {
+        return key;
+    }
+    
     public int getLength() {
         return length;
     }
@@ -61,7 +81,7 @@ public class BufferData {
     }
     
     @SuppressWarnings("unchecked")
-    public <T> T getData() {
+    public <T> T getArray() {
         return (T) data;
     }
 
