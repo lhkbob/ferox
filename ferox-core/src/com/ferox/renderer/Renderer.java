@@ -767,8 +767,10 @@ public interface Renderer {
      * @param count The number of indices to turn into polygons
      * @return The number of polygons rendered
      * @throws NullPointerException if polyType or indices is null
-     * @throws IllegalArgumentException if offset is negative, or if indices has
-     *             a data type of FLOAT
+     * @throws IllegalArgumentException if offset or count are negative, or if
+     *             indices has a data type of FLOAT
+     * @throws IndexOutOfBoundsException if offset + count is greater than the
+     *             size of the indices buffer
      */
     public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count);
 

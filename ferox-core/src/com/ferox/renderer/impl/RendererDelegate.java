@@ -10,6 +10,8 @@ import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.renderer.impl.ResourceManager.LockToken;
+import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.Resource.Status;
 
@@ -474,6 +476,9 @@ public abstract class RendererDelegate {
         if (indexBinding.lock == null || indexBinding.lock.getResource() != indices) {
             // Must bind a new element vbo
             boolean hadOldIndices = indexBinding.lock != null;
+            boolean failTypeCheck = false;
+            boolean failSizeCheck = false;
+            
             if (hadOldIndices) {
                 // Unlock old vbo first
                 resourceManager.unlock(indexBinding.lock);
@@ -488,6 +493,21 @@ public abstract class RendererDelegate {
                 newLock = null;
             }
             
+            // check if the actual VBO is of the correct type (must use handle, can't rely
+            // on the resource reporting most up-to-date type)
+            if (newLock != null && ((VertexBufferObjectHandle) newLock.getResourceHandle()).dataType == DataType.FLOAT) {
+                failTypeCheck = true;
+                resourceManager.unlock(newLock);
+                newLock = null;
+            }
+            // check if the actual VBO is of the correct size (must use handle can't 
+            // rely on the resource reporting most up-to-date size)
+            if (newLock != null && (offset + count) > ((VertexBufferObjectHandle) newLock.getResourceHandle()).length) {
+                failSizeCheck = true;
+                resourceManager.unlock(newLock);
+                newLock = null;
+            }
+            
             // Handle actual binding of the vbo
             if (newLock != null) {
                 indexBinding.lock = newLock;
@@ -497,6 +517,11 @@ public abstract class RendererDelegate {
                 // one is unbound since we've already unlocked it
                 glBindElementVbo(null);
             }
+            
+            if (failTypeCheck)
+                throw new IllegalArgumentException("VertexBufferObject cannot have a type of FLOAT");
+            if (failSizeCheck)
+                throw new IndexOutOfBoundsException("Offset and count would access out-of-bounds indices");
         }
         
         if (indexBinding.lock == null) {

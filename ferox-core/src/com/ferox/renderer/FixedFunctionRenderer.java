@@ -102,9 +102,6 @@ import com.ferox.util.geom.Geometry;
  * 
  * @author Michael Ludwig
  */
-// FIXME: update type requirements for attributes, only FLOAT is supported for norms/vertices/texCoords
-// FIXME: in impl, must be sure to check the handle and not the resource type, since that could for some
-// reason change on us (maybe I shouldn't allow that flexibility?)
 public interface FixedFunctionRenderer extends Renderer {
     /**
      * The CombineFunction enum describes the advanced texture combining
@@ -1063,8 +1060,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * 
      * @param vertices The VertexAttribute holding the position data and access
      *            information
-     * @throws IllegalArgumentException if vertices' buffer data has a type of
-     *             BYTE
+     * @throws IllegalArgumentException if vertices' buffer data type is not
+     *             FLOAT or if its element size is 1
      */
     public void setVertices(VertexAttribute vertices);
 
@@ -1078,17 +1075,17 @@ public interface FixedFunctionRenderer extends Renderer {
      * of 3.
      * </p>
      * <p>
-     * This updates the currently bound normal attribute. The bound
-     * attribute will remain unchanged after rendering until this method is
-     * called again. A normals attribute is not necessary if lighting is
-     * disabled. If normals aren't bound when rendering with lighting, an
-     * undefined normal vector is used. The attribute can be unbound if a null
-     * VertexAttribute is provided.
+     * This updates the currently bound normal attribute. The bound attribute
+     * will remain unchanged after rendering until this method is called again.
+     * A normals attribute is not necessary if lighting is disabled. If normals
+     * aren't bound when rendering with lighting, an undefined normal vector is
+     * used. The attribute can be unbound if a null VertexAttribute is provided.
      * </p>
      * 
      * @param normals The VertexAttribute holding the normal vector data and
      *            access information
-     * @throws IllegalArgumentException if normals element size is not 3
+     * @throws IllegalArgumentException if normals element size is not 3 or if
+     *             its type is not FLOAT
      */
     public void setNormals(VertexAttribute normals);
 
@@ -1124,8 +1121,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param tex The texture unit to bind <tt>texCoords</tt> to
      * @param texCoords The VertexAttribute holding the texture coordinate data
      *            and access information
-     * @throws IllegalArgumentException if texCoords' data type is BYTE or if
-     *             tex is less than 0
+     * @throws IllegalArgumentException if texCoords' data type is not FLOAT or
+     *             if tex is less than 0
      */
     public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }

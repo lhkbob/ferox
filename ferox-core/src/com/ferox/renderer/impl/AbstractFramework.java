@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl;
 
+import java.util.Comparator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
@@ -16,6 +17,7 @@ import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.Task;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
+import com.ferox.resource.GlslShader;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
@@ -87,7 +89,7 @@ public abstract class AbstractFramework implements Framework {
         //  3. We can construct the context manager here, too
         sharedContext = surfaceFactory.createShadowContext(null);
         contextManager = new ContextManager(surfaceFactory, sharedContext, numThreads);
-        resourceManager = new ResourceManager(contextManager, drivers);
+        resourceManager = new ResourceManager(new GlslCompatibleLockComparator(), contextManager, drivers);
         
         surfaces = new CopyOnWriteArraySet<AbstractSurface>();
         lifecycleManager = new LifeCycleManager("Ferox Framework");
@@ -346,6 +348,30 @@ public abstract class AbstractFramework implements Framework {
         @Override
         public T call() throws Exception {
             return task.run(new HardwareAccessLayerImpl(AbstractFramework.this));
+        }
+    }
+    
+    /*
+     * Implement a Comparator<Resource> that pushes all GlslShaders to the end of the locking,
+     * so that the AbstractGlslRenderer works correctly. This isn't a perfect solution but its
+     * the only way to make the renderer safe in the event of bad resource updates.
+     */
+    private static class GlslCompatibleLockComparator implements Comparator<Resource> {
+        @Override
+        public int compare(Resource o1, Resource o2) {
+            boolean glsl1 = o1 instanceof GlslShader;
+            boolean glsl2 = o2 instanceof GlslShader;
+            
+            if ((glsl1 && glsl2) || (!glsl1 && !glsl2)) {
+                // if both are GlslShaders or both aren't GlslShaders, order by resource id
+                return o1.getId() - o2.getId();
+            } else if (glsl1 && !glsl2) {
+                // o1 is a GlslShader, so push it to the end
+                return 1;
+            } else {
+                // o2 is a GlslShader, so push it to the end
+                return -1;
+            }
         }
     }
 }

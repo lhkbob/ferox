@@ -9,6 +9,8 @@ import com.ferox.math.Vector4f;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceManager.LockToken;
+import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
@@ -16,12 +18,20 @@ import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 
 /**
- * The AbstractFixedFunctionRenderer is an abstract implemenation of
+ * <p>
+ * The AbstractFixedFunctionRenderer is an abstract implementation of
  * {@link FixedFunctionRenderer}. It uses a {@link RendererDelegate} to handle
  * implementing the methods exposed by {@link Renderer}. The
  * AbstractFixedFunctionRenderer tracks the current state, and when necessary,
  * delegate to protected abstract methods which have the responsibility of
  * actually making OpenGL calls.
+ * </p>
+ * <p>
+ * It makes a best-effort attempt to preserve the texture and vertex attribute
+ * state when resource deadlocks must be resolved. It is possible that a texture
+ * must be unbound or will have its data changed based on the actions of another
+ * render task.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -1244,11 +1254,15 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setVertices(VertexAttribute vertices) {
+        if (vertices != null && vertices.getElementSize() == 1)
+            throw new IllegalArgumentException("Vertices element size cannot be 1");
         setAttribute(vertexBinding, vertices);
     }
 
     @Override
     public void setNormals(VertexAttribute normals) {
+        if (normals != null && normals.getElementSize() != 3)
+            throw new IllegalArgumentException("Normals element size must be 3");
         setAttribute(normalBinding, normals);
     }
 
@@ -1270,6 +1284,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             if (state.lock == null || state.lock.getResource() != attr.getData() || accessDiffers) {
                 // The attributes will be different so must make a change
                 VertexBufferObject oldVbo = (state.lock == null ? null : state.lock.getResource());
+                boolean failTypeCheck = false;
+                
                 if (state.lock != null && oldVbo != attr.getData()) {
                     // Unlock the old one
                     resourceManager.unlock(state.lock);
@@ -1284,10 +1300,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                         // VBO isn't ready so unlock it
                         resourceManager.unlock(newLock);
                         newLock = null;
-                    } else {
-                        // VBO is ready or wasn't locked, either way state.lock should equal newLock
-                        state.lock = newLock;
+                    } 
+                    
+                    if (newLock != null && ((VertexBufferObjectHandle) newLock.getResourceHandle()).dataType != DataType.FLOAT) {
+                        resourceManager.unlock(newLock);
+                        newLock = null;
+                        failTypeCheck = true;
                     }
+                    
+                    // VBO is ready or wasn't locked, either way state.lock should equal newLock
+                    state.lock = newLock;
                 }
                 
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
@@ -1309,6 +1331,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                     glEnableAttribute(state.target, false);
                     unbindArrayVboMaybe(oldVbo);
                 }
+                
+                if (failTypeCheck)
+                    throw new IllegalArgumentException("VertexAttribute type must be FLOAT");
             }
         } else {
             // The attribute is meant to be unbound

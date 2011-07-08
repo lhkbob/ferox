@@ -4,6 +4,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,25 +42,35 @@ public class ResourceManager {
     private final ReferenceQueue<Resource> collectedResources;
     private final ConcurrentMap<Integer, ResourceData<?>> resources;
     private final Map<Class<? extends Resource>, ResourceDriver<?>> drivers;
+    
+    private final LockTokenComparator lockOrder;
 
     /**
+     * <p>
      * Create a new ResourceManager that uses the given ContextManager to queue
      * tasks to dispose of graphics card level data tied to garbage-collected
      * resources. The provided ResourceDrivers are used to process specific
      * types of resources. They implicitly define the set of supported resource
      * types.
+     * </p>
+     * <p>
      * 
+     * @param lockOrder A Comparator that imposes an ordering on resources when
+     *            they must be relocked in a consistent manner
      * @param contextManager The ContextManager used by the ResourceManager (and
      *            the rest of the framework)
      * @param drivers A varargs array of resource drivers, cannot have any null
      *            values
-     * @throws NullPointerException if contextManager or any of the drivers are
+     * @throws NullPointerException if lockOrder, contextManager or any of the drivers are
      *             null
      */
-    public ResourceManager(ContextManager contextManager, ResourceDriver<?>... drivers) {
+    public ResourceManager(Comparator<Resource> lockOrder, ContextManager contextManager, ResourceDriver<?>... drivers) {
+        if (lockOrder == null)
+            throw new NullPointerException("Lock order Comparator cannot be null");
         if (contextManager == null)
             throw new NullPointerException("ContextManager cannot be null");
         this.contextManager = contextManager;
+        this.lockOrder = new LockTokenComparator(lockOrder);
         
         locks = new ThreadLocal<List<LockToken<?>>>() {
             @Override
@@ -170,7 +181,7 @@ public class ResourceManager {
             
             // Add new token and sort the list
             threadLocks.add(newToken);
-            Collections.sort(threadLocks);
+            Collections.sort(threadLocks, lockOrder);
             
             // Relock all locks, blocking until completed
             int ct = threadLocks.size();
@@ -631,7 +642,7 @@ public class ResourceManager {
      * @see ResourceManager#unlock(LockToken)
      * @param <R> The Resource type that is locked
      */
-    public static class LockToken<R extends Resource> implements Comparable<LockToken<?>> {
+    public static class LockToken<R extends Resource> {
         private final R resource; // Have an actual reference to the resource so it doesn't get GC'ed
         private final ResourceData<R> data;
         private final LockListener<? super R> listener;
@@ -697,25 +708,42 @@ public class ResourceManager {
             else
                 data.lock.readLock().unlock();
         }
-
+    }
+    
+    /*
+     * Comparator that orders LockTokens by a comparator of resources, and
+     * correctly orders read and write locks.
+     */
+    private static class LockTokenComparator implements Comparator<LockToken<?>> {
+        private final Comparator<Resource> resourceComparator;
+        
+        public LockTokenComparator(Comparator<Resource> comp) {
+            resourceComparator = comp;
+        }
+        
         @Override
-        public int compareTo(LockToken<?> o) {
-            int id1 = resource.getId();
-            int id2 = o.resource.getId();
-            
-            if (id1 == id2) {
-                // Order consistently based on lock type,
-                // and have the write lock come first so that the exclusive lock
-                // is the outer lock
-                if (writeLock && !o.writeLock)
-                    return -1;
-                else if (!writeLock && o.writeLock)
-                    return 1;
-                else
-                    return 0;
+        public int compare(LockToken<?> o1, LockToken<?> o2) {
+            int c = resourceComparator.compare(o1.resource, o2.resource);
+            if (c == 0) {
+                // verify that resources are in fact equal 
+                // (if not, the comparator screwed up, so order by id)
+                if (o1.resource == o2.resource) {
+                    // order by lock type
+                    if (o1.writeLock && !o2.writeLock)
+                        return -1;
+                    else if (!o1.writeLock && o2.writeLock)
+                        return 1;
+                    else
+                        return 0;
+                } else {
+                    // comparator is claiming different resources are equal
+                    return o1.resource.getId() - o2.resource.getId();
+                }
             } else {
-                // Compare by unique id
-                return id1 - id2;
+                // resources aren't equal so use comparators answer
+                if (o1.resource == o2.resource)
+                    throw new RuntimeException("Bad Resource lock Comparator, claims a Resource is not equal to itself");
+                return c;
             }
         }
     }
@@ -737,7 +765,7 @@ public class ResourceManager {
                     
                     if (data.handle != null) {
                         // Don't block on this, we just need it to be disposed of in the future
-                        contextManager.queue(new DisposeOrphanedHandleTask(data), "resource");
+                        contextManager.queue(new DisposeOrphanedHandleTask(data), AbstractFramework.DEFAULT_RESOURCE_TASK_GROUP);
                     }
                     
                     // Remove it from the collection of current resources

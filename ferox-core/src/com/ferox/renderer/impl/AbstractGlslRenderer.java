@@ -15,6 +15,7 @@ import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceManager.LockToken;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Attribute;
@@ -30,6 +31,27 @@ import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 
+/**
+ * <p>
+ * The AbstractGlslRenderer is an abstract implementation of
+ * {@link GlslRenderer}. It uses a {@link RendererDelegate} to handle
+ * implementing the methods exposed by {@link Renderer}. The
+ * AbstractGlslRenderer tracks the current state, and when necessary, delegate
+ * to protected abstract methods which have the responsibility of actually
+ * making OpenGL calls.
+ * </p>
+ * <p>
+ * It makes a best-effort attempt to preserve the texture, vertex attribute, and
+ * shader state when resource deadlocks must be resolved. It is possible that a
+ * texture must be unbound or will have its data changed based on the actions of
+ * another render task. Additionally, the preserving a shader's state when it
+ * undergoes concurrent updates is quite complicated, so it is possible that it
+ * cannot be preserved if uniforms or attributes are changed or reordered in the
+ * shader definition.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public abstract class AbstractGlslRenderer extends AbstractRenderer implements GlslRenderer {
     protected class VertexAttributeBinding implements LockListener<VertexBufferObject> {
         // Used to handle relocking/unlocking
@@ -54,11 +76,27 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 // Resource has been removed, so reset the lock
                 lock = null;
                 
-                // FIXME: set a useful default attr value? notify attr binding?
+                // search for attribute binding for this vertex-attribute so we update
+                // attribute state to record the unbinding of the vbo
+                boolean found = false;
+                for (AttributeBinding attr: attributeBindings.values()) {
+                    for (int i = 0; i < attr.columnVBOs.length; i++) {
+                        if (attr.columnVBOs[i] == VertexAttributeBinding.this) {
+                            // found it, so now bind a default value of (0, 0, 0, 0)
+                            bindAttribute(attr, i, attr.attr.type.getRowCount(), 0, 0, 0, 0);
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (found)
+                        break;
+                }
+                
                 return false;
             } else {
-                // Re-bind the VBO
-
+                // Re-bind the VBO, this is restoring the expected state
+                // so we don't need to tamper with the attribute binding record
                 bindArrayVbo(lock.getResource(), lock.getResourceHandle(), null);
                 glEnableAttribute(attributeIndex, true);
                 glAttributePointer(attributeIndex, lock.getResourceHandle(), offset, stride, elementSize);
@@ -98,13 +136,25 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (token.getResourceHandle() == null || token.getResourceHandle().getStatus() != Status.READY) {
                 // Texture got screwed up while we were unlocked so don't bind anything, and
                 // tell the resource manager to unlock
-                
-                // FIXME: what about the uniform state? Do we want to record
-                // that all related uniforms are no longer valid? YES
                 lock = null;
+                referenceCount = 0;
+                
+                // search through uniform binding state and clear the record that it
+                // was a valid texture binding
+                for (UniformBinding u: uniformBindings.values()) {
+                    if (u.isTextureBinding && u.intValues.get(0) == texUnit) {
+                        // this uniform points to this unit so invalidate its state
+                        // but don't make calls that depend on the shader
+                        u.isTextureBinding = false;
+                        u.valuesValid = false;
+                    }
+                }
+
                 return false;
             } else {
-                // Re-enable and bind the texture
+                // Re-enable and bind the texture, the uniform will still
+                // point to this texture slot and the texture could not have
+                // changed targets so we're okay on validity
                 glBindTexture(texUnit, token.getResource().getTarget(), token.getResourceHandle());
                 return true;
             }
@@ -120,7 +170,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             return true;
         }
     }
-    
+        
     protected class ShaderBinding implements LockListener<GlslShader> {
         public LockToken<? extends GlslShader> lock;
         
@@ -134,7 +184,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 lock = null;
                 
                 // since we're not using the shader anymore, reset other state too
-                // FIXME: how can we safely reset this state if they're lock listeners have to still be invoked?
+                // we assume that glsl locks go last so we can assume any locked vbos and textures
+                // have been relocked or left unlocked and we call the reset method safely
                 resetAttributeAndTextureBindings();
                 attributeBindings = null;
                 uniformBindings = null;
@@ -142,28 +193,15 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 return false;
             } else {
                 // Re-bind the program
-                glUseProgram((GlslShaderHandle) token.getResourceHandle());
+                GlslShaderHandle handle = (GlslShaderHandle) token.getResourceHandle();
+                glUseProgram(handle);
                 
-                // FIXME; what happens if the shader was updated and changed all of the
-                // attribute bindings, should we refresh them?
-                //  - probably and then push all values back onto them.
-                //  - but this causes issues when rebinding textures/vertex attributes
-                //  - safest to just reset everything here if we detect changes in the
-                //    uniforms/attributes.
-                //  - if there are no changes, we should just keep everything the same
-                //    and once all locks are taken up, things will be back to normal
+                // Update uniform bindings to match new shader details
+                generateNewUniformBindings(handle);
                 
-                // Even this is tricky since the reseting on change is wrong for the
-                // same reasons as above.
+                // Update attribute bindings to match new shader details
+                generateNewAttributeBindings(handle);
                 
-                // Perhaps the best bet is to store the bindings in a 2nd place, too
-                // and have the VBO/texture bindings return false for relocking, and 
-                // then onRelock for the shader, it pushes all through?
-                //  - or flags that will push the bindings later, next time there is an interaction
-                //    since we can't do the relocking inside this method or we'll possible get
-                //    contention (ResourceManager assumes no new locks need to be held when listener is called)
-                // Could just not reset and allow bindings/etc. to be corrupted, but would need
-                //    to worry about reference counting then
                 return true;
             }
         }
@@ -176,6 +214,139 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             glUseProgram(null);
             return true;
         }
+        
+        // Destructively create new attribute bindings for the GlslRenderer,
+        // this replaces the old attributeBindings map.
+        private void generateNewAttributeBindings(GlslShaderHandle handle) {
+            Map<String, AttributeBinding> newAttrs = new HashMap<String, AttributeBinding>();
+            for (Attribute a: handle.attributes.values()) {
+                AttributeBinding oldBinding = attributeBindings.get(a.name);
+                if (oldBinding != null && a.type == oldBinding.attr.type) {
+                    // attribute is compatible
+                    if (oldBinding.attr == a) {
+                        // no change in the shader variable, so reuse binding
+                        newAttrs.put(a.name, oldBinding);
+                    } else {
+                        // create a new binding
+                        // - if the attribute only stored a single value, it can be pushed now
+                        // - if it uses VBOs the logic gets a little more complicated
+                        // - no change needs to be made if the index lines up
+                        if (oldBinding.attr.index == a.index) {
+                            // clone oldBinding and that's all we need to do, since
+                            // OpenGL should have remembered the vertex attribute state by index
+                            newAttrs.put(a.name, new AttributeBinding(a, oldBinding));
+                        } else {
+                            for (int i = 0; i < oldBinding.columnValuesValid.length; i++) {
+                                if (oldBinding.columnValuesValid[i]) {
+                                    // push the attribute value to the new va index
+                                    int rowCount = oldBinding.attr.type.getRowCount();
+                                    glAttributeValue(oldBinding.attr.index + i, rowCount, 
+                                                     (rowCount >= 1 ? oldBinding.columnValues.get(i * rowCount + 0) : 0f),
+                                                     (rowCount >= 2 ? oldBinding.columnValues.get(i * rowCount + 1) : 0f), 
+                                                     (rowCount >= 3 ? oldBinding.columnValues.get(i * rowCount + 2) : 0f), 
+                                                     (rowCount >= 4 ? oldBinding.columnValues.get(i * rowCount + 3) : 0f));
+                                } else if (oldBinding.columnVBOs[i].lock != null) {
+                                    // unlock any vbo for an attribute that was moved to a new index
+                                    // we have to unlock it from the old one
+                                    // - we will NOT relock the VBOs onto the new index, however, because that
+                                    //   would require us to lock a resource while in the relock phase (not okay)
+                                    // - this isn't the end of the world, we're already accepting the possibility
+                                    //   that the shader can be in an inconsistent state so this is just another 
+                                    //   situation to be aware of.
+                                    glEnableAttribute(oldBinding.columnVBOs[i].attributeIndex, false);
+                                    unbindArrayVboMaybe(oldBinding.columnVBOs[i].lock.getResource());
+                                    resourceManager.unlock(oldBinding.columnVBOs[i].lock);
+                                    oldBinding.columnVBOs[i].lock = null;
+                                }
+                            }
+                            
+                            // create a completely new binding
+                            // - note that the column values will not match OpenGL state, but this isn't that bad
+                            //   because it just means the next state push will go through no matter what, and
+                            //   most likely it will be different state anyway
+                            newAttrs.put(a.name, new AttributeBinding(a));
+                        }
+                    }
+                    
+                    // remove old binding from attributeBindings so we can iterate
+                    // over old attributes that must be cleaned up properly later
+                    attributeBindings.remove(a.name);
+                } else {
+                    // completely new attribute is needed
+                    newAttrs.put(a.name, new AttributeBinding(a));
+                }
+            }
+            
+            // Reset attribute state for any attribute bindings that are being removed
+            for (AttributeBinding ab: attributeBindings.values()) {
+                for (int i = 0; i < ab.columnVBOs.length; i++) {
+                    if (ab.columnVBOs[i].lock != null) {
+                        // attribute that no longer exists or is invalid and has a 
+                        // VBO that must be unbound
+                        glEnableAttribute(ab.columnVBOs[i].attributeIndex, false);
+                        unbindArrayVboMaybe(ab.columnVBOs[i].lock.getResource());
+                        resourceManager.unlock(ab.columnVBOs[i].lock);
+                        ab.columnVBOs[i].lock = null;
+                    }
+                }
+            }
+
+            attributeBindings = newAttrs;
+        }
+        
+        // Destructively create new uniform bindings for the GlslRenderer,
+        // this replaces the old uniformBindings map.
+        private void generateNewUniformBindings(GlslShaderHandle handle) {
+            Map<String, UniformBinding> newUniforms = new HashMap<String, UniformBinding>();
+            for (Uniform u: handle.uniforms.values()) {
+                UniformBinding oldBinding = uniformBindings.get(u.name);
+                if (oldBinding != null && u.uniform.getType() == oldBinding.uniform.uniform.getType()
+                    && u.uniform.getLength() == oldBinding.uniform.uniform.getLength()) {
+                    // uniform is compatible
+                    if (oldBinding.uniform == u) {
+                        // no change in the shader variable, so reuse binding
+                        newUniforms.put(u.name, oldBinding);
+                    } else {
+                        // push value to the shader and create a new binding
+                        if (oldBinding.valuesValid) {
+                            if (oldBinding.floatValues != null) {
+                                oldBinding.floatValues.rewind();
+                                glUniform(u, oldBinding.floatValues,
+                                          oldBinding.floatValues.capacity() / u.uniform.getType().getPrimitiveCount());
+                            } else { // oldBinding.intValues != null
+                                oldBinding.intValues.rewind();
+                                glUniform(u, oldBinding.intValues,
+                                          oldBinding.intValues.capacity() / u.uniform.getType().getPrimitiveCount());
+                            }
+                        }
+                        newUniforms.put(u.name, new UniformBinding(u, oldBinding));
+                    }
+                    
+                    // remove old binding from uniformBindings so we can iterate
+                    // over old uniforms that must be cleaned up properly later
+                    uniformBindings.remove(u.name);
+                } else {
+                    // completely new uniform binding is needed
+                    newUniforms.put(u.name, new UniformBinding(u));
+                }
+            }
+            
+            // Iterate through the UniformBindings left to clean up any referenced textures
+            for (UniformBinding ub: uniformBindings.values()) {
+                if (ub.isTextureBinding && ub.valuesValid) {
+                    int texUnit = ub.intValues.get(0);
+                    textureBindings[texUnit].referenceCount--;
+                    if (textureBindings[texUnit].referenceCount <= 0) {
+                        // unbind and unlock texture
+                        glBindTexture(texUnit, textureBindings[texUnit].lock.getResource().getTarget(), null);
+                        resourceManager.unlock(textureBindings[texUnit].lock);
+                        textureBindings[texUnit].lock = null;
+                    }
+                }
+            }
+            
+            uniformBindings = newUniforms;
+        }
     }
     
     protected class AttributeBinding {
@@ -185,6 +356,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         public final FloatBuffer columnValues; // column-major if multiple columns exist
         public final boolean[] columnValuesValid;
 
+        public AttributeBinding(Attribute attr, AttributeBinding oldBinding) {
+            this.attr = attr;
+            columnVBOs = oldBinding.columnVBOs;
+            columnValues = oldBinding.columnValues;
+            columnValuesValid = oldBinding.columnValuesValid;
+        }
+        
         public AttributeBinding(Attribute attr) {
             this.attr = attr;
             columnVBOs = new VertexAttributeBinding[attr.type.getColumnCount()];
@@ -205,6 +383,15 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         public boolean valuesValid;
         public boolean isTextureBinding;
 
+        public UniformBinding(Uniform uniform, UniformBinding old) {
+            this.uniform = uniform;
+            
+            floatValues = old.floatValues;
+            intValues = old.intValues;
+            valuesValid = old.valuesValid;
+            isTextureBinding = old.isTextureBinding;
+        }
+        
         public UniformBinding(Uniform uniform) {
             this.uniform = uniform;
             isTextureBinding = false;
@@ -329,7 +516,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setShader(GlslShader shader) {
         if (shaderBinding.lock == null || shaderBinding.lock.getResource() != shader) {
-            // now that the extra state has been reset (a safety precaution),
+            // reset the extra state as a safety precaution
             resetAttributeAndTextureBindings();
             
             LockToken<? extends GlslShader> oldLock = null;
@@ -428,8 +615,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
             VertexAttributeBinding state = a.columnVBOs[column];
             boolean accessDiffers = (state.offset != attr.getOffset() ||
-                state.stride != attr.getStride() ||
-                state.elementSize != attr.getElementSize());
+                                     state.stride != attr.getStride() ||
+                                     state.elementSize != attr.getElementSize());
             if (state.lock == null || state.lock.getResource() != attr.getData() || accessDiffers) {
                 VertexBufferObject oldVbo = (state.lock == null ? null : state.lock.getResource());
                 if (state.lock != null && oldVbo != attr.getData()) {
@@ -1115,12 +1302,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             activeArrayVbos = 0;
             arrayVboBinding = vbo;
 
-            // If we're binding the vbo, then the last vbo on the slot doesn't matter
-            // since it wasn't counted in the activeArrayVbos counter
+            // If we have to bind the vbo, then the last vbo bound to the slot doesn't 
+            // matter, since it wasn't counted in the activeArrayVbos counter
             oldVboOnSlot = null;
         }
 
-        // Only update the count if the new vbo isn't replacing the same vbo in the same slot
+        // Only update the count if the new vbo isn't replacing itself in the same slot
         if (oldVboOnSlot != vbo)
             activeArrayVbos++;
     }
