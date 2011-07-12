@@ -27,11 +27,14 @@ public abstract class Light<T extends Light<T>> extends TypedComponent<T> {
     private final Color3f color;
 
     /**
-     * Default constructor that sets the light's color to white.
+     * Create a new Light with the given color.
+     * 
+     * @param color The initial color
+     * @throws NullPointerException if color is null
      */
-    protected Light() {
+    protected Light(ReadOnlyColor3f color) {
         super(null, false);
-        color = new Color3f(1f, 1f, 1f);
+        this.color = new Color3f(color);
     }
     
     /**
@@ -54,7 +57,7 @@ public abstract class Light<T extends Light<T>> extends TypedComponent<T> {
      * 
      * @return The color of this Light
      */
-    public ReadOnlyColor3f getColor() {
+    public final ReadOnlyColor3f getColor() {
         return color;
     }
 
@@ -67,7 +70,7 @@ public abstract class Light<T extends Light<T>> extends TypedComponent<T> {
      * @return The new version of this Light, via {@link #notifyChange()}
      * @throws NullPointerException if color is null
      */
-    public int setColor(ReadOnlyColor3f color) {
+    public final int setColor(ReadOnlyColor3f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
         this.color.set(color);

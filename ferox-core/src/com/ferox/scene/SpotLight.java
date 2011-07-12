@@ -3,7 +3,7 @@ package com.ferox.scene;
 import com.ferox.entity.Component;
 import com.ferox.entity.Template;
 import com.ferox.entity.TypedId;
-import com.ferox.math.Color3f;
+import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
@@ -24,8 +24,7 @@ import com.ferox.math.Vector3f;
  * 
  * @author Michael Ludwig
  */
-// FIXME: add local position to SpotLight and PointLight
-public final class SpotLight extends Light<SpotLight> {
+public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     /**
      * The shared TypedId representing SpotLight.
      */
@@ -33,7 +32,6 @@ public final class SpotLight extends Light<SpotLight> {
     
     private final Vector3f direction;
     private float cutoffAngle;
-    private float falloffDistance;
 
     /**
      * Create a new SpotLight that uses the given color, a cutoff angle of 30
@@ -43,7 +41,7 @@ public final class SpotLight extends Light<SpotLight> {
      * @param color The starting color
      * @throws NullPointerException if color is null
      */
-    public SpotLight(Color3f color) {
+    public SpotLight(ReadOnlyColor3f color) {
         this(color, 30f);
     }
 
@@ -57,27 +55,29 @@ public final class SpotLight extends Light<SpotLight> {
      * @throws NullPointerException if color is null
      * @throws IllegalArgumentException if cutoffAngle is not in [0, 90]
      */
-    public SpotLight(Color3f color, float cutoffAngle) {
-        this(color, cutoffAngle, new Vector3f(0f, 0f, 1f));
+    public SpotLight(ReadOnlyColor3f color, float cutoffAngle) {
+        this(color, cutoffAngle, -1f);
     }
 
     /**
-     * Create a new SpotLight that uses the given color, cutoff angle, and local
-     * direction vector. Energy falloff is disabled.
+     * Create a new SpotLight that uses the given color, cutoff angle, and
+     * falloff distance. The local direction vector is (0, 0, 1) and the local
+     * position is (0, 0, 0).
      * 
      * @param color The color
      * @param cutoffAngle The cutoff angle, in degrees in the range [0, 90]
-     * @param direction The local direction vector
-     * @throws NullPointerException if color or direction are null
+     * @param falloffDistance The distance until light no longer contributes, or
+     *            a negative number to disable
+     * @throws NullPointerException if color is null
      * @throws IllegalArgumentException if cutoffAngle is not in [0, 90]
      * @throws ArithmeticException if direction cannot be normalized
      */
-    public SpotLight(Color3f color, float cutoffAngle, ReadOnlyVector3f direction) {
+    public SpotLight(ReadOnlyColor3f color, float cutoffAngle, float falloffDistance) {
+        super(color, new Vector3f(), falloffDistance);
+        
         this.direction = new Vector3f();
-        setColor(color);
         setDirection(direction);
         setCutoffAngle(cutoffAngle);
-        setFalloffDistance(-1f);
     }
 
     /**
@@ -90,7 +90,6 @@ public final class SpotLight extends Light<SpotLight> {
         super(clone);
         direction = new Vector3f(clone.direction);
         cutoffAngle = clone.cutoffAngle;
-        falloffDistance = clone.falloffDistance;
     }
 
     /**
@@ -152,34 +151,5 @@ public final class SpotLight extends Light<SpotLight> {
      */
     public ReadOnlyVector3f getDirection() {
         return direction;
-    }
-    
-    /**
-     * Set the distance to where the light's energy has fallen to zero and no
-     * longer contributes to the lighting of a scene. If this is negative, the
-     * light has no energy falloff and all lit objects will be lit with the same
-     * energy. When enabled, a light's energy falls off acoording to an inverse
-     * square law based on the distance to an object.
-     * 
-     * @param distance The new falloff distance
-     * @return The new version of the light, via {@link #notifyChange()}
-     */
-    public int setFalloffDistance(float distance) {
-        // No argument checking, a negative distance disables
-        // light falloff so every value is supported
-        falloffDistance = distance;
-        return notifyChange();
-    }
-
-    /**
-     * Return the distance to where the light's energy has fallen off to zero
-     * and no longer contributes to lighting. If this is negative, then the
-     * light has no energy falloff. When enabled, a light's energy falls off
-     * according to an inverse square law based on the distance to an object
-     * 
-     * @return The falloff distance
-     */
-    public float getFalloffDistance() {
-        return falloffDistance;
     }
 }

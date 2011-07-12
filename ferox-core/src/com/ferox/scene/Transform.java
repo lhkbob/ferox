@@ -103,9 +103,9 @@ public final class Transform extends TypedComponent<Transform> {
      * {@link Entity#getVersion(com.ferox.entity.TypedId)} to determine if it
      * has been modified.
      * 
-     * @return The current world affineTransform matrix
+     * @return The current world affine transform matrix
      */
-    public ReadOnlyMatrix4f getMatrix() {
+    public AffineTransform getMatrix() {
         return affineTransform;
     }
 }

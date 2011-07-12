@@ -6,6 +6,7 @@ import com.ferox.entity.TypedId;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.BufferData.DataType;
 
 /**
  * <p>
@@ -37,37 +38,24 @@ public final class NormalMap extends TextureMap<NormalMap> {
      */
     public static final TypedId<NormalMap> ID = Component.getTypedId(NormalMap.class);
     
-    private boolean isObjectSpace;
+    private VertexAttribute tangentVectors;
 
     /**
      * Create a NormalMap that initially uses the given Texture as the source
-     * for vector normals. This assumes the normal map is in tangent space.
+     * for vector normals. If the tangents vertex attribute is non-null, the
+     * normals are assumed to be in tangent space. When null, the normals
+     * are in object space.
      * 
      * @param normalMap The normal map to use
      * @param texCoords The texture coordinates to access normalMap
+     * @param tangents The tangent vectors creating the tangent space
      * @throws NullPointerException if normalMap or texCoords is null
      * @throws IllegalArgumentException if the normal map isn't a 3-component
      *             texture
      */
-    public NormalMap(Texture normalMap, VertexAttribute texCoords) {
-        this(normalMap, texCoords, false);
-    }
-
-    /**
-     * Create a NormalMap that uses the given Texture, and
-     * <tt>isObjectSpace</tt> determines whether or not the stored vectors are
-     * in object space or tangent space.
-     * 
-     * @param normalMap The normal map to use
-     * @param texCoords The texture coordinates to access normalMap
-     * @param isObjectSpace True if normals are in object space
-     * @throws NullPointerException if normalMap or texCoords is null
-     * @throws IllegalArgumentException if the normal map isn't a 3-component
-     *             texture
-     */
-    public NormalMap(Texture normalMap, VertexAttribute texCoords, boolean isObjectSpace) {
+    public NormalMap(Texture normalMap, VertexAttribute texCoords, VertexAttribute tangents) {
         super(normalMap, texCoords);
-        setObjectSpace(isObjectSpace);
+        setTangents(tangents);
     }
 
     /**
@@ -79,39 +67,64 @@ public final class NormalMap extends TextureMap<NormalMap> {
      */
     public NormalMap(NormalMap clone) {
         super(clone);
-        isObjectSpace = clone.isObjectSpace;
+        tangentVectors = clone.tangentVectors;
     }
 
     /**
      * Return whether or not the normal vectors are in object space or tangent
-     * space. See {@link #setObjectSpace(boolean)} for details.
+     * space. See {@link #setTangents(boolean)} for details.
      * 
      * @return True if in object space
      */
     public boolean isObjectSpace() {
-        return isObjectSpace;
+        return tangentVectors == null;
     }
 
     /**
      * <p>
-     * Set whether or not the normal vectors stored in the normal map texture
-     * are in object space, or in tangent space. This determines what matrix is
-     * used to transform the normal vectors to camera space to compute lighting.
+     * Return the tangent vectors that form a the basis of the tangent space for
+     * a vertex when the tangent is combined with the vertex's normal and the
+     * cross product of the normal and tangent vector (or bitangent).
      * </p>
      * <p>
-     * If <tt>object</tt> is true, then the normals are in the same coordinate
-     * system as the geometry of the Entity, before its transformed. If it is
-     * false, the normals are in the tangent space defined for each triangle or
-     * polygon in the mesh. Tangent space normals work better with dynamic
-     * animations, but require additional vertex attributes to specify the
-     * tangent space.
+     * This will return null if {@link #isObjectSpace()} returns true.
      * </p>
      * 
-     * @param object True if normals are in object space
-     * @return The new version, via {@link #notifyChange()}
+     * @return The tangent vectors if this NormalMap is in tangent space
      */
-    public int setObjectSpace(boolean object) {
-        isObjectSpace = object;
+    public VertexAttribute getTangents() {
+        return tangentVectors;
+    }
+
+    /**
+     * <p>
+     * Set the vertex attribute storing tangent vectors for the entity's
+     * geometry. While normal vectors are orthogonal to the surface of the
+     * geometry, tangent vectors are tangent to the surface. When combined with
+     * the normal data, the tangent, normal, and (tangent X normal) create an
+     * orthonormal basis representing the 'tangent space' of the geometry at a
+     * particular vertex.
+     * </p>
+     * <p>
+     * When <tt>tangents</tt> is non-null, it is assumed that the normal vectors
+     * encoded in the texture are in this tangent space. When <tt>tangents</tt>
+     * is null, it is assumed that the vectors in the texture are in object or
+     * model space.
+     * </p>
+     * 
+     * @param tangents The new tangent vertex attribute to use
+     * @return The new version of the component
+     * @throws IllegalArgumentException if tangents is not null and has
+     *             non-float data, or an element size other than 3
+     */
+    public int setTangents(VertexAttribute tangents) {
+        if (tangents != null) {
+            if (tangents.getData().getData().getDataType() != DataType.FLOAT)
+                throw new IllegalArgumentException("Tangents must have FLOAT data");
+            if (tangents.getElementSize() != 3)
+                throw new IllegalArgumentException("Tangents must have an element size of 3, not: " + tangents.getElementSize());
+        }
+        tangentVectors = tangents;
         return notifyChange();
     }
 

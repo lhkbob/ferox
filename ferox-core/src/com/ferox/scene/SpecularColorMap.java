@@ -25,7 +25,7 @@ import com.ferox.resource.VertexAttribute;
  * 
  * @author Michael Ludwig
  */
-public class SpecularColorMap extends TextureMap<SpecularColorMap> {
+public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
     /**
      * The shared TypedId representing DepthOffsetMap.
      */

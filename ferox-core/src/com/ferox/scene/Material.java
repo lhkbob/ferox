@@ -2,6 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.entity.TypedComponent;
 import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.BufferData.DataType;
 
 /**
  * <p>
@@ -54,10 +55,17 @@ public abstract class Material<T extends Material<T>> extends TypedComponent<T> 
      * @param normals The new vertex attribute holding normal vector data
      * @return The new version of the component
      * @throws NullPointerException if normals is null
+     * @throws IllegalArgumentException if normals has an element size other
+     *             than 3, or is not float data
      */
-    public int setNormals(VertexAttribute normals) {
+    public final int setNormals(VertexAttribute normals) {
         if (normals == null)
             throw new NullPointerException("Normals cannot be null");
+        if (normals.getData().getData().getDataType() != DataType.FLOAT)
+            throw new IllegalArgumentException("Normals must have FLOAT data");
+        if (normals.getElementSize() != 3)
+            throw new IllegalArgumentException("Normals must have an element size of 3, not: " + normals.getElementSize());
+        
         this.normals = normals;
         return notifyChange();
     }
@@ -65,7 +73,7 @@ public abstract class Material<T extends Material<T>> extends TypedComponent<T> 
     /**
      * @return The normal vector data to use for lighting calculations
      */
-    public VertexAttribute getNormals() {
+    public final VertexAttribute getNormals() {
         return normals;
     }
 }

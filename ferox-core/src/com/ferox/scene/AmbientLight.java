@@ -16,14 +16,15 @@ public final class AmbientLight extends Light<AmbientLight> {
      * The shared TypedId representing AmbientLight.
      */
     public static final TypedId<AmbientLight> ID = Component.getTypedId(AmbientLight.class);
-    
+
     /**
      * Create an AmbientLight with the given color.
      * 
      * @param color The initial light color
+     * @throws NullPointerException if color is null
      */
     public AmbientLight(ReadOnlyColor3f color) {
-        setColor(color);
+        super(color);
     }
 
     /**

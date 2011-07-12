@@ -51,16 +51,20 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends TypedC
      * 
      * @return This component's color
      */
-    public ReadOnlyColor3f getColor() {
+    public final ReadOnlyColor3f getColor() {
         return color;
     }
-    
+
     /**
+     * Set the color of this component by copying <tt>color</tt> into this
+     * components color object. Any reference to the object returned by
+     * {@link #getColor()} will see the change.
      * 
-     * @param color
-     * @return
+     * @param color The new color values
+     * @return The new version of the component
+     * @throws NullPointerException if color is null
      */
-    public int setColor(ReadOnlyColor3f color) {
+    public final int setColor(ReadOnlyColor3f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
         this.color.set(color);

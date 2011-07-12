@@ -1,6 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.entity.TypedComponent;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 
@@ -45,7 +46,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
     /**
      * @return The texture coordinates used to access this TextureMap's texture
      */
-    public VertexAttribute getTextureCoordinates() {
+    public final VertexAttribute getTextureCoordinates() {
         return textureCoordinates;
     }
 
@@ -58,10 +59,14 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      * @param texCoords The new vertex attribute holding texture coord data
      * @return The new version of the component
      * @throws NullPointerException if texCoords is null
+     * @throws IllegalArgumentException if texCoords data is not of type FLOAT
      */
-    public int setTextureCoordinates(VertexAttribute texCoords) {
+    public final int setTextureCoordinates(VertexAttribute texCoords) {
         if (texCoords == null)
             throw new NullPointerException("Texture coordinates cannot be null");
+        if (texCoords.getData().getData().getDataType() != DataType.FLOAT)
+            throw new IllegalArgumentException("VertexAttribute must have FLOAT data");
+        
         textureCoordinates = texCoords;
         return notifyChange();
     }
@@ -73,7 +78,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      * 
      * @return This TextureMap's texture
      */
-    public Texture getTexture() {
+    public final Texture getTexture() {
         return texture;
     }
 
@@ -88,7 +93,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      * @throws IllegalArgumentException if the texture is invalid according to
      *             the rules of the subclass
      */
-    public int setTexture(Texture texture) {
+    public final int setTexture(Texture texture) {
         if (texture == null)
             throw new NullPointerException("Texture cannot be null");
         validate(texture);

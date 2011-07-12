@@ -47,9 +47,9 @@ public final class DirectionLight extends Light<DirectionLight> {
      * @throws ArithmeticException if direction cannot be normalized
      */
     public DirectionLight(ReadOnlyColor3f color, ReadOnlyVector3f direction) {
+        super(color);
         this.direction = new Vector3f();
         setDirection(direction);
-        setColor(color);
     }
 
     /**
