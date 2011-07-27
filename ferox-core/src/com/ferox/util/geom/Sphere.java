@@ -1,33 +1,38 @@
 package com.ferox.util.geom;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-import com.ferox.resource.Geometry;
-import com.ferox.resource.PolygonType;
-import com.ferox.resource.VectorBuffer;
+import com.ferox.renderer.Renderer.PolygonType;
+import com.ferox.resource.BufferData;
+import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
  * <p>
- * Sphere is an approximation of a mathematical sphere centered at the local
+ * Sphere is an approximation of a mathematical sphere centered arounds its local
  * origin with a configurable radius. The accuracy of the approximation depends
  * on a parameter termed <tt>resolution</tt>. The approximated sphere is
  * constructed by rotating a number of circles in the XY-plane about the Y-axis.
  * The number of rotations equals the resolution of the sphere.
  * </p>
- * <p>
- * By default, a Sphere is configured to have its vertices, normals, and texture
- * coordinates use the default attribute names defined in {@link Geometry}.
- * </p>
  * 
  * @author Michael Ludwig
  */
-public class Sphere extends PrimitiveGeometry {
+public class Sphere implements Geometry {
     private static final float PI = (float) Math.PI;
+    
+    // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+    // ordered in such a way as to not need indices
+    private final VertexBufferObject vertexAttributes;
+    
+    private final VertexAttribute vertices;
+    private final VertexAttribute normals;
+    private final VertexAttribute texCoords;
+    
+    private final VertexBufferObject indices;
 
     /**
      * Create a new Sphere with the given radius, a resolution of 8, and a
-     * CompileType of NONE.
+     * StorageMode of IN_MEMORY.
      * 
      * @param radius The radius of the sphere, in local space
      * @throws IllegalArgumentException if radius <= 0
@@ -38,7 +43,7 @@ public class Sphere extends PrimitiveGeometry {
 
     /**
      * Create a new Sphere with the given radius and resolution. It uses a
-     * CompileType of NONE.
+     * StorageMode of IN_MEMORY.
      * 
      * @param radius The radius of the sphere, in local space
      * @param res The resolution of the sphere, the higher the value the
@@ -46,19 +51,20 @@ public class Sphere extends PrimitiveGeometry {
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      */
     public Sphere(float radius, int res) {
-        this(radius, res, CompileType.NONE);
+        this(radius, res, StorageMode.IN_MEMORY);
     }
 
     /**
-     * Create a new Sphere with the given radius and CompileType. It uses a
+     * Create a new Sphere with the given radius and StorageMode. It uses a
      * resolution of 8.
      * 
      * @param radius The radius of the sphere, in local space
-     * @param type The CompileType to use
+     * @param mode The StorageMode to use
      * @throws IllegalArgumentException if radius <= 0
+     * @throws NullPointerException if mode is null
      */
-    public Sphere(float radius, CompileType type) {
-        this(radius, 8, type);
+    public Sphere(float radius, StorageMode mode) {
+        this(radius, 8, mode);
     }
 
     /**
@@ -66,52 +72,17 @@ public class Sphere extends PrimitiveGeometry {
      * 
      * @param radius The radius of the sphere, in local space
      * @param res The resolution of the sphere
-     * @param type The CompileType to use
+     * @param mode The StorageMode to use
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
+     * @throws NullPointerException if mode is null
      */
-    public Sphere(float radius, int res, CompileType type) {
-        this(radius, res, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
-             Geometry.DEFAULT_TEXCOORD_NAME);
-    }
-
-    /**
-     * Create a new Sphere with the given radius, resolution, CompileType and
-     * attribute names. Unlike the other constructors, which use the default
-     * attribute names as defined in {@link Geometry}, this constructor lets you
-     * specify the attribute names.
-     * 
-     * @param radius The radius of the sphere, in local space
-     * @param res The resolution of the sphere
-     * @param type The CompileType to use
-     * @param vertexName The name of the attribute that holds vertex data
-     * @param normalName The name of the attribute that holds normal data
-     * @param texName The name of the attribute that holds texture coordinate
-     *            data
-     * @throws IllegalArgumentException if radius <= 0 or if res < 4
-     * @throws NullPointerException if vertexName, normalName or texName are
-     *             null
-     */
-    public Sphere(float radius, int res, CompileType type, 
-                   String vertexName, String normalName, String texName) {
-        super(type, vertexName, normalName, texName);
-        setData(radius, res);
-    }
-
-    /**
-     * Re-compute the geometric data of this Sphere so that it represents an
-     * approximation of a sphere centered at the origin with the given radius.
-     * The parameter <tt>res</tt> is equal to the number of rotated "slices"
-     * through the sphere where vertices are placed.
-     * 
-     * @param radius The new radius of the sphere
-     * @param res The resolution of the sphere
-     * @throws IllegalArgumentException if radius <= 0 or res < 4
-     */
-    public void setData(float radius, int res) {
+    public Sphere(float radius, int res, StorageMode mode) {
         if (radius <= 0f)
             throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
         if (res < 4)
             throw new IllegalArgumentException("Invalid resolution, must be > 3, not: " + res);
+        if (mode == null)
+            throw new NullPointerException("StorageMode cannot be null");
         
         int vertexCount = res * (res + 1);
         
@@ -134,14 +105,11 @@ public class Sphere extends PrimitiveGeometry {
         zCoord[res] = zCoord[0];
         u[res] = 1f;
         
-        FloatBuffer vertices = newFloatBuffer(vertexCount * 3);
-        FloatBuffer normals = newFloatBuffer(vertexCount * 3);
-        FloatBuffer tcs = newFloatBuffer(vertexCount * 2);
+        float[] va = new float[vertexCount * 8]; // 3v + 3n + 2tc
         
         float yAngle = PI;
         float dY = -PI / (res - 1);
         int index = 0;
-        int ri;
         float y, r, tv;
         for (int dv = 0; dv < res; dv++) {
             // compute y values, since they're constant for the whole ring
@@ -152,42 +120,80 @@ public class Sphere extends PrimitiveGeometry {
             
             for (int du = 0; du <= res; du++) {
                 // place vertices, normals and texcoords
-                ri = index * 3;
-                normals.put(ri, r * xCoord[du]);
-                normals.put(ri + 1, y);
-                normals.put(ri + 2, r * zCoord[du]);
+                va[index++] = radius * r * xCoord[du]; // vx
+                va[index++] = radius * y;              // vy
+                va[index++] = radius * r * zCoord[du]; // vz
                 
-                vertices.put(ri, radius * normals.get(ri));
-                vertices.put(ri + 1, radius * normals.get(ri + 1));
-                vertices.put(ri + 2, radius * normals.get(ri + 2));
+                va[index++] = r * xCoord[du];          // nx
+                va[index++] = y;                       // ny
+                va[index++] = r * zCoord[du];          // nz
                 
-                tcs.put(index * 2, u[du]);
-                tcs.put(index * 2 + 1, tv);
-                
-                // update index
-                index++; 
+                va[index++] = u[du];                   // tx
+                va[index++] = tv;                      // ty
             }
         }
         
         // build up indices
-        IntBuffer indices = newIntBuffer((res - 1) * (2 * res + 2));
+        int[] indices = new int[(res - 1) * (2 * res + 2)];
         index = 0;
         int v1, v2;
         for (int dv = 0; dv < res - 1; dv++) {
             v1 = dv * (res + 1);
             v2 = (dv + 1) * (res + 1);
+            
             // start off the strip
-            indices.put(index++, v1++);
-            indices.put(index++, v2++);
+            indices[index++] = v1++;
+            indices[index++] = v2++;
             for (int du = 0; du < res; du++) {
-                indices.put(index++, v1++);
-                indices.put(index++, v2++);
+                indices[index++] = v1++;
+                indices[index++] = v2++;
             }
         }
         
-        setAttribute(getVertexName(), new VectorBuffer(vertices, 3));
-        setAttribute(getNormalName(), new VectorBuffer(normals, 3));
-        setAttribute(getTextureCoordinateName(), new VectorBuffer(tcs, 2));
-        setIndices(indices, PolygonType.TRIANGLE_STRIP);
+        this.indices = new VertexBufferObject(new BufferData(indices), mode);
+        vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+        vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
+        normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
+        texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+    }
+
+    @Override
+    public PolygonType getPolygonType() {
+        return PolygonType.TRIANGLE_STRIP;
+    }
+
+    @Override
+    public VertexBufferObject getIndices() {
+        return indices;
+    }
+
+    @Override
+    public int getIndexOffset() {
+        return 0;
+    }
+
+    @Override
+    public int getIndexCount() {
+        return indices.getData().getLength();
+    }
+
+    @Override
+    public VertexAttribute getVertices() {
+        return vertices;
+    }
+
+    @Override
+    public VertexAttribute getNormals() {
+        return normals;
+    }
+
+    @Override
+    public VertexAttribute getTextureCoordinates() {
+        return texCoords;
+    }
+
+    @Override
+    public VertexAttribute getTangents() {
+        throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
     }
 }

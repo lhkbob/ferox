@@ -1,14 +1,13 @@
 package com.ferox.util.geom;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.resource.Geometry;
-import com.ferox.resource.PolygonType;
-import com.ferox.resource.VectorBuffer;
+import com.ferox.renderer.Renderer.PolygonType;
+import com.ferox.resource.BufferData;
+import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
  * <p>
@@ -16,29 +15,22 @@ import com.ferox.resource.VectorBuffer;
  * dimensions. It is very useful for fullscreen effects that require rendering a
  * rectangle across the entire screen.
  * </p>
- * <p>
- * By default, a Rectangle is configured to have its vertices, normals and texture
- * coordinates use the default attribute names defined in Geometry.
- * </p>
  * 
  * @author Michael Ludwig
  */
-public class Rectangle extends PrimitiveGeometry {
-    /**
-     * Create a Rectangle with standard basis vectors with its lower left corner
-     * at the origin, extending to <width, height>.
-     * 
-     * @param width The width of the rectangle
-     * @param height The height of the rectangle
-     * @throws IllegalArgumentException if width or height < 0
-     */
-    public Rectangle(float width, float height) {
-        this(0f, width, 0f, height);
-    }
+public class Rectangle implements Geometry {
+    // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+    // ordered in such a way as to not need indices
+    private final VertexBufferObject vertexAttributes;
+    
+    private final VertexAttribute vertices;
+    private final VertexAttribute normals;
+    private final VertexAttribute texCoords;
 
     /**
-     * Create a Rectangle with the standard basis vectors with the given edge
-     * dimensions.
+     * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis
+     * vector of (0, 1, 0), and the given edge dimensions. The storage mode is
+     * IN_MEMORY.
      * 
      * @param left The left edge of the rectangle
      * @param right The right edge of the rectangle
@@ -47,32 +39,32 @@ public class Rectangle extends PrimitiveGeometry {
      * @throws IllegalArgumentException if left > right or bottom > top
      */
     public Rectangle(float left, float right, float bottom, float top) {
-        this(null, null, left, right, bottom, top);
+        this(left, right, bottom, top,
+             new Vector3f(1f, 0f, 0f), new Vector3f(0f, 1f, 0f));
     }
 
     /**
-     * Create a Rectangle with the given basis vectors and edge dimensions.
+     * Create a Rectangle with the given basis vectors and edge dimensions and a
+     * storage mode of IN_MEMORY.
      * 
-     * @see #setData(Vector3f, Vector3f, float, float, float, float)
-     * @param xAxis Local x-axis of the rectangle, null = <1, 0, 0>
-     * @param yAxis Local y-axis of the rectangle, null = <0, 1, 0>
+
      * @param left The left edge of the rectangle
      * @param right The right edge of the rectangle
      * @param bottom The bottom edge of the rectangle
      * @param top The top edge of the rectangle
+     * @param xAxis Local x-axis of the rectangle
+     * @param yAxis Local y-axis of the rectangle
      * @throws IllegalArgumentException if left > right or bottom > top
+     * @throws NullPointerException if xAxis or yAxis are null
      */
-    public Rectangle(ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis, 
-                     float left, float right, float bottom, float top) {
-        this(xAxis, yAxis, left, right, bottom, top, CompileType.NONE,
-             Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
+    public Rectangle(float left, float right, float bottom, float top,
+                     ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis) {
+        this(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
     }
 
     /**
-     * Create a Rectangle with the given basis vectors and edge dimensions. It
-     * will also use the given basis vectors and edge dimensions. Unlike the
-     * other constructors which use the default Geometry attribute names, this
-     * one allows you to specify them.
+     * Create a Rectangle with the given basis vectors, edge dimensions
+     * and storage mode
      * 
      * @param xAxis
      * @param yAxis
@@ -84,98 +76,115 @@ public class Rectangle extends PrimitiveGeometry {
      * @param vertexName The name for the vertex attribute
      * @param normalName The name for the normals attribute
      * @param tcName The name for the texture coordinates attribute
-     */
-    public Rectangle(ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis, 
-                     float left, float right, float bottom, float top, 
-                     CompileType type, String vertexName, String normalName, String tcName) {
-        super(type, vertexName, normalName, tcName);
-        setData(xAxis, yAxis, left, right, bottom, top);
-    }
-
-    /**
-     * Set the data of this Rectangle so that it represents a planar square face
-     * with the given left, right, bottom and top dimensions aligned with the
-     * basis vectors xAxis and yAxis.
-     * 
-     * @param xAxis Local x-axis of the rectangle, null = <1, 0, 0>
-     * @param yAxis Local y-axis of the rectangle, null = <0, 1, 0>
-     * @param left The left edge of the rectangle
-     * @param right The right edge of the rectangle
-     * @param bottom The bottom edge of the rectangle
-     * @param top The top edge of the rectangle
      * @throws IllegalArgumentException if left > right or bottom > top
+     * @throws NullPointerException if xAxis, yAxis, or mode are null
      */
-    public void setData(ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis, 
-                        float left, float right, float bottom, float top) {
+    public Rectangle(float left, float right, float bottom, float top, 
+                     ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis,
+                     StorageMode mode) {
         if (left > right || bottom > top)
             throw new IllegalArgumentException("Side positions of the square are incorrect");
-
-        if (xAxis == null)
-            xAxis = new Vector3f(1f, 0f, 0f);
-        if (yAxis == null)
-            yAxis = new Vector3f(0f, 1f, 0f);
-
+        if (xAxis == null || yAxis == null)
+            throw new NullPointerException("Axis cannot be null");
+        if (mode == null)
+            throw new NullPointerException("StorageMode cannot be null");
+        
         MutableVector3f normal = xAxis.cross(yAxis, null);
 
-        FloatBuffer vertices = newFloatBuffer(12);
-        FloatBuffer normals = newFloatBuffer(12);
-        FloatBuffer texCoords = newFloatBuffer(8);
-        IntBuffer indices = newIntBuffer(4);
-
+        float[] va = new float[32];
+        int i = 0;
+        
         // lower-left
-        vertices.put(0, xAxis.getX() * left + yAxis.getX() * bottom);
-        vertices.put(1, xAxis.getY() * left + yAxis.getY() * bottom);
-        vertices.put(2, xAxis.getZ() * left + yAxis.getZ() * bottom);
+        va[i++] = xAxis.getX() * left + yAxis.getX() * bottom;
+        va[i++] = xAxis.getY() * left + yAxis.getY() * bottom;
+        va[i++] = xAxis.getZ() * left + yAxis.getZ() * bottom;
 
-        normals.put(0, normal.getX());
-        normals.put(1, normal.getY());
-        normals.put(2, normal.getZ());
+        va[i++] = normal.getX();
+        va[i++] = normal.getY();
+        va[i++] = normal.getZ();
 
-        texCoords.put(0, 0f);
-        texCoords.put(1, 0f);
+        va[i++] = 0f;
+        va[i++] = 0f;
 
         // lower-right
-        vertices.put(3, xAxis.getX() * right + yAxis.getX() * bottom);
-        vertices.put(4, xAxis.getY() * right + yAxis.getY() * bottom);
-        vertices.put(5, xAxis.getZ() * right + yAxis.getZ() * bottom);
+        va[i++] = xAxis.getX() * right + yAxis.getX() * bottom;
+        va[i++] = xAxis.getY() * right + yAxis.getY() * bottom;
+        va[i++] = xAxis.getZ() * right + yAxis.getZ() * bottom;
 
-        normals.put(3, normal.getX());
-        normals.put(4, normal.getY());
-        normals.put(5, normal.getZ());
+        va[i++] = normal.getX();
+        va[i++] = normal.getY();
+        va[i++] = normal.getZ();
 
-        texCoords.put(2, 1f);
-        texCoords.put(3, 0f);
+        va[i++] = 1f;
+        va[i++] = 0f;
 
         // uppper-right
-        vertices.put(6, xAxis.getX() * right + yAxis.getX() * top);
-        vertices.put(7, xAxis.getY() * right + yAxis.getY() * top);
-        vertices.put(8, xAxis.getZ() * right + yAxis.getZ() * top);
+        va[i++] = xAxis.getX() * right + yAxis.getX() * top;
+        va[i++] = xAxis.getY() * right + yAxis.getY() * top;
+        va[i++] = xAxis.getZ() * right + yAxis.getZ() * top;
 
-        normals.put(6, normal.getX());
-        normals.put(7, normal.getY());
-        normals.put(8, normal.getZ());
+        va[i++] = normal.getX();
+        va[i++] = normal.getY();
+        va[i++] = normal.getZ();
 
-        texCoords.put(4, 1f);
-        texCoords.put(5, 1f);
+        va[i++] = 1f;
+        va[i++] = 1f;
 
         // upper-left
-        vertices.put(9, xAxis.getX() * left + yAxis.getX() * top);
-        vertices.put(10, xAxis.getY() * left + yAxis.getY() * top);
-        vertices.put(11, xAxis.getZ() * left + yAxis.getZ() * top);
+        va[i++] = xAxis.getX() * left + yAxis.getX() * top;
+        va[i++] = xAxis.getY() * left + yAxis.getY() * top;
+        va[i++] = xAxis.getZ() * left + yAxis.getZ() * top;
 
-        normals.put(9, normal.getX());
-        normals.put(10, normal.getY());
-        normals.put(11, normal.getZ());
+        va[i++] = normal.getX();
+        va[i++] = normal.getY();
+        va[i++] = normal.getZ();
 
-        texCoords.put(6, 0f);
-        texCoords.put(7, 1f);
+        va[i++] = 0f;
+        va[i++] = 1f;
 
-        // indices
-        indices.put(0, 0).put(1, 1).put(2, 2).put(3, 3);
-        
-        setAttribute(getVertexName(), new VectorBuffer(vertices, 3));
-        setAttribute(getNormalName(), new VectorBuffer(normals, 3));
-        setAttribute(getTextureCoordinateName(), new VectorBuffer(texCoords, 2));
-        setIndices(indices, PolygonType.QUADS);
+        vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+        vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
+        normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
+        texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+    }
+
+    @Override
+    public PolygonType getPolygonType() {
+        return PolygonType.QUADS;
+    }
+
+    @Override
+    public VertexBufferObject getIndices() {
+        return null;
+    }
+
+    @Override
+    public int getIndexOffset() {
+        return 0;
+    }
+
+    @Override
+    public int getIndexCount() {
+        return 4;
+    }
+
+    @Override
+    public VertexAttribute getVertices() {
+        return vertices;
+    }
+
+    @Override
+    public VertexAttribute getNormals() {
+        return normals;
+    }
+
+    @Override
+    public VertexAttribute getTextureCoordinates() {
+        return texCoords;
+    }
+
+    @Override
+    public VertexAttribute getTangents() {
+        throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
     }
 }

@@ -1,86 +1,110 @@
 package com.ferox.util.geom;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.util.Arrays;
 
-import com.ferox.resource.Geometry;
-import com.ferox.resource.PolygonType;
-import com.ferox.resource.VectorBuffer;
+import com.ferox.renderer.Renderer.PolygonType;
+import com.ferox.resource.BufferData;
+import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
  * <p>
  * Teapot is the classical teapot model in computer graphices. Constructing a
  * Teapot automatically configures itself with vertices, normals, and texture
- * coordinates (on the 0th unit), as well as indices. The vertex data is from
+ * coordinates, as well as indices. The vertex data is from
  * "http://www.sjbaker.org/teapot/".
- * </p>
- * <p>
- * By default, a Teapot is configured to have its vertices, normals and texture
- * coordinates use the default attribute names defined in Geometry.
- * </p>
- * <p>
- * If you're texturing the Teapot, you should use REPEAT for the s and t
- * coordinates.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public class Teapot extends PrimitiveGeometry {
+public class Teapot implements Geometry {
+    private final VertexAttribute vertices;
+    private final VertexAttribute normals;
+    private final VertexAttribute texCoords;
+    
+    private final VertexBufferObject indices;
+    
     /**
-     * Instantiates a new Teapot object with the given scale.
+     * Instantiates a new Teapot object with the given scale with
+     * a StorageMode of IN_MEMORY.
      * 
      * @param scale The scale factor that affects the size of the teapot
+     * @throws IllegalArgumentException if scale is negative
      */
     public Teapot(float scale) {
-        this(scale, CompileType.NONE);
+        this(scale, StorageMode.IN_MEMORY);
     }
 
     /**
-     * Instantiates a new Teapot object with the given scale and compile type.
+     * Instantiates a new Teapot object with the given scale and storage mode.
      * 
      * @param scale The scale factor that affects the size of the teapot
-     * @param type The compile type to use
+     * @param mode The StorageMode to use
+     * @throws IllegalArgumentException if scale is negative
+     * @throws NullPointerException if mode is null
      */
-    public Teapot(float scale, CompileType type) {
-        this(scale, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
-             Geometry.DEFAULT_TEXCOORD_NAME);
+    public Teapot(float scale, StorageMode mode) {
+        if (scale <= 0f)
+            throw new IllegalArgumentException("Scale must be greater than 0");
+        if (mode == null)
+            throw new NullPointerException("StorageMode cannot be null");
+        
+        // copy the teapot so that each instance can be modified separately
+        float[] v = Arrays.copyOf(TEAPOT.vertices, TEAPOT.vertices.length);
+        float[] n = Arrays.copyOf(TEAPOT.normals, TEAPOT.normals.length);
+        float[] t = Arrays.copyOf(TEAPOT.texCoords, TEAPOT.texCoords.length);
+        int[] i = Arrays.copyOf(TEAPOT.indices, TEAPOT.indices.length);
+        
+        if (scale != 1f) {
+            for (int j = 0; j < v.length; j++)
+                v[j] = v[j] * scale;
+        }
+        
+        vertices = new VertexAttribute(new VertexBufferObject(new BufferData(v), mode), 3);
+        normals = new VertexAttribute(new VertexBufferObject(new BufferData(n), mode), 3);
+        texCoords = new VertexAttribute(new VertexBufferObject(new BufferData(t), mode), 2);
+        indices = new VertexBufferObject(new BufferData(i), mode);
+    }
+    
+    @Override
+    public PolygonType getPolygonType() {
+        return PolygonType.TRIANGLES;
     }
 
-    /**
-     * Instantiate a new Teapot object with the given scale, compile type, and
-     * configured attribute names.
-     * 
-     * @param scale The scale fator
-     * @param type The compile type
-     * @param vertexName The name for the vertex attribute
-     * @param normalName The name for the normals attribute
-     * @param tcName The name for the texture coordinates attribute
-     */
-    public Teapot(float scale, CompileType type, String vertexName, String normalName, String tcName) {
-        super(type, vertexName, normalName, tcName);
+    @Override
+    public VertexBufferObject getIndices() {
+        return indices;
+    }
 
-        // copy the teapot so that each instance can be modified separately
-        FloatBuffer verts = newFloatBuffer(TEAPOT.vertices.length);
-        verts.put(TEAPOT.vertices);
-        
-        FloatBuffer norms = newFloatBuffer(TEAPOT.normals.length);
-        norms.put(TEAPOT.normals);
-        
-        FloatBuffer tcs = newFloatBuffer(TEAPOT.texCoords.length);
-        tcs.put(TEAPOT.texCoords);
+    @Override
+    public int getIndexOffset() {
+        return 0;
+    }
 
-        IntBuffer indices = newIntBuffer(TEAPOT.indices.length);
-        indices.put(TEAPOT.indices);
+    @Override
+    public int getIndexCount() {
+        return indices.getData().getLength();
+    }
 
-        if (scale != 1f) {
-            for (int i = 0; i < verts.capacity(); i++)
-                verts.put(i, verts.get(i) * scale);
-        }
+    @Override
+    public VertexAttribute getVertices() {
+        return vertices;
+    }
 
-        setAttribute(getVertexName(), new VectorBuffer(verts, 3));
-        setAttribute(getNormalName(), new VectorBuffer(norms, 3));
-        setAttribute(getTextureCoordinateName(), new VectorBuffer(tcs, 2));
-        setIndices(indices, PolygonType.TRIANGLES);
+    @Override
+    public VertexAttribute getNormals() {
+        return normals;
+    }
+
+    @Override
+    public VertexAttribute getTextureCoordinates() {
+        return texCoords;
+    }
+
+    @Override
+    public VertexAttribute getTangents() {
+        throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
     }
 
     /* Static instance that all created Teapot's clone and then scale. */
@@ -1239,178 +1263,319 @@ public class Teapot extends PrimitiveGeometry {
         }
 
         private void setupTexCoords() {
-            texCoords = new float[] { 1.75f, 1.975f, 2.0f, 1.975f, 2.0f, 2.0f,
-                1.75f, 2.0f, 1.75f, 1.95f, 2.0f, 1.95f, 1.75f, 1.925f, 2.0f,
-                1.925f, 1.75f, 1.9f, 2.0f, 1.9f, 1.5f, 1.975f, 1.5f, 2.0f,
-                1.5f, 1.95f, 1.5f, 1.925f, 1.5f, 1.9f, 1.25f, 1.975f, 1.25f,
-                2.0f, 1.25f, 1.95f, 1.25f, 1.925f, 1.25f, 1.9f, 1.0f, 1.975f,
-                1.0f, 2.0f, 1.0f, 1.95f, 1.0f, 1.925f, 1.0f, 1.9f, 0.75f,
-                1.975f, 1.0f, 1.975f, 1.0f, 2.0f, 0.75f, 2.0f, 0.75f, 1.95f,
-                1.0f, 1.95f, 0.75f, 1.925f, 1.0f, 1.925f, 0.75f, 1.9f, 1.0f,
-                1.9f, 0.5f, 1.975f, 0.5f, 2.0f, 0.5f, 1.95f, 0.5f, 1.925f,
-                0.5f, 1.9f, 0.25f, 1.975f, 0.25f, 2.0f, 0.25f, 1.95f, 0.25f,
-                1.925f, 0.25f, 1.9f, 0.0f, 1.975f, 0.0f, 2.0f, 0.0f, 1.95f,
-                0.0f, 1.925f, 0.0f, 1.9f, 1.75f, 1.975f, 2.0f, 1.975f, 2.0f,
-                2.0f, 1.75f, 2.0f, 1.75f, 1.95f, 2.0f, 1.95f, 1.75f, 1.925f,
-                2.0f, 1.925f, 1.75f, 1.9f, 2.0f, 1.9f, 1.5f, 1.975f, 1.5f,
-                2.0f, 1.5f, 1.95f, 1.5f, 1.925f, 1.5f, 1.9f, 1.25f, 1.975f,
-                1.25f, 2.0f, 1.25f, 1.95f, 1.25f, 1.925f, 1.25f, 1.9f, 1.0f,
-                1.975f, 1.0f, 2.0f, 1.0f, 1.95f, 1.0f, 1.925f, 1.0f, 1.9f,
-                0.75f, 1.975f, 1.0f, 1.975f, 1.0f, 2.0f, 0.75f, 2.0f, 0.75f,
-                1.95f, 1.0f, 1.95f, 0.75f, 1.925f, 1.0f, 1.925f, 0.75f, 1.9f,
-                1.0f, 1.9f, 0.5f, 1.975f, 0.5f, 2.0f, 0.5f, 1.95f, 0.5f,
-                1.925f, 0.5f, 1.9f, 0.25f, 1.975f, 0.25f, 2.0f, 0.25f, 1.95f,
-                0.25f, 1.925f, 0.25f, 1.9f, 0.0f, 1.975f, 0.0f, 2.0f, 0.0f,
-                1.95f, 0.0f, 1.925f, 0.0f, 1.9f, 1.75f, 1.675f, 2.0f, 1.675f,
-                2.0f, 1.9f, 1.75f, 1.9f, 1.75f, 1.45f, 2.0f, 1.45f, 1.75f,
-                1.225f, 2.0f, 1.225f, 1.75f, 1.0f, 2.0f, 1.0f, 1.5f, 1.675f,
-                1.5f, 1.9f, 1.5f, 1.45f, 1.5f, 1.225f, 1.5f, 1.0f, 1.25f,
-                1.675f, 1.25f, 1.9f, 1.25f, 1.45f, 1.25f, 1.225f, 1.25f, 1.0f,
-                1.0f, 1.675f, 1.0f, 1.9f, 1.0f, 1.45f, 1.0f, 1.225f, 1.0f,
-                1.0f, 0.75f, 1.675f, 1.0f, 1.675f, 1.0f, 1.9f, 0.75f, 1.9f,
-                0.75f, 1.45f, 1.0f, 1.45f, 0.75f, 1.225f, 1.0f, 1.225f, 0.75f,
-                1.0f, 1.0f, 1.0f, 0.5f, 1.675f, 0.5f, 1.9f, 0.5f, 1.45f, 0.5f,
-                1.225f, 0.5f, 1.0f, 0.25f, 1.675f, 0.25f, 1.9f, 0.25f, 1.45f,
-                0.25f, 1.225f, 0.25f, 1.0f, 0.0f, 1.675f, 0.0f, 1.9f, 0.0f,
-                1.45f, 0.0f, 1.225f, 0.0f, 1.0f, 1.75f, 1.675f, 2.0f, 1.675f,
-                2.0f, 1.9f, 1.75f, 1.9f, 1.75f, 1.45f, 2.0f, 1.45f, 1.75f,
-                1.225f, 2.0f, 1.225f, 1.75f, 1.0f, 2.0f, 1.0f, 1.5f, 1.675f,
-                1.5f, 1.9f, 1.5f, 1.45f, 1.5f, 1.225f, 1.5f, 1.0f, 1.25f,
-                1.675f, 1.25f, 1.9f, 1.25f, 1.45f, 1.25f, 1.225f, 1.25f, 1.0f,
-                1.0f, 1.675f, 1.0f, 1.9f, 1.0f, 1.45f, 1.0f, 1.225f, 1.0f,
-                1.0f, 0.75f, 1.675f, 1.0f, 1.675f, 1.0f, 1.9f, 0.75f, 1.9f,
-                0.75f, 1.45f, 1.0f, 1.45f, 0.75f, 1.225f, 1.0f, 1.225f, 0.75f,
-                1.0f, 1.0f, 1.0f, 0.5f, 1.675f, 0.5f, 1.9f, 0.5f, 1.45f, 0.5f,
-                1.225f, 0.5f, 1.0f, 0.25f, 1.675f, 0.25f, 1.9f, 0.25f, 1.45f,
-                0.25f, 1.225f, 0.25f, 1.0f, 0.0f, 1.675f, 0.0f, 1.9f, 0.0f,
-                1.45f, 0.0f, 1.225f, 0.0f, 1.0f, 1.75f, 0.85f, 2.0f, 0.85f,
-                2.0f, 1.0f, 1.75f, 1.0f, 1.75f, 0.7f, 2.0f, 0.7f, 1.75f, 0.55f,
-                2.0f, 0.55f, 1.75f, 0.4f, 2.0f, 0.4f, 1.5f, 0.85f, 1.5f, 1.0f,
-                1.5f, 0.7f, 1.5f, 0.55f, 1.5f, 0.4f, 1.25f, 0.85f, 1.25f, 1.0f,
-                1.25f, 0.7f, 1.25f, 0.55f, 1.25f, 0.4f, 1.0f, 0.85f, 1.0f,
-                1.0f, 1.0f, 0.7f, 1.0f, 0.55f, 1.0f, 0.4f, 0.75f, 0.85f, 1.0f,
-                0.85f, 1.0f, 1.0f, 0.75f, 1.0f, 0.75f, 0.7f, 1.0f, 0.7f, 0.75f,
-                0.55f, 1.0f, 0.55f, 0.75f, 0.4f, 1.0f, 0.4f, 0.5f, 0.85f, 0.5f,
-                1.0f, 0.5f, 0.7f, 0.5f, 0.55f, 0.5f, 0.4f, 0.25f, 0.85f, 0.25f,
-                1.0f, 0.25f, 0.7f, 0.25f, 0.55f, 0.25f, 0.4f, 0.0f, 0.85f,
-                0.0f, 1.0f, 0.0f, 0.7f, 0.0f, 0.55f, 0.0f, 0.4f, 1.75f, 0.85f,
-                2.0f, 0.85f, 2.0f, 1.0f, 1.75f, 1.0f, 1.75f, 0.7f, 2.0f, 0.7f,
-                1.75f, 0.55f, 2.0f, 0.55f, 1.75f, 0.4f, 2.0f, 0.4f, 1.5f,
-                0.85f, 1.5f, 1.0f, 1.5f, 0.7f, 1.5f, 0.55f, 1.5f, 0.4f, 1.25f,
-                0.85f, 1.25f, 1.0f, 1.25f, 0.7f, 1.25f, 0.55f, 1.25f, 0.4f,
-                1.0f, 0.85f, 1.0f, 1.0f, 1.0f, 0.7f, 1.0f, 0.55f, 1.0f, 0.4f,
-                0.75f, 0.85f, 1.0f, 0.85f, 1.0f, 1.0f, 0.75f, 1.0f, 0.75f,
-                0.7f, 1.0f, 0.7f, 0.75f, 0.55f, 1.0f, 0.55f, 0.75f, 0.4f, 1.0f,
-                0.4f, 0.5f, 0.85f, 0.5f, 1.0f, 0.5f, 0.7f, 0.5f, 0.55f, 0.5f,
-                0.4f, 0.25f, 0.85f, 0.25f, 1.0f, 0.25f, 0.7f, 0.25f, 0.55f,
-                0.25f, 0.4f, 0.0f, 0.85f, 0.0f, 1.0f, 0.0f, 0.7f, 0.0f, 0.55f,
-                0.0f, 0.4f, 1.75f, 0.3f, 2.0f, 0.3f, 2.0f, 0.4f, 1.75f, 0.4f,
-                1.75f, 0.2f, 2.0f, 0.2f, 1.75f, 0.1f, 2.0f, 0.1f, 1.75f, 0.0f,
-                0.25f, 0.1f, 1.5f, 0.3f, 1.5f, 0.4f, 1.5f, 0.2f, 1.5f, 0.1f,
-                1.25f, 0.3f, 1.25f, 0.4f, 1.25f, 0.2f, 1.25f, 0.1f, 1.0f, 0.3f,
-                1.0f, 0.4f, 1.0f, 0.2f, 1.0f, 0.1f, 0.75f, 0.3f, 1.0f, 0.3f,
-                1.0f, 0.4f, 0.75f, 0.4f, 0.75f, 0.2f, 1.0f, 0.2f, 0.75f, 0.1f,
-                1.0f, 0.1f, 0.5f, 0.3f, 0.5f, 0.4f, 0.5f, 0.2f, 0.5f, 0.1f,
-                0.25f, 0.3f, 0.25f, 0.4f, 0.25f, 0.2f, 0.25f, 0.1f, 0.0f, 0.3f,
-                0.0f, 0.4f, 0.0f, 0.2f, 0.0f, 0.1f, 1.75f, 0.3f, 2.0f, 0.3f,
-                2.0f, 0.4f, 1.75f, 0.4f, 1.75f, 0.2f, 2.0f, 0.2f, 1.75f, 0.1f,
-                2.0f, 0.1f, 1.5f, 0.3f, 1.5f, 0.4f, 1.5f, 0.2f, 1.5f, 0.1f,
-                1.25f, 0.3f, 1.25f, 0.4f, 1.25f, 0.2f, 1.25f, 0.1f, 1.0f, 0.3f,
-                1.0f, 0.4f, 1.0f, 0.2f, 1.0f, 0.1f, 0.75f, 0.3f, 1.0f, 0.3f,
-                1.0f, 0.4f, 0.75f, 0.4f, 0.75f, 0.2f, 1.0f, 0.2f, 0.75f, 0.1f,
-                1.0f, 0.1f, 0.5f, 0.3f, 0.5f, 0.4f, 0.5f, 0.2f, 0.5f, 0.1f,
-                0.25f, 0.3f, 0.25f, 0.4f, 0.25f, 0.2f, 0.0f, 0.3f, 0.0f, 0.4f,
-                0.0f, 0.2f, 0.0f, 0.1f, 0.875f, 0.875f, 1.0f, 0.875f, 1.0f,
-                1.0f, 0.875f, 1.0f, 0.875f, 0.75f, 1.0f, 0.75f, 0.875f, 0.625f,
-                1.0f, 0.625f, 0.875f, 0.5f, 1.0f, 0.5f, 0.75f, 0.875f, 0.75f,
-                1.0f, 0.75f, 0.75f, 0.75f, 0.625f, 0.75f, 0.5f, 0.625f, 0.875f,
-                0.625f, 1.0f, 0.625f, 0.75f, 0.625f, 0.625f, 0.625f, 0.5f,
-                0.5f, 0.875f, 0.5f, 1.0f, 0.5f, 0.75f, 0.5f, 0.625f, 0.5f,
-                0.5f, 0.375f, 0.875f, 0.5f, 0.875f, 0.5f, 1.0f, 0.375f, 1.0f,
-                0.375f, 0.75f, 0.5f, 0.75f, 0.375f, 0.625f, 0.5f, 0.625f,
-                0.375f, 0.5f, 0.5f, 0.5f, 0.25f, 0.875f, 0.25f, 1.0f, 0.25f,
-                0.75f, 0.25f, 0.625f, 0.25f, 0.5f, 0.125f, 0.875f, 0.125f,
-                1.0f, 0.125f, 0.75f, 0.125f, 0.625f, 0.125f, 0.5f, 0.0f,
-                0.875f, 0.0f, 1.0f, 0.0f, 0.75f, 0.0f, 0.625f, 0.0f, 0.5f,
-                0.875f, 0.375f, 1.0f, 0.375f, 1.0f, 0.5f, 0.875f, 0.5f, 0.875f,
-                0.25f, 1.0f, 0.25f, 0.875f, 0.125f, 1.0f, 0.125f, 0.875f, 0.0f,
-                1.0f, 0.0f, 0.75f, 0.375f, 0.75f, 0.5f, 0.75f, 0.25f, 0.75f,
-                0.125f, 0.75f, 0.0f, 0.625f, 0.375f, 0.625f, 0.5f, 0.625f,
-                0.25f, 0.625f, 0.125f, 0.625f, 0.0f, 0.5f, 0.375f, 0.5f, 0.5f,
-                0.5f, 0.25f, 0.5f, 0.125f, 0.5f, 0.0f, 0.375f, 0.375f, 0.5f,
-                0.375f, 0.5f, 0.5f, 0.375f, 0.5f, 0.375f, 0.25f, 0.5f, 0.25f,
-                0.375f, 0.125f, 0.5f, 0.125f, 0.375f, 0.0f, 0.5f, 0.0f, 0.25f,
-                0.375f, 0.25f, 0.5f, 0.25f, 0.25f, 0.25f, 0.125f, 0.25f, 0.0f,
-                0.125f, 0.375f, 0.125f, 0.5f, 0.125f, 0.25f, 0.125f, 0.125f,
-                0.125f, 0.0f, 0.0f, 0.375f, 0.0f, 0.5f, 0.0f, 0.25f, 0.0f,
-                0.125f, 0.0f, 0.0f, 0.625f, 0.225f, 0.5f, 0.225f, 0.5f, 0.0f,
-                0.625f, 0.0f, 0.625f, 0.45f, 0.5f, 0.45f, 0.625f, 0.675f, 0.5f,
-                0.675f, 0.625f, 0.9f, 0.5f, 0.9f, 0.75f, 0.225f, 0.75f, 0.0f,
-                0.75f, 0.45f, 0.75f, 0.675f, 0.75f, 0.9f, 0.875f, 0.225f,
-                0.875f, 0.0f, 0.875f, 0.45f, 0.875f, 0.675f, 0.875f, 0.9f,
-                1.0f, 0.225f, 1.0f, 0.0f, 1.0f, 0.45f, 1.0f, 0.675f, 1.0f,
-                0.9f, 0.125f, 0.225f, 0.0f, 0.225f, 0.0f, 0.0f, 0.125f, 0.0f,
-                0.125f, 0.45f, 0.0f, 0.45f, 0.125f, 0.675f, 0.0f, 0.675f,
-                0.125f, 0.9f, 0.0f, 0.9f, 0.25f, 0.225f, 0.25f, 0.0f, 0.25f,
-                0.45f, 0.25f, 0.675f, 0.25f, 0.9f, 0.375f, 0.225f, 0.375f,
-                0.0f, 0.375f, 0.45f, 0.375f, 0.675f, 0.375f, 0.9f, 0.5f,
-                0.225f, 0.5f, 0.0f, 0.5f, 0.45f, 0.5f, 0.675f, 0.5f, 0.9f,
-                0.625f, 0.925f, 0.5f, 0.925f, 0.5f, 0.9f, 0.625f, 0.9f, 0.625f,
-                0.95f, 0.5f, 0.95f, 0.625f, 0.975f, 0.5f, 0.975f, 0.625f, 1.0f,
-                0.5f, 1.0f, 0.75f, 0.925f, 0.75f, 0.9f, 0.75f, 0.95f, 0.75f,
-                0.975f, 0.75f, 1.0f, 0.875f, 0.925f, 0.875f, 0.9f, 0.875f,
-                0.95f, 0.875f, 0.975f, 0.875f, 1.0f, 1.0f, 0.925f, 1.0f, 0.9f,
-                1.0f, 0.95f, 1.0f, 0.975f, 1.0f, 1.0f, 0.125f, 0.925f, 0.0f,
-                0.925f, 0.0f, 0.9f, 0.125f, 0.9f, 0.125f, 0.95f, 0.0f, 0.95f,
-                0.125f, 0.975f, 0.0f, 0.975f, 0.125f, 1.0f, 0.0f, 1.0f, 0.25f,
-                0.925f, 0.25f, 0.9f, 0.25f, 0.95f, 0.25f, 0.975f, 0.25f, 1.0f,
-                0.375f, 0.925f, 0.375f, 0.9f, 0.375f, 0.95f, 0.375f, 0.975f,
-                0.375f, 1.0f, 0.5f, 0.925f, 0.5f, 0.9f, 0.5f, 0.95f, 0.5f,
-                0.975f, 0.5f, 1.0f, 1.0f, 1.0f, 0.75f, 0.75f, 0.875f, 0.75f,
-                1.0f, 0.75f, 0.875f, 0.5f, 1.0f, 0.5f, 0.875f, 0.25f, 1.0f,
-                0.25f, 0.875f, 0.0f, 1.0f, 0.0f, 0.75f, 0.5f, 0.75f, 0.25f,
-                0.75f, 0.0f, 0.75f, 1.0f, 0.5f, 0.75f, 0.625f, 0.75f, 0.625f,
-                0.5f, 0.625f, 0.25f, 0.625f, 0.0f, 0.5f, 0.5f, 0.5f, 0.25f,
-                0.5f, 0.0f, 0.5f, 1.0f, 0.25f, 0.75f, 0.375f, 0.75f, 0.5f,
-                0.75f, 0.375f, 0.5f, 0.5f, 0.5f, 0.375f, 0.25f, 0.5f, 0.25f,
-                0.375f, 0.0f, 0.5f, 0.0f, 0.25f, 0.5f, 0.25f, 0.25f, 0.25f,
-                0.0f, 0.25f, 1.0f, 0.0f, 0.75f, 0.125f, 0.75f, 0.125f, 0.5f,
-                0.125f, 0.25f, 0.125f, 0.0f, 0.0f, 0.5f, 0.0f, 0.25f, 0.0f,
-                0.0f, 1.0f, 1.0f, 0.75f, 0.75f, 0.875f, 0.75f, 1.0f, 0.75f,
-                0.875f, 0.5f, 1.0f, 0.5f, 0.875f, 0.25f, 1.0f, 0.25f, 0.875f,
-                0.0f, 1.0f, 0.0f, 0.75f, 0.5f, 0.75f, 0.25f, 0.75f, 0.0f,
-                0.75f, 1.0f, 0.5f, 0.75f, 0.625f, 0.75f, 0.625f, 0.5f, 0.625f,
-                0.25f, 0.625f, 0.0f, 0.5f, 0.5f, 0.5f, 0.25f, 0.5f, 0.0f, 0.5f,
-                1.0f, 0.25f, 0.75f, 0.375f, 0.75f, 0.5f, 0.75f, 0.375f, 0.5f,
-                0.5f, 0.5f, 0.375f, 0.25f, 0.5f, 0.25f, 0.375f, 0.0f, 0.5f,
-                0.0f, 0.25f, 0.5f, 0.25f, 0.25f, 0.25f, 0.0f, 0.25f, 1.0f,
-                0.0f, 0.75f, 0.125f, 0.75f, 0.125f, 0.5f, 0.125f, 0.25f,
-                0.125f, 0.0f, 0.0f, 0.5f, 0.0f, 0.25f, 0.0f, 0.0f, 0.875f,
-                0.75f, 1.0f, 0.75f, 1.0f, 1.0f, 0.875f, 1.0f, 0.875f, 0.5f,
-                1.0f, 0.5f, 0.875f, 0.25f, 1.0f, 0.25f, 0.875f, 0.0f, 1.0f,
-                0.0f, 0.75f, 0.75f, 0.75f, 1.0f, 0.75f, 0.5f, 0.75f, 0.25f,
-                0.75f, 0.0f, 0.625f, 0.75f, 0.625f, 1.0f, 0.625f, 0.5f, 0.625f,
-                0.25f, 0.625f, 0.0f, 0.5f, 0.75f, 0.5f, 1.0f, 0.5f, 0.5f, 0.5f,
-                0.25f, 0.5f, 0.0f, 0.375f, 0.75f, 0.5f, 0.75f, 0.5f, 1.0f,
-                0.375f, 1.0f, 0.375f, 0.5f, 0.5f, 0.5f, 0.375f, 0.25f, 0.5f,
-                0.25f, 0.375f, 0.0f, 0.5f, 0.0f, 0.25f, 0.75f, 0.25f, 1.0f,
-                0.25f, 0.5f, 0.25f, 0.25f, 0.25f, 0.0f, 0.125f, 0.75f, 0.125f,
-                1.0f, 0.125f, 0.5f, 0.125f, 0.25f, 0.125f, 0.0f, 0.0f, 0.75f,
-                0.0f, 1.0f, 0.0f, 0.5f, 0.0f, 0.25f, 0.0f, 0.0f, 0.875f, 0.75f,
-                1.0f, 0.75f, 1.0f, 1.0f, 0.875f, 1.0f, 0.875f, 0.5f, 1.0f,
-                0.5f, 0.875f, 0.25f, 1.0f, 0.25f, 0.875f, 0.0f, 1.0f, 0.0f,
-                0.75f, 0.75f, 0.75f, 1.0f, 0.75f, 0.5f, 0.75f, 0.25f, 0.75f,
-                0.0f, 0.625f, 0.75f, 0.625f, 1.0f, 0.625f, 0.5f, 0.625f, 0.25f,
-                0.625f, 0.0f, 0.5f, 0.75f, 0.5f, 1.0f, 0.5f, 0.5f, 0.5f, 0.25f,
-                0.5f, 0.0f, 0.375f, 0.75f, 0.5f, 0.75f, 0.5f, 1.0f, 0.375f,
-                1.0f, 0.375f, 0.5f, 0.5f, 0.5f, 0.375f, 0.25f, 0.5f, 0.25f,
-                0.375f, 0.0f, 0.5f, 0.0f, 0.25f, 0.75f, 0.25f, 1.0f, 0.25f,
-                0.5f, 0.25f, 0.25f, 0.25f, 0.0f, 0.125f, 0.75f, 0.125f, 1.0f,
-                0.125f, 0.5f, 0.125f, 0.25f, 0.125f, 0.0f, 0.0f, 0.75f, 0.0f,
-                1.0f, 0.0f, 0.5f, 0.0f, 0.25f, 0.0f, 0.0f, 1.5f, 0.0f, 1.25f,
-                0.0f, 1.0f, 0.0f, 0.75f, 0.0f, 0.5f, 0.0f, 0.25f, 0.0f, 0.0f,
-                0.0f, 1.75f, 0.0f, 1.5f, 0.0f, 1.25f, 0.0f, 1.0f, 0.0f, 0.75f,
-                0.0f, 0.5f, 0.0f, 0.25f, 0.0f };
+            texCoords = new float[] {  0.75f,  0.98f,  1.00f,  0.98f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.95f,  1.00f, 
+                                       0.95f,  0.75f,  0.92f,  1.00f,  0.92f, 
+                                       0.75f,  0.90f,  1.00f,  0.90f,  0.50f, 
+                                       0.98f,  0.50f,  1.00f,  0.50f,  0.95f, 
+                                       0.50f,  0.92f,  0.50f,  0.90f,  0.25f, 
+                                       0.98f,  0.25f,  1.00f,  0.25f,  0.95f, 
+                                       0.25f,  0.92f,  0.25f,  0.90f,  1.00f, 
+                                       0.98f,  1.00f,  1.00f,  1.00f,  0.95f, 
+                                       1.00f,  0.92f,  1.00f,  0.90f,  0.75f, 
+                                       0.98f,  1.00f,  0.98f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.95f,  1.00f, 
+                                       0.95f,  0.75f,  0.92f,  1.00f,  0.92f, 
+                                       0.75f,  0.90f,  1.00f,  0.90f,  0.50f, 
+                                       0.98f,  0.50f,  1.00f,  0.50f,  0.95f, 
+                                       0.50f,  0.92f,  0.50f,  0.90f,  0.25f, 
+                                       0.98f,  0.25f,  1.00f,  0.25f,  0.95f, 
+                                       0.25f,  0.92f,  0.25f,  0.90f,  0.00f, 
+                                       0.98f,  0.00f,  1.00f,  0.00f,  0.95f, 
+                                       0.00f,  0.92f,  0.00f,  0.90f,  0.75f, 
+                                       0.98f,  1.00f,  0.98f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.95f,  1.00f, 
+                                       0.95f,  0.75f,  0.92f,  1.00f,  0.92f, 
+                                       0.75f,  0.90f,  1.00f,  0.90f,  0.50f, 
+                                       0.98f,  0.50f,  1.00f,  0.50f,  0.95f, 
+                                       0.50f,  0.92f,  0.50f,  0.90f,  0.25f, 
+                                       0.98f,  0.25f,  1.00f,  0.25f,  0.95f, 
+                                       0.25f,  0.92f,  0.25f,  0.90f,  1.00f, 
+                                       0.98f,  1.00f,  1.00f,  1.00f,  0.95f, 
+                                       1.00f,  0.92f,  1.00f,  0.90f,  0.75f, 
+                                       0.98f,  1.00f,  0.98f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.95f,  1.00f, 
+                                       0.95f,  0.75f,  0.92f,  1.00f,  0.92f, 
+                                       0.75f,  0.90f,  1.00f,  0.90f,  0.50f, 
+                                       0.98f,  0.50f,  1.00f,  0.50f,  0.95f, 
+                                       0.50f,  0.92f,  0.50f,  0.90f,  0.25f, 
+                                       0.98f,  0.25f,  1.00f,  0.25f,  0.95f, 
+                                       0.25f,  0.92f,  0.25f,  0.90f,  0.00f, 
+                                       0.98f,  0.00f,  1.00f,  0.00f,  0.95f, 
+                                       0.00f,  0.92f,  0.00f,  0.90f,  0.75f, 
+                                       0.67f,  1.00f,  0.67f,  1.00f,  0.90f, 
+                                       0.75f,  0.90f,  0.75f,  0.45f,  1.00f, 
+                                       0.45f,  0.75f,  0.23f,  1.00f,  0.23f, 
+                                       0.75f,  1.00f,  1.00f,  1.00f,  0.50f, 
+                                       0.67f,  0.50f,  0.90f,  0.50f,  0.45f, 
+                                       0.50f,  0.23f,  0.50f,  1.00f,  0.25f, 
+                                       0.67f,  0.25f,  0.90f,  0.25f,  0.45f, 
+                                       0.25f,  0.23f,  0.25f,  1.00f,  1.00f, 
+                                       0.67f,  1.00f,  0.90f,  1.00f,  0.45f, 
+                                       1.00f,  0.23f,  1.00f,  1.00f,  0.75f, 
+                                       0.67f,  1.00f,  0.67f,  1.00f,  0.90f, 
+                                       0.75f,  0.90f,  0.75f,  0.45f,  1.00f, 
+                                       0.45f,  0.75f,  0.23f,  1.00f,  0.23f, 
+                                       0.75f,  1.00f,  1.00f,  1.00f,  0.50f, 
+                                       0.67f,  0.50f,  0.90f,  0.50f,  0.45f, 
+                                       0.50f,  0.23f,  0.50f,  1.00f,  0.25f, 
+                                       0.67f,  0.25f,  0.90f,  0.25f,  0.45f, 
+                                       0.25f,  0.23f,  0.25f,  1.00f,  0.00f, 
+                                       0.67f,  0.00f,  0.90f,  0.00f,  0.45f, 
+                                       0.00f,  0.23f,  0.00f,  1.00f,  0.75f, 
+                                       0.67f,  1.00f,  0.67f,  1.00f,  0.90f, 
+                                       0.75f,  0.90f,  0.75f,  0.45f,  1.00f, 
+                                       0.45f,  0.75f,  0.23f,  1.00f,  0.23f, 
+                                       0.75f,  1.00f,  1.00f,  1.00f,  0.50f, 
+                                       0.67f,  0.50f,  0.90f,  0.50f,  0.45f, 
+                                       0.50f,  0.23f,  0.50f,  1.00f,  0.25f, 
+                                       0.67f,  0.25f,  0.90f,  0.25f,  0.45f, 
+                                       0.25f,  0.23f,  0.25f,  1.00f,  1.00f, 
+                                       0.67f,  1.00f,  0.90f,  1.00f,  0.45f, 
+                                       1.00f,  0.23f,  1.00f,  1.00f,  0.75f, 
+                                       0.67f,  1.00f,  0.67f,  1.00f,  0.90f, 
+                                       0.75f,  0.90f,  0.75f,  0.45f,  1.00f, 
+                                       0.45f,  0.75f,  0.23f,  1.00f,  0.23f, 
+                                       0.75f,  1.00f,  1.00f,  1.00f,  0.50f, 
+                                       0.67f,  0.50f,  0.90f,  0.50f,  0.45f, 
+                                       0.50f,  0.23f,  0.50f,  1.00f,  0.25f, 
+                                       0.67f,  0.25f,  0.90f,  0.25f,  0.45f, 
+                                       0.25f,  0.23f,  0.25f,  1.00f,  0.00f, 
+                                       0.67f,  0.00f,  0.90f,  0.00f,  0.45f, 
+                                       0.00f,  0.23f,  0.00f,  1.00f,  0.75f, 
+                                       0.85f,  1.00f,  0.85f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.70f,  1.00f, 
+                                       0.70f,  0.75f,  0.55f,  1.00f,  0.55f, 
+                                       0.75f,  0.40f,  1.00f,  0.40f,  0.50f, 
+                                       0.85f,  0.50f,  1.00f,  0.50f,  0.70f, 
+                                       0.50f,  0.55f,  0.50f,  0.40f,  0.25f, 
+                                       0.85f,  0.25f,  1.00f,  0.25f,  0.70f, 
+                                       0.25f,  0.55f,  0.25f,  0.40f,  1.00f, 
+                                       0.85f,  1.00f,  1.00f,  1.00f,  0.70f, 
+                                       1.00f,  0.55f,  1.00f,  0.40f,  0.75f, 
+                                       0.85f,  1.00f,  0.85f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.70f,  1.00f, 
+                                       0.70f,  0.75f,  0.55f,  1.00f,  0.55f, 
+                                       0.75f,  0.40f,  1.00f,  0.40f,  0.50f, 
+                                       0.85f,  0.50f,  1.00f,  0.50f,  0.70f, 
+                                       0.50f,  0.55f,  0.50f,  0.40f,  0.25f, 
+                                       0.85f,  0.25f,  1.00f,  0.25f,  0.70f, 
+                                       0.25f,  0.55f,  0.25f,  0.40f,  0.00f, 
+                                       0.85f,  0.00f,  1.00f,  0.00f,  0.70f, 
+                                       0.00f,  0.55f,  0.00f,  0.40f,  0.75f, 
+                                       0.85f,  1.00f,  0.85f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.70f,  1.00f, 
+                                       0.70f,  0.75f,  0.55f,  1.00f,  0.55f, 
+                                       0.75f,  0.40f,  1.00f,  0.40f,  0.50f, 
+                                       0.85f,  0.50f,  1.00f,  0.50f,  0.70f, 
+                                       0.50f,  0.55f,  0.50f,  0.40f,  0.25f, 
+                                       0.85f,  0.25f,  1.00f,  0.25f,  0.70f, 
+                                       0.25f,  0.55f,  0.25f,  0.40f,  1.00f, 
+                                       0.85f,  1.00f,  1.00f,  1.00f,  0.70f, 
+                                       1.00f,  0.55f,  1.00f,  0.40f,  0.75f, 
+                                       0.85f,  1.00f,  0.85f,  1.00f,  1.00f, 
+                                       0.75f,  1.00f,  0.75f,  0.70f,  1.00f, 
+                                       0.70f,  0.75f,  0.55f,  1.00f,  0.55f, 
+                                       0.75f,  0.40f,  1.00f,  0.40f,  0.50f, 
+                                       0.85f,  0.50f,  1.00f,  0.50f,  0.70f, 
+                                       0.50f,  0.55f,  0.50f,  0.40f,  0.25f, 
+                                       0.85f,  0.25f,  1.00f,  0.25f,  0.70f, 
+                                       0.25f,  0.55f,  0.25f,  0.40f,  0.00f, 
+                                       0.85f,  0.00f,  1.00f,  0.00f,  0.70f, 
+                                       0.00f,  0.55f,  0.00f,  0.40f,  0.75f, 
+                                       0.30f,  1.00f,  0.30f,  1.00f,  0.40f, 
+                                       0.75f,  0.40f,  0.75f,  0.20f,  1.00f, 
+                                       0.20f,  0.75f,  0.10f,  1.00f,  0.10f, 
+                                       0.75f,  0.00f,  0.25f,  0.10f,  0.50f, 
+                                       0.30f,  0.50f,  0.40f,  0.50f,  0.20f, 
+                                       0.50f,  0.10f,  0.25f,  0.30f,  0.25f, 
+                                       0.40f,  0.25f,  0.20f,  0.25f,  0.10f, 
+                                       1.00f,  0.30f,  1.00f,  0.40f,  1.00f, 
+                                       0.20f,  1.00f,  0.10f,  0.75f,  0.30f, 
+                                       1.00f,  0.30f,  1.00f,  0.40f,  0.75f, 
+                                       0.40f,  0.75f,  0.20f,  1.00f,  0.20f, 
+                                       0.75f,  0.10f,  1.00f,  0.10f,  0.50f, 
+                                       0.30f,  0.50f,  0.40f,  0.50f,  0.20f, 
+                                       0.50f,  0.10f,  0.25f,  0.30f,  0.25f, 
+                                       0.40f,  0.25f,  0.20f,  0.25f,  0.10f, 
+                                       0.00f,  0.30f,  0.00f,  0.40f,  0.00f, 
+                                       0.20f,  0.00f,  0.10f,  0.75f,  0.30f, 
+                                       1.00f,  0.30f,  1.00f,  0.40f,  0.75f, 
+                                       0.40f,  0.75f,  0.20f,  1.00f,  0.20f, 
+                                       0.75f,  0.10f,  1.00f,  0.10f,  0.50f, 
+                                       0.30f,  0.50f,  0.40f,  0.50f,  0.20f, 
+                                       0.50f,  0.10f,  0.25f,  0.30f,  0.25f, 
+                                       0.40f,  0.25f,  0.20f,  0.25f,  0.10f, 
+                                       1.00f,  0.30f,  1.00f,  0.40f,  1.00f, 
+                                       0.20f,  1.00f,  0.10f,  0.75f,  0.30f, 
+                                       1.00f,  0.30f,  1.00f,  0.40f,  0.75f, 
+                                       0.40f,  0.75f,  0.20f,  1.00f,  0.20f, 
+                                       0.75f,  0.10f,  1.00f,  0.10f,  0.50f, 
+                                       0.30f,  0.50f,  0.40f,  0.50f,  0.20f, 
+                                       0.50f,  0.10f,  0.25f,  0.30f,  0.25f, 
+                                       0.40f,  0.25f,  0.20f,  0.00f,  0.30f, 
+                                       0.00f,  0.40f,  0.00f,  0.20f,  0.00f, 
+                                       0.10f,  0.88f,  0.88f,  1.00f,  0.88f, 
+                                       1.00f,  1.00f,  0.88f,  1.00f,  0.88f, 
+                                       0.75f,  1.00f,  0.75f,  0.88f,  0.63f, 
+                                       1.00f,  0.63f,  0.88f,  0.50f,  1.00f, 
+                                       0.50f,  0.75f,  0.88f,  0.75f,  1.00f, 
+                                       0.75f,  0.75f,  0.75f,  0.63f,  0.75f, 
+                                       0.50f,  0.63f,  0.88f,  0.63f,  1.00f, 
+                                       0.63f,  0.75f,  0.63f,  0.63f,  0.63f, 
+                                       0.50f,  0.50f,  0.88f,  0.50f,  1.00f, 
+                                       0.50f,  0.75f,  0.50f,  0.63f,  0.50f, 
+                                       0.50f,  0.38f,  0.88f,  0.50f,  0.88f, 
+                                       0.50f,  1.00f,  0.38f,  1.00f,  0.38f, 
+                                       0.75f,  0.50f,  0.75f,  0.38f,  0.63f, 
+                                       0.50f,  0.63f,  0.38f,  0.50f,  0.50f, 
+                                       0.50f,  0.25f,  0.88f,  0.25f,  1.00f, 
+                                       0.25f,  0.75f,  0.25f,  0.63f,  0.25f, 
+                                       0.50f,  0.13f,  0.88f,  0.13f,  1.00f, 
+                                       0.13f,  0.75f,  0.13f,  0.63f,  0.13f, 
+                                       0.50f,  0.00f,  0.88f,  0.00f,  1.00f, 
+                                       0.00f,  0.75f,  0.00f,  0.63f,  0.00f, 
+                                       0.50f,  0.88f,  0.38f,  1.00f,  0.38f, 
+                                       1.00f,  0.50f,  0.88f,  0.50f,  0.88f, 
+                                       0.25f,  1.00f,  0.25f,  0.88f,  0.13f, 
+                                       1.00f,  0.13f,  0.88f,  0.00f,  1.00f, 
+                                       0.00f,  0.75f,  0.38f,  0.75f,  0.50f, 
+                                       0.75f,  0.25f,  0.75f,  0.13f,  0.75f, 
+                                       0.00f,  0.63f,  0.38f,  0.63f,  0.50f, 
+                                       0.63f,  0.25f,  0.63f,  0.13f,  0.63f, 
+                                       0.00f,  0.50f,  0.38f,  0.50f,  0.50f, 
+                                       0.50f,  0.25f,  0.50f,  0.13f,  0.50f, 
+                                       0.00f,  0.38f,  0.38f,  0.50f,  0.38f, 
+                                       0.50f,  0.50f,  0.38f,  0.50f,  0.38f, 
+                                       0.25f,  0.50f,  0.25f,  0.38f,  0.13f, 
+                                       0.50f,  0.13f,  0.38f,  0.00f,  0.50f, 
+                                       0.00f,  0.25f,  0.38f,  0.25f,  0.50f, 
+                                       0.25f,  0.25f,  0.25f,  0.13f,  0.25f, 
+                                       0.00f,  0.13f,  0.38f,  0.13f,  0.50f, 
+                                       0.13f,  0.25f,  0.13f,  0.13f,  0.13f, 
+                                       0.00f,  0.00f,  0.38f,  0.00f,  0.50f, 
+                                       0.00f,  0.25f,  0.00f,  0.13f,  0.00f, 
+                                       0.00f,  0.63f,  0.22f,  0.50f,  0.22f, 
+                                       0.50f,  0.00f,  0.63f,  0.00f,  0.63f, 
+                                       0.45f,  0.50f,  0.45f,  0.63f,  0.68f, 
+                                       0.50f,  0.68f,  0.63f,  0.90f,  0.50f, 
+                                       0.90f,  0.75f,  0.22f,  0.75f,  0.00f, 
+                                       0.75f,  0.45f,  0.75f,  0.68f,  0.75f, 
+                                       0.90f,  0.88f,  0.22f,  0.88f,  0.00f, 
+                                       0.88f,  0.45f,  0.88f,  0.68f,  0.88f, 
+                                       0.90f,  1.00f,  0.22f,  1.00f,  0.00f, 
+                                       1.00f,  0.45f,  1.00f,  0.68f,  1.00f, 
+                                       0.90f,  0.13f,  0.22f,  0.00f,  0.22f, 
+                                       0.00f,  0.00f,  0.13f,  0.00f,  0.13f, 
+                                       0.45f,  0.00f,  0.45f,  0.13f,  0.68f, 
+                                       0.00f,  0.68f,  0.13f,  0.90f,  0.00f, 
+                                       0.90f,  0.25f,  0.22f,  0.25f,  0.00f, 
+                                       0.25f,  0.45f,  0.25f,  0.68f,  0.25f, 
+                                       0.90f,  0.38f,  0.22f,  0.38f,  0.00f, 
+                                       0.38f,  0.45f,  0.38f,  0.68f,  0.38f, 
+                                       0.90f,  0.50f,  0.22f,  0.50f,  0.00f, 
+                                       0.50f,  0.45f,  0.50f,  0.68f,  0.50f, 
+                                       0.90f,  0.63f,  0.93f,  0.50f,  0.93f, 
+                                       0.50f,  0.90f,  0.63f,  0.90f,  0.63f, 
+                                       0.95f,  0.50f,  0.95f,  0.63f,  0.98f, 
+                                       0.50f,  0.98f,  0.63f,  1.00f,  0.50f, 
+                                       1.00f,  0.75f,  0.93f,  0.75f,  0.90f, 
+                                       0.75f,  0.95f,  0.75f,  0.98f,  0.75f, 
+                                       1.00f,  0.88f,  0.93f,  0.88f,  0.90f, 
+                                       0.88f,  0.95f,  0.88f,  0.98f,  0.88f, 
+                                       1.00f,  1.00f,  0.93f,  1.00f,  0.90f, 
+                                       1.00f,  0.95f,  1.00f,  0.98f,  1.00f, 
+                                       1.00f,  0.13f,  0.93f,  0.00f,  0.93f, 
+                                       0.00f,  0.90f,  0.13f,  0.90f,  0.13f, 
+                                       0.95f,  0.00f,  0.95f,  0.13f,  0.98f, 
+                                       0.00f,  0.98f,  0.13f,  1.00f,  0.00f, 
+                                       1.00f,  0.25f,  0.93f,  0.25f,  0.90f, 
+                                       0.25f,  0.95f,  0.25f,  0.98f,  0.25f, 
+                                       1.00f,  0.38f,  0.93f,  0.38f,  0.90f, 
+                                       0.38f,  0.95f,  0.38f,  0.98f,  0.38f, 
+                                       1.00f,  0.50f,  0.93f,  0.50f,  0.90f, 
+                                       0.50f,  0.95f,  0.50f,  0.98f,  0.50f, 
+                                       1.00f,  1.00f,  1.00f,  0.75f,  0.75f, 
+                                       0.88f,  0.75f,  1.00f,  0.75f,  0.88f, 
+                                       0.50f,  1.00f,  0.50f,  0.88f,  0.25f, 
+                                       1.00f,  0.25f,  0.88f,  0.00f,  1.00f, 
+                                       0.00f,  0.75f,  0.50f,  0.75f,  0.25f, 
+                                       0.75f,  0.00f,  0.75f,  1.00f,  0.50f, 
+                                       0.75f,  0.63f,  0.75f,  0.63f,  0.50f, 
+                                       0.63f,  0.25f,  0.63f,  0.00f,  0.50f, 
+                                       0.50f,  0.50f,  0.25f,  0.50f,  0.00f, 
+                                       0.50f,  1.00f,  0.25f,  0.75f,  0.38f, 
+                                       0.75f,  0.50f,  0.75f,  0.38f,  0.50f, 
+                                       0.50f,  0.50f,  0.38f,  0.25f,  0.50f, 
+                                       0.25f,  0.38f,  0.00f,  0.50f,  0.00f, 
+                                       0.25f,  0.50f,  0.25f,  0.25f,  0.25f, 
+                                       0.00f,  0.25f,  1.00f,  0.00f,  0.75f, 
+                                       0.13f,  0.75f,  0.13f,  0.50f,  0.13f, 
+                                       0.25f,  0.13f,  0.00f,  0.00f,  0.50f, 
+                                       0.00f,  0.25f,  0.00f,  0.00f,  1.00f, 
+                                       1.00f,  0.75f,  0.75f,  0.88f,  0.75f, 
+                                       1.00f,  0.75f,  0.88f,  0.50f,  1.00f, 
+                                       0.50f,  0.88f,  0.25f,  1.00f,  0.25f, 
+                                       0.88f,  0.00f,  1.00f,  0.00f,  0.75f, 
+                                       0.50f,  0.75f,  0.25f,  0.75f,  0.00f, 
+                                       0.75f,  1.00f,  0.50f,  0.75f,  0.63f, 
+                                       0.75f,  0.63f,  0.50f,  0.63f,  0.25f, 
+                                       0.63f,  0.00f,  0.50f,  0.50f,  0.50f, 
+                                       0.25f,  0.50f,  0.00f,  0.50f,  1.00f, 
+                                       0.25f,  0.75f,  0.38f,  0.75f,  0.50f, 
+                                       0.75f,  0.38f,  0.50f,  0.50f,  0.50f, 
+                                       0.38f,  0.25f,  0.50f,  0.25f,  0.38f, 
+                                       0.00f,  0.50f,  0.00f,  0.25f,  0.50f, 
+                                       0.25f,  0.25f,  0.25f,  0.00f,  0.25f, 
+                                       1.00f,  0.00f,  0.75f,  0.13f,  0.75f, 
+                                       0.13f,  0.50f,  0.13f,  0.25f,  0.13f, 
+                                       0.00f,  0.00f,  0.50f,  0.00f,  0.25f, 
+                                       0.00f,  0.00f,  0.88f,  0.75f,  1.00f, 
+                                       0.75f,  1.00f,  1.00f,  0.88f,  1.00f, 
+                                       0.88f,  0.50f,  1.00f,  0.50f,  0.88f, 
+                                       0.25f,  1.00f,  0.25f,  0.88f,  0.00f, 
+                                       1.00f,  0.00f,  0.75f,  0.75f,  0.75f, 
+                                       1.00f,  0.75f,  0.50f,  0.75f,  0.25f, 
+                                       0.75f,  0.00f,  0.63f,  0.75f,  0.63f, 
+                                       1.00f,  0.63f,  0.50f,  0.63f,  0.25f, 
+                                       0.63f,  0.00f,  0.50f,  0.75f,  0.50f, 
+                                       1.00f,  0.50f,  0.50f,  0.50f,  0.25f, 
+                                       0.50f,  0.00f,  0.38f,  0.75f,  0.50f, 
+                                       0.75f,  0.50f,  1.00f,  0.38f,  1.00f, 
+                                       0.38f,  0.50f,  0.50f,  0.50f,  0.38f, 
+                                       0.25f,  0.50f,  0.25f,  0.38f,  0.00f, 
+                                       0.50f,  0.00f,  0.25f,  0.75f,  0.25f, 
+                                       1.00f,  0.25f,  0.50f,  0.25f,  0.25f, 
+                                       0.25f,  0.00f,  0.13f,  0.75f,  0.13f, 
+                                       1.00f,  0.13f,  0.50f,  0.13f,  0.25f, 
+                                       0.13f,  0.00f,  0.00f,  0.75f,  0.00f, 
+                                       1.00f,  0.00f,  0.50f,  0.00f,  0.25f, 
+                                       0.00f,  0.00f,  0.88f,  0.75f,  1.00f, 
+                                       0.75f,  1.00f,  1.00f,  0.88f,  1.00f, 
+                                       0.88f,  0.50f,  1.00f,  0.50f,  0.88f, 
+                                       0.25f,  1.00f,  0.25f,  0.88f,  0.00f, 
+                                       1.00f,  0.00f,  0.75f,  0.75f,  0.75f, 
+                                       1.00f,  0.75f,  0.50f,  0.75f,  0.25f, 
+                                       0.75f,  0.00f,  0.63f,  0.75f,  0.63f, 
+                                       1.00f,  0.63f,  0.50f,  0.63f,  0.25f, 
+                                       0.63f,  0.00f,  0.50f,  0.75f,  0.50f, 
+                                       1.00f,  0.50f,  0.50f,  0.50f,  0.25f, 
+                                       0.50f,  0.00f,  0.38f,  0.75f,  0.50f, 
+                                       0.75f,  0.50f,  1.00f,  0.38f,  1.00f, 
+                                       0.38f,  0.50f,  0.50f,  0.50f,  0.38f, 
+                                       0.25f,  0.50f,  0.25f,  0.38f,  0.00f, 
+                                       0.50f,  0.00f,  0.25f,  0.75f,  0.25f, 
+                                       1.00f,  0.25f,  0.50f,  0.25f,  0.25f, 
+                                       0.25f,  0.00f,  0.13f,  0.75f,  0.13f, 
+                                       1.00f,  0.13f,  0.50f,  0.13f,  0.25f, 
+                                       0.13f,  0.00f,  0.00f,  0.75f,  0.00f, 
+                                       1.00f,  0.00f,  0.50f,  0.00f,  0.25f, 
+                                       0.00f,  0.00f,  0.50f,  0.00f,  0.25f, 
+                                       0.00f,  1.00f,  0.00f,  0.75f,  0.00f, 
+                                       0.50f,  0.00f,  0.25f,  0.00f,  0.00f, 
+                                       0.00f,  0.75f,  0.00f,  0.50f,  0.00f, 
+                                       0.25f,  0.00f,  1.00f,  0.00f,  0.75f, 
+                                       0.00f,  0.50f,  0.00f,  0.25f,  0.00f };
         }
     }
 

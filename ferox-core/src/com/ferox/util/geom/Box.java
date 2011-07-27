@@ -1,14 +1,12 @@
 package com.ferox.util.geom;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.resource.Geometry;
-import com.ferox.resource.PolygonType;
-import com.ferox.resource.VectorBuffer;
+import com.ferox.renderer.Renderer.PolygonType;
+import com.ferox.resource.BufferData;
+import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
  * <p>
@@ -16,33 +14,43 @@ import com.ferox.resource.VectorBuffer;
  * to have its vertices, normals and texture coordinates use the default
  * attribute names defined in Geometry.
  * </p>
- * <p>
- * This code was ported from com.jme.scene.shapes.Box
- * </p>
  * 
  * @author Michael Ludwig
  */
-public class Box extends PrimitiveGeometry {
+public class Box implements Geometry {
+    // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+    // ordered in such a way as to not need indices
+    private final VertexBufferObject vertexAttributes;
+    
+    private final VertexAttribute vertices;
+    private final VertexAttribute normals;
+    private final VertexAttribute texCoords;
+    
     /**
      * Construct a box centered on its origin, with the given side length. So,
-     * Box(1f) creates a unit cube. Uses CompileType.NONE.
+     * Box(1f) creates a unit cube. Uses StorageMode.IN_MEMORY for its
+     * VertexBufferObjects.
      * 
      * @param side The side length of the created cube
+     * @throws IllegalArgumentException if side is negative
      */
     public Box(float side) {
-        this(side, CompileType.NONE);
+        this(side, StorageMode.IN_MEMORY);
     }
 
     /**
      * Construct a new Box with the given minimum and maximum points. These
-     * points are opposite corners of the box. Uses CompileType.NONE.
+     * points are opposite corners of the box. Uses StorageMode.IN_MEMORY for
+     * its VertexBufferObjects.
      * 
      * @param min Minimum corner of the box
      * @param max Maximum corner of the box
      * @throws NullPointerException if min or max are null
+     * @throws IllegalArgumentException if min has any coordinate less than the
+     *             corresponding coordinate of max
      */
     public Box(ReadOnlyVector3f min, ReadOnlyVector3f max) {
-        this(min, max, CompileType.NONE);
+        this(min, max, StorageMode.IN_MEMORY);
     }
 
     /**
@@ -50,11 +58,13 @@ public class Box extends PrimitiveGeometry {
      * Box(1f) creates a unit cube.
      * 
      * @param side The side length of the created cube
-     * @param type The compile type to use for the Box
+     * @param mode The storage mode to use for the Box
+     * @throws NullPointerException if mode is null
+     * @throws IllegalArgumentException if side is negative
      */
-    public Box(float side, CompileType type) {
+    public Box(float side, StorageMode mode) {
         this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
-             new Vector3f(side / 2f, side / 2f, side / 2f), type);
+             new Vector3f(side / 2f, side / 2f, side / 2f), mode);
     }
 
     /**
@@ -63,129 +73,109 @@ public class Box extends PrimitiveGeometry {
      * 
      * @param min Minimum corner of the box
      * @param max Maximum corner of the box
-     * @param type The compile type to use for the Box
-     * @throws NullPointerException if min or max are null
+     * @param mode The compile type to use for the Box
+     * @throws NullPointerException if min, max or mode are null
+     * @throws IllegalArgumentException if min has any coordinate less than the
+     *             corresponding coordinate of max
      */
-    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max, CompileType type) {
-        this(min, max, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, 
-             Geometry.DEFAULT_TEXCOORD_NAME);
-    }
-
-    /**
-     * Construct a new Box with the given minimum and maximum points. These
-     * points are opposite corners of the box. Unlike other constructors which
-     * use the default attribute names, this constructor allows you to configure
-     * them as you wish.
-     * 
-     * @param min Minimum corner of the box
-     * @param max Maximum corner
-     * @param type The CompileType to use
-     * @param vertexName The name for vertices
-     * @param normalName The name for normals
-     * @param tcName The name for texture coordinates
-     * @throws NullPointerException if min, max, vertexName, normalName or
-     *             tcName are null
-     */
-    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max, CompileType type, String vertexName, String normalName, String tcName) {
-        super(type, vertexName, normalName, tcName);
-        setData(min, max);
-    }
-
-    /**
-     * <p>
-     * Changes the data of the box so that the two opposite corners are minPoint
-     * and maxPoint. The other corners are created from those two points.
-     * </p>
-     * <p>
-     * This assumes that minPoint represents the minimum coordinate point of the
-     * box, and maxPoint is the max. If this isn't true, results are undefined.
-     * </p>
-     * <p>
-     * The vertices, normals and texture coordinates will be placed in
-     * attributes with the default names defined in Geometry. If you wish to use
-     * different attribute names, invoke
-     * {@link #redefineAttributes(String, String, String)} to use the new names.
-     * </p>
-     * 
-     * @param minPoint Minimum corner of the box
-     * @param maxPoint Maximum corner of the box
-     * @throws NullPointerException if minPoint or maxPoint are null
-     */
-    public void setData(ReadOnlyVector3f minPoint, ReadOnlyVector3f maxPoint) {
-        if (minPoint == null || maxPoint == null)
-            throw new NullPointerException("minPoint and maxPoint cannot be null");
-
-        MutableVector3f center = minPoint.add(maxPoint, null).scale(.5f);
-
-        float xExtent = maxPoint.getX() - center.getX();
-        float yExtent = maxPoint.getY() - center.getY();
-        float zExtent = maxPoint.getZ() - center.getZ();
-
+    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max, StorageMode mode) {
+        if (min == null || max == null)
+            throw new NullPointerException("Min and max vectors cannot be null");
+        if (mode == null)
+            throw new NullPointerException("StorageMode cannot be null");
         
-        FloatBuffer v = newFloatBuffer(72);
-        FloatBuffer n = newFloatBuffer(72);
-        FloatBuffer t = newFloatBuffer(48);
-
-        float minX = center.getX() - xExtent;
-        float maxX = center.getX() + xExtent;
-        float minY = center.getY() - yExtent;
-        float maxY = center.getY() + yExtent;
-        float minZ = center.getZ() - zExtent;
-        float maxZ = center.getZ() + zExtent;
-
-        int ti = 0;
-        int ni = 0;
-        int vi = 0;
-
+        if (min.getX() > max.getX() || min.getY() > max.getY() || min.getZ() > max.getZ())
+            throw new IllegalArgumentException("Min vertex has coordinate greater than 'max': " + min + " - " + max);
+        
+        float maxX = max.getX();
+        float maxY = max.getY();
+        float maxZ = max.getZ();
+        float minX = min.getX();
+        float minY = min.getY();
+        float minZ = min.getZ();
+        
+        int i = 0;
+        float[] va = new float[192]; // 72v + 72n + 48t
+        
         // back
-        t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, minZ);
-        t.put(ti++, 0f); t.put(ti++, 0f);   n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, minZ);
-        t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, minZ);
-        t.put(ti++, 1f); t.put(ti++, 1f);   n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, minZ);
+        /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 1f; va[i++] = 1f;
+        /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 0f; va[i++] = 1f;
+        /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 0f; va[i++] = 0f;
+        /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 1f; va[i++] = 0f;
 
         // right
-        t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, minZ);
-        t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, maxZ);
-        t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, minZ);
-
+        /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
+        /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
+        /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
+        /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+        
         // front
-        t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, maxZ);
-        t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, maxZ);
+        /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 1f; va[i++] = 1f;
+        /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 0f; va[i++] = 1f;
+        /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 0f; va[i++] = 0f;
+        /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 1f; va[i++] = 0f;
 
         // left
-        t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY);v.put(vi++, minZ);
-        t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, minZ);
-        t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, -1f); n.put(ni++, 0f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, maxZ);
-
+        /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
+        /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
+        /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
+        /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+        
         // top
-        t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, maxY); v.put(vi++, minZ);
-        t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, 1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, maxY); v.put(vi++, minZ);
-
+        /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
+        /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
+        /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
+        /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+        
         // bottom
-        t.put(ti++, 1f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 0f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, maxZ);
-        t.put(ti++, 0f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, maxX); v.put(vi++, minY); v.put(vi++, minZ);
-        t.put(ti++, 1f); t.put(ti++, 1f); n.put(ni++, 0f); n.put(ni++, -1f); n.put(ni++, 0f); v.put(vi++, minX); v.put(vi++, minY); v.put(vi++, minZ);
+        /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
+        /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
+        /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
+        /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+        
+        vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+        vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
+        normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
+        texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+    }
 
-        // indices
-        IntBuffer indices = newIntBuffer(36);
-        indices.put(new int[] { 2, 1, 0, 3, 2, 0, // back
-                                6, 5, 4, 7, 6, 4, // right
-                                10, 9, 8, 11, 10, 8, // front
-                                14, 13, 12, 15, 14, 12, // left
-                                18, 17, 16, 19, 18, 16, // top
-                                22, 21, 20, 23, 22, 20 // bottom
-                    });
+    @Override
+    public PolygonType getPolygonType() {
+        return PolygonType.QUADS;
+    }
 
-        setAttribute(getVertexName(), new VectorBuffer(v, 3));
-        setAttribute(getNormalName(), new VectorBuffer(n, 3));
-        setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
-        setIndices(indices, PolygonType.TRIANGLES);
+    @Override
+    public VertexBufferObject getIndices() {
+        return null;
+    }
+
+    @Override
+    public int getIndexOffset() {
+        return 0;
+    }
+
+    @Override
+    public int getIndexCount() {
+        return 24;
+    }
+
+    @Override
+    public VertexAttribute getVertices() {
+        return vertices;
+    }
+
+    @Override
+    public VertexAttribute getNormals() {
+        return normals;
+    }
+
+    @Override
+    public VertexAttribute getTextureCoordinates() {
+        return texCoords;
+    }
+
+    @Override
+    public VertexAttribute getTangents() {
+        throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
     }
 }
