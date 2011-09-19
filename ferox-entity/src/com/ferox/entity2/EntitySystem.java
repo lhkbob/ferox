@@ -100,11 +100,44 @@ public final class EntitySystem {
     }
     
     public void index() {
-        // FIXME: index entity ids array
-        /*for (int i = 0; i < componentData.length; i++) {
-            if (componentData[i] != null)
-                componentData[i].index();
-        }*/
+        // Pack the data
+        int startRemove = -1;
+        for (int i = 1; i < entityInsert; i++) {
+            if (entityIds[i] == 0) {
+                // found an entity to remove
+                if (startRemove < 0)
+                    startRemove = i;
+            } else {
+                // found an entity to preserve
+                if (startRemove > 0) {
+                    // we have a gap from [startRemove, i - 1] that can be compacted
+                    System.arraycopy(entityIds, i, entityIds, startRemove, entityInsert - i);
+                    System.arraycopy(entities, i, entities, startRemove, entityInsert - i);
+                    
+                    // update entityInsert
+                    entityInsert = entityInsert - i + startRemove;
+                    
+                    // now reset loop
+                    i = startRemove;
+                    startRemove = -1;
+                }
+            }
+        }
+        
+        // Build a map from oldIndex to newIndex and repair entity's index
+        int[] oldToNew = new int[entityIds.length];
+        for (int i = 0; i < entities.length; i++) {
+            if (entities[i] != null) {
+                oldToNew[entities[i].index] = i;
+                entities[i].index = i;
+            }
+        }
+        
+        // Now index and update all ComponentIndices
+        for (int i = 0; i < componentIndices.length; i++) {
+            if (componentIndices[i] != null)
+                componentIndices[i].index(oldToNew);
+        }
     }
     
     public Entity getEntity(int entity) {

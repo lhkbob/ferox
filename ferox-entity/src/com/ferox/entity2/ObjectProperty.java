@@ -30,38 +30,32 @@ public final class ObjectProperty implements Property {
         this.store = newStore;
     }
 
-    private static class ObjectDataStore implements IndexedDataStore {
-        private final int elementSize;
-        private final Object[] array;
+    private static class ObjectDataStore extends AbstractIndexedDataStore {
+        private Object[] array;
         
         public ObjectDataStore(int elementSize, Object[] array) {
-            this.elementSize = elementSize;
+            super(elementSize);
             this.array = array;
         }
         
         @Override
-        public IndexedDataStore create(int size) {
-            return new ObjectDataStore(elementSize, new Object[elementSize * size]);
+        protected Object createArray(int arraySize) {
+            return new Object[arraySize];
         }
 
         @Override
-        public int size() {
-            return array.length / elementSize;
+        protected void setArray(Object array) {
+            this.array = (Object[]) array;
         }
 
         @Override
-        public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset) {
-            if (dest == null)
-                throw new NullPointerException("Destination store cannot be null");
-            if (!(dest instanceof ObjectDataStore))
-                throw new IllegalArgumentException("Destination store not compatible with this store, wrong type: " + dest.getClass());
-            
-            
-            ObjectDataStore dstStore = (ObjectDataStore) dest;
-            if (dstStore.elementSize != elementSize)
-                throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
-            
-            System.arraycopy(array, srcOffset * elementSize, dstStore.array, destOffset * elementSize, len * elementSize);
+        protected Object getArray() {
+            return array;
+        }
+
+        @Override
+        protected int getArrayLength(Object array) {
+            return ((Object[]) array).length;
         }
     }
 }

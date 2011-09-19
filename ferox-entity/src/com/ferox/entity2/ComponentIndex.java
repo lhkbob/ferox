@@ -1,14 +1,11 @@
 package com.ferox.entity2;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 final class ComponentIndex<T extends Component> {
-    
     private int[] entityIndexToComponentIndex;
     
     private int[] componentIndexToEntityIndex;
@@ -20,9 +17,6 @@ final class ComponentIndex<T extends Component> {
     
     private final Comparator<Component> entityIndexComparator;
 
-    // FIXME: do we need this?
-    private final List<Integer> removedIndices;
-    
     private int componentInsert;
     
     public ComponentIndex(EntitySystem system, TypedId<T> type) {
@@ -36,7 +30,6 @@ final class ComponentIndex<T extends Component> {
         
         componentInsert = 1;
         
-        removedIndices = new ArrayList<Integer>();
         entityIndexComparator = new Comparator<Component>() {
             @Override
             public int compare(Component o1, Component o2) {
@@ -74,7 +67,6 @@ final class ComponentIndex<T extends Component> {
         }
     }
     
-    @SuppressWarnings("unchecked")
     private void expandComponentIndex(int numComponents) {
         if (numComponents < components.length)
             return;
@@ -84,25 +76,14 @@ final class ComponentIndex<T extends Component> {
         // Expand the indexed data stores for the properties
         for (int i = 0; i < propertyStores.length; i++) {
             if (propertyStores[i] != null) {
-                IndexedDataStore newData = propertyStores[i].create(size);
-                propertyStores[i].copy(0, propertyStores[i].size(), newData, 0);
-                propertyStores[i] = newData;
+                // Becauase we use resize() here, we don't need to update
+                // the IndexedDataStores of the components
+                propertyStores[i].resize(size);
             }
         }
         
         // Expand the canonical component array
         components = Arrays.copyOf(components, size);
-        
-        // Assign new indexed data stores over to each component's properties
-        Property[] props = new Property[propertyStores.length];
-        for (int i = 0; i < components.length; i++) {
-            if (components[i] != null) {
-                type.getProperties((T) components[i], props);
-                for (int j = 0; j < props.length; j++) {
-                    props[j].setDataStore(propertyStores[j]);
-                }
-            }
-        }
         
         // Expand the component index
         componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, size);
@@ -155,10 +136,8 @@ final class ComponentIndex<T extends Component> {
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
         
         // Make all removed component instances point to the 0th index
-        if (oldComponent != null) {
+        if (oldComponent != null)
             oldComponent.index = 0;
-            removedIndices.add(componentIndex);
-        }
         
         if (match != null)
             match.index = 0;
@@ -166,74 +145,32 @@ final class ComponentIndex<T extends Component> {
         return oldComponent != null;
     }
     
-    public void index() {
-        // FIXME: index() is responsible for packing and sorting the component
-        // data in the order of entity ids
+    public void index(int[] entityOldToNewMap) {
+        // First sort the canonical components array
+        Arrays.sort(components, 1, componentInsert, entityIndexComparator);
         
-        // so that makes me think we should sort the entity ids first, although
-        // this is always in-order, we just need to repack it.
+        // Update all of the propery stores to match up with the components new positions
+        for (int i = 0; i < propertyStores.length; i++) {
+            if (propertyStores[i] != null)
+                propertyStores[i].update(components, 1, componentInsert);
+        }
         
-        // Then we need to process all component indices for the sorting
+        // Repair the componentToEntityIndex and the component.index values
+        componentInsert = 1;
+        int[] newComponentIndex = new int[components.length];
+        for (int i = 1; i < components.length; i++) {
+            if (components[i] != null) {
+                newComponentIndex[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i].index]];
+                components[i].index = i;
+                componentInsert = i + 1;
+            }
+        }
+        componentIndexToEntityIndex = newComponentIndex;
         
-        // How will we go about this though? I can't just do a sort using Arrays.sort
-        // because I have to move all of the data along with it
-        
-        // Maybe use a quicksort solution similar to what's in Bag
-        // I would need to move components[], and componentIndexToEntityIndex[] over
-        // and update the indices in entityIndexToComponentIndex to match
-        // finally also copy all data of the indexed data store as appropriate.
-        
-        // Is there a way of doing a single sort on one of the arrays and
-        // then doing an O(n) update.  Probably, if I sort component[] and
-        // then read its index value to figure out its original value
-        // 
-        
-        // I could not do the O(n) updates in place, however, because I would
-        // start overwriting other data that hasn't been shifted yet.
-        
-        // Is it too much to just reallocate every time an index is done?
-        // Also, the indexed data copy will be slow, although it might be even
-        // slower to try to identify regions of shifting.
-        
-        
-        // First sort the components[] array. This will re-order
-        // the components to be in the same order as their entities,
-        // and will pack gaps as well.
-        Arrays.sort(components, 1, componentInsert + 1, entityIndexComparator);
-        
-        // FIXME must use notebook to see if there is a way to work out inplace
-        // update without doing an overwrite of some 'needed' chunk of array
-        // If not, make comp-index keep track of num removes and adds, and if enough
-        // happen, then index() does something, otherwise its a no-op.
-        
-        // Similarly, with when entities are force-indexed, must pass forcing
-        // through to the comp-index.
-        
-        // Let's see how this ordering issue works.  In the components[] array,
-        // everyone could potentially be moved left or right.  They might be
-        // shifted left to fill a gap, or shifted right to make room for a component
-        // that needs re-ordering, and shifted left to become sorted, which sucks
-        // as far as prediction goes
-        
-        // now what can we do?
-        // - maybe an O(n) swap instead, stealing the swap approach from quick sort?
-        //   but I don't know how we could look up the target component and update its
-        //   index so that it knew where to grab data
-        //
-        // - iterating from the back of the sorted components[] array offers some potential
-        //   since I know any swap will come from an unprocessed part of the list, assuming
-        //   that we update the needed swaps as swaps go
-        
-        // - It really feels like a re-allocate will be faster, although maybe an O(nlogn) swap
-        //   isn't so bad.  I should experiment with the cost of the quicksort swap option
-        //   since it will offer me the best memory usage.
-        
-        // - Alternatively, I can just have two data stores that get swapped back and forth
-        //   every index.  This would duplicate the amount of storage needed for the entity system,though
-        //   but would remove the need to do allocations every index.
-        
-        // Although, quicksort might not be the best sort since most of the data will be 
-        // fully sorted, so I want to pick a sort that works well with that.  Bubble? Insertion?
+        // Repair entityIndexToComponentIndex
+        Arrays.fill(entityIndexToComponentIndex, 0);
+        for (int i = 1; i < componentInsert; i++)
+            entityIndexToComponentIndex[componentIndexToEntityIndex[i]] = i;
     }
     
     public Iterator<T> iterator() {
@@ -264,7 +201,8 @@ final class ComponentIndex<T extends Component> {
             if (propertyStores[i] == null) {
                 // Must create a new store for the component property,
                 // make it large enough to fit the current components array
-                propertyStores[i] = origData.create(components.length);
+                origData.resize(components.length);
+                propertyStores[i] = origData;
             }
             
             if (!forIter) {

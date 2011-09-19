@@ -30,38 +30,32 @@ public final class FloatProperty implements Property {
         this.store = newStore;
     }
 
-    private static class FloatDataStore implements IndexedDataStore {
-        private final int elementSize;
-        private final float[] array;
+    private static class FloatDataStore extends AbstractIndexedDataStore {
+        private float[] array;
         
         public FloatDataStore(int elementSize, float[] array) {
-            this.elementSize = elementSize;
+            super(elementSize);
             this.array = array;
         }
         
         @Override
-        public IndexedDataStore create(int size) {
-            return new FloatDataStore(elementSize, new float[elementSize * size]);
+        protected Object createArray(int arraySize) {
+            return new float[arraySize];
         }
 
         @Override
-        public int size() {
-            return array.length / elementSize;
+        protected void setArray(Object array) {
+            this.array = (float[]) array;
         }
 
         @Override
-        public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset) {
-            if (dest == null)
-                throw new NullPointerException("Destination store cannot be null");
-            if (!(dest instanceof FloatDataStore))
-                throw new IllegalArgumentException("Destination store not compatible with this store, wrong type: " + dest.getClass());
-            
-            
-            FloatDataStore dstStore = (FloatDataStore) dest;
-            if (dstStore.elementSize != elementSize)
-                throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
-            
-            System.arraycopy(array, srcOffset * elementSize, dstStore.array, destOffset * elementSize, len * elementSize);
+        protected Object getArray() {
+            return array;
+        }
+
+        @Override
+        protected int getArrayLength(Object array) {
+            return ((float[]) array).length;
         }
     }
 }
