@@ -19,10 +19,6 @@ public final class EntitySystem {
     
     private final ConcurrentHashMap<Class<? extends Annotation>, Object> controllerData;
     
-    // FIXME: fast iterators make it difficult for things like the SpatialHierarchyController
-    // to store data into the hierarchy, they would need to use the standard iterator
-    // or store the integer ids instead
-    
     public EntitySystem() {
         entities = new Entity[1];
         entityIds = new int[1];
@@ -126,17 +122,22 @@ public final class EntitySystem {
         
         // Build a map from oldIndex to newIndex and repair entity's index
         int[] oldToNew = new int[entityIds.length];
-        for (int i = 0; i < entities.length; i++) {
-            if (entities[i] != null) {
+        for (int i = 1; i < entityInsert; i++) {
                 oldToNew[entities[i].index] = i;
                 entities[i].index = i;
-            }
+        }
+        
+        if (entityInsert < .6f * entities.length) {
+            // reduce the size of the entities/ids arrays
+            int newSize = (int) (1.2f * entityInsert) + 1;
+            entities = Arrays.copyOf(entities, newSize);
+            entityIds = Arrays.copyOf(entityIds, newSize);
         }
         
         // Now index and update all ComponentIndices
         for (int i = 0; i < componentIndices.length; i++) {
             if (componentIndices[i] != null)
-                componentIndices[i].index(oldToNew);
+                componentIndices[i].index(oldToNew, entityInsert);
         }
     }
     

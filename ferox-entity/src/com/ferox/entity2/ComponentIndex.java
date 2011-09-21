@@ -76,7 +76,7 @@ final class ComponentIndex<T extends Component> {
         // Expand the indexed data stores for the properties
         for (int i = 0; i < propertyStores.length; i++) {
             if (propertyStores[i] != null) {
-                // Becauase we use resize() here, we don't need to update
+                // Becuase we use resize() here, we don't need to update
                 // the IndexedDataStores of the components
                 propertyStores[i].resize(size);
             }
@@ -145,7 +145,7 @@ final class ComponentIndex<T extends Component> {
         return oldComponent != null;
     }
     
-    public void index(int[] entityOldToNewMap) {
+    public void index(int[] entityOldToNewMap, int numEntities) {
         // First sort the canonical components array
         Arrays.sort(components, 1, componentInsert, entityIndexComparator);
         
@@ -167,8 +167,24 @@ final class ComponentIndex<T extends Component> {
         }
         componentIndexToEntityIndex = newComponentIndex;
         
-        // Repair entityIndexToComponentIndex
-        Arrays.fill(entityIndexToComponentIndex, 0);
+        // Possibly compact the component data
+        if (componentInsert < .6f * components.length) {
+            int newSize = (int) (1.2f * componentInsert) + 1;
+            components = Arrays.copyOf(components, newSize);
+            componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, newSize);
+            for (int i = 0; i < propertyStores.length; i++) {
+                if (propertyStores[i] != null)
+                    propertyStores[i].resize(newSize);
+            }
+        }
+        
+        // Repair entityIndexToComponentIndex - and possible shrink the index
+        // based on the number of packed entities
+        if (numEntities < .6f * entityIndexToComponentIndex.length)
+            entityIndexToComponentIndex = new int[(int) (1.2f * numEntities) + 1];
+        else
+            Arrays.fill(entityIndexToComponentIndex, 0);
+        
         for (int i = 1; i < componentInsert; i++)
             entityIndexToComponentIndex[componentIndexToEntityIndex[i]] = i;
     }

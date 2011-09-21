@@ -18,6 +18,8 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
         
         System.arraycopy(oldArray, 0, newArray, 0, Math.min(size * elementSize, getArrayLength(oldArray)));
         setArray(newArray);
+        
+        swap = null;
     }
 
     @Override
