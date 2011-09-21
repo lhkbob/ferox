@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 public interface IndexedDataStore {
     public void resize(int size);

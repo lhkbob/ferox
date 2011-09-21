@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 import java.util.Arrays;
 import java.util.Comparator;

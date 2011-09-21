@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 public final class ObjectProperty implements Property {
     private ObjectDataStore store;

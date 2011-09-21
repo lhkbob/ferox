@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

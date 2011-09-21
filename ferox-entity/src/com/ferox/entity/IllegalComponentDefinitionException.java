@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 /**
  * IllegalComponetnHierarchyException is an exception thrown if a Component

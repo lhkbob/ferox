@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 public final class IntProperty implements Property {
     private IntDataStore store;

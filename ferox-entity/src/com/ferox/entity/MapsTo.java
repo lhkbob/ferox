@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;

@@ -1,4 +1,4 @@
-package com.ferox.entity2;
+package com.ferox.entity;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
