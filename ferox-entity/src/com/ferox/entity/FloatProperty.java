@@ -1,12 +1,36 @@
 package com.ferox.entity;
 
+/**
+ * FloatProperty is an implementation of Property that stores the property data
+ * as a number of packed floats for each property. An example would be a
+ * three-dimensional vector, which would have an element size of 3.
+ * 
+ * @author Michael Ludwig
+ */
 public final class FloatProperty implements Property {
     private FloatDataStore store;
-    
+
+    /**
+     * Create a new FloatProperty where each property will have
+     * <tt>elementSize</tt> array elements together.
+     * 
+     * @param elementSize The element size of the property
+     * @throws IllegalArgumentException if elementSize is less than 1
+     */
     public FloatProperty(int elementSize) {
         store = new FloatDataStore(elementSize, new float[elementSize]);
     }
-    
+
+    /**
+     * Return the backing float array of this property's IndexedDataStore. The
+     * array may be longer than necessary for the number of components in the
+     * system. Data may be looked up for a specific component by scaling the
+     * {@link Component#getIndex() component's index} by the element size of the
+     * property.
+     * 
+     * @return The float data for all packed properties that this property has
+     *         been packed with
+     */
     public float[] getIndexedData() {
         return store.array;
     }
@@ -30,7 +54,7 @@ public final class FloatProperty implements Property {
         this.store = newStore;
     }
 
-    private static class FloatDataStore extends AbstractIndexedDataStore {
+    private static class FloatDataStore extends AbstractIndexedDataStore<float[]> {
         private float[] array;
         
         public FloatDataStore(int elementSize, float[] array) {
@@ -39,23 +63,23 @@ public final class FloatProperty implements Property {
         }
         
         @Override
-        protected Object createArray(int arraySize) {
+        protected float[] createArray(int arraySize) {
             return new float[arraySize];
         }
 
         @Override
-        protected void setArray(Object array) {
-            this.array = (float[]) array;
+        protected void setArray(float[] array) {
+            this.array = array;
         }
 
         @Override
-        protected Object getArray() {
+        protected float[] getArray() {
             return array;
         }
 
         @Override
-        protected int getArrayLength(Object array) {
-            return ((float[]) array).length;
+        protected int getArrayLength(float[] array) {
+            return array.length;
         }
     }
 }

@@ -3,53 +3,142 @@ package com.ferox.entity;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * <p>
+ * An Entity represents a collection of Components within an EntitySystem.
+ * Entities are created by calling {@link EntitySystem#addEntity()} or the
+ * similar function that takes another Entity as a template.
+ * </p>
+ * <p>
+ * Like {@link Component}, a given instance of Entity might change its true
+ * identity by having its index into the system changed. An Entity's identity is
+ * determined by its id, which can be found with {@link #getId()}.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
 public final class Entity implements Iterable<Component> {
     private final EntitySystem system;
     int index;
-    
+
+    /**
+     * Create an Entity that will be owned by the given system and is placed at
+     * the given index.
+     * 
+     * @param system The owning system
+     * @param index The index into the system
+     */
     Entity(EntitySystem system, int index) {
+        if (system == null)
+            throw new NullPointerException("System cannot be null");
+        if (index < 0)
+            throw new IllegalArgumentException("Index must be at least 0, not: " + index);
+        
         this.system = system;
         this.index = index;
     }
     
+    /**
+     * @return The owning EntitySystem of this entity
+     */
     public EntitySystem getEntitySystem() {
         return system;
     }
-    
+
+    /**
+     * @return The unique id of this Entity, or 0 if the entity has been removed
+     *         from its system
+     */
     public int getId() {
         return system.getEntityId(index);
     }
-    
-//    public Integer getBoxedId() {
-        // optimization worth it?
-//    }
-    
+
+    /**
+     * Get the Component instance of the given type that's attached to this
+     * Entity. A null value is returned if the component type has not been
+     * attached to the entity. The same Component instance is returned for a
+     * given type until that component has been removed, meaning that the
+     * component can be safely stored in collections.
+     * 
+     * @param <T> The parameterized type of Component being fetched
+     * @param id The TypedId representing the given type
+     * @return The current Component of type T attached to this container
+     * @throws NullPointerException if id is null
+     * @throws IndexOutOfBoundsException if the given component type has not
+     *             been registered with the entity's system
+     */
     public <T extends Component> T get(TypedId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
         return ci.getComponent(index);
     }
-    
+
+    /**
+     * Attach a Component of type T to this Entity. If the Entity already has
+     * component of type T attached, that component is returned unmodified.
+     * Otherwise, a new instance is created with its default values and added to
+     * the system. The returned instance will be the canonical component for the
+     * given type (until its removed) and can be safely stored in collections.
+     * 
+     * @param <T> The parameterized type of component being added
+     * @param componentId The TypedId of the component type
+     * @return A new component of type T, or an existing T if already attached
+     * @throws NullPointerException if componentId is null
+     * @throws IndexOutOfBoundsException if the given component type has not
+     *             been registered with the entity's system
+     */
     public <T extends Component> T add(TypedId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
         return ci.addComponent(index, null);
     }
-    
+
+    /**
+     * Remove any attached Component of the given type, T, from this Entity.
+     * True is returned if a component was removed, and false otherwise. If a
+     * component is removed, the component should no longer be used and it will
+     * return null from {@link Component#getEntity()}.
+     * 
+     * @param <T> The parameterized type of component to remove
+     * @param componentId The TypedId of the component type
+     * @return True if a component was removed
+     * @throws NullPointerException if componentId is null
+     * @throws IndexOutOfBoundsException if the given component type has not
+     *             been registered with the entity's system
+     */
     public <T extends Component> boolean remove(TypedId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
-        return ci.removeComponent(index, null);
-    }
-    
-    @SuppressWarnings("unchecked")
-    public <T extends Component> boolean remove(T component) {
-        ComponentIndex<T> ci = (ComponentIndex<T>) system.getIndex(component.getTypedId());
-        return ci.removeComponent(index, component);
+        return ci.removeComponent(index);
     }
 
+    /**
+     * Return an iterator over the components currently attached to the Entity.
+     * The iterator supports the remove operation and will detach the component
+     * from the entity. The returned components are the canonical component
+     * instances for the entity and can be safely held in collections.
+     * 
+     * @return An iterator over the entity's components
+     */
     @Override
     public Iterator<Component> iterator() {
         return new ComponentIterator(system, index);
     }
     
+    @Override
+    public int hashCode() {
+        return getId();
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Entity))
+            return false;
+        Entity e = (Entity) o;
+        return e.system == system && e.getId() == getId();
+    }
+    
+    /*
+     * Iterator implementation that iterates over the components
+     * attached to an entity, based on entity index rather than reference
+     */
     private static class ComponentIterator implements Iterator<Component> {
         private final int entityIndex;
         private final Iterator<ComponentIndex<?>> indices;
@@ -84,7 +173,7 @@ public final class Entity implements Iterable<Component> {
             if (currentIndex == null)
                 throw new IllegalStateException("Must call next first");
             
-            if (currentIndex.removeComponent(entityIndex, null))
+            if (currentIndex.removeComponent(entityIndex))
                 currentIndex = null; // so next call to remove() fails
             else
                 throw new IllegalStateException("Already removed");

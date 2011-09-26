@@ -56,6 +56,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * their properties. The index can be fetched by calling {@link #getIndex()}. An
  * instance of Component may have its index changed, effectively changing it to
  * a different "instance". This is most common when using the fast iterators.
+ * Because of this, reference equality may not work, instead you should rely on
+ * {@link #equals(Object)}.
  * </p>
  * 
  * @author Michael Ludwig
@@ -150,8 +152,30 @@ public class Component {
      * 
      * @return The index of the component used to access its IndexedDataStores.
      */
-    protected final int getIndex() {
+    public final int getIndex() {
         return index;
+    }
+    
+    @Override
+    public int hashCode() {
+        return index;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Component))
+            return false;
+        Component c = (Component) o;
+        if (c.owner == owner && c.typedId == typedId) {
+            // We can't use index because a canonical component might have it change,
+            // instead use its owning entity
+            int tei = owner.getEntitySystem().getEntityId(owner.getEntityIndex(index));
+            int cei = c.owner.getEntitySystem().getEntityId(c.owner.getEntityIndex(c.index));
+            return tei == cei;
+        } else {
+            // type and owner don't match
+            return false;
+        }
     }
 
     /**

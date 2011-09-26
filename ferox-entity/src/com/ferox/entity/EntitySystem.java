@@ -190,7 +190,7 @@ public final class EntitySystem {
         // Remove all components from the entity
         for (int i = 0; i < componentIndices.length; i++) {
             if (componentIndices[index] != null)
-                componentIndices[index].removeComponent(index, null);
+                componentIndices[index].removeComponent(index);
         }
         
         // clear out id and canonical entity

@@ -6,6 +6,13 @@ import java.lang.annotation.Target;
 
 import java.lang.annotation.Retention;
 
+/**
+ * A source-level annotation to add to {@link Property} fields to describe the
+ * 'true' type of the property if it has been condensed into primitives for use
+ * a property such as {@link FloatProperty} or {@link IntProperty}.
+ * 
+ * @author Michael Ludwig
+ */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface MapsTo {

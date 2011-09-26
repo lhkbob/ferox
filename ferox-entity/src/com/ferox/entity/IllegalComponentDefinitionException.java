@@ -1,8 +1,8 @@
 package com.ferox.entity;
 
 /**
- * IllegalComponetnHierarchyException is an exception thrown if a Component
- * implementation does not follow the class hierarchy rules defined in
+ * IllegalComponentDefinitionException is an exception thrown if a Component
+ * implementation does not follow the class hierarchy or field rules defined in
  * {@link Component}.
  * 
  * @author Michael Ludwig

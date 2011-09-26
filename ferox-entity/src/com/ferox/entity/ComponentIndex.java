@@ -122,12 +122,9 @@ final class ComponentIndex<T extends Component> {
         return (T) components[componentIndex];
     }
     
-    public boolean removeComponent(int entityIndex, T match) {
+    public boolean removeComponent(int entityIndex) {
         int componentIndex = entityIndexToComponentIndex[entityIndex];
 
-        if (match != null && match.index != componentIndex)
-            return false;
-        
         // This code works even if componentIndex is 0
         Component oldComponent = components[componentIndex];
 
@@ -138,9 +135,6 @@ final class ComponentIndex<T extends Component> {
         // Make all removed component instances point to the 0th index
         if (oldComponent != null)
             oldComponent.index = 0;
-        
-        if (match != null)
-            match.index = 0;
         
         return oldComponent != null;
     }
@@ -263,7 +257,7 @@ final class ComponentIndex<T extends Component> {
                 throw new IllegalStateException("Must call next() before remove()");
             if (components[index] == null)
                 throw new IllegalStateException("Component already removed");
-            removeComponent(componentIndexToEntityIndex[index], null);
+            removeComponent(componentIndexToEntityIndex[index]);
         }
         
         private void advance() {
@@ -312,7 +306,7 @@ final class ComponentIndex<T extends Component> {
             if (entityIndex == 0)
                 throw new IllegalStateException("Component already removed");
             
-            removeComponent(entityIndex, null);
+            removeComponent(entityIndex);
         }
         
         private void advance() {

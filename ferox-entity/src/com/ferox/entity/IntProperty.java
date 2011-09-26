@@ -1,12 +1,35 @@
 package com.ferox.entity;
 
+/**
+ * IntProperty is an implementation of Property that stores the property data
+ * as a number of packed ints for each property.
+ * 
+ * @author Michael Ludwig
+ */
 public final class IntProperty implements Property {
     private IntDataStore store;
     
+    /**
+     * Create a new IntProperty where each property will have
+     * <tt>elementSize</tt> array elements together.
+     * 
+     * @param elementSize The element size of the property
+     * @throws IllegalArgumentException if elementSize is less than 1
+     */
     public IntProperty(int elementSize) {
         store = new IntDataStore(elementSize, new int[elementSize]);
     }
-    
+
+    /**
+     * Return the backing int array of this property's IndexedDataStore. The
+     * array may be longer than necessary for the number of components in the
+     * system. Data may be looked up for a specific component by scaling the
+     * {@link Component#getIndex() component's index} by the element size of the
+     * property.
+     * 
+     * @return The int data for all packed properties that this property has
+     *         been packed with
+     */
     public int[] getIndexedData() {
         return store.array;
     }
@@ -30,7 +53,7 @@ public final class IntProperty implements Property {
         this.store = newStore;
     }
 
-    private static class IntDataStore extends AbstractIndexedDataStore {
+    private static class IntDataStore extends AbstractIndexedDataStore<int[]> {
         private int[] array;
         
         public IntDataStore(int elementSize, int[] array) {
@@ -39,23 +62,23 @@ public final class IntProperty implements Property {
         }
         
         @Override
-        protected Object createArray(int arraySize) {
+        protected int[] createArray(int arraySize) {
             return new int[arraySize];
         }
 
         @Override
-        protected void setArray(Object array) {
-            this.array = (int[]) array;
+        protected void setArray(int[] array) {
+            this.array = array;
         }
 
         @Override
-        protected Object getArray() {
+        protected int[] getArray() {
             return array;
         }
 
         @Override
-        protected int getArrayLength(Object array) {
-            return ((int[]) array).length;
+        protected int getArrayLength(int[] array) {
+            return array.length;
         }
     }
 }
