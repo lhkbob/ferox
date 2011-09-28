@@ -26,7 +26,7 @@ import java.util.List;
  * @author Michael Ludwig
  * @param <T> The identified type
  */
-public final class TypedId<T> {
+public class TypedId<T> {
     private final Class<T> type;
     private final Constructor<T> ctor;
     private final List<Field> properties;
@@ -35,7 +35,9 @@ public final class TypedId<T> {
 
     /**
      * Create a new Id for the given type, with the given numeric id. Subclasses
-     * are responsible for guaranteeing the uniqueness of <tt>id</tt>.
+     * are responsible for guaranteeing the uniqueness of <tt>id</tt>. This
+     * constructor is protected so that TypedIds cannot be created directly,
+     * instead another class or system should manage their id's and uniqueness.
      * 
      * @param type The type that is identified
      * @param ctor The constructor to be used to create instances of T
@@ -88,33 +90,15 @@ public final class TypedId<T> {
     /**
      * @return The number of identified Properties in this type
      */
-    protected int getPropertyCount() {
+    protected int getFieldCount() {
         return properties.size();
     }
-
+    
     /**
-     * Convenience method to get all Property instances from a given instance of
-     * type T. The <var>properties</var> array will be filled with the Property
-     * objects in <var>instance</var>. The size of the array must be at least
-     * {@link #getPropertyCount()}, with elements past that point left
-     * unchanged.
-     * 
-     * @param instance The instance whose properties are fetched
-     * @param properties The container array to hold the fetched properties, to
-     *            avoid object allocation in the event of iteration
-     * @throws NullPointerException if instance or properties are null
-     * @throws IndexOutOfBoundsException if properties is too short
+     * @return An unmodifiable list of fields in the type
      */
-    protected void getProperties(T instance, Property[] properties) {
-        try {
-            for (int i = 0; i < this.properties.size(); i++) {
-                properties[i] = (Property) this.properties.get(i).get(instance);
-            }
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    protected List<Field> getFields() {
+        return properties;
     }
 
     @Override

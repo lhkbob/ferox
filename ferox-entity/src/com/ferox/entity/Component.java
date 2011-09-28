@@ -265,7 +265,7 @@ public class Component {
             // - Double check, though, before creating a new id
             id = (TypedId<T>) typeMap.get(type);
             if (id != null)
-                return id; // Someone else put the type after we checked but before we locked
+                return id; // Someone else put in the type after we checked but before we locked
             
             id = new TypedId<T>(type, ctor, properties, idSeq++);
             typeMap.put(type, id);

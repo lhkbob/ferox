@@ -18,8 +18,16 @@ public final class EntitySystem {
     private boolean requireReIndex;
     
     private final ConcurrentHashMap<Class<? extends Annotation>, Object> controllerData;
-    
-    public EntitySystem() {
+
+    /**
+     * Create a new EntitySystem that has no entities added, and automatically
+     * registers the given Component types, just as if
+     * {@link #registerType(TypedId)} was invoked for each.
+     * 
+     * @param ids A var-args of the TypedIds to register automatically
+     * @throws NullPointerException if ids contains any null elements
+     */
+    public EntitySystem(TypedId<?>... ids) {
         entities = new Entity[1];
         entityIds = new int[1];
         
@@ -28,14 +36,39 @@ public final class EntitySystem {
         
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
         entityInsert = 1;
+        
+        if (ids != null && ids.length > 0) {
+            for (int i = 0; i < ids.length; i++)
+                registerType(ids[i]);
+        }
     }
-    
+
+    /**
+     * Return the controller data that has been mapped to the given annotation
+     * <tt>key</tt>. This will return if there has been no assigned data. This
+     * can be used to store arbitrary data that must be shared between related
+     * controllers.
+     * 
+     * @param key The annotation key
+     * @return The object previously mapped to the annotation with
+     *         {@link #setControllerData(Class, Object)}
+     * @throws NullPointerException if key is null
+     */
     public Object getControllerData(Class<? extends Annotation> key) {
         if (key == null)
             throw new NullPointerException("Key cannot be null");
         return controllerData.get(key);
     }
-    
+
+    /**
+     * Map <tt>value</tt> to the given annotation <tt>key</tt> so that future
+     * calls to {@link #getControllerData(Class)} with the same key will return
+     * the new value. If the value is null, any previous mapping is removed.
+     * 
+     * @param key The annotation key
+     * @param value The new value to store
+     * @throws NullPointerException if key is null
+     */
     public void setControllerData(Class<? extends Annotation> key, Object value) {
         if (key == null)
             throw new NullPointerException("Key cannot be null");
@@ -44,33 +77,97 @@ public final class EntitySystem {
         else
             controllerData.put(key, value);
     }
-    
+
+    /**
+     * Return an iterator over all of the entities within the system. The
+     * returned iterator's remove() method will remove the entity from the
+     * system. The returned entities are the "canonical" entities and can be
+     * safely used stored outside of the iterator.
+     * 
+     * @return An iterator over the entities of the system
+     */
     public Iterator<Entity> iterator() {
         return new EntityIterator();
     }
-    
+
+    /**
+     * <p>
+     * Return a "fast" iterator over all the entities within the system. To
+     * avoid potential cache misses, a single Entity object is created and
+     * slides over the entity data stored within the system. If entities do not
+     * need to be held onto after iteration, this is faster than
+     * {@link #iterator()}.
+     * </p>
+     * <p>
+     * The returned iterator's remove() method will remove the entity from the
+     * system (where entity is determined by the entity's id and not Entity
+     * instance). The returned iterator will return the same Entity object with
+     * every call to next(), but its index into the system will be updated every
+     * iteration.
+     * </p>
+     * 
+     * @return A fast iterator over the entities of the system
+     */
     public Iterator<Entity> fastIterator() {
         return new FastEntityIterator();
     }
 
+    /**
+     * <p>
+     * Return an iterator over the components of type T that are in this system.
+     * The returned iterator supports the remove() operation, and will remove
+     * the component from its owning entity. The entity attached to the
+     * component can be found with {@link Component#getEntity()}.
+     * </p>
+     * <p>
+     * The iterator returns the canonical Component instance for each component
+     * of the type in the system. This is the same instance that was returned by
+     * {@link Entity#add(TypedId)} and is safe to access and store after
+     * iteration has completed.
+     * </p>
+     * 
+     * @param <T> The component type that is iterated over
+     * @param id The TypedId of the iterated component
+     * @return An iterator over all Components of type T in the system
+     * @throws NullPointerException if id is null
+     * @throws IndexOutOfBoundsException if the given type has not been
+     *             registered with the system
+     */
     public <T extends Component> Iterator<T> iterator(TypedId<T> id) {
         return getIndex(id).iterator();
     }
-    
+
+    /**
+     * As {@link #iterator(TypedId)} but the iterator will reuse a single
+     * instance of Component. Every call to next() will update the Component's
+     * index within the system. Using a fast iterator helps cache performance,
+     * but cannot be used if the component must be stored for later processing.
+     * 
+     * @param <T> The component type that is iterated over
+     * @param id The TypedId of the iterated component
+     * @return A fast iterator over all Components of type T in the system
+     * @throws NullPointerException if id is null
+     * @throws IndexOutOfBoundsException if the given type has not been
+     *             registered with the system
+     */
     public <T extends Component> Iterator<T> fastIterator(TypedId<T> id) {
         return getIndex(id).fastIterator();
     }
     
-    public Iterator<Component[]> iterator(TypedId<?>... ids) { 
+    public Iterator<IndexedComponentMap> iterator(TypedId<?>... ids) { 
         return bulkIterator(false, ids);
     }
     
-    public Iterator<Component[]> fastIterator(TypedId<?>... ids) {
+    public Iterator<IndexedComponentMap> fastIterator(TypedId<?>... ids) {
         return bulkIterator(true, ids);
     }
     
+    /*
+     * Internal method that prepares the bulk iterators by finding the type
+     * with the smallest number of entities and using it as the primary iterator.
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Iterator<Component[]> bulkIterator(boolean fast, TypedId<?>... ids) {
+    private Iterator<IndexedComponentMap> bulkIterator(boolean fast, TypedId<?>... ids) {
         TypedId[] rawIds = ids;
         
         int minIndex = -1;
@@ -95,7 +192,10 @@ public final class EntitySystem {
             return new BulkComponentIterator(rawIndices, minIndex);
     }
     
-    public void index() {
+    /**
+     * 
+     */
+    public void compact() {
         // Pack the data
         int startRemove = -1;
         for (int i = 1; i < entityInsert; i++) {
@@ -137,24 +237,38 @@ public final class EntitySystem {
         // Now index and update all ComponentIndices
         for (int i = 0; i < componentIndices.length; i++) {
             if (componentIndices[i] != null)
-                componentIndices[i].index(oldToNew, entityInsert);
+                componentIndices[i].compact(oldToNew, entityInsert);
         }
     }
     
-    public Entity getEntity(int entity) {
+    /**
+     * 
+     * @param entityId
+     * @return
+     */
+    public Entity getEntity(int entityId) {
         if (requireReIndex)
-            index();
+            compact();
         
-        int index = Arrays.binarySearch(entityIds, 0, entityInsert + 1, entity);
+        int index = Arrays.binarySearch(entityIds, 1, entityInsert, entityId);
         if (index >= 0)
             return entities[index];
         return null;
     }
     
+    /**
+     * 
+     * @return
+     */
     public Entity addEntity() {
         return addEntity(null);
     }
     
+    /**
+     * 
+     * @param template
+     * @return
+     */
     public Entity addEntity(Entity template) {
         int entityIndex = entityInsert++;
         if (entityIndex >= entityIds.length) {
@@ -180,8 +294,19 @@ public final class EntitySystem {
         return newEntity;
     }
     
+    /**
+     * 
+     * @param e
+     * @return
+     */
     public boolean removeEntity(Entity e) {
-        return removeEntity(e.index);
+        if (removeEntity(e.index)) {
+            // Fix e's index in case it was an entity from a fast iterator
+            e.index = 0;
+            return true;
+        } else {
+            return false;
+        }
     }
     
     private boolean removeEntity(int index) {
@@ -206,6 +331,10 @@ public final class EntitySystem {
             return false;
     }
     
+    /**
+     * 
+     * @param id
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void registerType(TypedId<?> id) {
         int index = id.getId();
@@ -245,11 +374,13 @@ public final class EntitySystem {
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private class BulkComponentIterator implements Iterator<Component[]> {
+    private class BulkComponentIterator implements Iterator<IndexedComponentMap> {
         private final ComponentIndex[] indices;
         private final int minIndex;
         private final Iterator<Component> minComponentIterator;
         private final Component[] result;
+        
+        private final IndexedComponentMap map;
         
         private boolean hasAdvanced;
         private boolean resultValid;
@@ -260,6 +391,8 @@ public final class EntitySystem {
             
             minComponentIterator = indices[minIndex].iterator();
             result = new Component[indices.length];
+            map = new IndexedComponentMap(result);
+            
             hasAdvanced = false;
             resultValid = false;
         }
@@ -272,11 +405,11 @@ public final class EntitySystem {
         }
 
         @Override
-        public Component[] next() {
+        public IndexedComponentMap next() {
             if (!hasNext())
                 throw new NoSuchElementException();
             hasAdvanced = false;
-            return result;
+            return map;
         }
 
         @Override
@@ -321,11 +454,12 @@ public final class EntitySystem {
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private class FastBulkComponentIterator implements Iterator<Component[]> {
+    private class FastBulkComponentIterator implements Iterator<IndexedComponentMap> {
         private final ComponentIndex[] indices;
         private final int minIndex;
         private final Iterator<Component> minComponentIterator;
         private final Component[] result;
+        private final IndexedComponentMap map;
         
         private boolean hasAdvanced;
         private boolean resultValid;
@@ -336,6 +470,8 @@ public final class EntitySystem {
             
             minComponentIterator = indices[minIndex].fastIterator();
             result = new Component[indices.length];
+            map = new IndexedComponentMap(result);
+            
             hasAdvanced = false;
             resultValid = false;
             
@@ -343,7 +479,7 @@ public final class EntitySystem {
             for (int i = 0; i < indices.length; i++) {
                 if (i == minIndex)
                     continue;
-                result[i] = indices[i].newInstance(0, true);
+                result[i] = indices[i].newInstance(0);
             }
         }
         
@@ -355,11 +491,11 @@ public final class EntitySystem {
         }
 
         @Override
-        public Component[] next() {
+        public IndexedComponentMap next() {
             if (!hasNext())
                 throw new NoSuchElementException();
             hasAdvanced = false;
-            return result;
+            return map;
         }
 
         @Override
