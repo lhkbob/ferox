@@ -6,6 +6,11 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 
+ * @author Michael Ludwig
+ *
+ */
 public final class EntitySystem {
     private ComponentIndex<?>[] componentIndices;
     private int[] entityIds; // binary search provides index
@@ -17,17 +22,16 @@ public final class EntitySystem {
     
     private boolean requireReIndex;
     
+    // FIXME: should the controller data map belong in the controllerManager?
+    private final ControllerManager manager;
     private final ConcurrentHashMap<Class<? extends Annotation>, Object> controllerData;
 
     /**
-     * Create a new EntitySystem that has no entities added, and automatically
-     * registers the given Component types, just as if
-     * {@link #registerType(TypedId)} was invoked for each.
-     * 
-     * @param ids A var-args of the TypedIds to register automatically
-     * @throws NullPointerException if ids contains any null elements
+     * Create a new EntitySystem that has no entities added.
      */
-    public EntitySystem(TypedId<?>... ids) {
+    public EntitySystem() {
+        manager = new ControllerManager();
+        
         entities = new Entity[1];
         entityIds = new int[1];
         
@@ -36,13 +40,12 @@ public final class EntitySystem {
         
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
         entityInsert = 1;
-        
-        if (ids != null && ids.length > 0) {
-            for (int i = 0; i < ids.length; i++)
-                registerType(ids[i]);
-        }
     }
 
+    public ControllerManager getControllerManager() {
+        return manager;
+    }
+    
     /**
      * Return the controller data that has been mapped to the given annotation
      * <tt>key</tt>. This will return if there has been no assigned data. This
@@ -130,8 +133,6 @@ public final class EntitySystem {
      * @param id The TypedId of the iterated component
      * @return An iterator over all Components of type T in the system
      * @throws NullPointerException if id is null
-     * @throws IndexOutOfBoundsException if the given type has not been
-     *             registered with the system
      */
     public <T extends Component> Iterator<T> iterator(TypedId<T> id) {
         return getIndex(id).iterator();
@@ -147,17 +148,54 @@ public final class EntitySystem {
      * @param id The TypedId of the iterated component
      * @return A fast iterator over all Components of type T in the system
      * @throws NullPointerException if id is null
-     * @throws IndexOutOfBoundsException if the given type has not been
-     *             registered with the system
      */
     public <T extends Component> Iterator<T> fastIterator(TypedId<T> id) {
         return getIndex(id).fastIterator();
     }
-    
+
+    /**
+     * <p>
+     * Return an iterator over all entities within the system that have the
+     * given component types attached to them. Entities returned by the iterator
+     * will have all requested components; if even one desired component is not
+     * present on an entity, it is not included.
+     * </p>
+     * <p>
+     * For performance reasons, the "entity" is exposed as an
+     * IndexedComponentMap. The components can be queried using the index of
+     * their type within <tt>ids</tt>. Alternatively, it can be queried by
+     * TypedId.
+     * </p>
+     * <p>
+     * The returned iterator will always return the same IndexedComponentMap,
+     * although each call to next() will update the Components returned by the
+     * map. The accessed components are canonical components in the same way
+     * that {@link #iterator(TypedId)}'s components are. The remove() operation
+     * is not supported.
+     * </p>
+     * 
+     * @param ids The ordered set of ids that constrain the returned entities
+     * @return An iterator that efficiently exposes all entities and their
+     *         components which satisfy the given type constraint
+     * @throws NullPointerException if ids is null or contains null elements
+     * @throws IllegalArgumentException if ids is empty
+     */
     public Iterator<IndexedComponentMap> iterator(TypedId<?>... ids) { 
         return bulkIterator(false, ids);
     }
-    
+
+    /**
+     * As {@link #iterator(TypedId...)} except that the Components returned by
+     * the IndexedComponentMap are not canonical. Like
+     * {@link #fastIterator(TypedId)}, new Component instances are reused by the
+     * iterator to slide over the entity components which pass the constraint.
+     * 
+     * @param ids The ordered set of ids that constrain the returned entities
+     * @return A fast iterator that efficiently exposes all entities and their
+     *         components which satisfy the given type constraint throws
+     *         NullPointerException if ids is null or contains null elements
+     * @throws IllegalArgumentException if ids is empty
+     */
     public Iterator<IndexedComponentMap> fastIterator(TypedId<?>... ids) {
         return bulkIterator(true, ids);
     }
@@ -168,6 +206,11 @@ public final class EntitySystem {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private Iterator<IndexedComponentMap> bulkIterator(boolean fast, TypedId<?>... ids) {
+        if (ids == null)
+            throw new NullPointerException("TypedIds cannot be null");
+        if (ids.length < 1)
+            throw new IllegalArgumentException("Must have at least one TypedId");
+        
         TypedId[] rawIds = ids;
         
         int minIndex = -1;
@@ -177,6 +220,9 @@ public final class EntitySystem {
         ComponentIndex[] rawIndices = new ComponentIndex[ids.length];
         
         for (int i = 0; i < ids.length; i++) {
+            if (ids[i] == null)
+                throw new NullPointerException("TypedId in id set cannot be null");
+            
             index = getIndex(rawIds[i]);
             if (index.getSizeEstimate() < minSize) {
                 minIndex = i;
@@ -191,9 +237,29 @@ public final class EntitySystem {
         else
             return new BulkComponentIterator(rawIndices, minIndex);
     }
-    
+
     /**
-     * 
+     * <p>
+     * Compact the entity and component data so that iteration is more
+     * efficient. In the life time of an entity system, entities and components
+     * are added and removed, possibly causing the list of components for a
+     * given type to be in a different order than the list of entities. This is
+     * due to implementation details needed to make additions and removals
+     * constant time.
+     * </p>
+     * <p>
+     * Invoking {@link #compact()} after a large number of additions or removals
+     * to the system is a good idea. Alternatively, invoking it every few frames
+     * in a game works as well. An entity system that has no additions or
+     * removals of entities (or their components) gains no benefit from
+     * compacting, except potentially for freeing excess memory.
+     * </p>
+     * <p>
+     * Compacting is not overly fast or slow, so it should not cause noticeably
+     * drops in frame rate. As an example, on a test system with 20,000 entities
+     * compact() took ~2ms on an Intel i5 processor. Of course, mileage may
+     * very.
+     * </p>
      */
     public void compact() {
         // Pack the data
@@ -240,34 +306,83 @@ public final class EntitySystem {
                 componentIndices[i].compact(oldToNew, entityInsert);
         }
     }
-    
+
     /**
+     * <p>
+     * Retrieve the canonical Entity instance associated with the given integer
+     * id. This Entity instance can be safely held for later purposes, just like
+     * the Entity instances form {@link #iterator()}. All entity ids are at
+     * least 1, so any value less than 1 will return null.
+     * </p>
+     * <p>
+     * This performs a binary search over the list of entities in the system,
+     * which is usually very fast. However, if the list has not been compacted
+     * and is not ordered correctly, the binary search may fail at which point a
+     * linear search is used.
+     * </p>
      * 
-     * @param entityId
-     * @return
+     * @param entityId The entity's id
+     * @return The Entity in the system with the given ID, or null if it does
+     *         not exist
      */
     public Entity getEntity(int entityId) {
+        // opt-out of search quickly
+        if (entityId <= 0)
+            return null;
+        
         if (requireReIndex)
             compact();
         
         int index = Arrays.binarySearch(entityIds, 1, entityInsert, entityId);
-        if (index >= 0)
-            return entities[index];
+        if (index >= 0) {
+            // Double check that we're returning the expected Entity,
+            // (this might be overworking it, though)
+            if (entities[index] != null && entityIds[index] == entityId)
+                return entities[index];
+        }
+        
+        // Could not find it, this could be because it's not there, or because
+        // the list has not been compacted
+        for (int i = 1; i < entityInsert; i++) {
+            if (entityIds[i] == entityId)
+                return entities[i];
+        }
+        
         return null;
     }
-    
+
     /**
+     * Add a new Entity to this EntitySystem. The created Entity will not have
+     * any attached Components. The returned instance will be the canonical
+     * Entity object tied to its {@link Entity#getId() ID}. You can create a new
+     * entity from a template by calling {@link #addEntity(Entity)}.
      * 
-     * @return
+     * @return A new Entity without any components in the system
      */
     public Entity addEntity() {
         return addEntity(null);
     }
-    
+
     /**
+     * <p>
+     * Add a new Entity to this EntitySystem. If <tt>template</tt> is not null,
+     * the components attached to the template will have their state cloned onto
+     * the new entity. If the template's components store references, the
+     * references are copied, e.g {@link ObjectProperty}; if the component
+     * properties store values the values are copied, e.g. {@link FloatProperty}
+     * .
+     * </p>
+     * <p>
+     * The template does not need to have been created by this system, it must
+     * only still be a valid entity in some system. Specifying a null template
+     * makes this behave identically to {@link #addEntity()}. If the template
+     * has a component whose type is not registered with this system, it is
+     * automatically registered.
+     * </p>
      * 
-     * @param template
-     * @return
+     * @param template The template to clone
+     * @return A new Entity in the system with the same component state as the
+     *         template
      */
     public Entity addEntity(Entity template) {
         int entityIndex = entityInsert++;
@@ -293,20 +408,92 @@ public final class EntitySystem {
 
         return newEntity;
     }
+
+    /**
+     * Remove the given entity from this system. The entity and its attached
+     * components are removed from the system. The canonical instances
+     * associated with each will be updated to reference null regions of data
+     * and should not be used.
+     * 
+     * @param e The entity to remove (this does not need to be the canonical
+     *            instance, just meet equals() equality).
+     * @throws NullPointerException if e is null
+     * @throws IllegalArgumentException if the entity is not owned by this
+     *             system
+     */
+    public void removeEntity(Entity e) {
+        if (e == null)
+            throw new NullPointerException("Cannot remove a null entity");
+        if (e.getEntitySystem() != this)
+            throw new IllegalArgumentException("Entity is not from this EntitySystem");
+        if (e.index == 0)
+            throw new IllegalArgumentException("Entity has already been removed");
+        
+        removeEntity(e.index);
+        // Fix e's index in case it was an entity from a fast iterator
+        e.index = 0;
+    }
+
+    /**
+     * Return the ComponentIndex associated with the given type. Fails if the
+     * type is not registered
+     * 
+     * @param <T> The Component type
+     * @param id The id for the component type
+     * @return The ComponentIndex for the type
+     */
+    @SuppressWarnings("unchecked")
+    <T extends Component> ComponentIndex<T> getIndex(TypedId<T> id) {
+        int index = id.getId();
+        if (index >= componentIndices.length) {
+            // make sure it's the correct size
+            componentIndices = Arrays.copyOf(componentIndices, index + 1);
+        }
+        
+        ComponentIndex<T> i = (ComponentIndex<T>) componentIndices[index];
+        if (i == null) {
+            i = new ComponentIndex<T>(this, id);
+            i.expandEntityIndex(entities.length);
+            componentIndices[index] = i;
+        }
+        
+        return i;
+    }
     
     /**
-     * 
-     * @param e
-     * @return
+     * @return Return an iterator over the registered component indices
      */
-    public boolean removeEntity(Entity e) {
-        if (removeEntity(e.index)) {
-            // Fix e's index in case it was an entity from a fast iterator
-            e.index = 0;
-            return true;
-        } else {
-            return false;
-        }
+    Iterator<ComponentIndex<?>> iterateComponentIndices() {
+        return new ComponentIndexIterator();
+    }
+
+    /**
+     * Return the entity id associated with an index into the system's backing
+     * store
+     * 
+     * @param entityIndex The index that the entity is stored at within the id
+     *            array and component indices
+     * @return The id
+     */
+    int getEntityId(int entityIndex) {
+        return entityIds[entityIndex];
+    }
+
+    /**
+     * Return the canonical Entity instance associated with the given index.
+     * 
+     * @param entityIndex The index that the entity is stored at within the
+     *            entity array and component indicees
+     * @return The canonical Entity instance for the index
+     */
+    Entity getEntityByIndex(int entityIndex) {
+        return entities[entityIndex];
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <T extends Component> void addFromTemplate(int entityIndex, TypedId typedId, Component c) {
+        ComponentIndex index = getIndex(typedId);
+        index.addComponent(entityIndex, c);
     }
     
     private boolean removeEntity(int index) {
@@ -329,48 +516,6 @@ public final class EntitySystem {
             return true;
         } else
             return false;
-    }
-    
-    /**
-     * 
-     * @param id
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public void registerType(TypedId<?> id) {
-        int index = id.getId();
-        if (componentIndices.length <= index)
-            componentIndices = Arrays.copyOf(componentIndices, index + 1);
-        if (componentIndices[index] == null) {
-            componentIndices[index] = new ComponentIndex(this, id);
-            
-            // entities.length might not be the correct number of entities,
-            // but we really only need to guarantee that the entity index for the
-            // type has at least as many elements as entities.
-            componentIndices[index].expandEntityIndex(entities.length);
-        }
-    }
-    
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <T extends Component> void addFromTemplate(int entityIndex, TypedId typedId, Component c) {
-        ComponentIndex index = getIndex(typedId);
-        index.addComponent(entityIndex, c);
-    }
-    
-    @SuppressWarnings("unchecked")
-    <T extends Component> ComponentIndex<T> getIndex(TypedId<T> id) {
-        return (ComponentIndex<T>) componentIndices[id.getId()];
-    }
-    
-    Iterator<ComponentIndex<?>> iterateComponentIndices() {
-        return new ComponentIndexIterator();
-    }
-    
-    int getEntityId(int entityIndex) {
-        return entityIds[entityIndex];
-    }
-    
-    Entity getEntityByIndex(int entityIndex) {
-        return entities[entityIndex];
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
