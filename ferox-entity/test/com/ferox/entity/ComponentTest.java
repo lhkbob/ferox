@@ -12,4 +12,20 @@ public class ComponentTest {
     public void testPropertyLookup() {
         
     }
+    
+    public void testDecorateProperty() {
+        
+    }
+    
+    public void testDecoreatePropertyAddComponent() {
+        
+    }
+    
+    public void testUndecorateValidProperty() {
+        
+    }
+    
+    public void testUndecorateInvalidProperty() {
+        
+    }
 }

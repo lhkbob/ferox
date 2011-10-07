@@ -1,9 +1,5 @@
 package com.ferox.entity;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * <p>
@@ -28,8 +24,6 @@ import java.util.List;
  */
 public class TypedId<T> {
     private final Class<T> type;
-    private final Constructor<T> ctor;
-    private final List<Field> properties;
     
     private final int id;
 
@@ -40,23 +34,19 @@ public class TypedId<T> {
      * instead another class or system should manage their id's and uniqueness.
      * 
      * @param type The type that is identified
-     * @param ctor The constructor to be used to create instances of T
-     * @param properties The identified property fields of the type T
      * @param id The unique numeric id
+     * @throws NullPointerException if type is null
+     * @throws IllegalArgumentException if id is less than 0
      */
-    protected TypedId(Class<T> type, Constructor<T> ctor, List<Field> properties, int id) {
+    protected TypedId(Class<T> type, int id) {
         // Sanity checks, shouldn't happen if constructed by Component.getTypedId()
         if (type == null)
             throw new NullPointerException("Type cannot be null");
-        if (ctor == null)
-            throw new NullPointerException("Constructor cannot be null");
         if (id < 0)
             throw new IllegalArgumentException("Id must be at least 0, not: " + id);
 
         this.type = type;
         this.id = id;
-        this.ctor = ctor;
-        this.properties = Collections.unmodifiableList(properties);
     }
 
     /**
@@ -80,27 +70,6 @@ public class TypedId<T> {
         return id;
     }
     
-    /**
-     * @return The constructor provided at construction time
-     */
-    protected Constructor<T> getConstructor() {
-        return ctor;
-    }
-    
-    /**
-     * @return The number of identified Properties in this type
-     */
-    protected int getFieldCount() {
-        return properties.size();
-    }
-    
-    /**
-     * @return An unmodifiable list of fields in the type
-     */
-    protected List<Field> getFields() {
-        return properties;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof TypedId))

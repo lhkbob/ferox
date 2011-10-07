@@ -20,4 +20,16 @@ public class SystemTest {
     public void testRemoveFastEntity() {
         
     }
+    
+    public void testCompactNoOp() {
+        
+    }
+    
+    public void testCompactRepairRemoves() {
+        
+    }
+    
+    public void testCompactAddRemoveRepair() {
+        
+    }
 }

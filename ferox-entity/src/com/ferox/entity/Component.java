@@ -1,12 +1,9 @@
 package com.ferox.entity;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.ferox.entity.property.IndexedDataStore;
+import com.ferox.entity.property.Property;
 
 /**
  * <p>
@@ -46,7 +43,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * declared fields. For performance reasons, an EntitySystem packs all
  * components of the same type into the same region of memory using the
  * {@link Property} and {@link IndexedDataStore} API. To ensure that Components
- * behave correctly, a type can only declare private, final Property fields.
+ * behave correctly, a type can only declare private or protected Property
+ * fields. These fields should be considered "final" from the Components point
+ * of view and will be assigned by the EntitySystem. The can be declared final
+ * but any assigned value will be overwritten.
+ * </p>
+ * <p>
  * They can declare any methods they wish to expose the data these properties
  * represent. It is strongly recommended to not expose the Property objects
  * themselves. See {@link #getTypedId(Class)} for the complete contract.
@@ -62,10 +64,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * @author Michael Ludwig
  */
-public class Component {
+public abstract class Component {
     // Use a ConcurrentHashMap to perform reads. It is still synchronized completely to do
     // an insert to make sure a type doesn't try to use two different id values.
-    private static final ConcurrentHashMap<Class<? extends Component>, TypedId<?>> typeMap = new ConcurrentHashMap<Class<? extends Component>, TypedId<?>>();
+    private static final ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>> typeMap 
+        = new ConcurrentHashMap<Class<? extends Component>, TypedId<? extends Component>>();
+    private static final ConcurrentHashMap<TypedId<? extends Component>, ComponentBuilder<?>> builderMap
+        = new ConcurrentHashMap<TypedId<? extends Component>, ComponentBuilder<?>>();
+    
     private static int idSeq = 0;
     
     /**
@@ -76,7 +82,7 @@ public class Component {
      */
     int index;
 
-    private final ComponentIndex<?> owner;
+    final ComponentIndex<?> owner;
     private final TypedId<? extends Component> typedId;
 
     /**
@@ -108,6 +114,17 @@ public class Component {
         this.owner = system.getIndex(raw);
         this.index = index;
         typedId = raw;
+    }
+
+    /**
+     * Called when the EntitySystem creates a new Component and has properly
+     * configured its declared properties. This is only called when the
+     * Component is being added to an Entity. This is not called when a new
+     * component instance is created for the purposes of a fast iterator
+     * (because it's just acting as a shell in that case).
+     */
+    protected void init() {
+        // do nothing by default
     }
     
     /**
@@ -200,7 +217,7 @@ public class Component {
      * private and with arguments: EntitySystem, int. Abstract Component types
      * do not have this restriction.</li>
      * <li>Any non-static fields defined in a Component (abstract or concrete)
-     * must implement Property and be declared private or protected, and final.</li>
+     * must implement Property and be declared private or protected.</li>
      * </ul>
      * Additionally, abstract Component types cannot have a TypedId assigned to
      * them.
@@ -230,34 +247,11 @@ public class Component {
         if (id != null)
             return id; // Found an existing id
         
-        // Now we actually have to build up a new TypedId - which is sort of slow
-        if (!Component.class.isAssignableFrom(type))
-            throw new IllegalArgumentException("Type must be a subclass of Component: " + type);
+        // Create a ComponentBuilder for the type - theoretically we could double-up
+        // on ComponentBuilder creation if the same type is requested, but that has no
+        // adverse consequences. The first builder will get stored for later
+        ComponentBuilder<T> builder = new ComponentBuilder<T>(type);
         
-        // Make sure we don't create TypedIds for abstract Component types 
-        // (we don't want to try to allocate these)
-        if (Modifier.isAbstract(type.getModifiers()))
-            throw new IllegalArgumentException("Component class type cannot be abstract: " + type);
-        
-        // Accumulate all properties of type and its parents while validating the types declared fields,
-        // the validity of its parent classes.
-        List<Field> properties = new ArrayList<Field>();
-        properties.addAll(getProperties(type)); // getProperties() validates the fields
-        
-        Class<? super T> parent = type.getSuperclass();
-        while(!Component.class.equals(parent)) {
-            if (!Modifier.isAbstract(parent.getModifiers()))
-                throw new IllegalComponentDefinitionException(type, "Parent class " + parent + " is not abstract");
-            
-            // This cast is safe since we know type extends Component, and that we haven't
-            // reached Component yet, ergo this parent class must still extend Component.
-            properties.addAll(getProperties((Class<? extends Component>) parent));
-            parent = parent.getSuperclass();
-        }
-        
-        // Find and validate the constructor of the type
-        Constructor<T> ctor = getConstructor(type);
-
         synchronized(typeMap) {
             // Must create a new id, we lock completely to prevent concurrent getTypedId() on the
             // same type using two different ids.  One would get overridden and its returned TypedId
@@ -267,60 +261,16 @@ public class Component {
             if (id != null)
                 return id; // Someone else put in the type after we checked but before we locked
             
-            id = new TypedId<T>(type, ctor, properties, idSeq++);
+            id = new TypedId<T>(type, idSeq++);
             typeMap.put(type, id);
+            builderMap.put(id, builder);
             return id;
         }
     }
     
-    private static List<Field> getProperties(Class<? extends Component> type) {
-        List<Field> properties = new ArrayList<Field>();
-        Field[] fields = type.getDeclaredFields();
-        
-        for (int i = 0; i < fields.length; i++) { 
-            int mod = fields[i].getModifiers();
-            if (Modifier.isStatic(mod))
-                continue; // ignore static fields
-            
-            if (Property.class.isAssignableFrom(fields[i].getType())) {
-                // Found a property field, we'll make it accessible later
-                if (!Modifier.isPrivate(mod) && !Modifier.isProtected(mod))
-                    throw new IllegalComponentDefinitionException(type, "The field, " + fields[i].getName() + " is not private or protected");
-                if (!Modifier.isFinal(mod))
-                    throw new IllegalComponentDefinitionException(type, "The field, " + fields[i].getName() + " is not final");
-                properties.add(fields[i]);
-            } else {
-                throw new IllegalComponentDefinitionException(type, "The field, " + fields[i].getName() + ", does not implement Property");
-            }
-        }
-        
-        AccessibleObject[] securityCheck = new AccessibleObject[properties.size()];
-        for (int i = 0; i < securityCheck.length; i++)
-            securityCheck[i] = properties.get(i);
-        
-        Field.setAccessible(securityCheck, true);
-        
-        return properties;
-    }
-    
     @SuppressWarnings("unchecked")
-    private static <T extends Component> Constructor<T> getConstructor(Class<T> type) {
-        // This assumes that type is the concrete type, so it will fail if there
-        // are multiple constructors or it's not private with the correct arguments
-        Constructor<?>[] ctors = type.getDeclaredConstructors();
-        if (ctors.length != 1)
-            throw new IllegalComponentDefinitionException(type, "Component type must only define a single constructor");
-        
-        Constructor<T> ctor = (Constructor<T>) ctors[0];
-        if (!Modifier.isPrivate(ctor.getModifiers()))
-            throw new IllegalComponentDefinitionException(type, "Component constructor must be private");
-        
-        Class<?>[] args = ctor.getParameterTypes();
-        if (args.length != 2 || !EntitySystem.class.equals(args[0]) || !int.class.equals(args[1]))
-            throw new IllegalComponentDefinitionException(type, "Component constructor does not have proper signature of (ComponentIndex<T>, int)");
-        
-        // Found it, now make it accessible (which might throw a SecurityException)
-        ctor.setAccessible(true);
-        return ctor;
+    static <T extends Component> ComponentBuilder<T> getBuilder(TypedId<T> id) {
+        // If they have the TypedId instance, then we already have created the builder
+        return (ComponentBuilder<T>) builderMap.get(id);
     }
 }

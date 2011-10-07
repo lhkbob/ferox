@@ -1,10 +1,11 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import java.lang.annotation.Retention;
+
 
 /**
  * A source-level annotation to add to {@link Property} fields to describe the

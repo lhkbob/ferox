@@ -1,11 +1,15 @@
 package com.ferox.entity;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import com.ferox.entity.property.IndexedDataStore;
+import com.ferox.entity.property.Property;
+import com.ferox.entity.property.PropertyFactory;
 
 /**
  * ComponentIndex manages storing all the components of a specific type for an
@@ -24,13 +28,17 @@ final class ComponentIndex<T extends Component> {
     private int[] componentIndexToEntityIndex;
     private Component[] components;
     
-    private final IndexedDataStore[] propertyStores;
-    private final TypedId<T> type;
+    private int componentInsert;
+
+    private final List<PropertyStore> declaredProperties;
+    private final List<PropertyStore> decoratedProperties;
+    
+    private final ComponentBuilder<T> builder;
+    private final List<Property> builderProperties; // Properties from declaredProperties, cached for newInstance()
+    
     private final EntitySystem system;
     
     private final Comparator<Component> entityIndexComparator;
-
-    private int componentInsert;
 
     /**
      * Create a ComponentIndex for the given system, that will store Components
@@ -44,9 +52,16 @@ final class ComponentIndex<T extends Component> {
         if (system == null || type == null)
             throw new NullPointerException("Arguments cannot be null");
         
-        this.type = type;
         this.system = system;
-        propertyStores = new IndexedDataStore[type.getFieldCount()];
+        
+        builder = Component.getBuilder(type);
+        
+        builderProperties = builder.createProperties();
+        
+        declaredProperties = new ArrayList<PropertyStore>();
+        decoratedProperties = new ArrayList<PropertyStore>(); // empty for now
+        for (Property p: builderProperties)
+            declaredProperties.add(new PropertyStore(p));
         
         entityIndexToComponentIndex = new int[1]; // holds default 0 value in 0th index
         componentIndexToEntityIndex = new int[1]; // holds default 0 value in 0th index
@@ -67,6 +82,9 @@ final class ComponentIndex<T extends Component> {
                     return 0; // both null so they are "equal"
             }
         };
+        
+        // Make sure properties' stores hold enough space
+        resizePropertyStores(declaredProperties, 1);
     }
 
     /**
@@ -134,19 +152,28 @@ final class ComponentIndex<T extends Component> {
         int size = (int) (numComponents * 1.5f) + 1;
         
         // Expand the indexed data stores for the properties
-        for (int i = 0; i < propertyStores.length; i++) {
-            if (propertyStores[i] != null) {
-                // Becuase we use resize() here, we don't need to update
-                // the IndexedDataStores of the components
-                propertyStores[i].resize(size);
-            }
-        }
+        resizePropertyStores(declaredProperties, size);
+        resizePropertyStores(decoratedProperties, size);
         
         // Expand the canonical component array
         components = Arrays.copyOf(components, size);
         
         // Expand the component index
         componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, size);
+    }
+
+    /*
+     * Convenience to create a new data store for each property with the given
+     * size, copy the old data over, and assign it back to the property.
+     */
+    private void resizePropertyStores(List<PropertyStore> properties, int size) {
+        int ct = properties.size();
+        for (int i = 0; i < ct; i++) {
+            IndexedDataStore oldStore = properties.get(i).property.getDataStore();
+            IndexedDataStore newStore = oldStore.create(size);
+            oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
+            properties.get(i).property.setDataStore(newStore);
+        }
     }
     
     /**
@@ -179,21 +206,30 @@ final class ComponentIndex<T extends Component> {
             if (componentIndex >= components.length)
                 expandComponentIndex(componentIndex + 1);
             
-            T instance = newInstance(componentIndex, false);
+            T instance = newInstance(componentIndex);
             components[componentIndex] = instance;
             componentIndexToEntityIndex[componentIndex] = entityIndex;
             entityIndexToComponentIndex[entityIndex] = componentIndex;
+            
+            instance.init();
         }
         
         if (fromTemplate != null) {
             // Copy values from fromTemplate's properties to the new instances
-            Property[] templateProps = new Property[propertyStores.length];
-            getProperties(fromTemplate, type.getFields(), templateProps);
-            
-            for (int i = 0; i < templateProps.length; i++) {
-                templateProps[i].getDataStore().copy(fromTemplate.index, 1, propertyStores[i], componentIndex);
+            List<PropertyStore> templateProps = fromTemplate.owner.declaredProperties;
+            for (int i = 0; i < templateProps.size(); i++) {
+                templateProps.get(i).property.getDataStore().copy(fromTemplate.index, 1,
+                                                                  declaredProperties.get(i).property.getDataStore(), 
+                                                                  componentIndex);
             }
         }
+        
+        // Copy default value for decorated properties
+        for (int i = 0; i < decoratedProperties.size(); i++) {
+            PropertyStore p = decoratedProperties.get(i);
+            p.defaultData.copy(0, 1, p.property.getDataStore(), componentIndex);
+        }
+        
         return (T) components[componentIndex];
     }
 
@@ -222,6 +258,58 @@ final class ComponentIndex<T extends Component> {
         return oldComponent != null;
     }
 
+    /*
+     * Update all component data in the list of properties. If possible the data
+     * store in swap is reused.
+     */
+    private void update(List<PropertyStore> properties, 
+                        Component[] newToOldMap, int from, int to) {
+        for (int i = 0; i < properties.size(); i++) {
+            PropertyStore p = properties.get(i);
+            IndexedDataStore origStore = p.property.getDataStore();
+            
+            p.property.setDataStore(update(origStore, p.swap, newToOldMap, from, to));
+            p.swap = origStore;
+        }
+    }
+
+    /*
+     * Update all component data in src to be in dst by shuffling it to match
+     * newToOldMap.
+     */
+    private IndexedDataStore update(IndexedDataStore src, IndexedDataStore dst, 
+                                    Component[] newToOldMap, int from, int to) {
+        int dstSize = newToOldMap.length;
+        
+        if (dst == null || dst.size() < dstSize)
+            dst = src.create(dstSize);
+        
+        int lastIndex = -1;
+        int copyIndexNew = -1;
+        int copyIndexOld = -1;
+        for (int i = from; i < to; i++) {
+            if (newToOldMap[i].getIndex() != lastIndex + 1) {
+                // we are not in a contiguous section
+                if (copyIndexOld >= 0) {
+                    // we have to copy over the last section
+                    src.copy(copyIndexOld, (i - copyIndexNew), dst, copyIndexNew);
+                }
+                
+                // set the copy indices
+                copyIndexNew = i;
+                copyIndexOld = newToOldMap[i].getIndex();
+            }
+            lastIndex = newToOldMap[i].getIndex();
+        }
+        
+        if (copyIndexOld >= 0) {
+            // final copy
+            src.copy(copyIndexOld, (to - copyIndexNew), dst, copyIndexNew);
+        }
+
+        return dst;
+    }
+
     /**
      * <p>
      * Compact the data of this ComponentIndex to account for removals and
@@ -241,11 +329,9 @@ final class ComponentIndex<T extends Component> {
         // First sort the canonical components array
         Arrays.sort(components, 1, componentInsert, entityIndexComparator);
         
-        // Update all of the propery stores to match up with the components new positions
-        for (int i = 0; i < propertyStores.length; i++) {
-            if (propertyStores[i] != null)
-                propertyStores[i].update(components, 1, componentInsert);
-        }
+        // Update all of the property stores to match up with the components new positions
+        update(declaredProperties, components, 1, componentInsert);
+        update(decoratedProperties,components, 1, componentInsert);
         
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
@@ -264,10 +350,8 @@ final class ComponentIndex<T extends Component> {
             int newSize = (int) (1.2f * componentInsert) + 1;
             components = Arrays.copyOf(components, newSize);
             componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, newSize);
-            for (int i = 0; i < propertyStores.length; i++) {
-                if (propertyStores[i] != null)
-                    propertyStores[i].resize(newSize);
-            }
+            resizePropertyStores(declaredProperties, newSize);
+            resizePropertyStores(decoratedProperties, newSize);
         }
         
         // Repair entityIndexToComponentIndex - and possible shrink the index
@@ -305,61 +389,38 @@ final class ComponentIndex<T extends Component> {
      * @return The new instance wrapping the data at the given index
      */
     public T newInstance(int index) {
-        return newInstance(index, false);
-    }
-
-    /*
-     * Create a new instance and manage its properties and data stores. If
-     * forIter is false, the properties are copied into the data store at the
-     * given index.
-     */
-    private T newInstance(int index, boolean forIter) {
-        T cmp;
-        
-        try {
-            // Since the type was generated by Component, we know it has
-            // a private/protected constructor for (EntitySystem, int)
-            cmp = type.getConstructor().newInstance(system, index);
-        } catch(Exception e) {
-            throw new RuntimeException("Unable to create new Component instance", e);
-        }
-        
-        Property[] props = new Property[propertyStores.length];
-        getProperties(cmp, type.getFields(), props);
-        
-        for (int i = 0; i < props.length; i++) {
-            IndexedDataStore origData = props[i].getDataStore();
-            
-            if (propertyStores[i] == null) {
-                // Must create a new store for the component property,
-                // make it large enough to fit the current components array
-                origData.resize(components.length);
-                propertyStores[i] = origData;
-            }
-            
-            if (!forIter) {
-                // Copy values from new component into data store
-                origData.copy(0, 1, propertyStores[i], index);
-            }
-            
-            props[i].setDataStore(propertyStores[i]);
-        }
-        
-        return cmp;
+        return builder.newInstance(system, index, builderProperties);
     }
     
-    /*
-     * Fetch all Property instances for the given instance
-     */
-    private void getProperties(T instance, List<Field> fields, Property[] propertiesOut) {
-        try {
-            for (int i = 0; i < fields.size(); i++) {
-                propertiesOut[i] = (Property) fields.get(i).get(instance);
+    public <P extends Property> P decorate(PropertyFactory<P> factory) {
+        P prop = factory.create();
+        
+        int size = (declaredProperties.isEmpty() ? componentInsert + 1 
+                                                 : declaredProperties.get(0).property.getDataStore().size());
+        
+        // Copy original values from factory property over to all component slots
+        IndexedDataStore oldStore = prop.getDataStore();
+        IndexedDataStore newStore = oldStore.create(size);
+        for (int i = 1; i < size; i++) {
+            // This assumes that the property stores its data in the 0th index
+            oldStore.copy(0, 1, newStore, i);
+        }
+        prop.setDataStore(newStore);
+        
+        PropertyStore pstore = new PropertyStore(prop);
+        pstore.defaultData = oldStore;
+        
+        decoratedProperties.add(pstore);
+        return prop;
+    }
+    
+    public void undecorate(Property p) {
+        Iterator<PropertyStore> it = decoratedProperties.iterator();
+        while(it.hasNext()) {
+            if (it.next().property == p) {
+                it.remove();
+                break;
             }
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
     }
     
@@ -420,7 +481,7 @@ final class ComponentIndex<T extends Component> {
         private boolean advanced;
         
         public FastComponentIterator() {
-            instance = newInstance(0, true);
+            instance = newInstance(0);
             index = 0;
             advanced = false;
         }
@@ -464,6 +525,16 @@ final class ComponentIndex<T extends Component> {
                 index++;
             }
             advanced = true;
+        }
+    }
+    
+    private static class PropertyStore {
+        final Property property;
+        IndexedDataStore swap; // may be null
+        IndexedDataStore defaultData; // if not null, has a single component
+        
+        public PropertyStore(Property p) {
+            property = p;
         }
     }
 }

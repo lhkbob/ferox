@@ -64,8 +64,6 @@ public final class Entity implements Iterable<Component> {
      * @param id The TypedId representing the given type
      * @return The current Component of type T attached to this container
      * @throws NullPointerException if id is null
-     * @throws IndexOutOfBoundsException if the given component type has not
-     *             been registered with the entity's system
      */
     public <T extends Component> T get(TypedId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
@@ -83,8 +81,6 @@ public final class Entity implements Iterable<Component> {
      * @param componentId The TypedId of the component type
      * @return A new component of type T, or an existing T if already attached
      * @throws NullPointerException if componentId is null
-     * @throws IndexOutOfBoundsException if the given component type has not
-     *             been registered with the entity's system
      */
     public <T extends Component> T add(TypedId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
@@ -101,8 +97,6 @@ public final class Entity implements Iterable<Component> {
      * @param componentId The TypedId of the component type
      * @return True if a component was removed
      * @throws NullPointerException if componentId is null
-     * @throws IndexOutOfBoundsException if the given component type has not
-     *             been registered with the entity's system
      */
     public <T extends Component> boolean remove(TypedId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);

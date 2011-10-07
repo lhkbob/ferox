@@ -1,15 +1,44 @@
 package com.ferox.entity;
 
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentHashMap;
+
+import com.ferox.entity.property.FloatProperty;
+import com.ferox.entity.property.ObjectProperty;
+import com.ferox.entity.property.Property;
+import com.ferox.entity.property.PropertyFactory;
 
 /**
+ * <p>
+ * EntitySystem is the main container for the entities within a logical system
+ * such as a game or physics world. It contains all entities needed for
+ * processing the scene or data. Entities are created with {@link #addEntity()}
+ * or {@link #addEntity(Entity)}. They can be removed (and effectively
+ * destroyed) with {@link #removeEntity(Entity)} or from the remove() methods of
+ * the various iterators over the system data.
+ * </p>
+ * <p>
+ * After an Entity is created, Components can be added to it to store
+ * domain-specific data and control its behaviors. This depends on the Component
+ * implementations and Controllers used to process your data.
+ * </p>
+ * <p>
+ * The {@link ControllerManager} of an EntitySystem can be used to register
+ * Controllers that will process the entities within an entity system in an
+ * organized fashion. Generally, the processing of all controllers through their
+ * different phases constitutes a complete "frame".
+ * </p>
+ * <p>
+ * When Entities are created by an EntitySystem, the created instance is
+ * assigned an ID which represents its true identity. Certain iterators in the
+ * system may create a single Entity object which slides over the underlying
+ * entity data for performance purposes. With each iteration, its ID changes
+ * even though the reference does not. This is same way that {@link Component
+ * Components} are stored and treated by the EntitySystem.
+ * </p>
  * 
  * @author Michael Ludwig
- *
  */
 public final class EntitySystem {
     private ComponentIndex<?>[] componentIndices;
@@ -22,65 +51,34 @@ public final class EntitySystem {
     
     private boolean requireReIndex;
     
-    // FIXME: should the controller data map belong in the controllerManager?
     private final ControllerManager manager;
-    private final ConcurrentHashMap<Class<? extends Annotation>, Object> controllerData;
 
     /**
      * Create a new EntitySystem that has no entities added.
      */
     public EntitySystem() {
-        manager = new ControllerManager();
+        manager = new ControllerManager(this);
         
         entities = new Entity[1];
         entityIds = new int[1];
         
         componentIndices = new ComponentIndex[0];
-        controllerData = new ConcurrentHashMap<Class<? extends Annotation>, Object>();
         
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
         entityInsert = 1;
     }
 
+    /**
+     * Return the ControllerManager for this EntitySystem that can be used to
+     * organize processing of the system using {@link Controller}
+     * implementations.
+     * 
+     * @return The ControllerManager for this system
+     */
     public ControllerManager getControllerManager() {
         return manager;
     }
     
-    /**
-     * Return the controller data that has been mapped to the given annotation
-     * <tt>key</tt>. This will return if there has been no assigned data. This
-     * can be used to store arbitrary data that must be shared between related
-     * controllers.
-     * 
-     * @param key The annotation key
-     * @return The object previously mapped to the annotation with
-     *         {@link #setControllerData(Class, Object)}
-     * @throws NullPointerException if key is null
-     */
-    public Object getControllerData(Class<? extends Annotation> key) {
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        return controllerData.get(key);
-    }
-
-    /**
-     * Map <tt>value</tt> to the given annotation <tt>key</tt> so that future
-     * calls to {@link #getControllerData(Class)} with the same key will return
-     * the new value. If the value is null, any previous mapping is removed.
-     * 
-     * @param key The annotation key
-     * @param value The new value to store
-     * @throws NullPointerException if key is null
-     */
-    public void setControllerData(Class<? extends Annotation> key, Object value) {
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        if (value == null)
-            controllerData.remove(key);
-        else
-            controllerData.put(key, value);
-    }
-
     /**
      * Return an iterator over all of the entities within the system. The
      * returned iterator's remove() method will remove the entity from the
@@ -180,7 +178,7 @@ public final class EntitySystem {
      * @throws NullPointerException if ids is null or contains null elements
      * @throws IllegalArgumentException if ids is empty
      */
-    public Iterator<IndexedComponentMap> iterator(TypedId<?>... ids) { 
+    public Iterator<IndexedComponentMap> iterator(TypedId<? extends Component>... ids) { 
         return bulkIterator(false, ids);
     }
 
@@ -196,7 +194,7 @@ public final class EntitySystem {
      *         NullPointerException if ids is null or contains null elements
      * @throws IllegalArgumentException if ids is empty
      */
-    public Iterator<IndexedComponentMap> fastIterator(TypedId<?>... ids) {
+    public Iterator<IndexedComponentMap> fastIterator(TypedId<? extends Component>... ids) {
         return bulkIterator(true, ids);
     }
     
@@ -205,7 +203,7 @@ public final class EntitySystem {
      * with the smallest number of entities and using it as the primary iterator.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Iterator<IndexedComponentMap> bulkIterator(boolean fast, TypedId<?>... ids) {
+    private Iterator<IndexedComponentMap> bulkIterator(boolean fast, TypedId<? extends Component>... ids) {
         if (ids == null)
             throw new NullPointerException("TypedIds cannot be null");
         if (ids.length < 1)
@@ -432,6 +430,16 @@ public final class EntitySystem {
         removeEntity(e.index);
         // Fix e's index in case it was an entity from a fast iterator
         e.index = 0;
+    }
+    
+    public <P extends Property> P decorate(TypedId<? extends Component> type, PropertyFactory<P> factory) {
+        ComponentIndex<?> index = getIndex(type);
+        return index.decorate(factory);
+    }
+    
+    public void undecorate(TypedId<? extends Component> type, Property p) {
+        ComponentIndex<?> index = getIndex(type);
+        index.undecorate(p);
     }
 
     /**

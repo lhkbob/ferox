@@ -1,4 +1,6 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
+
+import com.ferox.entity.Component;
 
 /**
  * IntProperty is an implementation of Property that stores the property data
@@ -18,6 +20,23 @@ public final class IntProperty implements Property {
      */
     public IntProperty(int elementSize) {
         store = new IntDataStore(elementSize, new int[elementSize]);
+    }
+    
+    /**
+     * Return a PropertyFactory that creates IntProperties with the given
+     * element size. If it is less than 1, the factory's create() method will
+     * fail.
+     * 
+     * @param elementSize The element size of the created properties
+     * @return A PropertyFactory for IntProperty
+     */
+    public static PropertyFactory<IntProperty> factory(final int elementSize) {
+        return new PropertyFactory<IntProperty>() {
+            @Override
+            public IntProperty create() {
+                return new IntProperty(elementSize);
+            }
+        };
     }
 
     /**
@@ -54,7 +73,7 @@ public final class IntProperty implements Property {
     }
 
     private static class IntDataStore extends AbstractIndexedDataStore<int[]> {
-        private int[] array;
+        private final int[] array;
         
         public IntDataStore(int elementSize, int[] array) {
             super(elementSize);
@@ -62,13 +81,8 @@ public final class IntProperty implements Property {
         }
         
         @Override
-        protected int[] createArray(int arraySize) {
-            return new int[arraySize];
-        }
-
-        @Override
-        protected void setArray(int[] array) {
-            this.array = array;
+        public IntDataStore create(int size) {
+            return new IntDataStore(elementSize, new int[elementSize * size]);
         }
 
         @Override

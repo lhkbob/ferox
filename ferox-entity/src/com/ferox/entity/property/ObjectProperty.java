@@ -1,4 +1,6 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
+
+import com.ferox.entity.Component;
 
 /**
  * ObjectProperty is an implementation of Property that stores the property data
@@ -20,6 +22,23 @@ public final class ObjectProperty implements Property {
      */
     public ObjectProperty(int elementSize) {
         store = new ObjectDataStore(elementSize, new Object[elementSize]);
+    }
+
+    /**
+     * Return a PropertyFactory that creates ObjectProperties with the given
+     * element size. If it is less than 1, the factory's create() method will
+     * fail.
+     * 
+     * @param elementSize The element size of the created properties
+     * @return A PropertyFactory for ObjectProperty
+     */
+    public static PropertyFactory<ObjectProperty> factory(final int elementSize) {
+        return new PropertyFactory<ObjectProperty>() {
+            @Override
+            public ObjectProperty create() {
+                return new ObjectProperty(elementSize);
+            }
+        };
     }
     
     /**
@@ -56,7 +75,7 @@ public final class ObjectProperty implements Property {
     }
 
     private static class ObjectDataStore extends AbstractIndexedDataStore<Object[]> {
-        private Object[] array;
+        private final Object[] array;
         
         public ObjectDataStore(int elementSize, Object[] array) {
             super(elementSize);
@@ -64,13 +83,8 @@ public final class ObjectProperty implements Property {
         }
         
         @Override
-        protected Object[] createArray(int arraySize) {
-            return new Object[arraySize];
-        }
-
-        @Override
-        protected void setArray(Object[] array) {
-            this.array = array;
+        public ObjectDataStore create(int size) {
+            return new ObjectDataStore(elementSize, new Object[elementSize * size]);
         }
 
         @Override

@@ -1,4 +1,5 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
+
 
 /**
  * <p>

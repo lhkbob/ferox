@@ -1,7 +1,8 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
 
 import java.nio.Buffer;
 import java.util.List;
+
 
 /**
  * AbstractIndexedDataStore is an implementation of IndexedDataStore that uses
@@ -14,7 +15,6 @@ import java.util.List;
  */
 public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
     protected final int elementSize;
-    private A swap;
 
     /**
      * Create an AbstractIndexedDataStore that will use <var>elementSize</var>
@@ -28,22 +28,6 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
         if (elementSize < 1)
             throw new IllegalArgumentException("Element size must be at least 1");
         this.elementSize = elementSize;
-    }
-    
-    @Override
-    public void resize(int size) {
-        // Create a new array
-        A newArray = createArray(size * elementSize);
-        A oldArray = getArray();
-        
-        // Copy the contents of the old array to the new
-        // and update the assigned reference
-        arraycopy(oldArray, 0, newArray, 0, Math.min(size * elementSize, getArrayLength(oldArray)));
-        setArray(newArray);
-        
-        // To prevent the swap from getting too big or when
-        // it's not used, just reset it here (allocation is cheap)
-        swap = null;
     }
 
     @Override
@@ -64,42 +48,6 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
             throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
         
         arraycopy(getArray(), srcOffset * elementSize, dstStore.getArray(), destOffset * elementSize, len * elementSize);
-    }
-
-    @Override
-    public void update(Component[] newToOldMap, int from, int to) {
-        int swapSize = newToOldMap.length * elementSize;
-        
-        if (swap == null || getArrayLength(swap) < swapSize)
-            swap = createArray(newToOldMap.length * elementSize);
-        
-        A oldArray = getArray();
-        
-        int lastIndex = -1;
-        int copyIndexNew = -1;
-        int copyIndexOld = -1;
-        for (int i = from; i < to; i++) {
-            if (newToOldMap[i].index != lastIndex + 1) {
-                // we are not in a contiguous section
-                if (copyIndexOld >= 0) {
-                    // we have to copy over the last section
-                    arraycopy(oldArray, copyIndexOld * elementSize, swap, copyIndexNew * elementSize, (i - copyIndexNew) * elementSize);
-                }
-                
-                // set the copy indices
-                copyIndexNew = i;
-                copyIndexOld = newToOldMap[i].index;
-            }
-            lastIndex = newToOldMap[i].index;
-        }
-        
-        if (copyIndexOld >= 0) {
-            // final copy
-            arraycopy(oldArray, copyIndexOld * elementSize, swap, copyIndexNew * elementSize, (to - copyIndexNew) * elementSize);
-        }
-
-        setArray(swap);
-        swap = oldArray;
     }
 
     /**
@@ -125,25 +73,6 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
     protected void arraycopy(A oldArray, int srcOffset, A newArray, int dstOffset, int len) {
         System.arraycopy(oldArray, srcOffset, newArray, dstOffset, len);
     }
-    
-    /**
-     * Create an "array" of whatever type is used by the subclass, ensuring that
-     * it has the given array length, <tt>arraySize</tt>.
-     * 
-     * @param arraySize The array size of the created array
-     * @return A new array of a specific type with the given length
-     */
-    protected abstract A createArray(int arraySize);
-
-    /**
-     * Update the data store so that its exposed data (in whatever manner it
-     * chooses) uses the array provided. The array object will have been created
-     * by {@link #createArray(int)} or returned by {@link #getArray()} so casts
-     * are safe.
-     * 
-     * @param array The new array to expose or use for property data
-     */
-    protected abstract void setArray(A array);
     
     /**
      * @return The current array instance storing property data

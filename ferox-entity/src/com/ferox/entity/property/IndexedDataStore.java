@@ -1,4 +1,4 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
 
 /**
  * IndexedDataStore is a generic data storage interface representing packed,
@@ -17,7 +17,7 @@ public interface IndexedDataStore {
      * 
      * @param size The size, in number of properties
      */
-    public void resize(int size);
+    public IndexedDataStore create(int size);
     
     /**
      * @return The number of properties that can fit into this IndexedDataStore
@@ -46,26 +46,4 @@ public interface IndexedDataStore {
      *             out-of-bounds exceptions
      */
     public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset);
-
-    /**
-     * <p>
-     * Rearrange the property values in this IndexedDataStore to reflect the
-     * re-ordering of the Components in <tt>newToOldMap</tt>. The Components in
-     * <tt>newToOldMap</tt> in the range of <tt>from</tt> (inclusive) to
-     * <tt>to</tt> (exclusive), are the now valid components and will not be
-     * null.
-     * </p>
-     * <p>
-     * Their 'new' index is the index in the array holding the component, and
-     * the 'old' index is the actual index reported by the component. Property
-     * values must be moved around internally so that values for a component at
-     * its old index will be stored at the new index instead.
-     * </p>
-     * 
-     * @param newToOldMap An array map from the new index of each component to
-     *            their old index
-     * @param from The valid starting index into newToOldMap
-     * @param to The ending index of newToOldMap, exclusive
-     */
-    public void update(Component[] newToOldMap, int from, int to);
 }

@@ -1,4 +1,6 @@
-package com.ferox.entity;
+package com.ferox.entity.property;
+
+import com.ferox.entity.Component;
 
 /**
  * FloatProperty is an implementation of Property that stores the property data
@@ -19,6 +21,23 @@ public final class FloatProperty implements Property {
      */
     public FloatProperty(int elementSize) {
         store = new FloatDataStore(elementSize, new float[elementSize]);
+    }
+
+    /**
+     * Return a PropertyFactory that creates FloatProperties with the given
+     * element size. If it is less than 1, the factory's create() method will
+     * fail.
+     * 
+     * @param elementSize The element size of the created properties
+     * @return A PropertyFactory for FloatProperty
+     */
+    public static PropertyFactory<FloatProperty> factory(final int elementSize) {
+        return new PropertyFactory<FloatProperty>() {
+            @Override
+            public FloatProperty create() {
+                return new FloatProperty(elementSize);
+            }
+        };
     }
 
     /**
@@ -55,7 +74,7 @@ public final class FloatProperty implements Property {
     }
 
     private static class FloatDataStore extends AbstractIndexedDataStore<float[]> {
-        private float[] array;
+        private final float[] array;
         
         public FloatDataStore(int elementSize, float[] array) {
             super(elementSize);
@@ -63,13 +82,8 @@ public final class FloatProperty implements Property {
         }
         
         @Override
-        protected float[] createArray(int arraySize) {
-            return new float[arraySize];
-        }
-
-        @Override
-        protected void setArray(float[] array) {
-            this.array = array;
+        public FloatDataStore create(int size) {
+            return new FloatDataStore(elementSize, new float[elementSize * size]);
         }
 
         @Override
