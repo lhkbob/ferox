@@ -384,6 +384,7 @@ final class ComponentIndex<T extends Component> {
 
     /**
      * Create a new instance of T that will take its data from the given index.
+     * The init() method of the Component is not called.
      * 
      * @param index The component index to wrap
      * @return The new instance wrapping the data at the given index
@@ -391,7 +392,19 @@ final class ComponentIndex<T extends Component> {
     public T newInstance(int index) {
         return builder.newInstance(system, index, builderProperties);
     }
-    
+
+    /**
+     * Decorate the type information of this ComponentIndex to add a property
+     * created by the given factory. The returned property will have default
+     * data assigned for each current Component in the index, and will have the
+     * default value assigned for each new Component. Decorators can then access
+     * the returned property to manipulate the decorated component data.
+     * 
+     * @param <P> The type of property created
+     * @param factory The factory that will create a unique Property instance
+     *            associated with the decorated property and this index
+     * @return The property decorated onto the type of the index
+     */
     public <P extends Property> P decorate(PropertyFactory<P> factory) {
         P prop = factory.create();
         
@@ -413,7 +426,14 @@ final class ComponentIndex<T extends Component> {
         decoratedProperties.add(pstore);
         return prop;
     }
-    
+
+    /**
+     * Remove the given property from the set of decorated properties on this
+     * index's type. If the property is invalid or not a decorated property for
+     * the index, this does nothing.
+     * 
+     * @param p The property to remove
+     */
     public void undecorate(Property p) {
         Iterator<PropertyStore> it = decoratedProperties.iterator();
         while(it.hasNext()) {

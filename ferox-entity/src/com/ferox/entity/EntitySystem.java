@@ -431,12 +431,43 @@ public final class EntitySystem {
         // Fix e's index in case it was an entity from a fast iterator
         e.index = 0;
     }
-    
+
+    /**
+     * <p>
+     * Dynamically update the available properties of the given Component type
+     * by adding a Property created by the given PropertyFactory. The property
+     * will be managed by the system as if it was a declared property of the
+     * component type.
+     * </p>
+     * <p>
+     * All components, current and new, will initially have their starting
+     * values for the decorated property equal the state of the property after
+     * being created by the factory. The returned property can be accessed and
+     * used by Controllers to add dynamic runtime data to statically defined
+     * component types.
+     * </p>
+     * 
+     * @param <P> The created property type
+     * @param type The component type to mutate
+     * @param factory The property factory that creates the decorating property
+     * @return The property that has decorated the given component type
+     * @throws NullPointerException if type or factory are null
+     */
     public <P extends Property> P decorate(TypedId<? extends Component> type, PropertyFactory<P> factory) {
         ComponentIndex<?> index = getIndex(type);
         return index.decorate(factory);
     }
-    
+
+    /**
+     * Remove the property, <tt>p</tt>, that was previously decorated onto the
+     * given type by the method {@link #decorate(TypedId, PropertyFactory)}. If
+     * the property has not been decorated onto that type or is no longer
+     * decorated, this does nothing.
+     * 
+     * @param type The component type to undecorate
+     * @param p The property to remove from the dynamic type definition
+     * @throws NullPointerException if type is null
+     */
     public void undecorate(TypedId<? extends Component> type, Property p) {
         ComponentIndex<?> index = getIndex(type);
         index.undecorate(p);

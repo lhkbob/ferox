@@ -1,6 +1,5 @@
 package com.ferox.entity.property;
 
-
 /**
  * <p>
  * Property represents a generic field or property of a Component definition.
@@ -14,6 +13,15 @@ package com.ferox.entity.property;
  * example, there could be two instances of type A, with properties a and b. The
  * two 'a' properties would share the same data store, and the two 'b'
  * properties would share a separate store.
+ * </p>
+ * <p>
+ * Property instances are carefully managed by an EntitySystem. There is ever
+ * only one property instance per defined property in a component type for a
+ * system. Every component of that type uses their index into the property's
+ * IndexedDataStore to access their data. This helps keep memory usage low and
+ * simplifies system maintenance. The Property instances are created by using
+ * the {@link Parameters} annotation on the declared fields in a type, and
+ * reflection is used to assign them to a Component instance.
  * </p>
  * 
  * @author Michael Ludwig
