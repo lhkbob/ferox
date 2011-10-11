@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.ferox.entity.property.CompactAwareProperty;
 import com.ferox.entity.property.IndexedDataStore;
 import com.ferox.entity.property.Property;
 import com.ferox.entity.property.PropertyFactory;
@@ -309,6 +310,15 @@ final class ComponentIndex<T extends Component> {
 
         return dst;
     }
+    
+    private void notifyCompactAwareProperties(List<PropertyStore> props) {
+        PropertyStore p;
+        for (int i = 0; i < props.size(); i++) {
+            p = props.get(i);
+            if (p.property instanceof CompactAwareProperty)
+                ((CompactAwareProperty) p.property).onCompactComplete();
+        }
+    }
 
     /**
      * <p>
@@ -363,6 +373,9 @@ final class ComponentIndex<T extends Component> {
         
         for (int i = 1; i < componentInsert; i++)
             entityIndexToComponentIndex[componentIndexToEntityIndex[i]] = i;
+        
+        notifyCompactAwareProperties(declaredProperties);
+        notifyCompactAwareProperties(decoratedProperties);
     }
 
     /**

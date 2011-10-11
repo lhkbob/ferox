@@ -16,11 +16,38 @@ import com.ferox.entity.property.Parameters;
 import com.ferox.entity.property.Property;
 import com.ferox.entity.property.PropertyFactory;
 
+/**
+ * <p>
+ * ComponentBuilder is a factory for creating new instances of Components of a
+ * specific type. It is capable of using reflection to instantiate Property
+ * instances for the Components declared property fields, based on the
+ * {@link Factory}, {@link Parameters}, and {@link Parameter} annotations.
+ * </p>
+ * <p>
+ * ComponentBuilder is thread safe, unlike the majority of the library, because
+ * a single ComponentBuilder is used for each type, across all systems.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @param <T> The built component type
+ */
 final class ComponentBuilder<T extends Component> {
     private final List<PropertyFactory<?>> propertyFactories;
     private final Constructor<T> constructor;
     private final List<Field> fields;
-    
+
+    /**
+     * Create a new ComponentBuilder for the given type of Component. This is a
+     * slower constructor with lots of reflection so builders should be cached.
+     * This constructor also validates the component definition.
+     * 
+     * @param type The component type created by this builder
+     * @throws IllegalArgumentException if the class is not really a component
+     *             or if it is abstract
+     * @throws IllegalComponentDefinitionException if the class hierarchy of the
+     *             component type is invalid by breaking any of the constructor
+     *             or field rules for defining a component
+     */
     @SuppressWarnings("unchecked")
     public ComponentBuilder(Class<T> type) {
         // Now we actually have to build up a new TypedId - which is sort of slow
@@ -48,18 +75,43 @@ final class ComponentBuilder<T extends Component> {
         constructor = getConstructor(type);
         propertyFactories = getPropertyFactories(fields);
     }
-    
+
+    /**
+     * Create a new list of property instances that can be shared by all
+     * instances of the Component type built by this builder for a single
+     * EntitySystem. The list is ordered such that it can be passed into
+     * {@link #newInstance(EntitySystem, int, List)}.
+     * 
+     * @return A new list of properties used to set the property fields in the
+     *         component
+     */
     public List<Property> createProperties() {
         List<Property> props = new ArrayList<Property>(propertyFactories.size());
         for (int i = 0; i < propertyFactories.size(); i++)
             props.add(propertyFactories.get(i).create());
         return props;
     }
-    
-    public T newInstance(EntitySystem system, int index) {
-        return newInstance(system, index, createProperties());
-    }
-    
+
+    /**
+     * <p>
+     * Create a new instance of the Component type created by this builder, for
+     * the given system. The component will use the given index initially, but
+     * its {@link Component#init()} method is NOT called. The list of properties
+     * is used to assign values to the declared property fields of the type.
+     * </p>
+     * <p>
+     * It is assumed that the list was previously returned from a call to
+     * {@link #createProperties()}.
+     * </p>
+     * 
+     * @param system The owning EntitySystem
+     * @param index The index of the new component in the system
+     * @param properties The list of properties used to assign field values for
+     *            the new component
+     * @return A new component of type T
+     * @throws RuntimeException if the properties weren't compatible with the
+     *             list returned by createProperties()
+     */
     public T newInstance(EntitySystem system, int index, List<Property> properties) {
         try {
             T t = constructor.newInstance(system, index);
