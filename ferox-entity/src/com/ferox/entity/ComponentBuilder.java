@@ -127,7 +127,7 @@ final class ComponentBuilder<T extends Component> {
     
     private static <T extends Component> List<PropertyFactory<?>> getPropertyFactories(List<Field> fields) {
         List<PropertyFactory<?>> factories = new ArrayList<PropertyFactory<?>>();
-        for (int i = 2; i < fields.size(); i++) {
+        for (int i = 0; i < fields.size(); i++) {
             factories.add(createFactory(fields.get(i)));
         }
         return factories;
@@ -190,8 +190,8 @@ final class ComponentBuilder<T extends Component> {
                     throw new RuntimeException("Unable to inspect PropertyFactory create() method", e);
                 }
                 
-                if (type.isAssignableFrom(create.getReturnType()))
-                    throw new IllegalComponentDefinitionException(forCType, "@Factory for " + fa.value() + " creates incorrect Property type for parameter type: " + type);
+                if (!type.isAssignableFrom(create.getReturnType()))
+                    throw new IllegalComponentDefinitionException(forCType, "@Factory for " + fa.value() + " creates incorrect Property type for property type: " + type);
                 
                 PropertyFactory<?> factory;
                 try {
@@ -235,8 +235,8 @@ final class ComponentBuilder<T extends Component> {
             throw new IllegalComponentDefinitionException(type, "Component type must only define a single constructor");
         
         Constructor<T> ctor = (Constructor<T>) ctors[0];
-        if (!Modifier.isPrivate(ctor.getModifiers()))
-            throw new IllegalComponentDefinitionException(type, "Component constructor must be private");
+        if (!Modifier.isPrivate(ctor.getModifiers()) && !Modifier.isProtected(ctor.getModifiers()))
+            throw new IllegalComponentDefinitionException(type, "Component constructor must be private or protected");
         
         Class<?>[] args = ctor.getParameterTypes();
         if (args.length != 2 || !EntitySystem.class.equals(args[0]) || !int.class.equals(args[1]))

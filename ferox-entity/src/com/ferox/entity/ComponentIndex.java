@@ -263,13 +263,12 @@ final class ComponentIndex<T extends Component> {
      * Update all component data in the list of properties. If possible the data
      * store in swap is reused.
      */
-    private void update(List<PropertyStore> properties, 
-                        Component[] newToOldMap, int from, int to) {
+    private void update(List<PropertyStore> properties, Component[] newToOldMap) {
         for (int i = 0; i < properties.size(); i++) {
             PropertyStore p = properties.get(i);
             IndexedDataStore origStore = p.property.getDataStore();
             
-            p.property.setDataStore(update(origStore, p.swap, newToOldMap, from, to));
+            p.property.setDataStore(update(origStore, p.swap, newToOldMap));
             p.swap = origStore;
         }
     }
@@ -279,16 +278,22 @@ final class ComponentIndex<T extends Component> {
      * newToOldMap.
      */
     private IndexedDataStore update(IndexedDataStore src, IndexedDataStore dst, 
-                                    Component[] newToOldMap, int from, int to) {
+                                    Component[] newToOldMap) {
         int dstSize = newToOldMap.length;
         
         if (dst == null || dst.size() < dstSize)
             dst = src.create(dstSize);
         
+        int i;
         int lastIndex = -1;
         int copyIndexNew = -1;
         int copyIndexOld = -1;
-        for (int i = from; i < to; i++) {
+        for (i = 1; i < componentInsert; i++) {
+            if (newToOldMap[i] == null) {
+                // we've hit the end of existing components, so break
+                break;
+            }
+            
             if (newToOldMap[i].getIndex() != lastIndex + 1) {
                 // we are not in a contiguous section
                 if (copyIndexOld >= 0) {
@@ -305,7 +310,7 @@ final class ComponentIndex<T extends Component> {
         
         if (copyIndexOld >= 0) {
             // final copy
-            src.copy(copyIndexOld, (to - copyIndexNew), dst, copyIndexNew);
+            src.copy(copyIndexOld, (i - copyIndexNew), dst, copyIndexNew);
         }
 
         return dst;
@@ -340,8 +345,8 @@ final class ComponentIndex<T extends Component> {
         Arrays.sort(components, 1, componentInsert, entityIndexComparator);
         
         // Update all of the property stores to match up with the components new positions
-        update(declaredProperties, components, 1, componentInsert);
-        update(decoratedProperties,components, 1, componentInsert);
+        update(declaredProperties, components);
+        update(decoratedProperties, components);
         
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
@@ -473,7 +478,7 @@ final class ComponentIndex<T extends Component> {
         public boolean hasNext() {
             if (!advanced)
                 advance();
-            return index < components.length;
+            return index < componentInsert;
         }
 
         @Override
@@ -523,7 +528,7 @@ final class ComponentIndex<T extends Component> {
         public boolean hasNext() {
             if (!advanced)
                 advance();
-            return index < componentIndexToEntityIndex.length;
+            return index < componentInsert;
         }
 
         @Override

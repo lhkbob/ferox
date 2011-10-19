@@ -178,7 +178,7 @@ public final class EntitySystem {
      * @throws NullPointerException if ids is null or contains null elements
      * @throws IllegalArgumentException if ids is empty
      */
-    public Iterator<IndexedComponentMap> iterator(TypedId<? extends Component>... ids) { 
+    public Iterator<IndexedComponentMap> iterator(TypedId<?>... ids) { 
         return bulkIterator(false, ids);
     }
 
@@ -194,7 +194,7 @@ public final class EntitySystem {
      *         NullPointerException if ids is null or contains null elements
      * @throws IllegalArgumentException if ids is empty
      */
-    public Iterator<IndexedComponentMap> fastIterator(TypedId<? extends Component>... ids) {
+    public Iterator<IndexedComponentMap> fastIterator(TypedId<?>... ids) {
         return bulkIterator(true, ids);
     }
     
@@ -203,7 +203,7 @@ public final class EntitySystem {
      * with the smallest number of entities and using it as the primary iterator.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Iterator<IndexedComponentMap> bulkIterator(boolean fast, TypedId<? extends Component>... ids) {
+    private Iterator<IndexedComponentMap> bulkIterator(boolean fast, TypedId<?>... ids) {
         if (ids == null)
             throw new NullPointerException("TypedIds cannot be null");
         if (ids.length < 1)
@@ -540,8 +540,8 @@ public final class EntitySystem {
         
         // Remove all components from the entity
         for (int i = 0; i < componentIndices.length; i++) {
-            if (componentIndices[index] != null)
-                componentIndices[index].removeComponent(index);
+            if (componentIndices[i] != null)
+                componentIndices[i].removeComponent(index);
         }
         
         // clear out id and canonical entity
@@ -777,7 +777,7 @@ public final class EntitySystem {
         public boolean hasNext() {
             if (!advanced)
                 advance();
-            return index < entities.length;
+            return index < entityInsert;
         }
 
         @Override
@@ -822,7 +822,7 @@ public final class EntitySystem {
         public boolean hasNext() {
             if (!advanced)
                 advance();
-            return index < entityIds.length;
+            return index < entityInsert;
         }
 
         @Override

@@ -54,6 +54,14 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
+     * @return True if this Entity is still in its EntitySystem, or false if it
+     *         has been removed
+     */
+    public boolean isLive() {
+        return getId() != 0;
+    }
+
+    /**
      * Get the Component instance of the given type that's attached to this
      * Entity. A null value is returned if the component type has not been
      * attached to the entity. The same Component instance is returned for a

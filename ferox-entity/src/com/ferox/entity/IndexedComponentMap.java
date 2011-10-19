@@ -15,20 +15,15 @@ public class IndexedComponentMap {
      * Create an IndexedComponentMap that will take its components from the
      * given array. The Components do not need to be in any particular order,
      * and the array can be mutated after construction to change the components
-     * reporeted by the map. The array must never contain null elements
+     * reported by the map. The array must never contain null elements, unless
+     * it is before the map is exposed to the user.
      * 
      * @param components The array of components stored in this "map"
-     * @throws NullPointerException if components is null or if it contains null
-     *             elements. If components are set to null after construction,
-     *             results are undefined
+     * @throws NullPointerException if components is null
      */
     public IndexedComponentMap(Component[] components) {
         if (components == null)
             throw new NullPointerException("Components array cannot be null");
-        for (int i = 0; i < components.length; i++) {
-            if (components[i] == null)
-                throw new NullPointerException("Component element cannot be null in array");
-        }
         
         this.components = components;
     }
