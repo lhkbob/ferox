@@ -5,11 +5,10 @@ import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Transform;
+import com.ferox.math.AffineTransform;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.shape.Shape;
-import com.ferox.physics.dynamics.constraint.SolverBody;
+import com.ferox.physics.collision.Shape;
 
 public class RigidBody extends Collidable {
     private float inverseMass; // 1 / mass
@@ -22,8 +21,6 @@ public class RigidBody extends Collidable {
     private final Vector3f totalForce;
     private final Vector3f totalTorque;
     
-    private final SolverBody solverBody;
-
     public RigidBody(ReadOnlyMatrix4f t, Shape shape, float mass) {
         super(t, shape);
 
@@ -34,18 +31,10 @@ public class RigidBody extends Collidable {
         totalForce = new Vector3f();
         totalTorque = new Vector3f();
         
-        solverBody = new SolverBody();
-        
         setMass(mass);
     }
     
-    public SolverBody getSolverBody() {
-        solverBody.inverseMass = inverseMass;
-        solverBody.body = this;
-        return solverBody;
-    }
-    
-    public void updateFromSolverBody() {
+    /*public void updateFromSolverBody() {
         velocity.set(velocity.getX() + solverBody.dlX,
                      velocity.getY() + solverBody.dlY,
                      velocity.getZ() + solverBody.dlZ);
@@ -55,11 +44,11 @@ public class RigidBody extends Collidable {
         
         solverBody.dlX = 0f; solverBody.dlY = 0f; solverBody.dlZ = 0f;
         solverBody.daX = 0f; solverBody.daY = 0f; solverBody.daZ = 0f;
-    }
+    }*/
     
     @Override
-    public void setWorldTransform(ReadOnlyMatrix4f t) {
-        super.setWorldTransform(t);
+    public void setTransform(ReadOnlyMatrix4f t) {
+        super.setTransform(t);
         updateInertiaTensor();
     }
     
@@ -69,7 +58,7 @@ public class RigidBody extends Collidable {
         MutableVector3f inertia = getShape().getInertiaTensor(getMass(), temp3.get());
         inertia.set(1f / inertia.getX(), 1f / inertia.getY(), 1f / inertia.getZ());
         
-        ReadOnlyMatrix3f rotation = getWorldTransform().getUpperMatrix(); // since Collidable uses Transform, this doesn't create an object
+        ReadOnlyMatrix3f rotation = getTransform().getUpperMatrix(); // since Collidable uses AffineTransform, this doesn't create an object
         rotation.mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(rotation);
     }
     
@@ -86,12 +75,12 @@ public class RigidBody extends Collidable {
         clearForces();
     }
     
-    public void predictMotion(Integrator integrator, float dt, Transform result) {
+    public void predictMotion(Integrator integrator, float dt, AffineTransform result) {
         if (dt <= 0f)
             throw new IllegalArgumentException("Time delta must be positive, not: " + dt);
         
         // FIXME what about kinematic objects?
-        result.set(getWorldTransform());
+        result.set(getTransform());
         integrator.integrateLinearVelocity(velocity, dt, result.getTranslation());
         integrator.integrateAngularVelocity(angularVelocity, dt, result.getRotation());
     }
@@ -115,6 +104,18 @@ public class RigidBody extends Collidable {
             MutableVector3f torque = relPos.cross(impulse, temp3.get());
             angularVelocity.add(inertiaTensorWorldInverse.mul(torque));
         }
+    }
+    
+    public void setVelocity(ReadOnlyVector3f vel) {
+        if (vel == null)
+            throw new NullPointerException("Velocity cannot be null");
+        velocity.set(vel);
+    }
+    
+    public void setAngularVelocity(ReadOnlyVector3f angVel) {
+        if (angVel == null)
+            throw new NullPointerException("Angular velocity cannot be null");
+        angularVelocity.set(angVel);
     }
     
     public void clearForces() {

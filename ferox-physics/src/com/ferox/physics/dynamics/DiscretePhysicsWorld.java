@@ -4,14 +4,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Transform;
+import com.ferox.math.AffineTransform;
 import com.ferox.math.Vector3f;
 import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionCallback;
-import com.ferox.physics.collision.CollisionHandler;
+import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionManager;
 import com.ferox.physics.collision.algorithm.ClosestPair;
-import com.ferox.physics.collision.algorithm.CollisionAlgorithm;
 import com.ferox.physics.dynamics.constraint.Constraint;
 import com.ferox.physics.dynamics.constraint.ConstraintSolver;
 import com.ferox.physics.dynamics.constraint.ContactManifoldCache;
@@ -87,12 +87,11 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
         
         // recompute next frame position after constraint solving
         // and store it in the world transform
-        Transform t = new Transform();
+        AffineTransform t = new AffineTransform();
         for (int i = 0; i < ct; i++) {
             b = rigidBodies.get(i);
-            b.updateFromSolverBody();
             b.predictMotion(integrator, dt, t);
-            b.setWorldTransform(t);
+            b.setTransform(t);
         }
     }
     
@@ -183,13 +182,13 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
     private class ContactManifoldCallback implements CollisionCallback {
         @Override
         @SuppressWarnings({ "rawtypes", "unchecked" })
-        public void process(Collidable objA, Collidable objB, CollisionHandler handler) {
+        public void process(Collidable objA, Collidable objB, CollisionAlgorithmProvider handler) {
             if (!(objA instanceof RigidBody) && !(objB instanceof RigidBody))
                 return; // ignore collisions between only static objects
             
             CollisionAlgorithm algo = handler.getAlgorithm(objA.getShape().getClass(), objB.getShape().getClass());
             if (algo != null) {
-                ClosestPair pair = algo.getClosestPair(objA.getShape(), objA.getWorldTransform(), objB.getShape(), objB.getWorldTransform());
+                ClosestPair pair = algo.getClosestPair(objA.getShape(), objA.getTransform(), objB.getShape(), objB.getTransform());
                 if (pair != null && pair.isIntersecting())
                     contactCache.addContact(objA, objB, pair);
             }

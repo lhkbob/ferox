@@ -31,10 +31,6 @@ public class LinearConstraint {
     private LinearConstraint dynamicLimitConstraint;
     private float dynamicLimitFactor;
     
-    public LinearConstraint(RigidBody bodyA, RigidBody bodyB) {
-        setRigidBodies(bodyA, bodyB);
-    }
-    
     public MutableVector3f getTorqueAxisA(MutableVector3f result) {
         return getVector(taX, taY, taZ, result);
     }
@@ -158,8 +154,8 @@ public class LinearConstraint {
         this.cfm = cfm;
     }
     
-    public void reset(RigidBody bodyA, RigidBody bodyB) {
-        setRigidBodies(bodyA, bodyB);
+    public void set(RigidBody bodyA, RigidBody bodyB, SolverBodyPool pool) {
+        setRigidBodies(bodyA, bodyB, pool);
         
         nX = 0f; nY = 0f; nZ = 0f; 
         laX = 0f; laY = 0f; laZ = 0f; 
@@ -215,11 +211,11 @@ public class LinearConstraint {
             listener.onApplyImpulse(this);
     }
     
-    private void setRigidBodies(RigidBody a, RigidBody b) {
+    private void setRigidBodies(RigidBody a, RigidBody b, SolverBodyPool pool) {
         if (a == null && b == null)
             throw new NullPointerException("Both RigidBodies cannot be null");
-        bodyA = (a == null ? null : a.getSolverBody());
-        bodyB = (b == null ? null : b.getSolverBody());
+        bodyA = (a == null ? null : pool.get(a));
+        bodyB = (b == null ? null : pool.get(b));
     }
     
     @Override

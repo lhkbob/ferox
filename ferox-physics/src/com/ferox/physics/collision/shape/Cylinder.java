@@ -4,10 +4,22 @@ import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 
+/**
+ * Cylinder is a convex shape implementation that represents a cylinder. It has
+ * two parameters, the height of the cylinder and the radius of the cylinder
+ * caps. The orientation of the cylinder is chosen by its dominant axis.
+ * 
+ * @author Michael Ludwig
+ */
 public class Cylinder extends AxisSweptShape {
     private float capRadius;
     private float halfHeight;
     
+    /**
+     * 
+     * @param capRadius
+     * @param height
+     */
     public Cylinder(float capRadius, float height) {
         this(capRadius, height, Axis.Z);
     }

@@ -3,7 +3,7 @@ package com.ferox.physics.collision;
 import java.util.BitSet;
 
 import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.Transform;
+import com.ferox.math.AffineTransform;
 import com.ferox.math.bounds.AxisAlignedBox;
 
 /**
@@ -35,7 +35,7 @@ public class Collidable {
     private final BitSet collisionGroups;
     private final BitSet collisionMask;
 
-    private final Transform worldTransform;
+    private final AffineTransform worldTransform;
     private final AxisAlignedBox worldAabb;
     private Shape bounds;
     
@@ -55,11 +55,11 @@ public class Collidable {
      */
     public Collidable(ReadOnlyMatrix4f t, Shape shape) {
         if (t == null)
-            throw new NullPointerException("Transform cannot be null");
+            throw new NullPointerException("AffineTransform cannot be null");
         if (shape == null)
             throw new NullPointerException("Shape cannot be null");
         
-        worldTransform = new Transform(t);
+        worldTransform = new AffineTransform(t);
         bounds = shape;
         worldAabb = new AxisAlignedBox();
         
@@ -229,7 +229,7 @@ public class Collidable {
      */
     public void setTransform(ReadOnlyMatrix4f t) {
         if (t == null)
-            throw new NullPointerException("Transform cannot be null");
+            throw new NullPointerException("AffineTransform cannot be null");
         worldTransform.set(t);
         updateBounds();
     }

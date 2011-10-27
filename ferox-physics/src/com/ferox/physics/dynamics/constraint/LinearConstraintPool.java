@@ -4,20 +4,24 @@ import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.Bag;
 
 public class LinearConstraintPool {
+    private final SolverBodyPool solverPool;
     private Bag<LinearConstraint> constraints;
     
-    public LinearConstraintPool() {
+    public LinearConstraintPool(SolverBodyPool solverPool) {
+        this.solverPool = solverPool;
         constraints = new Bag<LinearConstraint>();
     }
     
     public LinearConstraint get(RigidBody bodyA, RigidBody bodyB) {
         if (!constraints.isEmpty()) {
             LinearConstraint constraint = constraints.remove(constraints.size() - 1);
-            constraint.reset(bodyA, bodyB);
+            constraint.set(bodyA, bodyB, solverPool);
             return constraint;
-        } else
-            return new LinearConstraint(bodyA, bodyB);
-            
+        } else {
+            LinearConstraint lc = new LinearConstraint();
+            lc.set(bodyA, bodyB, solverPool);
+            return lc;
+        }
     }
     
     public void add(LinearConstraint constraint) {

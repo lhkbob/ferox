@@ -7,6 +7,7 @@ import com.ferox.physics.dynamics.constraint.LinearConstraintAccumulator.Constra
 
 public class SequentialImpulseConstraintSolver implements ConstraintSolver {
     private final int internalIterations;
+    private final SolverBodyPool solverPool;
     private final LinearConstraintPool constraintPool;
     private final LinearConstraintAccumulator constraints;
     
@@ -20,7 +21,8 @@ public class SequentialImpulseConstraintSolver implements ConstraintSolver {
         if (numIters <= 0)
             throw new IllegalArgumentException("Number of iterations must be at least 1, not: " + numIters);
         internalIterations = numIters;
-        constraintPool = new LinearConstraintPool();
+        solverPool = new SolverBodyPool();
+        constraintPool = new LinearConstraintPool(solverPool);
         constraints = new LinearConstraintAccumulator();
         shuffler = new Random();
     }
@@ -83,7 +85,6 @@ public class SequentialImpulseConstraintSolver implements ConstraintSolver {
         LinearConstraint[] car = constraints.getConstraints(ConstraintLevel.CONTACT);
         LinearConstraint[] far = constraints.getConstraints(ConstraintLevel.FRICTION);
         
-        
         // iterate over all constraints X times, each time they are shuffled
         int j;
         for (int i = 0; i < internalIterations; i++) {
@@ -101,6 +102,7 @@ public class SequentialImpulseConstraintSolver implements ConstraintSolver {
         
         // return constraints to the pool
         constraints.clear(constraintPool);
+        solverPool.updateRigidBodies();
     }
     
     private void shuffle(LinearConstraint[] array, int size) {

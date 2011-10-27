@@ -8,7 +8,7 @@ import com.ferox.math.MutableVector4f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Transform;
+import com.ferox.math.AffineTransform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.Plane;
@@ -49,7 +49,7 @@ public class ContactManifold extends NormalizableConstraint {
     }
     
     public void addContact(ClosestPair pair, boolean swap) {
-        ManifoldPoint newPoint = new ManifoldPoint(objA.getWorldTransform(), objB.getWorldTransform(),
+        ManifoldPoint newPoint = new ManifoldPoint(objA.getTransform(), objB.getTransform(),
                                                    pair, swap);
         
         int replaceIndex = findNearPoint(newPoint);
@@ -153,8 +153,8 @@ public class ContactManifold extends NormalizableConstraint {
     }
     
     public void update() {
-        ReadOnlyMatrix4f ta = objA.getWorldTransform();
-        ReadOnlyMatrix4f tb = objB.getWorldTransform();
+        ReadOnlyMatrix4f ta = objA.getTransform();
+        ReadOnlyMatrix4f tb = objB.getTransform();
         
         Vector3f projectedPoint = temp1.get();
         Vector3f projectedDifference = temp2.get();
@@ -208,8 +208,8 @@ public class ContactManifold extends NormalizableConstraint {
         RigidBody rbA = getBodyA();
         RigidBody rbB = getBodyB();
         
-        ReadOnlyMatrix4f ta = objA.getWorldTransform();
-        ReadOnlyMatrix4f tb = objB.getWorldTransform();
+        ReadOnlyMatrix4f ta = objA.getTransform();
+        ReadOnlyMatrix4f tb = objB.getTransform();
         
         int ct = manifold.size();
         for (int i = 0; i < ct; i++) {
@@ -408,8 +408,8 @@ public class ContactManifold extends NormalizableConstraint {
         @Override
         protected Vector3f initialValue() { return new Vector3f(); };
     };
-    private static final ThreadLocal<Transform> tempt = new ThreadLocal<Transform>() {
+    private static final ThreadLocal<AffineTransform> tempt = new ThreadLocal<AffineTransform>() {
         @Override
-        protected Transform initialValue() { return new Transform(); };
+        protected AffineTransform initialValue() { return new AffineTransform(); };
     };
 }

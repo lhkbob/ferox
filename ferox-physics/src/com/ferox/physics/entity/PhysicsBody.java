@@ -1,11 +1,11 @@
 package com.ferox.physics.entity;
 
-import com.ferox.entity.AbstractComponent;
-import com.ferox.physics.collision.shape.Shape;
+import com.ferox.entity2.TypedComponent;
+import com.ferox.physics.collision.Shape;
 
 // FIXME: really we should just expose the RigidBody here so that
 // everything can be managed directly by custom controllers easier
-public class PhysicsBody extends AbstractComponent<PhysicsBody> {
+public class PhysicsBody extends TypedComponent<PhysicsBody> {
     private float mass;
     private Shape shape;
     
