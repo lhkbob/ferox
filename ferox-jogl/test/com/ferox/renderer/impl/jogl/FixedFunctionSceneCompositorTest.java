@@ -3,9 +3,9 @@ package com.ferox.renderer.impl.jogl;
 import java.awt.Font;
 import java.io.File;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Entity;
-import com.ferox.entity.EntitySystem;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.Entity;
+import com.ferox.entity2.EntitySystem;
 import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.logic.InputState;
 import com.ferox.input.logic.KeyTypedCondition;
