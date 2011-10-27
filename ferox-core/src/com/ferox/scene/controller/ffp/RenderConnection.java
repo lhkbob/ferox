@@ -1,16 +1,16 @@
 package com.ferox.scene.controller.ffp;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Entity;
-import com.ferox.entity.EntitySystem;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.Entity;
+import com.ferox.entity2.EntitySystem;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Surface;
-import com.ferox.scene.BlinnPhongLightingModel;
+import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Fog;
 import com.ferox.scene.TexturedMaterial;
-import com.ferox.scene.ViewNode;
+import com.ferox.scene.Camera;
 import com.ferox.util.Bag;
 
 /**
@@ -63,7 +63,7 @@ public abstract class RenderConnection {
     /**
      * Add the given Entity to the list of entities which should be rendered
      * based on their attached Components, such as
-     * {@link BlinnPhongLightingModel} or {@link TexturedMaterial}.
+     * {@link BlinnPhongMaterial} or {@link TexturedMaterial}.
      * 
      * @param e The Entity that is to be rendered
      * @throws NullPointerException if e is null
@@ -125,10 +125,10 @@ public abstract class RenderConnection {
      * Set the view Frustum and viewport dimensions that will be used when
      * rendering the primary scene.
      * 
-     * @param vn The ViewNode that represents the primary viewing location
+     * @param vn The Camera that represents the primary viewing location
      * @throws NullPointerException if vn is null
      */
-    public void setView(ViewNode vn) {
+    public void setView(Camera vn) {
         viewFrustum = vn.getFrustum();
         viewLeft = vn.getLeft();
         viewRight = vn.getRight();

@@ -1,8 +1,8 @@
 package com.ferox.math.bounds;
 
-import com.ferox.entity.Entity;
+import com.ferox.entity2.Entity;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
-import com.ferox.scene.controller.SceneController;
+import com.ferox.scene.controller.SceneHierarchyController;
 
 /**
  * <p>
@@ -26,8 +26,9 @@ import com.ferox.scene.controller.SceneController;
  * It is the programmer's responsibility to maintain the mapping between an
  * object and its key. An object that is added a second time (instead of
  * updating it) will then be in the hierarchy twice. If using the {@link Entity}
- * based scene package, a {@link SceneController} handles all of this logic.
- *</p>
+ * based scene package, a {@link SceneHierarchyController} handles all of this
+ * logic.
+ * </p>
  * 
  * @author Michael Ludwig
  * @param <T> The class type of the objects contained within the hierarchy

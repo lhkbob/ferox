@@ -1,8 +1,8 @@
 package com.ferox.util.input;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.ComponentId;
-import com.ferox.entity.Entity;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.ComponentId;
+import com.ferox.entity2.Entity;
 import com.ferox.input.MouseKeyEventSource;
 import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.MouseEvent.MouseButton;
@@ -16,12 +16,12 @@ import com.ferox.input.logic.Trigger;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.scene.SceneElement;
-import com.ferox.scene.ViewNode;
+import com.ferox.scene.Transform;
+import com.ferox.scene.Camera;
 
 public class FreeLookCameraInputManager extends InputManager {
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
-    private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+    private static final ComponentId<Transform> SE_ID = Component.getComponentId(Transform.class);
+    private static final ComponentId<Camera> VN_ID = Component.getComponentId(Camera.class);
     
     private float translationSpeed;
     private Entity camera;
@@ -85,7 +85,7 @@ public class FreeLookCameraInputManager extends InputManager {
             
             // first check if there's a scene element present, because it
             // takes control of the transform of any otherwise present viewnode
-            SceneElement se = camera.get(SE_ID);
+            Transform se = camera.get(SE_ID);
             if (se != null) {
                 Vector3f trans = new Vector3f(se.getTransform().getCol(3).getAsVector3f());
                 translate(se.getTransform().getCol(2).getAsVector3f(),
@@ -97,7 +97,7 @@ public class FreeLookCameraInputManager extends InputManager {
             
             // if no-one attached a scene element, also work correctly with 
             // just a view node
-            ViewNode vn = camera.get(VN_ID);
+            Camera vn = camera.get(VN_ID);
             if (vn != null) {
                 Frustum f = vn.getFrustum();
                 Vector3f trans = new Vector3f(f.getLocation());

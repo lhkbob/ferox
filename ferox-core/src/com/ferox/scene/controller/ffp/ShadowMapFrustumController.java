@@ -2,19 +2,19 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.Iterator;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.ComponentId;
-import com.ferox.entity.Controller;
-import com.ferox.entity.Entity;
-import com.ferox.entity.EntitySystem;
-import com.ferox.math.Color4f;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.ComponentId;
+import com.ferox.entity2.Controller;
+import com.ferox.entity2.Entity;
+import com.ferox.entity2.EntitySystem;
+import com.ferox.math.Color3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.SpotLight;
-import com.ferox.scene.ViewNode;
+import com.ferox.scene.Camera;
 import com.ferox.scene.controller.SceneController;
 import com.ferox.scene.controller.VisibilityCallback;
 
@@ -24,13 +24,13 @@ import com.ferox.scene.controller.VisibilityCallback;
  * necessary to add shadows to a rendered scene using the shadow-mapping
  * algorithm. Using different weighting parameters, it chooses an Entity that is
  * a {@link SpotLight} or {@link DirectionLight} as the shadow caster for each
- * {@link ViewNode} within a scene.
+ * {@link Camera} within a scene.
  * </p>
  * <p>
  * Once a shadow-casting light is chosen, it computes a Frustum representing the
  * necessary projection information to use with shadow mapping and the given
  * light. This information is stored in a {@link ShadowMapFrustum} and is
- * attached to each {@link ViewNode} as a meta-Component.
+ * attached to each {@link Camera} as a meta-Component.
  * </p>
  * <p>
  * This controller should process the scene after the scene has been updated but
@@ -42,7 +42,7 @@ import com.ferox.scene.controller.VisibilityCallback;
 public class ShadowMapFrustumController extends Controller {
     private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
     private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
-    private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+    private static final ComponentId<Camera> VN_ID = Component.getComponentId(Camera.class);
     private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
     
     private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
@@ -94,12 +94,12 @@ public class ShadowMapFrustumController extends Controller {
     }
     
     @Override
-    protected void processImpl() {
+    protected void executeImpl() {
         Iterator<Entity> vi = system.iterator(VN_ID);
         while(vi.hasNext()) {
             Entity e = vi.next();
-            ViewNode viewNode = e.get(VN_ID);
-            ShadowMapFrustum lf = e.getMeta(viewNode, SMF_ID);
+            Camera camera = e.get(VN_ID);
+            ShadowMapFrustum lf = e.getMeta(camera, SMF_ID);
             
             float bestWeight = 0f;
             Component bestLight = null;
@@ -115,7 +115,7 @@ public class ShadowMapFrustumController extends Controller {
                 light = it.next();
                 dl = light.get(DL_ID);
                 if (dl != null && (light.get(SC_ID) != null || light.getMeta(dl, SC_ID) != null)) {
-                    weight = calculateWeight(dl, viewNode.getFrustum(), dl == oldDirLight);
+                    weight = calculateWeight(dl, camera.getFrustum(), dl == oldDirLight);
                     if (weight > bestWeight) {
                         bestLight = dl;
                         bestWeight = weight;
@@ -131,7 +131,7 @@ public class ShadowMapFrustumController extends Controller {
                 light = it.next();
                 sl = light.get(SL_ID);
                 if (sl != null && (light.get(SC_ID) != null || light.getMeta(sl, SC_ID) != null)) {
-                    weight = calculateWeight(sl, viewNode.getFrustum(), sl == oldSpotLight);
+                    weight = calculateWeight(sl, camera.getFrustum(), sl == oldSpotLight);
                     if (weight > bestWeight) {
                         bestLight = sl;
                         bestWeight = weight;
@@ -143,13 +143,13 @@ public class ShadowMapFrustumController extends Controller {
                 // form the shadow map frustum
                 Frustum f;
                 if (bestLight instanceof SpotLight)
-                    f = computeLightFrustum((SpotLight) bestLight, viewNode.getFrustum(), (lf == null ? null : lf.getFrustum()));
+                    f = computeLightFrustum((SpotLight) bestLight, camera.getFrustum(), (lf == null ? null : lf.getFrustum()));
                 else
-                    f = computeLightFrustum((DirectionLight) bestLight, viewNode.getFrustum(), (lf == null ? null : lf.getFrustum()));
+                    f = computeLightFrustum((DirectionLight) bestLight, camera.getFrustum(), (lf == null ? null : lf.getFrustum()));
                 
                 if (lf == null) {
                     lf = new ShadowMapFrustum(f, bestLight);
-                    e.addMeta(viewNode, lf);
+                    e.addMeta(camera, lf);
                 } else {
                     lf.setFrustum(f);
                     lf.setLight(bestLight);
@@ -159,7 +159,7 @@ public class ShadowMapFrustumController extends Controller {
                 hierarchy.query(f, new VisibilityCallback(f));
             } else {
                 // no more shadow mapping
-                e.removeMeta(viewNode, SMF_ID);
+                e.removeMeta(camera, SMF_ID);
             }
         }
     }
@@ -208,7 +208,7 @@ public class ShadowMapFrustumController extends Controller {
             return -1f;
         
         // [0, 1] - bonuses lights that are brighter
-        Color4f c = light.getColor();
+        Color3f c = light.getColor();
         float brightness = (c.getRed() + c.getGreen() + c.getBlue()) / 3f;
         
         // [0, 1] - bonuses lights that are in line with the camera direction:
@@ -230,7 +230,7 @@ public class ShadowMapFrustumController extends Controller {
     
     private float calculateWeight(DirectionLight light, Frustum view, boolean old) {
         // [0, 1] - bonuses lights that are brighter: some physical accuracy
-        Color4f c = light.getColor();
+        Color3f c = light.getColor();
         float brightness = (c.getRed() + c.getGreen() + c.getBlue()) / 3f;
         
         // [0, 1] - bonuses lights that are opposite of up direction (shining down):

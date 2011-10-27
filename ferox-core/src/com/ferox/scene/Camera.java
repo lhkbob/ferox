@@ -1,9 +1,9 @@
 package com.ferox.scene;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Template;
-import com.ferox.entity.TypedComponent;
-import com.ferox.entity.TypedId;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.Template;
+import com.ferox.entity2.TypedComponent;
+import com.ferox.entity2.TypedId;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Surface;
 

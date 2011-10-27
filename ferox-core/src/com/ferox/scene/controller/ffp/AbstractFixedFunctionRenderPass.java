@@ -1,9 +1,9 @@
 package com.ferox.scene.controller.ffp;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.ComponentId;
-import com.ferox.entity.Entity;
-import com.ferox.math.Color4f;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.ComponentId;
+import com.ferox.entity2.Entity;
+import com.ferox.math.Color3f;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
@@ -12,18 +12,18 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.RendererProvider;
 import com.ferox.renderer.Surface;
-import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture;
 import com.ferox.scene.AmbientLight;
-import com.ferox.scene.BlinnPhongLightingModel;
+import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Renderable;
-import com.ferox.scene.SceneElement;
+import com.ferox.scene.Transform;
 import com.ferox.scene.Shape;
-import com.ferox.scene.SolidLightingModel;
+import com.ferox.scene.SolidMaterial;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.util.geom.Box;
+import com.ferox.util.geom.Geometry;
 
 /**
  * AbstractFixedFunctionRenderPass is an abstract RenderPass that provides many
@@ -35,13 +35,13 @@ import com.ferox.util.geom.Box;
 public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
     private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
     private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    private static final ComponentId<Transform> SE_ID = Component.getComponentId(Transform.class);
     private static final ComponentId<TexturedMaterial> TM_ID = Component.getComponentId(TexturedMaterial.class);
-    private static final ComponentId<BlinnPhongLightingModel> BP_ID = Component.getComponentId(BlinnPhongLightingModel.class);
-    private static final ComponentId<SolidLightingModel> SL_ID = Component.getComponentId(SolidLightingModel.class);
+    private static final ComponentId<BlinnPhongMaterial> BP_ID = Component.getComponentId(BlinnPhongMaterial.class);
+    private static final ComponentId<SolidMaterial> SL_ID = Component.getComponentId(SolidMaterial.class);
     
-    protected static final Color4f BLACK = new Color4f(0f, 0f, 0f, 1f);
-    protected static final Color4f GRAY = new Color4f(.5f, .5f, .5f, 1f);
+    protected static final Color3f BLACK = new Color3f(0f, 0f, 0f, 1f);
+    protected static final Color3f GRAY = new Color3f(.5f, .5f, .5f, 1f);
     
     protected static final Geometry DEFAULT_GEOM = new Box(1f);
     
@@ -147,8 +147,8 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
             return; // not supposed to render it 
         
         // set materials
-        BlinnPhongLightingModel bp = atom.get(BP_ID);
-        SolidLightingModel sl = atom.get(SL_ID);
+        BlinnPhongMaterial bp = atom.get(BP_ID);
+        SolidMaterial sl = atom.get(SL_ID);
         if (bp != null) {
             renderer.setLightingEnabled(true);
             renderer.setMaterialShininess(bp.getShininess());
@@ -191,7 +191,7 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
     /**
      * Utility function to render the {@link Geometry} attached to <tt>atom</tt>
      * via a {@link Shape} at the world transform of the Entity, defined by its
-     * {@link SceneElement}. If it has no Shape, a default Geometry is used. If
+     * {@link Transform}. If it has no Shape, a default Geometry is used. If
      * it has no transform, the identity is used. These transforms are properly
      * converted into camera space by the view matrix of the Frustum returned by
      * {@link #getFrustum()}.
@@ -204,7 +204,7 @@ public abstract class AbstractFixedFunctionRenderPass implements RenderPass {
         Geometry geom = (shape == null ? DEFAULT_GEOM : shape.getGeometry());
         
         // determine complete model view
-        SceneElement se = atom.get(SE_ID);
+        Transform se = atom.get(SE_ID);
         if (se == null)
             modelView.set(view);
         else

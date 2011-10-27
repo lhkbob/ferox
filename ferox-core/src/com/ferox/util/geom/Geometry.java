@@ -1,5 +1,6 @@
 package com.ferox.util.geom;
 
+import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 
@@ -25,6 +26,14 @@ import com.ferox.scene.TextureMap;
  * @author Michael Ludwig
  */
 public interface Geometry {
+    /**
+     * Return a reasonably tight-fitting bounds over the vertices of this
+     * Geometry.
+     * 
+     * @return The bounds of the geometry in its local coordinate system
+     */
+    public AxisAlignedBox getBounds();
+    
     /**
      * Return the polygon type that determines how consecutive vertex elements
      * or indices are converted into polygons.

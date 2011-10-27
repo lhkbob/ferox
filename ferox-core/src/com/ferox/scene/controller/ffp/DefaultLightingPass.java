@@ -2,9 +2,9 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.BitSet;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.ComponentId;
-import com.ferox.entity.Entity;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.ComponentId;
+import com.ferox.entity2.Entity;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
@@ -12,7 +12,7 @@ import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.scene.SceneElement;
+import com.ferox.scene.Transform;
 import com.ferox.scene.ShadowReceiver;
 import com.ferox.scene.Transparent;
 import com.ferox.util.Bag;
@@ -26,7 +26,7 @@ import com.ferox.util.Bag;
  * @author Michael Ludwig
  */
 public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    private static final ComponentId<Transform> SE_ID = Component.getComponentId(Transform.class);
     private static final ComponentId<ShadowReceiver> SR_ID = Component.getComponentId(ShadowReceiver.class);
     private static final ComponentId<Transparent> T_ID = Component.getComponentId(Transparent.class);
     
@@ -81,7 +81,7 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
     }
     
     private void assignLights(Entity ra, Bag<Component> lights, Bag<AxisAlignedBox> bounds) {
-        SceneElement se = ra.get(SE_ID);
+        Transform se = ra.get(SE_ID);
         AxisAlignedBox aabb = (se == null ? null : se.getWorldBounds());
         boolean receivesShadow = ra.get(SR_ID) != null;
         

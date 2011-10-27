@@ -5,11 +5,11 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.ComponentId;
-import com.ferox.entity.Controller;
-import com.ferox.entity.Entity;
-import com.ferox.entity.EntitySystem;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.ComponentId;
+import com.ferox.entity2.Controller;
+import com.ferox.entity2.Entity;
+import com.ferox.entity2.EntitySystem;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
@@ -19,7 +19,6 @@ import com.ferox.renderer.Surface;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.ThreadQueueManager;
-import com.ferox.resource.Geometry;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
@@ -27,14 +26,15 @@ import com.ferox.resource.Texture.WrapMode;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Renderable;
-import com.ferox.scene.SceneElement;
+import com.ferox.scene.Transform;
 import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.Shape;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.Transparent;
-import com.ferox.scene.ViewNode;
+import com.ferox.scene.Camera;
 import com.ferox.util.HashFunction;
+import com.ferox.util.geom.Geometry;
 
 /**
  * FixedFunctionRenderController is a controller implementation that processes
@@ -43,12 +43,12 @@ import com.ferox.util.HashFunction;
  * it supports:
  * <ul>
  * <li>Renderable - only these entities will be rendered</li>
- * <li>SceneElement - specifies the transform of the renderable</li>
+ * <li>Transform - specifies the transform of the renderable</li>
  * <li>ShadowCaster - whether a light or renderable casts shadows</li>
  * <li>ShadowReceiver - whether a renderable should receive shadows</li>
  * <li>Shape - provides geometry to render</li>
- * <li>BlinnPhongLightingModel - the only available lighting model in OpenGL</li>
- * <li>SolidLightingModel - supported, effectively disables lighting</li>
+ * <li>BlinnPhongMaterial - the only available lighting model in OpenGL</li>
+ * <li>SolidMaterial - supported, effectively disables lighting</li>
  * <li>TexturedMaterial - may ignore one or both Textures depending on hardware
  * capabilities</li>
  * </ul>
@@ -56,11 +56,11 @@ import com.ferox.util.HashFunction;
  * @author Michael Ludwig
  */
 public class FixedFunctionRenderController extends Controller {
-    private static final ComponentId<ViewNode> VN_ID = Component.getComponentId(ViewNode.class);
+    private static final ComponentId<Camera> VN_ID = Component.getComponentId(Camera.class);
     private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
 
     private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    private static final ComponentId<Transform> SE_ID = Component.getComponentId(Transform.class);
     private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
     
     private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
@@ -207,7 +207,7 @@ public class FixedFunctionRenderController extends Controller {
     }
     
     @Override
-    protected void processImpl() {
+    protected void executeImpl() {
         // process every view, we use a ThreadQueueManager so that
         // actual rendering can be managed externally without worrying about
         // which thread executed this controller
@@ -220,7 +220,7 @@ public class FixedFunctionRenderController extends Controller {
     private void processLights(ComponentId<?> lightType, Frustum viewFrustum, 
                                Frustum shadowFrustum, Component shadowLight, RenderConnection con) {
         Entity e;
-        SceneElement se;
+        Transform se;
         Component light;
         
         Iterator<Entity> it = system.iterator(lightType);
@@ -237,7 +237,7 @@ public class FixedFunctionRenderController extends Controller {
     }
     
     private void processView(EntitySystem system, Entity view) {
-        ViewNode vn = view.get(VN_ID);
+        Camera vn = view.get(VN_ID);
         if (vn == null)
             return; // don't have anything to render
         
@@ -259,7 +259,7 @@ public class FixedFunctionRenderController extends Controller {
         
         // process all renderables (and shadow casters)
         Entity e;
-        SceneElement se;
+        Transform se;
         Iterator<Entity> it = system.iterator(R_ID);
         while(it.hasNext()) {
             e = it.next();
@@ -401,7 +401,7 @@ public class FixedFunctionRenderController extends Controller {
                 return (NON_TRANSPARENT_BIT | (geomId << 20) | (tpId << 10) | (tdId));
             } else {
                 // FIXME: this depth sorting doesn't scale well enough
-                SceneElement se = value.get(SE_ID);
+                Transform se = value.get(SE_ID);
                 if (se != null)
                     se.getTransform().getTranslation().sub(view.getLocation(), proj);
                 else

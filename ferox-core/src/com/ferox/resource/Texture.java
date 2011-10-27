@@ -212,7 +212,7 @@ public class Texture extends Resource {
      * BufferData's with null arrays the full range of mipmaps is used.
      * </p>
      * <p>
-     * The mipmap layers are intepreted differently depending on the specified
+     * The mipmap layers are interpreted differently depending on the specified
      * target. If the target is one of T_1D, T_2D, or T_3D, <tt>mipmaps</tt>
      * must have a length of 1 as these targets expect a single layer. If the
      * target is T_CUBEMAP, <tt>mipmaps</tt> must have a length of 6, one for

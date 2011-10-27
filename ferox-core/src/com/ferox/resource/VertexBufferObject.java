@@ -98,7 +98,6 @@ public class VertexBufferObject extends Resource {
      *         its been updated with a framework
      */
     public synchronized StorageMode getStorageMode() {
-        // This doesn't need to be synchronized since it is final
         return storageMode;
     }
 

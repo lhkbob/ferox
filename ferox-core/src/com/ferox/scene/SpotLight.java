@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Template;
-import com.ferox.entity.TypedId;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.Template;
+import com.ferox.entity2.TypedId;
 import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;

@@ -10,18 +10,16 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.TextureFormat;
 import com.ferox.util.geom.text.RectanglePacker.Rectangle;
 
 /**
@@ -205,15 +203,18 @@ public class CharacterSet {
         RectanglePacker<GlyphMetrics> rp = new RectanglePacker<GlyphMetrics>(64, 64);
         GlyphVector v = font.layoutGlyphVector(context, characters, 0, characters.length,
                                                Font.LAYOUT_LEFT_TO_RIGHT);
-        GlyphMetrics g;
 
+        GlyphMetrics g;
+        Rectangle2D bounds;
         GlyphMetrics[] glyphs = new GlyphMetrics[characters.length];
         Rectangle[] glyphRectangles = new Rectangle[characters.length];
         for (int i = 0; i < characters.length; i++) {
             g = v.getGlyphMetrics(i);
+            bounds = g.getBounds2D();
+
             glyphs[i] = g;
-            glyphRectangles[i] = rp.insert(g, (int) g.getBounds2D().getWidth() + CHAR_PADDING * 2, 
-                                          (int) g.getBounds2D().getHeight() + CHAR_PADDING * 2);
+            glyphRectangles[i] = rp.insert(g, (int) bounds.getWidth() + CHAR_PADDING * 2, 
+                                              (int) bounds.getHeight() + CHAR_PADDING * 2);
         }
         g2d.dispose(); // dispose of dummy image
 
@@ -247,22 +248,21 @@ public class CharacterSet {
             glyphBounds = g.getBounds2D();
 
             glyph = new Glyph(g.getAdvance(), // advance
-                              (float) r.getX() / width, (float) (r.getX() + r.getWidth()) / width, // left-right
-                              (float) (height - r.getY() - r.getHeight()) / height, (float) (height - r.getY()) / height, // bottom-top
-                              (float) glyphBounds.getX(), (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // x-y
+                              (float) r.getX() / width, (float) (r.getX() + r.getWidth()) / width, // left and right tex coords
+                              (float) (height - r.getY() - r.getHeight()) / height, (float) (height - r.getY()) / height, // bottom and top tex coords
+                              (float) glyphBounds.getX(), (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // local x and y positions
                               (float) glyphBounds.getWidth() + CHAR_PADDING * 2, (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
             metrics.put(Character.valueOf(characters[i]), glyph);
 
-            g2d.drawChars(characters, i, 1, r.getX() - (int) glyphBounds.getX() + CHAR_PADDING, 
+            g2d.drawChars(characters, i, 1, 
+                          r.getX() - (int) glyphBounds.getX() + CHAR_PADDING, 
                           r.getY() - (int) glyphBounds.getY() + CHAR_PADDING);
         }
         g2d.dispose();
 
         // create the texture
         int[] data = ((DataBufferInt) charSet.getRaster().getDataBuffer()).getData();
-        IntBuffer imageData = ByteBuffer.allocateDirect(data.length * 4).order(ByteOrder.nativeOrder()).asIntBuffer().put(data);
-        this.characters = new Texture(Target.T_2D, new Mipmap(imageData, width, height, 1,
-                                                              TextureFormat.ARGB_8888));
+        this.characters = new Texture(Target.T_2D, new Mipmap(new BufferData(data), width, height, 1, TextureFormat.ARGB_8888));
     }
 
     /*

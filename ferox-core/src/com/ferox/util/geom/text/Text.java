@@ -6,9 +6,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import com.ferox.resource.Geometry;
-import com.ferox.resource.PolygonType;
-import com.ferox.resource.VectorBuffer;
+import com.ferox.renderer.PolygonType;
+import com.ferox.resource.VertexAttribute;
+import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.PrimitiveGeometry;
 
 /**
@@ -273,7 +273,7 @@ public class Text extends PrimitiveGeometry {
         layoutText();
     }
     
-    private FloatBuffer reuseBuffer(VectorBuffer old, int newLen) {
+    private FloatBuffer reuseBuffer(VertexAttribute old, int newLen) {
         if (old == null || old.getData().capacity() < newLen || old.getData().capacity() * .75f > newLen) {
             // no old data, or old data is too small, or old data is too big
             return ByteBuffer.allocateDirect(newLen * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
@@ -330,9 +330,9 @@ public class Text extends PrimitiveGeometry {
                 i.put(j, j);
             }
 
-            setAttribute(getVertexName(), new VectorBuffer(v, 3));
-            setAttribute(getNormalName(), new VectorBuffer(n, 3));
-            setAttribute(getTextureCoordinateName(), new VectorBuffer(t, 2));
+            setAttribute(getVertexName(), new VertexAttribute(v, 3));
+            setAttribute(getNormalName(), new VertexAttribute(n, 3));
+            setAttribute(getTextureCoordinateName(), new VertexAttribute(t, 2));
             setIndices(i, PolygonType.QUADS);
         } else {
             // empty the geometry
@@ -558,7 +558,7 @@ public class Text extends PrimitiveGeometry {
         }
 
         /*
-         * Update cursorX and cursorY so that the next placed characters are one
+         * Update cursorX and cursorY so that the next placed characters are on
          * the newline.
          */
         private void newline() {

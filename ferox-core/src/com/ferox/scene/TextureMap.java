@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.entity.TypedComponent;
+import com.ferox.entity2.TypedComponent;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;

@@ -1,6 +1,6 @@
 package com.ferox.scene;
 
-import com.ferox.entity.TypedComponent;
+import com.ferox.entity2.TypedComponent;
 import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyColor3f;
 

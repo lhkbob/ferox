@@ -1,24 +1,27 @@
-package com.ferox.scene;
+package com.ferox.scene.controller;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Controller;
-import com.ferox.entity.Template;
-import com.ferox.entity.TypedComponent;
-import com.ferox.entity.TypedId;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.Controller;
+import com.ferox.entity2.MetaComponent;
+import com.ferox.entity2.Template;
+import com.ferox.entity2.TypedComponent;
+import com.ferox.entity2.TypedId;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
+import com.ferox.scene.Renderable;
 
 /**
  * Visibility is a Component type that tracks the visibility of Entities to
  * Frustums. The most common use is using this with a {@link Renderable} for
- * frustum culling purposes. The {@link VisibilityController} takes care of
- * this. The lack of a Visibility component on an Entity should signal that
- * visibility tracking should be disabled for that Entity.
+ * frustum culling purposes. The {@link VisibilityController} automatically
+ * associates a Visibility component with an Entity that has a Renderable
+ * component.
  * 
  * @author Michael Ludwig
  */
+@MetaComponent
 public final class Visibility extends TypedComponent<Visibility> {
     /**
      * The shared TypedId representing Visibility.
@@ -27,17 +30,14 @@ public final class Visibility extends TypedComponent<Visibility> {
     
     private static final Object VALUE = new Object();
     
-    // We'll use a concurrent hash map instead of a simple set because this datastructure
-    // is more easily corrupted than a vector or transform, and there shouldn't be a
-    // big performance hit.
-    private final ConcurrentHashMap<Frustum, Object> visibility;
+    private final HashMap<Frustum, Object> visibility;
     
     /**
      * Create a new Visibility component with an empty visibility set.
      */
     public Visibility() {
         super(null, false);
-        visibility = new ConcurrentHashMap<Frustum, Object>();
+        visibility = new HashMap<Frustum, Object>();
     }
 
     /**
@@ -49,7 +49,7 @@ public final class Visibility extends TypedComponent<Visibility> {
      */
     public Visibility(Visibility clone) {
         super(clone, true);
-        visibility = new ConcurrentHashMap<Frustum, Object>(clone.visibility);
+        visibility = new HashMap<Frustum, Object>(clone.visibility);
     }
     
     /**

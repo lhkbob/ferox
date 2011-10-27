@@ -1,18 +1,18 @@
 package com.ferox.scene.controller.ffp;
 
-import com.ferox.entity.AbstractComponent;
-import com.ferox.entity.Component;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.TypedComponent;
 import com.ferox.math.bounds.Frustum;
 
 /**
  * ShadowMapFrustum is a meta-Component that associates the shadow casting
- * information needed for shadow-mapping for a ViewNode. This information is
+ * information needed for shadow-mapping for a Camera. This information is
  * computed by a {@link ShadowMapFrustumController} and is used by the
  * {@link FixedFunctionRenderController} to render scenes with shadows.
  * 
  * @author Michael Ludwig
  */
-public class ShadowMapFrustum extends AbstractComponent<ShadowMapFrustum> {
+public class ShadowMapFrustum extends TypedComponent<ShadowMapFrustum> {
     private Frustum frustum;
     private Component shadowLight;
 

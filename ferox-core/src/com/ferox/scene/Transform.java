@@ -1,10 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.Entity;
-import com.ferox.entity.Template;
-import com.ferox.entity.TypedComponent;
-import com.ferox.entity.TypedId;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.Entity;
+import com.ferox.entity2.Template;
+import com.ferox.entity2.TypedComponent;
+import com.ferox.entity2.TypedId;
 import com.ferox.math.AffineTransform;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.ferox.math.ReadOnlyMatrix4f;
@@ -100,7 +100,7 @@ public final class Transform extends TypedComponent<Transform> {
      * Return the matrix that stores the actual world transform. This will
      * always return the same instance, and the instance will reflect any
      * changes to the Transform. Use
-     * {@link Entity#getVersion(com.ferox.entity.TypedId)} to determine if it
+     * {@link Entity#getVersion(com.ferox.entity2.TypedId)} to determine if it
      * has been modified.
      * 
      * @return The current world affine transform matrix

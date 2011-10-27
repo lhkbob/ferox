@@ -1,8 +1,8 @@
 package com.ferox.scene.controller.ffp;
 
-import com.ferox.entity.Component;
-import com.ferox.entity.ComponentId;
-import com.ferox.entity.Entity;
+import com.ferox.entity2.Component;
+import com.ferox.entity2.ComponentId;
+import com.ferox.entity2.Entity;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.AxisAlignedBox;
@@ -15,7 +15,7 @@ import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.Texture;
-import com.ferox.scene.SceneElement;
+import com.ferox.scene.Transform;
 import com.ferox.scene.ShadowReceiver;
 import com.ferox.util.Bag;
 
@@ -29,7 +29,7 @@ import com.ferox.util.Bag;
  */
 public class ShadowedLightingPass extends AbstractFixedFunctionRenderPass {
     private static final ComponentId<ShadowReceiver> SR_ID = Component.getComponentId(ShadowReceiver.class);
-    private static final ComponentId<SceneElement> SE_ID = Component.getComponentId(SceneElement.class);
+    private static final ComponentId<Transform> SE_ID = Component.getComponentId(Transform.class);
     
     private static final Matrix4f bias = new Matrix4f(.5f, 0f, 0f, .5f,
                                                       0f, .5f, 0f, .5f,
@@ -82,7 +82,7 @@ public class ShadowedLightingPass extends AbstractFixedFunctionRenderPass {
         ffp.setDepthWriteMask(false); // depth buffer should be unchanged from last pass
         
         Entity atom;
-        SceneElement se;
+        Transform se;
         int count = renderAtoms.size();
         for (int i = 0; i < count; i++) {
             atom = renderAtoms.get(i);

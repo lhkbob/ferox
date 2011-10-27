@@ -4,7 +4,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.ferox.math.Color4f;
+import com.ferox.math.Color3f;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.bounds.Frustum;
@@ -17,23 +17,23 @@ import com.ferox.renderer.RendererProvider;
 import com.ferox.renderer.Surface;
 
 public class TextRenderPass implements RenderPass {
-    private static final Color4f BLACK = new Color4f(0f, 0f, 0f, 1f);
+    private static final Color3f BLACK = new Color3f(0f, 0f, 0f, 1f);
     
     private final ConcurrentMap<Text, ReadOnlyVector3f> text;
-    private final Color4f textColor;
+    private final Color3f textColor;
     private final Frustum frustum;
     
     public TextRenderPass() {
         text = new ConcurrentHashMap<Text, ReadOnlyVector3f>();
-        textColor = new Color4f(1f, 1f, 1f, 1f);
+        textColor = new Color3f(1f, 1f, 1f, 1f);
         frustum = new Frustum(true, -1, 1, -1, 1, -1, 1);
     }
     
-    public Color4f getColor() {
+    public Color3f getColor() {
         return textColor;
     }
     
-    public void setColor(Color4f color) {
+    public void setColor(Color3f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
         textColor.set(color);
