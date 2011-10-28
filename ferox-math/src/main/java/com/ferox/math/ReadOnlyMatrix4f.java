@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * ReadOnlyMatrix4f provides the foundation class for the implementation of a
@@ -506,6 +508,31 @@ public abstract class ReadOnlyMatrix4f {
             getCol(3, store, offset + 12);
         }
     }
+    
+    /**
+     * As {@link #get(float[], int, boolean)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @param rowMajor True if the matrix values are stored as rows, otherwise
+     * as columns
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the column
+     */
+    public void get(FloatBuffer store, int offset, boolean rowMajor) {
+        if (rowMajor) {
+            getRow(0, store, offset);
+            getRow(1, store, offset + 4);
+            getRow(2, store, offset + 8);
+            getRow(3, store, offset + 12);
+        } else {
+            getCol(0, store, offset);
+            getCol(1, store, offset + 4);
+            getCol(2, store, offset + 8);
+            getCol(3, store, offset + 12);
+        }
+    }
 
     /**
      * Return a new ReadOnlyMatrix3f that wraps the upper 3x3 matrix of this 4x4
@@ -569,6 +596,24 @@ public abstract class ReadOnlyMatrix4f {
     }
 
     /**
+     * As {@link #getCol(int, float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param col The col to retrieve, in [0, 3]
+     * @param store The FloatBuffer to hold the column values
+     * @param offset The first index to use in the store
+     * @throws IndexOutOfBoundsException if col is invalid
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the column
+     */
+    public void getCol(int col, FloatBuffer store, int offset) {
+        store.put(offset, get(0, col));
+        store.put(offset + 1, get(1, col));
+        store.put(offset + 2, get(2, col));
+        store.put(offset + 3, get(3, col));
+    }
+    
+    /**
      * Store the four row values for the given row index into the vector store.
      * If store is null, a new Vector4f should be created and returned.
      * 
@@ -615,6 +660,24 @@ public abstract class ReadOnlyMatrix4f {
         store[offset + 1] = get(row, 1);
         store[offset + 2] = get(row, 2);
         store[offset + 3] = get(row, 3);
+    }
+    
+    /**
+     * As {@link #getRow(int, float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param row The row to retrieve, in [0, 3]
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @throws IndexOutOfBoundsException if row is invalid
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the column
+     */
+    public void getRow(int row, FloatBuffer store, int offset) {
+        store.put(offset, get(row, 0));
+        store.put(offset + 1, get(row, 1));
+        store.put(offset + 2, get(row, 2));
+        store.put(offset + 3, get(row, 3));
     }
 
     /**

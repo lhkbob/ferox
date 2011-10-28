@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * ReadOnlyMatrix3f provides the foundation class for the implementation of a
@@ -441,6 +443,29 @@ public abstract class ReadOnlyMatrix3f {
             getCol(2, store, offset + 6);
         }
     }
+    
+    /**
+     * As {@link #get(float[], int, boolean)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @param rowMajor True if the matrix values are stored as rows, otherwise
+     * as columns
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the column
+     */
+    public void get(FloatBuffer store, int offset, boolean rowMajor) {
+        if (rowMajor) {
+            getRow(0, store, offset);
+            getRow(1, store, offset + 3);
+            getRow(2, store, offset + 6);
+        } else {
+            getCol(0, store, offset);
+            getCol(1, store, offset + 3);
+            getCol(2, store, offset + 6);
+        }
+    }
 
     /**
      * Store the three column values for the given column index into the vector
@@ -489,6 +514,23 @@ public abstract class ReadOnlyMatrix3f {
         store[offset + 1] = get(1, col);
         store[offset + 2] = get(2, col);
     }
+    
+    /**
+     * As {@link #getCol(int, float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param col The col to retrieve, in [0, 2]
+     * @param store The FloatBuffer to hold the column values
+     * @param offset The first index to use in the store
+     * @throws IndexOutOfBoundsException if col is invalid
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the column
+     */
+    public void getCol(int col, FloatBuffer store, int offset) {
+        store.put(offset, get(0, col));
+        store.put(offset + 1, get(1, col));
+        store.put(offset + 2, get(2, col));
+    }
 
     /**
      * Store the three row values for the given row index into the vector store.
@@ -536,6 +578,23 @@ public abstract class ReadOnlyMatrix3f {
         store[offset] = get(row, 0);
         store[offset + 1] = get(row, 1);
         store[offset + 2] = get(row, 2);
+    }
+    
+    /**
+     * As {@link #getRow(int, float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param row The row to retrieve, in [0, 2]
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @throws IndexOutOfBoundsException if row is invalid
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the column
+     */
+    public void getRow(int row, FloatBuffer store, int offset) {
+        store.put(offset, get(row, 0));
+        store.put(offset + 1, get(row, 1));
+        store.put(offset + 2, get(row, 2));
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * MutableQuat4f is a mutable extension to ReadOnlyQuat4f. When returned as a
@@ -283,5 +285,19 @@ public abstract class MutableQuat4f extends ReadOnlyQuat4f {
      */
     public MutableQuat4f set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
+    }
+    
+    /**
+     * As {@link #set(float[], int)} but the values are taken from the
+     * FloatBuffer
+     * 
+     * @param vals The float value source
+     * @param offset The index into vals for the x coordinate
+     * @return This vector
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
+     *             starting at offset
+     */
+    public MutableQuat4f set(FloatBuffer vals, int offset) {
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
 }

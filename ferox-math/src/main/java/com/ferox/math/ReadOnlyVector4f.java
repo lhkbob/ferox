@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * ReadOnlyVector4f provides the foundation class for the implementation of a
@@ -307,6 +309,22 @@ public abstract class ReadOnlyVector4f {
         vals[offset + 1] = getY();
         vals[offset + 2] = getZ();
         vals[offset + 3] = getW();
+    }
+    
+    /**
+     * As {@link #get(float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the vector
+     */
+    public void get(FloatBuffer store, int offset) {
+        store.put(offset, getX());
+        store.put(offset + 1, getY());
+        store.put(offset + 2, getZ());
+        store.put(offset + 3, getW());
     }
 
     /**

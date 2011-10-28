@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * MutableMatrix3f is a mutable extension to ReadOnlyMatrix3f. When returned as
@@ -188,6 +190,24 @@ public abstract class MutableMatrix3f extends ReadOnlyMatrix3f {
               .set(1, col, values[offset + 1])
               .set(2, col, values[offset + 2]);
     }
+    
+    /**
+     * As {@link #setCol(int, float[], int)} except that a FloatBuffer
+     * is used as the source for values.
+     * @param col The column to update, in [0, 2]
+     * @param values The source for the new column values
+     * @param offset The offset to get the 1st column value from
+     * @return This matrix
+     * @throws NullPointerException if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 4 elements
+     *             starting at offset
+     * @throws IndexOutOfBoundsException if col is invalid
+     */
+    public MutableMatrix3f setCol(int col, FloatBuffer values, int offset) {
+        return set(0, col, values.get(offset))
+              .set(1, col, values.get(offset + 1))
+              .set(2, col, values.get(offset + 2));
+    }
 
     /**
      * Set the given matrix column to the three values stored in the vector. The
@@ -224,6 +244,25 @@ public abstract class MutableMatrix3f extends ReadOnlyMatrix3f {
         return set(row, 0, values[offset])
               .set(row, 1, values[offset])
               .set(row, 2, values[offset]);
+    }
+    
+    /**
+     * As {@link #setRow(int, float[], int)} except that a FloatBuffer is used
+     * as the source for values.
+     * 
+     * @param row The row to update, in [0, 2]
+     * @param values The source for the new row values
+     * @param offset The offset to get the 1st row value from
+     * @return This matrix
+     * @throws NullPointerException if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 4 elements
+     *             starting at offset
+     * @throws IndexOutOfBoundsException if row is invalid
+     */
+    public MutableMatrix3f setRow(int row, FloatBuffer values, int offset) {
+        return set(row, 0, values.get(offset))
+              .set(row, 1, values.get(offset + 1))
+              .set(row, 2, values.get(offset + 2));
     }
 
     /**
@@ -267,6 +306,28 @@ public abstract class MutableMatrix3f extends ReadOnlyMatrix3f {
             return set(values[offset], values[offset + 3], values[offset + 6], 
                        values[offset + 1], values[offset + 4], values[offset + 7], 
                        values[offset + 2], values[offset + 5], values[offset + 8]);
+    }
+    
+    /**
+     * As {@link #set(float[], int, boolean)} except a FloatBuffer is the source
+     * of values.
+     * @param values Float source for the new matrix data
+     * @param offset Start index of the float values
+     * @param rowMajor True if values are row-major
+     * @return This matrix
+     * @throws NullPointerException if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements
+     *             starting at offset
+     */
+    public MutableMatrix3f set(FloatBuffer values, int offset, boolean rowMajor) {
+        if (rowMajor)
+            return set(values.get(offset), values.get(offset + 1), values.get(offset + 2), 
+                       values.get(offset + 3), values.get(offset + 4), values.get(offset + 5), 
+                       values.get(offset + 6), values.get(offset + 7), values.get(offset + 8));
+        else
+            return set(values.get(offset), values.get(offset + 3), values.get(offset + 6), 
+                       values.get(offset + 1), values.get(offset + 4), values.get(offset + 7), 
+                       values.get(offset + 2), values.get(offset + 5), values.get(offset + 8));
     }
 
     /**

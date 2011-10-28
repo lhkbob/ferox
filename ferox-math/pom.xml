@@ -18,6 +18,16 @@
             <groupId>com.googlecode.ferox</groupId>
             <artifactId>ferox-collections</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        
+        <!-- Entreri is used for the math Property implementations,
+             which is optional. -->
+        <dependency>
+            <groupId>com.googlecode.entreri</groupId>
+            <artifactId>entreri</artifactId>
+            <version>1.0.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

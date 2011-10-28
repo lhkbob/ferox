@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * MutableVector4f is a mutable extension to ReadOnlyVector4f. When returned as
@@ -160,6 +162,20 @@ public abstract class MutableVector4f extends ReadOnlyVector4f {
      */
     public MutableVector4f set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
+    }
+
+    /**
+     * As {@link #set(float[], int)} but the values are taken from the
+     * FloatBuffer
+     * 
+     * @param vals The float value source
+     * @param offset The index into vals for the x coordinate
+     * @return This vector
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
+     *             starting at offset
+     */
+    public MutableVector4f set(FloatBuffer vals, int offset) {
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
     
     /**

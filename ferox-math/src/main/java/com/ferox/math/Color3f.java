@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * Color3f is a concrete implementation of ReadOnlyColor3f that exposes setters
  * to allow the instance to be mutated.
@@ -153,6 +155,20 @@ public final class Color3f extends ReadOnlyColor3f {
      */
     public Color3f set(float[] values, int offset) {
         return set(values[offset], values[offset + 1], values[offset + 2]);
+    }
+
+    /**
+     * As {@link #set(float[], int)} but a FloatBuffer is used as a source for
+     * float values.
+     * 
+     * @param values The FloatBuffer to take color values from
+     * @param offset The offset into values to take the first component
+     * @return This color
+     * @throws ArrayIndexOutOfBoundsException if values does not have enough
+     *             elements to take 3 color values from
+     */
+    public Color3f set(FloatBuffer values, int offset) {
+        return set(values.get(offset), values.get(offset + 1), values.get(offset + 2));
     }
     
     @Override

@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * ReadOnlyColor3f is a 3-tuple that stores red, green, and blue color
@@ -230,6 +232,36 @@ public abstract class ReadOnlyColor3f {
         vals[offset + 0] = getRed();
         vals[offset + 1] = getGreen();
         vals[offset + 2] = getBlue();
+    }
+    
+    /**
+     * As {@link #get(float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the color
+     */
+    public void get(FloatBuffer store, int offset) {
+        store.put(offset, getRed());
+        store.put(offset + 1, getGreen());
+        store.put(offset + 2, getBlue());
+    }
+    
+    /**
+     * As {@link #getHDR(float[], int)}, but with a FloatBuffer.
+     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * 
+     * @param store The FloatBuffer to hold the row values
+     * @param offset The first index to use in the store
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
+     *             for the color
+     */
+    public void getHDR(FloatBuffer store, int offset) {
+        store.put(offset, getRedHDR());
+        store.put(offset + 1, getGreenHDR());
+        store.put(offset + 2, getBlueHDR());
     }
 
     /**

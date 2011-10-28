@@ -1,5 +1,7 @@
 package com.ferox.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * <p>
  * MutableVector3f is a mutable extension to ReadOnlyVector3f. When returned as
@@ -165,6 +167,20 @@ public abstract class MutableVector3f extends ReadOnlyVector3f {
      */
     public MutableVector3f set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2]);
+    }
+    
+    /**
+     * As {@link #set(float[], int)} but the values are taken from the
+     * FloatBuffer
+     * 
+     * @param vals The float value source
+     * @param offset The index into vals for the x coordinate
+     * @return This vector
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
+     *             starting at offset
+     */
+    public MutableVector3f set(FloatBuffer vals, int offset) {
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2));
     }
 
     /**
