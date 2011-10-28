@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>ferox</artifactId>
+        <groupId>com.googlecode.ferox</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <groupId>com.googlecode.ferox</groupId>
+    <artifactId>ferox-renderer</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Ferox Renderer</name>
+    
+    <modules>
+        <module>ferox-renderer-api</module>
+        <module>ferox-renderer-impl</module>
+        <module>ferox-renderer-jogl</module>
+        <module>ferox-renderer-lwjgl</module>
+    </modules>
+</project>
