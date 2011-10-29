@@ -1,4 +1,4 @@
-package com.ferox.util.texture.loader;
+package com.ferox.util.texture;
 
 import java.awt.Graphics2D;
 import java.awt.Transparency;
@@ -20,15 +20,15 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.TextureFormat;
 
 /**
  * <p>
@@ -207,18 +207,13 @@ public class TextureLoader {
         g2.drawImage(formatted, 0, 0, null);
         g2.dispose();
 
-        Buffer data;
+        BufferData data;
         if (im.type.equals(ByteBuffer.class)) {
             byte[] rd = ((DataBufferByte) formatted.getRaster().getDataBuffer()).getData();
-            data = ByteBuffer.allocateDirect(rd.length)
-                             .order(ByteOrder.nativeOrder())
-                             .put(rd);
+            data = new BufferData(rd);
         } else { // assumes ShortBuffer
             short[] rd = ((DataBufferUShort) formatted.getRaster().getDataBuffer()).getData();
-            data = ByteBuffer.allocateDirect(rd.length * 2)
-                             .order(ByteOrder.nativeOrder())
-                             .asShortBuffer()
-                             .put(rd);
+            data = new BufferData(rd);
         }
 
         return new Texture(Target.T_1D, new Mipmap(data, image.getWidth(), 1, 1, im.format));
@@ -248,18 +243,13 @@ public class TextureLoader {
         g2.drawImage(image, t, null);
         g2.dispose();
 
-        Buffer data;
+        BufferData data;
         if (im.type.equals(ByteBuffer.class)) {
             byte[] rd = ((DataBufferByte) formatted.getRaster().getDataBuffer()).getData();
-            data = ByteBuffer.allocateDirect(rd.length)
-                             .order(ByteOrder.nativeOrder())
-                             .put(rd);
+            data = new BufferData(rd);
         } else { // assumes ShortBuffer
             short[] rd = ((DataBufferUShort) formatted.getRaster().getDataBuffer()).getData();
-            data = ByteBuffer.allocateDirect(rd.length * 2)
-                             .order(ByteOrder.nativeOrder())
-                             .asShortBuffer()
-                             .put(rd);
+            data = new BufferData(rd);
         }
 
         return new Texture(Target.T_2D, new Mipmap(data, image.getWidth(), image.getHeight(), 1, im.format));
@@ -374,18 +364,13 @@ public class TextureLoader {
         g2.drawImage(fullImage, t, null);
         g2.dispose();
 
-        Buffer data;
+        BufferData data;
         if (im.type.equals(ByteBuffer.class)) {
             byte[] rd = ((DataBufferByte) faceStore.getRaster().getDataBuffer()).getData();
-            data = ByteBuffer.allocateDirect(rd.length)
-                             .order(ByteOrder.nativeOrder())
-                             .put(rd);
+            data = new BufferData(rd);
         } else { // assumes ShortBuffer
             short[] rd = ((DataBufferUShort) faceStore.getRaster().getDataBuffer()).getData();
-            data = ByteBuffer.allocateDirect(rd.length * 2)
-                             .order(ByteOrder.nativeOrder())
-                             .asShortBuffer()
-                             .put(rd);
+            data = new BufferData(rd);
         }
 
         return new Mipmap(data, faceStore.getWidth(), faceStore.getHeight(), 1, im.format);

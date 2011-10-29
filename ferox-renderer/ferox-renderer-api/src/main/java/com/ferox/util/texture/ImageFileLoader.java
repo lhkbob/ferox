@@ -1,4 +1,4 @@
-package com.ferox.util.texture.loader;
+package com.ferox.util.texture;
 
 import java.io.IOException;
 import java.io.InputStream;

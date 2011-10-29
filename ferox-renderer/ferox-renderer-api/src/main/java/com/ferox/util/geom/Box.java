@@ -2,6 +2,7 @@ package com.ferox.util.geom;
 
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
+import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -177,5 +178,11 @@ public class Box implements Geometry {
     @Override
     public VertexAttribute getTangents() {
         throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+    }
+
+    @Override
+    public AxisAlignedBox getBounds() {
+        // FIXME
+        throw new UnsupportedOperationException();
     }
 }

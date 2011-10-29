@@ -18,11 +18,13 @@
             <groupId>com.googlecode.ferox</groupId>
             <artifactId>ferox-math</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.ferox</groupId>
             <artifactId>ferox-input</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

@@ -9,12 +9,11 @@ import com.ferox.math.Matrix4f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.RenderPass;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.RendererProvider;
 import com.ferox.renderer.Surface;
+import com.ferox.renderer.pass.RenderPass;
 
 public class TextRenderPass implements RenderPass {
     private static final Color3f BLACK = new Color3f(0f, 0f, 0f, 1f);
@@ -69,12 +68,11 @@ public class TextRenderPass implements RenderPass {
         
         ffp.setDepthTest(Comparison.ALWAYS);
         
-        ffp.setTextureEnabled(0, true);
         ffp.setMaterial(BLACK, textColor, BLACK, BLACK);
         for (Entry<Text, ReadOnlyVector3f> e: text.entrySet()) {
             Text t = e.getKey();
             ffp.setTexture(0, t.getCharacterSet().getTexture());
-            ffp.setVertexBinding(t.getVertexName());
+            ffp.setVertexBinding(t);
             ffp.setNormalBinding(t.getNormalName());
             ffp.setTextureCoordinateBinding(0, t.getTextureCoordinateName());
             

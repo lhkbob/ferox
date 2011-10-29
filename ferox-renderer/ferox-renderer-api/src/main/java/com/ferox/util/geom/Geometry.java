@@ -1,14 +1,9 @@
 package com.ferox.util.geom;
 
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
-
-import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.scene.Material;
-import com.ferox.scene.NormalMap;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.TextureMap;
 
 /**
  * <p>
@@ -16,11 +11,6 @@ import com.ferox.scene.TextureMap;
  * renderable shapes. The geometry information should be considered immutable
  * unless something else edits them. Geometry implementations will provide the
  * geometry but will not modify it.
- * </p>
- * <p>
- * The vertex attributes and indices provided by Geometry implementations are
- * compatible with the {@link Renderable} component and the vertex attributes
- * used by {@link Material}, {@link TextureMap}, and {@link NormalMap}.
  * </p>
  * 
  * @author Michael Ludwig

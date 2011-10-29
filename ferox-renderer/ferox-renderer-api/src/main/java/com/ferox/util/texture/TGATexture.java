@@ -1,4 +1,4 @@
-package com.ferox.util.texture.loader;
+package com.ferox.util.texture;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 
+import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
@@ -33,7 +34,7 @@ import com.ferox.resource.Texture.Target;
 public class TGATexture {
     private final Header header;
     private TextureFormat format;
-    private Buffer data;
+    private BufferData data;
 
     /**
      * <p>
@@ -395,7 +396,7 @@ public class TGATexture {
         int i; // input row index
         int y; // output row index
         int c; // column index
-        ShortBuffer tmpData = ByteBuffer.allocateDirect(header.width * header.height * 2).order(ByteOrder.nativeOrder()).asShortBuffer();
+        short[] tmpData = new short[header.width * header.height];
 
         format = (cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
         if (header.pixelDepth == 8) {
@@ -408,7 +409,7 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    tmpData.put(y * header.width + c, (short) bytesToLittleEndianShort(cm.colorMapData, index));
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
                 }
             }
         } else {
@@ -421,12 +422,12 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = rawIndices[c];
-                    tmpData.put(y * header.width + c, (short) bytesToLittleEndianShort(cm.colorMapData, index));
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
                 }
             }
         }
 
-        data = tmpData;
+        data = new BufferData(tmpData);
     }
 
     /*
@@ -468,9 +469,7 @@ public class TGATexture {
             }
         }
 
-        data = ByteBuffer.allocateDirect(tmpData.length)
-                         .order(ByteOrder.nativeOrder())
-                         .put(tmpData);
+        data = new BufferData(tmpData);
     }
 
     /* This assumes that the body is a 16 bit ARGB_1555 image. */
@@ -493,10 +492,7 @@ public class TGATexture {
             System.arraycopy(swapRow, 0, tmpData, y * header.width, swapRow.length);
         }
 
-        data = ByteBuffer.allocateDirect(tmpData.length * 2)
-                         .order(ByteOrder.nativeOrder())
-                         .asShortBuffer()
-                         .put(tmpData);
+        data = new BufferData(tmpData);
     }
 
     /*
@@ -519,9 +515,7 @@ public class TGATexture {
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
 
-        data = ByteBuffer.allocateDirect(tmpData.length)
-                         .order(ByteOrder.nativeOrder())
-                         .put(tmpData);
+        data = new BufferData(tmpData);
     }
 
     // read bytes from the given stream until the array is full

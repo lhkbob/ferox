@@ -6,10 +6,10 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import com.ferox.renderer.PolygonType;
+import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.util.geom.Geometry;
-import com.ferox.util.geom.PrimitiveGeometry;
 
 /**
  * <p>
@@ -50,7 +50,7 @@ import com.ferox.util.geom.PrimitiveGeometry;
  * 
  * @author Michael Ludwig
  */
-public class Text extends PrimitiveGeometry {
+public class Text implements Geometry {
     /** Number of spaces a tab character represents. Initially this is set to 4. */
     public static int TAB_SPACE_COUNT = 4;
 
@@ -71,8 +71,8 @@ public class Text extends PrimitiveGeometry {
      * @param type The compile type to use for Text
      * @throws NullPointerException if charSet is null
      */
-    public Text(CharacterSet charSet, CompileType type) {
-        this(charSet, "", type);
+    public Text(CharacterSet charSet, StorageMode mode) {
+        this(charSet, "", mode);
     }
 
     /**
@@ -83,26 +83,7 @@ public class Text extends PrimitiveGeometry {
      * @param type The compile type to use for Text
      * @throws NullPointerException if charSet is null
      */
-    public Text(CharacterSet charSet, String text, CompileType type) {
-        this(charSet, text, type, Geometry.DEFAULT_VERTICES_NAME, Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
-    }
-
-    /**
-     * Create a Text with the given CharacterSet, initial text, compile type.
-     * Unlike the other constructors, this also allows you to configure the
-     * attribute names used for vertices and texture coordinates.
-     * 
-     * @param charSet The CharacterSet
-     * @param text The initial text
-     * @param type The compile type
-     * @param vertexName The vertex name
-     * @param tcName The texture coordinate name
-     * @throws NullPointerException if charSet is null
-     */
-    public Text(CharacterSet charSet, String text, CompileType type, 
-                String vertexName, String normalName, String tcName) {
-        super(type, vertexName, normalName, tcName);
-
+    public Text(CharacterSet charSet, String text, StorageMode mode) {
         // avoid the setters so we can do one layout at the end
         if (charSet == null)
             throw new NullPointerException("CharacterSet cannot be null");
