@@ -18,6 +18,7 @@
             <groupId>com.googlecode.ferox</groupId>
             <artifactId>ferox-renderer-impl</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

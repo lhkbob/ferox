@@ -9,6 +9,7 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
 import com.ferox.resource.Texture.Target;
 
@@ -82,11 +83,15 @@ public class JoglRenderCapabilities extends RenderCapabilities {
                 glslVersion = Version.V3_30;
             else
                 glslVersion = Version.V4_00;
-        } else
+            
+            supportedShaders = EnumSet.of(ShaderType.VERTEX, ShaderType.FRAGMENT);
+            if (gl.isExtensionAvailable("GL_EXT_geometry_shader4") || version >= 3f)
+                supportedShaders.add(ShaderType.GEOMETRY);
+        } else {
+            supportedShaders = EnumSet.noneOf(ShaderType.class);
             glslVersion = null;
+        }
         
-        // FIXME: update set of supported shader types
-
         hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
         hasGlslRenderer = glslVersion != null;
         pbuffersSupported = !isSet(FORCE_NO_PBUFFER) && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null);
@@ -141,8 +146,8 @@ public class JoglRenderCapabilities extends RenderCapabilities {
         s3tcTextures = gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc");
         
         hasDepthTextures = version >= 1.4f || (gl.isExtensionAvailable("GL_ARB_depth_texture") && gl.isExtensionAvailable("GL_ARB_shadow"));
-        hasEnvCombine = version >= 1.3f || (gl.isExtensionAvailable("GL_ARB_texture_env_comibe") && gl.isExtensionAvailable("GL_ARB_texture_env_dot3"));
-        hasMirrorRepeat = version >= 1.4f || gl.isExtensionAvailable("GL_texture_mirrored_repeat");
+        hasEnvCombine = version >= 1.3f || (gl.isExtensionAvailable("GL_ARB_texture_env_combine") && gl.isExtensionAvailable("GL_ARB_texture_env_dot3"));
+        hasMirrorRepeat = version >= 1.4f || gl.isExtensionAvailable("GL_ARB_texture_mirrored_repeat");
         hasClampEdge = version >= 1.2f;
         
         if (gl.isExtensionAvailable("GL_EXT_texture_filter_anisotropic")) {

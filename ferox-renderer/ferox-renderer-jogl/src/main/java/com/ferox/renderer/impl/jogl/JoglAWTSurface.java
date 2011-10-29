@@ -27,15 +27,15 @@ import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 
 /**
- * JoglOnscreenSurface is an AWT implementation of OnscreenSurface that uses a
+ * JOGLAWTSurface is an AWT implementation of OnscreenSurface that uses a
  * GLCanvas as its rendering surface.
  * 
  * @author Michael Ludwig
  */
-public class JoglOnscreenSurface extends AbstractOnscreenSurface implements WindowListener {
+public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowListener {
     private final Frame frame;
     private final GLCanvas canvas;
-    private final JoglContext context;
+    private final JOGLContext context;
     
     private final AWTEventAdapter adapter;
     
@@ -49,8 +49,8 @@ public class JoglOnscreenSurface extends AbstractOnscreenSurface implements Wind
     private boolean closable;
 
     
-    public JoglOnscreenSurface(AbstractFramework framework, final JoglSurfaceFactory factory, 
-                               OnscreenSurfaceOptions options, JoglContext shareWith,
+    public JoglAWTSurface(AbstractFramework framework, final JoglSurfaceFactory factory, 
+                               OnscreenSurfaceOptions options, JOGLContext shareWith,
                                RendererProvider provider) {
         super(framework);
         surfaceLock = new Object();
@@ -82,7 +82,7 @@ public class JoglOnscreenSurface extends AbstractOnscreenSurface implements Wind
         Utils.invokeOnAWTThread(new Runnable() {
             @Override
             public void run() {
-                OnscreenSurfaceOptions options = JoglOnscreenSurface.this.options;
+                OnscreenSurfaceOptions options = JOGLAWTSurface.this.options;
                 frame.setResizable(options.isResizable());
                 frame.setUndecorated(options.isUndecorated());
                 frame.setBounds(options.getX(), options.getY(), options.getWidth(), options.getHeight());
@@ -106,18 +106,18 @@ public class JoglOnscreenSurface extends AbstractOnscreenSurface implements Wind
                             device.setDisplayMode(factory.getAWTDisplayMode(options.getFullscreenMode()));
                         } else {
                             // must switch back to default display mode
-                            JoglOnscreenSurface.this.options = options.setFullscreenMode(factory.getDefaultDisplayMode());
+                            JOGLAWTSurface.this.options = options.setFullscreenMode(factory.getDefaultDisplayMode());
                         }
                     } else {
                         // must not claim fullscreen window anymore
-                        JoglOnscreenSurface.this.options = options.setFullscreenMode(null);
+                        JOGLAWTSurface.this.options = options.setFullscreenMode(null);
                     }
                 }
             }
         }, true);
         
         frame.addWindowListener(this);
-        context = new JoglContext(factory, canvas.getContext(), provider);
+        context = new JOGLContext(factory, canvas.getContext(), provider);
         vsync = false;
         vsyncNeedsUpdate = true;
         
@@ -157,7 +157,7 @@ public class JoglOnscreenSurface extends AbstractOnscreenSurface implements Wind
     @Override
     public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
         super.onSurfaceActivate(context, activeLayer);
-        GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
+        GL2GL3 gl = ((JOGLContext) context).getGLContext().getGL().getGL2GL3();
         
         if (optionsNeedVerify) {
             detectOptions(gl);

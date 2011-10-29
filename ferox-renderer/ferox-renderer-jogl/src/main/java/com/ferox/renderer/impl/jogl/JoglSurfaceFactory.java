@@ -124,8 +124,8 @@ public class JoglSurfaceFactory implements SurfaceFactory {
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
         System.out.println("in surface factory");
-        return new JoglOnscreenSurface(framework, this, options, (JoglContext) sharedContext,
-                                       new JoglRendererProvider());
+        return new JoglAWTSurface(framework, this, options, (JoglContext) sharedContext,
+                                  new JoglRendererProvider());
     }
 
     @Override
