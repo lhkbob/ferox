@@ -1,29 +1,47 @@
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.ResourceDriver;
 
 public class LwjglFramework extends AbstractFramework {
-
-    @Override
-    protected OnscreenSurface createSurfaceImpl(OnscreenSurfaceOptions options) {
-        // TODO Auto-generated method stub
-        return null;
+    private LwjglFramework(LwjglSurfaceFactory factory, int numThreads, ResourceDriver<?>... drivers) {
+        super(factory, numThreads, drivers);
+    }
+    
+    public static LwjglFramework create() {
+        return create(2);
+    }
+    
+    public static LwjglFramework create(int numThreads) {
+        return create(numThreads, false, false);
+    }
+    
+    public static LwjglFramework create(int numThreads,
+                                       boolean forceNoFfp, boolean forceNoGlsl) {
+        return create(numThreads, forceNoFfp, forceNoGlsl, false, false);
     }
 
-    @Override
-    protected TextureSurface createSurfaceImpl(TextureSurfaceOptions options) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public static LwjglFramework create(int numThreads,
+                                       boolean forceNoFfp, boolean forceNoGlsl,
+                                       boolean forceNoPbuffers, boolean forceNoFbos) {
 
-    @Override
-    protected void destroyImpl() {
-        // TODO Auto-generated method stub
+        int capBits = 0;
+        if (forceNoGlsl)
+            capBits |= LwjglRenderCapabilities.FORCE_NO_GLSL;
+        if (forceNoPbuffers)
+            capBits |= LwjglRenderCapabilities.FORCE_NO_PBUFFER;
+        if (forceNoFbos)
+            capBits |= LwjglRenderCapabilities.FORCE_NO_FBO;
         
+        // FIXME: how to handle forceNoFfp?
+        
+        LwjglSurfaceFactory factory = new LwjglSurfaceFactory(capBits);
+        LwjglFramework framework = new LwjglFramework(factory, numThreads, 
+                                                      new LwjglTextureResourceDriver(),
+                                                      new LwjglVertexBufferObjectResourceDriver(),
+                                                      new LwjglGlslShaderResourceDriver());
+        
+        framework.initialize();
+        return framework;
     }
-
 }
