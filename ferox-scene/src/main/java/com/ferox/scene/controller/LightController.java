@@ -11,6 +11,7 @@ import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.Light;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
+import com.ferox.scene.Visibility;
 
 @Parallel(reads={Transform.class, Renderable.class, Light.class, SpatialHierarchy.class}, 
           writes={LightInfluences.class})

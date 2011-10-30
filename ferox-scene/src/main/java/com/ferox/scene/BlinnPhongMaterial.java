@@ -1,9 +1,9 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
-import com.ferox.resource.VertexAttribute;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.property.FloatProperty;
 
 /**
  * <p>
@@ -22,6 +22,10 @@ import com.ferox.resource.VertexAttribute;
  * objects. This separation was done so that other lighting models can be added
  * but still enable the use of the color providing components.
  * </p>
+ * <p>
+ * BlinnPhongMaterial inherits Material's single initialization parameter of a
+ * VertexAttribute for its normals.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -31,42 +35,16 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      */
     public static final TypedId<BlinnPhongMaterial> ID = Component.getTypedId(BlinnPhongMaterial.class);
     
-    private float shininess;
+    private FloatProperty shininess;
 
-    /**
-     * Create a BlinnPhongMaterial with the default shininess exponent of 1.
-     * 
-     * @param normals The starting set of normal vectors for the entity
-     * @throws NullPointerException if normals is null
-     */
-    public BlinnPhongMaterial(VertexAttribute normals) {
-        this(normals, 1f);
+    protected BlinnPhongMaterial(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Create a BlinnPhongMaterial that uses the given shininess exponent. See
-     * {@link #setShininess(float)} for more details.
-     * 
-     * @param normals The starting set of normal vectors for the entity
-     * @param shininess The starting shininess
-     * @throws NullPointerException if normals is null
-     * @throws IllegalArgumentException if shininess is less than 0
-     */
-    public BlinnPhongMaterial(VertexAttribute normals, float shininess) {
-        super(normals);
-        setShininess(shininess);
-    }
-
-    /**
-     * Create an BlinnPhongMaterial that is a clone of <tt>clone</tt> for use
-     * with a {@link Template}.
-     * 
-     * @param clone The component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public BlinnPhongMaterial(BlinnPhongMaterial clone) {
-        super(clone);
-        shininess = clone.shininess;
+    
+    @Override
+    protected void init(Object... initParams) {
+        super.init(initParams); // just pass as-is, since we don't define any more
+        setShininess(1f);
     }
 
     /**
@@ -78,14 +56,12 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * this might get clamped to when rendering.
      * 
      * @param shiny The new shininess exponent
-     * @return The new version, via {@link #notifyChange()}
      * @throws IllegalArgumentException if shiny is less than 0
      */
-    public int setShininess(float shiny) {
+    public void setShininess(float shiny) {
         if (shiny < 0f)
             throw new IllegalArgumentException("Shininess must be positive, not: " + shiny);
-        shininess = shiny;
-        return notifyChange();
+        shininess.set(shiny, getIndex(), 0);
     }
 
     /**
@@ -96,6 +72,6 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * @return The shininess exponent, will be at least 0
      */
     public float getShininess() {
-        return shininess;
+        return shininess.get(getIndex(), 0);
     }
 }

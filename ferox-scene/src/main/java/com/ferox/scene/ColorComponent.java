@@ -1,73 +1,67 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.TypedComponent;
 import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyColor3f;
+import com.ferox.math.entreri.Color3fProperty;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
 
 /**
+ * <p>
  * ColorComponent is an abstract Component type for components that provide a
  * color used in describing a material to render an Entity with. This makes it
  * semantically different from the abstract {@link Light}, which also only
  * stores a color. In addition to using ColorComponent subclasses to describe an
  * Entity's material, there will often be similar Components extending from
  * {@link TextureMap} that function the same, but can act on a per-pixel basis.
+ * </p>
+ * <p>
+ * ColorComponent does not define any initialization parameters.
+ * </p>
  * 
  * @author Michael Ludwig
  * @param <T> The concrete type of ColorComponent
  */
-public abstract class ColorComponent<T extends ColorComponent<T>> extends TypedComponent<T> {
-    private final Color3f color;
+public abstract class ColorComponent<T extends ColorComponent<T>> extends Component {
+    public static final ReadOnlyColor3f DEFAULT_COLOR = new Color3f(.5f, .5f, .5f);
+    
+    private Color3fProperty color;
 
-    /**
-     * Create a ColorComponent that copies the given color initially.
-     * 
-     * @param color The starting color
-     * @throws NullPointerException if color is null
-     */
-    protected ColorComponent(ReadOnlyColor3f color) {
-        super(null, false);
-        this.color = new Color3f();
-        setColor(color);
+    protected ColorComponent(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Override the cloning constructor to only operate on an actual clone. Use
-     * {@link #ColorComponent(ReadOnlyColor3f)} in subclasses when a clone is
-     * not needed.
-     * 
-     * @param clone The Light of type T to clone
-     * @throws NullPointerException if clone is null
-     */
-    protected ColorComponent(T clone) {
-        super(clone, true);
-        color = new Color3f(clone.color);
+    
+    @Override
+    protected void init(Object... initParams) {
+        setColor(DEFAULT_COLOR);
     }
 
     /**
      * Return the color stored by this component. This color will be used for
      * different purposes depending on the concrete type of ColorComponent. The
-     * same instance is always returned, and will reflect any changes to the
-     * color made via {@link #setColor(ReadOnlyColor3f)}.
+     * returned color is a cached instance shared within the component's
+     * EntitySystem, so it should be cloned before accessing another component
+     * of this type.
      * 
      * @return This component's color
      */
     public final ReadOnlyColor3f getColor() {
-        return color;
+        return color.get(getIndex());
     }
 
     /**
      * Set the color of this component by copying <tt>color</tt> into this
-     * components color object. Any reference to the object returned by
-     * {@link #getColor()} will see the change.
+     * components color object.
      * 
      * @param color The new color values
-     * @return The new version of the component
+     * @return This component for chaining purposes
      * @throws NullPointerException if color is null
      */
-    public final int setColor(ReadOnlyColor3f color) {
+    @SuppressWarnings("unchecked")
+    public final T setColor(ReadOnlyColor3f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
-        this.color.set(color);
-        return notifyChange();
+        this.color.set(color, getIndex());
+        return (T) this;
     }
 }

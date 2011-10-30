@@ -25,6 +25,7 @@ public class Influence extends TypedComponent<Influence> {
         super(clone, true);
         // FIXME:
     }
-    
+    //FIXME: Influences will be a limitTo-only component and is added to the actor
+    // FIXME: Add a NotInfluenced that is exclude-only and is added to the acted-on
 
 }

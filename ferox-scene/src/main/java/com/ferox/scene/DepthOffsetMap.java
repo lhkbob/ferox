@@ -1,11 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.ferox.resource.VertexAttribute;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
  * <p>
@@ -22,6 +21,10 @@ import com.ferox.resource.VertexAttribute;
  * format, then the depth values are packed into the range [0, 1] and are
  * converted to [-.5, .5] with <code>d - .5</code> when used in a shader.
  * </p>
+ * <p>
+ * DepthOffsetMap inherits TextureMap's two initialization parameters: a
+ * Texture, and a VertexAttribute.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -31,27 +34,8 @@ public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
      */
     public static final TypedId<DepthOffsetMap> ID = Component.getTypedId(DepthOffsetMap.class);
     
-    /**
-     * Create a DepthOffsetMap that uses the given texture as its depth map.
-     * 
-     * @param depthmap The depth map to use initially
-     * @param texCoords The texture coordinates to use
-     * @throws NullPointerException if depthMap or texCoords is null
-     * @throws IllegalArgumentException if depthMap isn't a 1-component texture
-     */
-    public DepthOffsetMap(Texture depthmap, VertexAttribute texCoords) {
-        super(depthmap, texCoords);
-    }
-
-    /**
-     * Create a DepthOffsetMap that's a clone of <tt>clone</tt> for use with
-     * a {@link Template}.
-     * 
-     * @param clone The DepthOffsetMap to clone
-     * @throws NullPointerException if clone is null
-     */
-    public DepthOffsetMap(DepthOffsetMap clone) {
-        super(clone);
+    private DepthOffsetMap(EntitySystem system, int index) {
+        super(system, index);
     }
 
     @Override

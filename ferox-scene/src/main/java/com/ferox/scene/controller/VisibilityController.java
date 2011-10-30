@@ -10,6 +10,7 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.SpatialHierarchy;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Renderable;
+import com.ferox.scene.Visibility;
 
 @Parallel(reads={Camera.class, SpatialHierarchy.class}, writes=Visibility.class)
 public class VisibilityController extends Controller {

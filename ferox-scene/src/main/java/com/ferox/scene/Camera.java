@@ -1,11 +1,13 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedComponent;
-import com.ferox.entity2.TypedId;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Surface;
+import com.ferox.scene.controller.CameraController;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.InitParams;
+import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.property.ObjectProperty;
 
 /**
  * <p>
@@ -16,106 +18,45 @@ import com.ferox.renderer.Surface;
  * the location, orientation and projection information to use when rendering.
  * </p>
  * <p>
- * The constructors provided are designed for the common use cases of
- * perspective projections that are centered on the Surface, or of orthographic
- * projections that span the Surface (useful for UI's and 2D pixel work). The
- * Frustum instance returned by {@link #getFrustum()} can be edited further if
- * these options are not acceptable, although {@link #notifyChange()} must be
- * invoked afterwards to signal any controller tracking changes to the
- * component.
- * </p>
- * <p>
  * Initially each Frustum (and thus Camera) uses a location of (0, 0, 0) with a
  * right-handed coordinate system pointing down the negative z-axis. A Camera
  * can be positioned manually by updating the orientation of its associated
  * Frustum. Alternatively, a {@link CameraController} can be used to have a
  * Camera match the position and direction provided by a {@link Transform}.
  * </p>
+ * <p>
+ * Camera defines a single initialization parameter representing the Surface it
+ * is attached to. By default the frustum is configured to be a perspective
+ * frustum with an aspect ratio matching the ratio of the surface.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public final class Camera extends TypedComponent<Camera> {
+@InitParams(Surface.class)
+public final class Camera extends Component {
     /**
      * The shared TypedId instance corresponding to Camera.
      */
     public static final TypedId<Camera> ID = Component.getTypedId(Camera.class);
     
-    private Surface surface;
-    private final Frustum frustum;
+    private ObjectProperty<Surface> surface;
+    private ObjectProperty<Frustum> frustum;
 
-    /**
-     * Create a Camera linked with the given Surface. Its initial
-     * Frustum will use a field-of-view of 60 degrees, a near distance of .1 and
-     * a far distance of 100. The aspect ratio will match that of the
-     * Surface.
-     * 
-     * @param surface The Surface initially attached to this Camera
-     */
-    public Camera(Surface surface) {
-        this(surface, 60f, .1f, 100f);
+    private Camera(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Create a Camera linked with the given Surface, that uses the given values
-     * for field-of-view, near distance and far distance. The aspect ratio will
-     * match that of the Surface.
-     * 
-     * @param surface The Surface initially attached to this Camera
-     * @param fov Field-of-view in degrees of the perspective projection of the
-     *            frustum
-     * @param znear Distance from camera location to near clipping plane
-     * @param zfar Distance from camera location to far clipping plane
-     * @throws IllegalArgumentException if znear >= zfar, or if znear <= 0, or
-     *             if fov is outside of (0, 180]
-     * @throws NullPointerException if surface is null
-     */
-    public Camera(Surface surface, float fov, float znear, float zfar) {
-        super(null, false);
-        setSurface(surface);
-        frustum = new Frustum(fov, surface.getWidth() / (float) surface.getHeight(), znear, zfar);
-    }
-
-    /**
-     * Create a Camera linked with the given Surface, that uses the given values
-     * for near and far clipping plane distance. Unlike the other constructor,
-     * the frustum is configured to be an orthographic frustum. The frustum
-     * boundaries are configured to be from (0, 0) to (width, height).
-     * 
-     * @param surface The Surface initially attached to this Camera
-     * @param znear The near clipping plane distance
-     * @param zfar The far clipping plane distance
-     * @throws IllegalArgumentException if znear >= zfar
-     * @throws NullPointerException if surface is null
-     */
-    public Camera(Surface surface, float znear, float zfar) {
-        super(null, false);
-        setSurface(surface);
-        frustum = new Frustum(true, 0f, surface.getWidth(), 0f, surface.getHeight(), znear, zfar);
-    }
-
-    /**
-     * Create a Camera component that is a clone of <tt>clone</tt>, for use with
-     * a {@link Template}.
-     * 
-     * @param clone The Component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public Camera(Camera clone) {
-        super(clone, true);
-        this.surface = clone.surface;
-        frustum = new Frustum(clone.frustum.isOrthogonalProjection(), 
-                              clone.frustum.getFrustumLeft(), clone.frustum.getFrustumRight(), 
-                              clone.frustum.getFrustumBottom(), clone.frustum.getFrustumTop(), 
-                              clone.frustum.getFrustumNear(), clone.frustum.getFrustumFar());
+    
+    @Override
+    protected void init(Object... initParams) {
+        frustum.set(new Frustum(60f, 1f, .1f, 100f), getIndex(), 0);
+        setSurface((Surface) initParams[0]);
     }
 
     /**
      * <p>
      * Return the Frustum instance that represents how a rendered image should
      * be projected onto the {@link #getSurface() Surface of this Camera}. The
-     * Frustum may be modified to change how things are rendered. Because the
-     * Frustum is mutable, it is necessary to call {@link #notifyChange()}
-     * manually.
+     * Frustum may be modified to change how things are rendered.
      * </p>
      * <p>
      * However, keep in mind that the default behavior of the
@@ -126,27 +67,82 @@ public final class Camera extends TypedComponent<Camera> {
      * @return The Frustum representing the projection for this Camera
      */
     public Frustum getFrustum() {
-        return frustum;
+        return frustum.get(getIndex(), 0);
     }
 
     /**
-     * Return the Surface that this Camera is linked to. This will not
-     * be null.
+     * Return the Surface that this Camera is linked to. This will be
+     * null if the camera is meant to be "disabled".
      * 
      * @return The Surface of this Camera
      */
     public Surface getSurface() {
-        return surface;
+        return surface.get(getIndex(), 0);
     }
 
     /**
-     * Set the Surface that this Camera is linked to.
+     * Set the current Surface of this Camera, and update its Frustum to be a
+     * perspective projection fitting the surface's dimensions.
      * 
-     * @param surface The Surface that this
-     * @return The new version of this Camera, via {@link #notifyChange()}
+     * @param surface The new surface
+     * @return This camera for chaining purposes
+     * @throws NullPointerException if surface is null
      */
-    public int setSurface(Surface surface) {
-        this.surface = surface;
-        return notifyChange();
+    public Camera setSurface(Surface surface) {
+        return setSurface(surface, true);
+    }
+
+    /**
+     * <p>
+     * Set the Surface that this Camera is linked to. If <tt>perspective</tt> is
+     * true, the frustum will be updated to fit the surface's aspect ratio and
+     * be a perspective projection. If it is false, the it will be set to an
+     * orthographic projection fitted to the dimensions of the surface.
+     * </p>
+     * <p>
+     * If the frustum was previously a perspective projection and it's being
+     * updated to a perspective projection, the field-of-view and near and far
+     * planes will be preserved; otherwise a field-of-view of 60 and planes at
+     * .1 and 100 will be used. Similarly, if the frustum was previously an
+     * orthographic projection and it's updated to an orthographic projection,
+     * the near and far planes will be preserved; otherwise they will be updated
+     * to -1 and 1.
+     * </p>
+     * 
+     * @param surface The Surface that this camera will use
+     * @param perspective True if the frustum should be a perspective transform,
+     *            or false for an orthographic one
+     * @return This camera for chaining purposes
+     * @throws NullPointerException if surface is null
+     */
+    public Camera setSurface(Surface surface, boolean perspective) {
+        if (surface == null)
+            throw new NullPointerException("Surface cannot be null");
+        
+        this.surface.set(surface, getIndex(), 0);
+        // update the frustum
+        Frustum f = getFrustum();
+        if (perspective) {
+            float znear = f.getFrustumNear();
+            float zfar = f.getFrustumFar();
+            float fov = f.getFieldOfView();
+            if (f.isOrthogonalProjection()) {
+                znear = .1f;
+                zfar = 100f;
+                fov = 60f;
+            }
+
+            f.setPerspective(fov, surface.getWidth() / (float) surface.getHeight(), znear, zfar);
+        } else {
+            float znear = f.getFrustumNear();
+            float zfar = f.getFrustumFar();
+            if (!f.isOrthogonalProjection()) {
+                znear = -1f;
+                zfar = 1f;
+            }
+            f.setFrustum(true, 0, surface.getWidth(), 0, surface.getHeight(), znear, zfar);
+        }
+        
+        return this;
     }
 }

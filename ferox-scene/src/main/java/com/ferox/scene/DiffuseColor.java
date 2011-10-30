@@ -1,9 +1,8 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
-import com.ferox.math.ReadOnlyColor3f;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
  * <p>
@@ -19,6 +18,9 @@ import com.ferox.math.ReadOnlyColor3f;
  * lighting model, the diffuse color should be used to render the Entity as a
  * solid without lighting.
  * </p>
+ * <p>
+ * DiffuseColor does not have any initialization parameters.
+ * </p>
  * 
  * @see DiffuseColorMap
  * @author Michael Ludwig
@@ -29,25 +31,7 @@ public final class DiffuseColor extends ColorComponent<DiffuseColor> {
      */
     public static final TypedId<DiffuseColor> ID = Component.getTypedId(DiffuseColor.class);
     
-    /**
-     * Create a DiffuseColor component that copies the given color to use
-     * initially.
-     * 
-     * @param color The initial color
-     * @throws NullPointerException if color is null
-     */
-    public DiffuseColor(ReadOnlyColor3f color) {
-        super(color);
-    }
-
-    /**
-     * Create an DiffuseColor that is a clone of <tt>clone</tt> for use with a
-     * {@link Template}
-     * 
-     * @param clone The component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public DiffuseColor(DiffuseColor clone) {
-        super(clone);
+    private DiffuseColor(EntitySystem system, int index) {
+        super(system, index);
     }
 }

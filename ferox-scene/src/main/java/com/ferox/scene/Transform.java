@@ -1,14 +1,11 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Entity;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedComponent;
-import com.ferox.entity2.TypedId;
-import com.ferox.math.AffineTransform;
-import com.ferox.math.ReadOnlyMatrix3f;
+import com.ferox.math.Matrix4f;
 import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.entreri.Matrix4fProperty;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
  * <p>
@@ -17,95 +14,51 @@ import com.ferox.math.ReadOnlyVector3f;
  * a system (i.e. the world). This can be used to place lights, physics objects,
  * or objects to be rendered.
  * </p>
+ * <p>
+ * Transform does not define any initialization parameters.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public final class Transform extends TypedComponent<Transform> {
+public final class Transform extends Component {
     /**
      * The shared TypedId representing Transform.
      */
     public static final TypedId<Transform> ID = Component.getTypedId(Transform.class);
     
-    private final AffineTransform affineTransform;
+    public static final ReadOnlyMatrix4f DEFAULT_TRANSFORM = new Matrix4f().setIdentity();
     
-    /**
-     * Create a Transform component starting with the identity transform.
-     */
-    public Transform() {
-        super(null, false);
-        affineTransform = new AffineTransform();
+    private Matrix4fProperty matrix;
+    
+    private Transform(EntitySystem system, int index) {
+        super(system, index);
+    }
+
+    @Override
+    protected void init(Object... initParams) {
+        setMatrix(DEFAULT_TRANSFORM);
     }
 
     /**
-     * Create a new Transform starting with the given 4x4 affine matrix.
+     * Copy the given transform matrix into this Transform's matrix.
      * 
-     * @param transform The initial transform
-     * @throws NullPointerException if transform is null
-     */
-    public Transform(ReadOnlyMatrix4f transform) {
-        this();
-        setMatrix(transform);
-    }
-
-    /**
-     * Create a new Transform that is a clone of <tt>clone</tt>, for use with a
-     * {@link Template}.
-     * 
-     * @param clone The Transform to clone
-     * @throws NullPointerException if clone is null
-     */
-    public Transform(Transform clone) {
-        super(clone, true);
-        affineTransform = new AffineTransform(clone.affineTransform);
-    }
-
-    /**
-     * Copy the given rotation matrix into this Transform's upper 3x3 matrix.
-     * 
-     * @param m The new rotation matrix
-     * @return The new version of the Transform, via {@link #notifyChange()}
+     * @param m The new affine transform
+     * @return This Transform for chaining purposes
      * @throws NullPointerException if m is null
      */
-    public int setRotation(ReadOnlyMatrix3f m) {
-        affineTransform.getRotation().set(m);
-        return notifyChange();
+    public Transform setMatrix(ReadOnlyMatrix4f m) {
+        matrix.set(m, getIndex());
+        return this;
     }
 
     /**
-     * Copy the given translation into the 4th column of the 4x4 matrix of this
-     * Transform's affine matrix.
-     * 
-     * @param t The new translation
-     * @return The new version of the Transform, via {@link #notifyChange()}
-     * @throws NullPointerException if t is null
-     */
-    public int setTranslation(ReadOnlyVector3f t) {
-        affineTransform.getTranslation().set(t);
-        return notifyChange();
-    }
-
-    /**
-     * Copy the given transform matrix into this Transform's matrix
-     * 
-     * @param m The new affineTransform
-     * @return The new version of the Transform, via {@link #notifyChange()}
-     * @throws NullPointerException if m is null
-     */
-    public int setMatrix(ReadOnlyMatrix4f m) {
-        affineTransform.set(m);
-        return notifyChange();
-    }
-
-    /**
-     * Return the matrix that stores the actual world transform. This will
-     * always return the same instance, and the instance will reflect any
-     * changes to the Transform. Use
-     * {@link Entity#getVersion(com.ferox.entity2.TypedId)} to determine if it
-     * has been modified.
+     * Return the matrix of this Transform. The returned matrix is a cached
+     * instance shared within the component's EntitySystem, so it should be
+     * cloned before accessing another component of this type.
      * 
      * @return The current world affine transform matrix
      */
-    public AffineTransform getMatrix() {
-        return affineTransform;
+    public ReadOnlyMatrix4f getMatrix() {
+        return matrix.get(getIndex());
     }
 }

@@ -1,10 +1,8 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
-import com.ferox.math.ReadOnlyColor3f;
-import com.ferox.math.Vector3f;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
  * <p>
@@ -19,6 +17,9 @@ import com.ferox.math.Vector3f;
  * identically to how SpotLight and DirectionLight can be modified by a
  * transform to position them within a scene.
  * </p>
+ * <p>
+ * PointLight defines no initialization parameters.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -28,37 +29,7 @@ public final class PointLight extends AbstractPlacedLight<PointLight> {
      */
     public static final TypedId<PointLight> ID = Component.getTypedId(PointLight.class);
     
-    /**
-     * Create a new PointLight with the given color. Energy falloff is initially
-     * disabled.
-     * 
-     * @param color The starting color
-     * @throws NullPointerException if color is null
-     */
-    public PointLight(ReadOnlyColor3f color) {
-        this(color, -1f);
-    }
-
-    /**
-     * Create a new PointLight with the given color and falloff distance. See
-     * {@link #setFalloffDistance(float)} for details on energy falloff.
-     * 
-     * @param color The starting color
-     * @param falloffDistance The initial falloff distance
-     * @throws NullPointerException if color is null
-     */
-    public PointLight(ReadOnlyColor3f color, float falloffDistance) {
-        super(color, new Vector3f(), falloffDistance);
-    }
-
-    /**
-     * Create a new PointLight that is a clone of <tt>clone</tt> for use with a
-     * {@link Template}.
-     * 
-     * @param clone The light to clone
-     * @throws NullPointerException if clone is null
-     */
-    public PointLight(PointLight clone) {
-        super(clone);
+    private PointLight(EntitySystem system, int index) {
+        super(system, index);
     }
 }

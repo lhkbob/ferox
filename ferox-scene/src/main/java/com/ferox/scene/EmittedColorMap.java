@@ -1,10 +1,9 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
 import com.ferox.resource.Texture;
-import com.ferox.resource.VertexAttribute;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
  * <p>
@@ -25,6 +24,10 @@ import com.ferox.resource.VertexAttribute;
  * texture mapping should likely match the texture mapping used for a
  * {@link DiffuseColorMap}.
  * </p>
+ * <p>
+ * EmittedColorMap inherits TextureMap's two initialization parameters: a
+ * Texture, and a VertexAttribute.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -34,27 +37,8 @@ public class EmittedColorMap extends TextureMap<EmittedColorMap> {
      */
     public static final TypedId<EmittedColorMap> ID = Component.getTypedId(EmittedColorMap.class);
 
-    /**
-     * Create an EmittedColorMap that uses the given texture as its source for
-     * locally emitted light.
-     * 
-     * @param emitted The texture map to use
-     * @param texCoords The texture coordinates to access emitted
-     * @throws NullPointerException if emitted or texCoords is null
-     */
-    public EmittedColorMap(Texture emitted, VertexAttribute texCoords) {
-        super(emitted, texCoords);
-    }
-
-    /**
-     * Create an EmittedColorMap that is a clone of <tt>clone</tt>, for use with
-     * a {@link Template}.
-     * 
-     * @param clone The component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public EmittedColorMap(EmittedColorMap clone) {
-        super(clone);
+    private EmittedColorMap(EntitySystem system, int index) {
+        super(system, index);
     }
 
     @Override

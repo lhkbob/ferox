@@ -1,17 +1,21 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
-import com.ferox.math.ReadOnlyColor3f;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
+ * <p>
  * EmittedColor causes the Entity to emit a local light. This can be used for
  * glowing eyes or effects like neon lights. Light emitted by these Entities
  * only effect the rendering of the Entity and will not contribute to general
  * scene lighting. Although technically a light, this functions much more like a
  * material. The color stored in this EmittedColor should be considered to have
  * HDR color values when relevant.
+ * </p>
+ * <p>
+ * EmittedColor does not have any initialization parameters.
+ * </p>
  * 
  * @see EmittedColorMap
  * @author Michael Ludwig
@@ -22,25 +26,7 @@ public final class EmittedColor extends ColorComponent<EmittedColor> {
      */
     public static final TypedId<EmittedColor> ID = Component.getTypedId(EmittedColor.class);
     
-    /**
-     * Create a EmittedColor component that copies the given color to use
-     * initially.
-     * 
-     * @param color The initial color
-     * @throws NullPointerException if color is null
-     */
-    public EmittedColor(ReadOnlyColor3f color) {
-        super(color);
-    }
-
-    /**
-     * Create an EmittedColor that is a clone of <tt>clone</tt> for use with a
-     * {@link Template}
-     * 
-     * @param clone The component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public EmittedColor(EmittedColor clone) {
-        super(clone);
+    private EmittedColor(EntitySystem system, int index) {
+        super(system, index);
     }
 }

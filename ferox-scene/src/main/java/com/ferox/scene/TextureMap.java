@@ -1,53 +1,47 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.TypedComponent;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.InitParams;
+import com.googlecode.entreri.property.ObjectProperty;
 
 /**
+ * <p>
  * TextureMap is an abstract Component type that is shared by the Components
  * that store a single Texture, such as {@link NormalMap},
  * {@link DepthOffsetMap} and {@link DiffuseMap}.
+ * </p>
+ * <p>
+ * TextureMap defines two initialization parameters, the starting Texture and
+ * VertexAttribute representing the texture coordinates. They cannot be null.
+ * </p>
  * 
  * @author Michael Ludwig
  * @param <T> Concrete TextureMap type
  */
-public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent<T> {
-    private Texture texture;
-    private VertexAttribute textureCoordinates;
+@InitParams({Texture.class, VertexAttribute.class})
+public abstract class TextureMap<T extends TextureMap<T>> extends Component {
+    private ObjectProperty<Texture> texture;
+    private ObjectProperty<VertexAttribute> textureCoordinates;
 
-    /**
-     * Create a TextureMap with the given Texture and texture coordinates.
-     * 
-     * @param texture The starting texture
-     * @param textureCoordinates The texture coordinates used to access the
-     *            texture
-     * @throws NullPointerException if texture or textureCoordinates is null
-     */
-    protected TextureMap(Texture texture, VertexAttribute textureCoordinates) {
-        super(null, false);
-        setTexture(texture);
+    protected TextureMap(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Override the cloning constructor to only operate on an actual clone. Use
-     * the {@link #TextureMap(Texture)} in subclasses when a clone is not needed
-     * 
-     * @param clone The TextureMap of type T to clone
-     * @throws NullPointerException if clone is null
-     */
-    protected TextureMap(T clone) {
-        super(clone, true);
-        texture = clone.texture;
-        textureCoordinates = clone.textureCoordinates;
+    
+    @Override
+    protected void init(Object... initParams) {
+        setTexture((Texture) initParams[0]);
+        setTextureCoordinates((VertexAttribute) initParams[1]);
     }
     
     /**
      * @return The texture coordinates used to access this TextureMap's texture
      */
     public final VertexAttribute getTextureCoordinates() {
-        return textureCoordinates;
+        return textureCoordinates.get(getIndex(), 0);
     }
 
     /**
@@ -57,18 +51,19 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      * used in the geometry of the Renderable.
      * 
      * @param texCoords The new vertex attribute holding texture coord data
-     * @return The new version of the component
-     * @throws NullPointerException if texCoords is null
+     * @return This component for chaining purposes
      * @throws IllegalArgumentException if texCoords data is not of type FLOAT
+     * @throws NullPointerException if texCoords is null
      */
-    public final int setTextureCoordinates(VertexAttribute texCoords) {
+    @SuppressWarnings("unchecked")
+    public final T setTextureCoordinates(VertexAttribute texCoords) {
         if (texCoords == null)
             throw new NullPointerException("Texture coordinates cannot be null");
         if (texCoords.getData().getData().getDataType() != DataType.FLOAT)
             throw new IllegalArgumentException("VertexAttribute must have FLOAT data");
         
-        textureCoordinates = texCoords;
-        return notifyChange();
+        textureCoordinates.set(texCoords, getIndex(), 0);
+        return (T) this;
     }
 
     /**
@@ -79,7 +74,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      * @return This TextureMap's texture
      */
     public final Texture getTexture() {
-        return texture;
+        return texture.get(getIndex(), 0);
     }
 
     /**
@@ -88,17 +83,18 @@ public abstract class TextureMap<T extends TextureMap<T>> extends TypedComponent
      * possibilities include diffuse color, or normal vectors.
      * 
      * @param texture The new Texture
-     * @return The new version of the component, via {@link #notifyChange()}
+     * @return This component for chaining purposes
      * @throws NullPointerException if texture is null
      * @throws IllegalArgumentException if the texture is invalid according to
      *             the rules of the subclass
      */
-    public final int setTexture(Texture texture) {
+    @SuppressWarnings("unchecked")
+    public final T setTexture(Texture texture) {
         if (texture == null)
             throw new NullPointerException("Texture cannot be null");
         validate(texture);
-        this.texture = texture;
-        return notifyChange();
+        this.texture.set(texture, getIndex(), 0);
+        return (T) this;
     }
 
     /**

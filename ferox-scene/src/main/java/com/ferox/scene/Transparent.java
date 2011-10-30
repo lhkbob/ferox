@@ -1,9 +1,9 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedComponent;
-import com.ferox.entity2.TypedId;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.property.FloatProperty;
 
 /**
  * <p>
@@ -26,39 +26,27 @@ import com.ferox.entity2.TypedId;
  * (such as a particle system). This behavior also depends on the controllers
  * used to process the scene.
  * </p>
+ * <p>
+ * Transparent does not define any initialization parameters.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public final class Transparent extends TypedComponent<Transparent> {
+public final class Transparent extends Component {
     /**
      * The shared TypedId representing Transparent.
      */
     public static final TypedId<Transparent> ID = Component.getTypedId(Transparent.class);
     
-    private float opacity;
+    private FloatProperty opacity;
 
-    /**
-     * Create a new Transparent component that uses the given opacity.
-     * 
-     * @param opacity The opacity, must be in [0, 1]
-     * @throws IllegalArgumentException if opacity is less than 0 or greater
-     *             than 1
-     */
-    public Transparent(float opacity) {
-        super(null, false);
-        setOpacity(opacity);
+    private Transparent(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Create a Transparent component that is a clone of <tt>clone</tt>, for use
-     * with a {@link Template}.
-     * 
-     * @param clone The component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public Transparent(Transparent clone) {
-        super(clone, true);
-        opacity = clone.opacity;
+    
+    @Override
+    protected void init(Object... initParams) {
+        setOpacity(.5f);
     }
 
     /**
@@ -70,7 +58,7 @@ public final class Transparent extends TypedComponent<Transparent> {
      * @return The opacity
      */
     public float getOpacity() {
-        return opacity;
+        return opacity.get(getIndex(), 0);
     }
 
     /**
@@ -80,12 +68,13 @@ public final class Transparent extends TypedComponent<Transparent> {
      * different contributions depending on the exact opacity.
      * 
      * @param opacity The opacity, must be in [0, 1]
-     * @return The new version of the component, via {@link #notifyChange()}
+     * @return This component for chaining purposes
+     * @throws IllegalArgumentException if opacity is not between 0 and 1
      */
-    public int setOpacity(float opacity) {
+    public Transparent setOpacity(float opacity) {
         if (opacity < 0f || opacity > 1f)
             throw new IllegalArgumentException("Opacity must be in [0, 1], not: " + opacity);
-        this.opacity = opacity;
-        return notifyChange();
+        this.opacity.set(opacity, getIndex(), 0);
+        return this;
     }
 }

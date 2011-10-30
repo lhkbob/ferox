@@ -1,8 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.TypedComponent;
 import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyColor3f;
+import com.ferox.math.entreri.Color3fProperty;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
 
 /**
  * <p>
@@ -23,42 +25,30 @@ import com.ferox.math.ReadOnlyColor3f;
  * @author Michael Ludwig
  * @param <T> The concrete type of light
  */
-public abstract class Light<T extends Light<T>> extends TypedComponent<T> {
-    private final Color3f color;
+public abstract class Light<T extends Light<T>> extends Component {
+    public static final ReadOnlyColor3f DEFAULT_COLOR = new Color3f(.2f, .2f, .2f);
 
-    /**
-     * Create a new Light with the given color.
-     * 
-     * @param color The initial color
-     * @throws NullPointerException if color is null
-     */
-    protected Light(ReadOnlyColor3f color) {
-        super(null, false);
-        this.color = new Color3f(color);
+    private Color3fProperty color;
+
+    protected Light(EntitySystem system, int index) {
+        super(system, index);
     }
     
-    /**
-     * Override the cloning constructor to only operate on an
-     * actual clone. Use the default constructor in subclasses when
-     * a clone is not needed.
-     * 
-     * @param clone The Light of type T to clone
-     * @throws NullPointerException if clone is null
-     */
-    protected Light(T clone) {
-        super(clone, true);
-        color = new Color3f(clone.color);
+    
+    @Override
+    protected void init(Object... initParams) {
+        setColor(DEFAULT_COLOR);
     }
 
     /**
-     * Return the color of this Light. The returned reference will not change,
-     * although the color's values might in response to
-     * {@link #setColor(ReadOnlyColor3f)}.
+     * Return the color of this Light. The returned color is a cached instance
+     * shared within the component's EntitySystem, so it should be cloned before
+     * accessing another component of this type.
      * 
      * @return The color of this Light
      */
     public final ReadOnlyColor3f getColor() {
-        return color;
+        return color.get(getIndex());
     }
 
     /**
@@ -67,13 +57,14 @@ public abstract class Light<T extends Light<T>> extends TypedComponent<T> {
      * will not affect this Component.
      * 
      * @param color The new color
-     * @return The new version of this Light, via {@link #notifyChange()}
+     * @return This light for chaining purposes
      * @throws NullPointerException if color is null
      */
-    public final int setColor(ReadOnlyColor3f color) {
+    @SuppressWarnings("unchecked")
+    public final T setColor(ReadOnlyColor3f color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
-        this.color.set(color);
-        return notifyChange();
+        this.color.set(color, getIndex());
+        return (T) this;
     }
 }

@@ -1,10 +1,9 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
 import com.ferox.resource.Texture;
-import com.ferox.resource.VertexAttribute;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
  * <p>
@@ -22,6 +21,10 @@ import com.ferox.resource.VertexAttribute;
  * texture mapping should likely match the texture mapping used for a
  * {@link DiffuseColorMap}.
  * </p>
+ * <p>
+ * SpecularColorMap inherits TextureMap's two initialization parameters: a
+ * Texture, and a VertexAttribute.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -31,27 +34,8 @@ public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
      */
     public static final TypedId<SpecularColorMap> ID = Component.getTypedId(SpecularColorMap.class);
     
-    /**
-     * Create a SpecularColorMap that uses the given texture as the source for
-     * specular material colors.
-     * 
-     * @param spec The initial specular texture map
-     * @param texCoords The texture coordinates to access the specular texture map
-     * @throws NullPointerException if spec or texCorods is null
-     */
-    public SpecularColorMap(Texture spec, VertexAttribute texCoords) {
-        super(spec, texCoords);
-    }
-
-    /**
-     * Create an SpecularColorMap that is a clone of <tt>clone</tt> for use with
-     * a {@link Template}.
-     * 
-     * @param clone The component to clone
-     * @throws NullPointerException if clone is null
-     */
-    public SpecularColorMap(SpecularColorMap clone) {
-        super(clone);
+    private SpecularColorMap(EntitySystem system, int index) {
+        super(system, index);
     }
 
     @Override

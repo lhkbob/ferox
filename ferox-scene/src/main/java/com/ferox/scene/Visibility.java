@@ -1,4 +1,4 @@
-package com.ferox.scene.controller;
+package com.ferox.scene;
 
 import java.util.HashMap;
 
@@ -10,7 +10,7 @@ import com.ferox.entity2.TypedComponent;
 import com.ferox.entity2.TypedId;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.scene.Renderable;
+import com.ferox.scene.controller.VisibilityController;
 
 /**
  * Visibility is a Component type that tracks the visibility of Entities to
@@ -99,6 +99,34 @@ public final class Visibility extends TypedComponent<Visibility> {
      */
     public int resetVisibility() {
         visibility.clear();
+        return notifyChange();
+    }
+    
+    
+    /**
+     * Return the local bounds of the Renderable. This will always return the
+     * same instance, and the instance will be updated based on any calls to
+     * {@link #setLocalBounds(AxisAlignedBox)}.
+     * 
+     * @return The local bounds
+     */
+    public AxisAlignedBox getLocalBounds() {
+        // FIXME: update signature when we have read-only aabb's
+        return localBounds;
+    }
+
+    /**
+     * Set the local bounds of this Renderable. The bounds should contain the
+     * entire Geometry of this Renderable, including any modifications dynamic
+     * animation might cause. If a Visibility component is attached to an
+     * entity, the local bounds can be used in frustum-culling.
+     * 
+     * @param bounds The new local bounds of the Renderable
+     * @return The new version of the component, via {@link #notifyChange()}
+     * @throws NullPointerException if bounds is null
+     */
+    public int setLocalBounds(AxisAlignedBox bounds) {
+        localBounds.set(bounds);
         return notifyChange();
     }
 }

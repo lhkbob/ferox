@@ -3,6 +3,7 @@ package com.ferox.scene.controller;
 import com.ferox.entity2.Entity;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.QueryCallback;
+import com.ferox.scene.Visibility;
 
 /**
  * VisibilityCallback is a simple QueryCallback that updates a

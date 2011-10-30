@@ -1,8 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
+import com.ferox.math.entreri.Vector3fProperty;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.property.FloatProperty;
 
 /**
  * An intermediate light type that is shared by {@link PointLight} and
@@ -15,61 +17,49 @@ import com.ferox.math.Vector3f;
  * @param <T> The component light type
  */
 public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> extends Light<T> {
-    private float falloffDistance;
-    private final Vector3f position;
-
-    /**
-     * Create a new light that uses the given color, position, and falloff.
-     * 
-     * @param color The starting color
-     * @param position The starting position
-     * @param falloff The starting falloff
-     * @throws NullPointerException if color or position are null
-     */
-    protected AbstractPlacedLight(ReadOnlyColor3f color, ReadOnlyVector3f position, float falloff) {
-        super(color);
-        this.position = new Vector3f();
-        
-        setFalloffDistance(falloff);
-        setPosition(position);
-    }
+    public static final ReadOnlyVector3f DEFAULT_POSITION = new Vector3f();
     
-    /**
-     * Cloning constructor
-     * @param clone The clone
-     */
-    protected AbstractPlacedLight(T clone) {
-        super(clone);
-        falloffDistance = clone.falloffDistance;
-        position = new Vector3f(clone.position);
+    private FloatProperty falloffDistance;
+    private Vector3fProperty position;
+
+    protected AbstractPlacedLight(EntitySystem system, int index) {
+        super(system, index);
+    }
+
+    @Override
+    protected void init(Object... initParams) {
+        setFalloffDistance(-1f);
+        setPosition(DEFAULT_POSITION);
     }
 
     /**
      * Return the local position of this light with respect to the owning
      * entity's coordinate space. If the entity has no defined coordinate space,
-     * its in world space.
+     * its in world space. The returned vector is a cached instance shared
+     * within the component's EntitySystem, so it should be cloned before
+     * accessing another component of this type.
      * 
      * @return The position of the light
      */
     public final ReadOnlyVector3f getPosition() {
-        return position;
+        return position.get(getIndex());
     }
 
     /**
-     * Copy <tt>pos</tt> into this component's position vector. Anything
-     * monitoring the instance returned by {@link #getPosition()} will see the
-     * changes. The provided position is in the entity's local space, which is
-     * usually defined by a {@link Transform} component.
+     * Copy <tt>pos</tt> into this component's position vector. The provided
+     * position is in the entity's local space, which is usually defined by a
+     * {@link Transform} component.
      * 
      * @param pos The new position
-     * @return The new version of the component
+     * @return This light for chaining purposes
      * @throws NullPointerException if pos is null
      */
-    public final int setPosition(ReadOnlyVector3f pos) {
+    @SuppressWarnings("unchecked")
+    public final T setPosition(ReadOnlyVector3f pos) {
         if (pos == null)
             throw new NullPointerException("Position cannot be null");
-        position.set(pos);
-        return notifyChange();
+        position.set(pos, getIndex());
+        return (T) this;
     }
 
     /**
@@ -80,13 +70,14 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      * square law based on the distance to an object.
      * 
      * @param distance The new falloff distance
-     * @return The new version of the light, via {@link #notifyChange()}
+     * @return This light for chaining purposes
      */
-    public final int setFalloffDistance(float distance) {
+    @SuppressWarnings("unchecked")
+    public final T setFalloffDistance(float distance) {
         // No argument checking, a negative distance disables
         // light falloff so every value is supported
-        falloffDistance = distance;
-        return notifyChange();
+        falloffDistance.set(distance, getIndex(), 0);
+        return (T) this;
     }
 
     /**
@@ -98,6 +89,6 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      * @return The falloff distance
      */
     public final float getFalloffDistance() {
-        return falloffDistance;
+        return falloffDistance.get(getIndex(), 0);
     }
 }

@@ -1,13 +1,14 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
-import com.ferox.math.ReadOnlyColor3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
+import com.ferox.math.entreri.Vector3fProperty;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.TypedId;
 
 /**
+ * <p>
  * DirectionLight represents an direction light (or infinite point light), where
  * objects see light coming from the same direction, regardless of their
  * position. An example of a direction light is the sun. Combining a direction
@@ -16,6 +17,10 @@ import com.ferox.math.Vector3f;
  * that a position transform on a DirectionLight could be used to limit its
  * influence, but this all depends on the components used and the controller
  * implementations.
+ * </p>
+ * <p>
+ * DirectionLight does not have any initialization parameters.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -25,44 +30,18 @@ public final class DirectionLight extends Light<DirectionLight> {
      */
     public static final TypedId<DirectionLight> ID = Component.getTypedId(DirectionLight.class);
     
-    private final Vector3f direction;
+    public static final ReadOnlyVector3f DEFAULT_DIRECTION = new Vector3f(0f, 0f, 1f);
+    
+    private Vector3fProperty direction;
 
-    /**
-     * Create a new DirectionLight with the given color and an initial direction
-     * aligned with the positive z axis.
-     * 
-     * @param color The starting light color
-     * @throws NullPointerException if color is null
-     */
-    public DirectionLight(ReadOnlyColor3f color) {
-        this(color, new Vector3f(0f, 0f, 1f));
+    private DirectionLight(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Create a new DirectionLight with the given color and direction.
-     * 
-     * @param color The starting color
-     * @param direction The starting direction
-     * @throws NullPointerException if color or direction are null
-     * @throws ArithmeticException if direction cannot be normalized
-     */
-    public DirectionLight(ReadOnlyColor3f color, ReadOnlyVector3f direction) {
-        super(color);
-        this.direction = new Vector3f();
-        setDirection(direction);
-    }
-
-    /**
-     * Create a new DirectionLight that is a clone of <tt>clone</tt> for use
-     * with a {@link Template}.
-     * 
-     * @param clone The light to clone
-     * @throws NullPointerException if clone is null
-     */
-    public DirectionLight(DirectionLight clone) {
-        super(clone);
-        direction = new Vector3f();
-        setDirection(clone.direction);
+    
+    @Override
+    protected void init(Object... initParams) {
+        super.init(initParams);
+        setDirection(DEFAULT_DIRECTION);
     }
 
     /**
@@ -77,23 +56,23 @@ public final class DirectionLight extends Light<DirectionLight> {
      * @throws NullPointerException if dir is null
      * @throws ArithmeticException if dir cannot be normalized
      */
-    public int setDirection(ReadOnlyVector3f dir) {
+    public DirectionLight setDirection(ReadOnlyVector3f dir) {
         if (dir == null)
             throw new NullPointerException("Direction vector cannot be null");
-        dir.normalize(direction);
-        return notifyChange();
+        direction.set(dir.normalize(null), getIndex());
+        return this;
     }
 
     /**
-     * Get the normalized direction vector for this light. The returned
-     * instance's values will be updated in response to
-     * {@link #setDirection(ReadOnlyVector3f)}. If this DirectionLight is
-     * combined with another transform, this vector should be transformed by it
-     * before used in lighting calculations.
+     * Get the normalized direction vector for this light. If this
+     * DirectionLight is combined with another transform, this vector should be
+     * transformed by it before used in lighting calculations. The returned
+     * vector is a cached instance shared within the component's EntitySystem,
+     * so it should be cloned before accessing another component of this type.
      * 
      * @return The normalized direction vector
      */
     public ReadOnlyVector3f getDirection() {
-        return direction;
+        return direction.get(getIndex());
     }
 }

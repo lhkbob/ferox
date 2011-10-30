@@ -1,16 +1,18 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedComponent;
-import com.ferox.entity2.TypedId;
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.BufferData.DataType;
 import com.ferox.util.geom.Geometry;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.InitParams;
+import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.property.IntProperty;
+import com.googlecode.entreri.property.ObjectProperty;
+import com.googlecode.entreri.property.Parameter;
 
 /**
  * Renderable is a Component that enables an Entity to be rendered. It provides
@@ -24,118 +26,48 @@ import com.ferox.util.geom.Geometry;
  * can be used to describe the materials, shaders and textures used to color and
  * light the rendered Entity.
  * </p>
+ * <p>
+ * Renderable defines one initialization parameter: the VertexAttribute
+ * representing its vertices. It defaults to using no indices, a PolygonType of
+ * POINT, and an index offset and count of 0. It is highly recommended that
+ * adding a Renderable, is immediately followed up with a call to
+ * {@link #setIndices(PolygonType, VertexBufferObject, int, int)}.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public final class Renderable extends TypedComponent<Renderable> {
+@InitParams({ VertexAttribute.class })
+public final class Renderable extends Component {
     /**
      * The shared TypedId representing Renderable.
      */
     public static final TypedId<Renderable> ID = Component.getTypedId(Renderable.class);
     
-    private DrawStyle frontStyle;
-    private DrawStyle backStyle;
+    @Parameter(type=int.class, value="2")
+    private ObjectProperty<DrawStyle> drawStyles; // 0 = front, 1 = back
 
-    private VertexAttribute vertices;
-    private VertexBufferObject indices;
-    private PolygonType polyType;
-    private int indexOffset;
-    private int indexCount;
+    
+    private ObjectProperty<VertexAttribute> vertices;
+    private ObjectProperty<VertexBufferObject> indices;
+    private ObjectProperty<PolygonType> polyType;
+    
+    @Parameter(type=int.class, value="2")
+    private IntProperty indexConfig; // 0 = offset, 1 = count
 
-    private final AxisAlignedBox localBounds;
-
-    /**
-     * Create a Renderable that renders the given vertices, and renders only
-     * front facing polygons. It will use the provided bounds as the initial
-     * local bounds. An index offset of 0 is used. If indices is not null, the
-     * number of indices will equal the size of the indices buffer. If it is
-     * null, the number of indices will equal the number of vertices.
-     * 
-     * @param vertices The vertices that will be rendered
-     * @param indices The indices used to access the vertices, may be null
-     * @param polyType The type of polygons formed by the indices
-     * @param bounds The local bounds surrounding g
-     * @throws NullPointerException if any argument except for indices is null
-     */
-    public Renderable(VertexAttribute vertices, VertexBufferObject indices, 
-                      PolygonType polyType, AxisAlignedBox bounds) {
-        this(vertices, indices, polyType, bounds, DrawStyle.SOLID, DrawStyle.NONE);
+    private Renderable(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Create a Renderable that renders the given vertices, and uses the given
-     * DrawStyles for front and back facing polygons. It will use the provided
-     * bounds as the initial local bounds. An index offset of 0 is used. If
-     * indices is not null, the number of indices will equal the size of the
-     * indices buffer. If it is null, the number of indices will equal the
-     * number of vertices.
-     * 
-     * @param vertices The vertices that will be rendered
-     * @param indices The indices used to access the vertices, may be null
-     * @param polyType The type of polygons formed by the indices
-     * @param bounds The local bounds surrounding g
-     * @param front The DrawStyle for front facing polygons
-     * @param back The DrawStyle for back facing polygons
-     * @throws NullPointerException if any arguments except for indices is null
-     */
-    public Renderable(VertexAttribute vertices, VertexBufferObject indices, PolygonType polyType, 
-                      AxisAlignedBox bounds, DrawStyle front, DrawStyle back) {
-        this(vertices, indices, polyType, 0, 
-             (indices == null ? vertices.getMaximumNumVertices() : indices.getData().getLength()), 
-             bounds, front, back);
-    }
-
-    /**
-     * Create a Renderable that renders the given vertices, and uses the given
-     * DrawStyles for front and back facing polygons. It will use the provided
-     * bounds as the initial local bounds. It will use <tt>first</tt> and
-     * <tt>count</tt> to access the indices provided.
-     * 
-     * @param vertices The vertices that will be rendered
-     * @param indices The indices used to access the vertices, may be null
-     * @param polyType The type of polygons formed by the indices
-     * @param first The offset into indices (or the array offset into vertices
-     *            if indices is null)
-     * @param count The number of indices to render
-     * @param bounds The local bounds surrounding g
-     * @param front The DrawStyle for front facing polygons
-     * @param back The DrawStyle for back facing polygons
-     * @throws NullPointerException if any arguments except for indices is null
-     * @throws IllegalArgumentException if first or count are negative
-     * @throws IndexOutOfBoundsException if (first + count) is larger than the
-     *             number of renderable indices
-     */
-    public Renderable(VertexAttribute vertices, VertexBufferObject indices, PolygonType polyType,
-                      int first, int count, AxisAlignedBox bounds, DrawStyle front, DrawStyle back) {
-        super(null, false);
-        localBounds = new AxisAlignedBox();
+    
+    @Override
+    protected void init(Object... initParams) {
+        setVertices((VertexAttribute) initParams[0]);
+        setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE);
         
-        setVertices(vertices);
-        setIndices(indices, polyType, first, count);
-        setLocalBounds(bounds);
-        setDrawStyleFront(front);
-        setDrawStyleBack(back);
+        // This is a little lame, but it will result in entirely valid
+        // geometry, so it's a good default
+        setArrayIndices(PolygonType.POINTS, 0, 0);
     }
-
-    /**
-     * Create a Renderable that is a clone of <tt>clone</tt>, for use with a
-     * {@link Template}.
-     * 
-     * @param clone The Renderable to clone
-     * @throws NullPointerException if clone is null
-     */
-    public Renderable(Renderable clone) {
-        super(clone, true);
-        
-        localBounds = new AxisAlignedBox(clone.localBounds);
-        vertices = clone.vertices;
-        indices = clone.indices;
-        indexCount = clone.indexCount;
-        indexOffset = clone.indexOffset;
-        frontStyle = clone.frontStyle;
-        backStyle = clone.backStyle;
-    }
-
+    
     /**
      * Set the vertex attribute that holds the vertex position information for
      * the Renderable. The way the vertices are combined in 3D primitives
@@ -143,12 +75,12 @@ public final class Renderable extends TypedComponent<Renderable> {
      * See {@link #getIndices()} for more details.
      * 
      * @param vertices The new vertex attribute of vertices
-     * @return The new version of the component
+     * @return This component, for chaining purposes
      * @throws NullPointerException if vertices is null
      * @throws IllegalArgumentException if the data type isn't FLOAT or if the
      *             element size is 1
      */
-    public int setVertices(VertexAttribute vertices) {
+    public Renderable setVertices(VertexAttribute vertices) {
         if (vertices == null)
             throw new NullPointerException("Vertices cannot be null");
         if (vertices.getData().getData().getDataType() != DataType.FLOAT)
@@ -156,8 +88,8 @@ public final class Renderable extends TypedComponent<Renderable> {
         if (vertices.getElementSize() == 1)
             throw new IllegalArgumentException("Vertices can only have an element size of 2, 3, or 4");
         
-        this.vertices = vertices;
-        return notifyChange();
+        this.vertices.set(vertices, getIndex(), 0);
+        return this;
     }
 
     /**
@@ -170,10 +102,10 @@ public final class Renderable extends TypedComponent<Renderable> {
      * @param type The polygon type to render
      * @param first The offset into the vertex attributes
      * @param count The number of consecutive vertices to turn into polygons
-     * @return The new version of the component
+     * @return This component, for chaining purposes
      */
-    public int setArrayIndices(PolygonType type, int first, int count) {
-        return setIndices(null, type, first, count);
+    public Renderable setArrayIndices(PolygonType type, int first, int count) {
+        return setIndices(type, null, first, count);
     }
 
     /**
@@ -181,14 +113,14 @@ public final class Renderable extends TypedComponent<Renderable> {
      * PolygonType to construct primitives. The index offset will be 0 and the
      * index count will the size of the VertexBufferObject.
      * 
-     * @param indices The new indices VBO
      * @param type The new polygon type
-     * @return The new version of the component
+     * @param indices The new indices VBO
+     * @return This component, for chaining purposes
      * @throws NullPointerException if indices or type are null
      * @throws IllegalArgumentException if indices data type is FLOAT
      */
-    public int setIndices(VertexBufferObject indices, PolygonType type) {
-        return setIndices(indices, type, 0, indices.getData().getLength());
+    public Renderable setIndices(PolygonType type, VertexBufferObject indices) {
+        return setIndices(type, indices, 0, indices.getData().getLength());
     }
 
     /**
@@ -205,19 +137,19 @@ public final class Renderable extends TypedComponent<Renderable> {
      * vertices and other attributes. See {@link #getIndices()}.
      * </p>
      * 
-     * @param indices The new indices to use, may be null
      * @param type The new polygon type
+     * @param indices The new indices to use, may be null
      * @param first The offset into the indices or vertices (if indices is null)
      * @param count The number of indices or vertices to put together to create
      *            polygons (this is not the number of polygons)
-     * @return The new version of the component
+     * @return This component, for chaining purposes
      * @throws NullPointerException if type is null
      * @throws IllegalArgumentException if the indices data type is FLOAT
      * @throws IllegalArgumentException if first or count are less than 0
      * @throws IndexOutOfBoundsException if (first + count) is larger than the
      *             size of the indices
      */
-    public int setIndices(VertexBufferObject indices, PolygonType type, int first, int count) {
+    public Renderable setIndices(PolygonType type, VertexBufferObject indices, int first, int count) {
         if (type == null)
             throw new NullPointerException("PolygonType cannot be null");
         if (indices != null && indices.getData().getDataType() == DataType.FLOAT)
@@ -227,12 +159,14 @@ public final class Renderable extends TypedComponent<Renderable> {
         if (indices != null && (first + count) > indices.getData().getLength())
             throw new IndexOutOfBoundsException("First and count would reference out-of-bounds indices");
         
-        this.indices = indices;
-        polyType = type;
-        indexCount = count;
-        indexOffset = first;
+        int componentIndex = getIndex();
         
-        return notifyChange();
+        this.indices.set(indices, componentIndex, 0);
+        polyType.set(type, componentIndex, 0);
+        indexConfig.set(first, componentIndex, 0);
+        indexConfig.set(count, componentIndex, 1);
+        
+        return this;
     }
 
     /**
@@ -241,7 +175,7 @@ public final class Renderable extends TypedComponent<Renderable> {
      *         transformed before being rendered.
      */
     public VertexAttribute getVertices() {
-        return vertices;
+        return vertices.get(getIndex(), 0);
     }
 
     /**
@@ -254,7 +188,7 @@ public final class Renderable extends TypedComponent<Renderable> {
      * @return The indices, may be null
      */
     public VertexBufferObject getIndices() {
-        return indices;
+        return indices.get(getIndex(), 0);
     }
 
     /**
@@ -262,7 +196,7 @@ public final class Renderable extends TypedComponent<Renderable> {
      *         array indices)
      */
     public int getIndexCount() {
-        return indexCount;
+        return indexConfig.get(getIndex(), 1);
     }
 
     /**
@@ -270,41 +204,14 @@ public final class Renderable extends TypedComponent<Renderable> {
      *         indices)
      */
     public int getIndexOffset() {
-        return indexOffset;
+        return indexConfig.get(getIndex(), 0);
     }
     
     /**
      * @return The PolygonType rendered by this Renderable
      */
     public PolygonType getPolygonType() {
-        return polyType;
-    }
-    
-    /**
-     * Return the local bounds of the Renderable. This will always return the
-     * same instance, and the instance will be updated based on any calls to
-     * {@link #setLocalBounds(AxisAlignedBox)}.
-     * 
-     * @return The local bounds
-     */
-    public AxisAlignedBox getLocalBounds() {
-        // FIXME: update signature when we have read-only aabb's
-        return localBounds;
-    }
-
-    /**
-     * Set the local bounds of this Renderable. The bounds should contain the
-     * entire Geometry of this Renderable, including any modifications dynamic
-     * animation might cause. If a Visibility component is attached to an
-     * entity, the local bounds can be used in frustum-culling.
-     * 
-     * @param bounds The new local bounds of the Renderable
-     * @return The new version of the component, via {@link #notifyChange()}
-     * @throws NullPointerException if bounds is null
-     */
-    public int setLocalBounds(AxisAlignedBox bounds) {
-        localBounds.set(bounds);
-        return notifyChange();
+        return polyType.get(getIndex(), 0);
     }
 
     /**
@@ -312,15 +219,11 @@ public final class Renderable extends TypedComponent<Renderable> {
      * 
      * @param front The DrawStyle for front-facing polygons
      * @param back The DrawStyle for back-facing polygons
-     * @return The new version of the component
+     * @return This component, for chaining purposes
      * @throws NullPointerException if front or back are null
      */
-    public int setDrawStyle(DrawStyle front, DrawStyle back) {
-        if (front == null || back == null)
-            throw new NullPointerException("DrawStyles cannot be null");
-        frontStyle = front;
-        backStyle = back;
-        return notifyChange();
+    public Renderable setDrawStyle(DrawStyle front, DrawStyle back) {
+        return setDrawStyleFront(front).setDrawStyleBack(back);
     }
 
     /**
@@ -328,21 +231,21 @@ public final class Renderable extends TypedComponent<Renderable> {
      * Renderable.
      * 
      * @param front The front-facing DrawStyle
-     * @return The new version of the Renderable
+     * @return This component, for chaining purposes
      * @throws NullPointerException if front is null
      */
-    public int setDrawStyleFront(DrawStyle front) {
+    public Renderable setDrawStyleFront(DrawStyle front) {
         if (front == null)
             throw new NullPointerException("DrawStyle cannot be null");
-        frontStyle = front;
-        return notifyChange();
+        drawStyles.set(front, getIndex(), 0);
+        return this;
     }
 
     /**
      * @return The DrawStyle used for front-facing polygons
      */
     public DrawStyle getDrawStyleFront() {
-        return frontStyle;
+        return drawStyles.get(getIndex(), 0);
     }
 
     /**
@@ -350,20 +253,20 @@ public final class Renderable extends TypedComponent<Renderable> {
      * Renderable.
      * 
      * @param back The back-facing DrawStyle
-     * @return The new version of the Renderable
+     * @return This component, for chaining purposes
      * @throws NullPointerException if back is null
      */
-    public int setDrawStyleBack(DrawStyle back) {
+    public Renderable setDrawStyleBack(DrawStyle back) {
         if (back == null)
             throw new NullPointerException("DrawStyle cannot be null");
-        backStyle = back;
-        return notifyChange();
+        drawStyles.set(back, getIndex(), 1);
+        return this;
     }
 
     /**
      * @return The DrawStyle used for back-facing polygons
      */
     public DrawStyle getDrawStyleBack() {
-        return backStyle;
+        return drawStyles.get(getIndex(), 1);
     }
 }

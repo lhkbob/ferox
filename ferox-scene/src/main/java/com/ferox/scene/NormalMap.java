@@ -1,12 +1,14 @@
 package com.ferox.scene;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.Template;
-import com.ferox.entity2.TypedId;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.BufferData.DataType;
+import com.googlecode.entreri.Component;
+import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.InitParams;
+import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.property.ObjectProperty;
 
 /**
  * <p>
@@ -29,45 +31,32 @@ import com.ferox.resource.BufferData.DataType;
  * triangle. These attributes must be provided or configured else where because
  * it is likely to depend on the controllers actually rendering the Entities.
  * </p>
+ * <p>
+ * NormalMap defines three initialization parameters: a Texture, a
+ * VertexAttribute for texture coordinate access, and a VertexAttribute
+ * representing tangent vectors for each vertex. The tangent vector parameter
+ * can be null.
+ * </p>
  * 
  * @author Michael Ludwig
  */
+@InitParams({Texture.class, VertexAttribute.class, VertexAttribute.class})
 public final class NormalMap extends TextureMap<NormalMap> {
     /**
      * The shared TypedId representing NormalMap.
      */
     public static final TypedId<NormalMap> ID = Component.getTypedId(NormalMap.class);
     
-    private VertexAttribute tangentVectors;
+    private ObjectProperty<VertexAttribute> tangentVectors;
 
-    /**
-     * Create a NormalMap that initially uses the given Texture as the source
-     * for vector normals. If the tangents vertex attribute is non-null, the
-     * normals are assumed to be in tangent space. When null, the normals
-     * are in object space.
-     * 
-     * @param normalMap The normal map to use
-     * @param texCoords The texture coordinates to access normalMap
-     * @param tangents The tangent vectors creating the tangent space
-     * @throws NullPointerException if normalMap or texCoords is null
-     * @throws IllegalArgumentException if the normal map isn't a 3-component
-     *             texture
-     */
-    public NormalMap(Texture normalMap, VertexAttribute texCoords, VertexAttribute tangents) {
-        super(normalMap, texCoords);
-        setTangents(tangents);
+    private NormalMap(EntitySystem system, int index) {
+        super(system, index);
     }
-
-    /**
-     * Create a NormalMap that is a clone of <tt>clone</tt>, for use with
-     * {@link Template}.
-     * 
-     * @param clone The NormalMap to clone
-     * @throws NullPointerException if clone is null
-     */
-    public NormalMap(NormalMap clone) {
-        super(clone);
-        tangentVectors = clone.tangentVectors;
+    
+    @Override
+    protected void init(Object... initParams) {
+        super.init(initParams[0], initParams[1]);
+        setTangents((VertexAttribute) initParams[2]);
     }
 
     /**
@@ -77,7 +66,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * @return True if in object space
      */
     public boolean isObjectSpace() {
-        return tangentVectors == null;
+        return getTangents() == null;
     }
 
     /**
@@ -93,7 +82,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * @return The tangent vectors if this NormalMap is in tangent space
      */
     public VertexAttribute getTangents() {
-        return tangentVectors;
+        return tangentVectors.get(getIndex(), 0);
     }
 
     /**
@@ -113,19 +102,19 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * </p>
      * 
      * @param tangents The new tangent vertex attribute to use
-     * @return The new version of the component
+     * @return The component for chaining purposes
      * @throws IllegalArgumentException if tangents is not null and has
      *             non-float data, or an element size other than 3
      */
-    public int setTangents(VertexAttribute tangents) {
+    public NormalMap setTangents(VertexAttribute tangents) {
         if (tangents != null) {
             if (tangents.getData().getData().getDataType() != DataType.FLOAT)
                 throw new IllegalArgumentException("Tangents must have FLOAT data");
             if (tangents.getElementSize() != 3)
                 throw new IllegalArgumentException("Tangents must have an element size of 3, not: " + tangents.getElementSize());
         }
-        tangentVectors = tangents;
-        return notifyChange();
+        tangentVectors.set(tangents, getIndex(), 0);
+        return this;
     }
 
     @Override
