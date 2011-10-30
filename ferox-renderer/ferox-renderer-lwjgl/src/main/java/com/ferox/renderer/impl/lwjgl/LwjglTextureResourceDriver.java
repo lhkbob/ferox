@@ -72,7 +72,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 handle.depthTest = tex.getDepthComparison();
                 GL11.glTexParameteri(target, GL14.GL_TEXTURE_COMPARE_FUNC, Utils.getGLPixelTest(handle.depthTest));
             }
-            if (handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
+            if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
                 handle.enableDepthCompare = tex.isDepthCompareEnabled();
                 GL11.glTexParameteri(target, GL14.GL_TEXTURE_COMPARE_MODE, (handle.enableDepthCompare ? GL14.GL_COMPARE_R_TO_TEXTURE 
                                                                                                       : GL11.GL_NONE));

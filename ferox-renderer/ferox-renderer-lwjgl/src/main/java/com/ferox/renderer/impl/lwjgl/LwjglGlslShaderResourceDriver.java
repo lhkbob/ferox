@@ -102,7 +102,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             // read uniform properties
             GL20.glGetActiveAttrib(handle.programID, i, nameLen, len, type, name);
             byte[] bs = new byte[nameLen.get(0)];
-            name.put(bs, 0, bs.length);
+            name.get(bs, 0, bs.length);
             String attrName = new String(bs);
             
             int index = GL20.glGetAttribLocation(handle.programID, attrName);
@@ -125,7 +125,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             // read uniform properties
             GL20.glGetActiveUniform(handle.programID, i, nameLen, len, type, name);
             byte[] bs = new byte[nameLen.get(0)];
-            name.put(bs, 0, bs.length);
+            name.get(bs, 0, bs.length).position(0);
             String uniformName = new String(bs);
             
             GlslUniform u = new GlslUniform(uniformName, Utils.getUniformType(type.get(0)), len.get(0));

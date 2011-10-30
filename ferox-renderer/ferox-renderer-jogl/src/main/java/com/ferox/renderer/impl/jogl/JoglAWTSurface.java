@@ -120,8 +120,10 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
         context = new JOGLContext(factory, canvas.getContext(), provider);
         vsync = false;
         vsyncNeedsUpdate = true;
+        closable = true;
         
-        adapter = new AWTEventAdapter(this, canvas, true);
+        adapter = new AWTEventAdapter(this);
+        adapter.attach(canvas, true);
     }
     
     @Override
@@ -136,6 +138,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
 
     @Override
     protected void destroyImpl() {
+        adapter.detach();
         frame.removeWindowListener(this);
         
         Utils.invokeOnAWTThread(new Runnable() {
@@ -506,13 +509,13 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
         case DEPTH_16BIT:
             caps.setDepthBits(16);
             break;
-        case DEPTH_24BIT:
+        case DEPTH_24BIT: case UNKNOWN:
             caps.setDepthBits(24);
             break;
         case DEPTH_32BIT:
             caps.setDepthBits(32);
             break;
-        case NONE: case UNKNOWN:
+        case NONE:
             caps.setDepthBits(0);
             break;
         }

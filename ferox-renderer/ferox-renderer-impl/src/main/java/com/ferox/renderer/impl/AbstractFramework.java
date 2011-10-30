@@ -145,7 +145,6 @@ public abstract class AbstractFramework implements Framework {
         lifecycleManager.getLock().lock();
         try {
             if (lifecycleManager.getStatus() == LifeCycleManager.Status.ACTIVE) {
-                System.out.println("in createsurface");
                 synchronized(fullscreenLock) {
                     if (options.getFullscreenMode() != null && fullscreenSurface != null)
                         throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");

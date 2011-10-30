@@ -57,6 +57,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         // Since this isn't a TextureSurface, there is no need to validate
         // the layer and we just use 0.
         OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, 0);
+        if (context == null)
+            return null;
         return new ContextImpl(context, (AbstractSurface) surface);
     }
 
@@ -81,6 +83,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         }
         
         OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, layer);
+        if (context == null)
+            return null;
         return new ContextImpl(context, (AbstractSurface) surface);
     }
 

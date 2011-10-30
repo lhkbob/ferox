@@ -122,13 +122,13 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                         }
                     }
                 }
-                
-                h.lastSyncedVersion = res.getChangeQueue().getVersion();
-                
-                if (h.mode != res.getStorageMode())
-                    h.setStatusMessage("GPU storage modes are not supported, using IN_MEMORY instead");
-                h.setStatus(Status.READY);
             }
+            
+            h.lastSyncedVersion = res.getChangeQueue().getVersion();
+            
+            if (h.mode != res.getStorageMode())
+                h.setStatusMessage("GPU storage modes are not supported, using IN_MEMORY instead");
+            h.setStatus(Status.READY);
         }
        
         return handle;

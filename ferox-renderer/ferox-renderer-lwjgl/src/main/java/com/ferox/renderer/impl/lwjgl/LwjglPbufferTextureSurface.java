@@ -9,6 +9,7 @@ import org.lwjgl.opengl.Pbuffer;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.ferox.renderer.RenderException;
+import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractTextureSurface;
@@ -47,7 +48,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
         try {
             pbuffer = new Pbuffer(getWidth(), getHeight(), format, realShare);
         } catch (LWJGLException e) {
-            throw new RenderException("Unable to create Pbuffer", e);
+            throw new SurfaceCreationException("Unable to create Pbuffer", e);
         }
         context = new LwjglContext(creator, pbuffer, provider);
         

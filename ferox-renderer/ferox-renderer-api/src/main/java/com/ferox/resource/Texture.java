@@ -179,9 +179,10 @@ public class Texture extends Resource {
         this.target = target;
         changeQueue = new BulkChangeQueue<MipmapRegion>();
         
+        filter = Filter.LINEAR;
+        
         setLayers(mipmaps);
         setWrapMode(WrapMode.CLAMP);
-        setFilter(Filter.LINEAR);
         setAnisotropicFilterLevel(1f);
         setDepthCompareEnabled(false);
         setDepthComparison(Comparison.GREATER);

@@ -102,7 +102,6 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
              return;
          try {
              runner = Thread.currentThread();
-             System.out.println("sync run called for " + task);
              if (getState() == RUNNING) // recheck after setting thread
                  set(task.call());
              else

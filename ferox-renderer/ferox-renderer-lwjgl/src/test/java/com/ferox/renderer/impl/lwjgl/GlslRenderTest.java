@@ -1,4 +1,4 @@
-package com.ferox.renderer.impl.jogl;
+package com.ferox.renderer.impl.lwjgl;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,7 +52,7 @@ public class GlslRenderTest {
         "}";
     
     public static void main(String[] args) throws Exception {
-        Framework framework = JoglFramework.create(1, false, false, true, false);
+        Framework framework = LwjglFramework.create(1, false, false, false, false);
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
         OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                      .setHeight(600)
@@ -72,7 +72,7 @@ public class GlslRenderTest {
             while(true) {
                 if (window.isDestroyed())
                     break;
-                framework.queue(pass, "render");
+                framework.queue(pass, "render").get();
                 framework.flush(window, "render");
                 framework.sync("render");
             }
@@ -102,7 +102,7 @@ public class GlslRenderTest {
             shader.setShader(ShaderType.FRAGMENT, FRAGMENT_SHADER);
             
             f = new Frustum(60f, 1f, 1f, 100f);
-            f.setOrientation(new Vector3f(0f, 5f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
+            f.setOrientation(new Vector3f(0f, 0f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
             
             int width = 256;
             int height = 256;
@@ -130,8 +130,10 @@ public class GlslRenderTest {
         @Override
         public Void run(HardwareAccessLayer access) {
             Context context = access.setActiveSurface(surface);
-            GlslRenderer g = context.getGlslRenderer();
+            if (context == null)
+                return null;
             
+            GlslRenderer g = context.getGlslRenderer();
             if (g != null) {
                 g.clear(true, true, true, new Vector4f(.2f, .2f, .2f, 1f), 1, 0);
                 
@@ -146,10 +148,12 @@ public class GlslRenderTest {
                 
                 g.setUniform("transform", 2f, .25f);
                 
-                g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
+                int rendered = g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
                 
                 if (!statusChecked) {
                     statusChecked = true;
+                    
+                    System.out.println("Rendered count: " + rendered);
                     
                     Status shaderStatus = surface.getFramework().getStatus(shader);
                     String shaderMsg = surface.getFramework().getStatusMessage(shader);

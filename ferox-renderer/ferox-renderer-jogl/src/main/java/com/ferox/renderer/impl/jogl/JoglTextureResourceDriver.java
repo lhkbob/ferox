@@ -66,7 +66,7 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
                 handle.depthTest = tex.getDepthComparison();
                 gl.glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_FUNC, Utils.getGLPixelTest(handle.depthTest));
             }
-            if (handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
+            if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
                 handle.enableDepthCompare = tex.isDepthCompareEnabled();
                 gl.glTexParameteri(target, GL2GL3.GL_TEXTURE_COMPARE_MODE, (handle.enableDepthCompare ? GL2.GL_COMPARE_R_TO_TEXTURE 
                                                                                                       : GL2GL3.GL_NONE));
