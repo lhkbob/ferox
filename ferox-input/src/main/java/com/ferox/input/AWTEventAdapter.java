@@ -21,7 +21,7 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
     private final List<KeyListener> keyListeners;
     private final List<MouseListener> mouseListeners;
     
-    public AWTEventAdapter(MouseKeyEventSource realSource, Component component, boolean transformY) {
+    public AWTEventAdapter(MouseKeyEventSource realSource) {
         if (realSource == null)
             throw new NullPointerException("EventSource cannot be null");
         
@@ -30,8 +30,6 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
         dispatcher = new AWTEventDispatcher();
         keyListeners = new ArrayList<KeyListener>();
         mouseListeners = new ArrayList<MouseListener>();
-        
-        attach(component, transformY);
     }
     
     public void attach(Component component, boolean transformY) {
@@ -137,7 +135,7 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
         case java.awt.event.KeyEvent.VK_HOME: return KeyEvent.KeyCode.HOME;
         case java.awt.event.KeyEvent.VK_END: return KeyEvent.KeyCode.END;
         case java.awt.event.KeyEvent.VK_PAGE_UP: return KeyEvent.KeyCode.PAGE_UP;
-        case java.awt.event.KeyEvent.VK_PAGE_DOWN: return KeyEvent.KeyCode.DOWN;
+        case java.awt.event.KeyEvent.VK_PAGE_DOWN: return KeyEvent.KeyCode.PAGE_DOWN;
 
         case java.awt.event.KeyEvent.VK_UP: return KeyEvent.KeyCode.UP;
         case java.awt.event.KeyEvent.VK_LEFT: return KeyEvent.KeyCode.LEFT;
