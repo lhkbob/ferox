@@ -35,7 +35,7 @@ import com.ferox.renderer.impl.RendererProvider;
 public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowListener {
     private final Frame frame;
     private final GLCanvas canvas;
-    private final JOGLContext context;
+    private final JoglContext context;
     
     private final AWTEventAdapter adapter;
     
@@ -50,7 +50,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
 
     
     public JoglAWTSurface(AbstractFramework framework, final JoglSurfaceFactory factory, 
-                               OnscreenSurfaceOptions options, JOGLContext shareWith,
+                               OnscreenSurfaceOptions options, JoglContext shareWith,
                                RendererProvider provider) {
         super(framework);
         surfaceLock = new Object();
@@ -82,7 +82,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
         Utils.invokeOnAWTThread(new Runnable() {
             @Override
             public void run() {
-                OnscreenSurfaceOptions options = JOGLAWTSurface.this.options;
+                OnscreenSurfaceOptions options = JoglAWTSurface.this.options;
                 frame.setResizable(options.isResizable());
                 frame.setUndecorated(options.isUndecorated());
                 frame.setBounds(options.getX(), options.getY(), options.getWidth(), options.getHeight());
@@ -106,18 +106,18 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
                             device.setDisplayMode(factory.getAWTDisplayMode(options.getFullscreenMode()));
                         } else {
                             // must switch back to default display mode
-                            JOGLAWTSurface.this.options = options.setFullscreenMode(factory.getDefaultDisplayMode());
+                            JoglAWTSurface.this.options = options.setFullscreenMode(factory.getDefaultDisplayMode());
                         }
                     } else {
                         // must not claim fullscreen window anymore
-                        JOGLAWTSurface.this.options = options.setFullscreenMode(null);
+                        JoglAWTSurface.this.options = options.setFullscreenMode(null);
                     }
                 }
             }
         }, true);
         
         frame.addWindowListener(this);
-        context = new JOGLContext(factory, canvas.getContext(), provider);
+        context = new JoglContext(factory, canvas.getContext(), provider);
         vsync = false;
         vsyncNeedsUpdate = true;
         closable = true;
@@ -160,7 +160,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
     @Override
     public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
         super.onSurfaceActivate(context, activeLayer);
-        GL2GL3 gl = ((JOGLContext) context).getGLContext().getGL().getGL2GL3();
+        GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
         
         if (optionsNeedVerify) {
             detectOptions(gl);

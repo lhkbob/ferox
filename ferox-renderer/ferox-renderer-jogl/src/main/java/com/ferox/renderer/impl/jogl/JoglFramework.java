@@ -40,9 +40,9 @@ public class JoglFramework extends AbstractFramework {
         
         // FIXME: select profile better, based on properties?
         GLProfile profile;
-        if (GLProfile.isGL3Available())
+        if (GLProfile.isAvailable(GLProfile.GL3))
             profile = GLProfile.get(GLProfile.GL3);
-        else if (GLProfile.isGL2Available())
+        else if (GLProfile.isAvailable(GLProfile.GL2))
             profile = GLProfile.get(GLProfile.GL2);
         else
             throw new RuntimeException("Minimum required GL profile of GL2 is not available");

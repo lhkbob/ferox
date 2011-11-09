@@ -11,7 +11,7 @@ import com.ferox.renderer.Task;
 public class SelfDestructTest {
     public static void main(String[] args) throws Exception {
         final Framework f = LwjglFramework.create(1, false, false, false, false);
-        System.out.println("Framework created");
+        System.out.println("framework created");
         final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
             .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
             .setUndecorated(true)

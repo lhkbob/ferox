@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GL3;
 
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
@@ -119,7 +120,7 @@ public class Utils {
         case FRAGMENT:
             return GL2GL3.GL_FRAGMENT_SHADER;
         case GEOMETRY:
-            return GL2GL3.GL_GEOMETRY_SHADER;
+            return GL3.GL_GEOMETRY_SHADER;
         case VERTEX:
             return GL2GL3.GL_VERTEX_SHADER;
         default:
@@ -757,7 +758,6 @@ public class Utils {
         } else {
             if (block) {
                 try {
-                    System.out.println("queueing awt task");
                     EventQueue.invokeAndWait(r);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

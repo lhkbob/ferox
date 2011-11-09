@@ -1,10 +1,12 @@
 package com.ferox.renderer.impl.jogl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLProfile;
 
 import com.ferox.renderer.impl.RendererProvider;
 
@@ -38,7 +40,8 @@ public class PbufferShadowContext extends JoglContext {
         
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
-        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(glCaps, 
+        AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
+        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(device, glCaps, 
                                                                                                  new DefaultGLCapabilitiesChooser(), 
                                                                                                  1, 1, realShare);
         try {

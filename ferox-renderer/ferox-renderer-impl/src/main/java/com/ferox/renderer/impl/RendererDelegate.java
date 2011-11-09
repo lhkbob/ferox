@@ -473,6 +473,9 @@ public abstract class RendererDelegate {
         if (offset < 0 || count < 0)
             throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
         
+        if (count == 0)
+            return 0; // shortcut
+        
         if (indexBinding.lock == null || indexBinding.lock.getResource() != indices) {
             // Must bind a new element vbo
             boolean hadOldIndices = indexBinding.lock != null;
@@ -546,6 +549,10 @@ public abstract class RendererDelegate {
         if (first < 0 || count < 0)
             throw new IllegalArgumentException("First and count must be at least 0, not: " + first + ", " + count);
 
+        // short cut
+        if (count == 0)
+            return 0;
+        
         glDrawArrays(polyType, first, count);
         return polyType.getPolygonCount(count);
     }

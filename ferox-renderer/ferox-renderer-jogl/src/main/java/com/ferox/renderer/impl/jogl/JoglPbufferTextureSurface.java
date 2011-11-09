@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
@@ -45,7 +46,8 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
         
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities caps = chooseCapabilities(creator.getGLProfile(), colorBuffers, getDepthBuffer());
-        pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(caps, new DefaultGLCapabilitiesChooser(), 
+        AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
+        pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(device, caps, new DefaultGLCapabilitiesChooser(), 
                                                                                        getWidth(), getHeight(), realShare);
         pbuffer.setAutoSwapBufferMode(false);
         
