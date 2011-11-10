@@ -425,6 +425,18 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     @Override
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+        flushModelView();
+        return super.render(polyType, indices, offset, count);
+    }
+
+    @Override
+    public int render(PolygonType polyType, int first, int count) {
+        flushModelView();
+        return super.render(polyType, first, count);
+    }
+    
+    @Override
     public void setModelViewMatrix(ReadOnlyMatrix4f matrix) {
         if (matrix == null)
             throw new NullPointerException("Matrix cannot be null");

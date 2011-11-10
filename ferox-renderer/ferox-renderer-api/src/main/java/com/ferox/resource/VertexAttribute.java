@@ -69,7 +69,8 @@ public class VertexAttribute {
      * @param elementSize The element size of individual vectors in buffer
      * @param offset The number of array elements to skip before accessing the
      *            first attribute
-     * @param stride The number of array elements between consecutive attributes
+     * @param stride The number of array elements between the last element of
+     *            one vertex and the first element of the next
      * @throws IllegalArgumentException if elementSize isn't in [1, 4], if the
      *             offset is less than 0 or greater than or equal to the
      *             buffer's length, or if stride is less than 0

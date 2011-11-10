@@ -394,7 +394,6 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     
     @Override
     public void windowClosing(WindowEvent e) {
-        System.out.println("window closing");
         synchronized(surfaceLock) {
             // If the window is not user closable, we perform no action.
             // windowClosing() listeners are responsible for disposing the window

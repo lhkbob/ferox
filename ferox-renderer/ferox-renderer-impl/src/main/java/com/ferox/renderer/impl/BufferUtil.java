@@ -168,10 +168,10 @@ public class BufferUtil {
         case UNSIGNED_BYTE:
             byte[] bd = data.getArray();
             return (bd == null ? newByteBuffer(data.getLength()) : newByteBuffer(bd));
-        case UNSIGNED_INT:
+        case UNSIGNED_SHORT:
             short[] sd = data.getArray();
             return (sd == null ? newShortBuffer(data.getLength()) : newShortBuffer(sd));
-        case UNSIGNED_SHORT:
+        case UNSIGNED_INT:
             int[] id = data.getArray();
             return (id == null ? newIntBuffer(data.getLength()) : newIntBuffer(id));
         default:

@@ -763,7 +763,6 @@ public class Utils {
         } else {
             if (block) {
                 try {
-                    System.out.println("queueing awt task");
                     EventQueue.invokeAndWait(r);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);

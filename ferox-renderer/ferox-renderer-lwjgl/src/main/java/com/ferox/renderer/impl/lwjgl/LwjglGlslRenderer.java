@@ -160,13 +160,14 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     protected void glAttributePointer(int attr, ResourceHandle handle, int offset, int stride,
                                       int elementSize) {
         VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+        int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
-            GL20.glVertexAttribPointer(attr, elementSize, false, stride, (FloatBuffer) h.inmemoryBuffer);
+            GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes, (FloatBuffer) h.inmemoryBuffer);
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
-            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false, stride, vboOffset);
+            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false, strideBytes, vboOffset);
         }
     }
 }

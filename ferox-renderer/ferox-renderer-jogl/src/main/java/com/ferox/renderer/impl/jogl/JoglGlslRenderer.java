@@ -161,13 +161,14 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
     protected void glAttributePointer(int attr, ResourceHandle handle, int offset, int stride,
                                       int elementSize) {
         VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+        int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
-            getGL().glVertexAttribPointer(attr, elementSize, GL2GL3.GL_FLOAT, false, stride, h.inmemoryBuffer);
+            getGL().glVertexAttribPointer(attr, elementSize, GL2GL3.GL_FLOAT, false, strideBytes, h.inmemoryBuffer);
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
-            getGL().glVertexAttribPointer(attr, elementSize, GL2GL3.GL_FLOAT, false, stride, vboOffset);
+            getGL().glVertexAttribPointer(attr, elementSize, GL2GL3.GL_FLOAT, false, strideBytes, vboOffset);
         }
     }
     

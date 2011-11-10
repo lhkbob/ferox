@@ -412,19 +412,20 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glAttributePointer(VertexTarget target, ResourceHandle handle, int offset,
                                       int stride, int elementSize) {
         VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+        int strideBytes = (stride + elementSize) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
            
             switch(target) {
             case NORMALS:
-                getGL().glNormalPointer(GL2.GL_FLOAT, stride, h.inmemoryBuffer);
+                getGL().glNormalPointer(GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                getGL().glTexCoordPointer(elementSize, GL2.GL_FLOAT, stride, h.inmemoryBuffer);
+                getGL().glTexCoordPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case VERTICES:
-                getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, stride, h.inmemoryBuffer);
+                getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             }
         } else {
@@ -432,13 +433,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             
             switch(target) {
             case NORMALS:
-                getGL().glNormalPointer(GL2.GL_FLOAT, stride, vboOffset);
+                getGL().glNormalPointer(GL2.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                getGL().glTexCoordPointer(elementSize, GL2.GL_FLOAT, stride, vboOffset);
+                getGL().glTexCoordPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case VERTICES:
-                getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, stride, vboOffset);
+                getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
                 break;
             }
         }
@@ -446,16 +447,23 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnableAttribute(VertexTarget target, boolean enable) {
+        int state = 0;
         switch(target) {
         case NORMALS:
-            getGL().glEnableClientState(GL2.GL_NORMAL_ARRAY);
+            state = GL2.GL_NORMAL_ARRAY;
             break;
         case TEXCOORDS:
-            getGL().glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+            state = GL2.GL_TEXTURE_COORD_ARRAY;
             break;
         case VERTICES:
-            getGL().glEnableClientState(GL2.GL_VERTEX_ARRAY);
+            state = GL2.GL_VERTEX_ARRAY;
+            break;
         }
+        
+        if (enable)
+            getGL().glEnableClientState(state);
+        else
+            getGL().glDisableClientState(state);
     }
     
     private GL2 getGL() {

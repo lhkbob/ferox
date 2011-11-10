@@ -119,7 +119,7 @@ public class Rectangle implements Geometry {
         va[i++] = 1f;
         va[i++] = 0f;
 
-        // uppper-right
+        // upper-right
         va[i++] = xAxis.getX() * right + yAxis.getX() * top;
         va[i++] = xAxis.getY() * right + yAxis.getY() * top;
         va[i++] = xAxis.getZ() * right + yAxis.getZ() * top;

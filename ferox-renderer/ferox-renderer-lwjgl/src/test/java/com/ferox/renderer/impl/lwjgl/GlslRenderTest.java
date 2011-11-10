@@ -7,6 +7,8 @@ import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Context;
+import com.ferox.renderer.DisplayMode;
+import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
@@ -56,9 +58,9 @@ public class GlslRenderTest {
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
         OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                      .setHeight(600)
+                                                                                     .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
                                                                                      .setResizable(false)
                                                                                      .setDepthFormat(DepthFormat.DEPTH_24BIT));
-        window.setVSyncEnabled(true);
         
         GlslPass pass = new GlslPass(window);
         Status status = framework.update(pass.shader);
@@ -69,12 +71,21 @@ public class GlslRenderTest {
         }
         
         try {
+            long now = System.currentTimeMillis();
+            int frames = 0;
             while(true) {
                 if (window.isDestroyed())
                     break;
                 framework.queue(pass, "render").get();
                 framework.flush(window, "render");
                 framework.sync("render");
+                
+                frames++;
+                if (System.currentTimeMillis() - now > 1000) {
+                    System.out.println("FPS: " + frames);
+                    frames = 0;
+                    now = System.currentTimeMillis();
+                }
             }
         } finally {
             framework.destroy();
@@ -101,8 +112,8 @@ public class GlslRenderTest {
             shader.setShader(ShaderType.VERTEX, VERTEX_SHADER);
             shader.setShader(ShaderType.FRAGMENT, FRAGMENT_SHADER);
             
-            f = new Frustum(60f, 1f, 1f, 100f);
-            f.setOrientation(new Vector3f(0f, 0f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
+            f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
+            f.setOrientation(new Vector3f(0f, 3f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
             
             int width = 256;
             int height = 256;

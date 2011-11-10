@@ -411,19 +411,20 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glAttributePointer(VertexTarget target, ResourceHandle handle, int offset,
                                       int stride, int elementSize) {
         VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+        int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
            
             switch(target) {
             case NORMALS:
-                GL11.glNormalPointer(stride, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glNormalPointer(strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, stride, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glTexCoordPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             case VERTICES:
-                GL11.glVertexPointer(elementSize, stride, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glVertexPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             }
         } else {
@@ -431,13 +432,13 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             
             switch(target) {
             case NORMALS:
-                GL11.glNormalPointer(GL11.GL_FLOAT, stride, vboOffset);
+                GL11.glNormalPointer(GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, stride, vboOffset);
+                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case VERTICES:
-                GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, stride, vboOffset);
+                GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
             }
         }
@@ -445,16 +446,23 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnableAttribute(VertexTarget target, boolean enable) {
+        int state = 0;
         switch(target) {
         case NORMALS:
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+            state = GL11.GL_NORMAL_ARRAY;
             break;
         case TEXCOORDS:
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            state = GL11.GL_TEXTURE_COORD_ARRAY;
             break;
         case VERTICES:
-            GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+            state = GL11.GL_VERTEX_ARRAY;
+            break;
         }
+        
+        if (enable)
+            GL11.glEnableClientState(state);
+        else
+            GL11.glDisableClientState(state);
     }
     
     private void glEnable(int flag, boolean enable) {
