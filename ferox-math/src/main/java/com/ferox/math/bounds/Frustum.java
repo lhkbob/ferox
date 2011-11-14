@@ -37,7 +37,7 @@ import com.ferox.math.Vector4f;
  * @author Michael Ludwig
  */
 public class Frustum {
-    /** Result of a frustum test against a {@link AxisAlignedBox}. */
+    /** Result of a frustum test against a {@link ReadOnlyAxisAlignedBox}. */
     public static enum FrustumIntersection {
         /**
          * Returned when a candidate object is fully enclosed by the Frustum.

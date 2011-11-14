@@ -1,5 +1,6 @@
 package com.ferox.math.entreri;
 
+import com.ferox.math.MutableQuat4f;
 import com.ferox.math.Quat4f;
 import com.ferox.math.ReadOnlyQuat4f;
 import com.googlecode.entreri.property.CompactAwareProperty;
@@ -7,11 +8,10 @@ import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.IndexedDataStore;
 
 /**
- * Quat4fProperty is a caching property that wraps a FloatProperty
- * as a ReadOnlyQuat4f, but also provides a setter so it can be
- * mutated.
- * @author Michael LUdwig
- *
+ * Quat4fProperty is a caching property that wraps a FloatProperty as a
+ * ReadOnlyQuat4f, but also provides a setter so it can be mutated.
+ * 
+ * @author Michael Ludwig
  */
 public class Quat4fProperty implements CompactAwareProperty {
     private final FloatProperty data;
@@ -43,6 +43,23 @@ public class Quat4fProperty implements CompactAwareProperty {
             lastIndex = index;
         }
         return cache;
+    }
+    
+    /**
+     * Get the quaternion of this property, for the component at the given
+     * index, and store it into <tt>result</tt>. If result is null, a new
+     * Quat4f is created and returned.
+     * 
+     * @param index The component index to retrieve
+     * @param result The quaternion to store the data for the requested component
+     * @return result, or a new Quat4f if result was null
+     */
+    public MutableQuat4f get(int index, MutableQuat4f result) {
+        if (result == null)
+            result = new Quat4f();
+        
+        result.set(data.getIndexedData(), index * 4);
+        return result;
     }
     
     /**

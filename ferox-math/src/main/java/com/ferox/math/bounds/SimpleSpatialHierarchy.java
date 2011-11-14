@@ -25,7 +25,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     }
     
     @Override
-    public Object add(T item, AxisAlignedBox bounds) {
+    public Object add(T item, ReadOnlyAxisAlignedBox bounds) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         SimpleKey<T> newKey = new SimpleKey<T>(this, item);
@@ -38,7 +38,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public void update(T item, AxisAlignedBox bounds, Object key) {
+    public void update(T item, ReadOnlyAxisAlignedBox bounds, Object key) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         if (key == null)
@@ -83,7 +83,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     }
 
     @Override
-    public void query(AxisAlignedBox volume, QueryCallback<T> callback) {
+    public void query(ReadOnlyAxisAlignedBox volume, QueryCallback<T> callback) {
         if (volume == null)
             throw new NullPointerException("Query bound volume cannot be null");
         if (callback == null)
@@ -135,7 +135,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
 
     private static class SimpleKey<T> {
         private final T data;
-        private AxisAlignedBox bounds;
+        private ReadOnlyAxisAlignedBox bounds;
         
         private int index;
         private final SimpleSpatialHierarchy<T> owner;

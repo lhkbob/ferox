@@ -116,7 +116,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
      * @param extents The desired root node bounds
      * @throws NullPointerException if strategy or extents are null
      */
-    public Octree(Strategy strategy, AxisAlignedBox extents) {
+    public Octree(Strategy strategy, ReadOnlyAxisAlignedBox extents) {
         this(strategy, extents, DEFAULT_MAX_DEPTH);
     }
 
@@ -131,7 +131,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
      * @throws NullPointerException if strategy or extents are null
      * @throws IllegalArgumentException if initialMaxDepth < 1
      */
-    public Octree(Strategy strategy, AxisAlignedBox extents, int initialMaxDepth) {
+    public Octree(Strategy strategy, ReadOnlyAxisAlignedBox extents, int initialMaxDepth) {
         if (strategy == null)
             throw new NullPointerException("Strategy cannot be null");
         if (extents == null)
@@ -154,7 +154,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
     }
     
     @Override
-    public Object add(T item, AxisAlignedBox bounds) {
+    public Object add(T item, ReadOnlyAxisAlignedBox bounds) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         
@@ -192,7 +192,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
     }
 
     @Override
-    public void update(T item, AxisAlignedBox bounds, Object key) {
+    public void update(T item, ReadOnlyAxisAlignedBox bounds, Object key) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         if (key == null)
@@ -213,7 +213,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
     }
     
     @Override
-    public void query(AxisAlignedBox volume, QueryCallback<T> callback) {
+    public void query(ReadOnlyAxisAlignedBox volume, QueryCallback<T> callback) {
         if (volume == null)
             throw new NullPointerException("Query volume cannot be null");
         if (callback == null)
@@ -339,7 +339,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         pendingRemovals.clear();
     }
     
-    private void expandOctreeMaybe(AxisAlignedBox dataBounds) {
+    private void expandOctreeMaybe(ReadOnlyAxisAlignedBox dataBounds) {
         if (dataBounds == null || rootBounds.contains(dataBounds))
             return;
         
@@ -409,9 +409,9 @@ public class Octree<T> implements SpatialHierarchy<T> {
     private static boolean inPositiveZ(int index) {
         return (index & POS_Z) != 0;
     }
-    private static int getChildIndex(AxisAlignedBox nodeBounds, ReadOnlyVector3f pointInNode) {
-        Vector3f min = nodeBounds.getMin();
-        Vector3f max = nodeBounds.getMax();
+    private static int getChildIndex(ReadOnlyAxisAlignedBox nodeBounds, ReadOnlyVector3f pointInNode) {
+        ReadOnlyVector3f min = nodeBounds.getMin();
+        ReadOnlyVector3f max = nodeBounds.getMax();
         
         int index = 0;
         if ((min.getX() + max.getX()) < 2f * pointInNode.getX())
@@ -564,7 +564,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
          * @param createChildren True if child nodes can be created if they'd be
          *            contained in the query
          */
-        public void visitContaining(AxisAlignedBox query, NodeCallback<AxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
+        public void visitContaining(ReadOnlyAxisAlignedBox query, NodeCallback<ReadOnlyAxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
             // since we assume this node contains query, run the callback right away
             callback.visit(query, this, nodeBounds);
             
@@ -598,7 +598,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
          * @param createChildren True if child nodes can be created if they'd be
          *            contained in the query
          */
-        public void visitIntersecting(AxisAlignedBox query, NodeCallback<AxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
+        public void visitIntersecting(ReadOnlyAxisAlignedBox query, NodeCallback<ReadOnlyAxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
             // visit the callback
             callback.visit(query, this, nodeBounds);
             
@@ -673,7 +673,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         AxisAlignedBox bounds;
         int queryNumber;
         
-        public Key(T data, AxisAlignedBox bounds, Octree<T> owner) {
+        public Key(T data, ReadOnlyAxisAlignedBox bounds, Octree<T> owner) {
             this.data = data;
             this.owner = owner;
             this.bounds = (bounds == null ? null : new AxisAlignedBox(bounds));
@@ -691,7 +691,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
             nodeIndex = owner.nullBounds.size() - 1;
         }
         
-        public void update(AxisAlignedBox newBounds) {
+        public void update(ReadOnlyAxisAlignedBox newBounds) {
             if (newBounds == null) {
                 if (bounds != null) {
                     // bounds switched to null, so remove it from root and add to null list
@@ -746,20 +746,20 @@ public class Octree<T> implements SpatialHierarchy<T> {
      */
     
     private static interface NodeCallback<Q, T> {
-        public void visit(Q query, Node<T> node, AxisAlignedBox nodeBounds);
+        public void visit(Q query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds);
     }
     
-    private static class DeepestNodeCallback<T> implements NodeCallback<AxisAlignedBox, T> {
+    private static class DeepestNodeCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
         Node<T> deepestNode;
         
         @Override
-        public void visit(AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
+        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
             if (deepestNode == null || node.depth < deepestNode.depth)
                 deepestNode = node;
         }
     }
     
-    private static class StaticUpdateCallback<T> implements NodeCallback<AxisAlignedBox, T> {
+    private static class StaticUpdateCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
         final Key<T> key;
         final boolean add;
         
@@ -769,7 +769,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
         
         @Override
-        public void visit(AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
+        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
             if (node.isLeaf()) {
                 if (add) {
                     int index = node.add(key);
@@ -787,7 +787,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
     }
     
-    private static class AabbQueryCallback<T> implements NodeCallback<AxisAlignedBox, T> {
+    private static class AabbQueryCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
         final QueryCallback<T> callback;
         final int query;
         
@@ -797,7 +797,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
         
         @Override
-        public void visit(AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
+        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
             if (node.items != null) {
                 Key<T> key;
                 int count = node.items.size();
@@ -826,7 +826,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
         
         @Override
-        public void visit(Frustum query, Node<T> node, AxisAlignedBox nodeBounds) {
+        public void visit(Frustum query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
             if (node.items != null) {
                 // save old plane state to restore after each child
                 int save = ps.get();
@@ -849,7 +849,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
     }
     
-    private static class IntersectionQueryCallback<T> implements NodeCallback<AxisAlignedBox, T> {
+    private static class IntersectionQueryCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
         final IntersectionCallback<T> callback;
         
         public IntersectionQueryCallback(IntersectionCallback<T> callback) {
@@ -857,7 +857,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
         
         @Override
-        public void visit(AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
+        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
             if (node.items != null) {
                 float nx = nodeBounds.getMin().getX();
                 float ny = nodeBounds.getMin().getY();

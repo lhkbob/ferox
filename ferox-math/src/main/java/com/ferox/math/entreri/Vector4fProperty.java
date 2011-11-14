@@ -1,5 +1,6 @@
 package com.ferox.math.entreri;
 
+import com.ferox.math.MutableVector4f;
 import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector4f;
 import com.googlecode.entreri.property.CompactAwareProperty;
@@ -7,11 +8,10 @@ import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.IndexedDataStore;
 
 /**
- * Vector4fProperty is a caching property that wraps a FloatProperty
- * as a ReadOnlyVector4f, but also provides a setter so it can be
- * mutated.
- * @author Michael LUdwig
- *
+ * Vector4fProperty is a caching property that wraps a FloatProperty as a
+ * ReadOnlyVector4f, but also provides a setter so it can be mutated.
+ * 
+ * @author Michael Ludwig
  */
 public class Vector4fProperty implements CompactAwareProperty {
     private final FloatProperty data;
@@ -43,6 +43,23 @@ public class Vector4fProperty implements CompactAwareProperty {
             lastIndex = index;
         }
         return cache;
+    }
+    
+    /**
+     * Get the vector of this property, for the component at the given index,
+     * and store it into <tt>result</tt>. If result is null, a new Vector3f is
+     * created and returned.
+     * 
+     * @param index The component index to retrieve
+     * @param result The vector to store the data for the requested component
+     * @return result, or a new Vector4f if result was null
+     */
+    public MutableVector4f get(int index, MutableVector4f result) {
+        if (result == null)
+            result = new Vector4f();
+        
+        result.set(data.getIndexedData(), index * 4);
+        return result;
     }
     
     /**

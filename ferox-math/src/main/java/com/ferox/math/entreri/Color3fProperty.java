@@ -7,11 +7,10 @@ import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.IndexedDataStore;
 
 /**
- * Color3fProperty is a caching property that wraps a FloatProperty
- * as a ReadOnlyColor3f, but also provides a setter so it can be
- * mutated.
- * @author Michael LUdwig
- *
+ * Color3fProperty is a caching property that wraps a FloatProperty as a
+ * ReadOnlyColor3f, but also provides a setter so it can be mutated.
+ * 
+ * @author Michael Ludwig
  */
 public class Color3fProperty implements CompactAwareProperty {
     private final FloatProperty data;
@@ -45,6 +44,23 @@ public class Color3fProperty implements CompactAwareProperty {
         return cache;
     }
 
+    /**
+     * Get the color of this property, for the component at the given
+     * index, and store it into <tt>result</tt>. If result is null, a new
+     * Color3f is created and returned.
+     * 
+     * @param index The component index to retrieve
+     * @param result The color to store the data for the requested component
+     * @return result, or a new Color3f if result was null
+     */
+    public Color3f get(int index, Color3f result) {
+        if (result == null)
+            result = new Color3f();
+        
+        result.set(data.getIndexedData(), index * 3);
+        return result;
+    }
+    
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.

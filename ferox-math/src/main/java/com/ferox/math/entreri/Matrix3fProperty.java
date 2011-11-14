@@ -1,17 +1,17 @@
 package com.ferox.math.entreri;
 
 import com.ferox.math.Matrix3f;
+import com.ferox.math.MutableMatrix3f;
 import com.ferox.math.ReadOnlyMatrix3f;
 import com.googlecode.entreri.property.CompactAwareProperty;
 import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.IndexedDataStore;
 
 /**
- * Matrix3fProperty is a caching property that wraps a FloatProperty
- * as a ReadOnlyMatrix3f, but also provides a setter so it can be
- * mutated.
- * @author Michael LUdwig
- *
+ * Matrix3fProperty is a caching property that wraps a FloatProperty as a
+ * ReadOnlyMatrix3f, but also provides a setter so it can be mutated.
+ * 
+ * @author Michael Ludwig
  */
 public class Matrix3fProperty implements CompactAwareProperty {
     private final FloatProperty data;
@@ -43,6 +43,23 @@ public class Matrix3fProperty implements CompactAwareProperty {
             lastIndex = index;
         }
         return cache;
+    }
+    
+    /**
+     * Get the matrix of this property, for the component at the given
+     * index, and store it into <tt>result</tt>. If result is null, a new
+     * Matrix3f is created and returned.
+     * 
+     * @param index The component index to retrieve
+     * @param result The matrix to store the data for the requested component
+     * @return result, or a new Matrix3f if result was null
+     */
+    public MutableMatrix3f get(int index, MutableMatrix3f result) {
+        if (result == null)
+            result = new Matrix3f();
+        
+        result.set(data.getIndexedData(), index * 9, false);
+        return result;
     }
     
     /**

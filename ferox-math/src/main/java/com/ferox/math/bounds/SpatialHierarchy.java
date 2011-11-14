@@ -7,7 +7,7 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * A SpatialHierarchy partitions the three dimensions of a space to provide
  * efficient spatial queries. These queries are generally of the form: find all
  * objects that are within a certain region. For SpatialHierarchy, a region can
- * either be a {@link Frustum} or an {@link AxisAlignedBox}. It is assumed that
+ * either be a {@link Frustum} or an {@link ReadOnlyAxisAlignedBox}. It is assumed that
  * each region exists within the same space as the SpatialHierachy.
  * </p>
  * <p>
@@ -30,9 +30,9 @@ public interface SpatialHierarchy<T> {
      * Add <tt>item</tt> to this SpatialHierarchy using the given
      * <tt>bounds</tt> to represent the extents of the item. It is assumed that
      * the item has not already been added. If this is the case,
-     * {@link #update(Object, AxisAlignedBox, Object)} should be used instead.
+     * {@link #update(Object, ReadOnlyAxisAlignedBox, Object)} should be used instead.
      * On a successful add, a non-null key is returned. This key must be used in
-     * {@link #update(Object, AxisAlignedBox, Object)} and
+     * {@link #update(Object, ReadOnlyAxisAlignedBox, Object)} and
      * {@link #remove(Object, Object)} when modifying <tt>item</tt>.
      * </p>
      * <p>
@@ -48,12 +48,12 @@ public interface SpatialHierarchy<T> {
      *         hierarchy, or null on a failure
      * @throws NullPointerException if item is null
      */
-    public Object add(T item, AxisAlignedBox bounds);
+    public Object add(T item, ReadOnlyAxisAlignedBox bounds);
 
     /**
      * Notify this hierarchy that the given <tt>item</tt> has had its extents
      * changed to <tt>bounds</tt>. The <tt>key</tt> given is assumed to be the
-     * key returned from a previous {@link #add(Object, AxisAlignedBox)} and
+     * key returned from a previous {@link #add(Object, ReadOnlyAxisAlignedBox)} and
      * that the item is still within the hierarchy. Often this can be much
      * faster than removing and then re-adding the item, although this performs
      * the equivalent actions.
@@ -65,13 +65,13 @@ public interface SpatialHierarchy<T> {
      * @throws IllegalArgumentException if the given key is invalid, or if item
      *             isn't in the hierarchy
      */
-    public void update(T item, AxisAlignedBox bounds, Object key);
+    public void update(T item, ReadOnlyAxisAlignedBox bounds, Object key);
 
     /**
      * Remove <tt>item</tt> from this hierarchy so that the given item can no
      * longer be returned in queries to the SpatialHierarchy. The given
      * <tt>key</tt> must be the key provided by a previous call to
-     * {@link #add(Object, AxisAlignedBox)} and the given item must still be
+     * {@link #add(Object, ReadOnlyAxisAlignedBox)} and the given item must still be
      * within the hierarchy. After removal, the key for an item is invalidated
      * and a new key will be provided if the item is re-added.
      * 
@@ -86,7 +86,7 @@ public interface SpatialHierarchy<T> {
     /**
      * <p>
      * Query this SpatialHierarchy for all previously added items that have
-     * their provided bounds {@link AxisAlignedBox#intersects(AxisAlignedBox)
+     * their provided bounds {@link ReadOnlyAxisAlignedBox#intersects(ReadOnlyAxisAlignedBox)
      * intersecting} with <tt>volume</tt>. Additionally, any item that was added
      * with a null bounds will always be considered as intersecting the query
      * volume.
@@ -101,13 +101,13 @@ public interface SpatialHierarchy<T> {
      * @param callback A QueryCallback to run on each item within the query
      * @throws NullPointerException if volume or callback is null
      */
-    public void query(AxisAlignedBox volume, QueryCallback<T> callback);
+    public void query(ReadOnlyAxisAlignedBox volume, QueryCallback<T> callback);
 
     /**
      * <p>
      * Query this SpatialHierarchy for all previously added items that have
      * their provided bounds
-     * {@link AxisAlignedBox#intersects(Frustum, PlaneState) intersecting} with
+     * {@link ReadOnlyAxisAlignedBox#intersects(Frustum, PlaneState) intersecting} with
      * <tt>frustum</tt>. An item's bounds intersects with the Frustum if its
      * FrustumIntersection is not {@link FrustumIntersection#OUTSIDE}.
      * Additionally, any item that was added with a null bounds will always be
@@ -129,7 +129,7 @@ public interface SpatialHierarchy<T> {
      * <p>
      * Query this SpatialHierarchy for all pairs of intersecting items that have
      * been added to this hierarchy. Intersections are determined by
-     * {@link AxisAlignedBox#intersects(AxisAlignedBox)}, between the bounds
+     * {@link ReadOnlyAxisAlignedBox#intersects(ReadOnlyAxisAlignedBox)}, between the bounds
      * provided with the items when they were added or updated.
      * </p>
      * <p>
