@@ -1,0 +1,9 @@
+
+syntax: regexp
+\.project$
+syntax: regexp
+\.settings$
+syntax: regexp
+\.classpath$
+syntax: regexp
+/target$

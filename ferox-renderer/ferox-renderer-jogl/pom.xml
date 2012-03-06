@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ferox-renderer</artifactId>
-        <groupId>com.googlecode.ferox</groupId>
+        <groupId>com.lhkbob.ferox</groupId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <groupId>com.googlecode.ferox</groupId>
+    <groupId>com.lhkbob.ferox</groupId>
     <artifactId>ferox-renderer-jogl</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -237,7 +237,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.googlecode.ferox</groupId>
+            <groupId>com.lhkbob.ferox</groupId>
             <artifactId>ferox-renderer-impl</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>

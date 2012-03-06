@@ -577,6 +577,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
             if (!hasNext())
                 throw new NoSuchElementException();
             
+            // FIXME: this is buggy
             if (index == 0 || elements[index - 1] == element) {
                 // no element was removed, so advance the index
                 element = elements[index++];

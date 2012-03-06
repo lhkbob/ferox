@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ferox</artifactId>
-        <groupId>com.googlecode.ferox</groupId>
+        <groupId>com.lhkbob.ferox</groupId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <groupId>com.googlecode.ferox</groupId>
+    <groupId>com.lhkbob.ferox</groupId>
     <artifactId>ferox-math</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -15,7 +15,7 @@
     
     <dependencies>
         <dependency>
-            <groupId>com.googlecode.ferox</groupId>
+            <groupId>com.lhkbob.ferox</groupId>
             <artifactId>ferox-collections</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
@@ -24,9 +24,9 @@
         <!-- Entreri is used for the math Property implementations,
              which is optional. -->
         <dependency>
-            <groupId>com.googlecode.entreri</groupId>
+            <groupId>com.lhkbob.entreri</groupId>
             <artifactId>entreri</artifactId>
-            <version>1.4.1</version>
+            <version>1.5.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
