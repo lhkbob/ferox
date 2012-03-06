@@ -1,6 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.math.Matrix4f;
+import com.ferox.math.MutableMatrix4f;
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.entreri.Matrix4fProperty;
 import com.googlecode.entreri.Component;
@@ -60,5 +61,16 @@ public final class Transform extends Component {
      */
     public ReadOnlyMatrix4f getMatrix() {
         return matrix.get(getIndex());
+    }
+
+    /**
+     * Return the matrix of this Transform in <tt>store</tt>. If store is null,
+     * a new matrix is created to hold the transform and returned.
+     * 
+     * @param store The result matrix to hold the transform
+     * @return The transform in store, or a new vector if store was null
+     */
+    public final MutableMatrix4f getMatrix(MutableMatrix4f store) {
+        return matrix.get(getIndex(), store);
     }
 }

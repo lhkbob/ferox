@@ -23,11 +23,11 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * bounds guarantees that the wrapped shape is not collided or intersected.
  * </p>
  * <p>
- * The ReadOnlyAxisAlignedBox is used by {@link SpatialHierarchy}
+ * The ReadOnlyAxisAlignedBox is used by {@link SpatialIndex}
  * implementations to efficiently organize shapes within a 3D space so that
  * spatial or view queries can run quickly. An ReadOnlyAxisAlignedBox assumes
- * the invariant that its getMax()imum vertex is greater than an or equal to its
- * getMin()imum vertex. If this is not true, the box is in an inconsistent state. In
+ * the invariant that its maximum vertex is greater than an or equal to its
+ * minimum vertex. If this is not true, the box is in an inconsistent state. In
  * general, it should be assumed that when an ReadOnlyAxisAlignedBox is used for
  * computational purposes in a method, it must be consistent. Only
  * {@link #intersect(ReadOnlyAxisAlignedBox, ReadOnlyAxisAlignedBox)} creates an
@@ -150,7 +150,7 @@ public abstract class ReadOnlyAxisAlignedBox {
         float distMin;
         int plane = 0;
 
-        Vector3f c = TEMP1.get();
+        Vector3f c = new Vector3f(); 
 
         ReadOnlyVector4f p;
         for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
@@ -300,41 +300,67 @@ public abstract class ReadOnlyAxisAlignedBox {
      * @throws NullPointerException if m is null
      */
     public AxisAlignedBox transform(ReadOnlyMatrix4f m, AxisAlignedBox result) {
-        // we use temporary vectors because this method isn't atomic,
-        // and result might be this box
-        MutableVector3f newMin = TEMP1.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
-        MutableVector3f newMax = TEMP2.get().set(m.get(0, 3), m.get(1, 3), m.get(2, 3));
+        // make sure we have an instance to work with
+        if (result == null)
+            result = new AxisAlignedBox();
         
-        float av, bv, cv;
-        int i, j;
-        for (i = 0; i < 3; i++) {
-            for (j = 0; j < 3; j++) {
-                cv = m.get(i, j);
-                av = cv * getMin().get(j);
-                bv = cv * getMax().get(j);
-                
-                if (av < bv) {
-                    newMin.set(i, newMin.get(i) + av);
-                    newMax.set(i, newMax.get(i) + bv);
-                } else {
-                    newMin.set(i, newMin.get(i) + bv);
-                    newMax.set(i, newMax.get(i) + av);
-                }
-            }
+        // cache these vectors so we're not making x18 abstract calls instead of
+        // just these 2
+        ReadOnlyVector3f min = getMin();
+        ReadOnlyVector3f max = getMax();
+        
+        // if we operate on this box, we need temporary vectors to accumulate
+        // the new bounds in (since it's not atomic), but if they're different,
+        // we can accumulate the transformed box directly within result
+        Vector3f newMin, newMax;
+        if (result == this) {
+            newMin = new Vector3f(); 
+            newMax = new Vector3f(); 
+        } else {
+            newMin = result.getMin();
+            newMax = result.getMax();
         }
         
-        // assign temporary vectors to the result
-        if (result != null) {
+        float av, bv, cv;
+        float minc, maxc;
+        int i, j;
+        for (i = 0; i < 3; i++) {
+            // we manipulate the ith coordinate in minc and maxc
+            // and then re-assign it at the end of the loop to reduce function calls
+            minc = m.get(i, 3);
+            maxc = minc;
+            
+            for (j = 0; j < 3; j++) {
+                cv = m.get(i, j);
+                av = cv * min.get(j);
+                bv = cv * max.get(j);
+                
+                if (av < bv) {
+                    minc += av;
+                    maxc += bv;
+                } else {
+                    minc += bv;
+                    maxc += av;
+                }
+            }
+            
+            newMin.set(i, minc);
+            newMax.set(i, maxc);
+        }
+        
+        // assign temporary vectors to the result if we're operating on this box,
+        // otherwise newMin/max == result.getMin/Max() so they've been updated 
+        // in place
+        if (result == this) {
             result.getMin().set(newMin);
             result.getMax().set(newMax);
-        } else
-            result = new AxisAlignedBox(newMin, newMax);
+        }
         return result;
     }
     
     @Override
     public int hashCode() {
-        return getMin().hashCode() ^ getMax().hashCode();
+        return (17 * getMin().hashCode()) ^ (31 * getMax().hashCode());
     }
     
     @Override
@@ -380,13 +406,4 @@ public abstract class ReadOnlyAxisAlignedBox {
             }
         }
     }
-
-    private static final ThreadLocal<Vector3f> TEMP1 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
-    private static final ThreadLocal<Vector3f> TEMP2 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
 }

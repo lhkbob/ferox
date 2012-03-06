@@ -4,7 +4,7 @@ import com.ferox.entity2.Component;
 import com.ferox.entity2.Entity;
 import com.ferox.entity2.EntitySystem;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Surface;
 import com.ferox.scene.BlinnPhongMaterial;
@@ -23,16 +23,16 @@ import com.ferox.util.Bag;
  * @author Michael Ludwig
  */
 public abstract class RenderConnection {
-    private static final AxisAlignedBox INFINITE = new AxisAlignedBox(new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY),
+    private static final ReadOnlyAxisAlignedBox INFINITE = new ReadOnlyAxisAlignedBox(new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY),
                                                                       new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY));
     private final Bag<Entity> renderEntities;
     private final Bag<Entity> shadowEntities;
     
     private final Bag<Component> lights;
-    private final Bag<AxisAlignedBox> lightBounds;
+    private final Bag<ReadOnlyAxisAlignedBox> lightBounds;
     
     private Component shadowLight;
-    private AxisAlignedBox shadowBounds;
+    private ReadOnlyAxisAlignedBox shadowBounds;
     private Frustum shadowFrustum;
     
     private Frustum viewFrustum;
@@ -46,7 +46,7 @@ public abstract class RenderConnection {
         renderEntities = new Bag<Entity>();
         shadowEntities = new Bag<Entity>();
         lights = new Bag<Component>();
-        lightBounds = new Bag<AxisAlignedBox>();
+        lightBounds = new Bag<ReadOnlyAxisAlignedBox>();
     }
 
     /**
@@ -75,7 +75,7 @@ public abstract class RenderConnection {
     /**
      * <p>
      * Add a light that will influence the scene based on the provided light
-     * bounds. If <tt>lightBounds</tt> is null, an AxisAlignedBox that has
+     * bounds. If <tt>lightBounds</tt> is null, an ReadOnlyAxisAlignedBox that has
      * infinite dimensions is used.
      * </p>
      * <p>
@@ -89,13 +89,13 @@ public abstract class RenderConnection {
      * 
      * @param light The light data, either an AmbientLight, DirectionLight or
      *            SpotLight
-     * @param lightBounds The AxisAlignedBox representing the light's influence
+     * @param lightBounds The ReadOnlyAxisAlignedBox representing the light's influence
      *            or null
      * @param shadowFrustum A non-null Frustum if this light casts shadows, or
      *            null
      * @throws NullPointerException if light is null
      */
-    public void addLight(Component light, AxisAlignedBox lightBounds, Frustum shadowFrustum) {
+    public void addLight(Component light, ReadOnlyAxisAlignedBox lightBounds, Frustum shadowFrustum) {
         if (lightBounds == null)
             lightBounds = INFINITE;
         
@@ -162,7 +162,7 @@ public abstract class RenderConnection {
      *         paired with a light Component at the same index from the lights
      *         returned by {@link #getLights()}
      */
-    public Bag<AxisAlignedBox> getLightBounds() {
+    public Bag<ReadOnlyAxisAlignedBox> getLightBounds() {
         return lightBounds;
     }
     
@@ -194,7 +194,7 @@ public abstract class RenderConnection {
      * @return The bounds of the shadow-casting light. This will be null only
      *         when {@link #getShadowCastingLight()} is null
      */
-    public AxisAlignedBox getShadowCastingLightBounds() {
+    public ReadOnlyAxisAlignedBox getShadowCastingLightBounds() {
         return shadowBounds;
     }
     

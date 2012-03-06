@@ -140,6 +140,7 @@ public class JoglContext extends OpenGLContext {
      * @return The id of the currently bound texture image
      */
     public int getTexture(int tex) {
+        initializedMaybe();
         return textures[tex];
     }
 
@@ -148,6 +149,7 @@ public class JoglContext extends OpenGLContext {
      * @return The OpenGL texture target enum for the bound texture
      */
     public int getTextureTarget(int tex) {
+        initializedMaybe();
         return boundTargets[tex];
     }
 

@@ -320,10 +320,18 @@ public class ContextManager {
         lifecycleManager.getLock().lock();
         try {
             if (!lifecycleManager.isStopped()) {
-                if (atFront)
-                    thread.tasks.addFirst(task);
-                else
-                    thread.tasks.add(task);
+                boolean queued = false;
+                while(!queued) {
+                    if (atFront)
+                        queued = thread.tasks.offerFirst(task);
+                    else
+                        queued = thread.tasks.offerLast(task);
+                    
+                    try {
+                        if (!queued)
+                            Thread.sleep(1);
+                    } catch(InterruptedException ie) { }
+                }
             } else {
                 // LifecycleManager is shutting down or already has been, so cancel it
                 future.cancel(false);

@@ -10,7 +10,7 @@ import com.ferox.entity2.EntitySystem;
 import com.ferox.math.Color3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.ShadowCaster;
 import com.ferox.scene.SpotLight;
@@ -47,21 +47,21 @@ public class ShadowMapFrustumController extends Controller {
     
     private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
     
-    private final SpatialHierarchy<Entity> hierarchy;
+    private final SpatialIndex<Entity> hierarchy;
     
     private float shadowMapScale;
     private final int shadowMapSize;
 
     /**
      * Create a ShadowMapFrustumController for the given EntitySystem. The
-     * created controller will use the given {@link SpatialHierarchy} to
+     * created controller will use the given {@link SpatialIndex} to
      * determine visibility information when detecting the Entities that cast
      * shadows for shadow-mapping purposes. <tt>shadowMapSize</tt> is the
      * dimension size of the shadow-map. <tt>shadowMapScale</tt> is an
      * implementation parameter that controls the size of generated frustums.
      * 
      * @param system The EntitySystem which owns this controller
-     * @param hierarchy The SpatialHierarchy used to access the system's scene
+     * @param hierarchy The SpatialIndex used to access the system's scene
      *            data, should be the same as provided to the
      *            {@link SceneController}
      * @param shadowMapScale The scale parameter for frustum sizing
@@ -69,12 +69,12 @@ public class ShadowMapFrustumController extends Controller {
      * @throws NullPointerException if hierarchy or system are null
      * @throws IllegalArgumentException if shadowMapSize < 1
      */
-    public ShadowMapFrustumController(EntitySystem system, SpatialHierarchy<Entity> hierarchy, 
+    public ShadowMapFrustumController(EntitySystem system, SpatialIndex<Entity> hierarchy, 
                                       float shadowMapScale, int shadowMapSize) {
         super(system);
         
         if (hierarchy == null)
-            throw new NullPointerException("SpatialHierarchy cannot be null");
+            throw new NullPointerException("SpatialIndex cannot be null");
         if (shadowMapSize < 1)
             throw new IllegalArgumentException("Shadow map size must be at least 1: " + shadowMapSize);
         this.shadowMapSize = shadowMapSize;

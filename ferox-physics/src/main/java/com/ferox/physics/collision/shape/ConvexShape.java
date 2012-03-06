@@ -3,7 +3,7 @@ package com.ferox.physics.collision.shape;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.physics.collision.Shape;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
@@ -19,10 +19,10 @@ import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
  */
 public abstract class ConvexShape implements Shape {
     private float margin;
-    private final AxisAlignedBox bounds;
+    private final ReadOnlyAxisAlignedBox bounds;
     
     public ConvexShape() {
-        bounds = new AxisAlignedBox();
+        bounds = new ReadOnlyAxisAlignedBox();
         margin = .05f; // avoid setter so we don't call updateBounds()
     }
 
@@ -48,7 +48,7 @@ public abstract class ConvexShape implements Shape {
     public abstract MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result);
 
     @Override
-    public AxisAlignedBox getBounds() {
+    public ReadOnlyAxisAlignedBox getBounds() {
         return bounds;
     }
 

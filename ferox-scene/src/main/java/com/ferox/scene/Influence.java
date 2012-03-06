@@ -4,13 +4,13 @@ import java.util.Set;
 
 import com.ferox.entity2.Entity;
 import com.ferox.entity2.TypedComponent;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 
 // FIXME: does it make more sense to set this on the actor,
 // or the things that can be acted upon?
 // e.g. say a renderable claims it must or cannot be influenced by a light?
 public class Influence extends TypedComponent<Influence> {
-    private final AxisAlignedBox bounds;
+    private final ReadOnlyAxisAlignedBox bounds;
     private float radius;
     
     private final Set<Entity> exclude;

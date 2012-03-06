@@ -5,7 +5,7 @@ import com.ferox.entity2.ComponentId;
 import com.ferox.entity2.Entity;
 import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector4f;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Surface;
@@ -47,7 +47,7 @@ public class ShadowedLightingPass extends AbstractFixedFunctionRenderPass {
     @Override
     protected void render(FixedFunctionRenderer ffp) {
         Component shadowLight = connection.getShadowCastingLight();
-        AxisAlignedBox shadowBounds = connection.getShadowCastingLightBounds();
+        ReadOnlyAxisAlignedBox shadowBounds = connection.getShadowCastingLightBounds();
         
         Frustum shadowFrustum = connection.getShadowFrustum();
         Bag<Entity> renderAtoms = connection.getRenderedEntities();

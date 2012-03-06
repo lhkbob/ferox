@@ -1,9 +1,12 @@
 package com.ferox.renderer.impl.jogl;
 
+import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Context;
+import com.ferox.renderer.DisplayMode;
+import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
@@ -30,12 +33,12 @@ public class FixedFunctionRenderTest {
     public static void main(String[] args) throws Exception {
         Framework framework = JoglFramework.create(1, false, false, true, false);
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
-        OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(1440)
-                                                                                     .setHeight(900)
-//                                                                                     .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
+        OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
+                                                                                     .setHeight(600)
+                                                                                     .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
                                                                                      .setResizable(false)
                                                                                      .setDepthFormat(DepthFormat.DEPTH_24BIT));
-        
+//        window.setVSyncEnabled(true);
         FixedFunctionPass pass = new FixedFunctionPass(window);
         try {
             long now = System.currentTimeMillis();
@@ -119,14 +122,23 @@ public class FixedFunctionRenderTest {
                 g.setTexture(0, volume);
                 g.setTextureCoordGeneration(0, TexCoord.R, TexCoordSource.OBJECT);
                 
-                g.setModelViewMatrix(f.getViewMatrix());
                 g.setProjectionMatrix(f.getProjectionMatrix());
                 
+                Matrix4f t = new Matrix4f();
                 int rendered = 0;
-                if (shape.getIndices() != null)
-                    rendered = g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
-                else
-                    rendered = g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
+                for (int i = 0; i < 10000; i++) {
+                    t.setIdentity();
+                    t.set(0, 3, (float) Math.random() * 100 - 50);
+                    t.set(1, 3, (float) Math.random() * 100 - 50);
+                    t.set(2, 3, (float) Math.random() * 100 - 50);
+
+                    g.setModelViewMatrix(f.getViewMatrix().mul(t, t));
+                    
+                    if (shape.getIndices() != null)
+                        rendered += g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
+                    else
+                        rendered += g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
+                }   
                 
                 if (!statusChecked) {
                     statusChecked = true;

@@ -1,7 +1,7 @@
 package com.ferox.physics.collision;
 
 import com.ferox.math.MutableVector3f;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 
 /**
  * <p>
@@ -29,7 +29,7 @@ public interface Shape {
      * 
      * @return The Shape's local bounds
      */
-    public AxisAlignedBox getBounds();
+    public ReadOnlyAxisAlignedBox getBounds();
 
     /**
      * Return the vector containing the inertia tensor for this shape, in its

@@ -1,5 +1,6 @@
 package com.ferox.scene;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.entreri.Vector3fProperty;
@@ -110,4 +111,16 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     public ReadOnlyVector3f getDirection() {
         return direction.get(getIndex());
     }
+
+    /**
+     * Return the local direction of this light in <tt>store</tt>. If store is
+     * null, a new vector is created to hold the direction and returned.
+     * 
+     * @param store The result vector to hold the direction
+     * @return The local direction in store, or a new vector if store was null
+     */
+    public final MutableVector3f getDirection(MutableVector3f store) {
+        return direction.get(getIndex(), store);
+    }
 }
+

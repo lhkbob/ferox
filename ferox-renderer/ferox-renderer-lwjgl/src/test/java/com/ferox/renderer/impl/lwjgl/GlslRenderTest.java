@@ -82,6 +82,8 @@ public class GlslRenderTest {
                 
                 frames++;
                 if (System.currentTimeMillis() - now > 1000) {
+                    Runtime r = Runtime.getRuntime();
+                    System.out.printf("Memory: %.2f of %.2f\n", (r.totalMemory() - r.freeMemory()) / (1024f * 1024f), r.totalMemory() / (1024f * 1024f));
                     System.out.println("FPS: " + frames);
                     frames = 0;
                     now = System.currentTimeMillis();

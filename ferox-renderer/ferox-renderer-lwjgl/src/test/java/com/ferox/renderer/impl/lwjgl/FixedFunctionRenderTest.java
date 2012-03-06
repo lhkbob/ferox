@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.math.Matrix4f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.Frustum;
@@ -30,12 +31,12 @@ public class FixedFunctionRenderTest {
     public static void main(String[] args) throws Exception {
         Framework framework = LwjglFramework.create(1, false, false, false, false);
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
-        OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(1440)
-                                                                                     .setHeight(900)
+        OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
+                                                                                     .setHeight(600)
 //                                                                                     .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
                                                                                      .setResizable(false)
                                                                                      .setDepthFormat(DepthFormat.DEPTH_24BIT));
-        
+        window.setVSyncEnabled(true);
         FixedFunctionPass pass = new FixedFunctionPass(window);
         try {
             long now = System.currentTimeMillis();
@@ -49,6 +50,8 @@ public class FixedFunctionRenderTest {
                 
                 frames++;
                 if (System.currentTimeMillis() - now > 1000) {
+                    Runtime r = Runtime.getRuntime();
+                    System.out.printf("Memory: %.2f of %.2f\n", (r.totalMemory() - r.freeMemory()) / (1024f * 1024f), r.totalMemory() / (1024f * 1024f));
                     System.out.println("FPS: " + frames);
                     frames = 0;
                     now = System.currentTimeMillis();
@@ -60,7 +63,9 @@ public class FixedFunctionRenderTest {
     }
     
     private static class FixedFunctionPass implements Task<Void> {
-        final Geometry shape;
+        final Geometry box;
+        final Geometry sphere;
+        final Geometry teapot;
         
         final Texture volume;
         
@@ -72,7 +77,9 @@ public class FixedFunctionRenderTest {
         public FixedFunctionPass(Surface surface) {
             this.surface = surface;
             
-            shape = new Sphere(2f, 32, StorageMode.GPU_STATIC);
+            box = new Sphere(2f, 32, StorageMode.GPU_STATIC); //new Box(2f, StorageMode.GPU_STATIC);
+            sphere = new Sphere(2f, 32, StorageMode.GPU_STATIC);
+            teapot = new Sphere(2f, 32, StorageMode.GPU_STATIC); //new Teapot(.5f, StorageMode.GPU_STATIC);
             
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
             f.setOrientation(new Vector3f(0f, 3f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
@@ -94,7 +101,7 @@ public class FixedFunctionRenderTest {
                     }
                 }
             }
-            
+
             Mipmap data = new Mipmap(new BufferData(volumeBuffer), width, height, depth, TextureFormat.RGBA);
             volume = new Texture(Target.T_3D, data);
             volume.setFilter(Filter.NEAREST);
@@ -112,32 +119,48 @@ public class FixedFunctionRenderTest {
                 
                 g.setDrawStyle(DrawStyle.SOLID);
                 
-                g.setVertices(shape.getVertices());
-                g.setNormals(shape.getNormals());
-                g.setTextureCoordinates(0, shape.getTextureCoordinates());
+                
                 
                 g.setTexture(0, volume);
                 g.setTextureCoordGeneration(0, TexCoord.R, TexCoordSource.OBJECT);
                 
-                g.setModelViewMatrix(f.getViewMatrix());
                 g.setProjectionMatrix(f.getProjectionMatrix());
                 
+                Geometry shape;
+                Matrix4f t = new Matrix4f();
                 int rendered = 0;
-                if (shape.getIndices() != null)
-                    rendered = g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
-                else
-                    rendered = g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
+                int num = 10000;
+                int thirds = num / 3;
+                for (int i = 0; i < num; i++) {
+                    t.setIdentity();
+                    t.set(0, 3, (float) Math.random() * 100 - 50);
+                    t.set(1, 3, (float) Math.random() * 100 - 50);
+                    t.set(2, 3, (float) Math.random() * 100 - 50);
+
+                    g.setModelViewMatrix(f.getViewMatrix().mul(t, t));
+
+//                    switch(i % 3) {
+                    switch(i / thirds) {
+//                    switch((int) (Math.random() * 3)) {
+                    case 0: shape = box; break;
+                    case 1: shape = sphere; break;
+                    case 2: shape = teapot; break;
+                    default: shape = sphere; break;
+                    }
+                    
+                    g.setVertices(shape.getVertices());
+                    g.setNormals(shape.getNormals());
+                    g.setTextureCoordinates(0, shape.getTextureCoordinates());
+                    
+                    if (shape.getIndices() != null)
+                        rendered += g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
+                    else
+                        rendered += g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
+                }
                 
                 if (!statusChecked) {
                     statusChecked = true;
-                    
                     System.out.println("Rendered count: " + rendered);
-                    
-                    System.out.println("\nvertices status: " + surface.getFramework().getStatus(shape.getVertices().getData()));
-                    System.out.println("\nnormals status: " + surface.getFramework().getStatus(shape.getNormals().getData()));
-                    System.out.println("\ntexcoords status: " + surface.getFramework().getStatus(shape.getTextureCoordinates().getData()));
-
-                    System.out.println("\ntexture status: " + surface.getFramework().getStatus(volume) + " " + surface.getFramework().getStatusMessage(volume));
                 }
             }
             

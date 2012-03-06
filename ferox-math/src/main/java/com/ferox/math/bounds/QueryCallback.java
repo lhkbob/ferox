@@ -1,7 +1,7 @@
 package com.ferox.math.bounds;
 
 /**
- * QueryCallback is a callback that can be passed into a SpatialHierarchy when
+ * QueryCallback is a callback that can be passed into a SpatialIndex when
  * querying the hierarchy with a frustum or box query.
  * 
  * @author Michael Ludwig
@@ -11,18 +11,21 @@ package com.ferox.math.bounds;
 public interface QueryCallback<T> {
     /**
      * <p>
-     * Invoked by a SpatialHierarchy when its
-     * {@link SpatialHierarchy#query(ReadOnlyAxisAlignedBox, QueryCallback)} or
-     * {@link SpatialHierarchy#query(Frustum, QueryCallback)} method is called,
-     * for each item satisfying the query.
+     * Invoked by a SpatialIndex when its
+     * {@link SpatialIndex#query(ReadOnlyAxisAlignedBox, QueryCallback)} or
+     * {@link SpatialIndex#query(Frustum, QueryCallback)} method is called, for
+     * each item satisfying the query.
      * </p>
      * <p>
      * Item query satisfaction is determined by the bounds the items were last
      * updated with, or their original bounds used when adding to the hierarchy,
-     * if they were never updated.
+     * if they were never updated. The bounds of the item are provided to the
+     * callback, although the instance should not be held onto as the
+     * SpatialIndex may cache the instance.
      * </p>
      * 
      * @param item The item passing the query
+     * @param bounds The bounds the given item had in the index
      */
-    public void process(T item);
+    public void process(T item, ReadOnlyAxisAlignedBox bounds);
 }

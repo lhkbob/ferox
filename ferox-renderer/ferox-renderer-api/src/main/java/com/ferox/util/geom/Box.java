@@ -3,6 +3,7 @@ package com.ferox.util.geom;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -26,6 +27,8 @@ public class Box implements Geometry {
     private final VertexAttribute vertices;
     private final VertexAttribute normals;
     private final VertexAttribute texCoords;
+    
+    private final ReadOnlyAxisAlignedBox bounds;
     
     /**
      * Construct a box centered on its origin, with the given side length. So,
@@ -138,6 +141,8 @@ public class Box implements Geometry {
         vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
         normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
         texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+        
+        bounds = new AxisAlignedBox(new Vector3f(minX, minY, minZ), new Vector3f(maxX, maxY, maxZ));
     }
 
     @Override
@@ -181,8 +186,7 @@ public class Box implements Geometry {
     }
 
     @Override
-    public AxisAlignedBox getBounds() {
-        // FIXME
-        throw new UnsupportedOperationException();
+    public ReadOnlyAxisAlignedBox getBounds() {
+        return bounds;
     }
 }

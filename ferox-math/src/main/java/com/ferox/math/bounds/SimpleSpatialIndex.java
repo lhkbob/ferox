@@ -4,23 +4,23 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.util.Bag;
 
 /**
- * SimpleSpatialHierarchy is a SpatialHierarchy that performs no spatial
+ * SimpleSpatialIndex is a SpatialIndex that performs no spatial
  * organization. Each query performs a linear scan through the elements within
  * the hierarchy. Inserts, updates and removals are always constant time, and
- * the SimpleSpatialHierarchy always accepts every element added to it. It is
+ * the SimpleSpatialIndex always accepts every element added to it. It is
  * intended that this hierarchy be used to test the validity of other
  * implementations.
  * 
  * @author Michael Ludwig
  * @param <T> The Class type of elements within this hierarchy
  */
-public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
+public class SimpleSpatialIndex<T> implements SpatialIndex<T> {
     private final Bag<SimpleKey<T>> elements;
     
     /**
-     * Create a new SimpleSpatialHierarchy that is initially empty.
+     * Create a new SimpleSpatialIndex that is initially empty.
      */
-    public SimpleSpatialHierarchy() {
+    public SimpleSpatialIndex() {
         elements = new Bag<SimpleKey<T>>();
     }
     
@@ -38,7 +38,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
     
     @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public void update(T item, ReadOnlyAxisAlignedBox bounds, Object key) {
+    public boolean update(T item, ReadOnlyAxisAlignedBox bounds, Object key) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         if (key == null)
@@ -49,7 +49,7 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
             if (sk.owner == this && sk.data == item) {
                 // key is valid, update bounds and return
                 sk.bounds = bounds;
-                return;
+                return true;
             }
         }
         
@@ -138,9 +138,9 @@ public class SimpleSpatialHierarchy<T> implements SpatialHierarchy<T> {
         private ReadOnlyAxisAlignedBox bounds;
         
         private int index;
-        private final SimpleSpatialHierarchy<T> owner;
+        private final SimpleSpatialIndex<T> owner;
         
-        public SimpleKey(SimpleSpatialHierarchy<T> owner, T data) {
+        public SimpleKey(SimpleSpatialIndex<T> owner, T data) {
             this.owner = owner;
             this.data = data;
         }

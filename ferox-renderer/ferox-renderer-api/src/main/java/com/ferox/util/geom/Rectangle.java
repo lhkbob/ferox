@@ -4,6 +4,7 @@ import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -27,6 +28,8 @@ public class Rectangle implements Geometry {
     private final VertexAttribute vertices;
     private final VertexAttribute normals;
     private final VertexAttribute texCoords;
+    
+    private final ReadOnlyAxisAlignedBox bounds;
 
     /**
      * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis
@@ -147,6 +150,8 @@ public class Rectangle implements Geometry {
         vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
         normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
         texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+        
+        bounds = new AxisAlignedBox(va, 0, 5, 4);
     }
 
     @Override
@@ -190,8 +195,7 @@ public class Rectangle implements Geometry {
     }
 
     @Override
-    public AxisAlignedBox getBounds() {
-        // FIXME:
-        throw new UnsupportedOperationException();
+    public ReadOnlyAxisAlignedBox getBounds() {
+        return bounds;
     }
 }

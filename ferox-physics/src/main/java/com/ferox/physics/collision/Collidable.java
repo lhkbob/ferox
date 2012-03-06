@@ -4,7 +4,7 @@ import java.util.BitSet;
 
 import com.ferox.math.ReadOnlyMatrix4f;
 import com.ferox.math.AffineTransform;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 
 /**
  * <p>
@@ -36,7 +36,7 @@ public class Collidable {
     private final BitSet collisionMask;
 
     private final AffineTransform worldTransform;
-    private final AxisAlignedBox worldAabb;
+    private final ReadOnlyAxisAlignedBox worldAabb;
     private Shape bounds;
     
     private float restitution;
@@ -61,7 +61,7 @@ public class Collidable {
         
         worldTransform = new AffineTransform(t);
         bounds = shape;
-        worldAabb = new AxisAlignedBox();
+        worldAabb = new ReadOnlyAxisAlignedBox();
         
         collisionGroups = new BitSet();
         collisionMask = new BitSet();
@@ -242,7 +242,7 @@ public class Collidable {
      * 
      * @return The world bounds of this Collidable
      */
-    public AxisAlignedBox getWorldBounds() {
+    public ReadOnlyAxisAlignedBox getWorldBounds() {
         return worldAabb;
     }
     

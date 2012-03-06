@@ -18,11 +18,13 @@
             <groupId>com.googlecode.ferox</groupId>
             <artifactId>ferox-math</artifactId>
             <version>${project.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.entreri</groupId>
             <artifactId>entreri</artifactId>
-            <version>1.0.1</version>
+            <version>1.1.0</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

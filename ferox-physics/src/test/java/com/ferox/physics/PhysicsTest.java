@@ -13,10 +13,10 @@ import com.ferox.input.logic.Trigger;
 import com.ferox.math.Color3f;
 import com.ferox.math.AffineTransform;
 import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
-import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.SpatialHierarchyCollisionManager;
 import com.ferox.physics.dynamics.DiscretePhysicsWorld;
@@ -92,7 +92,7 @@ public class PhysicsTest {
         ThreadQueueManager organizer = new ThreadQueueManager(framework);
         
         final EntitySystem system = new EntitySystem();
-        SpatialHierarchy<Entity> sh = new Octree<Entity>(Strategy.STATIC, BOUNDS, 3);
+        SpatialIndex<Entity> sh = new Octree<Entity>(Strategy.STATIC, BOUNDS, 3);
         
         PhysicsWorldConfiguration config = new PhysicsWorldConfiguration().setCollisionManager(new SpatialHierarchyCollisionManager(new Octree<Collidable>(Strategy.STATIC, BOUNDS, 3)));
         
@@ -226,9 +226,9 @@ public class PhysicsTest {
     private static void buildScene(EntitySystem scene) throws Exception {
         // shapes
         PrimitiveGeometry box = new Box(2 + 2 * MARGIN, COMPILE_TYPE);
-        AxisAlignedBox boxBounds = new AxisAlignedBox(box.getVertices().getData());
+        ReadOnlyAxisAlignedBox boxBounds = new ReadOnlyAxisAlignedBox(box.getVertices().getData());
         PrimitiveGeometry sphere = new Sphere(1 + MARGIN, 16, COMPILE_TYPE);
-        AxisAlignedBox sphereBounds = new AxisAlignedBox(sphere.getVertices().getData());
+        ReadOnlyAxisAlignedBox sphereBounds = new ReadOnlyAxisAlignedBox(sphere.getVertices().getData());
         
         Shape boxElem = new Shape(box);
         Shape sphereElem = new Shape(sphere);
@@ -261,7 +261,7 @@ public class PhysicsTest {
                 float z = startZ + (float) (Math.sin(phi) * Math.sin(theta) * 12f) + 5;
                 System.out.println(x + ", " + y + ", " + z);
                 com.ferox.physics.collision.Shape physShape;
-                AxisAlignedBox bounds;
+                ReadOnlyAxisAlignedBox bounds;
                 Shape geomShape;
                 
                 physShape = sphereShape;
@@ -288,7 +288,7 @@ public class PhysicsTest {
             for (int y = 0; y < NUM_Y; y++) {
                 for (int x = 0; x < NUM_X; x++) {
                     com.ferox.physics.collision.Shape physShape;
-                    AxisAlignedBox bounds;
+                    ReadOnlyAxisAlignedBox bounds;
                     Shape geomShape;
                     
 //                    if (Math.random() > PERCENT) {
@@ -323,7 +323,7 @@ public class PhysicsTest {
         Transform pos = new Transform();
         Rectangle bottomWall = new Rectangle(new Vector3f(1f, 0f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS, -BOUNDS, BOUNDS);
         pos.setTranslation(new Vector3f(0f, 0f, 0f));
-        pos.setLocalBounds(new AxisAlignedBox(bottomWall.getVertices().getData()));
+        pos.setLocalBounds(new ReadOnlyAxisAlignedBox(bottomWall.getVertices().getData()));
         
         scene.add(new Entity(pos, new Shape(bottomWall), material, texture, new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 

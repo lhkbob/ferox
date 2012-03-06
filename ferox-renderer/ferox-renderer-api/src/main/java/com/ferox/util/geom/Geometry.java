@@ -1,6 +1,6 @@
 package com.ferox.util.geom;
 
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
@@ -22,7 +22,7 @@ public interface Geometry {
      * 
      * @return The bounds of the geometry in its local coordinate system
      */
-    public AxisAlignedBox getBounds();
+    public ReadOnlyAxisAlignedBox getBounds();
     
     /**
      * Return the polygon type that determines how consecutive vertex elements

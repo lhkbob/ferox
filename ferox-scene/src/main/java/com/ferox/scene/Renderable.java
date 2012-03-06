@@ -1,5 +1,9 @@
 package com.ferox.scene;
 
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.Frustum;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
+import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData.DataType;
@@ -7,6 +11,8 @@ import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.util.geom.Geometry;
 import com.googlecode.entreri.Component;
+import com.googlecode.entreri.Controller;
+import com.googlecode.entreri.Entity;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.InitParams;
 import com.googlecode.entreri.TypedId;
@@ -37,15 +43,11 @@ import com.googlecode.entreri.property.Parameter;
  * @author Michael Ludwig
  */
 @InitParams({ VertexAttribute.class })
-public final class Renderable extends Component {
+public final class Renderable extends EntitySetComponent {
     /**
      * The shared TypedId representing Renderable.
      */
     public static final TypedId<Renderable> ID = Component.getTypedId(Renderable.class);
-    
-    @Parameter(type=int.class, value="2")
-    private ObjectProperty<DrawStyle> drawStyles; // 0 = front, 1 = back
-
     
     private ObjectProperty<VertexAttribute> vertices;
     private ObjectProperty<VertexBufferObject> indices;
@@ -53,6 +55,9 @@ public final class Renderable extends Component {
     
     @Parameter(type=int.class, value="2")
     private IntProperty indexConfig; // 0 = offset, 1 = count
+    
+    private AxisAlignedBoxProperty localBounds;
+    private AxisAlignedBoxProperty worldBounds;
 
     private Renderable(EntitySystem system, int index) {
         super(system, index);
@@ -60,8 +65,9 @@ public final class Renderable extends Component {
     
     @Override
     protected void init(Object... initParams) {
+        super.init();
+        
         setVertices((VertexAttribute) initParams[0]);
-        setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE);
         
         // This is a little lame, but it will result in entirely valid
         // geometry, so it's a good default
@@ -215,58 +221,154 @@ public final class Renderable extends Component {
     }
 
     /**
-     * Set both front and back draw styles for this Renderable.
+     * Return true if this Entity has been flagged as visible to the given
+     * Entity. Generally, it is assumed that <tt>e</tt> provides a Frustum
+     * somehow (e.g. {@link Camera}. Implementations of {@link Controller} are
+     * responsible for using this as appropriate
      * 
-     * @param front The DrawStyle for front-facing polygons
-     * @param back The DrawStyle for back-facing polygons
-     * @return This component, for chaining purposes
-     * @throws NullPointerException if front or back are null
+     * @param e The Entity to check visibility
+     * @return Whether or not this component's entity is visible to e
+     * @throws NullPointerException if f is null
      */
-    public Renderable setDrawStyle(DrawStyle front, DrawStyle back) {
-        return setDrawStyleFront(front).setDrawStyleBack(back);
+    public boolean isVisible(Entity e) {
+        return contains(e.getId());
     }
 
     /**
-     * Set the DrawStyle used when rendering front-facing polygons of this
-     * Renderable.
+     * As {@link #isVisible(Entity)} but only requires the id of an entity.
      * 
-     * @param front The front-facing DrawStyle
-     * @return This component, for chaining purposes
-     * @throws NullPointerException if front is null
+     * @param entityId The entity id to check visibility
+     * @return Whether or not this component's entity is visible to entityId
      */
-    public Renderable setDrawStyleFront(DrawStyle front) {
-        if (front == null)
-            throw new NullPointerException("DrawStyle cannot be null");
-        drawStyles.set(front, getIndex(), 0);
+    public boolean isVisible(int entityId) {
+        return contains(entityId);
+    }
+
+    /**
+     * Set whether or not this Entity is considered visible to the Entity,
+     * <tt>e</tt>. The method is provided so that Controllers can implement
+     * their own visibility algorithms, instead of relying solely on
+     * {@link ReadOnlyAxisAlignedBox#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
+     * . It is generally assumed that the input Entity somehow provides a
+     * {@link Frustum}.
+     * 
+     * @param e The Entity whose visibility is assigned
+     * @param pv Whether or not the Entity is visible to e
+     * @return This component, for chaining purposes
+     * @throws NullPointerException if f is null
+     */
+    public Renderable setVisible(Entity e, boolean pv) {
+        return setVisible(e.getId(), pv);
+    }
+
+    /**
+     * As {@link #setVisible(Entity, boolean)} but only requires the id of an
+     * entity.
+     * 
+     * @param entityId The entity id to check visibility
+     * @param pv Whether or not this component's entity is visible to entityId
+     * @return This component, for chaining purposes
+     */
+    public Renderable setVisible(int entityId, boolean pv) {
+        if (pv)
+            put(entityId);
+        else
+            remove(entityId);
         return this;
     }
 
     /**
-     * @return The DrawStyle used for front-facing polygons
-     */
-    public DrawStyle getDrawStyleFront() {
-        return drawStyles.get(getIndex(), 0);
-    }
-
-    /**
-     * Set the DrawStyle used when rendering back-facing polygons of this
-     * Renderable.
+     * Reset the visibility flags so that the Entity is no longer visible to any
+     * Frustums. Subsequent calls to {@link #isVisible(Entity)} will return
+     * false until a Entity has been flagged as visible via
+     * {@link #setVisible(Entity, boolean)}.
      * 
-     * @param back The back-facing DrawStyle
      * @return This component, for chaining purposes
-     * @throws NullPointerException if back is null
      */
-    public Renderable setDrawStyleBack(DrawStyle back) {
-        if (back == null)
-            throw new NullPointerException("DrawStyle cannot be null");
-        drawStyles.set(back, getIndex(), 1);
+    public Renderable resetVisibility() {
+        clear();
         return this;
     }
 
     /**
-     * @return The DrawStyle used for back-facing polygons
+     * Return the local bounds of the Renderable. The local bounds will be
+     * placed in <tt>store</tt>, or a new AxisAlignedBox will be created to hold
+     * the local bounds.
+     * 
+     * @return The local bounds
      */
-    public DrawStyle getDrawStyleBack() {
-        return drawStyles.get(getIndex(), 1);
+    public AxisAlignedBox getLocalBounds(AxisAlignedBox store) {
+        return localBounds.get(getIndex(), store);
+    }
+
+    /**
+     * Return the local bounds of this Renderable within a read-only cached
+     * instance. This instance is shared across all renderables in the same
+     * system, so calling this method on another renderable will overwrite the
+     * returned bounds state. Use {@link #getLocalBounds(AxisAlignedBox)} or
+     * clone the returned instance manually if correctness is required outside
+     * of iteration.
+     * 
+     * @return A cached local bounds instance
+     */
+    public ReadOnlyAxisAlignedBox getLocalBounds() {
+        return localBounds.get(getIndex());
+    }
+
+    /**
+     * Set the local bounds of this entity. The bounds should contain the
+     * entire geometry of the Entity, including any modifications dynamic
+     * animation might cause. 
+     * 
+     * @param bounds The new local bounds of the entity
+     * @return This component, for chaining purposes
+     * @throws NullPointerException if bounds is null
+     */
+    public Renderable setLocalBounds(ReadOnlyAxisAlignedBox bounds) {
+        localBounds.set(bounds, getIndex());
+        return this;
+    }
+
+    /**
+     * Return the world bounds of the Renderable. The world bounds will be
+     * placed in <tt>store</tt>, or a new AxisAlignedBox will be created to hold
+     * the local bounds. The returned world bounds may not accurately reflect
+     * the local bounds if the local bounds have been modified without
+     * recomputing the world bounds.
+     * 
+     * @return The world bounds
+     */
+    public AxisAlignedBox getWorldBounds(AxisAlignedBox store) {
+        return worldBounds.get(getIndex(), store);
+    }
+
+    /**
+     * Return the world bounds of this Renderable within a read-only cached
+     * instance. This instance is shared across all renderables in the same
+     * system, so calling this method on another renderable will overwrite the
+     * returned bounds state. Use {@link #getWorldBounds(AxisAlignedBox)} or
+     * clone the returned instance manually if correctness is required outside
+     * of iteration.
+     * 
+     * @return A cached world bounds instance
+     */
+    public ReadOnlyAxisAlignedBox getWorldBounds() {
+        return worldBounds.get(getIndex());
+    }
+
+    /**
+     * Set the world bounds of this entity. The bounds should contain the entire
+     * geometry of the Entity, including any modifications dynamic animation
+     * might cause, in world space. A controller or other processor must use
+     * this method to keep the world bounds in sync with any changes to the
+     * local bounds.
+     * 
+     * @param bounds The new world bounds of the entity
+     * @return This component, for chaining purposes
+     * @throws NullPointerException if bounds is null
+     */
+    public Renderable setWorldBounds(ReadOnlyAxisAlignedBox bounds) {
+        worldBounds.set(bounds, getIndex());
+        return this;
     }
 }

@@ -1,6 +1,8 @@
 package com.ferox.util.geom;
 
+import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -31,6 +33,8 @@ public class Sphere implements Geometry {
     
     private final VertexBufferObject indices;
 
+    private final ReadOnlyAxisAlignedBox bounds;
+    
     /**
      * Create a new Sphere with the given radius, a resolution of 8, and a
      * StorageMode of IN_MEMORY.
@@ -156,6 +160,8 @@ public class Sphere implements Geometry {
         vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
         normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
         texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+        
+        bounds = new AxisAlignedBox(new Vector3f(-radius, -radius, -radius), new Vector3f(radius, radius, radius));
     }
 
     @Override
@@ -199,8 +205,7 @@ public class Sphere implements Geometry {
     }
 
     @Override
-    public AxisAlignedBox getBounds() {
-        // FIXME
-        throw new UnsupportedOperationException();
+    public ReadOnlyAxisAlignedBox getBounds() {
+        return bounds;
     }
 }

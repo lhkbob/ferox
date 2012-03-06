@@ -7,7 +7,9 @@ import com.googlecode.entreri.Component;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.InitParams;
 import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.property.IntProperty;
 import com.googlecode.entreri.property.ObjectProperty;
+import com.googlecode.entreri.property.Parameter;
 
 /**
  * <p>
@@ -39,8 +41,18 @@ public final class Camera extends Component {
      */
     public static final TypedId<Camera> ID = Component.getTypedId(Camera.class);
     
+    // Indexes into the viewport bulk property
+    private static final int LEFT = 0;
+    private static final int RIGHT = 1;
+    private static final int BOTTOM = 2;
+    private static final int TOP = 3;
+    private static final int SCALE = 4;
+    
     private ObjectProperty<Surface> surface;
     private ObjectProperty<Frustum> frustum;
+    
+    @Parameter(type=int.class, value="5")
+    private IntProperty viewport;
 
     private Camera(EntitySystem system, int index) {
         super(system, index);
@@ -143,6 +155,66 @@ public final class Camera extends Component {
             f.setFrustum(true, 0, surface.getWidth(), 0, surface.getHeight(), znear, zfar);
         }
         
+        viewport.set(0, getIndex(), LEFT);
+        viewport.set(surface.getWidth(), getIndex(), RIGHT);
+        viewport.set(0, getIndex(), BOTTOM);
+        viewport.set(surface.getHeight(), getIndex(), TOP);
+        
+        return this;
+    }
+    
+    public int getViewportLeft() {
+        return viewport.get(getIndex(), LEFT);
+    }
+    
+    public Camera setViewportLeft(int left) {
+        viewport.set(left, getIndex(), LEFT);
+        return this;
+    }
+    
+    public int getViewportRight() {
+        return viewport.get(getIndex(), RIGHT);
+    }
+    
+    public Camera setViewportRight(int right) {
+        viewport.set(right, getIndex(), RIGHT);
+        return this;
+    }
+    
+    public int getViewportBottom() {
+        return viewport.get(getIndex(), BOTTOM);
+    }
+    
+    public Camera setViewportBottom(int bottom) {
+        viewport.set(bottom, getIndex(), BOTTOM);
+        return this;
+    }
+    
+    public int getViewportTop() {
+        return viewport.get(getIndex(), TOP);
+    }
+    
+    public Camera setViewportTop(int top) {
+        viewport.set(top, getIndex(), TOP);
+        return this;
+    }
+    
+    public Camera setViewport(int left, int right, int bottom, int top) {
+        return setViewportLeft(left)
+              .setViewportRight(right)
+              .setViewportBottom(bottom)
+              .setViewportTop(top);
+    }
+    
+    public boolean isViewportScaled() {
+        return viewport.get(getIndex(), SCALE) != 0;
+    }
+    
+    public Camera setViewportScaled(boolean scale) {
+        if (scale)
+            viewport.set(1, getIndex(), SCALE);
+        else
+            viewport.set(0, getIndex(), SCALE);
         return this;
     }
 }

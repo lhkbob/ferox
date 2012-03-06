@@ -68,7 +68,6 @@ public class LwjglRenderCapabilities extends RenderCapabilities {
     }
     
     private void query() {
-        int[] store = new int[1];
         ContextCapabilities caps = GLContext.getCapabilities();
         
         vendor = GL11.glGetString(GL11.GL_VENDOR) + "-" + GL11.glGetString(GL11.GL_RENDERER);
@@ -104,7 +103,6 @@ public class LwjglRenderCapabilities extends RenderCapabilities {
         fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || caps.GL_EXT_framebuffer_object);
         if (fboSupported) {
             maxColorTargets = GL11.glGetInteger(GL30.GL_MAX_COLOR_ATTACHMENTS);
-            maxColorTargets = store[0];
         } else
             maxColorTargets = 0;
         

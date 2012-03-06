@@ -7,17 +7,17 @@ import java.util.Map.Entry;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
-import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.math.bounds.SpatialIndex;
 
 /**
  * SpatialHierarchyCollisionManager is a CollisionManager implementation
- * that relies on the {@link SpatialHierarchy} implementations to determine
+ * that relies on the {@link SpatialIndex} implementations to determine
  * the set of potentially intersecting objects.
  * @author Michael Ludwig
  *
  */
 public class SpatialHierarchyCollisionManager implements CollisionManager {
-    private final SpatialHierarchy<Collidable> hierarchy;
+    private final SpatialIndex<Collidable> hierarchy;
     private final Map<Collidable, Key> hierarchyKeys;
     
     private volatile CollisionAlgorithmProvider handler;
@@ -33,31 +33,31 @@ public class SpatialHierarchyCollisionManager implements CollisionManager {
 
     /**
      * Create a new SpatialHierarchyCollisionManager that uses the provided
-     * SpatialHierarchy. It initially uses a DefaultCollisionAlgorithmProvider.
+     * SpatialIndex. It initially uses a DefaultCollisionAlgorithmProvider.
      * The manager assumes ownership over the hierarchy, and the hierarchy
      * should not be used by the caller anymore (it should also be empty when
      * passed to this constructor).
      * 
-     * @param hierarchy The SpatialHierarchy instance to use
+     * @param hierarchy The SpatialIndex instance to use
      * @throws NullPointerException if hierarchy is null
      */
-    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy) {
+    public SpatialHierarchyCollisionManager(SpatialIndex<Collidable> hierarchy) {
         this(hierarchy, new DefaultCollisionAlgorithmProvider());
     }
 
     /**
      * Create a new SpatialHierarchyCollisionManager with the provided
-     * SpatialHierarchy and CollisionAlgorithmProvider. The manager assumes
+     * SpatialIndex and CollisionAlgorithmProvider. The manager assumes
      * ownership over the hierarchy, and the hierarchy should not be used by the
      * caller anymore (it should also be empty when passed to this constructor).
      * 
-     * @param hierarchy The SpatialHierarchy instance to use
+     * @param hierarchy The SpatialIndex instance to use
      * @param handler The CollisionAlgorithProvider to use
      * @throws NullPointerException if hierarchy or handler are null
      */
-    public SpatialHierarchyCollisionManager(SpatialHierarchy<Collidable> hierarchy, CollisionAlgorithmProvider handler) {
+    public SpatialHierarchyCollisionManager(SpatialIndex<Collidable> hierarchy, CollisionAlgorithmProvider handler) {
         if (hierarchy == null)
-            throw new NullPointerException("SpatialHierarchy cannot be null");
+            throw new NullPointerException("SpatialIndex cannot be null");
         this.hierarchy = hierarchy;
         hierarchyKeys = new HashMap<Collidable, Key>();
         

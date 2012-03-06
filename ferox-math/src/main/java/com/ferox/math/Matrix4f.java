@@ -82,12 +82,12 @@ public final class Matrix4f extends MutableMatrix4f {
     
     @Override
     public float get(int row, int col) {
-        return m[col * 4 + row];
+        return m[(col << 2) + row];
     }
 
     @Override
     public MutableMatrix4f set(int row, int col, float value) {
-        m[col * 4 + row] = value;
+        m[(col << 2) + row] = value;
         return this;
     }
 

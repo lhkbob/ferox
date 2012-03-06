@@ -5,7 +5,7 @@ import java.util.BitSet;
 import com.ferox.entity2.Component;
 import com.ferox.entity2.ComponentId;
 import com.ferox.entity2.Entity;
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderPass;
@@ -31,7 +31,7 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
     private static final ComponentId<Transparent> T_ID = Component.getComponentId(Transparent.class);
     
     private final Component[] lightMap;
-    private final AxisAlignedBox[] boundMap;
+    private final ReadOnlyAxisAlignedBox[] boundMap;
     private final BitSet activeLights;
     
     public DefaultLightingPass(RenderConnection connection, int maxNumLights, int maxMaterialTexUnits,
@@ -39,14 +39,14 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
         super(connection, maxMaterialTexUnits, vertexBinding, normalBinding, texCoordBinding);
         
         lightMap = new Component[maxNumLights];
-        boundMap = new AxisAlignedBox[maxNumLights];
+        boundMap = new ReadOnlyAxisAlignedBox[maxNumLights];
         activeLights = new BitSet(maxNumLights);
     }
     
     @Override
     protected void render(FixedFunctionRenderer ffp) {
         Bag<Component> lightAtoms = connection.getLights();
-        Bag<AxisAlignedBox> boundAtoms = connection.getLightBounds();
+        Bag<ReadOnlyAxisAlignedBox> boundAtoms = connection.getLightBounds();
         Bag<Entity> renderAtoms = connection.getRenderedEntities();
         
         // setup state for handling blending when needed
@@ -80,9 +80,9 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
         activeLights.clear();
     }
     
-    private void assignLights(Entity ra, Bag<Component> lights, Bag<AxisAlignedBox> bounds) {
+    private void assignLights(Entity ra, Bag<Component> lights, Bag<ReadOnlyAxisAlignedBox> bounds) {
         Transform se = ra.get(SE_ID);
-        AxisAlignedBox aabb = (se == null ? null : se.getWorldBounds());
+        ReadOnlyAxisAlignedBox aabb = (se == null ? null : se.getWorldBounds());
         boolean receivesShadow = ra.get(SR_ID) != null;
         
         // first check all active lights to see which continue influencing the render atom
@@ -117,8 +117,8 @@ public class DefaultLightingPass extends AbstractFixedFunctionRenderPass {
         }
     }
     
-    private boolean enableLight(int light, AxisAlignedBox rBounds, boolean receivesShadow, 
-                                Component la, AxisAlignedBox lBounds) {
+    private boolean enableLight(int light, ReadOnlyAxisAlignedBox rBounds, boolean receivesShadow, 
+                                Component la, ReadOnlyAxisAlignedBox lBounds) {
         if (rBounds == null || lBounds.intersects(rBounds)) {
             if (lightMap[light] != la || la == connection.getShadowCastingLight()) {
                 if (la != connection.getShadowCastingLight() || !receivesShadow)

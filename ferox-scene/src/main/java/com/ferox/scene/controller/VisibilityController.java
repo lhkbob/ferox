@@ -2,67 +2,32 @@ package com.ferox.scene.controller;
 
 import java.util.Iterator;
 
-import com.ferox.entity2.Controller;
-import com.ferox.entity2.Entity;
-import com.ferox.entity2.EntitySystem;
-import com.ferox.entity2.Parallel;
-import com.ferox.math.bounds.Frustum;
-import com.ferox.math.bounds.SpatialHierarchy;
+import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Renderable;
-import com.ferox.scene.Visibility;
+import com.googlecode.entreri.AbstractController;
+import com.googlecode.entreri.EntitySystem;
 
-@Parallel(reads={Camera.class, SpatialHierarchy.class}, writes=Visibility.class)
-public class VisibilityController extends Controller {
-    private final SpatialHierarchy<Entity> hierarchy;
-    private final VisibilityListener listener;
-    
-    public VisibilityController(EntitySystem system, SpatialHierarchy<Entity> hierarchy) {
-        super(system);
-        if (hierarchy == null)
-            throw new NullPointerException("SpatialHierarchy cannot be null");
-        this.hierarchy = hierarchy;
-        listener = new VisibilityListener();
-        system.addEntityListener(listener);
-    }
-
+// FIXME: part of me likes being able to look up an entity's visibility on it,
+// but in many cases it is nicer to just process a list.
+// - is it wrong to maintain both forms of data?
+// - not really, especially with the primitive int set -> which should be updated
+//    to just use 4 elements and a linear scan instead of a binary search.
+// - Perhaps a custom IntSet/Collection for the object-expansion as well.
+public class VisibilityController extends AbstractController {
+    public static long time = 0;
     @Override
-    protected void executeImpl() {
-        Iterator<Visibility> vs = getEntitySystem().iterator(Visibility.ID);
-        while(vs.hasNext()) { 
-            vs.next().resetVisibility();
+    public void process(EntitySystem system, float dt) {
+        time -= System.nanoTime();
+        
+        SpatialIndex<Renderable> hierarchy = system.getControllerManager().getData(RenderableController.RENDERABLE_HIERARCHY);
+        
+        Iterator<Camera> it = system.fastIterator(Camera.ID);
+        while(it.hasNext()) {
+            Camera c = it.next();
+            hierarchy.query(c.getFrustum(), new VisibilityCallback(c.getEntity()));
         }
         
-        Iterator<Camera> it = getEntitySystem().iterator(Camera.ID);
-        while(it.hasNext()) {
-            Frustum f = it.next().getFrustum();
-            hierarchy.query(f, new VisibilityCallback(f));
-        }
-    }
-
-    @Override
-    protected void destroyImpl() {
-        Iterator<Visibility> it = getEntitySystem().iterator(Visibility.ID);
-        while(it.hasNext()) {
-            it.next();
-            it.remove();
-        }
-        getEntitySystem().removeEntityListener(listener);
-    }
-    
-    private static class VisibilityListener extends MetaComponentListener<Renderable, Visibility> {
-        public VisibilityListener() {
-            super(Renderable.class, Visibility.class);
-        }
-
-        @Override
-        protected void add(Entity e, Renderable component) {
-            // do nothing, the VisibilityCallback will handle it
-        }
-
-        @Override
-        protected void remove(Entity e, Visibility meta) {
-            // do nothing else since we already have removed the visibility component
-        }
+        time += System.nanoTime();
     }
 }

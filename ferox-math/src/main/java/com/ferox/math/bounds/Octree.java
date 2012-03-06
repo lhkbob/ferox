@@ -10,7 +10,7 @@ import com.ferox.util.Bag;
 
 /**
  * <p>
- * Octree is a SpatialHierarchy implementation that represents the octree data
+ * Octree is a SpatialIndex implementation that represents the octree data
  * structure. The octree partitions space into an organized hierarchy of cubes.
  * A cube node within the octree can be evenly split into 8 nested cubes which
  * partition its space. Many octree implementations restrict the size of the
@@ -18,40 +18,17 @@ import com.ferox.util.Bag;
  * Similarly, this octree supports relatively fast updates for moving objects.
  * </p>
  * <p>
- * This octree provides two variants on its behavior for storing items in its
- * tree. A {@link Strategy#STATIC static octree} only stores items in leaf nodes
- * and allows an item to be contained in multiple nodes. It features very fast
- * query times, especially with intersection pairs, but its updates and removals
- * are slower. A {@link Strategy#DYNAMIC dynamic octree} only stores items as
- * deep as possible before they overlap an edge of a node. This means that
- * updates and removals are very fast, but many items can be placed at the top
- * of the tree, reducing the efficiency of queries (especially intersection pair
- * queries).
+ * This octree only stores items as deep as possible before they overlap an edge
+ * of a node. This means that updates and removals are very fast, but many items
+ * can be placed at the top of the tree, reducing the efficiency of queries
+ * (especially intersection pair queries).
  * </p>
  * 
  * @author Michael Ludwig
  * @param <T> Class type of items contained by the Octree
  */
 @SuppressWarnings("unchecked")
-public class Octree<T> implements SpatialHierarchy<T> {
-    /**
-     * Strategy specifies the two available strategies for item placement within
-     * the octree. See above for more details.
-     */
-    public static enum Strategy {
-        /**
-         * Items are restricted to a single parent in the tree. Features fast
-         * updates and removals, reasonably fast visibility queries, slower
-         * intersection pair queries.
-         */
-        DYNAMIC,
-        /**
-         * Items are restricted to leaf nodes and exist in multiple leaves at a
-         * time. Features fast queries, but slower updates and removals.
-         */
-        STATIC
-    }
-    
+public class Octree<T> implements SpatialIndex<T> {
     public static final int DEFAULT_MAX_DEPTH = 6;
     
     private int queryNumber;
@@ -59,20 +36,16 @@ public class Octree<T> implements SpatialHierarchy<T> {
     private Node<T> root;
     private final AxisAlignedBox rootBounds; // all other node bounds implicit from this
     
-    private final Strategy strategy;
-    
     private final Bag<Key<T>> nullBounds;
     private final Set<Node<T>> pendingRemovals;
 
     /**
      * Create a new Octree with dimensions of 100 and an initial max depth of 6.
-     * As the octree expands to enclose more nodes, its depth and dimensions can increase.
-     * 
-     * @param strategy The desired strategy
-     * @throws NullPointerException if strategy is null
+     * As the octree expands to enclose more nodes, its depth and dimensions can
+     * increase.
      */
-    public Octree(Strategy strategy) {
-        this(strategy, 100f);
+    public Octree() {
+        this(100f);
     }
 
     /**
@@ -80,13 +53,11 @@ public class Octree<T> implements SpatialHierarchy<T> {
      * initial max depth of 6. As the octree expands to enclose more nodes, its
      * depth and dimensions can increase.
      * 
-     * @param strategy The desired strategy
      * @param side The desired side length for the root node
-     * @throws NullPointerException if strategy is null
      * @throws IllegalArgumentException if side is less than 0
      */
-    public Octree(Strategy strategy, float side) {
-        this(strategy, side, DEFAULT_MAX_DEPTH);
+    public Octree(float side) {
+        this(side, DEFAULT_MAX_DEPTH);
     }
 
     /**
@@ -94,16 +65,14 @@ public class Octree<T> implements SpatialHierarchy<T> {
      * specified initial max depth. As the octree expands to enclose more nodes,
      * its depth and dimensions can increase.
      * 
-     * @param strategy The desired strategy
      * @param side The desired side length for the root node
      * @param initialMaxDepth The initial max depth of the tree
-     * @throws NullPointerException if strategy is null
      * @throws IllegalArgumentException if side is less than 0, or if
      *             initialMaxDepth < 1
      */
-    public Octree(Strategy strategy, float side, int initialMaxDepth) {
-        this(strategy, new AxisAlignedBox(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
-                                          new Vector3f(side / 2f, side / 2f, side / 2f)),
+    public Octree(float side, int initialMaxDepth) {
+        this(new AxisAlignedBox(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
+                                new Vector3f(side / 2f, side / 2f, side / 2f)),
              initialMaxDepth);
     }
 
@@ -112,12 +81,11 @@ public class Octree<T> implements SpatialHierarchy<T> {
      * max tree depth of 6. As the octree expands to enclose more nodes, its
      * depth and dimensions can increase.
      * 
-     * @param strategy The desired strategy
      * @param extents The desired root node bounds
-     * @throws NullPointerException if strategy or extents are null
+     * @throws NullPointerException if extents is null
      */
-    public Octree(Strategy strategy, ReadOnlyAxisAlignedBox extents) {
-        this(strategy, extents, DEFAULT_MAX_DEPTH);
+    public Octree(ReadOnlyAxisAlignedBox extents) {
+        this(extents, DEFAULT_MAX_DEPTH);
     }
 
     /**
@@ -125,15 +93,12 @@ public class Octree<T> implements SpatialHierarchy<T> {
      * specified initial max depth. As the octree expands to enclose more nodes,
      * its depth and dimensions can increase.
      * 
-     * @param strategy The desired strategy
      * @param extents The desired root node bounds
      * @param initialMaxDepth The initial max depth of the tree
-     * @throws NullPointerException if strategy or extents are null
+     * @throws NullPointerException if extents is null
      * @throws IllegalArgumentException if initialMaxDepth < 1
      */
-    public Octree(Strategy strategy, ReadOnlyAxisAlignedBox extents, int initialMaxDepth) {
-        if (strategy == null)
-            throw new NullPointerException("Strategy cannot be null");
+    public Octree(ReadOnlyAxisAlignedBox extents, int initialMaxDepth) {
         if (extents == null)
             throw new NullPointerException("Extents cannot be null");
         if (initialMaxDepth <= 0)
@@ -142,8 +107,6 @@ public class Octree<T> implements SpatialHierarchy<T> {
             extents.getMax().getY() < extents.getMin().getY() ||
             extents.getMax().getZ() < extents.getMin().getZ())
             throw new IllegalArgumentException("Invalid root bounds: " + extents);
-        
-        this.strategy = strategy;
         
         rootBounds = new AxisAlignedBox(extents);
         root = new Node<T>(null, initialMaxDepth - 1);
@@ -260,18 +223,14 @@ public class Octree<T> implements SpatialHierarchy<T> {
         
         // prune tree before query to make it the most efficient possible
         pruneTree();
-        
-        if (strategy == Strategy.STATIC)
-            root.visitIntersecting(new AxisAlignedBox(rootBounds), new IntersectionQueryCallback<T>(callback), rootBounds, false);
-        else
-            queryIntersectionsDynamic(root, callback);
+        queryIntersections(root, callback);
     }
     
     /*
      * Internal implementations of queries based on the supported strategies
      */
     
-    private void queryIntersectionsDynamic(Node<T> node, IntersectionCallback<T> callback) {
+    private void queryIntersections(Node<T> node, IntersectionCallback<T> callback) {
         // append all intersections within this node
         detectIntersections(node, node, callback);
         
@@ -286,7 +245,7 @@ public class Octree<T> implements SpatialHierarchy<T> {
         if (node.children != null) {
             for (int i = 0; i < node.children.length; i++) {
                 if (node.children[i] != null)
-                    queryIntersectionsDynamic(node.children[i], callback);
+                    queryIntersections(node.children[i], callback);
             }
         }
     }
@@ -506,10 +465,6 @@ public class Octree<T> implements SpatialHierarchy<T> {
             
             if (index < 0)
                 index = items.indexOf(key);
-            if (index < 0) {
-                // wat? FIXME something is buggy here
-                return;
-            }
             items.remove(index);
             
             if (isRemovable())
@@ -661,9 +616,6 @@ public class Octree<T> implements SpatialHierarchy<T> {
     }
     
     private static class Key<T>  {
-        @SuppressWarnings("rawtypes")
-        private static final Node MULTI_PARENT = new Node(null, 0);
-
         final Octree<T> owner;
         final T data;
         
@@ -716,28 +668,15 @@ public class Octree<T> implements SpatialHierarchy<T> {
         }
         
         public void removeFromRoot() {
-            if (parent == MULTI_PARENT || parent == null) {
-                StaticUpdateCallback<T> remover = new StaticUpdateCallback<T>(this, false);
-                owner.root.visitIntersecting(bounds, remover, owner.rootBounds, false);
-            } else
-                parent.remove(this, nodeIndex);
-            
+            parent.remove(this, nodeIndex);
             parent = null;
         }
         
         public void addToRoot() {
-            if (owner.strategy == Strategy.DYNAMIC) {
-                DeepestNodeCallback<T> toAdd = new DeepestNodeCallback<T>();
-                owner.root.visitContaining(bounds, toAdd, owner.rootBounds, true);
-                parent = toAdd.deepestNode;
-                nodeIndex = parent.add(this);
-            } else {
-                // reset parent, so a single node is identified properly
-                parent = null;
-                
-                StaticUpdateCallback<T> adder = new StaticUpdateCallback<T>(this, true);
-                owner.root.visitIntersecting(bounds, adder, owner.rootBounds, true);
-            }
+            DeepestNodeCallback<T> toAdd = new DeepestNodeCallback<T>();
+            owner.root.visitContaining(bounds, toAdd, owner.rootBounds, true);
+            parent = toAdd.deepestNode;
+            nodeIndex = parent.add(this);
         }
     }
     
@@ -756,34 +695,6 @@ public class Octree<T> implements SpatialHierarchy<T> {
         public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
             if (deepestNode == null || node.depth < deepestNode.depth)
                 deepestNode = node;
-        }
-    }
-    
-    private static class StaticUpdateCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
-        final Key<T> key;
-        final boolean add;
-        
-        public StaticUpdateCallback(Key<T> key, boolean add) {
-            this.key = key;
-            this.add = add;
-        }
-        
-        @Override
-        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
-            if (node.isLeaf()) {
-                if (add) {
-                    int index = node.add(key);
-                    if (key.parent == null) {
-                        // so far, we're in a single node so track it
-                        key.parent = node;
-                        key.nodeIndex = index;
-                    } else {
-                        // no longer a single node, clear the parent
-                        key.parent = Key.MULTI_PARENT;
-                    }
-                } else
-                    node.remove(key, -1);
-            }
         }
     }
     
@@ -844,52 +755,6 @@ public class Octree<T> implements SpatialHierarchy<T> {
                     
                     // restore plane state
                     ps.set(save);
-                }
-            }
-        }
-    }
-    
-    private static class IntersectionQueryCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
-        final IntersectionCallback<T> callback;
-        
-        public IntersectionQueryCallback(IntersectionCallback<T> callback) {
-            this.callback = callback;
-        }
-        
-        @Override
-        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
-            if (node.items != null) {
-                float nx = nodeBounds.getMin().getX();
-                float ny = nodeBounds.getMin().getY();
-                float nz = nodeBounds.getMin().getZ();
-                
-                boolean iPastX, iPastY, iPastZ;
-                boolean skipX, skipY, skipZ;
-                
-                Key<T> ki, kj;
-                int ct = node.items.size();
-                for (int i = 0; i < ct; i++) {
-                    ki = node.items.get(i);
-                    iPastX = ki.bounds.getMin().getX() <= nx;
-                    iPastY = ki.bounds.getMin().getY() <= ny;
-                    iPastZ = ki.bounds.getMin().getZ() <= nz;
-                    
-                    // check same-node intersections
-                    for (int j = i + 1; j < ct; j++) {
-                        // FIXME: what happens when we're at the left edge of root bounds?
-                        // then we want to still include things
-                        kj = node.items.get(j);
-                        skipX = iPastX && kj.bounds.getMin().getX() <= nx;
-                        skipY = iPastY && kj.bounds.getMin().getY() <= ny;
-                        skipZ = iPastZ && kj.bounds.getMin().getZ() <= nz;
-                        
-                        if (!skipX && !skipY && !skipZ) {
-                            // this is the most negative node that both items exist in,
-                            // so we can report an intersection w/o worrying about duplicates
-                            if (ki.bounds.intersects(kj.bounds))
-                                callback.process(ki.data, kj.data);
-                        }
-                    }
                 }
             }
         }

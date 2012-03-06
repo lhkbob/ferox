@@ -50,6 +50,17 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
     }
 
     /**
+     * Return the color of this component in <tt>store</tt>. If store is null, a
+     * new color is created to hold the position and returned.
+     * 
+     * @param store The result color to hold the color
+     * @return The color in store, or a new vector if store was null
+     */
+    public final Color3f getPosition(Color3f store) {
+        return color.get(getIndex(), store);
+    }
+
+    /**
      * Set the color of this component by copying <tt>color</tt> into this
      * components color object.
      * 

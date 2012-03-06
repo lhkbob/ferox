@@ -1,5 +1,6 @@
 package com.ferox.scene;
 
+import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
 import com.ferox.math.entreri.Vector3fProperty;
@@ -43,6 +44,17 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      */
     public final ReadOnlyVector3f getPosition() {
         return position.get(getIndex());
+    }
+
+    /**
+     * Return the local position of this light in <tt>store</tt>. If store is
+     * null, a new vector is created to hold the position and returned.
+     * 
+     * @param store The result vector to hold the position
+     * @return The local position in store, or a new vector if store was null
+     */
+    public final MutableVector3f getPosition(MutableVector3f store) {
+        return position.get(getIndex(), store);
     }
 
     /**

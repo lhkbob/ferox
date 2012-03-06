@@ -50,6 +50,17 @@ public abstract class Light<T extends Light<T>> extends Component {
     public final ReadOnlyColor3f getColor() {
         return color.get(getIndex());
     }
+    
+    /**
+     * Return the color of this light in <tt>store</tt>. If store is
+     * null, a new Color3f is created to hold the color and returned.
+     * 
+     * @param store The result Color3f to hold the color
+     * @return The color in store, or a new vector if store was null
+     */
+    public final Color3f getPosition(Color3f store) {
+        return color.get(getIndex(), store);
+    }
 
     /**
      * Set the color of this Light. The color values in <tt>color</tt> are
