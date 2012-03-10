@@ -69,6 +69,72 @@ public final class Vector4 implements Cloneable {
     }
     
     /**
+     * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and store the resultant values of
+     * (x, y, z, w) into this vector:
+     * 
+     * <pre>
+     * m.m00*x + m.m01*y + m.m02*z + m.m03*w = a.x
+     * m.m10*x + m.m11*y + m.m12*z + m.m13*w = a.y
+     * m.m20*x + m.m21*y + m.m22*z + m.m23*w = a.z
+     * m.m30*x + m.m31*y + m.m32*z + m.m33*w = a.w
+     * </pre>
+     * 
+     * @param m The matrix describing the coefficients of the 4 equations
+     * @param a The vector constraining the values that solve the linear system
+     *            of equations
+     * @return This vector
+     * @throws ArithmeticException if no solution or an infinite solutions exist
+     * @throws NullPointerException if m or a are null
+     */
+    public Vector4 solve(@Const Matrix4 m, @Const Vector4 a) {
+        // the system is b = [A]x and we're solving for x
+        // which becomes [A]^-1 b = x
+        Matrix4 inv = new Matrix4().inverse(m);
+        return mul(inv, a);
+    }
+
+    /**
+     * <p>
+     * Compute <code>[b] x [m]</code> and store the resulting 1x4 matrix in this
+     * vector. For sake of multiplication, [b] is considered to be a 1x4 matrix,
+     * where x is the first column, y is the second, z is the third, and w is
+     * the fourth.
+     * </p>
+     * <p>
+     * Note that this uses the reverse order of {@link #mul(Matrix4, Vector4)}.
+     * </p>
+     * 
+     * @param b Vector to be interpreted as a 1x4 matrix in the multiplication
+     * @param m The matrix in the right side of the multiplication
+     * @return This vector
+     * @throws NullPointerException if m or b are null
+     */
+    public Vector4 mul(@Const Vector4 b, @Const Matrix4 m) {
+        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z + m.m30 * b.w, 
+                   m.m01 * b.x + m.m11 * b.y + m.m21 * b.z + m.m31 * b.w,
+                   m.m02 * b.x + m.m12 * b.y + m.m22 * b.z + m.m32 * b.w,
+                   m.m03 * b.x + m.m13 * b.y + m.m23 * b.z + m.m33 * b.w);
+    }
+
+    /**
+     * Compute <code>[m] x [b]</code> and store the resulting 4x1 matrix in this
+     * vector. For sake of multiplication, [b] is considered to be a 4x1 matrix
+     * where x is the first row, y is the second, z is the third, and w is the
+     * fourth.
+     * 
+     * @param m The matrix on the left side of the multiplication
+     * @param b The vector to interpret as a 4x1 matrix
+     * @return This vector
+     * @throws NullPointerException if a or b are null
+     */
+    public Vector4 mul(@Const Matrix4 m, @Const Vector4 b) {
+        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z + m.m03 * b.w, 
+                   m.m10 * b.x + m.m11 * b.y + m.m12 * b.z + m.m13 * b.w,
+                   m.m20 * b.x + m.m21 * b.y + m.m22 * b.z + m.m23 * b.w,
+                   m.m30 * b.x + m.m31 * b.y + m.m32 * b.z + m.m33 * b.w);
+    }
+    
+    /**
      * Compute the length of this vector.
      * 
      * @return Length of this vector

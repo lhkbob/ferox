@@ -3,43 +3,57 @@ package com.ferox.math2;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
 import com.ferox.math.bounds.Plane;
 
-public class Quat4f {
+/**
+ * <p>
+ * Quat4 is an implementation of a 4-component quaternion.
+ * </p>
+ * <p>
+ * More information on the math and theory behind quaternions can be found <a
+ * href="http://en.wikipedia.org/wiki/Quaternion">here</a>.
+ * </p>
+ * <p>
+ * In all mathematical functions whose result is a quaternion, the Quat4
+ * calling the method will contain the result. The input quaternions will be
+ * left unmodified. It is safe for the calling quaternion to be any quaternion
+ * parameter into the function.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ */
+public final class Quat4 {
     public double x;
     public double y;
     public double z;
     public double w;
     
     /**
-     * Create a new Quat4f initialized to the identity quaternion.
+     * Create a new Quat4 initialized to the identity quaternion.
      */
-    public Quat4f() {
+    public Quat4() {
         setIdentity();
     }
 
     /**
-     * Create a new Quat4f that copies its values from those in <tt>q</tt>.
+     * Create a new Quat4 that copies its values from those in <tt>q</tt>.
      * 
      * @param q The quaternion to clone
      * @throws NullPointerException if q is null
      */
-    public Quat4f(@Const Quat4f q) {
+    public Quat4(@Const Quat4 q) {
         set(q);
     }
 
     /**
-     * Create a new Quat4f that takes its initial values as (x, y, z, w).
+     * Create a new Quat4 that takes its initial values as (x, y, z, w).
      * 
      * @param x
      * @param y
      * @param z
      * @param w
      */
-    public Quat4f(double x, double y, double z, double w) {
+    public Quat4(double x, double y, double z, double w) {
         set(x, y, z, w);
     }
 
@@ -52,12 +66,9 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if a or b are null
      */
-    public Quat4f arc(@Const Vector3 a, @Const Vector3 b) {
+    public Quat4 arc(@Const Vector3 a, @Const Vector3 b) {
         // make sure that both this and v are normalized
         // if they aren't unit length, get the normalized version as new vectors
-        // FIXME: can we do this better?
-        // FIXME: is it worth it, or should we just always call normalize(null)
-        // FIXME: if it is worth it, should probably do an eps compare and not strict ==
         double da = a.lengthSquared();
         double db = b.lengthSquared();
         Vector3 na = (Math.abs(da - 1.0) < .00001 ? a : new Vector3().scale(a, 1 / Math.sqrt(da)));
@@ -86,7 +97,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if a or b are null
      */
-    public Quat4f add(@Const Quat4f a, @Const Quat4f b) {
+    public Quat4 add(@Const Quat4 a, @Const Quat4 b) {
         return set(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
     }
 
@@ -98,7 +109,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if a or b are null
      */
-    public Quat4f sub(@Const Quat4f a, @Const Quat4f b) {
+    public Quat4 sub(@Const Quat4 a, @Const Quat4 b) {
         return set(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
     }
 
@@ -112,7 +123,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if a or b are null
      */
-    public Quat4f mul(@Const Quat4f a, @Const Quat4f b) {
+    public Quat4 mul(@Const Quat4 a, @Const Quat4 b) {
         return set(a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
                    a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z,
                    a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x,
@@ -130,29 +141,11 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if a or b are null
      */
-    public Quat4f mul(@Const Quat4f a, @Const Vector3 b) {
+    public Quat4 mul(@Const Quat4 a, @Const Vector3 b) {
         return set(a.w * b.x + a.y * b.z - a.z * b.y,
                    a.w * b.y + a.z * b.x - a.x * b.z,
                    a.w * b.z + a.x * b.y - a.y * b.x,
                  -(a.x * b.x + a.y * b.y + a.z * b.z));
-    }
-
-    /**
-     * Transform the given vector, <tt>v</tt> by this quaternion and store the
-     * computation in <tt>result</tt>, or a new Vector3 if result is null.
-     * 
-     * @param v The vector to rotate or transform
-     * @param result The result holding the rotation, or null
-     * @return result, or a new Vector3 if null
-     * @throws NullPointerException if v is null
-     */
-    public MutableVector3f rotate(ReadOnlyVector3f v, MutableVector3f result) {
-        // FIXME: generates extra objects
-        Quat4f q = mul(v, null).mul(inverse(null));
-        if (result == null)
-            return new Vector3f(q.x, q.y, q.z);
-        else
-            return result.set(q.x, q.y, q.z);
     }
 
     /**
@@ -164,7 +157,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f scale(@Const Quat4f q, double s) {
+    public Quat4 scale(@Const Quat4 q, double s) {
         return set(s * q.x, s * q.y, s * q.z, s * q.w);
     }
 
@@ -176,7 +169,7 @@ public class Quat4f {
      * @throws ArithmeticException if a cannot be normalized
      * @throws NullPointerException if a is null
      */
-    public Quat4f normalize(@Const Quat4f a) {
+    public Quat4 normalize(@Const Quat4 a) {
         double d = a.length();
         if (d == 0f)
             throw new ArithmeticException("Cannot normalize quaternion with 0 length");
@@ -207,7 +200,7 @@ public class Quat4f {
      *         if both were treated as 4-vectors.
      * @throws NullPointerException if q is null
      */
-    public double dot(Quat4f q) {
+    public double dot(Quat4 q) {
         return x * q.x + y * q.y + z * q.z + w * q.w;
     }
 
@@ -243,7 +236,7 @@ public class Quat4f {
      * @throws ArithmeticException if there is a singularity when computing the
      *             angle between this and q (i.e. if either have 0-length)
      */
-    public double angle(@Const Quat4f q) {
+    public double angle(@Const Quat4 q) {
         double s = Math.sqrt(lengthSquared() * q.lengthSquared());
         if (s == 0)
             throw new ArithmeticException("Undefined angle between two quaternions");
@@ -258,7 +251,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f inverse(@Const Quat4f q) {
+    public Quat4 inverse(@Const Quat4 q) {
         return set(-q.x, -q.y, -q.z, q.w);
     }
 
@@ -275,7 +268,7 @@ public class Quat4f {
      * @throws IllegalArgumentException if t is not in the range [0, 1]
      * @throws NullPointerException if a or b are null
      */
-    public Quat4f slerp(@Const Quat4f a, @Const Quat4f b, double t) {
+    public Quat4 slerp(@Const Quat4 a, @Const Quat4 b, double t) {
         if (t < 0 || t > 1)
             throw new IllegalArgumentException("t must be in [0, 1], not: " + t);
         
@@ -297,78 +290,78 @@ public class Quat4f {
     }
 
     /**
-     * As {@link #add(Quat4f, Quat4f)} with the first argument this quaternion.
+     * As {@link #add(Quat4, Quat4)} with the first argument this quaternion.
      * 
      * @param q
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f add(@Const Quat4f q) {
+    public Quat4 add(@Const Quat4 q) {
         return add(this, q);
     }
 
     /**
-     * As {@link #sub(Quat4f, Quat4f)} with the first argument this quaternion.
+     * As {@link #sub(Quat4, Quat4)} with the first argument this quaternion.
      * 
      * @param q
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f sub(@Const Quat4f q) {
+    public Quat4 sub(@Const Quat4 q) {
         return sub(this, q);
     }
 
     /**
-     * As {@link #mul(Quat4f, Quat4f)} with the first argument this quaternion.
+     * As {@link #mul(Quat4, Quat4)} with the first argument this quaternion.
      * 
      * @param q
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f mul(@Const Quat4f q) {
+    public Quat4 mul(@Const Quat4 q) {
         return mul(this, q);
     }
 
     /**
-     * As {@link #mul(Quat4f, ReadOnlyVector3f)} with the first argument this quaternion.
+     * As {@link #mul(Quat4, Vector3)} with the first argument this quaternion.
      * 
      * @param v
      * @return This quaternion
      * @throws NullPointerException if q is null 
      */
-    public Quat4f mul(@Const Vector3 v) {
+    public Quat4 mul(@Const Vector3 v) {
         return mul(this, v);
     }
 
     /**
-     * As {@link #scale(Quat4f, double)} with the first argument this quaternion.
+     * As {@link #scale(Quat4, double)} with the first argument this quaternion.
      * 
      * @param s
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f scale(double s) {
+    public Quat4 scale(double s) {
         return scale(this, s);
     }
 
     /**
      * Normalize this quaternion in place, equivalent to
-     * {@link #normalize(Quat4f)} with the first argument this quaternion.
+     * {@link #normalize(Quat4)} with the first argument this quaternion.
      * 
      * @return This quaternion
      * @throws ArithmeticException if this quaternion cannot be normalized
      */
-    public Quat4f normalize() {
+    public Quat4 normalize() {
         return normalize(this);
     }
 
     /**
-     * Invert this quaternion in place, equivalent to {@link #inverse(Quat4f)}
+     * Invert this quaternion in place, equivalent to {@link #inverse(Quat4)}
      * with the first argument this quaternion.
      * 
      * @return This quaternion
      */
-    public Quat4f inverse() {
+    public Quat4 inverse() {
         return inverse(this);
     }
 
@@ -377,7 +370,7 @@ public class Quat4f {
      * 
      * @return This quaternion
      */
-    public Quat4f setIdentity() {
+    public Quat4 setIdentity() {
         return set(0, 0, 0, 1);
     }
 
@@ -390,7 +383,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if axis is null
      */
-    public Quat4f setAxisAngle(@Const Vector3 axis, double angle) {
+    public Quat4 setAxisAngle(@Const Vector3 axis, double angle) {
         double d = axis.length();
         double s = Math.sin(.5 * angle) / d;
         return set(axis.x * s, axis.y * s, axis.z * s, Math.cos(.5 * angle));
@@ -408,7 +401,7 @@ public class Quat4f {
      * @param roll Rotation around the z-axis in radians
      * @return This quaternion
      */
-    public Quat4f setEuler(double yaw, double pitch, double roll) {
+    public Quat4 setEuler(double yaw, double pitch, double roll) {
         double cosYaw = Math.cos(.5 * yaw);
         double sinYaw = Math.sin(.5 * yaw);
         
@@ -433,7 +426,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws NullPointerException if e is null
      */
-    public Quat4f set(@Const Matrix3 e) {
+    public Quat4 set(@Const Matrix3 e) {
         double trace = e.trace();
         if (trace > 0f) {
             double s = Math.sqrt(trace + 1.0);
@@ -471,7 +464,7 @@ public class Quat4f {
      * @return This quaternion
      * @throws IndexOutOfBoundsException if index is invalid
      */
-    public Quat4f set(int index, double val) {
+    public Quat4 set(int index, double val) {
         switch (index) {
         case 0:
             x = val;
@@ -492,18 +485,18 @@ public class Quat4f {
     }
 
     /**
-     * Set the x, y, z, and w values of this Quat4f to the values held in q.
+     * Set the x, y, z, and w values of this Quat4 to the values held in q.
      * 
      * @param q Quaternion to be copied into this
      * @return This quaternion
      * @throws NullPointerException if q is null
      */
-    public Quat4f set(@Const Quat4f q) {
+    public Quat4 set(@Const Quat4 q) {
         return set(q.x, q.y, q.z, q.w);
     }
 
     /**
-     * Set the x, y, z, and w values of this Quat4f to the given four
+     * Set the x, y, z, and w values of this Quat4 to the given four
      * coordinates.
      * 
      * @param x New x coordinate
@@ -512,7 +505,7 @@ public class Quat4f {
      * @param w New w coordinate
      * @return This quaternion
      */
-    public Quat4f set(double x, double y, double z, double w) {
+    public Quat4 set(double x, double y, double z, double w) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -521,7 +514,7 @@ public class Quat4f {
     }
 
     /**
-     * Set the x, y, z and w values of this Quat4f to the four values held
+     * Set the x, y, z and w values of this Quat4 to the four values held
      * within the vals array, starting at offset.
      * 
      * @param vals Array to take 4 component values from
@@ -531,7 +524,7 @@ public class Quat4f {
      * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
      *             starting at offset
      */
-    public Quat4f set(double[] vals, int offset) {
+    public Quat4 set(double[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
     
@@ -545,7 +538,7 @@ public class Quat4f {
      * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
      *             starting at offset
      */
-    public Quat4f set(float[] vals, int offset) {
+    public Quat4 set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
     
@@ -559,7 +552,7 @@ public class Quat4f {
      * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
      *             starting at offset
      */
-    public Quat4f set(DoubleBuffer vals, int offset) {
+    public Quat4 set(DoubleBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
     
@@ -573,7 +566,7 @@ public class Quat4f {
      * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
      *             starting at offset
      */
-    public Quat4f set(FloatBuffer vals, int offset) {
+    public Quat4 set(FloatBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
     
@@ -687,9 +680,9 @@ public class Quat4f {
     @Override
     public boolean equals(Object o) {
         // this conditional correctly handles null values
-        if (!(o instanceof Quat4f))
+        if (!(o instanceof Quat4))
             return false;
-        Quat4f v = (Quat4f) o;
+        Quat4 v = (Quat4) o;
         return x == v.x && y == v.y && z == v.z && w == v.w;
     }
 
@@ -702,7 +695,7 @@ public class Quat4f {
      * @return True if all component values are within eps of the corresponding
      *         component of q
      */
-    public boolean epsilonEquals(Quat4f q, double eps) {
+    public boolean epsilonEquals(Quat4 q, double eps) {
         if (q == null)
             return false;
 

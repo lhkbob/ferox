@@ -159,6 +159,31 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
+     * Transform the vector <tt>v</tt> by <tt>q</tt> and store it in this
+     * vector.
+     * 
+     * @param v The vector to rotate or transform
+     * @param q The quaternion to rotate by
+     * @return This vector
+     * @throws NullPointerException if v or q are null
+     */
+    public Vector3 rotate(@Const Vector3 v, @Const Quat4 q) {
+        Quat4 o = new Quat4().mul(q, v).mul(new Quat4().inverse(q));
+        return set(o.x, o.y, o.z);
+    }
+
+    /**
+     * As {@link #rotate(Vector3, Quat4)} where the first argument is this
+     * vector.
+     * 
+     * @param q
+     * @return This vector
+     */
+    public Vector3 rotate(@Const Quat4 q) {
+        return rotate(this, q);
+    }
+
+    /**
      * Project <tt>a</tt> onto <tt>b</tt> and store the projected vector in this
      * vector.
      * 
@@ -262,8 +287,7 @@ public final class Vector3 implements Cloneable {
      * where x is the first column, y is the second, and z is the third.
      * </p>
      * <p>
-     * Note that this uses the reverse order of {@link #mul(Matrix3, Vector3)}
-     * .
+     * Note that this uses the reverse order of {@link #mul(Matrix3, Vector3)}.
      * </p>
      * 
      * @param b Vector to be interpreted as a 1x3 matrix in the multiplication

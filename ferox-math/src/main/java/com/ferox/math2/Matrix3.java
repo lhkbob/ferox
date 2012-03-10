@@ -188,7 +188,7 @@ public final class Matrix3 implements Cloneable {
     /**
      * Multiply <tt>a</tt> by the diagonal matrix that takes it's three diagonal
      * entries from <tt>b</tt>, or compute <code>[a] X [m]</code>, where [m] is
-     * all 0s except m00 = diag.x, m11 = diag.y, and m22 = diag.z.
+     * all 0s except m00 = b.x, m11 = b.y, and m22 = b.z.
      * 
      * @param a The left matrix in the multiplication
      * @param b Vector holding the three diagonal entries of the other matrix
@@ -422,7 +422,7 @@ public final class Matrix3 implements Cloneable {
      * @throws NullPointerException if q is null
      * @throws ArithmeticException if the length of q is 0
      */
-    public Matrix3 set(@Const Quat4f q) {
+    public Matrix3 set(@Const Quat4 q) {
         double d = q.lengthSquared();
         if (d == 0f)
             throw new ArithmeticException("Quaternion length is 0");
@@ -472,7 +472,7 @@ public final class Matrix3 implements Cloneable {
             } else {
                 throw new IndexOutOfBoundsException("Column is not 0, 1, or 2: " + col);
             }
-        } else if (row ==2) {
+        } else if (row == 2) {
             if (col == 0) {
                 m20 = value;
             } else if (col == 1) {
@@ -722,7 +722,7 @@ public final class Matrix3 implements Cloneable {
             } else {
                 throw new IndexOutOfBoundsException("Column is not 0, 1, or 2: " + col);
             }
-        } else if (row ==2) {
+        } else if (row == 2) {
             if (col == 0) {
                 return m20;
             } else if (col == 1) {
