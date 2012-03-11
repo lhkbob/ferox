@@ -1,48 +1,48 @@
 package com.ferox.math.entreri;
 
+import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
-import com.googlecode.entreri.property.CompactAwareProperty;
-import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.IndexedDataStore;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.IndexedDataStore;
+import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
- * AxisAlignedBoxProperty is a caching property that wraps a FloatProperty as a
- * ReadOnlyAxisAlignedBox, but also provides a setter so it can be mutated.
+ * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a
+ * AxisAlginedBox.
  * 
  * @author Michael Ludwig
  */
-public class AxisAlignedBoxProperty implements CompactAwareProperty {
-    private final FloatProperty data;
-    private final AxisAlignedBox cache;
+public class AxisAlignedBoxProperty implements Property {
+    private static final int REQUIRED_ELEMENTS = 6;
     
-    private int lastIndex;
+    private final DoubleProperty data;
     
     /**
      * Create a new AxisAlignedBoxProperty.
      */
     public AxisAlignedBoxProperty() {
-        data = new FloatProperty(6);
-        cache = new AxisAlignedBox();
-        lastIndex = -1;
+        data = new DoubleProperty(REQUIRED_ELEMENTS);
     }
-
+    
     /**
-     * Get the ReadOnlyAxisAlignedBox at the given component index. The values
-     * are transferred from the underlying FloatProperty into a cached
-     * AxisAlignedBox instance if needed. This means that the returned instance
-     * is invalidated when a new index is fetched.
-     * 
-     * @param index The component index to retrieve
-     * @return The box for the requested component
+     * @return PropertyFactory that creates AxisAlignedBoxProperties
      */
-    public ReadOnlyAxisAlignedBox get(int index) {
-        if (lastIndex != index) {
-            cache.getMin().set(data.getIndexedData(), index * 6);
-            cache.getMax().set(data.getIndexedData(), index * 6 + 3);
-            lastIndex = index;
-        }
-        return cache;
+    public static PropertyFactory<AxisAlignedBoxProperty> factory() {
+        return new AbstractPropertyFactory<AxisAlignedBoxProperty>() {
+            @Override
+            public AxisAlignedBoxProperty create() {
+                return new AxisAlignedBoxProperty();
+            }
+
+            @Override
+            public void setDefaultValue(AxisAlignedBoxProperty property, int index) {
+                for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
+                    property.data.set(0f, index, i);
+                }
+            }
+        };
     }
 
     /**
@@ -58,8 +58,8 @@ public class AxisAlignedBoxProperty implements CompactAwareProperty {
         if (result == null)
             result = new AxisAlignedBox();
         
-        result.getMin().set(data.getIndexedData(), index * 6);
-        result.getMax().set(data.getIndexedData(), index * 6 + 3);
+        result.min.set(data.getIndexedData(), index * REQUIRED_ELEMENTS);
+        result.max.set(data.getIndexedData(), index * REQUIRED_ELEMENTS + 3);
         
         return result;
     }
@@ -72,10 +72,9 @@ public class AxisAlignedBoxProperty implements CompactAwareProperty {
      * @param index The index of the component being modified
      * @throws NullPointerException if b is null
      */
-    public void set(ReadOnlyAxisAlignedBox b, int index) {
-        b.getMin().get(data.getIndexedData(), index * 6);
-        b.getMax().get(data.getIndexedData(), index * 6 + 3);
-        lastIndex = -1;
+    public void set(@Const AxisAlignedBox b, int index) {
+        b.min.get(data.getIndexedData(), index * REQUIRED_ELEMENTS);
+        b.max.get(data.getIndexedData(), index * REQUIRED_ELEMENTS + 3);
     }
     
     @Override
@@ -86,12 +85,5 @@ public class AxisAlignedBoxProperty implements CompactAwareProperty {
     @Override
     public void setDataStore(IndexedDataStore store) {
         data.setDataStore(store);
-    }
-    
-    @Override
-    public void onCompactComplete() {
-        // must reset the index cache in case the currently
-        // cached component was moved by the compact.
-        lastIndex = -1;
     }
 }
