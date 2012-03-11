@@ -1,12 +1,13 @@
 package com.ferox.math.bounds;
 
-import com.ferox.math.Matrix4f;
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
+
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 
 
 /**
@@ -432,7 +433,7 @@ public class Frustum {
      *         coordinates
      * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
      */
-    public ReadOnlyVector4f getFrustumPlane(int i) {
+    public @Const Vector4 getFrustumPlane(int i) {
         return worldPlanes[i];
     }
     

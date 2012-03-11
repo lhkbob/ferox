@@ -26,7 +26,7 @@ import java.nio.FloatBuffer;
  * 
  * @author Michael Ludwig
  */
-public final class Matrix4 {
+public final class Matrix4 implements Cloneable {
     public double m00, m01, m02, m03;
     public double m10, m11, m12, m13;
     public double m20, m21, m22, m23;
@@ -84,6 +84,11 @@ public final class Matrix4 {
             m10, m11, m12, m13, 
             m20, m21, m22, m23,
             m30, m31, m32, m33);
+    }
+    
+    @Override
+    public Matrix4 clone() {
+        return new Matrix4(this);
     }
 
     /**

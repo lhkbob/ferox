@@ -5,6 +5,7 @@ import java.nio.FloatBuffer;
 
 import com.ferox.math.bounds.Plane;
 
+
 /**
  * <p>
  * Quat4 is an implementation of a 4-component quaternion.
@@ -22,7 +23,7 @@ import com.ferox.math.bounds.Plane;
  * 
  * @author Michael Ludwig
  */
-public final class Quat4 {
+public final class Quat4 implements Cloneable {
     public double x;
     public double y;
     public double z;
@@ -55,6 +56,11 @@ public final class Quat4 {
      */
     public Quat4(double x, double y, double z, double w) {
         set(x, y, z, w);
+    }
+    
+    @Override
+    public Quat4 clone() {
+        return new Quat4(this);
     }
 
     /**

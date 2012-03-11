@@ -31,7 +31,7 @@ import java.nio.FloatBuffer;
  * 
  * @author Michael Ludwig
  */
-public final class ColorRGB {
+public final class ColorRGB implements Cloneable {
     private static final double DEFAULT_FACTOR = 0.7;
     
     private static final int RED = 0;
@@ -74,6 +74,11 @@ public final class ColorRGB {
     public ColorRGB(double red, double green, double blue) {
         this();
         set(red, green, blue);
+    }
+    
+    @Override
+    public ColorRGB clone() {
+        return new ColorRGB(this);
     }
 
     /**

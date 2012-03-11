@@ -2,35 +2,57 @@ package com.ferox.math.bounds;
 
 import java.nio.FloatBuffer;
 
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
+import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
 /**
- * AxisAlignedBox is a mutable implementation of {@link ReadOnlyAxisAlignedBox}.
- * It exposes setters that will modify the vectors returned by {@link #getMin()}
- * and {@link #getMax()}, and overrides the return type of those methods to
- * return mutable vectors. Additionally, it provides new methods for
- * transforming, intersecting, and unifying boxes that mutate the AxisAlignedBox
- * in place. Finally, the AxisAlignedBox can safely be used as the result
- * parameter to the similar functions defined in ReadOnlyAxisAlignedBox, even if
- * it's also the caller or other input box.
+ * <p>
+ * AxisAlignedBox is a bounding box represented by a minimum and maximum vertex.
+ * The box formed by these two points is aligned with the basis vectors that the
+ * box is defined in. The AxisAlignedBox can be transformed from one space to
+ * another to allow bounds to be described in a local space and then be
+ * converted into a world space.
+ * </p>
+ * <p>
+ * The AxisAlignedBox is intended to approximate some spatial shape and
+ * represents the extents of that shape. A collision or intersection with the
+ * AxisAlignedBox hints that the actual shape may be collided or intersected,
+ * but not necessarily. A failed collision or intersection with the bounds
+ * guarantees that the wrapped shape is not collided or intersected.
+ * </p>
+ * <p>
+ * The AxisAlignedBox is used by {@link SpatialIndex} implementations to
+ * efficiently organize shapes within a 3D space so that spatial or view queries
+ * can run quickly. An AxisAlignedBox assumes the invariant that its maximum
+ * vertex is greater than an or equal to its minimum vertex. If this is not
+ * true, the box is in an inconsistent state. In general, it should be assumed
+ * that when an AxisAlignedBox is used for computational purposes in a method,
+ * it must be consistent. Only
+ * {@link #intersect(AxisAlignedBox, AxisAlignedBox)} creates an inconsistent
+ * box intentionally when an intersection fails to exist.
+ * </p>
+ * <p>
+ * Like the other simple math objects in the com.ferox.math package,
+ * AxisAlignedBox implements equals() and hashCode() appropriately. Similarly,
+ * the calling AABB is mutated.
+ * </p>
  * 
  * @author Michael Ludwig
  */
-public class AxisAlignedBox extends ReadOnlyAxisAlignedBox {
-    private final Vector3f min;
-    private final Vector3f max;
+public class AxisAlignedBox implements Cloneable {
+    public final Vector3 min = new Vector3();
+    public final Vector3 max = new Vector3();
+    
+    private int lastFailedPlane = -1;
 
     /**
      * Create a new AxisAlignedBox that has its minimum and maximum at the
      * origin.
      */
-    public AxisAlignedBox() {
-        super();
-        min = new Vector3f();
-        max = new Vector3f();
-    }
+    public AxisAlignedBox() { }
     
     /**
      * Create a new AxisAlignedBox that uses the given minimum and maximum
@@ -42,8 +64,7 @@ public class AxisAlignedBox extends ReadOnlyAxisAlignedBox {
      * @param max The vector coordinate to use as the maximum control point
      * @throws NullPointerException if min or max are null
      */
-    public AxisAlignedBox(ReadOnlyVector3f min, ReadOnlyVector3f max) {
-        this();
+    public AxisAlignedBox(@Const Vector3 min, @Const Vector3 max) {
         this.min.set(min);
         this.max.set(max);
     }
@@ -51,11 +72,10 @@ public class AxisAlignedBox extends ReadOnlyAxisAlignedBox {
     /**
      * Create a new AxisAlignedBox that is a clone of <tt>aabb</tt>.
      * 
-     * @param aabb The ReadOnlyAxisAlignedBox to copy
+     * @param aabb The AxisAlignedBox to copy
      * @throws NullPointerException if aabb is null
      */
-    public AxisAlignedBox(ReadOnlyAxisAlignedBox aabb) {
-        this();
+    public AxisAlignedBox(@Const AxisAlignedBox aabb) {
         set(aabb);
     }
 
@@ -77,7 +97,6 @@ public class AxisAlignedBox extends ReadOnlyAxisAlignedBox {
      *             numVertices would cause an out-of-bounds access into vertices
      */
     public AxisAlignedBox(float[] vertices, int offset, int stride, int numVertices) {
-        this();
         if (vertices == null)
             throw new NullPointerException("Vertices cannot be null");
         
@@ -105,7 +124,6 @@ public class AxisAlignedBox extends ReadOnlyAxisAlignedBox {
      *             would cause an out-of-bounds access into vertices
      */
     public AxisAlignedBox(FloatBuffer vertices, int offset, int stride, int numVertices) {
-        this();
         if (vertices == null)
             throw new NullPointerException("Vertices cannot be null");
         
@@ -118,101 +136,442 @@ public class AxisAlignedBox extends ReadOnlyAxisAlignedBox {
     }
     
     private void enclosePoint(float x, float y, float z) {
-        max.set(Math.max(max.getX(), x), Math.max(max.getY(), y), Math.max(max.getZ(), z));
-        min.set(Math.min(min.getX(), x), Math.min(min.getY(), y), Math.min(min.getZ(), z));
+        max.set(Math.max(max.x, x), Math.max(max.y, y), Math.max(max.z, z));
+        min.set(Math.min(min.x, x), Math.min(min.y, y), Math.min(min.z, z));
+    }
+    
+    @Override
+    public AxisAlignedBox clone() {
+        return new AxisAlignedBox(this);
     }
     
     /**
-     * Copy the state of <tt>aabb</tt> into this ReadOnlyAxisAlignedBox so that this
-     * ReadOnlyAxisAlignedBox is equivalent to <tt>aabb</tt>.
+     * Copy the state of <tt>aabb</tt> into this AxisAlignedBox so that this
+     * AxisAlignedBox is equivalent to <tt>aabb</tt>.
      * 
-     * @param aabb The ReadOnlyAxisAlignedBox to clone
+     * @param aabb The AxisAlignedBox to clone
      * @throws NullPointerException if aabb is null
      */
-    public void set(ReadOnlyAxisAlignedBox aabb) {
-        min.set(aabb.getMin());
-        max.set(aabb.getMax());
+    public void set(@Const AxisAlignedBox aabb) {
+        min.set(aabb.min);
+        max.set(aabb.max);
     }
 
     /**
-     * Copy <tt>min</tt> into the minimum corner of this AABB. This is
-     * equivalent to <code>getMin().set(min)</code>
-     * 
-     * @param min The new minimum
-     * @throws NullPointerException if min is null
-     */
-    public void setMin(ReadOnlyVector3f min) {
-        this.min.set(min);
-    }
-    
-    /**
-     * Copy <tt>max</tt> into the maximum corner of this AABB. This is
-     * equivalent to <code>getMax().set(max)</code>
-     * 
-     * @param max The new maximum
-     * @throws NullPointerException if max is null
-     */
-    public void setMax(ReadOnlyVector3f max) {
-        this.max.set(max);
-    }
-
-    /**
-     * As {@link #intersect(ReadOnlyAxisAlignedBox, AxisAlignedBox)} but the
-     * this AxisAlignedBox is also used as the result box, so it is modified in
-     * place.
+     * As {@link #intersect(AxisAlignedBox, AxisAlignedBox)} where the first
+     * argument is this AxisAlignedBox.
      * 
      * @param other The box to compute the intersection with
      * @return This AxisAlignedBox
      * @throws NullPointerException if other is null
      */
-    public AxisAlignedBox intersect(ReadOnlyAxisAlignedBox other) {
-        return intersect(other, this);
+    public AxisAlignedBox intersect(@Const AxisAlignedBox other) {
+        return intersect(this, other);
     }
-    
+
     /**
-     * As {@link #union(ReadOnlyAxisAlignedBox, AxisAlignedBox)} but the
-     * this AxisAlignedBox is also used as the result box, so it is modified in
-     * place.
+     * As {@link #union(AxisAlignedBox, AxisAlignedBox)} where the first
+     * argument is this AxisAlignedBox.
      * 
      * @param other The box to compute the union with
      * @return This AxisAlignedBox
      * @throws NullPointerException if other is null
      */
-    public AxisAlignedBox union(ReadOnlyAxisAlignedBox other) {
+    public AxisAlignedBox union(@Const AxisAlignedBox other) {
         return union(other, this);
     }
 
     /**
-     * As {@link #transform(ReadOnlyMatrix4f)} but the this AxisAlignedBox is
-     * also used as the result box, so it is modified in place.
+     * As {@link #transform(AxisAlignedBox, Matrix4)} where the first argument
+     * is this AxisAlignedBox.
      * 
      * @param trans The matrix transform applied to this box
      * @return This AxisAlignedBox
      * @throws NullPointerException if trans is null
      */
-    public AxisAlignedBox transform(ReadOnlyMatrix4f trans) {
-        return transform(trans, this);
+    public AxisAlignedBox transform(@Const Matrix4 trans) {
+        return transform(this, trans);
     }
 
     /**
-     * Overridden to return a mutable vector. Modifying this vector will
-     * effectively modify the AxisAlignedBox.
+     * Create and return a new Vector3 containing the center location of this
+     * AxisAlignedBox. The center of the box is the average of the box's minimum
+     * and maximum corners.
      * 
-     * @return A mutable vector representing this box's minimum corner
+     * @return A new Vector3 storing the center of this box
      */
-    @Override
-    public Vector3f getMin() {
-        return min;
+    public Vector3 getCenter() {
+        return new Vector3().add(min, max).scale(0.5);
     }
 
     /**
-     * Overridden to return a mutable vector. Modifying this vector will
-     * effectively modify the AxisAlignedBox.
+     * <p>
+     * Compute and return the intersection of this AxisAlignedBox and the
+     * Frustum, <tt>f</tt>. It is assumed that the Frustum and AxisAlignedBox
+     * exist in the same coordinate frame. {@link FrustumIntersection#INSIDE} is
+     * returned when the AxisAlignedBox is fully contained by the Frustum.
+     * {@link FrustumIntersection#INTERSECT} is returned when this box is
+     * partially contained by the Frustum, and
+     * {@link FrustumIntersection#OUTSIDE} is returned when the box has no
+     * intersection with the Frustum.
+     * </p>
+     * <p>
+     * If <tt>OUTSIDE</tt> is returned, it is guaranteed that the objects
+     * enclosed by this box cannot be seen by the Frustum. If <tt>INSIDE</tt> is
+     * returned, any object {@link #contains(AxisAlignedBox) contained} by this
+     * box will also be completely inside the Frustum. When <tt>INTERSECT</tt>
+     * is returned, there is a chance that the true representation of the
+     * objects enclosed by the box will be outside of the Frustum, but it is
+     * unlikely. This can occur when a corner of the box intersects with the
+     * planes of <tt>f</tt>, but the shape does not exist in that corner.
+     * </p>
+     * <p>
+     * The argument <tt>planeState</tt> can be used to hint to this function
+     * which planes of the Frustum require checking and which do not. When a
+     * hierarchy of bounds is used, the planeState can be used to remove
+     * unnecessary plane comparisons. If <tt>planeState</tt> is null it is
+     * assumed that all planes need to be checked. If <tt>planeState</tt> is not
+     * null, this method will mark any plane that the box is completely inside
+     * of as not requiring a comparison. It is the responsibility of the caller
+     * to save and restore the plane state as needed based on the structure of
+     * the bound hierarchy.
+     * </p>
      * 
-     * @return A mutable vector representing this box's maximum corner
+     * @param f The Frustum to intersect this box with
+     * @param planeState An optional PlaneState hint specifying which planes to
+     *            check
+     * @return A FrustumIntersection indicating how this box and the Frustum are
+     *         related
+     * @throws NullPointerException if f is null
      */
+    public FrustumIntersection intersects(Frustum f, PlaneState planeState) {
+        if (f == null)
+            throw new NullPointerException("Frustum cannot be null");
+        
+        // early escape for potentially deeply nested nodes in a tree
+        if (planeState != null && !planeState.getTestsRequired())
+            return FrustumIntersection.INSIDE;
+        
+        FrustumIntersection result = FrustumIntersection.INSIDE;
+        double distMax;
+        double distMin;
+        int plane = 0;
+
+        Vector3 c = new Vector3(); 
+
+        Vector4 p;
+        for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
+            // skip the last failed plane since that was is checked first,
+            // or skip the default first check if we haven't failed yet
+            if (i == lastFailedPlane || (i == Frustum.NUM_PLANES && lastFailedPlane < 0))
+                continue;
+
+            // check the last failed plane first, since we're likely to fail there again
+            plane = (i == Frustum.NUM_PLANES ? lastFailedPlane : i);
+            if (planeState == null || planeState.isTestRequired(plane)) {
+                p = f.getFrustumPlane(plane);
+                extent(p, false, c);
+                distMax = Plane.getSignedDistance(p, c, true);
+                
+                if (distMax < 0) {
+                    // the point closest to the plane is behind the plane, so
+                    // we know the bounds must be outside of the frustum
+                    lastFailedPlane = plane;
+                    return FrustumIntersection.OUTSIDE;
+                } else {
+                    // the point closest to the plane is in front of the plane,
+                    // but we need to check the farthest away point
+
+                    extent(p, true, c);
+                    distMin = Plane.getSignedDistance(p, c, true);
+                    
+                    if (distMin < 0) {
+                        // the farthest point is behind the plane, so at best
+                        // this box will be intersecting the frustum
+                        result = FrustumIntersection.INTERSECT;
+                    } else {
+                        // the box is completely contained by the plane, so
+                        // the return result can be INSIDE or INTERSECT (if set by another plane)
+                        if (planeState != null)
+                            planeState.setTestRequired(plane, false);
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * Return true if this AxisAlignedBox and <tt>other</tt> intersect. It is
+     * assumed that both boxes exist within the same coordinate space. An
+     * intersection occurs if any portion of the two boxes overlap.
+     * 
+     * @param other The AxisAlignedBox to test for intersection
+     * @return True if this box and other intersect each other
+     * @throws NullPointerException if other is null
+     */
+    public boolean intersects(@Const AxisAlignedBox other) {
+        return (max.x >= other.min.x && min.x <= other.max.x) &&
+               (max.y >= other.min.y && min.y <= other.max.y) &&
+               (max.z >= other.min.z && min.z <= other.max.z);
+    }
+
+    /**
+     * Return true if <tt>other</tt> is completely contained within the extents
+     * of this ReadOnlyAxisAlignedBox. It is assumed that both bounds exist
+     * within the same coordinate space.
+     * 
+     * @param other The AxisAlignedBox to test for containment
+     * @return True when other is contained in this box
+     * @throws NullPointerException if other is null
+     */
+    public boolean contains(@Const AxisAlignedBox other) {
+        return (min.x <= other.min.x && max.x >= other.max.x) &&
+               (min.y <= other.min.y && max.y >= other.max.y) &&
+               (min.z <= other.min.z && max.z >= other.max.z);
+    }
+
+    /**
+     * Compute the intersection of <tt>a</tt> and <tt>b</tt> and store it in
+     * this AxisAlignedBox. If <tt>a</tt> and <tt>b</tt> do not
+     * {@link #intersects(ReadOnlyAxisAlignedBox) intersect}, the computed
+     * intersection will be an inconsistent box.
+     * 
+     * @param a The first AxisAlignedBox in the intersection
+     * @param b The second AxisAlignedBox in the intersection
+     * @return This AxisAlignedBox
+     * @throws NullPointerException if a or b are null
+     */
+    public AxisAlignedBox intersect(@Const AxisAlignedBox a, @Const AxisAlignedBox b) {
+        // in the event that getMin() > getMax(), there is no true intersection
+        min.set(Math.max(a.min.x, b.min.x),
+                Math.max(a.min.y, b.min.y),
+                Math.max(a.min.z, b.min.z));
+        max.set(Math.min(a.max.x, b.max.x),
+                Math.min(a.max.y, b.max.y),
+                Math.min(a.max.z, b.max.z));
+        return this;
+    }
+
+    /**
+     * Compute the union of <tt>a</tt> and <tt>b</tt> and store the computed
+     * bounds in this AxisAlignedBox.
+     * 
+     * @param a The AxisAlignedBox that is part of the union
+     * @param b The AxisAlignedBox that is part of the union
+     * @return This AxisAlignedBox
+     * @throws NullPointerException if a or b are null
+     */
+    public AxisAlignedBox union(@Const AxisAlignedBox a, @Const AxisAlignedBox b) {
+        min.set(Math.min(a.min.x, b.min.x),
+                Math.min(a.min.y, b.min.y),
+                Math.min(a.min.z, b.min.z));
+        max.set(Math.max(a.max.x, b.max.x),
+                Math.max(a.max.y, b.max.y),
+                Math.max(a.max.z, b.max.z));
+        return this;
+    }
+
+    /**
+     * <p>
+     * Transform <tt>aabb</tt> by <tt>m</tt> and store the transformed bounds
+     * in this AxisAlignedBox. This can be used to transform an
+     * AxisAlignedBox from one coordinate space to another while
+     * preserving the property that whatever was contained by the box in its
+     * original space, will be contained by the transformed box after it
+     * has been transformed as well.
+     * <p>
+     * For best results, <tt>m</tt> should be an affine transformation.
+     * </p>
+     * 
+     * @param aabb The AxisAlignedBox that is transformed
+     * @param m The Matrix4 to act as a transform
+     * @return This AxisAlignedBox
+     * @throws NullPointerException if aabb or m are null
+     */
+    public AxisAlignedBox transform(@Const AxisAlignedBox aabb, @Const Matrix4 m) {
+        // clone the state in case aabb == this
+        double minX = aabb.min.x;
+        double minY = aabb.min.y;
+        double minZ = aabb.min.z;
+        double maxX = aabb.max.x;
+        double maxY = aabb.max.y;
+        double maxZ = aabb.max.z;
+        
+        double av, bv;
+        double minc, maxc;
+        
+        // this is an unrolled loop that goes over the upper 3x3 matrix
+        // - this avoids the if's required if we used get(i, j)
+        
+        // row 0
+        {
+            minc = m.m03;
+            maxc = m.m03;
+            
+            // col 0
+            av = m.m00 * minX;
+            bv = m.m00 * maxX;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            // col 1
+            av = m.m01 * minY;
+            bv = m.m01 * maxY;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            // col 2
+            av = m.m02 * minZ;
+            bv = m.m02 * maxZ;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            
+            min.x = minc;
+            max.x = maxc;
+        }
+        // row 1
+        {
+            minc = m.m13;
+            maxc = m.m13;
+            
+            // col 0
+            av = m.m10 * minX;
+            bv = m.m10 * maxX;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            // col 1
+            av = m.m11 * minY;
+            bv = m.m11 * maxY;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            // col 2
+            av = m.m12 * minZ;
+            bv = m.m12 * maxZ;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            
+            min.y = minc;
+            max.y = maxc;
+        }
+        // row 2
+        {
+            minc = m.m23;
+            maxc = m.m23;
+            
+            // col 0
+            av = m.m20 * minX;
+            bv = m.m20 * maxX;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            // col 1
+            av = m.m21 * minY;
+            bv = m.m21 * maxY;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            // col 2
+            av = m.m22 * minZ;
+            bv = m.m22 * maxZ;
+            if (av < bv) {
+                minc += av;
+                maxc += bv;
+            } else {
+                minc += bv;
+                maxc += av;
+            }
+            
+            min.z = minc;
+            max.z = maxc;
+        }
+
+        return this;
+    }
+    
     @Override
-    public Vector3f getMax() {
-        return max;
+    public int hashCode() {
+        return (17 * min.hashCode()) ^ (31 * max.hashCode());
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof AxisAlignedBox))
+            return false;
+        AxisAlignedBox that = (AxisAlignedBox) o;
+        return min.equals(that.min) && max.equals(that.max);
+    }
+    
+    @Override
+    public String toString() {
+        return "(min=" + min + ", max=" + max + ")";
+    }
+    
+    private void extent(@Const Vector4 plane, boolean reverseDir, Vector3 result) {
+        Vector3 sourceMin = (reverseDir ? max : min);
+        Vector3 sourceMax = (reverseDir ? min : max);
+        
+        if (plane.x > 0) {
+            if (plane.y > 0) {
+                if (plane.z > 0)
+                    result.set(sourceMax.x, sourceMax.y, sourceMax.z);
+                else
+                    result.set(sourceMax.x, sourceMax.y, sourceMin.z);
+            } else {
+                if (plane.z > 0)
+                    result.set(sourceMax.x, sourceMin.y, sourceMax.z);
+                else
+                    result.set(sourceMax.x, sourceMin.y, sourceMin.z);
+            }
+        } else {
+            if (plane.y > 0) {
+                if (plane.z > 0)
+                    result.set(sourceMin.x, sourceMax.y, sourceMax.z);
+                else
+                    result.set(sourceMin.x, sourceMax.y, sourceMin.z);
+            } else {
+                if (plane.z > 0)
+                    result.set(sourceMin.x, sourceMin.y, sourceMax.z);
+                else
+                    result.set(sourceMin.x, sourceMin.y, sourceMin.z);
+            }
+        }
     }
 }

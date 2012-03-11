@@ -1,12 +1,9 @@
 package com.ferox.math.bounds;
 
 import com.ferox.math.Const;
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
 import com.ferox.math.Vector3;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Vector4;
+
 
 
 /**
@@ -21,6 +18,7 @@ import com.ferox.math.Vector4f;
  */
 public class Plane {
     private static final float ROOT_2_OVER_2 = .7071067811865f;
+    
     /**
      * Interpret <tt>plane</tt> as a plane within the 3D coordinate space. The
      * plane is normalized by dividing all four coordinates by the magnitude of
@@ -29,8 +27,8 @@ public class Plane {
      * @param plane The plane to be normalized
      * @throws NullPointerException if plane is null
      */
-    public static void normalize(Vector4f plane) {
-        plane.scale(1f / lengthAsVector3f(plane));
+    public static void normalize(Vector4 plane) {
+        plane.scale(1.0 / lengthAsVector3(plane));
     }
 
     /**
@@ -46,7 +44,7 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-    public static float getSignedDistance(ReadOnlyVector4f plane, ReadOnlyVector3f point) {
+    public static double getSignedDistance(@Const Vector4 plane, @Const Vector3 point) {
         return getSignedDistance(plane, point, false);
     }
 
@@ -65,9 +63,9 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-    public static float getSignedDistance(ReadOnlyVector4f plane, ReadOnlyVector3f point, boolean assumeNormalized) {
-        float num = point.dot(plane.getX(), plane.getY(), plane.getZ()) + plane.getW();
-        return (assumeNormalized ? num : num / lengthAsVector3f(plane));
+    public static double getSignedDistance(@Const Vector4 plane, @Const Vector3 point, boolean assumeNormalized) {
+        double num = point.x * plane.x + point.y * plane.y + point.z * plane.z + plane.w;
+        return (assumeNormalized ? num : num / lengthAsVector3(plane));
     }
     
     // FIXME: verify behavior, math and document behavior
@@ -91,7 +89,7 @@ public class Plane {
         }
     }
     
-    private static float lengthAsVector3f(ReadOnlyVector4f v) {
-        return (float) Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ());
+    private static double lengthAsVector3(Vector4 v) {
+        return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
     }
 }
