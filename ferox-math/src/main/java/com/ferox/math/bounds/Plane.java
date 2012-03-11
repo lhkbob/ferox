@@ -1,18 +1,20 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.Const;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Vector3;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 
 
 /**
  * The Plane class consists of a few static methods that can be used to
- * interpret a {@link Vector4f} as if it were a plane. Often a plane is
+ * interpret a {@link Vector4} as if it were a plane. Often a plane is
  * represented as four values: <A, B, C, D> where
  * <code>Ax + By + Cz + D = 0</code> defines the points on the plane. The four
- * components of a Vector4f: x, y, z and w correspond to A, B, C, and D,
+ * components of a Vector4: x, y, z and w correspond to A, B, C, and D,
  * respectively. The normal vector of a plane is stored within <A, B, C>.
  * 
  * @author Michael Ludwig
@@ -33,7 +35,7 @@ public class Plane {
 
     /**
      * Compute the signed distance between the plane stored in <tt>plane</tt>
-     * and the given <tt>point</tt>. The Vector4f storing the plane is stored as
+     * and the given <tt>point</tt>. The Vector4 storing the plane is stored as
      * described above. If the returned distance is less than 0, the point is
      * "behind" the plane, if it is 0 it lies on the plane, and if it is
      * positive, the point lies in front of the plane. In front of and behind
@@ -51,9 +53,9 @@ public class Plane {
     /**
      * Compute the signed distance between <tt>plane</tt> and <tt>point</tt>. If
      * <tt>assumeNormalized</tt> is false, this functions identically to
-     * {@link #getSignedDistance(Vector4f, Vector3f)}. If it is true, this still
+     * {@link #getSignedDistance(Vector4, Vector3)}. If it is true, this still
      * returns the signed distance but assumes that the given plane has already
-     * been normalized via {@link #normalize(Vector4f)}. This avoids a square
+     * been normalized via {@link #normalize(Vector4)}. This avoids a square
      * root and division but can return erroneous results if the plane has not
      * actually been normalized.
      * 
@@ -69,23 +71,23 @@ public class Plane {
     }
     
     // FIXME: verify behavior, math and document behavior
-    public static void getTangentSpace(ReadOnlyVector3f normal, MutableVector3f tan0, MutableVector3f tan1) {
+    public static void getTangentSpace(@Const Vector3 normal, Vector3 tan0, Vector3 tan1) {
         // Gratz to Erwin Couman's and Bullet for this code
         
-        if (Math.abs(normal.getZ()) > ROOT_2_OVER_2) {
+        if (Math.abs(normal.z) > ROOT_2_OVER_2) {
             // choose p in y-z plane
-            float a = normal.getY() * normal.getY() + normal.getZ() * normal.getZ();
-            float k = 1f / (float) Math.sqrt(a);
+            double a = normal.y * normal.y + normal.z * normal.z;
+            double k = 1 / Math.sqrt(a);
             
-            tan0.set(0f, -normal.getZ() * k, normal.getY() * k);
-            tan1.set(a * k, -normal.getX() * tan0.getZ(), normal.getX() * tan0.getY()); // n x tan0
+            tan0.set(0, -normal.z * k, normal.y * k);
+            tan1.set(a * k, -normal.x * tan0.z, normal.x * tan0.y); // n x tan0
         } else {
             // choose p in x-y plane
-            float a = normal.getX() * normal.getX() + normal.getY() * normal.getY();
-            float k = 1f / (float) Math.sqrt(a);
+            double a = normal.x * normal.x + normal.y * normal.y;
+            double k = 1 / Math.sqrt(a);
             
-            tan0.set(-normal.getY() * k, normal.getX() * k, 0f);
-            tan1.set(-normal.getZ() * tan0.getY(), normal.getZ() * tan0.getX(), a * k); // n x tan0
+            tan0.set(-normal.y * k, normal.x * k, 0);
+            tan1.set(-normal.z * tan0.y, normal.z * tan0.x, a * k); // n x tan0
         }
     }
     

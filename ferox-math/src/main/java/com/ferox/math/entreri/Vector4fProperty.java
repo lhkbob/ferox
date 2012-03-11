@@ -30,7 +30,7 @@ public class Vector4fProperty implements CompactAwareProperty {
 
     /**
      * Get the ReadOnlyVector4f at the given component index. The values are
-     * transferred from the underlying FloatProperty into a cached Vector4f
+     * transferred from the underlying FloatProperty into a cached Vector4
      * instance if needed. This means that the returned instance is invalidated
      * when a new index is fetched.
      * 
@@ -47,12 +47,12 @@ public class Vector4fProperty implements CompactAwareProperty {
     
     /**
      * Get the vector of this property, for the component at the given index,
-     * and store it into <tt>result</tt>. If result is null, a new Vector3f is
+     * and store it into <tt>result</tt>. If result is null, a new Vector3 is
      * created and returned.
      * 
      * @param index The component index to retrieve
      * @param result The vector to store the data for the requested component
-     * @return result, or a new Vector4f if result was null
+     * @return result, or a new Vector4 if result was null
      */
     public MutableVector4f get(int index, MutableVector4f result) {
         if (result == null)

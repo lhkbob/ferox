@@ -30,7 +30,7 @@ public class Matrix4fProperty implements CompactAwareProperty {
 
     /**
      * Get the ReadOnlyMatrix4f at the given component index. The values are
-     * transferred from the underlying FloatProperty into a cached Matrix4f
+     * transferred from the underlying FloatProperty into a cached Matrix4
      * instance if needed. This means that the returned instance is invalidated
      * when a new index is fetched.
      * 
@@ -48,11 +48,11 @@ public class Matrix4fProperty implements CompactAwareProperty {
     /**
      * Get the matrix of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
-     * Matrix4f is created and returned.
+     * Matrix4 is created and returned.
      * 
      * @param index The component index to retrieve
      * @param result The matrix to store the data for the requested component
-     * @return result, or a new Matrix4f if result was null
+     * @return result, or a new Matrix4 if result was null
      */
     public MutableMatrix4f get(int index, MutableMatrix4f result) {
         if (result == null)

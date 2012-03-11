@@ -74,11 +74,11 @@ public abstract class ReadOnlyAxisAlignedBox {
     public abstract ReadOnlyVector3f getMax();
 
     /**
-     * Create and return a new Vector3f containing the center location of this
+     * Create and return a new Vector3 containing the center location of this
      * ReadOnlyAxisAlignedBox. The center of the box is the average of the box's minimum
      * and maximum corners.
      * 
-     * @return A new Vector3f storing the center of this box
+     * @return A new Vector3 storing the center of this box
      */
     public MutableVector3f getCenter() {
         return getCenter(null);
@@ -86,12 +86,12 @@ public abstract class ReadOnlyAxisAlignedBox {
 
     /**
      * Compute the center location of this ReadOnlyAxisAlignedBox and store it within
-     * <tt>result</tt>. A new Vector3f is created and returned if
+     * <tt>result</tt>. A new Vector3 is created and returned if
      * <tt>result</tt> is null, otherwise the input vector is returned after
      * being modified.
      * 
-     * @param result The Vector3f to store the center location
-     * @return result or a new Vector3f if result is null
+     * @param result The Vector3 to store the center location
+     * @return result or a new Vector3 if result is null
      */
     public MutableVector3f getCenter(MutableVector3f result) {
         return getMin().add(getMax(), result).scale(.5f);
@@ -292,7 +292,7 @@ public abstract class ReadOnlyAxisAlignedBox {
      * For best results, <tt>m</tt> should be an affine transformation.
      * </p>
      * 
-     * @param m The Matrix4f to act as a transform on this
+     * @param m The Matrix4 to act as a transform on this
      *            ReadOnlyAxisAlignedBox
      * @param result The AxisAlignedBox that will hold the transformed result
      * @return result, or a new AxisAlignedBox if result is null, containing the

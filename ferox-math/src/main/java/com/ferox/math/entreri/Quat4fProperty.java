@@ -30,7 +30,7 @@ public class Quat4fProperty implements CompactAwareProperty {
 
     /**
      * Get the ReadOnlyQuat4f at the given component index. The values are
-     * transferred from the underlying FloatProperty into a cached Quat4f
+     * transferred from the underlying FloatProperty into a cached Quat4
      * instance if needed. This means that the returned instance is invalidated
      * when a new index is fetched.
      * 
@@ -48,11 +48,11 @@ public class Quat4fProperty implements CompactAwareProperty {
     /**
      * Get the quaternion of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
-     * Quat4f is created and returned.
+     * Quat4 is created and returned.
      * 
      * @param index The component index to retrieve
      * @param result The quaternion to store the data for the requested component
-     * @return result, or a new Quat4f if result was null
+     * @return result, or a new Quat4 if result was null
      */
     public MutableQuat4f get(int index, MutableQuat4f result) {
         if (result == null)

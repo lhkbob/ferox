@@ -27,8 +27,8 @@ import com.ferox.math.Vector4f;
  * <p>
  * The mapping from world space to frustum space is not as straight-forward as
  * is implied by the above state. Frustum provides the functionality to get the
- * {@link #getProjectionMatrix(Matrix4f) project matrix} and
- * {@link #getViewMatrix(Matrix4f) modelview matrix} suitable for use in an
+ * {@link #getProjectionMatrix(Matrix4) project matrix} and
+ * {@link #getViewMatrix(Matrix4) modelview matrix} suitable for use in an
  * OpenGL system. The camera within an OpenGL system looks down its local
  * negative z-axis. Thus the provided direction in this Frustum represents the
  * negative z-axis within camera space.
@@ -293,7 +293,7 @@ public class Frustum {
      * <p>
      * Get the location vector of this view, in world space. The returned vector
      * is read-only. Modifications to the frustum's view paratmers must be done
-     * through {@link #setOrientation(Vector3f, Vector3f, Vector3f)}.
+     * through {@link #setOrientation(Vector3, Vector3, Vector3)}.
      * </p>
      * 
      * @return The location of the view
@@ -307,7 +307,7 @@ public class Frustum {
      * Get the up vector of this view, in world space. Together up and direction
      * form a right-handed coordinate system. The returned vector is read-only.
      * Modifications to the frustum's view parameters must be done through
-     * {@link #setOrientation(Vector3f, Vector3f, Vector3f)}.
+     * {@link #setOrientation(Vector3, Vector3, Vector3)}.
      * </p>
      * 
      * @return The up vector of this view
@@ -321,7 +321,7 @@ public class Frustum {
      * Get the direction vector of this frustum, in world space. Together up and
      * direction form a right-handed coordinate system. The returned vector is
      * read-only. Modifications to the frustum's view parameters must be done
-     * through {@link #setOrientation(Vector3f, Vector3f, Vector3f)}.
+     * through {@link #setOrientation(Vector3, Vector3, Vector3)}.
      * </p>
      * 
      * @return The current direction that this frustum is pointing
@@ -376,7 +376,7 @@ public class Frustum {
      * </p>
      * <p>
      * The returned matrix is read-only and will be updated automatically as
-     * {@link #setOrientation(Vector3f, Vector3f, Vector3f)} is invoked.
+     * {@link #setOrientation(Vector3, Vector3, Vector3)} is invoked.
      * </p>
      * 
      * @return The view matrix
@@ -419,7 +419,7 @@ public class Frustum {
      * Return a plane representing the given plane of the view frustum, in world
      * coordinates. This plane should not be modified. The returned plane's
      * normal is configured so that it points into the center of the Frustum.
-     * The returned {@link Vector4f} is encoded as a plane as defined in
+     * The returned {@link Vector4} is encoded as a plane as defined in
      * {@link Plane}; it is also normalized.
      * </p>
      * <p>
