@@ -175,7 +175,7 @@ public final class Matrix4 implements Cloneable {
 
         double invDet = ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5 * rb0;
         if (Math.abs(invDet) <= .00001)
-            throw new ArithmeticException("Singular m.matrix");
+            throw new ArithmeticException("Singular matrix");
         invDet = 1 / invDet;
 
         double t00 = m.m11 * rb5 - m.m12 * rb4 + m.m13 * rb3;
