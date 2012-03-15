@@ -3,8 +3,8 @@ package com.ferox.renderer.impl.lwjgl;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Context;
 import com.ferox.renderer.DisplayMode;
@@ -115,7 +115,7 @@ public class GlslRenderTest {
             shader.setShader(ShaderType.FRAGMENT, FRAGMENT_SHADER);
             
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
-            f.setOrientation(new Vector3f(0f, 3f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
+            f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
             
             int width = 256;
             int height = 256;
@@ -148,7 +148,7 @@ public class GlslRenderTest {
             
             GlslRenderer g = context.getGlslRenderer();
             if (g != null) {
-                g.clear(true, true, true, new Vector4f(.2f, .2f, .2f, 1f), 1, 0);
+                g.clear(true, true, true, new Vector4(.2f, .2f, .2f, 1f), 1, 0);
                 
                 g.setShader(shader);
                 g.bindAttribute("vertex", shape.getVertices());
@@ -156,7 +156,7 @@ public class GlslRenderTest {
                 g.setUniform("projection", f.getProjectionMatrix());
                 g.setUniform("modelview", f.getViewMatrix());
                 
-                g.setUniform("color", new Vector4f(1f, 1f, 1f, 1f));
+                g.setUniform("color", new Vector4(1f, 1f, 1f, 1f));
                 g.setUniform("texture", volume);
                 
                 g.setUniform("transform", 2f, .25f);

@@ -9,8 +9,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL20;
 
-import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
@@ -42,7 +42,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
     private boolean initialized;
     
     // state tracking for buffer clearing
-    private final Vector4f clearColor = new Vector4f(0f, 0f, 0f, 0f);
+    private final Vector4 clearColor = new Vector4(0f, 0f, 0f, 0f);
     private float clearDepth = 1f;
     private int clearStencil = 0;
     
@@ -52,9 +52,9 @@ public class LwjglRendererDelegate extends RendererDelegate {
     private int backPolyMode = GL11.GL_FILL;
     
     @Override
-    protected void glBlendColor(ReadOnlyVector4f color) {
+    protected void glBlendColor(@Const Vector4 color) {
         if (supportsBlending)
-            GL14.glBlendColor(color.getX(), color.getY(), color.getZ(), color.getW());
+            GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
     }
 
     @Override
@@ -229,7 +229,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
 
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
-                      ReadOnlyVector4f color, float depth, int stencil) {
+                      @Const Vector4 color, float depth, int stencil) {
         if (color == null)
             throw new NullPointerException("Clear color cannot be null");
         if (depth < 0f || depth > 1f)
@@ -237,7 +237,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
         
         if (!this.clearColor.equals(color)) {
             this.clearColor.set(color);
-            GL11.glClearColor(color.getX(), color.getY(), color.getZ(), color.getW());
+            GL11.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
         }
         if (this.clearDepth != depth) {
             this.clearDepth = depth;

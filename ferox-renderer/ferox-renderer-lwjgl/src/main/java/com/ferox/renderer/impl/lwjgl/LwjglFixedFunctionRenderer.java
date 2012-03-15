@@ -6,9 +6,10 @@ import java.util.EnumSet;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
@@ -90,7 +91,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glSetMatrix(ReadOnlyMatrix4f matrix) {
+    protected void glSetMatrix(@Const Matrix4 matrix) {
         matrix.get(matrixBuffer, 0, false);
         GL11.glLoadMatrix(matrixBuffer);
     }
@@ -113,7 +114,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glFogColor(ReadOnlyVector4f color) {
+    protected void glFogColor(@Const Vector4 color) {
         color.get(vector4Buffer, 0);
         GL11.glFog(GL11.GL_FOG_COLOR, vector4Buffer);
     }
@@ -150,7 +151,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glGlobalLighting(ReadOnlyVector4f ambient) {
+    protected void glGlobalLighting(@Const Vector4 ambient) {
         ambient.get(vector4Buffer, 0);
         GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, vector4Buffer);
     }
@@ -158,7 +159,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     
 
     @Override
-    protected void glLightColor(int light, LightColor lc, ReadOnlyVector4f color) {
+    protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
         color.get(vector4Buffer, 0);
         int c = getGLLight(lc);
         GL11.glLight(GL11.GL_LIGHT0 + light, c, vector4Buffer);
@@ -170,13 +171,13 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightPosition(int light, ReadOnlyVector4f pos) {
+    protected void glLightPosition(int light, @Const Vector4 pos) {
         pos.get(vector4Buffer, 0);
         GL11.glLight(GL11.GL_LIGHT0 + light, GL11.GL_POSITION, vector4Buffer);
     }
 
     @Override
-    protected void glLightDirection(int light, ReadOnlyVector3f dir) {
+    protected void glLightDirection(int light, @Const Vector3 dir) {
         dir.get(vector3Buffer, 0);
         GL11.glLight(GL11.GL_LIGHT0 + light, GL11.GL_SPOT_DIRECTION, vector3Buffer);
     }
@@ -220,10 +221,10 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glMaterialColor(LightColor component, ReadOnlyVector4f color) {
+    protected void glMaterialColor(LightColor component, @Const Vector4 color) {
         int c = getGLLight(component);
         if (component == LightColor.DIFFUSE) {
-            GL11.glColor4f(color.getX(), color.getY(), color.getZ(), color.getW());
+            GL11.glColor4d(color.x, color.y, color.z, color.w);
         } else {
             color.get(vector4Buffer, 0);
             GL11.glMaterial(GL11.GL_FRONT_AND_BACK, c, vector4Buffer);
@@ -272,7 +273,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTextureColor(ReadOnlyVector4f color) {
+    protected void glTextureColor(@Const Vector4 color) {
         color.get(vector4Buffer, 0);
         GL11.glTexEnv(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_COLOR, vector4Buffer);
     }
@@ -352,7 +353,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTexEyePlane(TexCoord coord, ReadOnlyVector4f plane) {
+    protected void glTexEyePlane(TexCoord coord, @Const Vector4 plane) {
         plane.get(vector4Buffer, 0);
         int tc = Utils.getGLTexCoord(coord, false);
         GL11.glTexGen(tc, GL11.GL_EYE_PLANE, vector4Buffer);
@@ -368,7 +369,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTexObjPlane(TexCoord coord, ReadOnlyVector4f plane) {
+    protected void glTexObjPlane(TexCoord coord, @Const Vector4 plane) {
         plane.get(vector4Buffer, 0);
         int tc = Utils.getGLTexCoord(coord, false);
         GL11.glTexGen(tc, GL11.GL_OBJECT_PLANE, vector4Buffer);
