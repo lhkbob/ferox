@@ -1,8 +1,8 @@
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.math.Matrix4f;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Context;
 import com.ferox.renderer.DisplayMode;
@@ -78,7 +78,7 @@ public class FixedFunctionRenderTest {
             shape = new Sphere(2f, 32, StorageMode.GPU_STATIC);
             
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
-            f.setOrientation(new Vector3f(0f, 3f, 10f), new Vector3f(0f, 0f, -1f), new Vector3f(0f, 1f, 0f));
+            f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
             
             int width = 256;
             int height = 256;
@@ -111,7 +111,7 @@ public class FixedFunctionRenderTest {
             
             FixedFunctionRenderer g = context.getFixedFunctionRenderer();
             if (g != null) {
-                g.clear(true, true, true, new Vector4f(.2f, .2f, .2f, 1f), 1, 0);
+                g.clear(true, true, true, new Vector4(.2f, .2f, .2f, 1f), 1, 0);
                 
                 g.setDrawStyle(DrawStyle.SOLID);
                 
@@ -124,7 +124,7 @@ public class FixedFunctionRenderTest {
                 
                 g.setProjectionMatrix(f.getProjectionMatrix());
                 
-                Matrix4f t = new Matrix4f();
+                Matrix4 t = new Matrix4();
                 int rendered = 0;
                 for (int i = 0; i < 10000; i++) {
                     t.setIdentity();

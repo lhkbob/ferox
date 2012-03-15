@@ -5,9 +5,10 @@ import java.util.EnumSet;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
@@ -89,7 +90,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glSetMatrix(ReadOnlyMatrix4f matrix) {
+    protected void glSetMatrix(@Const Matrix4 matrix) {
         matrix.get(matrixBuffer, 0, false);
         getGL().glLoadMatrixf(matrixBuffer, 0);
     }
@@ -112,7 +113,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glFogColor(ReadOnlyVector4f color) {
+    protected void glFogColor(@Const Vector4 color) {
         color.get(vector4Buffer, 0);
         getGL().glFogfv(GL2.GL_FOG_COLOR, vector4Buffer, 0);
     }
@@ -149,7 +150,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glGlobalLighting(ReadOnlyVector4f ambient) {
+    protected void glGlobalLighting(@Const Vector4 ambient) {
         ambient.get(vector4Buffer, 0);
         getGL().glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, vector4Buffer, 0);
     }
@@ -157,7 +158,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     
 
     @Override
-    protected void glLightColor(int light, LightColor lc, ReadOnlyVector4f color) {
+    protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
         color.get(vector4Buffer, 0);
         int c = getGLLight(lc);
         getGL().glLightfv(GL2.GL_LIGHT0 + light, c, vector4Buffer, 0);
@@ -169,13 +170,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightPosition(int light, ReadOnlyVector4f pos) {
+    protected void glLightPosition(int light, @Const Vector4 pos) {
         pos.get(vector4Buffer, 0);
         getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_POSITION, vector4Buffer, 0);
     }
 
     @Override
-    protected void glLightDirection(int light, ReadOnlyVector3f dir) {
+    protected void glLightDirection(int light, @Const Vector3 dir) {
         dir.get(vector3Buffer, 0);
         getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_DIRECTION, vector3Buffer, 0);
     }
@@ -220,7 +221,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glMaterialColor(LightColor component, ReadOnlyVector4f color) {
+    protected void glMaterialColor(LightColor component, @Const Vector4 color) {
         color.get(vector4Buffer, 0);
         int c = getGLLight(component);
         if (component == LightColor.DIFFUSE)
@@ -272,7 +273,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTextureColor(ReadOnlyVector4f color) {
+    protected void glTextureColor(@Const Vector4 color) {
         color.get(vector4Buffer, 0);
         getGL().glTexEnvfv(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_COLOR, vector4Buffer, 0);
     }
@@ -352,7 +353,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTexEyePlane(TexCoord coord, ReadOnlyVector4f plane) {
+    protected void glTexEyePlane(TexCoord coord, @Const Vector4 plane) {
         plane.get(vector4Buffer, 0);
         int tc = Utils.getGLTexCoord(coord, false);
         getGL().glTexGenfv(tc, GL2.GL_EYE_PLANE, vector4Buffer, 0);
@@ -368,7 +369,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTexObjPlane(TexCoord coord, ReadOnlyVector4f plane) {
+    protected void glTexObjPlane(TexCoord coord, @Const Vector4 plane) {
         plane.get(vector4Buffer, 0);
         int tc = Utils.getGLTexCoord(coord, false);
         getGL().glTexGenfv(tc, GL2.GL_OBJECT_PLANE, vector4Buffer, 0);
