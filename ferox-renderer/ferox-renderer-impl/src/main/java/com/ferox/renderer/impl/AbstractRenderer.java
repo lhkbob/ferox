@@ -1,6 +1,7 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer;
 import com.ferox.resource.VertexBufferObject;
 
@@ -38,7 +39,7 @@ public abstract class AbstractRenderer implements Renderer {
     }
     
     @Override
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, ReadOnlyVector4f color, float depth, int stencil) {
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, float depth, int stencil) {
         delegate.clear(clearColor, clearDepth, clearStencil, color, depth, stencil);
     }
 
@@ -48,7 +49,7 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void setBlendColor(ReadOnlyVector4f color) {
+    public void setBlendColor(@Const Vector4 color) {
         delegate.setBlendColor(color);
     }
 

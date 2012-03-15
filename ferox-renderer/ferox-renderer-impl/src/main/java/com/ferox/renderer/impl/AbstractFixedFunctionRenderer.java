@@ -1,11 +1,9 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.math.Matrix4f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.ResourceManager.LockToken;
@@ -75,9 +73,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         // they're stored by OpenGL after being modified by the current MV matrix
         private boolean modifiedSinceReset = false;
         
-        public final Vector4f ambient = new Vector4f(0f, 0f, 0f, 1f);
-        public final Vector4f specular = new Vector4f(0f, 0f, 0f, 1f);
-        public final Vector4f diffuse = new Vector4f(0f, 0f, 0f, 1f);
+        public final Vector4 ambient = new Vector4(0f, 0f, 0f, 1f);
+        public final Vector4 specular = new Vector4(0f, 0f, 0f, 1f);
+        public final Vector4 diffuse = new Vector4(0f, 0f, 0f, 1f);
         
         public float constAtt = 1f;
         public float linAtt = 0f;
@@ -103,17 +101,17 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         public LockToken<? extends Texture> lock = null;
         
         public EnvMode envMode = EnvMode.MODULATE;
-        public Vector4f color = new Vector4f(0f, 0f, 0f, 0f);
+        public Vector4 color = new Vector4(0f, 0f, 0f, 0f);
         
         public TexCoordSource tcS = TexCoordSource.ATTRIBUTE;
         public TexCoordSource tcT = TexCoordSource.ATTRIBUTE;
         public TexCoordSource tcR = TexCoordSource.ATTRIBUTE;
         public TexCoordSource tcQ = TexCoordSource.ATTRIBUTE;
         
-        public final Vector4f objPlaneS = new Vector4f(1f, 0f, 0f, 0f);
-        public final Vector4f objPlaneT = new Vector4f(0f, 1f, 0f, 0f);
-        public final Vector4f objPlaneR = new Vector4f(0f, 0f, 0f, 0f);
-        public final Vector4f objPlaneQ = new Vector4f(0f, 0f, 0f, 0f);
+        public final Vector4 objPlaneS = new Vector4(1f, 0f, 0f, 0f);
+        public final Vector4 objPlaneT = new Vector4(0f, 1f, 0f, 0f);
+        public final Vector4 objPlaneR = new Vector4(0f, 0f, 0f, 0f);
+        public final Vector4 objPlaneQ = new Vector4(0f, 0f, 0f, 0f);
         
         public CombineFunction rgbFunc = CombineFunction.MODULATE;
         public CombineFunction alphaFunc = CombineFunction.MODULATE;
@@ -218,29 +216,29 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         }
     }
     
-    private static final Matrix4f IDENTITY = new Matrix4f();
+    private static final Matrix4 IDENTITY = new Matrix4();
     
     // cached defaults
-    private static final Vector4f DEFAULT_MAT_A_COLOR = new Vector4f(.2f, .2f, .2f, 1f);
-    private static final Vector4f DEFAULT_MAT_D_COLOR = new Vector4f(.8f, .8f, .8f, 1f);
+    private static final Vector4 DEFAULT_MAT_A_COLOR = new Vector4(.2f, .2f, .2f, 1f);
+    private static final Vector4 DEFAULT_MAT_D_COLOR = new Vector4(.8f, .8f, .8f, 1f);
     
-    private static final Vector4f ZERO = new Vector4f(0f, 0f, 0f, 0f);
-    private static final Vector4f BLACK = new Vector4f(0f, 0f, 0f, 1f);
-    private static final Vector4f WHITE = new Vector4f(1f, 1f, 1f, 1f);
+    private static final Vector4 ZERO = new Vector4(0f, 0f, 0f, 0f);
+    private static final Vector4 BLACK = new Vector4(0f, 0f, 0f, 1f);
+    private static final Vector4 WHITE = new Vector4(1f, 1f, 1f, 1f);
     
-    private static final Vector4f DEFAULT_LIGHT_POS = new Vector4f(0f, 0f, 1f, 0f);
-    private static final Vector3f DEFAULT_SPOT_DIR = new Vector3f(0f, 0f, -1f);
+    private static final Vector4 DEFAULT_LIGHT_POS = new Vector4(0f, 0f, 1f, 0f);
+    private static final Vector3 DEFAULT_SPOT_DIR = new Vector3(0f, 0f, -1f);
     
-    private static final Vector4f DEFAULT_S_PLANE = new Vector4f(1f, 0f, 0f, 0f);
-    private static final Vector4f DEFAULT_T_PLANE = new Vector4f(0f, 1f, 0f, 0f);
-    private static final Vector4f DEFAULT_RQ_PLANE = new Vector4f(0f, 0f, 0f, 0f);
+    private static final Vector4 DEFAULT_S_PLANE = new Vector4(1f, 0f, 0f, 0f);
+    private static final Vector4 DEFAULT_T_PLANE = new Vector4(0f, 1f, 0f, 0f);
+    private static final Vector4 DEFAULT_RQ_PLANE = new Vector4(0f, 0f, 0f, 0f);
     
     // alpha test
     protected Comparison alphaTest = Comparison.ALWAYS;
     protected float alphaRefValue = 1f;
     
     // fog
-    protected final Vector4f fogColor = new Vector4f(ZERO);
+    protected final Vector4 fogColor = new Vector4(ZERO);
     
     protected float fogStart = 0f;
     protected float fogEnd = 1f;
@@ -250,7 +248,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected boolean fogEnabled = false;
     
     // global lighting
-    protected final Vector4f globalAmbient = new Vector4f(DEFAULT_MAT_A_COLOR);
+    protected final Vector4 globalAmbient = new Vector4(DEFAULT_MAT_A_COLOR);
     protected boolean lightingEnabled = false;
     protected boolean lightingTwoSided = false;
     protected boolean lightingSmoothed = true;
@@ -259,10 +257,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected LightState[] lights; // "final"
     
     // material
-    protected final Vector4f matDiffuse = new Vector4f(DEFAULT_MAT_D_COLOR);
-    protected final Vector4f matAmbient = new Vector4f(DEFAULT_MAT_A_COLOR);
-    protected final Vector4f matSpecular = new Vector4f(BLACK);
-    protected final Vector4f matEmmissive = new Vector4f(BLACK);
+    protected final Vector4 matDiffuse = new Vector4(DEFAULT_MAT_D_COLOR);
+    protected final Vector4 matAmbient = new Vector4(DEFAULT_MAT_A_COLOR);
+    protected final Vector4 matSpecular = new Vector4(BLACK);
+    protected final Vector4 matEmmissive = new Vector4(BLACK);
     
     protected float matShininess = 0f;
     
@@ -289,7 +287,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     
     // matrix
     protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
-    private final Matrix4f dirtyModelView = new Matrix4f(); // last set model view that hasn't been sent yet
+    private final Matrix4 dirtyModelView = new Matrix4(); // last set model view that hasn't been sent yet
     private boolean isModelViewDirty = true;
     
     /**
@@ -437,7 +435,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     @Override
-    public void setModelViewMatrix(ReadOnlyMatrix4f matrix) {
+    public void setModelViewMatrix(@Const Matrix4 matrix) {
         if (matrix == null)
             throw new NullPointerException("Matrix cannot be null");
         
@@ -453,7 +451,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set the matrix for the current mode
      */
-    protected abstract void glSetMatrix(ReadOnlyMatrix4f matrix);
+    protected abstract void glSetMatrix(@Const Matrix4 matrix);
     
     private void setMatrixMode(MatrixMode mode) {
         if (matrixMode != mode) {
@@ -471,7 +469,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     @Override
-    public void setProjectionMatrix(ReadOnlyMatrix4f matrix) {
+    public void setProjectionMatrix(@Const Matrix4 matrix) {
         if (matrix == null)
             throw new NullPointerException("Matrix cannot be null");
         
@@ -496,7 +494,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glAlphaTest(Comparison test, float ref);
 
     @Override
-    public void setFogColor(ReadOnlyVector4f color) {
+    public void setFogColor(@Const Vector4 color) {
         if (color == null)
             throw new NullPointerException("Null fog color");
         if (!fogColor.equals(color)) {
@@ -509,7 +507,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * Invoke OpenGL calls to set the fog color. Don't need to clamp since
      * OpenGL does that for us.
      */
-    protected abstract void glFogColor(ReadOnlyVector4f color);
+    protected abstract void glFogColor(@Const Vector4 color);
 
     @Override
     public void setFogEnabled(boolean enable) {
@@ -575,15 +573,15 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      */
     protected abstract void glFogMode(FogMode fog);
     
-    private void clamp(ReadOnlyVector4f input, float min, float max, Vector4f out) {
-        out.set(Math.max(min, Math.min(input.getX(), max)),
-                Math.max(min, Math.min(input.getY(), max)),
-                Math.max(min, Math.min(input.getZ(), max)),
-                Math.max(min, Math.min(input.getW(), max)));
+    private void clamp(@Const Vector4 input, float min, float max, Vector4 out) {
+        out.set(Math.max(min, Math.min(input.x, max)),
+                Math.max(min, Math.min(input.y, max)),
+                Math.max(min, Math.min(input.z, max)),
+                Math.max(min, Math.min(input.w, max)));
     }
 
     @Override
-    public void setGlobalAmbientLight(ReadOnlyVector4f ambient) {
+    public void setGlobalAmbientLight(@Const Vector4 ambient) {
         if (ambient == null)
             throw new NullPointerException("Null global ambient color");
         if (!globalAmbient.equals(ambient)) {
@@ -595,10 +593,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set the global lighting color
      */
-    protected abstract void glGlobalLighting(ReadOnlyVector4f ambient);
+    protected abstract void glGlobalLighting(@Const Vector4 ambient);
     
     @Override
-    public void setLightColor(int light, ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec) {
+    public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec) {
         if (amb == null || diff == null || spec == null)
             throw new NullPointerException("Colors cannot be null");
         if (light < 0)
@@ -625,7 +623,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * Invoke OpenGL calls to set the light color for the given light. The color
      * has already been clamped correctly.
      */
-    protected abstract void glLightColor(int light, LightColor lc, ReadOnlyVector4f color);
+    protected abstract void glLightColor(int light, LightColor lc, @Const Vector4 color);
 
     @Override
     public void setLightEnabled(int light, boolean enable) {
@@ -647,11 +645,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glEnableLight(int light, boolean enable);
 
     @Override
-    public void setLightPosition(int light, ReadOnlyVector4f pos) {
+    public void setLightPosition(int light, @Const Vector4 pos) {
         if (pos == null)
             throw new NullPointerException("Light position can't be null");
-        if (pos.getW() != 0f && pos.getW() != 1f)
-            throw new NullPointerException("pos.w must be 0 or 1, not: " + pos.getW());
+        if (pos.w != 0.0 && pos.w != 1.0)
+            throw new NullPointerException("pos.w must be 0 or 1, not: " + pos.w);
         if (light < 0)
             throw new IllegalArgumentException("Light index must be at least, not: " + light);
         if (light >= lights.length)
@@ -667,10 +665,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set a light's position vector
      */
-    protected abstract void glLightPosition(int light, ReadOnlyVector4f pos);
+    protected abstract void glLightPosition(int light, @Const Vector4 pos);
     
     @Override
-    public void setSpotlight(int light, ReadOnlyVector3f dir, float angle) {
+    public void setSpotlight(int light, @Const Vector3 dir, float angle) {
         if (dir == null)
             throw new NullPointerException("Spotlight direction can't be null");
         if ((angle < 0f || angle > 90f) && angle != 180f)
@@ -696,7 +694,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set a light's spotlight direction
      */
-    protected abstract void glLightDirection(int light, ReadOnlyVector3f dir);
+    protected abstract void glLightDirection(int light, @Const Vector3 dir);
     
     /**
      * Invoke OpenGL calls to set a light's spotlight angle
@@ -795,7 +793,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glLineWidth(float width);
 
     @Override
-    public void setMaterial(ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec, ReadOnlyVector4f emm) {
+    public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec, @Const Vector4 emm) {
         if (amb == null || diff == null || spec == null || emm == null)
             throw new NullPointerException("Material colors can't be null: " + amb + ", " + diff + ", " + spec + ", " + emm);
         if (!matAmbient.equals(amb)) {
@@ -824,7 +822,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * Invoke OpenGL calls to set the material color for the LightColor. The
      * color has already been clamped correctly.
      */
-    protected abstract void glMaterialColor(LightColor component, ReadOnlyVector4f color);
+    protected abstract void glMaterialColor(LightColor component, @Const Vector4 color);
     
     @Override
     public void setMaterialShininess(float shininess) {
@@ -944,7 +942,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glEnableTexture(Target target, boolean enable);
 
     @Override
-    public void setTextureColor(int tex, ReadOnlyVector4f color) {
+    public void setTextureColor(int tex, @Const Vector4 color) {
         if (color == null)
             throw new NullPointerException("Texture color can't be null");
         if (tex < 0)
@@ -964,7 +962,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * Invoke OpenGL calls to set the texture color for the active texture.
      * OpenGL clamps the values for us.
      */
-    protected abstract void glTextureColor(ReadOnlyVector4f color);
+    protected abstract void glTextureColor(@Const Vector4 color);
 
     @Override
     public void setTextureCombineFunction(int tex, CombineFunction rgbFunc, CombineFunction alphaFunc) {
@@ -1141,7 +1139,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glEnableTexGen(TexCoord coord, boolean enable);
 
     @Override
-    public void setTextureEyePlane(int tex, TexCoord coord, ReadOnlyVector4f plane) {
+    public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane) {
         if (plane == null)
             throw new NullPointerException("Eye plane cannot be null");
         if (coord == null)
@@ -1162,7 +1160,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL to set the eye plane for the given coordinate on the active texture
      */
-    protected abstract void glTexEyePlane(TexCoord coord, ReadOnlyVector4f plane);
+    protected abstract void glTexEyePlane(TexCoord coord, @Const Vector4 plane);
 
     @Override
     public void setTextureMode(int tex, EnvMode mode) {
@@ -1187,7 +1185,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glTexEnvMode(EnvMode mode);
 
     @Override
-    public void setTextureObjectPlane(int tex, TexCoord coord, ReadOnlyVector4f plane) {
+    public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane) {
         if (plane == null)
             throw new NullPointerException("Object plane cannot be null");
         if (coord == null)
@@ -1233,10 +1231,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL to set the object plane for the active texture
      */
-    protected abstract void glTexObjPlane(TexCoord coord, ReadOnlyVector4f plane);
+    protected abstract void glTexObjPlane(TexCoord coord, @Const Vector4 plane);
     
     @Override
-    public void setTextureTransform(int tex, ReadOnlyMatrix4f matrix) {
+    public void setTextureTransform(int tex, @Const Matrix4 matrix) {
         if (matrix == null)
             throw new NullPointerException("Matrix cannot be null");
         if (tex < 0)

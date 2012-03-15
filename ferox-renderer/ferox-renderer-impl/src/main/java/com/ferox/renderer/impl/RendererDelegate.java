@@ -1,7 +1,7 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.math.ReadOnlyVector4f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
@@ -12,8 +12,8 @@ import com.ferox.renderer.Renderer.StencilOp;
 import com.ferox.renderer.impl.ResourceManager.LockToken;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.Resource.Status;
+import com.ferox.resource.VertexBufferObject;
 
 /**
  * <p>
@@ -32,7 +32,7 @@ import com.ferox.resource.Resource.Status;
  * @author Michael Ludwig
  */
 public abstract class RendererDelegate {
-    private static final ReadOnlyVector4f DEFAULT_BLEND_COLOR = new Vector4f(0f, 0f, 0f, 0f);
+    private static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
     
     protected class IndexState implements LockListener<VertexBufferObject> {
         public LockToken<? extends VertexBufferObject> lock;
@@ -63,7 +63,7 @@ public abstract class RendererDelegate {
     }
     
     // blending
-    protected final Vector4f blendColor = new Vector4f();
+    protected final Vector4 blendColor = new Vector4();
     protected BlendFunction blendFuncRgb = BlendFunction.ADD;
     protected BlendFunction blendFuncAlpha = BlendFunction.ADD;
     
@@ -185,9 +185,9 @@ public abstract class RendererDelegate {
      * . The color does not need to be clamped because OpenGL performs this for
      * us.
      */
-    public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, ReadOnlyVector4f color, float depth, int stencil);
+    public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, float depth, int stencil);
 
-    public void setBlendColor(ReadOnlyVector4f color) {
+    public void setBlendColor(@Const Vector4 color) {
         if (color == null)
             throw new NullPointerException("Null blend color");
         
@@ -201,7 +201,7 @@ public abstract class RendererDelegate {
      * Invoke OpenGL calls to set the blend color. The color does not need to be
      * clamped because OpenGL clamps it for us.
      */
-    protected abstract void glBlendColor(ReadOnlyVector4f color);
+    protected abstract void glBlendColor(@Const Vector4 color);
 
     public void setBlendMode(BlendFunction function, BlendFactor src, BlendFactor dst) {
         setBlendModeAlpha(function, src, dst);

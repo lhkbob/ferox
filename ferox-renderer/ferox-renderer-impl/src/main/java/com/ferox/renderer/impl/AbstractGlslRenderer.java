@@ -8,11 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.ferox.math.ReadOnlyColor3f;
-import com.ferox.math.ReadOnlyMatrix3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
@@ -764,34 +765,34 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttribute(String glslAttrName, ReadOnlyVector3f v) {
+    public void bindAttribute(String glslAttrName, @Const Vector3 v) {
         AttributeBinding ab = verifyAttribute(glslAttrName, 3, 1);
-        bindAttribute(ab, 0, 3, v.getX(), v.getY(), v.getZ(), -1f);
+        bindAttribute(ab, 0, 3, (float) v.x, (float) v.y, (float) v.z, -1f);
     }
 
     @Override
-    public void bindAttribute(String glslAttrName, ReadOnlyVector4f v) {
+    public void bindAttribute(String glslAttrName, @Const Vector4 v) {
         AttributeBinding ab = verifyAttribute(glslAttrName, 4, 1);
-        bindAttribute(ab, 0, 4, v.getX(), v.getY(), v.getZ(), v.getW());
+        bindAttribute(ab, 0, 4, (float) v.x, (float) v.y, (float) v.z, (float) v.w);
     }
 
     @Override
-    public void bindAttribute(String glslAttrName, ReadOnlyMatrix3f v) {
+    public void bindAttribute(String glslAttrName, @Const Matrix3 v) {
         AttributeBinding ab = verifyAttribute(glslAttrName, 3, 3);
 
-        bindAttribute(ab, 0, 3, v.get(0, 0), v.get(1, 0), v.get(2, 0), -1f);
-        bindAttribute(ab, 1, 3, v.get(0, 1), v.get(1, 1), v.get(2, 1), -1f);
-        bindAttribute(ab, 2, 3, v.get(0, 2), v.get(1, 2), v.get(2, 2), -1f);
+        bindAttribute(ab, 0, 3, (float) v.get(0, 0), (float) v.get(1, 0), (float) v.get(2, 0), -1f);
+        bindAttribute(ab, 1, 3, (float) v.get(0, 1), (float) v.get(1, 1), (float) v.get(2, 1), -1f);
+        bindAttribute(ab, 2, 3, (float) v.get(0, 2), (float) v.get(1, 2), (float) v.get(2, 2), -1f);
     }
 
     @Override
-    public void bindAttribute(String glslAttrName, ReadOnlyMatrix4f v) {
+    public void bindAttribute(String glslAttrName, @Const Matrix4 v) {
         AttributeBinding ab = verifyAttribute(glslAttrName, 4, 4);
 
-        bindAttribute(ab, 0, 4, v.get(0, 0), v.get(1, 0), v.get(2, 0), v.get(3, 0));
-        bindAttribute(ab, 1, 4, v.get(0, 1), v.get(1, 1), v.get(2, 1), v.get(3, 1));
-        bindAttribute(ab, 2, 4, v.get(0, 2), v.get(1, 2), v.get(2, 2), v.get(3, 2));
-        bindAttribute(ab, 3, 4, v.get(0, 3), v.get(1, 3), v.get(2, 3), v.get(3, 3));
+        bindAttribute(ab, 0, 4, (float) v.get(0, 0), (float) v.get(1, 0), (float) v.get(2, 0), (float) v.get(3, 0));
+        bindAttribute(ab, 1, 4, (float) v.get(0, 1), (float) v.get(1, 1), (float) v.get(2, 1), (float) v.get(3, 1));
+        bindAttribute(ab, 2, 4, (float) v.get(0, 2), (float) v.get(1, 2), (float) v.get(2, 2), (float) v.get(3, 2));
+        bindAttribute(ab, 3, 4, (float) v.get(0, 3), (float) v.get(1, 3), (float) v.get(2, 3), (float) v.get(3, 3));
     }
 
     private UniformBinding verifyUniform(String name, UniformType[] validTypes) {
@@ -893,7 +894,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void setUniform(String name, ReadOnlyMatrix3f val) {
+    public void setUniform(String name, @Const Matrix3 val) {
         if (val == null)
             throw new NullPointerException("Matrix cannot be null");
         UniformBinding u = verifyUniform(name, VALID_FLOAT_MAT3);
@@ -922,7 +923,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void setUniform(String name, ReadOnlyMatrix4f val) {
+    public void setUniform(String name, @Const Matrix4 val) {
         if (val == null)
             throw new NullPointerException("Matrix cannot be null");
         UniformBinding u = verifyUniform(name, VALID_FLOAT_MAT4);
@@ -951,33 +952,33 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void setUniform(String name, ReadOnlyVector3f v) {
+    public void setUniform(String name, @Const Vector3 v) {
         if (v == null)
             throw new NullPointerException("Vector cannot be null");
-        setUniform(name, v.getX(), v.getY(), v.getZ());
+        setUniform(name, (float) v.x, (float) v.y, (float) v.z);
     }
 
     @Override
-    public void setUniform(String name, ReadOnlyVector4f v) {
+    public void setUniform(String name, @Const Vector4 v) {
         if (v == null)
             throw new NullPointerException("Vector cannot be null");
-        setUniform(name, v.getX(), v.getY(), v.getZ(), v.getW());
+        setUniform(name, (float) v.x, (float) v.y, (float) v.z, (float) v.w);
     }
     
     @Override
-    public void setUniform(String name, ReadOnlyColor3f color) {
+    public void setUniform(String name, @Const ColorRGB color) {
         setUniform(name, color, false);
     }
 
     @Override
-    public void setUniform(String name, ReadOnlyColor3f color, boolean isHDR) {
+    public void setUniform(String name, @Const ColorRGB color, boolean isHDR) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
         
         if (isHDR)
-            setUniform(name, color.getRedHDR(), color.getGreenHDR(), color.getBlueHDR());
+            setUniform(name, (float) color.redHDR(), (float) color.greenHDR(), (float) color.blueHDR());
         else
-            setUniform(name, color.getRed(), color.getGreen(), color.getBlue());
+            setUniform(name, (float) color.red(), (float) color.green(), (float) color.blue());
     }
 
     @Override
