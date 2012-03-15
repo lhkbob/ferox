@@ -1,9 +1,8 @@
 package com.ferox.util.geom;
 
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -28,7 +27,7 @@ public class Box implements Geometry {
     private final VertexAttribute normals;
     private final VertexAttribute texCoords;
     
-    private final ReadOnlyAxisAlignedBox bounds;
+    private final AxisAlignedBox bounds;
     
     /**
      * Construct a box centered on its origin, with the given side length. So,
@@ -53,7 +52,7 @@ public class Box implements Geometry {
      * @throws IllegalArgumentException if min has any coordinate less than the
      *             corresponding coordinate of max
      */
-    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max) {
+    public Box(@Const Vector3 min, @Const Vector3 max) {
         this(min, max, StorageMode.IN_MEMORY);
     }
 
@@ -67,8 +66,8 @@ public class Box implements Geometry {
      * @throws IllegalArgumentException if side is negative
      */
     public Box(float side, StorageMode mode) {
-        this(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
-             new Vector3f(side / 2f, side / 2f, side / 2f), mode);
+        this(new Vector3(-side / 2f, -side / 2f, -side / 2f), 
+             new Vector3(side / 2f, side / 2f, side / 2f), mode);
     }
 
     /**
@@ -82,21 +81,21 @@ public class Box implements Geometry {
      * @throws IllegalArgumentException if min has any coordinate less than the
      *             corresponding coordinate of max
      */
-    public Box(ReadOnlyVector3f min, ReadOnlyVector3f max, StorageMode mode) {
+    public Box(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
         if (min == null || max == null)
             throw new NullPointerException("Min and max vectors cannot be null");
         if (mode == null)
             throw new NullPointerException("StorageMode cannot be null");
         
-        if (min.getX() > max.getX() || min.getY() > max.getY() || min.getZ() > max.getZ())
+        if (min.x > max.x || min.y > max.y || min.z > max.z)
             throw new IllegalArgumentException("Min vertex has coordinate greater than 'max': " + min + " - " + max);
         
-        float maxX = max.getX();
-        float maxY = max.getY();
-        float maxZ = max.getZ();
-        float minX = min.getX();
-        float minY = min.getY();
-        float minZ = min.getZ();
+        float maxX = (float) max.x;
+        float maxY = (float) max.y;
+        float maxZ = (float) max.z;
+        float minX = (float) min.x;
+        float minY = (float) min.y;
+        float minZ = (float) min.z;
         
         int i = 0;
         float[] va = new float[192]; // 72v + 72n + 48t
@@ -142,7 +141,7 @@ public class Box implements Geometry {
         normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
         texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
         
-        bounds = new AxisAlignedBox(new Vector3f(minX, minY, minZ), new Vector3f(maxX, maxY, maxZ));
+        bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
     }
 
     @Override
@@ -186,7 +185,7 @@ public class Box implements Geometry {
     }
 
     @Override
-    public ReadOnlyAxisAlignedBox getBounds() {
+    public @Const AxisAlignedBox getBounds() {
         return bounds;
     }
 }

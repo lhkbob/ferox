@@ -2,8 +2,8 @@ package com.ferox.util.geom;
 
 import java.util.Arrays;
 
+import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -27,7 +27,7 @@ public class Teapot implements Geometry {
     
     private final VertexBufferObject indices;
     
-    private final ReadOnlyAxisAlignedBox bounds;
+    private final AxisAlignedBox bounds;
     
     /**
      * Instantiates a new Teapot object with the given scale with
@@ -70,7 +70,6 @@ public class Teapot implements Geometry {
         texCoords = new VertexAttribute(new VertexBufferObject(new BufferData(t), mode), 2);
         indices = new VertexBufferObject(new BufferData(i), mode);
         
-        // since the teapot doesn't use interleaved data, this is safe
         bounds = new AxisAlignedBox(v, 0, 0, v.length / 3);
     }
     
@@ -85,7 +84,7 @@ public class Teapot implements Geometry {
     }
     
     @Override
-    public ReadOnlyAxisAlignedBox getBounds() {
+    public @Const AxisAlignedBox getBounds() {
         return bounds;
     }
 

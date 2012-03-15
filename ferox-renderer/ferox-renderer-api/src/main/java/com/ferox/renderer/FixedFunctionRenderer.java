@@ -1,8 +1,9 @@
 package com.ferox.renderer;
 
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.util.geom.Geometry;
@@ -433,7 +434,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param color The new fog color
      * @throws NullPointerException if color is null
      */
-    public void setFogColor(ReadOnlyVector4f color);
+    public void setFogColor(@Const Vector4 color);
 
     /**
      * <p>
@@ -554,7 +555,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param ambient The new global ambient color
      * @throws NullPointerException if ambient is null
      */
-    public void setGlobalAmbientLight(ReadOnlyVector4f ambient);
+    public void setGlobalAmbientLight(@Const Vector4 ambient);
 
     /**
      * <p>
@@ -622,7 +623,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws IllegalArgumentException if pos.w is not 0 or 1 or if light is
      *             less than 0
      */
-    public void setLightPosition(int light, ReadOnlyVector4f pos);
+    public void setLightPosition(int light, @Const Vector4 pos);
 
     /**
      * <p>
@@ -650,8 +651,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if amb, diff, or spec are null
      * @throws IllegalArgumentException if light is less than 0
      */
-    public void setLightColor(int light, ReadOnlyVector4f amb, ReadOnlyVector4f diff, 
-                              ReadOnlyVector4f spec);
+    public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, 
+                              @Const Vector4 spec);
 
     /**
      * <p>
@@ -684,7 +685,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws IllegalArgumentException if angle is not in [0, 90] or equal to
      *             180 or if light is less than 0
      */
-    public void setSpotlight(int light, ReadOnlyVector3f dir, float angle);
+    public void setSpotlight(int light, @Const Vector3 dir, float angle);
 
     /**
      * <p>
@@ -752,8 +753,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param emm The emissive color of the material
      * @throws NullPointerException if any color is null
      */
-    public void setMaterial(ReadOnlyVector4f amb, ReadOnlyVector4f diff, ReadOnlyVector4f spec,
-                            ReadOnlyVector4f emm);
+    public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec,
+                            @Const Vector4 emm);
 
     /**
      * Set the material shininess to use when lighting is enabled. This
@@ -823,7 +824,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if color is null
      * @throws IllegalArgumentException if tex is less than 0
      */
-    public void setTextureColor(int tex, ReadOnlyVector4f color);
+    public void setTextureColor(int tex, @Const Vector4 color);
 
     /**
      * <p>
@@ -888,7 +889,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if coord or plane are null
      * @throws IllegalArgumentException if tex is less than 0
      */
-    public void setTextureObjectPlane(int tex, TexCoord coord, ReadOnlyVector4f plane);
+    public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane);
 
     /**
      * <p>
@@ -912,7 +913,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if coord or plane are null
      * @throws IllegalArgumentException if tex is less than 0
      */
-    public void setTextureEyePlane(int tex, TexCoord coord, ReadOnlyVector4f plane);
+    public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane);
 
     /**
      * <p>
@@ -932,7 +933,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if matrix is null
      * @throws IllegalArgumentException if tex is less than 0
      */
-    public void setTextureTransform(int tex, ReadOnlyMatrix4f matrix);
+    public void setTextureTransform(int tex, @Const Matrix4 matrix);
 
     /**
      * Set the rgb and alpha {@link CombineFunction}s that will be used if the
@@ -1010,7 +1011,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param projection The new projection matrix
      * @throws NullPointerException if projection is null
      */
-    public void setProjectionMatrix(ReadOnlyMatrix4f projection);
+    public void setProjectionMatrix(@Const Matrix4 projection);
 
     /**
      * <p>
@@ -1038,7 +1039,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param modelView The new modelview matrix
      * @throws NullPointerException if modelView is null
      */
-    public void setModelViewMatrix(ReadOnlyMatrix4f modelView);
+    public void setModelViewMatrix(@Const Matrix4 modelView);
 
     /**
      * <p>

@@ -1,7 +1,8 @@
 package com.ferox.renderer;
 
-import com.ferox.math.ReadOnlyColor3f;
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector4;
+import com.ferox.renderer.pass.RenderPass;
 import com.ferox.resource.VertexBufferObject;
 
 /**
@@ -681,7 +682,7 @@ public interface Renderer {
      * @param color The new blend color to use
      * @throws NullPointerException if color is null
      */
-    public void setBlendColor(ReadOnlyVector4f color);
+    public void setBlendColor(@Const Vector4 color);
 
     /**
      * Set the {@link BlendFunction} and source and destination
@@ -846,7 +847,7 @@ public interface Renderer {
      *             clearDepth is true
      */
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, 
-                      ReadOnlyVector4f color, float depth, int stencil);
+                      @Const Vector4 color, float depth, int stencil);
    
     /**
      * <p>

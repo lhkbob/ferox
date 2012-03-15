@@ -2,11 +2,12 @@ package com.ferox.renderer;
 
 import java.util.Map;
 
-import com.ferox.math.ReadOnlyColor3f;
-import com.ferox.math.ReadOnlyMatrix3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.ReadOnlyVector4f;
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslUniform;
@@ -35,13 +36,13 @@ public interface GlslRenderer extends Renderer {
     
     public void bindAttribute(String glslAttrName, float v1, float v2);
     
-    public void bindAttribute(String glslAttrName, ReadOnlyVector3f v);
+    public void bindAttribute(String glslAttrName, @Const Vector3 v);
     
-    public void bindAttribute(String glslAttrName, ReadOnlyVector4f v);
+    public void bindAttribute(String glslAttrName, @Const Vector4 v);
     
-    public void bindAttribute(String glslAttrName, ReadOnlyMatrix3f v);
+    public void bindAttribute(String glslAttrName, @Const Matrix3 v);
     
-    public void bindAttribute(String glslAttrName, ReadOnlyMatrix4f v);
+    public void bindAttribute(String glslAttrName, @Const Matrix4 v);
     
     
     public void setUniform(String name, float val);
@@ -52,13 +53,13 @@ public interface GlslRenderer extends Renderer {
     
     public void setUniform(String name, float v1, float v2, float v3, float v4);
     
-    public void setUniform(String name, ReadOnlyVector3f v);
+    public void setUniform(String name, @Const Vector3 v);
     
-    public void setUniform(String name, ReadOnlyVector4f v);
+    public void setUniform(String name, @Const Vector4 v);
     
-    public void setUniform(String name, ReadOnlyMatrix3f val);
+    public void setUniform(String name, @Const Matrix3 val);
     
-    public void setUniform(String name, ReadOnlyMatrix4f val);
+    public void setUniform(String name, @Const Matrix4 val);
     
     public void setUniform(String name, float[] vals);
     
@@ -81,7 +82,7 @@ public interface GlslRenderer extends Renderer {
 
     public void setUniform(String name, Texture texture);
     
-    public void setUniform(String name, ReadOnlyColor3f color);
+    public void setUniform(String name, @Const ColorRGB color);
     
-    public void setUniform(String name, ReadOnlyColor3f color, boolean isHDR);
+    public void setUniform(String name, @Const ColorRGB color, boolean isHDR);
 }

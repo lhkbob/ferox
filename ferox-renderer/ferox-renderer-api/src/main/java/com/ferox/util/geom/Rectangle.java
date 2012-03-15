@@ -1,10 +1,8 @@
 package com.ferox.util.geom;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
@@ -29,7 +27,7 @@ public class Rectangle implements Geometry {
     private final VertexAttribute normals;
     private final VertexAttribute texCoords;
     
-    private final ReadOnlyAxisAlignedBox bounds;
+    private final AxisAlignedBox bounds;
 
     /**
      * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis
@@ -44,7 +42,7 @@ public class Rectangle implements Geometry {
      */
     public Rectangle(float left, float right, float bottom, float top) {
         this(left, right, bottom, top,
-             new Vector3f(1f, 0f, 0f), new Vector3f(0f, 1f, 0f));
+             new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
     }
 
     /**
@@ -62,7 +60,7 @@ public class Rectangle implements Geometry {
      * @throws NullPointerException if xAxis or yAxis are null
      */
     public Rectangle(float left, float right, float bottom, float top,
-                     ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis) {
+                     @Const Vector3 xAxis, @Const Vector3 yAxis) {
         this(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
     }
 
@@ -84,7 +82,7 @@ public class Rectangle implements Geometry {
      * @throws NullPointerException if xAxis, yAxis, or mode are null
      */
     public Rectangle(float left, float right, float bottom, float top, 
-                     ReadOnlyVector3f xAxis, ReadOnlyVector3f yAxis,
+                     @Const Vector3 xAxis, @Const Vector3 yAxis,
                      StorageMode mode) {
         if (left > right || bottom > top)
             throw new IllegalArgumentException("Side positions of the square are incorrect");
@@ -93,55 +91,55 @@ public class Rectangle implements Geometry {
         if (mode == null)
             throw new NullPointerException("StorageMode cannot be null");
         
-        MutableVector3f normal = xAxis.cross(yAxis, null);
-
+        Vector3 normal = new Vector3().cross(xAxis, yAxis);
+        
         float[] va = new float[32];
         int i = 0;
         
         // lower-left
-        va[i++] = xAxis.getX() * left + yAxis.getX() * bottom;
-        va[i++] = xAxis.getY() * left + yAxis.getY() * bottom;
-        va[i++] = xAxis.getZ() * left + yAxis.getZ() * bottom;
+        va[i++] = (float) (xAxis.x * left + yAxis.x * bottom);
+        va[i++] = (float) (xAxis.y * left + yAxis.y * bottom);
+        va[i++] = (float) (xAxis.z * left + yAxis.z * bottom);
 
-        va[i++] = normal.getX();
-        va[i++] = normal.getY();
-        va[i++] = normal.getZ();
+        va[i++] = (float) normal.x;
+        va[i++] = (float) normal.y;
+        va[i++] = (float) normal.z;
 
         va[i++] = 0f;
         va[i++] = 0f;
 
         // lower-right
-        va[i++] = xAxis.getX() * right + yAxis.getX() * bottom;
-        va[i++] = xAxis.getY() * right + yAxis.getY() * bottom;
-        va[i++] = xAxis.getZ() * right + yAxis.getZ() * bottom;
+        va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
+        va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
+        va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
 
-        va[i++] = normal.getX();
-        va[i++] = normal.getY();
-        va[i++] = normal.getZ();
+        va[i++] = (float) normal.x;
+        va[i++] = (float) normal.y;
+        va[i++] = (float) normal.z;
 
         va[i++] = 1f;
         va[i++] = 0f;
 
         // upper-right
-        va[i++] = xAxis.getX() * right + yAxis.getX() * top;
-        va[i++] = xAxis.getY() * right + yAxis.getY() * top;
-        va[i++] = xAxis.getZ() * right + yAxis.getZ() * top;
+        va[i++] = (float) (xAxis.x * right + yAxis.x * top);
+        va[i++] = (float) (xAxis.y * right + yAxis.y * top);
+        va[i++] = (float) (xAxis.z * right + yAxis.z * top);
 
-        va[i++] = normal.getX();
-        va[i++] = normal.getY();
-        va[i++] = normal.getZ();
+        va[i++] = (float) normal.x;
+        va[i++] = (float) normal.y;
+        va[i++] = (float) normal.z;
 
         va[i++] = 1f;
         va[i++] = 1f;
 
         // upper-left
-        va[i++] = xAxis.getX() * left + yAxis.getX() * top;
-        va[i++] = xAxis.getY() * left + yAxis.getY() * top;
-        va[i++] = xAxis.getZ() * left + yAxis.getZ() * top;
+        va[i++] = (float) (xAxis.x * left + yAxis.x * top);
+        va[i++] = (float) (xAxis.y * left + yAxis.y * top);
+        va[i++] = (float) (xAxis.z * left + yAxis.z * top);
 
-        va[i++] = normal.getX();
-        va[i++] = normal.getY();
-        va[i++] = normal.getZ();
+        va[i++] = (float) normal.x;
+        va[i++] = (float) normal.y;
+        va[i++] = (float) normal.z;
 
         va[i++] = 0f;
         va[i++] = 1f;
@@ -195,7 +193,7 @@ public class Rectangle implements Geometry {
     }
 
     @Override
-    public ReadOnlyAxisAlignedBox getBounds() {
+    public @Const AxisAlignedBox getBounds() {
         return bounds;
     }
 }
