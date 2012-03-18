@@ -69,6 +69,8 @@ public class Plane {
     }
     
     // FIXME: verify behavior, math and document behavior
+    // FIXME: this doesn't have much to do with Planes, so we should move it somewhere
+    // else
     public static void getTangentSpace(@Const Vector3 normal, Vector3 tan0, Vector3 tan1) {
         // Gratz to Erwin Couman's and Bullet for this code
         

@@ -3,8 +3,8 @@ package com.ferox.math.bounds;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.util.Bag;
 
@@ -13,15 +13,12 @@ import com.ferox.util.Bag;
  * Octree is a SpatialIndex implementation that represents the octree data
  * structure. The octree partitions space into an organized hierarchy of cubes.
  * A cube node within the octree can be evenly split into 8 nested cubes which
- * partition its space. Many octree implementations restrict the size of the
- * root node, but this implementation can expand as needed to include items.
- * Similarly, this octree supports relatively fast updates for moving objects.
+ * partition its space.
  * </p>
  * <p>
  * This octree only stores items as deep as possible before they overlap an edge
  * of a node. This means that updates and removals are very fast, but many items
- * can be placed at the top of the tree, reducing the efficiency of queries
- * (especially intersection pair queries).
+ * can be placed at the top of the tree, reducing the efficiency of queries.
  * </p>
  * 
  * @author Michael Ludwig
@@ -36,16 +33,13 @@ public class Octree<T> implements SpatialIndex<T> {
     private Node<T> root;
     private final AxisAlignedBox rootBounds; // all other node bounds implicit from this
     
-    private final Bag<Key<T>> nullBounds;
     private final Set<Node<T>> pendingRemovals;
 
     /**
      * Create a new Octree with dimensions of 100 and an initial max depth of 6.
-     * As the octree expands to enclose more nodes, its depth and dimensions can
-     * increase.
      */
     public Octree() {
-        this(100f);
+        this(100.0);
     }
 
     /**
@@ -56,7 +50,7 @@ public class Octree<T> implements SpatialIndex<T> {
      * @param side The desired side length for the root node
      * @throws IllegalArgumentException if side is less than 0
      */
-    public Octree(float side) {
+    public Octree(double side) {
         this(side, DEFAULT_MAX_DEPTH);
     }
 
@@ -70,9 +64,9 @@ public class Octree<T> implements SpatialIndex<T> {
      * @throws IllegalArgumentException if side is less than 0, or if
      *             initialMaxDepth < 1
      */
-    public Octree(float side, int initialMaxDepth) {
-        this(new AxisAlignedBox(new Vector3f(-side / 2f, -side / 2f, -side / 2f), 
-                                new Vector3f(side / 2f, side / 2f, side / 2f)),
+    public Octree(double side, int initialMaxDepth) {
+        this(new AxisAlignedBox(new Vector3(-side / 2, -side / 2, -side / 2), 
+                                new Vector3(side / 2, side / 2, side / 2)),
              initialMaxDepth);
     }
 
@@ -84,7 +78,7 @@ public class Octree<T> implements SpatialIndex<T> {
      * @param extents The desired root node bounds
      * @throws NullPointerException if extents is null
      */
-    public Octree(ReadOnlyAxisAlignedBox extents) {
+    public Octree(@Const AxisAlignedBox extents) {
         this(extents, DEFAULT_MAX_DEPTH);
     }
 
@@ -98,37 +92,37 @@ public class Octree<T> implements SpatialIndex<T> {
      * @throws NullPointerException if extents is null
      * @throws IllegalArgumentException if initialMaxDepth < 1
      */
-    public Octree(ReadOnlyAxisAlignedBox extents, int initialMaxDepth) {
+    public Octree(@Const AxisAlignedBox extents, int initialMaxDepth) {
         if (extents == null)
             throw new NullPointerException("Extents cannot be null");
         if (initialMaxDepth <= 0)
             throw new IllegalArgumentException("Initial max depth must be at least 1, not: " + initialMaxDepth);
-        if (extents.getMax().getX() < extents.getMin().getX() ||
-            extents.getMax().getY() < extents.getMin().getY() ||
-            extents.getMax().getZ() < extents.getMin().getZ())
+        if (extents.max.x < extents.min.x ||
+            extents.max.y < extents.min.y ||
+            extents.max.z < extents.min.z)
             throw new IllegalArgumentException("Invalid root bounds: " + extents);
         
         rootBounds = new AxisAlignedBox(extents);
         root = new Node<T>(null, initialMaxDepth - 1);
-        nullBounds = new Bag<Key<T>>();
         pendingRemovals = new HashSet<Node<T>>();
         
         queryNumber = 0;
     }
     
     @Override
-    public Object add(T item, ReadOnlyAxisAlignedBox bounds) {
+    public Object add(T item, @Const AxisAlignedBox bounds) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         
-        expandOctreeMaybe(bounds);
-        Key<T> newKey = new Key<T>(item, bounds, this);
-        if (bounds == null) {
-            newKey.addToNull();
-        } else
+        if (inOctree(bounds)) {
+            Key<T> newKey = new Key<T>(item, bounds, this);
             newKey.addToRoot();
-        
-        return newKey;
+
+            return newKey;
+        } else {
+            // can't fit in tree
+            return null;
+        }
     }
 
     @Override
@@ -142,10 +136,7 @@ public class Octree<T> implements SpatialIndex<T> {
             Key<T> ok = (Key<T>) key;
             if (ok.owner == this && ok.data == item) {
                 // key is valid, now remove it
-                if (ok.bounds == null)
-                    ok.removeFromNull();
-                else
-                    ok.removeFromRoot();
+                ok.removeFromRoot();
                 return;
             }
         }
@@ -155,7 +146,7 @@ public class Octree<T> implements SpatialIndex<T> {
     }
 
     @Override
-    public void update(T item, ReadOnlyAxisAlignedBox bounds, Object key) {
+    public boolean update(T item, @Const AxisAlignedBox bounds, Object key) {
         if (item == null)
             throw new NullPointerException("Item cannot be null");
         if (key == null)
@@ -164,10 +155,16 @@ public class Octree<T> implements SpatialIndex<T> {
         if (key instanceof Key) {
             Key<T> ok = (Key<T>) key;
             if (ok.owner == this && ok.data == item) {
-                // key is valid, so update it
-                expandOctreeMaybe(bounds);
-                ok.update(bounds);
-                return;
+                // key is valid
+                if (inOctree(bounds)) {
+                    // item is still in the octree, so update it
+                    ok.update(bounds);
+                    return true;
+                } else {
+                    // item has moved outside of the tree, so remove it
+                    ok.removeFromRoot();
+                    return false;
+                }
             }
         }
         
@@ -176,7 +173,7 @@ public class Octree<T> implements SpatialIndex<T> {
     }
     
     @Override
-    public void query(ReadOnlyAxisAlignedBox volume, QueryCallback<T> callback) {
+    public void query(@Const AxisAlignedBox volume, QueryCallback<T> callback) {
         if (volume == null)
             throw new NullPointerException("Query volume cannot be null");
         if (callback == null)
@@ -186,11 +183,6 @@ public class Octree<T> implements SpatialIndex<T> {
         pruneTree();
         
         root.visitIntersecting(volume, new AabbQueryCallback<T>(callback, ++queryNumber), rootBounds, false);
-        
-        // now report all null bound elements, too
-        int count = nullBounds.size();
-        for (int i = 0; i < count; i++)
-            callback.process(nullBounds.get(i).data);
     }
 
     @Override
@@ -209,78 +201,6 @@ public class Octree<T> implements SpatialIndex<T> {
         
         if (rootTest != FrustumIntersection.OUTSIDE)
             root.visitFrustum(f, new FrustumQueryCallback<T>(callback, planeState, ++queryNumber), rootBounds, planeState);
-        
-        // visit all children with null bounds
-        int count = nullBounds.size();
-        for (int i = 0; i < count; i++)
-            callback.process(nullBounds.get(i).data);
-    }
-
-    @Override
-    public void query(IntersectionCallback<T> callback) {
-        if (callback == null)
-            throw new NullPointerException("Callback cannot be null");
-        
-        // prune tree before query to make it the most efficient possible
-        pruneTree();
-        queryIntersections(root, callback);
-    }
-    
-    /*
-     * Internal implementations of queries based on the supported strategies
-     */
-    
-    private void queryIntersections(Node<T> node, IntersectionCallback<T> callback) {
-        // append all intersections within this node
-        detectIntersections(node, node, callback);
-        
-        // traverse parents
-        Node<T> p = node.parent;
-        while(p != null) {
-            detectIntersections(node, p, callback);
-            p = p.parent;
-        }
-        
-        // recurse to children
-        if (node.children != null) {
-            for (int i = 0; i < node.children.length; i++) {
-                if (node.children[i] != null)
-                    queryIntersections(node.children[i], callback);
-            }
-        }
-    }
-    
-    private void detectIntersections(Node<T> n1, Node<T> n2, IntersectionCallback<T> callback) {
-        if (n1.items == null || n2.items == null)
-            return; // can't have any intersections
-        
-        Key<T> e1, e2;
-        
-        // find intersections between n1 and n2's children
-        if (n1 == n2) {
-            // same node optimizations
-            int ct = n1.items.size();
-            for (int i = 0; i < ct; i++) {
-                e1 = n1.items.get(i);
-                for (int j = i + 1; j < ct; j++) {
-                    e2 = n1.items.get(j);
-                    if (e1.bounds.intersects(e2.bounds))
-                        callback.process(e1.data, e2.data);
-                }
-            }
-        } else {
-            int ct1 = n1.items.size();
-            int ct2 = n2.items.size();
-
-            for (int i = 0; i < ct1; i++) {
-                e1 = n1.items.get(i);
-                for (int j = 0; j < ct2; j++) {
-                    e2 = n2.items.get(j);
-                    if (e1.bounds.intersects(e2.bounds))
-                        callback.process(e1.data, e2.data);
-                }
-            }
-        }
     }
     
     /*
@@ -298,55 +218,10 @@ public class Octree<T> implements SpatialIndex<T> {
         pendingRemovals.clear();
     }
     
-    private void expandOctreeMaybe(ReadOnlyAxisAlignedBox dataBounds) {
-        if (dataBounds == null || rootBounds.contains(dataBounds))
-            return;
-        
-        ReadOnlyVector3f dMin = dataBounds.getMin();
-        
-        Vector3f extents = new Vector3f();
-        Vector3f center = new Vector3f();
-        
-        Node<T> newRoot;
-        
-        ReadOnlyVector3f rMin, rMax;
-        int rootChildIndex;
-        while(!rootBounds.contains(dataBounds)) {
-            // the current root will be placed within the positive 
-            // half-plane for any axis if it is even partially above
-            // the data bounds, otherwise it is in the negative
-            rootChildIndex = 0;
-            rMin = rootBounds.getMin();
-            rMax = rootBounds.getMax();
-            if (rMin.getX() > dMin.getX()) {
-                rootChildIndex |= POS_X;
-                center.setX(rMin.getX());
-            } else
-                center.setX(rMax.getX());
-            
-            if (rMin.getY() > dMin.getY()) {
-                rootChildIndex |= POS_Y;
-                center.setY(rMin.getY());
-            } else
-                center.setY(rMax.getY());
-            
-            if (rMin.getZ() > dMin.getZ()) {
-                rootChildIndex |= POS_Z;
-                center.setZ(rMin.getZ());
-            } else
-                center.setZ(rMax.getZ());
-            
-            rMax.sub(rMin, extents); // get axis lengths of the root
-            rootBounds.getMin().set(center.getX() - extents.getX(), center.getY() - extents.getY(), center.getZ() - extents.getZ());
-            rootBounds.getMax().set(center.getX() + extents.getX(), center.getY() + extents.getY(), center.getZ() + extents.getZ());
-            
-            newRoot = new Node<T>(null, root.depth + 1);
-            newRoot.children = new Node[8];
-            newRoot.children[rootChildIndex] = root;
-            
-            root.parent = newRoot;
-            root = newRoot;
-        }
+    private boolean inOctree(@Const AxisAlignedBox dataBounds) {
+        if (dataBounds == null)
+            throw new NullPointerException("Bounds cannot be null");
+        return rootBounds.contains(dataBounds);
     }
     
     /*
@@ -368,58 +243,49 @@ public class Octree<T> implements SpatialIndex<T> {
     private static boolean inPositiveZ(int index) {
         return (index & POS_Z) != 0;
     }
-    private static int getChildIndex(ReadOnlyAxisAlignedBox nodeBounds, ReadOnlyVector3f pointInNode) {
-        ReadOnlyVector3f min = nodeBounds.getMin();
-        ReadOnlyVector3f max = nodeBounds.getMax();
-        
+    private static int getChildIndex(@Const AxisAlignedBox nodeBounds, @Const Vector3 pointInNode) {
         int index = 0;
-        if ((min.getX() + max.getX()) < 2f * pointInNode.getX())
+        if ((nodeBounds.min.x + nodeBounds.max.x) < 2 * pointInNode.x)
             index |= POS_X;
-        if ((min.getY() + max.getY()) < 2f * pointInNode.getY())
+        if ((nodeBounds.min.y + nodeBounds.max.y) < 2 * pointInNode.y)
             index |= POS_Y;
-        if ((min.getZ() + max.getZ()) < 2f * pointInNode.getZ())
+        if ((nodeBounds.min.z + nodeBounds.max.z) < 2 * pointInNode.z)
             index |= POS_Z;
         return index;
     }
     
     private static void updateForChild(int child, AxisAlignedBox bounds) {
-        Vector3f min = bounds.getMin();
-        Vector3f max = bounds.getMax();
-        
         if (inPositiveX(child))
-            min.setX((min.getX() + max.getX()) / 2f);
+            bounds.min.x = (bounds.min.x + bounds.max.x) / 2;
         else
-            max.setX((min.getX() + max.getX()) / 2f);
+            bounds.max.x = (bounds.min.x + bounds.max.x) / 2;
         
         if (inPositiveY(child))
-            min.setY((min.getY() + max.getY()) / 2f);
+            bounds.min.y = (bounds.min.y + bounds.max.y) / 2;
         else
-            max.setY((min.getY() + max.getY()) / 2f);
+            bounds.max.y = (bounds.min.y + bounds.max.y) / 2;
         
         if (inPositiveZ(child))
-            min.setZ((min.getZ() + max.getZ()) / 2f);
+            bounds.min.z = (bounds.min.z + bounds.max.z) / 2;
         else
-            max.setZ((min.getZ() + max.getZ()) / 2f);
+            bounds.max.z = (bounds.min.z + bounds.max.z) / 2;
     }
     
     private static void updateForParent(int child, AxisAlignedBox bounds) {
-        Vector3f min = bounds.getMin();
-        Vector3f max = bounds.getMax();
-        
         if (inPositiveX(child))
-            min.setX(2 * min.getX() - max.getX());
+            bounds.min.x = 2 * bounds.min.x - bounds.max.x;
         else
-            max.setX(2 * max.getX() - min.getX());
+            bounds.max.x = 2 * bounds.max.x - bounds.min.x;
         
         if (inPositiveY(child))
-            min.setY(2 * min.getY() - max.getY());
+            bounds.min.y = 2 * bounds.min.y - bounds.max.y;
         else
-            max.setY(2 * max.getY() - min.getY());
+            bounds.max.y = 2 * bounds.max.y - bounds.min.y;
         
         if (inPositiveZ(child))
-            min.setZ(2 * min.getZ() - max.getZ());
+            bounds.min.z = 2 * bounds.min.z - bounds.max.z;
         else
-            max.setZ(2 * max.getZ() - min.getZ());
+            bounds.max.z = 2 * bounds.max.z - bounds.min.z;
     }
     
     private static class Node<T> {
@@ -519,14 +385,14 @@ public class Octree<T> implements SpatialIndex<T> {
          * @param createChildren True if child nodes can be created if they'd be
          *            contained in the query
          */
-        public void visitContaining(ReadOnlyAxisAlignedBox query, NodeCallback<ReadOnlyAxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
+        public void visitContaining(@Const AxisAlignedBox query, NodeCallback<AxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
             // since we assume this node contains query, run the callback right away
             callback.visit(query, this, nodeBounds);
             
             // now visit children, if we have any
             if (!isLeaf() && (children != null || createChildren)) {
-                int minChildIndex = getChildIndex(nodeBounds, query.getMin());
-                int maxChildIndex = getChildIndex(nodeBounds, query.getMax());
+                int minChildIndex = getChildIndex(nodeBounds, query.min);
+                int maxChildIndex = getChildIndex(nodeBounds, query.max);
                 
                 if (minChildIndex == maxChildIndex) {
                     // query fits within a single child, so we can go deeper
@@ -553,13 +419,13 @@ public class Octree<T> implements SpatialIndex<T> {
          * @param createChildren True if child nodes can be created if they'd be
          *            contained in the query
          */
-        public void visitIntersecting(ReadOnlyAxisAlignedBox query, NodeCallback<ReadOnlyAxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
+        public void visitIntersecting(@Const AxisAlignedBox query, NodeCallback<AxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
             // visit the callback
             callback.visit(query, this, nodeBounds);
             
             if (!isLeaf() && (children != null || createChildren)) {
-                int minIndex = getChildIndex(nodeBounds, query.getMin());
-                int maxIndex = getChildIndex(nodeBounds, query.getMax());
+                int minIndex = getChildIndex(nodeBounds, query.min);
+                int maxIndex = getChildIndex(nodeBounds, query.max);
                 int constraint = ~(minIndex ^ maxIndex);
                 int childMatch = minIndex & constraint; // note that maxIndex & constraint would work too
                 
@@ -622,48 +488,21 @@ public class Octree<T> implements SpatialIndex<T> {
         Node<T> parent;
         int nodeIndex;
         
-        AxisAlignedBox bounds;
+        final AxisAlignedBox bounds;
         int queryNumber;
         
-        public Key(T data, ReadOnlyAxisAlignedBox bounds, Octree<T> owner) {
+        public Key(T data, @Const AxisAlignedBox bounds, Octree<T> owner) {
             this.data = data;
             this.owner = owner;
-            this.bounds = (bounds == null ? null : new AxisAlignedBox(bounds));
+            this.bounds = new AxisAlignedBox(bounds);
         }
         
-        public void removeFromNull() {
-            owner.nullBounds.remove(nodeIndex);
-            if (owner.nullBounds.size() != nodeIndex)
-                owner.nullBounds.get(nodeIndex).nodeIndex = nodeIndex;
-            nodeIndex = -1;
-        }
-        
-        public void addToNull() {
-            owner.nullBounds.add(this);
-            nodeIndex = owner.nullBounds.size() - 1;
-        }
-        
-        public void update(ReadOnlyAxisAlignedBox newBounds) {
-            if (newBounds == null) {
-                if (bounds != null) {
-                    // bounds switched to null, so remove it from root and add to null list
-                    removeFromRoot();
-                    addToNull();
-                } // else, no real update occurred
-            } else {
-                if (bounds == null) {
-                    // bounds switched from null, do a full add
-                    removeFromNull();
-                    bounds = new AxisAlignedBox(newBounds);
-                    addToRoot();
-                } else {
-                    // regular update within the tree, do a remove and then a re-add
-                    if (!bounds.equals(newBounds)) {
-                        removeFromRoot();
-                        bounds.set(newBounds);
-                        addToRoot();
-                    }
-                }
+        public void update(@Const AxisAlignedBox newBounds) {
+            // regular update within the tree, do a remove and then a re-add
+            if (!bounds.equals(newBounds)) {
+                removeFromRoot();
+                bounds.set(newBounds);
+                addToRoot();
             }
         }
         
@@ -685,20 +524,20 @@ public class Octree<T> implements SpatialIndex<T> {
      */
     
     private static interface NodeCallback<Q, T> {
-        public void visit(Q query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds);
+        public void visit(Q query, Node<T> node, AxisAlignedBox nodeBounds);
     }
     
-    private static class DeepestNodeCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
+    private static class DeepestNodeCallback<T> implements NodeCallback<AxisAlignedBox, T> {
         Node<T> deepestNode;
         
         @Override
-        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
+        public void visit(@Const AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
             if (deepestNode == null || node.depth < deepestNode.depth)
                 deepestNode = node;
         }
     }
     
-    private static class AabbQueryCallback<T> implements NodeCallback<ReadOnlyAxisAlignedBox, T> {
+    private static class AabbQueryCallback<T> implements NodeCallback<AxisAlignedBox, T> {
         final QueryCallback<T> callback;
         final int query;
         
@@ -708,7 +547,7 @@ public class Octree<T> implements SpatialIndex<T> {
         }
         
         @Override
-        public void visit(ReadOnlyAxisAlignedBox query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
+        public void visit(@Const AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
             if (node.items != null) {
                 Key<T> key;
                 int count = node.items.size();
@@ -719,7 +558,7 @@ public class Octree<T> implements SpatialIndex<T> {
                     key.queryNumber = this.query;
                     
                     if (query.intersects(key.bounds))
-                        callback.process(key.data);
+                        callback.process(key.data, key.bounds);
                 }
             }
         }
@@ -737,7 +576,7 @@ public class Octree<T> implements SpatialIndex<T> {
         }
         
         @Override
-        public void visit(Frustum query, Node<T> node, ReadOnlyAxisAlignedBox nodeBounds) {
+        public void visit(Frustum query, Node<T> node, AxisAlignedBox nodeBounds) {
             if (node.items != null) {
                 // save old plane state to restore after each child
                 int save = ps.get();
@@ -751,7 +590,7 @@ public class Octree<T> implements SpatialIndex<T> {
                     key.queryNumber = this.query;
                     
                     if (key.bounds.intersects(query, ps) != FrustumIntersection.OUTSIDE)
-                        callback.process(key.data);
+                        callback.process(key.data, key.bounds);
                     
                     // restore plane state
                     ps.set(save);

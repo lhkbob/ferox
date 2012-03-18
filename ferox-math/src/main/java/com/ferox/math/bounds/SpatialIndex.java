@@ -1,5 +1,6 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.Const;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
 /**
@@ -52,7 +53,7 @@ public interface SpatialIndex<T> {
      *         hierarchy, or null on a failure
      * @throws NullPointerException if item or bounds is null
      */
-    public Object add(T item, ReadOnlyAxisAlignedBox bounds);
+    public Object add(T item, @Const AxisAlignedBox bounds);
 
     /**
      * <p>
@@ -83,7 +84,7 @@ public interface SpatialIndex<T> {
      * @throws IllegalArgumentException if the given key is invalid, or if item
      *             isn't in the hierarchy
      */
-    public boolean update(T item, ReadOnlyAxisAlignedBox bounds, Object key);
+    public boolean update(T item, @Const AxisAlignedBox bounds, Object key);
 
     /**
      * Remove <tt>item</tt> from this hierarchy so that the given item can no
@@ -117,7 +118,7 @@ public interface SpatialIndex<T> {
      * @param callback A QueryCallback to run on each item within the query
      * @throws NullPointerException if volume or callback is null
      */
-    public void query(ReadOnlyAxisAlignedBox volume, QueryCallback<T> callback);
+    public void query(@Const AxisAlignedBox volume, QueryCallback<T> callback);
 
     /**
      * <p>
@@ -138,22 +139,4 @@ public interface SpatialIndex<T> {
      * @throws NullPointerException if frustum or callback is null
      */
     public void query(Frustum f, QueryCallback<T> callback);
-
-    /**
-     * <p>
-     * Query this SpatialIndex for all pairs of intersecting items that have
-     * been added to this hierarchy. Intersections are determined by
-     * {@link ReadOnlyAxisAlignedBox#intersects(ReadOnlyAxisAlignedBox)}, between the bounds
-     * provided with the items when they were added or updated.
-     * </p>
-     * <p>
-     * A pair of items is considered unique, and any combination of two items
-     * that intersect will not be passed to the callback more than once.
-     * </p>
-     * 
-     * @param callback The IntersectionCallback to run on each pair that is
-     *            intersecting
-     * @throws NullPointerException if callback is null
-     */
-    public void query(IntersectionCallback<T> callback);
 }
