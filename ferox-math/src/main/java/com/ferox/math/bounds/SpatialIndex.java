@@ -138,5 +138,8 @@ public interface SpatialIndex<T> {
      * @param callback A QueryCallback to run on each item within the query
      * @throws NullPointerException if frustum or callback is null
      */
+    // FIXME: should Frustum be annotated with @Const? Where do I draw the line?
+    // part of me says no, since it's a more complex object that doesn't follow
+    // the rest of the pattern, but it's also a math object that could be mutated.
     public void query(Frustum f, QueryCallback<T> callback);
 }

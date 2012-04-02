@@ -26,7 +26,7 @@ import com.ferox.util.Bag;
  */
 @SuppressWarnings("unchecked")
 public class Octree<T> implements SpatialIndex<T> {
-    public static final int DEFAULT_MAX_DEPTH = 6;
+    public static final int DEFAULT_MAX_DEPTH = 8;
     
     private int queryNumber;
 
@@ -222,6 +222,21 @@ public class Octree<T> implements SpatialIndex<T> {
         if (dataBounds == null)
             throw new NullPointerException("Bounds cannot be null");
         return rootBounds.contains(dataBounds);
+    }
+    
+    public void clear() {
+        clear(root);
+    }
+    
+    private void clear(Node<T> node) {
+        if (node.items != null)
+            node.items.clear(true);
+        if (node.children != null) {
+            for (int i = 0; i < 8; i++) {
+                if (node.children[i] != null)
+                    clear(node.children[i]);
+            }
+        }
     }
     
     /*
