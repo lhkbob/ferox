@@ -3,10 +3,11 @@ package com.ferox.math.bounds;
 import java.util.Arrays;
 
 import com.ferox.math.Const;
+import com.ferox.math.Functions;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
-public class QuadTree<T> {//implements SpatialIndex<T> {
+public class QuadTree<T> implements SpatialIndex<T> {
     private static final int POS_X = 0x1;
     private static final int POS_Y = 0x2;
     
@@ -36,21 +37,14 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
     private int queryIdCounter;
     
     public QuadTree() {
-        this(100, 40);
+        this(100, 2.0);
     }
     
-    public QuadTree(double sideLength, double height) {
-        this(sideLength, height, 8);
+    public QuadTree(double sideLength, double objSize) {
+        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0, -100 * objSize, -sideLength / 2.0),
+                                new Vector3(sideLength / 2.0, 100 * objSize, sideLength / 2.0)), 
+             Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
-    
-    public QuadTree(double sideLength, double height, int depth) {
-        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0, -height / 2.0, -sideLength / 2.0),
-                                new Vector3(sideLength / 2.0, height / 2.0, sideLength / 2.0)), depth);
-    }
-    
-//    public QuadTree(@Const AxisAlignedBox aabb, double objSize) {
-//        
-//    }
     
     public QuadTree(@Const AxisAlignedBox aabb, int depth) {
         this.depth = depth;
@@ -77,6 +71,102 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
         // can be computed lazily later
         int leafOffset = getLevelOffset(depth - 1);
         Arrays.fill(quadtree, leafOffset, quadtree.length, -1);
+    }
+    
+    @Override
+    public boolean remove(T element) {
+        int item = -1;
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == element) {
+                item = i;
+                break;
+            }
+        }
+        
+        if (item >= 0) {
+            // item is in the tree, so remove it
+            if (removeItem(item)) {
+                // the old item has been swapped with the tail, so we need to
+                // update references to the tail
+                updateItemIndex(size - 1, item);
+            }
+            size--;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /*
+     * Update cell references to oldIndex to point to toIndex (e.g.
+     * when an element has been swapped because original value for toIndex
+     * was removed)
+     */
+    private void updateItemIndex(int oldIndex, int toIndex) {
+        // do an aabb query using the last known aabb state so that we
+        // limit the number of cells considered
+        Vector3 t = new Vector3();
+        int minX = hashCellX(t.set(aabbs, toIndex * 6));
+        int minY = hashCellY(t); // t still holds the min vector
+        int maxX = hashCellX(t.set(aabbs, toIndex * 6 + 3));
+        int maxY = hashCellY(t); // t still holds the max vector
+        
+        Cell cell;
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                cell = spatialHash[hash(x, y)];
+                if (cell != null) {
+                    // iterate through keys and search for old one
+                    for (int i = 0; i < cell.size; i++) {
+                        if (cell.keys[i] == oldIndex)
+                            cell.keys[i] = toIndex;
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * Remove the given item index from the elements bag, clean up cell
+     * references and update the quadtree. Does not update size
+     */
+    private boolean removeItem(int index) {
+        // do an aabb query using the last known aabb state so that we
+        // limit the number of cells considered
+        Vector3 t = new Vector3();
+        int minX = hashCellX(t.set(aabbs, index * 6));
+        int minY = hashCellY(t); // t still holds the min vector
+        int maxX = hashCellX(t.set(aabbs, index * 6 + 3));
+        int maxY = hashCellY(t); // t still holds the max vector
+        
+        Cell cell;
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                cell = spatialHash[hash(x, y)];
+                if (cell != null) {
+                    // remove cell's reference to index, and update quadtree
+                    // counts
+                    cell.remove(this, index);
+                }
+            }
+        }
+        
+        // swap the last element with this one if it's not already the last item
+        if (index < size - 1) {
+            int swap = size - 1;
+            elements[index] = elements[swap];
+            queryIds[index] = queryIds[swap];
+            System.arraycopy(aabbs, swap * 6, aabbs, index * 6, 6);
+            
+            // must also null the old element index since that won't get
+            // iterated over during a non-fast clear anymore
+            elements[swap] = null; 
+            return true;
+        } else {
+            // return false to signal that no further clean up is necessary
+            elements[index] = null; // to help gc
+            return false;
+        }
     }
     
     public boolean add(T element, @Const AxisAlignedBox bounds) {
@@ -131,20 +221,21 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
     }
     
     public void clear() {
+        clear(false);
+    }
+    
+    public void clear(boolean fast) {
         // fill quadtree counts with 0s, but only up to the leaf nodes because
         // they hold cell indices, which don't change
         int leafStartIndex = getLevelOffset(depth - 1);
         Arrays.fill(quadtree, 0, leafStartIndex, 0);
         
         // clear spatial hash
-        int clearCount = 0;
-        int totalCount = 0;
         Cell c;
         int leafOffset = getLevelOffset(depth - 1);
         for (int i = 0; i < spatialHash.length; i++) {
             c = spatialHash[i];
             if (c != null) {
-                totalCount++;
                 c.lifetime++;
                 
                 // check lifetime to help with GC'ing
@@ -152,7 +243,6 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
                     // clear cell so that its contents get GC'ed
                     spatialHash[i] = null;
                     quadtree[leafOffset + c.quadTreeIndex] = -1;
-                    clearCount++;
                 }
                 
                 // only need to reset the size variable
@@ -161,10 +251,13 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
         }
         
         // empty global item bag
+        if (!fast) {
+            // must null elements for gc purposes, we do the entire array in
+            // case elements got trapped at the end during a previous fast clear
+            Arrays.fill(elements, null);
+        }
         size = 0;
         queryIdCounter = 0;
-        
-        System.out.println("cleared " + clearCount + " of " + totalCount + " of possible " + spatialHash.length);
     }
     
     @SuppressWarnings("unchecked")
@@ -209,16 +302,14 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
     public void query(Frustum f, QueryCallback<T> callback) {
         // start at root quadtree and walk the tree to compute intersections,
         // building in place an aabb for testing.
-        AxisAlignedBox root = new AxisAlignedBox(rootBounds);
-        AxisAlignedBox item = new AxisAlignedBox();
-        
-        query(f, callback, ++queryIdCounter, 0, 0, root, item, new PlaneState(), false);
+        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, 
+              f, new PlaneState(), false, callback, 
+              new AxisAlignedBox());
     }
     
-    // FIXME: these arguments to be ordered better
     @SuppressWarnings("unchecked")
-    private void query(Frustum f, QueryCallback<T> callback, int query, int level, int index, AxisAlignedBox nodeBounds, 
-                       AxisAlignedBox itemBounds, PlaneState planeState, boolean insideGuaranteed) {
+    private void query(int level, int index, AxisAlignedBox nodeBounds, int query, Frustum f, PlaneState planeState, 
+                       boolean insideGuaranteed, QueryCallback<T> callback, AxisAlignedBox itemBounds) {
         // we assume that this node has items and nodeBounds has been updated to
         // equal this node. we still have to check if the node intersects the frustum
         if (!insideGuaranteed) {
@@ -274,7 +365,7 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
                 if (quadtree[childOffset + childIndex] > 0) {
                     // visit child
                     toChildBounds(i, nodeBounds);
-                    query(f, callback, query, level + 1, childIndex, nodeBounds, itemBounds, planeState, insideGuaranteed);
+                    query(level + 1, childIndex, nodeBounds, query, f, planeState, insideGuaranteed, callback, itemBounds);
                     restoreParentBounds(i, nodeBounds);
 
                     // restore planestate for this node
@@ -356,7 +447,7 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
         return cellX + maxCellDimension * cellY;
     }
     
-    public void updateBounds(AxisAlignedBox bounds, int index) {
+    private void updateBounds(AxisAlignedBox bounds, int index) {
         int realIndex = index * 6;
         bounds.min.set(aabbs, realIndex);
         bounds.max.set(aabbs, realIndex + 3);
@@ -444,7 +535,6 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
         private static final int MAX_LIFETIME = 15;
         
         private int[] keys;
-//        private double[] aabbs;
         
         private int size;
         
@@ -456,7 +546,6 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
         
         private Cell(QuadTree<?> tree, int quadLeaf) {
             quadTreeIndex = quadLeaf; //tree.getParentIndex(quadLeaf);
-//            aabbs = new double[INCREMENT * 6];
             keys = new int[INCREMENT];
             size = 0;
             lifetime = 0;
@@ -466,22 +555,13 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
             if (size == keys.length - 1) {
                 // increase size
                 keys = Arrays.copyOf(keys, keys.length + INCREMENT);
-//                aabbs = Arrays.copyOf(aabbs, aabbs.length + INCREMENT * 6);
             }
             keys[size] = item;
-//            bounds.min.get(aabbs, size * 6);
-//            bounds.max.get(aabbs, size * 6 + 3);
             size++;
             
             // update quadtree counts by 1
             updateTree(tree, 1);
         }
-        
-        /*public void updateBounds(AxisAlignedBox bounds, int index) {
-            int realIndex = index * 6;
-            bounds.min.set(aabbs, realIndex);
-            bounds.max.set(aabbs, realIndex + 3);
-        }*/
         
         private void updateTree(QuadTree<?> tree, int val) {
             int index = quadTreeIndex;
@@ -497,7 +577,6 @@ public class QuadTree<T> {//implements SpatialIndex<T> {
                 // search for the item to remove
                 if (keys[i] == item) {
                     keys[i] = keys[size - 1];
-//                    System.arraycopy(aabbs, (size - 1) * 6, aabbs, i * 6, 6);
                     size--;
                     
                     // decrement quadtree counts by 1

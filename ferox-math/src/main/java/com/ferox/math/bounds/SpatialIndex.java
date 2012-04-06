@@ -53,38 +53,7 @@ public interface SpatialIndex<T> {
      *         hierarchy, or null on a failure
      * @throws NullPointerException if item or bounds is null
      */
-    public Object add(T item, @Const AxisAlignedBox bounds);
-
-    /**
-     * <p>
-     * Notify this hierarchy that the given <tt>item</tt> has had its extents
-     * changed to <tt>bounds</tt>. The <tt>key</tt> given is assumed to be the
-     * key returned from a previous {@link #add(Object, ReadOnlyAxisAlignedBox)}
-     * and that the item is still within the hierarchy. Often this can be much
-     * faster than removing and then re-adding the item, although this performs
-     * the equivalent actions.
-     * </p>
-     * <p>
-     * If the updated bounds falls outside of any spatial constraints imposed on
-     * the index, false is returned and the item is removed from the index.
-     * Otherwise true is returned and the item will have been updated to be at
-     * the provided bounds.
-     * </p>
-     * <p>
-     * Implementations must copy the provided bounds so that any subsequent
-     * changes to the bounds instance to do not contaminate the hierarchy.
-     * </p>
-     * 
-     * @param item The item that is to be updated
-     * @param bounds The new bounds for <tt>item</tt>
-     * @param key The key previously returned by add() for this item
-     * @return True if the update was successful, or false if the item was
-     *         removed due to spatial constraints
-     * @throws NullPointerException if item or key or bounds are null
-     * @throws IllegalArgumentException if the given key is invalid, or if item
-     *             isn't in the hierarchy
-     */
-    public boolean update(T item, @Const AxisAlignedBox bounds, Object key);
+    public boolean add(T item, @Const AxisAlignedBox bounds);
 
     /**
      * Remove <tt>item</tt> from this hierarchy so that the given item can no
@@ -100,7 +69,13 @@ public interface SpatialIndex<T> {
      * @throws IllegalArgumentException if the given key is invalid, or if item
      *             isn't within the hierarchy
      */
-    public void remove(T item, Object key);
+    public boolean remove(T item);
+    
+    /**
+     * 
+     * @param fast
+     */
+    public void clear(boolean fast);
 
     /**
      * <p>
@@ -138,8 +113,5 @@ public interface SpatialIndex<T> {
      * @param callback A QueryCallback to run on each item within the query
      * @throws NullPointerException if frustum or callback is null
      */
-    // FIXME: should Frustum be annotated with @Const? Where do I draw the line?
-    // part of me says no, since it's a more complex object that doesn't follow
-    // the rest of the pattern, but it's also a math object that could be mutated.
     public void query(Frustum f, QueryCallback<T> callback);
 }

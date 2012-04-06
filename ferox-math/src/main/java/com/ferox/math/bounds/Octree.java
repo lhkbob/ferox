@@ -1,253 +1,400 @@
 package com.ferox.math.bounds;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
 
 import com.ferox.math.Const;
+import com.ferox.math.Functions;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
-import com.ferox.util.Bag;
 
-/**
- * <p>
- * Octree is a SpatialIndex implementation that represents the octree data
- * structure. The octree partitions space into an organized hierarchy of cubes.
- * A cube node within the octree can be evenly split into 8 nested cubes which
- * partition its space.
- * </p>
- * <p>
- * This octree only stores items as deep as possible before they overlap an edge
- * of a node. This means that updates and removals are very fast, but many items
- * can be placed at the top of the tree, reducing the efficiency of queries.
- * </p>
- * 
- * @author Michael Ludwig
- * @param <T> Class type of items contained by the Octree
- */
-@SuppressWarnings("unchecked")
 public class Octree<T> implements SpatialIndex<T> {
-    public static final int DEFAULT_MAX_DEPTH = 8;
+    private static final int POS_X = 0x1;
+    private static final int POS_Y = 0x2;
+    private static final int POS_Z = 0x4;
     
-    private int queryNumber;
-
-    private Node<T> root;
-    private final AxisAlignedBox rootBounds; // all other node bounds implicit from this
+    // complete octree nodes, keyed by hashed node ids packed into bits
+    // - values are the number of children in each node
+    private final int[] octree;
+    private final int depth;
     
-    private final Set<Node<T>> pendingRemovals;
-
-    /**
-     * Create a new Octree with dimensions of 100 and an initial max depth of 6.
-     */
+    // grid of leaf nodes
+    private final Cell[] spatialHash;
+    private final int maxCellDimension;
+    
+    private final double widthScaleFactor;
+    private final double heightScaleFactor;
+    private final double depthScaleFactor;
+    
+    private final double widthOffset;
+    private final double heightOffset;
+    private final double depthOffset;
+    
+    private final AxisAlignedBox rootBounds;
+    
+    // items in the octree
+    private Object[] elements;
+    private int[] queryIds;
+    private double[] aabbs;
+    private int size;
+    
+    private int queryIdCounter;
+    
     public Octree() {
-        this(100.0);
+        this(100, 2.0);
     }
-
-    /**
-     * Create a new Octree with the given side dimension of its root cube, and an
-     * initial max depth of 6. As the octree expands to enclose more nodes, its
-     * depth and dimensions can increase.
-     * 
-     * @param side The desired side length for the root node
-     * @throws IllegalArgumentException if side is less than 0
-     */
-    public Octree(double side) {
-        this(side, DEFAULT_MAX_DEPTH);
+    
+    public Octree(double sideLength, double objSize) {
+        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0, -sideLength / 2.0, -sideLength / 2.0),
+                                new Vector3(sideLength / 2.0, sideLength / 2.0, sideLength / 2.0)), 
+             Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
-
-    /**
-     * Create an Octree with the given side dimension of its root cube and the
-     * specified initial max depth. As the octree expands to enclose more nodes,
-     * its depth and dimensions can increase.
-     * 
-     * @param side The desired side length for the root node
-     * @param initialMaxDepth The initial max depth of the tree
-     * @throws IllegalArgumentException if side is less than 0, or if
-     *             initialMaxDepth < 1
-     */
-    public Octree(double side, int initialMaxDepth) {
-        this(new AxisAlignedBox(new Vector3(-side / 2, -side / 2, -side / 2), 
-                                new Vector3(side / 2, side / 2, side / 2)),
-             initialMaxDepth);
-    }
-
-    /**
-     * Create an Octree with the given bounds for its root node and an initial
-     * max tree depth of 6. As the octree expands to enclose more nodes, its
-     * depth and dimensions can increase.
-     * 
-     * @param extents The desired root node bounds
-     * @throws NullPointerException if extents is null
-     */
-    public Octree(@Const AxisAlignedBox extents) {
-        this(extents, DEFAULT_MAX_DEPTH);
-    }
-
-    /**
-     * Create an Octree with the given bounds for its root node and the
-     * specified initial max depth. As the octree expands to enclose more nodes,
-     * its depth and dimensions can increase.
-     * 
-     * @param extents The desired root node bounds
-     * @param initialMaxDepth The initial max depth of the tree
-     * @throws NullPointerException if extents is null
-     * @throws IllegalArgumentException if initialMaxDepth < 1
-     */
-    public Octree(@Const AxisAlignedBox extents, int initialMaxDepth) {
-        if (extents == null)
-            throw new NullPointerException("Extents cannot be null");
-        if (initialMaxDepth <= 0)
-            throw new IllegalArgumentException("Initial max depth must be at least 1, not: " + initialMaxDepth);
-        if (extents.max.x < extents.min.x ||
-            extents.max.y < extents.min.y ||
-            extents.max.z < extents.min.z)
-            throw new IllegalArgumentException("Invalid root bounds: " + extents);
+    
+    public Octree(@Const AxisAlignedBox aabb, int depth) {
+        this.depth = depth;
+        rootBounds = aabb.clone();
         
-        rootBounds = new AxisAlignedBox(extents);
-        root = new Node<T>(null, initialMaxDepth - 1);
-        pendingRemovals = new HashSet<Node<T>>();
+        maxCellDimension = 1 << (depth - 1);
+        spatialHash = new Cell[maxCellDimension * maxCellDimension * maxCellDimension];
+        elements = new Object[8];
+        queryIds = new int[8];
+        aabbs = new double[48];
+        size = 0;
+        queryIdCounter = 0;
         
-        queryNumber = 0;
+        widthScaleFactor = maxCellDimension / (aabb.max.x - aabb.min.x);
+        heightScaleFactor = maxCellDimension / (aabb.max.y - aabb.min.y);
+        depthScaleFactor = maxCellDimension / (aabb.max.z - aabb.min.z);
+        
+        widthOffset =  -aabb.min.x;
+        heightOffset = -aabb.min.y;
+        depthOffset = -aabb.min.z;
+        
+        int numNodes = getLevelOffset(depth);
+        octree = new int[numNodes];
+        
+        // mark quadtree leaves with negative indices, so that indices
+        // can be computed lazily later
+        int leafOffset = getLevelOffset(depth - 1);
+        Arrays.fill(octree, leafOffset, octree.length, -1);
     }
     
     @Override
-    public Object add(T item, @Const AxisAlignedBox bounds) {
-        if (item == null)
-            throw new NullPointerException("Item cannot be null");
-        
-        if (inOctree(bounds)) {
-            Key<T> newKey = new Key<T>(item, bounds, this);
-            newKey.addToRoot();
-
-            return newKey;
-        } else {
-            // can't fit in tree
-            return null;
-        }
-    }
-
-    @Override
-    public void remove(T item, Object key) {
-        if (item == null)
-            throw new NullPointerException("Item cannot be null");
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        
-        if (key instanceof Key) {
-            Key<T> ok = (Key<T>) key;
-            if (ok.owner == this && ok.data == item) {
-                // key is valid, now remove it
-                ok.removeFromRoot();
-                return;
+    public boolean remove(T element) {
+        int item = -1;
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == element) {
+                item = i;
+                break;
             }
         }
-
-        // else key is invalid
-        throw new IllegalArgumentException("Invalid key: " + key);
-    }
-
-    @Override
-    public boolean update(T item, @Const AxisAlignedBox bounds, Object key) {
-        if (item == null)
-            throw new NullPointerException("Item cannot be null");
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
         
-        if (key instanceof Key) {
-            Key<T> ok = (Key<T>) key;
-            if (ok.owner == this && ok.data == item) {
-                // key is valid
-                if (inOctree(bounds)) {
-                    // item is still in the octree, so update it
-                    ok.update(bounds);
-                    return true;
-                } else {
-                    // item has moved outside of the tree, so remove it
-                    ok.removeFromRoot();
-                    return false;
+        if (item >= 0) {
+            // item is in the tree, so remove it
+            if (removeItem(item)) {
+                // the old item has been swapped with the tail, so we need to
+                // update references to the tail
+                updateItemIndex(size - 1, item);
+            }
+            size--;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /*
+     * Update cell references to oldIndex to point to toIndex (e.g.
+     * when an element has been swapped because original value for toIndex
+     * was removed)
+     */
+    private void updateItemIndex(int oldIndex, int toIndex) {
+        // do an aabb query using the last known aabb state so that we
+        // limit the number of cells considered
+        Vector3 t = new Vector3();
+        int minX = hashCellX(t.set(aabbs, toIndex * 6));
+        int minY = hashCellY(t); // t still holds the min vector
+        int minZ = hashCellZ(t);
+        int maxX = hashCellX(t.set(aabbs, toIndex * 6 + 3));
+        int maxY = hashCellY(t); // t still holds the max vector
+        int maxZ = hashCellZ(t);
+        
+        Cell cell;
+        for (int z = minZ; z <= maxZ; z++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int x = minX; x <= maxX; x++) {
+                    cell = spatialHash[hash(x, y, z)];
+                    if (cell != null) {
+                        // iterate through keys and search for old one
+                        for (int i = 0; i < cell.size; i++) {
+                            if (cell.keys[i] == oldIndex)
+                                cell.keys[i] = toIndex;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * Remove the given item index from the elements bag, clean up cell
+     * references and update the quadtree. Does not update size
+     */
+    private boolean removeItem(int index) {
+        // do an aabb query using the last known aabb state so that we
+        // limit the number of cells considered
+        Vector3 t = new Vector3();
+        int minX = hashCellX(t.set(aabbs, index * 6));
+        int minY = hashCellY(t); // t still holds the min vector
+        int minZ = hashCellZ(t);
+        int maxX = hashCellX(t.set(aabbs, index * 6 + 3));
+        int maxY = hashCellY(t); // t still holds the max vector
+        int maxZ = hashCellZ(t);
+        
+        Cell cell;
+        for (int z = minZ; z <= maxZ; z++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int x = minX; x <= maxX; x++) {
+                    cell = spatialHash[hash(x, y, z)];
+                    if (cell != null) {
+                        // remove cell's reference to index, and update quadtree
+                        // counts
+                        cell.remove(this, index);
+                    }
                 }
             }
         }
         
-        // else key is invalid
-        throw new IllegalArgumentException("Invalid key: " + key);
-    }
-    
-    @Override
-    public void query(@Const AxisAlignedBox volume, QueryCallback<T> callback) {
-        if (volume == null)
-            throw new NullPointerException("Query volume cannot be null");
-        if (callback == null)
-            throw new NullPointerException("QueryCallback cannot be null");
-        
-        // prune tree before query to make it the most efficient possible
-        pruneTree();
-        
-        root.visitIntersecting(volume, new AabbQueryCallback<T>(callback, ++queryNumber), rootBounds, false);
-    }
-
-    @Override
-    public void query(Frustum f, QueryCallback<T> callback) {
-        if (f == null)
-            throw new NullPointerException("Frustum cannot be null");
-        if (callback == null)
-            throw new NullPointerException("QueryCallback cannot be null");
-        
-        // prune tree before query to make it the most efficient possible
-        pruneTree();
-        
-        // set up plane state to be shared by callback and query
-        PlaneState planeState = new PlaneState();
-        FrustumIntersection rootTest = rootBounds.intersects(f, planeState);
-        
-        if (rootTest != FrustumIntersection.OUTSIDE)
-            root.visitFrustum(f, new FrustumQueryCallback<T>(callback, planeState, ++queryNumber), rootBounds, planeState);
-    }
-    
-    /*
-     * Internal helper functions for traversing and manipulating the tree
-     */
-    
-    private void pruneTree() {
-        if (pendingRemovals.size() == 0)
-            return; // no work needs to be done
-        
-        for (Node<T> n: pendingRemovals) {
-            if (n.isRemovable())
-                n.detach();
+        // swap the last element with this one if it's not already the last item
+        if (index < size - 1) {
+            int swap = size - 1;
+            elements[index] = elements[swap];
+            queryIds[index] = queryIds[swap];
+            System.arraycopy(aabbs, swap * 6, aabbs, index * 6, 6);
+            
+            // must also null the old element index since that won't get
+            // iterated over during a non-fast clear anymore
+            elements[swap] = null; 
+            return true;
+        } else {
+            // return false to signal that no further clean up is necessary
+            elements[index] = null; // to help gc
+            return false;
         }
-        pendingRemovals.clear();
     }
     
-    private boolean inOctree(@Const AxisAlignedBox dataBounds) {
-        if (dataBounds == null)
-            throw new NullPointerException("Bounds cannot be null");
-        return rootBounds.contains(dataBounds);
+    public boolean add(T element, @Const AxisAlignedBox bounds) {
+        if (!rootBounds.contains(bounds))
+            return false; // skip the element
+        
+        // add the item to the item list
+        int itemIndex = size;
+        if (itemIndex == elements.length) {
+            // grow items
+            int newSize = (int) (itemIndex * 1.5);
+            elements = Arrays.copyOf(elements, newSize);
+            queryIds = Arrays.copyOf(queryIds, newSize);
+            aabbs = Arrays.copyOf(aabbs, newSize * 6);
+        }
+        elements[itemIndex] = element;
+        queryIds[itemIndex] = 0;
+        
+        bounds.min.get(aabbs, itemIndex * 6);
+        bounds.max.get(aabbs, itemIndex * 6 + 3);
+        
+        size++;
+        
+        // we know these hashes will be within the valid cells, because the
+        // object is fully contained in the root bounds
+        int minX = hashCellX(bounds.min);
+        int minY = hashCellY(bounds.min);
+        int minZ = hashCellZ(bounds.min);
+        int maxX = hashCellX(bounds.max);
+        int maxY = hashCellY(bounds.max);
+        int maxZ = hashCellZ(bounds.max);
+        
+        int hash;
+        Cell cell;
+        for (int z = minZ; z <= maxZ; z++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int x = minX; x <= maxX; x++) {
+                    hash = hash(x, y, z);
+                    cell = spatialHash[hash];
+                    if (cell == null) {
+                        int qtIndex = getQuadLeafFromCell(x, y, z);
+                        cell = new Cell(this, qtIndex);
+                        spatialHash[hash] = cell;
+
+                        // also update the quad tree to point to this cell
+                        qtIndex += getLevelOffset(depth - 1);
+                        if (octree[qtIndex] != -1)
+                            throw new IllegalArgumentException("Quadtree leaf should not have any index");
+                        octree[qtIndex] = hash;
+                    }
+                    cell.add(this, itemIndex, bounds);
+                }
+            }
+        }
+        return true;
     }
     
     public void clear() {
-        clear(root);
+        clear(false);
     }
     
-    private void clear(Node<T> node) {
-        if (node.items != null)
-            node.items.clear(true);
-        if (node.children != null) {
-            for (int i = 0; i < 8; i++) {
-                if (node.children[i] != null)
-                    clear(node.children[i]);
+    public void clear(boolean fast) {
+        // fill quadtree counts with 0s, but only up to the leaf nodes because
+        // they hold cell indices, which don't change
+        int leafStartIndex = getLevelOffset(depth - 1);
+        Arrays.fill(octree, 0, leafStartIndex, 0);
+        
+        // clear spatial hash
+        Cell c;
+        int leafOffset = getLevelOffset(depth - 1);
+        for (int i = 0; i < spatialHash.length; i++) {
+            c = spatialHash[i];
+            if (c != null) {
+                c.lifetime++;
+                
+                // check lifetime to help with GC'ing
+                if (c.lifetime > Cell.MAX_LIFETIME && c.size == 0) {
+                    // clear cell so that its contents get GC'ed
+                    spatialHash[i] = null;
+                    octree[leafOffset + c.quadTreeIndex] = -1;
+                }
+                
+                // only need to reset the size variable
+                c.size = 0;
+            }
+        }
+        
+        // empty global item bag
+        if (!fast) {
+            // must null elements for gc purposes, we do the entire array in
+            // case elements got trapped at the end during a previous fast clear
+            Arrays.fill(elements, null);
+        }
+        size = 0;
+        queryIdCounter = 0;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public void query(@Const AxisAlignedBox bounds, QueryCallback<T> callback) {
+        // hash x/z of bounds and do spatial hash query over intersecting cells
+        int minX = Math.max(0, hashCellX(bounds.min));
+        int minY = Math.max(0, hashCellY(bounds.min));
+        int minZ = Math.max(0, hashCellZ(bounds.min));
+        int maxX = Math.min(maxCellDimension - 1, hashCellX(bounds.max));
+        int maxY = Math.min(maxCellDimension - 1, hashCellY(bounds.max));
+        int maxZ = Math.min(maxCellDimension - 1, hashCellZ(bounds.max));
+        
+        int query = ++queryIdCounter;
+        AxisAlignedBox itemBounds = new AxisAlignedBox();
+        
+        Cell cell;
+        int item;
+        for (int z = minZ; z <= maxZ; z++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int x = minX; x <= maxX; x++) {
+                    cell = spatialHash[hash(x, y, z)];
+                    if (cell != null) {
+                        for (int i = 0; i < cell.size; i++) {
+                            item = cell.keys[i];
+
+                            // check query id, since the item could have crossed cell bounds
+                            // - this is valid in a single threaded situation
+                            if (queryIds[item] != query) {
+                                updateBounds(itemBounds, item);
+                                if (bounds.intersects(itemBounds)) {
+                                    // we have an intersection, invoke the callback
+                                    callback.process((T) elements[cell.keys[i]], itemBounds);
+                                }
+
+                                // record we've visited this item so other cells don't
+                                // attempt intersection checks
+                                queryIds[item] = query;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
     
-    /*
-     * Bit flags that describe where in the octree grid a
-     * child node exists. If POS_a is true, then the child
-     * is in the positive half-space of the parent node for
-     * that axis.
-     */
-    private static final int POS_X = 0x1;
-    private static final int POS_Y = 0x2;
-    private static final int POS_Z = 0x4;
+    public void query(Frustum f, QueryCallback<T> callback) {
+        // start at root quadtree and walk the tree to compute intersections,
+        // building in place an aabb for testing.
+        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, 
+              f, new PlaneState(), false, callback, 
+              new AxisAlignedBox());
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void query(int level, int index, AxisAlignedBox nodeBounds, int query, Frustum f, PlaneState planeState, 
+                       boolean insideGuaranteed, QueryCallback<T> callback, AxisAlignedBox itemBounds) {
+        // we assume that this node has items and nodeBounds has been updated to
+        // equal this node. we still have to check if the node intersects the frustum
+        if (!insideGuaranteed) {
+            FrustumIntersection test = nodeBounds.intersects(f, planeState);
+            if (test == FrustumIntersection.OUTSIDE) {
+                // node and it's children do not intersect, escape now
+                return;
+            } else if (test == FrustumIntersection.INSIDE) {
+                // all children nodes and items are guaranteed inside as well
+                insideGuaranteed = true;
+            }
+        }
+        
+        // at this point the node is within the frustum, so we have to visit
+        // its children if they have items underneath them
+        
+        // save planestate
+        int state = planeState.get();
+
+        if (level == depth - 1) {
+            // we are at a leaf node, to visit children, we process items in the 
+            // linked cell, we assume that the cell index is non-negative since
+            // we had to have passed a >0 check to get here
+            int item;
+            Cell cell = spatialHash[octree[getLevelOffset(level) + index]];
+            // process items
+            for (int i = 0; i < cell.size; i++) {
+                item = cell.keys[i];
+
+                // check query id, since the item could have crossed cell bounds
+                // - this is valid in a single threaded situation
+                if (queryIds[item] != query) {
+                    updateBounds(itemBounds, item);
+                    if (insideGuaranteed || itemBounds.intersects(f, planeState) != FrustumIntersection.OUTSIDE) {
+                        // we have an intersection, invoke the callback
+                        callback.process((T) elements[cell.keys[i]], itemBounds);
+                    }
+
+                    // record we've visited this item so other cells don't
+                    // attempt intersection checks
+                    queryIds[item] = query;
+
+                    // restore planestate for next item
+                    planeState.set(state);
+                }
+            }
+        } else {
+            int childOffset = getLevelOffset(level + 1);
+            int childIndex;
+            // visit children and check counts directly
+            for (int i = 0; i < 8; i++) {
+                childIndex = getChildIndex(index, i);
+                if (octree[childOffset + childIndex] > 0) {
+                    // visit child
+                    toChildBounds(i, nodeBounds);
+                    query(level + 1, childIndex, nodeBounds, query, f, planeState, insideGuaranteed, callback, itemBounds);
+                    restoreParentBounds(i, nodeBounds);
+
+                    // restore planestate for this node
+                    planeState.set(state);
+                }
+            }
+        }
+    }
     
     private static boolean inPositiveX(int index) {
         return (index & POS_X) != 0;
@@ -258,357 +405,224 @@ public class Octree<T> implements SpatialIndex<T> {
     private static boolean inPositiveZ(int index) {
         return (index & POS_Z) != 0;
     }
-    private static int getChildIndex(@Const AxisAlignedBox nodeBounds, @Const Vector3 pointInNode) {
+    
+    private void toChildBounds(int child, AxisAlignedBox bounds) {
+        if (inPositiveX(child)) {
+            // new min x is the center of the node
+            bounds.min.x = (bounds.min.x + bounds.max.x) / 2.0;
+        } else {
+            // new max x is the center of the node
+            bounds.max.x = (bounds.min.x + bounds.max.x) / 2.0;
+        }
+        
+        if (inPositiveY(child)) {
+            // new min y is the center of the node
+            bounds.min.y = (bounds.min.y + bounds.max.y) / 2.0;
+        } else {
+            // new max y is the center of the node
+            bounds.max.y = (bounds.min.y + bounds.max.y) / 2.0;
+        }
+        
+        if (inPositiveZ(child)) {
+            // new min z is the center of the node
+            bounds.min.z = (bounds.min.z + bounds.max.z) / 2.0;
+        } else {
+            // new max z is the center of the node
+            bounds.max.z = (bounds.min.z + bounds.max.z) / 2.0;
+        }
+    }
+    
+    private void restoreParentBounds(int child, AxisAlignedBox bounds) {
+        if (inPositiveX(child)) {
+            // new min x = min x - distance from min to max = 2 * min - max
+            bounds.min.x = 2 * bounds.min.x - bounds.max.x;
+        } else {
+            // new max x = max x + distance from min to max = 2 * max - min
+            bounds.max.x = 2 * bounds.max.x - bounds.min.x;
+        }
+        
+        if (inPositiveY(child)) {
+            // new min y = min y - distance from min to max = 2 * min - max
+            bounds.min.y = 2 * bounds.min.y - bounds.max.y;
+        } else {
+            // new max y = max y + distance from min to max = 2 * max - min
+            bounds.max.y = 2 * bounds.max.y - bounds.min.y;
+        }
+        
+        if (inPositiveZ(child)) {
+            // new min z = min z - distance from min to max = 2 * min - max
+            bounds.min.z = 2 * bounds.min.z - bounds.max.z;
+        } else {
+            // new max z = max z + distance from min to max = 2 * max - min
+            bounds.max.z = 2 * bounds.max.z - bounds.min.z;
+        }
+    }
+    
+    protected int hashCellX(@Const Vector3 v) {
+        // we add widthOffset to the coordinate value to get values into a positive-only range
+        return (int) ((v.x + widthOffset) * widthScaleFactor);
+    }
+    
+    protected int hashCellY(@Const Vector3 v) {
+        return (int) ((v.y + heightOffset) * heightScaleFactor);
+    }
+    
+    protected int hashCellZ(@Const Vector3 v) {
+        return (int) ((v.z + depthOffset) * depthScaleFactor);
+    }
+    
+    protected int hash(int cellX, int cellY, int cellZ) {
+        return cellX + maxCellDimension * cellY + maxCellDimension * maxCellDimension * cellZ;
+    }
+    
+    private void updateBounds(AxisAlignedBox bounds, int index) {
+        int realIndex = index * 6;
+        bounds.min.set(aabbs, realIndex);
+        bounds.max.set(aabbs, realIndex + 3);
+    }
+    
+    private int getQuadLeafFromCell(int cellX, int cellY, int cellZ) {
+        // compute the center point of the cell, to use in a tree search,
+        // must also subtract away offsets to get into the root bounds space
+        double px = (cellX + 0.5) / widthScaleFactor - widthOffset;
+        double py = (cellY + 0.5) / heightScaleFactor - heightOffset;
+        double pz = (cellZ + 0.5) / depthScaleFactor - depthOffset;
+        
+        double minx = rootBounds.min.x;
+        double miny = rootBounds.min.y;
+        double minz = rootBounds.min.z;
+        double maxx = rootBounds.max.x;
+        double maxy = rootBounds.max.y;
+        double maxz = rootBounds.max.z;
+        
+        // the center of the node
+        double cx = (minx + maxx) * 0.5;
+        double cy = (miny + maxy) * 0.5;
+        double cz = (minz + maxz) * 0.5;
+        
+        int child;
         int index = 0;
-        if ((nodeBounds.min.x + nodeBounds.max.x) < 2 * pointInNode.x)
-            index |= POS_X;
-        if ((nodeBounds.min.y + nodeBounds.max.y) < 2 * pointInNode.y)
-            index |= POS_Y;
-        if ((nodeBounds.min.z + nodeBounds.max.z) < 2 * pointInNode.z)
-            index |= POS_Z;
+        for (int i = 0; i < depth - 1; i++) {
+            child = 0;
+            // if px > cx then the cell is in the right/positive x half of this node
+            if (px >= cx) {
+                child |= POS_X;
+                // next node's min x is the current center x
+                minx = cx;
+            } else {
+                // next node's max x is the current center x
+                maxx = cx;
+            }
+            
+            if (py >= cy) {
+                child |= POS_Y;
+                // next node's min y is the current center y
+                miny = cy;
+            } else {
+                maxy = cy;
+            }
+            
+            if (pz >= cz) {
+                child |= POS_Z;
+                // next node's min z is the current center z
+                minz = cz;
+            } else {
+                maxz = cz;
+            }
+            
+            // compute new center for next node
+            cx = (minx + maxx) * 0.5;
+            cy = (miny + maxy) * 0.5;
+            cz = (minz + maxz) * 0.5;
+
+            index = getChildIndex(index, child);
+        }
+        
         return index;
     }
     
-    private static void updateForChild(int child, AxisAlignedBox bounds) {
-        if (inPositiveX(child))
-            bounds.min.x = (bounds.min.x + bounds.max.x) / 2;
-        else
-            bounds.max.x = (bounds.min.x + bounds.max.x) / 2;
-        
-        if (inPositiveY(child))
-            bounds.min.y = (bounds.min.y + bounds.max.y) / 2;
-        else
-            bounds.max.y = (bounds.min.y + bounds.max.y) / 2;
-        
-        if (inPositiveZ(child))
-            bounds.min.z = (bounds.min.z + bounds.max.z) / 2;
-        else
-            bounds.max.z = (bounds.min.z + bounds.max.z) / 2;
+    private int getLevelOffset(int level) {
+        // compute the index offset into the quadtree array for the given level
+        if (level == 0) {
+            // level = 0 is the root, which is the first element in the array
+            return 0;
+        } else {
+            // finite sum of the geometric series: 1 + 8 + 32 + ...
+            //  1. S = 8^0 + 8^1 + 8^2 + ... + 8^level-1
+            //  2. 8S = 8^1 + ... + 8^(level)
+            //  3. 8S = (S - 1) + 8^(level)
+            //  4. 7S = 8^(level) - 1
+            //  5. S = (8^(level) - 1) / 7
+            //  6. S = (2^(3level) - 1) / 7
+            return ((1 << (3 * level)) - 1) / 7;
+        }
     }
     
-    private static void updateForParent(int child, AxisAlignedBox bounds) {
-        if (inPositiveX(child))
-            bounds.min.x = 2 * bounds.min.x - bounds.max.x;
-        else
-            bounds.max.x = 2 * bounds.max.x - bounds.min.x;
-        
-        if (inPositiveY(child))
-            bounds.min.y = 2 * bounds.min.y - bounds.max.y;
-        else
-            bounds.max.y = 2 * bounds.max.y - bounds.min.y;
-        
-        if (inPositiveZ(child))
-            bounds.min.z = 2 * bounds.min.z - bounds.max.z;
-        else
-            bounds.max.z = 2 * bounds.max.z - bounds.min.z;
+    private int getChildIndex(int parentIndex, int child) {
+        // shift parent index left 3 bits, and OR in the child, this assumes:
+        // - parentIndex does not have its level offset added to it
+        // - child is between 0 and 7 (i.e. 3 bits required)
+        return (parentIndex << 3) | child;
     }
     
-    private static class Node<T> {
-        Node<T>[] children; // length 8, or null
-        Bag<Key<T>> items;
+    private int getParentIndex(int childIndex) {
+        // shift child index right 3 bits, this assumes:
+        // - child does not have its level offset added to it
+        return (childIndex >> 3);
+    }
+    
+    private static class Cell {
+        private static final int INCREMENT = 4;
+        private static final int MAX_LIFETIME = 15;
         
-        Node<T> parent;
-        final int depth;
+        private int[] keys;
         
-        public Node(Node<T> parent, int depth) {
-            this.parent = parent;
-            this.depth = depth;
+        private int size;
+        
+        private int lifetime;
+        
+        // this is the parent index of the quadtree index that actually holds
+        // this cell, because the leaves don't store count information
+        private final int quadTreeIndex;
+        
+        private Cell(Octree<?> tree, int quadLeaf) {
+            quadTreeIndex = quadLeaf; //tree.getParentIndex(quadLeaf);
+            keys = new int[INCREMENT];
+            size = 0;
+            lifetime = 0;
         }
         
-        public boolean isRemovable() {
-            if (items != null && items.size() > 0)
-                return false;
-            if (children != null) {
-                for (int i = 0; i < 8; i++) {
-                    if (children[i] != null)
-                        return false;
-                }
+        public void add(Octree<?> tree, int item, @Const AxisAlignedBox bounds) {
+            if (size == keys.length - 1) {
+                // increase size
+                keys = Arrays.copyOf(keys, keys.length + INCREMENT);
             }
+            keys[size] = item;
+            size++;
             
-            return true;
+            // update quadtree counts by 1
+            updateTree(tree, 1);
         }
         
-        public boolean isLeaf() {
-            return depth == 0;
-        }
-        
-        public int add(Key<T> key) {
-            if (items == null)
-                items = new Bag<Key<T>>();
-
-            items.add(key);
-            return items.size() - 1;
-        }
-        
-        public void remove(Key<T> key, int index) {
-            if (items == null)
-                return;
-            
-            if (index < 0)
-                index = items.indexOf(key);
-            items.remove(index);
-            
-            if (isRemovable())
-                key.owner.pendingRemovals.add(this);
-            
-            if (items.size() != index)
-                items.get(index).nodeIndex = index; // just in case
-        }
-        
-        public void detach() {
-            if (parent != null) {
-                boolean hasChildren = false;
-                for (int i = 0; i < 8; i++) {
-                    if (parent.children[i] == this)
-                        parent.children[i] = null;
-                    else if (parent.children[i] != null)
-                        hasChildren = true;
-                }
-                
-                if (!hasChildren && (parent.items == null || parent.items.size() == 0)) 
-                    parent.detach();
+        private void updateTree(Octree<?> tree, int val) {
+            int index = quadTreeIndex;
+            // it's depth-2 because depth-1 is the leaf level, but we skip that one
+            for (int l = tree.depth - 2; l >= 0; l--) {
+                index = tree.getParentIndex(index);
+                tree.octree[tree.getLevelOffset(l) + index] += val;
             }
         }
         
-        public Node<T> getChild(int index, boolean create) {
-            if (isLeaf())
-                return null;
-            
-            // return child if it exists
-            if (children != null && children[index] != null)
-                return children[index];
-            
-            if (create) {
-                // need a new child node
-                if (children == null)
-                    children = new Node[8];
-
-                children[index] = new Node<T>(this, depth - 1);
-                return children[index];
-            } else
-                return null;
-        }
-        
-        /**
-         * Invokes the callback on this Node and its children (and children's
-         * children ...) for all nodes that contain the query bounds. Assumes
-         * that this node contains query.
-         * 
-         * @param query The aabb query
-         * @param callback The callback to run on all nodes containing query
-         * @param nodeBounds The bounds of this node
-         * @param createChildren True if child nodes can be created if they'd be
-         *            contained in the query
-         */
-        public void visitContaining(@Const AxisAlignedBox query, NodeCallback<AxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
-            // since we assume this node contains query, run the callback right away
-            callback.visit(query, this, nodeBounds);
-            
-            // now visit children, if we have any
-            if (!isLeaf() && (children != null || createChildren)) {
-                int minChildIndex = getChildIndex(nodeBounds, query.min);
-                int maxChildIndex = getChildIndex(nodeBounds, query.max);
-                
-                if (minChildIndex == maxChildIndex) {
-                    // query fits within a single child, so we can go deeper
-                    Node<T> child = getChild(minChildIndex, createChildren);
-                    if (child == null)
-                        return;
+        public void remove(Octree<?> tree, int item) {
+            for (int i = 0; i < size; i++) {
+                // search for the item to remove
+                if (keys[i] == item) {
+                    keys[i] = keys[size - 1];
+                    size--;
                     
-                    // resize the extent and update the center, visit then revert
-                    updateForChild(minChildIndex, nodeBounds);
-                    child.visitContaining(query, callback, nodeBounds, createChildren);
-                    updateForParent(minChildIndex, nodeBounds);
-                } // else query spans multiple children so no more nodes contain it
-            }
-        }
-        
-        /**
-         * Invokes the callback on this Node and its children (and children's
-         * children ...) for all nodes that intersect the query bounds. Assumes
-         * that this node intersects the query bounds.
-         * 
-         * @param query The aabb query
-         * @param callback The callback to run on all nodes containing query
-         * @param nodeBounds The bounds of this node
-         * @param createChildren True if child nodes can be created if they'd be
-         *            contained in the query
-         */
-        public void visitIntersecting(@Const AxisAlignedBox query, NodeCallback<AxisAlignedBox, T> callback, AxisAlignedBox nodeBounds, boolean createChildren) {
-            // visit the callback
-            callback.visit(query, this, nodeBounds);
-            
-            if (!isLeaf() && (children != null || createChildren)) {
-                int minIndex = getChildIndex(nodeBounds, query.min);
-                int maxIndex = getChildIndex(nodeBounds, query.max);
-                int constraint = ~(minIndex ^ maxIndex);
-                int childMatch = minIndex & constraint; // note that maxIndex & constraint would work too
-                
-                for (int i = 0; i < 8; i++) {
-                    if ((i & constraint) == childMatch) {
-                        Node<T> child = getChild(i, createChildren);
-                        if (child == null)
-                            continue;
-                        
-                        // resize center to pass to the child, visit and revert
-                        updateForChild(i, nodeBounds);
-                        child.visitIntersecting(query, callback, nodeBounds, createChildren);
-                        updateForParent(i, nodeBounds);
-                    }
-                }
-            }
-        }
-
-        /**
-         * Invokes the callback on this Node and its children (and children's
-         * children ...) for all nodes that intersect the query bounds. Assumes
-         * that this node intersects the query bounds.
-         * 
-         * @param f The frustum query
-         * @param callback The callback to run
-         * @param nodeBounds The bounds of the this Node
-         */
-        public void visitFrustum(Frustum f, NodeCallback<Frustum, T> callback, AxisAlignedBox nodeBounds, PlaneState ps) {
-            // visit the callback
-            callback.visit(f, this, nodeBounds);
-            
-            if (children != null) {
-                // save plane state
-                int save = ps.get();
-                
-                // now check children
-                for (int i = 0; i < 8; i++) {
-                    if (children[i] != null) {
-                        // update bounds for the current node
-                        updateForChild(i, nodeBounds);
-
-                        // use the plane state and frustum intersection
-                        FrustumIntersection test = nodeBounds.intersects(f, ps);
-                        if (test != FrustumIntersection.OUTSIDE)
-                            children[i].visitFrustum(f, callback, nodeBounds, ps);
-                        
-                        // restore planestate and bounds
-                        updateForParent(i, nodeBounds);
-                        ps.set(save);
-                    }
-                }
-            }
-        }
-    }
-    
-    private static class Key<T>  {
-        final Octree<T> owner;
-        final T data;
-        
-        Node<T> parent;
-        int nodeIndex;
-        
-        final AxisAlignedBox bounds;
-        int queryNumber;
-        
-        public Key(T data, @Const AxisAlignedBox bounds, Octree<T> owner) {
-            this.data = data;
-            this.owner = owner;
-            this.bounds = new AxisAlignedBox(bounds);
-        }
-        
-        public void update(@Const AxisAlignedBox newBounds) {
-            // regular update within the tree, do a remove and then a re-add
-            if (!bounds.equals(newBounds)) {
-                removeFromRoot();
-                bounds.set(newBounds);
-                addToRoot();
-            }
-        }
-        
-        public void removeFromRoot() {
-            parent.remove(this, nodeIndex);
-            parent = null;
-        }
-        
-        public void addToRoot() {
-            DeepestNodeCallback<T> toAdd = new DeepestNodeCallback<T>();
-            owner.root.visitContaining(bounds, toAdd, owner.rootBounds, true);
-            parent = toAdd.deepestNode;
-            nodeIndex = parent.add(this);
-        }
-    }
-    
-    /*
-     * Callbacks for traversing the node tree in various ways
-     */
-    
-    private static interface NodeCallback<Q, T> {
-        public void visit(Q query, Node<T> node, AxisAlignedBox nodeBounds);
-    }
-    
-    private static class DeepestNodeCallback<T> implements NodeCallback<AxisAlignedBox, T> {
-        Node<T> deepestNode;
-        
-        @Override
-        public void visit(@Const AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
-            if (deepestNode == null || node.depth < deepestNode.depth)
-                deepestNode = node;
-        }
-    }
-    
-    private static class AabbQueryCallback<T> implements NodeCallback<AxisAlignedBox, T> {
-        final QueryCallback<T> callback;
-        final int query;
-        
-        public AabbQueryCallback(QueryCallback<T> callback, int query) {
-            this.callback = callback;
-            this.query = query;
-        }
-        
-        @Override
-        public void visit(@Const AxisAlignedBox query, Node<T> node, AxisAlignedBox nodeBounds) {
-            if (node.items != null) {
-                Key<T> key;
-                int count = node.items.size();
-                for (int i = 0; i < count; i++) {
-                    key = node.items.get(i);
-                    if (key.queryNumber == this.query)
-                        continue;
-                    key.queryNumber = this.query;
-                    
-                    if (query.intersects(key.bounds))
-                        callback.process(key.data, key.bounds);
-                }
-            }
-        }
-    }
-    
-    private static class FrustumQueryCallback<T> implements NodeCallback<Frustum, T> {
-        final PlaneState ps;
-        final QueryCallback<T> callback;
-        final int query;
-        
-        public FrustumQueryCallback(QueryCallback<T> callback, PlaneState ps, int query) {
-            this.ps = ps;
-            this.callback = callback;
-            this.query = query;
-        }
-        
-        @Override
-        public void visit(Frustum query, Node<T> node, AxisAlignedBox nodeBounds) {
-            if (node.items != null) {
-                // save old plane state to restore after each child
-                int save = ps.get();
-                
-                Key<T> key;
-                int ct = node.items.size();
-                for (int i = 0; i < ct; i++) {
-                    key = node.items.get(i);
-                    if (key.queryNumber == this.query)
-                        continue;
-                    key.queryNumber = this.query;
-                    
-                    if (key.bounds.intersects(query, ps) != FrustumIntersection.OUTSIDE)
-                        callback.process(key.data, key.bounds);
-                    
-                    // restore plane state
-                    ps.set(save);
+                    // decrement quadtree counts by 1
+                    updateTree(tree, -1);
+                    break;
                 }
             }
         }

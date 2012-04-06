@@ -1,8 +1,9 @@
 package com.ferox.math.bounds;
 
+import java.util.Arrays;
+
 import com.ferox.math.Const;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
-import com.ferox.util.Bag;
 
 /**
  * SimpleSpatialIndex is a SpatialIndex that performs no spatial organization.
@@ -16,117 +17,117 @@ import com.ferox.util.Bag;
  * @param <T> The Class type of elements within this hierarchy
  */
 public class SimpleSpatialIndex<T> implements SpatialIndex<T> {
-    private final Bag<SimpleKey<T>> elements;
+    private Object[] elements;
+    private double[] aabbs;
+    private int size;
     
     /**
      * Create a new SimpleSpatialIndex that is initially empty.
      */
     public SimpleSpatialIndex() {
-        elements = new Bag<SimpleKey<T>>();
+        elements = new Object[8];
+        aabbs = new double[48];
+        size = 0;
     }
     
     @Override
-    public Object add(T item, @Const AxisAlignedBox bounds) {
-        if (item == null)
-            throw new NullPointerException("Item cannot be null");
-        SimpleKey<T> newKey = new SimpleKey<T>(this, item, bounds);
-        newKey.index = elements.size();
+    public boolean add(T item, @Const AxisAlignedBox bounds) {
+        int itemIndex = size;
+        if (itemIndex == elements.length) {
+            // grow items
+            int newSize = (int) (itemIndex * 1.5);
+            elements = Arrays.copyOf(elements, newSize);
+            aabbs = Arrays.copyOf(aabbs, newSize * 6);
+        }
+        elements[itemIndex] = item;
         
-        elements.add(newKey);
-        return newKey;
+        bounds.min.get(aabbs, itemIndex * 6);
+        bounds.max.get(aabbs, itemIndex * 6 + 3);
+        
+        size++;
+        
+        // simple index always succeeds in adding an element
+        return true;
     }
     
     @Override
-    @SuppressWarnings({ "rawtypes" })
-    public boolean update(T item, @Const AxisAlignedBox bounds, Object key) {
-        if (item == null)
-            throw new NullPointerException("Item cannot be null");
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        
-        if (key instanceof SimpleKey) {
-            SimpleKey sk = (SimpleKey) key;
-            if (sk.owner == this && sk.data == item) {
-                // key is valid, update bounds and return
-                sk.bounds.set(bounds);
-                return true;
+    public boolean remove(T element) {
+        int item = -1;
+        for (int i = 0; i < size; i++) {
+            if (elements[i] == element) {
+                item = i;
+                break;
             }
         }
         
-        // else key was invalid (not a SimpleKey or the wrong hierarchy)
-        throw new IllegalArgumentException("Invalid key: " + key);
-    }
-    
-    @Override
-    @SuppressWarnings("rawtypes")
-    public void remove(T item, Object key) {
-        if (item == null)
-            throw new NullPointerException("Item cannot be null");
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        
-        if (key instanceof SimpleKey) {
-            SimpleKey sk = (SimpleKey) key;
-            if (sk.owner == this && sk.data == item) {
-                // remove quickly based on the key
-                elements.remove(sk.index);
-                if (sk.index != elements.size()) {
-                    // update index of swapped item
-                    elements.get(sk.index).index = sk.index;
-                }
-                return;
+        if (item >= 0) {
+            if (item < size - 1) {
+                int swap = size - 1;
+                elements[item] = elements[swap];
+                System.arraycopy(aabbs, swap * 6, aabbs, item * 6, 6);
+                
+                // must also null the old element index since that won't get
+                // iterated over during a non-fast clear anymore
+                elements[swap] = null; 
+            } else {
+                elements[item] = null; // to help gc
             }
+            
+            size--;
+            return true;
+        } else {
+            // not in the index
+            return false;
         }
-        
-        // else key was invalid 
-        throw new IllegalArgumentException("Invalid key: " + key);
     }
 
+    private void updateBounds(AxisAlignedBox bounds, int index) {
+        int realIndex = index * 6;
+        bounds.min.set(aabbs, realIndex);
+        bounds.max.set(aabbs, realIndex + 3);
+    }
+    
     @Override
+    @SuppressWarnings("unchecked")
     public void query(@Const AxisAlignedBox volume, QueryCallback<T> callback) {
         if (volume == null)
             throw new NullPointerException("Query bound volume cannot be null");
         if (callback == null)
             throw new NullPointerException("Callback cannot be null");
         
-        SimpleKey<T> key;
-        int sz = elements.size();
-        for (int i = 0; i < sz; i++) {
-            key = elements.get(i);
-            if (key.bounds == null || key.bounds.intersects(volume))
-                callback.process(key.data, key.bounds);
+        AxisAlignedBox itemBounds = new AxisAlignedBox();
+        for (int i = 0; i < size; i++) {
+            updateBounds(itemBounds, i);
+            if (itemBounds.intersects(volume))
+                callback.process((T) elements[i], itemBounds);
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void query(Frustum frustum, QueryCallback<T> callback) {
         if (frustum == null)
             throw new NullPointerException("Query Frustum cannot be null");
         if (callback == null)
             throw new NullPointerException("Callback cannot be null");
         
-        SimpleKey<T> key;
-        int sz = elements.size();
-        for (int i = 0; i < sz; i++) {
-            key = elements.get(i);
-            // we can't use a PlaneState because each item has no spatial relationship
-            // with the items around it in elements
-            if (key.bounds.intersects(frustum, null) != FrustumIntersection.OUTSIDE)
-                callback.process(key.data, key.bounds);
+        AxisAlignedBox itemBounds = new AxisAlignedBox();
+        for (int i = 0; i < size; i++) {
+            updateBounds(itemBounds, i);
+            if (itemBounds.intersects(frustum, null) != FrustumIntersection.OUTSIDE)
+                callback.process((T) elements[i], itemBounds);
         }
     }
+    
+    public void clear() {
+        clear(false);
+    }
 
-    private static class SimpleKey<T> {
-        private final T data;
-        private final AxisAlignedBox bounds;
-        
-        private int index;
-        private final SimpleSpatialIndex<T> owner;
-        
-        public SimpleKey(SimpleSpatialIndex<T> owner, T data, @Const AxisAlignedBox bounds) {
-            this.owner = owner;
-            this.data = data;
-            this.bounds = new AxisAlignedBox(bounds);
+    @Override
+    public void clear(boolean fast) {
+        if (!fast) {
+            Arrays.fill(elements, null);
         }
+        size = 0;
     }
 }

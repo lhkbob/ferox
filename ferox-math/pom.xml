@@ -7,27 +7,19 @@
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <groupId>com.lhkbob.ferox</groupId>
     <artifactId>ferox-math</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Ferox Math Library</name>
     
     <dependencies>
-        <dependency>
-            <groupId>com.lhkbob.ferox</groupId>
-            <artifactId>ferox-collections</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        
         <!-- Entreri is used for the math Property implementations,
              which is optional. -->
         <dependency>
             <groupId>com.lhkbob.entreri</groupId>
             <artifactId>entreri</artifactId>
             <version>1.5.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
