@@ -8,18 +8,22 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * A SpatialIndex partitions the three dimensions of a space to provide
  * efficient spatial queries. These queries are generally of the form: find all
  * objects that are within a certain region. For SpatialIndex, a region can
- * either be a {@link Frustum} or an {@link ReadOnlyAxisAlignedBox}. It is assumed that
- * each region exists within the same space as the SpatialHierachy.
+ * either be a {@link Frustum} or an {@link ReadOnlyAxisAlignedBox}. It is
+ * assumed that each region exists within the same transform space as the
+ * SpatialIndex.
  * </p>
  * <p>
- * Implementations of SpatialIndex are required to allow dynamic updates to
- * the objects within the hierarchy. This is often much faster than removing and
- * re-adding an object because much of the initial work that was done to place
- * the object initially will remain the same. This is because objects generally
- * have good spatial and temporal locality. To facilitate this, when an object
- * is added to the SpatialIndex, it has a key returned which contains the
- * implementation dependent information needed to quickly update an object's
- * location within the hierarchy.
+ * SpatialIndices are intended for collections of higher-level entities, such as
+ * a physics object, or entire geometries. It is not meant to store indices of
+ * the triangles within a geometry, although the algorithms will likely be very
+ * similar triangle/primitive specific indices will likely be much more
+ * efficient.
+ * </p>
+ * <p>
+ * If a SpatialIndex is meant to contain dynamic objects that move from
+ * frame-to-frame, the expected workflow is to add every object to the index,
+ * process with the index, and then clear it before the next frame. If sporadic
+ * updates to objects are needed, you must remove and then re-add the object.
  * </p>
  * 
  * @author Michael Ludwig
@@ -29,64 +33,66 @@ public interface SpatialIndex<T> {
     /**
      * <p>
      * Add <tt>item</tt> to this SpatialIndex using the given <tt>bounds</tt> to
-     * represent the extents of the item. It is assumed that the item has not
-     * already been added. If this is the case,
-     * {@link #update(Object, ReadOnlyAxisAlignedBox, Object)} should be used
-     * instead. On a successful add, a non-null key is returned. This key must
-     * be used in {@link #update(Object, ReadOnlyAxisAlignedBox, Object)} and
-     * {@link #remove(Object, Object)} when modifying <tt>item</tt>.
+     * represent the extents of the item. If the item is already in the index,
+     * the item may be reported multiple times in queries.
      * </p>
      * <p>
      * Some implementations of SpatialIndex may have constraints on their
      * spatial dimensions. If <tt>bounds</tt> is unable to fit within these
-     * constraints, a null key is returned and the item was not added to the
+     * constraints, a false is returned and the item was not added to the
      * hierarchy.
      * </p>
      * <p>
      * Implementations must copy the provided bounds so that any subsequent
-     * changes to the bounds instance to do not contaminate the hierarchy.
+     * changes to the bounds instance to do not affect the index.
      * </p>
      * 
      * @param item The item to add
      * @param bounds The extends of <tt>item</tt>
-     * @return A key object representing where the item was placed in the
-     *         hierarchy, or null on a failure
+     * @return True if the item was added to the index, false otherwise
      * @throws NullPointerException if item or bounds is null
      */
     public boolean add(T item, @Const AxisAlignedBox bounds);
 
     /**
-     * Remove <tt>item</tt> from this hierarchy so that the given item can no
-     * longer be returned in queries to the SpatialIndex. The given
-     * <tt>key</tt> must be the key provided by a previous call to
-     * {@link #add(Object, ReadOnlyAxisAlignedBox)} and the given item must still be
-     * within the hierarchy. After removal, the key for an item is invalidated
-     * and a new key will be provided if the item is re-added.
+     * Remove <tt>item</tt> from this hierarchy so that the given item will no
+     * longer be returned in queries on the SpatialIndex. False is returned if
+     * the index was not modified (i.e. the item was not in this collection).
      * 
      * @param item The item to remove
-     * @param key The key previously returned by add() for this item
-     * @throws NullPointerException if item or key are null
-     * @throws IllegalArgumentException if the given key is invalid, or if item
-     *             isn't within the hierarchy
+     * @return True if the collection was modified
+     * @throws NullPointerException if item is null
      */
     public boolean remove(T item);
     
     /**
+     * Empty this SpatialIndex so that it no longer contains any items. If
+     * <tt>fast</tt> is true, the index is not required to remove references to
+     * old items. This can be more efficient if the index will be re-filled and
+     * the old references will be overwritten. However, this may also prevent
+     * items from being garbage collected if they are not overwritten.
      * 
-     * @param fast
+     * @param fast True if the index can optimize the clear
      */
     public void clear(boolean fast);
+    
+    /**
+     * Empty this SpatialIndex so that it no longer contains any items. This is
+     * a convenience for <code>clear(false);</code>.
+     */
+    public void clear();
 
     /**
      * <p>
-     * Query this SpatialIndex for all previously added items that have
-     * their provided bounds {@link ReadOnlyAxisAlignedBox#intersects(ReadOnlyAxisAlignedBox)
+     * Query this SpatialIndex for all previously added items that have their
+     * provided bounds
+     * {@link ReadOnlyAxisAlignedBox#intersects(ReadOnlyAxisAlignedBox)
      * intersecting} with <tt>volume</tt>.
      * </p>
      * <p>
      * The provided QueryCallback has its {@link QueryCallback#process(Object)}
-     * for each intersecting item. An item will be passed to the callback once
-     * per query.
+     * invoked for each intersecting item. An item will be passed to the
+     * callback once per query.
      * </p>
      * 
      * @param volume The volume representing the spatial query
@@ -97,16 +103,17 @@ public interface SpatialIndex<T> {
 
     /**
      * <p>
-     * Query this SpatialIndex for all previously added items that have
-     * their provided bounds
-     * {@link ReadOnlyAxisAlignedBox#intersects(Frustum, PlaneState) intersecting} with
-     * <tt>frustum</tt>. An item's bounds intersects with the Frustum if its
-     * FrustumIntersection is not {@link FrustumIntersection#OUTSIDE}.
+     * Query this SpatialIndex for all previously added items that have their
+     * provided bounds
+     * {@link ReadOnlyAxisAlignedBox#intersects(Frustum, PlaneState)
+     * intersecting} with <tt>frustum</tt>. An item's bounds intersects with the
+     * Frustum if its FrustumIntersection is not
+     * {@link FrustumIntersection#OUTSIDE}.
      * </p>
      * <p>
      * The provided QueryCallback has its {@link QueryCallback#process(Object)}
-     * for each intersecting item. An item will be passed to the callback once
-     * per query.
+     * invoked for each intersecting item. An item will be passed to the
+     * callback once per query.
      * </p>
      * 
      * @param frustum The frustum representing the spatial query

@@ -1,8 +1,27 @@
 package com.ferox.math;
 
+/**
+ * Functions is a static collection of functions that provide additional or more
+ * performant alternatives to {@link Math}.
+ * 
+ * @author Michael Ludwig
+ */
 public final class Functions {
     private Functions() {}
     
+    /**
+     * <p>
+     * Compute the smallest power-of-two that is greater than or equal to the
+     * given integer. If num is less than or equal to 0, 1 is always returned.
+     * If num is already a power-of-two, num is returned.
+     * </p>
+     * <p>
+     * This runs in constant time.
+     * </p>
+     * 
+     * @param num The input
+     * @return Smallest power-of-two greater than or equal to num
+     */
     public static int potCeil(int num) {
         if (num <= 0)
             return 1;
@@ -18,25 +37,31 @@ public final class Functions {
         return num;
     }
     
+    /**
+     * Compute the integer log base 2 of the given number. If num is not a power
+     * of two (i.e. its log base 2 is not an integral value), this effectively
+     * returns <code>log2(potCeil(num))</code>. If num is less than or equal to
+     * 0, results are undefined.
+     * 
+     * @param num The number to compute the log base 2 of
+     * @return The log base 2 of the number, after rounding up to the nearest
+     *         power of two
+     */
     public static int log2(int num) {
         return 32 - Integer.numberOfLeadingZeros(num - 1);
     }
     
+    /**
+     * Return true if the given integer is a power of two. This is an efficient,
+     * constant time implementation. Numbers less than or equal to 0 will always
+     * return false.
+     * 
+     * @param num The number to check
+     * @return True if num is a power of two
+     */
     public static boolean isPowerOfTwo(int num) {
         if (num <= 0)
             return false;
         return (num & (num - 1)) == 0;
-    }
-    
-    public static void main(String[] args) {
-        for (int i = -10; i <= 100; i++) {
-            int power2 = potCeil(i);
-            int log2Orig = log2(i);
-            int log2power = log2(power2);
-            boolean isPower2Orig = isPowerOfTwo(i);
-            boolean isPower2Power = isPowerOfTwo(power2);
-            
-            System.out.println(i + "(" + isPower2Orig + ") -> " + power2 + "(" + isPower2Power + "), log2: " + log2Orig + " -> " + log2power);
-        }
     }
 }

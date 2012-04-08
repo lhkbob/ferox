@@ -9,9 +9,7 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * SimpleSpatialIndex is a SpatialIndex that performs no spatial organization.
  * Each query performs a linear scan through the elements within the hierarchy.
  * Inserts, updates and removals are always constant time, and the
- * SimpleSpatialIndex always accepts every element added to it. It is intended
- * that this hierarchy be used to test the validity of other implementations, or
- * as a last-resort to contain items in a hierarch.
+ * SimpleSpatialIndex always accepts every element added to it.
  * 
  * @author Michael Ludwig
  * @param <T> The Class type of elements within this hierarchy

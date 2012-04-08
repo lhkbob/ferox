@@ -7,6 +7,22 @@ import com.ferox.math.Functions;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
+/**
+ * <p>
+ * Octree is a SpatialIndex implementation that uses a octree to efficiently
+ * cull areas in the viewing frustum that don't have objects within them. This
+ * particular implementation is a fully-allocated octree on top of a spatial
+ * grid. This means that inserts are almost constant time, and that AABB queries
+ * are very fast.
+ * </p>
+ * <p>
+ * Unless all three dimensions are required to suitably index the space,
+ * a {@link QuadTree} will generally perform faster and use less memory.
+ * </p>
+ * 
+ * @author Michael Ludwig
+ * @param <T> The data type stored in the octree
+ */
 public class Octree<T> implements SpatialIndex<T> {
     private static final int POS_X = 0x1;
     private static final int POS_Y = 0x2;
@@ -39,16 +55,50 @@ public class Octree<T> implements SpatialIndex<T> {
     
     private int queryIdCounter;
     
+    /**
+     * Construct a new Octree that has X, Y, and Z dimensions of 100, and an
+     * estimated object size of 2 units, which allows the tree to have a depth
+     * of 6.
+     */
     public Octree() {
         this(100, 2.0);
     }
     
+    /**
+     * <p>
+     * Construct a new Octree that has X, Y, and Z dimensions equal to
+     * <tt>sideLength</tt>, and the depth of the tree is controlled by the
+     * estimated object size, <tt>objSize</tt>. <tt>objSize</tt> should be the
+     * approximate dimension of the average object contained in this index. If
+     * it is too big or too small, query performance may suffer.
+     * </p>
+     * 
+     * @param sideLength The side length of the root bounds of the octree
+     * @param objSize The estimated object size
+     */
     public Octree(double sideLength, double objSize) {
         this(new AxisAlignedBox(new Vector3(-sideLength / 2.0, -sideLength / 2.0, -sideLength / 2.0),
                                 new Vector3(sideLength / 2.0, sideLength / 2.0, sideLength / 2.0)), 
              Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
     
+    /**
+     * <P>
+     * Construct a new Octree with the given root bounds, <tt>aabb</tt> and tree
+     * depth. The depth of the tree and the X, Y, and Z dimensions of the root
+     * bounds determine the size the leaf octree nodes. If objects are
+     * significantly larger than this, they will be contained in multiple nodes
+     * and it may hurt performance.
+     * </p>
+     * <p>
+     * The root bounds are copied so future changes to <tt>aabb</tt> will not
+     * affect this tree.
+     * </p>
+     * 
+     * @param aabb The root bounds of the tree
+     * @param depth The depth of the tree
+     * @throws NullPointerException if aabb is null
+     */
     public Octree(@Const AxisAlignedBox aabb, int depth) {
         this.depth = depth;
         rootBounds = aabb.clone();
@@ -80,6 +130,9 @@ public class Octree<T> implements SpatialIndex<T> {
     
     @Override
     public boolean remove(T element) {
+        if (element == null)
+            throw new NullPointerException("Item cannot be null");
+        
         int item = -1;
         for (int i = 0; i < size; i++) {
             if (elements[i] == element) {
@@ -182,7 +235,13 @@ public class Octree<T> implements SpatialIndex<T> {
         }
     }
     
+    @Override
     public boolean add(T element, @Const AxisAlignedBox bounds) {
+        if (element == null)
+            throw new NullPointerException("Item cannot be null");
+        if (bounds == null)
+            throw new NullPointerException("Item bounds cannot be null");
+        
         if (!rootBounds.contains(bounds))
             return false; // skip the element
         
@@ -237,10 +296,12 @@ public class Octree<T> implements SpatialIndex<T> {
         return true;
     }
     
+    @Override
     public void clear() {
         clear(false);
     }
     
+    @Override
     public void clear(boolean fast) {
         // fill quadtree counts with 0s, but only up to the leaf nodes because
         // they hold cell indices, which don't change
@@ -277,8 +338,14 @@ public class Octree<T> implements SpatialIndex<T> {
         queryIdCounter = 0;
     }
     
+    @Override
     @SuppressWarnings("unchecked")
     public void query(@Const AxisAlignedBox bounds, QueryCallback<T> callback) {
+        if (bounds == null)
+            throw new NullPointerException("Bounds cannot be null");
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
+        
         // hash x/z of bounds and do spatial hash query over intersecting cells
         int minX = Math.max(0, hashCellX(bounds.min));
         int minY = Math.max(0, hashCellY(bounds.min));
@@ -320,7 +387,13 @@ public class Octree<T> implements SpatialIndex<T> {
         }
     }
     
+    @Override
     public void query(Frustum f, QueryCallback<T> callback) {
+        if (f == null)
+            throw new NullPointerException("Frustum cannot be null");
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
+        
         // start at root quadtree and walk the tree to compute intersections,
         // building in place an aabb for testing.
         query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, 
@@ -581,12 +654,12 @@ public class Octree<T> implements SpatialIndex<T> {
         
         private int lifetime;
         
-        // this is the parent index of the quadtree index that actually holds
+        // this is the parent index of the octree index that actually holds
         // this cell, because the leaves don't store count information
         private final int quadTreeIndex;
         
-        private Cell(Octree<?> tree, int quadLeaf) {
-            quadTreeIndex = quadLeaf; //tree.getParentIndex(quadLeaf);
+        private Cell(Octree<?> tree, int octLeaf) {
+            quadTreeIndex = octLeaf;
             keys = new int[INCREMENT];
             size = 0;
             lifetime = 0;
@@ -600,7 +673,7 @@ public class Octree<T> implements SpatialIndex<T> {
             keys[size] = item;
             size++;
             
-            // update quadtree counts by 1
+            // update octree counts by 1
             updateTree(tree, 1);
         }
         
@@ -620,7 +693,7 @@ public class Octree<T> implements SpatialIndex<T> {
                     keys[i] = keys[size - 1];
                     size--;
                     
-                    // decrement quadtree counts by 1
+                    // decrement octree counts by 1
                     updateTree(tree, -1);
                     break;
                 }
