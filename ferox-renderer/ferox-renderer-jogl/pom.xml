@@ -7,17 +7,15 @@
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <groupId>com.lhkbob.ferox</groupId>
     <artifactId>ferox-renderer-jogl</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Ferox JOGL Renderer Implementation</name>
 
 
     <!-- JOGL is not actually in Maven, but this POM will do a local install 
-         of the jars in the "jogl/2.0-rc3" folder so that the dependencies can be 
-         resolved.  Define "install.jogl" to install the JOGL jars, and
-         leave it blank for normal usage. -->
+        of the jars in the "jogl/2.0-rc3" folder so that the dependencies can be 
+        resolved. Define "install.jogl" to install the JOGL jars, and leave it blank 
+        for normal usage. -->
     <profiles>
         <profile>
             <id>install-jogl</id>
@@ -165,7 +163,7 @@
                                     <file>jogl/2.0-rc3/natives/gluegen-rt-natives-macosx-universal.jar</file>
                                 </configuration>
                             </execution>
-                            
+
                             <execution>
                                 <id>install-jogl</id>
                                 <phase>generate-resources</phase>
@@ -221,9 +219,8 @@
                 </plugins>
             </build>
 
-            <!-- Only define these dependencies after we've installed JOGL,
-                 otherwise the build will fail before we get to the generate-resources
-                 phase. -->
+            <!-- Only define these dependencies after we've installed JOGL, 
+                otherwise the build will fail before we get to the generate-resources phase. -->
             <dependencies>
                 <dependency>
                     <groupId>com.jogamp.jogl</groupId>
@@ -234,6 +231,39 @@
             </dependencies>
         </profile>
     </profiles>
+    
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse 
+                    m2e settings only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>com.googlecode.mavennatives</groupId>
+                                        <artifactId>maven-nativedependencies-plugin</artifactId>
+                                        <versionRange>[0.0.5,)</versionRange>
+                                        <goals>
+                                            <goal>copy</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <dependencies>
         <dependency>

@@ -1,12 +1,13 @@
 package com.ferox.scene;
 
-import com.ferox.math.Matrix4f;
-import com.ferox.math.MutableMatrix4f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.entreri.Matrix4fProperty;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.entreri.Matrix4Property;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
 
 /**
  * <p>
@@ -21,24 +22,19 @@ import com.googlecode.entreri.TypedId;
  * 
  * @author Michael Ludwig
  */
-public final class Transform extends Component {
+public final class Transform extends ComponentData<Transform> {
     /**
      * The shared TypedId representing Transform.
      */
-    public static final TypedId<Transform> ID = Component.getTypedId(Transform.class);
+    public static final TypeId<Transform> ID = TypeId.get(Transform.class);
     
-    public static final ReadOnlyMatrix4f DEFAULT_TRANSFORM = new Matrix4f().setIdentity();
+    @Factory(IdentityPropertyFactory.class)
+    private Matrix4Property matrix;
     
-    private Matrix4fProperty matrix;
+    @Unmanaged
+    private final Matrix4 cache = new Matrix4();
     
-    private Transform(EntitySystem system, int index) {
-        super(system, index);
-    }
-
-    @Override
-    protected void init(Object... initParams) {
-        setMatrix(DEFAULT_TRANSFORM);
-    }
+    private Transform() { }
 
     /**
      * Copy the given transform matrix into this Transform's matrix.
@@ -47,30 +43,40 @@ public final class Transform extends Component {
      * @return This Transform for chaining purposes
      * @throws NullPointerException if m is null
      */
-    public Transform setMatrix(ReadOnlyMatrix4f m) {
+    public Transform setMatrix(@Const Matrix4 m) {
+        // set the cache to m as well so that it is always valid
+        cache.set(m);
         matrix.set(m, getIndex());
         return this;
     }
 
     /**
-     * Return the matrix of this Transform. The returned matrix is a cached
-     * instance shared within the component's EntitySystem, so it should be
-     * cloned before accessing another component of this type.
+     * Return the matrix of this Transform. The returned Matrix4 instance
+     * is reused by this Transform instance so it should be cloned before
+     * changing which Component is referenced
      * 
      * @return The current world affine transform matrix
      */
-    public ReadOnlyMatrix4f getMatrix() {
-        return matrix.get(getIndex());
+    public @Const Matrix4 getMatrix() {
+        return cache;
     }
+    
+    @Override
+    protected void onSet(int index) {
+        matrix.get(index, cache);
+    }
+    
+    private static class IdentityPropertyFactory extends AbstractPropertyFactory<Matrix4Property> {
+        private static final Matrix4 IDENTITY = new Matrix4().setIdentity();
+        
+        @Override
+        public Matrix4Property create() {
+            return new Matrix4Property();
+        }
 
-    /**
-     * Return the matrix of this Transform in <tt>store</tt>. If store is null,
-     * a new matrix is created to hold the transform and returned.
-     * 
-     * @param store The result matrix to hold the transform
-     * @return The transform in store, or a new vector if store was null
-     */
-    public final MutableMatrix4f getMatrix(MutableMatrix4f store) {
-        return matrix.get(getIndex(), store);
+        @Override
+        public void setDefaultValue(Matrix4Property property, int index) {
+            property.set(IDENTITY, index);
+        }
     }
 }

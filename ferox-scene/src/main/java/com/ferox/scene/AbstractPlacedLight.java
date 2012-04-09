@@ -3,7 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.math.entreri.Vector3fProperty;
+import com.ferox.math.entreri.Vector3Property;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.property.FloatProperty;
 
@@ -21,7 +21,7 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
     public static final ReadOnlyVector3f DEFAULT_POSITION = new Vector3f();
     
     private FloatProperty falloffDistance;
-    private Vector3fProperty position;
+    private Vector3Property position;
 
     protected AbstractPlacedLight(EntitySystem system, int index) {
         super(system, index);

@@ -81,7 +81,7 @@ public final class Fog extends TypedComponent<Fog> {
     /**
      * Create a new Fog component that uses the given color, falloff and
      * distance to full opacity. These are the arguments passed to
-     * {@link #setColor(Color3f)}, {@link #setFalloff(Falloff)} and
+     * {@link #setColor(ColorRGB)}, {@link #setFalloff(Falloff)} and
      * {@link #setOpaqueDistance(float)}, respectively.
      * 
      * @param color The initial color

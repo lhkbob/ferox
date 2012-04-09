@@ -3,7 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.MutableVector3f;
 import com.ferox.math.ReadOnlyVector3f;
 import com.ferox.math.Vector3f;
-import com.ferox.math.entreri.Vector3fProperty;
+import com.ferox.math.entreri.Vector3Property;
 import com.googlecode.entreri.Component;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.TypedId;
@@ -33,7 +33,7 @@ public final class DirectionLight extends Light<DirectionLight> {
     
     public static final ReadOnlyVector3f DEFAULT_DIRECTION = new Vector3f(0f, 0f, 1f);
     
-    private Vector3fProperty direction;
+    private Vector3Property direction;
 
     private DirectionLight(EntitySystem system, int index) {
         super(system, index);

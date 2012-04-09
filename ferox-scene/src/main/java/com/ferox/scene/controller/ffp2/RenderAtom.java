@@ -19,7 +19,7 @@ public class RenderAtom {
     public PolygonType polyType;
     
     // material
-    // FIXME: these might need to change to Vector4f's
+    // FIXME: these might need to change to Vector4's
     public final Color3f diffuse;
     public final Color3f specular;
     public final Color3f emissive;

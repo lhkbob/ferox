@@ -7,9 +7,7 @@
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <groupId>com.lhkbob.ferox</groupId>
     <artifactId>ferox-renderer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Ferox Renderer</name>
     

@@ -2,7 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyColor3f;
-import com.ferox.math.entreri.Color3fProperty;
+import com.ferox.math.entreri.ColorRGBProperty;
 import com.googlecode.entreri.Component;
 import com.googlecode.entreri.EntitySystem;
 
@@ -25,7 +25,7 @@ import com.googlecode.entreri.EntitySystem;
 public abstract class ColorComponent<T extends ColorComponent<T>> extends Component {
     public static final ReadOnlyColor3f DEFAULT_COLOR = new Color3f(.5f, .5f, .5f);
     
-    private Color3fProperty color;
+    private ColorRGBProperty color;
 
     protected ColorComponent(EntitySystem system, int index) {
         super(system, index);

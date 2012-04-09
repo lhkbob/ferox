@@ -1,9 +1,9 @@
 package com.ferox.scene;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
-import com.googlecode.entreri.property.FloatProperty;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.property.DoubleProperty;
 
 /**
  * <p>
@@ -32,23 +32,17 @@ import com.googlecode.entreri.property.FloatProperty;
  * 
  * @author Michael Ludwig
  */
-public final class Transparent extends Component {
+public final class Transparent extends ComponentData<Transparent> {
     /**
      * The shared TypedId representing Transparent.
      */
-    public static final TypedId<Transparent> ID = Component.getTypedId(Transparent.class);
+    public static final TypeId<Transparent> ID = TypeId.get(Transparent.class);
     
-    private FloatProperty opacity;
+    @DefaultValue(defaultDouble=0.5)
+    private DoubleProperty opacity;
 
-    private Transparent(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private Transparent() { }
     
-    @Override
-    protected void init(Object... initParams) {
-        setOpacity(.5f);
-    }
-
     /**
      * Return the opacity of the Entity. This is a value between 0 and 1,
      * representing the fraction of light that is blocked by the Entity. A value
@@ -57,7 +51,7 @@ public final class Transparent extends Component {
      * 
      * @return The opacity
      */
-    public float getOpacity() {
+    public double getOpacity() {
         return opacity.get(getIndex(), 0);
     }
 
@@ -71,7 +65,7 @@ public final class Transparent extends Component {
      * @return This component for chaining purposes
      * @throws IllegalArgumentException if opacity is not between 0 and 1
      */
-    public Transparent setOpacity(float opacity) {
+    public Transparent setOpacity(double opacity) {
         if (opacity < 0f || opacity > 1f)
             throw new IllegalArgumentException("Opacity must be in [0, 1], not: " + opacity);
         this.opacity.set(opacity, getIndex(), 0);

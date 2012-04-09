@@ -2,7 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.math.Color3f;
 import com.ferox.math.ReadOnlyColor3f;
-import com.ferox.math.entreri.Color3fProperty;
+import com.ferox.math.entreri.ColorRGBProperty;
 import com.googlecode.entreri.Component;
 import com.googlecode.entreri.EntitySystem;
 
@@ -28,7 +28,7 @@ import com.googlecode.entreri.EntitySystem;
 public abstract class Light<T extends Light<T>> extends Component {
     public static final ReadOnlyColor3f DEFAULT_COLOR = new Color3f(.2f, .2f, .2f);
 
-    private Color3fProperty color;
+    private ColorRGBProperty color;
 
     protected Light(EntitySystem system, int index) {
         super(system, index);
@@ -53,9 +53,9 @@ public abstract class Light<T extends Light<T>> extends Component {
     
     /**
      * Return the color of this light in <tt>store</tt>. If store is
-     * null, a new Color3f is created to hold the color and returned.
+     * null, a new ColorRGB is created to hold the color and returned.
      * 
-     * @param store The result Color3f to hold the color
+     * @param store The result ColorRGB to hold the color
      * @return The color in store, or a new vector if store was null
      */
     public final Color3f getPosition(Color3f store) {
