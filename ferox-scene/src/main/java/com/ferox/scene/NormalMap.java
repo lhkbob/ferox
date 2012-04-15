@@ -4,11 +4,8 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexAttribute;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.InitParams;
-import com.googlecode.entreri.TypedId;
-import com.googlecode.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p>
@@ -31,34 +28,19 @@ import com.googlecode.entreri.property.ObjectProperty;
  * triangle. These attributes must be provided or configured else where because
  * it is likely to depend on the controllers actually rendering the Entities.
  * </p>
- * <p>
- * NormalMap defines three initialization parameters: a Texture, a
- * VertexAttribute for texture coordinate access, and a VertexAttribute
- * representing tangent vectors for each vertex. The tangent vector parameter
- * can be null.
- * </p>
  * 
  * @author Michael Ludwig
  */
-@InitParams({Texture.class, VertexAttribute.class, VertexAttribute.class})
 public final class NormalMap extends TextureMap<NormalMap> {
     /**
      * The shared TypedId representing NormalMap.
      */
-    public static final TypedId<NormalMap> ID = Component.getTypedId(NormalMap.class);
+    public static final TypeId<NormalMap> ID = TypeId.get(NormalMap.class);
     
     private ObjectProperty<VertexAttribute> tangentVectors;
 
-    private NormalMap(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private NormalMap() { }
     
-    @Override
-    protected void init(Object... initParams) {
-        super.init(initParams[0], initParams[1]);
-        setTangents((VertexAttribute) initParams[2]);
-    }
-
     /**
      * Return whether or not the normal vectors are in object space or tangent
      * space. See {@link #setTangents(boolean)} for details.

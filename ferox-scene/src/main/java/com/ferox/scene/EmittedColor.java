@@ -1,8 +1,6 @@
 package com.ferox.scene;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -13,9 +11,6 @@ import com.googlecode.entreri.TypedId;
  * material. The color stored in this EmittedColor should be considered to have
  * HDR color values when relevant.
  * </p>
- * <p>
- * EmittedColor does not have any initialization parameters.
- * </p>
  * 
  * @see EmittedColorMap
  * @author Michael Ludwig
@@ -24,9 +19,7 @@ public final class EmittedColor extends ColorComponent<EmittedColor> {
     /**
      * The shared TypedId representing EmittedColor.
      */
-    public static final TypedId<EmittedColor> ID = Component.getTypedId(EmittedColor.class);
+    public static final TypeId<EmittedColor> ID = TypeId.get(EmittedColor.class);
     
-    private EmittedColor(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private EmittedColor() { }
 }

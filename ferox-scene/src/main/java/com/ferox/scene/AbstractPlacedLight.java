@@ -1,11 +1,11 @@
 package com.ferox.scene;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.property.FloatProperty;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.property.DoubleProperty;
 
 /**
  * An intermediate light type that is shared by {@link PointLight} and
@@ -18,43 +18,27 @@ import com.googlecode.entreri.property.FloatProperty;
  * @param <T> The component light type
  */
 public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> extends Light<T> {
-    public static final ReadOnlyVector3f DEFAULT_POSITION = new Vector3f();
+    @DefaultValue(defaultDouble=-1.0)
+    private DoubleProperty falloffDistance;
     
-    private FloatProperty falloffDistance;
     private Vector3Property position;
+    
+    @Unmanaged
+    private final Vector3 posCache = new Vector3();
 
-    protected AbstractPlacedLight(EntitySystem system, int index) {
-        super(system, index);
-    }
-
-    @Override
-    protected void init(Object... initParams) {
-        setFalloffDistance(-1f);
-        setPosition(DEFAULT_POSITION);
-    }
+    protected AbstractPlacedLight() { }
 
     /**
      * Return the local position of this light with respect to the owning
      * entity's coordinate space. If the entity has no defined coordinate space,
-     * its in world space. The returned vector is a cached instance shared
-     * within the component's EntitySystem, so it should be cloned before
-     * accessing another component of this type.
+     * its in world space. The returned Vector3 instance
+     * is reused by this Light instance so it should be cloned before
+     * changing which Component is referenced
      * 
      * @return The position of the light
      */
-    public final ReadOnlyVector3f getPosition() {
-        return position.get(getIndex());
-    }
-
-    /**
-     * Return the local position of this light in <tt>store</tt>. If store is
-     * null, a new vector is created to hold the position and returned.
-     * 
-     * @param store The result vector to hold the position
-     * @return The local position in store, or a new vector if store was null
-     */
-    public final MutableVector3f getPosition(MutableVector3f store) {
-        return position.get(getIndex(), store);
+    public final @Const Vector3 getPosition() {
+        return posCache;
     }
 
     /**
@@ -67,9 +51,10 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      * @throws NullPointerException if pos is null
      */
     @SuppressWarnings("unchecked")
-    public final T setPosition(ReadOnlyVector3f pos) {
+    public final T setPosition(@Const Vector3 pos) {
         if (pos == null)
             throw new NullPointerException("Position cannot be null");
+        posCache.set(pos);
         position.set(pos, getIndex());
         return (T) this;
     }
@@ -85,7 +70,7 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      * @return This light for chaining purposes
      */
     @SuppressWarnings("unchecked")
-    public final T setFalloffDistance(float distance) {
+    public final T setFalloffDistance(double distance) {
         // No argument checking, a negative distance disables
         // light falloff so every value is supported
         falloffDistance.set(distance, getIndex(), 0);
@@ -100,7 +85,12 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      * 
      * @return The falloff distance
      */
-    public final float getFalloffDistance() {
+    public final double getFalloffDistance() {
         return falloffDistance.get(getIndex(), 0);
+    }
+    
+    @Override
+    protected void onSet(int index) {
+        position.get(index, posCache);
     }
 }

@@ -1,13 +1,14 @@
 package com.ferox.scene;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
-import com.googlecode.entreri.property.FloatProperty;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleProperty;
 
 /**
  * <p>
@@ -23,9 +24,6 @@ import com.googlecode.entreri.property.FloatProperty;
  * direction before being transformed by any transform component. This is
  * provided to make it easier to manipulate the direction of the light.
  * </p>
- * <p>
- * SpotLight does not define any initialization parameters.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -33,24 +31,19 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     /**
      * The shared TypedId representing SpotLight.
      */
-    public static final TypedId<SpotLight> ID = Component.getTypedId(SpotLight.class);
+    public static final TypeId<SpotLight> ID = TypeId.get(SpotLight.class);
     
-    public static final ReadOnlyVector3f DEFAULT_DIRECTION = new Vector3f(0f, 0f, 1f);
-    
+    @Factory(DefaultDirectionFactory.class)
     private Vector3Property direction;
-    private FloatProperty cutoffAngle;
-
-    private SpotLight(EntitySystem system, int index) {
-        super(system, index);
-    }
     
-    @Override
-    protected void init(Object... initParams) {
-        super.init(initParams);
-        setDirection(DEFAULT_DIRECTION);
-        setCutoffAngle(30f);
-    }
+    @DefaultValue(defaultDouble=30.0)
+    private DoubleProperty cutoffAngle;
+    
+    @Unmanaged
+    private final Vector3 dirCache = new Vector3();
 
+    private SpotLight() { }
+    
     /**
      * Return the cutoff angle, in degrees, representing the maximum angle light
      * will spread from the {@link #getDirection() direction vector}. This
@@ -59,7 +52,7 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * 
      * @return The cutoff angle in degrees, will be in [0, 90]
      */
-    public float getCutoffAngle() {
+    public double getCutoffAngle() {
         return cutoffAngle.get(getIndex(), 0);
     }
 
@@ -73,7 +66,7 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * @return This light for chaining purposes
      * @throws IllegalArgumentException if angle is not between 0 and 90
      */
-    public SpotLight setCutoffAngle(float angle) {
+    public SpotLight setCutoffAngle(double angle) {
         if (angle < 0 || angle > 90)
             throw new IllegalArgumentException("Illegal cutoff angle, must be in [0, 90], not: " + angle);
         cutoffAngle.set(angle, getIndex(), 0);
@@ -92,9 +85,10 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * @throws NullPointerException if dir is null
      * @throws ArithmeticException if dir cannot be normalized
      */
-    public SpotLight setDirection(ReadOnlyVector3f dir) {
+    public SpotLight setDirection(@Const Vector3 dir) {
         if (dir == null)
             throw new NullPointerException("Direction vector cannot be null");
+        dirCache.set(dir);
         direction.set(dir.normalize(null), getIndex());
         return this;
     }
@@ -108,19 +102,27 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * 
      * @return The normalized direction vector
      */
-    public ReadOnlyVector3f getDirection() {
-        return direction.get(getIndex());
+    public @Const Vector3 getDirection() {
+        return dirCache;
     }
+    
+    @Override
+    protected void onSet(int index) {
+        direction.get(index, dirCache);
+    }
+    
+    private static class DefaultDirectionFactory extends AbstractPropertyFactory<Vector3Property> {
+        public static final Vector3 DEFAULT_DIR = new Vector3(0, 0, 1);
+        
+        @Override
+        public Vector3Property create() {
+            return new Vector3Property();
+        }
 
-    /**
-     * Return the local direction of this light in <tt>store</tt>. If store is
-     * null, a new vector is created to hold the direction and returned.
-     * 
-     * @param store The result vector to hold the direction
-     * @return The local direction in store, or a new vector if store was null
-     */
-    public final MutableVector3f getDirection(MutableVector3f store) {
-        return direction.get(getIndex(), store);
+        @Override
+        public void setDefaultValue(Vector3Property property, int index) {
+            property.set(DEFAULT_DIR, index);
+        }
     }
 }
 

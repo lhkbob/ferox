@@ -1,9 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -21,10 +19,6 @@ import com.googlecode.entreri.TypedId;
  * Entity is transparent, the opacity of the Transparent component and the
  * texture are multiplied together to get the final opacity for a pixel.
  * </p>
- * <p>
- * DiffuseColorMap inherits TextureMap's two initialization parameters: a
- * Texture, and a VertexAttribute.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -32,11 +26,9 @@ public class DiffuseColorMap extends TextureMap<DiffuseColorMap> {
     /**
      * The shared TypedId representing DiffuseColorMap.
      */
-    public static final TypedId<DiffuseColorMap> ID = Component.getTypedId(DiffuseColorMap.class);
+    public static final TypeId<DiffuseColorMap> ID = TypeId.get(DiffuseColorMap.class);
 
-    private DiffuseColorMap(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private DiffuseColorMap() { }
 
     @Override
     protected void validate(Texture tex) {

@@ -1,9 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -24,10 +22,6 @@ import com.googlecode.entreri.TypedId;
  * texture mapping should likely match the texture mapping used for a
  * {@link DiffuseColorMap}.
  * </p>
- * <p>
- * EmittedColorMap inherits TextureMap's two initialization parameters: a
- * Texture, and a VertexAttribute.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -35,11 +29,9 @@ public class EmittedColorMap extends TextureMap<EmittedColorMap> {
     /**
      * The shared TypedId representing DepthOffsetMap.
      */
-    public static final TypedId<EmittedColorMap> ID = Component.getTypedId(EmittedColorMap.class);
+    public static final TypeId<EmittedColorMap> ID = TypeId.get(EmittedColorMap.class);
 
-    private EmittedColorMap(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private EmittedColorMap() { }
 
     @Override
     protected void validate(Texture tex) {

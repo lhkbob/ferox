@@ -2,9 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -21,10 +19,6 @@ import com.googlecode.entreri.TypedId;
  * format, then the depth values are packed into the range [0, 1] and are
  * converted to [-.5, .5] with <code>d - .5</code> when used in a shader.
  * </p>
- * <p>
- * DepthOffsetMap inherits TextureMap's two initialization parameters: a
- * Texture, and a VertexAttribute.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -32,11 +26,9 @@ public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
     /**
      * The shared TypedId representing DepthOffsetMap.
      */
-    public static final TypedId<DepthOffsetMap> ID = Component.getTypedId(DepthOffsetMap.class);
+    public static final TypeId<DepthOffsetMap> ID = TypeId.get(DepthOffsetMap.class);
     
-    private DepthOffsetMap(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private DepthOffsetMap() { }
 
     @Override
     protected void validate(Texture tex) {

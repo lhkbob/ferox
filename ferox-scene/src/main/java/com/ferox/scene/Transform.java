@@ -16,9 +16,6 @@ import com.lhkbob.entreri.property.AbstractPropertyFactory;
  * a system (i.e. the world). This can be used to place lights, physics objects,
  * or objects to be rendered.
  * </p>
- * <p>
- * Transform does not define any initialization parameters.
- * </p>
  * 
  * @author Michael Ludwig
  */

@@ -1,9 +1,8 @@
 package com.ferox.scene;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
-import com.googlecode.entreri.property.FloatProperty;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.property.DoubleProperty;
 
 /**
  * <p>
@@ -22,10 +21,6 @@ import com.googlecode.entreri.property.FloatProperty;
  * objects. This separation was done so that other lighting models can be added
  * but still enable the use of the color providing components.
  * </p>
- * <p>
- * BlinnPhongMaterial inherits Material's single initialization parameter of a
- * VertexAttribute for its normals.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -33,19 +28,12 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
     /**
      * The shared TypedId representing BlinnPhongMaterial.
      */
-    public static final TypedId<BlinnPhongMaterial> ID = Component.getTypedId(BlinnPhongMaterial.class);
+    public static final TypeId<BlinnPhongMaterial> ID = TypeId.get(BlinnPhongMaterial.class);
     
-    private FloatProperty shininess;
-
-    protected BlinnPhongMaterial(EntitySystem system, int index) {
-        super(system, index);
-    }
+    @DefaultValue(defaultDouble=1.0)
+    private DoubleProperty shininess;
     
-    @Override
-    protected void init(Object... initParams) {
-        super.init(initParams); // just pass as-is, since we don't define any more
-        setShininess(1f);
-    }
+    private BlinnPhongMaterial() { }
 
     /**
      * Set the shininess exponent to use with this material. The shininess
@@ -58,7 +46,7 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * @param shiny The new shininess exponent
      * @throws IllegalArgumentException if shiny is less than 0
      */
-    public void setShininess(float shiny) {
+    public void setShininess(double shiny) {
         if (shiny < 0f)
             throw new IllegalArgumentException("Shininess must be positive, not: " + shiny);
         shininess.set(shiny, getIndex(), 0);
@@ -71,7 +59,7 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * 
      * @return The shininess exponent, will be at least 0
      */
-    public float getShininess() {
+    public double getShininess() {
         return shininess.get(getIndex(), 0);
     }
 }

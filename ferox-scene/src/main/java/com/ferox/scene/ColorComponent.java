@@ -1,10 +1,10 @@
 package com.ferox.scene;
 
-import com.ferox.math.Color3f;
-import com.ferox.math.ReadOnlyColor3f;
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.annot.Unmanaged;
 
 /**
  * <p>
@@ -15,26 +15,17 @@ import com.googlecode.entreri.EntitySystem;
  * Entity's material, there will often be similar Components extending from
  * {@link TextureMap} that function the same, but can act on a per-pixel basis.
  * </p>
- * <p>
- * ColorComponent does not define any initialization parameters.
- * </p>
  * 
  * @author Michael Ludwig
  * @param <T> The concrete type of ColorComponent
  */
-public abstract class ColorComponent<T extends ColorComponent<T>> extends Component {
-    public static final ReadOnlyColor3f DEFAULT_COLOR = new Color3f(.5f, .5f, .5f);
-    
+public abstract class ColorComponent<T extends ColorComponent<T>> extends ComponentData<T> {
     private ColorRGBProperty color;
-
-    protected ColorComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
     
-    @Override
-    protected void init(Object... initParams) {
-        setColor(DEFAULT_COLOR);
-    }
+    @Unmanaged
+    private final ColorRGB cache = new ColorRGB();
+
+    protected ColorComponent() { }
 
     /**
      * Return the color stored by this component. This color will be used for
@@ -45,19 +36,8 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
      * 
      * @return This component's color
      */
-    public final ReadOnlyColor3f getColor() {
-        return color.get(getIndex());
-    }
-
-    /**
-     * Return the color of this component in <tt>store</tt>. If store is null, a
-     * new color is created to hold the position and returned.
-     * 
-     * @param store The result color to hold the color
-     * @return The color in store, or a new vector if store was null
-     */
-    public final Color3f getPosition(Color3f store) {
-        return color.get(getIndex(), store);
+    public final @Const ColorRGB getColor() {
+        return cache;
     }
 
     /**
@@ -69,10 +49,16 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
      * @throws NullPointerException if color is null
      */
     @SuppressWarnings("unchecked")
-    public final T setColor(ReadOnlyColor3f color) {
+    public final T setColor(@Const ColorRGB color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
+        cache.set(color);
         this.color.set(color, getIndex());
         return (T) this;
+    }
+    
+    @Override
+    protected void onSet(int index) {
+        color.get(index, cache);
     }
 }

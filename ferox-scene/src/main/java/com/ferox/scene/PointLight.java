@@ -1,8 +1,6 @@
 package com.ferox.scene;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -17,9 +15,6 @@ import com.googlecode.entreri.TypedId;
  * identically to how SpotLight and DirectionLight can be modified by a
  * transform to position them within a scene.
  * </p>
- * <p>
- * PointLight defines no initialization parameters.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -27,9 +22,7 @@ public final class PointLight extends AbstractPlacedLight<PointLight> {
     /**
      * The shared TypedId representing PointLight.
      */
-    public static final TypedId<PointLight> ID = Component.getTypedId(PointLight.class);
+    public static final TypeId<PointLight> ID = TypeId.get(PointLight.class);
     
-    private PointLight(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private PointLight() { }
 }

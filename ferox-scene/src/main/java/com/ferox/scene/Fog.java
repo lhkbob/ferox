@@ -18,6 +18,7 @@ import com.ferox.math.Color3f;
  * 
  * @author Michael Ludwig
  */
+// FIXME: Rename AtmosphericFog
 public final class Fog extends TypedComponent<Fog> {
     /**
      * The shared TypedId representing Fog.

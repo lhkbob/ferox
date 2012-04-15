@@ -1,9 +1,7 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -21,10 +19,6 @@ import com.googlecode.entreri.TypedId;
  * texture mapping should likely match the texture mapping used for a
  * {@link DiffuseColorMap}.
  * </p>
- * <p>
- * SpecularColorMap inherits TextureMap's two initialization parameters: a
- * Texture, and a VertexAttribute.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -32,11 +26,9 @@ public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
     /**
      * The shared TypedId representing DepthOffsetMap.
      */
-    public static final TypedId<SpecularColorMap> ID = Component.getTypedId(SpecularColorMap.class);
+    public static final TypeId<SpecularColorMap> ID = TypeId.get(SpecularColorMap.class);
     
-    private SpecularColorMap(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private SpecularColorMap() { }
 
     @Override
     protected void validate(Texture tex) {

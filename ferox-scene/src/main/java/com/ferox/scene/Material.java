@@ -2,11 +2,9 @@ package com.ferox.scene;
 
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexAttribute;
-import com.googlecode.entreri.Controller;
-import com.googlecode.entreri.Entity;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.InitParams;
-import com.googlecode.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.Controller;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p>
@@ -20,30 +18,15 @@ import com.googlecode.entreri.property.ObjectProperty;
  * rendered without any light shading. It is undefined what it means to have an
  * entity with multiple lighting models.
  * </p>
- * <p>
- * Material defines one initialization parameter, a VertexAttribute, that will
- * be passed to {@link #setNormals(VertexAttribute)}.
- * </p>
  * 
  * @author Michael Ludwig
  * @param <T> The concrete type of Material
  */
-// FIXME: this init param might not be needed, since a null normal vector set
-// can be replaced by an object-space normal map
-@InitParams(VertexAttribute.class)
-public abstract class Material<T extends Material<T>> extends EntitySetComponent {
+public abstract class Material<T extends Material<T>> extends EntitySetComponent<T> {
     private ObjectProperty<VertexAttribute> normals;
 
-    protected Material(EntitySystem system, int index) {
-        super(system, index);
-    }
+    protected Material() { }
     
-    @Override
-    protected void init(Object... initParams) {
-        super.init();
-        setNormals((VertexAttribute) initParams[0]);
-    }
-
     /**
      * Set the normal vectors store per-vertex normal data used when computing
      * lighting. Normals are used when rendering an entity that is a

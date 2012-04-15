@@ -1,8 +1,6 @@
 package com.ferox.scene;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -19,9 +17,6 @@ import com.googlecode.entreri.TypedId;
  * fractions of light that are reflected so the only meaningful values are in
  * the range [0, 1]. HDR color values are not used.
  * </p>
- * <p>
- * SpecularColor does not define any initialization parameters.
- * </p>
  * 
  * @see SpecularColorMap
  * @author Michael Ludwig
@@ -30,9 +25,7 @@ public final class SpecularColor extends ColorComponent<SpecularColor> {
     /**
      * The shared TypedId representing SpecularColor.
      */
-    public static final TypedId<SpecularColor> ID = Component.getTypedId(SpecularColor.class);
+    public static final TypeId<SpecularColor> ID = TypeId.get(SpecularColor.class);
     
-    private SpecularColor(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private SpecularColor() { }
 }

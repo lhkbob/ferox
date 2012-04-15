@@ -1,8 +1,6 @@
 package com.ferox.scene;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -18,9 +16,6 @@ import com.googlecode.entreri.TypedId;
  * lighting model, the diffuse color should be used to render the Entity as a
  * solid without lighting.
  * </p>
- * <p>
- * DiffuseColor does not have any initialization parameters.
- * </p>
  * 
  * @see DiffuseColorMap
  * @author Michael Ludwig
@@ -29,9 +24,7 @@ public final class DiffuseColor extends ColorComponent<DiffuseColor> {
     /**
      * The shared TypedId representing DiffuseColor.
      */
-    public static final TypedId<DiffuseColor> ID = Component.getTypedId(DiffuseColor.class);
+    public static final TypeId<DiffuseColor> ID = TypeId.get(DiffuseColor.class);
     
-    private DiffuseColor(EntitySystem system, int index) {
-        super(system, index);
-    }
+    private DiffuseColor() { }
 }

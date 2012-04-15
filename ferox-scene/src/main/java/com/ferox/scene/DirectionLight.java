@@ -1,12 +1,12 @@
 package com.ferox.scene;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.TypedId;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
 
 /**
  * <p>
@@ -19,9 +19,6 @@ import com.googlecode.entreri.TypedId;
  * influence, but this all depends on the components used and the controller
  * implementations.
  * </p>
- * <p>
- * DirectionLight does not have any initialization parameters.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -29,22 +26,16 @@ public final class DirectionLight extends Light<DirectionLight> {
     /**
      * The shared TypedId representing DirectionLight.
      */
-    public static final TypedId<DirectionLight> ID = Component.getTypedId(DirectionLight.class);
+    public static final TypeId<DirectionLight> ID = TypeId.get(DirectionLight.class);
     
-    public static final ReadOnlyVector3f DEFAULT_DIRECTION = new Vector3f(0f, 0f, 1f);
-    
+    @Factory(DefaultDirectionFactory.class)
     private Vector3Property direction;
-
-    private DirectionLight(EntitySystem system, int index) {
-        super(system, index);
-    }
     
-    @Override
-    protected void init(Object... initParams) {
-        super.init(initParams);
-        setDirection(DEFAULT_DIRECTION);
-    }
+    @Unmanaged
+    private final Vector3 dirCache = new Vector3();
 
+    private DirectionLight() { }
+    
     /**
      * Set the direction of this light. This copies <tt>dir</tt>, so any future
      * changes to the input vector will not affect this DirectionLight. If this
@@ -57,9 +48,10 @@ public final class DirectionLight extends Light<DirectionLight> {
      * @throws NullPointerException if dir is null
      * @throws ArithmeticException if dir cannot be normalized
      */
-    public DirectionLight setDirection(ReadOnlyVector3f dir) {
+    public DirectionLight setDirection(@Const Vector3 dir) {
         if (dir == null)
             throw new NullPointerException("Direction vector cannot be null");
+        dirCache.set(dir);
         direction.set(dir.normalize(null), getIndex());
         return this;
     }
@@ -68,23 +60,31 @@ public final class DirectionLight extends Light<DirectionLight> {
      * Get the normalized direction vector for this light. If this
      * DirectionLight is combined with another transform, this vector should be
      * transformed by it before used in lighting calculations. The returned
-     * vector is a cached instance shared within the component's EntitySystem,
-     * so it should be cloned before accessing another component of this type.
+     * Vector3 instance is reused by this Light instance so it should be cloned
+     * before changing which Component is referenced.
      * 
      * @return The normalized direction vector
      */
-    public ReadOnlyVector3f getDirection() {
-        return direction.get(getIndex());
+    public @Const Vector3 getDirection() {
+        return dirCache;
     }
     
-    /**
-     * Return the local direction of this light in <tt>store</tt>. If store is
-     * null, a new vector is created to hold the direction and returned.
-     * 
-     * @param store The result vector to hold the direction
-     * @return The local direction in store, or a new vector if store was null
-     */
-    public final MutableVector3f getDirection(MutableVector3f store) {
-        return direction.get(getIndex(), store);
+    @Override
+    protected void onSet(int index) {
+        direction.get(index, dirCache);
+    }
+    
+    private static class DefaultDirectionFactory extends AbstractPropertyFactory<Vector3Property> {
+        public static final Vector3 DEFAULT_DIR = new Vector3(0, 0, 1);
+        
+        @Override
+        public Vector3Property create() {
+            return new Vector3Property();
+        }
+
+        @Override
+        public void setDefaultValue(Vector3Property property, int index) {
+            property.set(DEFAULT_DIR, index);
+        }
     }
 }

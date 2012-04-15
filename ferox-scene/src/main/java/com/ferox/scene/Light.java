@@ -1,10 +1,12 @@
 package com.ferox.scene;
 
-import com.ferox.math.Color3f;
-import com.ferox.math.ReadOnlyColor3f;
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
 
 /**
  * <p>
@@ -25,43 +27,27 @@ import com.googlecode.entreri.EntitySystem;
  * @author Michael Ludwig
  * @param <T> The concrete type of light
  */
-public abstract class Light<T extends Light<T>> extends Component {
-    public static final ReadOnlyColor3f DEFAULT_COLOR = new Color3f(.2f, .2f, .2f);
-
+public abstract class Light<T extends Light<T>> extends ComponentData<T> {
+    // FIXME: improve default value support for matrix types
+    @Factory(DefaultColorFactory.class)
     private ColorRGBProperty color;
-
-    protected Light(EntitySystem system, int index) {
-        super(system, index);
-    }
     
-    
-    @Override
-    protected void init(Object... initParams) {
-        setColor(DEFAULT_COLOR);
-    }
+    @Unmanaged
+    private final ColorRGB cache = new ColorRGB();
 
+    protected Light() { }
+    
     /**
-     * Return the color of this Light. The returned color is a cached instance
-     * shared within the component's EntitySystem, so it should be cloned before
-     * accessing another component of this type.
+     * Return the color of this Light. The returned ColorRGB instance is reused
+     * by this Light instance so it should be cloned before changing which
+     * Component is referenced.
      * 
      * @return The color of this Light
      */
-    public final ReadOnlyColor3f getColor() {
-        return color.get(getIndex());
+    public final @Const ColorRGB getColor() {
+        return cache;
     }
     
-    /**
-     * Return the color of this light in <tt>store</tt>. If store is
-     * null, a new ColorRGB is created to hold the color and returned.
-     * 
-     * @param store The result ColorRGB to hold the color
-     * @return The color in store, or a new vector if store was null
-     */
-    public final Color3f getPosition(Color3f store) {
-        return color.get(getIndex(), store);
-    }
-
     /**
      * Set the color of this Light. The color values in <tt>color</tt> are
      * copied into an internal instance, so any future changes to <tt>color</tt>
@@ -72,10 +58,30 @@ public abstract class Light<T extends Light<T>> extends Component {
      * @throws NullPointerException if color is null
      */
     @SuppressWarnings("unchecked")
-    public final T setColor(ReadOnlyColor3f color) {
+    public final T setColor(@Const ColorRGB color) {
         if (color == null)
             throw new NullPointerException("Color cannot be null");
+        cache.set(color);
         this.color.set(color, getIndex());
         return (T) this;
+    }
+    
+    @Override
+    protected void onSet(int index) {
+        color.get(index, cache);
+    }
+    
+    private static class DefaultColorFactory extends AbstractPropertyFactory<ColorRGBProperty> {
+        public static final ColorRGB DEFAULT_COLOR = new ColorRGB(.2, .2, .2);
+        
+        @Override
+        public ColorRGBProperty create() {
+            return new ColorRGBProperty();
+        }
+
+        @Override
+        public void setDefaultValue(ColorRGBProperty property, int index) {
+            property.set(DEFAULT_COLOR, index);
+        }
     }
 }

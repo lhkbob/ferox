@@ -3,10 +3,8 @@ package com.ferox.scene;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.InitParams;
-import com.googlecode.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p>
@@ -14,37 +12,15 @@ import com.googlecode.entreri.property.ObjectProperty;
  * that store a single Texture, such as {@link NormalMap},
  * {@link DepthOffsetMap} and {@link DiffuseMap}.
  * </p>
- * <p>
- * TextureMap defines two initialization parameters, the starting Texture and
- * VertexAttribute representing the texture coordinates. They cannot be null.
- * </p>
  * 
  * @author Michael Ludwig
  * @param <T> Concrete TextureMap type
  */
-// FIXME: Do we require texture coordinates? How can we support texture generation modes?
-// I don't know, is it necessary to? Or can they be from specialized components only like
-// a shadow map or reflection?
-// FIXME: should I add ShadowMap as a component where it's required to provide the texture
-// to use? No because they could just have the texture be a regular one and not one attached
-// to a TextureSurface -> although that would technically allow for static/CPU computed shadow
-// maps with a higher resolution.
-// - However, it might not properly support cascade or other algorithms as well that require
-//   multiple textures.
-@InitParams({Texture.class, VertexAttribute.class})
-public abstract class TextureMap<T extends TextureMap<T>> extends Component {
+public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<T> {
     private ObjectProperty<Texture> texture;
     private ObjectProperty<VertexAttribute> textureCoordinates;
 
-    protected TextureMap(EntitySystem system, int index) {
-        super(system, index);
-    }
-    
-    @Override
-    protected void init(Object... initParams) {
-        setTexture((Texture) initParams[0]);
-        setTextureCoordinates((VertexAttribute) initParams[1]);
-    }
+    protected TextureMap() { }
     
     /**
      * @return The texture coordinates used to access this TextureMap's texture

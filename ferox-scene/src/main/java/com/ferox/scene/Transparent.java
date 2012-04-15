@@ -26,9 +26,6 @@ import com.lhkbob.entreri.property.DoubleProperty;
  * (such as a particle system). This behavior also depends on the controllers
  * used to process the scene.
  * </p>
- * <p>
- * Transparent does not define any initialization parameters.
- * </p>
  * 
  * @author Michael Ludwig
  */
