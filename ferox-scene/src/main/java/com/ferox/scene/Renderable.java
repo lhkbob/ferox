@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
+import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
@@ -10,15 +10,13 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.util.geom.Geometry;
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.Controller;
-import com.googlecode.entreri.Entity;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.InitParams;
-import com.googlecode.entreri.TypedId;
-import com.googlecode.entreri.property.IntProperty;
-import com.googlecode.entreri.property.ObjectProperty;
-import com.googlecode.entreri.property.Parameter;
+import com.lhkbob.entreri.Controller;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * Renderable is a Component that enables an Entity to be rendered. It provides
@@ -32,47 +30,35 @@ import com.googlecode.entreri.property.Parameter;
  * can be used to describe the materials, shaders and textures used to color and
  * light the rendered Entity.
  * </p>
- * <p>
- * Renderable defines one initialization parameter: the VertexAttribute
- * representing its vertices. It defaults to using no indices, a PolygonType of
- * POINT, and an index offset and count of 0. It is highly recommended that
- * adding a Renderable, is immediately followed up with a call to
- * {@link #setIndices(PolygonType, VertexBufferObject, int, int)}.
- * </p>
  * 
  * @author Michael Ludwig
  */
-@InitParams({ VertexAttribute.class })
-public final class Renderable extends EntitySetComponent {
+public final class Renderable extends EntitySetComponent<Renderable> {
     /**
      * The shared TypedId representing Renderable.
      */
-    public static final TypedId<Renderable> ID = Component.getTypedId(Renderable.class);
+    public static final TypeId<Renderable> ID = TypeId.get(Renderable.class);
+    
+    private static final int INDEX_OFFSET = 0;
+    private static final int INDEX_COUNT = 1;
     
     private ObjectProperty<VertexAttribute> vertices;
     private ObjectProperty<VertexBufferObject> indices;
     private ObjectProperty<PolygonType> polyType;
     
-    @Parameter(type=int.class, value="2")
+    @ElementSize(2)
     private IntProperty indexConfig; // 0 = offset, 1 = count
     
     private AxisAlignedBoxProperty localBounds;
     private AxisAlignedBoxProperty worldBounds;
-
-    private Renderable(EntitySystem system, int index) {
-        super(system, index);
-    }
     
-    @Override
-    protected void init(Object... initParams) {
-        super.init();
-        
-        setVertices((VertexAttribute) initParams[0]);
-        
-        // This is a little lame, but it will result in entirely valid
-        // geometry, so it's a good default
-        setArrayIndices(PolygonType.POINTS, 0, 0);
-    }
+    @Unmanaged
+    private final AxisAlignedBox localBoundsCache = new AxisAlignedBox();
+    
+    @Unmanaged
+    private final AxisAlignedBox worldBoundsCache = new AxisAlignedBox();
+
+    private Renderable() { }
     
     /**
      * Set the vertex attribute that holds the vertex position information for
@@ -169,8 +155,8 @@ public final class Renderable extends EntitySetComponent {
         
         this.indices.set(indices, componentIndex, 0);
         polyType.set(type, componentIndex, 0);
-        indexConfig.set(first, componentIndex, 0);
-        indexConfig.set(count, componentIndex, 1);
+        indexConfig.set(first, componentIndex, INDEX_OFFSET);
+        indexConfig.set(count, componentIndex, INDEX_COUNT);
         
         return this;
     }
@@ -202,7 +188,7 @@ public final class Renderable extends EntitySetComponent {
      *         array indices)
      */
     public int getIndexCount() {
-        return indexConfig.get(getIndex(), 1);
+        return indexConfig.get(getIndex(), INDEX_COUNT);
     }
 
     /**
@@ -210,7 +196,7 @@ public final class Renderable extends EntitySetComponent {
      *         indices)
      */
     public int getIndexOffset() {
-        return indexConfig.get(getIndex(), 0);
+        return indexConfig.get(getIndex(), INDEX_OFFSET);
     }
     
     /**
@@ -291,28 +277,14 @@ public final class Renderable extends EntitySetComponent {
     }
 
     /**
-     * Return the local bounds of the Renderable. The local bounds will be
-     * placed in <tt>store</tt>, or a new AxisAlignedBox will be created to hold
-     * the local bounds.
-     * 
-     * @return The local bounds
-     */
-    public AxisAlignedBox getLocalBounds(AxisAlignedBox store) {
-        return localBounds.get(getIndex(), store);
-    }
-
-    /**
-     * Return the local bounds of this Renderable within a read-only cached
-     * instance. This instance is shared across all renderables in the same
-     * system, so calling this method on another renderable will overwrite the
-     * returned bounds state. Use {@link #getLocalBounds(AxisAlignedBox)} or
-     * clone the returned instance manually if correctness is required outside
-     * of iteration.
+     * Return the local bounds of this Renderable. The returned AxisAlignedBox
+     * instance is reused by this Renderable instance so it should be cloned
+     * before changing which Component is referenced.
      * 
      * @return A cached local bounds instance
      */
-    public ReadOnlyAxisAlignedBox getLocalBounds() {
-        return localBounds.get(getIndex());
+    public @Const AxisAlignedBox getLocalBounds() {
+        return localBoundsCache;
     }
 
     /**
@@ -324,36 +296,21 @@ public final class Renderable extends EntitySetComponent {
      * @return This component, for chaining purposes
      * @throws NullPointerException if bounds is null
      */
-    public Renderable setLocalBounds(ReadOnlyAxisAlignedBox bounds) {
+    public Renderable setLocalBounds(@Const AxisAlignedBox bounds) {
+        localBoundsCache.set(bounds);
         localBounds.set(bounds, getIndex());
         return this;
     }
 
     /**
-     * Return the world bounds of the Renderable. The world bounds will be
-     * placed in <tt>store</tt>, or a new AxisAlignedBox will be created to hold
-     * the local bounds. The returned world bounds may not accurately reflect
-     * the local bounds if the local bounds have been modified without
-     * recomputing the world bounds.
-     * 
-     * @return The world bounds
-     */
-    public AxisAlignedBox getWorldBounds(AxisAlignedBox store) {
-        return worldBounds.get(getIndex(), store);
-    }
-
-    /**
-     * Return the world bounds of this Renderable within a read-only cached
-     * instance. This instance is shared across all renderables in the same
-     * system, so calling this method on another renderable will overwrite the
-     * returned bounds state. Use {@link #getWorldBounds(AxisAlignedBox)} or
-     * clone the returned instance manually if correctness is required outside
-     * of iteration.
+     * Return the world bounds of this Renderable. The returned AxisAlignedBox
+     * instance is reused by this Renderable instance so it should be cloned
+     * before changing which Component is referenced.
      * 
      * @return A cached world bounds instance
      */
-    public ReadOnlyAxisAlignedBox getWorldBounds() {
-        return worldBounds.get(getIndex());
+    public @Const AxisAlignedBox getWorldBounds() {
+        return worldBoundsCache;
     }
 
     /**
@@ -367,8 +324,15 @@ public final class Renderable extends EntitySetComponent {
      * @return This component, for chaining purposes
      * @throws NullPointerException if bounds is null
      */
-    public Renderable setWorldBounds(ReadOnlyAxisAlignedBox bounds) {
+    public Renderable setWorldBounds(@Const AxisAlignedBox bounds) {
+        worldBoundsCache.set(bounds);
         worldBounds.set(bounds, getIndex());
         return this;
+    }
+    
+    @Override
+    protected void onSet(int index) {
+        worldBounds.get(index, worldBoundsCache);
+        localBounds.get(index, localBoundsCache);
     }
 }
