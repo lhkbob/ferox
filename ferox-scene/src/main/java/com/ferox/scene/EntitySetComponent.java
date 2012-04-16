@@ -10,6 +10,7 @@ import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.property.PropertyFactory;
 
 public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extends ComponentData<T> {
+    // FIXME add iterator capabilities and document
     private static final int CACHE_SIZE = 6;
     private static final int CACHE_OFFSET = 2;
     private static final int SCALE = CACHE_SIZE + CACHE_OFFSET;
