@@ -14,6 +14,9 @@ programming, with features including:
 * Rigid-body physics engine ported from [Bullet][].
 * Convenient input event handling using triggers.
 
+[Entreri]: http://bitbucket.org/mludwig/entreri
+[Bullet]: http://bulletphysics.org/
+
 ## Maven
 
 Ferox will be released to the Central Repository shortly. In the mean time,
