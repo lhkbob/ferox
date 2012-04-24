@@ -3,10 +3,9 @@ package com.ferox.scene;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
+import com.ferox.math.entreri.Vector3Property.DefaultVector3;
 import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.annot.Factory;
-import com.lhkbob.entreri.annot.Unmanaged;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.Unmanaged;
 
 /**
  * <p>
@@ -28,7 +27,7 @@ public final class DirectionLight extends Light<DirectionLight> {
      */
     public static final TypeId<DirectionLight> ID = TypeId.get(DirectionLight.class);
     
-    @Factory(DefaultDirectionFactory.class)
+    @DefaultVector3(x=0.0, y=0.0, z=1.0)
     private Vector3Property direction;
     
     @Unmanaged
@@ -72,19 +71,5 @@ public final class DirectionLight extends Light<DirectionLight> {
     @Override
     protected void onSet(int index) {
         direction.get(index, dirCache);
-    }
-    
-    private static class DefaultDirectionFactory extends AbstractPropertyFactory<Vector3Property> {
-        public static final Vector3 DEFAULT_DIR = new Vector3(0, 0, 1);
-        
-        @Override
-        public Vector3Property create() {
-            return new Vector3Property();
-        }
-
-        @Override
-        public void setDefaultValue(Vector3Property property, int index) {
-            property.set(DEFAULT_DIR, index);
-        }
     }
 }

@@ -3,11 +3,11 @@ package com.ferox.scene;
 import java.util.Arrays;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extends ComponentData<T> {
     // FIXME add iterator capabilities and document

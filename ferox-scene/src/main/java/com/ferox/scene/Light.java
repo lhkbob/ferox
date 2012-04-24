@@ -3,10 +3,9 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
+import com.ferox.math.entreri.ColorRGBProperty.DefaultColor;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.Factory;
-import com.lhkbob.entreri.annot.Unmanaged;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.Unmanaged;
 
 /**
  * <p>
@@ -28,8 +27,7 @@ import com.lhkbob.entreri.property.AbstractPropertyFactory;
  * @param <T> The concrete type of light
  */
 public abstract class Light<T extends Light<T>> extends ComponentData<T> {
-    // FIXME: improve default value support for matrix types
-    @Factory(DefaultColorFactory.class)
+    @DefaultColor(red=0.2, green=0.2, blue=0.2)
     private ColorRGBProperty color;
     
     @Unmanaged
@@ -69,19 +67,5 @@ public abstract class Light<T extends Light<T>> extends ComponentData<T> {
     @Override
     protected void onSet(int index) {
         color.get(index, cache);
-    }
-    
-    private static class DefaultColorFactory extends AbstractPropertyFactory<ColorRGBProperty> {
-        public static final ColorRGB DEFAULT_COLOR = new ColorRGB(.2, .2, .2);
-        
-        @Override
-        public ColorRGBProperty create() {
-            return new ColorRGBProperty();
-        }
-
-        @Override
-        public void setDefaultValue(ColorRGBProperty property, int index) {
-            property.set(DEFAULT_COLOR, index);
-        }
     }
 }

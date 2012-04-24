@@ -3,11 +3,10 @@ package com.ferox.scene;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property;
+import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.annot.Factory;
-import com.lhkbob.entreri.annot.Unmanaged;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.Unmanaged;
 
 /**
  * <p>
@@ -25,7 +24,11 @@ public final class Transform extends ComponentData<Transform> {
      */
     public static final TypeId<Transform> ID = TypeId.get(Transform.class);
     
-    @Factory(IdentityPropertyFactory.class)
+    // the identity matrix
+    @DefaultMatrix4(m00=1.0, m01=0.0, m02=0.0, m03=0.0,
+                    m10=0.0, m11=1.0, m12=0.0, m13=0.0,
+                    m20=0.0, m21=0.0, m22=1.0, m23=0.0,
+                    m30=0.0, m31=0.0, m32=0.0, m33=1.0)
     private Matrix4Property matrix;
     
     @Unmanaged
@@ -61,19 +64,5 @@ public final class Transform extends ComponentData<Transform> {
     @Override
     protected void onSet(int index) {
         matrix.get(index, cache);
-    }
-    
-    private static class IdentityPropertyFactory extends AbstractPropertyFactory<Matrix4Property> {
-        private static final Matrix4 IDENTITY = new Matrix4().setIdentity();
-        
-        @Override
-        public Matrix4Property create() {
-            return new Matrix4Property();
-        }
-
-        @Override
-        public void setDefaultValue(Matrix4Property property, int index) {
-            property.set(IDENTITY, index);
-        }
     }
 }

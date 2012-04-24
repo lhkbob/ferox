@@ -4,7 +4,7 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.Unmanaged;
 
 /**
  * <p>

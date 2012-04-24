@@ -3,9 +3,9 @@ package com.ferox.scene;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 /**
  * An intermediate light type that is shared by {@link PointLight} and
@@ -18,7 +18,7 @@ import com.lhkbob.entreri.property.DoubleProperty;
  * @param <T> The component light type
  */
 public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> extends Light<T> {
-    @DefaultValue(defaultDouble=-1.0)
+    @DefaultDouble(-1.0)
     private DoubleProperty falloffDistance;
     
     private Vector3Property position;

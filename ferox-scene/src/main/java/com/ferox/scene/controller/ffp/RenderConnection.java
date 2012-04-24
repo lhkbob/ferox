@@ -8,7 +8,7 @@ import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Surface;
 import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.Fog;
+import com.ferox.scene.AtmosphericFog;
 import com.ferox.scene.TexturedMaterial;
 import com.ferox.scene.Camera;
 import com.ferox.util.Bag;
@@ -110,14 +110,14 @@ public abstract class RenderConnection {
     }
 
     /**
-     * Add the given Fog to the scene. The densest fog that influences the
+     * Add the given AtmosphericFog to the scene. The densest fog that influences the
      * viewing location will be used to apply OpenGL eye-space fog to the
      * rendered scene.
      * 
-     * @param fog The Fog to add
+     * @param atmosphericFog The AtmosphericFog to add
      * @throws NullPointerException if fog is null
      */
-    public void addFog(Fog fog) {
+    public void addFog(AtmosphericFog atmosphericFog) {
         throw new UnsupportedOperationException();
     }
 

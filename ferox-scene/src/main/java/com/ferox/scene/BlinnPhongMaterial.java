@@ -1,8 +1,8 @@
 package com.ferox.scene;
 
 import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.annot.DefaultValue;
 import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 /**
  * <p>
@@ -30,7 +30,7 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      */
     public static final TypeId<BlinnPhongMaterial> ID = TypeId.get(BlinnPhongMaterial.class);
     
-    @DefaultValue(defaultDouble=1.0)
+    @DefaultDouble(1.0)
     private DoubleProperty shininess;
     
     private BlinnPhongMaterial() { }

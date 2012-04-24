@@ -5,9 +5,9 @@ import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -55,7 +55,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
     
     private ColorRGBProperty color;
     
-    @DefaultValue(defaultDouble=10)
+    @DefaultDouble(10)
     private DoubleProperty distanceToOpaque;
     
     private ObjectProperty<Falloff> falloff;

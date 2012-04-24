@@ -3,8 +3,8 @@ package com.ferox.scene;
 import com.ferox.renderer.Surface;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.annot.DefaultValue;
 import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -28,13 +28,13 @@ public final class Camera extends ComponentData<Camera> {
     
     private ObjectProperty<Surface> surface;
     
-    @DefaultValue(defaultDouble=60.0)
+    @DefaultDouble(60.0)
     private DoubleProperty fov;
     
-    @DefaultValue(defaultDouble=0.01)
+    @DefaultDouble(0.01)
     private DoubleProperty znear;
     
-    @DefaultValue(defaultDouble=100.0)
+    @DefaultDouble(100.0)
     private DoubleProperty zfar;
     
     private Camera() { }

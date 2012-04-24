@@ -13,8 +13,8 @@ import com.ferox.util.geom.Geometry;
 import com.lhkbob.entreri.Controller;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.Unmanaged;
+import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
 
