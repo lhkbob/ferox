@@ -1,12 +1,19 @@
 package com.ferox.math.entreri;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
+import com.lhkbob.entreri.Attribute;
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * Matrix4Property is a caching property that wraps a DoubleProperty as a
@@ -14,6 +21,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
  * 
  * @author Michael Ludwig
  */
+@Factory(Matrix4Property.Factory.class)
 public class Matrix4Property implements Property {
     private static final int REQUIRED_ELEMENTS = 16;
 
@@ -24,25 +32,6 @@ public class Matrix4Property implements Property {
      */
     public Matrix4Property() {
         data = new DoubleProperty(REQUIRED_ELEMENTS);
-    }
-    
-    /**
-     * @return PropertyFactory that creates Matrix4Properties
-     */
-    public static PropertyFactory<Matrix4Property> factory() {
-        return new AbstractPropertyFactory<Matrix4Property>() {
-            @Override
-            public Matrix4Property create() {
-                return new Matrix4Property();
-            }
-
-            @Override
-            public void setDefaultValue(Matrix4Property property, int index) {
-                for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
-                    property.data.set(0f, index, i);
-                }
-            }
-        };
     }
     
     /**
@@ -82,5 +71,119 @@ public class Matrix4Property implements Property {
     @Override
     public void setDataStore(IndexedDataStore store) {
         data.setDataStore(store);
+    }
+    
+    /**
+     * Attribute annotation to apply to Matrix4Property declarations.
+     * 
+     * @author Michael Ludwig
+     */
+    @Attribute
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultMatrix4 {
+        /**
+         * @return Default m00 value
+         */
+        double m00();
+        /**
+         * @return Default m01 value
+         */
+        double m01();
+        /**
+         * @return Default m02 value
+         */
+        double m02();
+        /**
+         * @return Default m03 value
+         */
+        double m03();
+        /**
+         * @return Default m10 value
+         */
+        double m10();
+        /**
+         * @return Default m11 value
+         */
+        double m11();
+        /**
+         * @return Default m12 value
+         */
+        double m12();
+        /**
+         * @return Default m13 value
+         */
+        double m13();
+        /**
+         * @return Default m20 value
+         */
+        double m20();
+        /**
+         * @return Default m21 value
+         */
+        double m21();
+        /**
+         * @return Default m22 value
+         */
+        double m22();
+        /**
+         * @return Default m23 value
+         */
+        double m23();
+        /**
+         * @return Default m30 value
+         */
+        double m30();
+        /**
+         * @return Default m31 value
+         */
+        double m31();
+        /**
+         * @return Default m32 value
+         */
+        double m32();
+        /**
+         * @return Default m33 value
+         */
+        double m33();
+    }
+    
+    /**
+     * Default factory implementation for Matrix4Properties, supports the
+     * {@link DefaultMatrix4} annotation to specify the default matrix
+     * coordinates.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<Matrix4Property> {
+        private final Matrix4 dflt;
+        
+        public Factory(Attributes attrs) {
+            super(attrs);
+            if (attrs.hasAttribute(DefaultMatrix4.class)) {
+                DefaultMatrix4 v = attrs.getAttribute(DefaultMatrix4.class);
+                dflt = new Matrix4(v.m00(), v.m01(), v.m02(), v.m03(),
+                                   v.m10(), v.m11(), v.m12(), v.m13(),
+                                   v.m20(), v.m21(), v.m22(), v.m23(),
+                                   v.m30(), v.m31(), v.m32(), v.m33());
+            } else {
+                dflt = new Matrix4();
+            }
+        }
+        
+        public Factory(@Const Matrix4 v) {
+            super(null);
+            dflt = new Matrix4(v);
+        }
+
+        @Override
+        public Matrix4Property create() {
+            return new Matrix4Property();
+        }
+
+        @Override
+        public void setDefaultValue(Matrix4Property property, int index) {
+            property.set(dflt, index);
+        }
     }
 }

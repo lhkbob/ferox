@@ -1,12 +1,19 @@
 package com.ferox.math.entreri;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
+import com.lhkbob.entreri.Attribute;
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * Vector3Property is a caching property that wraps a DoubleProperty as a
@@ -14,6 +21,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
  * 
  * @author Michael Ludwig
  */
+@Factory(Vector3Property.Factory.class)
 public class Vector3Property implements Property {
     private static final int REQUIRED_ELEMENTS = 3;
 
@@ -26,25 +34,6 @@ public class Vector3Property implements Property {
         data = new DoubleProperty(REQUIRED_ELEMENTS);
     }
     
-    /**
-     * @return PropertyFactory that creates Vector3Properties
-     */
-    public static PropertyFactory<Vector3Property> factory() {
-        return new AbstractPropertyFactory<Vector3Property>() {
-            @Override
-            public Vector3Property create() {
-                return new Vector3Property();
-            }
-
-            @Override
-            public void setDefaultValue(Vector3Property property, int index) {
-                for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
-                    property.data.set(0f, index, i);
-                }
-            }
-        };
-    }
-
     /**
      * Get the vector of this property, for the component at the given index,
      * and store it into <tt>result</tt>. If result is null, a new Vector3 is
@@ -82,5 +71,64 @@ public class Vector3Property implements Property {
     @Override
     public void setDataStore(IndexedDataStore store) {
         data.setDataStore(store);
+    }
+    
+    /**
+     * Attribute annotation to apply to Vector3Property declarations.
+     * 
+     * @author Michael Ludwig
+     */
+    @Attribute
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultVector3 {
+        /**
+         * @return Default x coordinate
+         */
+        double x();
+        /**
+         * @return Default y coordinate
+         */
+        double y();
+        /**
+         * @return Default z coordinate
+         */
+        double z();
+    }
+    
+    /**
+     * Default factory implementation for Vector3Properties, supports the
+     * {@link DefaultVector3} annotation to specify the default vector
+     * coordinates.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<Vector3Property> {
+        private final Vector3 dflt;
+        
+        public Factory(Attributes attrs) {
+            super(attrs);
+            if (attrs.hasAttribute(DefaultVector3.class)) {
+                DefaultVector3 v = attrs.getAttribute(DefaultVector3.class);
+                dflt = new Vector3(v.x(), v.y(), v.z());
+            } else {
+                dflt = new Vector3();
+            }
+        }
+        
+        public Factory(@Const Vector3 v) {
+            super(null);
+            dflt = new Vector3(v);
+        }
+
+        @Override
+        public Vector3Property create() {
+            return new Vector3Property();
+        }
+
+        @Override
+        public void setDefaultValue(Vector3Property property, int index) {
+            property.set(dflt, index);
+        }
     }
 }

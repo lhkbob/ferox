@@ -1,11 +1,19 @@
 package com.ferox.math.entreri;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
+import com.lhkbob.entreri.Attribute;
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * Matrix3Property is a caching property that wraps a DoubleProperty as a
@@ -13,6 +21,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
  * 
  * @author Michael Ludwig
  */
+@Factory(Matrix3Property.Factory.class)
 public class Matrix3Property implements Property {
     private static final int REQUIRED_ELEMENTS = 9;
 
@@ -25,25 +34,6 @@ public class Matrix3Property implements Property {
         data = new DoubleProperty(REQUIRED_ELEMENTS);
     }
     
-    /**
-     * @return PropertyFactory that creates Matrix3Properties
-     */
-    public static PropertyFactory<Matrix3Property> factory() {
-        return new AbstractPropertyFactory<Matrix3Property>() {
-            @Override
-            public Matrix3Property create() {
-                return new Matrix3Property();
-            }
-
-            @Override
-            public void setDefaultValue(Matrix3Property property, int index) {
-                for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
-                    property.data.set(0f, index, i);
-                }
-            }
-        };
-    }
-
     /**
      * Get the matrix of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
@@ -81,5 +71,90 @@ public class Matrix3Property implements Property {
     @Override
     public void setDataStore(IndexedDataStore store) {
         data.setDataStore(store);
+    }
+    
+    /**
+     * Attribute annotation to apply to Matrix3Property declarations.
+     * 
+     * @author Michael Ludwig
+     */
+    @Attribute
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultMatrix3 {
+        /**
+         * @return Default m00 value
+         */
+        double m00();
+        /**
+         * @return Default m01 value
+         */
+        double m01();
+        /**
+         * @return Default m02 value
+         */
+        double m02();
+        /**
+         * @return Default m10 value
+         */
+        double m10();
+        /**
+         * @return Default m11 value
+         */
+        double m11();
+        /**
+         * @return Default m12 value
+         */
+        double m12();
+        /**
+         * @return Default m20 value
+         */
+        double m20();
+        /**
+         * @return Default m21 value
+         */
+        double m21();
+        /**
+         * @return Default m22 value
+         */
+        double m22();
+    }
+    
+    /**
+     * Default factory implementation for Matrix3Properties, supports the
+     * {@link DefaultMatrix3} annotation to specify the default matrix
+     * coordinates.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<Matrix3Property> {
+        private final Matrix3 dflt;
+        
+        public Factory(Attributes attrs) {
+            super(attrs);
+            if (attrs.hasAttribute(DefaultMatrix3.class)) {
+                DefaultMatrix3 v = attrs.getAttribute(DefaultMatrix3.class);
+                dflt = new Matrix3(v.m00(), v.m01(), v.m02(),
+                                   v.m10(), v.m11(), v.m12(),
+                                   v.m20(), v.m21(), v.m22());
+            } else {
+                dflt = new Matrix3();
+            }
+        }
+        
+        public Factory(@Const Matrix3 v) {
+            super(null);
+            dflt = new Matrix3(v);
+        }
+
+        @Override
+        public Matrix3Property create() {
+            return new Matrix3Property();
+        }
+
+        @Override
+        public void setDefaultValue(Matrix3Property property, int index) {
+            property.set(dflt, index);
+        }
     }
 }

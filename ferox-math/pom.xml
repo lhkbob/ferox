@@ -17,8 +17,7 @@
         <dependency>
             <groupId>com.lhkbob.entreri</groupId>
             <artifactId>entreri</artifactId>
-            <version>1.5.1</version>
-            <scope>compile</scope>
+            <version>1.5.2</version>
             <optional>true</optional>
         </dependency>
     </dependencies>

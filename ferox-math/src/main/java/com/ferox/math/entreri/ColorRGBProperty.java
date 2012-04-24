@@ -1,12 +1,19 @@
 package com.ferox.math.entreri;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
+import com.lhkbob.entreri.Attribute;
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * ColorRGBProperty is a caching property that wraps a DoubleProperty as a
@@ -14,6 +21,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
  * 
  * @author Michael Ludwig
  */
+@Factory(ColorRGBProperty.Factory.class)
 public class ColorRGBProperty implements Property {
     private static final int REQUIRED_ELEMENTS = 3;
 
@@ -24,25 +32,6 @@ public class ColorRGBProperty implements Property {
      */
     public ColorRGBProperty() {
         data = new DoubleProperty(REQUIRED_ELEMENTS);
-    }
-    
-    /**
-     * @return PropertyFactory that creates ColorRGBProperties
-     */
-    public static PropertyFactory<ColorRGBProperty> factory() {
-        return new AbstractPropertyFactory<ColorRGBProperty>() {
-            @Override
-            public ColorRGBProperty create() {
-                return new ColorRGBProperty();
-            }
-
-            @Override
-            public void setDefaultValue(ColorRGBProperty property, int index) {
-                for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
-                    property.data.set(0f, index, i);
-                }
-            }
-        };
     }
 
     /**
@@ -82,5 +71,63 @@ public class ColorRGBProperty implements Property {
     @Override
     public void setDataStore(IndexedDataStore store) {
         data.setDataStore(store);
+    }
+    
+    /**
+     * Attribute annotation to apply to ColorRGBProperty declarations.
+     * 
+     * @author Michael Ludwig
+     */
+    @Attribute
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultColor {
+        /**
+         * @return Default red value in HDR
+         */
+        double red();
+        /**
+         * @return Default green value in HDR
+         */
+        double green();
+        /**
+         * @return Default blue value in HDR
+         */
+        double blue();
+    }
+    
+    /**
+     * Default factory implementation for ColorRGBProperties, supports the
+     * {@link DefaultColor} annotation to specify the default color.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<ColorRGBProperty> {
+        private final ColorRGB dflt;
+        
+        public Factory(Attributes attrs) {
+            super(attrs);
+            if (attrs.hasAttribute(DefaultColor.class)) {
+                DefaultColor v = attrs.getAttribute(DefaultColor.class);
+                dflt = new ColorRGB(v.red(), v.green(), v.blue());
+            } else {
+                dflt = new ColorRGB();
+            }
+        }
+        
+        public Factory(@Const ColorRGB v) {
+            super(null);
+            dflt = new ColorRGB(v);
+        }
+
+        @Override
+        public ColorRGBProperty create() {
+            return new ColorRGBProperty();
+        }
+
+        @Override
+        public void setDefaultValue(ColorRGBProperty property, int index) {
+            property.set(dflt, index);
+        }
     }
 }

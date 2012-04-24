@@ -1,12 +1,19 @@
 package com.ferox.math.entreri;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
+import com.lhkbob.entreri.Attribute;
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a
@@ -14,6 +21,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
  * 
  * @author Michael Ludwig
  */
+@Factory(AxisAlignedBoxProperty.Factory.class)
 public class AxisAlignedBoxProperty implements Property {
     private static final int REQUIRED_ELEMENTS = 6;
     
@@ -26,25 +34,6 @@ public class AxisAlignedBoxProperty implements Property {
         data = new DoubleProperty(REQUIRED_ELEMENTS);
     }
     
-    /**
-     * @return PropertyFactory that creates AxisAlignedBoxProperties
-     */
-    public static PropertyFactory<AxisAlignedBoxProperty> factory() {
-        return new AbstractPropertyFactory<AxisAlignedBoxProperty>() {
-            @Override
-            public AxisAlignedBoxProperty create() {
-                return new AxisAlignedBoxProperty();
-            }
-
-            @Override
-            public void setDefaultValue(AxisAlignedBoxProperty property, int index) {
-                for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
-                    property.data.set(0f, index, i);
-                }
-            }
-        };
-    }
-
     /**
      * Get the axis aligned box of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
@@ -85,5 +74,94 @@ public class AxisAlignedBoxProperty implements Property {
     @Override
     public void setDataStore(IndexedDataStore store) {
         data.setDataStore(store);
+    }
+    
+    /**
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations,
+     * to specify the minimum coordinate of the box.
+     * 
+     * @author Michael Ludwig
+     */
+    @Attribute
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultMin {
+        /**
+         * @return Default x coordinate
+         */
+        double x();
+        /**
+         * @return Default y coordinate
+         */
+        double y();
+        /**
+         * @return Default z coordinate
+         */
+        double z();
+    }
+    
+    /**
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations,
+     * to specify the maximum coordinate of the box.
+     * 
+     * @author Michael Ludwig
+     */
+    @Attribute
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultMax {
+        /**
+         * @return Default x coordinate
+         */
+        double x();
+        /**
+         * @return Default y coordinate
+         */
+        double y();
+        /**
+         * @return Default z coordinate
+         */
+        double z();
+    }
+    
+    /**
+     * Default factory implementation for AxisAlignedBoxProperties, supports the
+     * {@link DefaultMin} and {@link DefaultMax} annotations to specify the
+     * default bounding box.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<AxisAlignedBoxProperty> {
+        private final AxisAlignedBox dflt;
+        
+        public Factory(Attributes attrs) {
+            super(attrs);
+            dflt = new AxisAlignedBox();
+            
+            if (attrs.hasAttribute(DefaultMin.class)) {
+                DefaultMin min = attrs.getAttribute(DefaultMin.class);
+                dflt.min.set(min.x(), min.y(), min.z());
+            }
+            
+            if (attrs.hasAttribute(DefaultMax.class)) {
+                DefaultMax max = attrs.getAttribute(DefaultMax.class);
+                dflt.min.set(max.x(), max.y(), max.z());
+            }
+        }
+        
+        public Factory(@Const AxisAlignedBox v) {
+            super(null);
+            dflt = new AxisAlignedBox(v);
+        }
+
+        @Override
+        public AxisAlignedBoxProperty create() {
+            return new AxisAlignedBoxProperty();
+        }
+
+        @Override
+        public void setDefaultValue(AxisAlignedBoxProperty property, int index) {
+            property.set(dflt, index);
+        }
     }
 }
