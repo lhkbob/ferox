@@ -217,7 +217,7 @@ public final class Renderable extends EntitySetComponent<Renderable> {
      * @throws NullPointerException if f is null
      */
     public boolean isVisible(Entity e) {
-        return contains(e.getId());
+        return containsInternal(e.getId());
     }
 
     /**
@@ -227,7 +227,7 @@ public final class Renderable extends EntitySetComponent<Renderable> {
      * @return Whether or not this component's entity is visible to entityId
      */
     public boolean isVisible(int entityId) {
-        return contains(entityId);
+        return containsInternal(entityId);
     }
 
     /**
@@ -257,9 +257,9 @@ public final class Renderable extends EntitySetComponent<Renderable> {
      */
     public Renderable setVisible(int entityId, boolean pv) {
         if (pv)
-            put(entityId);
+            putInternal(entityId);
         else
-            remove(entityId);
+            removeInternal(entityId);
         return this;
     }
 
@@ -272,7 +272,7 @@ public final class Renderable extends EntitySetComponent<Renderable> {
      * @return This component, for chaining purposes
      */
     public Renderable resetVisibility() {
-        clear();
+        clearInternal();
         return this;
     }
 

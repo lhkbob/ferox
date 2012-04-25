@@ -70,7 +70,7 @@ public abstract class Material<T extends Material<T>> extends EntitySetComponent
      * @throws NullPointerException if e is null
      */
     public boolean isLit(Entity e) {
-        return contains(e.getId());
+        return containsInternal(e.getId());
     }
 
     /**
@@ -81,7 +81,7 @@ public abstract class Material<T extends Material<T>> extends EntitySetComponent
      *         this entity
      */
     public boolean isLit(int entityId) {
-        return contains(entityId);
+        return containsInternal(entityId);
     }
 
     /**
@@ -110,9 +110,9 @@ public abstract class Material<T extends Material<T>> extends EntitySetComponent
     @SuppressWarnings("unchecked")
     public T setLit(int entityId, boolean lit) {
         if (lit)
-            put(entityId);
+            putInternal(entityId);
         else
-            remove(entityId);
+            removeInternal(entityId);
         return (T) this;
     }
 
@@ -125,7 +125,7 @@ public abstract class Material<T extends Material<T>> extends EntitySetComponent
      */
     @SuppressWarnings("unchecked")
     public T resetLightInfluences() {
-        clear();
+        clearInternal();
         return (T) this;
     }
 }

@@ -25,7 +25,7 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
     
     protected EntitySetComponent() { }
     
-    protected boolean contains(int entityId) {
+    protected boolean containsInternal(int entityId) {
         final int[] ids = firstCache.getIndexedData();
         final int index = getIndex() * SCALE;
         
@@ -88,7 +88,7 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         }
     }
     
-    protected void put(int entityId) {
+    protected void putInternal(int entityId) {
         int[] ids = firstCache.getIndexedData();
         int index = getIndex() * SCALE;
         
@@ -119,7 +119,7 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         }
     }
     
-    protected void remove(int entityId) {
+    protected void removeInternal(int entityId) {
         int index = getIndex() * SCALE;
         int[] ids = firstCache.getIndexedData();
         
@@ -148,7 +148,7 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         }
     }
     
-    protected boolean remove(int entityId, int[] array, int from, int to) {
+    private boolean remove(int entityId, int[] array, int from, int to) {
         int index = Arrays.binarySearch(array, from, to, entityId);
         if (index >= 0) {
             // found it in this array
@@ -164,7 +164,7 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         }
     }
     
-    protected void clear() {
+    protected void clearInternal() {
         int index = getIndex() * SCALE;
 
         // reset cache counts to 0, and null the second cache
