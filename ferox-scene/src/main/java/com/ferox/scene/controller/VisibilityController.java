@@ -1,33 +1,92 @@
 package com.ferox.scene.controller;
 
-import java.util.Iterator;
-
+import com.ferox.math.Const;
+import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.bounds.QueryCallback;
 import com.ferox.math.bounds.SpatialIndex;
-import com.ferox.scene.Camera;
 import com.ferox.scene.Renderable;
-import com.googlecode.entreri.AbstractController;
-import com.googlecode.entreri.EntitySystem;
+import com.ferox.util.Bag;
+import com.lhkbob.entreri.ComponentIterator;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.Result;
+import com.lhkbob.entreri.SimpleController;
 
-// FIXME: part of me likes being able to look up an entity's visibility on it,
-// but in many cases it is nicer to just process a list.
-// - is it wrong to maintain both forms of data?
-// - not really, especially with the primitive int set -> which should be updated
-//    to just use 4 elements and a linear scan instead of a binary search.
-// - Perhaps a custom IntSet/Collection for the object-expansion as well.
-public class VisibilityController extends AbstractController {
-    public static long time = 0;
+public class VisibilityController extends SimpleController {
+    private Bag<FrustumResult> frustums;
+    
+    private SpatialIndex<Entity> index;
+    
     @Override
-    public void process(EntitySystem system, float dt) {
-        time -= System.nanoTime();
+    public void process(double dt) {
+        if (index != null) {
+            for (FrustumResult f: frustums) {
+                VisibilityCallback query = new VisibilityCallback(f.getSource().getEntity());
+                index.query(f.getFrustum(), query);
+                
+                // sort the PVS by entity id before reporting it so that
+                // iteration over the bag has more optimal cache behavior when
+                // accessing entity properties
+                query.pvs.sort();
+                getEntitySystem().getControllerManager().report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
+            }
+        }
+    }
+    
+    @Override
+    public void preProcess(double dt) {
+        frustums = new Bag<FrustumResult>();
         
-        SpatialIndex<Renderable> hierarchy = system.getControllerManager().getData(RenderableController.RENDERABLE_HIERARCHY);
+        // reset visibility
+        Renderable renderable = getEntitySystem().createDataInstance(Renderable.ID);
+        ComponentIterator it = new ComponentIterator(getEntitySystem());
+        it.addRequired(renderable);
         
-        Iterator<Camera> it = system.fastIterator(Camera.ID);
-        while(it.hasNext()) {
-            Camera c = it.next();
-            hierarchy.query(c.getFrustum(), new VisibilityCallback(c.getEntity()));
+        while(it.next()) {
+            renderable.resetVisibility();
+        }
+    }
+    
+    @Override
+    public void postProcess(double dt) {
+        index = null;
+    }
+    
+    @Override
+    public void report(Result result) {
+        if (result instanceof SpatialIndexResult) {
+            index = ((SpatialIndexResult) result).getIndex();
+        } else if (result instanceof FrustumResult) {
+            frustums.add((FrustumResult) result);
+        }
+    }
+    
+    private static class VisibilityCallback implements QueryCallback<Entity> {
+        private final Entity camera;
+        private final Renderable renderable;
+        
+        private final Bag<Entity> pvs;
+
+        /**
+         * Create a new VisibilityCallback that set each discovered Entity with a
+         * Transform's visibility to true for the given entity, <tt>camera</tt>.
+         * 
+         * @param camera The Entity that will be flagged as visible
+         * @throws NullPointerException if camera is null
+         */
+        public VisibilityCallback(Entity camera) {
+            if (camera == null)
+                throw new NullPointerException("Entity cannot be null");
+            this.camera = camera;
+            renderable = camera.getEntitySystem().createDataInstance(Renderable.ID);
+            pvs = new Bag<Entity>();
         }
         
-        time += System.nanoTime();
+        @Override
+        public void process(Entity r, @Const AxisAlignedBox bounds) {
+            if (r.get(renderable)) {
+                renderable.setVisible(camera, true);
+                pvs.add(r);
+            }
+        }
     }
 }
