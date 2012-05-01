@@ -16,7 +16,6 @@
             <groupId>com.lhkbob.ferox</groupId>
             <artifactId>ferox-renderer-api</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

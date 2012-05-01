@@ -16,13 +16,11 @@
             <groupId>com.lhkbob.ferox</groupId>
             <artifactId>ferox-math</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.lhkbob.entreri</groupId>
             <artifactId>entreri</artifactId>
-            <version>1.5.1</version>
-            <scope>compile</scope>
+            <version>${entreri.version}</version>
         </dependency>
     </dependencies>
 </project>

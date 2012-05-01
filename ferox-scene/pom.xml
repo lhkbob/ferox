@@ -16,12 +16,16 @@
             <groupId>com.lhkbob.ferox</groupId>
             <artifactId>ferox-renderer-api</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lhkbob.ferox</groupId>
+            <artifactId>ferox-util</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.lhkbob.entreri</groupId>
             <artifactId>entreri</artifactId>
-            <version>1.5.2</version>
+            <version>${entreri.version}</version>
         </dependency>
     </dependencies>
 </project>
