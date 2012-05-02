@@ -1,6 +1,7 @@
 package com.ferox.scene;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
@@ -9,8 +10,18 @@ import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
 
+/**
+ * EntitySetComponent is an abstract component that provides protected methods
+ * to store a set of entities by their ids. Internally it stores the set as a
+ * sorted array so that contains queries can be done in O(log n) time with a
+ * binary search. Updates and removes are more expensive, but this structure
+ * allows small sets (size under 6) to be completely packed into a property and
+ * avoids object allocation (unlike {@link Set} implementations).
+ * 
+ * @author Michael Ludwig
+ * @param <T>
+ */
 public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extends ComponentData<T> {
-    // FIXME add iterator capabilities and document
     private static final int CACHE_SIZE = 6;
     private static final int CACHE_OFFSET = 2;
     private static final int SCALE = CACHE_SIZE + CACHE_OFFSET;
@@ -25,6 +36,55 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
     
     protected EntitySetComponent() { }
     
+    /**
+     * @return The number of unique entities within this set
+     */
+    protected int sizeInternal() {
+        int[] ids = firstCache.getIndexedData();
+        int index = getIndex() * SCALE;
+        return ids[index] + ids[index + 1];
+    }
+    
+    /**
+     * Get the entity id of for the <tt>setIndex</tt>'th element in this set.
+     * The index should be between 0 and ({@link #sizeInternal()} - 1). This can
+     * be used to iterate over the entity ids within this set. The ids returned
+     * will be sorted in ascending order.
+     * 
+     * @param setIndex The index into the logical set
+     * @return The entity id stored at the given index
+     * @throws IndexOutOfBoundsException if index is not between 0 and size - 1
+     */
+    protected int getInternal(int setIndex) {
+        if (setIndex < 0)
+            throw new IndexOutOfBoundsException("Index cannot be less than 0, but was: " + setIndex);
+        
+        int[] ids = firstCache.getIndexedData();
+        int baseIndex = getIndex() * SCALE;
+        
+        int firstSize = ids[baseIndex];
+        if (setIndex < firstSize) {
+            // read value from the first index
+            return ids[baseIndex + CACHE_OFFSET + setIndex];
+        }
+        
+        int secondSize = ids[baseIndex + 1];
+        int secondSetIndex = setIndex - CACHE_SIZE;
+        if (secondSize > 0 && secondSetIndex < secondSize) {
+            // second set exists and the index is in range
+            return secondCache.get(getIndex(), 0)[secondSetIndex];
+        }
+        
+        // otherwise index is out of bounds
+        throw new IndexOutOfBoundsException("Index must be less than " + (firstSize + secondSize) + ", but was: " + setIndex);
+    }
+    
+    /**
+     * Return true if the entity with id <tt>entitId</tt> is in this set.
+     * 
+     * @param entityId The entity in question
+     * @return True if the entity was previously added to this set
+     */
     protected boolean containsInternal(int entityId) {
         final int[] ids = firstCache.getIndexedData();
         final int index = getIndex() * SCALE;
@@ -44,12 +104,18 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         return Arrays.binarySearch(array, from, to, entityId) >= 0;
     }
     
-    private int put(int entityId, int[] array, int cacheSize, int from, int to) {
+    /*
+     * Returns -1 if added successfully.
+     * Returns MIN_VALUE if already in the array.
+     * Returns a positive value if that value was evicted, or if the input id 
+     *    was not added.
+     */
+    private int add(int entityId, int[] array, int cacheSize, int from, int to) {
         int maxSize = to - from;
         if (cacheSize == 0 || (cacheSize < maxSize - 1 && entityId > array[from + cacheSize - 1])) {
             // append the entity to the end, since there is room, and it will
             // remain in sorted order.
-            // - since the size was 0, or it the entity was strictly greater than
+            // - since the size was 0, or the entity was strictly greater than
             //   the previously greatest item we know it hasn't been seen before
             array[from + cacheSize] = entityId;
             return -1;
@@ -59,7 +125,7 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         int insertIndex = Arrays.binarySearch(array, from, from + cacheSize, entityId);
         if (insertIndex >= 0) {
             // the entity is already in this array
-            return -1;
+            return Integer.MIN_VALUE;
         }
         insertIndex = -insertIndex + 1; // convert to the actual index it should be
         
@@ -88,15 +154,29 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         }
     }
     
-    protected void putInternal(int entityId) {
+    /**
+     * Add the entity with id <tt>entityId</tt> to this set. If the entity is
+     * already within the set, then the set is not modified.
+     * 
+     * @param entityId
+     * @return True if the set was modified
+     */
+    protected boolean addInternal(int entityId) {
         int[] ids = firstCache.getIndexedData();
         int index = getIndex() * SCALE;
         
-        int secondInsert = put(entityId, ids, ids[index], index + CACHE_OFFSET, index + CACHE_OFFSET + CACHE_SIZE);
-        if (secondInsert < 0) {
+        int evicted = add(entityId, ids, ids[index], index + CACHE_OFFSET, index + CACHE_OFFSET + CACHE_SIZE);
+        if (evicted < 0) {
             // entityId was successfully inserted into the first cache,
-            // so we have to increment the size
-            ids[index]++;
+            // or that it is already in the set
+            if (evicted == Integer.MIN_VALUE) {
+                // already present
+                return false;
+            } else {
+                // added, so increase the size
+                ids[index]++;
+                return true;
+            }
         } else {
             // secondInsert must be added to the second cache, this might
             // be the new entity or an evicted entity
@@ -112,14 +192,32 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
                 secondCache.set(newIds2, getIndex(), 0);
             }
             
-            if (put(secondInsert, ids2, size, 0, ids2.length) < 0) {
-                // entity was added to the second cache, so update that size
-                ids[index + 1]++;
-            } // otherwise entity was in the 2nd cache already
+            evicted = add(evicted, ids2, size, 0, ids2.length);
+            if (evicted < 0) {
+                if (evicted == Integer.MIN_VALUE) {
+                    // already in second set
+                    return false;
+                } else {
+                    // update size
+                    ids[index + 1]++;
+                    return true;
+                }
+            } else {
+                // should not happen with the second cache so it is sized to
+                // always have enough room above
+                throw new IllegalStateException("Set corrupted, should not happen");
+            }
         }
     }
     
-    protected void removeInternal(int entityId) {
+    /**
+     * Remove the entity with id <tt>entitId</tt> from this set. This does
+     * nothing if the entity was not already in the set.
+     * 
+     * @param entityId The entity to remove
+     * @return True if the set was modified
+     */
+    protected boolean removeInternal(int entityId) {
         int index = getIndex() * SCALE;
         int[] ids = firstCache.getIndexedData();
         
@@ -131,21 +229,29 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
                 // transfer from second to first cache
                 int[] second = secondCache.get(getIndex(), 0);
                 ids[index + CACHE_OFFSET + CACHE_SIZE - 1] = second[0];
-                // shift over remaining values
+                // shift over remaining values in second cache
                 for (int i = ids[index + 1] - 1; i > 0; i--)
-                    ids[i - 1] = ids[i];
-                ids[index + 1]--;
+                    second[i - 1] = second[i];
+                ids[index + 1]--; // decrease size of second cache
             } else {
                 // decrease size of first cache
                 ids[index]--;
             }
+            
+            return true;
         } else {
             // entity might be in the second cache
             if (ids[index + 1] > 0) {
-                if (remove(entityId, secondCache.get(getIndex(), 0), 0, ids[index + 1]))
+                if (remove(entityId, secondCache.get(getIndex(), 0), 0, ids[index + 1])) {
+                    // entity was in the second cache so update the size
                     ids[index + 1]--;
+                    return true;
+                }
             }
         }
+        
+        // not removed
+        return false;
     }
     
     private boolean remove(int entityId, int[] array, int from, int to) {
@@ -164,13 +270,16 @@ public abstract class EntitySetComponent<T extends EntitySetComponent<T>> extend
         }
     }
     
+    /**
+     * Clear all entities from this set and reset its size back to 0.
+     */
     protected void clearInternal() {
         int index = getIndex() * SCALE;
 
         // reset cache counts to 0, and null the second cache
         firstCache.getIndexedData()[index] = 0;
         firstCache.getIndexedData()[index + 1] = 0;
-        secondCache.set(null, index, 0);
+        secondCache.set(null, getIndex(), 0);
     }
 
     /**

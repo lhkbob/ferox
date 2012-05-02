@@ -23,6 +23,7 @@ import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.Sphere;
 
@@ -77,9 +78,9 @@ public class FixedFunctionRenderTest {
         public FixedFunctionPass(Surface surface) {
             this.surface = surface;
             
-            box = new Sphere(2f, 32, StorageMode.GPU_STATIC); //new Box(2f, StorageMode.GPU_STATIC);
-            sphere = new Sphere(2f, 32, StorageMode.GPU_STATIC);
-            teapot = new Sphere(2f, 32, StorageMode.GPU_STATIC); //new Teapot(.5f, StorageMode.GPU_STATIC);
+            box = new Box(2f, StorageMode.GPU_STATIC);
+            sphere = box; //new Sphere(2f, 32, StorageMode.GPU_STATIC);
+            teapot = box; //new Sphere(2f, 32, StorageMode.GPU_STATIC); //new Teapot(.5f, StorageMode.GPU_STATIC);
             
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
             f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));

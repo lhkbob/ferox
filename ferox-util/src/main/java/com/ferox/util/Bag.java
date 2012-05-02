@@ -317,6 +317,13 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     public void sort(Comparator<E> comparator) {
         Arrays.sort(elements, 0, size, comparator);
     }
+    
+    /**
+     * Sort the Bag using the natural ordering of its elements.
+     */
+    public void sort() {
+        Arrays.sort(elements, 0, size);
+    }
 
     /**
      * <p>

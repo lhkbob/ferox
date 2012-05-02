@@ -110,7 +110,7 @@ public abstract class Material<T extends Material<T>> extends EntitySetComponent
     @SuppressWarnings("unchecked")
     public T setLit(int entityId, boolean lit) {
         if (lit)
-            putInternal(entityId);
+            addInternal(entityId);
         else
             removeInternal(entityId);
         return (T) this;

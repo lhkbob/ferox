@@ -257,7 +257,7 @@ public final class Renderable extends EntitySetComponent<Renderable> {
      */
     public Renderable setVisible(int entityId, boolean pv) {
         if (pv)
-            putInternal(entityId);
+            addInternal(entityId);
         else
             removeInternal(entityId);
         return this;

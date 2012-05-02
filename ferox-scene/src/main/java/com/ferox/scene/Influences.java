@@ -17,7 +17,7 @@ public final class Influences extends EntitySetComponent<Influences> {
     
     public Influences setInfluenced(int entityId, boolean canInfluence) {
         if (canInfluence)
-            putInternal(entityId);
+            addInternal(entityId);
         else
             removeInternal(entityId);
         return this;
