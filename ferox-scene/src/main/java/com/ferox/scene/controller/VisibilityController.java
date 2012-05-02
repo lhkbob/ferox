@@ -1,12 +1,13 @@
 package com.ferox.scene.controller;
 
+import java.util.Iterator;
+
 import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.QueryCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.Bag;
-import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.Result;
 import com.lhkbob.entreri.SimpleController;
@@ -37,12 +38,9 @@ public class VisibilityController extends SimpleController {
         frustums = new Bag<FrustumResult>();
         
         // reset visibility
-        Renderable renderable = getEntitySystem().createDataInstance(Renderable.ID);
-        ComponentIterator it = new ComponentIterator(getEntitySystem());
-        it.addRequired(renderable);
-        
-        while(it.next()) {
-            renderable.resetVisibility();
+        Iterator<Renderable> it = getEntitySystem().iterator(Renderable.ID);
+        while(it.hasNext()) {
+            it.next().resetVisibility();
         }
     }
     

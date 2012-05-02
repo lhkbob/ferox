@@ -88,8 +88,8 @@ public class HierarchySpeedTest {
         system.getControllerManager().addController(render);
 
         
-        int numRuns = 1000;
-        for (int i = 0; i < numRuns; i++) {
+        int numRuns = 5000;
+        for (int i = 0; i < 100; i++) {
             system.getControllerManager().process();
         }
         

@@ -6,7 +6,6 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
 import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.SimpleController;
 
 /**
@@ -18,14 +17,15 @@ import com.lhkbob.entreri.SimpleController;
  * @author Michael Ludwig
  */
 public class CameraController extends SimpleController {
-    private Camera camera;
-    private Transform transform;
-    
-    private ComponentIterator it;
-    
     @Override
     public void process(double dt) {
-        it.reset();
+        Camera camera = getEntitySystem().createDataInstance(Camera.ID);
+        Transform transform = getEntitySystem().createDataInstance(Transform.ID);
+        
+        ComponentIterator it = new ComponentIterator(getEntitySystem())
+            .addRequired(camera)
+            .addOptional(transform);
+        
         while(it.next()) {
             double aspect = camera.getSurface().getHeight() / (double) camera.getSurface().getWidth();
             Frustum f = new Frustum(camera.getFieldOfView(), aspect, 
@@ -40,23 +40,5 @@ public class CameraController extends SimpleController {
             
             getEntitySystem().getControllerManager().report(new FrustumResult(camera.getComponent(), f));
         }
-    }
-    
-    @Override
-    public void init(EntitySystem system) {
-        super.init(system);
-        camera = system.createDataInstance(Camera.ID);
-        transform = system.createDataInstance(Transform.ID);
-        
-        it = new ComponentIterator(system).addRequired(camera)
-                                          .addOptional(transform);
-    }
-    
-    @Override
-    public void destroy() {
-        camera = null;
-        transform = null;
-        it = null;
-        super.destroy();
     }
 }
