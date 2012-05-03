@@ -2,7 +2,6 @@ package com.ferox.scene;
 
 import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
-import com.ferox.math.bounds.Frustum;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
@@ -10,8 +9,7 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.util.geom.Geometry;
-import com.lhkbob.entreri.Controller;
-import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.ElementSize;
@@ -33,7 +31,7 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * 
  * @author Michael Ludwig
  */
-public final class Renderable extends EntitySetComponent<Renderable> {
+public final class Renderable extends ComponentData<Renderable> {
     /**
      * The shared TypedId representing Renderable.
      */
@@ -204,76 +202,6 @@ public final class Renderable extends EntitySetComponent<Renderable> {
      */
     public PolygonType getPolygonType() {
         return polyType.get(getIndex(), 0);
-    }
-
-    /**
-     * Return true if this Entity has been flagged as visible to the given
-     * Entity. Generally, it is assumed that <tt>e</tt> provides a Frustum
-     * somehow (e.g. {@link Camera}. Implementations of {@link Controller} are
-     * responsible for using this as appropriate
-     * 
-     * @param e The Entity to check visibility
-     * @return Whether or not this component's entity is visible to e
-     * @throws NullPointerException if f is null
-     */
-    public boolean isVisible(Entity e) {
-        return containsInternal(e.getId());
-    }
-
-    /**
-     * As {@link #isVisible(Entity)} but only requires the id of an entity.
-     * 
-     * @param entityId The entity id to check visibility
-     * @return Whether or not this component's entity is visible to entityId
-     */
-    public boolean isVisible(int entityId) {
-        return containsInternal(entityId);
-    }
-
-    /**
-     * Set whether or not this Entity is considered visible to the Entity,
-     * <tt>e</tt>. The method is provided so that Controllers can implement
-     * their own visibility algorithms, instead of relying solely on
-     * {@link ReadOnlyAxisAlignedBox#intersects(Frustum, com.ferox.math.bounds.PlaneState)}
-     * . It is generally assumed that the input Entity somehow provides a
-     * {@link Frustum}.
-     * 
-     * @param e The Entity whose visibility is assigned
-     * @param pv Whether or not the Entity is visible to e
-     * @return This component, for chaining purposes
-     * @throws NullPointerException if f is null
-     */
-    public Renderable setVisible(Entity e, boolean pv) {
-        return setVisible(e.getId(), pv);
-    }
-
-    /**
-     * As {@link #setVisible(Entity, boolean)} but only requires the id of an
-     * entity.
-     * 
-     * @param entityId The entity id to check visibility
-     * @param pv Whether or not this component's entity is visible to entityId
-     * @return This component, for chaining purposes
-     */
-    public Renderable setVisible(int entityId, boolean pv) {
-        if (pv)
-            addInternal(entityId);
-        else
-            removeInternal(entityId);
-        return this;
-    }
-
-    /**
-     * Reset the visibility flags so that the Entity is no longer visible to any
-     * Frustums. Subsequent calls to {@link #isVisible(Entity)} will return
-     * false until a Entity has been flagged as visible via
-     * {@link #setVisible(Entity, boolean)}.
-     * 
-     * @return This component, for chaining purposes
-     */
-    public Renderable resetVisibility() {
-        clearInternal();
-        return this;
     }
 
     /**

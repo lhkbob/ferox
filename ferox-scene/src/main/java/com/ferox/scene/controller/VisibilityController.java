@@ -1,7 +1,5 @@
 package com.ferox.scene.controller;
 
-import java.util.Iterator;
-
 import com.ferox.math.Const;
 import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.QueryCallback;
@@ -9,6 +7,7 @@ import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.Bag;
 import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.Result;
 import com.lhkbob.entreri.SimpleController;
 
@@ -21,7 +20,7 @@ public class VisibilityController extends SimpleController {
     public void process(double dt) {
         if (index != null) {
             for (FrustumResult f: frustums) {
-                VisibilityCallback query = new VisibilityCallback(f.getSource().getEntity());
+                VisibilityCallback query = new VisibilityCallback(getEntitySystem());
                 index.query(f.getFrustum(), query);
                 
                 // sort the PVS by entity id before reporting it so that
@@ -36,12 +35,6 @@ public class VisibilityController extends SimpleController {
     @Override
     public void preProcess(double dt) {
         frustums = new Bag<FrustumResult>();
-        
-        // reset visibility
-        Iterator<Renderable> it = getEntitySystem().iterator(Renderable.ID);
-        while(it.hasNext()) {
-            it.next().resetVisibility();
-        }
     }
     
     @Override
@@ -59,7 +52,6 @@ public class VisibilityController extends SimpleController {
     }
     
     private static class VisibilityCallback implements QueryCallback<Entity> {
-        private final Entity camera;
         private final Renderable renderable;
         
         private final Bag<Entity> pvs;
@@ -71,18 +63,16 @@ public class VisibilityController extends SimpleController {
          * @param camera The Entity that will be flagged as visible
          * @throws NullPointerException if camera is null
          */
-        public VisibilityCallback(Entity camera) {
-            if (camera == null)
-                throw new NullPointerException("Entity cannot be null");
-            this.camera = camera;
-            renderable = camera.getEntitySystem().createDataInstance(Renderable.ID);
+        public VisibilityCallback(EntitySystem system) {
+            renderable = system.createDataInstance(Renderable.ID);
             pvs = new Bag<Entity>();
         }
         
         @Override
         public void process(Entity r, @Const AxisAlignedBox bounds) {
+            // using ComponentData to query existence is faster
+            // than pulling in the actual Component
             if (r.get(renderable)) {
-                renderable.setVisible(camera, true);
                 pvs.add(r);
             }
         }

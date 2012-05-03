@@ -12,12 +12,11 @@ import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p>
- * AtmosphericFog is a Component that can add a visual approximation to fog to a rendered
- * scene. This component models fog by using a density fall-off function and a
- * distance through which the fog will become opaque. This model is compatible
- * with the classic eye-space fog that is usable in a fixed-function OpenGL
- * rendering engine and can be extended by more Component types to provide more
- * advanced fogs, such as spatialized or shaped fogs.
+ * AtmosphericFog is a Component that can add a visual approximation to fog to a
+ * rendered scene. This component models fog by using a density fall-off
+ * function and a distance through which the fog will become opaque. This model
+ * is compatible with the classic eye-space fog that is usable in a
+ * fixed-function OpenGL rendering engine.
  * </p>
  * 
  * @author Michael Ludwig

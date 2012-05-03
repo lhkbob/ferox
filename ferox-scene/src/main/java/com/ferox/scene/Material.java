@@ -2,8 +2,7 @@ package com.ferox.scene;
 
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexAttribute;
-import com.lhkbob.entreri.Controller;
-import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -22,7 +21,7 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * @author Michael Ludwig
  * @param <T> The concrete type of Material
  */
-public abstract class Material<T extends Material<T>> extends EntitySetComponent<T> {
+public abstract class Material<T extends Material<T>> extends ComponentData<T> {
     private ObjectProperty<VertexAttribute> normals;
 
     protected Material() { }
@@ -57,75 +56,5 @@ public abstract class Material<T extends Material<T>> extends EntitySetComponent
      */
     public final VertexAttribute getNormals() {
         return normals.get(getIndex(), 0);
-    }
-    
-    /**
-     * Return true if this Entity has been flagged as lit by the given light
-     * Entity. Generally, it is assumed that <tt>e</tt> is a {@link Light}
-     * or other "light" component. Implementations of {@link Controller} are
-     * responsible for using this as appropriate
-     * 
-     * @param e The Entity to check light influence
-     * @return Whether or not this component's entity is lit by e
-     * @throws NullPointerException if e is null
-     */
-    public boolean isLit(Entity e) {
-        return containsInternal(e.getId());
-    }
-
-    /**
-     * As {@link #isLit(Entity)} but only requires the id of an Entity.
-     * 
-     * @param entityId The entity id
-     * @return True if the entity represented by <tt>entityId</tt> influences
-     *         this entity
-     */
-    public boolean isLit(int entityId) {
-        return containsInternal(entityId);
-    }
-
-    /**
-     * Set whether or not this Entity is considered lit by the light Entity,
-     * <tt>e</tt>. The method is provided so that Controllers can implement
-     * their own light influence algorithms.
-     * 
-     * @param e The Entity whose light influence is assigned
-     * @param lit Whether or not the Entity is lit or influence by the light, e
-     * @return This component, for chaining purposes
-     * @throws NullPointerException if e is null
-     */
-    public T setLit(Entity e, boolean lit) {
-        return setLit(e.getId(), lit);
-    }
-
-    /**
-     * As {@link #setLit(Entity, boolean)} but only requires the id of an
-     * Entity.
-     * 
-     * @param entityId The entity id that is lighting or not lighting this
-     *            entity
-     * @param lit True if the entity is lit by entityId
-     * @return This component, for chaining purposes
-     */
-    @SuppressWarnings("unchecked")
-    public T setLit(int entityId, boolean lit) {
-        if (lit)
-            addInternal(entityId);
-        else
-            removeInternal(entityId);
-        return (T) this;
-    }
-
-    /**
-     * Reset the lit flags so that the Entity is no longer lit by any lights.
-     * Subsequent calls to {@link #isLit(Entity)} will return false until an
-     * Entity has been flagged as lit via {@link #setLit(Entity, boolean)}.
-     * 
-     * @return This component, for chaining purposes
-     */
-    @SuppressWarnings("unchecked")
-    public T resetLightInfluences() {
-        clearInternal();
-        return (T) this;
     }
 }
