@@ -1,12 +1,8 @@
-package com.ferox.math.bounds;
+package com.ferox.math;
 
 import java.nio.FloatBuffer;
 
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
-import com.ferox.math.bounds.Frustum.FrustumIntersection;
+import com.ferox.math.bounds.SpatialIndex;
 
 /**
  * <p>
@@ -46,8 +42,6 @@ public class AxisAlignedBox implements Cloneable {
     public final Vector3 min = new Vector3();
     public final Vector3 max = new Vector3();
     
-    private int lastFailedPlane = -1;
-
     /**
      * Create a new AxisAlignedBox that has its minimum and maximum at the
      * origin.
@@ -202,104 +196,6 @@ public class AxisAlignedBox implements Cloneable {
      */
     public Vector3 getCenter() {
         return new Vector3().add(min, max).scale(0.5);
-    }
-
-    /**
-     * <p>
-     * Compute and return the intersection of this AxisAlignedBox and the
-     * Frustum, <tt>f</tt>. It is assumed that the Frustum and AxisAlignedBox
-     * exist in the same coordinate frame. {@link FrustumIntersection#INSIDE} is
-     * returned when the AxisAlignedBox is fully contained by the Frustum.
-     * {@link FrustumIntersection#INTERSECT} is returned when this box is
-     * partially contained by the Frustum, and
-     * {@link FrustumIntersection#OUTSIDE} is returned when the box has no
-     * intersection with the Frustum.
-     * </p>
-     * <p>
-     * If <tt>OUTSIDE</tt> is returned, it is guaranteed that the objects
-     * enclosed by this box cannot be seen by the Frustum. If <tt>INSIDE</tt> is
-     * returned, any object {@link #contains(AxisAlignedBox) contained} by this
-     * box will also be completely inside the Frustum. When <tt>INTERSECT</tt>
-     * is returned, there is a chance that the true representation of the
-     * objects enclosed by the box will be outside of the Frustum, but it is
-     * unlikely. This can occur when a corner of the box intersects with the
-     * planes of <tt>f</tt>, but the shape does not exist in that corner.
-     * </p>
-     * <p>
-     * The argument <tt>planeState</tt> can be used to hint to this function
-     * which planes of the Frustum require checking and which do not. When a
-     * hierarchy of bounds is used, the planeState can be used to remove
-     * unnecessary plane comparisons. If <tt>planeState</tt> is null it is
-     * assumed that all planes need to be checked. If <tt>planeState</tt> is not
-     * null, this method will mark any plane that the box is completely inside
-     * of as not requiring a comparison. It is the responsibility of the caller
-     * to save and restore the plane state as needed based on the structure of
-     * the bound hierarchy.
-     * </p>
-     * 
-     * @param f The Frustum to intersect this box with
-     * @param planeState An optional PlaneState hint specifying which planes to
-     *            check
-     * @return A FrustumIntersection indicating how this box and the Frustum are
-     *         related
-     * @throws NullPointerException if f is null
-     */
-    public FrustumIntersection intersects(Frustum f, PlaneState planeState) {
-        if (f == null)
-            throw new NullPointerException("Frustum cannot be null");
-        
-        // early escape for potentially deeply nested nodes in a tree
-        if (planeState != null && !planeState.getTestsRequired())
-            return FrustumIntersection.INSIDE;
-        
-        FrustumIntersection result = FrustumIntersection.INSIDE;
-        double distMax;
-        double distMin;
-        int plane = 0;
-
-        Vector3 c = new Vector3(); 
-
-        Vector4 p;
-        for (int i = Frustum.NUM_PLANES; i >= 0; i--) {
-            // skip the last failed plane since that was is checked first,
-            // or skip the default first check if we haven't failed yet
-            if (i == lastFailedPlane || (i == Frustum.NUM_PLANES && lastFailedPlane < 0))
-                continue;
-
-            // check the last failed plane first, since we're likely to fail there again
-            plane = (i == Frustum.NUM_PLANES ? lastFailedPlane : i);
-            if (planeState == null || planeState.isTestRequired(plane)) {
-                p = f.getFrustumPlane(plane);
-                extent(p, false, c);
-                distMax = Plane.getSignedDistance(p, c, true);
-                
-                if (distMax < 0) {
-                    // the point closest to the plane is behind the plane, so
-                    // we know the bounds must be outside of the frustum
-                    lastFailedPlane = plane;
-                    return FrustumIntersection.OUTSIDE;
-                } else {
-                    // the point closest to the plane is in front of the plane,
-                    // but we need to check the farthest away point
-
-                    extent(p, true, c);
-                    distMin = Plane.getSignedDistance(p, c, true);
-                    
-                    if (distMin < 0) {
-                        // the farthest point is behind the plane, so at best
-                        // this box will be intersecting the frustum
-                        result = FrustumIntersection.INTERSECT;
-                    } else {
-                        // the box is completely contained by the plane, so
-                        // the return result can be INSIDE or INTERSECT (if set by another plane)
-                        if (planeState != null)
-                            planeState.setTestRequired(plane, false);
-                    }
-                }
-            }
-        }
-        
-        return result;
     }
 
     /**
@@ -542,36 +438,5 @@ public class AxisAlignedBox implements Cloneable {
     @Override
     public String toString() {
         return "(min=" + min + ", max=" + max + ")";
-    }
-    
-    private void extent(@Const Vector4 plane, boolean reverseDir, Vector3 result) {
-        Vector3 sourceMin = (reverseDir ? max : min);
-        Vector3 sourceMax = (reverseDir ? min : max);
-        
-        if (plane.x > 0) {
-            if (plane.y > 0) {
-                if (plane.z > 0)
-                    result.set(sourceMax.x, sourceMax.y, sourceMax.z);
-                else
-                    result.set(sourceMax.x, sourceMax.y, sourceMin.z);
-            } else {
-                if (plane.z > 0)
-                    result.set(sourceMax.x, sourceMin.y, sourceMax.z);
-                else
-                    result.set(sourceMax.x, sourceMin.y, sourceMin.z);
-            }
-        } else {
-            if (plane.y > 0) {
-                if (plane.z > 0)
-                    result.set(sourceMin.x, sourceMax.y, sourceMax.z);
-                else
-                    result.set(sourceMin.x, sourceMax.y, sourceMin.z);
-            } else {
-                if (plane.z > 0)
-                    result.set(sourceMin.x, sourceMin.y, sourceMax.z);
-                else
-                    result.set(sourceMin.x, sourceMin.y, sourceMin.z);
-            }
-        }
     }
 }

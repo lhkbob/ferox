@@ -2,6 +2,7 @@ package com.ferox.math.bounds;
 
 import java.util.Arrays;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
@@ -112,7 +113,7 @@ public class SimpleSpatialIndex<T> implements SpatialIndex<T> {
         AxisAlignedBox itemBounds = new AxisAlignedBox();
         for (int i = 0; i < size; i++) {
             updateBounds(itemBounds, i);
-            if (itemBounds.intersects(frustum, null) != FrustumIntersection.OUTSIDE)
+            if (frustum.intersects(itemBounds, null) != FrustumIntersection.OUTSIDE)
                 callback.process((T) elements[i], itemBounds);
         }
     }

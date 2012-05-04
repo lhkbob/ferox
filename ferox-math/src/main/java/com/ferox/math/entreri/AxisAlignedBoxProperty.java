@@ -5,8 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.Factory;

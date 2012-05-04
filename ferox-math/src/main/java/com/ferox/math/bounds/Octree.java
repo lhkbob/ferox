@@ -2,6 +2,7 @@ package com.ferox.math.bounds;
 
 import java.util.Arrays;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Functions;
 import com.ferox.math.Vector3;
@@ -407,7 +408,7 @@ public class Octree<T> implements SpatialIndex<T> {
         // we assume that this node has items and nodeBounds has been updated to
         // equal this node. we still have to check if the node intersects the frustum
         if (!insideGuaranteed) {
-            FrustumIntersection test = nodeBounds.intersects(f, planeState);
+            FrustumIntersection test = f.intersects(nodeBounds, planeState);
             if (test == FrustumIntersection.OUTSIDE) {
                 // node and it's children do not intersect, escape now
                 return;
@@ -437,7 +438,7 @@ public class Octree<T> implements SpatialIndex<T> {
                 // - this is valid in a single threaded situation
                 if (queryIds[item] != query) {
                     updateBounds(itemBounds, item);
-                    if (insideGuaranteed || itemBounds.intersects(f, planeState) != FrustumIntersection.OUTSIDE) {
+                    if (insideGuaranteed || f.intersects(itemBounds, planeState) != FrustumIntersection.OUTSIDE) {
                         // we have an intersection, invoke the callback
                         callback.process((T) elements[cell.keys[i]], itemBounds);
                     }

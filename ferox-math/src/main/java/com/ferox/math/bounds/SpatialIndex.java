@@ -1,5 +1,6 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 

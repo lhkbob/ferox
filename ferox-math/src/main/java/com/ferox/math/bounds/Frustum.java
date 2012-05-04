@@ -1,5 +1,6 @@
 package com.ferox.math.bounds;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
@@ -82,6 +83,9 @@ public class Frustum {
     // position, direction and up
     private final Vector4[] worldPlanes;
     
+    // temporary vector used during intersection queries, saved to avoid allocation
+    private final Vector3 temp;
+    
     /**
      * Instantiate a new Frustum that's positioned at the origin, looking down
      * the negative z-axis. The given values are equivalent to those described
@@ -126,6 +130,8 @@ public class Frustum {
         
         view = new Matrix4();
         projection = new Matrix4();
+        
+        temp = new Vector3();
     }
     
     /**
@@ -430,6 +436,126 @@ public class Frustum {
      */
     public @Const Vector4 getFrustumPlane(int i) {
         return worldPlanes[i];
+    }
+    
+    /**
+     * <p>
+     * Compute and return the intersection of the AxisAlignedBox and this
+     * Frustum, <tt>f</tt>. It is assumed that the Frustum and AxisAlignedBox
+     * exist in the same coordinate frame. {@link FrustumIntersection#INSIDE} is
+     * returned when the AxisAlignedBox is fully contained by the Frustum.
+     * {@link FrustumIntersection#INTERSECT} is returned when this box is
+     * partially contained by the Frustum, and
+     * {@link FrustumIntersection#OUTSIDE} is returned when the box has no
+     * intersection with the Frustum.
+     * </p>
+     * <p>
+     * If <tt>OUTSIDE</tt> is returned, it is guaranteed that the objects
+     * enclosed by the bounds do not intersect the Frustum. If <tt>INSIDE</tt>
+     * is returned, any object {@link #contains(AxisAlignedBox) contained} by
+     * the box will also be completely inside the Frustum. When
+     * <tt>INTERSECT</tt> is returned, there is a chance that the true
+     * representation of the objects enclosed by the box will be outside of the
+     * Frustum, but it is unlikely. This can occur when a corner of the box
+     * intersects with the planes of <tt>f</tt>, but the shape does not exist in
+     * that corner.
+     * </p>
+     * <p>
+     * The argument <tt>planeState</tt> can be used to hint to this function
+     * which planes of the Frustum require checking and which do not. When a
+     * hierarchy of bounds is used, the planeState can be used to remove
+     * unnecessary plane comparisons. If <tt>planeState</tt> is null it is
+     * assumed that all planes need to be checked. If <tt>planeState</tt> is not
+     * null, this method will mark any plane that the box is completely inside
+     * of as not requiring a comparison. It is the responsibility of the caller
+     * to save and restore the plane state as needed based on the structure of
+     * the bound hierarchy.
+     * </p>
+     * 
+     * @param bounds The bounds to test for intersection with this frustm
+     * @param planeState An optional PlaneState hint specifying which planes to
+     *            check
+     * @return A FrustumIntersection indicating how the frustum and bounds
+     *         intersect
+     * @throws NullPointerException if bounds is null
+     */
+    public FrustumIntersection intersects(@Const AxisAlignedBox bounds, PlaneState planeState) {
+        if (bounds == null)
+            throw new NullPointerException("Bounds cannot be null");
+        
+        // early escape for potentially deeply nested nodes in a tree
+        if (planeState != null && !planeState.getTestsRequired())
+            return FrustumIntersection.INSIDE;
+        
+        FrustumIntersection result = FrustumIntersection.INSIDE;
+        double distMax;
+        double distMin;
+        int plane = 0;
+
+        Vector4 p;
+        for (int i = Frustum.NUM_PLANES - 1; i >= 0; i--) {
+            if (planeState == null || planeState.isTestRequired(i)) {
+                p = getFrustumPlane(plane);
+                extent(bounds, p, false, temp);
+                distMax = Plane.getSignedDistance(p, temp, true);
+                
+                if (distMax < 0) {
+                    // the point closest to the plane is behind the plane, so
+                    // we know the bounds must be outside of the frustum
+                    return FrustumIntersection.OUTSIDE;
+                } else {
+                    // the point closest to the plane is in front of the plane,
+                    // but we need to check the farthest away point
+
+                    extent(bounds, p, true, temp);
+                    distMin = Plane.getSignedDistance(p, temp, true);
+                    
+                    if (distMin < 0) {
+                        // the farthest point is behind the plane, so at best
+                        // this box will be intersecting the frustum
+                        result = FrustumIntersection.INTERSECT;
+                    } else {
+                        // the box is completely contained by the plane, so
+                        // the return result can be INSIDE or INTERSECT (if set by another plane)
+                        if (planeState != null)
+                            planeState.setTestRequired(plane, false);
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    private void extent(@Const AxisAlignedBox bounds, @Const Vector4 plane, boolean reverseDir, Vector3 result) {
+        Vector3 sourceMin = (reverseDir ? bounds.max : bounds.min);
+        Vector3 sourceMax = (reverseDir ? bounds.min : bounds.max);
+        
+        if (plane.x > 0) {
+            if (plane.y > 0) {
+                if (plane.z > 0)
+                    result.set(sourceMax.x, sourceMax.y, sourceMax.z);
+                else
+                    result.set(sourceMax.x, sourceMax.y, sourceMin.z);
+            } else {
+                if (plane.z > 0)
+                    result.set(sourceMax.x, sourceMin.y, sourceMax.z);
+                else
+                    result.set(sourceMax.x, sourceMin.y, sourceMin.z);
+            }
+        } else {
+            if (plane.y > 0) {
+                if (plane.z > 0)
+                    result.set(sourceMin.x, sourceMax.y, sourceMax.z);
+                else
+                    result.set(sourceMin.x, sourceMax.y, sourceMin.z);
+            } else {
+                if (plane.z > 0)
+                    result.set(sourceMin.x, sourceMin.y, sourceMax.z);
+                else
+                    result.set(sourceMin.x, sourceMin.y, sourceMin.z);
+            }
+        }
     }
     
     /*
