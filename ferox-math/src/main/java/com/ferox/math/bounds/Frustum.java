@@ -496,7 +496,10 @@ public class Frustum {
         for (int i = Frustum.NUM_PLANES - 1; i >= 0; i--) {
             if (planeState == null || planeState.isTestRequired(i)) {
                 p = getFrustumPlane(plane);
-                extent(bounds, p, false, temp);
+                // set temp to the normal of the plane then compute the extent
+                // in-place; this is safe but we'll have to reset temp to the
+                // normal later if needed
+                temp.set(p.x, p.y, p.z).farExtent(bounds, temp);
                 distMax = Plane.getSignedDistance(p, temp, true);
                 
                 if (distMax < 0) {
@@ -506,8 +509,10 @@ public class Frustum {
                 } else {
                     // the point closest to the plane is in front of the plane,
                     // but we need to check the farthest away point
-
-                    extent(bounds, p, true, temp);
+                    
+                    // make sure to reset temp to the normal before computing
+                    // the near extent in-place
+                    temp.set(p.x, p.y, p.z).nearExtent(bounds, temp);
                     distMin = Plane.getSignedDistance(p, temp, true);
                     
                     if (distMin < 0) {
@@ -525,37 +530,6 @@ public class Frustum {
         }
         
         return result;
-    }
-    
-    private void extent(@Const AxisAlignedBox bounds, @Const Vector4 plane, boolean reverseDir, Vector3 result) {
-        Vector3 sourceMin = (reverseDir ? bounds.max : bounds.min);
-        Vector3 sourceMax = (reverseDir ? bounds.min : bounds.max);
-        
-        if (plane.x > 0) {
-            if (plane.y > 0) {
-                if (plane.z > 0)
-                    result.set(sourceMax.x, sourceMax.y, sourceMax.z);
-                else
-                    result.set(sourceMax.x, sourceMax.y, sourceMin.z);
-            } else {
-                if (plane.z > 0)
-                    result.set(sourceMax.x, sourceMin.y, sourceMax.z);
-                else
-                    result.set(sourceMax.x, sourceMin.y, sourceMin.z);
-            }
-        } else {
-            if (plane.y > 0) {
-                if (plane.z > 0)
-                    result.set(sourceMin.x, sourceMax.y, sourceMax.z);
-                else
-                    result.set(sourceMin.x, sourceMax.y, sourceMin.z);
-            } else {
-                if (plane.z > 0)
-                    result.set(sourceMin.x, sourceMin.y, sourceMax.z);
-                else
-                    result.set(sourceMin.x, sourceMin.y, sourceMin.z);
-            }
-        }
     }
     
     /*

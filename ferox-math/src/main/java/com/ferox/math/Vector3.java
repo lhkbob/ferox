@@ -409,6 +409,43 @@ public final class Vector3 implements Cloneable {
     public Vector3 normalize() {
         return normalize(this);
     }
+    
+    /**
+     * Compute the corner of the box that is most extended along the given
+     * direction vector and store it in this vector. This will return one of the
+     * 8 possible corners of the box depending on the signs of the vector, it
+     * will not return points along the edge or face of the box.
+     * 
+     * @param bounds The bounds
+     * @param dir The query direction vector
+     * @return This vector, updated to hold the far extent
+     * @throws NullPointerException if bounds or dir is null
+     */
+    public Vector3 farExtent(@Const AxisAlignedBox bounds, @Const Vector3 dir) {
+        return extent(bounds.min, bounds.max, dir);
+    }
+    
+    /**
+     * Compute the corner of the box that is least extended along the given
+     * direction vector and store it in this vector. This is equivalent to
+     * calling {@link #farExtent(AxisAlignedBox, Vector3)} with a negated
+     * direction vector but avoids computing the negation.
+     * 
+     * @param bounds The bounds
+     * @param dir The query direction vector
+     * @return This vector, updated to hold the near extent
+     * @throws NullPointerException if bounds or dir is null
+     */
+    public Vector3 nearExtent(@Const AxisAlignedBox bounds, @Const Vector3 dir) {
+        return extent(bounds.max, bounds.min, dir);
+    }
+    
+    private Vector3 extent(@Const Vector3 min, @Const Vector3 max, @Const Vector3 dir) {
+        x = (dir.x > 0 ? max.x : min.x);
+        y = (dir.y > 0 ? max.y : min.y);
+        z = (dir.z > 0 ? max.z : min.z);
+        return this;
+    }
 
     /**
      * Set the vector coordinate at index to the given value. index must be one
