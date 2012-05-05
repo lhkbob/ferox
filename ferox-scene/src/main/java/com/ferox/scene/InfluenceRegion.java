@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.TypeId;

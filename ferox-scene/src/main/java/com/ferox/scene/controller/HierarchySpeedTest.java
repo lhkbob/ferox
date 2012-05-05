@@ -3,9 +3,9 @@ package com.ferox.scene.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.Surface;
@@ -29,7 +29,7 @@ public class HierarchySpeedTest {
         Entity camera = system.addEntity();
         camera.add(Transform.ID).getData().setMatrix(new Matrix4(-1, 0, 0, 0, 
                                                                  0, 1, 0, 0,
-                                                                 0, 0, -1, 700,
+                                                                 0, 0, -1, 0,
                                                                  0, 0, 0, 1));
         camera.add(Camera.ID).getData().setSurface(new Surface() {
             @Override

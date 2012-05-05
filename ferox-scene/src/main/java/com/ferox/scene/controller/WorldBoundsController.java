@@ -1,6 +1,6 @@
 package com.ferox.scene.controller;
 
-import com.ferox.math.bounds.AxisAlignedBox;
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
 import com.lhkbob.entreri.ComponentIterator;

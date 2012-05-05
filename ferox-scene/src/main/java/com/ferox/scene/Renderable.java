@@ -1,7 +1,7 @@
 package com.ferox.scene;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
