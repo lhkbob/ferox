@@ -1,4 +1,4 @@
-package com.ferox.scene.controller;
+package com.ferox.scene.controller.light;
 
 import java.util.Set;
 

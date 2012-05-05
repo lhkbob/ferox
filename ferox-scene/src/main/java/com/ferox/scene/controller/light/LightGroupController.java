@@ -1,4 +1,4 @@
-package com.ferox.scene.controller;
+package com.ferox.scene.controller.light;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.ferox.scene.Camera;
 import com.ferox.scene.Renderable;
+import com.ferox.scene.controller.PVSResult;
 import com.ferox.util.Bag;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
