@@ -12,6 +12,7 @@ import com.ferox.renderer.Surface;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
+import com.ferox.scene.controller.light.LightGroupController;
 import com.ferox.util.Bag;
 import com.ferox.util.geom.Box;
 import com.lhkbob.entreri.Controller;
@@ -71,6 +72,7 @@ public class HierarchySpeedTest {
         Controller frustumUpdate = new CameraController();
         Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(new AxisAlignedBox(new Vector3(-150, -10, -150), new Vector3(150, 10, 150)), 6));
         Controller pvsComputer = new VisibilityController();
+        Controller lightGroups = new LightGroupController();
         Controller render = new RenderController();
         
         Map<String, Controller> controllers = new HashMap<String, Controller>();
@@ -78,6 +80,7 @@ public class HierarchySpeedTest {
         controllers.put("frustum", frustumUpdate);
         controllers.put("index-build", indexBuilder);
         controllers.put("pvs", pvsComputer);
+        controllers.put("lights", lightGroups);
         controllers.put("render", render);
         Map<String, Long> times = new HashMap<String, Long>();
         
@@ -85,6 +88,7 @@ public class HierarchySpeedTest {
         system.getControllerManager().addController(frustumUpdate);
         system.getControllerManager().addController(indexBuilder);
         system.getControllerManager().addController(pvsComputer);
+        system.getControllerManager().addController(lightGroups);
         system.getControllerManager().addController(render);
 
         
