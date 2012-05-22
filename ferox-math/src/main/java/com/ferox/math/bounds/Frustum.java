@@ -2,6 +2,7 @@ package com.ferox.math.bounds;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
@@ -412,7 +413,47 @@ public class Frustum {
         this.location.set(location);
         this.direction.set(direction);
         this.up.set(up);
+        update();
+    }
+    
+    /**
+     * Set the orientation of this Frustum based on the affine
+     * <tt>transform</tt>. The 4th column's first 3 values encode the
+     * transformation. The 3rd column holds the direction vector, and the 2nd
+     * column defines the up vector.
+     * 
+     * @param transform The new transform of the frustum
+     * @throws NullPointerException if transform is null
+     */
+    public void setOrientation(@Const Matrix4 transform) {
+        if (transform == null)
+            throw new NullPointerException("Transform cannot be null");
         
+        this.location.set(transform.m03, transform.m13, transform.m23);
+        this.direction.set(transform.m02, transform.m12, transform.m22);
+        this.up.set(transform.m01, transform.m11, transform.m21);
+        update();
+    }
+    
+    /**
+     * Set the orientation of this Frustum based on the given location vector
+     * and 3x3 rotation matrix. Together the vector and rotation represent an
+     * affine transform that is treated the same as in
+     * {@link #setOrientation(Matrix4)}.
+     * 
+     * @param location The location of the frustum
+     * @param rotation The rotation of the frustum
+     * @throws NullPointerException if location or rotation are null
+     */
+    public void setOrientation(@Const Vector3 location, @Const Matrix3 rotation) {
+        if (location == null)
+            throw new NullPointerException("Location cannot be null");
+        if (rotation == null)
+            throw new NullPointerException("Rotation matrix cannot be null");
+        
+        this.location.set(location);
+        this.direction.set(rotation.m02, rotation.m12, rotation.m22);
+        this.up.set(rotation.m01, rotation.m11, rotation.m21);
         update();
     }
 

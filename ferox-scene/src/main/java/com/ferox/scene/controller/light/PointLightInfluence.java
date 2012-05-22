@@ -19,8 +19,7 @@ public class PointLightInfluence implements LightInfluence<PointLight> {
         } else {
             // make sure the bounds intersects with the bounding sphere centered
             // on the light with a radius equal to the falloff distance
-            lightPos.set(lightTransform.m03, lightTransform.m13, lightTransform.m23)
-                    .add(light.getPosition());
+            lightPos.set(lightTransform.m03, lightTransform.m13, lightTransform.m23);
             
             // center of aabb
             objectPos.add(bounds.min, bounds.max).scale(0.5);
