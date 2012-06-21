@@ -40,7 +40,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     // math object transfer objects
     private final FloatBuffer matrixBuffer;
     private final FloatBuffer vector4Buffer;
-    private final FloatBuffer vector3Buffer;
     
     // state tracking
     private boolean alphaTestEnabled;
@@ -52,7 +51,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         
         matrixBuffer = BufferUtil.newFloatBuffer(16);
         vector4Buffer = BufferUtil.newFloatBuffer(4);
-        vector3Buffer = BufferUtil.newFloatBuffer(3);
         alphaTestEnabled = false;
     }
     
@@ -178,8 +176,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glLightDirection(int light, @Const Vector3 dir) {
-        dir.get(vector3Buffer, 0);
-        GL11.glLight(GL11.GL_LIGHT0 + light, GL11.GL_SPOT_DIRECTION, vector3Buffer);
+        dir.get(vector4Buffer, 0);
+        GL11.glLight(GL11.GL_LIGHT0 + light, GL11.GL_SPOT_DIRECTION, vector4Buffer);
     }
 
     @Override

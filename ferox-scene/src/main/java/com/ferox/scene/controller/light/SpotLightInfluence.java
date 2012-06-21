@@ -14,6 +14,8 @@ public class SpotLightInfluence implements LightInfluence<SpotLight> {
     @Override
     public boolean influences(SpotLight light, @Const Matrix4 lightTransform, @Const AxisAlignedBox bounds) {
         // construct a Frustum that approximates the cone of the light
+        // FIXME an early distance check might be in order to prevent checking against
+        // every visible object 
         double zfar = (light.getFalloffDistance() < 0 ? Double.MAX_VALUE : light.getFalloffDistance());
         cone.setPerspective(light.getCutoffAngle(), 1.0, 0.00001, zfar);
         cone.setOrientation(lightTransform);

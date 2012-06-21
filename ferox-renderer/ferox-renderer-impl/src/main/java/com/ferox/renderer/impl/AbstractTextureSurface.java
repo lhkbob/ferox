@@ -45,13 +45,13 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         colorTextures = createColorTextures(this, options);
         depthTexture = createDepthTexture(this, options);
         
-        updateTextures(colorTextures, depthTexture, framework);
-
         this.options = options;
         activeLayer = options.getActiveLayer();
         activeDepth = options.getActiveDepthPlane();
         
         colorLocks = new LockToken[colorTextures.length];
+        
+        updateTextures(colorTextures, depthTexture, framework);
     }
     
     protected ResourceHandle getDepthHandle() {

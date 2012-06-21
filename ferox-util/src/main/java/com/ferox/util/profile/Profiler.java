@@ -62,11 +62,11 @@ public class Profiler {
     }
     
     public Map<String, CyclicBuffer> getLabelStatistics(String parentLabel) {
-        
+        return null;
     }
     
     public Map<String, CyclicBuffer> getRootLabelStatistics() {
-        
+        return null;
     }
     
     // If I can push and pop labels, how do I record timings, well each full path/stack

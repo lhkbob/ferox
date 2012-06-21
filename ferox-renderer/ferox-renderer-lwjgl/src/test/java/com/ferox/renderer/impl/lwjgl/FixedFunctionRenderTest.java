@@ -130,7 +130,7 @@ public class FixedFunctionRenderTest {
                 Geometry shape;
                 Matrix4 t = new Matrix4();
                 int rendered = 0;
-                int num = 10000;
+                int num = 111;
                 int thirds = num / 3;
                 for (int i = 0; i < num; i++) {
                     t.setIdentity();

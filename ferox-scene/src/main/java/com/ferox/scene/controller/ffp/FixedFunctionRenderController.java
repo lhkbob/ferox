@@ -1,160 +1,62 @@
 package com.ferox.scene.controller.ffp;
 
-import java.util.Iterator;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.Future;
 
-import com.ferox.entity2.Component;
-import com.ferox.entity2.ComponentId;
-import com.ferox.entity2.Controller;
-import com.ferox.entity2.Entity;
-import com.ferox.entity2.EntitySystem;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
+import com.ferox.renderer.Context;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Surface;
+import com.ferox.renderer.Task;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.ThreadQueueManager;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.Transform;
-import com.ferox.scene.ShadowCaster;
-import com.ferox.scene.Shape;
-import com.ferox.scene.SpotLight;
-import com.ferox.scene.TexturedMaterial;
-import com.ferox.scene.Transparent;
 import com.ferox.scene.Camera;
-import com.ferox.util.HashFunction;
-import com.ferox.util.geom.Geometry;
+import com.ferox.scene.controller.PVSResult;
+import com.ferox.util.Bag;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.Result;
+import com.lhkbob.entreri.SimpleController;
 
-/**
- * FixedFunctionRenderController is a controller implementation that processes
- * scenes described by the com.ferox.scene Components and renders them using the
- * fixed-function pipeline exposed by {@link FixedFunctionRenderer}. Currently,
- * it supports:
- * <ul>
- * <li>Renderable - only these entities will be rendered</li>
- * <li>Transform - specifies the transform of the renderable</li>
- * <li>ShadowCaster - whether a light or renderable casts shadows</li>
- * <li>ShadowReceiver - whether a renderable should receive shadows</li>
- * <li>Shape - provides geometry to render</li>
- * <li>BlinnPhongMaterial - the only available lighting model in OpenGL</li>
- * <li>SolidMaterial - supported, effectively disables lighting</li>
- * <li>TexturedMaterial - may ignore one or both Textures depending on hardware
- * capabilities</li>
- * </ul>
- * 
- * @author Michael Ludwig
- */
-public class FixedFunctionRenderController extends Controller {
-    private static final ComponentId<Camera> VN_ID = Component.getComponentId(Camera.class);
-    private static final ComponentId<ShadowMapFrustum> SMF_ID = Component.getComponentId(ShadowMapFrustum.class);
-
-    private static final ComponentId<Renderable> R_ID = Component.getComponentId(Renderable.class);
-    private static final ComponentId<Transform> SE_ID = Component.getComponentId(Transform.class);
-    private static final ComponentId<ShadowCaster> SC_ID = Component.getComponentId(ShadowCaster.class);
-    
-    private static final ComponentId<Shape> S_ID = Component.getComponentId(Shape.class);
-    private static final ComponentId<TexturedMaterial> T_ID = Component.getComponentId(TexturedMaterial.class);
-    private static final ComponentId<Transparent> TR_ID = Component.getComponentId(Transparent.class);
-    
-    private static final ComponentId<SpotLight> SL_ID = Component.getComponentId(SpotLight.class);
-    private static final ComponentId<DirectionLight> DL_ID = Component.getComponentId(DirectionLight.class);
-    private static final ComponentId<AmbientLight> AL_ID = Component.getComponentId(AmbientLight.class);
-    
-    
-    private final ThreadQueueManager manager;
+public class FixedFunctionRenderController extends SimpleController {
+    private final Framework framework;
     private final TextureSurface shadowMap;
     
-    private final Queue<RenderConnectionImpl> connectionPool;
-    private final int maxMaterialTextureUnits;
+    private final int shadowmapTextureUnit;
+    private final int diffuseTextureUnit;
+    private final int emissiveTextureUnit;
+    
+    private List<PVSResult> pvs;
+    
+    private final Queue<Future<Void>> previousFrame;
 
-    private final String vertexBinding;
-    private final String normalBinding;
-    private final String texCoordBinding;
-
-    /**
-     * Create a FixedFunctionRenderController that is attached to the given
-     * EntitySystem. The provided ThreadQueueManager is used to queue the
-     * necessary RenderPasses to render the scene description contained within
-     * <tt>system</tt>. The controller will use a shadow-map that has a width
-     * and height of 512.
-     * 
-     * @param system The EntitySystem owning this controller
-     * @param manager The ThreadQueueManager used for queuing RenderPasses
-     * @throws NullPointerException if system or manager are null
-     */
-    public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager) {
-        this(system, manager, 512);
+    public FixedFunctionRenderController(Framework framework) {
+        this(framework, 512);
     }
 
-    /**
-     * Create a FixedFunctionRenderController that is attached to the given
-     * EntitySystem. The provided ThreadQueueManager is used to queue the
-     * necessary RenderPasses to render the scene description contained within
-     * <tt>system</tt>. The controller will create a shadow map with a width and
-     * height equal to <tt>shadowMapSize</tt>. If this parameter is negative,
-     * shadow mapping will be disabled.
-     * 
-     * @param system The EntitySystem owning this controller
-     * @param manager The ThreadQueueManager used for queuing RenderPasses
-     * @param shadowMapSize The width and height of the shadow map to use, or
-     *            negative if now shadows are to be rendered
-     * @throws NullPointerException if system or manager are null
-     */
-    public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize) {
-        this(system, manager, shadowMapSize, Geometry.DEFAULT_VERTICES_NAME, 
-             Geometry.DEFAULT_NORMALS_NAME, Geometry.DEFAULT_TEXCOORD_NAME);
-    }
-
-    /**
-     * Create a FixedFunctionRenderController that is attached to the given
-     * EntitySystem. The provided ThreadQueueManager is used to queue the
-     * necessary RenderPasses to render the scene description contained within
-     * <tt>system</tt>. The controller will create a shadow map with a width and
-     * height equal to <tt>shadowMapSize</tt>. If this parameter is negative,
-     * shadow mapping will be disabled. In addition, <tt>vertexBinding</tt>,
-     * <tt>normalBinding</tt> and <tt>texCoordBinding</tt> specify the attribute
-     * names within rendered geometries if they are to differ from the defaults
-     * defined in {@link Geometry}.
-     * 
-     * @param system The EntitySystem owning this controller
-     * @param manager The ThreadQueueManager used for queuing RenderPasses
-     * @param shadowMapSize The width and height of the shadow map to use, or
-     *            negative if now shadows are to be rendered
-     * @param vertexBinding The attribute name for vertices
-     * @param normalBinding The attribute name for normals
-     * @param texCoordBinding The attribute name for texture coordinates
-     * @throws NullPointerException if system, manager, vertexBinding,
-     *             normalBinding, or texCoordBinding are null
-     */
-    public FixedFunctionRenderController(EntitySystem system, ThreadQueueManager manager, int shadowMapSize,
-                                         String vertexBinding, String normalBinding, String texCoordBinding) {
-        super(system);
-        if (manager == null)
-            throw new NullPointerException("ThreadQueueManager cannot be null");
-        if (vertexBinding == null || normalBinding == null || texCoordBinding == null)
-            throw new NullPointerException("Attribute bindings cannot be null");
+    public FixedFunctionRenderController(Framework framework, int shadowMapSize) {
+        if (framework == null)
+            throw new NullPointerException("Framework cannot be null");
         
-        RenderCapabilities caps = manager.getFramework().getCapabilities();
+        RenderCapabilities caps = framework.getCapabilities();
         if (!caps.hasFixedFunctionRenderer())
             throw new IllegalArgumentException("Framework must support a FixedFunctionRenderer");
         
-        this.manager = manager;
-        this.vertexBinding = vertexBinding;
-        this.normalBinding = normalBinding;
-        this.texCoordBinding = texCoordBinding;
+        this.framework = framework;
         
-        connectionPool = new ConcurrentLinkedQueue<RenderConnectionImpl>();
+        previousFrame = new ArrayDeque<Future<Void>>();
         
         int numTex = caps.getMaxFixedPipelineTextures();
         boolean shadowsRequested = shadowMapSize > 0; // size is positive
@@ -162,7 +64,6 @@ public class FixedFunctionRenderController extends Controller {
                                 numTex > 1 && caps.getDepthTextureSupport();
                         
         if (shadowsRequested && shadowSupport) {
-            maxMaterialTextureUnits = (numTex > 2 ? 2 : 1);
             // convert size to a power of two
             int sz = 1;
             while(sz < shadowMapSize)
@@ -173,7 +74,7 @@ public class FixedFunctionRenderController extends Controller {
                                                                        .setHeight(sz)
                                                                        .setUseDepthTexture(true)
                                                                        .setColorBufferFormats();
-            shadowMap = manager.getFramework().createSurface(options);
+            shadowMap = framework.createSurface(options);
             
             // set up the depth comparison
             Texture sm = shadowMap.getDepthBuffer();
@@ -181,237 +82,100 @@ public class FixedFunctionRenderController extends Controller {
             sm.setWrapMode(WrapMode.CLAMP);
             sm.setDepthCompareEnabled(true);
             sm.setDepthComparison(Comparison.LEQUAL);
+            
+            // use the 3rd unit if available, or the 2nd if not
+            shadowmapTextureUnit = (numTex > 2 ? 2 : 1);
+            // reserve one unit for the shadow map
+            numTex--;
         } else {
-            maxMaterialTextureUnits = 2;
             shadowMap = null;
+            shadowmapTextureUnit = -1;
         }
-    }
-    
-    /**
-     * @return The ThreadQueueManager used by this FixedFunctionRenderController
-     */
-    public ThreadQueueManager getThreadQueueManager() {
-        return manager;
-    }
-
-    /**
-     * @return The TextureSurface created by the FixedFunctionRenderController
-     *         for shadow map generation. This may be null if shadow mapping is
-     *         not supported on the current hardware, or if shadow mapping was
-     *         disabled. If this controller's lifetime does not match that of
-     *         the Framework it's tied to, this surface must be manually
-     *         destroyed.
-     */
-    public TextureSurface getShadowMap() {
-        return shadowMap;
+        
+        // FIXME should this be the responsibility of the TextureGroupFactory
+        // I'm not sure because other factories might also need texture units
+        if (numTex >= 2) {
+            diffuseTextureUnit = 0;
+            emissiveTextureUnit = 1;
+        } else {
+            // multiple passes for textures
+            diffuseTextureUnit = 0;
+            emissiveTextureUnit = 0;
+        }
     }
     
     @Override
-    protected void executeImpl() {
-        // process every view, we use a ThreadQueueManager so that
-        // actual rendering can be managed externally without worrying about
-        // which thread executed this controller
-        Iterator<Entity> views = system.iterator(VN_ID);
-        while(views.hasNext()) {
-            processView(system, views.next());
-        }
-    }
-    
-    private void processLights(ComponentId<?> lightType, Frustum viewFrustum, 
-                               Frustum shadowFrustum, Component shadowLight, RenderConnection con) {
-        Entity e;
-        Transform se;
-        Component light;
-        
-        Iterator<Entity> it = system.iterator(lightType);
-        while(it.hasNext()) {
-            e = it.next();
-            se = e.get(SE_ID);
-            light = e.get(lightType);
-            
-            if (se == null || viewFrustum == null || se.isVisible(viewFrustum)) {
-                con.addLight(light, (se == null ? null : se.getWorldBounds()), 
-                             (light == shadowLight ? shadowFrustum : null));
+    @SuppressWarnings("unchecked")
+    public void process(double dt) {
+        // go through all results and render all camera frustums
+        List<Future<Void>> thisFrame = new ArrayList<Future<Void>>();
+        Camera camera = getEntitySystem().createDataInstance(Camera.ID);
+        for (PVSResult visible: pvs) {
+            if (visible.getSource().getTypeId() == Camera.ID) {
+                camera.set((Component<Camera>) visible.getSource());
+                thisFrame.add(render(camera.getSurface(), visible.getFrustum(), 
+                                         visible.getPotentiallyVisibleSet()));
             }
         }
-    }
-    
-    private void processView(EntitySystem system, Entity view) {
-        Camera vn = view.get(VN_ID);
-        if (vn == null)
-            return; // don't have anything to render
         
-        RenderConnection con = connectionPool.poll();
-        if (con == null)
-            con = new RenderConnectionImpl();
-        
-        // prepare the rendering
-        Frustum viewFrustum = vn.getFrustum();
-        Frustum shadowFrustum = null;
-        Component shadowCaster = null;
-        
-        // first take care of shadowing information
-        ShadowMapFrustum smf = view.getMeta(vn, SMF_ID);
-        if (smf != null && shadowMap != null) {
-            shadowFrustum = smf.getFrustum();
-            shadowCaster = smf.getLight();
-        }
-        
-        // process all renderables (and shadow casters)
-        Entity e;
-        Transform se;
-        Iterator<Entity> it = system.iterator(R_ID);
-        while(it.hasNext()) {
-            e = it.next();
-            se = e.get(SE_ID);
-            if ((se == null || shadowFrustum == null || se.isVisible(shadowFrustum)) &&
-                (e.get(SC_ID) != null || e.getMeta(e.get(R_ID), SC_ID) != null))
-                con.addShadowCastingEntity(e);
-            if (se == null || viewFrustum == null || se.isVisible(viewFrustum))
-                con.addRenderedEntity(e);
-        }
-        
-        processLights(AL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
-        processLights(SL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
-        processLights(DL_ID, viewFrustum, shadowFrustum, shadowCaster, con);
-        
-        // configure the view
-        con.setView(vn);
-        con.flush(vn.getRenderSurface());
-    }
-    
-    private class RenderConnectionImpl extends RenderConnection {
-        private final ShadowMapGeneratorPass shadowMapPass;
-        private final DefaultLightingPass defaultPass;
-        private final ShadowedLightingPass shadowLightPass;
-        
-        private final Semaphore shadowMapAccessor; // FIXME: this needs to be up a level so all connections share this
-        
-        public RenderConnectionImpl() {
-            shadowMapAccessor = new Semaphore(1, false);
-            
-            defaultPass = new DefaultLightingPass(this, manager.getFramework().getCapabilities().getMaxActiveLights(), 
-                                                  maxMaterialTextureUnits, vertexBinding, normalBinding, texCoordBinding);
-
-            if (shadowMap == null) {
-                shadowMapPass = null;
-                shadowLightPass = null;
-            } else {
-                shadowMapPass = new ShadowMapGeneratorPass(this, maxMaterialTextureUnits, vertexBinding);
-                shadowLightPass = new ShadowedLightingPass(this, shadowMap.getDepthBuffer(), maxMaterialTextureUnits,
-                                                           vertexBinding, normalBinding, texCoordBinding);
-            }
-        }
-
-        @Override
-        public void flush(Surface surface) {
-            getRenderedEntities().sort(new EntityHasher(getViewFrustum()));
-            getShadowCastingEntities().sort(new EntityHasher(null));
-            
-            if (shadowMap == null || getShadowFrustum() == null) {
-                // just do the default pass
-                manager.queue(surface, defaultPass);
-            } else {
-                // do all three
-                String group = manager.getSurfaceGroup(surface);
-                manager.queue(group, shadowMap, shadowMapPass);
-                manager.queue(group, surface, defaultPass);
-                manager.queue(group, surface, shadowLightPass);
-            }
-        }
-
-        @Override
-        public void notifyBaseLightingPassBegin() {
-            // begin rendering right away, this phase doesn't
-            // depend on the shadow map
-        }
-
-        @Override
-        public void notifyBaseLightingPassEnd() {
-            if (shadowMap == null || getShadowFrustum() == null) {
-                // if there's no shadow map, this is the final stage
-                // so we must close up shop
-                close();
-            }
-        }
-
-        @Override
-        public void notifyShadowMapBegin() {
+        // Block until previous frame is completed to prevent the main thread
+        // from getting too ahead of the rendering thread.
+        //  - We do the blocking at the end so that this thread finishes all 
+        //    processing before waiting on the rendering thread.
+        while(!previousFrame.isEmpty()) {
+            Future<Void> f = previousFrame.poll();
             try {
-                shadowMapAccessor.acquire();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // preserve status
-                throw new RuntimeException(e);
+                f.get();
+            } catch (Exception e) {
+                throw new RuntimeException("Previous frame failed", e);
             }
         }
-
-        @Override
-        public void notifyShadowMapEnd() {
-            shadowMapAccessor.release();
-        }
-
-        @Override
-        public void notifyShadowedLightingPassBegin() {
-            try {
-                shadowMapAccessor.acquire();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // preserve status
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public void notifyShadowedLightingPassEnd() {
-            // if invoked, this is always the last stage, so close up
-            shadowMapAccessor.release();
-            close();
-        }
-        
-        private void close() {
-            reset();
-            connectionPool.add(this);
-        }
+        previousFrame.addAll(thisFrame);
     }
     
-    private static class EntityHasher implements HashFunction<Entity> {
-        // all non-transparent hashes have this set to ensure the final
-        // hash is negative, and force transparent entities to be at the end
-        private static final int NON_TRANSPARENT_BIT = 1 << 31;
-        private static final float DIST_SCALE = 100000f;
+    public static long rendertime = 0L;
+    private Future<Void> render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
+        GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(), view.getViewMatrix());
+        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(), diffuseTextureUnit, emissiveTextureUnit, 
+                                                                   geomGroup);
+        LightGroupFactory lightGroup = new LightGroupFactory(textureGroup);
         
-        private final Frustum view;
-        private final Vector3f proj;
-        
-        public EntityHasher(Frustum frustum) {
-            proj = new Vector3f();
-            view = frustum;
+        final StateNode rootNode = new StateNode(lightGroup.newGroup());
+        for (Entity e: pvs) {
+            rootNode.add(e);
         }
         
-        @Override
-        public int hashCode(Entity value) {
-            Transparent t = value.get(TR_ID);
-            if (t == null || view == null) {
-                Shape s = value.get(S_ID);
-                int geomId = (s == null ? 0 : s.getGeometry().getId());
-
-                TexturedMaterial tm = value.get(T_ID);
-                int tpId = (tm == null ? 0 : (tm.getPrimaryTexture() == null ? 0 : tm.getPrimaryTexture().getId()));
-                int tdId = (tm == null ? 0 : (tm.getDecalTexture() == null ? 0 : tm.getDecalTexture().getId()));
-
-                return (NON_TRANSPARENT_BIT | (geomId << 20) | (tpId << 10) | (tdId));
-            } else {
-                // FIXME: this depth sorting doesn't scale well enough
-                Transform se = value.get(SE_ID);
-                if (se != null)
-                    se.getTransform().getTranslation().sub(view.getLocation(), proj);
-                else
-                    view.getLocation().scale(-1f, proj);
-                // computing the square root is worth it because we'd like to on-average
-                // deal with smaller numbers
-                float dst = DIST_SCALE - proj.project(view.getDirection()).length();
-                
-                return (~NON_TRANSPARENT_BIT) & ((int) (dst * DIST_SCALE));
+        Future<Void> future = framework.queue(new Task<Void>() {
+            @Override
+            public Void run(HardwareAccessLayer access) {
+                long now = System.nanoTime();
+                Context ctx = access.setActiveSurface(surface);
+                if (ctx != null) {
+                    FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
+                    ffp.clear(true, true, true, new Vector4(0, 0, 0, 1.0), 1f, 0);
+                    ffp.setProjectionMatrix(view.getProjectionMatrix());
+                    ffp.setModelViewMatrix(view.getViewMatrix());
+                    
+                    rootNode.render(ffp);
+                    
+                    ctx.flush();
+                }
+                rendertime += (System.nanoTime() - now);
+                return null;
             }
+        }, "main");
+        return future;
+    }
+    
+    @Override
+    public void preProcess(double dt) {
+        pvs = new ArrayList<PVSResult>();
+    }
+    
+    @Override
+    public void report(Result r) {
+        if (r instanceof PVSResult) {
+            pvs.add((PVSResult) r);
         }
     }
 }

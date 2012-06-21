@@ -374,6 +374,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                 lights[i].modifiedSinceReset = false;
             }
             
+            // FIXME wtf, this doens't do anything shouldn't it be WHITE WHITE WHITE for i ==0 ?
             if (i == 0)
                 setLightColor(i, BLACK, WHITE, WHITE);
             else

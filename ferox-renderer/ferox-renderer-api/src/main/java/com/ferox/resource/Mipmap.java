@@ -79,13 +79,18 @@ public class Mipmap {
         
         int mipCount = getMipmapCount(width, height, depth);
         this.dataType = dataType;
-        levels = new BufferData[mipmap ? mipCount : 1];
-        
+        this.format = format;
         this.width = width;
         this.height = height;
         this.depth = depth;
         
-        this.format = format;
+        levels = new BufferData[mipmap ? mipCount : 1];
+        for (int i = 0; i < levels.length; i++) {
+            levels[i] = new BufferData(dataType, format.getBufferSize(width, height, depth));
+            width = Math.max(width >> 1, 1);
+            height = Math.max(height >> 1, 1);
+            depth = Math.max(depth >> 1, 1);
+        }
     }
 
     /**

@@ -27,5 +27,15 @@
             <artifactId>entreri</artifactId>
             <version>${entreri.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.lhkbob.ferox</groupId>
+            <artifactId>ferox-renderer-lwjgl</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lhkbob.ferox</groupId>
+            <artifactId>ferox-renderer-jogl</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

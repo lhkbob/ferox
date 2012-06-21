@@ -17,7 +17,6 @@ public class WorldBoundsController extends SimpleController {
             .addRequired(renderable)
             .addRequired(transform);
         
-        it.reset();
         while(it.next()) {
             worldBounds.transform(renderable.getLocalBounds(), transform.getMatrix());
             renderable.setWorldBounds(worldBounds);

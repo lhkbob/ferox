@@ -27,7 +27,7 @@ public class CameraController extends SimpleController {
             .addOptional(transform);
         
         while(it.next()) {
-            double aspect = camera.getSurface().getHeight() / (double) camera.getSurface().getWidth();
+            double aspect = camera.getSurface().getWidth() / (double) camera.getSurface().getHeight();
             Frustum f = new Frustum(camera.getFieldOfView(), aspect, 
                                     camera.getNearZDistance(), camera.getFarZDistance());
             

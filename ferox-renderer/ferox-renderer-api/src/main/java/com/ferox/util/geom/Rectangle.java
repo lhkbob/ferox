@@ -1,8 +1,8 @@
 package com.ferox.util.geom;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
-import com.ferox.math.bounds.AxisAlignedBox;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
