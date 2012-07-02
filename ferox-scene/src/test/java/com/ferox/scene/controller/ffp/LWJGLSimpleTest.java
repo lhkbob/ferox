@@ -4,17 +4,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
-import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
+import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.scene.AmbientLight;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
+import com.ferox.scene.InfluenceRegion;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
@@ -24,6 +26,9 @@ import com.ferox.scene.controller.VisibilityController;
 import com.ferox.scene.controller.WorldBoundsController;
 import com.ferox.scene.controller.light.LightGroupController;
 import com.ferox.util.geom.Box;
+import com.ferox.util.geom.Geometry;
+import com.ferox.util.geom.Sphere;
+import com.ferox.util.geom.Teapot;
 import com.lhkbob.entreri.Controller;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -37,50 +42,72 @@ public class LWJGLSimpleTest {
             .setHeight(600)
 //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
             .setResizable(false));
-        surface.setVSyncEnabled(true);
+        surface.setVSyncEnabled(false);
         
         EntitySystem system = new EntitySystem();
         
         Entity camera = system.addEntity();
         camera.add(Transform.ID).getData().setMatrix(new Matrix4(-1, 0, 0, 0, 
                                                                  0, 1, 0, 0,
-                                                                 0, 0, -1, 110,
+                                                                 0, 0, -1, 150,
                                                                  0, 0, 0, 1));
         camera.add(Camera.ID).getData().setSurface(surface)
                                        .setZDistances(0.1, 1200)
                                        .setFieldOfView(75);
         
-        Box b = new Box(2f);
+        Geometry b1 = new Sphere(2f, 16, StorageMode.GPU_STATIC);
+        Geometry b2 = new Box(2f, StorageMode.GPU_STATIC);
+        Geometry b3 = new Teapot(1f, StorageMode.GPU_STATIC);
+
+        int totalpolys = 0;
         for (int i = 0; i < 10000; i++) {
+            Geometry b;
+            double choice = Math.random();
+            if (choice < .35) {
+                b = b1;
+            } else if (choice < .9) {
+                b = b2;
+            } else {
+                b = b3;
+            }
+            
+            int polycount = b.getPolygonType().getPolygonCount(b.getIndexCount() - b.getIndexOffset());
+
             Entity e = system.addEntity();
             e.add(Renderable.ID).getData().setVertices(b.getVertices())
                                           .setLocalBounds(b.getBounds())
-                                          .setArrayIndices(b.getPolygonType(), b.getIndexOffset(), b.getIndexCount());
+                                          .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(), b.getIndexCount());
             e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
             e.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100, 
                                                                 0, 1, 0, Math.random() * 200 - 100, 
                                                                 0, 0, 1, Math.random() * 200 - 100,
                                                                 0, 0, 0, 1));
+            totalpolys += polycount;
         }
-        Entity light = system.addEntity();
-        light.add(PointLight.ID).getData().setFalloffDistance(30f);
-        light.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100, 
-                                                                0, 1, 0, Math.random() * 2 - 1, 
-                                                                0, 0, 1, Math.random() * 200 - 100,
-                                                                0, 0, 0, 1));
         
-//        light = system.addEntity();
-//        light.add(PointLight.ID).getData().setFalloffDistance(30f);
-//        light.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100, 
-//                                                                0, 1, 0, Math.random() * 2 - 1, 
-//                                                                0, 0, 1, Math.random() * 200 - 100,
-//                                                                0, 0, 0, 1));
+        System.out.println("Approximate total polygons / frame: " + totalpolys);
         
+        for (int i = 0; i < 10; i++) {
+            double falloff = 10.0 + Math.random() * 10.0 + Math.random() * 100.0;
+            
+            Entity light = system.addEntity();
+            light.add(PointLight.ID).getData().setFalloffDistance(falloff)
+                                              .setColor(new ColorRGB(Math.random(), Math.random(), Math.random()));
+                
+//            light.add(InfluenceRegion.ID).getData().setBounds(new AxisAlignedBox(new Vector3(-falloff, -falloff, -falloff), new Vector3(falloff, falloff, falloff)));
+            light.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100, 
+                                                                    0, 1, 0, Math.random() * 200 - 100, 
+                                                                    0, 0, 1, Math.random() * 200 - 100,
+                                                                    0, 0, 0, 1));
+        }
+        system.addEntity().add(AmbientLight.ID).getData().setColor(new ColorRGB(0.2, 0.2, 0.2));
+        
+        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-150, -150, -150), new Vector3(150, 150, 150));
         Controller boundsUpdate = new WorldBoundsController();
         Controller frustumUpdate = new CameraController();
-        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(new AxisAlignedBox(new Vector3(-150, -150, -150), new Vector3(150, 150, 150)), 6));
+        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(worldBounds, 6));
         Controller pvsComputer = new VisibilityController();
-        Controller lights = new LightGroupController();
+        Controller lights = new LightGroupController(worldBounds);
         Controller render = new FixedFunctionRenderController(framework);
         
         Map<String, Controller> controllers = new HashMap<String, Controller>();
@@ -121,8 +148,9 @@ public class LWJGLSimpleTest {
             System.out.println("***** TIMING *****");
             print("total", total, numRuns);
             for (String name: controllers.keySet()) {
-                print(name, times.get(name), numRuns);
+                print(name, (times.containsKey(name) ? times.get(name) : 0), numRuns);
             }
+            print("blocked", FixedFunctionRenderController.blocktime, numRuns);
             print("opengl", FixedFunctionRenderController.rendertime, numRuns);
             System.out.println();
             

@@ -87,11 +87,13 @@ public class HeadlessSpeedTest {
                                                                 0, 0, 1, Math.random() * 200 - 100,
                                                                 0, 0, 0, 1));
         
+        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-150, -10, -150), new Vector3(150, 10, 150));
+        
         Controller boundsUpdate = new WorldBoundsController();
         Controller frustumUpdate = new CameraController();
-        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(new AxisAlignedBox(new Vector3(-150, -10, -150), new Vector3(150, 10, 150)), 6));
+        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(worldBounds, 6));
         Controller pvsComputer = new VisibilityController();
-        Controller lightGroups = new LightGroupController();
+        Controller lightGroups = new LightGroupController(worldBounds);
         Controller render = new RenderController();
         
         Map<String, Controller> controllers = new HashMap<String, Controller>();

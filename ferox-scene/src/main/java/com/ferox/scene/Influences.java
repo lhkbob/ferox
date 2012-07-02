@@ -1,5 +1,6 @@
 package com.ferox.scene;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,6 +21,10 @@ public final class Influences extends ComponentData<Influences> {
     private ObjectProperty<Set<Entity>> entities;
     
     private Influences() { }
+    
+    public Set<Entity> getInfluencedSet() {
+        return Collections.unmodifiableSet(entities.get(getIndex(), 0));
+    }
     
     public Influences setInfluenced(Entity e, boolean canInfluence) {
         if (e == null)
