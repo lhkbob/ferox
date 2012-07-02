@@ -1,5 +1,6 @@
 package com.ferox.scene.controller.light;
 
+import java.util.List;
 import java.util.Set;
 
 import com.ferox.scene.Light;
@@ -9,9 +10,9 @@ import com.lhkbob.entreri.property.IntProperty;
 
 public class LightGroupResult implements Result {
     private final IntProperty groupAssignment;
-    private final Set<Component<? extends Light<?>>>[] groups;
+    private final List<Set<Component<? extends Light<?>>>> groups;
     
-    public LightGroupResult(Set<Component<? extends Light<?>>>[] groups, IntProperty assignment) {
+    public LightGroupResult(List<Set<Component<? extends Light<?>>>> groups, IntProperty assignment) {
         if (assignment == null)
             throw new NullPointerException("Property cannot be null");
         if (groups == null)
@@ -25,11 +26,11 @@ public class LightGroupResult implements Result {
     }
     
     public Set<Component<? extends Light<?>>> getGroup(int group) {
-        return groups[group];
+        return groups.get(group);
     }
     
     public int getGroupCount() {
-        return groups.length;
+        return groups.size();
     }
 
     @Override
