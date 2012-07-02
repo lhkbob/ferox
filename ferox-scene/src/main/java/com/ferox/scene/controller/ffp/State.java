@@ -6,7 +6,7 @@ import com.lhkbob.entreri.Entity;
 public interface State {
     public void add(Entity e);
     
-    public boolean applyState(FixedFunctionRenderer r);
+    public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index);
     
-    public void unapplyState(FixedFunctionRenderer r);
+    public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index);
 }

@@ -24,6 +24,7 @@ import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
 import com.ferox.scene.Camera;
 import com.ferox.scene.controller.PVSResult;
+import com.ferox.scene.controller.light.LightGroupResult;
 import com.ferox.util.Bag;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
@@ -39,6 +40,7 @@ public class FixedFunctionRenderController extends SimpleController {
     private final int emissiveTextureUnit;
     
     private List<PVSResult> pvs;
+    private LightGroupResult lightGroups;
     
     private final Queue<Future<Void>> previousFrame;
 
@@ -104,6 +106,7 @@ public class FixedFunctionRenderController extends SimpleController {
         }
     }
     
+    public static long blocktime = 0L;
     @Override
     @SuppressWarnings("unchecked")
     public void process(double dt) {
@@ -122,6 +125,7 @@ public class FixedFunctionRenderController extends SimpleController {
         // from getting too ahead of the rendering thread.
         //  - We do the blocking at the end so that this thread finishes all 
         //    processing before waiting on the rendering thread.
+        long now = System.nanoTime();
         while(!previousFrame.isEmpty()) {
             Future<Void> f = previousFrame.poll();
             try {
@@ -130,15 +134,16 @@ public class FixedFunctionRenderController extends SimpleController {
                 throw new RuntimeException("Previous frame failed", e);
             }
         }
+        blocktime += (System.nanoTime() - now);
         previousFrame.addAll(thisFrame);
     }
     
     public static long rendertime = 0L;
     private Future<Void> render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
         GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(), view.getViewMatrix());
-        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(), diffuseTextureUnit, emissiveTextureUnit, 
-                                                                   geomGroup);
-        LightGroupFactory lightGroup = new LightGroupFactory(textureGroup);
+//        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(), diffuseTextureUnit, emissiveTextureUnit, 
+//                                                                   geomGroup);
+        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(), lightGroups, 8, geomGroup);
         
         final StateNode rootNode = new StateNode(lightGroup.newGroup());
         for (Entity e: pvs) {
@@ -152,11 +157,12 @@ public class FixedFunctionRenderController extends SimpleController {
                 Context ctx = access.setActiveSurface(surface);
                 if (ctx != null) {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
-                    ffp.clear(true, true, true, new Vector4(0, 0, 0, 1.0), 1f, 0);
+                    // FIXME clear color should be configurable somehow
+                    ffp.clear(true, true, true, new Vector4(0.0, 0.0, 0.0, 1.0), 1f, 0);
                     ffp.setProjectionMatrix(view.getProjectionMatrix());
                     ffp.setModelViewMatrix(view.getViewMatrix());
                     
-                    rootNode.render(ffp);
+                    rootNode.render(ffp, new AppliedEffects(view.getViewMatrix()));
                     
                     ctx.flush();
                 }
@@ -170,12 +176,15 @@ public class FixedFunctionRenderController extends SimpleController {
     @Override
     public void preProcess(double dt) {
         pvs = new ArrayList<PVSResult>();
+        lightGroups = null;
     }
     
     @Override
     public void report(Result r) {
         if (r instanceof PVSResult) {
             pvs.add((PVSResult) r);
+        } else if (r instanceof LightGroupResult) {
+            lightGroups = (LightGroupResult) r;
         }
     }
 }

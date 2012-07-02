@@ -81,6 +81,19 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         public List<StateNode> getNodes() {
             return allNodes;
         }
+
+        @Override
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+            return effects;
+        }
+
+        @Override
+        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+            // set attributes to null
+            r.setVertices(null);
+            r.setNormals(null);
+            r.setModelViewMatrix(effects.getViewMatrix());
+        }
     }
     
     private class GeometryState implements State {
@@ -116,7 +129,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public boolean applyState(FixedFunctionRenderer r) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
             r.setVertices(geometry.vertices);
             r.setNormals(geometry.normals);
             
@@ -141,13 +154,12 @@ public final class GeometryGroupFactory implements StateGroupFactory {
                 }
             }
             
-            return true;
+            return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
             // do nothing
-            // FIXME set null vertices/normals?
         }
     }
     

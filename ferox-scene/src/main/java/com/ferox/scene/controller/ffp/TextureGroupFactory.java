@@ -59,18 +59,19 @@ public class TextureGroupFactory implements StateGroupFactory {
                 // haven't seen this texture configuration before
                 StateGroup child = (childFactory != null ? childFactory.newGroup() : null);
                 if (diffuseUnit != emissiveUnit || !diffuse.isEnabled() || !emissive.isEnabled()) {
-                    // we have enough units to use a single state
-                    TextureState state = new TextureState(diffuse, emissive);
+                    // we have enough units to use a single state, or only 
+                    // one texture is enabled
+                    TextureState state = new TextureState(new TextureSet(diffuse, emissive));
                     node = new StateNode(child, state);
                     allNodes.add(node);
                     index.put(state.textures, node);
                 } else {
                     // we only have 1 unit available, but both diffuse and emissive
                     // are enabled.
-                    // - the key set is still treated as a single state, though
+                    // - 
                     TextureSet key = new TextureSet(diffuse, emissive);
-                    node = new StateNode(child, new TextureState(diffuse, null), 
-                                         new TextureState(null, emissive));
+                    node = new StateNode(child, new TextureState(key), 
+                                         new TextureState(key));
                     allNodes.add(node);
                     index.put(key, node);
                 }
@@ -89,8 +90,8 @@ public class TextureGroupFactory implements StateGroupFactory {
     private class TextureState implements State {
         private final TextureSet textures; // immutable, don't call set()
         
-        public TextureState(DiffuseColorMap diffuse, EmittedColorMap emissive) {
-            textures = new TextureSet(diffuse, emissive);
+        public TextureState(TextureSet textures) {
+            this.textures = textures;
         }
         
         @Override
@@ -100,6 +101,9 @@ public class TextureGroupFactory implements StateGroupFactory {
 
         @Override
         public boolean applyState(FixedFunctionRenderer r) {
+            
+            
+            
             // FIXME if this is the 2nd state, we need to turn additive blending
             // for the emissive texture instead of using the texture environment
             if (textures.diffuse != null) {
@@ -131,6 +135,13 @@ public class TextureGroupFactory implements StateGroupFactory {
             // do nothing
             // FIXME set textures to null?
         }
+    }
+    
+    private static class TextureConfiguration {
+        private Texture texture;
+        private VertexAttribute coords;
+        
+        private Env
     }
     
     private static class TextureSet {
