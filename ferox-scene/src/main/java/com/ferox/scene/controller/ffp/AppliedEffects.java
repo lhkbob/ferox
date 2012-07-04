@@ -12,6 +12,7 @@ public class AppliedEffects {
     // to specify all shadowed lights so that all of them can be disabled.
     private final Component<? extends Light<?>> shadowLight;
     
+    // FIXME should this just be a transparentPhase?
     private final boolean blendingEnabled;
     private final BlendFactor destBlend;
     private final BlendFactor sourceBlend;

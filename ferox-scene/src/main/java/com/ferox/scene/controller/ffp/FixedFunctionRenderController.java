@@ -143,9 +143,11 @@ public class FixedFunctionRenderController extends SimpleController {
         GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(), view.getViewMatrix());
 //        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(), diffuseTextureUnit, emissiveTextureUnit, 
 //                                                                   geomGroup);
-        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(), lightGroups, 8, geomGroup);
+        MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(), geomGroup);
+        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(), lightGroups, 8, materialGroup);
+        LightingGroupFactory lightingGroup = new LightingGroupFactory(materialGroup, lightGroup);
         
-        final StateNode rootNode = new StateNode(lightGroup.newGroup());
+        final StateNode rootNode = new StateNode(lightingGroup.newGroup());
         for (Entity e: pvs) {
             rootNode.add(e);
         }
@@ -159,6 +161,7 @@ public class FixedFunctionRenderController extends SimpleController {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
                     // FIXME clear color should be configurable somehow
                     ffp.clear(true, true, true, new Vector4(0.0, 0.0, 0.0, 1.0), 1f, 0);
+                    // FIXME should these be moved into a ViewStateGroupFactory?
                     ffp.setProjectionMatrix(view.getProjectionMatrix());
                     ffp.setModelViewMatrix(view.getViewMatrix());
                     

@@ -163,13 +163,13 @@ public class LightGroupFactory implements StateGroupFactory {
 
         @Override
         public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
-            r.setLightingEnabled(true);
+            // do nothing
             return effects;
         }
 
         @Override
         public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
-            r.setLightingEnabled(false);
+            // do nothing
         }
     }
     
@@ -232,7 +232,10 @@ public class LightGroupFactory implements StateGroupFactory {
                             // FIXME: remove cast after renderer update
                             r.setSpotlight(i, light.spotlightDirection, (float) light.cutoffAngle);
                             if (light.falloff >= 0) {
-                                r.setLightAttenuation(i, 1.0f, 0.0f, (float) (1.0 / (light.falloff * light.falloff)));
+                                // the constant 15 was chosen through experimentation, basically
+                                // a value that makes lights seem bright enough but still
+                                // drop off pretty well by the desired radius
+                                r.setLightAttenuation(i, 1.0f, 0.0f, (float) (15.0 / (light.falloff * light.falloff)));
                             } else {
                                 // disable attenuation
                                 r.setLightAttenuation(i, 1.0f, 0.0f, 0.0f);
