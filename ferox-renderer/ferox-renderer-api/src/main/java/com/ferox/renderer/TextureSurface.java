@@ -12,13 +12,11 @@ import com.ferox.resource.Texture.Target;
  * surface is rendered into so they reflect the newly rendered contents. It is
  * still necessary to update those textures when the texture parameters have
  * changed.
- * </p>
  * <p>
  * TextureSurfaces support multiple color buffer attachments, although the exact
  * number is dependent on hardware, and the requested number when the surface
  * was created. They can also have a depth texture that stores the surface's
  * depth information.
- * </p>
  * <p>
  * A TextureSurface requires a 2D plane of image data to render into. However,
  * Texture has the concept of a layer to support targets such as T_CUBEMAP.
@@ -31,7 +29,6 @@ import com.ferox.resource.Texture.Target;
  * finally limit the rendering into a 2D plane. These parameters are defaults
  * used when {@link Context#setSurface(Surface) using a surface}. They can be
  * explicitly specified with {@link Context#setSurface(TextureSurface, int)}.
- * </p>
  * <p>
  * Attached textures have a limited ability to be updated. The created Textures
  * will not be mipmapped, so each layer will only have a single mipmap level.
@@ -42,7 +39,6 @@ import com.ferox.resource.Texture.Target;
  * thrown by {@link HardwareAccessLayer#dispose(com.ferox.resource.Resource)}).
  * The textures are still usable after the surface has been destroyed, they will
  * just no longer be rendered into by the TextureSurface.
- * </p>
  * 
  * @author Michael Ludwig
  */

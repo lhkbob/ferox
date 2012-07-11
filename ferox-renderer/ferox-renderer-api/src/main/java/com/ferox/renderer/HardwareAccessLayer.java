@@ -35,50 +35,36 @@ public interface HardwareAccessLayer {
      * layer. A Surface must be active in order to use any Renderers (which are
      * provided by the returned Context). This may be called multiple times by
      * the same Task, although only one Surface will be active for the task at a
-     * given time. A Surface cannot be active on more than one thread at a time.
-     * This method will block until any other running task releases the surface
-     * (by returning or activating a different surface).
-     * </p>
+     * given time. A Surface can only be active within a single task as well,
+     * but this is only relevant if the Framework supports can process tasks
+     * from multiple threads.
      * <p>
      * The returned Context is only valid while the specified surface is active.
      * If this is called again with any surface (including this one), the old
      * Context must be discarded and the new Context should be used.
-     * </p>
      * <p>
      * The update, dispose and reset operations provided by this access layer
      * can be used whether or not a surface is active and their high-level
      * behavior does not change if a Surface is active. Resource operations can
      * be interleaved with rendering operations.
-     * </p>
      * <p>
      * Calling this method with a null surface is allowed. It deactivates any
      * current surface, allowing that surface to be activated by other Tasks. A
      * null surface will return a null context. Using a null surface effectively
      * restores the hardware access layer to its initial state when the Task
      * began executing.
-     * </p>
      * <p>
      * If the provided Surface is a TextureSurface, the surface will be
-     * activated using its activate layer or active depth plane depending on if
-     * it has a cube map or 3D texture. Other texture types do not have multiple
-     * layers to select so it does not matter.
-     * </p>
+     * activated using its default activate layer or default active depth plane
+     * depending on if it has a cube map or 3D texture. Other texture types do
+     * not have multiple layers to select so it does not matter.
      * <p>
-     * If the surface has its {@link Surface#destroy()} method called before
-     * this it is activated, a null Context is returned. A Surface cannot be
-     * destroyed until it has been deactivated. The only exception to this is if
-     * the Thread running the Task calls destroy. In this case, the Surface is
-     * deactivated automatically and then destroyed.
-     * </p>
-     * <p>
-     * Generally Surfaces should not be destroyed within a Task since it can
-     * have unintended consequences. As an example, an OnscreenSurface might
-     * still be used to provide a Context for a TextureSurface. Destroying the
-     * OnscreenSurface while the TextureSurface is active would also have to
-     * deactivate the TextureSurface. Essentially, destroying the active surface
-     * while in a Task has well defined consequences; destroying other surfaces
-     * in a Task may or may not also deactivate the currently active surface.
-     * </p>
+     * If the surface has its {@link Surface#destroy()} method called before it
+     * is activated, a null Context is returned. A Surface cannot be destroyed
+     * until it has been deactivated, in which case the caller will block. The
+     * only exception to this is if the Thread running the Task calls destroy.
+     * In this case, the Surface is deactivated automatically and then
+     * destroyed.
      * 
      * @param surface The Surface to activate, or null to deactivate the current
      *            surface
@@ -94,7 +80,6 @@ public interface HardwareAccessLayer {
      * {@link #setActiveSurface(Surface)} except that it overrides the
      * TextureSurface's active layer and does not allow the surface to be null.
      * Deactivating surfaces can only be done with the first method.
-     * </p>
      * <p>
      * The layer argument is interpreted differently depending on the type of
      * Texture used by the TextureSurface. If the texture is a cube map, the
@@ -103,11 +88,6 @@ public interface HardwareAccessLayer {
      * {@link TextureSurface#getActiveDepthPlane()}. The layer argument is
      * validated in the same manner that setting the default active layer or
      * active depth plane is. For 1D and 2D textures, it must always be 0.
-     * </p>
-     * <p>
-     * See {@link #setActiveSurface(Surface)} for details on how destroyed
-     * Surfaces or destroying a Surface within a Task behaves.
-     * </p>
      * 
      * @param surface The TextureSurface to activate, cannot be null
      * @param layer The texture layer or depth plane to render into, depending
@@ -120,18 +100,17 @@ public interface HardwareAccessLayer {
 
     /**
      * <p>
-     * Push all changes to the given Resource to the graphics hardware. The
-     * access layer is responsible for detecting these changes. In many
+     * Push all changes to the given Resource to the graphics hardware. This
+     * HardwareAccessLayer is responsible for detecting these changes. In many
      * situations this is a fast operation. The {@link BufferData} type has a
      * built in mechanism for tracking changes to the arrays that do not require
-     * full scans.
-     * </p>
+     * full iteration.
      * <p>
      * If a resource's update policy is {@link UpdatePolicy#ON_DEMAND}, the
      * Framework will call this method as needed when the resource is used in
-     * rendering. However, it is perfectly valid to invoke this method with an
-     * on demand resource. Manually-updated resources must be updated with this
-     * method by a Task before they can be used by a renderer.
+     * rendering. It is still valid to invoke this method with an on demand
+     * resource. Manually-updated resources must be updated with this method by
+     * a Task before they can be used by a Renderer.
      * <p>
      * Calling {@link #reset(Resource)} resets the Framework's last known state
      * for the resource, so that the next update pushes everything to the

@@ -67,9 +67,9 @@ public final class OnscreenSurfaceOptions {
     }
 
     /**
-     * The type of fullscreen anti-aliasing to apply to the surface.
+     * The type of per-pixel anti-aliasing to apply to the surface.
      */
-    public static enum AntiAliasMode {
+    public static enum MultiSampling {
         /**
          * Two samples per-pixel multisampling.
          */
@@ -105,7 +105,7 @@ public final class OnscreenSurfaceOptions {
     private final DisplayMode fullMode;
     
     private final DepthFormat depth;
-    private final AntiAliasMode aa;
+    private final MultiSampling aa;
     private final StencilFormat stencil;
 
     /**
@@ -113,7 +113,7 @@ public final class OnscreenSurfaceOptions {
      * parameters:
      * <ul>
      * <li>{@link #getDepthFormat()} returns DEPTH_24BIT</li>
-     * <li>{@link #getAntiAliasMode()} returns NONE</li>
+     * <li>{@link #getMultiSampling()} returns NONE</li>
      * <li>{@link #getStencilFormat()} returns NONE</li>
      * <li>{@link #isUndecorated()} returns false</li>
      * <li>{@link #isResizable()} returns false</li>
@@ -125,11 +125,11 @@ public final class OnscreenSurfaceOptions {
      * </ul>
      */
     public OnscreenSurfaceOptions() {
-        this(DepthFormat.DEPTH_24BIT, AntiAliasMode.NONE, StencilFormat.NONE, 
+        this(DepthFormat.DEPTH_24BIT, MultiSampling.NONE, StencilFormat.NONE, 
              false, false, 0, 0, 600, 600, null);
     }
     
-    private OnscreenSurfaceOptions(DepthFormat d, AntiAliasMode a, StencilFormat s, 
+    private OnscreenSurfaceOptions(DepthFormat d, MultiSampling a, StencilFormat s, 
                                    boolean undecorated, boolean resizable, int x, int y, 
                                    int width, int height, DisplayMode ff) {
         if (d == null || a == null || s == null)
@@ -227,14 +227,14 @@ public final class OnscreenSurfaceOptions {
     }
 
     /**
-     * Set the requested AntiAliasMode of the surface.
+     * Set the requested MultiSampling of the surface.
      * 
-     * @param aa The new AntiAliasMode
+     * @param aa The new MultiSampling
      * @return A new OnscreenSurfaceOptions equivalent to this one, except with
      *         the new mode
      * @throws NullPointerException if aa is null
      */
-    public OnscreenSurfaceOptions setAntiAliasMode(AntiAliasMode aa) {
+    public OnscreenSurfaceOptions setMultiSampling(MultiSampling aa) {
         return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
                                           width, height, fullMode);
     }
@@ -316,9 +316,9 @@ public final class OnscreenSurfaceOptions {
     public StencilFormat getStencilFormat() { return stencil; }
     
     /**
-     * @return The requested AntiAliasMode for the buffers
+     * @return The requested MultiSampling for the buffers
      */
-    public AntiAliasMode getAntiAliasMode() { return aa; }
+    public MultiSampling getMultiSampling() { return aa; }
     
     /**
      * @return The initial width of the surface when windowed

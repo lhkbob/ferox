@@ -11,13 +11,11 @@ import com.ferox.resource.Texture.Target;
  * <p>
  * RenderCapabilities holds onto a set of different parameters describing more
  * advanced features that the baseline hardware may not support.
- * </p>
  * <p>
  * Because Ferox was designed to be implemented with an OpenGL system, the
  * capabilities here reflect that and allow for lower-level inspection of the
  * current hardware. Framework implementations are expected to extend
  * RenderCapabilities to provide the correct values for each parameter.
- * </p>
  * 
  * @author Michael Ludwig
  */

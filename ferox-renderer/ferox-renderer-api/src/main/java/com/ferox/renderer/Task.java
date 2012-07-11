@@ -8,10 +8,8 @@ import com.ferox.resource.Resource;
  * a {@link Framework} with an active {@link HardwareAccessLayer}. The context
  * provides access to {@link Renderer renderers} and allows for manual updating
  * and disposing of {@link Resource resources}.
- * </p>
  * <p>
  * Tasks are executed using {@link Framework#queue(Task, String)}.
- * </p>
  * 
  * @see HardwareAccessLayer
  * @see Context

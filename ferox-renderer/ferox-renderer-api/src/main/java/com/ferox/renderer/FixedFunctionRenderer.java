@@ -6,7 +6,7 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
-import com.ferox.util.geom.Geometry;
+import com.ferox.resource.VertexBufferObject;
 
 /**
  * <p>
@@ -16,111 +16,30 @@ import com.ferox.util.geom.Geometry;
  * for GLSL shaders (and even earlier using extensions), this Renderer does not
  * expose that since it's more robust to completely separate fixed and
  * programmable pipelines.
- * </p>
- * <p>
- * There are a number of semi-distinct state groupings that are exposed by the
- * FixedFunctionRenderer:
- * <ul>
- * <li>Alpha testing: another pixel test that can discard pixels based on alpha
- * value</li>
- * <li>Fog: an approximation of fog based on eye-space pixel depth</li>
- * <li>Lighting: collection of states for a number of lights, global lighting
- * parameters, and the material color of rendered Geometry</li>
- * <li>Texturing: collection of states for a number of texture units that allow
- * TextureImages to be attached</li>
- * <li>Drawing parameters: anti-aliasing of points, lines, and solid polygons,
- * and point and line pixel widths</li>
- * <li>Transforms: contains the projection, modelview, and texture coordinate
- * matrices</li>
- * </ul>
- * </p>
- * <p>
- * In addition to this, there are a three attribute binding points. They are
- * specified in a manner similar to attribute bindings in a GLSL shader, except
- * that there can only be vertices, normals and texture coordinates. The
- * vertices represent the 3D points in object space of a Geometry. The normals
- * represent the object-space normal vectors for each vertex. The texture
- * coordinates are 1-4 dimensional vectors that lookup texel values from
- * TextureImages (for 2D images, they are a mapping from the 3D shape to the 2D
- * image plane).
- * </p>
- * <p>
- * With texturing and lighting, there are a number of units available that have
- * the same configuration values, yet are independent. This allows for combining
- * multiple textures, or having shapes lit from multiple lights. There are
- * hardware limits to the number of textures and lights, which can be fetched
- * from a Framework's RenderCapabilities. For all exposed texturing state that
- * takes a texture unit, valid units are in the range [0,
- * {@link RenderCapabilities#getMaxFixedPipelineTextures()}]. For all exposed
- * lighting state that takes a light number, valid units are in the range [0,
- * {@link RenderCapabilities#getMaxActiveLights()}]. All state modifications
- * that use an invalid unit will be ignored. All other state modifications that
- * use invalid values will generally throw exceptions because the valid values
- * are known at compile time.
- * </p>
- * <p>
- * Like the state exposed by the Renderer super-type, there are default values
- * that the Renderer will use at the start of a RenderPass and each time
- * {@link #reset()} is called manually. The defaults are as follows:
- * <ul>
- * <li>The vertex binding name is set to {@link Geometry#DEFAULT_VERTICES_NAME}</li>
- * <li>The normal binding name is set to {@link Geometry#DEFAULT_NORMALS_NAME}</li>
- * <li>The 0th texture coordinate is set to
- * {@link Geometry#DEFAULT_TEXCOORD_NAME}, all other texture coordinates have a
- * null name</li>
- * <li>The alpha test uses the Comparison ALWAYS with a reference value of 1</li>
- * <li>Fogging is disabled, but its color is set to black with an exponential
- * fog of density 1</li>
- * <li>All point, line and polygon anti-aliasing is disabled</li>
- * <li>Point and line widths are set to 1</li>
- * <li>The global ambient color is (.2, .2, .2, 1)</li>
- * <li>Smooth shading is enabled, and two-sided lighting is disabled</li>
- * <li>Each light has a black ambient color. The 0th light has white diffuse and
- * specular lighting, while all others have black diffuse and specular colors</li>
- * <li>Each light has a position vector of (0, 0, 1, 0) - it's directional</li>
- * <li>Each light has a spotlight direction of (0, 0, -1) and attenuation of
- * (c,l,q) = (1,0,0)</li>
- * <li>Lighting in general, and every light is initially disabled</li>
- * <li>The material is set to have an ambient color of (.2, .2, .2, 1), diffuse
- * color of (.8, .8, .8, 1) and the specular and emmissive colors are black</i>
- * <li>The material shininess is set to 0</li>
- * <li>The modelview and projection matrix are set to the identity matrices</li>
- * <li>All TextureImages are unbound, all texture units are disabled</li>
- * <li>Every texture unit uses {@link EnvMode#MODULATE}</li>
- * <li>Every texture unit uses a texture color of (0, 0, 0, 0)</li>
- * <li>All texture units use {@link TexCoordSource#ATTRIBUTE} for each of the
- * available coordinates</li>
- * <li>For each texture unit, the object and eye planes are set to S=(1, 0, 0,
- * 0), T=(0, 1, 0, 0), R=Q=(0,0,0,0)</li>
- * <li>Each texture transform is set to the identity matrix</li>
- * <li>For each texture unit, the rgb and alpha CombineFunctions are MODULATE</li>
- * <li>All 0th sources are CURR_TEX, all 1st sources are PREV_TEX, and all 2nd
- * sources are CONST_COLOR</li>
- * <li>All alpha operands (0, 1, 2) are ALPHA, the 0th and 1st rgb operands are
- * COLOR and the 2nd rgb operand is ALPHA</li>
- * </ul>
- * </p>
  * 
  * @author Michael Ludwig
  */
 public interface FixedFunctionRenderer extends Renderer {
     /**
+     * <p>
      * The CombineFunction enum describes the advanced texture combining
-     * functionality that's enabled when using {@link EnvMode#COMBINE}. The
-     * final color for a combined texture is computed by evaluating one
-     * CombineFunction for the RGB values and one CombineFunction for the alpha
-     * values. </p>
+     * functionality when multiple texture units are used. The final color for a
+     * combined texture is computed by evaluating one CombineFunction for the
+     * RGB values and one CombineFunction for the alpha values.
      * <p>
      * Each CombineFunction uses up to three inputs to compute the final
-     * component values. We define the inputs as follows:
+     * component values. Each input gets a source and operand, labeled below:
      * <ul>
-     * <li>N = current input, one of {0, 1, }</li>
+     * <li>N = current input, one of {0, 1, 2}</li>
      * <li>opN = configured operand for Nth input</li>
      * <li>srcN = configured source for Nth input</li>
      * </ul>
-     * then argN = opN(srcN). For the RGB function, this is actually the tuple
-     * (argNr, argNg, argNb). Also, keep in mind that component values are in
-     * the range [0, 1] and are clamped to this range after being computed.
+     * The final input used by the combine function is
+     * <code>argN = opN(srcN)</code>. For functions on RGB values, it is the
+     * tuple (argNr, argNg, argNb) and math is performed per component. then
+     * argN = opN(srcN).
+     * <p>
+     * All values are color values clamped to the range [0, 1].
      */
     public static enum CombineFunction {
         /**
@@ -168,12 +87,10 @@ public interface FixedFunctionRenderer extends Renderer {
          * </pre>
          * 
          * where arg0 = (r0, g0, b0) and arg1 = (r1, g1, b1).
-         * </p>
          * <p>
          * The DOT3_RGB function cannot be used with the alpha CombineFunction.
          * The alpha value for the final texture is computed as normal using the
          * configured function for that component.
-         * </p>
          */
         DOT3_RGB,
         /**
@@ -188,15 +105,14 @@ public interface FixedFunctionRenderer extends Renderer {
     
     /**
      * <p>
-     * Each CombineOp represents a simple function that acts on component values
-     * of some color source, specified by {@link CombineSource}.
-     * {@link CombineFunction} evaluates the configured CombineOps on the
+     * Each CombineOperand represents a simple function that acts on component
+     * values of some color source, specified by {@link CombineSource}.
+     * {@link CombineFunction} evaluates the configured CombineOperands with the
      * correct CombineSources before combining the computed values into a final
      * color.
-     * </p>
      * <p>
-     * The COMBINE EnvMode uses two CombineFunctions, one for alpha values and
-     * one for the RGB values. When specifying the CombineOps for the alpha
+     * Multi-texturing uses two CombineFunctions, one for alpha values and one
+     * for the RGB values. When specifying the CombineOperandss for the alpha
      * function, it is invalid to use the operands that rely on RGB data.
      * </p>
      * <p>
@@ -204,10 +120,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * As refers to the alpha component. Operations are done component-wise.
      * </p>
      */
-    public static enum CombineOp {
+    public static enum CombineOperand {
         /**
          * This operand returns Cs unmodified. It's invalid to use for the alpha
-         * CombineOp.
+         * CombineOperand.
          */
         COLOR,
         /**
@@ -217,7 +133,7 @@ public interface FixedFunctionRenderer extends Renderer {
         ALPHA, 
         /**
          * This operand returns (1 - Cs). It cannot be used with the alpha
-         * CombineOp.
+         * CombineOperand.
          */
         ONE_MINUS_COLOR, 
         /**
@@ -230,21 +146,23 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * <p>
      * The source of color and alpha values for an associated
-     * {@link CombineOp}. Up to three CombineSources and CombineOperands
+     * {@link CombineOperand}. Up to three CombineSources and CombineOperands
      * can be used by {@link CombineFunction} to provide more complex texture
      * combination algorithms.
-     * </p>
-     * CURR_TEX = color of this texture image <br>
-     * PREV_TEX = color of the texture in the texture unit processed just before
-     * this one (if this is the first unit, then it's the same as VERTEX_COLOR). <br>
-     * CONST_COLOR = environment color of this texture <br>
-     * VERTEX_COLOR = color computed based on material color and lighting <br>
-     * TEXi = color of the texture image bound to the given unit
+     * <ul>
+     * <li>CURR_TEX = color of this texture image</li>
+     * <li>PREV_TEX = color of the texture in the texture unit processed just
+     * before this one (if this is the first unit, then it's the same as
+     * VERTEX_COLOR)</li>
+     * <li>CONST_COLOR = environment color of this texture</li>
+     * <li>VERTEX_COLOR = color computed based on material color and lighting</li>
+     * <li>TEXi = color of the texture image bound to the given unit</li>
+     * </ul>
      * <p>
-     * </p>
      * <b>Note:</b> not all TEXi will be supported because hardware may not have
      * that many texture units available. Units beyond 8 are included for
-     * advanced graphics cards (or future cards). </p>
+     * advanced graphics cards (or future cards).
+     * </p>
      */
     public static enum CombineSource {
         CURR_TEX, PREV_TEX, CONST_COLOR, VERTEX_COLOR, 
@@ -252,94 +170,6 @@ public interface FixedFunctionRenderer extends Renderer {
         TEX9, TEX10, TEX11, TEX12, TEX13, TEX14, TEX15, TEX16, 
         TEX17, TEX18, TEX19, TEX20, TEX21, TEX22, TEX23, TEX24, 
         TEX25, TEX26, TEX27, TEX28, TEX29, TEX30, TEX31
-    }
-    
-    /**
-     * <p>
-     * Each EnvMode describes a different way in which TextureImages are
-     * combined with each other and with the original color of a shape (either
-     * lit or solid). For each enum value, the exact equation varies slightly
-     * based on the TextureFormat of the texture.
-     * </p>
-     * <p>
-     * For brevity, the formats can be easily grouped into RGB, RGBA, and Alpha.
-     * Luminance formats are either RGB or RGBA, where the RGB values hold the
-     * same luminance value (RGBA is used when the luminance format includes
-     * alpha data). In the descriptions below, the combine functions will refer
-     * to the following variables:
-     * <ul>
-     * <li>Cv, Av = Final RGB and alpha values</li>
-     * <li>Cs, As = RGB and alpha values for current texture</li>
-     * <li>Cp, Ap = RGB and alpha values for the previous color</li>
-     * <li>Cc, Ac = RGB and alpha values for the configured 'constant' color of
-     * the texture unit</li>
-     * </ul>
-     * Also, all mathematical operations are done component-wise on Cs and Cp.
-     * </p>
-     */
-    public static enum EnvMode {
-        /**
-         * The REPLACE EnvMode basically ignores the previous color and uses the
-         * texture color as is, unless the texture doesn't have the
-         * corresponding component data (ie when using Alpha or RGB).
-         * 
-         * <pre>
-         * Format | Alpha   | RGB     | RGBA
-         *        | Cv = Cp | Cv = Cs | Cv = Cs
-         *        | Av = As | Av = Ap | Av = As
-         * </pre>
-         */
-        REPLACE,
-        /**
-         * The DECAL EnvMode interpolates between the texture and previous
-         * colors by the texture's alpha (alpha = 1 for RGB textures), while
-         * preserving the previous alpha value. It is undefined when using alpha
-         * or luminance based textures.
-         * 
-         * <pre>
-         * Format | Alpha/Lum | RGB     | RGBA
-         *        |    --     | Cv = Cs | Cv = Cp(1-As)+CsAs
-         *        |    --     | Av = Ap | Av = Ap
-         * </pre>
-         */
-        DECAL,
-        /**
-         * The MODULATE EnvMode combines the texture and previous colors by
-         * multiplying the components with each other, effectively mixing them.
-         * 
-         * <pre>
-         * Format | Alpha   | RGB       | RGBA
-         *        | Cv = Cp | Cv = CpCs | Cv = CpCs
-         *        | Av = As | Av = Ap   | Av = ApAs
-         * </pre>
-         */
-        MODULATE,
-        /**
-         * The BLEND EnvMode interpolates between the previous color and the
-         * constant color, per-component based on the texture's component
-         * values. Alpha values, when present, are modulated instead.
-         * 
-         * <pre>
-         * Format | Alpha     | RGB                | RGBA
-         *        | Cv = Cp   | Cv = Cp(1-Cs)+CcCs | Cv = Cp(1-Cs)+CcCs
-         *        | Av = ApAs | Av = Ap            | Av = ApAs
-         * </pre>
-         */
-        BLEND,
-        /**
-         * <p>
-         * The COMBINE EnvMode is unlike the other EnvModes in that it exposes
-         * additional configuration points. The final color values are derived
-         * by separate rgb and alpha functions, which each take three
-         * parameters. The parameters are modeled as a source (or input) and an
-         * operand on that source.
-         * </p>
-         * <p>
-         * See {@link CombineFunction}, {@link CombineSource}, and {@link CombineOp}
-         * for more information.
-         * </p>
-         */
-        COMBINE
     }
     
     /**
@@ -416,20 +246,26 @@ public interface FixedFunctionRenderer extends Renderer {
     }
 
     /**
+     * <p>
      * Set whether or not eye-space fogging is enabled. If this is enabled, each
      * rendered pixel's color value is blended with the configured fog color (at
      * the time of the rendering) based on the fog equation. The fog equation
      * can be linear, set with {@link #setFogLinear(float, float)}, or
      * exponential, set with {@link #setFogExponential(float, boolean)}.
+     * <p>
+     * The default state starts with fog disabled.
      * 
      * @param enable True if fogging is enabled
      */
     public void setFogEnabled(boolean enable);
 
     /**
-     * Set the color used when fogging is enabled. The color cannot be null. The
-     * color components are clamped to [0, 1] and are ordered red, green, blue
-     * and alpha in the vector.
+     * <p>
+     * Set the color used when fogging is enabled. The color components are
+     * clamped to [0, 1] and are ordered red, green, blue and alpha in the
+     * vector.
+     * <p>
+     * The default fog color is (0, 0, 0, 1).
      * 
      * @param color The new fog color
      * @throws NullPointerException if color is null
@@ -440,19 +276,19 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Set the fog range for linear fog to be between start and end. Anything
      * before start is un-fogged, and anything after end is completely fog.
-     * Calling this method also configures the Renderer to subsequently use
-     * linear fog if it's enabled.
-     * </p>
      * <p>
-     * The fog blend factor is computed as (e - c) / (e - s), where e = end
-     * distance, s = start distance and c = camera eye distance for a pixel.
-     * </p>
+     * Calling this method configures the Renderer to subsequently use a linear
+     * blending function while fogging is enabled. The fog blend factor is
+     * computed as (e - c) / (e - s), where e = end distance, s = start distance
+     * and c = camera eye distance for a pixel.
+     * <p>
+     * The default fog blending function is exponential with a density of 1.
      * 
      * @param start The start range for the linear fog
      * @param end The end range for the linear fog
      * @throws IllegalArgumentException if start >= end
      */
-    public void setFogLinear(float start, float end);
+    public void setFogLinear(double start, double end);
 
     /**
      * <p>
@@ -460,134 +296,170 @@ public interface FixedFunctionRenderer extends Renderer {
      * function. Fog will be rendered using an exponential equation until
      * {@link #setFogLinear(float, float)} is called, which sets it to use
      * linear fog instead.
-     * </p>
      * <p>
      * The fog blend factor is computed two different ways, depending on
      * squared. If squared is true, then it is e^(-density * c), else it is
      * e^(-(density * c)^2), where c is the camera eye distance.
-     * </p>
+     * <p>
+     * The default fog blending function is exponential with a density of 1.
      * 
      * @param density The new fog density
      * @param squared True if the exponent should be squared
      * @throws IllegalArgumentException if density is less than 0
      */
-    public void setFogExponential(float density, boolean squared);
+    public void setFogExponential(double density, boolean squared);
 
     /**
+     * <p>
      * Set to true to cause points to be rendered as anti-aliased circles
      * instead of squares. When anti-aliasing is enabled, the final point width
      * may not be exactly the requested point size. This anti-aliasing is
-     * independent of any anti-aliasing performed by the Surface.
+     * independent of any per-pixel anti-aliasing performed by the Surface.
+     * <p>
+     * Point anti-aliasing is disabled by default.
      * 
      * @param enable True if points should be anti-aliased
      */
     public void setPointAntiAliasingEnabled(boolean enable);
 
     /**
+     * <p>
      * Set to true to cause lines to be rendered as anti-aliased lines. When
      * enabled, the actual line width may not be exactly the requested line
-     * width. This anti-aliasing is independent of the Surface
-     * anti-aliasing.
+     * width. This anti-aliasing is independent of the Surface anti-aliasing.
+     * <p>
+     * Line anti-aliasing is disabled by default.
      * 
      * @param enable True if lines should be anti-aliased
      */
     public void setLineAntiAliasingEnabled(boolean enable);
 
     /**
+     * <p>
      * Set to true if the edges of rendered polygons should be anti-aliased. It
      * is not recommended to use this when using adjacent polygons because the
      * edges are independently anti-aliased and will appear to pull away from
      * each other. Polygons that have DrawStyles of LINE or POINT use the
      * anti-aliasing configuration for points and lines.
+     * <p>
+     * Polygon anti-aliasing is disabled by default.
      * 
      * @param enable True if solid polygons should have their edges anti-aliased
      */
     public void setPolygonAntiAliasingEnabled(boolean enable);
 
     /**
+     * <p>
      * Configure the alpha test to be used when rendering. If the given test
      * Comparison returns true when a pixel's alpha value is compared to
      * refValue, then the pixel will continue to be processed. Using a
      * Comparison of ALWAYS effectively disables the alpha test.
+     * <p>
+     * The starting state uses a test of ALWAYS and a reference value of 1.
      * 
      * @param test The new alpha test Comparison to use
      * @param refValue The reference value that pixel's alphas are compared to
      */
-    public void setAlphaTest(Comparison test, float refValue);
+    public void setAlphaTest(Comparison test, double refValue);
 
     /**
+     * <p>
      * Set the pixel width of rendered points. If the width has a fractional
-     * component, it may only appear that width when anti-aliasing is enabled.
+     * component, it will only appear that width when anti-aliasing is enabled.
+     * <p>
+     * The default point width is 1.
      * 
      * @param width The new point width
      * @throws IllegalArgumentException if width < 1
      */
-    public void setPointSize(float width);
+    public void setPointSize(double width);
 
     /**
+     * <p>
      * Set the line width of rendered lines. If the width has a fractional
-     * component, it may only appear the correct width when line anti-aliasing
+     * component, it will only appear the correct width when line anti-aliasing
      * is enabled.
+     * <p>
+     * The default line width is 1.
      * 
      * @param width The new line width
      * @throws IllegalArgumentException if width < 1
      */
-    public void setLineSize(float width);
+    public void setLineSize(double width);
 
     /**
-     * Set whether or not lighting is calculated for rendered Geometry. When
+     * <p>
+     * Set whether or not lighting is calculated for rendered geometry. When
      * lighting is enabled, the global ambient light, and all enabled lights
-     * have their colors summed together based on how much each contributes to
-     * each vertex. In the end, the lit pixel is then fed through the texturing
-     * pipeline. The amount that each light contributes to a polygon is based on
-     * how the light's direction shines onto the polygon's face, and how the
-     * configured material colors interact with each light's colors.
+     * have their colors summed together based on how much each contributes to a
+     * vertex's color. In the end, the lit pixel is then fed through the
+     * texturing pipeline. The amount that each light contributes to a polygon
+     * is based on how the light's direction shines onto the polygon's face, and
+     * how the configured material colors interact with each light's colors.
+     * <p>
+     * For best results, normals should be configured before rendering a
+     * geometry.
+     * <p>
+     * By default, lighting is disabled.
      * 
      * @param enable True if lighting is enabled
      */
     public void setLightingEnabled(boolean enable);
 
     /**
+     * <p>
      * Set the ambient color that's always added to pixel colors when lighting
-     * is enabled. The color cannot be null. Components in the vector are
-     * ordered red, green, blue, alpha and are clamped to be above 0.
+     * is enabled. Components in the vector are ordered red, green, blue, alpha
+     * and are clamped to be above 0. Values above 1 cause the light to be in a
+     * higher range and will be carried through the lighting function until the
+     * final color must be clamped.
+     * <p>
+     * The default ambient color is (0.2, 0.2, 0.2, 1).
      * 
      * @param ambient The new global ambient color
      * @throws NullPointerException if ambient is null
      */
     public void setGlobalAmbientLight(@Const Vector4 ambient);
-
+    
     /**
      * <p>
-     * Configure two parameters of the lighting model. If smoothed is true, then
-     * the vertex lighting calculations are interpolated across each polygon to
-     * approximate per-pixel lighting. If smoothed is false, a single vertex's
-     * lighting color is used for the entire face and the geometry will appear
-     * faceted.
-     * </p>
+     * Configure the lighting model to use Gauroud shading or non-interpolated
+     * vertex colors. When smoothed is true, Gauroud shading is used to
+     * simuluate per-pixel lighting. When <tt>smoothed</tt> is false, vertex
+     * colors are not interpolated and rendered geometry will appear faceted.
      * <p>
-     * If twoSided is true, then lighting will be calculated separately for
-     * front facing pixels and back facing pixels. This is a more expensive
-     * operation when enabled, and should only be enabled when it's possible to
-     * view both inside and outside of a geometry mesh.
-     * </p>
+     * Smooth shading is enabled by default.
      * 
-     * @param smoothed True if polygons are smooothly shaded
-     * @param twoSided True if front and back faces use separate light
+     * @param smoothed True if polygons are smoothly shaded
+     */
+    public void setSmoothedLightingEnabled(boolean smoothed);
+    
+    /**
+     * <p>
+     * Set whether or not back-facing polygons should have their lighting
+     * calculations performed separately, or if they should just use the same
+     * computed color as their paired front-facing polygons.
+     * <p>
+     * Two sided lighting is disabled by default.
+     * 
+     * @param enable True if front and back faces use separate lighting
      *            calculations
      */
-    public void setLightingModel(boolean smoothed, boolean twoSided);
+    public void setTwoSidedLightingEnabled(boolean enable);
 
     /**
+     * <p>
      * Set whether or not the given light is enabled. If it's set to true then
      * it will be used to compute lighting when the overall lighting system has
-     * been enabled. If light is larger than the highest available light unit
-     * for the hardware, this request will be ignored.
+     * been enabled.
+     * <p>
+     * Every light is initially disabled.
      * 
      * @param light The given light, from 0 to the maximum number of lights
      *            available (usually 8)
      * @param enable True if it's enabled
-     * @throws IllegalArgumentException if light is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             light at the provided index, or if light is less than 0
      */
     public void setLightEnabled(int light, boolean enable);
 
@@ -595,33 +467,31 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Set the homogenous position for the given light. This position vector can
      * be used to create two different types of light: point/spotlight and
-     * infinite directional lights. It is based on the interpretation that a
-     * directional light is a point light that's shining infinitely far away.
-     * </p>
+     * infinite directional lights. This is based on the interpretation that a
+     * directional light is a point light that's shining from infinitely far
+     * away.
      * <p>
      * When the given pos vector has a w component of 1, the light will act as a
      * point or spotlight located at (x, y, z). When the w component is 0, then
      * the light is infinitely far away in the direction of (x, y, z). In effect
-     * the light is a directional light shining in (-x, -y, -z). Arbitrary
-     * values for w are not allowed.
-     * </p>
+     * the light is a directional light shining along (-x, -y, -z). Other values
+     * for w are not allowed.
      * <p>
      * The given position vector is transformed by the current modelview matrix
      * at the time that this method is called, which converts the position into
      * 'eye' space so that all lighting calculations can be done in eye space
      * when a Geometry is finally rendered.
-     * </p>
      * <p>
-     * If light is larger than the highest available light unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * Every light's default position is (0, 0, 1, 0) so it will act as a
+     * directionaly lighting shining along (0, 0, -1).
      * 
      * @param light The given light, from 0 to the maximum number of lights
      *            available (usually 8)
      * @param pos The position vector for this light
      * @throws NullPointerException if pos is null
-     * @throws IllegalArgumentException if pos.w is not 0 or 1 or if light is
-     *             less than 0
+     * @throws IllegalArgumentException if pos.w is not 0 or 1
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             light at the provided index, or if light is less than 0
      */
     public void setLightPosition(int light, @Const Vector4 pos);
 
@@ -629,27 +499,28 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Set the ambient, diffuse and specular colors for the given light. Every
      * enabled light's colors are multiplied with the corresponding material
-     * component and then modulated by the amount of contribution for the light.
+     * colors and then modulated by the amount of contribution for the light.
      * This scaled color is then added to the final color. Thus a red diffuse
-     * material color and a green diffuse light color would become a black
+     * material color and a green diffuse light color would make a black
      * contribution since (1, 0, 0, 1) * (0, 1, 0, 1) is (0, 0, 0, 1).
-     * </p>
      * <p>
      * The colors stored in <tt>amb</tt>, <tt>diff</tt> and <tt>spec</tt> have
      * components ordered red, green, blue and alpha. The values are clamped to
-     * be above 0.
-     * </p>
+     * be above 0. Values higher than 1 cause the light to be outside the
+     * standard range and can produce final colors brighter than white that will
+     * be clamped to [0, 1].
      * <p>
-     * If light is larger than the highest available light unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The default colors of the 0th light are a diffuse and specular of (1, 1,
+     * 1, 1) and an ambient and emissive of (0, 0, 0, 1). All other lights use
+     * (0, 0, 0, 1) for all of the colors.
      * 
      * @param light The given light to configure
      * @param amb The new ambient color of the light
      * @param diff The new diffuse color of the light
      * @param spec The new specular color of the light
      * @throws NullPointerException if amb, diff, or spec are null
-     * @throws IllegalArgumentException if light is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             light at the provided index, or if light is less than 0
      */
     public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, 
                               @Const Vector4 spec);
@@ -660,91 +531,88 @@ public interface FixedFunctionRenderer extends Renderer {
      * Although this can be set on any light, it only has a visible effect when
      * the light has a position that's not infinite (e.g. it's not a direction
      * light). When a light is set to a point or spotlight, the spotlight
-     * direction and cutoff angle control how the light shines. Like the light
+     * direction and cutoff angle control where the light shines. Like the light
      * position, the spotlight direction is transformed by the current modelview
      * matrix when this is called.
-     * </p>
      * <p>
      * The cutoff angle is the degree measure of the half-angle of a cone of
      * light that expands outwards from the light's position in the direction of
-     * dir. Anything outside of this cone is not light. Acceptable values for
-     * the angle are in the range [0, 90] and 180. 180 is a special value and
-     * causes the light to act as a point light where the light shines in a
-     * sphere. In this case, the spotlight direction has no effect on the
-     * lighting.
-     * </p>
+     * dir. Anything outside of this cone is not lit. Acceptable values for the
+     * angle are in the range [0, 90] and 180. 180 is a special value that
+     * causes the light to act as a spherical point light. In this case, the
+     * spotlight direction has no effect on the lighting.
      * <p>
-     * If light is larger than the highest available light unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * Every light starts with a spotlight direction of (0, 0, -1) and a cutoff
+     * angle of 180.
      * 
      * @param light The given light to configure
      * @param dir The direction that spotlights shine
      * @param angle The cutoff angle for the light from the spotlight
      * @throws NullPointerException if dir is null
      * @throws IllegalArgumentException if angle is not in [0, 90] or equal to
-     *             180 or if light is less than 0
+     *             180
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             light at the provided index, or if light is less than 0
      */
-    public void setSpotlight(int light, @Const Vector3 dir, float angle);
+    public void setSpotlight(int light, @Const Vector3 dir, double angle);
 
     /**
      * <p>
      * Set the light attenuation factors used for spotlights and point lights.
      * Light attenuation is an approximation of the light's intensity fading
      * with distance from the light source. To compute this distance requires a
-     * finite light's position, which is why attenuation is pointless for
+     * finite light's position, which is why attenuation is not used for
      * directional lights.
      * </p>
      * <p>
-     * When determining the contribution of a given light, it is scaled by some
-     * attenuation factor that is computed based on these configured constants
-     * and a pixel's distance to the light. If we let c, l, and q represent the
-     * constant, linear and quadratic terms and d is equal to the distance to
-     * the light, then the attenuation factor is computed as:
+     * When determining the final contribution of a given light, it is scaled by
+     * a attenuation factor computed from these configured constants and a
+     * pixel's distance to the light. If we let c, l, and q represent the
+     * constant, linear and quadratic terms and d is the distance to the light,
+     * then the attenuation factor is computed as:
      * <code>1 / (c + l * d + q * d^2)</code>
-     * </p>
      * <p>
      * Thus, the default values of c = 1, l = q = 0 cause the attenuation factor
      * to always equal 1 and so the light never fades. Setting the linear and
      * quadratic terms to non-zero values can cause a decrease in performance.
      * Undefined results occur if the attenuation values are given that cause
      * the divisor to equal 0.
-     * </p>
      * <p>
-     * If light is larger than the highest available light unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The default light attenuation for each light has c = 1, and l = q = 0,
+     * which produces no falloff.
      * 
      * @param light The given light to configure
      * @param constant The constant attenuation term, >= 0
      * @param linear The linear attenuation factor, >= 0
      * @param quadratic The quadratic attenuation factor, >= 0
-     * @throws IllegalArgumentException if constant, linear or quadratic < 0 or
-     *             if light is less than 0
+     * @throws IllegalArgumentException if constant, linear or quadratic < 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             light at the provided index, or if light is less than 0
      */
-    public void setLightAttenuation(int light, float constant, float linear, float quadratic);
+    public void setLightAttenuation(int light, double constant, double linear, double quadratic);
 
     /**
      * <p>
-     * Set the material colors used when rendering a Geometry. These colors
+     * Set the material colors used when rendering primitives. These colors
      * correspond to the amount of each color that's reflected by each type of
      * light component (ambient, diffuse, and specular). Emmissive light is
      * special because it represents the amount of light that the material is
      * generating itself. This color is added to the final lit color without
      * modulation by the light's colors.
-     * </p>
      * <p>
-     * When lighting is not enabled, the the diffuse color value is used as the
+     * When lighting is disabled, the the diffuse color value is used as the
      * solid, unlit color for the rendered shape. This is because the diffuse
      * color generally represents the 'color' of a lit object while the other
-     * color values add subtle shading to it.
-     * </p>
+     * color values add more subtle shading to it.
      * <p>
      * The colors stored in <tt>amb</tt>, <tt>diff</tt>, <tt>spec</tt> and
      * <tt>emm</tt> have components ordered red, green, blue and alpha. The
      * values for <tt>amb</tt>, <tt>diff</tt> and <tt>spec</tt> are clamped to
-     * be in [0, 1]. The values in <tt>emm</tt> are clamped to be above 0.
-     * </p>
+     * be in [0, 1]. The values in <tt>emm</tt> are clamped to be above 0 and
+     * can be outside the standard range just like light colors.
+     * <p>
+     * The default ambient color is (0.2, 0.2, 0.2, 1), the diffuse is (0.8,
+     * 0.8, 0.8, 1), and the specular and emissive colors are (0, 0, 0, 1).
      * 
      * @param amb The ambient color of the material
      * @param diff The diffuse color of the material, or solid color when
@@ -757,12 +625,15 @@ public interface FixedFunctionRenderer extends Renderer {
                             @Const Vector4 emm);
 
     /**
+     * <p>
      * Set the material shininess to use when lighting is enabled. This
      * shininess acts as an exponent on the specular intensity, and can be used
      * to increase or dampen the brightness of the specular highlight. The
      * shininess is an exponent in the range [0, 128], where a value of 0 causes
      * the highlight to be non-existent and 128 causes an extremely bright
      * highlight.
+     * <p>
+     * The default shininess is 0.
      * 
      * @param shininess The material shininess
      * @throws IllegalArgumentException if shininess is not in [0, 128]
@@ -774,120 +645,92 @@ public interface FixedFunctionRenderer extends Renderer {
      * Set the Texture to be bound to the given unit. Specifying a null image
      * unbinds any previous Texture. A non-null Texture will affect the
      * rendering based on the configured texture environment for the unit.
-     * </p>
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * By default every texture unit hase no texture bound.
      * 
      * @param tex The texture unit
      * @param image The Texture to be bound to tex
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTexture(int tex, Texture image);
 
     /**
      * <p>
-     * Set the texture environment mode that's used for the given texture unit.
-     * The texture environment mode specifies how a given texture is combined
-     * with the lit/solid color and any other enabled texture units. See
-     * {@link EnvMode} for a detailed description of each EnvMode.
-     * </p>
-     * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
-     * 
-     * @param tex The texture unit
-     * @param mode The EnvMode for this unit
-     * @throws NullPointerException if mode is null
-     * @throws IllegalArgumentException if tex is less than 0
-     */
-    public void setTextureMode(int tex, EnvMode mode);
-
-    /**
-     * <p>
      * Set the texture color that's used for this unit. The texture color is the
-     * constant color used by {@link EnvMode#BLEND} and
-     * {@link CombineSource#CONST_COLOR}.
-     * </p>
+     * constant color used by {@link CombineSource#CONST_COLOR}.
      * <p>
      * The color components are ordered red, green, blue, and alpha in the
      * vector. Values are clamped to the range [0, 1].
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The default texture color for every unit is (0, 0, 0, 0).
      * 
      * @param tex The texture unit
      * @param color The new constant texture color for the unit
      * @throws NullPointerException if color is null
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureColor(int tex, @Const Vector4 color);
 
     /**
      * <p>
-     * Set the texture coordinate source for all four coordinates to gen, for
-     * the given texture unit.
-     * </p>
+     * Set the texture coordinate source for all four coordinates to
+     * <tt>gen</tt>, for the given texture unit.
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The default source for every texture unit and coordinate is ATTRIBUTE.
      * 
      * @see #setTextureCoordGeneration(int, TexCoord, TexCoordSource)
      * @param tex The texture unit
      * @param gen The TexCoordSource for all four coordinates
      * @throws NullPointerException if gen is null
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureCoordGeneration(int tex, TexCoordSource gen);
 
     /**
      * <p>
-     * Set the texture coordinate source for the specified texture coordinate on
-     * the given texture unit. Each usable texture unit has an associated
-     * Texture. However, there must be a mapping between the image value and the
-     * rendered Geometry, which is in essence, how does the Geometry unwrap onto
-     * the image? This is accomplished by using texture coordinates that are
-     * per-vertex vectors much like vertices or normals that represent how to
-     * access the Texture. These texture coordinates can be auto-generated or
-     * specified as part of the Geometry. See {@link TexCoordSource} for a
-     * description of each source.
-     * </p>
+     * Set the texture coordinate source for the specified texture coordinate
+     * for the given texture unit. These texture coordinates can be
+     * auto-generated or specified as part of the Geometry. See
+     * {@link TexCoordSource} for a description of each source.
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The default state uses a source of ATTRIBUTE for every unit and all four
+     * coordinates.
      * 
      * @param tex The texture unit
      * @param coord The coordinate that's source is to be modified
      * @param gen The new texture coordinate source
      * @throws NullPointerException if coord or gen are null
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen);
 
     /**
      * <p>
-     * Set the four values used for the {@link TexCoordSource#OBJECT} generation
-     * for the given coordinate. These four values represent (p1, p2, p3, p4) as
-     * described in TexCoordSource.OBJECT for the given coordinate. Each texture
-     * coordinate has its own four planar values (for each unit, too). Also,
-     * these four values are independent of the four values stored for the eye
-     * plane.
-     * </p>
+     * Set the four values used for {@link TexCoordSource#OBJECT} generation for
+     * the given coordinate. These four values represent (p1, p2, p3, p4) as
+     * described in TexCoordSource.OBJECT. Each texture coordinate has its own
+     * four planar values (for each unit, too). These four values are
+     * independent of the four values stored for the eye plane.
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * For every texture unit, the S coordinate has a value of (1, 0, 0, 0), the
+     * T coordinate has a value of (0, 1, 0, 0), and both R and Q have (0, 0, 0,
+     * 0).
      * 
      * @param tex The texture unit
      * @param coord The coordinate whose object plane will be set
      * @param plane The object plane that's used for this unit and coordinate
      * @throws NullPointerException if coord or plane are null
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane);
 
@@ -895,16 +738,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Set the four values used for the {@link TexCoordSource#EYE} generation
      * for the given coordinate and texture. These four values represent (p1,
-     * p2, p3, p4) as described in TexCoordSource.EYE for the coordinate. These
-     * four values are multiplied by the inverse of the current modelview matrix
-     * when this method is invoked. Like with the object plane, each coordinate
-     * for each unit has its own set of four eye plane values. These values are
+     * p2, p3, p4) as described in TexCoordSource.EYE. These four values are
+     * multiplied by the inverse of the current modelview matrix when this
+     * method is invoked. Like with the object plane, each coordinate for each
+     * unit has its own set of four eye plane values. These values are
      * independent from the object plane.
-     * </p>
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * For every texture unit, the S coordinate has a value of (1, 0, 0, 0), the
+     * T coordinate has a value of (0, 1, 0, 0), and both R and Q have (0, 0, 0,
+     * 0).
      * 
      * @param tex The texture unit
      * @param coord The coordinate whose eye plane will be set
@@ -912,87 +754,91 @@ public interface FixedFunctionRenderer extends Renderer {
      *            modelview multiplication
      * @throws NullPointerException if coord or plane are null
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane);
 
     /**
      * <p>
-     * In addition to texture coordinates on each unit, these coordinates can be
-     * transformed by a matrix before accessing the Texture. When performing
-     * this transformation, each texture coordinate uses reasonable default
-     * values for coordinates that aren't provided: the 3rd coordinate is mapped
-     * to 0 and the 4th coordinate is mapped to 1.
-     * </p>
+     * Set the transform matrix applied to texture coordinates before they are
+     * used to lookup texels in the unit's texture image. For multiplication
+     * purposes, all coordinates are considered 4 dimensional vectors. If no R
+     * coordinate is provided, 0 is used. If no Q coordinate is provided, 1 is
+     * used.
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * All texture units start with the identity transform matrix.
      * 
      * @param tex The texture unit
      * @param matrix The texture coordinate transform matrix
      * @throws NullPointerException if matrix is null
      * @throws IllegalArgumentException if tex is less than 0
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureTransform(int tex, @Const Matrix4 matrix);
 
     /**
-     * Set the rgb and alpha {@link CombineFunction}s that will be used if the
-     * {@link EnvMode#COMBINE} is active. The two functions are used to modify
-     * the the RGB color values and the alpha component, respectively. It is
-     * illegal to specify DOT3_RGB or DOT3_RGBA in alphaFunc.</p>
      * <p>
+     * Configure how the texture's RGB values for the unit, <tt>text</tt> are
+     * combined with the colors from the previous stages of the pipeline. The
+     * {@link CombineFunction function} uses the three inputs produced by each
+     * pair of {@link CombineOperand operand} and {@link CombineSource source}
+     * to produce a color for the next stage in the pipeline.
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The default RGB combine configuration for every unit uses the MODULATE
+     * function, the 0th source is CURR_TEX, the 1st source is PREV_TEX, and the
+     * 2nd source is CONST_COLOR. The 0th and 1st operands are COLOR, and the
+     * 2nd is ALPHA.
      * 
-     * @param tex The texture unit
-     * @param rgbFunc The CombineFunction used for rgb values
-     * @param alphaFunc The CombineFunction used for the alpha component
-     * @throws NullPointerException if rgbFunc or alphaFunc are null
-     * @throws IllegalArgumentException if alphaFunc is DOT3_RGB or DOT3_RGBA or
-     *             if tex is less than 0
+     * @param tex The texture unit being modified
+     * @param function The combine function to use
+     * @param src0 The 0th texture source used by the function
+     * @param op0 The operand applied to the 0th source
+     * @param src1 The 1st texture source used by the function
+     * @param op1 The operand applied to the 1st source
+     * @param src2 The 2nd texture source used by the function
+     * @param op2 The operand applied to the 2nd source
+     * @throws NullPointerException if any argument is null
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
-    public void setTextureCombineFunction(int tex, CombineFunction rgbFunc, 
-                                          CombineFunction alphaFunc);
-
+    public void setTextureCombineRGB(int tex, CombineFunction function,
+                                     CombineSource src0, CombineOperand op0,
+                                     CombineSource src1, CombineOperand op1,
+                                     CombineSource src2, CombineOperand op2);
+    
     /**
      * <p>
-     * Set the {@link CombineSource} and {@link CombineOp} for the texture unit
-     * and given operand. The operand corresponds to the 0th, 1st, or 2nd
-     * argument that is used with the configured RGB CombineFunction.
-     * </p>
+     * Configure how the texture's alpha value for the unit, <tt>text</tt> is
+     * combined with the alphas from the previous stages of the pipeline. The
+     * {@link CombineFunction function} uses the three inputs produced by each
+     * pair of {@link CombineOperand operand} and {@link CombineSource source}
+     * to produce a color for the next stage in the pipeline.
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * The DOT3_RGB and DOT3_RGBA combine functions cannot be used. The COLOR
+     * and ONE_MINUS_COLOR operands cannot be used.
+     * <p>
+     * The default RGB combine configuration for every unit uses the MODULATE
+     * function, the 0th source is CURR_TEX, the 1st source is PREV_TEX, and the
+     * 2nd source is CONST_COLOR. The 0th, 1st and 2nd operands are ALPHA.
      * 
-     * @param tex The texture unit
-     * @param operand The argument to the function, must be 0, 1, or 2
-     * @param src The CombineSource for the operand
-     * @param op The CombineOp that modifies the specified CombineSource
-     * @throws NullPointerException if src or op are null
-     * @throws IllegalArgumentException if operand is not 0, 1 or 2 or if tex is
-     *             less than 0
+     * @param tex The texture unit being modified
+     * @param function The combine function to use
+     * @param src0 The 0th texture source used by the function
+     * @param op0 The operand applied to the 0th source
+     * @param src1 The 1st texture source used by the function
+     * @param op1 The operand applied to the 1st source
+     * @param src2 The 2nd texture source used by the function
+     * @param op2 The operand applied to the 2nd source
+     * @throws NullPointerException if any argument is null
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
-    public void setTextureCombineOpRgb(int tex, int operand, CombineSource src, CombineOp op);
-
-    /**
-     * Identical to
-     * {@link #setTextureCombineOpRgb(int, int, CombineSource, CombineOp)}
-     * except that the CombineSource and CombineOp apply to the configured alpha
-     * function. As such the CombineOp cannot be {@link CombineOp#COLOR} or
-     * {@link CombineOp#ONE_MINUS_COLOR}.
-     * 
-     * @param tex The texture unit
-     * @param operand The argument to the function, must be 0, 1, or 2
-     * @param src The CombineSource for the operand
-     * @param op The CombineOp that modifies the specified CombineSource
-     * @throws NullPointerException if src or op are null
-     * @throws IllegalArgumentException if operand is not 0, 1, or 2 or if op is
-     *             illegal or if tex is less than 0
-     */
-    public void setTextureCombineOpAlpha(int tex, int operand, CombineSource src, CombineOp op);
+    public void setTextureCombineAlpha(int tex, CombineFunction function,
+                                       CombineSource src0, CombineOperand op0,
+                                       CombineSource src1, CombineOperand op1,
+                                       CombineSource src2, CombineOperand op2);
 
     /**
      * <p>
@@ -1001,12 +847,12 @@ public interface FixedFunctionRenderer extends Renderer {
      * of a vertex, generally 1), the clip coordinates are converted to
      * normalized device coordinates. These are three-dimensional points that
      * lie within the cube (-1, -1, -1) to (1, 1, 1).
-     * </p>
      * <p>
      * An important effect of this transformation is that it flips the z-axis
      * direction; after the modelview matrix, negative z values extend in front
      * of and away from the view.
-     * </p>
+     * <p>
+     * The starting projection matrix is the identity matrix.
      * 
      * @param projection The new projection matrix
      * @throws NullPointerException if projection is null
@@ -1020,13 +866,9 @@ public interface FixedFunctionRenderer extends Renderer {
      * only used during rendering, but its value impacts the final stored values
      * for light position, spotlight direction, and eye plane values for texture
      * coordinate generation.
-     * </p>
      * <p>
-     * After this transformation, the coordinate space is the 'viewer' located
-     * at the origin, looking down the negative z-axis. Thus, more negative
-     * z-values are farther way in appearance (assuming a perspective
-     * projection).
-     * </p>
+     * Care must be given then to call this at appropriate times with respect to
+     * the configuration points mentioned above.
      * <p>
      * Because of this, it is often useful to first set the modelview to a
      * matrix that transforms 'world' coordinates into eye space and specify all
@@ -1034,7 +876,13 @@ public interface FixedFunctionRenderer extends Renderer {
      * application. Then for each Geometry to render, compute the product of the
      * camera matrix and the shape's to-world matrix and use this as that
      * Geometry's modelview matrix.
-     * </p>
+     * <p>
+     * After the modelview transformation, the coordinate space is the 'viewer'
+     * located at the origin, looking down the negative z-axis. Thus, more
+     * negative z-values are farther way in appearance (assuming a perspective
+     * projection).
+     * <p>
+     * The starting modelview matrix is the identity matrix.
      * 
      * @param modelView The new modelview matrix
      * @throws NullPointerException if modelView is null
@@ -1045,19 +893,20 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Set the VertexAttribute that is used as the source of vertex positions
      * when {@link #render(PolygonType, int, int)} or
-     * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
-     * is invoked. The attribute can be of any type except BYTE, and integral
-     * types are interpreted as signed integers. The attribute can have an
-     * element size of 2, 3 or 4. If the 4th component is not provided, it
-     * defaults to 1. If the 3rd component is not provided, it defaults to 0.
-     * </p>
+     * {@link #render(PolygonType, VertexBufferObject, int)} is invoked. The
+     * attribute can be of any type except BYTE, and integral types are
+     * interpreted as signed integers. The attribute can have an element size of
+     * 2, 3 or 4. If the 4th component is not provided, it defaults to 1. If the
+     * 3rd component is not provided, it defaults to 0.
      * <p>
      * This updates the currently bound vertex position attribute. The bound
      * attribute will remain unchanged after rendering until this method is
      * called again. Rendering will not be performed if no vertex positions are
      * bound. The attribute can be unbound if a null VertexAttribute is
      * provided.
-     * </p>
+     * <p>
+     * By default, no vertices are bound and must be specified before rendering
+     * can occur successfully.
      * 
      * @param vertices The VertexAttribute holding the position data and access
      *            information
@@ -1074,14 +923,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * is invoked. The attribute data can be of any type and integral types are
      * considered to be signed integers. The attribute must have an element size
      * of 3.
-     * </p>
      * <p>
      * This updates the currently bound normal attribute. The bound attribute
      * will remain unchanged after rendering until this method is called again.
      * A normals attribute is not necessary if lighting is disabled. If normals
      * aren't bound when rendering with lighting, an undefined normal vector is
      * used. The attribute can be unbound if a null VertexAttribute is provided.
-     * </p>
+     * <p>
+     * By default, no normals are bound and any normal vector used for lighting
+     * is undefined.
      * 
      * @param normals The VertexAttribute holding the normal vector data and
      *            access information
@@ -1096,13 +946,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * on the texture unit, <tt>tex</tt> when
      * {@link #render(PolygonType, int, int)} or
      * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
-     * is invoked. The attribute data can be of any type except BYTE and
-     * itnegral types are considered to be signed integers. The attribute
-     * element size can be any value between 1 and 4. If the element size of the
-     * attribute doesn't meet the expected coordinate size of the bound texture,
-     * a default is used for the missing components. The 2nd and 3rd components
-     * default to 0 and the 4th defaults to 1.
-     * </p>
+     * is invoked. The attribute element size can be any value between 1 and 4.
+     * If the element size of the attribute doesn't meet the expected coordinate
+     * size of the bound texture, a default is used for the missing components.
+     * The 2nd and 3rd components default to 0 and the 4th defaults to 1.
      * <p>
      * This updates the currently bound texture coordinate attribute for the
      * given texture unit. The bound attribute will remain unchanged after
@@ -1113,17 +960,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * without texture coordinates, an undefined texture coordinate is used. The
      * attribute can be unbound from the texture unit if a null VertexAttribute
      * is provided.
-     * </p>
      * <p>
-     * If tex is larger than the highest available texture unit for the
-     * hardware, this request will be ignored.
-     * </p>
+     * Every texture unit starst with no attribute bound.
      * 
      * @param tex The texture unit to bind <tt>texCoords</tt> to
      * @param texCoords The VertexAttribute holding the texture coordinate data
      *            and access information
-     * @throws IllegalArgumentException if texCoords' data type is not FLOAT or
-     *             if tex is less than 0
+     * @throws IllegalArgumentException if texCoords' data type is not FLOAT
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }

@@ -3,17 +3,15 @@ package com.ferox.renderer;
 
 /**
  * <p>
- * Represents a two dimensional surface that stores a collection of logical and
- * color buffers holding the final rendering from a Framework. These surfaces
- * could be offscreen surfaces, in that they have no visible monitor region
- * associated with their rendered pixels, or they could be a window or
- * fullscreen.
- * </p>
+ * Represents a two dimensional surface that stores a collection of logical
+ * color buffers that can be rendered into using a {@link Renderer}. These
+ * surfaces could be offscreen surfaces, in that they have no visible monitor
+ * region associated with their rendered pixels, or they could be an onscreen
+ * window or exclusively fullscreen.
  * <p>
  * The exact representation is dependent on the renderer's implementations,
  * however some possibilities include surfaces that use framebuffer objects to
  * render directly into a set of textures.
- * </p>
  * 
  * @author Michael Ludwig
  */
@@ -21,13 +19,11 @@ public interface Surface {
     /**
      * <p>
      * Return whether or not the surface has been destroyed.
-     * </p>
      * <p>
      * Destruction could be because of an explicit call to {@link #destroy()} or
      * {@link Framework#destroy()}, or because implementations provide a way for
      * them to be implicitly destroyed (such as an OnscreenSurface being closed
      * by the user).
-     * </p>
      * 
      * @return True if this surface is no longer usable by its creating
      *         Framework.
