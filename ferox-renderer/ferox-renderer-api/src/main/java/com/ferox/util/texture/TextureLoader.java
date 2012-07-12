@@ -18,13 +18,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.ferox.resource.BufferData;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
@@ -384,7 +383,7 @@ public class TextureLoader {
     private static class RasterImage {
         // Ferox specific variables
         TextureFormat format;
-        Class<? extends Buffer> type;
+        DataType type;
 
         // BufferImage specific variables
         ColorModel colorModel;
@@ -402,7 +401,7 @@ public class TextureLoader {
                                                      Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 3, null);
 
-                type = ByteBuffer.class;
+                type = DataType.UNSIGNED_BYTE;
                 format = TextureFormat.RGB;
                 break;
             case BufferedImage.TYPE_USHORT_GRAY:
@@ -411,8 +410,8 @@ public class TextureLoader {
                                                      Transparency.OPAQUE, DataBuffer.TYPE_USHORT);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_USHORT, width, height, 1, null);
 
-                type = ShortBuffer.class;
-                format = TextureFormat.LUMINANCE;
+                type = DataType.UNSIGNED_SHORT;
+                format = TextureFormat.R;
                 break;
             case BufferedImage.TYPE_BYTE_GRAY:
                 colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY), 
@@ -420,8 +419,8 @@ public class TextureLoader {
                                                      Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 1, null);
 
-                type = ByteBuffer.class;
-                format = TextureFormat.LUMINANCE;
+                type = DataType.UNSIGNED_BYTE;
+                format = TextureFormat.R;
                 break;
             default:
                 colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), 
@@ -429,7 +428,7 @@ public class TextureLoader {
                                                      Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
 
-                type = ByteBuffer.class;
+                type = DataType.UNSIGNED_BYTE;
                 format = TextureFormat.RGBA;
                 break;
             }

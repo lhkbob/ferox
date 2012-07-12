@@ -13,7 +13,7 @@ package com.ferox.resource;
  * rendering an indexed geometry. The data placed in a vbo is extremely flexible
  * and it is possible to pack multiple attributes into a single resource
  * instance. The type of data, however, will limit how the vbo can be used by
- * the render.
+ * the Renderer.
  * </p>
  * <p>
  * If the array contained in the VBO's BufferData is null, it should allocate
@@ -25,10 +25,10 @@ package com.ferox.resource;
  */
 public class VertexBufferObject extends Resource {
     /**
-     * StorageMode represents the various ways that a Framework can 'compile' a
-     * Geometry resource into something that it can use when rendering them.
-     * There are currently three types, each progressing along the spectrum from
-     * faster updates to faster rendering performance.
+     * StorageMode represents the various ways that a Framework can store a VBO
+     * resource into something that it can use when rendering them. There are
+     * currently three types, each progressing along the spectrum from faster
+     * updates to faster rendering performance.
      */
     public static enum StorageMode {
         /**
@@ -38,17 +38,17 @@ public class VertexBufferObject extends Resource {
          */
         IN_MEMORY,
         /**
-         * The Geometry data is stored on the graphics card in specialized
-         * memory designed to be updated frequently. This means that, although
-         * slower than IN_MEMORY, the updates are faster than RESIDENT_DYNAMIC.
-         * Because it's on the graphics card, rendering times should be faster
-         * compared to IN_MEMORY.
+         * The VBO data is stored on the graphics card in specialized memory
+         * designed to be updated frequently. This means that, although slower
+         * than IN_MEMORY, the updates are faster than GPU_STATIC. Because it's
+         * on the graphics card, rendering times should be faster compared to
+         * IN_MEMORY.
          */
         GPU_DYNAMIC,
         /**
-         * Geometry data is stored on the graphics card in memory designed for
-         * fast read access. This allows rendering to be the fastest, but
-         * updates are slower.
+         * VBO data is stored on the graphics card in memory designed for fast
+         * read access. This allows rendering to be the fastest, but updates are
+         * slower.
          */
         GPU_STATIC
     }
@@ -135,7 +135,7 @@ public class VertexBufferObject extends Resource {
     /**
      * <p>
      * Mark the specified region of the buffer data as dirty so that the next
-     * time this VertexBufferObejct is updated (manually or automatically), the
+     * time this VertexBufferObject is updated (manually or automatically), the
      * range will be updated. The nature of this update depends on the
      * configured StorageMode.
      * </p>

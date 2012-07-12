@@ -5,16 +5,13 @@ import com.ferox.resource.BufferData.DataType;
 /**
  * <p>
  * Describes all of the supported texture formats. Some of the formats are only
- * available on newer hardware, such as RGBA_FLOAT. In cases such as this the
- * Framework is allowed to change the type of texture, in which case the image
- * should be flagged as DIRTY.
- * </p>
+ * available on newer hardware, such as RGBA_FLOAT or DEPTH_STENCIL. In cases
+ * such as this the Framework might mark the resource as UNSUPPORTED.
  * <p>
  * The name of the format describes the layout of the data, and possibly the
  * primitive type required.
- * </p>
  * <p>
- * <b>Named formatting:</b>
+ * <b>Name formatting:</b>
  * <ul>
  * <li>XYZ: Formats such as this list their components in order of increasing
  * index in the data array. Each component uses one primitive value (ex. RGBA
@@ -36,35 +33,17 @@ import com.ferox.resource.BufferData.DataType;
  * </ul>
  * </p>
  * <p>
- * <b>EffectType conversion: </b><br>
- * For now, all textures are internally represented as floating point textures
- * with color values in the range [0.0, 1.0]. Non-fp types are scaled to the
- * range [0.0, 1.0] by dividing the UNSIGNED component value by (2^N - 1), where
- * N is the number of bits used to represent that component.
- * </p>
- * <p>
- * For formats of XYZ, this is the bitcount of the primitive type. <br>
- * For XYZ_123, the packed number of bits per component is used (ex. red and
- * blue values in RGB_565 are divided by 31 and green values are divided by 63).
- * </p>
- * <p>
  * Formats using data with type FLOAT will be clamped to [0.0, 1.0] with one
- * exception: <br>
- * If the format is XYZ_FLOAT, the renderer must attempt to leverage unclamped
- * floating-point textures. This is only available on newer hardware. If it's
- * not available, the renderer may decide to use normal clamped float values.
- * </p>
+ * exception: If the format is XYZ_FLOAT, the renderer must attempt to leverage
+ * unclamped 32-bit floating-point textures. This is only available on newer
+ * hardware. If it's not available, the renderer may decide to use normal
+ * clamped float values.
  * <p>
  * <b>An important note about formats:</b> the unclamped formats are only
  * available if a RenderCapabilities returns true in its
- * getUnclampedTextureSupport(). <br>
- * Similarly, the DXT_n options are only available if
- * getS3TCTextureCompression() is true. <br>
- * The DEPTH format is only usable in Textur1D, Texture2D and TextureRectangle.
- * TextureSurfaces created for the other target types will not have a depth
- * image of the same target (since that's not available, a 2d image will be used
- * instead).
- * </p>
+ * getUnclampedTextureSupport(). Similarly, the DXT_n options are only available
+ * if getS3TCTextureCompression() is true. The compressed and DEPTH-based
+ * TextureFormats might be supported on a limited set of texture targets.
  * 
  * @author Michael Ludwig
  */
@@ -100,18 +79,14 @@ public enum TextureFormat {
     BGR(null, 3, 3, false), 
     BGR_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
 
-    // FIXME: remove these types and replace with R and RG, and R_FLOAT and RG_FLOAT
-    // I must determine the proper mapping of format type for FFP mode, though
-    // Should R be alpha or luminance?  I would think it should be alpha but that is kind of limiting
-    LUMINANCE_ALPHA(null, 2, 2, true), 
-    LUMINANCE(null, 1, 1, false), 
-    ALPHA(null, 1, 1, true),
-
-    LUMINANCE_ALPHA_FLOAT(DataType.FLOAT, 2, 2, true), 
-    LUMINANCE_FLOAT(DataType.FLOAT, 1, 1, false), 
-    ALPHA_FLOAT(DataType.FLOAT, 1, 1, true),
-
-    DEPTH(null, 1, 1, false);
+    R(null, 1, 1, false),
+    R_FLOAT(DataType.FLOAT, 1, 1, false),
+    RG(null, 2, 2, false),
+    RG_FLOAT(DataType.FLOAT, 2, 2, false),
+    
+    DEPTH(DataType.UNSIGNED_INT, 1, 1, false),
+    DEPTH_FLOAT(DataType.FLOAT, 1, 1, false),
+    DEPTH_STENCIL(DataType.UNSIGNED_INT, 1, 1, false);
 
     private DataType type;
     private boolean hasAlpha, isPacked;

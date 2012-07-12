@@ -5,6 +5,9 @@ import java.util.Scanner;
 
 public class GlslShader extends Resource {
     public static enum Version {
+        // FIXME are there more?
+        // should I really limit it to an enum, I could just have
+        // it be an integer that is parsed that is probably safer
         V1_20, V1_30, V1_40, V1_50, V3_30, V4_00
     }
     

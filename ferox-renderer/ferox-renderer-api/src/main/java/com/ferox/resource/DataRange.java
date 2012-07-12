@@ -1,7 +1,7 @@
 package com.ferox.resource;
 
 /**
- * DataRange is a small object that tracks changes with an array or buffer that
+ * DataRange is a small object that tracks changes within an array or buffer that
  * is one-dimensional. It has both an offset into the data and a length; these
  * are measured in number of indices and not any other concept such as pixel or
  * vector.

@@ -3,19 +3,13 @@ package com.ferox.util.texture;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 
 import com.ferox.resource.BufferData;
+import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.TextureFormat;
 
 /**
  * <p>
@@ -245,7 +239,7 @@ public class DDSTexture {
         DXGI_FORMAT_R16G16B16A16_SNORM, 
         DXGI_FORMAT_R16G16B16A16_SINT,
         DXGI_FORMAT_R32G32_TYPELESS,
-        DXGI_FORMAT_R32G32_FLOAT(DataType.FLOAT, TextureFormat.LUMINANCE_ALPHA_FLOAT), 
+        DXGI_FORMAT_R32G32_FLOAT(DataType.FLOAT, TextureFormat.RG_FLOAT), 
         DXGI_FORMAT_R32G32_UINT, 
         DXGI_FORMAT_R32G32_SINT, 
         DXGI_FORMAT_R32G8X24_TYPELESS,
@@ -264,14 +258,14 @@ public class DDSTexture {
         DXGI_FORMAT_R8G8B8A8_SINT, 
         DXGI_FORMAT_R16G16_TYPELESS, 
         DXGI_FORMAT_R16G16_FLOAT, 
-        DXGI_FORMAT_R16G16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.LUMINANCE_ALPHA), 
+        DXGI_FORMAT_R16G16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.RG), 
         DXGI_FORMAT_R16G16_UINT, 
         DXGI_FORMAT_R16G16_SNORM, 
         DXGI_FORMAT_R16G16_SINT, 
         DXGI_FORMAT_R32_TYPELESS, 
         DXGI_FORMAT_D32_FLOAT(DataType.FLOAT, TextureFormat.DEPTH),
         // not the best mapping, but it works
-        DXGI_FORMAT_R32_FLOAT(DataType.FLOAT, TextureFormat.LUMINANCE_FLOAT), 
+        DXGI_FORMAT_R32_FLOAT(DataType.FLOAT, TextureFormat.R_FLOAT), 
         DXGI_FORMAT_R32_UINT, 
         DXGI_FORMAT_R32_SINT, 
         DXGI_FORMAT_R24G8_TYPELESS, 
@@ -280,23 +274,23 @@ public class DDSTexture {
         DXGI_FORMAT_X24_TYPELESS_G8_UINT, 
         DXGI_FORMAT_R8G8_TYPELESS,
         // not the best mapping, but it works
-        DXGI_FORMAT_R8G8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE_ALPHA), 
+        DXGI_FORMAT_R8G8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.RG), 
         DXGI_FORMAT_R8G8_UINT,
         DXGI_FORMAT_R8G8_SNORM, 
         DXGI_FORMAT_R8G8_SINT,
         DXGI_FORMAT_R16_TYPELESS, 
         DXGI_FORMAT_R16_FLOAT,
         DXGI_FORMAT_D16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.DEPTH), 
-        DXGI_FORMAT_R16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.LUMINANCE), 
+        DXGI_FORMAT_R16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.R), 
         DXGI_FORMAT_R16_UINT,
         DXGI_FORMAT_R16_SNORM,
         DXGI_FORMAT_R16_SINT, 
         DXGI_FORMAT_R8_TYPELESS, 
-        DXGI_FORMAT_R8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE),
+        DXGI_FORMAT_R8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.R),
         DXGI_FORMAT_R8_UINT, 
         DXGI_FORMAT_R8_SNORM, 
         DXGI_FORMAT_R8_SINT, 
-        DXGI_FORMAT_A8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.ALPHA), 
+        DXGI_FORMAT_A8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.R), 
         DXGI_FORMAT_R1_UNORM, 
         DXGI_FORMAT_R9G9B9E5_SHAREDEXP, 
         DXGI_FORMAT_R8G8_B8G8_UNORM, 
@@ -405,17 +399,17 @@ public class DDSTexture {
 
     // Supported Luminance types
     private static final DDPFMap[] pfL = new DDPFMap[] { 
-        new DDPFMap(8, 0xff, 0, 0, 0, DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE) 
+        new DDPFMap(8, 0xff, 0, 0, 0, DataType.UNSIGNED_BYTE, TextureFormat.R) 
     };
 
     // Supported Luminance/Alpha types
     private static final DDPFMap[] pfLA = new DDPFMap[] { 
-        new DDPFMap(16, 0xff, 0, 0, 0xff00, DataType.UNSIGNED_BYTE, TextureFormat.LUMINANCE_ALPHA)
+        new DDPFMap(16, 0xff, 0, 0, 0xff00, DataType.UNSIGNED_BYTE, TextureFormat.RG)
     };
 
     // Supported Alpha types
     private static final DDPFMap[] pfA = new DDPFMap[] { 
-        new DDPFMap(8, 0, 0, 0, 0xff, DataType.UNSIGNED_BYTE, TextureFormat.ALPHA) 
+        new DDPFMap(8, 0, 0, 0, 0xff, DataType.UNSIGNED_BYTE, TextureFormat.R) 
     };
 
     /*
