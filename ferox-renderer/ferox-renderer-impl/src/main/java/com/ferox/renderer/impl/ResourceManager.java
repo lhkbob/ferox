@@ -130,29 +130,31 @@ public class ResourceManager {
     /**
      * Get an exclusive lock on the resource that prevents it from being
      * updated, disposed of, or locked via
-     * {@link #lock(OpenGLContext, Resource)}. This will almost always return
-     * true unless the resource type is unsupported.
+     * {@link #lock(OpenGLContext, Resource)}.
      * 
      * @param resource
-     * @return True if locked successfully
+     * @return The resource handle for the resource, or null if the lock was
+     *         unsuccessful
      */
-    public boolean lockExclusively(Resource resource) {
+    public Object lockExclusively(Resource resource) {
         if (resource == null)
             throw new NullPointerException("Resource cannot be null");
         
         ResourceData data = getData(resource);
         if (data != null) {
             data.lock();
-            return true;
+            if (data.handle == null)
+                data.handle = data.driver.init(resource);
+            return data.handle;
         } else {
-            return false;
+            return null;
         }
     }
     
     /**
      * Release the exclusive lock on the given resource after
-     * {@link #lockExclusively(Resource)} returned true. After a call to this
-     * method, the locked resource can be locked via
+     * {@link #lockExclusively(Resource)} returned a non-null handle. After a
+     * call to this method, the locked resource can be locked via
      * {@link #lock(OpenGLContext, Resource)}, updated, and possibly disposed of
      * (depending on its disposable status).
      * 
@@ -203,11 +205,10 @@ public class ResourceManager {
      * 
      * @param context The current context on the thread
      * @param r The resource to lock
-     * @return True if the resource is successfully locked and has a READY
-     *         status
+     * @return The handle for the resource, or null
      * @throws NullPointerException if context or r are null
      */
-    public boolean lock(OpenGLContext context, Resource r) {
+    public Object lock(OpenGLContext context, Resource r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         if (context == null)
@@ -232,7 +233,7 @@ public class ResourceManager {
 
             if (data.status == Status.READY) {
                 data.lockShared();
-                return true;
+                return data.handle;
             }
         }
         
@@ -240,7 +241,7 @@ public class ResourceManager {
         //  - UNSUPPORTED
         //  - DISPOSED with an update policy of MANUAL
         //  - not READY
-        return false;
+        return null;
     }
 
     /**

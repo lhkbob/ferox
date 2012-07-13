@@ -27,6 +27,8 @@ import com.ferox.resource.VertexBufferObject;
  * @author Michael Ludwig
  */
 public abstract class AbstractRenderer implements Renderer {
+    private static final Vector4 BLACK = new Vector4(0, 0, 0, 0);
+    
     private final RendererDelegate delegate;
     
     protected OpenGLContext context;
@@ -39,8 +41,13 @@ public abstract class AbstractRenderer implements Renderer {
     }
     
     @Override
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, float depth, int stencil) {
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, double depth, int stencil) {
         delegate.clear(clearColor, clearDepth, clearStencil, color, depth, stencil);
+    }
+    
+    @Override
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil) {
+        clear(clearColor, clearDepth, clearStencil, BLACK, 1.0, 0);
     }
 
     @Override
@@ -79,7 +86,7 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void setDepthOffsets(float factor, float units) {
+    public void setDepthOffsets(double factor, double units) {
         delegate.setDepthOffsets(factor, units);
     }
 
@@ -127,20 +134,24 @@ public abstract class AbstractRenderer implements Renderer {
     public void setStencilTestFront(Comparison test, int refValue, int testMask) {
         delegate.setStencilTestFront(test, refValue, testMask);
     }
-
+    
     @Override
-    public void setStencilUpdateOps(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
-        delegate.setStencilUpdateOps(stencilFail, depthFail, depthPass);
+    public void setStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                 StencilUpdate depthPass) {
+        delegate.setStencilUpdateFront(stencilFail, depthFail, depthPass);
+        delegate.setStencilUpdateBack(stencilFail, depthFail, depthPass);
     }
 
     @Override
-    public void setStencilUpdateOpsBack(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
-        delegate.setStencilUpdateOpsBack(stencilFail, depthFail, depthPass);
+    public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                      StencilUpdate depthPass) {
+        delegate.setStencilUpdateFront(stencilFail, depthFail, depthPass);
     }
 
     @Override
-    public void setStencilUpdateOpsFront(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
-        delegate.setStencilUpdateOpsFront(stencilFail, depthFail, depthPass);
+    public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                     StencilUpdate depthPass) {
+        delegate.setStencilUpdateBack(stencilFail, depthFail, depthPass);
     }
 
     @Override

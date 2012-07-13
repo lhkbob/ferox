@@ -28,8 +28,8 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     
     private final TextureSurfaceOptions options;
     
-    private final boolean[] colorLocks;
-    private boolean depthLock;
+    private final Object[] colorLocks;
+    private Object depthLock;
     
     public AbstractTextureSurface(AbstractFramework framework, TextureSurfaceOptions options) {
         super(framework);
@@ -47,10 +47,18 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         activeLayer = options.getActiveLayer();
         activeDepth = options.getActiveDepthPlane();
         
-        colorLocks = new boolean[colorTextures.length];
-        depthLock = false;
+        colorLocks = new Object[colorTextures.length];
+        depthLock = null;
         
         updateTextures(colorTextures, depthTexture, framework);
+    }
+    
+    protected Object getColorHandle(int i) {
+        return colorLocks[i];
+    }
+    
+    protected Object getDepthHandle() {
+        return depthLock;
     }
     
     @Override
@@ -67,7 +75,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         if (depthTexture != null)
             depthLock = manager.lockExclusively(depthTexture);
         else
-            depthLock = false;
+            depthLock = null;
     }
     
     @Override
@@ -76,15 +84,15 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         
         // unlock all held locks in reverse order they were acquired
         ResourceManager manager = getFramework().getResourceManager();
-        if (depthLock) {
+        if (depthLock != null) {
             manager.unlockExclusively(depthTexture);
-            depthLock = false;
+            depthLock = null;
         }
         
         for (int i = colorLocks.length - 1; i >= 0; i--) {
-            if (colorLocks[i]) {
+            if (colorLocks[i] != null) {
                 manager.unlockExclusively(colorTextures[i]);
-                colorLocks[i] = false;
+                colorLocks[i] = null;
             }
         }
     }

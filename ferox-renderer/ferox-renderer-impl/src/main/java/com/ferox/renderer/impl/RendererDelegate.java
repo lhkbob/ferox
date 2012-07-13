@@ -9,10 +9,8 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.Renderer.StencilUpdate;
-import com.ferox.renderer.impl.ResourceManager.LockToken;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Resource.Status;
 import com.ferox.resource.VertexBufferObject;
 
 /**
@@ -34,34 +32,6 @@ import com.ferox.resource.VertexBufferObject;
 public abstract class RendererDelegate {
     private static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
     
-    protected class IndexState implements LockListener<VertexBufferObject> {
-        public LockToken<? extends VertexBufferObject> lock;
-        
-        @Override
-        public boolean onRelock(LockToken<? extends VertexBufferObject> token) {
-            if (token != lock)
-                throw new IllegalStateException("Resource locks have been confused");
-            
-            if (token.getResourceHandle() == null || token.getResourceHandle().getStatus() != Status.READY) {
-                // Resource has been removed, so reset the lock
-                lock = null;
-                return false;
-            } else {
-                // Re-bind the VBO
-                glBindElementVbo(token.getResourceHandle());
-                return true;
-            }
-        }
-
-        @Override
-        public boolean onForceUnlock(LockToken<? extends VertexBufferObject> token) {
-            if (token != lock)
-                throw new IllegalStateException("Resource locks have been confused");
-            glBindElementVbo(null);
-            return true;
-        }
-    }
-    
     // blending
     protected final Vector4 blendColor = new Vector4();
     protected BlendFunction blendFuncRgb = BlendFunction.ADD;
@@ -78,8 +48,8 @@ public abstract class RendererDelegate {
     protected final boolean[] colorMask = new boolean[] {true, true, true, true};
     
     // depth offsets
-    protected float depthOffsetFactor = 0f;
-    protected float depthOffsetUnits = 0f;
+    protected double depthOffsetFactor = 0;
+    protected double depthOffsetUnits = 0;
     protected boolean depthOffsetEnabled = false;
     
     // depth test and mask
@@ -123,8 +93,8 @@ public abstract class RendererDelegate {
     protected int viewSurfaceHeight = -1;
     
     // rendering
-    protected final IndexState indexBinding = new IndexState();
-
+    protected VertexBufferObject indexBinding = null;
+    protected VertexBufferObjectHandle indexBindingHandle = null;
     
     protected OpenGLContext context;
     protected ResourceManager resourceManager;
@@ -163,15 +133,17 @@ public abstract class RendererDelegate {
         setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE);
         
         setStencilTest(Comparison.ALWAYS, 0, ~0);
-        setStencilUpdateOps(StencilUpdate.KEEP, StencilUpdate.KEEP, StencilUpdate.KEEP);
+        setStencilUpdateFront(StencilUpdate.KEEP, StencilUpdate.KEEP, StencilUpdate.KEEP);
+        setStencilUpdateBack(StencilUpdate.KEEP, StencilUpdate.KEEP, StencilUpdate.KEEP);
         setStencilTestEnabled(false);
         setStencilWriteMask(~0);
         
         // manually unbind the index vbo
-        if (indexBinding.lock != null) {
+        if (indexBinding != null) {
             glBindElementVbo(null);
-            resourceManager.unlock(indexBinding.lock);
-            indexBinding.lock = null;
+            resourceManager.unlock(indexBinding);
+            indexBinding = null;
+            indexBindingHandle = null;
         }
         
         // only reset viewport if we've been assigned valid dimensions
@@ -181,11 +153,11 @@ public abstract class RendererDelegate {
 
     /**
      * Perform identical operations to
-     * {@link Renderer#clear(boolean, boolean, boolean, ReadOnlyVector4f, float, int)}
+     * {@link Renderer#clear(boolean, boolean, boolean, ReadOnlyVector4f, double, int)}
      * . The color does not need to be clamped because OpenGL performs this for
      * us.
      */
-    public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, float depth, int stencil);
+    public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, double depth, int stencil);
 
     public void setBlendColor(@Const Vector4 color) {
         if (color == null)
@@ -283,7 +255,7 @@ public abstract class RendererDelegate {
      */
     protected abstract void glColorMask(boolean red, boolean green, boolean blue, boolean alpha);
     
-    public void setDepthOffsets(float factor, float units) {
+    public void setDepthOffsets(double factor, double units) {
         if (depthOffsetFactor != factor || depthOffsetUnits != units) {
             depthOffsetFactor = factor;
             depthOffsetUnits = units;
@@ -294,7 +266,7 @@ public abstract class RendererDelegate {
     /**
      * Invoke OpenGL calls to configure depth offsets.
      */
-    protected abstract void glDepthOffset(float factor, float units);
+    protected abstract void glDepthOffset(double factor, double units);
 
     public void setDepthOffsetsEnabled(boolean enable) {
         if (depthOffsetEnabled != enable) {
@@ -418,12 +390,7 @@ public abstract class RendererDelegate {
      */
     protected abstract void glEnableStencilTest(boolean enable);
 
-    public void setStencilUpdateOps(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
-        setStencilUpdateOpsFront(stencilFail, depthFail, depthPass);
-        setStencilUpdateOpsBack(stencilFail, depthFail, depthPass);
-    }
-
-    public void setStencilUpdateOpsBack(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
+    public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null)
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         if (stencilFailBack != stencilFail || depthFailBack != depthFail || depthPassBack != depthPass) {
@@ -434,7 +401,7 @@ public abstract class RendererDelegate {
         }
     }
 
-    public void setStencilUpdateOpsFront(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
+    public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null)
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         if (stencilFailFront != stencilFail || depthFailFront != depthFail || depthPassFront != depthPass) {
@@ -476,45 +443,33 @@ public abstract class RendererDelegate {
         if (count == 0)
             return 0; // shortcut
         
-        if (indexBinding.lock == null || indexBinding.lock.getResource() != indices) {
+        if (indexBinding != indices) {
             // Must bind a new element vbo
-            boolean hadOldIndices = indexBinding.lock != null;
+            boolean hadOldIndices = indexBinding != null;
             boolean failTypeCheck = false;
-            boolean failSizeCheck = false;
             
             if (hadOldIndices) {
                 // Unlock old vbo first
-                resourceManager.unlock(indexBinding.lock);
-                indexBinding.lock = null;
+                resourceManager.unlock(indexBinding);
+                indexBinding = null;
+                indexBindingHandle = null;
             }
             
-            LockToken<? extends VertexBufferObject> newLock = resourceManager.lock(context, indices, indexBinding);
-            if (newLock != null && (newLock.getResourceHandle() == null 
-                                    || newLock.getResourceHandle().getStatus() != Status.READY)) {
-                // index buffer is unusable
-                resourceManager.unlock(newLock);
-                newLock = null;
-            }
+            VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context, indices);
             
             // check if the actual VBO is of the correct type (must use handle, can't rely
-            // on the resource reporting most up-to-date type)
-            if (newLock != null && ((VertexBufferObjectHandle) newLock.getResourceHandle()).dataType == DataType.FLOAT) {
+            // on the resource reporting the most up-to-date type)
+            if (newHandle != null && newHandle.dataType == DataType.FLOAT) {
                 failTypeCheck = true;
-                resourceManager.unlock(newLock);
-                newLock = null;
-            }
-            // check if the actual VBO is of the correct size (must use handle can't 
-            // rely on the resource reporting most up-to-date size)
-            if (newLock != null && (offset + count) > ((VertexBufferObjectHandle) newLock.getResourceHandle()).length) {
-                failSizeCheck = true;
-                resourceManager.unlock(newLock);
-                newLock = null;
+                resourceManager.unlock(indices);
+                newHandle = null;
             }
             
             // Handle actual binding of the vbo
-            if (newLock != null) {
-                indexBinding.lock = newLock;
-                glBindElementVbo(newLock.getResourceHandle());
+            if (newHandle != null) {
+                indexBinding = indices;
+                indexBindingHandle = newHandle;
+                glBindElementVbo(newHandle);
             } else if (hadOldIndices) {
                 // Since we can't bind the new vbo, make sure the old
                 // one is unbound since we've already unlocked it
@@ -523,16 +478,20 @@ public abstract class RendererDelegate {
             
             if (failTypeCheck)
                 throw new IllegalArgumentException("VertexBufferObject cannot have a type of FLOAT");
-            if (failSizeCheck)
-                throw new IndexOutOfBoundsException("Offset and count would access out-of-bounds indices");
         }
         
-        if (indexBinding.lock == null) {
+        if (indexBinding == null) {
             // No element vbo to work with, so we can't render anything
             return 0;
         } else {
+            // check if the actual VBO is of the correct size (must use handle can't 
+            // rely on the resource reporting the most up-to-date size)
+            if ((offset + count) > indexBindingHandle.length) {
+                throw new IllegalArgumentException("Index and count access elements outside of VBO range");
+            }
+            
             // Element vbo is bound this time (or from a previous rendering)
-            glDrawElements(polyType, indexBinding.lock.getResourceHandle(), offset, count);
+            glDrawElements(polyType, indexBindingHandle, offset, count);
         }
         
         return polyType.getPolygonCount(count);
@@ -541,7 +500,7 @@ public abstract class RendererDelegate {
     /**
      * Perform the glDrawElements rendering command. The inputs will be valid.
      */
-    protected abstract void glDrawElements(PolygonType type, ResourceHandle handle, int offset, int count);
+    protected abstract void glDrawElements(PolygonType type, VertexBufferObjectHandle handle, int offset, int count);
 
     public int render(PolygonType polyType, int first, int count) {
         if (polyType == null)
@@ -566,5 +525,5 @@ public abstract class RendererDelegate {
      * Bind the given resource handle as the element array vbo. If null, unbind
      * the array vbo.
      */
-    protected abstract void glBindElementVbo(ResourceHandle handle);
+    protected abstract void glBindElementVbo(VertexBufferObjectHandle handle);
 }
