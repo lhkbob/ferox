@@ -129,17 +129,17 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void setStencilUpdateOps(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+    public void setStencilUpdateOps(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         delegate.setStencilUpdateOps(stencilFail, depthFail, depthPass);
     }
 
     @Override
-    public void setStencilUpdateOpsBack(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+    public void setStencilUpdateOpsBack(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         delegate.setStencilUpdateOpsBack(stencilFail, depthFail, depthPass);
     }
 
     @Override
-    public void setStencilUpdateOpsFront(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+    public void setStencilUpdateOpsFront(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         delegate.setStencilUpdateOpsFront(stencilFail, depthFail, depthPass);
     }
 

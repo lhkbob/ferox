@@ -8,7 +8,7 @@ import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.renderer.Renderer.StencilUpdate;
 import com.ferox.renderer.impl.ResourceManager.LockToken;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
@@ -95,17 +95,17 @@ public abstract class RendererDelegate {
     protected int stencilRefFront = 0;
     protected int stencilTestMaskFront = ~0;
     
-    protected StencilOp stencilFailFront = StencilOp.KEEP;
-    protected StencilOp depthFailFront = StencilOp.KEEP;
-    protected StencilOp depthPassFront = StencilOp.KEEP;
+    protected StencilUpdate stencilFailFront = StencilUpdate.KEEP;
+    protected StencilUpdate depthFailFront = StencilUpdate.KEEP;
+    protected StencilUpdate depthPassFront = StencilUpdate.KEEP;
     
     protected Comparison stencilTestBack = Comparison.ALWAYS;
     protected int stencilRefBack = 0;
     protected int stencilTestMaskBack = ~0;
     
-    protected StencilOp stencilFailBack = StencilOp.KEEP;
-    protected StencilOp depthFailBack = StencilOp.KEEP;
-    protected StencilOp depthPassBack = StencilOp.KEEP;
+    protected StencilUpdate stencilFailBack = StencilUpdate.KEEP;
+    protected StencilUpdate depthFailBack = StencilUpdate.KEEP;
+    protected StencilUpdate depthPassBack = StencilUpdate.KEEP;
     
     protected boolean stencilEnabled = false;
     
@@ -163,7 +163,7 @@ public abstract class RendererDelegate {
         setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE);
         
         setStencilTest(Comparison.ALWAYS, 0, ~0);
-        setStencilUpdateOps(StencilOp.KEEP, StencilOp.KEEP, StencilOp.KEEP);
+        setStencilUpdateOps(StencilUpdate.KEEP, StencilUpdate.KEEP, StencilUpdate.KEEP);
         setStencilTestEnabled(false);
         setStencilWriteMask(~0);
         
@@ -418,12 +418,12 @@ public abstract class RendererDelegate {
      */
     protected abstract void glEnableStencilTest(boolean enable);
 
-    public void setStencilUpdateOps(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+    public void setStencilUpdateOps(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         setStencilUpdateOpsFront(stencilFail, depthFail, depthPass);
         setStencilUpdateOpsBack(stencilFail, depthFail, depthPass);
     }
 
-    public void setStencilUpdateOpsBack(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+    public void setStencilUpdateOpsBack(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null)
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         if (stencilFailBack != stencilFail || depthFailBack != depthFail || depthPassBack != depthPass) {
@@ -434,7 +434,7 @@ public abstract class RendererDelegate {
         }
     }
 
-    public void setStencilUpdateOpsFront(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass) {
+    public void setStencilUpdateOpsFront(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null)
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         if (stencilFailFront != stencilFail || depthFailFront != depthFail || depthPassFront != depthPass) {
@@ -448,7 +448,7 @@ public abstract class RendererDelegate {
     /**
      * Invoke OpenGL calls to set the StencilOps
      */
-    protected abstract void glStencilUpdate(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass, boolean isFront);
+    protected abstract void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass, boolean isFront);
     
     public void setViewport(int x, int y, int width, int height) {
         if (x < 0 || y < 0 || width < 0 || height < 0)

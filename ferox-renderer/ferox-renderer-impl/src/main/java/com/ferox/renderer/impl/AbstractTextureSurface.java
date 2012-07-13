@@ -4,7 +4,6 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.ResourceManager.LockToken;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Resource.Status;
@@ -29,10 +28,9 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     
     private final TextureSurfaceOptions options;
     
-    private final LockToken<? extends Texture>[] colorLocks;
-    private LockToken<? extends Texture> depthLock;
+    private final boolean[] colorLocks;
+    private boolean depthLock;
     
-    @SuppressWarnings("unchecked")
     public AbstractTextureSurface(AbstractFramework framework, TextureSurfaceOptions options) {
         super(framework);
         if (options == null)
@@ -49,17 +47,10 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         activeLayer = options.getActiveLayer();
         activeDepth = options.getActiveDepthPlane();
         
-        colorLocks = new LockToken[colorTextures.length];
+        colorLocks = new boolean[colorTextures.length];
+        depthLock = false;
         
         updateTextures(colorTextures, depthTexture, framework);
-    }
-    
-    protected ResourceHandle getDepthHandle() {
-        return depthLock.getResourceHandle();
-    }
-    
-    protected ResourceHandle getColorHandle(int buffer) {
-        return colorLocks[buffer].getResourceHandle();
     }
     
     @Override
@@ -70,13 +61,13 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         // mutated/read by another surface when being rendered into
         ResourceManager manager = getFramework().getResourceManager();
         for (int i = 0; i < colorLocks.length; i++) {
-            colorLocks[i] = manager.acquireFullLock(context, colorTextures[i]);
+            colorLocks[i] = manager.lockExclusively(colorTextures[i]);
         }
         
         if (depthTexture != null)
-            depthLock = manager.acquireFullLock(context, depthTexture);
+            depthLock = manager.lockExclusively(depthTexture);
         else
-            depthLock = null;
+            depthLock = false;
     }
     
     @Override
@@ -85,14 +76,16 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         
         // unlock all held locks in reverse order they were acquired
         ResourceManager manager = getFramework().getResourceManager();
-        if (depthLock != null) {
-            manager.unlock(depthLock);
-            depthLock = null;
+        if (depthLock) {
+            manager.unlockExclusively(depthTexture);
+            depthLock = false;
         }
         
         for (int i = colorLocks.length - 1; i >= 0; i--) {
-            manager.unlock(colorLocks[i]);
-            colorLocks[i] = null;
+            if (colorLocks[i]) {
+                manager.unlockExclusively(colorTextures[i]);
+                colorLocks[i] = false;
+            }
         }
     }
     

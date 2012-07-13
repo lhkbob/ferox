@@ -116,8 +116,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         public CombineFunction rgbFunc = CombineFunction.MODULATE;
         public CombineFunction alphaFunc = CombineFunction.MODULATE;
         
-        public final CombineOp[] opRgb = {CombineOp.COLOR, CombineOp.COLOR, CombineOp.ALPHA};
-        public final CombineOp[] opAlpha = {CombineOp.ALPHA, CombineOp.ALPHA, CombineOp.ALPHA};
+        public final CombineOperand[] opRgb = {CombineOperand.COLOR, CombineOperand.COLOR, CombineOperand.ALPHA};
+        public final CombineOperand[] opAlpha = {CombineOperand.ALPHA, CombineOperand.ALPHA, CombineOperand.ALPHA};
         
         public final CombineSource[] srcRgb = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
         public final CombineSource[] srcAlpha = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
@@ -391,12 +391,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             setTextureMode(i, EnvMode.MODULATE);
             
             setTextureCombineFunction(i, CombineFunction.MODULATE, CombineFunction.MODULATE);
-            setTextureCombineOpAlpha(i, 0, CombineSource.CURR_TEX, CombineOp.ALPHA);
-            setTextureCombineOpAlpha(i, 1, CombineSource.PREV_TEX, CombineOp.ALPHA);
-            setTextureCombineOpAlpha(i, 2, CombineSource.CONST_COLOR, CombineOp.ALPHA);
-            setTextureCombineOpRgb(i, 0, CombineSource.CURR_TEX, CombineOp.COLOR);
-            setTextureCombineOpRgb(i, 1, CombineSource.PREV_TEX, CombineOp.COLOR);
-            setTextureCombineOpRgb(i, 2, CombineSource.CONST_COLOR, CombineOp.ALPHA);
+            setTextureCombineOpAlpha(i, 0, CombineSource.CURR_TEX, CombineOperand.ALPHA);
+            setTextureCombineOpAlpha(i, 1, CombineSource.PREV_TEX, CombineOperand.ALPHA);
+            setTextureCombineOpAlpha(i, 2, CombineSource.CONST_COLOR, CombineOperand.ALPHA);
+            setTextureCombineOpRgb(i, 0, CombineSource.CURR_TEX, CombineOperand.COLOR);
+            setTextureCombineOpRgb(i, 1, CombineSource.PREV_TEX, CombineOperand.COLOR);
+            setTextureCombineOpRgb(i, 2, CombineSource.CONST_COLOR, CombineOperand.ALPHA);
 
             setTextureCoordGeneration(i, TexCoordSource.ATTRIBUTE);
             
@@ -996,13 +996,13 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glCombineFunction(CombineFunction func, boolean rgb);
     
     @Override
-    public void setTextureCombineOpAlpha(int tex, int operand, CombineSource src, CombineOp op) {
+    public void setTextureCombineOpAlpha(int tex, int operand, CombineSource src, CombineOperand op) {
         if (src == null || op == null)
-            throw new NullPointerException("CombineSource and CombineOp can't be null");
+            throw new NullPointerException("CombineSource and CombineOperand can't be null");
         if (operand < 0 || operand > 2)
             throw new IllegalArgumentException("Operand must be 0, 1, or 2");
-        if (op == CombineOp.COLOR || op == CombineOp.ONE_MINUS_COLOR)
-            throw new IllegalArgumentException("Illegal CombineOp for alpha: " + op);
+        if (op == CombineOperand.COLOR || op == CombineOperand.ONE_MINUS_COLOR)
+            throw new IllegalArgumentException("Illegal CombineOperand for alpha: " + op);
         if (tex < 0)
             throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
         if (tex >= textures.length)
@@ -1030,12 +1030,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set the combine op
      */
-    protected abstract void glCombineOp(int operand, CombineOp op, boolean rgb);
+    protected abstract void glCombineOp(int operand, CombineOperand op, boolean rgb);
     
     @Override
-    public void setTextureCombineOpRgb(int tex, int operand, CombineSource src, CombineOp op) {
+    public void setTextureCombineOpRgb(int tex, int operand, CombineSource src, CombineOperand op) {
         if (src == null || op == null)
-            throw new NullPointerException("CombineSource and CombineOp can't be null");
+            throw new NullPointerException("CombineSource and CombineOperand can't be null");
         if (operand < 0 || operand > 2)
             throw new IllegalArgumentException("Operand must be 0, 1, or 2");
         if (tex < 0)

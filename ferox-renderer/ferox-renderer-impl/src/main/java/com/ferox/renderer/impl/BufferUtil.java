@@ -17,10 +17,6 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public class BufferUtil {
-    public static final int SIZEOF_FLOAT = 4;
-    public static final int SIZEOF_INT = 4;
-    public static final int SIZEOF_SHORT = 2;
-
     /**
      * Create a new FloatBuffer of the given capacity.
      * 
@@ -28,7 +24,7 @@ public class BufferUtil {
      * @return A new direct FloatBuffer
      */
     public static FloatBuffer newFloatBuffer(int size) {
-        return newByteBuffer(size * SIZEOF_FLOAT).asFloatBuffer();
+        return newByteBuffer(size * DataType.FLOAT.getByteCount()).asFloatBuffer();
     }
     
     /**
@@ -38,7 +34,7 @@ public class BufferUtil {
      * @return A new direct IntBuffer
      */
     public static IntBuffer newIntBuffer(int size) {
-        return newByteBuffer(size * SIZEOF_INT).asIntBuffer();
+        return newByteBuffer(size * DataType.UNSIGNED_INT.getByteCount()).asIntBuffer();
     }
     
     /**
@@ -48,7 +44,7 @@ public class BufferUtil {
      * @return A new direct ShortBuffer
      */
     public static ShortBuffer newShortBuffer(int size) {
-        return newByteBuffer(size * SIZEOF_SHORT).asShortBuffer();
+        return newByteBuffer(size * DataType.UNSIGNED_SHORT.getByteCount()).asShortBuffer();
     }
     
     /**

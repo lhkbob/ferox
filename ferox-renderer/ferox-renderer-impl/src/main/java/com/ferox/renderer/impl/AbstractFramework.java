@@ -1,7 +1,9 @@
 package com.ferox.renderer.impl;
 
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -9,6 +11,7 @@ import java.util.concurrent.Future;
 import com.ferox.input.EventQueue;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.Framework;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.RenderCapabilities;
@@ -17,7 +20,6 @@ import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.Task;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.resource.GlslShader;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
@@ -42,7 +44,7 @@ public abstract class AbstractFramework implements Framework {
     private final CopyOnWriteArraySet<AbstractSurface> surfaces;
     
     private final SurfaceFactory surfaceFactory;
-    private final OpenGLContext sharedContext;
+    
     private RenderCapabilities renderCaps; // final after initialize() has been called.
     
     private final LifeCycleManager lifecycleManager;
@@ -76,23 +78,17 @@ public abstract class AbstractFramework implements Framework {
      *            low-level graphics work for resources
      * @throws NullPointerException if surfaceFactory or any driver is null
      */
-    public AbstractFramework(SurfaceFactory surfaceFactory, int numThreads, ResourceDriver<?>... drivers) {
+    public AbstractFramework(SurfaceFactory surfaceFactory, int numThreads, ResourceDriver... drivers) {
         if (surfaceFactory == null)
             throw new NullPointerException("SurfaceFactory cannot be null");
         
         this.surfaceFactory = surfaceFactory;
-        
-        // Create the shared context now for three reasons:
-        //  1. It's nice to let it be final
-        //  2. If creation fails, construction fails. If it succeeds the hardware probably works well enough
-        //     that we won't break later on
-        //  3. We can construct the context manager here, too
-        sharedContext = surfaceFactory.createShadowContext(null);
-        contextManager = new ContextManager(surfaceFactory, sharedContext, numThreads);
-        resourceManager = new ResourceManager(new GlslCompatibleLockComparator(), contextManager, drivers);
+
+        contextManager = new ContextManager();
+        resourceManager = new ResourceManager(contextManager, drivers);
         
         surfaces = new CopyOnWriteArraySet<AbstractSurface>();
-        lifecycleManager = new LifeCycleManager("Ferox Framework");
+        lifecycleManager = new LifeCycleManager("ferox-renderer");
         
         eventQueue = new EventQueue();
         
@@ -121,19 +117,19 @@ public abstract class AbstractFramework implements Framework {
             @Override
             public void run() {
                 // Start up the context manager and resource manager
-                contextManager.initialize(lifecycleManager);
+                contextManager.initialize(lifecycleManager, surfaceFactory);
                 resourceManager.initialize(lifecycleManager);
                 
                 // Fetch the RenderCapabilities now, we do it this way to improve
                 // the Framework creation time instead of forcing OpenGL wrappers to 
                 // create and discard a context solely for capabilities detection.
-                Future<RenderCapabilities> caps = contextManager.queue(new Callable<RenderCapabilities>() {
+                Future<RenderCapabilities> caps = contextManager.invokeOnContextThread(new Callable<RenderCapabilities>() {
                     @Override
                     public RenderCapabilities call() throws Exception {
                         OpenGLContext context = contextManager.ensureContext();
                         return context.getRenderCapabilities();
                     }
-                }, DEFAULT_RESOURCE_TASK_GROUP);
+                }, false);
                 
                 renderCaps = getFuture(caps);
             }
@@ -141,34 +137,42 @@ public abstract class AbstractFramework implements Framework {
     }
     
     @Override
-    public OnscreenSurface createSurface(OnscreenSurfaceOptions options) {
-        lifecycleManager.getLock().lock();
-        try {
-            if (lifecycleManager.getStatus() == LifeCycleManager.Status.ACTIVE) {
+    public OnscreenSurface createSurface(final OnscreenSurfaceOptions options) {
+        if (options == null)
+            throw new NullPointerException("Options cannot be null");
+        
+        // This task is not accepted during shutdown
+        Future<OnscreenSurface> create = contextManager.invokeOnContextThread(new Callable<OnscreenSurface>() {
+            @Override
+            public OnscreenSurface call() throws Exception {
                 synchronized(fullscreenLock) {
                     if (options.getFullscreenMode() != null && fullscreenSurface != null)
                         throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");
                     
-                    AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(this, options, sharedContext);
+                    AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(AbstractFramework.this, options, 
+                                                                                           contextManager.getSharedContext());
                     surfaces.add(created);
                     
                     if (created.getOptions().getFullscreenMode() != null)
                         fullscreenSurface = created;
                     return created;
                 }
-            } else
-                return null;
-        } finally {
-            lifecycleManager.getLock().unlock();
-        }
+            }
+        }, false);
+        return getFuture(create);
     }
 
     @Override
-    public TextureSurface createSurface(TextureSurfaceOptions options) {
-        lifecycleManager.getLock().lock();
-        try {
-            if (lifecycleManager.getStatus() == LifeCycleManager.Status.ACTIVE) {
-                AbstractTextureSurface created = surfaceFactory.createTextureSurface(this, options, sharedContext);
+    public TextureSurface createSurface(final TextureSurfaceOptions options) {
+        if (options == null)
+            throw new NullPointerException("Options cannot be null");
+        
+        // This task is not accepted during shutdown
+        Future<TextureSurface> create = contextManager.invokeOnContextThread(new Callable<TextureSurface>() {
+            @Override
+            public TextureSurface call() throws Exception {
+                AbstractTextureSurface created = surfaceFactory.createTextureSurface(AbstractFramework.this, options, 
+                                                                                     contextManager.getSharedContext());
                 
                 // Mark all textures as non-disposable
                 if (created.getDepthBuffer() != null)
@@ -178,33 +182,42 @@ public abstract class AbstractFramework implements Framework {
                 
                 surfaces.add(created);
                 return created;
-            } else
-                return null;
-        } finally {
-            lifecycleManager.getLock().unlock();
-        }
+            }
+        }, false);
+        
+        return getFuture(create);
     }
 
     @Override
     public void destroy() {
+        final List<Exception> surfaceDestroyExceptions = new ArrayList<Exception>();
         lifecycleManager.stop(new Runnable() {
             @Override
             public void run() {
-                // This is only run after the manager has been stopped, and all
-                // context threads are ended, so the surfaces array will not be
-                // modified at this point
-                for (AbstractSurface surface: surfaces) {
-                    surface.destroy();
-                }
-                surfaces.clear();
-                
-                // Destroy the shared context
-                sharedContext.destroy();
-                
                 // Shutdown the event queue
                 eventQueue.shutdown();
+                
+                // Destroy all remaining surfaces
+                // The loop is structured this way so that we don't get an
+                // iterator snapshot that's not updated if there were any
+                // pending creates before we transitioned to STOPPING
+                while(!surfaces.isEmpty()) {
+                    AbstractSurface toDestroy = surfaces.iterator().next();
+                    try {
+                        toDestroy.destroy().get();
+                    } catch(Exception e) {
+                        // accumulate the exceptions but continue to destroy
+                        // all of the surfaces
+                        surfaceDestroyExceptions.add(e);
+                    }
+                }
             }
         });
+        
+        if (!surfaceDestroyExceptions.isEmpty()) {
+            throw new FrameworkException(surfaceDestroyExceptions.size() + " exception(s) while destroying surface, first failure:", 
+                                         surfaceDestroyExceptions.get(0));
+        }
     }
 
     @Override
@@ -213,28 +226,30 @@ public abstract class AbstractFramework implements Framework {
     }
 
     @Override
-    public <T> Future<T> queue(Task<T> task, String group) {
-        return contextManager.queue(new TaskCallable<T>(task), group);
+    public <T> Future<T> queue(Task<T> task) {
+        // Specify false so that these tasks are only queued while the
+        // state is ACTIVE
+        return contextManager.invokeOnContextThread(new TaskCallable<T>(task), false);
     }
 
     @Override
     public Status update(Resource resource) {
-        return getFuture(queue(new UpdateResourceTask(resource), DEFAULT_RESOURCE_TASK_GROUP));
+        return getFuture(queue(new UpdateResourceTask(resource)));
     }
 
     @Override
     public void dispose(Resource resource) {
-        getFuture(queue(new DisposeResourceTask(resource), DEFAULT_RESOURCE_TASK_GROUP));
+        getFuture(queue(new DisposeResourceTask(resource)));
     }
 
     @Override
-    public void flush(Surface surface, String group) {
-        getFuture(queue(new FlushSurfaceTask(surface), group));
+    public void flush(Surface surface) {
+        getFuture(queue(new FlushSurfaceTask(surface)));
     }
 
     @Override
-    public void sync(String group) {
-        getFuture(queue(new EmptyTask(), group));
+    public void sync() {
+        getFuture(queue(new EmptyTask()));
     }
     
     private <T> T getFuture(Future<T> future) {
@@ -244,6 +259,10 @@ public abstract class AbstractFramework implements Framework {
             throw new RuntimeException(e);
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
+        } catch (CancellationException e) {
+            // bury the cancel request so that the help methods don't 
+            // throw exceptions when the framework is being destroyed
+            return null;
         }
     }
 
@@ -347,30 +366,6 @@ public abstract class AbstractFramework implements Framework {
         @Override
         public T call() throws Exception {
             return task.run(new HardwareAccessLayerImpl(AbstractFramework.this));
-        }
-    }
-    
-    /*
-     * Implement a Comparator<Resource> that pushes all GlslShaders to the end of the locking,
-     * so that the AbstractGlslRenderer works correctly. This isn't a perfect solution but its
-     * the only way to make the renderer safe in the event of bad resource updates.
-     */
-    private static class GlslCompatibleLockComparator implements Comparator<Resource> {
-        @Override
-        public int compare(Resource o1, Resource o2) {
-            boolean glsl1 = o1 instanceof GlslShader;
-            boolean glsl2 = o2 instanceof GlslShader;
-            
-            if ((glsl1 && glsl2) || (!glsl1 && !glsl2)) {
-                // if both are GlslShaders or both aren't GlslShaders, order by resource id
-                return o1.getId() - o2.getId();
-            } else if (glsl1 && !glsl2) {
-                // o1 is a GlslShader, so push it to the end
-                return 1;
-            } else {
-                // o2 is a GlslShader, so push it to the end
-                return -1;
-            }
         }
     }
 }

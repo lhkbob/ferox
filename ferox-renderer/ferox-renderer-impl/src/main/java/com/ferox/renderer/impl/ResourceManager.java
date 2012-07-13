@@ -2,17 +2,12 @@ package com.ferox.renderer.impl;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.HardwareAccessLayer;
@@ -36,15 +31,11 @@ public class ResourceManager {
     private Thread garbageCollector;
     
     private final ContextManager contextManager;
-    
-    private final ThreadLocal<List<LockToken<?>>> locks;
-    
+        
     private final ReferenceQueue<Resource> collectedResources;
-    private final ConcurrentMap<Integer, ResourceData<?>> resources;
-    private final Map<Class<? extends Resource>, ResourceDriver<?>> drivers;
+    private final ConcurrentMap<Integer, ResourceData> resources;
+    private final Map<Class<? extends Resource>, ResourceDriver> drivers;
     
-    private final LockTokenComparator lockOrder;
-
     /**
      * <p>
      * Create a new ResourceManager that uses the given ContextManager to queue
@@ -52,8 +43,6 @@ public class ResourceManager {
      * resources. The provided ResourceDrivers are used to process specific
      * types of resources. They implicitly define the set of supported resource
      * types.
-     * </p>
-     * <p>
      * 
      * @param lockOrder A Comparator that imposes an ordering on resources when
      *            they must be relocked in a consistent manner
@@ -64,28 +53,18 @@ public class ResourceManager {
      * @throws NullPointerException if lockOrder, contextManager or any of the drivers are
      *             null
      */
-    public ResourceManager(Comparator<Resource> lockOrder, ContextManager contextManager, ResourceDriver<?>... drivers) {
-        if (lockOrder == null)
-            throw new NullPointerException("Lock order Comparator cannot be null");
+    public ResourceManager(ContextManager contextManager, ResourceDriver... drivers) {
         if (contextManager == null)
             throw new NullPointerException("ContextManager cannot be null");
         this.contextManager = contextManager;
-        this.lockOrder = new LockTokenComparator(lockOrder);
-        
-        locks = new ThreadLocal<List<LockToken<?>>>() {
-            @Override
-            protected List<LockToken<?>> initialValue() {
-                return new ArrayList<LockToken<?>>();
-            }
-        };
         
         collectedResources = new ReferenceQueue<Resource>();
-        resources = new ConcurrentHashMap<Integer, ResourceData<?>>();
+        resources = new ConcurrentHashMap<Integer, ResourceData>();
         
-        Map<Class<? extends Resource>, ResourceDriver<?>> tmpDrivers = new HashMap<Class<? extends Resource>, ResourceDriver<?>>();
+        Map<Class<? extends Resource>, ResourceDriver> tmpDrivers = new HashMap<Class<? extends Resource>, ResourceDriver>();
         if (drivers != null) {
             // Build up the map of drivers based on the input array
-            for (ResourceDriver<?> driver: drivers) {
+            for (ResourceDriver driver: drivers) {
                 if (driver == null)
                     throw new NullPointerException("ResourceDriver cannot be null");
                 tmpDrivers.put(driver.getResourceType(), driver);
@@ -107,20 +86,17 @@ public class ResourceManager {
      * {@link LifeCycleManager#start(Runnable)}. The provided LifeCycleManager
      * should be the same manager that was used to initialize this
      * ResourceManager's ContextManager. Because the ResourceManager depends on
-     * the ContextManager, the ContextManager should be initialized first.
-     * </p>
+     * the ContextManager, the ContextManager must be initialized first.
      * <p>
      * The ResourceManager will automatically terminate its threads when it
      * detects that the LifeCycleManager is being shutdown. All internal threads
-     * are managed threads so the final destruction code passed to
+     * are managed threads so the final destruction task passed to
      * {@link LifeCycleManager#destroy(Runnable)} will not run until the
      * ResourceManager's thread terminates.
-     * </p>
      * <p>
      * The ResourceManager cannot be initialized more than once. It is illegal
      * to use a LifeCycleManager that has a status other than STARTING (i.e.
      * within the scope of its initialize() method).
-     * </p>
      * 
      * @param lifecycle The LifeCycleManager that controls when the
      *            ResourceManager ends
@@ -146,216 +122,125 @@ public class ResourceManager {
             lifecycleManager = lifecycle;
         }
         
-        garbageCollector = new Thread(lifecycleManager.getManagedThreadGroup(), new WeakReferenceMonitor(), "resource-disposer");
+        garbageCollector = new Thread(lifecycleManager.getManagedThreadGroup(), new WeakReferenceMonitor(), "resource-gc-thread");
+        garbageCollector.setDaemon(true);
         lifecycleManager.startManagedThread(garbageCollector);
     }
-
-    /*
-     * Internal method to handle actual locking of a resource and resourceData.
-     * The resource is an argument to make sure the weak reference in the data
-     * is not garbage collected. The LockListener may be null.
-     */
-    private <R extends Resource> LockToken<R> lockHandle(R resource, ResourceData<R> data, LockListener<R> listener, boolean writeLock) {
-        List<LockToken<?>> threadLocks = locks.get();
-        LockToken<R> newToken = new LockToken<R>(resource, data, listener, writeLock, false);
-        
-        Lock lock = (writeLock ? data.lock.writeLock() : data.lock.readLock());
-        
-        // We can't upgrade a read lock to a write lock, so if we have a read lock (readHoldCount > 0)
-        // and we don't already have a write lock, but need one, we need to reorder the locks so that
-        // the write lock is the outer lock.
-        boolean forceReorder = (writeLock && !data.lock.isWriteLockedByCurrentThread() 
-                                && data.lock.getReadHoldCount() > 0);
-        
-        if (forceReorder || !lock.tryLock()) {
-            // Unwind already held locks
-            LockToken<?> other;
-            for (int i = threadLocks.size() - 1; i >= 0; i--) {
-                other = threadLocks.get(i);
-                boolean relock = other.notifyForceUnlock();
-                other.unlock();
-                
-                if (!relock)
-                    threadLocks.remove(i); // safe because this is reverse list traversal
-            }
-            
-            // Add new token and sort the list
-            threadLocks.add(newToken);
-            Collections.sort(threadLocks, lockOrder);
-            
-            // Relock all locks, blocking until completed
-            int ct = threadLocks.size();
-            for (int i = 0; i < ct; i++) {
-                other = threadLocks.get(i);
-                other.lock();
-                
-                if (other != newToken) {
-                    // We only do these actions if it's not the new token. The new token
-                    // can't be "relocked" because it was the first lock. And if there is no
-                    // handle for the new token, we want to let the calling code deal with it.
-                    
-                    boolean keepLock = other.notifyRelock();
-                    if (!keepLock) {
-                        other.unlock();
-                        threadLocks.remove(i);
-                        i--; // decrement i by one so we don't skip the shifted element
-                    }
-                }
-            }
-            
-            // Since newToken was added to the list, we have locked the new one, too
-        } else {
-            // Managed to lock in an arbitrary order, so just add it to the list
-            threadLocks.add(newToken);
-        }
-        
-        return newToken;
-    }
-
+    
     /**
-     * Unlock the Resource that had previously been locked by the given
-     * LockToken. This does nothing if the token has already been unlocked. Any
-     * LockListener specified when the token was created is not notified of the
-     * unlock, this only occurs when the unlock is forced for internal
-     * lock-reordering.
+     * Get an exclusive lock on the resource that prevents it from being
+     * updated, disposed of, or locked via
+     * {@link #lock(OpenGLContext, Resource)}. This will almost always return
+     * true unless the resource type is unsupported.
      * 
-     * @param token The token to unlock
-     * @throws NullPointerException if token is null
+     * @param resource
+     * @return True if locked successfully
      */
-    public void unlock(LockToken<?> token) {
-        if (token == null)
-            throw new NullPointerException("LockToken cannot be null");
+    public boolean lockExclusively(Resource resource) {
+        if (resource == null)
+            throw new NullPointerException("Resource cannot be null");
         
-        if (token.fullLock || locks.get().remove(token)) {
-            // Unlock token if it's still in the locks list
-            // or if it's a lock that wants to break all of the rules
-            token.unlock();
+        ResourceData data = getData(resource);
+        if (data != null) {
+            data.lock();
+            return true;
+        } else {
+            return false;
         }
+    }
+    
+    /**
+     * Release the exclusive lock on the given resource after
+     * {@link #lockExclusively(Resource)} returned true. After a call to this
+     * method, the locked resource can be locked via
+     * {@link #lock(OpenGLContext, Resource)}, updated, and possibly disposed of
+     * (depending on its disposable status).
+     * 
+     * @param resource
+     */
+    public void unlockExclusively(Resource resource) {
+        if (resource == null)
+            throw new NullPointerException("Resource cannot be null");
+        
+        ResourceData data = getDataIfExists(resource);
+        if (data != null)
+            data.unlock();
+    }
+
+    /**
+     * Unlock the Resource after it has been unbound. This should not be called
+     * more times than the resource was locked. After a successful call to
+     * {@link #lock(OpenGLContext, Resource)}, this must be called when the
+     * resource is no longer being used. It must not need to be called if the
+     * resource was not bound successfully.
+     * 
+     * @param resource The resource to unlock
+     * @throws NullPointerException if resource is null
+     */
+    public void unlock(Resource resource) {
+        if (resource == null)
+            throw new NullPointerException("Resource cannot be null");
+        
+        ResourceData data = getDataIfExists(resource);
+        if (data != null)
+            data.unlockShared();
     }
 
     /**
      * <p>
-     * Lock the given Resource, <tt>r</tt> for use on the given context. It is
-     * assumed that the context is current on the calling thread. Internally,
-     * the ResourceManager manages a read-write lock for the given Resource.
-     * When the Resource has a MANUAL update policy, the read-lock is used,
-     * allowing for more concurrency.
-     * </p>
+     * Lock the given Resource, <tt>r</tt> so it can be safely bound on the
+     * given context. This is a shared lock so that it can be locked multiple
+     * times for binding purposes (i.e. to multiple texture units). While a
+     * Resource is bound, it cannot be updated or disposed of.
      * <p>
-     * Because resource locks may be locked and unlocked in a non-deterministic
-     * order, the ResourceManager may need to unlock and re-order all held locks
-     * on the current thread to prevent deadlocks. This is also done if a read
-     * lock must be upgrade to a write lock (i.e. if
-     * {@link #update(OpenGLContext, Resource)} or
-     * {@link #dispose(OpenGLContext, Resource)} is called when the
-     * resource is bound to a renderer).
-     * </p>
+     * This will automatically update the resource if its update policy is
+     * ON_DEMAND. If the resource is not ready, false is returned and the
+     * Renderer should cancel the binding. This can happen if the resource has
+     * an error, is unsupported, or has an update policy of MANUAL.
      * <p>
-     * A LockListener can be provided that will be invoked as appropriate when
-     * resources are automatically unlocked and relocked in the event of
-     * deadlock prevention. The LockListeners are not invoked the first time the
-     * lock is held, or when the resource is unlocked by
-     * {@link #unlock(LockToken)}.
-     * </p>
-     * <p>
-     * The returned LockToken provides access to the ResourceHandle of the given
-     * Resource. This handle may be null or have a status not equal to READY.
-     * Code must properly handle these situations (generally by unlocking the
-     * resource and not completing the expected action). It is possible for a
-     * locked resource to lose a valid handle during the time period between a
-     * forced unlock and a relock.
-     * </p>
-     * <p>
-     * When a LockListener is provided, the listener controls whether or not a
-     * resource should be relocked after a forced unlock, or automatically
-     * unlocked after a relock. When no listener is provided, a resource will
-     * lose its lock if its handle becomes null or invalid.
-     * </p>
+     * It is assumed that the context is current, and that the calling thread is
+     * the context thread of the framework.
      * 
      * @param context The current context on the thread
      * @param r The resource to lock
-     * @param listener An optional LockListener that is notified of forced
-     *            lock/unlock events during lock re-ordering
-     * @return A LockToken to unlock the resource when needed, or null if the
-     *         resource is of an unsupported type
+     * @return True if the resource is successfully locked and has a READY
+     *         status
      * @throws NullPointerException if context or r are null
      */
-    public <R extends Resource> LockToken<R> lock(OpenGLContext context, R r, LockListener<R> listener) {
+    public boolean lock(OpenGLContext context, Resource r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         if (context == null)
             throw new NullPointerException("Context cannot be null");
 
-        boolean needsUpdate = false;
-        ResourceData<R> data;
-        synchronized(r) {
-            if (r.getUpdatePolicy() == UpdatePolicy.ON_DEMAND) {
-                data = getResourceData(r, true);
-                needsUpdate = true;
-            } else
-                data = getResourceData(r, false);
+        boolean needsUpdate;
+        ResourceData data;
+        if (r.getUpdatePolicy() == UpdatePolicy.ON_DEMAND) {
+            data = getData(r);
+            needsUpdate = true;
+        } else {
+            data = getDataIfExists(r);
+            needsUpdate = false;
         }
         
-        // At this point if data is null, it means the resource is unknown and wasn't an ON_DEMAND resource,
-        // or it was ON_DEMAND but is unsupported. In either case, there is nothing to do
-        if (data == null)
-            return null;
-        
-        LockToken<R> token = (needsUpdate ? update(context, data, listener) 
-                                          : lockHandle(r, data, listener, false));
-        return token;
-    }
-
-    /**
-     * Exclusively lock the provided resource and block until its handle is
-     * available. The lock will not be automatically unlocked/relocked to
-     * prevent deadlock (as is the case with locks held by
-     * {@link #lock(OpenGLContext, Resource, LockListener)}). Because of this,
-     * thread safety becomes the responsibility of the color and it is preferred
-     * to use the regular lock method. If the resource has an update policy of
-     * ON_DEMAND, it will be updated if need be.
-     * 
-     * @param <R> The resource type being locked
-     * @param context The current context
-     * @param r The resource to exclusively lock
-     * @return The LockToken to use for unlocking this exclusive lock, returns
-     *         null if resource is unuspported
-     * @throws NullPointerException if r or context are null
-     */
-    public <R extends Resource> LockToken<R> acquireFullLock(OpenGLContext context, R r) {
-        if (r == null)
-            throw new NullPointerException("Resource cannot be null");
-        if (context == null)
-            throw new NullPointerException("Context cannot be null");
-        
-        boolean needsUpdate = false;
-        ResourceData<R> data;
-        synchronized(r) {
-            if (r.getUpdatePolicy() == UpdatePolicy.ON_DEMAND) {
-                data = getResourceData(r, true);
-                needsUpdate = true;
-            } else
-                data = getResourceData(r, false);
-        }
-        
-        if (data == null)
-            return null; // See comment in lock()
-        
-        // here is where we diverge from lock() and handle things differently
-        data.lock.writeLock().lock();
-        try {
-            if (needsUpdate) {
-                // perform an update action 
-                synchronized(r) {
-                    data.handle = data.driver.update(context, r, data.handle);
-                }
+        if (data != null) {
+            if (needsUpdate && !data.isLocked()) {
+                // only do the update if we're not already bound, otherwise
+                // ON_DEMAND would constantly fail if bound in multiple places
+                update(context, r);
             }
-            
-            return new LockToken<R>(r, data, null, true, true);
-        } catch(RuntimeException re) {
-            data.lock.writeLock().unlock();
-            throw re;
+
+            if (data.status == Status.READY) {
+                data.lockShared();
+                return true;
+            }
         }
+        
+        // If we've reached this point, it means the resource was one of:
+        //  - UNSUPPORTED
+        //  - DISPOSED with an update policy of MANUAL
+        //  - not READY
+        return false;
     }
 
     /**
@@ -372,54 +257,32 @@ public class ResourceManager {
      * @return The new status of r
      * @throws NullPointerException if context or r are null
      */
-    public <R extends Resource> Status update(OpenGLContext context, R r) {
+    public Status update(OpenGLContext context, Resource r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         if (context == null)
             throw new NullPointerException("Context cannot be null");
         
-        ResourceData<R> data;
-        synchronized(r) {
-            data = getResourceData(r, true);
-            if (data == null)
-                return Status.UNSUPPORTED;
-        }
-        
-        LockToken<R> token = update(context, data, null);
-        Status status = data.handle.getStatus();
-        unlock(token);
-        return status;
-    }
+        ResourceData data = getData(r);
+        if (data == null)
+            return Status.UNSUPPORTED;
 
-    /*
-     * Internal method to obtain a write-lock on the given resource, and perform
-     * the actions needed for update() or an ON_DEMAND resource. The LockToken
-     * is returned (to be unlocked in the case of update(), or returned to use
-     * code in the case of lock()). If an exception is thrown, then the resource
-     * is unlocked.
-     */
-    private <R extends Resource> LockToken<R> update(OpenGLContext context, ResourceData<R> data, LockListener<R> listener) {
-        R r = data.get();
-        if (r == null)
-            return null;
-        
-        LockToken<R> token = lockHandle(r, data, listener, true); // acquires write lock
+        data.lock();
         try {
-            // Re-lock on the resource to make sure no one edits it on outside threads.
-            // Since we already have an exclusive write lock on the ResourceData,
-            // we don't need to worry about blocking against other context threads that have
-            // multiple locks - and we trust outside threads to only have one resource locked
-            // at a time.
-            synchronized(r) {
-                data.handle = data.driver.update(context, r, data.handle);
-                return token;
+            if (data.handle == null)
+                data.handle = data.driver.init(r);
+
+            try {
+                data.message = data.driver.update(context, r, data.handle);
+                data.status = Status.READY;
+            } catch(UpdateResourceException e) {
+                data.message = e.getMessage();
+                data.status = Status.ERROR;
             }
-        } catch(RuntimeException re) {
-            // In the event of an exception, unlock the token since normally the caller
-            // is responsible for the unlock but that clearly won't work when an exception is thrown.
-            unlock(token);
-            throw re;
+        } finally {
+            data.unlock();
         }
+        return data.status;
     }
 
     /**
@@ -443,92 +306,80 @@ public class ResourceManager {
         if (context == null)
             throw new NullPointerException("Context cannot be null");
         
-        ResourceData<R> data;
-        synchronized(r) {
-            data = getResourceData(r, false);
-            if (data == null)
-                return; // Don't need to dispose
-            else if (!data.disposable)
-                throw new IllegalStateException("Resource is in use by a Surface and cannot be destroyed");
-        }
-        
-        
-        LockToken<R> token = lockHandle(r, data, null, true);
+        ResourceData data = getDataIfExists(r);
+        if (data == null)
+            return; // Don't need to dispose
+        else if (!data.disposable)
+            throw new IllegalStateException("Resource is in use by a Surface and cannot be disposed");
+
+        data.lock();
         try {
-            if (data.handle != null) {
+            if (data.handle != null)
                 data.driver.dispose(context, data.handle);
-                data.handle.setStatus(Status.DISPOSED);
-            }
-            data.handle = null;
-            
-            // Don't remove the ResourceData from the resources map because we want to
-            // keep reusing the ResourceData instance. That way other threads that might have
-            // instances to it don't need to constantly look it up.  The ResourceData is cleaned
-            // up only once the Resource has been garbage collected.
         } finally {
-            unlock(token);
+            data.unlock();
         }
+        data.handle = null;
+        data.status = Status.DISPOSED;
+        data.message = "";
+
+        // Don't remove the ResourceData from the resources map because we want to
+        // keep reusing the ResourceData instance. That way other threads that might have
+        // instances to it don't need to constantly look it up.  The ResourceData is cleaned
+        // up only once the Resource has been garbage collected.
     }
 
     /**
      * Reset the internal tracking of this resource as required by
      * {@link HardwareAccessLayer#reset(Resource)}. If this resource has no
-     * ResourceHandle, then this request does nothing.
+     * ResourceHandle, then this request does nothing. This method should only
+     * be called from a ContextManager owned task thread.
      * 
-     * @param <R> The Resource type
      * @param r The resource to reset
      * @throws NullPointerException if r is null
      */
-    public <R extends Resource> void reset(R r) {
+    public void reset(Resource r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         
-        ResourceData<R> data;
-        synchronized(r) {
-            data = getResourceData(r, false);
-            if (data == null)
-                return; // Don't need to dispose
-        }
+        ResourceData data = getDataIfExists(r);
+        if (data == null || data.handle == null)
+            return; // Nothing to reset
         
-        LockToken<R> token = lockHandle(r, data, null, true);
-        try {
-            if (data.handle != null)
-                data.driver.reset(r, data.handle);
-        } finally {
-            unlock(token);
-        }
+        data.driver.reset(data.handle);
     }
 
     /**
+     * <p>
      * Set whether or not the given resource, <tt>r</tt>, is disposable. If it
      * is not disposable, an exception is thrown when
-     * {@link #dispose(OpenGLContext, Resource)} is invoked. This should
-     * be used to prevent the textures used by a TextureSurface from being
-     * disposed of until the surface is destroyed. This does nothing if r is an
-     * unsupported resource type.
+     * {@link #dispose(OpenGLContext, Resource)} is invoked. This can be used to
+     * prevent the textures used by a TextureSurface from being disposed of
+     * until the surface is destroyed.
+     * <p>
+     * This does nothing if r is an unsupported resource type. If the resource
+     * is already disposed, this flags it for after the next time it is
+     * initialized.
+     * <p>
+     * This should only be called from a context thread.
      * 
-     * @param <R> The Resource type
      * @param r The resource to flag as disposable or not
      * @param disposable True if it can be disposed
      * @throws NullPointerException if r is null
      */
-    public <R extends Resource> void setDisposable(R r, boolean disposable) {
+    public void setDisposable(Resource r, boolean disposable) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         
-        synchronized(r) {
-            // Since we're only operating on the ResourceData, we can 
-            // use just a synchronized block without getting a LockToken
-            ResourceData<R> data = getResourceData(r, true);
-            if (data != null)
-                data.disposable = disposable;
-        }
+        ResourceData data = getData(r);
+        if (data != null)
+            data.disposable = disposable;
     }
 
     /**
      * Return the current status message of the given resource. This functions
      * identically to {@link Framework#getStatusMessage(Resource)}. This returns
-     * null if the manager's lifecyle has ended. In most cases, the empty string
+     * null if the manager's lifecycle has ended. In most cases, the empty string
      * is returned unless the resource has a status of ERROR (since that is when
      * the message is most informative).
      * 
@@ -536,7 +387,7 @@ public class ResourceManager {
      * @return The status message of r
      * @throws NullPointerException if r is null
      */
-    public <R extends Resource> String getStatusMessage(R r) {
+    public String getStatusMessage(Resource r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         
@@ -544,22 +395,14 @@ public class ResourceManager {
         if (lifecycleManager.isStopped())
             return null;
 
-        ResourceData<R> data;
-        synchronized(r) {
-            data = getResourceData(r, false);
-            if (data == null) {
-                // This is either a disposed resource, or an unsupported resource,
-                // but all of that is encoded in the Status, the message doesn't matter
-                return "";
-            }
+        ResourceData data = getDataIfExists(r);
+        if (data == null) {
+            // This is either a disposed resource, or an unsupported resource,
+            // but all of that is encoded in the Status, the message doesn't matter
+            return "";
         }
         
-        LockToken<R> token = lockHandle(r, data, null, false);
-        try {
-            return (data.handle != null ? data.handle.getStatusMessage() : "");
-        } finally {
-            unlock(token);
-        }
+        return data.message;
     }
 
     /**
@@ -571,7 +414,7 @@ public class ResourceManager {
      * @return The status of r
      * @throws NullPointerException if r is null
      */
-    public <R extends Resource> Status getStatus(R r) {
+    public Status getStatus(Resource r) {
         if (r == null)
             throw new NullPointerException("Resource cannot be null");
         
@@ -579,175 +422,53 @@ public class ResourceManager {
         if (lifecycleManager.isStopped())
             return Status.DISPOSED;
         
-        ResourceData<R> data;
-        synchronized(r) {
-            data = getResourceData(r, false);
-            if (data == null) {
-                // This is either disposed or unsupported, so we have to check the driver.
-                // If there is a driver, then it is supported but disposed
-                return (getDriver(r) == null ? Status.UNSUPPORTED : Status.DISPOSED);
-            }
+        ResourceData data = getDataIfExists(r);
+        if (data == null) {
+            // This is either disposed or unsupported, so we have to check the driver.
+            // If there is a driver, then it is supported but disposed
+            return (getDriver(r) == null ? Status.UNSUPPORTED : Status.DISPOSED);
         }
         
-        LockToken<R> token = lockHandle(r, data, null, false);
-        try {
-            return (data.handle != null ? data.handle.getStatus() : Status.DISPOSED);
-        } finally {
-            unlock(token);
-        }
+        return data.status;
     }
     
-    /*
-     * Query the map of drivers for the best-matching driver.
-     */
-    @SuppressWarnings("unchecked")
-    private <R extends Resource> ResourceDriver<R> getDriver(R resource) {
+    private ResourceDriver getDriver(Resource resource) {
         Class<?> clazz = resource.getClass();
         while(clazz != null && Resource.class.isAssignableFrom(clazz)) {
-            ResourceDriver<?> d = drivers.get(clazz);
+            ResourceDriver d = drivers.get(clazz);
             if (d != null)
-                return (ResourceDriver<R>) d;
+                return d;
             clazz = clazz.getSuperclass();
         }
         return null;
     }
 
-    /*
-     * Grab the ResourceData associated with the resource. If vivify is false
-     * and there is no resouce data, then null is returned. If vivify is true, a
-     * new ResourceData is created and stored for later (unless the resource has
-     * no driver, at which point null is returned).
-     */
-    @SuppressWarnings("unchecked")
-    private <R extends Resource> ResourceData<R> getResourceData(R resource, boolean vivify) {
-        ResourceData<R> data = (ResourceData<R>) resources.get(resource.getId());
-        if (vivify && data == null) {
-            ResourceDriver<R> driver = getDriver(resource);
+    private ResourceData getData(Resource resource) {
+        ResourceData data = resources.get(resource.getId());
+        if (data == null) {
+            // no data, but we must allocate it
+            ResourceDriver driver = getDriver(resource);
             if (driver == null)
                 return null; // Unsupported resources never store an RD
-            data = new ResourceData<R>(resource, driver, collectedResources);
-            resources.put(resource.getId(), data);
+            
+            data = new ResourceData(resource, driver, collectedResources);
+            ResourceData contendedInsert = resources.putIfAbsent(resource.getId(), data);
+            if (contendedInsert != null) {
+                // another thread inserted a ResourceData before us, so use it
+                // - this means we have multiple weak references that can get
+                //   queued, but the gc thread can handle that
+                data = contendedInsert;
+            }
         }
         
         return data;
     }
-
-    /**
-     * LockToken is a small token representing the locked state of a Resource. A
-     * Resource may be locked multiple times by a thread, and multiple threads
-     * may be able to hold read-only locks on the same resource at the same
-     * time. LockTokens must be held onto until the resource is unlocked.
-     * 
-     * @see ResourceManager#lock(OpenGLContext, Resource, LockListener)
-     * @see ResourceManager#unlock(LockToken)
-     * @param <R> The Resource type that is locked
-     */
-    public static class LockToken<R extends Resource> {
-        private final R resource; // Have an actual reference to the resource so it doesn't get GC'ed
-        private final ResourceData<R> data;
-        private final LockListener<? super R> listener;
-        
-        private final boolean writeLock;
-        private final boolean fullLock;
-
-        private LockToken(R resource, ResourceData<R> data, LockListener<? super R> listener, boolean writeLockHeld, boolean fullLock) {
-            this.resource = resource;
-            this.data = data;
-            this.listener = listener;
-
-            writeLock = writeLockHeld;
-            this.fullLock = fullLock;
-        }
-        
-        /**
-         * @return The Resource locked by this token, this will not be null
-         */
-        public R getResource() {
-            return resource;
-        }
-
-        /**
-         * Return the ResourceHandle associated with the Resource that is locked
-         * by this token. The handle may be null if the resource has been
-         * disposed of, or it may have a Status other than READY.
-         * 
-         * @return The ResourceHandle if one exists
-         */
-        public ResourceHandle getResourceHandle() {
-            return data.handle;
-        }
-        
-        // Convenience method to notify any LockListener or perform default action
-        private boolean notifyForceUnlock() {
-            if (listener != null)
-                return listener.onForceUnlock(this);
-            else
-                return data.handle != null && data.handle.getStatus() == Status.READY;
-        }
-        
-        // Convenience method to notify any LockListener or perform default action
-        private boolean notifyRelock() {
-            if (listener != null)
-                return listener.onRelock(this);
-            else
-                return data.handle != null && data.handle.getStatus() == Status.READY;
-        }
-        
-        // Lock, using the correct read or write lock
-        private void lock() {
-            if (writeLock)
-                data.lock.writeLock().lock();
-            else
-                data.lock.readLock().lock();
-        }
-        
-        // Unlock, using the correct read or write lock
-        private void unlock() {
-            if (writeLock)
-                data.lock.writeLock().unlock();
-            else
-                data.lock.readLock().unlock();
-        }
+    
+    private ResourceData getDataIfExists(Resource resource) {
+        // resources is a ConcurrentMap so this is always safe
+        return resources.get(resource.getId());
     }
     
-    /*
-     * Comparator that orders LockTokens by a comparator of resources, and
-     * correctly orders read and write locks.
-     */
-    private static class LockTokenComparator implements Comparator<LockToken<?>> {
-        private final Comparator<Resource> resourceComparator;
-        
-        public LockTokenComparator(Comparator<Resource> comp) {
-            resourceComparator = comp;
-        }
-        
-        @Override
-        public int compare(LockToken<?> o1, LockToken<?> o2) {
-            int c = resourceComparator.compare(o1.resource, o2.resource);
-            if (c == 0) {
-                // verify that resources are in fact equal 
-                // (if not, the comparator screwed up, so order by id)
-                if (o1.resource == o2.resource) {
-                    // order by lock type
-                    if (o1.writeLock && !o2.writeLock)
-                        return -1;
-                    else if (!o1.writeLock && o2.writeLock)
-                        return 1;
-                    else
-                        return 0;
-                } else {
-                    // comparator is claiming different resources are equal
-                    return o1.resource.getId() - o2.resource.getId();
-                }
-            } else {
-                // resources aren't equal so use comparators answer
-                if (o1.resource == o2.resource)
-                    throw new RuntimeException("Bad Resource lock Comparator, claims a Resource is not equal to itself");
-                return c;
-            }
-        }
-    }
-
     /*
      * Internal runner that monitors a ReferenceQueue to dispose of
      * ResourceHandles after their owning Resources have been collected.
@@ -757,15 +478,16 @@ public class ResourceManager {
         public void run() {
             while(!lifecycleManager.isStopped()) {
                 try {
-                    // We can't lock on the ResourceData anymore because its
-                    // owning Resource has been collected. This is fine, though because
-                    // this is the only thread that will be capable of operating on these
-                    // orphaned wrappers.
-                    ResourceData<?> data = (ResourceData<?>) collectedResources.remove();
+                    // The Resource associated with this data has been GC'ed,
+                    // which means its impossible for getResourceData(),
+                    // update(), dispose(), etc to be called
+                    ResourceData data = (ResourceData) collectedResources.remove();
                     
                     if (data.handle != null) {
                         // Don't block on this, we just need it to be disposed of in the future
-                        contextManager.queue(new DisposeOrphanedHandleTask(data), AbstractFramework.DEFAULT_RESOURCE_TASK_GROUP);
+                        // and don't bother accepting during shutdown since the context
+                        // is about to be destroyed then anyway.
+                        contextManager.invokeOnContextThread(new DisposeOrphanedHandleTask(data), false);
                     }
                     
                     // Remove it from the collection of current resources
@@ -781,9 +503,9 @@ public class ResourceManager {
      * Internal task to clean up a resource after it has been garbage collected.
      */
     private class DisposeOrphanedHandleTask implements Callable<Void> {
-        private final ResourceData<?> data;
+        private final ResourceData data;
         
-        public DisposeOrphanedHandleTask(ResourceData<?> data) {
+        public DisposeOrphanedHandleTask(ResourceData data) {
             this.data = data;
         }
         
@@ -796,6 +518,8 @@ public class ResourceManager {
             if (data.handle != null)
                 data.driver.dispose(context, data.handle);
             data.handle = null;
+            data.status = Status.DISPOSED;
+            data.message = "Resource was garbage-collected";
             return null;
         }
     }
@@ -804,22 +528,65 @@ public class ResourceManager {
      * Internal wrapper that collects a driver, ResourceHandle and weak
      * reference to a Resource.
      */
-    private static class ResourceData<R extends Resource> extends WeakReference<R> {
-        final ResourceDriver<R> driver;
+    private static class ResourceData extends WeakReference<Resource> {
+        final ResourceDriver driver;
         final int resourceId;
-        final ReentrantReadWriteLock lock;
         
-        boolean disposable; // True if resource can be disposable
-        ResourceHandle handle;
+        // not volatile, should only be accessed on context thread
+        Object handle;
+        boolean disposable; // True if resource can be disposed
+        int sharedLockCount; // number of times bound by a Renderer
+        boolean exclusiveLock; // true if cannot be updated or bound
         
-        public ResourceData(R resource, ResourceDriver<R> driver, ReferenceQueue<Resource> queue) {
+        // marked volatile so that other threads can safely read values,
+        // only the context thread will ever write values so no explicit
+        // synchronization is necessary
+        volatile String message;
+        volatile Status status;
+        
+        public ResourceData(Resource resource, ResourceDriver driver, ReferenceQueue<Resource> queue) {
             super(resource, queue);
             
             this.driver = driver;
             resourceId = resource.getId();
-            lock = new ReentrantReadWriteLock();
             disposable = true;
             handle = null;
+            sharedLockCount = 0;
+            exclusiveLock = false;
+            
+            // these values should never be null
+            status = Status.DISPOSED;
+            message = "";
+        }
+        
+        public boolean isLocked() {
+            return sharedLockCount > 0 || exclusiveLock;
+        }
+        
+        public void lock() {
+            if (sharedLockCount > 0)
+                throw new IllegalStateException("Resource is already locked in shared mode, cannot obtain exclusive lock");
+            if (exclusiveLock)
+                throw new IllegalStateException("Resource is already exlusively locked");
+            exclusiveLock = true;
+        }
+        
+        public void unlock() {
+            if (!exclusiveLock)
+                throw new IllegalStateException("Resource is not exclusively locked, and cannot be unlocked");
+            exclusiveLock = false;
+        }
+        
+        public void lockShared() {
+            if (exclusiveLock)
+                throw new IllegalStateException("Resource is already exclusively locked, cannot obtain a shared lock");
+            sharedLockCount++;
+        }
+        
+        public void unlockShared() {
+            if (sharedLockCount == 0)
+                throw new IllegalStateException("Resource is not locked in shared mode, and cannot be unlocked");
+            sharedLockCount--;
         }
     }
 }

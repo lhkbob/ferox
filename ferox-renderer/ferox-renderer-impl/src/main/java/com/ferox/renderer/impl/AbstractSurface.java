@@ -1,5 +1,7 @@
 package com.ferox.renderer.impl;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -87,9 +89,6 @@ public abstract class AbstractSurface implements Surface {
             ((AbstractRenderer) glsl).activate(this, context, framework.getResourceManager());
     }
 
-    // FIXME: maybe add prev/next surfaces to these so that surfaces like fbo surface
-    // can choose what to do?
-    
     /**
      * onSurfaceDeactivate() is a listener method that is invoked by
      * ContextManager when a surface is deactivated. The provided context is the
@@ -136,29 +135,23 @@ public abstract class AbstractSurface implements Surface {
     }
     
     @Override
-    public void destroy() {
+    public Future<Void> destroy() {
+        // First call to destroy handles the destroy operation
         if (destroyed.compareAndSet(false, true)) {
-            // Since this is just a remove operation, we don't need to wait for
-            // the lock on the surface.
-            framework.markSurfaceDestroyed(this);
-            
-            // Check if we already have a lock
-            if (lock.isHeldByCurrentThread() && framework.getContextManager().isContextThread()) {
-                // If we're locked on a context thread then we need to forcefully unlock
-                // it first so that it gets deactivated and its context released
-                framework.getContextManager().forceRelease(this);
-            }
-            
-            // Use the ContextManager method to handle negotiating across threads with
-            // persistent locks.
-            framework.getContextManager().lock(this);
-            try {
-                destroyImpl();
-            } finally {
-                // ContextManager.lock() doesn't create a persistent lock so
-                // we can use unlock directly on our lock object.
-                lock.unlock();
-            }
+            // Accept this even during shutdown so that surfaces are destroyed
+            return framework.getContextManager().invokeOnContextThread(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    // Must force a release in case this surface was a context provider
+                    framework.getContextManager().forceRelease(AbstractSurface.this);
+                    destroyImpl();
+                    return null;
+                }
+            }, true);
+        } else {
+            // If we've already been destroyed, use a completed future so
+            // it's seen as completed
+            return new CompletedFuture<Void>(null);
         }
     }
     
