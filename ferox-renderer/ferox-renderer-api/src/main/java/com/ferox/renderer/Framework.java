@@ -266,7 +266,7 @@ public interface Framework {
      * @param resource The Resource whose status message is requested
      * @return The status message for resource
      * @throws NullPointerException if resource is null
-     * @throws RenderException if the Framework has been destroyed
+     * @throws FrameworkException if the Framework has been destroyed
      */
     public String getStatusMessage(Resource resource);
 

@@ -7,22 +7,22 @@ package com.ferox.renderer;
  * 
  * @author Michael Ludwig
  */
-public class RenderException extends RuntimeException {
+public class FrameworkException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public RenderException() {
+    public FrameworkException() {
         super();
     }
 
-    public RenderException(String arg0) {
+    public FrameworkException(String arg0) {
         super(arg0);
     }
 
-    public RenderException(Throwable arg0) {
+    public FrameworkException(Throwable arg0) {
         super(arg0);
     }
 
-    public RenderException(String arg0, Throwable arg1) {
+    public FrameworkException(String arg0, Throwable arg1) {
         super(arg0, arg1);
     }
 }

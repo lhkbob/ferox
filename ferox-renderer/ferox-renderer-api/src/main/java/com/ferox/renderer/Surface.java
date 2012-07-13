@@ -1,5 +1,7 @@
 package com.ferox.renderer;
 
+import java.util.concurrent.Future;
+
 
 /**
  * <p>
@@ -35,7 +37,7 @@ public interface Surface {
      * low-level graphics layer and hiding any onscreen elements, such as a
      * window. Destroying an already destroyed surface does nothing.
      */
-    public void destroy();
+    public Future<Void> destroy();
 
     /**
      * Return the width of the actual drawable area of the surface (doesn't

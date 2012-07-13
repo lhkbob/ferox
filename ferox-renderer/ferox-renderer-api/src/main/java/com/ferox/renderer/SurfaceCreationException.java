@@ -6,7 +6,7 @@ package com.ferox.renderer;
  * 
  * @author Michael Ludwig
  */
-public class SurfaceCreationException extends RenderException {
+public class SurfaceCreationException extends FrameworkException {
     private static final long serialVersionUID = 1L;
 
     public SurfaceCreationException() {
