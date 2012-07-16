@@ -511,8 +511,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * be clamped to [0, 1].
      * <p>
      * The default colors of the 0th light are a diffuse and specular of (1, 1,
-     * 1, 1) and an ambient and emissive of (0, 0, 0, 1). All other lights use
-     * (0, 0, 0, 1) for all of the colors.
+     * 1, 1) and an ambient of (0, 0, 0, 1). All other lights use (0, 0, 0, 1)
+     * for all of the colors.
      * 
      * @param light The given light to configure
      * @param amb The new ambient color of the light
@@ -638,7 +638,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param shininess The material shininess
      * @throws IllegalArgumentException if shininess is not in [0, 128]
      */
-    public void setMaterialShininess(float shininess);
+    public void setMaterialShininess(double shininess);
 
     /**
      * <p>
