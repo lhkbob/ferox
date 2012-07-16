@@ -3,7 +3,6 @@ package com.ferox.renderer.impl;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.ferox.renderer.Context;
 import com.ferox.renderer.FixedFunctionRenderer;
@@ -21,7 +20,6 @@ import com.ferox.renderer.Surface;
  */
 public abstract class AbstractSurface implements Surface {
     private final AtomicBoolean destroyed;
-    private final ReentrantLock lock;
     private final AbstractFramework framework;
 
     /**
@@ -36,7 +34,6 @@ public abstract class AbstractSurface implements Surface {
             throw new NullPointerException("Framework cannot be null");
         
         destroyed = new AtomicBoolean(false);
-        lock = new ReentrantLock();
         this.framework = framework;
     }
 
@@ -119,21 +116,6 @@ public abstract class AbstractSurface implements Surface {
      */
     protected abstract void destroyImpl();
 
-    /**
-     * Return the lock that guards this Surface's context. If the surface does
-     * not have a context, this lock guards any other resources used by the
-     * surface when it must be activated (such as an FBO). It should not be used
-     * to provide synchronization in any mutators because this lock can be held
-     * for long periods of time while rendering.
-     * 
-     * @return The lock used by {@link ContextManager} to maintain thread safety
-     *         for contexts and to prevent surfaces from being destroyed while
-     *         they are in use
-     */
-    public ReentrantLock getLock() {
-        return lock;
-    }
-    
     @Override
     public Future<Void> destroy() {
         // First call to destroy handles the destroy operation
