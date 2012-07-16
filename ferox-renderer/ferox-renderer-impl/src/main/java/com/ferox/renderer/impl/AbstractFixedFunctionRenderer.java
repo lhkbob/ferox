@@ -9,7 +9,6 @@ import com.ferox.renderer.Renderer;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Resource.Status;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.VertexAttribute;
@@ -803,34 +802,29 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     
     @Override
     public void setTexture(int tex, Texture image) {
-        if (tex < 0)
-            throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
-        if (tex >= textures.length)
-            return; // Ignore it
-        
         TextureState t = textures[tex];
-        if ((t.lock == null && image != null) || (t.lock != null && t.lock.getResource() != image)) {
+        if (t.texture != image) {
             // Release current texture if need-be
             Target oldTarget = null;
-            if (t.lock != null) {
-                resourceManager.unlock(t.lock);
-                oldTarget = t.lock.getResource().getTarget();
-                t.lock = null;
+            if (t.texture != null) {
+                resourceManager.unlock(t.texture);
+                oldTarget = t.handle.target;
+                t.texture = null;
+                t.handle = null;
             }
             
             // Lock new texture if needed
-            LockToken<? extends Texture> newLock = null;
+            TextureHandle newHandle = null;
+            Target newTarget = null;
             if (image != null) {
-                newLock = resourceManager.lock(context, image, textures[tex]);
-                if (newLock != null && (newLock.getResourceHandle() == null 
-                                        || newLock.getResourceHandle().getStatus() != Status.READY)) {
-                    // Texture is unusable
-                    resourceManager.unlock(newLock);
-                    newLock = null;
+                newHandle = (TextureHandle) resourceManager.lock(context, image);
+                if (newHandle != null) {
+                    newTarget = newHandle.target;
+                    
+                    t.texture = image;
+                    t.handle = newHandle;
                 }
             }
-            Target newTarget = (newLock != null ? image.getTarget() : null);
-            textures[tex].lock = newLock;
             
             // Update the active texture unit
             setTextureUnit(tex);
@@ -841,13 +835,13 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                 glBindTexture(oldTarget, null);
             }
             
-            if (newLock != null) {
+            if (newHandle != null) {
                 // Enable new target (old target was already disabled if needed)
                 if (newTarget != oldTarget)
                     glEnableTexture(newTarget, true);
 
                 // Bind new texture
-                glBindTexture(newTarget, newLock.getResourceHandle());
+                glBindTexture(newTarget, newHandle);
             }
         }
     }
@@ -1203,50 +1197,47 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             boolean accessDiffers = (state.offset != attr.getOffset() || 
                                      state.stride != attr.getStride() ||
                                      state.elementSize != attr.getElementSize());
-            if (state.lock == null || state.lock.getResource() != attr.getData() || accessDiffers) {
+            if (state.vbo != attr.getData() || accessDiffers) {
                 // The attributes will be different so must make a change
-                VertexBufferObject oldVbo = (state.lock == null ? null : state.lock.getResource());
+                VertexBufferObject oldVbo = state.vbo;
                 boolean failTypeCheck = false;
                 
-                if (state.lock != null && oldVbo != attr.getData()) {
+                if (state.vbo != null && oldVbo != attr.getData()) {
                     // Unlock the old one
-                    resourceManager.unlock(state.lock);
-                    state.lock = null;
+                    resourceManager.unlock(oldVbo);
+                    state.vbo = null;
+                    state.handle = null;
                 }
                 
-                if (state.lock == null) {
+                if (state.vbo == null) {
                     // Lock the new vbo
-                    LockToken<? extends VertexBufferObject> newLock = resourceManager.lock(context, attr.getData(), state);
-                    if (newLock != null && (newLock.getResourceHandle() == null 
-                                            || newLock.getResourceHandle().getStatus() != Status.READY)) {
-                        // VBO isn't ready so unlock it
-                        resourceManager.unlock(newLock);
-                        newLock = null;
-                    } 
-                    
-                    if (newLock != null && ((VertexBufferObjectHandle) newLock.getResourceHandle()).dataType != DataType.FLOAT) {
-                        resourceManager.unlock(newLock);
-                        newLock = null;
+                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context, attr.getData());
+                    if (newHandle != null && newHandle.dataType != DataType.FLOAT) {
+                        resourceManager.unlock(attr.getData());
                         failTypeCheck = true;
+                        
+                        state.vbo = null;
+                        state.handle = null;
+                    } else {
+                        // VBO is ready
+                        state.vbo = attr.getData();
+                        state.handle = newHandle;
                     }
-                    
-                    // VBO is ready or wasn't locked, either way state.lock should equal newLock
-                    state.lock = newLock;
                 }
                 
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
                 state.activateSlot();
-                if (state.lock != null) {
-                    // At this point, state.lock is the lock for the new VBO (or possibly old VBO)
+                if (state.vbo != null) {
+                    // At this point, state.vbo is the new VBO (or possibly old VBO)
                     state.elementSize = attr.getElementSize();
                     state.offset = attr.getOffset();
                     state.stride = attr.getStride();
                     
-                    bindArrayVbo(attr.getData(), state.lock.getResourceHandle(), oldVbo);
+                    bindArrayVbo(attr.getData(), state.handle, oldVbo);
                     
                     if (oldVbo == null)
                         glEnableAttribute(state.target, true);
-                    glAttributePointer(state.target, state.lock.getResourceHandle(), state.offset, state.stride, state.elementSize);
+                    glAttributePointer(state.target, state.handle, state.offset, state.stride, state.elementSize);
                 } else if (oldVbo != null) {
                     // Since there was an old vbo we need to clean some things up
                     // which weren't cleaned up when we unlocked the old vbo
@@ -1259,18 +1250,19 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             }
         } else {
             // The attribute is meant to be unbound
-            if (state.lock != null) {
+            if (state.vbo != null) {
                 // Change the slot to support multiple texture coordinates
                 state.activateSlot();
                 
                 // Disable the attribute
                 glEnableAttribute(state.target, false);
                 // Possibly unbind it from the array vbo
-                unbindArrayVboMaybe(state.lock.getResource());
+                unbindArrayVboMaybe(state.vbo);
                 
                 // Unlock it
-                resourceManager.unlock(state.lock);
-                state.lock = null;
+                resourceManager.unlock(state.vbo);
+                state.vbo = null;
+                state.handle = null;
             }
         }
     }
