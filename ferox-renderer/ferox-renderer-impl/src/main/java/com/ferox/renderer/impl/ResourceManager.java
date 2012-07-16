@@ -274,7 +274,11 @@ public class ResourceManager {
                 data.handle = data.driver.init(r);
 
             try {
-                data.message = data.driver.update(context, r, data.handle);
+                // for correct thread-safe access of the resource, 
+                // we must synchronize on resource here
+                synchronized(r) {
+                    data.message = data.driver.update(context, r, data.handle);
+                }
                 data.status = Status.READY;
             } catch(UpdateResourceException e) {
                 data.message = e.getMessage();
