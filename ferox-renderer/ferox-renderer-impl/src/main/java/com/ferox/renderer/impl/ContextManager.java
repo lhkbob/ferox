@@ -435,7 +435,7 @@ public class ContextManager {
         public Void call() throws Exception {
             // the context is only ever used on the thread running this
             // task, so this assignment is thread safe
-            sharedContext = surfaceFactory.createShadowContext(null);
+            sharedContext = surfaceFactory.createOffscreenContext(null);
             return null;
         }
     }

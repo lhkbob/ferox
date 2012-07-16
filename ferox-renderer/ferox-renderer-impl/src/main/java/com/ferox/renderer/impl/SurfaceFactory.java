@@ -59,7 +59,7 @@ public interface SurfaceFactory {
      *            if this is null then no sharing is done
      * @return An offscreen context
      */
-    public OpenGLContext createShadowContext(OpenGLContext sharedContext);
+    public OpenGLContext createOffscreenContext(OpenGLContext sharedContext);
 
     /**
      * @return The default display mode, as required
