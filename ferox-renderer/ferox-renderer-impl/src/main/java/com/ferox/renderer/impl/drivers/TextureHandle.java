@@ -1,7 +1,6 @@
 package com.ferox.renderer.impl.drivers;
 
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
@@ -10,13 +9,12 @@ import com.ferox.resource.Texture.WrapMode;
 import com.ferox.resource.TextureFormat;
 
 /**
- * TextureHandle is a concrete subclass of ResourceHandle that represents the
- * persisted state of a Texture, and is used by any
- * {@link AbstractTextureResourceDriver} when they manage Textures.
+ * TextureHandle is the handle that represents the persisted state of a Texture,
+ * and is used by any {@link AbstractTextureResourceDriver}.
  * 
  * @author Michael Ludwig
  */
-public class TextureHandle extends ResourceHandle {
+public class TextureHandle {
     public final Target target;
     public final int texID;
     
@@ -45,7 +43,6 @@ public class TextureHandle extends ResourceHandle {
     public float anisoLevel;
     
     public TextureHandle(Texture texture) {
-        super(texture);
         texID = texture.getId();
         target = texture.getTarget();
         lastSyncedKeys = new Object[texture.getNumLayers()][];

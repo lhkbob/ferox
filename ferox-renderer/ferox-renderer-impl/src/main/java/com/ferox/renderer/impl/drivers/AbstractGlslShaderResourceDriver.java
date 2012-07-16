@@ -6,10 +6,10 @@ import java.util.List;
 
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
-import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.renderer.impl.UpdateResourceException;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.Resource.Status;
+import com.ferox.resource.Resource;
 
 /**
  * Abstract implementation of a ResourceDriver for GlslShaders. This implements
@@ -20,118 +20,111 @@ import com.ferox.resource.Resource.Status;
  * 
  * @author Michael Ludwig
  */
-public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver<GlslShader> {
+public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver {
     @Override
-    public ResourceHandle update(OpenGLContext context, GlslShader shader, ResourceHandle handle) {
-        EnumSet<ShaderType> supported = context.getRenderCapabilities().getSupportedShaderTypes();
-
-        if (handle == null) {
-            // Create a new shader program, and check for GLSL support
-            if (supported.isEmpty() || context.getRenderCapabilities().getGlslVersion() == null) {
-                handle = new ResourceHandle(shader);
-                handle.setStatus(Status.UNSUPPORTED);
-                handle.setStatusMessage("GLSL is not supported on current hardware");
-                return handle;
-            }
-            
-            // GLSL is supported to some extent at least so create a new program handle
-            handle = new GlslShaderHandle(shader, glCreateProgram(context));
-        }
-        
-        if (handle instanceof GlslShaderHandle) {
-            GlslShaderHandle h = (GlslShaderHandle) handle;
-
-            // Loop over all shaders and see if they've been changed
-            List<String> problems = null;
-            boolean needsRelink = false;
-            
-            ShaderType[] values = ShaderType.values();
-            for (int i = 0; i < values.length; i++) {
-                ShaderType type = values[i];
-                
-                String oldShaderSource = h.shaderSource.get(type);
-                String newShaderSource = shader.getShader(type);
-                
-                if (areSourcesDifferent(oldShaderSource, newShaderSource)) {
-                    if (supported.contains(type)) {
-                        Integer shaderId = h.shaders.get(type);
-                        if (newShaderSource == null && shaderId != null) {
-                            // Remove the old shader
-                            glDetachShader(context, h.programID, shaderId);
-                            glDeleteShader(context, shaderId);
-                        }
-
-                        if (newShaderSource != null) {
-                            // Compile and attach new version
-                            if (shaderId == null) {
-                                shaderId = glCreateShader(context, type);
-                                glAttachShader(context, h.programID, shaderId);
-                                h.shaders.put(type, shaderId);
-                            }
-
-                            String errorLog = glCompileShader(context, shaderId, newShaderSource);
-                            if (errorLog != null) {
-                                if (problems == null)
-                                    problems = new ArrayList<String>();
-                                problems.add("Error compiling " + type + " shader: " + errorLog);
-                            } else {
-                                // No error so update the shader source map so future updates
-                                // don't do extra work
-                                h.shaderSource.put(type, newShaderSource);
-                            }
-                        } else {
-                            // No more shader for this type, clean type from the map
-                            h.shaders.remove(type);
-                            h.shaderSource.remove(type);
-                        }
-
-                        // Record that we've changed the program
-                        needsRelink = true;
-                    } else {
-                        if (problems == null)
-                            problems = new ArrayList<String>();
-                        problems.add("Hardware does not support shader type: " + type);
-                        needsRelink = true; // set to true to fall into the error handling code
-                    }
-                }
-            }
-            
-            // Update the program if we changed the shaders at all
-            if (needsRelink) {
-                h.attributes.clear();
-                h.uniforms.clear();
-                
-                // Check for errors with compiling of the shaders
-                if (problems != null) {
-                    h.setStatus(Status.ERROR);
-                    h.setStatusMessage(problems.toString());
-                    return h;
-                }
-                
-                // Link the program
-                String errorLog = glLinkProgram(context, h.programID);
-                if (errorLog != null) {
-                    // Program linking failed
-                    h.setStatus(Status.ERROR);
-                    h.setStatusMessage(errorLog);
-                    return h;
-                }
-                
-                // No failures, so update the uniforms and attrs
-                updateUniforms(context, h);
-                updateAttributes(context, h);
-                
-                h.setStatus(Status.READY);
-                h.setStatusMessage("");
-            }
-        }
-        
-        // Made it this far, the handle has been configured correctly
-        return handle;
+    public Object init(Resource resource) {
+        return new GlslShaderHandle();
     }
     
     @Override
-    public void reset(GlslShader shader, ResourceHandle handle) {
+    public String update(OpenGLContext context, Resource resource, Object handle) throws UpdateResourceException {
+        GlslShader shader = (GlslShader) resource;
+        GlslShaderHandle h = (GlslShaderHandle) handle;
+        EnumSet<ShaderType> supported = context.getRenderCapabilities().getSupportedShaderTypes();
+
+        if (supported.isEmpty() || context.getRenderCapabilities().getGlslVersion() == null) {
+            throw new UpdateResourceException("GLSL is not supported on current hardware");
+        }
+        
+        
+        if (h.programID <= 0) {
+            // Create a new shader program id
+            h.programID = glCreateProgram(context);
+        }
+        
+        // Loop over all shaders and see if they've been changed
+        List<String> problems = null;
+        boolean needsRelink = false;
+
+        ShaderType[] values = ShaderType.values();
+        for (int i = 0; i < values.length; i++) {
+            ShaderType type = values[i];
+
+            String oldShaderSource = h.shaderSource.get(type);
+            String newShaderSource = shader.getShader(type);
+
+            if (areSourcesDifferent(oldShaderSource, newShaderSource)) {
+                if (supported.contains(type)) {
+                    Integer shaderId = h.shaders.get(type);
+                    if (newShaderSource == null && shaderId != null) {
+                        // Remove the old shader
+                        glDetachShader(context, h.programID, shaderId);
+                        glDeleteShader(context, shaderId);
+                    }
+
+                    if (newShaderSource != null) {
+                        // Compile and attach new version
+                        if (shaderId == null) {
+                            shaderId = glCreateShader(context, type);
+                            glAttachShader(context, h.programID, shaderId);
+                            h.shaders.put(type, shaderId);
+                        }
+
+                        String errorLog = glCompileShader(context, shaderId, newShaderSource);
+                        if (errorLog != null) {
+                            if (problems == null)
+                                problems = new ArrayList<String>();
+                            problems.add("Error compiling " + type + " shader: " + errorLog);
+                        } else {
+                            // No error so update the shader source map so future updates
+                            // don't do extra work
+                            h.shaderSource.put(type, newShaderSource);
+                        }
+                    } else {
+                        // No more shader for this type, clean type from the map
+                        h.shaders.remove(type);
+                        h.shaderSource.remove(type);
+                    }
+
+                    // Record that we've changed the program
+                    needsRelink = true;
+                } else {
+                    if (problems == null)
+                        problems = new ArrayList<String>();
+                    problems.add("Hardware does not support shader type: " + type);
+                    needsRelink = true; // set to true to fall into the error handling code
+                }
+            }
+        }
+            
+        // Update the program if we changed the shaders at all
+        if (needsRelink) {
+            h.attributes.clear();
+            h.uniforms.clear();
+
+            // Check for errors with compiling of the shaders
+            if (problems != null) {
+                throw new UpdateResourceException(problems.toString());
+            }
+
+            // Link the program
+            String errorLog = glLinkProgram(context, h.programID);
+            if (errorLog != null) {
+                // Program linking failed
+                throw new UpdateResourceException(errorLog);
+            }
+
+            // No failures, so update the uniforms and attrs
+            updateUniforms(context, h);
+            updateAttributes(context, h);
+        }
+        
+        // Made it this far, the handle has been configured correctly
+        return "";
+    }
+    
+    @Override
+    public void reset(Object handle) {
         if (handle instanceof GlslShaderHandle) {
             GlslShaderHandle h = (GlslShaderHandle) handle;
             h.shaderSource.clear();
@@ -144,7 +137,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
     }
 
     @Override
-    public void dispose(OpenGLContext context, ResourceHandle handle) {
+    public void dispose(OpenGLContext context, Object handle) {
         if (handle instanceof GlslShaderHandle) {
             GlslShaderHandle h = (GlslShaderHandle) handle;
             

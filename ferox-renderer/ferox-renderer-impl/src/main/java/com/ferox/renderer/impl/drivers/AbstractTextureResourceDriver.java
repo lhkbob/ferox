@@ -12,11 +12,11 @@ import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
-import com.ferox.renderer.impl.ResourceHandle;
+import com.ferox.renderer.impl.UpdateResourceException;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.MipmapRegion;
-import com.ferox.resource.Resource.Status;
+import com.ferox.resource.Resource;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 
@@ -29,14 +29,14 @@ import com.ferox.resource.TextureFormat;
  * 
  * @author Michael Ludwig
  */
-public abstract class AbstractTextureResourceDriver implements ResourceDriver<Texture> {
+public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     @Override
     public Class<Texture> getResourceType() {
         return Texture.class;
     }
     
     @Override
-    public void reset(Texture tex, ResourceHandle handle) {
+    public void reset(Object handle) {
         if (handle instanceof TextureHandle) {
             TextureHandle h = (TextureHandle) handle;
             
@@ -59,136 +59,126 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver<Te
     }
     
     @Override
-    public void dispose(OpenGLContext context, ResourceHandle handle) {
+    public void dispose(OpenGLContext context, Object handle) {
         if (handle instanceof TextureHandle)
             glDeleteTexture(context, (TextureHandle) handle);
     }
 
     @Override
-    public ResourceHandle update(OpenGLContext context, Texture tex, ResourceHandle handle) {
-        if (handle == null) {
-            if (!context.getRenderCapabilities().getSupportedTextureTargets().contains(tex.getTarget())) {
-                handle = new ResourceHandle(tex);
-                handle.setStatus(Status.UNSUPPORTED);
-                handle.setStatusMessage("Texture target, " + tex.getTarget() + ", is not supported");
-            } else {
-                handle = new TextureHandle(tex);
-            }
+    public String update(OpenGLContext context, Resource res, Object handle) throws UpdateResourceException {
+        Texture tex = (Texture) res;
+        TextureHandle h = (TextureHandle) handle;
+        
+        if (!context.getRenderCapabilities().getSupportedTextureTargets().contains(tex.getTarget())) {
+            throw new UpdateResourceException("Texture target " + tex.getTarget() + " is unsupported");
         }
         
-        if (handle instanceof TextureHandle) {
-            TextureHandle h = (TextureHandle) handle;
-            boolean isBound = false;
+        boolean isBound = false;
             
-            // Check for errors in dimensions, format, type, etc.
-            if (!validateTexture(context, tex, h))
-                return h;
+        // Check for errors in dimensions, format, type, etc.
+        validateTexture(context, tex, h);
             
-            // Check for (and possibly update) texture parameters
-            if (haveParametersChanged(tex, h)) {
+        // Check for (and possibly update) texture parameters
+        if (haveParametersChanged(tex, h)) {
+            glBindTexture(context, h);
+            isBound = true;
+
+            glTextureParameters(context, tex, h);
+        }
+            
+        if (tex.getChangeQueue().isVersionStale(h.lastSyncedVersion)) {
+            if (!isBound) {
                 glBindTexture(context, h);
                 isBound = true;
+            }
+                
+            boolean isMissingChanges = tex.getChangeQueue().hasLostChanges(h.lastSyncedVersion);
+                
+            // organize all changes by layer and mipmap level
+            @SuppressWarnings("unchecked")
+            Map<Integer, List<MipmapRegion>>[] changes = new Map[h.lastSyncedKeys.length];
+            for (MipmapRegion edit: tex.getChangeQueue().getChangesSince(h.lastSyncedVersion)) {
+                int layer = edit.getLayer();
+                int mipmap = edit.getMipmapLevel();
 
-                glTextureParameters(context, tex, h);
+                if (layer >= changes.length)
+                    continue; // user created a bad mipmap region
+
+                if (changes[layer] == null)
+                    changes[layer] = new HashMap<Integer, List<MipmapRegion>>();
+                if (changes[layer].get(mipmap) == null)
+                    changes[layer].put(mipmap, new ArrayList<MipmapRegion>());
+                changes[layer].get(mipmap).add(edit);
             }
-            
-            if (tex.getChangeQueue().isVersionStale(h.lastSyncedVersion)) {
-                if (isBound) {
-                    glBindTexture(context, h);
-                    isBound = true;
+                
+            // update type/format/isMipmapped based on potentially new sets of mipmaps
+            TextureFormat format = tex.getFormat();
+            if (!context.getRenderCapabilities().getUnclampedFloatTextureSupport()) {
+                // our best bet is to switch to clamped float formatting
+                switch(format) {
+                case R_FLOAT:
+                    format = TextureFormat.R;
+                    break;
+                case RG_FLOAT:
+                    format = TextureFormat.RG;
+                    break;
+                case RGB_FLOAT:
+                    format = TextureFormat.RGB;
+                    break;
+                case DEPTH_FLOAT:
+                    format = TextureFormat.DEPTH;
+                    break;
+                case RGBA_FLOAT:
+                    format = TextureFormat.RGBA;
+                    break;
                 }
+            }
+
+            h.format = format;
+            h.type = tex.getDataType();
+            h.isMipmapped = tex.getLayer(0).isMipmapped();
                 
-                boolean isMissingChanges = tex.getChangeQueue().hasLostChanges(h.lastSyncedVersion);
-                
-                // organize all changes by layer and mipmap level
-                @SuppressWarnings("unchecked")
-                Map<Integer, List<MipmapRegion>>[] changes = new Map[h.lastSyncedKeys.length];
-                for (MipmapRegion edit: tex.getChangeQueue().getChangesSince(h.lastSyncedVersion)) {
-                    int layer = edit.getLayer();
-                    int mipmap = edit.getMipmapLevel();
-                    
-                    if (layer >= changes.length)
-                        continue; // user created a bad mipmap region
-                    
-                    if (changes[layer] == null)
-                        changes[layer] = new HashMap<Integer, List<MipmapRegion>>();
-                    if (changes[layer].get(mipmap) == null)
-                        changes[layer].put(mipmap, new ArrayList<MipmapRegion>());
-                    changes[layer].get(mipmap).add(edit);
-                }
-                
-                // update type/format/isMipmapped based on potentially new sets of mipmaps
-                TextureFormat format = tex.getFormat();
-                if (!context.getRenderCapabilities().getUnclampedFloatTextureSupport()) {
-                    // our best bet is to switch to clamped float formatting
-                    switch(format) {
-                    case ALPHA_FLOAT:
-                        format = TextureFormat.ALPHA;
-                        break;
-                    case LUMINANCE_ALPHA_FLOAT:
-                        format = TextureFormat.LUMINANCE_ALPHA;
-                        break;
-                    case LUMINANCE_FLOAT:
-                        format = TextureFormat.LUMINANCE;
-                        break;
-                    case RGB_FLOAT:
-                        format = TextureFormat.RGB;
-                        break;
-                    case RGBA_FLOAT:
-                        format = TextureFormat.RGBA;
-                        break;
-                    }
-                }
-                
-                h.format = format;
-                h.type = tex.getDataType();
-                h.isMipmapped = tex.getLayer(0).isMipmapped();
-                
-                for (int i = 0; i < h.lastSyncedKeys.length; i++) {
-                    Mipmap mipmap = tex.getLayer(i);
-                    int numMipmaps = mipmap.getNumMipmaps();
-                    if (h.lastSyncedKeys[i] == null)
-                        h.lastSyncedKeys[i] = new Object[numMipmaps];
-                    else if (numMipmaps != h.lastSyncedKeys[i].length)
-                        h.lastSyncedKeys[i] = Arrays.copyOf(h.lastSyncedKeys[i], numMipmaps);
-                    
-                    for (int j = 0; j < numMipmaps; j++) {
-                        BufferData data = mipmap.getData(j);
-                        if (isMissingChanges || data.getKey() != h.lastSyncedKeys[i][j]) {
-                            // make sure a tex image gets allocated and that we push
-                            // all of the changes
+            for (int i = 0; i < h.lastSyncedKeys.length; i++) {
+                Mipmap mipmap = tex.getLayer(i);
+                int numMipmaps = mipmap.getNumMipmaps();
+                if (h.lastSyncedKeys[i] == null)
+                    h.lastSyncedKeys[i] = new Object[numMipmaps];
+                else if (numMipmaps != h.lastSyncedKeys[i].length)
+                    h.lastSyncedKeys[i] = Arrays.copyOf(h.lastSyncedKeys[i], numMipmaps);
+
+                for (int j = 0; j < numMipmaps; j++) {
+                    BufferData data = mipmap.getData(j);
+                    if (isMissingChanges || data.getKey() != h.lastSyncedKeys[i][j]) {
+                        // make sure a tex image gets allocated and that we push
+                        // all of the changes
+                        doTexImage(context, h, mipmap, i, j);
+                    } else if (h.format == TextureFormat.DEPTH || h.format.isCompressed()) {
+                        // depth/compressed textures don't seem to behave well with glTexSubImage
+                        if (changes[i] != null && changes[i].containsKey(j))
                             doTexImage(context, h, mipmap, i, j);
-                        } else if (h.format == TextureFormat.DEPTH || h.format.isCompressed()) {
-                            // depth/compressed textures don't seem to behave well with glTexSubImage
-                            if (changes[i] != null && changes[i].containsKey(j))
-                                doTexImage(context, h, mipmap, i, j);
-                        } else {
-                            // use glTexSubImage to process all mipmap regions
-                            List<MipmapRegion> toFlush = (changes[i] != null ? changes[i].get(j) : null);
-                            if (toFlush != null) {
-                                for (MipmapRegion rg: toFlush)
-                                    doTexSubImage(context, h, mipmap, rg);
-                            }
+                    } else {
+                        // use glTexSubImage to process all mipmap regions
+                        List<MipmapRegion> toFlush = (changes[i] != null ? changes[i].get(j) : null);
+                        if (toFlush != null) {
+                            for (MipmapRegion rg: toFlush)
+                                doTexSubImage(context, h, mipmap, rg);
                         }
-                        
-                        h.lastSyncedKeys[i][j] = data.getKey();
                     }
+
+                    h.lastSyncedKeys[i][j] = data.getKey();
                 }
-                
-                h.lastSyncedVersion = tex.getChangeQueue().getVersion();
             }
-            
-            if (isBound)
-                glRestoreTexture(context);
-            
-            if (h.format != tex.getFormat())
-                h.setStatusMessage("TextureFormat changed from " + tex.getFormat() + " to " + h.format + " to meet hardware support");
-            else
-                h.setStatusMessage("");
-            h.setStatus(Status.READY);
+
+            h.lastSyncedVersion = tex.getChangeQueue().getVersion();
         }
-        
-        return handle;
+            
+        if (isBound)
+            glRestoreTexture(context);
+            
+        if (h.format != tex.getFormat())
+            return "TextureFormat changed from " + tex.getFormat() + " to " + h.format + " to meet hardware support";
+        else
+            return "";
     }
 
     /**
@@ -227,34 +217,32 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver<Te
      * @param handle
      * @return True if the texture can be updated
      */
-    protected boolean validateTexture(OpenGLContext context, Texture tex, TextureHandle handle) {
-        String errorMsg = null;
+    protected void validateTexture(OpenGLContext context, Texture tex, TextureHandle handle) throws UpdateResourceException {
         // error handling for textures that are owned by texture surfaces
         //  1. They cannot change size from what is reported by the surface
         //  2. They cannot change texture format or data type
         //  3. They cannot be mipmapped -> this might go away
         if (tex.getOwner() != null) {
             TextureSurface owner = tex.getOwner();
-            if (tex.getWidth() != owner.getWidth() || tex.getHeight() != owner.getHeight()
-                || tex.getDepth() != owner.getDepth())
-                errorMsg = "Cannot change dimensions of a Texture owned by a TextureSurface";
+            if (tex.getWidth() != owner.getWidth() || tex.getHeight() != owner.getHeight() || tex.getDepth() != owner.getDepth())
+                throw new UpdateResourceException("Cannot change dimensions of a Texture owned by a TextureSurface");
             else if (handle.format != null && tex.getFormat() != handle.format)
-                errorMsg = "Cannot change TextureFormat of a Texture owned by a TextureSurface";
+                throw new UpdateResourceException("Cannot change TextureFormat of a Texture owned by a TextureSurface");
             else if (handle.type != null && tex.getDataType() != handle.type)
-                errorMsg = "Cannot change DataType of a Texture owned by a TextureSurface";
+                throw new UpdateResourceException("Cannot change DataType of a Texture owned by a TextureSurface");
             else if (tex.getLayer(0).isMipmapped())
-                errorMsg = "Cannot use multiple mipmap levels with a Texture owned by a TextureSurface";
+                throw new UpdateResourceException("Cannot use multiple mipmap levels with a Texture owned by a TextureSurface");
         }
         
         RenderCapabilities caps = context.getRenderCapabilities();
-        if (errorMsg == null && !caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH)
-            errorMsg = "Depth textures are not supported";
+        if (!caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH)
+            throw new UpdateResourceException("Depth textures are not supported");
         
-        if (errorMsg == null && !caps.getNpotTextureSupport()) {
+        if (!caps.getNpotTextureSupport()) {
             if (tex.getWidth() != ceilPot(tex.getWidth()) || 
                 tex.getHeight() != ceilPot(tex.getHeight()) ||
                 tex.getDepth() != ceilPot(tex.getDepth()))
-                errorMsg = "Non-power of two textures are not supported";
+                throw new UpdateResourceException("Non-power of two textures are not supported");
         }
         
         int maxSize = 0;
@@ -271,18 +259,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver<Te
             break;
         }
         
-        if (errorMsg == null && (tex.getWidth() > maxSize || 
-                                 tex.getHeight() > maxSize || 
-                                 tex.getDepth() > maxSize))
-            errorMsg = "Dimensions excede supported maximum of " + maxSize;
-        
-        if (errorMsg != null) {
-            handle.setStatus(Status.ERROR);
-            handle.setStatusMessage(errorMsg);
-            return false;
-        }
-        
-        return true;
+        if ((tex.getWidth() > maxSize || tex.getHeight() > maxSize || tex.getDepth() > maxSize))
+            throw new UpdateResourceException("Dimensions excede supported maximum of " + maxSize);
     }
 
     /**

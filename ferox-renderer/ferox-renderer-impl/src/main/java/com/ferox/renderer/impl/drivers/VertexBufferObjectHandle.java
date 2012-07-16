@@ -2,20 +2,18 @@ package com.ferox.renderer.impl.drivers;
 
 import java.nio.Buffer;
 
-import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
- * VertexBufferObjectHandle is a concrete subclass of ResourceHandle that
- * represents the persisted state of a VertexBufferObject, and is used by any
- * {@link AbstractVertexBufferObjectResourceDriver} when they manage
- * VertexBufferObjects.
+ * VertexBufferObjectHandle is the handle type that represents the persisted
+ * state of a VertexBufferObject, and is used by all
+ * {@link AbstractVertexBufferObjectResourceDriver}.
  * 
  * @author Michael Ludwig
  */
-public class VertexBufferObjectHandle extends ResourceHandle {
+public class VertexBufferObjectHandle {
     public DataType dataType;
     public int length;
     
@@ -28,8 +26,6 @@ public class VertexBufferObjectHandle extends ResourceHandle {
     public final int vboID;
     
     public VertexBufferObjectHandle(VertexBufferObject res) {
-        super(res);
-        
         vboID = res.getId();
         
         // blank parameters
