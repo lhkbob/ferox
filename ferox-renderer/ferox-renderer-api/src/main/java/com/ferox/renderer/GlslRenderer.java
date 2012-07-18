@@ -45,6 +45,7 @@ public interface GlslRenderer extends Renderer {
     public void bindAttribute(String glslAttrName, @Const Matrix4 v);
     
     
+    // FIXME should these be changed to doubles?
     public void setUniform(String name, float val);
     
     public void setUniform(String name, float v1, float v2);
