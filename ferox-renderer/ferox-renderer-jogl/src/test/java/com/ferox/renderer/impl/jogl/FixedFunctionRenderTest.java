@@ -31,7 +31,7 @@ import com.ferox.util.geom.Sphere;
 public class FixedFunctionRenderTest {
     
     public static void main(String[] args) throws Exception {
-        Framework framework = JoglFramework.create(1, false, false, true, false);
+        Framework framework = JoglFramework.create(false, false, true, false);
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
         OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                      .setHeight(600)
@@ -46,9 +46,9 @@ public class FixedFunctionRenderTest {
             while(true) {
                 if (window.isDestroyed())
                     break;
-                framework.queue(pass, "render").get();
-                framework.flush(window, "render");
-                framework.sync("render");
+                framework.queue(pass).get();
+                framework.flush(window);
+                framework.sync();
                 
                 frames++;
                 if (System.currentTimeMillis() - now > 1000) {

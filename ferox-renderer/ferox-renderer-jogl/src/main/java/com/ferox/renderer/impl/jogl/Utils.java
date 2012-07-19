@@ -8,9 +8,8 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
-import com.ferox.renderer.FixedFunctionRenderer.CombineOp;
+import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
-import com.ferox.renderer.FixedFunctionRenderer.EnvMode;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.BlendFactor;
@@ -18,7 +17,7 @@ import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.renderer.Renderer.StencilUpdate;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslShader.ShaderType;
@@ -307,19 +306,14 @@ public class Utils {
         case DEPTH:
             return GL2.GL_DEPTH_COMPONENT;
 
-            // alpha formats
-        case ALPHA:
-        case ALPHA_FLOAT:
+            // red formats
+        case R:
+        case R_FLOAT:
             return GL2.GL_ALPHA;
 
-            // luminance formats
-        case LUMINANCE:
-        case LUMINANCE_FLOAT:
-            return GL2.GL_LUMINANCE;
-
-            // LA formats
-        case LUMINANCE_ALPHA:
-        case LUMINANCE_ALPHA_FLOAT:
+            // RG formats
+        case RG:
+        case RG_FLOAT:
             return GL2.GL_LUMINANCE_ALPHA;
 
         }
@@ -365,11 +359,9 @@ public class Utils {
             return GL2.GL_RGB32F;
         case RGBA_FLOAT:
             return GL2.GL_RGBA32F;
-        case ALPHA_FLOAT:
+        case R_FLOAT:
             return GL2.GL_ALPHA32F;
-        case LUMINANCE_FLOAT:
-            return GL2.GL_LUMINANCE32F;
-        case LUMINANCE_ALPHA_FLOAT:
+        case RG_FLOAT:
             return GL2.GL_LUMINANCE_ALPHA32F;
 
             // DXT_n compression
@@ -384,21 +376,14 @@ public class Utils {
 
             // if we've gotten here, we have a type-less format, and have to
             // take the type into account
-        case ALPHA:
+        case R:
             if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_ALPHA8;
             else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
                 return GL2.GL_ALPHA16;
             else
                 return GL2.GL_ALPHA;
-        case LUMINANCE:
-            if (type == DataType.UNSIGNED_BYTE)
-                return GL2.GL_LUMINANCE8;
-            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
-                return GL2.GL_LUMINANCE16;
-            else
-                return GL2.GL_LUMINANCE;
-        case LUMINANCE_ALPHA:
+        case RG:
             if (type == DataType.UNSIGNED_BYTE)
                 return GL2.GL_LUMINANCE8_ALPHA8;
             else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
@@ -547,7 +532,7 @@ public class Utils {
     }
 
     /** Op must not be null. */
-    public static int getGLStencilOp(StencilOp op, boolean wrapSupported) {
+    public static int getGLStencilOp(StencilUpdate op, boolean wrapSupported) {
         switch (op) {
         case DECREMENT:
             return GL2.GL_DECR;
@@ -565,24 +550,6 @@ public class Utils {
             return GL2.GL_REPLACE;
         case INVERT:
             return GL2.GL_INVERT;
-        }
-
-        return -1;
-    }
-
-    /** Mode must not be null. */
-    public static int getGLTexEnvMode(EnvMode mode) {
-        switch (mode) {
-        case REPLACE:
-            return GL2.GL_REPLACE;
-        case DECAL:
-            return GL2.GL_DECAL;
-        case MODULATE:
-            return GL2.GL_MODULATE;
-        case BLEND:
-            return GL2.GL_BLEND;
-        case COMBINE:
-            return GL2.GL_COMBINE;
         }
 
         return -1;
@@ -649,7 +616,7 @@ public class Utils {
     }
 
     /** Op must not be null. */
-    public static int getGLCombineOp(CombineOp op) {
+    public static int getGLCombineOp(CombineOperand op) {
         switch (op) {
         case ALPHA:
             return GL2.GL_SRC_ALPHA;

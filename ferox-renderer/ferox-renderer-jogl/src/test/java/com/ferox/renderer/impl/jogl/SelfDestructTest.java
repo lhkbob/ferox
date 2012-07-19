@@ -10,7 +10,7 @@ import com.ferox.renderer.Task;
 
 public class SelfDestructTest {
     public static void main(String[] args) throws Exception {
-        final Framework f = JoglFramework.create(1, false, false, true, false);
+        final Framework f = JoglFramework.create(false, false, true, false);
         System.out.println("framework created");
         final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
             .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
@@ -31,7 +31,7 @@ public class SelfDestructTest {
                 f.destroy();
                 return "finished";
             }
-        }, "woop").get();
+        }).get();
         
         System.out.println(result);
     }

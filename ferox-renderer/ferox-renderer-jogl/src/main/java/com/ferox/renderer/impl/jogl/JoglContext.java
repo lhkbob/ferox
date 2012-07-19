@@ -7,7 +7,7 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.resource.Resource;
@@ -275,7 +275,7 @@ public class JoglContext extends OpenGLContext {
     public void makeCurrent() {
         int result = context.makeCurrent();
         if (result == GLContext.CONTEXT_NOT_CURRENT)
-            throw new RenderException("Unable to make context current");
+            throw new FrameworkException("Unable to make context current");
         
         for (Runnable task: cleanupTasks)
             task.run();

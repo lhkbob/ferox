@@ -62,6 +62,7 @@ public interface GlslRenderer extends Renderer {
     
     public void setUniform(String name, @Const Matrix4 val);
     
+    // FIXME should I get rid of the array versions?
     public void setUniform(String name, float[] vals);
     
     

@@ -155,14 +155,14 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             caps.setAlphaBits(0);
         } else {
             TextureFormat format = colors[0].getFormat();
-            if (format == TextureFormat.ALPHA_FLOAT || format == TextureFormat.LUMINANCE_ALPHA_FLOAT ||
-                format == TextureFormat.LUMINANCE_FLOAT || format == TextureFormat.RGB_FLOAT ||
+            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT ||
+                format == TextureFormat.DEPTH_FLOAT || format == TextureFormat.RGB_FLOAT ||
                 format == TextureFormat.RGBA_FLOAT)
                 caps.setPbufferFloatingPointBuffers(true);
             
             switch(format) {
             // 8, 8, 8, 0
-            case LUMINANCE: case RGB: case BGR:
+            case R: case RGB: case BGR:
                 caps.setRedBits(8); caps.setGreenBits(8); caps.setBlueBits(8); caps.setAlphaBits(0);
                 break;
             // 5, 6, 5, 0
@@ -175,8 +175,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
                 caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5); caps.setAlphaBits(8);
                 break;
             // 32, 32, 32, 32
-            case ALPHA_FLOAT: case LUMINANCE_ALPHA_FLOAT: 
-            case LUMINANCE_FLOAT: case RGBA_FLOAT:
+            case R_FLOAT: case RG_FLOAT: case RGBA_FLOAT:
                 caps.setRedBits(32); caps.setGreenBits(32); caps.setBlueBits(32); caps.setAlphaBits(32);
                 break;
             // 32, 32, 32, 0
@@ -184,7 +183,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
                 caps.setRedBits(32); caps.setGreenBits(32); caps.setBlueBits(32); caps.setAlphaBits(0);
                 break;
             // 8, 8, 8, 8
-            case LUMINANCE_ALPHA: case ALPHA: case BGRA: case BGRA_8888: 
+            case RG: case BGRA: case BGRA_8888: 
             case RGBA_8888: case RGBA: case ARGB_8888: case ABGR_8888:
             default:
                 caps.setRedBits(8); caps.setGreenBits(8); caps.setBlueBits(8); caps.setAlphaBits(8);

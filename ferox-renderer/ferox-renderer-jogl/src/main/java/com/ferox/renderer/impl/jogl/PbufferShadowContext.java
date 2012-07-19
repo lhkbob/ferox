@@ -24,7 +24,7 @@ public class PbufferShadowContext extends JoglContext {
     
     /**
      * Create a new PbufferShadowContext that will be returned by
-     * {@link JoglSurfaceFactory#createShadowContext(com.ferox.renderer.impl.OpenGLContext)}
+     * {@link JoglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
      * .
      * 
      * @param creator The JoglSurfaceFactory that is creating the shadow context

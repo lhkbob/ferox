@@ -128,7 +128,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
     }
 
     @Override
-    public OpenGLContext createShadowContext(OpenGLContext sharedContext) {
+    public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
         if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0 
             && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null))
             return PbufferShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());

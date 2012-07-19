@@ -6,7 +6,7 @@ import java.util.WeakHashMap;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractTextureSurface;
@@ -97,9 +97,9 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
 
         public FrameBufferObject(JoglContext context) {
             if (context == null)
-                throw new RenderException("FramebufferObject's can only be constructed when there's a current context");
+                throw new FrameworkException("FramebufferObject's can only be constructed when there's a current context");
             if (!context.getRenderCapabilities().getFboSupport())
-                throw new RenderException("Current hardware doesn't support the creation of fbos");
+                throw new FrameworkException("Current hardware doesn't support the creation of fbos");
 
             GL2GL3 gl = getGL(context);
             
@@ -131,7 +131,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
                     destroy();
-                    throw new RenderException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
+                    throw new FrameworkException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
                 } else
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
                 gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, 
@@ -180,7 +180,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 }
                 // clean-up and then throw an exception
                 destroy();
-                throw new RenderException(msg);
+                throw new FrameworkException(msg);
             }
 
             // restore the old binding

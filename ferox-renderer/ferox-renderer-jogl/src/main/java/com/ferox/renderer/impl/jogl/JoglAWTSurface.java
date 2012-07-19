@@ -18,7 +18,7 @@ import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
+import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.impl.AbstractFramework;
@@ -414,20 +414,20 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
             break;
         }
 
-        AntiAliasMode aa = AntiAliasMode.NONE;
+        MultiSampling aa = MultiSampling.NONE;
         if (sampleBuffers != 0) {
             switch (samples) {
             case 8:
-                aa = AntiAliasMode.EIGHT_X;
+                aa = MultiSampling.EIGHT_X;
                 break;
             case 4:
-                aa = AntiAliasMode.FOUR_X;
+                aa = MultiSampling.FOUR_X;
                 break;
             case 2:
-                aa = AntiAliasMode.TWO_X;
+                aa = MultiSampling.TWO_X;
                 break;
             default:
-                aa = AntiAliasMode.UNKNOWN;
+                aa = MultiSampling.UNKNOWN;
             }
 
             gl.glEnable(GL.GL_MULTISAMPLE);
@@ -439,7 +439,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
             options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
         }
         
-        options = options.setAntiAliasMode(aa)
+        options = options.setMultiSampling(aa)
                          .setDepthFormat(df)
                          .setStencilFormat(sf);
     }
@@ -538,7 +538,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
             break;
         }
 
-        switch (request.getAntiAliasMode()) {
+        switch (request.getMultiSampling()) {
         case EIGHT_X:
             caps.setNumSamples(8);
             caps.setSampleBuffers(true);

@@ -14,11 +14,10 @@ import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilOp;
+import com.ferox.renderer.Renderer.StencilUpdate;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
-import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.VertexBufferObject.StorageMode;
@@ -39,8 +38,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     private boolean initialized;
     
     // state tracking for buffer clearing
-    private final Vector4 clearColor = new Vector4(0f, 0f, 0f, 0f);
-    private float clearDepth = 1f;
+    private final Vector4 clearColor = new Vector4(0, 0, 0, 0);
+    private double clearDepth = 1f;
     private int clearStencil = 0;
     
     // state tracking for draw styles
@@ -89,8 +88,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glDepthOffset(float factor, float units) {
-        getGL().glPolygonOffset(factor, units);
+    protected void glDepthOffset(double factor, double units) {
+        getGL().glPolygonOffset((float) factor, (float) units);
     }
 
     @Override
@@ -189,7 +188,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glStencilUpdate(StencilOp stencilFail, StencilOp depthFail, StencilOp depthPass, boolean isFront) {
+    protected void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass, boolean isFront) {
         int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
         int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
         int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
@@ -234,7 +233,7 @@ public class JoglRendererDelegate extends RendererDelegate {
 
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
-                      @Const Vector4 color, float depth, int stencil) {
+                      @Const Vector4 color, double depth, int stencil) {
         if (color == null)
             throw new NullPointerException("Clear color cannot be null");
         if (depth < 0f || depth > 1f)
@@ -248,7 +247,7 @@ public class JoglRendererDelegate extends RendererDelegate {
         }
         if (this.clearDepth != depth) {
             this.clearDepth = depth;
-            gl.glClearDepthf(depth);
+            gl.glClearDepthf((float) depth);
         }
         if (this.clearStencil != stencil) {
             this.clearStencil = stencil;
@@ -268,8 +267,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glDrawElements(PolygonType type, ResourceHandle handle, int offset, int count) {
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+    protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h, int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         int glDataType = Utils.getGLType(h.dataType);
         
@@ -289,11 +287,9 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glBindElementVbo(ResourceHandle handle) {
+    protected void glBindElementVbo(VertexBufferObjectHandle h) {
         GL2GL3 gl = getGL();
         JoglContext ctx = (JoglContext) context;
-        
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
         
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {

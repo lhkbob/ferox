@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl.jogl;
 
+import java.nio.FloatBuffer;
 import java.util.EnumSet;
 
 import javax.media.opengl.GL;
@@ -12,8 +13,8 @@ import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
+import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
@@ -36,9 +37,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     private boolean initialized;
     
     // math object transfer objects
-    private final float[] matrixBuffer;
-    private final float[] vector4Buffer;
-    private final float[] vector3Buffer;
+    private final FloatBuffer transferBuffer;
     
     // state tracking
     private boolean alphaTestEnabled;
@@ -48,9 +47,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         
         initialized = false;
         
-        matrixBuffer = new float[16];
-        vector4Buffer = new float[4];
-        vector3Buffer = new float[3];
+        transferBuffer = BufferUtil.newFloatBuffer(16);
         alphaTestEnabled = false;
     }
     
@@ -91,12 +88,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glSetMatrix(@Const Matrix4 matrix) {
-        matrix.get(matrixBuffer, 0, false);
-        getGL().glLoadMatrixf(matrixBuffer, 0);
+        matrix.get(transferBuffer, 0, false);
+        transferBuffer.rewind();
+        getGL().glLoadMatrixf(transferBuffer);
     }
 
     @Override
-    protected void glAlphaTest(Comparison test, float ref) {
+    protected void glAlphaTest(Comparison test, double ref) {
         if (test == Comparison.ALWAYS) {
             if (alphaTestEnabled) {
                 alphaTestEnabled = false;
@@ -108,14 +106,15 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 glEnable(GL2.GL_ALPHA_TEST, true);
             }
             
-            getGL().glAlphaFunc(Utils.getGLPixelTest(test), ref);
+            getGL().glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
         }
     }
 
     @Override
     protected void glFogColor(@Const Vector4 color) {
-        color.get(vector4Buffer, 0);
-        getGL().glFogfv(GL2.GL_FOG_COLOR, vector4Buffer, 0);
+        color.get(transferBuffer, 0);
+        transferBuffer.rewind();
+        getGL().glFogfv(GL2.GL_FOG_COLOR, transferBuffer);
     }
 
     @Override
@@ -124,14 +123,14 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glFogDensity(float density) {
-        getGL().glFogf(GL2.GL_FOG_DENSITY, density);
+    protected void glFogDensity(double density) {
+        getGL().glFogf(GL2.GL_FOG_DENSITY, (float) density);
     }
 
     @Override
-    protected void glFogRange(float start, float end) {
-        getGL().glFogf(GL2.GL_FOG_START, start);
-        getGL().glFogf(GL2.GL_FOG_END, end);
+    protected void glFogRange(double start, double end) {
+        getGL().glFogf(GL2.GL_FOG_START, (float) start);
+        getGL().glFogf(GL2.GL_FOG_END, (float) end);
     }
 
     @Override
@@ -151,17 +150,20 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glGlobalLighting(@Const Vector4 ambient) {
-        ambient.get(vector4Buffer, 0);
-        getGL().glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, vector4Buffer, 0);
+        ambient.get(transferBuffer, 0);
+        transferBuffer.rewind();
+        getGL().glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, transferBuffer);
     }
     
     
 
     @Override
     protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
-        color.get(vector4Buffer, 0);
+        color.get(transferBuffer, 0);
+        transferBuffer.rewind();
+
         int c = getGLLight(lc);
-        getGL().glLightfv(GL2.GL_LIGHT0 + light, c, vector4Buffer, 0);
+        getGL().glLightfv(GL2.GL_LIGHT0 + light, c, transferBuffer);
     }
 
     @Override
@@ -171,28 +173,30 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glLightPosition(int light, @Const Vector4 pos) {
-        pos.get(vector4Buffer, 0);
-        getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_POSITION, vector4Buffer, 0);
+        pos.get(transferBuffer, 0);
+        getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_POSITION, transferBuffer);
     }
 
     @Override
     protected void glLightDirection(int light, @Const Vector3 dir) {
-        dir.get(vector3Buffer, 0);
-        getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_DIRECTION, vector3Buffer, 0);
+        dir.get(transferBuffer, 0);
+        transferBuffer.rewind();
+
+        getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_DIRECTION, transferBuffer);
     }
 
     @Override
-    protected void glLightAngle(int light, float angle) {
-        getGL().glLightf(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_CUTOFF, angle);
+    protected void glLightAngle(int light, double angle) {
+        getGL().glLightf(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_CUTOFF, (float) angle);
     }
 
     @Override
-    protected void glLightAttenuation(int light, float constant, float linear, float quadratic) {
+    protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
         light += GL2.GL_LIGHT0;
         GL2 gl = getGL();
-        gl.glLightf(light, GL2.GL_CONSTANT_ATTENUATION, constant);
-        gl.glLightf(light, GL2.GL_LINEAR_ATTENUATION, linear);
-        gl.glLightf(light, GL2.GL_QUADRATIC_ATTENUATION, quadratic);
+        gl.glLightf(light, GL2.GL_CONSTANT_ATTENUATION, (float) constant);
+        gl.glLightf(light, GL2.GL_LINEAR_ATTENUATION, (float) linear);
+        gl.glLightf(light, GL2.GL_QUADRATIC_ATTENUATION, (float) quadratic);
     }
 
     @Override
@@ -216,23 +220,25 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLineWidth(float width) {
-        getGL().glLineWidth(width);
+    protected void glLineWidth(double width) {
+        getGL().glLineWidth((float) width);
     }
 
     @Override
     protected void glMaterialColor(LightColor component, @Const Vector4 color) {
-        color.get(vector4Buffer, 0);
+        color.get(transferBuffer, 0);
+        transferBuffer.rewind();
+
         int c = getGLLight(component);
         if (component == LightColor.DIFFUSE)
-            getGL().glColor4fv(vector4Buffer, 0);
+            getGL().glColor4fv(transferBuffer);
         else
-            getGL().glMaterialfv(GL.GL_FRONT_AND_BACK, c, vector4Buffer, 0);
+            getGL().glMaterialfv(GL.GL_FRONT_AND_BACK, c, transferBuffer);
     }
 
     @Override
-    protected void glMaterialShininess(float shininess) {
-        getGL().glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, shininess);
+    protected void glMaterialShininess(double shininess) {
+        getGL().glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, (float) shininess);
     }
 
     @Override
@@ -241,8 +247,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glPointWidth(float width) {
-        getGL().glPointSize(width);
+    protected void glPointWidth(double width) {
+        getGL().glPointSize((float) width);
     }
 
     @Override
@@ -251,16 +257,15 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glBindTexture(Target target, ResourceHandle image) {
+    protected void glBindTexture(Target target, TextureHandle image) {
         if (supportedTargets.contains(target)) {
             int glTarget = Utils.getGLTextureTarget(target);
-            TextureHandle th = (TextureHandle) image;
             
             GL2 gl = getGL();
-            if (th == null)
+            if (image == null)
                 ((JoglContext) context).bindTexture(gl, glTarget, 0);
             else
-                ((JoglContext) context).bindTexture(gl, glTarget, th.texID);
+                ((JoglContext) context).bindTexture(gl, glTarget, image.texID);
         }
     }
 
@@ -274,8 +279,10 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glTextureColor(@Const Vector4 color) {
-        color.get(vector4Buffer, 0);
-        getGL().glTexEnvfv(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_COLOR, vector4Buffer, 0);
+        color.get(transferBuffer, 0);
+        transferBuffer.rewind();
+
+        getGL().glTexEnvfv(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_COLOR, transferBuffer);
     }
 
     @Override
@@ -312,7 +319,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glCombineOp(int operand, CombineOp op, boolean rgb) {
+    protected void glCombineOp(int operand, CombineOperand op, boolean rgb) {
         if (!supportsCombine)
             return;
         
@@ -354,25 +361,20 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glTexEyePlane(TexCoord coord, @Const Vector4 plane) {
-        plane.get(vector4Buffer, 0);
-        int tc = Utils.getGLTexCoord(coord, false);
-        getGL().glTexGenfv(tc, GL2.GL_EYE_PLANE, vector4Buffer, 0);
-    }
+        plane.get(transferBuffer, 0);
+        transferBuffer.rewind();
 
-    @Override
-    protected void glTexEnvMode(EnvMode mode) {
-        if (mode == EnvMode.COMBINE && !supportsCombine)
-            mode = EnvMode.MODULATE;
-        
-        int envMode = Utils.getGLTexEnvMode(mode);
-        getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, envMode);
+        int tc = Utils.getGLTexCoord(coord, false);
+        getGL().glTexGenfv(tc, GL2.GL_EYE_PLANE, transferBuffer);
     }
 
     @Override
     protected void glTexObjPlane(TexCoord coord, @Const Vector4 plane) {
-        plane.get(vector4Buffer, 0);
+        plane.get(transferBuffer, 0);
+        transferBuffer.rewind();
+
         int tc = Utils.getGLTexCoord(coord, false);
-        getGL().glTexGenfv(tc, GL2.GL_OBJECT_PLANE, vector4Buffer, 0);
+        getGL().glTexGenfv(tc, GL2.GL_OBJECT_PLANE, transferBuffer);
     }
 
     @Override
@@ -390,10 +392,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glBindArrayVbo(ResourceHandle handle) {
+    protected void glBindArrayVbo(VertexBufferObjectHandle h) {
         JoglContext ctx = (JoglContext) context;
         GL2 gl = getGL();
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
         
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
@@ -410,9 +411,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glAttributePointer(VertexTarget target, ResourceHandle handle, int offset,
+    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset,
                                       int stride, int elementSize) {
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
         int strideBytes = (stride + elementSize) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {

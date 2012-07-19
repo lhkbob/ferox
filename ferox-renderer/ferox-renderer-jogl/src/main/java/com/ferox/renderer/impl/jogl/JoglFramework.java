@@ -7,25 +7,19 @@ import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.ResourceDriver;
 
 public class JoglFramework extends AbstractFramework {
-    private JoglFramework(JoglSurfaceFactory factory, int numThreads, ResourceDriver<?>... drivers) {
-        super(factory, numThreads, drivers);
+    private JoglFramework(JoglSurfaceFactory factory, ResourceDriver... drivers) {
+        super(factory, drivers);
     }
     
     public static JoglFramework create() {
-        return create(2);
+        return create(false, false);
     }
     
-    public static JoglFramework create(int numThreads) {
-        return create(numThreads, false, false);
-    }
-    
-    public static JoglFramework create(int numThreads,
-                                       boolean forceNoFfp, boolean forceNoGlsl) {
-        return create(numThreads, forceNoFfp, forceNoGlsl, false, false);
+    public static JoglFramework create(boolean forceNoFfp, boolean forceNoGlsl) {
+        return create(forceNoFfp, forceNoGlsl, false, false);
     }
 
-    public static JoglFramework create(int numThreads,
-                                       boolean forceNoFfp, boolean forceNoGlsl,
+    public static JoglFramework create(boolean forceNoFfp, boolean forceNoGlsl,
                                        boolean forceNoPbuffers, boolean forceNoFbos) {
 
         int capBits = 0;
@@ -52,7 +46,7 @@ public class JoglFramework extends AbstractFramework {
             Threading.disableSingleThreading();
         
         JoglSurfaceFactory factory = new JoglSurfaceFactory(profile, capBits);
-        JoglFramework framework = new JoglFramework(factory, numThreads, 
+        JoglFramework framework = new JoglFramework(factory,
                                                     new JoglTextureResourceDriver(),
                                                     new JoglVertexBufferObjectResourceDriver(),
                                                     new JoglGlslShaderResourceDriver());
