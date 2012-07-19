@@ -78,7 +78,7 @@ public abstract class AbstractFramework implements Framework {
      *            low-level graphics work for resources
      * @throws NullPointerException if surfaceFactory or any driver is null
      */
-    public AbstractFramework(SurfaceFactory surfaceFactory, int numThreads, ResourceDriver... drivers) {
+    public AbstractFramework(SurfaceFactory surfaceFactory, ResourceDriver... drivers) {
         if (surfaceFactory == null)
             throw new NullPointerException("SurfaceFactory cannot be null");
         
@@ -152,9 +152,10 @@ public abstract class AbstractFramework implements Framework {
                     AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(AbstractFramework.this, options, 
                                                                                            contextManager.getSharedContext());
                     surfaces.add(created);
-                    
                     if (created.getOptions().getFullscreenMode() != null)
                         fullscreenSurface = created;
+                    
+                    contextManager.setActiveSurface(created, 0);
                     return created;
                 }
             }
@@ -173,14 +174,15 @@ public abstract class AbstractFramework implements Framework {
             public TextureSurface call() throws Exception {
                 AbstractTextureSurface created = surfaceFactory.createTextureSurface(AbstractFramework.this, options, 
                                                                                      contextManager.getSharedContext());
-                
+                surfaces.add(created);
+
                 // Mark all textures as non-disposable
                 if (created.getDepthBuffer() != null)
                     resourceManager.setDisposable(created.getDepthBuffer(), false);
                 for (int i = 0; i < created.getNumColorBuffers(); i++)
                     resourceManager.setDisposable(created.getColorBuffer(i), false);
                 
-                surfaces.add(created);
+                contextManager.setActiveSurface(created, 0);
                 return created;
             }
         }, false);

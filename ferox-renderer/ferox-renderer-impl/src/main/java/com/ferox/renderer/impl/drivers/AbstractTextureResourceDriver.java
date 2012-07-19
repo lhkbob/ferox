@@ -36,6 +36,11 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     }
     
     @Override
+    public TextureHandle init(Resource resource) {
+        return new TextureHandle((Texture) resource);
+    }
+    
+    @Override
     public void reset(Object handle) {
         if (handle instanceof TextureHandle) {
             TextureHandle h = (TextureHandle) handle;

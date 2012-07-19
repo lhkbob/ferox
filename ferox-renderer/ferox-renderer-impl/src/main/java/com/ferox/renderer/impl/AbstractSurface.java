@@ -127,6 +127,7 @@ public abstract class AbstractSurface implements Surface {
                     // Must force a release in case this surface was a context provider
                     framework.getContextManager().forceRelease(AbstractSurface.this);
                     destroyImpl();
+                    framework.markSurfaceDestroyed(AbstractSurface.this);
                     return null;
                 }
             }, true);
