@@ -12,9 +12,12 @@ import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.entreri.Vector3Property;
 import com.ferox.math.entreri.Vector3Property.DefaultVector3;
+import com.ferox.renderer.DisplayMode;
+import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
+import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.impl.jogl.JoglFramework;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.resource.VertexBufferObject.StorageMode;
@@ -25,7 +28,6 @@ import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.InfluenceRegion;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
-import com.ferox.scene.SpecularColor;
 import com.ferox.scene.Transform;
 import com.ferox.scene.controller.CameraController;
 import com.ferox.scene.controller.SpatialIndexController;
@@ -53,7 +55,8 @@ public class SimpleTest {
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions()
             .setWidth(800)
             .setHeight(600)
-//            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
+            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
+//            .setMultiSampling(MultiSampling.FOUR_X)
             .setResizable(false));
         surface.setVSyncEnabled(false);
         
@@ -104,10 +107,10 @@ public class SimpleTest {
             e.add(Renderable.ID).getData().setVertices(b.getVertices())
                                           .setLocalBounds(b.getBounds())
                                           .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(), b.getIndexCount());
-            if (Math.random() < .8)
+//            if (Math.random() < .9)
                 e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
             e.add(DiffuseColor.ID).getData().setColor(c);
-            e.add(SpecularColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
+//            e.add(SpecularColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
             e.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100, 
                                                                 0, 1, 0, Math.random() * 200 - 100, 
                                                                 0, 0, 1, Math.random() * 200 - 100,

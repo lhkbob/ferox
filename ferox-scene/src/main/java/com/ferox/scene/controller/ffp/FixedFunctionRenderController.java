@@ -144,7 +144,9 @@ public class FixedFunctionRenderController extends SimpleController {
 //        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(), diffuseTextureUnit, emissiveTextureUnit, 
 //                                                                   geomGroup);
         MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(), geomGroup);
-        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(), lightGroups, 8, materialGroup);
+        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(), lightGroups, 
+                                                             framework.getCapabilities().getMaxActiveLights(), 
+                                                             materialGroup);
         LightingGroupFactory lightingGroup = new LightingGroupFactory(materialGroup, lightGroup);
         
         final StateNode rootNode = new StateNode(lightingGroup.newGroup());
@@ -172,7 +174,7 @@ public class FixedFunctionRenderController extends SimpleController {
                 rendertime += (System.nanoTime() - now);
                 return null;
             }
-        }, "main");
+        });
         return future;
     }
     

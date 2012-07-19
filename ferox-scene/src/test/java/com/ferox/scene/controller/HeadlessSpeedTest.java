@@ -2,6 +2,7 @@ package com.ferox.scene.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Matrix4;
@@ -13,11 +14,6 @@ import com.ferox.scene.Camera;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
-import com.ferox.scene.controller.CameraController;
-import com.ferox.scene.controller.PVSResult;
-import com.ferox.scene.controller.SpatialIndexController;
-import com.ferox.scene.controller.VisibilityController;
-import com.ferox.scene.controller.WorldBoundsController;
 import com.ferox.scene.controller.light.LightGroupController;
 import com.ferox.util.Bag;
 import com.ferox.util.geom.Box;
@@ -60,8 +56,9 @@ public class HeadlessSpeedTest {
             }
             
             @Override
-            public void destroy() {
+            public Future<Void> destroy() {
                 // do nothing
+                return null;
             }
         }).setZDistances(0.1, 1200).setFieldOfView(75);
         

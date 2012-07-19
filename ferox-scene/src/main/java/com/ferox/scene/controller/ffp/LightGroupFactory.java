@@ -229,13 +229,12 @@ public class LightGroupFactory implements StateGroupFactory {
 
                         if (light.spotlightDirection != null) {
                             // configure additional spotlight parameters
-                            // FIXME: remove cast after renderer update
-                            r.setSpotlight(i, light.spotlightDirection, (float) light.cutoffAngle);
+                            r.setSpotlight(i, light.spotlightDirection, light.cutoffAngle);
                             if (light.falloff >= 0) {
                                 // the constant 15 was chosen through experimentation, basically
                                 // a value that makes lights seem bright enough but still
                                 // drop off pretty well by the desired radius
-                                r.setLightAttenuation(i, 1.0f, 0.0f, (float) (15.0 / (light.falloff * light.falloff)));
+                                r.setLightAttenuation(i, 1.0f, 0.0f, (15.0 / (light.falloff * light.falloff)));
                             } else {
                                 // disable attenuation
                                 r.setLightAttenuation(i, 1.0f, 0.0f, 0.0f);
