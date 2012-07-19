@@ -16,6 +16,7 @@ import com.ferox.input.KeyListener;
 import com.ferox.input.MouseEvent;
 import com.ferox.input.MouseKeyEventSource;
 import com.ferox.input.MouseListener;
+import com.ferox.renderer.impl.LifeCycleManager;
 
 /**
  * A MouseKeyEventSource that wraps the static {@link Mouse} and
@@ -45,15 +46,15 @@ public class LwjglInputEventAdapter implements MouseKeyEventSource {
         mouseListeners = new ArrayList<MouseListener>();
     }
     
-    public void startPolling() {
+    public void startPolling(LifeCycleManager lifecycle) {
         synchronized(this) {
             if (poller != null)
                 throw new IllegalStateException("Already polling inputs");
             
             poller = new LwjglInputPoller();
-            Thread pollThread = new Thread(poller, "LWJGL Input Poller");
+            Thread pollThread = new Thread(lifecycle.getManagedThreadGroup(), poller, "lwjgl-input-poller");
             pollThread.setDaemon(true);
-            pollThread.start();
+            lifecycle.startManagedThread(pollThread);
         }
     }
     

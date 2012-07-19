@@ -159,10 +159,11 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
      * management.
      */
     public void initialize() {
-        adapter.startPolling();
+        adapter.startPolling(getFramework().getLifeCycleManager());
         
         if (parentFrame == null) {
-            Thread closeMonitor = new Thread(new CloseMonitor(), "window-close-monitor");
+            ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
+            Thread closeMonitor = new Thread(managedGroup, new CloseMonitor(), "window-close-monitor");
             closeMonitor.setDaemon(true);
             getFramework().getLifeCycleManager().startManagedThread(closeMonitor);
         } else {
