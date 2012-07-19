@@ -26,11 +26,12 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.Sphere;
+import com.ferox.util.geom.Teapot;
 
 public class FixedFunctionRenderTest {
     
     public static void main(String[] args) throws Exception {
-        Framework framework = LwjglFramework.create(1, false, false, false, false);
+        Framework framework = LwjglFramework.create(1);
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
         OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                      .setHeight(600)
@@ -45,9 +46,9 @@ public class FixedFunctionRenderTest {
             while(true) {
                 if (window.isDestroyed())
                     break;
-                framework.queue(pass, "render").get();
-                framework.flush(window, "render");
-                framework.sync("render");
+                framework.queue(pass).get();
+                framework.flush(window);
+                framework.sync();
                 
                 frames++;
                 if (System.currentTimeMillis() - now > 1000) {
@@ -79,8 +80,8 @@ public class FixedFunctionRenderTest {
             this.surface = surface;
             
             box = new Box(2f, StorageMode.GPU_STATIC);
-            sphere = box; //new Sphere(2f, 32, StorageMode.GPU_STATIC);
-            teapot = box; //new Sphere(2f, 32, StorageMode.GPU_STATIC); //new Teapot(.5f, StorageMode.GPU_STATIC);
+            sphere = new Sphere(2f, 32, StorageMode.GPU_STATIC);
+            teapot = new Teapot(.5f, StorageMode.GPU_STATIC);
             
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
             f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
@@ -130,7 +131,7 @@ public class FixedFunctionRenderTest {
                 Geometry shape;
                 Matrix4 t = new Matrix4();
                 int rendered = 0;
-                int num = 111;
+                int num = 10000;
                 int thirds = num / 3;
                 for (int i = 0; i < num; i++) {
                     t.setIdentity();

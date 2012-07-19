@@ -5,7 +5,7 @@ import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.Pbuffer;
 import org.lwjgl.opengl.PixelFormat;
 
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.impl.RendererProvider;
 
 /**
@@ -22,7 +22,7 @@ public class PbufferShadowContext extends LwjglContext {
     
     /**
      * Create a new PbufferShadowContext that will be returned by
-     * {@link LwjglSurfaceFactory#createShadowContext(com.ferox.renderer.impl.OpenGLContext)}
+     * {@link LwjglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
      * .
      * 
      * @param creator The LwjglSurfaceFactory that is creating the shadow context
@@ -41,7 +41,7 @@ public class PbufferShadowContext extends LwjglContext {
         try {
             pbuffer = new Pbuffer(1, 1, new PixelFormat(), realShare);
         } catch (LWJGLException e) {
-            throw new RenderException("Unable to create Pbuffer", e);
+            throw new FrameworkException("Unable to create Pbuffer", e);
         }
 
         try {

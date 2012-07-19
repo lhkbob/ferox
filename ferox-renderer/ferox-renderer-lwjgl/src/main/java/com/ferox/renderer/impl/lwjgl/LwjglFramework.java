@@ -4,8 +4,8 @@ import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.ResourceDriver;
 
 public class LwjglFramework extends AbstractFramework {
-    private LwjglFramework(LwjglSurfaceFactory factory, int numThreads, ResourceDriver<?>... drivers) {
-        super(factory, numThreads, drivers);
+    private LwjglFramework(LwjglSurfaceFactory factory, ResourceDriver... drivers) {
+        super(factory, drivers);
     }
     
     public static LwjglFramework create() {
@@ -13,18 +13,15 @@ public class LwjglFramework extends AbstractFramework {
     }
     
     public static LwjglFramework create(int numThreads) {
-        return create(numThreads, false, false);
+        return create(false, false, false, false);
     }
     
-    public static LwjglFramework create(int numThreads,
-                                       boolean forceNoFfp, boolean forceNoGlsl) {
-        return create(numThreads, forceNoFfp, forceNoGlsl, false, false);
+    public static LwjglFramework create(boolean forceNoFfp, boolean forceNoGlsl) {
+        return create(false, false);
     }
-
-    public static LwjglFramework create(int numThreads,
-                                       boolean forceNoFfp, boolean forceNoGlsl,
-                                       boolean forceNoPbuffers, boolean forceNoFbos) {
-
+    
+    public static LwjglFramework create(boolean forceNoFfp, boolean forceNoGlsl,
+                                        boolean forceNoPbuffers, boolean forceNoFbos) {
         int capBits = 0;
         if (forceNoGlsl)
             capBits |= LwjglRenderCapabilities.FORCE_NO_GLSL;
@@ -36,7 +33,7 @@ public class LwjglFramework extends AbstractFramework {
         // FIXME: how to handle forceNoFfp?
         
         LwjglSurfaceFactory factory = new LwjglSurfaceFactory(capBits);
-        LwjglFramework framework = new LwjglFramework(factory, numThreads, 
+        LwjglFramework framework = new LwjglFramework(factory, 
                                                       new LwjglTextureResourceDriver(),
                                                       new LwjglVertexBufferObjectResourceDriver(),
                                                       new LwjglGlslShaderResourceDriver());

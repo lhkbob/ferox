@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.resource.Resource;
@@ -303,7 +303,7 @@ public class LwjglContext extends OpenGLContext {
         try {
             context.makeCurrent();
         } catch (LWJGLException e) {
-            throw new RenderException("Unable to make context current", e);
+            throw new FrameworkException("Unable to make context current", e);
         }
         
         for (Runnable task: cleanupTasks)
@@ -315,7 +315,7 @@ public class LwjglContext extends OpenGLContext {
         try {
             context.releaseContext();
         } catch (LWJGLException e) {
-            throw new RenderException("Unable to release context", e);
+            throw new FrameworkException("Unable to release context", e);
         }
     }
 }

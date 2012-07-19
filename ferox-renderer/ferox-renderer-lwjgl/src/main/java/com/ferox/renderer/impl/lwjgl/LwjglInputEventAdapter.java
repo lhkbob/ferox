@@ -127,6 +127,9 @@ public class LwjglInputEventAdapter implements MouseKeyEventSource {
                 Display.processMessages();
                 
                 // Process all incoming mouse events
+                // FIXME race condition exists if shutdown occurs after above
+                // boolean check, and an exception is thrown (should just eat it)
+                // - IllegalStateException
                 while(Mouse.next()) {
                     int x = Mouse.getEventX();
                     int y = Mouse.getEventY();

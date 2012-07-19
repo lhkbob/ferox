@@ -16,10 +16,10 @@ import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.AntiAliasMode;
+import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
@@ -359,7 +359,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             // in another thread that isn't a render thread
             Display.swapBuffers();
         } catch (LWJGLException e) {
-            throw new RenderException("Error swapping Display's buffers", e);
+            throw new FrameworkException("Error swapping Display's buffers", e);
         }
     }
 
@@ -481,20 +481,20 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             break;
         }
 
-        AntiAliasMode aa = AntiAliasMode.NONE;
+        MultiSampling aa = MultiSampling.NONE;
         if (sampleBuffers != 0) {
             switch (samples) {
             case 8:
-                aa = AntiAliasMode.EIGHT_X;
+                aa = MultiSampling.EIGHT_X;
                 break;
             case 4:
-                aa = AntiAliasMode.FOUR_X;
+                aa = MultiSampling.FOUR_X;
                 break;
             case 2:
-                aa = AntiAliasMode.TWO_X;
+                aa = MultiSampling.TWO_X;
                 break;
             default:
-                aa = AntiAliasMode.UNKNOWN;
+                aa = MultiSampling.UNKNOWN;
             }
 
             GL11.glEnable(GL13.GL_MULTISAMPLE);
@@ -507,7 +507,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
         }
 
-        options = options.setAntiAliasMode(aa)
+        options = options.setMultiSampling(aa)
                          .setDepthFormat(df)
                          .setStencilFormat(sf);
     }

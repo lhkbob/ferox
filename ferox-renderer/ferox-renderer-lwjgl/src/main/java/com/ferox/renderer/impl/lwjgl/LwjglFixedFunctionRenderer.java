@@ -15,7 +15,6 @@ import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
@@ -95,7 +94,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glAlphaTest(Comparison test, float ref) {
+    protected void glAlphaTest(Comparison test, double ref) {
         if (test == Comparison.ALWAYS) {
             if (alphaTestEnabled) {
                 alphaTestEnabled = false;
@@ -107,7 +106,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 glEnable(GL11.GL_ALPHA_TEST, true);
             }
             
-            GL11.glAlphaFunc(Utils.getGLPixelTest(test), ref);
+            GL11.glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
         }
     }
 
@@ -123,14 +122,14 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glFogDensity(float density) {
-        GL11.glFogf(GL11.GL_FOG_DENSITY, density);
+    protected void glFogDensity(double density) {
+        GL11.glFogf(GL11.GL_FOG_DENSITY, (float) density);
     }
 
     @Override
-    protected void glFogRange(float start, float end) {
-        GL11.glFogf(GL11.GL_FOG_START, start);
-        GL11.glFogf(GL11.GL_FOG_END, end);
+    protected void glFogRange(double start, double end) {
+        GL11.glFogf(GL11.GL_FOG_START, (float) start);
+        GL11.glFogf(GL11.GL_FOG_END, (float) end);
     }
 
     @Override
@@ -154,8 +153,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, vector4Buffer);
     }
     
-    
-
     @Override
     protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
         color.get(vector4Buffer, 0);
@@ -181,16 +178,16 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightAngle(int light, float angle) {
-        GL11.glLightf(GL11.GL_LIGHT0 + light, GL11.GL_SPOT_CUTOFF, angle);
+    protected void glLightAngle(int light, double angle) {
+        GL11.glLightf(GL11.GL_LIGHT0 + light, GL11.GL_SPOT_CUTOFF, (float) angle);
     }
 
     @Override
-    protected void glLightAttenuation(int light, float constant, float linear, float quadratic) {
+    protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
         light += GL11.GL_LIGHT0;
-        GL11.glLightf(light, GL11.GL_CONSTANT_ATTENUATION, constant);
-        GL11.glLightf(light, GL11.GL_LINEAR_ATTENUATION, linear);
-        GL11.glLightf(light, GL11.GL_QUADRATIC_ATTENUATION, quadratic);
+        GL11.glLightf(light, GL11.GL_CONSTANT_ATTENUATION, (float) constant);
+        GL11.glLightf(light, GL11.GL_LINEAR_ATTENUATION, (float) linear);
+        GL11.glLightf(light, GL11.GL_QUADRATIC_ATTENUATION, (float) quadratic);
     }
 
     @Override
@@ -214,8 +211,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLineWidth(float width) {
-        GL11.glLineWidth(width);
+    protected void glLineWidth(double width) {
+        GL11.glLineWidth((float) width);
     }
 
     @Override
@@ -230,8 +227,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glMaterialShininess(float shininess) {
-        GL11.glMaterialf(GL11.GL_FRONT_AND_BACK, GL11.GL_SHININESS, shininess);
+    protected void glMaterialShininess(double shininess) {
+        GL11.glMaterialf(GL11.GL_FRONT_AND_BACK, GL11.GL_SHININESS, (float) shininess);
     }
 
     @Override
@@ -240,8 +237,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glPointWidth(float width) {
-        GL11.glPointSize(width);
+    protected void glPointWidth(double width) {
+        GL11.glPointSize((float) width);
     }
 
     @Override
@@ -250,15 +247,14 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glBindTexture(Target target, ResourceHandle image) {
+    protected void glBindTexture(Target target, TextureHandle image) {
         if (supportedTargets.contains(target)) {
             int glTarget = Utils.getGLTextureTarget(target);
-            TextureHandle th = (TextureHandle) image;
             
-            if (th == null)
+            if (image == null)
                 ((LwjglContext) context).bindTexture(glTarget, 0);
             else
-                ((LwjglContext) context).bindTexture(glTarget, th.texID);
+                ((LwjglContext) context).bindTexture(glTarget, image.texID);
         }
     }
 
@@ -310,7 +306,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glCombineOp(int operand, CombineOp op, boolean rgb) {
+    protected void glCombineOp(int operand, CombineOperand op, boolean rgb) {
         if (!supportsCombine)
             return;
         
@@ -358,15 +354,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glTexEnvMode(EnvMode mode) {
-        if (mode == EnvMode.COMBINE && !supportsCombine)
-            mode = EnvMode.MODULATE;
-        
-        int envMode = Utils.getGLTexEnvMode(mode);
-        GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, envMode);
-    }
-
-    @Override
     protected void glTexObjPlane(TexCoord coord, @Const Vector4 plane) {
         plane.get(vector4Buffer, 0);
         int tc = Utils.getGLTexCoord(coord, false);
@@ -388,9 +375,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glBindArrayVbo(ResourceHandle handle) {
+    protected void glBindArrayVbo(VertexBufferObjectHandle h) {
         LwjglContext ctx = (LwjglContext) context;
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
         
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
@@ -407,9 +393,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glAttributePointer(VertexTarget target, ResourceHandle handle, int offset,
+    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset,
                                       int stride, int elementSize) {
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {

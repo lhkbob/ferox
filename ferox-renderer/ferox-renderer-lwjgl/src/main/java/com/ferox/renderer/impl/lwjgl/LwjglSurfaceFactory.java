@@ -16,7 +16,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
@@ -78,7 +78,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         try {
             modes = Display.getAvailableDisplayModes();
         } catch (LWJGLException e) {
-            throw new RenderException("Unable to query available DisplayModes through LWJGL", e);
+            throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
         }
         
         for (org.lwjgl.opengl.DisplayMode lwjglMode: modes) {
@@ -177,7 +177,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
             break;
         }
 
-        switch (request.getAntiAliasMode()) {
+        switch (request.getMultiSampling()) {
         case EIGHT_X:
             caps = caps.withSamples(8);
             break;
@@ -238,12 +238,12 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
     }
 
     @Override
-    public OpenGLContext createShadowContext(OpenGLContext sharedContext) {
+    public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
         if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 
             && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0)
             return PbufferShadowContext.create(this, (LwjglContext) sharedContext, new LwjglRendererProvider());
         else
-            throw new RenderException("No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
+            throw new FrameworkException("No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
     }
 
     /**

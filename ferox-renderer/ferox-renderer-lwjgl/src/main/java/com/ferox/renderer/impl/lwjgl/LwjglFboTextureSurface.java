@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import com.ferox.renderer.RenderException;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractTextureSurface;
@@ -130,9 +130,9 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         
         public FrameBufferObject(LwjglContext context) {
             if (context == null)
-                throw new RenderException("FramebufferObject's can only be constructed when there's a current context");
+                throw new FrameworkException("FramebufferObject's can only be constructed when there's a current context");
             if (!context.getRenderCapabilities().getFboSupport())
-                throw new RenderException("Current hardware doesn't support the creation of fbos");
+                throw new FrameworkException("Current hardware doesn't support the creation of fbos");
 
             target = getTarget();
             boundLayer = 0;
@@ -164,7 +164,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                 if (GL11.glGetError() == GL11.GL_OUT_OF_MEMORY) {
                     glBindRenderbuffer(0);
                     destroy();
-                    throw new RenderException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
+                    throw new FrameworkException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
                 } else
                     glBindRenderbuffer(0);
                 
@@ -227,7 +227,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     }
                     // clean-up and then throw an exception
                     destroy();
-                    throw new RenderException(msg);
+                    throw new FrameworkException(msg);
                 }
             } else {
                 int complete = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
@@ -255,7 +255,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     }
                     // clean-up and then throw an exception
                     destroy();
-                    throw new RenderException(msg);
+                    throw new FrameworkException(msg);
                 }
             }
             

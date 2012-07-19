@@ -11,7 +11,6 @@ import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceHandle;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
@@ -120,12 +119,12 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glBindTexture(int tex, Target target, ResourceHandle handle) {
+    protected void glBindTexture(int tex, Target target, TextureHandle handle) {
         if (supportedTargets.contains(target)) {
             LwjglContext ctx = (LwjglContext) context;
             ctx.setActiveTexture(tex);
             ctx.bindTexture(Utils.getGLTextureTarget(target), 
-                            (handle == null ? 0 : ((TextureHandle) handle).texID));
+                            (handle == null ? 0 : handle.texID));
         }
     }
 
@@ -138,9 +137,8 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glBindArrayVbo(ResourceHandle handle) {
+    protected void glBindArrayVbo(VertexBufferObjectHandle h) {
         LwjglContext ctx = (LwjglContext) context;
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
         
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
@@ -157,9 +155,7 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glAttributePointer(int attr, ResourceHandle handle, int offset, int stride,
-                                      int elementSize) {
-        VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
+    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset, int stride, int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
         
         if (h.mode == StorageMode.IN_MEMORY) {
