@@ -162,9 +162,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         adapter.startPolling();
         
         if (parentFrame == null) {
-            Thread closeMonitor = new Thread(new CloseMonitor(), "LWJGL Window Close Monitor");
+            Thread closeMonitor = new Thread(new CloseMonitor(), "window-close-monitor");
             closeMonitor.setDaemon(true);
-            closeMonitor.start();
+            getFramework().getLifeCycleManager().startManagedThread(closeMonitor);
         } else {
             parentFrame.addWindowListener(this);
         }
