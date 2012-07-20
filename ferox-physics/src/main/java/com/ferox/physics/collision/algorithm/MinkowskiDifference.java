@@ -4,6 +4,7 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
+import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.shape.ConvexShape;
 

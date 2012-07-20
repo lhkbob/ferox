@@ -1,6 +1,5 @@
 package com.ferox.physics.collision;
 
-import com.ferox.physics.collision.algorithm.ClosestPair;
 
 /**
  * <p>

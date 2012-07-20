@@ -1,29 +1,28 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 public class Box extends ConvexShape {
-    private final Vector3f localTensorPartial;
-    private final Vector3f halfExtents;
+    private final Vector3 localTensorPartial;
+    private final Vector3 halfExtents;
     
     public Box(float xExtent, float yExtent, float zExtent) {
-        localTensorPartial = new Vector3f();
-        halfExtents = new Vector3f();
+        localTensorPartial = new Vector3();
+        halfExtents = new Vector3();
         
         setExtents(xExtent, yExtent, zExtent);
     }
     
-    public ReadOnlyVector3f getHalfExtents() {
+    public @Const Vector3 getHalfExtents() {
         return halfExtents;
     }
     
-    public ReadOnlyVector3f getExtents() {
-        return halfExtents.scale(2f, null);
+    public Vector3 getExtents() {
+        return new Vector3().scale(halfExtents, 2.0);
     }
     
-    public void setExtents(float width, float height, float depth) {
+    public void setExtents(double width, double height, double depth) {
         if (width <= 0)
             throw new IllegalArgumentException("Invalid width, must be greater than 0, not: " + width);
         if (height <= 0)
@@ -31,39 +30,41 @@ public class Box extends ConvexShape {
         if (depth <= 0)
             throw new IllegalArgumentException("Invalid depth, must be greater than 0, not: " + depth);
         
-        halfExtents.set(width / 2f, height / 2f, depth / 2f);
-        localTensorPartial.set((height * height + depth * depth) / 12f,
-                               (width * width + depth * depth) / 12f,
-                               (width * width + height * height) / 12f);
+        halfExtents.set(width / 2.0, height / 2.0, depth / 2.0);
+        localTensorPartial.set((height * height + depth * depth) / 12.0,
+                               (width * width + depth * depth) / 12.0,
+                               (width * width + height * height) / 12.0);
         updateBounds();
     }
     
-    public float getWidth() {
-        return halfExtents.getX() * 2f;
+    public double getWidth() {
+        return halfExtents.x * 2.0;
     }
     
-    public float getHeight() {
-        return halfExtents.getY() * 2f;
+    public double getHeight() {
+        return halfExtents.y * 2.0;
     }
     
-    public float getDepth() {
-        return halfExtents.getZ() * 2f;
+    public double getDepth() {
+        return halfExtents.z * 2.0;
     }
     
     @Override
-    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
+    public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
         if (result == null)
-            result = new Vector3f();
+            result = new Vector3();
         
-        float x = (v.getX() < 0f ? -halfExtents.getX() : halfExtents.getX());
-        float y = (v.getY() < 0f ? -halfExtents.getY() : halfExtents.getY());
-        float z = (v.getZ() < 0f ? -halfExtents.getZ() : halfExtents.getZ());
+        double x = (v.x < 0f ? -halfExtents.x : halfExtents.x);
+        double y = (v.y < 0f ? -halfExtents.y : halfExtents.y);
+        double z = (v.z < 0f ? -halfExtents.z : halfExtents.z);
         
         return result.set(x, y, z);
     }
 
     @Override
-    public MutableVector3f getInertiaTensor(float mass, MutableVector3f result) {
-        return localTensorPartial.scale(mass, result);
+    public Vector3 getInertiaTensor(double mass, Vector3 result) {
+        if (result == null)
+            result = new Vector3();
+        return result.scale(localTensorPartial, mass);
     }
 }

@@ -2,7 +2,6 @@ package com.ferox.physics.collision;
 
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
-import com.ferox.physics.collision.algorithm.ClosestPair;
 
 /**
  * <p>
@@ -11,14 +10,7 @@ import com.ferox.physics.collision.algorithm.ClosestPair;
  * responsible for computing two vectors within world space. Each vector
  * represents the closest point on one {@link Collidable} to the other.
  * Implementations must handle cases where the two objects are intersecting each
- * other, too.
- * </p>
- * <p>
- * CollisionAlgorithms must be thread-safe because it is likely that code
- * relying on the algorithms will reuse the same instance. This should not be
- * difficult as each invocation of
- * {@link #getClosestPair(Collidable, Collidable)} should be independent.
- * </p>
+ * other as well.
  * 
  * @author Michael Ludwig
  */

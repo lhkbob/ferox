@@ -1,8 +1,7 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 /**
  * Cylinder is a convex shape implementation that represents a cylinder. It has
@@ -12,64 +11,64 @@ import com.ferox.math.Vector3f;
  * @author Michael Ludwig
  */
 public class Cylinder extends AxisSweptShape {
-    private float capRadius;
-    private float halfHeight;
+    private double capRadius;
+    private double halfHeight;
     
     /**
      * 
      * @param capRadius
      * @param height
      */
-    public Cylinder(float capRadius, float height) {
+    public Cylinder(double capRadius, double height) {
         this(capRadius, height, Axis.Z);
     }
     
-    public Cylinder(float capRadius, float height, Axis dominantAxis) {
+    public Cylinder(double capRadius, double height, Axis dominantAxis) {
         super(dominantAxis);
         setCapRadius(capRadius);
         setHeight(height);
     }
     
-    public float getCapRadius() {
+    public double getCapRadius() {
         return capRadius;
     }
     
-    public float getHeight() {
-        return 2f * halfHeight;
+    public double getHeight() {
+        return 2.0 * halfHeight;
     }
     
-    public void setCapRadius(float radius) {
-        if (radius <= 0f)
+    public void setCapRadius(double radius) {
+        if (radius <= 0.0)
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         capRadius = radius;
         update();
     }
     
-    public void setHeight(float height) {
-        if (height <= 0f)
+    public void setHeight(double height) {
+        if (height <= 0.0)
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
-        halfHeight = height / 2f;
+        halfHeight = height / 2.0;
         update();
     }
 
     @Override
-    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
+    public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
         if (result == null)
-            result = new Vector3f();
+            result = new Vector3();
         
-        float sigma = sigma(v);
-        if (sigma > 0f) {
-            float scale = capRadius / sigma;
+        double sigma = sigma(v);
+        if (sigma > 0.0) {
+            double scale = capRadius / sigma;
             switch(dominantAxis) {
-            case X: result.set(sign(v) * halfHeight, scale * v.getY(), scale * v.getZ()); break;
-            case Y: result.set(scale * v.getX(), sign(v) * halfHeight, scale * v.getZ()); break;
-            case Z: result.set(scale * v.getX(), scale * v.getY(), sign(v) * halfHeight); break;
+            case X: result.set(sign(v) * halfHeight, scale * v.y, scale * v.z); break;
+            case Y: result.set(scale * v.x, sign(v) * halfHeight, scale * v.z); break;
+            case Z: result.set(scale * v.x, scale * v.y, sign(v) * halfHeight); break;
             }
         } else {
             switch(dominantAxis) {
-            case X: result.set(sign(v) * halfHeight, 0f, 0f); break;
-            case Y: result.set(0f, sign(v) * halfHeight, 0f); break;
-            case Z: result.set(0f, 0f, sign(v) * halfHeight); break;
+            case X: result.set(sign(v) * halfHeight, 0, 0); break;
+            case Y: result.set(0, sign(v) * halfHeight, 0); break;
+            case Z: result.set(0, 0, sign(v) * halfHeight); break;
             }
         }
 
@@ -77,8 +76,8 @@ public class Cylinder extends AxisSweptShape {
     }
     
     private void update() {
-        float m1 = (3f * capRadius * capRadius + 4f * halfHeight * halfHeight) / 12f;
-        float m2 = capRadius * capRadius / 2f;
+        double m1 = (3.0 * capRadius * capRadius + 4.0 * halfHeight * halfHeight) / 12.0;
+        double m2 = capRadius * capRadius / 2.0;
         
         switch(dominantAxis) {
         case X:

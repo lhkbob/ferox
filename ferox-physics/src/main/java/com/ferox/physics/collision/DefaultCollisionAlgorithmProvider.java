@@ -151,7 +151,6 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
         return depth;
     }
 
-    @Override
     public void register(CollisionAlgorithm<?, ?> algorithm) {
         if (algorithm == null)
             throw new NullPointerException("CollisionAlgorithm cannot be null");
@@ -174,7 +173,6 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
         }
     }
 
-    @Override
     public void unregister(Class<? extends CollisionAlgorithm<?, ?>> algorithmType) {
         if (algorithmType == null)
             throw new NullPointerException("CollisionAlgorithm type cannot be null");

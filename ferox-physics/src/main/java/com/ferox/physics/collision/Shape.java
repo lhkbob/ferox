@@ -66,5 +66,5 @@ public interface Shape {
     /**
      * @return Return the current margin for this shape, defaults to .05
      */
-    public float getMargin();
+    public double getMargin();
 }

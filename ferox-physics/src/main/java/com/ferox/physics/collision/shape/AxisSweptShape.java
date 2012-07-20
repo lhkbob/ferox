@@ -1,8 +1,7 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 /**
  * AxisSweptShape represents a class of class of convex shapes that features a
@@ -17,7 +16,7 @@ public abstract class AxisSweptShape extends ConvexShape {
         X, Y, Z
     }
     
-    protected final Vector3f inertiaTensorPartial;
+    protected final Vector3 inertiaTensorPartial;
     protected final Axis dominantAxis;
 
     /**
@@ -30,7 +29,7 @@ public abstract class AxisSweptShape extends ConvexShape {
         if (dominantAxis == null)
             throw new NullPointerException("Axis cannot be null");
         this.dominantAxis = dominantAxis;
-        inertiaTensorPartial = new Vector3f();
+        inertiaTensorPartial = new Vector3();
     }
     
     /**
@@ -41,8 +40,10 @@ public abstract class AxisSweptShape extends ConvexShape {
     }
 
     @Override
-    public MutableVector3f getInertiaTensor(float mass, MutableVector3f result) {
-        return inertiaTensorPartial.scale(mass, result);
+    public Vector3 getInertiaTensor(double mass, Vector3 result) {
+        if (result == null)
+            result = new Vector3();
+        return result.scale(inertiaTensorPartial, mass);
     }
 
     /**
@@ -54,11 +55,11 @@ public abstract class AxisSweptShape extends ConvexShape {
      * @return The sign of the dominant component of v
      * @throws NullPointerException if v is null
      */
-    protected int sign(ReadOnlyVector3f v) {
+    protected int sign(@Const Vector3 v) {
         switch(dominantAxis) {
-        case X: return (v.getX() >= 0f ? 1 : -1);
-        case Y: return (v.getY() >= 0f ? 1 : -1);
-        case Z: return (v.getZ() >= 0f ? 1 : -1);
+        case X: return (v.x >= 0.0 ? 1 : -1);
+        case Y: return (v.y >= 0.0 ? 1 : -1);
+        case Z: return (v.z >= 0.0 ? 1 : -1);
         default: return 0;
         }
     }
@@ -71,15 +72,15 @@ public abstract class AxisSweptShape extends ConvexShape {
      * @return The projected distance of v to the dominant axis
      * @throws NullPointerException if v is null
      */
-    protected float sigma(ReadOnlyVector3f v) {
-        float c1, c2;
+    protected double sigma(Vector3 v) {
+        double c1, c2;
         switch(dominantAxis) {
-        case X: c1 = v.getY(); c2 = v.getZ(); break;
-        case Y: c1 = v.getX(); c2 = v.getZ(); break;
-        case Z: c1 = v.getX(); c2 = v.getY(); break;
+        case X: c1 = v.y; c2 = v.z; break;
+        case Y: c1 = v.x; c2 = v.z; break;
+        case Z: c1 = v.x; c2 = v.y; break;
         default: return -1;
         }
         
-        return (float) Math.sqrt(c1 * c1 + c2 * c2);
+        return Math.sqrt(c1 * c1 + c2 * c2);
     }
 }

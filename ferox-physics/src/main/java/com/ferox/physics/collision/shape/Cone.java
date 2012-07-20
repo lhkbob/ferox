@@ -1,39 +1,38 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 public class Cone extends AxisSweptShape {
-    private float halfHeight;
-    private float baseRadius;
+    private double halfHeight;
+    private double baseRadius;
     
-    public Cone(float baseRadius, float height) {
+    public Cone(double baseRadius, double height) {
         this(baseRadius, height, Axis.Z);
     }
     
-    public Cone(float baseRadius, float height, Axis dominantAxis) {
+    public Cone(double baseRadius, double height, Axis dominantAxis) {
         super(dominantAxis);
         setBaseRadius(baseRadius);
         setHeight(height);
     }
     
-    public float getHeight() {
-        return 2f * halfHeight;
+    public double getHeight() {
+        return 2.0 * halfHeight;
     }
     
-    public float getBaseRadius() {
+    public double getBaseRadius() {
         return baseRadius;
     }
     
-    public void setHeight(float height) {
+    public void setHeight(double height) {
         if (height <= 0f)
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
-        this.halfHeight = height / 2f;
+        this.halfHeight = height / 2.0;
         update();
     }
     
-    public void setBaseRadius(float radius) {
+    public void setBaseRadius(double radius) {
         if (radius <= 0f)
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         baseRadius = radius;
@@ -41,41 +40,44 @@ public class Cone extends AxisSweptShape {
     }
     
     @Override
-    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
+    public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
         if (result == null)
-            result = new Vector3f();
+            result = new Vector3();
         
-        float sin = baseRadius / (float) Math.sqrt(baseRadius * baseRadius + 4 * halfHeight * halfHeight);
+        double sin = baseRadius / Math.sqrt(baseRadius * baseRadius + 4 * halfHeight * halfHeight);
         switch(dominantAxis) {
         case X:
-            if (v.getX() <= v.length() * sin) {
-                float sigma = sigma(v);
-                if (sigma <= 0f)
-                    result.set(-halfHeight, 0f, 0f);
+            if (v.x <= v.length() * sin) {
+                double sigma = sigma(v);
+                if (sigma <= 0.0)
+                    result.set(-halfHeight, 0.0, 0.0);
                 else
-                    result.set(-halfHeight, baseRadius / sigma * v.getY(), baseRadius / sigma * v.getZ());
-            } else
-                result.set(halfHeight, 0f, 0f);
+                    result.set(-halfHeight, baseRadius / sigma * v.y, baseRadius / sigma * v.z);
+            } else {
+                result.set(halfHeight, 0.0, 0.0);
+            }
             break;
         case Y:
-            if (v.getY() <= v.length() * sin) {
-                float sigma = sigma(v);
-                if (sigma <= 0f)
-                    result.set(0f, -halfHeight, 0f);
+            if (v.y <= v.length() * sin) {
+                double sigma = sigma(v);
+                if (sigma <= 0.0)
+                    result.set(0.0, -halfHeight, 0.0);
                 else
-                    result.set(baseRadius / sigma * v.getX(), -halfHeight, baseRadius / sigma * v.getZ());
-            } else
-                result.set(0f, halfHeight, 0f);
+                    result.set(baseRadius / sigma * v.x, -halfHeight, baseRadius / sigma * v.z);
+            } else {
+                result.set(0.0, halfHeight, 0.0);
+            }
             break;
         case Z:
-            if (v.getZ() <= v.length() * sin) {
-                float sigma = sigma(v);
-                if (sigma <= 0f)
-                    result.set(-0f, 0f, -halfHeight);
+            if (v.z <= v.length() * sin) {
+                double sigma = sigma(v);
+                if (sigma <= 0.0)
+                    result.set(-0.0, 0.0, -halfHeight);
                 else
-                    result.set(baseRadius / sigma * v.getX(), baseRadius / sigma * v.getY(), -halfHeight);
-            } else
-                result.set(0f, 0f, halfHeight);
+                    result.set(baseRadius / sigma * v.x, baseRadius / sigma * v.y, -halfHeight);
+            } else {
+                result.set(0.0, 0.0, halfHeight);
+            }
             break;
         }
 
@@ -83,8 +85,8 @@ public class Cone extends AxisSweptShape {
     }
     
     private void update() {
-        float m1 = 4f / 10f * halfHeight * halfHeight + 3f / 20f * baseRadius * baseRadius;
-        float m2 = 3f/ 10f * baseRadius * baseRadius;
+        double m1 = 4.0 / 10.0 * halfHeight * halfHeight + 3.0 / 20.0 * baseRadius * baseRadius;
+        double m2 = 3.0/ 10.0 * baseRadius * baseRadius;
         
         switch(dominantAxis) {
         case X:

@@ -1,8 +1,7 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 /**
  * Sphere is a ConvexShape that represents a mathematical sphere.
@@ -10,17 +9,17 @@ import com.ferox.math.Vector3f;
  * @author Michael Ludwig
  */
 public class Sphere extends ConvexShape {
-    private float radius;
-    private float inertiaTensorPartial;
+    private double radius;
+    private double inertiaTensorPartial;
 
     /**
      * Create a new Sphere with the initial radius, ignoring the margin.
      * 
-     * @see #setRadius(float)
+     * @see #setRadius(double)
      * @param radius The initial radius
      * @throws IllegalArgumentException if radius is less than or equal to 0
      */
-    public Sphere(float radius) {
+    public Sphere(double radius) {
         setRadius(radius);
     }
 
@@ -31,12 +30,12 @@ public class Sphere extends ConvexShape {
      * @param radius The new radius, must be greater than 0
      * @throws IllegalArgumentException if radius is less than or equal to 0
      */
-    public void setRadius(float radius) {
-        if (radius <= 0f)
+    public void setRadius(double radius) {
+        if (radius <= 0.0)
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         
         this.radius = radius;
-        inertiaTensorPartial = 2f * radius * radius / 5f;
+        inertiaTensorPartial = 2.0 * radius * radius / 5.0;
         updateBounds();
     }
 
@@ -45,20 +44,22 @@ public class Sphere extends ConvexShape {
      * 
      * @return The radius of the sphere
      */
-    public float getRadius() {
+    public double getRadius() {
         return radius;
     }
     
     @Override
-    public MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result) {
-        return v.normalize(result).scale(radius);
+    public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
+        if (result == null)
+            result = new Vector3();
+        return result.normalize(v).scale(radius);
     }
 
     @Override
-    public MutableVector3f getInertiaTensor(float mass, MutableVector3f result) {
+    public Vector3 getInertiaTensor(double mass, Vector3 result) {
         if (result == null)
-            result = new Vector3f();
-        float m = inertiaTensorPartial * mass;
+            result = new Vector3();
+        double m = inertiaTensorPartial * mass;
         return result.set(m, m, m);
     }
 }
