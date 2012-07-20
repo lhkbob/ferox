@@ -1,6 +1,8 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.Shape;
 
@@ -32,14 +34,14 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape> implem
     }
     
     @Override
-    public ClosestPair getClosestPair(A shapeA, ReadOnlyMatrix4f transA, 
-                                      B shapeB, ReadOnlyMatrix4f transB) {
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, 
+                                      B shapeB, @Const Matrix4 transB) {
         ClosestPair original = delegate.getClosestPair(shapeB, transB, shapeA, transA);
         if (original == null)
             return null;
         
         // swap the points and contact normal
-        return new ClosestPair(original.getClosestPointOnB(), original.getContactNormal().scale(-1f, null), 
+        return new ClosestPair(original.getClosestPointOnB(), new Vector3().scale(original.getContactNormal(), -1.0),
                                original.getDistance());
     }
 

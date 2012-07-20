@@ -1,8 +1,7 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.algorithm.Simplex.Vertex;
 import com.ferox.util.Bag;
 
@@ -35,23 +34,23 @@ public class EPA {
     }
     
     private static final int EPA_MAX_ITERATIONS = 255;
-    private static final float EPA_ACCURACY = .00001f;
-    private static final float EPA_PLANE_EPS = .00001f;
-    private static final float EPA_INSIDE_EPS = .00001f;
+    private static final double EPA_ACCURACY = .00001;
+    private static final double EPA_PLANE_EPS = .00001;
+    private static final double EPA_INSIDE_EPS = .00001;
     
     private static final int[] I1M3 = new int[] { 1, 2, 0 };
     private static final int[] I2M3 = new int[] { 2, 0, 1 };
     
     
     private final GJK gjk;
-    private final Vector3f tempCache;
+    private final Vector3 tempCache;
     
     
-    private Vector3f normal;
+    private Vector3 normal;
     private Bag<Face> hull;
     
     private Simplex simplex;
-    private float depth;
+    private double depth;
     private Status status;
 
     /**
@@ -66,8 +65,8 @@ public class EPA {
             throw new NullPointerException("GJK cannot be null");
         
         this.gjk = gjk;
-        depth = 0f;
-        tempCache = new Vector3f();
+        depth = 0.0;
+        tempCache = new Vector3();
     }
 
     /**
@@ -91,23 +90,23 @@ public class EPA {
     }
 
     /**
-     * Return the depth of penetration after {@link #evaluate(ReadOnlyVector3f)}
+     * Return the depth of penetration after {@link #evaluate(Vector3)}
      * is invoked. If the status of EPA is not VALID, the depth is invalid.
      * 
      * @return The penetration depth
      */
-    public float getDepth() {
+    public double getDepth() {
         return depth;
     }
 
     /**
      * Return the contact normal between the two intersecting convex hulls from
-     * the last invocation of {@link #evaluate(ReadOnlyVector3f)}. If the status
+     * the last invocation of {@link #evaluate(Vector3)}. If the status
      * is not VALID, the returned normal is invalid and possibly null.
      * 
      * @return The contact normal from A to B
      */
-    public ReadOnlyVector3f getNormal() {
+    public @Const Vector3 getNormal() {
         return normal;
     }
 
@@ -131,7 +130,7 @@ public class EPA {
      * @return The Status of the evaluation
      * @throws NullPointerException if guess is null
      */
-    public Status evaluate(ReadOnlyVector3f guess) {
+    public Status evaluate(@Const Vector3 guess) {
         if (guess == null)
             throw new NullPointerException("Guess cannot be null");
         
@@ -140,7 +139,7 @@ public class EPA {
         Simplex simplex = gjk.getSimplex();
         MinkowskiDifference function = gjk.getMinkowskiDifference();
         
-        normal = new Vector3f();
+        normal = new Vector3();
         hull = new Bag<Face>();
         status = Status.FAILED;
         
@@ -167,7 +166,7 @@ public class EPA {
                 
                 Horizon horizon = new Horizon();
                 boolean valid;
-                float wdist;
+                double wdist;
                 for (int iter = 0; iter < EPA_MAX_ITERATIONS; iter++) {
                     // reset the horizon for the next iteration
                     horizon.cf = null; 
@@ -179,9 +178,9 @@ public class EPA {
                     valid = true;
                     best.pass = ++pass;
                     
-                    best.normal.normalize(w.input);
-                    function.getSupport(w.input, w.vertex);
-                    wdist = best.normal.dot(w.vertex) - best.d;
+                    w.getInputVector().normalize(best.normal);
+                    function.getSupport(w.getInputVector(), w.getVertex());
+                    wdist = best.normal.dot(w.getVertex()) - best.d;
                     
                     if (wdist > EPA_ACCURACY) {
                         for (int j = 0; j < 3 && valid; j++) {
@@ -205,18 +204,21 @@ public class EPA {
                     }
                 }
                 
-                MutableVector3f projection = outer.normal.scale((float) outer.d, tempCache);
+                Vector3 projection = tempCache.scale(outer.normal, outer.d);
                 normal.set(outer.normal);
                 depth = outer.d;
                 
-                Vector3f t1 = new Vector3f();
-                Vector3f t2 = new Vector3f();
+                // FIXME why do we have tempCache for some vector computations,
+                // but are willing to allocate two vectors here?
+                // At the very least we need to use a unified practice here
+                Vector3 t1 = new Vector3();
+                Vector3 t2 = new Vector3();
                 
-                float w1 = outer.vertices[1].vertex.sub(projection, t1).cross(outer.vertices[2].vertex.sub(projection, t2)).length();
-                float w2 = outer.vertices[2].vertex.sub(projection, t1).cross(outer.vertices[0].vertex.sub(projection, t2)).length();
-                float w3 = outer.vertices[0].vertex.sub(projection, t1).cross(outer.vertices[1].vertex.sub(projection, t2)).length();
-                
-                float sum = w1 + w2 + w3;
+                double w1 = t1.sub(outer.vertices[1].getVertex(), projection).cross(t2.sub(outer.vertices[2].getVertex(), projection)).length();
+                double w2 = t1.sub(outer.vertices[2].getVertex(), projection).cross(t2.sub(outer.vertices[0].getVertex(), projection)).length();
+                double w3 = t1.sub(outer.vertices[0].getVertex(), projection).cross(t2.sub(outer.vertices[1].getVertex(), projection)).length();
+
+                double sum = w1 + w2 + w3;
                 
                 outer.vertices[0].setWeight(w1 / sum);
                 outer.vertices[1].setWeight(w2 / sum);
@@ -231,11 +233,11 @@ public class EPA {
         
     private Face findBest() {
         Face minf = hull.get(0);
-        float mind = minf.d * minf.d;
-        float maxp = minf.p;
+        double mind = minf.d * minf.d;
+        double maxp = minf.p;
         
         Face f;
-        float sqd;
+        double sqd;
         int ct = hull.size();
         for (int i = 1; i < ct; i++) {
             f = hull.get(i);
@@ -253,7 +255,7 @@ public class EPA {
     private boolean expand(int pass, Vertex w, Face face, int index, Horizon horizon) {
         if (face.pass != pass) {
             int e1 = I1M3[index];
-            if (face.normal.dot(w.vertex) - face.d < -EPA_PLANE_EPS) {
+            if (face.normal.dot(w.getVertex()) - face.d < -EPA_PLANE_EPS) {
                 Face nf = new Face(face.vertices[e1], face.vertices[index], w, false);
                 if (nf.hullIndex >= 0) {
                     bind(nf, 0, face, index);
@@ -287,9 +289,9 @@ public class EPA {
     }
     
     private class Face {
-        final MutableVector3f normal;
-        float d;
-        float p;
+        final Vector3 normal;
+        double d;
+        double p;
         
         final Vertex[] vertices;
         final Face[] adjacent;
@@ -304,22 +306,23 @@ public class EPA {
             pass = 0;
             
             vertices = new Vertex[] { a, b, c };
-            normal = b.vertex.sub(a.vertex, null).cross(c.vertex.sub(a.vertex, tempCache));
-            float l = normal.length();
+            normal = new Vector3().sub(b.getVertex(), a.getVertex()).cross(tempCache.sub(c.getVertex(), a.getVertex()));
+            double l = normal.length();
             boolean v = l > EPA_ACCURACY;
             
-            float invL = 1f / l;
-            float d1 = a.vertex.dot(normal.cross(a.vertex.sub(b.vertex, tempCache), tempCache));
-            float d2 = b.vertex.dot(normal.cross(b.vertex.sub(c.vertex, tempCache), tempCache));
-            float d3 = c.vertex.dot(normal.cross(c.vertex.sub(a.vertex, tempCache), tempCache));
-            p = Math.min(Math.min(d1, d2), d3) * (v ? invL : 1f);
+            double invL = 1.0 / l;
+            double d1 = a.getVertex().dot(tempCache.cross(normal, tempCache.sub(a.getVertex(), b.getVertex())));
+            double d2 = b.getVertex().dot(tempCache.cross(normal, tempCache.sub(b.getVertex(), c.getVertex())));
+            double d3 = c.getVertex().dot(tempCache.cross(normal, tempCache.sub(c.getVertex(), a.getVertex())));
+
+            p = Math.min(Math.min(d1, d2), d3) * (v ? invL : 1.0);
             if (p >= -EPA_INSIDE_EPS)
-                p = 0;
+                p = 0.0;
             
             hullIndex = -1;
             if (v) {
-                d = a.vertex.dot(normal) * invL;
-                normal.scale((float) invL);
+                d = a.getVertex().dot(normal) * invL;
+                normal.scale(invL);
                 if (force || d >= -EPA_PLANE_EPS) {
                     hull.add(this);
                     hullIndex = hull.size() - 1;

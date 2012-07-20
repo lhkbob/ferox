@@ -1,6 +1,7 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionAlgorithm;
 
 /**
@@ -12,11 +13,11 @@ import com.ferox.physics.collision.CollisionAlgorithm;
  * @author Michael Ludwig
  */
 public class ClosestPair {
-    private final ReadOnlyVector3f contactNormalFromA;
-    private final ReadOnlyVector3f closestPointOnA;
-    private final ReadOnlyVector3f closestPointOnB;
+    private final Vector3 contactNormalFromA;
+    private final Vector3 closestPointOnA;
+    private final Vector3 closestPointOnB;
 
-    private final float distance;
+    private final double distance;
 
     /**
      * Create a new ClosestPair. <tt>pointOnA</tt> represents the point on the
@@ -32,14 +33,14 @@ public class ClosestPair {
      *            B's surface, negative for an intersection situation
      * @throws NullPointerException if pointOnA or contactNormal are null
      */
-    public ClosestPair(ReadOnlyVector3f pointOnA, ReadOnlyVector3f contactNormal, float distance) {
+    public ClosestPair(Vector3 pointOnA, Vector3 contactNormal, double distance) {
         if (pointOnA == null || contactNormal == null)
             throw new NullPointerException("Input cannot be null");
         this.distance = distance;
 
         contactNormalFromA = contactNormal;
         closestPointOnA = pointOnA;
-        closestPointOnB = contactNormal.scaleAdd(distance, pointOnA, null);
+        closestPointOnB = new Vector3(contactNormal).scale(distance).add(pointOnA);
     }
 
     /**
@@ -52,7 +53,7 @@ public class ClosestPair {
      * 
      * @return The contact normal
      */
-    public ReadOnlyVector3f getContactNormal() {
+    public @Const Vector3 getContactNormal() {
         return contactNormalFromA;
     }
 
@@ -62,7 +63,7 @@ public class ClosestPair {
      * 
      * @return The closest point in this pair on the surface of A
      */
-    public ReadOnlyVector3f getClosestPointOnA() {
+    public @Const Vector3 getClosestPointOnA() {
         return closestPointOnA;
     }
 
@@ -72,7 +73,7 @@ public class ClosestPair {
      * 
      * @return The closest point in this pair on the surface of B
      */
-    public ReadOnlyVector3f getClosestPointOnB() {
+    public @Const Vector3 getClosestPointOnB() {
         return closestPointOnB;
     }
 
@@ -84,7 +85,7 @@ public class ClosestPair {
      * 
      * @return The contact distance
      */
-    public float getDistance() {
+    public double getDistance() {
         return distance;
     }
 
@@ -96,7 +97,7 @@ public class ClosestPair {
      * @return True if the two involved objects are intersecting
      */
     public boolean isIntersecting() {
-        return distance <= .00001f;
+        return distance <= .00001;
     }
     
     @Override

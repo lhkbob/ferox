@@ -1,8 +1,8 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 
@@ -34,18 +34,20 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
     private static final int MAX_EPA_CHECKS = 4;
     
     @Override
-    public ClosestPair getClosestPair(ConvexShape shapeA, ReadOnlyMatrix4f transA,
-                                      ConvexShape shapeB, ReadOnlyMatrix4f transB) {
+    public ClosestPair getClosestPair(ConvexShape shapeA, @Const Matrix4 transA,
+                                      ConvexShape shapeB, @Const Matrix4 transB) {
         // MinkowskiDifference does the error checking for GjkEpaCollisionAlgorithm
         MinkowskiDifference support = new MinkowskiDifference(shapeA, transA, shapeB, transB);
         support.setNumAppliedMargins(0);
         GJK gjk = new GJK(support);
         
-        ReadOnlyVector3f pa = transA.getCol(3).getAsVector3f();
-        ReadOnlyVector3f pb = transB.getCol(3).getAsVector3f();
+        // FIXME this code is duplicated in a number of places, particularly MinkowskiDifference,
+        // but in MD it needs to mutate the vectors, another place is in SphereSphereCollisionAlgorithm
+        Vector3 pa = new Vector3(transA.m03, transA.m13, transA.m23);
+        Vector3 pb = new Vector3(transB.m03, transB.m13, transB.m23);
         
         ClosestPair p = null;
-        MutableVector3f guess = pb.sub(pa, null);
+        Vector3 guess = new Vector3().sub(pb, pa);
         if (gjk.evaluate(guess) == GJK.Status.VALID) {
             // non-intersecting pair
            p = support.getClosestPair(gjk.getSimplex(), null);
@@ -56,7 +58,7 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
         EPA epa = new EPA(gjk);
         for (int i = 1; i < MAX_EPA_CHECKS; i++) {
             // intersection or failure, fall back onto EPA
-            // must re-run the GJK without scaling so that the simplex is in the correct space
+            // must re-run the GJK with scaling so that the simplex is in the correct space
             support.setNumAppliedMargins(i);
 
             if (gjk.evaluate(guess) == GJK.Status.VALID) {

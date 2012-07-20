@@ -1,6 +1,7 @@
 package com.ferox.physics.collision;
 
-import com.ferox.math.ReadOnlyMatrix4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
 import com.ferox.physics.collision.algorithm.ClosestPair;
 
 /**
@@ -52,8 +53,8 @@ public interface CollisionAlgorithm<A extends Shape, B extends Shape> {
      *         or null if no pair could be computed
      * @throws NullPointerException if any argument is null
      */
-    public ClosestPair getClosestPair(A shapeA, ReadOnlyMatrix4f transA, 
-                                      B shapeB, ReadOnlyMatrix4f transB);
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, 
+                                      B shapeB, @Const Matrix4 transB);
     
     /**
      * @return The Class representing the type A

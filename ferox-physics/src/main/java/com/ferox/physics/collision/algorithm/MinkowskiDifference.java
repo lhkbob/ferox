@@ -1,10 +1,9 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
-import com.ferox.math.Vector4f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.physics.collision.Collidable;
 import com.ferox.physics.collision.shape.ConvexShape;
 
@@ -20,20 +19,20 @@ import com.ferox.physics.collision.shape.ConvexShape;
  * @author Michael Ludwig
  */
 public class MinkowskiDifference {
-    private static final float CONTACT_NORMAL_ACCURACY = .0001f;
+    private static final double CONTACT_NORMAL_ACCURACY = .0001;
     
     private ConvexShape shapeA;
     private ConvexShape shapeB;
     
-    private ReadOnlyMatrix4f transA; // transforms a to world
-    private ReadOnlyMatrix4f transB; // transforms b to world
+    private Matrix4 transA; // transforms a to world
+    private Matrix4 transB; // transforms b to world
     
     private int appliedMargins;
     
     // final variables to reuse during computations, should be faster than thread-local
-    private final Vector3f supportCache;
-    private final Vector3f dirCache;
-    private final Vector4f transformCache;
+    private final Vector3 supportCache;
+    private final Vector3 dirCache;
+    private final Vector4 transformCache;
 
     /**
      * Create a new MinkowskiDifference between the two Shape objects. The
@@ -47,13 +46,13 @@ public class MinkowskiDifference {
      * @param transB The second shape's world transform
      * @throws NullPointerException if any arguments are null
      */
-    public MinkowskiDifference(ConvexShape shapeA, ReadOnlyMatrix4f transA,
-                               ConvexShape shapeB, ReadOnlyMatrix4f transB) {
+    public MinkowskiDifference(ConvexShape shapeA, @Const Matrix4 transA,
+                               ConvexShape shapeB, @Const Matrix4 transB) {
         if (shapeA == null || shapeB == null || transA == null || transB == null)
             throw new NullPointerException("Arguments cannot be null");
-        supportCache = new Vector3f();
-        dirCache = new Vector3f();
-        transformCache = new Vector4f();
+        supportCache = new Vector3();
+        dirCache = new Vector3();
+        transformCache = new Vector4();
         
         this.shapeA = shapeA;
         this.shapeB = shapeB;
@@ -94,44 +93,46 @@ public class MinkowskiDifference {
      *         computed
      * @throws NullPointerException if simplex is null
      */
-    public ClosestPair getClosestPair(Simplex simplex, ReadOnlyVector3f zeroNormal) {
-        ReadOnlyVector3f pa = transA.getCol(3).getAsVector3f();
-        ReadOnlyVector3f pb = transB.getCol(3).getAsVector3f();
+    public ClosestPair getClosestPair(Simplex simplex, @Const Vector3 zeroNormal) {
+        Vector3 pa = new Vector3(transA.m03, transA.m13, transA.m23);
+        Vector3 pb = new Vector3(transB.m03, transB.m13, transB.m23);
         
-        Vector3f ma = getClosestPointA(simplex);
-        Vector3f mb = getClosestPointB(simplex);
+        Vector3 ma = getClosestPointA(simplex);
+        Vector3 mb = getClosestPointB(simplex);
         
         return constructPair(ma, mb, pa, pb, zeroNormal);
     }
     
-    private ClosestPair constructPair(MutableVector3f wA, MutableVector3f wB, 
-                                      ReadOnlyVector3f pA, ReadOnlyVector3f pB,
-                                      ReadOnlyVector3f zeroNormal) {
+    private ClosestPair constructPair(Vector3 wA, Vector3 wB, 
+                                      Vector3 pA, Vector3 pB,
+                                      @Const Vector3 zeroNormal) {
         boolean intersecting = (pA.distanceSquared(wB) < pA.distanceSquared(wA)) && 
                                (pB.distanceSquared(wA) < pB.distanceSquared(wB));
-        MutableVector3f normal = wB.sub(wA); // wB becomes the normal here
-        float distance = normal.length() * (intersecting ? -1f : 1f);
+        // after this, pA and pB are free vectors to be mutated
+        
+        Vector3 normal = wB.sub(wA); // wB becomes the normal here
+        double distance = normal.length() * (intersecting ? -1.0 : 1.0);
 
         if (Math.abs(distance) < CONTACT_NORMAL_ACCURACY) {
             // special case for very close contact points, where the normal might become inaccurate
             if (zeroNormal != null) {
-                zeroNormal.normalize(normal);
+                normal.normalize(zeroNormal);
                 if (intersecting)
                     normal.scale(-1f);
             } else
                 return null;
         } else {
             // normalize, and possibly flip the normal based on intersection
-            normal.scale(1f / distance);
+            normal.scale(1.0 / distance);
         }
         
         if (appliedMargins != 1) {
             int scale = Math.abs(appliedMargins - 1);
-            float distDelta = scale * shapeA.getMargin() + scale * shapeB.getMargin();
+            double distDelta = scale * (shapeA.getMargin() + shapeB.getMargin());
             if (intersecting)
-                distDelta *= -1f;
+                distDelta *= -1.0;
             
-            normal.scaleAdd(-(appliedMargins - 1) * shapeA.getMargin(), wA, wA);
+            wA.add(wA, pA.scale(normal, (1 - appliedMargins) * shapeA.getMargin()));
             if ((appliedMargins == 0 && intersecting) || (appliedMargins > 1 && !intersecting)) {
                 // moving to one margin increases distance
                 distance += distDelta;
@@ -145,22 +146,22 @@ public class MinkowskiDifference {
     }
 
 
-    private Vector3f getClosestPointA(Simplex simplex) {
-        Vector3f result = new Vector3f();
+    private Vector3 getClosestPointA(Simplex simplex) {
+        Vector3 result = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
             getAffineSupport(shapeA, transA, simplex.getVertex(i).getInputVector(), supportCache);
-            supportCache.scaleAdd(simplex.getVertex(i).getWeight(), result, result);
+            result.add(supportCache.scale(simplex.getVertex(i).getWeight()), result);
         }
         return result;
     }
 
-    private Vector3f getClosestPointB(Simplex simplex) {
-        Vector3f result = new Vector3f();
+    private Vector3 getClosestPointB(Simplex simplex) {
+        Vector3 result = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
-            getAffineSupport(shapeB, transB, simplex.getVertex(i).getInputVector().scale(-1f, supportCache), supportCache);
-            supportCache.scaleAdd(simplex.getVertex(i).getWeight(), result, result);
+            getAffineSupport(shapeB, transB, supportCache.scale(simplex.getVertex(i).getInputVector(), -1.0), supportCache);
+            result.add(supportCache.scale(simplex.getVertex(i).getWeight()), result);
         }
         return result;
     }
@@ -185,35 +186,35 @@ public class MinkowskiDifference {
      * @return The support, stored in result or a new vector if result was null
      * @throws NullPointerException if d is null
      */
-    public MutableVector3f getSupport(ReadOnlyVector3f d, MutableVector3f result) {
+    public Vector3 getSupport(@Const Vector3 d, Vector3 result) {
         if (result == null)
-            result = new Vector3f();
+            result = new Vector3();
         
         getAffineSupport(shapeA, transA, d, result);
-        getAffineSupport(shapeB, transB, d.scale(-1f, supportCache), supportCache);
+        getAffineSupport(shapeB, transB, supportCache.scale(d, -1.0), supportCache);
         return result.sub(supportCache);
     }
     
-    private void getAffineSupport(ConvexShape shape, ReadOnlyMatrix4f t, ReadOnlyVector3f d, MutableVector3f result) {
+    private void getAffineSupport(ConvexShape shape, @Const Matrix4 t, @Const Vector3 d, Vector3 result) {
         // first step is to transform d by the transpose of the upper 3x3
         // we do this by wrapping d in a 4-vector and setting w = 0
-        transformCache.set(d.getX(), d.getY(), d.getZ(), 0f);
-        t.mulPre(transformCache);
+        transformCache.set(d.x, d.y, d.z, 0.0);
+        transformCache.mul(transformCache, t);
         
         // second step is to compute the actual support
-        result.set(transformCache.getX(), transformCache.getY(), transformCache.getZ());
+        result.set(transformCache.x, transformCache.y, transformCache.z);
         dirCache.set(result);
         
         shape.computeSupport(result, result);
         
         if (appliedMargins > 0) {
             // apply a number of margin offsets, as if a sphere is added to the convex shape
-            dirCache.scaleAdd(appliedMargins * shape.getMargin(), result, result);
+            result.add(dirCache.scale(appliedMargins * shape.getMargin()), result);
         }
         
         // then transform that by the complete affine transform, so w = 1
-        transformCache.set(result.getX(), result.getY(), result.getZ(), 1f);
-        t.mul(transformCache);
-        result.set(transformCache.getX(), transformCache.getY(), transformCache.getZ());
+        transformCache.set(result.x, result.y, result.z, 1.0);
+        transformCache.mul(t, transformCache);
+        result.set(transformCache.x, transformCache.y, transformCache.z);
     }
 }

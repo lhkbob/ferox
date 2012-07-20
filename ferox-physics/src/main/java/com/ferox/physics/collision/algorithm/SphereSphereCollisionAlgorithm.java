@@ -1,8 +1,8 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.Sphere;
 
@@ -14,33 +14,33 @@ import com.ferox.physics.collision.shape.Sphere;
  */
 public class SphereSphereCollisionAlgorithm implements CollisionAlgorithm<Sphere, Sphere> {
     @Override
-    public ClosestPair getClosestPair(Sphere shapeA, ReadOnlyMatrix4f transA, Sphere shapeB,
-                                      ReadOnlyMatrix4f transB) {
-        Vector3f ca = new Vector3f(transA.get(0, 3), transA.get(1, 3), transA.get(2, 3));
-        Vector3f cb = new Vector3f(transB.get(0, 3), transB.get(1, 3), transB.get(2, 3));
+    public ClosestPair getClosestPair(Sphere shapeA, @Const Matrix4 transA, 
+                                      Sphere shapeB, @Const Matrix4 transB) {
+        Vector3 ca = new Vector3(transA.m03, transA.m13, transA.m23);
+        Vector3 cb = new Vector3(transB.m03, transB.m13, transB.m23);
         
-        float ra = shapeA.getRadius() + shapeA.getMargin();
-        float rb = shapeB.getRadius() + shapeB.getMargin();
-        float dist = ca.distance(cb) - ra - rb;
+        double ra = shapeA.getRadius() + shapeA.getMargin();
+        double rb = shapeB.getRadius() + shapeB.getMargin();
+        double dist = ca.distance(cb) - ra - rb;
         
         // FIXME: doesn't work if spheres are centered on each other
-        MutableVector3f normal = cb.sub(ca).normalize();
-        normal.scaleAdd(ra, ca, ca);
+        Vector3 normal = new Vector3().sub(cb, ca).normalize();
+        Vector3 pa = cb.scale(normal, ra).add(ca); // consumes cb
 
         if (normal.lengthSquared() > .000001f) {
-            return new ClosestPair(ca, normal, dist);
+            return new ClosestPair(pa, normal, dist);
         } else {
             // happens when spheres are perfectly centered on each other
             if (ra < rb) {
                 // sphere a is inside sphere b
-                normal.set(0f, 0f, -1f);
-                ca.setZ(ca.getZ() + ra);
-                return new ClosestPair(ca, normal, ra - rb);
+                normal.set(0, 0, -1);
+                pa.z = pa.z + ra;
+                return new ClosestPair(cb, normal, ra - rb);
             } else {
                 // sphere b is inside sphere a
-                normal.set(0f, 0f, 1f);
-                ca.setZ(ca.getZ() + ra);
-                return new ClosestPair(ca, normal, rb - ra);
+                normal.set(0, 0, 1);
+                pa.z = pa.z + ra;
+                return new ClosestPair(cb, normal, rb - ra);
             }
         }
     }

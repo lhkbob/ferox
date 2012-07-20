@@ -2,9 +2,8 @@ package com.ferox.physics.collision.algorithm;
 
 import java.util.Arrays;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 /**
  * <p>
@@ -42,34 +41,34 @@ public class Simplex {
      * </p>
      */
     public static class Vertex {
-        final Vector3f input;
-        final Vector3f vertex;
-        private float weight;
+        private final Vector3 input;
+        private final Vector3 vertex;
+        private double weight;
         
         public Vertex() {
-            input = new Vector3f();
-            vertex = new Vector3f();
-            weight = 0f;
+            input = new Vector3();
+            vertex = new Vector3();
+            weight = 0;
         }
         
         /**
          * @return The input vector used to evaluate the support function
          */
-        public ReadOnlyVector3f getInputVector() {
+        public @Const Vector3 getInputVector() {
             return input;
         }
         
         /**
          * @return The vertex of the simplex
          */
-        public ReadOnlyVector3f getVertex() {
+        public @Const Vector3 getVertex() {
             return vertex;
         }
         
         /**
          * @return The current weight of the simplex
          */
-        public float getWeight() {
+        public double getWeight() {
             return weight;
         }
 
@@ -81,7 +80,7 @@ public class Simplex {
          * @param w The new weight
          * @throws IllegalArgumentException if w is less than 0
          */
-        public void setWeight(float w) {
+        public void setWeight(double w) {
             if (w < 0f)
                 throw new IllegalArgumentException("Weight must be positive, not: " + w);
             weight = w;
@@ -94,7 +93,7 @@ public class Simplex {
     private int mask;
     // for use with SimplexUtil
     private final int[] maskCache;
-    private final float[] weightCache;
+    private final double[] weightCache;
     
     /**
      * Create a Simplex that is initially empty and has a rank of 0.
@@ -104,7 +103,7 @@ public class Simplex {
         rank = 0;
         
         maskCache = new int[1];
-        weightCache = new float[4];
+        weightCache = new double[4];
     }
 
     /**
@@ -127,7 +126,7 @@ public class Simplex {
         rank = 3;
         
         maskCache = new int[1];
-        weightCache = new float[4];
+        weightCache = new double[4];
     }
     
     public void clear() {
@@ -183,30 +182,30 @@ public class Simplex {
     private boolean encloseOriginImpl(MinkowskiDifference shape) {
         switch(rank) {
         case 1: {
-            Vector3f axis = new Vector3f();
+            Vector3 axis = new Vector3();
             for (int i = 0; i < 3; i++) {
-                addVertex(shape, axis.set(0f, 0f, 0f).set(i, 1f));
+                addVertex(shape, axis.set(0.0, 0.0, 0.0).set(i, 1.0));
                 if (encloseOrigin(shape))
                     return true;
                 removeVertex();
-                addVertex(shape, axis.scale(-1f));
+                addVertex(shape, axis.scale(-1));
                 if (encloseOrigin(shape))
                     return true;
                 removeVertex();
             }
             break; }
         case 2: {
-            MutableVector3f d = vertices[1].vertex.sub(vertices[0].vertex, null);
-            Vector3f axis = new Vector3f();
+            Vector3 d = new Vector3().sub(vertices[1].vertex, vertices[0].vertex);
+            Vector3 axis = new Vector3();
             
             for (int i = 0; i < 3; i++) {
-                d.cross(axis.set(0f, 0f, 0f).set(i, 1f), axis);
+                d.cross(axis.set(0.0, 0.0, 0.0).set(i, 1.0), axis);
                 if (axis.lengthSquared() > 0) {
                     addVertex(shape, axis);
                     if (encloseOrigin(shape))
                         return true;
                     removeVertex();
-                    addVertex(shape, axis.scale(-1f));
+                    addVertex(shape, axis.scale(-1.0));
                     if (encloseOrigin(shape))
                         return true;
                     removeVertex();
@@ -214,13 +213,13 @@ public class Simplex {
             }
             break; }
         case 3: {
-            MutableVector3f n = vertices[1].vertex.sub(vertices[0].vertex, null).cross(vertices[2].vertex.sub(vertices[0].vertex, null));
-            if (n.lengthSquared() > 0) {
+            Vector3 n = new Vector3().sub(vertices[1].vertex, vertices[0].vertex).cross(new Vector3().sub(vertices[2].vertex, vertices[0].vertex));
+            if (n.lengthSquared() > 0.0) {
                 addVertex(shape, n);
                 if (encloseOrigin(shape))
                     return true;
                 removeVertex();
-                addVertex(shape, n.scale(-1f));
+                addVertex(shape, n.scale(-1.0));
                 if (encloseOrigin(shape))
                     return true;
                 removeVertex();
@@ -229,7 +228,7 @@ public class Simplex {
         case 4: {
             if (Math.abs(SimplexUtil.det(vertices[0].vertex.sub(vertices[3].vertex, null),
                                          vertices[1].vertex.sub(vertices[3].vertex, null),
-                                         vertices[2].vertex.sub(vertices[3].vertex, null))) > 0f)
+                                         vertices[2].vertex.sub(vertices[3].vertex, null))) > 0.0)
                 return true;
             break; }
         }
@@ -239,8 +238,8 @@ public class Simplex {
     private void orient() {
         if (SimplexUtil.det(vertices[0].vertex.sub(vertices[3].vertex, null),
                             vertices[1].vertex.sub(vertices[3].vertex, null),
-                            vertices[2].vertex.sub(vertices[3].vertex, null)) < 0f) {
-            Vector3f t = new Vector3f();
+                            vertices[2].vertex.sub(vertices[3].vertex, null)) < 0.0) {
+            Vector3 t = new Vector3();
             
             t.set(vertices[0].input);
             vertices[0].input.set(vertices[1].input);
@@ -250,7 +249,7 @@ public class Simplex {
             vertices[0].vertex.set(vertices[1].vertex);
             vertices[1].vertex.set(t);
             
-            float tt = vertices[0].weight;
+            double tt = vertices[0].weight;
             vertices[0].weight = vertices[1].weight;
             vertices[1].weight = tt;
         }
@@ -265,7 +264,7 @@ public class Simplex {
      * @param d The input to the support function
      * @throws NullPointerException if s or d are null
      */
-    public void addVertex(MinkowskiDifference s, ReadOnlyVector3f d) {
+    public void addVertex(MinkowskiDifference s, @Const Vector3 d) {
         addVertex(s, d, false);
     }
 
@@ -279,18 +278,18 @@ public class Simplex {
      * @param negate True if <tt>d</tt> should be negated before being passed to
      *            the support function
      */
-    public void addVertex(MinkowskiDifference s, ReadOnlyVector3f d, boolean negate) {
+    public void addVertex(MinkowskiDifference s, @Const Vector3 d, boolean negate) {
         if (rank == 4)
             throw new IllegalStateException("Cannot add a vertex to a full simplex");
         if (vertices[rank] == null)
             vertices[rank] = new Vertex();
         Vertex v = vertices[rank++];
         
-        v.weight = 0f;
+        v.weight = 0.0;
         if (negate)
-            d.scale(-1f, v.input).normalize();
+            v.input.scale(d, -1.0).normalize();
         else
-            d.normalize(v.input);
+            v.input.normalize(d);
         s.getSupport(v.input, v.vertex);
     }
     
@@ -354,10 +353,10 @@ public class Simplex {
      * Update the weights and mask to perform the actual math needed by reduce()
      */
     private boolean projectOrigin() {
-        Arrays.fill(weightCache, 0f);
+        Arrays.fill(weightCache, 0.0);
         maskCache[0] = 0;
         
-        float sqdist = 0f;
+        double sqdist = 0.0;
         switch(rank) {
         case 2:
             sqdist = simplexUtil.get().projectOrigin2(vertices[0].vertex, vertices[1].vertex, 
@@ -373,7 +372,7 @@ public class Simplex {
             break;
         }
         
-        if (sqdist >= 0f) {
+        if (sqdist >= 0.0) {
             // copy weights back into member variables
             for (int i = 0; i < rank; i++)
                 vertices[i].weight = weightCache[i];
@@ -395,37 +394,35 @@ public class Simplex {
         private static final int[] IMD3 = new int[] {1, 2, 0};
 
         // used only in projectOrigin2
-        private final Vector3f p2 = new Vector3f(); 
+        private final Vector3 p2 = new Vector3(); 
         
         // used only in projectOrigin3
-        private final ReadOnlyVector3f[] vt3 = new ReadOnlyVector3f[3];
-        private final Vector3f[] dl3 = new Vector3f[] { new Vector3f(), new Vector3f(), new Vector3f() };
-        private final Vector3f n3 = new Vector3f();
-        private final Vector3f p3 = new Vector3f();
+        private final Vector3[] vt3 = new Vector3[3];
+        private final Vector3[] dl3 = new Vector3[] { new Vector3(), new Vector3(), new Vector3() };
+        private final Vector3 n3 = new Vector3();
+        private final Vector3 p3 = new Vector3();
         
-        private final float[] subw3 = new float[2];
+        private final double[] subw3 = new double[2];
         private final int[] subm3 = new int[1];
         
         // used only in projectOrigin4
-        private final ReadOnlyVector3f[] vt4 = new ReadOnlyVector3f[4];
-        private final Vector3f[] dl4 = new Vector3f[] { new Vector3f(), new Vector3f(), new Vector3f() };
-        private final Vector3f n4 = new Vector3f();
-        private final Vector3f p4 = new Vector3f();
+        private final Vector3[] vt4 = new Vector3[4];
+        private final Vector3[] dl4 = new Vector3[] { new Vector3(), new Vector3(), new Vector3() };
+        private final Vector3 n4 = new Vector3();
+        private final Vector3 p4 = new Vector3();
         
-        private final float[] subw4 = new float[3];
+        private final double[] subw4 = new double[3];
         private final int[] subm4 = new int[1];
         
-        
-        
-        public float projectOrigin2(ReadOnlyVector3f a, ReadOnlyVector3f b, float[] weights, int[] mask) {
-            MutableVector3f d = b.sub(a, p2);
-            float l = d.lengthSquared();
+        public double projectOrigin2(@Const Vector3 a, @Const Vector3 b, double[] weights, int[] mask) {
+            Vector3 d = p2.sub(b, a);
+            double l = d.lengthSquared();
             
-            if (l > 0f) {
-                float t = -a.dot(d) / l;
-                if (t >= 1) {
-                    weights[0] = 0f; 
-                    weights[1] = 1f; 
+            if (l > 0.0) {
+                double t = -a.dot(d) / l;
+                if (t >= 1.0) {
+                    weights[0] = 0.0; 
+                    weights[1] = 1.0; 
                     mask[0] = 2; 
                     return b.lengthSquared();
                 } else if (t <= 0) {
@@ -436,32 +433,32 @@ public class Simplex {
                 } else {
                     weights[0] = 1 - t; 
                     weights[1] = t; 
-                    mask[0] = 3; 
-                    return d.scaleAdd((float) t, a).lengthSquared();
+                    mask[0] = 3;
+                    return d.scale(t).add(a).lengthSquared();
                 }
             } else
                 return -1f;
         }
         
-        public float projectOrigin3(ReadOnlyVector3f a, ReadOnlyVector3f b, ReadOnlyVector3f c, float[] weights, int[] mask) {
+        public double projectOrigin3(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c, double[] weights, int[] mask) {
             vt3[0] = a; vt3[1] = b; vt3[2] = c;
-            a.sub(b, dl3[0]);
-            b.sub(c, dl3[1]);
-            c.sub(a, dl3[2]);
+            dl3[0].sub(a, b);
+            dl3[1].sub(b, c);
+            dl3[2].sub(c, a);
             
-            dl3[0].cross(dl3[1], n3);
-            float l = n3.lengthSquared();
+            n3.cross(dl3[0], dl3[1]);
+            double l = n3.lengthSquared();
             
-            if (l > 0f) {
-                float minDist = -1f;
-                subw3[0] = 0f; subw3[1] = 0f;
+            if (l > 0.0) {
+                double minDist = -1.0;
+                subw3[0] = 0.0; subw3[1] = 0.0;
                 subm3[0] = 0;
                 
                 for (int i = 0; i < 3; i++) {
-                    if (vt3[i].dot(dl3[i].cross(n3, p3)) > 0) {
+                    if (vt3[i].dot(p3.cross(dl3[i], n3)) > 0.0) {
                         int j = IMD3[i];
-                        float subd = projectOrigin2(vt3[i], vt3[j], subw3, subm3);
-                        if (minDist < 0f || subd < minDist) {
+                        double subd = projectOrigin2(vt3[i], vt3[j], subw3, subm3);
+                        if (minDist < 0.0 || subd < minDist) {
                             minDist = subd;
                             mask[0] = ((subm3[0] & 1) != 0 ? (1 << i) : 0) + 
                                       ((subm3[0] & 2) != 0 ? (1 << j) : 0);
@@ -472,56 +469,56 @@ public class Simplex {
                     }
                 }
                 
-                if (minDist < 0f) {
-                    float d = a.dot(n3);
-                    float s = (float) Math.sqrt(l);
-                    n3.scale((float) (d / l), p3);
+                if (minDist < 0.0) {
+                    double d = a.dot(n3);
+                    double s = Math.sqrt(l);
+                    p3.scale(n3, d / l);
                     
                     minDist = p3.lengthSquared();
                     mask[0] = 7;
-                    weights[0] = dl3[1].cross(b.sub(p3, n3)).length() / s; // at this point dl[1] and n are throwaway
-                    weights[1] = dl3[2].cross(c.sub(p3, n3)).length() / s; // at this point dl[2] and n are throwaway
+                    weights[0] = dl3[1].cross(n3.sub(b, p3)).length() / s; // at this point dl[1] and n are throwaway
+                    weights[1] = dl3[2].cross(n3.sub(c, p3)).length() / s; // at this point dl[2] and n are throwaway
                     weights[2] = 1 - weights[0] - weights[1];
                 }
                 return minDist;
             } else
-                return -1f;
+                return -1.0;
         }
         
-        public float projectOrigin4(ReadOnlyVector3f a, ReadOnlyVector3f b, ReadOnlyVector3f c, ReadOnlyVector3f d, float[] weights, int[] mask) {
+        public double projectOrigin4(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c, @Const Vector3 d, double[] weights, int[] mask) {
             vt4[0] = a; vt4[1] = b; vt4[2] = c; vt4[3] = d;
-            a.sub(d, dl4[0]);
-            b.sub(d, dl4[1]);
-            c.sub(d, dl4[2]);
+            dl4[0].sub(a, d);
+            dl4[1].sub(b, d);
+            dl4[2].sub(c, d);
             
-            float vl = det(dl4[0], dl4[1], dl4[2]);
-            boolean ng = (vl * a.dot(b.sub(c, n4).cross(a.sub(b, p4)))) <= 0f;
+            double vl = det(dl4[0], dl4[1], dl4[2]);
+            boolean ng = (vl * a.dot(n4.sub(b, c).cross(p4.sub(a, b)))) <= 0.0;
             
-            if (ng && Math.abs(vl) > 0f) {
-                float minDist = -1f;
-                subw4[0] = 0f; subw4[1] = 0f; subw4[2] = 0f;
+            if (ng && Math.abs(vl) > 0.0) {
+                double minDist = -1.0;
+                subw4[0] = 0.0; subw4[1] = 0.0; subw4[2] = 0.0;
                 subm4[0] = 0;
                 
                 for (int i = 0; i < 3; i++) {
                     int j = IMD3[i];
-                    float s = vl * d.dot(dl4[i].cross(dl4[j], n4));
-                    if (s > 0) {
-                        float subd = projectOrigin3(vt4[i], vt4[j], d, subw4, subm4);
-                        if (minDist < 0f || subd < minDist) {
+                    double s = vl * d.dot(n4.cross(dl4[i], dl4[j]));
+                    if (s > 0.0) {
+                        double subd = projectOrigin3(vt4[i], vt4[j], d, subw4, subm4);
+                        if (minDist < 0.0 || subd < minDist) {
                             minDist = subd;
                             mask[0] = ((subm4[0] & 1) != 0 ? (1 << i) : 0) +
                                       ((subm4[0] & 2) != 0 ? (1 << j) : 0) +
                                       ((subm4[0] & 4) != 0 ? 8 : 0);
                             weights[i] = subw4[0];
                             weights[j] = subw4[1];
-                            weights[IMD3[j]] = 0f;
+                            weights[IMD3[j]] = 0.0;
                             weights[3] = subw4[2];
                         }
                     }
                 }
                 
-                if (minDist < 0f) {
-                    minDist = 0f;
+                if (minDist < 0.0) {
+                    minDist = 0.0;
                     mask[0] = 15;
                     weights[0] = det(c, b, d) / vl;
                     weights[1] = det(a, c, d) / vl;
@@ -530,13 +527,13 @@ public class Simplex {
                 }
                 return minDist;
             } else
-                return -1f;
+                return -1.0;
         }
         
-        public static float det(ReadOnlyVector3f a, ReadOnlyVector3f b, ReadOnlyVector3f c) {
-            return a.getY() * b.getZ() * c.getX() + a.getZ() * b.getX() * c.getY() -
-                   a.getX() * b.getZ() * c.getY() - a.getY() * b.getX() * c.getZ() +
-                   a.getX() * b.getY() * c.getZ() - a.getZ() * b.getY() * c.getX();
+        public static double det(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c) {
+            return a.y * b.z * c.x + a.z * b.x * c.y -
+                   a.x * b.z * c.y - a.y * b.x * c.z +
+                   a.x * b.y * c.z - a.z * b.y * c.x;
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.ferox.physics.collision.algorithm;
 
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 /**
  * <p>
@@ -22,9 +22,9 @@ import com.ferox.math.Vector3f;
  */
 public class GJK {
     public static final int GJK_MAX_ITERATIONS = 128;
-    public static final float GJK_MIN_DISTANCE = .0001f;
-    public static final float GJK_DUPLICATE_EPS = .0001f;
-    public static final float GJK_ACCURACY = .0001f;
+    public static final double GJK_MIN_DISTANCE = .0001;
+    public static final double GJK_DUPLICATE_EPS = .0001;
+    public static final double GJK_ACCURACY = .0001;
 
     /**
      * Status represents the three states that a GJK evaluation can take. A
@@ -88,31 +88,32 @@ public class GJK {
      * @return The status of the evaluation
      * @throws NullPointerException if guess is null
      */
-    public Status evaluate(ReadOnlyVector3f guess) {
+    public Status evaluate(@Const Vector3 guess) {
         if (guess == null)
             throw new NullPointerException("Guess cannot be null");
         
         Status status = Status.VALID;
         simplex = new Simplex();
-        Vector3f ray = new Vector3f(guess);
+        Vector3 ray = new Vector3(guess);
         if (ray.lengthSquared() < GJK_MIN_DISTANCE * GJK_MIN_DISTANCE)
-            ray.set(-1f, 0f, 0f); // for 0-vector guess, choose arbitrary vector to start
+            ray.set(-1, 0, 0); // for 0-vector guess, choose arbitrary vector to start
         
         int iterations = 0;
-        float alpha = 0f;
+        double alpha = 0f;
         
         simplex.addVertex(function, ray, true);
         simplex.getVertex(0).setWeight(1f);
         ray.set(simplex.getVertex(0).getVertex());
         // old support values are tracked so we can terminate when a duplicate is 
         // returned in subsequent iterations
-        Vector3f[] oldSupports = new Vector3f[] { new Vector3f(ray), new Vector3f(ray), 
-                                                  new Vector3f(ray), new Vector3f(ray) };
+        Vector3[] oldSupports = new Vector3[] { new Vector3(ray), new Vector3(ray), 
+                                                new Vector3(ray), new Vector3(ray) };
         
         int lastSupportIndex = 0;
-        
-        float rayLength;
-        ReadOnlyVector3f support;
+        Vector3 scaledVertex = new Vector3();
+
+        double rayLength;
+        Vector3 support;
         while(status == Status.VALID) {
             rayLength = ray.length();
             if (rayLength < GJK_MIN_DISTANCE) {
@@ -128,7 +129,7 @@ public class GJK {
             // check for duplicates
             boolean duplicate = false;
             for (int i = 0; i < 4; i++) {
-                if (support.epsilonEquals(oldSupports[i], (float) GJK_DUPLICATE_EPS)) {
+                if (support.epsilonEquals(oldSupports[i], GJK_DUPLICATE_EPS)) {
                     duplicate = true;
                     break;
                 }
@@ -146,7 +147,7 @@ public class GJK {
             
             // check for termination
             alpha = Math.max(ray.dot(support) / rayLength, alpha);
-            if ((rayLength - alpha) - (GJK_ACCURACY * rayLength) <= 0f) {
+            if ((rayLength - alpha) - (GJK_ACCURACY * rayLength) <= 0.0) {
                 // error threshold is small enough so we can terminate
                 simplex.removeVertex();
                 break;
@@ -155,9 +156,9 @@ public class GJK {
             // reduce the simplex
             if (simplex.reduce()) {
                 // the simplex is valid, compute next guess
-                ray.set(0f, 0f, 0f);
+                ray.set(0.0, 0.0, 0.0);
                 for (int i = 0; i < simplex.getRank(); i++)
-                    simplex.getVertex(i).getVertex().scaleAdd(simplex.getVertex(i).getWeight(), ray, ray);
+                    ray.add(ray, scaledVertex.scale(simplex.getVertex(i).getVertex(), simplex.getVertex(i).getWeight()));
                 
                 // terminate if the simplex is full
                 if (simplex.getRank() == 4)

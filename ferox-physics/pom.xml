@@ -18,6 +18,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.lhkbob.ferox</groupId>
+            <artifactId>ferox-util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.lhkbob.entreri</groupId>
             <artifactId>entreri</artifactId>
             <version>${entreri.version}</version>

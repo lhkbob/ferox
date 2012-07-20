@@ -1,9 +1,7 @@
 package com.ferox.physics.collision.shape;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.Shape;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
@@ -45,7 +43,7 @@ public abstract class ConvexShape implements Shape {
      * @return result, or a new vector, if result was null
      * @throws NullPointerException if v is null
      */
-    public abstract MutableVector3f computeSupport(ReadOnlyVector3f v, MutableVector3f result);
+    public abstract Vector3 computeSupport(@Const Vector3 v, @Const Vector3 result);
 
     @Override
     public ReadOnlyAxisAlignedBox getBounds() {

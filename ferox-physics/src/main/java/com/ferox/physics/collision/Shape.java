@@ -1,7 +1,8 @@
 package com.ferox.physics.collision;
 
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
+import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 
 /**
  * <p>
@@ -29,7 +30,7 @@ public interface Shape {
      * 
      * @return The Shape's local bounds
      */
-    public ReadOnlyAxisAlignedBox getBounds();
+    public @Const AxisAlignedBox getBounds();
 
     /**
      * Return the vector containing the inertia tensor for this shape, in its
@@ -41,7 +42,8 @@ public interface Shape {
      * @return The Shape's local inertia tensor in result if it was not null,
      *         otherwise a new vector
      */
-    public MutableVector3f getInertiaTensor(float mass, MutableVector3f result);
+    // FIXME if this isn't called that often, maybe make it create a new instance to simplify signature
+    public Vector3 getInertiaTensor(double mass, Vector3 result);
 
     /**
      * <p>
@@ -59,7 +61,7 @@ public interface Shape {
      * @param margin The new margin, must be greater than or equal to 0
      * @throws IllegalArgumentException if margin is less than 0
      */
-    public void setMargin(float margin);
+    public void setMargin(double margin);
     
     /**
      * @return Return the current margin for this shape, defaults to .05
