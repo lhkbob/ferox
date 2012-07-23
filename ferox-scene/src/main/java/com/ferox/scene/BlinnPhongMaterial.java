@@ -49,7 +49,7 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
     public void setShininess(double shiny) {
         if (shiny < 0f)
             throw new IllegalArgumentException("Shininess must be positive, not: " + shiny);
-        shininess.set(shiny, getIndex(), 0);
+        shininess.set(shiny, getIndex());
     }
 
     /**
@@ -60,6 +60,6 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * @return The shininess exponent, will be at least 0
      */
     public double getShininess() {
-        return shininess.get(getIndex(), 0);
+        return shininess.get(getIndex());
     }
 }

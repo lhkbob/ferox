@@ -148,7 +148,7 @@ public class LightGroupFactory implements StateGroupFactory {
         @Override
         public StateNode getNode(Entity e) {
             if (e.get(renderable)) {
-                int group = groupAssignment.get(renderable.getIndex(), 0);
+                int group = groupAssignment.get(renderable.getIndex());
                 return nodes.get(group);
             } else {
                 // shouldn't happen

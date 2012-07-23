@@ -43,7 +43,7 @@ public final class Camera extends ComponentData<Camera> {
      * @return The field of view for this Camera, in degrees
      */
     public double getFieldOfView() {
-        return fov.get(getIndex(), 0);
+        return fov.get(getIndex());
     }
     
     /**
@@ -57,7 +57,7 @@ public final class Camera extends ComponentData<Camera> {
     public Camera setFieldOfView(double fov) {
         if (fov < 0.0 || fov > 180.0)
             throw new IllegalArgumentException("Field of view must be in [0, 180]: " + fov);
-        this.fov.set(fov, getIndex(), 0);
+        this.fov.set(fov, getIndex());
         return this;
     }
     
@@ -65,7 +65,7 @@ public final class Camera extends ComponentData<Camera> {
      * @return The distance to the near z plane of the camera
      */
     public double getNearZDistance() {
-        return znear.get(getIndex(), 0);
+        return znear.get(getIndex());
     }
     
     /**
@@ -82,8 +82,8 @@ public final class Camera extends ComponentData<Camera> {
             throw new IllegalArgumentException("Near distances must be greater than 0: " + znear);
         if (znear > zfar)
             throw new IllegalArgumentException("Near distance must be less than far: " + znear + ", " + zfar);
-        this.znear.set(znear, getIndex(), 0);
-        this.zfar.set(zfar, getIndex(), 0);
+        this.znear.set(znear, getIndex());
+        this.zfar.set(zfar, getIndex());
         return this;
     }
     
@@ -91,7 +91,7 @@ public final class Camera extends ComponentData<Camera> {
      * @return The distance to the far z plane of the camera
      */
     public double getFarZDistance() {
-        return zfar.get(getIndex(), 0);
+        return zfar.get(getIndex());
     }
 
     /**
@@ -100,7 +100,7 @@ public final class Camera extends ComponentData<Camera> {
      * @return The Surface of this Camera
      */
     public Surface getSurface() {
-        return surface.get(getIndex(), 0);
+        return surface.get(getIndex());
     }
 
     /**
@@ -111,7 +111,7 @@ public final class Camera extends ComponentData<Camera> {
      * @throws NullPointerException if surface is null
      */
     public Camera setSurface(Surface surface) {
-        this.surface.set(surface, getIndex(), 0);
+        this.surface.set(surface, getIndex());
         return this;
     }
 }

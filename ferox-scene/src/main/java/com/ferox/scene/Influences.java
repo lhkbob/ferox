@@ -23,7 +23,7 @@ public final class Influences extends ComponentData<Influences> {
     private Influences() { }
     
     public Set<Entity> getInfluencedSet() {
-        return Collections.unmodifiableSet(entities.get(getIndex(), 0));
+        return Collections.unmodifiableSet(entities.get(getIndex()));
     }
     
     public Influences setInfluenced(Entity e, boolean canInfluence) {
@@ -31,7 +31,7 @@ public final class Influences extends ComponentData<Influences> {
             throw new NullPointerException("Entity cannot be null");
         
         // SetFactory ensures that this is not null
-        Set<Entity> set = entities.get(getIndex(), 0);
+        Set<Entity> set = entities.get(getIndex());
         if (canInfluence)
             set.add(e);
         else
@@ -44,26 +44,26 @@ public final class Influences extends ComponentData<Influences> {
             throw new NullPointerException("Entity cannot be null");
         
         // SetFactory ensures that this is not null
-        Set<Entity> set = entities.get(getIndex(), 0);
+        Set<Entity> set = entities.get(getIndex());
         return set.contains(e);
     }
     
     private static class SetFactory implements PropertyFactory<ObjectProperty<Set<Entity>>> {
         @Override
         public ObjectProperty<Set<Entity>> create() {
-            return new ObjectProperty<Set<Entity>>(1);
+            return new ObjectProperty<Set<Entity>>();
         }
 
         @Override
         public void setDefaultValue(ObjectProperty<Set<Entity>> property, int index) {
-            property.set(new HashSet<Entity>(), index, 0);
+            property.set(new HashSet<Entity>(), index);
         }
 
         @Override
         public void clone(ObjectProperty<Set<Entity>> src, int srcIndex,
                           ObjectProperty<Set<Entity>> dst, int dstIndex) {
-            Set<Entity> toClone = src.get(srcIndex, 0);
-            dst.set(new HashSet<Entity>(toClone), dstIndex, 0);
+            Set<Entity> toClone = src.get(srcIndex);
+            dst.set(new HashSet<Entity>(toClone), dstIndex);
         }
     }
 }

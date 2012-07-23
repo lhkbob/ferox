@@ -40,7 +40,7 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * @return The cutoff angle in degrees, will be in [0, 90]
      */
     public double getCutoffAngle() {
-        return cutoffAngle.get(getIndex(), 0);
+        return cutoffAngle.get(getIndex());
     }
 
     /**
@@ -56,7 +56,7 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     public SpotLight setCutoffAngle(double angle) {
         if (angle < 0 || angle > 90)
             throw new IllegalArgumentException("Illegal cutoff angle, must be in [0, 90], not: " + angle);
-        cutoffAngle.set(angle, getIndex(), 0);
+        cutoffAngle.set(angle, getIndex());
         return this;
     }
 }

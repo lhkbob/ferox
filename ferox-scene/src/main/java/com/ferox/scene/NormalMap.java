@@ -64,7 +64,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * @return The tangent vectors if this NormalMap is in tangent space
      */
     public VertexAttribute getTangents() {
-        return tangentVectors.get(getIndex(), 0);
+        return tangentVectors.get(getIndex());
     }
 
     /**
@@ -95,7 +95,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
             if (tangents.getElementSize() != 3)
                 throw new IllegalArgumentException("Tangents must have an element size of 3, not: " + tangents.getElementSize());
         }
-        tangentVectors.set(tangents, getIndex(), 0);
+        tangentVectors.set(tangents, getIndex());
         return this;
     }
 

@@ -47,7 +47,7 @@ public abstract class Material<T extends Material<T>> extends ComponentData<T> {
         if (normals.getElementSize() != 3)
             throw new IllegalArgumentException("Normals must have an element size of 3, not: " + normals.getElementSize());
 
-        this.normals.set(normals, getIndex(), 0);
+        this.normals.set(normals, getIndex());
         return (T) this;
     }
     
@@ -55,6 +55,6 @@ public abstract class Material<T extends Material<T>> extends ComponentData<T> {
      * @return The normal vector data to use for lighting calculations
      */
     public final VertexAttribute getNormals() {
-        return normals.get(getIndex(), 0);
+        return normals.get(getIndex());
     }
 }

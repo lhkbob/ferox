@@ -12,7 +12,6 @@ import com.ferox.util.geom.Geometry;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
-import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
 
@@ -37,15 +36,12 @@ public final class Renderable extends ComponentData<Renderable> {
      */
     public static final TypeId<Renderable> ID = TypeId.get(Renderable.class);
     
-    private static final int INDEX_OFFSET = 0;
-    private static final int INDEX_COUNT = 1;
-    
     private ObjectProperty<VertexAttribute> vertices;
     private ObjectProperty<VertexBufferObject> indices;
     private ObjectProperty<PolygonType> polyType;
     
-    @ElementSize(2)
-    private IntProperty indexConfig; // 0 = offset, 1 = count
+    private IntProperty indexOffset;
+    private IntProperty indexCount;
     
     private AxisAlignedBoxProperty localBounds;
     private AxisAlignedBoxProperty worldBounds;
@@ -78,7 +74,7 @@ public final class Renderable extends ComponentData<Renderable> {
         if (vertices.getElementSize() == 1)
             throw new IllegalArgumentException("Vertices can only have an element size of 2, 3, or 4");
         
-        this.vertices.set(vertices, getIndex(), 0);
+        this.vertices.set(vertices, getIndex());
         return this;
     }
 
@@ -151,10 +147,10 @@ public final class Renderable extends ComponentData<Renderable> {
         
         int componentIndex = getIndex();
         
-        this.indices.set(indices, componentIndex, 0);
-        polyType.set(type, componentIndex, 0);
-        indexConfig.set(first, componentIndex, INDEX_OFFSET);
-        indexConfig.set(count, componentIndex, INDEX_COUNT);
+        this.indices.set(indices, componentIndex);
+        polyType.set(type, componentIndex);
+        indexOffset.set(first, componentIndex);
+        indexCount.set(count, componentIndex);
         
         return this;
     }
@@ -165,7 +161,7 @@ public final class Renderable extends ComponentData<Renderable> {
      *         transformed before being rendered.
      */
     public VertexAttribute getVertices() {
-        return vertices.get(getIndex(), 0);
+        return vertices.get(getIndex());
     }
 
     /**
@@ -178,7 +174,7 @@ public final class Renderable extends ComponentData<Renderable> {
      * @return The indices, may be null
      */
     public VertexBufferObject getIndices() {
-        return indices.get(getIndex(), 0);
+        return indices.get(getIndex());
     }
 
     /**
@@ -186,7 +182,7 @@ public final class Renderable extends ComponentData<Renderable> {
      *         array indices)
      */
     public int getIndexCount() {
-        return indexConfig.get(getIndex(), INDEX_COUNT);
+        return indexCount.get(getIndex());
     }
 
     /**
@@ -194,14 +190,14 @@ public final class Renderable extends ComponentData<Renderable> {
      *         indices)
      */
     public int getIndexOffset() {
-        return indexConfig.get(getIndex(), INDEX_OFFSET);
+        return indexOffset.get(getIndex());
     }
     
     /**
      * @return The PolygonType rendered by this Renderable
      */
     public PolygonType getPolygonType() {
-        return polyType.get(getIndex(), 0);
+        return polyType.get(getIndex());
     }
 
     /**

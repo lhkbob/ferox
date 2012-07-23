@@ -35,11 +35,11 @@ public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
     }
     
     public boolean isNegated() {
-        return negate.get(getIndex(), 0);
+        return negate.get(getIndex());
     }
     
     public InfluenceRegion setNegated(boolean negate) {
-        this.negate.set(negate, getIndex(), 0);
+        this.negate.set(negate, getIndex());
         return this;
     }
     

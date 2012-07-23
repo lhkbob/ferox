@@ -156,7 +156,7 @@ public class LightGroupController extends SimpleController {
                 
                 // check if we've already processed this entity in another pvs
                 if (!callback.renderable.isEnabled() 
-                    || assignments.get(callback.renderable.getIndex(), 0) >= 0) {
+                    || assignments.get(callback.renderable.getIndex()) >= 0) {
                     continue;
                 }
                 
@@ -175,7 +175,7 @@ public class LightGroupController extends SimpleController {
                 }
                 
                 // assign group to entity
-                assignments.set(lightGroup.intValue(), callback.renderable.getIndex(), 0);
+                assignments.set(lightGroup.intValue(), callback.renderable.getIndex());
             }
         }
         
@@ -211,7 +211,7 @@ public class LightGroupController extends SimpleController {
     @Override
     public void init(EntitySystem system) {
         super.init(system);
-        assignments = system.decorate(Renderable.ID, new IntProperty.Factory(1, 0));
+        assignments = system.decorate(Renderable.ID, new IntProperty.Factory(-1));
     }
     
     @Override

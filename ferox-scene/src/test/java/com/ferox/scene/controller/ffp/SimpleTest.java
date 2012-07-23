@@ -17,7 +17,6 @@ import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.impl.jogl.JoglFramework;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.resource.VertexBufferObject.StorageMode;
@@ -271,11 +270,11 @@ public class SimpleTest {
         private Animation() { }
         
         public double getLifetime() {
-            return life.get(getIndex(), 0);
+            return life.get(getIndex());
         }
         
         public void setLifetime(double lt) {
-            life.set(lt, getIndex(), 0);
+            life.set(lt, getIndex());
         }
         
         public @Const Vector3 getDirection() {

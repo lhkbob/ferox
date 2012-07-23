@@ -49,7 +49,7 @@ public final class Transparent extends ComponentData<Transparent> {
      * @return The opacity
      */
     public double getOpacity() {
-        return opacity.get(getIndex(), 0);
+        return opacity.get(getIndex());
     }
 
     /**
@@ -65,7 +65,7 @@ public final class Transparent extends ComponentData<Transparent> {
     public Transparent setOpacity(double opacity) {
         if (opacity < 0f || opacity > 1f)
             throw new IllegalArgumentException("Opacity must be in [0, 1], not: " + opacity);
-        this.opacity.set(opacity, getIndex(), 0);
+        this.opacity.set(opacity, getIndex());
         return this;
     }
 }

@@ -40,7 +40,7 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
     public final T setFalloffDistance(double distance) {
         // No argument checking, a negative distance disables
         // light falloff so every value is supported
-        falloffDistance.set(distance, getIndex(), 0);
+        falloffDistance.set(distance, getIndex());
         return (T) this;
     }
 
@@ -53,6 +53,6 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
      * @return The falloff distance
      */
     public final double getFalloffDistance() {
-        return falloffDistance.get(getIndex(), 0);
+        return falloffDistance.get(getIndex());
     }
 }

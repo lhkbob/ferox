@@ -73,7 +73,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
     public AtmosphericFog setFalloff(Falloff falloff) {
         if (falloff == null)
             throw new NullPointerException("Falloff cannot be null");
-        this.falloff.set(falloff, getIndex(), 0);
+        this.falloff.set(falloff, getIndex());
         return this;
     }
 
@@ -86,7 +86,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @return The Falloff of this fog
      */
     public Falloff getFalloff() {
-        return falloff.get(getIndex(), 0);
+        return falloff.get(getIndex());
     }
 
     /**
@@ -100,10 +100,10 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @return This AtmosphericFog for chaining purposes
      * @throws IllegalArgumentException if dist <= 0
      */
-    public AtmosphericFog setOpaqueDistance(float dist) {
-        if (dist <= 0f)
+    public AtmosphericFog setOpaqueDistance(double dist) {
+        if (dist <= 0)
             throw new IllegalArgumentException("Distance must be positive, not: " + dist);
-        distanceToOpaque.set(dist, getIndex(), 0);
+        distanceToOpaque.set(dist, getIndex());
         return this;
     }
 
@@ -115,7 +115,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @return The opaque distance, this will be above 0
      */
     public double getOpaqueDistance() {
-        return distanceToOpaque.get(getIndex(), 0);
+        return distanceToOpaque.get(getIndex());
     }
 
     /**
