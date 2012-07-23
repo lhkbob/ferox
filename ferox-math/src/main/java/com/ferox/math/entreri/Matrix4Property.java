@@ -13,7 +13,7 @@ import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleDataStore;
 
 /**
  * Matrix4Property is a caching property that wraps a DoubleProperty as a
@@ -25,13 +25,13 @@ import com.lhkbob.entreri.property.DoubleProperty;
 public class Matrix4Property implements Property {
     private static final int REQUIRED_ELEMENTS = 16;
 
-    private final DoubleProperty data;
+    private DoubleDataStore data;
     
     /**
      * Create a new Matrix4Property.
      */
     public Matrix4Property() {
-        data = new DoubleProperty(REQUIRED_ELEMENTS);
+        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
     
     /**
@@ -47,7 +47,7 @@ public class Matrix4Property implements Property {
         if (result == null)
             result = new Matrix4();
         
-        result.set(data.getIndexedData(), index * REQUIRED_ELEMENTS, false);
+        result.set(data.getArray(), index * REQUIRED_ELEMENTS, false);
         return result;
     }
     
@@ -60,17 +60,17 @@ public class Matrix4Property implements Property {
      * @throws NullPointerException if v is null
      */
     public void set(@Const Matrix4 v, int index) {
-        v.get(data.getIndexedData(), index * REQUIRED_ELEMENTS, false);
+        v.get(data.getArray(), index * REQUIRED_ELEMENTS, false);
     }
     
     @Override
     public IndexedDataStore getDataStore() {
-        return data.getDataStore();
+        return data;
     }
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        data.setDataStore(store);
+        data = (DoubleDataStore) store;
     }
     
     /**

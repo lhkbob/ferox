@@ -13,7 +13,7 @@ import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleDataStore;
 
 /**
  * ColorRGBProperty is a caching property that wraps a DoubleProperty as a
@@ -25,13 +25,13 @@ import com.lhkbob.entreri.property.DoubleProperty;
 public class ColorRGBProperty implements Property {
     private static final int REQUIRED_ELEMENTS = 3;
 
-    private final DoubleProperty data;
+    private DoubleDataStore data;
     
     /**
      * Create a new ColorRGBProperty.
      */
     public ColorRGBProperty() {
-        data = new DoubleProperty(REQUIRED_ELEMENTS);
+        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
 
     /**
@@ -47,7 +47,7 @@ public class ColorRGBProperty implements Property {
         if (result == null)
             result = new ColorRGB();
         
-        result.set(data.getIndexedData(), index * REQUIRED_ELEMENTS);
+        result.set(data.getArray(), index * REQUIRED_ELEMENTS);
         return result;
     }
     
@@ -60,17 +60,17 @@ public class ColorRGBProperty implements Property {
      * @throws NullPointerException if v is null
      */
     public void set(@Const ColorRGB v, int index) {
-        v.getHDR(data.getIndexedData(), index * REQUIRED_ELEMENTS);
+        v.getHDR(data.getArray(), index * REQUIRED_ELEMENTS);
     }
     
     @Override
     public IndexedDataStore getDataStore() {
-        return data.getDataStore();
+        return data;
     }
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        data.setDataStore(store);
+        data = (DoubleDataStore) store;
     }
     
     /**

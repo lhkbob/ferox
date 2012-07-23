@@ -13,7 +13,7 @@ import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleDataStore;
 
 /**
  * Vector3Property is a caching property that wraps a DoubleProperty as a
@@ -25,13 +25,13 @@ import com.lhkbob.entreri.property.DoubleProperty;
 public class Vector3Property implements Property {
     private static final int REQUIRED_ELEMENTS = 3;
 
-    private final DoubleProperty data;
+    private DoubleDataStore data;
     
     /**
      * Create a new Vector3Property.
      */
     public Vector3Property() {
-        data = new DoubleProperty(REQUIRED_ELEMENTS);
+        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
     
     /**
@@ -47,7 +47,7 @@ public class Vector3Property implements Property {
         if (result == null)
             result = new Vector3();
         
-        result.set(data.getIndexedData(), index * REQUIRED_ELEMENTS);
+        result.set(data.getArray(), index * REQUIRED_ELEMENTS);
         return result;
     }
     
@@ -60,17 +60,17 @@ public class Vector3Property implements Property {
      * @throws NullPointerException if v is null
      */
     public void set(@Const Vector3 v, int index) {
-        v.get(data.getIndexedData(), index * REQUIRED_ELEMENTS);
+        v.get(data.getArray(), index * REQUIRED_ELEMENTS);
     }
     
     @Override
     public IndexedDataStore getDataStore() {
-        return data.getDataStore();
+        return data;
     }
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        data.setDataStore(store);
+        data = (DoubleDataStore) store;
     }
     
     /**

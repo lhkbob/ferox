@@ -13,6 +13,7 @@ import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleDataStore;
 import com.lhkbob.entreri.property.DoubleProperty;
 
 /**
@@ -25,13 +26,13 @@ import com.lhkbob.entreri.property.DoubleProperty;
 public class AxisAlignedBoxProperty implements Property {
     private static final int REQUIRED_ELEMENTS = 6;
     
-    private final DoubleProperty data;
+    private DoubleDataStore data;
     
     /**
      * Create a new AxisAlignedBoxProperty.
      */
     public AxisAlignedBoxProperty() {
-        data = new DoubleProperty(REQUIRED_ELEMENTS);
+        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
     
     /**
@@ -47,8 +48,8 @@ public class AxisAlignedBoxProperty implements Property {
         if (result == null)
             result = new AxisAlignedBox();
         
-        result.min.set(data.getIndexedData(), index * REQUIRED_ELEMENTS);
-        result.max.set(data.getIndexedData(), index * REQUIRED_ELEMENTS + 3);
+        result.min.set(data.getArray(), index * REQUIRED_ELEMENTS);
+        result.max.set(data.getArray(), index * REQUIRED_ELEMENTS + 3);
         
         return result;
     }
@@ -62,18 +63,18 @@ public class AxisAlignedBoxProperty implements Property {
      * @throws NullPointerException if b is null
      */
     public void set(@Const AxisAlignedBox b, int index) {
-        b.min.get(data.getIndexedData(), index * REQUIRED_ELEMENTS);
-        b.max.get(data.getIndexedData(), index * REQUIRED_ELEMENTS + 3);
+        b.min.get(data.getArray(), index * REQUIRED_ELEMENTS);
+        b.max.get(data.getArray(), index * REQUIRED_ELEMENTS + 3);
     }
     
     @Override
     public IndexedDataStore getDataStore() {
-        return data.getDataStore();
+        return data;
     }
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        data.setDataStore(store);
+        data = (DoubleDataStore) store;
     }
     
     /**
