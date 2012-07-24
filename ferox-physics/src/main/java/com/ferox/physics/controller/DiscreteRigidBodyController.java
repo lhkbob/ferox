@@ -1,29 +1,30 @@
-package com.ferox.physics.dynamics;
+package com.ferox.physics.controller;
 
+import java.awt.geom.AffineTransform;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.AffineTransform;
-import com.ferox.math.Vector3f;
-import com.ferox.physics.collision.Collidable;
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
+import com.ferox.physics.collision.ClosestPair;
+import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.CollisionAlgorithm;
-import com.ferox.physics.collision.CollisionCallback;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
+import com.ferox.physics.collision.CollisionCallback;
 import com.ferox.physics.collision.CollisionManager;
-import com.ferox.physics.collision.algorithm.ClosestPair;
+import com.ferox.physics.dynamics.Integrator;
+import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.physics.dynamics.constraint.Constraint;
 import com.ferox.physics.dynamics.constraint.ConstraintSolver;
 import com.ferox.physics.dynamics.constraint.ContactManifoldCache;
 import com.ferox.util.Bag;
 import com.ferox.util.ChainedCollection;
 
-public class DiscretePhysicsWorld implements PhysicsWorld {
-    // FIXME: thread-safety
-    private final Set<Collidable> bodies;
+public class DiscreteRigidBodyController {
+    private final Set<CollisionBody> bodies;
     private final Bag<RigidBody> rigidBodies;
 
-    private final Vector3f gravity;
+    private final Vector3 gravity;
 
     private final Set<Constraint> constraints;
     
@@ -33,13 +34,13 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
 
     private final ContactManifoldCache contactCache;
     
-    public DiscretePhysicsWorld(PhysicsWorldConfiguration config) {
+    public DiscreteRigidBodyController(PhysicsWorldConfiguration config) {
         if (config == null)
             throw new NullPointerException("Configuration cannot be null");
         
-        gravity = new Vector3f(0f, -10f, 0f);
+        gravity = new Vector3(0, -10, 0);
         
-        bodies = new HashSet<Collidable>();
+        bodies = new HashSet<CollisionBody>();
         rigidBodies = new Bag<RigidBody>();
         constraints = new HashSet<Constraint>();
         
@@ -50,13 +51,11 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
         collisionManager = config.getCollisionManager();
     }
 
-    @Override
-    public ReadOnlyVector3f getGravity() {
+    public @Const Vector3 getGravity() {
         return gravity;
     }
 
-    @Override
-    public void setGravity(ReadOnlyVector3f gravity) {
+    public void setGravity(@Const Vector3 gravity) {
         if (gravity == null)
             throw new NullPointerException("Gravity cannot be null");
         this.gravity.set(gravity);
@@ -96,7 +95,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
     }
     
     @Override
-    public void add(Collidable c) {
+    public void add(CollisionBody c) {
         if (c == null)
             throw new NullPointerException("Body cannot be null");
         
@@ -109,7 +108,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
     }
 
     @Override
-    public void remove(Collidable c) {
+    public void remove(CollisionBody c) {
         if (c == null)
             throw new NullPointerException("Body cannot be null");
         
@@ -170,7 +169,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
             throw new NullPointerException("CollisionManager cannot be null");
         
         // remove bodies from old manager and add them to the new one
-        for (Collidable c: bodies) {
+        for (CollisionBody c: bodies) {
             collisionManager.remove(c);
             manager.add(c);
         }
@@ -182,7 +181,7 @@ public class DiscretePhysicsWorld implements PhysicsWorld {
     private class ContactManifoldCallback implements CollisionCallback {
         @Override
         @SuppressWarnings({ "rawtypes", "unchecked" })
-        public void process(Collidable objA, Collidable objB, CollisionAlgorithmProvider handler) {
+        public void process(CollisionBody objA, CollisionBody objB, CollisionAlgorithmProvider handler) {
             if (!(objA instanceof RigidBody) && !(objB instanceof RigidBody))
                 return; // ignore collisions between only static objects
             

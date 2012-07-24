@@ -17,9 +17,9 @@ import com.ferox.math.bounds.ReadOnlyAxisAlignedBox;
 import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.Octree.Strategy;
 import com.ferox.math.bounds.SpatialIndex;
-import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.SpatialHierarchyCollisionManager;
-import com.ferox.physics.dynamics.DiscretePhysicsWorld;
+import com.ferox.physics.controller.DiscreteRigidBodyController;
 import com.ferox.physics.dynamics.PhysicsWorldConfiguration;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -94,11 +94,11 @@ public class PhysicsTest {
         final EntitySystem system = new EntitySystem();
         SpatialIndex<Entity> sh = new Octree<Entity>(Strategy.STATIC, BOUNDS, 3);
         
-        PhysicsWorldConfiguration config = new PhysicsWorldConfiguration().setCollisionManager(new SpatialHierarchyCollisionManager(new Octree<Collidable>(Strategy.STATIC, BOUNDS, 3)));
+        PhysicsWorldConfiguration config = new PhysicsWorldConfiguration().setCollisionManager(new SpatialHierarchyCollisionManager(new Octree<CollisionBody>(Strategy.STATIC, BOUNDS, 3)));
         
         AttachmentController c1 = new AttachmentController(system);
         BillboardController c2 = new BillboardController(system);
-        PhysicsController c3 = new PhysicsController(system, new DiscretePhysicsWorld(config));
+        PhysicsController c3 = new PhysicsController(system, new DiscreteRigidBodyController(config));
         SceneController c4 = new SceneController(system, sh);
         LightUpdateController c5 = new LightUpdateController(system);
         ViewNodeController c6 = new ViewNodeController(system, sh);

@@ -1,15 +1,15 @@
 package com.ferox.physics.dynamics;
 
-import com.ferox.math.MutableMatrix3f;
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyVector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
+import com.ferox.math.Vector3;
 
 public interface Integrator {
-    public void integrateLinearAcceleration(ReadOnlyVector3f a, float dt, MutableVector3f velocity);
+    public void integrateLinearAcceleration(@Const Vector3 a, double dt, Vector3 velocity);
     
-    public void integrateAngularAcceleration(ReadOnlyVector3f a, float dt, MutableVector3f angularVelocity);
+    public void integrateAngularAcceleration(@Const Vector3 a, double dt, Vector3 angularVelocity);
     
-    public void integrateLinearVelocity(ReadOnlyVector3f v, float dt, MutableVector3f position);
+    public void integrateLinearVelocity(@Const Vector3 v, double dt, Vector3 position);
     
-    public void integrateAngularVelocity(ReadOnlyVector3f v, float dt, MutableMatrix3f orientation);
+    public void integrateAngularVelocity(@Const Vector3 v, double dt, Matrix3 orientation);
 }

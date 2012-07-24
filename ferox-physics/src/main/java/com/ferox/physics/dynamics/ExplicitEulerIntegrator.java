@@ -1,82 +1,81 @@
 package com.ferox.physics.dynamics;
 
-import com.ferox.math.MutableMatrix3f;
-import com.ferox.math.MutableQuat4f;
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.Quat4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.Vector3f;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
+import com.ferox.math.Quat4;
+import com.ferox.math.Vector3;
 
 public class ExplicitEulerIntegrator implements Integrator {
-    private static final float MAX_ANGULAR_VELOCITY = (float) Math.PI  / 2f;
-    private static final float ANGULAR_MOTION_THRESHOLD = (float) Math.PI / 4f;
-    private static final float ANGULAR_VELOCITY_DAMPING = .5f;
+    private static final double MAX_ANGULAR_VELOCITY = Math.PI  / 2.0;
+    private static final double ANGULAR_MOTION_THRESHOLD = Math.PI / 4.0;
+    private static final double ANGULAR_VELOCITY_DAMPING = .5;
 
-    private final Vector3f tempv = new Vector3f();
-    private final Quat4f tempq1 = new Quat4f();
-    private final Quat4f tempq2 = new Quat4f();
+    private final Vector3 tempv = new Vector3();
+    private final Quat4 tempq1 = new Quat4();
+    private final Quat4 tempq2 = new Quat4();
     
     @Override
-    public void integrateLinearAcceleration(ReadOnlyVector3f a, float dt, MutableVector3f velocity) {
+    public void integrateLinearAcceleration(@Const Vector3 a, double dt, Vector3 velocity) {
         integrateVector(a, dt, velocity);
     }
 
     @Override
-    public void integrateAngularAcceleration(ReadOnlyVector3f a, float dt,
-                                             MutableVector3f angularVelocity) {
+    public void integrateAngularAcceleration(@Const Vector3 a, double dt, Vector3 angularVelocity) {
         integrateVector(a, dt, angularVelocity);
         applyDamping(angularVelocity, dt, ANGULAR_VELOCITY_DAMPING);
     }
     
-    private void applyDamping(MutableVector3f v, float dt, float damping) {
-        v.scale((float) Math.pow(1f - damping, dt));
+    private void applyDamping(Vector3 v, double dt, double damping) {
+        v.scale(Math.pow(1.0 - damping, dt));
     }
 
     @Override
-    public void integrateLinearVelocity(ReadOnlyVector3f v, float dt, MutableVector3f position) {
+    public void integrateLinearVelocity(@Const Vector3 v, double dt, Vector3 position) {
         integrateVector(v, dt, position);
     }
 
     @Override
-    public void integrateAngularVelocity(ReadOnlyVector3f v, float dt, MutableMatrix3f orientation) {
+    public void integrateAngularVelocity(@Const Vector3 v, double dt, Matrix3 orientation) {
         // clamp angular velocity
-        Vector3f axis = tempv;
+        Vector3 axis = tempv;
 
-        float veclength = v.length();
-        float angvel = veclength;
+        double veclength = v.length();
+        double angvel = veclength;
         if (angvel * dt > MAX_ANGULAR_VELOCITY) {
             // set axis to be linear velocity but with magnitude = MAX / dt
+            // FIXME axis is set to garbage at this point, which is probably wrong
             axis.scale(MAX_ANGULAR_VELOCITY / (angvel * dt));
             angvel = MAX_ANGULAR_VELOCITY / dt;
-        } else
+        } else {
             axis.set(v); // don't need to clamp so just set axis to angular velocity
+        }
         
         // angular velocity uses the exponential map method
         // "Practical Parameterization of Rotations Using the Exponential Map", F. Sebastian Grassia
 
         // limit the angular motion - but update the velocity vector
-        float fAngle = angvel;
+        double fAngle = angvel;
         if (angvel * dt > ANGULAR_MOTION_THRESHOLD)
             fAngle = ANGULAR_MOTION_THRESHOLD / dt;
         
-        if (fAngle < .001f) {
+        if (fAngle < .001) {
             // use Taylor's expansions of sync function
-            axis.scale((.5f * dt) - (dt * dt * dt) * (.02083333333333f * fAngle * fAngle));
+            axis.scale((.5 * dt) - (dt * dt * dt) * (.02083333333333 * fAngle * fAngle));
         } else {
             // sync(fAngle) = sin(c * fAngle) / t
-            axis.scale((float) Math.sin(.5f * fAngle * dt) / fAngle);
+            axis.scale(Math.sin(.5 * fAngle * dt) / fAngle);
         }
         
-        MutableQuat4f newRot = tempq1.set(axis.getX(), axis.getY(), axis.getZ(), (float) Math.cos(.5f * fAngle * dt));
-        MutableQuat4f oldRot = tempq2.set(orientation);
+        Quat4 newRot = tempq1.set(axis.x, axis.y, axis.z, Math.cos(.5 * fAngle * dt));
+        Quat4 oldRot = tempq2.set(orientation);
         newRot.mul(oldRot).normalize();
         
         orientation.set(newRot);
     }
     
-    private void integrateVector(ReadOnlyVector3f deriv, float dt, MutableVector3f func) {
+    private void integrateVector(@Const Vector3 deriv, double dt, Vector3 func) {
         if (deriv == null || func == null)
             throw new NullPointerException("Arguments cannot be null");
-        deriv.scaleAdd(dt, func, func);
+        func.add(tempv.scale(deriv, dt));
     }
 }

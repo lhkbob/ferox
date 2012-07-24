@@ -5,7 +5,7 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.physics.collision.ClosestPair;
-import com.ferox.physics.collision.Collidable;
+import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.shape.ConvexShape;
 
 /**
@@ -14,7 +14,7 @@ import com.ferox.physics.collision.shape.ConvexShape;
  * in the difference between two shapes, the second shape in the sum is just the
  * negation of one convex shape. This implementation also automatically handles
  * converting the local support functions of {@link ConvexShape ConvexShapes}
- * into world space by applying the world transform of {@link Collidable
+ * into world space by applying the world transform of {@link CollisionBody
  * Collidables} involved.
  * 
  * @author Michael Ludwig

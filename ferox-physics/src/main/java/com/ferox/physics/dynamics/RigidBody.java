@@ -1,57 +1,41 @@
 package com.ferox.physics.dynamics;
 
-import com.ferox.math.Matrix3f;
-import com.ferox.math.MutableVector3f;
-import com.ferox.math.ReadOnlyMatrix3f;
-import com.ferox.math.ReadOnlyMatrix4f;
-import com.ferox.math.ReadOnlyVector3f;
-import com.ferox.math.AffineTransform;
-import com.ferox.math.Vector3f;
-import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.Shape;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
+import com.ferox.math.Vector3;
+import com.ferox.math.entreri.Matrix3Property;
+import com.ferox.math.entreri.Vector3Property;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Unmanaged;
+import com.lhkbob.entreri.property.DoubleProperty;
 
-public class RigidBody extends Collidable {
-    private float inverseMass; // 1 / mass
-    private final Matrix3f inertiaTensorWorldInverse;
-
-    private ReadOnlyVector3f explicitGravity; // null if gravity is taken from world
-
-    private final Vector3f velocity;
-    private final Vector3f angularVelocity;
-    private final Vector3f totalForce;
-    private final Vector3f totalTorque;
+public class RigidBody extends ComponentData<RigidBody> {
+    private DoubleProperty inverseMass;
     
-    public RigidBody(ReadOnlyMatrix4f t, Shape shape, float mass) {
-        super(t, shape);
+    private Matrix3Property inertiaTensorWorldInverse;
 
-        velocity = new Vector3f();
-        angularVelocity = new Vector3f();
-        inertiaTensorWorldInverse = new Matrix3f();
-
-        totalForce = new Vector3f();
-        totalTorque = new Vector3f();
-        
-        setMass(mass);
+    private Vector3Property velocity;
+    private Vector3Property angularVelocity;
+    
+    private Vector3Property totalForce;
+    private Vector3Property totalTorque;
+    
+    // This got pretty ugly pretty fast
+    @Unmanaged private final Vector3 velocityCache = new Vector3();
+    @Unmanaged private final Vector3 angularVelocityCache = new Vector3();
+    @Unmanaged private final Vector3 forceCache = new Vector3();
+    @Unmanaged private final Vector3 torqueCache = new Vector3();
+    @Unmanaged private final Matrix3 tensorCache = new Matrix3();
+    
+    @Unmanaged private final Vector3 temp = new Vector3();
+    
+    private RigidBody() { }
+    
+    public @Const Matrix3 getInertiaTensorInverse() {
+        return tensorCache;
     }
     
-    /*public void updateFromSolverBody() {
-        velocity.set(velocity.getX() + solverBody.dlX,
-                     velocity.getY() + solverBody.dlY,
-                     velocity.getZ() + solverBody.dlZ);
-        angularVelocity.set(angularVelocity.getX() + solverBody.daX,
-                            angularVelocity.getY() + solverBody.daY,
-                            angularVelocity.getZ() + solverBody.daZ);
-        
-        solverBody.dlX = 0f; solverBody.dlY = 0f; solverBody.dlZ = 0f;
-        solverBody.daX = 0f; solverBody.daY = 0f; solverBody.daZ = 0f;
-    }*/
-    
-    @Override
-    public void setTransform(ReadOnlyMatrix4f t) {
-        super.setTransform(t);
-        updateInertiaTensor();
-    }
-    
+    /* FIXME move these functions into the internals of the physics controller
     private void updateInertiaTensor() {
         // FIXME: what about kinematic objects? they don't get inertia really
         // FIXME: the inertia tensor needs to be inverted (e.g. 1/x, 1/y, 1/z) here
@@ -60,10 +44,6 @@ public class RigidBody extends Collidable {
         
         ReadOnlyMatrix3f rotation = getTransform().getUpperMatrix(); // since Collidable uses AffineTransform, this doesn't create an object
         rotation.mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(rotation);
-    }
-    
-    public ReadOnlyMatrix3f getInertiaTensorInverse() {
-        return inertiaTensorWorldInverse;
     }
     
     public void applyForces(Integrator integrator, float dt) {
@@ -84,82 +64,79 @@ public class RigidBody extends Collidable {
         integrator.integrateLinearVelocity(velocity, dt, result.getTranslation());
         integrator.integrateAngularVelocity(angularVelocity, dt, result.getRotation());
     }
+    */
     
-    public void addForce(ReadOnlyVector3f force, ReadOnlyVector3f relPos) {
-        if (force == null)
-            throw new NullPointerException("Force vector cannot be null");
-        totalForce.add(force);
-        
-        if (relPos != null)
-            totalTorque.add(relPos.cross(force, temp3.get()));
-    }
-    
-    public void addImpulse(ReadOnlyVector3f impulse, ReadOnlyVector3f relPos) {
-        if (impulse == null)
-            throw new NullPointerException("Force vector cannot be null");
-        
-        impulse.scaleAdd(inverseMass, velocity, velocity);
+    public void addForce(@Const Vector3 force, @Const Vector3 relPos) {
+        forceCache.add(force);
+        totalForce.set(forceCache, getIndex());
         
         if (relPos != null) {
-            MutableVector3f torque = relPos.cross(impulse, temp3.get());
-            angularVelocity.add(inertiaTensorWorldInverse.mul(torque));
+            torqueCache.add(temp.cross(relPos, force));
+            totalTorque.set(torqueCache, getIndex());
         }
     }
     
-    public void setVelocity(ReadOnlyVector3f vel) {
-        if (vel == null)
-            throw new NullPointerException("Velocity cannot be null");
-        velocity.set(vel);
+    public void addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
+        velocityCache.add(temp.scale(impulse, getInverseMass()));
+        velocity.set(velocityCache, getIndex());
+        
+        if (relPos != null) {
+            temp.cross(relPos, impulse);
+            temp.mul(tensorCache, temp);
+            angularVelocityCache.add(temp);
+            
+            angularVelocity.set(angularVelocityCache, getIndex());
+        }
     }
     
-    public void setAngularVelocity(ReadOnlyVector3f angVel) {
-        if (angVel == null)
-            throw new NullPointerException("Angular velocity cannot be null");
-        angularVelocity.set(angVel);
+    public void setVelocity(@Const Vector3 vel) {
+        velocityCache.set(vel);
+        velocity.set(vel, getIndex());
+    }
+    
+    public void setAngularVelocity(@Const Vector3 angVel) {
+        angularVelocityCache.set(angVel);
+        angularVelocity.set(angVel, getIndex());
     }
     
     public void clearForces() {
-        totalForce.set(0f, 0f, 0f);
-        totalTorque.set(0f, 0f, 0f);
+        forceCache.set(0.0, 0.0, 0.0);
+        torqueCache.set(0.0, 0.0, 0.0);
+        
+        totalForce.set(forceCache, getIndex());
+        totalTorque.set(torqueCache, getIndex());
     }
 
-    public ReadOnlyVector3f getExplicitGravity() {
-        return explicitGravity;
-    }
-
-    public void setExplicitGravity(ReadOnlyVector3f gravity) {
-        explicitGravity = gravity;
-    }
-
-    public void setMass(float mass) {
-        if (mass <= 0f)
+    public void setMass(double mass) {
+        if (mass <= 0.0)
             throw new IllegalArgumentException("Mass must be positive");
-        inverseMass = 1f / mass;
-        updateInertiaTensor();
+        inverseMass.set(1.0 / mass, getIndex());
     }
 
-    public float getMass() {
-        return 1f / inverseMass;
+    public double getMass() {
+        return 1.0 / inverseMass.get(getIndex());
     }
 
-    public float getInverseMass() {
-        return inverseMass;
+    public double getInverseMass() {
+        return inverseMass.get(getIndex());
     }
 
-    public ReadOnlyVector3f getVelocity() {
-        return velocity;
+    public @Const Vector3 getVelocity() {
+        return velocityCache;
     }
 
-    public ReadOnlyVector3f getAngularVelocity() {
-        return angularVelocity;
+    public @Const Vector3 getAngularVelocity() {
+        return angularVelocityCache;
     }
     
-    /* 
-     * ThreadLocals for computations. 
-     */
-    
-    private static final ThreadLocal<Vector3f> temp3 = new ThreadLocal<Vector3f>() {
-        @Override
-        protected Vector3f initialValue() { return new Vector3f(); }
-    };
+    @Override
+    protected void onSet(int index) {
+        // FIXME this might be a performance bottleneck if we don't need to
+        // access every single vector object when processing a given rigid body
+        angularVelocity.get(index, angularVelocityCache);
+        velocity.get(index, velocityCache);
+        inertiaTensorWorldInverse.get(index, tensorCache);
+        totalForce.get(index, forceCache);
+        totalTorque.get(index, torqueCache);
+    }
 }

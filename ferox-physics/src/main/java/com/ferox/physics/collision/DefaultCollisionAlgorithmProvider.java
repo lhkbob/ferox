@@ -20,6 +20,8 @@ import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
  * 
  * @author Michael Ludwig
  */
+// FIXME this does not need to be thread safe anymore, so it can be 
+// greatly simplified. 
 public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProvider {
     private final Map<TypePair, CollisionAlgorithm<?, ?>> algorithmCache;
     private final ThreadLocal<TypePair> lookup;

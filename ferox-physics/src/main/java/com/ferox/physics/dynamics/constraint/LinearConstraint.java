@@ -10,6 +10,66 @@ public class LinearConstraint {
         public void onApplyImpulse(LinearConstraint lc);
     }
     
+    // What classes of entity are there?
+    // 1. rigid dynamic body, has mass, shape, position, and is physic'ed
+    // 2. static object, has shape and position, but no mass and doesn't move
+    // 3. kinematic object, has shape and position, no mass and is not physic'ed (moved externally)
+    
+    // The problem is that not everything has mass, and not everything moves,
+    // but everything has a shape and position.
+    // Do we classify non-moving things as having 0 mass, and only use one component type then?
+    // or do we have two, where one does not provide position, etc.
+    // Yes, let's do that
+    
+    // FIXME this should be converted into a collection of properties so that
+    // all linear constraints are packed together in cache structures
+    //
+    // SolverBody can be handled as decorated properties onto the RigidBody components
+    // I need two component types, one for Collidables, and another for making
+    // them dynamic. (the only question is how to update dynamic body's position
+    // dependent info, but since that only applies to rigid-body's, there's nothing
+    // wrong with having the controller's handle that).
+    //
+    // One thing to wonder about is the need to shuffle the constraints. Do
+    // they need to be shuffled every iteration? How much does that improve 
+    // convergence, and is it a big performance hit. Is it easier to shuffle
+    // an index array and iterate through that?
+    //
+    // That would make cache misses happen more, but the shuffling would be faster.
+    // Shuffling the entire packed constraint arrays would involve lots of data 
+    // movement, which could be slower.
+    //
+    //
+    // The other structures that I would like to pack somehow are the contact
+    // manifolds stored between pairs of objects. Since they are unique based
+    // pair of collidable, I can't just store them in the entity system. I would
+    // also need some fast way of accessing the index that would allow me to
+    // pack the manifolds together.
+    //
+    // Then within a manifold, it can store up to 4 contact points, so its used
+    // space needs to be somewhat flexible. That being said, since it has a final
+    // max, we can just allocate the largest size for each block.
+    
+    // Constraint manifolds are reasonably heavy-weight objects, I should see
+    // if I can simplify the collision model so that I can reduce storage somehow.
+    // Otherwise I'll need to think of a fast indexing method that lets me
+    // avoid using a standard collection, but allows me to easily lookup based
+    // on two entity ids the manifold to use, since they have to be memoized
+    // across frames.
+    
+    //
+    // I might be able to store or link to them using decorator information,
+    // but that would require having each collidable component have a list
+    // of all other current collidables its in contact with, it couldn't just
+    // be a single value. These structures would have to be mirrored in the
+    // event that a pair was produced in flipped order during a subsequent update.
+    
+    // It might be that doing a loop over 4-8 ints is faster than a hashmap lookup,
+    // and then we could just have that store a parallel offset into the packed
+    // manifold structure. These could then be reclaimed, etc. to allow new
+    // manifolds to take over the indices or get tacked to the end.
+    // I feel like this will be a powerful strategy
+    
     float taX, taY, taZ, tbX, tbY, tbZ;
     float nX, nY, nZ, laX, laY, laZ, lbX, lbY, lbZ;
     float aaX, aaY, aaZ, abX, abY, abZ;

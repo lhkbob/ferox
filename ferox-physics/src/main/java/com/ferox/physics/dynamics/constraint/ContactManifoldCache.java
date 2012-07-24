@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.algorithm.ClosestPair;
+import com.ferox.physics.collision.ClosestPair;
+import com.ferox.physics.collision.CollisionBody;
 
 public class ContactManifoldCache {
     private final Map<CollidablePair, ContactManifold> manifolds;
@@ -36,13 +36,13 @@ public class ContactManifoldCache {
         return manifolds.values();
     }
     
-    public ContactManifold getContactManifold(Collidable objA, Collidable objB) {
+    public ContactManifold getContactManifold(CollisionBody objA, CollisionBody objB) {
         query.a = objA;
         query.b = objB;
         return manifolds.get(query);
     }
     
-    public void addContact(Collidable objA, Collidable objB, ClosestPair pair) {
+    public void addContact(CollisionBody objA, CollisionBody objB, ClosestPair pair) {
         ContactManifold oldManifold = getContactManifold(objA, objB);
         if (oldManifold != null) {
             // object are already in contact, just update existing manifold
@@ -60,7 +60,7 @@ public class ContactManifoldCache {
         manifolds.put(contact, newManifold);
     }
     
-    public void remove(Collidable c) {
+    public void remove(CollisionBody c) {
         Iterator<Entry<CollidablePair, ContactManifold>> it = manifolds.entrySet().iterator();
         while(it.hasNext()) {
             CollidablePair cp = it.next().getKey();
@@ -81,8 +81,8 @@ public class ContactManifoldCache {
     }
     
     private static class CollidablePair {
-        Collidable a;
-        Collidable b;
+        CollisionBody a;
+        CollisionBody b;
         
         @Override
         public boolean equals(Object o) {

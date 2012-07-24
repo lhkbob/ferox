@@ -8,7 +8,7 @@ import com.ferox.math.Matrix4;
  * CollisionAlgorithm is an interface encapsulating the narrow-phase of a
  * collision detection system. CollisionAlgorithm implementations are
  * responsible for computing two vectors within world space. Each vector
- * represents the closest point on one {@link Collidable} to the other.
+ * represents the closest point on one {@link CollisionBody} to the other.
  * Implementations must handle cases where the two objects are intersecting each
  * other as well.
  * 

@@ -12,8 +12,8 @@ import com.ferox.math.AffineTransform;
 import com.ferox.math.Vector3f;
 import com.ferox.math.Vector4f;
 import com.ferox.math.bounds.Plane;
-import com.ferox.physics.collision.Collidable;
-import com.ferox.physics.collision.algorithm.ClosestPair;
+import com.ferox.physics.collision.ClosestPair;
+import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.physics.dynamics.constraint.LinearConstraint.ImpulseListener;
 import com.ferox.physics.dynamics.constraint.LinearConstraintAccumulator.ConstraintLevel;
@@ -23,8 +23,8 @@ public class ContactManifold extends NormalizableConstraint {
     private static final int RESTING_CONTACT_THRESHOLD = 2;
     private static final float ERP = .2f;
     
-    private final Collidable objA;
-    private final Collidable objB;
+    private final CollisionBody objA;
+    private final CollisionBody objB;
     
     private final float contactBreakingThreshold; // min pair distance when a contact is removed from the manifold
     private final float contactProcessingThreshold; // min pair distance where a contact is ignored by constraint solver
@@ -34,7 +34,7 @@ public class ContactManifold extends NormalizableConstraint {
     private final float combinedRestitution;
     private final float combinedFriction;
     
-    public ContactManifold(Collidable objA, Collidable objB, 
+    public ContactManifold(CollisionBody objA, CollisionBody objB, 
                            float processThreshold, float breakThreshold) {
         this.objA = objA;
         this.objB = objB;
@@ -181,11 +181,11 @@ public class ContactManifold extends NormalizableConstraint {
         }
     }
     
-    public Collidable getCollidableA() {
+    public CollisionBody getCollidableA() {
         return objA;
     }
     
-    public Collidable getCollidableB() {
+    public CollisionBody getCollidableB() {
         return objB;
     }
     
