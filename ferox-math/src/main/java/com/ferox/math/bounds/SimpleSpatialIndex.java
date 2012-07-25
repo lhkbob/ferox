@@ -118,6 +118,7 @@ public class SimpleSpatialIndex<T> implements SpatialIndex<T> {
         }
     }
     
+    @Override
     public void clear() {
         clear(false);
     }
@@ -128,5 +129,27 @@ public class SimpleSpatialIndex<T> implements SpatialIndex<T> {
             Arrays.fill(elements, null);
         }
         size = 0;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void query(IntersectionCallback<T> callback) {
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
+        
+        AxisAlignedBox ba = new AxisAlignedBox();
+        AxisAlignedBox bb = new AxisAlignedBox();
+        
+        for (int a = 0; a < size; a++) {
+            updateBounds(ba, a);
+            for (int b = a + 1; b < size; b++) {
+                updateBounds(bb, b);
+                
+                if (ba.intersects(bb)) {
+                    // intersecting pair
+                    callback.process((T) elements[a], ba, (T) elements[b], bb);
+                }
+            }
+        }
     }
 }

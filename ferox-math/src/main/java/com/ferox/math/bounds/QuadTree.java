@@ -332,6 +332,46 @@ public class QuadTree<T> implements SpatialIndex<T> {
     
     @Override
     @SuppressWarnings("unchecked")
+    public void query(IntersectionCallback<T> callback) {
+        if (callback == null)
+            throw new NullPointerException("Callback cannot be null");
+        
+        AxisAlignedBox ba = new AxisAlignedBox();
+        AxisAlignedBox bb = new AxisAlignedBox();
+        
+        // iterate over all cells
+        Cell cell;
+        for (int cellY = 0; cellY < maxCellDimension; cellY++) {
+            for (int cellX = 0; cellX < maxCellDimension; cellX++) {
+                cell = spatialHash[hash(cellX, cellY)];
+                if (cell.size > 0) {
+                    // do an N^2 iteration over items within cell
+                    for (int a = 0; a < cell.size; a++) {
+                        updateBounds(ba, cell.keys[a]);
+                        
+                        if (hashCellX(ba.min) == cellX && hashCellY(ba.min) == cellY) {
+                            // this item's minimum lies within this cell, so we can
+                            // check intersections with it and know that it will
+                            // create unique pairs
+                            for (int b = a + 1; b < cell.size; b++) {
+                                updateBounds(bb, cell.keys[b]);
+                                // don't check b's minimum since it is perfectly ok
+                                // for it to start in another cell and extend to this one
+                                if (ba.intersects(bb)) {
+                                    // report intersection
+                                    callback.process((T) elements[cell.keys[a]], ba, 
+                                                     (T) elements[cell.keys[b]], bb);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
     public void query(@Const AxisAlignedBox bounds, QueryCallback<T> callback) {
         if (bounds == null)
             throw new NullPointerException("Bounds cannot be null");
