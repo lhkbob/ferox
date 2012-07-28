@@ -31,6 +31,9 @@ public class RigidBody extends ComponentData<RigidBody> {
     
     private RigidBody() { }
     
+    // FIXME depending on how many people need to use this, I can move it
+    // into the set of decorated properties that are added to the rigid body
+    // for contact solving support
     public @Const Matrix3 getInertiaTensorInverse() {
         return tensorCache;
     }
