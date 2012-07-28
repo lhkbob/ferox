@@ -1,10 +1,9 @@
 package com.ferox.physics.collision;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
@@ -20,14 +19,11 @@ import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
  * 
  * @author Michael Ludwig
  */
-// FIXME this does not need to be thread safe anymore, so it can be 
-// greatly simplified. 
 public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProvider {
     private final Map<TypePair, CollisionAlgorithm<?, ?>> algorithmCache;
-    private final ThreadLocal<TypePair> lookup;
+    private final TypePair lookup;
     
     private final List<CollisionAlgorithm<?, ?>> algorithms;
-    private final ReentrantReadWriteLock lock;
 
     /**
      * Create a new DefaultCollisionAlgorithmProvider. It initially has a
@@ -36,64 +32,41 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
      */
     public DefaultCollisionAlgorithmProvider() {
         algorithms = new ArrayList<CollisionAlgorithm<?,?>>();
-        lock = new ReentrantReadWriteLock();
         
-        algorithmCache = new ConcurrentHashMap<TypePair, CollisionAlgorithm<?,?>>();
-        lookup = new ThreadLocal<TypePair>();
+        algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?,?>>();
+        lookup = new TypePair(null, null);
         
         register(new GjkEpaCollisionAlgorithm());
         register(new SphereSphereCollisionAlgorithm());
     }
 
     @Override
-    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> shapeA, Class<B> shapeB) {
-        if (shapeA == null || shapeB == null)
-            throw new NullPointerException("Shape types cannot be null");
-        
-        lock.readLock().lock();
-        try {
-            return getAlgorithmImpl(shapeA, shapeB);
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-    
     @SuppressWarnings("unchecked")
-    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithmImpl(Class<A> aType, Class<B> bType) {
+    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> aType, Class<B> bType) {
+        if (aType == null || bType == null)
+            throw new NullPointerException("Shape types cannot be null");
+
         // look for type with current order
-        TypePair key = lookup.get();
-        if (key == null) {
-            key = new TypePair(aType, bType);
-            lookup.set(key);
-        }
-        
-        key.shapeA = aType;
-        key.shapeB = bType;
-        
-        CollisionAlgorithm<A, B> algo = (CollisionAlgorithm<A, B>) algorithmCache.get(key);
+        lookup.set(aType, bType);
+        CollisionAlgorithm<A, B> algo = (CollisionAlgorithm<A, B>) algorithmCache.get(lookup);
         if (algo != null)
             return algo;
         
         // didn't find original type, look for a swapped type
-        key = new TypePair(bType, aType);
-        CollisionAlgorithm<B, A> swapped = (CollisionAlgorithm<B, A>) algorithmCache.get(key);
-        
-        // re-swap key parameters
-        key.shapeA = aType;
-        key.shapeB = bType;
-        
+        lookup.set(bType, aType);
+        CollisionAlgorithm<B, A> swapped = (CollisionAlgorithm<B, A>) algorithmCache.get(lookup);
         if (swapped != null) {
             // return a wrapped instance of the algorithm that swaps everything
             // and store it in the cache
             algo = new SwappingCollisionAlgorithm<A, B>(swapped);
-            algorithmCache.put(key, algo);
+            algorithmCache.put(new TypePair(aType, bType), algo);
             return algo;
         }
         
         // find best match with current ordering
         algo = getBestMatch(aType, bType);
         if (algo != null) {
-            algorithmCache.put(key, algo);
+            algorithmCache.put(new TypePair(aType, bType), algo);
             return algo;
         }
         
@@ -106,7 +79,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
             
             // store swapped algorithm
             algo = new SwappingCollisionAlgorithm<A, B>(swapped);
-            algorithmCache.put(key, algo);
+            algorithmCache.put(new TypePair(aType, bType), algo);
             return algo;
         }
         
@@ -156,53 +129,45 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
     public void register(CollisionAlgorithm<?, ?> algorithm) {
         if (algorithm == null)
             throw new NullPointerException("CollisionAlgorithm cannot be null");
-        
-        lock.writeLock().lock();
-        try {
-            int ct = algorithms.size();
-            for (int i = 0; i < ct; i++) {
-                if (algorithms.get(i).getClass().equals(algorithm.getClass())) {
-                    algorithms.remove(i);
-                    break;
-                }
+
+        int ct = algorithms.size();
+        for (int i = 0; i < ct; i++) {
+            if (algorithms.get(i).getClass().equals(algorithm.getClass())) {
+                algorithms.remove(i);
+                break;
             }
-            
-            // insert in front so that new algorithms are searched first
-            algorithms.add(0, algorithm);
-            algorithmCache.clear();
-        } finally {
-            lock.writeLock().unlock();
         }
+
+        // insert in front so that new algorithms are searched first
+        algorithms.add(0, algorithm);
+        algorithmCache.clear();
     }
 
     public void unregister(Class<? extends CollisionAlgorithm<?, ?>> algorithmType) {
         if (algorithmType == null)
             throw new NullPointerException("CollisionAlgorithm type cannot be null");
         
-        lock.writeLock().lock();
-        try {
-            int ct = algorithms.size();
-            for (int i = 0; i < ct; i++) {
-                if (algorithmType.equals(algorithms.get(i).getClass())) {
-                    algorithms.remove(i);
-                    algorithmCache.clear();
-                    return;
-                }
+        int ct = algorithms.size();
+        for (int i = 0; i < ct; i++) {
+            if (algorithmType.equals(algorithms.get(i).getClass())) {
+                algorithms.remove(i);
+                algorithmCache.clear();
+                return;
             }
-            
-            // else nothing to remove
-        } finally {
-            lock.writeLock().unlock();
         }
     }
     
     // Note that the ordering of the pair matters. The algorithm cache
     // inserts swapped algorithm versions as needed.
     private static class TypePair {
-        Class<? extends Shape> shapeA;
-        Class<? extends Shape> shapeB;
+        private Class<? extends Shape> shapeA;
+        private Class<? extends Shape> shapeB;
         
         public TypePair(Class<? extends Shape> shapeA, Class<? extends Shape> shapeB) {
+            set(shapeA, shapeB);
+        }
+        
+        public void set(Class<? extends Shape> shapeA, Class<? extends Shape> shapeB) {
             this.shapeA = shapeA;
             this.shapeB = shapeB;
         }

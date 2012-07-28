@@ -7,6 +7,7 @@ import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.math.entreri.Matrix4Property;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
@@ -40,6 +41,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * ids are limited to be between 0 and 63.
      */
     public static final int MAX_GROUPS = 64;
+    
+    public static final TypeId<CollisionBody> ID = TypeId.get(CollisionBody.class);
     
     @DefaultMatrix4(m00=1.0, m01=0.0, m02=0.0, m03=0.0,
                     m10=0.0, m11=1.0, m12=0.0, m13=0.0,
