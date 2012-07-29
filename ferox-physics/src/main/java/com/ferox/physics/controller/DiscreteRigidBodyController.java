@@ -51,47 +51,52 @@ public class DiscreteRigidBodyController {
         collisionManager = config.getCollisionManager();
     }
 
-    public @Const Vector3 getGravity() {
-        return gravity;
-    }
-
-    public void setGravity(@Const Vector3 gravity) {
-        if (gravity == null)
-            throw new NullPointerException("Gravity cannot be null");
-        this.gravity.set(gravity);
-    }
+//    public @Const Vector3 getGravity() {
+//        return gravity;
+//    }
+//
+//    public void setGravity(@Const Vector3 gravity) {
+//        if (gravity == null)
+//            throw new NullPointerException("Gravity cannot be null");
+//        this.gravity.set(gravity);
+//    }
 
     @Override
     public void step(float dt) {
         // FIXME use time step interpolation to maintain a fixed time step rate like in bullet
-        RigidBody b;
-        Vector3f gravForce = new Vector3f();
-        int ct = rigidBodies.size();
-        for (int i = 0; i < ct; i++) {
-            b = rigidBodies.get(i);
-            
-            // add gravity force to each body
-            if (b.getExplicitGravity() != null)
-                b.getExplicitGravity().scale(b.getMass(), gravForce);
-            else
-                gravity.scale(b.getMass(), gravForce);
-
-            b.addForce(gravForce, null); // gravity is a central force, applies no torque
-            b.applyForces(integrator, dt);
-        }
-        
+        // DONE - ForcesController
+//        RigidBody b;
+//        Vector3f gravForce = new Vector3f();
+//        int ct = rigidBodies.size();
+//        for (int i = 0; i < ct; i++) {
+//            b = rigidBodies.get(i);
+//            
+//            // add gravity force to each body
+//            if (b.getExplicitGravity() != null)
+//                b.getExplicitGravity().scale(b.getMass(), gravForce);
+//            else
+//                gravity.scale(b.getMass(), gravForce);
+//
+//            b.addForce(gravForce, null); // gravity is a central force, applies no torque
+//            b.applyForces(integrator, dt);
+//        }
+//        
         collisionManager.processCollisions(new ContactManifoldCallback());
         contactCache.update();
-        constraintSolver.solve(new ChainedCollection<Constraint>(constraints, contactCache.getContacts()), dt);
         
+        // DONE -> ConstraintSolvingController
+//        constraintSolver.solve(new ChainedCollection<Constraint>(constraints, contactCache.getContacts()), dt);
+        
+        
+        // DONE -> MotionController
         // recompute next frame position after constraint solving
         // and store it in the world transform
-        AffineTransform t = new AffineTransform();
-        for (int i = 0; i < ct; i++) {
-            b = rigidBodies.get(i);
-            b.predictMotion(integrator, dt, t);
-            b.setTransform(t);
-        }
+//        AffineTransform t = new AffineTransform();
+//        for (int i = 0; i < ct; i++) {
+//            b = rigidBodies.get(i);
+//            b.predictMotion(integrator, dt, t);
+//            b.setTransform(t);
+//        }
     }
     
     @Override

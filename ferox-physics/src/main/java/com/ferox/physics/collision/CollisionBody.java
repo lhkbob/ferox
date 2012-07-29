@@ -42,6 +42,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      */
     public static final int MAX_GROUPS = 64;
     
+    /**
+     * TypeId for CollisionBody's.
+     */
     public static final TypeId<CollisionBody> ID = TypeId.get(CollisionBody.class);
     
     @DefaultMatrix4(m00=1.0, m01=0.0, m02=0.0, m03=0.0,

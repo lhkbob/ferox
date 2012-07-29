@@ -155,11 +155,33 @@ public class LinearConstraintSolver {
         double upper = group.getUpperImpulseLimit(constraint);
         if (totalImpulse < lower) {
             deltaImpulse = lower - applied;
+            totalImpulse = lower;
         } else if (totalImpulse > upper) {
             deltaImpulse = upper - applied;
+            totalImpulse = upper;
         }
         
-        group.addDeltaImpulse(constraint, deltaImpulse);
+        if (ba >= 0) {
+            deltaLinearImpulse.get(ba, linear);
+            linear.add(group.getLinearImpulseA(constraint, deltaImpulse));
+            deltaLinearImpulse.set(linear, ba);
+            
+            deltaAngularImpulse.get(ba, angular);
+            angular.add(group.getAngularImpulseA(constraint, deltaImpulse));
+            deltaAngularImpulse.set(angular, ba);
+        }
+        
+        if (bb >= 0) {
+            deltaLinearImpulse.get(bb, linear);
+            linear.add(group.getLinearImpulseB(constraint, deltaImpulse));
+            deltaLinearImpulse.set(linear, bb);
+            
+            deltaAngularImpulse.get(bb, angular);
+            angular.add(group.getAngularImpulseB(constraint, deltaImpulse));
+            deltaAngularImpulse.set(angular, bb);
+        }
+        
+        group.setAppliedImpulse(constraint, totalImpulse);
     }
     
     private int[][] createIndices(LinearConstraintPool[] groups) {

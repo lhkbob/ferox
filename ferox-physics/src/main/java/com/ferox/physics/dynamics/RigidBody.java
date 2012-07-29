@@ -6,10 +6,13 @@ import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Matrix3Property;
 import com.ferox.math.entreri.Vector3Property;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 
 public class RigidBody extends ComponentData<RigidBody> {
+    public static final TypeId<RigidBody> ID = TypeId.get(RigidBody.class);
+    
     private DoubleProperty inverseMass;
     
     private Matrix3Property inertiaTensorWorldInverse;
@@ -31,45 +34,17 @@ public class RigidBody extends ComponentData<RigidBody> {
     
     private RigidBody() { }
     
-    // FIXME depending on how many people need to use this, I can move it
-    // into the set of decorated properties that are added to the rigid body
-    // for contact solving support
     public @Const Matrix3 getInertiaTensorInverse() {
         return tensorCache;
     }
     
-    /* FIXME move these functions into the internals of the physics controller
-    private void updateInertiaTensor() {
-        // FIXME: what about kinematic objects? they don't get inertia really
-        // FIXME: the inertia tensor needs to be inverted (e.g. 1/x, 1/y, 1/z) here
-        MutableVector3f inertia = getShape().getInertiaTensor(getMass(), temp3.get());
-        inertia.set(1f / inertia.getX(), 1f / inertia.getY(), 1f / inertia.getZ());
-        
-        ReadOnlyMatrix3f rotation = getTransform().getUpperMatrix(); // since Collidable uses AffineTransform, this doesn't create an object
-        rotation.mulDiagonal(inertia, inertiaTensorWorldInverse).mulTransposeRight(rotation);
+    public RigidBody setInertiaTensorInverse(@Const Matrix3 tensorInverse) {
+        tensorCache.set(tensorInverse);
+        inertiaTensorWorldInverse.set(tensorInverse, getIndex());
+        return this;
     }
-    
-    public void applyForces(Integrator integrator, float dt) {
-        if (dt <= 0f)
-            throw new IllegalArgumentException("Time delta must be positive, not: " + dt);
-        
-        integrator.integrateLinearAcceleration(totalForce.scale(inverseMass), dt, velocity);
-        integrator.integrateAngularAcceleration(inertiaTensorWorldInverse.mul(totalTorque), dt, angularVelocity);
-        clearForces();
-    }
-    
-    public void predictMotion(Integrator integrator, float dt, AffineTransform result) {
-        if (dt <= 0f)
-            throw new IllegalArgumentException("Time delta must be positive, not: " + dt);
-        
-        // FIXME what about kinematic objects?
-        result.set(getTransform());
-        integrator.integrateLinearVelocity(velocity, dt, result.getTranslation());
-        integrator.integrateAngularVelocity(angularVelocity, dt, result.getRotation());
-    }
-    */
-    
-    public void addForce(@Const Vector3 force, @Const Vector3 relPos) {
+
+    public RigidBody addForce(@Const Vector3 force, @Const Vector3 relPos) {
         forceCache.add(force);
         totalForce.set(forceCache, getIndex());
         
@@ -77,9 +52,11 @@ public class RigidBody extends ComponentData<RigidBody> {
             torqueCache.add(temp.cross(relPos, force));
             totalTorque.set(torqueCache, getIndex());
         }
+        
+        return this;
     }
     
-    public void addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
+    public RigidBody addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
         velocityCache.add(temp.scale(impulse, getInverseMass()));
         velocity.set(velocityCache, getIndex());
         
@@ -90,30 +67,39 @@ public class RigidBody extends ComponentData<RigidBody> {
             
             angularVelocity.set(angularVelocityCache, getIndex());
         }
+        
+        return this;
     }
     
-    public void setVelocity(@Const Vector3 vel) {
+    public RigidBody setVelocity(@Const Vector3 vel) {
         velocityCache.set(vel);
         velocity.set(vel, getIndex());
+        
+        return this;
     }
     
-    public void setAngularVelocity(@Const Vector3 angVel) {
+    public RigidBody setAngularVelocity(@Const Vector3 angVel) {
         angularVelocityCache.set(angVel);
         angularVelocity.set(angVel, getIndex());
+        
+        return this;
     }
     
-    public void clearForces() {
+    public RigidBody clearForces() {
         forceCache.set(0.0, 0.0, 0.0);
         torqueCache.set(0.0, 0.0, 0.0);
         
         totalForce.set(forceCache, getIndex());
         totalTorque.set(torqueCache, getIndex());
+        
+        return this;
     }
 
-    public void setMass(double mass) {
+    public RigidBody setMass(double mass) {
         if (mass <= 0.0)
             throw new IllegalArgumentException("Mass must be positive");
         inverseMass.set(1.0 / mass, getIndex());
+        return this;
     }
 
     public double getMass() {
@@ -130,6 +116,14 @@ public class RigidBody extends ComponentData<RigidBody> {
 
     public @Const Vector3 getAngularVelocity() {
         return angularVelocityCache;
+    }
+    
+    public @Const Vector3 getTotalForce() {
+        return forceCache;
+    }
+    
+    public @Const Vector3 getTotalTorque() {
+        return torqueCache;
     }
     
     @Override

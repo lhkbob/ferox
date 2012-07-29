@@ -3,11 +3,7 @@ package com.ferox.physics.dynamics;
 import java.util.Arrays;
 
 import com.ferox.math.Const;
-import com.ferox.math.Matrix3;
 import com.ferox.math.Vector3;
-import com.ferox.math.entreri.Matrix3Property;
-import com.ferox.math.entreri.Vector3Property;
-import com.lhkbob.entreri.property.DoubleProperty;
 
 public class LinearConstraintPool {
     private int count; // current number of valid constraints in the pool
@@ -41,16 +37,13 @@ public class LinearConstraintPool {
     private int[] bodyAs = new int[0];
     private int[] bodyBs = new int[0];
     
-    // accessed by values inside bodyAs and bodyBs
-    private Matrix3Property inertiaTensorInverses;
-    private DoubleProperty inverseMasses;
-    private Vector3Property deltaLinearImpulses;
-    private Vector3Property deltaAngularImpulses;
-    
     private final Vector3 direction = new Vector3();
     private final Vector3 torqueA = new Vector3();
     private final Vector3 torqueB = new Vector3();
-    private final Matrix3 tensor = new Matrix3();
+    private final Vector3 linearA = new Vector3();
+    private final Vector3 linearB = new Vector3();
+    private final Vector3 angularA = new Vector3();
+    private final Vector3 angularB = new Vector3();
     
     // FIXME we might be able to avoid this if we have the manifolds remember
     // the indices of the constraints they produce and as part of the final
@@ -60,22 +53,6 @@ public class LinearConstraintPool {
     public LinearConstraintPool() {
         count = 0;
         setCapacity(10);
-    }
-    
-    public void setInertiaTensorInverseProperty(Matrix3Property prop) {
-        inertiaTensorInverses = prop;
-    }
-    
-    public void setInverseMassProperty(DoubleProperty prop) {
-        inverseMasses = prop;
-    }
-    
-    public void setDeltaLinearImpulseProperty(Vector3Property prop) {
-        deltaLinearImpulses = prop;
-    }
-    
-    public void setDeltaAngularImpulseProperty(Vector3Property prop) {
-        deltaAngularImpulses = prop;
     }
     
     public void setCapacity(int newCapacity) {
@@ -105,7 +82,8 @@ public class LinearConstraintPool {
         count = 0;
     }
 
-    public int addConstraint(int bodyA, int bodyB) {
+    public int addConstraint(RigidBody bodyA, RigidBody bodyB, 
+                             @Const Vector3 direction, @Const Vector3 torqueA, @Const Vector3 torqueB) {
         int i = count++;
         int veci = i * 3;
         if (i >= bodyAs.length) {
@@ -113,21 +91,46 @@ public class LinearConstraintPool {
             setCapacity(i * 2);
         }
         
-        bodyAs[i] = bodyA;
-        bodyBs[i] = bodyB;
+        // copy the three vectors into their arrays
+        direction.get(directions, veci);
+        torqueA.get(torqueAs, veci);
+        torqueB.get(torqueBs, veci);
         
-        // set vectors to 0
-        // FIXME if 0'ing these values are too expensive, we can combine this
-        // method with setConstraintAxis so we just overwrite with new data
-        directions[veci] = 0; directions[veci + 1] = 0; directions[veci + 2] = 0;
-        torqueAs[veci] = 0; torqueAs[veci + 1] = 0; torqueAs[veci + 2] = 0;
-        torqueBs[veci] = 0; torqueBs[veci + 1] = 0; torqueBs[veci + 2] = 0;
-        linearDirAs[veci] = 0; linearDirAs[veci + 1] = 0; linearDirAs[veci + 2] = 0;
-        linearDirBs[veci] = 0; linearDirBs[veci + 1] = 0; linearDirBs[veci + 2] = 0;
-        angleDirAs[veci] = 0; angleDirAs[veci + 1] = 0; angleDirAs[veci + 2] = 0;
-        angleDirBs[veci] = 0; angleDirBs[veci + 1] = 0; angleDirBs[veci + 2] = 0;
+        if (bodyA != null) {
+            bodyAs[i] = bodyA.getIndex();
+            
+            double imA = bodyA.getInverseMass();
+            linearDirAs[veci] = direction.x * imA;
+            linearDirAs[veci + 1] = direction.y * imA;
+            linearDirAs[veci + 2] = direction.z * imA;
+            
+            this.torqueA.mul(bodyA.getInertiaTensorInverse(), torqueA);
+            angleDirAs[veci] = this.torqueA.x;
+            angleDirAs[veci + 1] = this.torqueA.y;
+            angleDirAs[veci + 2] = this.torqueA.z;
+        } else {
+            // assign negative id
+            bodyAs[i] = -1;
+        }
+        
+        if (bodyB != null) {
+            bodyBs[i] = bodyB.getIndex();
+            
+            double imB = bodyB.getInverseMass();
+            linearDirBs[veci] = direction.x * imB;
+            linearDirBs[veci + 1] = direction.y * imB;
+            linearDirBs[veci + 2] = direction.z * imB;
+            
+            this.torqueB.mul(bodyB.getInertiaTensorInverse(), torqueB);
+            angleDirBs[veci] = this.torqueB.x;
+            angleDirBs[veci + 1] = this.torqueB.y;
+            angleDirBs[veci + 2] = this.torqueB.z;
+        } else {
+            // assign negative id
+            bodyBs[i] = -1;
+        }
 
-        // zero out other values, too
+        // zero out solution parameters
         jacobianDiagInverses[i] = 0;
         solutions[i] = 0;
         constraintForceMixes[i] = 0;
@@ -142,85 +145,29 @@ public class LinearConstraintPool {
         return i;
     }
     
-    public void addDeltaImpulse(int i, double deltaImpulse) {
-        int veci = i * 3;
-        appliedImpulses[i] += deltaImpulse;
-        
-        int ba = bodyAs[i];
-        if (ba >= 0) {
-            deltaLinearImpulses.get(ba, direction);
-            direction.x += deltaImpulse * linearDirAs[veci];
-            direction.y += deltaImpulse * linearDirAs[veci + 1];
-            direction.z += deltaImpulse * linearDirAs[veci + 2];
-            deltaLinearImpulses.set(direction, ba);
-            
-            deltaAngularImpulses.get(ba, direction);
-            direction.x += deltaImpulse * angleDirAs[veci];
-            direction.y += deltaImpulse * angleDirAs[veci + 1];
-            direction.z += deltaImpulse * angleDirAs[veci + 2];
-            deltaAngularImpulses.set(direction, ba);
-        }
-        
-        int bb = bodyBs[i];
-        if (bb >= 0) {
-            deltaLinearImpulses.get(bb, direction);
-            direction.x += deltaImpulse * linearDirBs[veci];
-            direction.y += deltaImpulse * linearDirBs[veci + 1];
-            direction.z += deltaImpulse * linearDirBs[veci + 2];
-            deltaLinearImpulses.set(direction, bb);
-            
-            deltaAngularImpulses.get(bb, direction);
-            direction.x += deltaImpulse * angleDirBs[veci];
-            direction.y += deltaImpulse * angleDirBs[veci + 1];
-            direction.z += deltaImpulse * angleDirBs[veci + 2];
-            deltaAngularImpulses.set(direction, bb);
-        }
+    public @Const Vector3 getLinearImpulseA(int i, double impulse) {
+        return linearA.set(linearDirAs, i).scale(impulse);
+    }
+    
+    public @Const Vector3 getLinearImpulseB(int i, double impulse) {
+        return linearB.set(linearDirBs, i).scale(impulse);
+    }
+    
+    public @Const Vector3 getAngularImpulseA(int i, double impulse) {
+        return angularA.set(angleDirAs, i).scale(impulse);
+    }
+    
+    public @Const Vector3 getAngularImpulseB(int i, double impulse) {
+        return angularB.set(angleDirBs, i).scale(impulse);
     }
     
     public void setAppliedImpulse(int i, double impulse) {
         appliedImpulses[i] = impulse;
     }
     
-    public void setConstraintAxis(int i, @Const Vector3 direction, @Const Vector3 torqueA, @Const Vector3 torqueB) {
-        int veci = i * 3;
-        
-        direction.get(directions, veci);
-        torqueA.get(torqueAs, veci);
-        torqueB.get(torqueBs, veci);
-        
-        int ba = bodyAs[i];
-        if (ba >= 0) {
-            double imA = inverseMasses.get(ba);
-            linearDirAs[veci] = direction.x * imA;
-            linearDirAs[veci + 1] = direction.y * imA;
-            linearDirAs[veci + 2] = direction.z * imA;
-            
-            this.torqueA.mul(inertiaTensorInverses.get(ba, tensor), torqueA);
-            angleDirAs[veci] = this.torqueA.x;
-            angleDirAs[veci + 1] = this.torqueA.y;
-            angleDirAs[veci + 2] = this.torqueA.z;
-        }
-        
-        int bb = bodyBs[i];
-        if (bb >= 0) {
-            double imB = inverseMasses.get(bb);
-            linearDirBs[veci] = direction.x * imB;
-            linearDirBs[veci + 1] = direction.y * imB;
-            linearDirBs[veci + 2] = direction.z * imB;
-            
-            this.torqueB.mul(inertiaTensorInverses.get(bb, tensor), torqueB);
-            angleDirBs[veci] = this.torqueB.x;
-            angleDirBs[veci + 1] = this.torqueB.y;
-            angleDirBs[veci + 2] = this.torqueB.z;
-        }
-    }
-    
-    public void setSolution(int i, double solution, double cfm) {
+    public void setSolution(int i, double solution, double cfm, double jacobian) {
         solutions[i] = solution;
         constraintForceMixes[i] = cfm;
-    }
-    
-    public void setJacobianDiagonalInverse(int i, double jacobian) {
         jacobianDiagInverses[i] = jacobian;
     }
     
