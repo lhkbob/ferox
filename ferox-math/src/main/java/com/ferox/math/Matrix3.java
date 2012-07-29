@@ -439,7 +439,19 @@ public final class Matrix3 implements Cloneable {
                    xz - wy, yz + wx, 1f - (xx + yy));
     }
 
-    
+    /**
+     * Set this matrix to the upper 3x3 matrix stored in <tt>m</tt>. The 4th row
+     * and column of <tt>m</tt> are ignored.
+     * 
+     * @param m The matrix whose upper 3x3 is copied
+     * @return This matrix
+     * @throws NullPointerException if m is null
+     */
+    public Matrix3 setUpper(@Const Matrix4 m) {
+        return set(m.m00, m.m01, m.m02,
+                   m.m10, m.m11, m.m12,
+                   m.m20, m.m21, m.m22);
+    }
 
     /**
      * Set the matrix component at the given row and column to value. Both row

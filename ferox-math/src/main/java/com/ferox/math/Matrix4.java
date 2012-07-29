@@ -756,14 +756,29 @@ public final class Matrix4 implements Cloneable {
      * @return This matrix
      */
     public Matrix4 set(double m00, double m01, double m02, double m03, 
-                        double m10, double m11, double m12, double m13, 
-                        double m20, double m21, double m22, double m23, 
-                        double m30, double m31, double m32, double m33) {
+                       double m10, double m11, double m12, double m13, 
+                       double m20, double m21, double m22, double m23, 
+                       double m30, double m31, double m32, double m33) {
         this.m00 = m00; this.m01 = m01; this.m02 = m02; this.m03 = m03;
         this.m10 = m10; this.m11 = m11; this.m12 = m12; this.m13 = m13;
         this.m20 = m20; this.m21 = m21; this.m22 = m22; this.m23 = m23;
         this.m30 = m30; this.m31 = m31; this.m32 = m32; this.m33 = m33;
         return this;
+    }
+    
+    /**
+     * Set the upper 3x3 of this matrix to the 9 values stored in <tt>m</tt>.
+     * The 4th row and column of this matrix are not modified.
+     * 
+     * @param m The matrix copied into this matrix's upper 3x3
+     * @return This matrix
+     * @throws NullPointerException if m is null
+     */
+    public Matrix4 setUpper(@Const Matrix3 m) {
+        return set(m.m00, m.m01, m.m02, m03,
+                   m.m10, m.m11, m.m12, m13,
+                   m.m20, m.m21, m.m22, m23,
+                     m30,   m31,   m32, m33);
     }
 
     /**
