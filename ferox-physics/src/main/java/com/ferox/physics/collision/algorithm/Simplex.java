@@ -226,9 +226,9 @@ public class Simplex {
             }
             break; }
         case 4: {
-            if (Math.abs(SimplexUtil.det(vertices[0].vertex.sub(vertices[3].vertex, null),
-                                         vertices[1].vertex.sub(vertices[3].vertex, null),
-                                         vertices[2].vertex.sub(vertices[3].vertex, null))) > 0.0)
+            if (Math.abs(SimplexUtil.det(new Vector3().sub(vertices[0].vertex, vertices[3].vertex),
+                                         new Vector3().sub(vertices[1].vertex, vertices[3].vertex),
+                                         new Vector3().sub(vertices[2].vertex, vertices[3].vertex))) > 0.0)
                 return true;
             break; }
         }
@@ -236,9 +236,9 @@ public class Simplex {
     }
     
     private void orient() {
-        if (SimplexUtil.det(vertices[0].vertex.sub(vertices[3].vertex, null),
-                            vertices[1].vertex.sub(vertices[3].vertex, null),
-                            vertices[2].vertex.sub(vertices[3].vertex, null)) < 0.0) {
+        if (SimplexUtil.det(new Vector3().sub(vertices[0].vertex, vertices[3].vertex),
+                            new Vector3().sub(vertices[1].vertex, vertices[3].vertex),
+                            new Vector3().sub(vertices[2].vertex, vertices[3].vertex)) < 0.0) {
             Vector3 t = new Vector3();
             
             t.set(vertices[0].input);

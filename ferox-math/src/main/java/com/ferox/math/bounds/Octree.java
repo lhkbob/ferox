@@ -354,7 +354,7 @@ public class Octree<T> implements SpatialIndex<T> {
             for (int cellY = 0; cellY < maxCellDimension; cellY++) {
                 for (int cellX = 0; cellX < maxCellDimension; cellX++) {
                     cell = spatialHash[hash(cellX, cellY, cellZ)];
-                    if (cell.size > 0) {
+                    if (cell != null) {
                         // do an N^2 iteration over items within cell
                         for (int a = 0; a < cell.size; a++) {
                             updateBounds(ba, cell.keys[a]);

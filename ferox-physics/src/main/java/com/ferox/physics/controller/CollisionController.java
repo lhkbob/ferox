@@ -16,8 +16,8 @@ public abstract class CollisionController extends SimpleController {
     
     public CollisionController() {
         manifolds = new ContactManifoldPool();
-        contactGroup = new LinearConstraintPool();
-        frictionGroup = new LinearConstraintPool();
+        contactGroup = new LinearConstraintPool(null);
+        frictionGroup = new LinearConstraintPool(contactGroup);
     }
     
     public ContactManifoldPool getContactManifoldPool() {

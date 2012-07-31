@@ -37,7 +37,7 @@ public class Box implements Geometry {
      * @param side The side length of the created cube
      * @throws IllegalArgumentException if side is negative
      */
-    public Box(float side) {
+    public Box(double side) {
         this(side, StorageMode.IN_MEMORY);
     }
 
@@ -65,9 +65,9 @@ public class Box implements Geometry {
      * @throws NullPointerException if mode is null
      * @throws IllegalArgumentException if side is negative
      */
-    public Box(float side, StorageMode mode) {
-        this(new Vector3(-side / 2f, -side / 2f, -side / 2f), 
-             new Vector3(side / 2f, side / 2f, side / 2f), mode);
+    public Box(double side, StorageMode mode) {
+        this(new Vector3(-side / 2, -side / 2, -side / 2), 
+             new Vector3(side / 2, side / 2, side / 2), mode);
     }
 
     /**

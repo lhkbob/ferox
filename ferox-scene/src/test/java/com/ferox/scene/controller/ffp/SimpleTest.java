@@ -54,7 +54,7 @@ public class SimpleTest {
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions()
             .setWidth(800)
             .setHeight(600)
-            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
+//            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
 //            .setMultiSampling(MultiSampling.FOUR_X)
             .setResizable(false));
         surface.setVSyncEnabled(false);

@@ -34,6 +34,9 @@ import com.ferox.physics.collision.shape.ConvexShape;
 public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
     private static final int MAX_EPA_CHECKS = 4;
     
+    public static int gjkChecks = 0;
+    public static int epaChecks = 0;
+    
     @Override
     public ClosestPair getClosestPair(ConvexShape shapeA, @Const Matrix4 transA,
                                       ConvexShape shapeB, @Const Matrix4 transB) {
@@ -49,6 +52,7 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
         
         ClosestPair p = null;
         Vector3 guess = new Vector3().sub(pb, pa);
+        gjkChecks++;
         if (gjk.evaluate(guess) == GJK.Status.VALID) {
             // non-intersecting pair
            p = support.getClosestPair(gjk.getSimplex(), null);
@@ -56,18 +60,21 @@ public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape,
                return p;
         } 
         
+        epaChecks++;
         EPA epa = new EPA(gjk);
         for (int i = 1; i < MAX_EPA_CHECKS; i++) {
             // intersection or failure, fall back onto EPA
             // must re-run the GJK with scaling so that the simplex is in the correct space
             support.setNumAppliedMargins(i);
 
+            gjkChecks++;
             if (gjk.evaluate(guess) == GJK.Status.VALID) {
                 p = support.getClosestPair(gjk.getSimplex(), null);
                 if (p != null)
                     return p;
             }
 
+            epaChecks++;
             EPA.Status status = epa.evaluate(guess);
             if (status == EPA.Status.VALID) {
                 // epa successfully determined an intersection

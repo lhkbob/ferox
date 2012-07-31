@@ -23,6 +23,7 @@ public class SpatialIndexCollisionController extends CollisionController {
     
     @Override
     public void preProcess(double dt) {
+        super.preProcess(dt);
         index.clear(true);
     }
     
@@ -74,8 +75,9 @@ public class SpatialIndexCollisionController extends CollisionController {
                 ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(), bodyA.getTransform(), 
                                                             bodyB.getShape(), bodyB.getTransform());
                 
-                if (pair != null && pair.isIntersecting())
+                if (pair != null && pair.isIntersecting()) {
                     notifyContact(bodyA, bodyB, pair);
+                }
             }
         }
     }

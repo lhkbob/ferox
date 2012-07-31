@@ -9,10 +9,6 @@ public class LwjglFramework extends AbstractFramework {
     }
     
     public static LwjglFramework create() {
-        return create(2);
-    }
-    
-    public static LwjglFramework create(int numThreads) {
         return create(false, false, false, false);
     }
     

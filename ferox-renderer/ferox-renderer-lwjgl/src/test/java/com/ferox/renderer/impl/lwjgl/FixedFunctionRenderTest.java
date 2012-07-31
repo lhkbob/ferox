@@ -31,7 +31,7 @@ import com.ferox.util.geom.Teapot;
 public class FixedFunctionRenderTest {
     
     public static void main(String[] args) throws Exception {
-        Framework framework = LwjglFramework.create(1);
+        Framework framework = LwjglFramework.create();
         System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
         OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                      .setHeight(600)

@@ -43,6 +43,9 @@ public class MotionController extends SimpleController {
         while(it.next()) {
             Matrix4 transform = cb.getTransform();
             
+            predictedRotation.setUpper(transform);
+            predictedPosition.set(transform.m03, transform.m13, transform.m23);
+            
             integrator.integrateLinearVelocity(rb.getVelocity(), dt, predictedPosition);
             integrator.integrateAngularVelocity(rb.getAngularVelocity(), dt, predictedRotation);
             

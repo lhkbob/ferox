@@ -40,7 +40,7 @@ public class Rectangle implements Geometry {
      * @param top The top edge of the rectangle
      * @throws IllegalArgumentException if left > right or bottom > top
      */
-    public Rectangle(float left, float right, float bottom, float top) {
+    public Rectangle(double left, double right, double bottom, double top) {
         this(left, right, bottom, top,
              new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
     }
@@ -59,7 +59,7 @@ public class Rectangle implements Geometry {
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException if xAxis or yAxis are null
      */
-    public Rectangle(float left, float right, float bottom, float top,
+    public Rectangle(double left, double right, double bottom, double top,
                      @Const Vector3 xAxis, @Const Vector3 yAxis) {
         this(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
     }
@@ -81,7 +81,7 @@ public class Rectangle implements Geometry {
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException if xAxis, yAxis, or mode are null
      */
-    public Rectangle(float left, float right, float bottom, float top, 
+    public Rectangle(double left, double right, double bottom, double top, 
                      @Const Vector3 xAxis, @Const Vector3 yAxis,
                      StorageMode mode) {
         if (left > right || bottom > top)
@@ -107,18 +107,18 @@ public class Rectangle implements Geometry {
 
         va[i++] = 0f;
         va[i++] = 0f;
-
-        // lower-right
-        va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
-        va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
-        va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
+        
+        // upper-left
+        va[i++] = (float) (xAxis.x * left + yAxis.x * top);
+        va[i++] = (float) (xAxis.y * left + yAxis.y * top);
+        va[i++] = (float) (xAxis.z * left + yAxis.z * top);
 
         va[i++] = (float) normal.x;
         va[i++] = (float) normal.y;
         va[i++] = (float) normal.z;
 
-        va[i++] = 1f;
         va[i++] = 0f;
+        va[i++] = 1f;
 
         // upper-right
         va[i++] = (float) (xAxis.x * right + yAxis.x * top);
@@ -131,18 +131,18 @@ public class Rectangle implements Geometry {
 
         va[i++] = 1f;
         va[i++] = 1f;
-
-        // upper-left
-        va[i++] = (float) (xAxis.x * left + yAxis.x * top);
-        va[i++] = (float) (xAxis.y * left + yAxis.y * top);
-        va[i++] = (float) (xAxis.z * left + yAxis.z * top);
+        
+        // lower-right
+        va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
+        va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
+        va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
 
         va[i++] = (float) normal.x;
         va[i++] = (float) normal.y;
         va[i++] = (float) normal.z;
 
-        va[i++] = 0f;
         va[i++] = 1f;
+        va[i++] = 0f;
 
         vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
         vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);

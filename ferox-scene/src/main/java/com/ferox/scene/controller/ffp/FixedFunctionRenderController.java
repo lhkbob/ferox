@@ -162,7 +162,7 @@ public class FixedFunctionRenderController extends SimpleController {
                 if (ctx != null) {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
                     // FIXME clear color should be configurable somehow
-                    ffp.clear(true, true, true, new Vector4(0.0, 0.0, 0.0, 1.0), 1f, 0);
+                    ffp.clear(true, true, true, new Vector4(0.5, 0.5, 0.5, 1.0), 1f, 0);
                     // FIXME should these be moved into a ViewStateGroupFactory?
                     ffp.setProjectionMatrix(view.getProjectionMatrix());
                     ffp.setModelViewMatrix(view.getViewMatrix());

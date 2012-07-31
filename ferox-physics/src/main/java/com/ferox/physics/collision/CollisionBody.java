@@ -194,13 +194,15 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @param group The group that this CollisionBody is added to or removed
      *            from
      * @param member True if the CollisionBody should be a member
+     * @return This component
      * @throws IndexOutOfBoundsException if group is negative or greater than
      *             MAX_GROUPS
      */
-    public void setMemberOfGroup(int group, boolean member) {
+    public CollisionBody setMemberOfGroup(int group, boolean member) {
         if (group < 0 || group >= MAX_GROUPS)
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
         collisionGroups.set(set(collisionGroups.get(getIndex()), 1 << group, member), getIndex());
+        return this;
     }
     
     /**
@@ -209,13 +211,15 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * 
      * @param group The group that this CollisionBody can collide against
      * @param member True if the CollisionBody should collide with the group
+     * @return This component
      * @throws IndexOutOfBoundsException if group is negative or greater than
      *             MAX_GROUPS
      */
-    public void setCollidesWithGroup(int group, boolean collide) {
+    public CollisionBody setCollidesWithGroup(int group, boolean collide) {
         if (group < 0 || group >= MAX_GROUPS)
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
         collisionMask.set(set(collisionMask.get(getIndex()), 1 << group, collide), getIndex());
+        return this;
     }
 
     /**
@@ -231,13 +235,15 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * Assign a new Shape to use for this Collidable.
      * 
      * @param shape The new Shape
+     * @return This component
      * @throws NullPointerException if shape is null
      */
-    public void setShape(Shape shape) {
+    public CollisionBody setShape(Shape shape) {
         if (shape == null)
             throw new NullPointerException("Shape cannot be null");
         this.shape.set(shape, getIndex());
         updateBounds();
+        return this;
     }
 
     /**
@@ -254,12 +260,14 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * and orientation. This will also recompute the Collidable's world bounds.
      * 
      * @param t The transform to copy
+     * @return This component
      * @throws NullPointerException if t is null
      */
-    public void setTransform(@Const Matrix4 t) {
+    public CollisionBody setTransform(@Const Matrix4 t) {
         transformCache.set(t);
         worldTransform.set(t, getIndex());
         updateBounds();
+        return this;
     }
 
     /**

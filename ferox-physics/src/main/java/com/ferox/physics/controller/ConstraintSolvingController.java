@@ -20,7 +20,6 @@ public class ConstraintSolvingController extends SimpleController {
     
     private Vector3Property deltaLinearImpulse;
     private Vector3Property deltaAngularImpulse;
-    // FIXME need a way to get the tensor and mass properties
     
     public ConstraintSolvingController() {
         solver = new LinearConstraintSolver();
@@ -50,10 +49,17 @@ public class ConstraintSolvingController extends SimpleController {
             // linear velocity
             deltaLinearImpulse.get(b.getIndex(), d);
             b.setVelocity(d.add(b.getVelocity()));
+//            System.out.println("New linear velocity: " + d);
             
             // angular velocity
             deltaAngularImpulse.get(b.getIndex(), d);
             b.setAngularVelocity(d.add(b.getAngularVelocity()));
+//            System.out.println("New angular velocity: " + d);
+            
+            // 0 out delta impulse for next frame
+            d.set(0, 0, 0);
+            deltaLinearImpulse.set(d, b.getIndex());
+            deltaAngularImpulse.set(d, b.getIndex());
         }
     }
     

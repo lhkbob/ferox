@@ -42,7 +42,7 @@ public class Sphere implements Geometry {
      * @param radius The radius of the sphere, in local space
      * @throws IllegalArgumentException if radius <= 0
      */
-    public Sphere(float radius) {
+    public Sphere(double radius) {
         this(radius, 8);
     }
 
@@ -55,7 +55,7 @@ public class Sphere implements Geometry {
      *            smoother the tesselation
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      */
-    public Sphere(float radius, int res) {
+    public Sphere(double radius, int res) {
         this(radius, res, StorageMode.IN_MEMORY);
     }
 
@@ -68,7 +68,7 @@ public class Sphere implements Geometry {
      * @throws IllegalArgumentException if radius <= 0
      * @throws NullPointerException if mode is null
      */
-    public Sphere(float radius, StorageMode mode) {
+    public Sphere(double radius, StorageMode mode) {
         this(radius, 8, mode);
     }
 
@@ -81,7 +81,7 @@ public class Sphere implements Geometry {
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      * @throws NullPointerException if mode is null
      */
-    public Sphere(float radius, int res, StorageMode mode) {
+    public Sphere(double radius, int res, StorageMode mode) {
         if (radius <= 0f)
             throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
         if (res < 4)
@@ -112,6 +112,7 @@ public class Sphere implements Geometry {
         
         float[] va = new float[vertexCount * 8]; // 3v + 3n + 2tc
         
+        float floatRadius = (float) radius;
         float yAngle = PI;
         float dY = -PI / (res - 1);
         int index = 0;
@@ -125,9 +126,9 @@ public class Sphere implements Geometry {
             
             for (int du = 0; du <= res; du++) {
                 // place vertices, normals and texcoords
-                va[index++] = radius * r * xCoord[du]; // vx
-                va[index++] = radius * y;              // vy
-                va[index++] = radius * r * zCoord[du]; // vz
+                va[index++] = floatRadius * r * xCoord[du]; // vx
+                va[index++] = floatRadius * y;              // vy
+                va[index++] = floatRadius * r * zCoord[du]; // vz
                 
                 va[index++] = r * xCoord[du];          // nx
                 va[index++] = y;                       // ny

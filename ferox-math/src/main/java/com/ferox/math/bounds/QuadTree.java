@@ -263,7 +263,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
         int minX = hashCellX(bounds.min);
         int minY = hashCellY(bounds.min);
         int maxX = hashCellX(bounds.max);
-        int maxY = hashCellY(bounds.max);
+        int maxY = hashCellY(bounds.max); // FIXME if exactly on far edge of max, we get out of bounds
         
         int hash;
         Cell cell;
@@ -344,7 +344,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
         for (int cellY = 0; cellY < maxCellDimension; cellY++) {
             for (int cellX = 0; cellX < maxCellDimension; cellX++) {
                 cell = spatialHash[hash(cellX, cellY)];
-                if (cell.size > 0) {
+                if (cell != null) {
                     // do an N^2 iteration over items within cell
                     for (int a = 0; a < cell.size; a++) {
                         updateBounds(ba, cell.keys[a]);

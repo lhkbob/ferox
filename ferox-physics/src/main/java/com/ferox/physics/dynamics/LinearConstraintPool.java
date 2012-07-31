@@ -33,7 +33,8 @@ public class LinearConstraintPool {
     // this int[] stores indexes back into this pool of constraints
     private int[] dynamicLimits = new int[0]; // dynamically limit impulse by impulse of other constraint
     private double[] dynamicScaleFactors = new double[0]; // scale factor applied to dynamic limits
- 
+    private LinearConstraintPool dynamicPool;
+    
     // these two int[] store indexes into the RigidBody table in the system
     private int[] bodyAs = new int[0];
     private int[] bodyBs = new int[0];
@@ -46,8 +47,9 @@ public class LinearConstraintPool {
     private final Vector3 angularA = new Vector3();
     private final Vector3 angularB = new Vector3();
     
-    public LinearConstraintPool() {
+    public LinearConstraintPool(LinearConstraintPool linkedPool) {
         count = 0;
+        dynamicPool = (linkedPool == null ? this : linkedPool);
         setCapacity(10);
     }
     
@@ -143,19 +145,19 @@ public class LinearConstraintPool {
     }
     
     public @Const Vector3 getLinearImpulseA(int i, double impulse) {
-        return linearA.set(linearDirAs, i).scale(impulse);
+        return linearA.set(linearDirAs, i * 3).scale(impulse);
     }
     
     public @Const Vector3 getLinearImpulseB(int i, double impulse) {
-        return linearB.set(linearDirBs, i).scale(impulse);
+        return linearB.set(linearDirBs, i * 3).scale(impulse);
     }
     
     public @Const Vector3 getAngularImpulseA(int i, double impulse) {
-        return angularA.set(angleDirAs, i).scale(impulse);
+        return angularA.set(angleDirAs, i * 3).scale(impulse);
     }
     
     public @Const Vector3 getAngularImpulseB(int i, double impulse) {
-        return angularB.set(angleDirBs, i).scale(impulse);
+        return angularB.set(angleDirBs, i * 3).scale(impulse);
     }
     
     public void setAppliedImpulse(int i, double impulse) {
@@ -206,7 +208,7 @@ public class LinearConstraintPool {
     public double getLowerImpulseLimit(int i) {
         int dynamic = dynamicLimits[i];
         if (dynamic >= 0) {
-            return -dynamicScaleFactors[i] * appliedImpulses[dynamic];
+            return -dynamicScaleFactors[i] * dynamicPool.appliedImpulses[dynamic];
         } else {
             return lowerLimits[i];
         }
@@ -215,7 +217,7 @@ public class LinearConstraintPool {
     public double getUpperImpulseLimit(int i) {
         int dynamic = dynamicLimits[i];
         if (dynamic >= 0) {
-            return dynamicScaleFactors[i] * appliedImpulses[dynamic];
+            return dynamicScaleFactors[i] * dynamicPool.appliedImpulses[dynamic];
         } else {
             return upperLimits[i];
         }
