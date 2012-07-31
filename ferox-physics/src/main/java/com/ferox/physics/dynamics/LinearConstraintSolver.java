@@ -112,6 +112,11 @@ public class LinearConstraintSolver {
         // since we're shuffling, we have to allocate these arrays
         int[][] indices = createIndices(groups);
         
+        // handle warmstarting
+        for (int j = 0; j < groups.length; j++) {
+            applyWarmstarting(groups[j]);
+        }
+        
         int[] shuffled;
         LinearConstraintPool group;
         for (int i = 0; i < numIterations; i++) {
@@ -182,6 +187,36 @@ public class LinearConstraintSolver {
         }
         
         group.setAppliedImpulse(constraint, totalImpulse);
+    }
+    
+    private void applyWarmstarting(LinearConstraintPool group) {
+        int count = group.getConstraintCount();
+        for (int i = 0; i < count; i++) {
+            double warmstart = group.getWarmstartImpulse(i);
+            if (warmstart >= 0) {
+                int ba = group.getBodyAIndex(i);
+                if (ba >= 0) {
+                    deltaLinearImpulse.get(ba, linear);
+                    linear.add(group.getLinearImpulseA(i, warmstart));
+                    deltaLinearImpulse.set(linear, ba);
+                    
+                    deltaAngularImpulse.get(ba, angular);
+                    angular.add(group.getAngularImpulseA(i, warmstart));
+                    deltaAngularImpulse.set(angular, ba);
+                }
+                
+                int bb = group.getBodyBIndex(i);
+                if (bb >= 0) {
+                    deltaLinearImpulse.get(bb, linear);
+                    linear.add(group.getLinearImpulseB(i, warmstart));
+                    deltaLinearImpulse.set(linear, bb);
+                    
+                    deltaAngularImpulse.get(bb, angular);
+                    angular.add(group.getAngularImpulseB(i, warmstart));
+                    deltaAngularImpulse.set(angular, bb);
+                }
+            }
+        }
     }
     
     private int[][] createIndices(LinearConstraintPool[] groups) {

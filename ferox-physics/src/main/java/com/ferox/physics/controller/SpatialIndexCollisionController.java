@@ -41,7 +41,7 @@ public class SpatialIndexCollisionController extends CollisionController {
         
         // query for all intersections
         index.query(new CollisionCallback(body1, body2));
-        reportConstraints();
+        reportConstraints(dt);
     }
     
     @Override

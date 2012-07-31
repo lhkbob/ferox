@@ -26,6 +26,7 @@ public class LinearConstraintPool {
     private double[] angleDirBs = new double[0]; // (Vector3) angular torque transformed by B's inertia tensor inverse
     
     private double[] appliedImpulses = new double[0]; // intermediate soln. during iterative solving
+    private double[] warmstartImpulses = new double[0]; // partial impulse from prior solution
     private double[] upperLimits = new double[0]; // upper limit on any change in impulse
     private double[] lowerLimits = new double[0]; // lower limit on any change in impulse
     
@@ -45,11 +46,6 @@ public class LinearConstraintPool {
     private final Vector3 angularA = new Vector3();
     private final Vector3 angularB = new Vector3();
     
-    // FIXME we might be able to avoid this if we have the manifolds remember
-    // the indices of the constraints they produce and as part of the final
-    // update phase, they read back the total applied impulse
-//    private Object impulseListener;
-    
     public LinearConstraintPool() {
         count = 0;
         setCapacity(10);
@@ -67,13 +63,13 @@ public class LinearConstraintPool {
         angleDirAs = Arrays.copyOf(angleDirAs, 3 * newCapacity);
         angleDirBs = Arrays.copyOf(angleDirBs, 3 * newCapacity);
         appliedImpulses = Arrays.copyOf(appliedImpulses, newCapacity);
+        warmstartImpulses = Arrays.copyOf(warmstartImpulses, newCapacity);
         upperLimits = Arrays.copyOf(upperLimits, newCapacity);
         lowerLimits = Arrays.copyOf(lowerLimits, newCapacity);
         dynamicScaleFactors = Arrays.copyOf(dynamicScaleFactors, newCapacity);
         dynamicLimits = Arrays.copyOf(dynamicLimits, newCapacity);
         bodyAs = Arrays.copyOf(bodyAs, newCapacity);
         bodyBs = Arrays.copyOf(bodyBs, newCapacity);
-        // FIXME allocate listeners too, unless we're not using them here
         
         count = Math.min(newCapacity, count);
     }
@@ -87,8 +83,8 @@ public class LinearConstraintPool {
         int i = count++;
         int veci = i * 3;
         if (i >= bodyAs.length) {
-            // increase capacity (since capacity starts at 10, we know i != 0)
-            setCapacity(i * 2);
+            // increase capacity
+            setCapacity((i + 1) * 2);
         }
         
         // copy the three vectors into their arrays
@@ -141,6 +137,7 @@ public class LinearConstraintPool {
         dynamicLimits[i] = -1;
         
         appliedImpulses[i] = 0;
+        warmstartImpulses[i] = 0;
         
         return i;
     }
@@ -163,6 +160,10 @@ public class LinearConstraintPool {
     
     public void setAppliedImpulse(int i, double impulse) {
         appliedImpulses[i] = impulse;
+    }
+    
+    public void setWarmstartImpulse(int i, double impulse) {
+        warmstartImpulses[i] = impulse;
     }
     
     public void setSolution(int i, double solution, double cfm, double jacobian) {
@@ -226,6 +227,10 @@ public class LinearConstraintPool {
     
     public double getConstraintForceMix(int i) {
         return constraintForceMixes[i];
+    }
+    
+    public double getWarmstartImpulse(int i) {
+        return warmstartImpulses[i];
     }
     
     public double getAppliedImpulse(int i) {
