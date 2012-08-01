@@ -4,6 +4,8 @@ import java.awt.Canvas;
 import java.awt.Frame;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
@@ -15,11 +17,11 @@ import com.ferox.input.KeyListener;
 import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.DisplayMode.PixelFormat;
-import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
-import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
-import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.FrameworkException;
+import com.ferox.renderer.OnscreenSurfaceOptions;
+import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
+import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
+import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
@@ -158,17 +160,15 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
      * Start the monitoring threads needed for event pulling and window 
      * management.
      */
-    public void initialize() {
-        adapter.startPolling(getFramework().getLifeCycleManager());
-        
-        if (parentFrame == null) {
-            ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
-            Thread closeMonitor = new Thread(managedGroup, new CloseMonitor(), "window-close-monitor");
-            closeMonitor.setDaemon(true);
-            getFramework().getLifeCycleManager().startManagedThread(closeMonitor);
-        } else {
-            parentFrame.addWindowListener(this);
-        }
+    public void initialize() {      
+    	ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
+    	Thread eventMonitor = new Thread(managedGroup, new EventMonitor(), "lwjgl-event-monitor");
+    	eventMonitor.setDaemon(true);
+    	getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
+
+    	if (parentFrame != null) {
+    		parentFrame.addWindowListener(this);
+    	}
     }
 
     @Override
@@ -366,7 +366,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     protected void destroyImpl() {
-        adapter.stopPolling();
+        //adapter.stopPolling();
         
         // destroy() should be safe on any thread at this point because
         // destroyImpl() is only called after we've released the context
@@ -514,27 +514,55 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     }
     
     /*
-     * Internal class that polls system state to see if the OS/user has
-     * requested the closing of a window (used when there is no parent frame).
+     * Internal class that queues tasks to the gpu thread to periodically check
+     * OS state to push input events, or close the window.
      */
-    private class CloseMonitor implements Runnable {
+    private class EventMonitor implements Runnable {
         @Override
         public void run() {
             while(!isDestroyed()) {
-                boolean closeAllowed;
-                synchronized(surfaceLock) {
-                    closeAllowed = closable;
-                }
-                
-                if (closeAllowed && Display.isCloseRequested())
-                    destroy();
-                
-                try {
-                    Thread.sleep(10);
-                } catch(InterruptedException e) {
-                    // do nothing
-                }
+            	try {
+            		long blockedTime = -System.nanoTime();
+            		getFramework().getContextManager().invokeOnContextThread(new InputTask(), false).get();
+            		getFramework().getContextManager().invokeOnContextThread(new CloseRequestTask(), false).get();
+            		blockedTime += System.nanoTime();
+            		
+                	if (blockedTime < 1000000) {
+                		// sleep if we haven't been waiting a full millisecond, so as 
+                		// not to flood the queue
+                		Thread.sleep(1);
+                	}
+            	} catch(InterruptedException e) {
+            		// don't care
+            	} catch(CancellationException e) {
+            		// don't care, this happens when we're shutting down
+            	} catch(Exception e) {
+            		throw new RuntimeException(e);
+            	}
             }
         }
+    }
+    
+    private class InputTask implements Callable<Void> {
+		@Override
+		public Void call() throws Exception {
+			adapter.poll();
+			return null;
+		}
+    }
+    
+    private class CloseRequestTask implements Callable<Void> {
+    	@Override
+    	public Void call() throws Exception {
+    		boolean closeAllowed;
+            synchronized(surfaceLock) {
+                closeAllowed = closable;
+            }
+            
+            if (closeAllowed && Display.isCloseRequested())
+                destroy();
+            
+            return null;
+    	}
     }
 }
