@@ -249,9 +249,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             resetAttributeAndTextureBindings();
             
             GlslShaderHandle oldHandle = null;
-            if (shader != null) {
+            if (this.shader != null) {
                 oldHandle = shaderHandle;
-                resourceManager.unlock(shader);
+                resourceManager.unlock(this.shader);
                 this.shader = null;
                 shaderHandle = null;
             }
@@ -264,7 +264,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 }
             }
             
-            if (shader != null) {
+            if (this.shader != null) {
                 // we have a valid shader, so use it and rebuild attribute/uniform bindings
                 glUseProgram(shaderHandle);
                 
