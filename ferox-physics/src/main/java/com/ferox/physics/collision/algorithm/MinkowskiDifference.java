@@ -133,7 +133,7 @@ public class MinkowskiDifference {
             if (intersecting)
                 distDelta *= -1.0;
             
-            wA.add(wA, pA.scale(normal, (1 - appliedMargins) * shapeA.getMargin()));
+            wA.add(pA.scale(normal, (1 - appliedMargins) * shapeA.getMargin()));
             if ((appliedMargins == 0 && intersecting) || (appliedMargins > 1 && !intersecting)) {
                 // moving to one margin increases distance
                 distance += distDelta;
@@ -152,7 +152,7 @@ public class MinkowskiDifference {
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
             getAffineSupport(shapeA, transA, simplex.getVertex(i).getInputVector(), supportCache);
-            result.add(supportCache.scale(simplex.getVertex(i).getWeight()), result);
+            result.add(supportCache.scale(simplex.getVertex(i).getWeight()));
         }
         return result;
     }
@@ -162,7 +162,7 @@ public class MinkowskiDifference {
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
             getAffineSupport(shapeB, transB, supportCache.scale(simplex.getVertex(i).getInputVector(), -1.0), supportCache);
-            result.add(supportCache.scale(simplex.getVertex(i).getWeight()), result);
+            result.add(supportCache.scale(simplex.getVertex(i).getWeight()));
         }
         return result;
     }
@@ -199,23 +199,19 @@ public class MinkowskiDifference {
     private void getAffineSupport(ConvexShape shape, @Const Matrix4 t, @Const Vector3 d, Vector3 result) {
         // first step is to transform d by the transpose of the upper 3x3
         // we do this by wrapping d in a 4-vector and setting w = 0
-        transformCache.set(d.x, d.y, d.z, 0.0);
-        transformCache.mul(transformCache, t);
+        transformCache.set(d.x, d.y, d.z, 0.0).mul(transformCache, t);
         
-        // second step is to compute the actual support
-        result.set(transformCache.x, transformCache.y, transformCache.z);
-        dirCache.set(result);
-        
-        shape.computeSupport(result, result);
+        // second step is to compute the local support
+        dirCache.set(transformCache.x, transformCache.y, transformCache.z);
+        shape.computeSupport(dirCache, result);
         
         if (appliedMargins > 0) {
             // apply a number of margin offsets, as if a sphere is added to the convex shape
-            result.add(dirCache.scale(appliedMargins * shape.getMargin()), result);
+            result.add(dirCache.scale(appliedMargins * shape.getMargin()));
         }
         
         // then transform that by the complete affine transform, so w = 1
-        transformCache.set(result.x, result.y, result.z, 1.0);
-        transformCache.mul(t, transformCache);
+        transformCache.set(result.x, result.y, result.z, 1.0).mul(t, transformCache);
         result.set(transformCache.x, transformCache.y, transformCache.z);
     }
 }

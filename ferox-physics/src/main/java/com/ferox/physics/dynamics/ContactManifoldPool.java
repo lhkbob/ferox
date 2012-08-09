@@ -156,6 +156,7 @@ public class ContactManifoldPool {
         usedManifolds = 0;
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
+//                System.out.println("Processing manifold " + manifold);
                 // load in component data
                 objAs[manifold].get(bodyA);
                 objAs[manifold].get(rbA);
@@ -170,6 +171,7 @@ public class ContactManifoldPool {
                 int updatedCount = 0;
                 for (int point = 0; point < MANIFOLD_POINT_SIZE; point++) {
                     if (updateManifoldPoint(manifold, point, bodyA, bodyB)) {
+//                        System.out.println("Manifold point " + point + " updated and live");
                         updatedCount++;
                         
                         int index = toIndex(manifold, point);
@@ -233,6 +235,7 @@ public class ContactManifoldPool {
                 }
                 
                 if (updatedCount == 0) {
+//                    System.out.println("Manifold has no more points, removed");
                     // all manifold points are dead after the update, so we need
                     // to remove this manifold
                     removeManifold(manifold);
@@ -241,6 +244,8 @@ public class ContactManifoldPool {
                 }
             }
         }
+        
+        System.out.println("end frame");
     }
     
     public void addContact(CollisionBody objA, CollisionBody objB, ClosestPair pair) {
@@ -298,14 +303,20 @@ public class ContactManifoldPool {
         double denom = 0.0;
         
         if (rbA.isEnabled()) {
-            relativeVelocity += (constraintAxis.dot(rbA.getVelocity()) + torqueA.dot(rbA.getAngularVelocity()));
+            double relVelA = (constraintAxis.dot(rbA.getVelocity()) + torqueA.dot(rbA.getAngularVelocity()));
+            double denomA =  (rbA.getInverseMass() + torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
+//            System.out.println(" - relVelA: " + relVelA + ", denomA: " + denomA);
+            relativeVelocity += relVelA;
             // we don't need torqueA anymore, so the multiply and cross can be in-place
-            denom += (rbA.getInverseMass() + torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
+            denom += denomA;
         }
         if (rbB.isEnabled()) {
-            relativeVelocity -= (constraintAxis.dot(rbB.getVelocity()) + torqueB.dot(rbB.getAngularVelocity()));
+            double relVelB = (constraintAxis.dot(rbB.getVelocity()) + torqueB.dot(rbB.getAngularVelocity()));
+            double denomB = (rbB.getInverseMass() + torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
+//            System.out.println(" - relVelB: " + relVelB + ", denomB: " + denomB);
+            relativeVelocity -= relVelB;
             // we don't need torqueB anymore, so the multiply and cross can be in-place
-            denom += (rbB.getInverseMass() + torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
+            denom += denomB;
         }
         
         double jacobian = 1.0 / denom;
@@ -318,6 +329,7 @@ public class ContactManifoldPool {
         }
         
         // warmstart constraint solution
+        System.out.println("Warmstart: " + appliedImpulse);
         pool.setWarmstartImpulse(constraint, .85 * appliedImpulse);
         
         double velocityError = restitution - relativeVelocity;

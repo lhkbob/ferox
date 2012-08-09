@@ -39,13 +39,13 @@ public class LinearConstraintPool {
     private int[] bodyAs = new int[0];
     private int[] bodyBs = new int[0];
     
-    private final Vector3 direction = new Vector3();
-    private final Vector3 torqueA = new Vector3();
-    private final Vector3 torqueB = new Vector3();
-    private final Vector3 linearA = new Vector3();
-    private final Vector3 linearB = new Vector3();
-    private final Vector3 angularA = new Vector3();
-    private final Vector3 angularB = new Vector3();
+//    private final Vector3 direction = new Vector3();
+//    private final Vector3 torqueA = new Vector3();
+//    private final Vector3 torqueB = new Vector3();
+//    private final Vector3 linearA = new Vector3();
+//    private final Vector3 linearB = new Vector3();
+//    private final Vector3 angularA = new Vector3();
+//    private final Vector3 angularB = new Vector3();
     
     public LinearConstraintPool(LinearConstraintPool linkedPool) {
         count = 0;
@@ -102,10 +102,9 @@ public class LinearConstraintPool {
             linearDirAs[veci + 1] = direction.y * imA;
             linearDirAs[veci + 2] = direction.z * imA;
             
-            this.torqueA.mul(bodyA.getInertiaTensorInverse(), torqueA);
-            angleDirAs[veci] = this.torqueA.x;
-            angleDirAs[veci + 1] = this.torqueA.y;
-            angleDirAs[veci + 2] = this.torqueA.z;
+//            this.torqueA.mul(bodyA.getInertiaTensorInverse(), torqueA);
+            Vector3 t = new Vector3().mul(bodyA.getInertiaTensorInverse(), torqueA);
+            t.get(angleDirAs, veci);
         } else {
             // assign negative id
             bodyAs[i] = -1;
@@ -119,10 +118,9 @@ public class LinearConstraintPool {
             linearDirBs[veci + 1] = direction.y * imB;
             linearDirBs[veci + 2] = direction.z * imB;
             
-            this.torqueB.mul(bodyB.getInertiaTensorInverse(), torqueB);
-            angleDirBs[veci] = this.torqueB.x;
-            angleDirBs[veci + 1] = this.torqueB.y;
-            angleDirBs[veci + 2] = this.torqueB.z;
+//            this.torqueB.mul(bodyB.getInertiaTensorInverse(), torqueB);
+            Vector3 t = new Vector3().mul(bodyB.getInertiaTensorInverse(), torqueB);
+            t.get(angleDirBs, veci);
         } else {
             // assign negative id
             bodyBs[i] = -1;
@@ -145,19 +143,19 @@ public class LinearConstraintPool {
     }
     
     public @Const Vector3 getLinearImpulseA(int i, double impulse) {
-        return linearA.set(linearDirAs, i * 3).scale(impulse);
+        return new Vector3().set(linearDirAs, i * 3).scale(impulse);
     }
     
     public @Const Vector3 getLinearImpulseB(int i, double impulse) {
-        return linearB.set(linearDirBs, i * 3).scale(impulse);
+        return new Vector3().set(linearDirBs, i * 3).scale(impulse);
     }
     
     public @Const Vector3 getAngularImpulseA(int i, double impulse) {
-        return angularA.set(angleDirAs, i * 3).scale(impulse);
+        return new Vector3().set(angleDirAs, i * 3).scale(impulse);
     }
     
     public @Const Vector3 getAngularImpulseB(int i, double impulse) {
-        return angularB.set(angleDirBs, i * 3).scale(impulse);
+        return new Vector3().set(angleDirBs, i * 3).scale(impulse);
     }
     
     public void setAppliedImpulse(int i, double impulse) {
@@ -190,15 +188,15 @@ public class LinearConstraintPool {
     }
     
     public @Const Vector3 getConstraintDirection(int i) {
-        return direction.set(directions, i * 3);
+        return new Vector3().set(directions, i * 3);
     }
     
     public @Const Vector3 getTorqueA(int i) {
-        return torqueA.set(torqueAs, i * 3);
+        return new Vector3().set(torqueAs, i * 3);
     }
     
     public @Const Vector3 getTorqueB(int i) {
-        return torqueB.set(torqueBs, i * 3);
+        return new Vector3().set(torqueBs, i * 3);
     }
     
     public double getJacobianDiagonalInverse(int i) {

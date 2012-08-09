@@ -43,8 +43,7 @@ public class ExplicitEulerIntegrator implements Integrator {
         double angvel = veclength;
         if (angvel * dt > MAX_ANGULAR_VELOCITY) {
             // set axis to be linear velocity but with magnitude = MAX / dt
-            // FIXME axis is set to garbage at this point, which is probably wrong
-            axis.scale(MAX_ANGULAR_VELOCITY / (angvel * dt));
+            axis.scale(v, MAX_ANGULAR_VELOCITY / (angvel * dt));
             angvel = MAX_ANGULAR_VELOCITY / dt;
         } else {
             axis.set(v); // don't need to clamp so just set axis to angular velocity

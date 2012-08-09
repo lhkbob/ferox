@@ -77,7 +77,6 @@ public class GJK {
     public Simplex getSimplex() {
         return simplex;
     }
-
     
     /**
      * Run the GJK algorithm on the {@link MinkowskiDifference} specified when
@@ -99,10 +98,10 @@ public class GJK {
             ray.set(-1, 0, 0); // for 0-vector guess, choose arbitrary vector to start
         
         int iterations = 0;
-        double alpha = 0f;
+        double alpha = 0.0;
         
         simplex.addVertex(function, ray, true);
-        simplex.getVertex(0).setWeight(1f);
+        simplex.getVertex(0).setWeight(1);
         ray.set(simplex.getVertex(0).getVertex());
         // old support values are tracked so we can terminate when a duplicate is 
         // returned in subsequent iterations
@@ -158,7 +157,7 @@ public class GJK {
                 // the simplex is valid, compute next guess
                 ray.set(0.0, 0.0, 0.0);
                 for (int i = 0; i < simplex.getRank(); i++)
-                    ray.add(ray, scaledVertex.scale(simplex.getVertex(i).getVertex(), simplex.getVertex(i).getWeight()));
+                    ray.add(scaledVertex.scale(simplex.getVertex(i).getVertex(), simplex.getVertex(i).getWeight()));
                 
                 // terminate if the simplex is full
                 if (simplex.getRank() == 4)

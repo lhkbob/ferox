@@ -62,7 +62,18 @@ public class LinearConstraintSolver {
         return numIterations;
     }
 
+    public static long warmstartTime = 0;
+    public static long shuffleTime = 0;
+    public static long solveTime = 0;
+    
     public void solve(LinearConstraintPool... groups) {
+        // handle warmstarting
+        warmstartTime -= System.nanoTime();
+        for (int i = 0; i < groups.length; i++) {
+            applyWarmstarting(groups[i]);
+        }
+        warmstartTime += System.nanoTime();
+        
         if (shuffleConstraints) {
             if (shuffleEachIteration) {
                 solveShuffle(groups);
@@ -75,6 +86,7 @@ public class LinearConstraintSolver {
     }
     
     private void solveNoShuffling(LinearConstraintPool[] groups) {
+        solveTime -= System.nanoTime();
         // with no shuffling we don't need an array of indices
         int count;
         LinearConstraintPool group;
@@ -87,16 +99,20 @@ public class LinearConstraintSolver {
                 }
             }
         }
+        solveTime += System.nanoTime();
     }
     
     private void solveShuffleOnce(LinearConstraintPool[] groups) {
+        shuffleTime -= System.nanoTime();
         // since we're shuffling, we have to allocate these arrays
         int[][] indices = createIndices(groups);
         // shuffle one time at the very start
         for (int i = 0; i < groups.length; i++) {
             shuffle(indices[i]);
         }
+        shuffleTime += System.nanoTime();
         
+        solveTime -= System.nanoTime();
         int[] shuffled;
         LinearConstraintPool group;
         for (int i = 0; i < numIterations; i++) {
@@ -104,20 +120,18 @@ public class LinearConstraintSolver {
                 shuffled = indices[j];
                 group = groups[j];
                 for (int k = 0; k < shuffled.length; k++) {
-                    solveSingleConstraint(group, k);
+                    solveSingleConstraint(group, shuffled[k]);
                 }
             }
         }
+        solveTime += System.nanoTime();
     }
     
     private void solveShuffle(LinearConstraintPool[] groups) {
+        shuffleTime -= System.nanoTime();
         // since we're shuffling, we have to allocate these arrays
         int[][] indices = createIndices(groups);
-        
-        // handle warmstarting
-        for (int j = 0; j < groups.length; j++) {
-            applyWarmstarting(groups[j]);
-        }
+        shuffleTime += System.nanoTime();
         
         int[] shuffled;
         LinearConstraintPool group;
@@ -126,12 +140,16 @@ public class LinearConstraintSolver {
                 shuffled = indices[j];
                 group = groups[j];
                 
+                shuffleTime -= System.nanoTime();
                 // shuffle the indices every iteration
                 shuffle(shuffled);
+                shuffleTime += System.nanoTime();
                 
+                solveTime -= System.nanoTime();
                 for (int k = 0; k < shuffled.length; k++) {
-                    solveSingleConstraint(group, k);
+                    solveSingleConstraint(group, shuffled[k]);
                 }
+                solveTime += System.nanoTime();
             }
         }
     }
@@ -142,21 +160,32 @@ public class LinearConstraintSolver {
         double jacobian = group.getJacobianDiagonalInverse(constraint);
         double deltaImpulse = group.getSolution(constraint);
         
+        double deltaVelADotN = 0;
+        double deltaVelBDotN = 0;
+        
         int ba = group.getBodyAIndex(constraint);
+        int bb = group.getBodyBIndex(constraint);
+        
+//        System.out.println("Adding impulse to (" + ba + ", " + bb + ")");
         if (ba >= 0) {
             deltaLinearImpulse.get(ba, linear);
             deltaAngularImpulse.get(ba, angular);
             
-            deltaImpulse += -jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueA(constraint).dot(angular));
+            deltaVelADotN = -jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueA(constraint).dot(angular));
+//            System.out.println(" - dlA: " + linear + ", daA: " + angular);
         }
         
-        int bb = group.getBodyBIndex(constraint);
         if (bb >= 0) {
             deltaLinearImpulse.get(bb, linear);
             deltaAngularImpulse.get(bb, angular);
             
-            deltaImpulse += jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueB(constraint).dot(angular));
+            deltaVelBDotN = jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueB(constraint).dot(angular));
+//            System.out.println(" - dlB: " + linear + ", daB: " + angular);
         }
+        
+//        System.out.println(" - velADotN: " + deltaVelADotN + ", velBDotN: " + deltaVelBDotN);
+
+        deltaImpulse = group.getSolution(constraint) + deltaVelADotN + deltaVelBDotN;
         
         double applied = group.getAppliedImpulse(constraint);
         double totalImpulse = applied + deltaImpulse;
@@ -190,7 +219,6 @@ public class LinearConstraintSolver {
             deltaAngularImpulse.set(angular, bb);
         }
         
-//        System.out.println("Adding impulse to (" + ba + ", " + bb + ")");
 //        System.out.println(" - delta: " + deltaImpulse + ", total: " + totalImpulse + ", expected soln: " + group.getSolution(constraint));
 //        System.out.println(" - constraint id: " + constraint);
         group.setAppliedImpulse(constraint, totalImpulse);

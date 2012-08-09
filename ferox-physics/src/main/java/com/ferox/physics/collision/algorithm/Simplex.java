@@ -199,7 +199,9 @@ public class Simplex {
             Vector3 axis = new Vector3();
             
             for (int i = 0; i < 3; i++) {
-                d.cross(axis.set(0.0, 0.0, 0.0).set(i, 1.0), axis);
+                axis.set(0, 0, 0).set(i, 1.0);
+                axis.cross(d, axis);
+//                d.cross(axis.set(0.0, 0.0, 0.0).set(i, 1.0), axis);
                 if (axis.lengthSquared() > 0) {
                     addVertex(shape, axis);
                     if (encloseOrigin(shape))
@@ -437,7 +439,7 @@ public class Simplex {
                     return d.scale(t).add(a).lengthSquared();
                 }
             } else
-                return -1f;
+                return -1.0;
         }
         
         public double projectOrigin3(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c, double[] weights, int[] mask) {
@@ -464,7 +466,7 @@ public class Simplex {
                                       ((subm3[0] & 2) != 0 ? (1 << j) : 0);
                             weights[i] = subw3[0];
                             weights[j] = subw3[1];
-                            weights[IMD3[j]] = 0f;
+                            weights[IMD3[j]] = 0.0;
                         }
                     }
                 }
@@ -472,12 +474,12 @@ public class Simplex {
                 if (minDist < 0.0) {
                     double d = a.dot(n3);
                     double s = Math.sqrt(l);
-                    p3.scale(n3, d / l);
+                    n3.scale(d / l);
                     
-                    minDist = p3.lengthSquared();
+                    minDist = n3.lengthSquared();
                     mask[0] = 7;
-                    weights[0] = dl3[1].cross(n3.sub(b, p3)).length() / s; // at this point dl[1] and n are throwaway
-                    weights[1] = dl3[2].cross(n3.sub(c, p3)).length() / s; // at this point dl[2] and n are throwaway
+                    weights[0] = dl3[1].cross(p3.sub(b, n3)).length() / s; // at this point dl[1] and p3 are throwaway
+                    weights[1] = dl3[2].cross(p3.sub(c, n3)).length() / s; // at this point dl[2] and p3 throwaway
                     weights[2] = 1 - weights[0] - weights[1];
                 }
                 return minDist;
