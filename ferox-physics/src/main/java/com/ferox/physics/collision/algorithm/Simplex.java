@@ -92,9 +92,9 @@ public class Simplex {
     public boolean encloseOrigin() {
         if (encloseOriginImpl()) {
             // orient the simplex
-            if (det(new Vector3().sub(vertices[0], vertices[3]),
-                    new Vector3().sub(vertices[1], vertices[3]),
-                    new Vector3().sub(vertices[2], vertices[3])) < 0.0) {
+            if (Util.tripleProduct(new Vector3().sub(vertices[0], vertices[3]),
+                                   new Vector3().sub(vertices[1], vertices[3]),
+                                   new Vector3().sub(vertices[2], vertices[3])) < 0.0) {
                 Vector3 temp = new Vector3();
                 
                 temp.set(vertices[0]);
@@ -156,7 +156,7 @@ public class Simplex {
         }
         case 3:
         {
-            Vector3 n = new Vector3().sub(vertices[1], vertices[0]).cross(new Vector3().sub(vertices[2], vertices[0]));
+            Vector3 n = Util.normal(vertices[0], vertices[1], vertices[2], null);
             if (n.lengthSquared() > 0) {
                 addVertex(n, false);
                 if (encloseOriginImpl())
@@ -171,9 +171,9 @@ public class Simplex {
         }
         case 4:
         {
-            if (Math.abs(det(new Vector3().sub(vertices[0], vertices[3]),
-                             new Vector3().sub(vertices[1], vertices[3]),
-                             new Vector3().sub(vertices[2], vertices[3]))) > 0.0) {
+            if (Math.abs(Util.tripleProduct(new Vector3().sub(vertices[0], vertices[3]),
+                                            new Vector3().sub(vertices[1], vertices[3]),
+                                            new Vector3().sub(vertices[2], vertices[3]))) > 0.0) {
                 return true;
             }
             break;
@@ -323,7 +323,7 @@ public class Simplex {
         ds[1] = new Vector3().sub(b, d);
         ds[2] = new Vector3().sub(c, d);
         
-        double vl = det(ds[0], ds[1], ds[2]);
+        double vl = Util.tripleProduct(ds[0], ds[1], ds[2]);
         boolean ng = (vl * a.dot(new Vector3().sub(b, c).cross(new Vector3().sub(a, b)))) <= 0.0;
         
         if (ng && Math.abs(vl) > 0.0) {
@@ -352,9 +352,9 @@ public class Simplex {
             if (minDist < 0.0) {
                 minDist = 0.0;
                 mask = 15;
-                weights[0] = det(c, b, d) / vl;
-                weights[1] = det(a, c, d) / vl;
-                weights[2] = det(b, a, d) / vl;
+                weights[0] = Util.tripleProduct(c, b, d) / vl;
+                weights[1] = Util.tripleProduct(a, c, d) / vl;
+                weights[2] = Util.tripleProduct(b, a, d) / vl;
                 weights[3] = 1 - weights[0] - weights[1] - weights[2];
             }
             
@@ -364,12 +364,7 @@ public class Simplex {
         }
     }
     
-    public static double det(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c) {
-        return a.y * b.z * c.x + a.z * b.x * c.y -
-               a.x * b.z * c.y - a.y * b.x * c.z +
-               a.x * b.y * c.z - a.z * b.y * c.x;
-    }
-    
+    // FIXME work out a way to reduce the allocation of Projection objects
     private static class Projection {
         final double[] weights;
         final double distance;

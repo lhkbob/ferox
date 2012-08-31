@@ -33,14 +33,16 @@ public class EPA {
                 bind(f2, 2, f3, 1);
                 bind(f3, 2, f4, 1);
                 
+                Vector3 iw = new Vector3();
+                Vector3 vw = new Vector3();
+                Horizon horizon = new Horizon();
+
                 for (int pass = 1; pass < EPA_MAX_ITERATIONS; pass++) {
+                    horizon.reset();
                     best.pass = pass;
                     
-                    Vector3 iw = new Vector3();
-                    Vector3 vw = new Vector3();
                     simplex.getShape().getSupport(iw.set(best.normal), vw);
                     
-                    Horizon horizon = new Horizon(); // FIXME cache and reset instead of alloc
                     double wdist = best.normal.dot(vw) - best.d;
                     boolean valid = true;
                     if (wdist > EPA_ACCURACY) {
@@ -66,7 +68,6 @@ public class EPA {
                 
                 // create new reduced simplex from hull
                 Vector3 projection = new Vector3().scale(outer.normal, outer.d);
-                simplex = new Simplex(simplex.getShape());
                 simplex.setRank(outer.inputs.length);
                 for (int j = 0; j < outer.inputs.length; j++) {
                     simplex.getInput(j).set(outer.inputs[j]);
@@ -76,9 +77,13 @@ public class EPA {
                 // FIXME these do double the number of required subtractions,
                 // also it might be worth considering creating an optimized crossLength()
                 // method that just computes the length of the cross product
-                double w1 = new Vector3().sub(outer.vertices[1], projection).cross(new Vector3().sub(outer.vertices[2], projection)).length();
-                double w2 = new Vector3().sub(outer.vertices[2], projection).cross(new Vector3().sub(outer.vertices[0], projection)).length();
-                double w3 = new Vector3().sub(outer.vertices[0], projection).cross(new Vector3().sub(outer.vertices[1], projection)).length();
+                Vector3 t = new Vector3();
+                double w1 = Util.normal(projection, outer.vertices[1], outer.vertices[2], t).length();
+                double w2 = Util.normal(projection, outer.vertices[2], outer.vertices[0], t).length();
+                double w3 = Util.normal(projection, outer.vertices[0], outer.vertices[1], t).length();
+//                double w1 = new Vector3().sub(outer.vertices[1], projection).cross(new Vector3().sub(outer.vertices[2], projection)).length();
+//                double w2 = new Vector3().sub(outer.vertices[2], projection).cross(new Vector3().sub(outer.vertices[0], projection)).length();
+//                double w3 = new Vector3().sub(outer.vertices[0], projection).cross(new Vector3().sub(outer.vertices[1], projection)).length();
                 
                 double sum = w1 + w2 + w3;
                 simplex.setWeight(0, w1 / sum);
@@ -117,7 +122,12 @@ public class EPA {
         if (f.pass != pass) {
             int e1 = I1_MAP[e];
             if (f.normal.dot(vw) - f.d < -EPA_PLANE_EPS) {
-                Face nf = newFace(f.inputs[e1], f.vertices[e1], f.inputs[e], f.vertices[e], iw, vw, hull, false);
+                // If we need a new face, we clone iw and vw because they're 
+                // being reused in the EPA loop. The other vertices are already
+                // in the hull and won't be modified anymore so we can share references.
+                Face nf = newFace(f.inputs[e1], f.vertices[e1], 
+                                  f.inputs[e], f.vertices[e], 
+                                  new Vector3(iw), new Vector3(vw), hull, false);
                 if (nf != null) {
                     bind(nf, 0, f, e);
                     if (horizon.cf != null)
@@ -171,9 +181,11 @@ public class EPA {
     }
     
     private static Face newFace(Simplex simplex, int i1, int i2, int i3, Bag<Face> hull) {
-        return newFace(simplex.getInput(i1), simplex.getVertex(i1), 
-                       simplex.getInput(i2), simplex.getVertex(i2),
-                       simplex.getInput(i3), simplex.getVertex(i3),
+        // the simplex will be later modified, so we clone the vertices here
+        // so that we're not inadvertently editing the hull either
+        return newFace(new Vector3(simplex.getInput(i1)), new Vector3(simplex.getVertex(i1)), 
+                       new Vector3(simplex.getInput(i2)), new Vector3(simplex.getVertex(i2)),
+                       new Vector3(simplex.getInput(i3)), new Vector3(simplex.getVertex(i3)),
                        hull, true);
     }
     
@@ -189,7 +201,7 @@ public class EPA {
         face.inputs[1] = ib;
         face.inputs[2] = ic;
             
-        face.normal.sub(vb, va).cross(new Vector3().sub(vc, va));
+        Util.normal(va, vb, vc, face.normal);
             
         double l = face.normal.length();
         boolean valid = l > EPA_ACCURACY;
@@ -232,6 +244,12 @@ public class EPA {
         Face cf;
         Face ff;
         int numFaces;
+        
+        public void reset() {
+            cf = null;
+            ff = null;
+            numFaces = 0;
+        }
     }
     
     private static class Face {
@@ -266,14 +284,6 @@ public class EPA {
                 // update swapped item's index
                 hull.get(index).index = index;
             }
-            
-//            for (Face f: hull) {
-//                for (int i = 0; i < f.adjacent.length; i++) {
-//                    if (f.adjacent[i] == this) {
-//                        throw new IllegalArgumentException();
-//                    }
-//                }
-//            }
         }
     }
 }

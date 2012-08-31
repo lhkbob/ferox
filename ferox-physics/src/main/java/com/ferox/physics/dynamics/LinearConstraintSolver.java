@@ -138,9 +138,6 @@ public class LinearConstraintSolver {
         double jacobian = group.getJacobianDiagonalInverse(constraint);
         double deltaImpulse = group.getSolution(constraint);
         
-        double deltaVelADotN = 0;
-        double deltaVelBDotN = 0;
-        
         int ba = group.getBodyAIndex(constraint);
         int bb = group.getBodyBIndex(constraint);
         
@@ -148,29 +145,24 @@ public class LinearConstraintSolver {
             deltaLinearImpulse.get(ba, linear);
             deltaAngularImpulse.get(ba, angular);
             
-            deltaVelADotN = -jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueA(constraint).dot(angular));
+            deltaImpulse -= jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueA(constraint).dot(angular));
         }
         
         if (bb >= 0) {
             deltaLinearImpulse.get(bb, linear);
             deltaAngularImpulse.get(bb, angular);
             
-            deltaVelBDotN = jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueB(constraint).dot(angular));
+            deltaImpulse += jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueB(constraint).dot(angular));
         }
         
-        deltaImpulse = group.getSolution(constraint) + deltaVelADotN + deltaVelBDotN;
-        
-        // FIXME consolidate again
         double applied = group.getAppliedImpulse(constraint);
         double totalImpulse = applied + deltaImpulse;
-        double lower = group.getLowerImpulseLimit(constraint);
-        double upper = group.getUpperImpulseLimit(constraint);
-        if (totalImpulse < lower) {
-            deltaImpulse = lower - applied;
-            totalImpulse = lower;
-        } else if (totalImpulse > upper) {
-            deltaImpulse = upper - applied;
-            totalImpulse = upper;
+        if (totalImpulse < group.getLowerImpulseLimit(constraint)) {
+            totalImpulse = group.getLowerImpulseLimit(constraint);
+            deltaImpulse = totalImpulse - applied; // really (lower - applied)
+        } else if (totalImpulse > group.getUpperImpulseLimit(constraint)) {
+            totalImpulse = group.getUpperImpulseLimit(constraint);
+            deltaImpulse = totalImpulse - applied; // really (upper - applied)
         }
         
         if (ba >= 0) {

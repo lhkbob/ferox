@@ -20,6 +20,10 @@ public class MinkowskiShape {
     
     private int numMargins;
     
+    // temporary variables to reduce allocation costs
+    private final Vector3 pointTemp; // used in computePointOnA/B(), getClosestPair(), and getSupport()
+    private final Vector3 inSupportTemp; // used in support()
+    
     public MinkowskiShape(ConvexShape shapeA, @Const Matrix4 transformA,
                           ConvexShape shapeB, @Const Matrix4 transformB) {
         rotationA = new Matrix3().setUpper(transformA);
@@ -30,6 +34,9 @@ public class MinkowskiShape {
         
         this.shapeA = shapeA;
         this.shapeB = shapeB;
+        
+        pointTemp = new Vector3();
+        inSupportTemp = new Vector3();
         
         numMargins = 1;
     }
@@ -73,7 +80,7 @@ public class MinkowskiShape {
         // update positions to be only a single margin away
         if (numMargins != 1) {
             // adjust a's point by moving N margins along the contact normal
-            a.add(new Vector3().scale(normal, (1 - numMargins) * shapeA.getMargin()));
+            a.add(pointTemp.scale(normal, (1 - numMargins) * shapeA.getMargin()));
             
             // compute how the contact depth changes
             double delta = scale * Math.abs(numMargins - 1) * (shapeA.getMargin() + shapeB.getMargin());
@@ -91,40 +98,33 @@ public class MinkowskiShape {
     
     private Vector3 computePointOnA(Simplex simplex) {
         Vector3 a = new Vector3();
-        Vector3 s = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
-            support(shapeA, rotationA, translationA, simplex.getInput(i), false, s);
-            a.add(s.scale(simplex.getWeight(i)));
+            support(shapeA, rotationA, translationA, simplex.getInput(i), false, pointTemp);
+            a.add(pointTemp.scale(simplex.getWeight(i)));
         }
         return a;
     }
     
     private Vector3 computePointOnB(Simplex simplex) {
         Vector3 b = new Vector3();
-        Vector3 s = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
-            support(shapeB, rotationB, translationB, simplex.getInput(i), true, s);
-            b.add(s.scale(simplex.getWeight(i)));
+            support(shapeB, rotationB, translationB, simplex.getInput(i), true, pointTemp);
+            b.add(pointTemp.scale(simplex.getWeight(i)));
         }
         return b;
     }
     
     public Vector3 getSupport(@Const Vector3 dir, Vector3 result) {
-        Vector3 a = new Vector3();
-        Vector3 b = new Vector3();
-        
-        support(shapeA, rotationA, translationA, dir, false, a);
-        support(shapeB, rotationB, translationB, dir, true, b);
-        
         if (result == null)
             result = new Vector3();
-        return result.sub(a, b);
+        support(shapeA, rotationA, translationA, dir, false, result);
+        support(shapeB, rotationB, translationB, dir, true, pointTemp);
+        return result.sub(pointTemp);
     }
     
     private void support(ConvexShape shape, @Const Matrix3 r, @Const Vector3 t,
                          @Const Vector3 d, boolean negate, Vector3 result) {
-        // FIXME optimize by replacing with cached instances
-        Vector3 transformedDir = (negate ? new Vector3().scale(d, -1.0) : new Vector3(d));
+        Vector3 transformedDir = (negate ? inSupportTemp.scale(d, -1.0) : inSupportTemp.set(d));
         transformedDir.mul(transformedDir, r);
 
         shape.computeSupport(transformedDir, result);
