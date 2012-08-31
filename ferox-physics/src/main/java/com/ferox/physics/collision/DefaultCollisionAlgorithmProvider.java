@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
+import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm2;
 import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
 
@@ -36,7 +36,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
         algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?,?>>();
         lookup = new TypePair(null, null);
         
-        register(new com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm2());
+        register(new GjkEpaCollisionAlgorithm2());
         register(new SphereSphereCollisionAlgorithm());
     }
 

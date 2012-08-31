@@ -33,16 +33,6 @@ public class Simplex2 {
         isIntersection = false;
     }
     
-    public Simplex2(MinkowskiShape shape, Simplex s) {
-        this(shape);
-        rank = s.getRank();
-        for (int i = 0; i < rank; i++) {
-            inputs[i].set(s.getVertex(i).getInputVector());
-            vertices[i].set(s.getVertex(i).getVertex());
-            weights[i] = s.getVertex(i).getWeight();
-        }
-    }
-    
     public MinkowskiShape getShape() {
         return shape;
     }

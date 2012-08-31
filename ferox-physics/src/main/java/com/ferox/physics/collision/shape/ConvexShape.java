@@ -4,7 +4,6 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.physics.collision.Shape;
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
 /**
  * ConvexShape is a Shape type that represents a convex hull. It itself is not a

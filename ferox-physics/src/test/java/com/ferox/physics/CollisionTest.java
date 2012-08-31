@@ -19,7 +19,6 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.Shape;
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm2;
 import com.ferox.physics.collision.shape.ConvexShape;
 import com.ferox.renderer.Framework;
@@ -287,14 +286,6 @@ public class CollisionTest {
             }
         }, new KeyPressedCondition(KeyCode.SPACE));
         
-        // toggle algorithm
-        io.addTrigger(new Trigger() {
-            @Override
-            public void onTrigger(InputState prev, InputState next) {
-                setup.toggleAlgorithm();
-            }
-        }, new KeyPressedCondition(KeyCode.C));
-        
         io.addTrigger(new Trigger() {
             @Override
             public void onTrigger(InputState prev, InputState next) {
@@ -364,7 +355,7 @@ public class CollisionTest {
             this.collision = collision;
             
             active = a;
-            algo = new GjkEpaCollisionAlgorithm();
+            algo = new GjkEpaCollisionAlgorithm2();
             collision.get(Renderable.ID, true).setEnabled(false);
         }
         
@@ -408,16 +399,6 @@ public class CollisionTest {
                 }
                 System.out.println(pair);
             }
-        }
-        
-        public void toggleAlgorithm() {
-            if (algo instanceof GjkEpaCollisionAlgorithm) {
-                algo = new GjkEpaCollisionAlgorithm2();
-            } else if (algo instanceof GjkEpaCollisionAlgorithm2) {
-                algo = new GjkEpaCollisionAlgorithm();
-            }
-            System.out.println("Changed algorithm to " + algo.getClass());
-            updateCollision();
         }
         
         public void toggleActive() {
