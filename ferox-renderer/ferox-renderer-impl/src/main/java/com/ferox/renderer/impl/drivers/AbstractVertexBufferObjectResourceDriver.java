@@ -51,7 +51,6 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                 if (oldIsGPU && !newIsGPU)
                     glDeleteBuffer(context, h);
             }
-            
             if (storageModeChange || h.lastSyncedKey != vbo.getData().getKey() 
                 || vbo.getChangeQueue().hasLostChanges(h.lastSyncedVersion)) {
                 // Must push the whole buffer
@@ -116,12 +115,15 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                             } else {
                                 nioData = BufferUtil.newBuffer(vbo.getData().getDataType(), length);
                             }
+                            
+                            bulkPut(vbo.getData(), offset, length, nioData);
                             nioData.rewind();
                             
                             if (isElementBuffer)
                                 glElementBufferSubData(context, nioData, vbo.getData().getDataType(), offset, length);
                             else
                                 glArrayBufferSubData(context, nioData, vbo.getData().getDataType(), offset, length);
+                            
                         }
                     }
                 }
