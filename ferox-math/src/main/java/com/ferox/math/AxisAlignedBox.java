@@ -98,7 +98,7 @@ public class AxisAlignedBox implements Cloneable {
         min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 
         int realStride = 3 + stride;
-        for (int i = offset; i < numVertices; i += realStride)
+        for (int i = offset; i < numVertices * realStride; i += realStride)
             enclosePoint(vertices[i], vertices[i + 1], vertices[i + 2]); 
     }
 
@@ -125,7 +125,7 @@ public class AxisAlignedBox implements Cloneable {
         min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
         
         int realStride = 3 + stride;
-        for (int i = offset; i < numVertices; i += realStride)
+        for (int i = offset; i < numVertices * realStride; i += realStride)
             enclosePoint(vertices.get(i), vertices.get(i + 1), vertices.get(i + 2)); 
     }
     
