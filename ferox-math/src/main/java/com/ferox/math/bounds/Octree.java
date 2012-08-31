@@ -321,7 +321,7 @@ public class Octree<T> implements SpatialIndex<T> {
                 if (c.lifetime > Cell.MAX_LIFETIME && c.size == 0) {
                     // clear cell so that its contents get GC'ed
                     spatialHash[i] = null;
-                    octree[leafOffset + c.quadTreeIndex] = -1;
+                    octree[leafOffset + c.octreeIndex] = -1;
                 }
                 
                 // only need to reset the size variable
@@ -339,6 +339,9 @@ public class Octree<T> implements SpatialIndex<T> {
         queryIdCounter = 0;
     }
     
+    public static long intersectionCount = 0;
+    public static long maxCellCount = 0;
+    public static long usedCellCount = 0;
     @Override
     @SuppressWarnings("unchecked")
     public void query(IntersectionCallback<T> callback) {
@@ -347,31 +350,43 @@ public class Octree<T> implements SpatialIndex<T> {
         
         AxisAlignedBox ba = new AxisAlignedBox();
         AxisAlignedBox bb = new AxisAlignedBox();
+        Vector3 minIntersect = new Vector3();
+        
+        intersectionCount = 0;
+        maxCellCount = 0;
+        usedCellCount = 0;
         
         // iterate over all cells
         Cell cell;
         for (int cellZ = 0; cellZ < maxCellDimension; cellZ++) {
             for (int cellY = 0; cellY < maxCellDimension; cellY++) {
                 for (int cellX = 0; cellX < maxCellDimension; cellX++) {
+                    maxCellCount++;
                     cell = spatialHash[hash(cellX, cellY, cellZ)];
                     if (cell != null) {
+                        usedCellCount++;
+
                         // do an N^2 iteration over items within cell
                         for (int a = 0; a < cell.size; a++) {
                             updateBounds(ba, cell.keys[a]);
 
-                            if (hashCellX(ba.min) == cellX && hashCellY(ba.min) == cellY && hashCellZ(ba.min) == cellZ) {
-                                // this item's minimum lies within this cell, so we can
-                                // check intersections with it and know that it will
-                                // create unique pairs
-                                for (int b = a + 1; b < cell.size; b++) {
-                                    updateBounds(bb, cell.keys[b]);
-                                    // don't check b's minimum since it is perfectly ok
-                                    // for it to start in another cell and extend to this one
-                                    if (ba.intersects(bb)) {
-                                        // report intersection
-                                        callback.process((T) elements[cell.keys[a]], ba, 
-                                                         (T) elements[cell.keys[b]], bb);
+                            for (int b = a + 1; b < cell.size; b++) {
+                                intersectionCount++;
+                                updateBounds(bb, cell.keys[b]);
+
+                                if (ba.intersects(bb)) {
+                                    // to remove duplicate checks we enforce that 
+                                    // the intersection geometry is in the minimum cell
+                                    minIntersect.set(Math.max(ba.min.x, bb.min.x),
+                                                     Math.max(ba.min.y, bb.min.y),
+                                                     Math.max(ba.min.z, bb.min.z));
+                                    if (hashCellX(minIntersect) != cellX || hashCellY(minIntersect) != cellY || hashCellZ(minIntersect) != cellZ) {
+                                        continue;
                                     }
+                                    
+                                    // report intersection
+                                    callback.process((T) elements[cell.keys[a]], ba, 
+                                                     (T) elements[cell.keys[b]], bb);
                                 }
                             }
                         }
@@ -699,10 +714,10 @@ public class Octree<T> implements SpatialIndex<T> {
         
         // this is the parent index of the octree index that actually holds
         // this cell, because the leaves don't store count information
-        private final int quadTreeIndex;
+        private final int octreeIndex;
         
         private Cell(Octree<?> tree, int octLeaf) {
-            quadTreeIndex = octLeaf;
+            octreeIndex = octLeaf;
             keys = new int[INCREMENT];
             size = 0;
             lifetime = 0;
@@ -721,7 +736,7 @@ public class Octree<T> implements SpatialIndex<T> {
         }
         
         private void updateTree(Octree<?> tree, int val) {
-            int index = quadTreeIndex;
+            int index = octreeIndex;
             // it's depth-2 because depth-1 is the leaf level, but we skip that one
             for (int l = tree.depth - 2; l >= 0; l--) {
                 index = tree.getParentIndex(index);
