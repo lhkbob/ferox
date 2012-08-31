@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
+import com.ferox.physics.collision.algorithm.JitteringCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
+import com.ferox.physics.collision.shape.ConvexShape;
 
 /**
  * DefaultCollisionAlgorithmProvider is the default implementation of
@@ -36,7 +38,9 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
         algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?,?>>();
         lookup = new TypePair(null, null);
         
-        register(new GjkEpaCollisionAlgorithm());
+        // wrap the GJK/EPA algorithm with a jittering algorithm to help overcome
+        // numerical instabilities
+        register(new JitteringCollisionAlgorithm<ConvexShape, ConvexShape>(new GjkEpaCollisionAlgorithm()));
         register(new SphereSphereCollisionAlgorithm());
     }
 

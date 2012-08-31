@@ -47,12 +47,12 @@ public class PhysicsTest {
     private static final StorageMode COMPILE_TYPE = StorageMode.GPU_STATIC;
     private static final int BOUNDS = 100;
    
-    private static final int NUM_X = 6;
-    private static final int NUM_Y = 6;
-    private static final int NUM_Z = 6;
-    private static final double SCALE_X = 2.0;
+    private static final int NUM_X = 10;
+    private static final int NUM_Y = 10;
+    private static final int NUM_Z = 10;
+    private static final double SCALE_X = 3.0;
     private static final double SCALE_Y = 2.0;
-    private static final double SCALE_Z = 2.0;
+    private static final double SCALE_Z = 3.0;
     
     private static final double MARGIN = .05;
     private static final double PERCENT = .5;
@@ -60,13 +60,13 @@ public class PhysicsTest {
     private static final double RANDOM = 0;
     
     private static final double START_POS_X = -5;
-    private static final double START_POS_Y = 5 + 2 * MARGIN;
+    private static final double START_POS_Y = 1 + 2 * MARGIN;
     private static final double START_POS_Z = -3;
     
     private static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1, -2 * BOUNDS - 1, -2 * BOUNDS - 1), 
                                                                          new Vector3(2 * BOUNDS + 1, 2 * BOUNDS + 1, 2 * BOUNDS + 1));
     
-    private static volatile boolean paused = true;
+    private static volatile boolean paused = false;
     
     public static void main(String[] args) throws Exception {
         final Framework framework = LwjglFramework.create();
@@ -75,14 +75,14 @@ public class PhysicsTest {
         final EntitySystem system = new EntitySystem();
         
         // physics handling
-            system.getControllerManager().addController(new com.ferox.physics.controller.ForcesController());
-        
-//          system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.QuadTree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
-          system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.SimpleSpatialIndex<Entity>(), new DefaultCollisionAlgorithmProvider()));
-//            system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.Octree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
+        system.getControllerManager().addController(new com.ferox.physics.controller.ForcesController());
 
-            system.getControllerManager().addController(new com.ferox.physics.controller.ConstraintSolvingController());
-            system.getControllerManager().addController(new com.ferox.physics.controller.MotionController());
+//        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.QuadTree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
+//        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.SimpleSpatialIndex<Entity>(), new DefaultCollisionAlgorithmProvider()));
+        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.Octree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
+
+        system.getControllerManager().addController(new com.ferox.physics.controller.ConstraintSolvingController());
+        system.getControllerManager().addController(new com.ferox.physics.controller.MotionController());
         
         system.getControllerManager().addController(new TransformController());
         
@@ -156,8 +156,8 @@ public class PhysicsTest {
     
     private static OnscreenSurface buildSurface(Framework framework, EntitySystem system) {
         OnscreenSurfaceOptions options = new OnscreenSurfaceOptions().setWidth(500)
-                                                                     .setHeight(500)
-                                                                     .setMultiSampling(MultiSampling.FOUR_X);
+                                                                     .setHeight(500);
+//                                                                     .setMultiSampling(MultiSampling.FOUR_X);
         OnscreenSurface surface = framework.createSurface(options);
 //        surface.setVSyncEnabled(true);
 
@@ -224,7 +224,7 @@ public class PhysicsTest {
                     
                     e.add(CollisionBody.ID).getData().setShape(physShape)
                                                      .setTransform(new Matrix4(1, 0, 0, (SCALE_X + 2 * MARGIN) * x + rx + startX,
-                                                                               0, 1, 0, (SCALE_Y + 2 * MARGIN) * y + ry + startY,
+                                                                               0, 1, 0, (SCALE_Y + 2 * MARGIN + (y > NUM_Y / 2 ? 1 : 0)) * y + ry + startY,
                                                                                0, 0, 1, (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
                                                                                0, 0, 0, 1));
                     e.add(RigidBody.ID).getData().setMass(1.0);

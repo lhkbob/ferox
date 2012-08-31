@@ -132,7 +132,7 @@ public class GravityTest {
     }
     
     private static void process(EntitySystem system, int numFrames, double time, boolean printStats) {
-        system.getControllerManager().process(1 / 360.0);
+        system.getControllerManager().process(1 / 60.0);
         
         if (printStats) {
             System.out.println("Avg FPS: " + (numFrames / time));
