@@ -71,6 +71,18 @@ public class RigidBody extends ComponentData<RigidBody> {
         return this;
     }
     
+    public RigidBody setForce(@Const Vector3 f) {
+        forceCache.set(f);
+        totalForce.set(f, getIndex());
+        return this;
+    }
+    
+    public RigidBody setTorque(@Const Vector3 t) {
+        torqueCache.set(t);
+        totalTorque.set(t, getIndex());
+        return this;
+    }
+    
     public RigidBody setVelocity(@Const Vector3 vel) {
         velocityCache.set(vel);
         velocity.set(vel, getIndex());

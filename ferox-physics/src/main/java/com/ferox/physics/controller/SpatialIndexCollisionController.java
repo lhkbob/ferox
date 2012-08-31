@@ -1,6 +1,7 @@
 package com.ferox.physics.controller;
 
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.ColorRGB;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.physics.collision.ClosestPair;
@@ -9,7 +10,7 @@ import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
-import com.ferox.physics.collision.shape.Box;
+import com.ferox.scene.DiffuseColor;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 
@@ -115,6 +116,12 @@ public class SpatialIndexCollisionController extends CollisionController {
 
                     if (pair != null && pair.isIntersecting()) {
                         addManifoldTime -= System.nanoTime();
+                        if (pair.getDistance() < -1) {
+                            System.err.println("REALLY BIG PENETRATION! " + pair.getDistance());
+                            ColorRGB color = new ColorRGB(Math.random(), Math.random(), Math.random());
+                            a.get(DiffuseColor.ID).getData().setColor(color);
+                            b.get(DiffuseColor.ID).getData().setColor(color);
+                        }
 //                        System.out.println("Contact (" + bodyA.getEntity().getId() + ", " + bodyB.getEntity().getId() + ") depth = " + Math.abs(pair.getDistance()));
                         notifyContact(bodyA, bodyB, pair);
                         addManifoldTime += System.nanoTime();

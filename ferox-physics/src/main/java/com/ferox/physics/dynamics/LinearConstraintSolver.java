@@ -23,7 +23,7 @@ public class LinearConstraintSolver {
     
     public LinearConstraintSolver() {
         shuffler = new Random();
-        setShuffleConstraints(true);
+        setShuffleConstraints(false);
         setShuffleEveryIteration(true);
         setIterationCount(10);
     }
@@ -65,8 +65,11 @@ public class LinearConstraintSolver {
     public static long warmstartTime = 0;
     public static long shuffleTime = 0;
     public static long solveTime = 0;
-    
+
+    private int impulseCount;
     public void solve(LinearConstraintPool... groups) {
+        impulseCount = 0;
+        totalImpulse = 0;
         // handle warmstarting
         warmstartTime -= System.nanoTime();
         for (int i = 0; i < groups.length; i++) {
@@ -154,6 +157,7 @@ public class LinearConstraintSolver {
         }
     }
     
+    private double totalImpulse;
     private void solveSingleConstraint(LinearConstraintPool group, int constraint) {
         totalConstraints++;
         
@@ -198,6 +202,12 @@ public class LinearConstraintSolver {
             deltaImpulse = upper - applied;
             totalImpulse = upper;
         }
+        
+        this.totalImpulse += Math.abs(deltaImpulse);
+        this.impulseCount++;
+//        if (Math.abs(deltaImpulse) > .1 && Math.abs(deltaImpulse) > 100 * (this.totalImpulse / this.impulseCount)) {
+//            System.err.println("REALLY BIG IMPULSE (" + deltaImpulse + ") COMPARED TO AVG (" + (this.totalImpulse / this.impulseCount));
+//        }
         
         if (ba >= 0) {
             deltaLinearImpulse.get(ba, linear);

@@ -36,7 +36,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
         algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?,?>>();
         lookup = new TypePair(null, null);
         
-        register(new GjkEpaCollisionAlgorithm());
+        register(new com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm2());
         register(new SphereSphereCollisionAlgorithm());
     }
 

@@ -79,6 +79,52 @@ public class LinearConstraintPool {
     public void clear() {
         count = 0;
     }
+    
+    public double getDynamicScaleFactor(int i) {
+        return dynamicScaleFactors[i];
+    }
+    
+    public int getDynamicLimitIndex(int i) {
+        return dynamicLimits[i];
+    }
+    
+    public int addConstraint(RigidBody bodyA, RigidBody bodyB, 
+                              float taX, float taY, float taZ, 
+                              float tbX, float tbY, float tbZ, 
+                              float nX, float nY, float nZ, 
+                              float laX, float laY, float laZ, 
+                              float lbX, float lbY, float lbZ, 
+                              float aaX, float aaY, float aaZ, 
+                              float abX, float abY, float abZ) {
+        int i = count++;
+        int veci = i * 3;
+        if (i >= bodyAs.length) {
+            // increase capacity
+            setCapacity((i + 1) * 2);
+        }
+        
+        directions[veci] = nX; directions[veci + 1] = nY; directions[veci + 2] = nZ;
+        torqueAs[veci] = taX; torqueAs[veci + 1] = taY; torqueAs[veci + 2] = taZ;
+        torqueBs[veci] = tbX; torqueBs[veci + 1] = tbY; torqueBs[veci + 2] = tbZ;
+        
+        if (bodyA != null) {
+            linearDirAs[veci] = laX; linearDirAs[veci + 1] = laY; linearDirAs[veci + 2] = laZ;
+            angleDirAs[veci] = aaX; angleDirAs[veci + 1] = aaY; angleDirAs[veci + 2] = aaZ;
+            bodyAs[i] = bodyA.getIndex();
+        } else {
+            bodyAs[i] = -1;
+        }
+        
+        if (bodyB != null) {
+            linearDirBs[veci] = lbX; linearDirBs[veci + 1] = lbY; linearDirBs[veci + 2] = lbZ;
+            angleDirBs[veci] = abX; angleDirBs[veci + 1] = abY; angleDirBs[veci + 2] = abZ;
+            bodyBs[i] = bodyB.getIndex();
+        } else {
+            bodyBs[i] = -1;
+        }
+        
+        return i;
+    }
 
     public int addConstraint(RigidBody bodyA, RigidBody bodyB, 
                              @Const Vector3 direction, @Const Vector3 torqueA, @Const Vector3 torqueB) {
@@ -181,7 +227,9 @@ public class LinearConstraintPool {
     }
     
     public void setDynamicLimits(int i, int linkedConstraint, double scale) {
-        if (linkedConstraint < 0 || linkedConstraint > count || scale <= 0)
+        if (dynamicPool == null)
+            throw new IllegalStateException("Pool does not have a linked pool");
+        if (linkedConstraint < 0 || linkedConstraint > dynamicPool.count || scale <= 0)
             throw new IllegalArgumentException("Constraint index (" + linkedConstraint + ") is invalid, or scale (" + scale + ") is not positive");
         dynamicLimits[i] = linkedConstraint;
         dynamicScaleFactors[i] = scale;

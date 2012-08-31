@@ -81,10 +81,30 @@ public class Simplex {
          * @throws IllegalArgumentException if w is less than 0
          */
         public void setWeight(double w) {
-            if (w < 0f)
+            if (w < 0.0)
                 throw new IllegalArgumentException("Weight must be positive, not: " + w);
+            if (w < .0000001)
+                w = 0.0;
             weight = w;
         }
+        
+        public String toString() {
+            return "(i: " + input + ", v: " + vertex + ", w: " + weight + ")";
+        }
+    }
+    
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[mask: ");
+        sb.append(mask);
+        sb.append(",\n");
+        for (int i = 0; i < rank; i++) {
+            if (i > 0)
+                sb.append(",\n");
+            sb.append(vertices[i]);
+        }
+        sb.append("]");
+        return sb.toString();
     }
     
     private final Vertex[] vertices;
@@ -104,6 +124,18 @@ public class Simplex {
         
         maskCache = new int[1];
         weightCache = new double[4];
+    }
+    
+    public Simplex(Simplex2 o) {
+        this();
+        
+        rank = o.getRank();
+        for (int i = 0; i < rank; i++) {
+            vertices[i] = new Vertex();
+            vertices[i].weight = o.getWeight(i);
+            vertices[i].vertex.set(o.getVertex(i));
+            vertices[i].input.set(o.getInput(i));
+        }
     }
 
     /**
@@ -185,11 +217,11 @@ public class Simplex {
             Vector3 axis = new Vector3();
             for (int i = 0; i < 3; i++) {
                 addVertex(shape, axis.set(0.0, 0.0, 0.0).set(i, 1.0));
-                if (encloseOrigin(shape))
+                if (encloseOriginImpl(shape))
                     return true;
                 removeVertex();
                 addVertex(shape, axis.scale(-1));
-                if (encloseOrigin(shape))
+                if (encloseOriginImpl(shape))
                     return true;
                 removeVertex();
             }
@@ -201,14 +233,13 @@ public class Simplex {
             for (int i = 0; i < 3; i++) {
                 axis.set(0, 0, 0).set(i, 1.0);
                 axis.cross(d, axis);
-//                d.cross(axis.set(0.0, 0.0, 0.0).set(i, 1.0), axis);
                 if (axis.lengthSquared() > 0) {
                     addVertex(shape, axis);
-                    if (encloseOrigin(shape))
+                    if (encloseOriginImpl(shape))
                         return true;
                     removeVertex();
                     addVertex(shape, axis.scale(-1.0));
-                    if (encloseOrigin(shape))
+                    if (encloseOriginImpl(shape))
                         return true;
                     removeVertex();
                 }
@@ -218,11 +249,11 @@ public class Simplex {
             Vector3 n = new Vector3().sub(vertices[1].vertex, vertices[0].vertex).cross(new Vector3().sub(vertices[2].vertex, vertices[0].vertex));
             if (n.lengthSquared() > 0.0) {
                 addVertex(shape, n);
-                if (encloseOrigin(shape))
+                if (encloseOriginImpl(shape))
                     return true;
                 removeVertex();
                 addVertex(shape, n.scale(-1.0));
-                if (encloseOrigin(shape))
+                if (encloseOriginImpl(shape))
                     return true;
                 removeVertex();
             }
@@ -293,6 +324,7 @@ public class Simplex {
         else
             v.input.normalize(d);
         s.getSupport(v.input, v.vertex);
+//        System.out.println("add vertex " + d + " " + negate + " " + v.input + " " + v.vertex);
     }
     
     /**

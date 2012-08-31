@@ -9,7 +9,6 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
-import com.ferox.math.bounds.Octree;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
@@ -136,7 +135,7 @@ public class GravityTest {
     }
     
     private static void process(EntitySystem system, int numFrames, double time, boolean printStats) {
-        system.getControllerManager().process(1 / 240.0);
+        system.getControllerManager().process(1 / 360.0);
         
         if (printStats) {
             System.out.println("Avg FPS: " + (numFrames / time));
@@ -162,7 +161,6 @@ public class GravityTest {
                               LinearConstraintSolver.shuffleTime / (1e6 * numFrames),
                               LinearConstraintSolver.solveTime / (1e6 * numFrames));
             
-            System.out.printf("Used cells: %d, max cells: %d, aabb checks: %d\n", Octree.usedCellCount, Octree.maxCellCount, Octree.intersectionCount);
             
             System.out.printf("GJK: %.2f, EPA: %.2f\n", GjkEpaCollisionAlgorithm.gjkChecks / (double) numFrames, GjkEpaCollisionAlgorithm.epaChecks / (double) numFrames);
             System.out.printf("Used manifolds: %d, max: %d\n", ContactManifoldPool.usedManifolds, ContactManifoldPool.maxManifolds);
@@ -186,7 +184,7 @@ public class GravityTest {
     private static OnscreenSurface buildSurface(Framework framework, EntitySystem system) {
         OnscreenSurfaceOptions options = new OnscreenSurfaceOptions().setWidth(500)
                                                                      .setHeight(500)
-                                                                     .setMultiSampling(MultiSampling.FOUR_X);
+                                                                     .setMultiSampling(MultiSampling.NONE);
         OnscreenSurface surface = framework.createSurface(options);
         surface.setVSyncEnabled(true);
         surface.setTitle(GravityTest.class.getSimpleName());
@@ -204,23 +202,28 @@ public class GravityTest {
     
     private static void buildScene(EntitySystem scene) throws Exception {
         // shapes
-        Geometry geomShape = new com.ferox.util.geom.Box(2 + 2 * MARGIN, COMPILE_TYPE);
-//        Geometry geomShape = new com.ferox.util.geom.Sphere(1 + MARGIN, 16, COMPILE_TYPE);
+        Geometry geomShape1 = new com.ferox.util.geom.Box(2 + 2 * MARGIN, COMPILE_TYPE);
+        com.ferox.physics.collision.Shape physShape1 = new com.ferox.physics.collision.shape.Box(2, 2, 2);
         
-        com.ferox.physics.collision.Shape physShape = new com.ferox.physics.collision.shape.Box(2, 2, 2);
-//        com.ferox.physics.collision.Shape physShape = new com.ferox.physics.collision.shape.Sphere(1);
-        physShape.setMargin(MARGIN);
+        Geometry geomShape2 = new com.ferox.util.geom.Box(2 + 2 * MARGIN, COMPILE_TYPE);
+        com.ferox.physics.collision.Shape physShape2 = new com.ferox.physics.collision.shape.Box(2, 2, 2);
+
+//        Geometry geomShape1 = new com.ferox.util.geom.Sphere(1 + MARGIN, 16, COMPILE_TYPE);
+//        com.ferox.physics.collision.Shape physShape1 = new com.ferox.physics.collision.shape.Sphere(1);
+        
+        physShape1.setMargin(MARGIN);
+        physShape2.setMargin(MARGIN);
         
         // falling down entity
         Entity e = scene.addEntity();
-        e.add(Renderable.ID).getData().setVertices(geomShape.getVertices())
-                                      .setLocalBounds(geomShape.getBounds())
-                                      .setIndices(geomShape.getPolygonType(), geomShape.getIndices(), geomShape.getIndexOffset(), geomShape.getIndexCount());
-        e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape.getNormals());
+        e.add(Renderable.ID).getData().setVertices(geomShape1.getVertices())
+                                      .setLocalBounds(geomShape1.getBounds())
+                                      .setIndices(geomShape1.getPolygonType(), geomShape1.getIndices(), geomShape1.getIndexOffset(), geomShape1.getIndexCount());
+        e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape1.getNormals());
         e.add(DiffuseColor.ID).getData().setColor(new ColorRGB(1.0, 0.0, 0.0));
         e.add(Transform.ID);
         
-        e.add(CollisionBody.ID).getData().setShape(physShape)
+        e.add(CollisionBody.ID).getData().setShape(physShape1)
                                          .setTransform(new Matrix4(1, 0, 0, 0,
                                                                    0, 1, 0, BOUNDS / 2,
                                                                    0, 0, 1, 0,
@@ -230,14 +233,14 @@ public class GravityTest {
         
         // falling up entity
         e = scene.addEntity();
-        e.add(Renderable.ID).getData().setVertices(geomShape.getVertices())
-                                      .setLocalBounds(geomShape.getBounds())
-                                      .setIndices(geomShape.getPolygonType(), geomShape.getIndices(), geomShape.getIndexOffset(), geomShape.getIndexCount());
-        e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape.getNormals());
+        e.add(Renderable.ID).getData().setVertices(geomShape2.getVertices())
+                                      .setLocalBounds(geomShape2.getBounds())
+                                      .setIndices(geomShape2.getPolygonType(), geomShape2.getIndices(), geomShape2.getIndexOffset(), geomShape2.getIndexCount());
+        e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape2.getNormals());
         e.add(DiffuseColor.ID).getData().setColor(new ColorRGB(0.0, 1.0, 0.0));
         e.add(Transform.ID);
         
-        e.add(CollisionBody.ID).getData().setShape(physShape)
+        e.add(CollisionBody.ID).getData().setShape(physShape2)
                                          .setTransform(new Matrix4(1, 0, 0, 0,
                                                                    0, 1, 0, -BOUNDS / 2,
                                                                    0, 0, 1, 0,

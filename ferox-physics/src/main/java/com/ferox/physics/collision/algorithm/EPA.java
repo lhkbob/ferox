@@ -5,6 +5,7 @@ import com.ferox.math.Vector3;
 import com.ferox.physics.collision.algorithm.Simplex.Vertex;
 import com.ferox.util.Bag;
 
+
 /**
  * <p>
  * EPA is a low-level implementation of the Expanding Polytope Algorithm for
@@ -41,9 +42,10 @@ public class EPA {
     private static final int[] I1M3 = new int[] { 1, 2, 0 };
     private static final int[] I2M3 = new int[] { 2, 0, 1 };
     
-    
-    private final GJK gjk;
-    private final Vector3 tempCache;
+
+    private MinkowskiDifference shape;
+    private Simplex gjkSimplex;
+//    private final Vector3 tempCache;
     
     
     private Vector3 normal;
@@ -61,21 +63,14 @@ public class EPA {
      * @throws NullPointerException if gjk is null
      */
     public EPA(GJK gjk) {
-        if (gjk == null)
-            throw new NullPointerException("GJK cannot be null");
-        
-        this.gjk = gjk;
-        depth = 0.0;
-        tempCache = new Vector3();
+        this(gjk.getMinkowskiDifference(), gjk.getSimplex());
     }
-
-    /**
-     * Return the GJK instance used to construct this EPA instance.
-     * 
-     * @return The GJK used to create this EPA
-     */
-    public GJK getGJK() {
-        return gjk;
+    
+    public EPA(MinkowskiDifference shape, Simplex gjk) {
+        depth = 0f;
+//        tempCache = new Vector3f();
+        this.shape = shape;
+        this.gjkSimplex = gjk;
     }
 
     /**
@@ -136,14 +131,17 @@ public class EPA {
         
         // we assume that the simplex of the GJK contains
         // the origin, otherwise behavior is undefined
-        Simplex simplex = gjk.getSimplex();
-        MinkowskiDifference function = gjk.getMinkowskiDifference();
+        Simplex simplex = gjkSimplex;
+        Simplex2 os = new Simplex2(shape.asShape(), simplex);
+        MinkowskiDifference function = shape;
         
         normal = new Vector3();
         hull = new Bag<Face>();
         status = Status.FAILED;
         
         if (simplex.getRank() > 1 && simplex.encloseOrigin(function)) {
+//        if (os.getRank() > 1 && os.encloseOrigin()) {
+//            simplex = new Simplex(os);
             status = Status.VALID;
             
             // build initial hull
@@ -189,12 +187,15 @@ public class EPA {
                         }
                         
                         if (valid && horizon.numFaces >= 3) {
+//                        if (horizon.numFaces >= 3) {
                             bind(horizon.cf, 1, horizon.ff, 2);
                             best.remove();
                             best = findBest();
-                            if (best.p >= outer.p)
+//                            if (best.p >= outer.p)
                                 outer = best;
+//                        } else if (!valid) {
                         } else {
+//                            System.out.println("should be invalid! " + valid + " " + horizon.numFaces);
                             status = Status.INVALID_HULL;
                             break;
                         }
@@ -204,7 +205,8 @@ public class EPA {
                     }
                 }
                 
-                Vector3 projection = tempCache.scale(outer.normal, outer.d);
+                Vector3 projection = new Vector3().scale(outer.normal, outer.d);
+                
                 normal.set(outer.normal);
                 depth = outer.d;
                 
@@ -242,7 +244,9 @@ public class EPA {
         for (int i = 1; i < ct; i++) {
             f = hull.get(i);
             sqd = f.d * f.d;
-            if (f.p >= maxp && sqd < mind) {
+            // FIXME eps?
+//            if (f.p >= maxp && sqd < mind) {
+            if (sqd < mind) {
                 minf = f;
                 mind = sqd;
                 maxp = f.p;
@@ -282,6 +286,34 @@ public class EPA {
         return false;
     }
     
+    private static double edgeDistance(@Const Vector3 va, @Const Vector3 vb, @Const Vector3 normal) {
+        Vector3 ba = new Vector3().sub(vb, va);
+        Vector3 nab = new Vector3().cross(ba, normal); // outward facing edge normal direction on triangle plane
+        
+        double aDotNAB = va.dot(nab); // only care about sign to determine inside/outside, no normalization required
+        
+        if (aDotNAB < 0) {
+            // outside of edge a->b
+            double aDotBA = va.dot(ba);
+            double bDotBA = vb.dot(ba);
+            
+            if (aDotBA > 0) {
+                // pick distance to vertex a
+                return va.length();
+            } else if (bDotBA < 0) {
+                // pick distance to vertex b
+                return vb.length();
+            } else {
+                // pick distance to edge a->b
+                double aDotB = va.dot(vb);
+                double d2 = (va.lengthSquared() * vb.lengthSquared() - aDotB * aDotB) / ba.lengthSquared();
+                return Math.sqrt(Math.max(d2, 0.0));
+            }
+        } else {
+            return -1.0;
+        }
+    }
+    
     private static class Horizon {
         Face cf;
         Face ff;
@@ -306,14 +338,14 @@ public class EPA {
             pass = 0;
             
             vertices = new Vertex[] { a, b, c };
-            normal = new Vector3().sub(b.getVertex(), a.getVertex()).cross(tempCache.sub(c.getVertex(), a.getVertex()));
+            normal = new Vector3().sub(b.getVertex(), a.getVertex()).cross(new Vector3().sub(c.getVertex(), a.getVertex()));
             double l = normal.length();
             boolean v = l > EPA_ACCURACY;
             
             double invL = 1.0 / l;
-            double d1 = a.getVertex().dot(tempCache.cross(normal, tempCache.sub(a.getVertex(), b.getVertex())));
-            double d2 = b.getVertex().dot(tempCache.cross(normal, tempCache.sub(b.getVertex(), c.getVertex())));
-            double d3 = c.getVertex().dot(tempCache.cross(normal, tempCache.sub(c.getVertex(), a.getVertex())));
+            double d1 = a.getVertex().dot(new Vector3().cross(normal, new Vector3().sub(a.getVertex(), b.getVertex())));
+            double d2 = b.getVertex().dot(new Vector3().cross(normal, new Vector3().sub(b.getVertex(), c.getVertex())));
+            double d3 = c.getVertex().dot(new Vector3().cross(normal, new Vector3().sub(c.getVertex(), a.getVertex())));
 
             p = Math.min(Math.min(d1, d2), d3) * (v ? invL : 1.0);
             if (p >= -EPA_INSIDE_EPS)
@@ -321,8 +353,21 @@ public class EPA {
             
             hullIndex = -1;
             if (v) {
-                d = a.getVertex().dot(normal) * invL;
-                normal.scale(invL);
+                d = edgeDistance(a.getVertex(), b.getVertex(), normal);
+                if (d < 0) {
+                    d = edgeDistance(b.getVertex(), c.getVertex(), normal);
+                    if (d < 0) {
+                        d = edgeDistance(c.getVertex(), a.getVertex(), normal);
+                        if (d < 0) {
+                            // origin projects to the interior of the triangle,
+                            // so use the distance to the triangle plane
+                            d = a.getVertex().dot(normal) / l;
+                        }
+                    }
+                }
+//                d = a.getVertex().dot(normal) * invL;
+                
+                normal.scale(1 / l);
                 if (force || d >= -EPA_PLANE_EPS) {
                     hull.add(this);
                     hullIndex = hull.size() - 1;
@@ -336,6 +381,14 @@ public class EPA {
             hull.remove(hullIndex);
             if (hullIndex != hull.size())
                 hull.get(hullIndex).hullIndex = hullIndex;
+            
+//            for (Face f: hull) {
+//                for (int i = 0; i < f.adjacent.length; i++) {
+//                    if (f.adjacent[i] == this) {
+//                        throw new IllegalArgumentException();
+//                    }
+//                }
+//            }
         }
     }
     

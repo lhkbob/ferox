@@ -25,22 +25,21 @@ public class SphereSphereCollisionAlgorithm implements CollisionAlgorithm<Sphere
         double dist = ca.distance(cb) - ra - rb;
         
         // FIXME: doesn't work if spheres are centered on each other
-        Vector3 normal = new Vector3().sub(cb, ca).normalize();
-        Vector3 pa = cb.scale(normal, ra).add(ca); // consumes cb
+        Vector3 normal = new Vector3().sub(cb, ca);
 
         if (normal.lengthSquared() > .000001f) {
+            normal.normalize();
+            Vector3 pa = cb.scale(normal, ra).add(ca); // consumes cb
             return new ClosestPair(pa, normal, dist);
         } else {
             // happens when spheres are perfectly centered on each other
             if (ra < rb) {
                 // sphere a is inside sphere b
                 normal.set(0, 0, -1);
-                pa.z = pa.z + ra;
                 return new ClosestPair(cb, normal, ra - rb);
             } else {
                 // sphere b is inside sphere a
                 normal.set(0, 0, 1);
-                pa.z = pa.z + ra;
                 return new ClosestPair(cb, normal, rb - ra);
             }
         }

@@ -31,9 +31,9 @@ public class MinkowskiDifference {
     private int appliedMargins;
     
     // final variables to reuse during computations, should be faster than thread-local
-    private final Vector3 supportCache;
-    private final Vector3 dirCache;
-    private final Vector4 transformCache;
+//    private final Vector3 supportCache;
+//    private final Vector3 dirCache;
+//    private final Vector4 transformCache;
 
     /**
      * Create a new MinkowskiDifference between the two Shape objects. The
@@ -51,9 +51,9 @@ public class MinkowskiDifference {
                                ConvexShape shapeB, @Const Matrix4 transB) {
         if (shapeA == null || shapeB == null || transA == null || transB == null)
             throw new NullPointerException("Arguments cannot be null");
-        supportCache = new Vector3();
-        dirCache = new Vector3();
-        transformCache = new Vector4();
+//        supportCache = new Vector3();
+//        dirCache = new Vector3();
+//        transformCache = new Vector4();
         
         this.shapeA = shapeA;
         this.shapeB = shapeB;
@@ -63,6 +63,12 @@ public class MinkowskiDifference {
         appliedMargins = 1;
     }
 
+    public MinkowskiShape asShape() {
+        MinkowskiShape s = new MinkowskiShape(shapeA, transA, shapeB, transB);
+        s.setAppliedMargins(appliedMargins);
+        return s;
+    }
+    
     /**
      * Set the number of times the MinkowskiDifference will apply each
      * ConvexShape's margin when
@@ -107,11 +113,12 @@ public class MinkowskiDifference {
     private ClosestPair constructPair(Vector3 wA, Vector3 wB, 
                                       Vector3 pA, Vector3 pB,
                                       @Const Vector3 zeroNormal) {
-        boolean intersecting = (pA.distanceSquared(wB) < pA.distanceSquared(wA)) && 
+        boolean intersecting = (pA.distanceSquared(wB) < pA.distanceSquared(wA)) ||
                                (pB.distanceSquared(wA) < pB.distanceSquared(wB));
         // after this, pA and pB are free vectors to be mutated
         
-        Vector3 normal = wB.sub(wA); // wB becomes the normal here
+//        Vector3 normal = wB.sub(wA); // wB becomes the normal here
+        Vector3 normal = new Vector3().sub(wB, wA);
         double distance = normal.length() * (intersecting ? -1.0 : 1.0);
 
         if (Math.abs(distance) < CONTACT_NORMAL_ACCURACY) {
@@ -133,7 +140,9 @@ public class MinkowskiDifference {
             if (intersecting)
                 distDelta *= -1.0;
             
-            wA.add(pA.scale(normal, (1 - appliedMargins) * shapeA.getMargin()));
+//            wA.add(pA.scale(normal, (1 - appliedMargins) * shapeA.getMargin()));
+            wA.add(new Vector3().scale(normal, (1 - appliedMargins) * shapeA.getMargin()));
+
             if ((appliedMargins == 0 && intersecting) || (appliedMargins > 1 && !intersecting)) {
                 // moving to one margin increases distance
                 distance += distDelta;
@@ -151,8 +160,12 @@ public class MinkowskiDifference {
         Vector3 result = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
-            getAffineSupport(shapeA, transA, simplex.getVertex(i).getInputVector(), supportCache);
-            result.add(supportCache.scale(simplex.getVertex(i).getWeight()));
+            Vector3 s = new Vector3();
+            getAffineSupport(shapeA, transA, simplex.getVertex(i).getInputVector(), s);
+            s.scale(simplex.getVertex(i).getWeight());
+            result.add(s);
+//            getAffineSupport(shapeA, transA, simplex.getVertex(i).getInputVector(), supportCache);
+//            result.add(supportCache.scale(simplex.getVertex(i).getWeight()));
         }
         return result;
     }
@@ -161,8 +174,12 @@ public class MinkowskiDifference {
         Vector3 result = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
             // sum weighted supports from simplex
-            getAffineSupport(shapeB, transB, supportCache.scale(simplex.getVertex(i).getInputVector(), -1.0), supportCache);
-            result.add(supportCache.scale(simplex.getVertex(i).getWeight()));
+            Vector3 s = new Vector3();
+            getAffineSupport(shapeB, transB, new Vector3().scale(simplex.getVertex(i).getInputVector(), -1.0), s);
+            s.scale(simplex.getVertex(i).getWeight());
+            result.add(s);
+//            getAffineSupport(shapeB, transB, supportCache.scale(simplex.getVertex(i).getInputVector(), -1.0), supportCache);
+//            result.add(supportCache.scale(simplex.getVertex(i).getWeight()));
         }
         return result;
     }
@@ -191,27 +208,38 @@ public class MinkowskiDifference {
         if (result == null)
             result = new Vector3();
         
-        getAffineSupport(shapeA, transA, d, result);
-        getAffineSupport(shapeB, transB, supportCache.scale(d, -1.0), supportCache);
-        return result.sub(supportCache);
+        Vector3 a = new Vector3();
+        Vector3 b = new Vector3();
+        getAffineSupport(shapeA, transA, d, a);
+        getAffineSupport(shapeB, transB, new Vector3().scale(d, -1.0), b);
+//        System.out.println("get support " + d + " " + a + " " + b);
+        return result.sub(a, b);
     }
     
     private void getAffineSupport(ConvexShape shape, @Const Matrix4 t, @Const Vector3 d, Vector3 result) {
         // first step is to transform d by the transpose of the upper 3x3
         // we do this by wrapping d in a 4-vector and setting w = 0
-        transformCache.set(d.x, d.y, d.z, 0.0).mul(transformCache, t);
+//        transformCache.set(d.x, d.y, d.z, 0.0).mul(transformCache, t);
+        Vector4 transformed = new Vector4(d.x, d.y, d.z, 0.0);
+        transformed.mul(transformed, t);
         
         // second step is to compute the local support
-        dirCache.set(transformCache.x, transformCache.y, transformCache.z);
-        shape.computeSupport(dirCache, result);
+        Vector3 dir = new Vector3(transformed.x, transformed.y, transformed.z);
+//        dirCache.set(transformCache.x, transformCache.y, transformCache.z);
+//        shape.computeSupport(dirCache, result);
+        shape.computeSupport(dir, result);
         
         if (appliedMargins > 0) {
             // apply a number of margin offsets, as if a sphere is added to the convex shape
-            result.add(dirCache.scale(appliedMargins * shape.getMargin()));
+//            result.add(dirCache.scale(appliedMargins * shape.getMargin()));
+            result.add(new Vector3().scale(dir, appliedMargins * shape.getMargin()));
         }
         
         // then transform that by the complete affine transform, so w = 1
-        transformCache.set(result.x, result.y, result.z, 1.0).mul(t, transformCache);
-        result.set(transformCache.x, transformCache.y, transformCache.z);
+//        transformCache.set(result.x, result.y, result.z, 1.0).mul(t, transformCache);
+        transformed.set(result.x, result.y, result.z, 1.0);
+        transformed.mul(t, transformed);
+//        result.set(transformCache.x, transformCache.y, transformCache.z);
+        result.set(transformed.x, transformed.y, transformed.z);
     }
 }

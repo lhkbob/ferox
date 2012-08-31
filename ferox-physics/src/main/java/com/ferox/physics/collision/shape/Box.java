@@ -7,7 +7,7 @@ public class Box extends ConvexShape {
     private final Vector3 localTensorPartial;
     private final Vector3 halfExtents;
     
-    public Box(float xExtent, float yExtent, float zExtent) {
+    public Box(double xExtent, double yExtent, double zExtent) {
         localTensorPartial = new Vector3();
         halfExtents = new Vector3();
         
@@ -54,9 +54,9 @@ public class Box extends ConvexShape {
         if (result == null)
             result = new Vector3();
         
-        double x = (v.x < 0f ? -halfExtents.x : halfExtents.x);
-        double y = (v.y < 0f ? -halfExtents.y : halfExtents.y);
-        double z = (v.z < 0f ? -halfExtents.z : halfExtents.z);
+        double x = (v.x < 0.0 ? -halfExtents.x : halfExtents.x);
+        double y = (v.y < 0.0 ? -halfExtents.y : halfExtents.y);
+        double z = (v.z < 0.0 ? -halfExtents.z : halfExtents.z);
         
         return result.set(x, y, z);
     }

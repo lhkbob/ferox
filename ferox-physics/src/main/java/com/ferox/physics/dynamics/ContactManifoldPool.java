@@ -78,6 +78,8 @@ public class ContactManifoldPool {
     private final Matrix4 transform = new Matrix4();
     
     public ContactManifoldPool() {
+        // increasing breaking threshold seems to create more stable box drops,
+        // so i should investigate why .0343 was the original default
         this(.1, .0343);
     }
     
@@ -244,8 +246,6 @@ public class ContactManifoldPool {
                 }
             }
         }
-        
-        System.out.println("end frame");
     }
     
     public void addContact(CollisionBody objA, CollisionBody objB, ClosestPair pair) {
@@ -329,7 +329,6 @@ public class ContactManifoldPool {
         }
         
         // warmstart constraint solution
-        System.out.println("Warmstart: " + appliedImpulse);
         pool.setWarmstartImpulse(constraint, .85 * appliedImpulse);
         
         double velocityError = restitution - relativeVelocity;
