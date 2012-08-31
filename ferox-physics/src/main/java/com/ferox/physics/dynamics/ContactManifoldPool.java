@@ -23,9 +23,6 @@ public class ContactManifoldPool {
     private static final int RESTING_CONTACT_THRESHOLD = 2;
     private static final double ERP = .2;
     
-    public static int maxManifolds = 0;
-    public static int usedManifolds = 0;
-    
     private final Map<CollisionPair, Integer> manifolds;
     private final CollisionPair query; // mutable, do not put in manifolds
     
@@ -154,11 +151,8 @@ public class ContactManifoldPool {
         Vector3 t1 = new Vector3();
         Vector3 t2 = new Vector3();
         
-        maxManifolds = maxAliveContact;
-        usedManifolds = 0;
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
-//                System.out.println("Processing manifold " + manifold);
                 // load in component data
                 objAs[manifold].get(bodyA);
                 objAs[manifold].get(rbA);
@@ -173,7 +167,6 @@ public class ContactManifoldPool {
                 int updatedCount = 0;
                 for (int point = 0; point < MANIFOLD_POINT_SIZE; point++) {
                     if (updateManifoldPoint(manifold, point, bodyA, bodyB)) {
-//                        System.out.println("Manifold point " + point + " updated and live");
                         updatedCount++;
                         
                         int index = toIndex(manifold, point);
@@ -237,12 +230,9 @@ public class ContactManifoldPool {
                 }
                 
                 if (updatedCount == 0) {
-//                    System.out.println("Manifold has no more points, removed");
                     // all manifold points are dead after the update, so we need
                     // to remove this manifold
                     removeManifold(manifold);
-                } else {
-                    usedManifolds++;
                 }
             }
         }
@@ -296,27 +286,18 @@ public class ContactManifoldPool {
                                             (rbB.isEnabled() ? rbB : null), 
                                             constraintAxis, torqueA, torqueB);
         
-//        System.out.println("Generating constraint between " + (rbA.isEnabled() ? rbA.getEntity().getId() : -1) + ", " + (rbB.isEnabled() ? rbB.getEntity().getId() : -1) + ")");
-//        System.out.println(" - axis: " + constraintAxis + ", torqueA: " + torqueA + ", torqueB: " + torqueB);
-        
         double relativeVelocity = 0;
         double denom = 0.0;
         
         if (rbA.isEnabled()) {
-            double relVelA = (constraintAxis.dot(rbA.getVelocity()) + torqueA.dot(rbA.getAngularVelocity()));
-            double denomA =  (rbA.getInverseMass() + torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
-//            System.out.println(" - relVelA: " + relVelA + ", denomA: " + denomA);
-            relativeVelocity += relVelA;
+            relativeVelocity += (constraintAxis.dot(rbA.getVelocity()) + torqueA.dot(rbA.getAngularVelocity()));
             // we don't need torqueA anymore, so the multiply and cross can be in-place
-            denom += denomA;
+            denom +=  (rbA.getInverseMass() + torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
         }
         if (rbB.isEnabled()) {
-            double relVelB = (constraintAxis.dot(rbB.getVelocity()) + torqueB.dot(rbB.getAngularVelocity()));
-            double denomB = (rbB.getInverseMass() + torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
-//            System.out.println(" - relVelB: " + relVelB + ", denomB: " + denomB);
-            relativeVelocity -= relVelB;
+            relativeVelocity -= (constraintAxis.dot(rbB.getVelocity()) + torqueB.dot(rbB.getAngularVelocity()));
             // we don't need torqueB anymore, so the multiply and cross can be in-place
-            denom += denomB;
+            denom += (rbB.getInverseMass() + torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
         }
         
         double jacobian = 1.0 / denom;
@@ -335,13 +316,9 @@ public class ContactManifoldPool {
         double penetrationImpulse = positionalError * jacobian;
         double velocityImpulse = velocityError * jacobian;
         
-//        System.out.println(" - velocity impulse: " + velocityImpulse + " position impulse: " + penetrationImpulse);
-//        System.out.println(" - jacobian: " + jacobian);
-        
         pool.setSolution(constraint, penetrationImpulse + velocityImpulse, 0.0, jacobian);
         pool.setStaticLimits(constraint, 0.0, Double.MAX_VALUE);
         
-//        System.out.println(" - constraint index: " + constraint);
         return constraint;
     }
     
@@ -437,11 +414,9 @@ public class ContactManifoldPool {
         Integer existingManifold = manifolds.get(query);
         if (existingManifold != null) {
             // reuse this one
-//            System.out.println("Found existing manifold between (" + a.getEntity().getId() + ", " + b.getEntity().getId() + ")");
             return existingManifold.intValue();
         }
         
-//        System.out.println("Creating a new manifold between (" + a.getEntity().getId() + ", " + b.getEntity().getId() + ")");
         // otherwise we need a new index
         int newIndex = (reuseQueue.isEmpty() ? maxAliveContact++ : reuseQueue.poll().intValue());
         if (newIndex >= objAs.length) {
@@ -500,7 +475,6 @@ public class ContactManifoldPool {
             }
         }
         
-//        System.out.println("Adding manifold point " + point + ", " + pair);
         int index = toIndex(manifold, point);
         int vec4Index = toVector4Index(manifold, point);
         

@@ -48,12 +48,10 @@ public class ConstraintSolvingController extends SimpleController {
             
             // linear velocity
             deltaLinearImpulse.get(b.getIndex(), d);
-//            System.out.println("Constraint: (" + b.getEntity().getId() + ") linear velocity: " + b.getVelocity() + " delta: " + d);
             b.setVelocity(d.add(b.getVelocity()));
             
             // angular velocity
             deltaAngularImpulse.get(b.getIndex(), d);
-//            System.out.println("Constraint: (" + b.getEntity().getId() + ") angular velocity: " + b.getAngularVelocity() + " delta: " + d);
             b.setAngularVelocity(d.add(b.getAngularVelocity()));
             
             // 0 out delta impulse for next frame

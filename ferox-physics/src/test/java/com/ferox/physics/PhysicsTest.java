@@ -1,9 +1,5 @@
 package com.ferox.physics;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.logic.InputManager;
 import com.ferox.input.logic.InputState;
@@ -13,14 +9,10 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
-import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.QuadTree;
-import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.controller.SpatialIndexCollisionController;
-import com.ferox.physics.dynamics.LinearConstraintSolver;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -98,7 +90,6 @@ public class PhysicsTest {
         system.getControllerManager().addController(new WorldBoundsController());
         system.getControllerManager().addController(new CameraController());
         system.getControllerManager().addController(new SpatialIndexController(new QuadTree<Entity>(worldBounds, 6)));
-//        system.getControllerManager().addController(new SpatialIndexTestController());
         system.getControllerManager().addController(new VisibilityController());
         system.getControllerManager().addController(new LightGroupController(worldBounds));
         system.getControllerManager().addController(new FixedFunctionRenderController(framework));
@@ -157,42 +148,9 @@ public class PhysicsTest {
             long total = 0;
             for (Controller c: system.getControllerManager().getControllers()) {
                 total += system.getControllerManager().getExecutionTime(c);
-//                System.out.printf(" - %s: %.3f ms\n", c.getClass().getSimpleName(), (system.getControllerManager().getExecutionTime(c) / 1e6));
+                System.out.printf(" - %s: %.3f ms\n", c.getClass().getSimpleName(), (system.getControllerManager().getExecutionTime(c) / 1e6));
             }
-//            System.out.printf(" - total: %.3f ms\n", total / 1e6);
-//            
-//            System.out.printf("Collision times - build: %.2f ms, query: %.2f ms, gen: %.2f ms\n", 
-//                              SpatialIndexCollisionController.buildTime / (1e6 * numFrames),
-//                              SpatialIndexCollisionController.queryTime / (1e6 * numFrames),
-//                              SpatialIndexCollisionController.genTime / (1e6 * numFrames));
-//            System.out.printf("Detailed collision times - callback: %.2f ms, collide: %.2f ms, manifold: %.2f ms\n", 
-//                              SpatialIndexCollisionController.callbackTime / (1e6 * numFrames),
-//                              SpatialIndexCollisionController.collideTime / (1e6 * numFrames),
-//                              SpatialIndexCollisionController.addManifoldTime / (1e6 * numFrames));
-//            
-//            System.out.printf("Constraint times - warmstart: %.2f ms, shuffle: %.2f ms, solve: %.2f ms\n", 
-//                              LinearConstraintSolver.warmstartTime / (1e6 * numFrames),
-//                              LinearConstraintSolver.shuffleTime / (1e6 * numFrames),
-//                              LinearConstraintSolver.solveTime / (1e6 * numFrames));
-//            
-//            System.out.printf("Used cells: %d, max cells: %d, aabb checks: %d\n", Octree.usedCellCount, Octree.maxCellCount, Octree.intersectionCount);
-//            
-//            System.out.printf("GJK: %.2f, EPA: %.2f\n", GjkEpaCollisionAlgorithm.gjkChecks / (double) numFrames, GjkEpaCollisionAlgorithm.epaChecks / (double) numFrames);
-//            System.out.printf("Used manifolds: %d, max: %d\n", ContactManifoldPool.usedManifolds, ContactManifoldPool.maxManifolds);
-//            System.out.printf("Solved constraints: %.2f\n", LinearConstraintSolver.totalConstraints / (double) numFrames);
-            
-            LinearConstraintSolver.shuffleTime = 0;
-            LinearConstraintSolver.solveTime = 0;
-            LinearConstraintSolver.warmstartTime = 0;
-            LinearConstraintSolver.totalConstraints = 0;
-            GjkEpaCollisionAlgorithm.gjkChecks = 0;
-            GjkEpaCollisionAlgorithm.epaChecks = 0;
-            SpatialIndexCollisionController.buildTime = 0;
-            SpatialIndexCollisionController.genTime = 0;
-            SpatialIndexCollisionController.queryTime = 0;
-            SpatialIndexCollisionController.callbackTime = 0;
-            SpatialIndexCollisionController.collideTime = 0;
-            SpatialIndexCollisionController.addManifoldTime = 0;
+            System.out.printf(" - total: %.3f ms\n", total / 1e6);
         }
     }
     
@@ -305,96 +263,6 @@ public class PhysicsTest {
         Entity inf = scene.addEntity();
         inf.add(DirectionLight.ID).getData().setColor(new ColorRGB(1, 1, 1));
         inf.add(Transform.ID);
-    }
-    
-    private static class SpatialIndexTestController extends SimpleController {
-        private final com.ferox.math.bounds.Octree<Entity> octree = new com.ferox.math.bounds.Octree<Entity>(worldBounds, 6);
-        private final com.ferox.math.bounds.QuadTree<Entity> quadtree = new com.ferox.math.bounds.QuadTree<Entity>(worldBounds, 6);
-
-        @Override
-        public void preProcess(double dt) {
-            octree.clear(true);
-            quadtree.clear(true);
-        }
-        
-        @Override
-        public void process(double dt) {
-            Iterator<CollisionBody> it = getEntitySystem().iterator(CollisionBody.ID);
-            while(it.hasNext()) {
-                CollisionBody cb = it.next();
-                octree.add(cb.getEntity(), cb.getWorldBounds());
-                quadtree.add(cb.getEntity(), cb.getWorldBounds());
-            }
-            
-            RecordingCallback oPairs = new RecordingCallback(octree);
-            RecordingCallback qPairs = new RecordingCallback(quadtree);
-            
-            System.out.println("octree query");
-            octree.query(oPairs);
-            System.out.println("quadtree query");
-            quadtree.query(qPairs);
-            
-            if (!oPairs.pairs.equals(qPairs.pairs)) {
-                System.out.println("Intersection queries differ");
-                System.out.println("Octree pair count: " + oPairs.pairs.size());
-                System.out.println("Quadtree pair count: " + qPairs.pairs.size());
-                
-                for (EntityPair p: oPairs.pairs) {
-                    if (!qPairs.pairs.contains(p)) {
-                        System.out.println("Octree reports pair not in quadtree: " + p.a.getId() + ", " + p.b.getId());
-                    }
-                }
-                for (EntityPair p: qPairs.pairs) {
-                    if (!oPairs.pairs.contains(p)) {
-                        System.out.println("Quadtree reports pair not in octree: " + p.a.getId() + ", " + p.b.getId());
-                        System.out.println("A bounds: " + p.a.get(CollisionBody.ID).getData().getWorldBounds());
-                        System.out.println("B bounds: " + p.b.get(CollisionBody.ID).getData().getWorldBounds());
-                    }
-                }
-                System.exit(0);
-            }
-        }
-        
-        private static class RecordingCallback implements IntersectionCallback<Entity> {
-            final SpatialIndex<Entity> index;
-            final Set<EntityPair> pairs = new HashSet<EntityPair>();
-            
-            public RecordingCallback(SpatialIndex<Entity> index) {
-                this.index = index;
-            }
-            
-            @Override
-            public void process(Entity a, AxisAlignedBox boundsA, Entity b, AxisAlignedBox boundsB) {
-                EntityPair p = new EntityPair(a, b);
-                if (pairs.contains(p)) {
-                    System.err.println("Pair already reported in " + index.getClass().getSimpleName() + "!!!");
-                }
-                pairs.add(p);
-            }
-        }
-        
-        private static class EntityPair {
-            final Entity a;
-            final Entity b;
-            
-            public EntityPair(Entity a, Entity b) {
-                this.a = a; 
-                this.b = b;
-            }
-            
-            @Override
-            public boolean equals(Object o) {
-                if (!(o instanceof EntityPair))
-                    return false;
-                EntityPair p = (EntityPair) o;
-                return (p.a == a && p.b == b) || (p.a == b && p.b == a);
-            }
-            
-            @Override
-            public int hashCode() {
-                return a.hashCode() + b.hashCode();
-            }
-        }
     }
     
     private static class TransformController extends SimpleController {

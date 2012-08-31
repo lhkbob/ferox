@@ -12,14 +12,11 @@ import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.controller.ConstraintSolvingController;
 import com.ferox.physics.controller.ForcesController;
 import com.ferox.physics.controller.MotionController;
 import com.ferox.physics.controller.SpatialIndexCollisionController;
-import com.ferox.physics.dynamics.ContactManifoldPool;
 import com.ferox.physics.dynamics.Gravity;
-import com.ferox.physics.dynamics.LinearConstraintSolver;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -146,38 +143,6 @@ public class GravityTest {
                 System.out.printf(" - %s: %.3f ms\n", c.getClass().getSimpleName(), (system.getControllerManager().getExecutionTime(c) / 1e6));
             }
             System.out.printf(" - total: %.3f ms\n", total / 1e6);
-            
-            System.out.printf("Collision times - build: %.2f ms, query: %.2f ms, gen: %.2f ms\n", 
-                              SpatialIndexCollisionController.buildTime / (1e6 * numFrames),
-                              SpatialIndexCollisionController.queryTime / (1e6 * numFrames),
-                              SpatialIndexCollisionController.genTime / (1e6 * numFrames));
-            System.out.printf("Detailed collision times - callback: %.2f ms, collide: %.2f ms, manifold: %.2f ms\n", 
-                              SpatialIndexCollisionController.callbackTime / (1e6 * numFrames),
-                              SpatialIndexCollisionController.collideTime / (1e6 * numFrames),
-                              SpatialIndexCollisionController.addManifoldTime / (1e6 * numFrames));
-            
-            System.out.printf("Constraint times - warmstart: %.2f ms, shuffle: %.2f ms, solve: %.2f ms\n", 
-                              LinearConstraintSolver.warmstartTime / (1e6 * numFrames),
-                              LinearConstraintSolver.shuffleTime / (1e6 * numFrames),
-                              LinearConstraintSolver.solveTime / (1e6 * numFrames));
-            
-            
-            System.out.printf("GJK: %.2f, EPA: %.2f\n", GjkEpaCollisionAlgorithm.gjkChecks / (double) numFrames, GjkEpaCollisionAlgorithm.epaChecks / (double) numFrames);
-            System.out.printf("Used manifolds: %d, max: %d\n", ContactManifoldPool.usedManifolds, ContactManifoldPool.maxManifolds);
-            System.out.printf("Solved constraints: %.2f\n", LinearConstraintSolver.totalConstraints / (double) numFrames);
-            
-            LinearConstraintSolver.shuffleTime = 0;
-            LinearConstraintSolver.solveTime = 0;
-            LinearConstraintSolver.warmstartTime = 0;
-            LinearConstraintSolver.totalConstraints = 0;
-            GjkEpaCollisionAlgorithm.gjkChecks = 0;
-            GjkEpaCollisionAlgorithm.epaChecks = 0;
-            SpatialIndexCollisionController.buildTime = 0;
-            SpatialIndexCollisionController.genTime = 0;
-            SpatialIndexCollisionController.queryTime = 0;
-            SpatialIndexCollisionController.callbackTime = 0;
-            SpatialIndexCollisionController.collideTime = 0;
-            SpatialIndexCollisionController.addManifoldTime = 0;
         }
     }
     

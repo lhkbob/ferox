@@ -8,7 +8,7 @@ import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 
 public class GjkEpaCollisionAlgorithm2 implements CollisionAlgorithm<ConvexShape, ConvexShape> {
-    private static final int MAX_EPA_CHECKS = 1;
+    private static final int MAX_EPA_CHECKS = 4;
     
     @Override
     public ClosestPair getClosestPair(ConvexShape shapeA, @Const Matrix4 transA, 
@@ -38,14 +38,6 @@ public class GjkEpaCollisionAlgorithm2 implements CollisionAlgorithm<ConvexShape
                         return p;
                 } else {
                     // run epa
-//                    Simplex os = new Simplex(simplex);
-//                    MinkowskiDifference od = new MinkowskiDifference(shapeA, transA, shapeB, transB);
-//                    EPA epa = new EPA(od, os);
-//                    if (epa.evaluate(guess) == EPA.Status.VALID) {
-//                        p = od.getClosestPair(epa.getSimplex(), epa.getNormal());
-//                        if (p != null)
-//                            return p;
-//                    }
                     p = EPA2.evaluate(simplex);
                     if (p != null)
                         return p;

@@ -45,8 +45,6 @@ public class EPA {
 
     private MinkowskiDifference shape;
     private Simplex gjkSimplex;
-//    private final Vector3 tempCache;
-    
     
     private Vector3 normal;
     private Bag<Face> hull;
@@ -68,7 +66,6 @@ public class EPA {
     
     public EPA(MinkowskiDifference shape, Simplex gjk) {
         depth = 0f;
-//        tempCache = new Vector3f();
         this.shape = shape;
         this.gjkSimplex = gjk;
     }
@@ -132,7 +129,6 @@ public class EPA {
         // we assume that the simplex of the GJK contains
         // the origin, otherwise behavior is undefined
         Simplex simplex = gjkSimplex;
-        Simplex2 os = new Simplex2(shape.asShape(), simplex);
         MinkowskiDifference function = shape;
         
         normal = new Vector3();
@@ -140,8 +136,6 @@ public class EPA {
         status = Status.FAILED;
         
         if (simplex.getRank() > 1 && simplex.encloseOrigin(function)) {
-//        if (os.getRank() > 1 && os.encloseOrigin()) {
-//            simplex = new Simplex(os);
             status = Status.VALID;
             
             // build initial hull
@@ -187,15 +181,11 @@ public class EPA {
                         }
                         
                         if (valid && horizon.numFaces >= 3) {
-//                        if (horizon.numFaces >= 3) {
                             bind(horizon.cf, 1, horizon.ff, 2);
                             best.remove();
                             best = findBest();
-//                            if (best.p >= outer.p)
                                 outer = best;
-//                        } else if (!valid) {
                         } else {
-//                            System.out.println("should be invalid! " + valid + " " + horizon.numFaces);
                             status = Status.INVALID_HULL;
                             break;
                         }
@@ -210,9 +200,6 @@ public class EPA {
                 normal.set(outer.normal);
                 depth = outer.d;
                 
-                // FIXME why do we have tempCache for some vector computations,
-                // but are willing to allocate two vectors here?
-                // At the very least we need to use a unified practice here
                 Vector3 t1 = new Vector3();
                 Vector3 t2 = new Vector3();
                 
@@ -236,7 +223,6 @@ public class EPA {
     private Face findBest() {
         Face minf = hull.get(0);
         double mind = minf.d * minf.d;
-        double maxp = minf.p;
         
         Face f;
         double sqd;
@@ -244,12 +230,9 @@ public class EPA {
         for (int i = 1; i < ct; i++) {
             f = hull.get(i);
             sqd = f.d * f.d;
-            // FIXME eps?
-//            if (f.p >= maxp && sqd < mind) {
             if (sqd < mind) {
                 minf = f;
                 mind = sqd;
-                maxp = f.p;
             }
         }
         
@@ -365,7 +348,6 @@ public class EPA {
                         }
                     }
                 }
-//                d = a.getVertex().dot(normal) * invL;
                 
                 normal.scale(1 / l);
                 if (force || d >= -EPA_PLANE_EPS) {
@@ -381,14 +363,6 @@ public class EPA {
             hull.remove(hullIndex);
             if (hullIndex != hull.size())
                 hull.get(hullIndex).hullIndex = hullIndex;
-            
-//            for (Face f: hull) {
-//                for (int i = 0; i < f.adjacent.length; i++) {
-//                    if (f.adjacent[i] == this) {
-//                        throw new IllegalArgumentException();
-//                    }
-//                }
-//            }
         }
     }
     

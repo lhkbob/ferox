@@ -6,8 +6,6 @@ import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
 
 public class LinearConstraintSolver {
-    public static int totalConstraints = 0;
-    
     private final Random shuffler;
     
     private boolean shuffleConstraints;
@@ -23,7 +21,7 @@ public class LinearConstraintSolver {
     
     public LinearConstraintSolver() {
         shuffler = new Random();
-        setShuffleConstraints(false);
+        setShuffleConstraints(true);
         setShuffleEveryIteration(true);
         setIterationCount(10);
     }
@@ -62,20 +60,11 @@ public class LinearConstraintSolver {
         return numIterations;
     }
 
-    public static long warmstartTime = 0;
-    public static long shuffleTime = 0;
-    public static long solveTime = 0;
-
-    private int impulseCount;
     public void solve(LinearConstraintPool... groups) {
-        impulseCount = 0;
-        totalImpulse = 0;
         // handle warmstarting
-        warmstartTime -= System.nanoTime();
         for (int i = 0; i < groups.length; i++) {
             applyWarmstarting(groups[i]);
         }
-        warmstartTime += System.nanoTime();
         
         if (shuffleConstraints) {
             if (shuffleEachIteration) {
@@ -89,7 +78,6 @@ public class LinearConstraintSolver {
     }
     
     private void solveNoShuffling(LinearConstraintPool[] groups) {
-        solveTime -= System.nanoTime();
         // with no shuffling we don't need an array of indices
         int count;
         LinearConstraintPool group;
@@ -102,20 +90,16 @@ public class LinearConstraintSolver {
                 }
             }
         }
-        solveTime += System.nanoTime();
     }
     
     private void solveShuffleOnce(LinearConstraintPool[] groups) {
-        shuffleTime -= System.nanoTime();
         // since we're shuffling, we have to allocate these arrays
         int[][] indices = createIndices(groups);
         // shuffle one time at the very start
         for (int i = 0; i < groups.length; i++) {
             shuffle(indices[i]);
         }
-        shuffleTime += System.nanoTime();
         
-        solveTime -= System.nanoTime();
         int[] shuffled;
         LinearConstraintPool group;
         for (int i = 0; i < numIterations; i++) {
@@ -127,14 +111,11 @@ public class LinearConstraintSolver {
                 }
             }
         }
-        solveTime += System.nanoTime();
     }
     
     private void solveShuffle(LinearConstraintPool[] groups) {
-        shuffleTime -= System.nanoTime();
         // since we're shuffling, we have to allocate these arrays
         int[][] indices = createIndices(groups);
-        shuffleTime += System.nanoTime();
         
         int[] shuffled;
         LinearConstraintPool group;
@@ -143,24 +124,17 @@ public class LinearConstraintSolver {
                 shuffled = indices[j];
                 group = groups[j];
                 
-                shuffleTime -= System.nanoTime();
                 // shuffle the indices every iteration
                 shuffle(shuffled);
-                shuffleTime += System.nanoTime();
                 
-                solveTime -= System.nanoTime();
                 for (int k = 0; k < shuffled.length; k++) {
                     solveSingleConstraint(group, shuffled[k]);
                 }
-                solveTime += System.nanoTime();
             }
         }
     }
     
-    private double totalImpulse;
     private void solveSingleConstraint(LinearConstraintPool group, int constraint) {
-        totalConstraints++;
-        
         double jacobian = group.getJacobianDiagonalInverse(constraint);
         double deltaImpulse = group.getSolution(constraint);
         
@@ -170,13 +144,11 @@ public class LinearConstraintSolver {
         int ba = group.getBodyAIndex(constraint);
         int bb = group.getBodyBIndex(constraint);
         
-//        System.out.println("Adding impulse to (" + ba + ", " + bb + ")");
         if (ba >= 0) {
             deltaLinearImpulse.get(ba, linear);
             deltaAngularImpulse.get(ba, angular);
             
             deltaVelADotN = -jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueA(constraint).dot(angular));
-//            System.out.println(" - dlA: " + linear + ", daA: " + angular);
         }
         
         if (bb >= 0) {
@@ -184,13 +156,11 @@ public class LinearConstraintSolver {
             deltaAngularImpulse.get(bb, angular);
             
             deltaVelBDotN = jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueB(constraint).dot(angular));
-//            System.out.println(" - dlB: " + linear + ", daB: " + angular);
         }
         
-//        System.out.println(" - velADotN: " + deltaVelADotN + ", velBDotN: " + deltaVelBDotN);
-
         deltaImpulse = group.getSolution(constraint) + deltaVelADotN + deltaVelBDotN;
         
+        // FIXME consolidate again
         double applied = group.getAppliedImpulse(constraint);
         double totalImpulse = applied + deltaImpulse;
         double lower = group.getLowerImpulseLimit(constraint);
@@ -202,12 +172,6 @@ public class LinearConstraintSolver {
             deltaImpulse = upper - applied;
             totalImpulse = upper;
         }
-        
-        this.totalImpulse += Math.abs(deltaImpulse);
-        this.impulseCount++;
-//        if (Math.abs(deltaImpulse) > .1 && Math.abs(deltaImpulse) > 100 * (this.totalImpulse / this.impulseCount)) {
-//            System.err.println("REALLY BIG IMPULSE (" + deltaImpulse + ") COMPARED TO AVG (" + (this.totalImpulse / this.impulseCount));
-//        }
         
         if (ba >= 0) {
             deltaLinearImpulse.get(ba, linear);
@@ -229,8 +193,6 @@ public class LinearConstraintSolver {
             deltaAngularImpulse.set(angular, bb);
         }
         
-//        System.out.println(" - delta: " + deltaImpulse + ", total: " + totalImpulse + ", expected soln: " + group.getSolution(constraint));
-//        System.out.println(" - constraint id: " + constraint);
         group.setAppliedImpulse(constraint, totalImpulse);
     }
     

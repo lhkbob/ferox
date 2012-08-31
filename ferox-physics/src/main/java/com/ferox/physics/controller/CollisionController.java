@@ -10,21 +10,19 @@ import com.lhkbob.entreri.SimpleController;
 
 public abstract class CollisionController extends SimpleController {
     private final ContactManifoldPool manifolds;
-//    private final ContactManifoldCache manifolds;
     
     private final LinearConstraintPool contactGroup;
     private final LinearConstraintPool frictionGroup;
     
     public CollisionController() {
         manifolds = new ContactManifoldPool();
-//        manifolds = new ContactManifoldCache();
         contactGroup = new LinearConstraintPool(null);
         frictionGroup = new LinearConstraintPool(contactGroup);
     }
     
-//    public ContactManifoldPool getContactManifoldPool() {
-//        return manifolds;
-//    }
+    public ContactManifoldPool getContactManifoldPool() {
+        return manifolds;
+    }
     
     public LinearConstraintPool getContactGroup() {
         return contactGroup;
@@ -40,7 +38,6 @@ public abstract class CollisionController extends SimpleController {
         if (c.getTypeId() == CollisionBody.ID) {
             // must remove all contacts connected to this entity from the cache
             manifolds.removeAllContacts((Component<CollisionBody>) c);
-//            manifolds.remove((Component<CollisionBody>) c);
         }
     }
     
@@ -60,7 +57,7 @@ public abstract class CollisionController extends SimpleController {
     @Override
     public void postProcess(double dt) {
         // read back computed impulses from constraint solving controller
-//        manifolds.computeWarmstartImpulses(contactGroup, frictionGroup);
+        manifolds.computeWarmstartImpulses(contactGroup, frictionGroup);
     }
     
     protected void reportConstraints(double dt) {
@@ -71,7 +68,6 @@ public abstract class CollisionController extends SimpleController {
     
     
     protected void notifyContact(CollisionBody bodyA, CollisionBody bodyB, ClosestPair contact) {
-//        manifolds.addContact(bodyA.getComponent(), bodyB.getComponent(), contact);
         manifolds.addContact(bodyA, bodyB, contact);
     }
 }

@@ -324,7 +324,6 @@ public class Simplex {
         else
             v.input.normalize(d);
         s.getSupport(v.input, v.vertex);
-//        System.out.println("add vertex " + d + " " + negate + " " + v.input + " " + v.vertex);
     }
     
     /**
