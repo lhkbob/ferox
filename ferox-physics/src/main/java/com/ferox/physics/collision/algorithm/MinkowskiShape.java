@@ -44,7 +44,7 @@ public class MinkowskiShape {
         return new Vector3().sub(translationB, translationA);
     }
     
-    public ClosestPair getClosestPair(Simplex2 simplex, @Const Vector3 zeroNormal) {
+    public ClosestPair getClosestPair(Simplex simplex, @Const Vector3 zeroNormal) {
         Vector3 a = computePointOnA(simplex);
         Vector3 b = computePointOnB(simplex);
         
@@ -89,7 +89,7 @@ public class MinkowskiShape {
         return new ClosestPair(a, normal, distance);
     }
     
-    private Vector3 computePointOnA(Simplex2 simplex) {
+    private Vector3 computePointOnA(Simplex simplex) {
         Vector3 a = new Vector3();
         Vector3 s = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
@@ -99,7 +99,7 @@ public class MinkowskiShape {
         return a;
     }
     
-    private Vector3 computePointOnB(Simplex2 simplex) {
+    private Vector3 computePointOnB(Simplex simplex) {
         Vector3 b = new Vector3();
         Vector3 s = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {

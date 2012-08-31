@@ -5,7 +5,7 @@ import com.ferox.math.Vector3;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.util.Bag;
 
-public class EPA2 {
+public class EPA {
     private static final int EPA_MAX_ITERATIONS = 255;
     private static final double EPA_ACCURACY = .00001;
     private static final double EPA_PLANE_EPS = .00001;
@@ -13,7 +13,7 @@ public class EPA2 {
     private static final int[] I1_MAP = new int[] { 1, 2, 0 };
     private static final int[] I2_MAP = new int[] { 2, 0, 1 };
 
-    public static ClosestPair evaluate(Simplex2 simplex) {
+    public static ClosestPair evaluate(Simplex simplex) {
         if (simplex.getRank() > 1 && simplex.encloseOrigin()) {
             Bag<Face> hull = new Bag<Face>();
             Face f1 = newFace(simplex, 0, 1, 2, hull);
@@ -66,7 +66,7 @@ public class EPA2 {
                 
                 // create new reduced simplex from hull
                 Vector3 projection = new Vector3().scale(outer.normal, outer.d);
-                simplex = new Simplex2(simplex.getShape());
+                simplex = new Simplex(simplex.getShape());
                 simplex.setRank(outer.inputs.length);
                 for (int j = 0; j < outer.inputs.length; j++) {
                     simplex.getInput(j).set(outer.inputs[j]);
@@ -170,7 +170,7 @@ public class EPA2 {
         }
     }
     
-    private static Face newFace(Simplex2 simplex, int i1, int i2, int i3, Bag<Face> hull) {
+    private static Face newFace(Simplex simplex, int i1, int i2, int i3, Bag<Face> hull) {
         return newFace(simplex.getInput(i1), simplex.getVertex(i1), 
                        simplex.getInput(i2), simplex.getVertex(i2),
                        simplex.getInput(i3), simplex.getVertex(i3),

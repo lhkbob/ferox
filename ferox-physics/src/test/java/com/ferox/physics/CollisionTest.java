@@ -19,7 +19,7 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.Shape;
-import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm2;
+import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -355,7 +355,7 @@ public class CollisionTest {
             this.collision = collision;
             
             active = a;
-            algo = new GjkEpaCollisionAlgorithm2();
+            algo = new GjkEpaCollisionAlgorithm();
             collision.get(Renderable.ID, true).setEnabled(false);
         }
         

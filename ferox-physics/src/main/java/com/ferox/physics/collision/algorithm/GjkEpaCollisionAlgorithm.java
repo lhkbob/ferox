@@ -7,7 +7,7 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 
-public class GjkEpaCollisionAlgorithm2 implements CollisionAlgorithm<ConvexShape, ConvexShape> {
+public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
     private static final int MAX_EPA_CHECKS = 4;
     
     @Override
@@ -19,7 +19,7 @@ public class GjkEpaCollisionAlgorithm2 implements CollisionAlgorithm<ConvexShape
         shape.setAppliedMargins(0);
         Vector3 guess = shape.getInitialGuess();
         
-        Simplex2 simplex = GJK2.evaluate(shape, guess);
+        Simplex simplex = GJK.evaluate(shape, guess);
         if (simplex != null && !simplex.isIntersection()) {
             p = shape.getClosestPair(simplex, null);
             if (p != null)
@@ -29,7 +29,7 @@ public class GjkEpaCollisionAlgorithm2 implements CollisionAlgorithm<ConvexShape
         for (int i = 1; i <= MAX_EPA_CHECKS; i++) {
             shape.setAppliedMargins(i);
             
-            simplex = GJK2.evaluate(shape, guess);
+            simplex = GJK.evaluate(shape, guess);
             if (simplex != null) {
                 if (!simplex.isIntersection()) {
                     // unlikely but is a possible early escape
@@ -38,7 +38,7 @@ public class GjkEpaCollisionAlgorithm2 implements CollisionAlgorithm<ConvexShape
                         return p;
                 } else {
                     // run epa
-                    p = EPA2.evaluate(simplex);
+                    p = EPA.evaluate(simplex);
                     if (p != null)
                         return p;
                 }

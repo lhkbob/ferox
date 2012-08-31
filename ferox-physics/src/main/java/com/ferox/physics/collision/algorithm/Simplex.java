@@ -3,7 +3,7 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
-public class Simplex2 {
+public class Simplex {
     public static final int MAX_RANK = 4;
     
     private final MinkowskiShape shape;
@@ -16,7 +16,7 @@ public class Simplex2 {
     
     private boolean isIntersection;
     
-    public Simplex2(MinkowskiShape shape) {
+    public Simplex(MinkowskiShape shape) {
         inputs = new Vector3[MAX_RANK];
         vertices = new Vector3[MAX_RANK];
         weights = new double[MAX_RANK];

@@ -3,14 +3,14 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
-public class GJK2 {
+public class GJK {
     private static final int GJK_MAX_ITERATIONS = 128;
     private static final double GJK_MIN_DISTANCE = .00001;
     private static final double GJK_DUPLICATE_EPS = .0001;
     private static final double GJK_ACCURACY = .00001;
 
-    public static Simplex2 evaluate(MinkowskiShape shape, @Const Vector3 guess) {
-        Simplex2 simplex = new Simplex2(shape);
+    public static Simplex evaluate(MinkowskiShape shape, @Const Vector3 guess) {
+        Simplex simplex = new Simplex(shape);
         Vector3 ray = new Vector3(guess);
         if (ray.lengthSquared() < GJK_MIN_DISTANCE * GJK_MIN_DISTANCE)
             ray.set(1, 0, 0); // arbitrary guess
@@ -56,7 +56,7 @@ public class GJK2 {
             
             // reduce for next iteration
             if (simplex.reduce()) {
-                if (simplex.getRank() == Simplex2.MAX_RANK) {
+                if (simplex.getRank() == Simplex.MAX_RANK) {
                     // it's a valid simplex, but represents an intersection
                     simplex.setIntersection(true);
                     return simplex;
