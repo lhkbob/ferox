@@ -429,14 +429,14 @@ public final class Matrix3 implements Cloneable {
         
         double s = 2 / d;
         
-        double xs = q.x * s,  ys = q.y * s, zs = q.z * s;
+        double xs = q.x * s,  ys = q.y * s,  zs = q.z * s;
         double wx = q.w * xs, wy = q.w * ys, wz = q.w * zs;
         double xx = q.x * xs, xy = q.x * ys, xz = q.x * zs;
         double yy = q.y * ys, yz = q.y * zs, zz = q.z * zs;
         
-        return set(1f - (yy + zz), xy - wz, xz + wy,
-                   xy + wz, 1f - (xx + zz), yz - wx,
-                   xz - wy, yz + wx, 1f - (xx + yy));
+        return set(1.0 - (yy + zz), xy - wz, xz + wy,
+                   xy + wz, 1.0 - (xx + zz), yz - wx,
+                   xz - wy, yz + wx, 1.0 - (xx + yy));
     }
 
     /**

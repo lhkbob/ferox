@@ -106,7 +106,7 @@ public final class Vector3 implements Cloneable {
      * @throws NullPointerException if v is null
      */
     public double distanceSquared(@Const Vector3 v) {
-        double dx = x- v.x;
+        double dx = x - v.x;
         double dy = y - v.y;
         double dz = z - v.z;
         return dx * dx + dy * dy + dz * dz;

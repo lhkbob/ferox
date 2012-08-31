@@ -434,7 +434,7 @@ public final class Quat4 implements Cloneable {
      */
     public Quat4 set(@Const Matrix3 e) {
         double trace = e.trace();
-        if (trace > 0f) {
+        if (trace > 0.0) {
             double s = Math.sqrt(trace + 1.0);
             w = .5 * s;
             s = .5 / s;
@@ -444,12 +444,12 @@ public final class Quat4 implements Cloneable {
             z = s * (e.m10 - e.m01);
         } else {
             // get the column that has the highest diagonal element
-            int i = (e.get(0, 0) < e.get(1, 1) ? (e.get(1, 1) < e.get(2, 2) ? 2 : 1)
-                                               : (e.get(0, 0) < e.get(2, 2) ? 2 : 0));
+            int i = (e.m00 < e.m11 ? (e.m11 < e.m22 ? 2 : 1)
+                                   : (e.m00 < e.m22 ? 2 : 0));
             int j = (i + 1) % 3;
             int k = (i + 2) % 3;
             
-            double s = Math.sqrt(e.get(i, i) - e.get(j, j) - e.get(k, k) + 1f);
+            double s = Math.sqrt(e.get(i, i) - e.get(j, j) - e.get(k, k) + 1.0);
             set(i, .5 * s);
             s = .5 / s;
             
