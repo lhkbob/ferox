@@ -12,32 +12,24 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
  * <p>
- * Teapot is the classical teapot model in computer graphices. Constructing a
- * Teapot automatically configures itself with vertices, normals, and texture
- * coordinates, as well as indices. The vertex data is from
- * "http://www.sjbaker.org/teapot/".
- * </p>
+ * Teapot contains factory methods to create the classical teapot model in
+ * computer graphices. The vertex data is from "http://www.sjbaker.org/teapot/".
  * 
  * @author Michael Ludwig
  */
-public class Teapot implements Geometry {
-    private final VertexAttribute vertices;
-    private final VertexAttribute normals;
-    private final VertexAttribute texCoords;
-    
-    private final VertexBufferObject indices;
-    
-    private final AxisAlignedBox bounds;
+public class Teapot {
+    private Teapot() { }
     
     /**
      * Instantiates a new Teapot object with the given scale with
      * a StorageMode of IN_MEMORY.
      * 
      * @param scale The scale factor that affects the size of the teapot
+     * @return The new geometry
      * @throws IllegalArgumentException if scale is negative
      */
-    public Teapot(float scale) {
-        this(scale, StorageMode.IN_MEMORY);
+    public static Geometry create(double scale) {
+        return create(scale, StorageMode.IN_MEMORY);
     }
 
     /**
@@ -45,77 +37,92 @@ public class Teapot implements Geometry {
      * 
      * @param scale The scale factor that affects the size of the teapot
      * @param mode The StorageMode to use
+     * @return The new geometry
      * @throws IllegalArgumentException if scale is negative
      * @throws NullPointerException if mode is null
      */
-    public Teapot(float scale, StorageMode mode) {
-        if (scale <= 0f)
-            throw new IllegalArgumentException("Scale must be greater than 0");
-        if (mode == null)
-            throw new NullPointerException("StorageMode cannot be null");
+    public static Geometry create(double scale, StorageMode mode) {
+        return new TeapotImpl((float) scale, mode);
+    }
         
-        // copy the teapot so that each instance can be modified separately
-        float[] v = Arrays.copyOf(TEAPOT.vertices, TEAPOT.vertices.length);
-        float[] n = Arrays.copyOf(TEAPOT.normals, TEAPOT.normals.length);
-        float[] t = Arrays.copyOf(TEAPOT.texCoords, TEAPOT.texCoords.length);
-        int[] i = Arrays.copyOf(TEAPOT.indices, TEAPOT.indices.length);
-        
-        if (scale != 1f) {
-            for (int j = 0; j < v.length; j++)
-                v[j] = v[j] * scale;
+    private static class TeapotImpl implements Geometry {
+        private final VertexAttribute vertices;
+        private final VertexAttribute normals;
+        private final VertexAttribute texCoords;
+
+        private final VertexBufferObject indices;
+
+        private final AxisAlignedBox bounds;
+
+        public TeapotImpl(float scale, StorageMode mode) {
+            if (scale <= 0f)
+                throw new IllegalArgumentException("Scale must be greater than 0");
+            if (mode == null)
+                throw new NullPointerException("StorageMode cannot be null");
+
+            // copy the teapot so that each instance can be modified separately
+            float[] v = Arrays.copyOf(TEAPOT.vertices, TEAPOT.vertices.length);
+            float[] n = Arrays.copyOf(TEAPOT.normals, TEAPOT.normals.length);
+            float[] t = Arrays.copyOf(TEAPOT.texCoords, TEAPOT.texCoords.length);
+            int[] i = Arrays.copyOf(TEAPOT.indices, TEAPOT.indices.length);
+
+            if (scale != 1f) {
+                for (int j = 0; j < v.length; j++)
+                    v[j] = v[j] * scale;
+            }
+
+            vertices = new VertexAttribute(new VertexBufferObject(new BufferData(v), mode), 3);
+            normals = new VertexAttribute(new VertexBufferObject(new BufferData(n), mode), 3);
+            texCoords = new VertexAttribute(new VertexBufferObject(new BufferData(t), mode), 2);
+            indices = new VertexBufferObject(new BufferData(i), mode);
+
+            bounds = new AxisAlignedBox(v, 0, 0, v.length / 3);
         }
-        
-        vertices = new VertexAttribute(new VertexBufferObject(new BufferData(v), mode), 3);
-        normals = new VertexAttribute(new VertexBufferObject(new BufferData(n), mode), 3);
-        texCoords = new VertexAttribute(new VertexBufferObject(new BufferData(t), mode), 2);
-        indices = new VertexBufferObject(new BufferData(i), mode);
-        
-        bounds = new AxisAlignedBox(v, 0, 0, v.length / 3);
-    }
-    
-    @Override
-    public PolygonType getPolygonType() {
-        return PolygonType.TRIANGLES;
-    }
 
-    @Override
-    public VertexBufferObject getIndices() {
-        return indices;
-    }
-    
-    @Override
-    public @Const AxisAlignedBox getBounds() {
-        return bounds;
-    }
+        @Override
+        public PolygonType getPolygonType() {
+            return PolygonType.TRIANGLES;
+        }
 
-    @Override
-    public int getIndexOffset() {
-        return 0;
-    }
+        @Override
+        public VertexBufferObject getIndices() {
+            return indices;
+        }
 
-    @Override
-    public int getIndexCount() {
-        return indices.getData().getLength();
-    }
+        @Override
+        public @Const AxisAlignedBox getBounds() {
+            return bounds;
+        }
 
-    @Override
-    public VertexAttribute getVertices() {
-        return vertices;
-    }
+        @Override
+        public int getIndexOffset() {
+            return 0;
+        }
 
-    @Override
-    public VertexAttribute getNormals() {
-        return normals;
-    }
+        @Override
+        public int getIndexCount() {
+            return indices.getData().getLength();
+        }
 
-    @Override
-    public VertexAttribute getTextureCoordinates() {
-        return texCoords;
-    }
+        @Override
+        public VertexAttribute getVertices() {
+            return vertices;
+        }
 
-    @Override
-    public VertexAttribute getTangents() {
-        throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+        @Override
+        public VertexAttribute getNormals() {
+            return normals;
+        }
+
+        @Override
+        public VertexAttribute getTextureCoordinates() {
+            return texCoords;
+        }
+
+        @Override
+        public VertexAttribute getTangents() {
+            throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+        }
     }
 
     /* Static instance that all created Teapot's clone and then scale. */

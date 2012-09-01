@@ -11,23 +11,14 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
  * <p>
- * A Rectangle is a single quad aligned with a specified x and y axis, in three
- * dimensions. It is very useful for fullscreen effects that require rendering a
- * rectangle across the entire screen.
- * </p>
+ * Rectangle contains factory methods to create a single quad aligned with a
+ * specified x and y axis, in three dimensions. It is very useful for fullscreen
+ * effects that require rendering a rectangle across the entire screen.
  * 
  * @author Michael Ludwig
  */
-public class Rectangle implements Geometry {
-    // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
-    // ordered in such a way as to not need indices
-    private final VertexBufferObject vertexAttributes;
-    
-    private final VertexAttribute vertices;
-    private final VertexAttribute normals;
-    private final VertexAttribute texCoords;
-    
-    private final AxisAlignedBox bounds;
+public class Rectangle {
+    private Rectangle() { }
 
     /**
      * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis
@@ -38,11 +29,12 @@ public class Rectangle implements Geometry {
      * @param right The right edge of the rectangle
      * @param bottom The bottom edge of the rectangle
      * @param top The top edge of the rectangle
+     * @return The new geometry
      * @throws IllegalArgumentException if left > right or bottom > top
      */
-    public Rectangle(double left, double right, double bottom, double top) {
-        this(left, right, bottom, top,
-             new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
+    public static Geometry create(double left, double right, double bottom, double top) {
+        return create(left, right, bottom, top,
+                      new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
     }
 
     /**
@@ -56,17 +48,18 @@ public class Rectangle implements Geometry {
      * @param top The top edge of the rectangle
      * @param xAxis Local x-axis of the rectangle
      * @param yAxis Local y-axis of the rectangle
+     * @return The new geometry
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException if xAxis or yAxis are null
      */
-    public Rectangle(double left, double right, double bottom, double top,
-                     @Const Vector3 xAxis, @Const Vector3 yAxis) {
-        this(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
+    public static Geometry create(double left, double right, double bottom, double top,
+                                  @Const Vector3 xAxis, @Const Vector3 yAxis) {
+        return create(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
     }
 
     /**
-     * Create a Rectangle with the given basis vectors, edge dimensions
-     * and storage mode
+     * Create a Rectangle with the given basis vectors, edge dimensions and
+     * storage mode
      * 
      * @param xAxis
      * @param yAxis
@@ -74,126 +67,142 @@ public class Rectangle implements Geometry {
      * @param right
      * @param bottom
      * @param top
-     * @param type The compile type to use
-     * @param vertexName The name for the vertex attribute
-     * @param normalName The name for the normals attribute
-     * @param tcName The name for the texture coordinates attribute
+     * @param mode The storage mode to use
+     * @return The new geometry
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException if xAxis, yAxis, or mode are null
      */
-    public Rectangle(double left, double right, double bottom, double top, 
-                     @Const Vector3 xAxis, @Const Vector3 yAxis,
-                     StorageMode mode) {
-        if (left > right || bottom > top)
-            throw new IllegalArgumentException("Side positions of the square are incorrect");
-        if (xAxis == null || yAxis == null)
-            throw new NullPointerException("Axis cannot be null");
-        if (mode == null)
-            throw new NullPointerException("StorageMode cannot be null");
+    public static Geometry create(double left, double right, double bottom, double top, 
+                                  @Const Vector3 xAxis, @Const Vector3 yAxis,
+                                  StorageMode mode) {
+        return new RectangleImpl(left, right, bottom, top, xAxis, yAxis, mode);
+    }
         
-        Vector3 normal = new Vector3().cross(xAxis, yAxis);
-        
-        float[] va = new float[32];
-        int i = 0;
-        
-        // lower-left
-        va[i++] = (float) (xAxis.x * left + yAxis.x * bottom);
-        va[i++] = (float) (xAxis.y * left + yAxis.y * bottom);
-        va[i++] = (float) (xAxis.z * left + yAxis.z * bottom);
+    private static class RectangleImpl implements Geometry {
+        // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+        // ordered in such a way as to not need indices
+        private final VertexBufferObject vertexAttributes;
 
-        va[i++] = (float) normal.x;
-        va[i++] = (float) normal.y;
-        va[i++] = (float) normal.z;
+        private final VertexAttribute vertices;
+        private final VertexAttribute normals;
+        private final VertexAttribute texCoords;
 
-        va[i++] = 0f;
-        va[i++] = 0f;
-        
-        // upper-left
-        va[i++] = (float) (xAxis.x * left + yAxis.x * top);
-        va[i++] = (float) (xAxis.y * left + yAxis.y * top);
-        va[i++] = (float) (xAxis.z * left + yAxis.z * top);
+        private final AxisAlignedBox bounds;
 
-        va[i++] = (float) normal.x;
-        va[i++] = (float) normal.y;
-        va[i++] = (float) normal.z;
+        public RectangleImpl(double left, double right, double bottom, double top, 
+                             @Const Vector3 xAxis, @Const Vector3 yAxis,
+                             StorageMode mode) {
+            if (left > right || bottom > top)
+                throw new IllegalArgumentException("Side positions of the square are incorrect");
+            if (xAxis == null || yAxis == null)
+                throw new NullPointerException("Axis cannot be null");
+            if (mode == null)
+                throw new NullPointerException("StorageMode cannot be null");
 
-        va[i++] = 0f;
-        va[i++] = 1f;
+            Vector3 normal = new Vector3().cross(xAxis, yAxis);
 
-        // upper-right
-        va[i++] = (float) (xAxis.x * right + yAxis.x * top);
-        va[i++] = (float) (xAxis.y * right + yAxis.y * top);
-        va[i++] = (float) (xAxis.z * right + yAxis.z * top);
+            float[] va = new float[32];
+            int i = 0;
 
-        va[i++] = (float) normal.x;
-        va[i++] = (float) normal.y;
-        va[i++] = (float) normal.z;
+            // lower-left
+            va[i++] = (float) (xAxis.x * left + yAxis.x * bottom);
+            va[i++] = (float) (xAxis.y * left + yAxis.y * bottom);
+            va[i++] = (float) (xAxis.z * left + yAxis.z * bottom);
 
-        va[i++] = 1f;
-        va[i++] = 1f;
-        
-        // lower-right
-        va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
-        va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
-        va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
+            va[i++] = (float) normal.x;
+            va[i++] = (float) normal.y;
+            va[i++] = (float) normal.z;
 
-        va[i++] = (float) normal.x;
-        va[i++] = (float) normal.y;
-        va[i++] = (float) normal.z;
+            va[i++] = 0f;
+            va[i++] = 0f;
 
-        va[i++] = 1f;
-        va[i++] = 0f;
+            // upper-left
+            va[i++] = (float) (xAxis.x * left + yAxis.x * top);
+            va[i++] = (float) (xAxis.y * left + yAxis.y * top);
+            va[i++] = (float) (xAxis.z * left + yAxis.z * top);
 
-        vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
-        vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
-        normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
-        texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
-        
-        bounds = new AxisAlignedBox(va, 0, 5, 4);
-    }
+            va[i++] = (float) normal.x;
+            va[i++] = (float) normal.y;
+            va[i++] = (float) normal.z;
 
-    @Override
-    public PolygonType getPolygonType() {
-        return PolygonType.QUADS;
-    }
+            va[i++] = 0f;
+            va[i++] = 1f;
 
-    @Override
-    public VertexBufferObject getIndices() {
-        return null;
-    }
+            // upper-right
+            va[i++] = (float) (xAxis.x * right + yAxis.x * top);
+            va[i++] = (float) (xAxis.y * right + yAxis.y * top);
+            va[i++] = (float) (xAxis.z * right + yAxis.z * top);
 
-    @Override
-    public int getIndexOffset() {
-        return 0;
-    }
+            va[i++] = (float) normal.x;
+            va[i++] = (float) normal.y;
+            va[i++] = (float) normal.z;
 
-    @Override
-    public int getIndexCount() {
-        return 4;
-    }
+            va[i++] = 1f;
+            va[i++] = 1f;
 
-    @Override
-    public VertexAttribute getVertices() {
-        return vertices;
-    }
+            // lower-right
+            va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
+            va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
+            va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
 
-    @Override
-    public VertexAttribute getNormals() {
-        return normals;
-    }
+            va[i++] = (float) normal.x;
+            va[i++] = (float) normal.y;
+            va[i++] = (float) normal.z;
 
-    @Override
-    public VertexAttribute getTextureCoordinates() {
-        return texCoords;
-    }
+            va[i++] = 1f;
+            va[i++] = 0f;
 
-    @Override
-    public VertexAttribute getTangents() {
-        throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
-    }
+            vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+            vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
+            normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
+            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
 
-    @Override
-    public @Const AxisAlignedBox getBounds() {
-        return bounds;
+            bounds = new AxisAlignedBox(va, 0, 5, 4);
+        }
+
+        @Override
+        public PolygonType getPolygonType() {
+            return PolygonType.QUADS;
+        }
+
+        @Override
+        public VertexBufferObject getIndices() {
+            return null;
+        }
+
+        @Override
+        public int getIndexOffset() {
+            return 0;
+        }
+
+        @Override
+        public int getIndexCount() {
+            return 4;
+        }
+
+        @Override
+        public VertexAttribute getVertices() {
+            return vertices;
+        }
+
+        @Override
+        public VertexAttribute getNormals() {
+            return normals;
+        }
+
+        @Override
+        public VertexAttribute getTextureCoordinates() {
+            return texCoords;
+        }
+
+        @Override
+        public VertexAttribute getTangents() {
+            throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+        }
+
+        @Override
+        public @Const AxisAlignedBox getBounds() {
+            return bounds;
+        }
     }
 }
