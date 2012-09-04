@@ -1,20 +1,16 @@
 package com.ferox.renderer.impl.jogl;
 
+import com.ferox.input.logic.InputManager;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Context;
-import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
-import com.ferox.renderer.Framework;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Task;
@@ -25,41 +21,28 @@ import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.util.ApplicationStub;
 import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.Sphere;
 
-public class FixedFunctionRenderTest {
+public class FixedFunctionRenderTest extends ApplicationStub {
+    private FixedFunctionPass pass;
     
-    public static void main(String[] args) throws Exception {
-        Framework framework = JoglFramework.create(false, false, true, false);
-        System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
-        OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
-                                                                                     .setHeight(600)
-                                                                                     .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
-                                                                                     .setResizable(false)
-                                                                                     .setDepthFormat(DepthFormat.DEPTH_24BIT));
-//        window.setVSyncEnabled(true);
-        FixedFunctionPass pass = new FixedFunctionPass(window);
-        try {
-            long now = System.currentTimeMillis();
-            int frames = 0;
-            while(true) {
-                if (window.isDestroyed())
-                    break;
-                framework.queue(pass).get();
-                framework.flush(window);
-                framework.sync();
-                
-                frames++;
-                if (System.currentTimeMillis() - now > 1000) {
-                    System.out.println("FPS: " + frames);
-                    frames = 0;
-                    now = System.currentTimeMillis();
-                }
-            }
-        } finally {
-            framework.destroy();
-        }
+    public FixedFunctionRenderTest() {
+        super(JoglFramework.create(false, false, true, false));
+    }
+    
+    @Override
+    protected void installInputHandlers(InputManager io) { }
+
+    @Override
+    protected void init(OnscreenSurface surface) {
+        pass = new FixedFunctionPass(surface);
+    }
+
+    @Override
+    protected void renderFrame(OnscreenSurface surface) {
+        surface.getFramework().queue(pass);
     }
     
     private static class FixedFunctionPass implements Task<Void> {
@@ -75,7 +58,7 @@ public class FixedFunctionRenderTest {
         public FixedFunctionPass(Surface surface) {
             this.surface = surface;
             
-            shape = new Sphere(2f, 32, StorageMode.GPU_STATIC);
+            shape = Sphere.create(2f, 32, StorageMode.GPU_STATIC);
             
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
             f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
@@ -155,5 +138,9 @@ public class FixedFunctionRenderTest {
             
             return null;
         }
+    }
+    
+    public static void main(String[] args){
+        new FixedFunctionRenderTest().run();
     }
 }

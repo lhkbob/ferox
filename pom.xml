@@ -14,6 +14,7 @@
         <module>ferox-scene</module>
         <module>ferox-physics</module>
         <module>ferox-util</module>
+        <module>ferox-test</module>
     </modules>
     
     <properties>

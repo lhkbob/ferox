@@ -3,18 +3,15 @@ package com.ferox.renderer.impl.jogl;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.ferox.input.logic.InputManager;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.Context;
-import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Task;
 import com.ferox.resource.BufferData;
@@ -27,10 +24,11 @@ import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
+import com.ferox.util.ApplicationStub;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 
-public class GlslRenderTest {
+public class GlslRenderTest extends ApplicationStub {
     private static final String VERTEX_SHADER = 
         "uniform mat4 projection;" + 
         "uniform mat4 modelview;" + 
@@ -53,43 +51,34 @@ public class GlslRenderTest {
         "   gl_FragColor = texture3D(texture, tcs) * color;" +
         "}";
     
-    public static void main(String[] args) throws Exception {
-        Framework framework = JoglFramework.create(false, false, true, false);
-        System.out.println(framework.getCapabilities().getGlslVersion() + " " + framework.getCapabilities().getMaxTexture3DSize());
-        OnscreenSurface window = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
-                                                                                     .setHeight(600)
-                                                                                     .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
-                                                                                     .setResizable(false)
-                                                                                     .setDepthFormat(DepthFormat.DEPTH_24BIT));
-        
-        GlslPass pass = new GlslPass(window);
+    private GlslPass pass;
+    
+    public GlslRenderTest() {
+        super(JoglFramework.create(false, false, true, false));
+    }
+    
+    @Override
+    protected void installInputHandlers(InputManager io) { }
+
+    @Override
+    protected void init(OnscreenSurface surface) {
+        Framework framework = surface.getFramework();
+        pass = new GlslPass(surface);
         Status status = framework.update(pass.shader);
         if (status != Status.READY) {
             System.out.println("Shader: " + status + " " + framework.getStatusMessage(pass.shader));
             framework.destroy();
             System.exit(0);
         }
-        
-        try {
-            long now = System.currentTimeMillis();
-            int frames = 0;
-            while(true) {
-                if (window.isDestroyed())
-                    break;
-                framework.queue(pass).get();
-                framework.flush(window);
-                framework.sync();
-                
-                frames++;
-                if (System.currentTimeMillis() - now > 1000) {
-                    System.out.println("FPS: " + frames);
-                    frames = 0;
-                    now = System.currentTimeMillis();
-                }
-            }
-        } finally {
-            framework.destroy();
-        }
+    }
+
+    @Override
+    protected void renderFrame(OnscreenSurface surface) {
+        surface.getFramework().queue(pass);
+    }
+    
+    public static void main(String[] args) throws Exception {
+        new GlslRenderTest().run();
     }
     
     private static class GlslPass implements Task<Void> {
@@ -106,7 +95,7 @@ public class GlslRenderTest {
         public GlslPass(Surface surface) {
             this.surface = surface;
             
-            shape = new Box(4f);
+            shape = Box.create(4.0);
             shader = new GlslShader();
             
             shader.setShader(ShaderType.VERTEX, VERTEX_SHADER);

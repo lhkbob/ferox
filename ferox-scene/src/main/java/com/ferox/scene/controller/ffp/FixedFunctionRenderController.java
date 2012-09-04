@@ -168,8 +168,6 @@ public class FixedFunctionRenderController extends SimpleController {
                     ffp.setModelViewMatrix(view.getViewMatrix());
                     
                     rootNode.render(ffp, new AppliedEffects(view.getViewMatrix()));
-                    
-                    ctx.flush();
                 }
                 rendertime += (System.nanoTime() - now);
                 return null;

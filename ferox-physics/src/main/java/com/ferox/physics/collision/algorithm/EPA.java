@@ -12,8 +12,11 @@ public class EPA {
     
     private static final int[] I1_MAP = new int[] { 1, 2, 0 };
     private static final int[] I2_MAP = new int[] { 2, 0, 1 };
+    
+    public static int numEPA = 0;
 
     public static ClosestPair evaluate(Simplex simplex) {
+        numEPA++;
         if (simplex.getRank() > 1 && simplex.encloseOrigin()) {
             Bag<Face> hull = new Bag<Face>();
             Face f1 = newFace(simplex, 0, 1, 2, hull);
@@ -74,16 +77,10 @@ public class EPA {
                     simplex.getVertex(j).set(outer.vertices[j]);
                 }
                 
-                // FIXME these do double the number of required subtractions,
-                // also it might be worth considering creating an optimized crossLength()
-                // method that just computes the length of the cross product
                 Vector3 t = new Vector3();
                 double w1 = Util.normal(projection, outer.vertices[1], outer.vertices[2], t).length();
                 double w2 = Util.normal(projection, outer.vertices[2], outer.vertices[0], t).length();
                 double w3 = Util.normal(projection, outer.vertices[0], outer.vertices[1], t).length();
-//                double w1 = new Vector3().sub(outer.vertices[1], projection).cross(new Vector3().sub(outer.vertices[2], projection)).length();
-//                double w2 = new Vector3().sub(outer.vertices[2], projection).cross(new Vector3().sub(outer.vertices[0], projection)).length();
-//                double w3 = new Vector3().sub(outer.vertices[0], projection).cross(new Vector3().sub(outer.vertices[1], projection)).length();
                 
                 double sum = w1 + w2 + w3;
                 simplex.setWeight(0, w1 / sum);

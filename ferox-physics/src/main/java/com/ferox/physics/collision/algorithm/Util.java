@@ -23,6 +23,8 @@ public class Util {
         
         if (result == null)
             result = new Vector3();
+        
+        // compute the cross-product of e1 and e2
         return result.set(e1y * e2z - e2y * e1z,
                           e1z * e2x - e2z * e1x,
                           e1x * e2y - e2x * e1y);

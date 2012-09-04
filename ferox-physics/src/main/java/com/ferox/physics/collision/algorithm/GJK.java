@@ -8,8 +8,12 @@ public class GJK {
     private static final double GJK_MIN_DISTANCE = .00001;
     private static final double GJK_DUPLICATE_EPS = .0001;
     private static final double GJK_ACCURACY = .00001;
+    
+    public static int numGJK = 0;
 
     public static Simplex evaluate(MinkowskiShape shape, @Const Vector3 guess) {
+        numGJK++;
+        
         Simplex simplex = new Simplex(shape);
         Vector3 ray = new Vector3(guess);
         if (ray.lengthSquared() < GJK_MIN_DISTANCE * GJK_MIN_DISTANCE)

@@ -70,9 +70,9 @@ public class SimpleTest {
                                        .setZDistances(0.1, 1200)
                                        .setFieldOfView(75);
         
-        Geometry b1 = new Sphere(2f, 16, StorageMode.GPU_STATIC);
-        Geometry b2 = new Box(2f, StorageMode.GPU_STATIC);
-        Geometry b3 = new Teapot(1f, StorageMode.GPU_STATIC);
+        Geometry b1 = Sphere.create(2f, 16, StorageMode.GPU_STATIC);
+        Geometry b2 = Box.create(2f, StorageMode.GPU_STATIC);
+        Geometry b3 = Teapot.create(1f, StorageMode.GPU_STATIC);
 
         ColorRGB c1 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
         ColorRGB c2 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
@@ -168,6 +168,7 @@ public class SimpleTest {
         try {
             for (int i = 0; i < numRuns; i++) {
                 system.getControllerManager().process();
+                framework.flush(surface);
                 for (String name: controllers.keySet()) {
                     Long time = times.get(name);
                     if (time == null)
