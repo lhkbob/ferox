@@ -179,8 +179,7 @@ public class TextRenderer {
                     ffp.setMaterial(BLACK, textColor, BLACK, BLACK);
                     
                     ffp.setTexture(0, charSet.getTexture());
-                    // FIXME any texture combine changes needed?
-                    
+                                        
                     for (Entry<Geometry, Matrix4> e: textLayout.entrySet()) {
                         ffp.setModelViewMatrix(e.getValue());
                         

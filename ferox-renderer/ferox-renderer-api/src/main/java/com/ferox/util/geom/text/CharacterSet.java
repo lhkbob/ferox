@@ -110,7 +110,7 @@ public class CharacterSet {
      */
     public CharacterSet(Font font, String characterSet, boolean antiAlias, boolean useNpotTexture) {
         if (font == null)
-            font = Font.decode("Arial-PLAIN-12");
+            font = Font.decode("Arial-BOLD-14");
         if (characterSet == null)
             characterSet = DEFAULT_CHAR_SET;
 
@@ -267,7 +267,7 @@ public class CharacterSet {
 
     /*
      * Turn the string into an array of characters, and add the missing glyph
-     * code. Only includes characters the font can render. Excludes whitespace
+     * code. Only includes characters the font can render.
      */
     private char[] getCharArray(String characterSet) {
         Set<Character> set = new HashSet<Character>();

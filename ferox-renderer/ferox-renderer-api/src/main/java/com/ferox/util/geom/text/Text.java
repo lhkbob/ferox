@@ -255,8 +255,8 @@ public class Text {
         float[] v = new float[vertexCount * 8]; // V3F_N3F_T2F
 
         // compute centering information
-        float xOffset = -width / 2f;//0f;
-        float yOffset = height / 2f;//0f;
+        float xOffset = -width / 2f;
+        float yOffset = height / 2f;
 
         // extract individual arrays from interleaved array into nio buffers
         int i = 0;
@@ -345,12 +345,12 @@ public class Text {
         private float cursorX;
         private float cursorY;
 
-        private final float leftEdge;
         // amount to subtract cursorY to get the next line
         private final float height;
         private final float ascent, descent;
 
         private float maxWidth;
+        private float lineWidth;
         private final float wrapWidth;
 
         private final CharacterSet charSet;
@@ -360,8 +360,6 @@ public class Text {
          * lm must not be null.
          */
         public TextLayout(CharacterSet charSet, LineMetrics lm, float wrapWidth) {
-            leftEdge = 0f;
-
             height = lm.getHeight();
             ascent = lm.getAscent();
             descent = lm.getDescent();
@@ -392,9 +390,10 @@ public class Text {
          */
         public float[] doLayout(String text) {
             // reset values for the layout
-            maxWidth = leftEdge;
+            maxWidth = 0;
+            lineWidth = 0;
 
-            cursorX = leftEdge;
+            cursorX = 0;
             cursorY = -ascent;
 
             // we're being conservative here, but memory is cheap
@@ -425,7 +424,7 @@ public class Text {
             // add in last word, if needed
             coordIndex = placeWord(currentWord, coords, coordIndex);
 
-            maxWidth = Math.max(maxWidth, cursorX);
+            maxWidth = Math.max(maxWidth, lineWidth);
             return coords;
         }
 
@@ -483,7 +482,7 @@ public class Text {
                     // just advance the space width, but don't place glyphs
                     // only place space if we've moved off of left edge, or on first line
                     g = charSet.getGlyph(' ');
-                    if (cursorX > leftEdge || cursorY == -ascent)
+                    if (cursorX > 0 || cursorY == -ascent)
                         cursorX += g.getAdvance();
                     break;
                 default:
@@ -494,7 +493,7 @@ public class Text {
                         // place a newline if the char can't fit on this line
                         // and it wasn't the first char for the line (we always
                         // put 1 char)
-                        if (cursorX > leftEdge && cursorX + g.getAdvance() > wrapWidth)
+                        if (cursorX > 0 && cursorX + g.getAdvance() > wrapWidth)
                             newline();
                     }
                     index = placeGlyph(g, coords, index);
@@ -546,9 +545,10 @@ public class Text {
             coords[index++] = tcT;
             coords[index++] = vtL;
             coords[index++] = vtT;
-
+            
             // advance the x position
             cursorX += g.getAdvance();
+            lineWidth = vtR;
 
             return index;
         }
@@ -558,10 +558,10 @@ public class Text {
          * the newline.
          */
         private void newline() {
-            maxWidth = Math.max(maxWidth, cursorX);
-
-            cursorX = leftEdge;
+            cursorX = 0;
             cursorY -= height;
+            maxWidth = Math.max(maxWidth, lineWidth);
+            lineWidth = 0;
         }
 
         /*
