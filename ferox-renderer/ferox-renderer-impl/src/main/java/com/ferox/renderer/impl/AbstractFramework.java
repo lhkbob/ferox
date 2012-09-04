@@ -245,8 +245,8 @@ public abstract class AbstractFramework implements Framework {
     }
 
     @Override
-    public void flush(Surface surface) {
-        getFuture(queue(new FlushSurfaceTask(surface)));
+    public Future<Void> flush(Surface surface) {
+        return queue(new FlushSurfaceTask(surface));
     }
 
     @Override

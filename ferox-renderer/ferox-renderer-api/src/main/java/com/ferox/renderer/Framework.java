@@ -206,8 +206,7 @@ public interface Framework {
      * needed to ensure that any rendering is made visible to the surface. If
      * the surface is a TextureSurface with multiple render targets, only its
      * default active layer is flushed. If finer control is needed, a custom
-     * task will need to be queued instead. This method will block until the
-     * flush has been completed, so it also acts as like {@link #sync() sync}.
+     * task will need to be queued instead.
      * <p>
      * An exception is thrown if the surface is not owned by the Framework. If
      * the provided surface has been destroyed, this method will do nothing. It
@@ -223,7 +222,7 @@ public interface Framework {
      * @throws IllegalArgumentException if the surface was not created by this
      *             Framework
      */
-    public void flush(Surface surface);
+    public Future<Void> flush(Surface surface);
 
     /**
      * <p>
