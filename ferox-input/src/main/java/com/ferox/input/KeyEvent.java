@@ -1,8 +1,29 @@
 package com.ferox.input;
 
+/**
+ * <p>
+ * KeyEvent is the concrete event type representing a user's interactions with a
+ * keyboard. KeyEvent's represent presses and releases of the keys on a
+ * keyboard.
+ * 
+ * @author Michael Ludwig
+ */
 public class KeyEvent implements Event {
+    /**
+     * Type represents the possible types of KeyEvents produced when a user
+     * interacts with a keyboard.
+     */
     public static enum Type {
-        PRESS, RELEASE
+        /**
+         * A key is pressed. Some OS's might continue to send PRESS events even
+         * if there's been no subsequent RELEASE.
+         */
+        PRESS,
+        /**
+         * A key that was pressed has been released. These events will only be
+         * sent for keys that have already produced at least one PRESS event.
+         */
+        RELEASE
     }
 
     /**
@@ -11,6 +32,11 @@ public class KeyEvent implements Event {
      */
     public static final int CHAR_UNKNOWN = '\0';
 
+    /**
+     * KeyCode represents all supported keyboard buttons that can be identified
+     * in a press or release event. The key code can represent keys that are
+     * modifiers that would not produce characters by themselves.
+     */
     public static enum KeyCode {
         UNKNOWN("Unknown"), 
         
@@ -69,6 +95,16 @@ public class KeyEvent implements Event {
     private final Type type;
     private final KeyEventSource source;
     
+    /**
+     * Create a new KeyEvent with the given parameters.
+     * 
+     * @param type The type of KeyEvent
+     * @param source The source of the event
+     * @param keyCode The KeyCode representing the keyboard button pressed or
+     *            released
+     * @param charValue The final character that would be produced by this event
+     * @throws NullPointerException if type, source, or keyCode are null
+     */
     public KeyEvent(Type type, KeyEventSource source, KeyCode keyCode, char charValue) {
         if (source == null)
             throw new NullPointerException("Event source cannot be null");
@@ -83,14 +119,28 @@ public class KeyEvent implements Event {
         this.charValue = charValue;
     }
     
+    /**
+     * Get the character typed by this event. This will correctly have any
+     * previously pressed modifier keys or language layouts applied to produce
+     * the expected character suitable for a text editor.
+     * 
+     * @return The character typed by this event
+     */
     public char getCharacter() {
         return charValue;
     }
     
+    /**
+     * @return The KeyCode representing the physical key that was pressed or
+     *         released for this event
+     */
     public KeyCode getKeyCode() {
         return keyCode;
     }
     
+    /**
+     * @return The type of key event
+     */
     public Type getEventType() {
         return type;
     }

@@ -4,35 +4,54 @@ import java.awt.Component;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.MouseEvent.MouseButton;
 
-
-public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyListener, java.awt.event.MouseListener, MouseMotionListener, MouseWheelListener {
+/**
+ * AWTEventAdapter is a utility for converting events produced by Java's
+ * Abstract Windowing Toolkit to the appropriate events for this framework. An
+ * EventSource that wraps an AWT component can attach its component to an
+ * AWTEventAdapter and it will automatically dispatch events.
+ * 
+ * @author Michael Ludwig
+ */
+public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.event.MouseListener, MouseMotionListener, MouseWheelListener {
     private Component component;
-    private boolean transformY;
     
-    private final MouseKeyEventSource realSource;
-    private final EventDispatcher dispatcher;
+    private final MouseKeyEventDispatcher dispatcher;
     
-    private final List<KeyListener> keyListeners;
-    private final List<MouseListener> mouseListeners;
-    
-    public AWTEventAdapter(MouseKeyEventSource realSource) {
-        if (realSource == null)
-            throw new NullPointerException("EventSource cannot be null");
+    /**
+     * Create a new AWTEventAdapter that will convert AWT events and dispatch
+     * them to the given MouseKeyEventDispatcher.
+     * 
+     * @param dispatcher The dispatcher to use
+     */
+    public AWTEventAdapter(MouseKeyEventDispatcher dispatcher) {
+        if (dispatcher == null)
+            throw new NullPointerException("Dispatcher cannot be null");
         
-        this.realSource = realSource;
-        
-        dispatcher = new AWTEventDispatcher();
-        keyListeners = new ArrayList<KeyListener>();
-        mouseListeners = new ArrayList<MouseListener>();
+        this.dispatcher = dispatcher;
     }
     
-    public void attach(Component component, boolean transformY) {
+    /**
+     * <p>
+     * Attach the adapter to the given component. The adapter can only be
+     * attached to a single component at a time and must be detached before
+     * listening on another component.
+     * <p>
+     * To produce meaningful events, the attached component must be related to
+     * the EventSource implementation used by this adapter's dispatcher.
+     * <p>
+     * The adapter cannot send events to its dispatcher until its been attached
+     * to an alive component that is producing the relevant AWT events.
+     * 
+     * @param component The component to attach to
+     * @throws NullPointerException if component is null
+     * @throws IllegalStateException if the adapter is currently attached to
+     *             another component
+     */
+    public void attach(Component component) {
         if (component == null)
             throw new NullPointerException("Component cannot be null");
         
@@ -46,10 +65,14 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
             component.addMouseWheelListener(this);
             
             this.component = component;
-            this.transformY = transformY;
         }
     }
     
+    /**
+     * Detach this adapter from the component it's currently attached to. If the
+     * adapter is not attached to a component, nothing happens. After detaching,
+     * the adapter will not convert and dispatch AWT events.
+     */
     public void detach() {
         synchronized(this) {
             if (component != null) {
@@ -60,49 +83,6 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
                 
                 component = null;
             }
-        }
-    }
-
-    @Override
-    public void addKeyListener(KeyListener listener) {
-        if (listener == null)
-            throw new NullPointerException("KeyListener cannot be null");
-        synchronized(this) {
-            if (!keyListeners.contains(listener))
-                keyListeners.add(listener);
-        }
-    }
-
-    @Override
-    public void removeKeyListener(KeyListener listener) {
-        if (listener == null)
-            throw new NullPointerException("KeyListener cannot be null");
-        synchronized(this) {
-            keyListeners.remove(listener);
-        }
-    }
-
-    @Override
-    public EventQueue getQueue() {
-        return realSource.getQueue();
-    }
-
-    @Override
-    public void addMouseListener(MouseListener listener) {
-        if (listener == null)
-            throw new NullPointerException("MouseListener cannot be null");
-        synchronized(this) {
-            if (!mouseListeners.contains(listener))
-                mouseListeners.add(listener);
-        }
-    }
-
-    @Override
-    public void removeMouseListener(MouseListener listener) {
-        if (listener == null)
-            throw new NullPointerException("MouseListener cannot be null");
-        synchronized(this) {
-            mouseListeners.remove(listener);
         }
     }
     
@@ -262,24 +242,21 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
     }
     
     private int getY(java.awt.event.MouseEvent e) {
-        if (transformY)
-            return component.getHeight() - e.getY();
-        else
-            return e.getY();
+        return component.getHeight() - e.getY();
     }
 
     @Override
     public void keyPressed(java.awt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, (KeyEventSource) realSource, 
+        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(), 
                                       getKeyCode(e), getCharacter(e));
-        realSource.getQueue().postEvent(event, dispatcher);
+        dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void keyReleased(java.awt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, (KeyEventSource) realSource,
+        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, dispatcher.getSource(),
                                       getKeyCode(e), getCharacter(e));
-        realSource.getQueue().postEvent(event, dispatcher);
+        dispatcher.dispatchEvent(event);
     }
 
     @Override
@@ -290,7 +267,6 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
     @Override
     public void mouseClicked(java.awt.event.MouseEvent e) {
         // ignore this event
-        
     }
 
     @Override
@@ -305,16 +281,16 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, (MouseEventSource) realSource, 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(), 
                                           e.getX(), getY(e), 0, getButton(e));
-        realSource.getQueue().postEvent(event, dispatcher);
+        dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, (MouseEventSource) realSource, 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(), 
                                           e.getX(), getY(e), 0, getButton(e));
-        realSource.getQueue().postEvent(event, dispatcher);
+        dispatcher.dispatchEvent(event);
     }
 
     @Override
@@ -326,40 +302,15 @@ public class AWTEventAdapter implements MouseKeyEventSource, java.awt.event.KeyL
 
     @Override
     public void mouseMoved(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, (MouseEventSource) realSource, 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), 
                                           e.getX(), getY(e), 0, MouseButton.NONE);
-        realSource.getQueue().postEvent(event, dispatcher);
+        dispatcher.dispatchEvent(event);
     }
     
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, (MouseEventSource) realSource, 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), 
                                           e.getX(), getY(e), e.getWheelRotation(), MouseButton.NONE);
-        realSource.getQueue().postEvent(event, dispatcher);
-    }
-    
-    /* 
-     * Internal class handling the event dispatching to the
-     * added Key and MouseListeners.
-     */
-    private class AWTEventDispatcher implements EventDispatcher {
-        @Override
-        public void dispatchEvent(Event e) {
-            if (e instanceof KeyEvent) {
-                synchronized(this) {
-                    KeyEvent ke = (KeyEvent) e;
-                    int size = keyListeners.size();
-                    for (int i = 0; i < size; i++)
-                        keyListeners.get(i).handleEvent(ke);
-                }
-            } else if (e instanceof MouseEvent) {
-                synchronized(this) {
-                    MouseEvent me = (MouseEvent) e;
-                    int size = mouseListeners.size();
-                    for (int i = 0; i < size; i++)
-                        mouseListeners.get(i).handleEvent(me);
-                }
-            } // else someone is tampering with events, just ignore it
-        }
+        dispatcher.dispatchEvent(event);
     }
 }
