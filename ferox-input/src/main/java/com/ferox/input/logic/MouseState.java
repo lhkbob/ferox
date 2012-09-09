@@ -67,7 +67,10 @@ public class MouseState {
     }
     
     public boolean isButtonDown(MouseButton button) {
-        return buttonsDown.contains(button);
+        if (button == MouseButton.NONE)
+            return buttonsDown.isEmpty();
+        else
+            return buttonsDown.contains(button);
     }
     
     public int getX() {

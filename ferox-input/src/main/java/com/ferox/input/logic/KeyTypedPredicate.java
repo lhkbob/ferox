@@ -2,17 +2,18 @@ package com.ferox.input.logic;
 
 import com.ferox.input.KeyEvent.KeyCode;
 
-public class KeyTypedCondition implements Condition {
+class KeyTypedPredicate implements Predicate {
     private final KeyCode code;
     private final long typeDuration;
     
     private long startTime;
     
-    public KeyTypedCondition(KeyCode code) {
-        this(code, 250L);
-    }
-    
-    public KeyTypedCondition(KeyCode code, long typeDuration) {
+    public KeyTypedPredicate(KeyCode code, long typeDuration) {
+        if (code == null)
+            throw new NullPointerException("KeyCode cannot be null");
+        if (typeDuration <= 0)
+            throw new IllegalArgumentException("Type duration must be a positive number of milliseconds, not: " + typeDuration);
+        
         this.code = code;
         this.typeDuration = typeDuration;
         startTime = -1;

@@ -2,7 +2,7 @@ package com.ferox.input.logic;
 
 import com.ferox.input.MouseEvent.MouseButton;
 
-public class MouseClickedCondition implements Condition {
+class MouseClickedPredicate implements Predicate {
     private final MouseButton button;
     private final long clickDuration;
     private final int numClicks;
@@ -10,15 +10,14 @@ public class MouseClickedCondition implements Condition {
     private long startTime;
     private int currentClickCount;
     
-    public MouseClickedCondition(MouseButton button) {
-        this(button, 1);
-    }
-    
-    public MouseClickedCondition(MouseButton button, int numClicks) {
-        this(button, 1, 150L);
-    }
-    
-    public MouseClickedCondition(MouseButton button, int numClicks, long clickDuration) {
+    public MouseClickedPredicate(MouseButton button, int numClicks, long clickDuration) {
+        if (button == null)
+            throw new NullPointerException("MouseButton cannot be null");
+        if (numClicks <= 0)
+            throw new IllegalArgumentException("Number of clicks must be at least 1, not: " + numClicks);
+        if (clickDuration <= 0)
+            throw new IllegalArgumentException("Click duration must be at least 1 ms, not: " + clickDuration);
+        
         this.button = button;
         this.numClicks = numClicks;
         this.clickDuration = clickDuration;

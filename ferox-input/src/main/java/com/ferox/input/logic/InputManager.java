@@ -2,6 +2,7 @@ package com.ferox.input.logic;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 
@@ -17,73 +18,41 @@ public class InputManager {
     private final Queue<InputState> stateQueue;
     
     private final InternalListener listener; // also acts as synchronization lock
-    private final List<TriggerAndCondition> triggers;
+    private final List<PredicatedAction> triggers;
     
-    private MouseKeyEventSource source;
+    private final MouseKeyEventSource source;
     
     public InputManager(MouseKeyEventSource source) {
+        if (source == null)
+            throw new NullPointerException("Source cannot be null");
+        
         stateQueue = new ArrayDeque<InputState>();
-        triggers = new ArrayList<TriggerAndCondition>();
+        triggers = new ArrayList<PredicatedAction>();
         
         listener = new InternalListener();
         lastState = new InputState();
         lastProcessedState = new InputState();
-        setEventSource(source);
+        
+        source.addKeyListener(listener);
+        source.addMouseListener(listener);
+        this.source = source;
     }
     
     public MouseKeyEventSource getEventSource() {
         return source;
     }
     
-    public void setEventSource(MouseKeyEventSource source) {
-        synchronized(listener) {
-            if (source == null) {
-                if (this.source != null) {
-                    this.source.removeKeyListener(listener);
-                    this.source.removeMouseListener(listener);
-                    this.source = null;
-                }
-            } else {
-                if (this.source != null) {
-                    if (this.source == source)
-                        return; // nothing to do
-                    this.source.removeKeyListener(listener);
-                    this.source.removeMouseListener(listener);
-                }
-
-                source.addKeyListener(listener);
-                source.addMouseListener(listener);
-                this.source = source;
-            }
-        }
+    public ActionBuilder on(Predicate predicate) {
+        return new ActionBuilderImpl(predicate);
     }
     
-    public void addTrigger(Trigger trigger, Condition condition) {
-        if (trigger == null)
-            throw new NullPointerException("Trigger cannot be null");
-        if (condition == null)
-            throw new NullPointerException("Condition cannot be null");
-        
+    public void removeAction(Action trigger) {
         synchronized(listener) {
-            int ct = triggers.size();
-            for (int i = 0; i < ct; i++) {
-                if (triggers.get(i).trigger == trigger) {
-                    triggers.get(i).condition = condition;
-                    return;
-                }
-            }
-            
-            triggers.add(new TriggerAndCondition(trigger, condition));
-        }
-    }
-    
-    public void removeTrigger(Trigger trigger) {
-        synchronized(listener) {
-            int ct = triggers.size();
-            for (int i = 0; i < ct; i++) {
-                if (triggers.get(i) == trigger) {
-                    triggers.remove(i);
-                    return;
+            Iterator<PredicatedAction> it = triggers.iterator();
+            while(it.hasNext()) {
+                // remove all occurrences of the action
+                if (it.next().trigger == trigger) {
+                    it.remove();
                 }
             }
         }
@@ -108,42 +77,82 @@ public class InputManager {
             triggers.get(i).apply(prev, next);
     }
     
+    // caller must be synchronized on event listener
+    private void advanceState(InputState next) {
+        lastState = next;
+        stateQueue.add(next);
+    }
+    
     /*
-     * Internal class used to listen for events, so that InputManager can
-     * properly control which EventSource it is listening to
+     * Internal class used to listen for events to prevent InputManager being
+     * used as a listener directly. It is also the monitor used by each manager.
      */
     private class InternalListener implements KeyListener, MouseListener {
         @Override
         public void handleEvent(KeyEvent event) {
             synchronized(this) {
-                InputState next = new InputState(lastState, event);
-                lastState = next;
-                stateQueue.add(next);
+                advanceState(new InputState(lastState, event));
             }
         }
 
         @Override
         public void handleEvent(MouseEvent event) {
             synchronized(this) {
-                InputState next = new InputState(lastState, event);
-                lastState = next;
-                stateQueue.add(next);
+                advanceState(new InputState(lastState, event));
             }
         }
     }
     
-    private static class TriggerAndCondition {
-        Trigger trigger;
-        Condition condition;
+    /*
+     * Internal ActionBuilder implementation
+     */
+    private class ActionBuilderImpl implements ActionBuilder {
+        Predicate condition;
         
-        public TriggerAndCondition(Trigger trigger, Condition condition) {
+        public ActionBuilderImpl(Predicate base) {
+            if (base == null)
+                throw new NullPointerException("Predicate cannot be null");
+            condition = base;
+        }
+        
+        @Override
+        public void trigger(Action action) {
+            if (action == null)
+                throw new NullPointerException("Action cannot be null");
+            
+            synchronized(listener) {
+                triggers.add(new PredicatedAction(action, condition));
+            }
+        }
+
+        @Override
+        public ActionBuilder and(Predicate pred) {
+            condition = Predicates.and(condition, pred);
+            return this;
+        }
+
+        @Override
+        public ActionBuilder or(Predicate pred) {
+            condition = Predicates.or(condition, pred);
+            return this;
+        }
+    }
+    
+    /*
+     * Simple pair between an action and its triggering predicate
+     */
+    private static class PredicatedAction {
+        final Action trigger;
+        final Predicate condition;
+        
+        public PredicatedAction(Action trigger, Predicate condition) {
             this.trigger = trigger;
             this.condition = condition;
         }
         
         public void apply(InputState prev, InputState next) {
             if (condition.apply(prev, next))
-                trigger.onTrigger(prev, next);
+                trigger.perform(prev, next);
         }
     }
 }
