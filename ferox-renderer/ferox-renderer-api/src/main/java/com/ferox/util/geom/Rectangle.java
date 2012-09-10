@@ -115,18 +115,18 @@ public class Rectangle {
 
             va[i++] = 0f;
             va[i++] = 0f;
-
-            // upper-left
-            va[i++] = (float) (xAxis.x * left + yAxis.x * top);
-            va[i++] = (float) (xAxis.y * left + yAxis.y * top);
-            va[i++] = (float) (xAxis.z * left + yAxis.z * top);
+            
+            // lower-right
+            va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
+            va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
+            va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
 
             va[i++] = (float) normal.x;
             va[i++] = (float) normal.y;
             va[i++] = (float) normal.z;
 
-            va[i++] = 0f;
             va[i++] = 1f;
+            va[i++] = 0f;
 
             // upper-right
             va[i++] = (float) (xAxis.x * right + yAxis.x * top);
@@ -139,18 +139,18 @@ public class Rectangle {
 
             va[i++] = 1f;
             va[i++] = 1f;
-
-            // lower-right
-            va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
-            va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
-            va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
+            
+            // upper-left
+            va[i++] = (float) (xAxis.x * left + yAxis.x * top);
+            va[i++] = (float) (xAxis.y * left + yAxis.y * top);
+            va[i++] = (float) (xAxis.z * left + yAxis.z * top);
 
             va[i++] = (float) normal.x;
             va[i++] = (float) normal.y;
             va[i++] = (float) normal.z;
 
-            va[i++] = 1f;
             va[i++] = 0f;
+            va[i++] = 1f;
 
             vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
