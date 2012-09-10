@@ -20,6 +20,8 @@ class MouseClickedPredicate implements Predicate {
     public MouseClickedPredicate(MouseButton button, int numClicks, long clickDuration) {
         if (button == null)
             throw new NullPointerException("MouseButton cannot be null");
+        if (button == MouseButton.NONE)
+            throw new IllegalArgumentException("NONE is not a valid button for mouse clicks");
         if (numClicks <= 0)
             throw new IllegalArgumentException("Number of clicks must be at least 1, not: " + numClicks);
         if (clickDuration <= 0)
