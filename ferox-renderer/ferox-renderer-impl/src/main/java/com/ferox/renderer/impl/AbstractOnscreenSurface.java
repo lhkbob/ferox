@@ -1,6 +1,5 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.input.EventQueue;
 import com.ferox.renderer.OnscreenSurface;
 
 /**
@@ -14,10 +13,5 @@ import com.ferox.renderer.OnscreenSurface;
 public abstract class AbstractOnscreenSurface extends AbstractSurface implements OnscreenSurface {
     public AbstractOnscreenSurface(AbstractFramework framework) {
         super(framework);
-    }
-
-    @Override
-    public EventQueue getQueue() {
-        return getFramework().getEventQueue();
     }
 }

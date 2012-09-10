@@ -14,6 +14,7 @@ import javax.media.opengl.awt.GLCanvas;
 
 import com.ferox.input.AWTEventAdapter;
 import com.ferox.input.KeyListener;
+import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.DisplayMode.PixelFormat;
@@ -38,6 +39,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
     private final JoglContext context;
     
     private final AWTEventAdapter adapter;
+    private final MouseKeyEventDispatcher dispatcher;
     
     private volatile OnscreenSurfaceOptions options;
     private boolean optionsNeedVerify;
@@ -122,8 +124,9 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
         vsyncNeedsUpdate = true;
         closable = true;
         
-        adapter = new AWTEventAdapter(this);
-        adapter.attach(canvas, true);
+        dispatcher = new MouseKeyEventDispatcher(this);
+        adapter = new AWTEventAdapter(dispatcher);
+        adapter.attach(canvas);
     }
     
     @Override
@@ -139,6 +142,7 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
     @Override
     protected void destroyImpl() {
         adapter.detach();
+        dispatcher.shutdown();
         frame.removeWindowListener(this);
         
         Utils.invokeOnAWTThread(new Runnable() {
@@ -294,22 +298,22 @@ public class JoglAWTSurface extends AbstractOnscreenSurface implements WindowLis
 
     @Override
     public void addMouseListener(MouseListener listener) {
-        adapter.addMouseListener(listener);
+        dispatcher.addMouseListener(listener);
     }
 
     @Override
     public void removeMouseListener(MouseListener listener) {
-        adapter.removeMouseListener(listener);
+        dispatcher.removeMouseListener(listener);
     }
     
     @Override
     public void addKeyListener(KeyListener listener) {
-        adapter.addKeyListener(listener);
+        dispatcher.addKeyListener(listener);
     }
 
     @Override
     public void removeKeyListener(KeyListener listener) {
-        adapter.removeKeyListener(listener);
+        dispatcher.removeKeyListener(listener);
     }
     
     /*

@@ -14,6 +14,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import com.ferox.input.KeyListener;
+import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.DisplayMode.PixelFormat;
@@ -41,6 +42,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     private final Canvas glCanvas;
     
     private final LwjglContext context;
+    private final MouseKeyEventDispatcher dispatcher;
     private final LwjglInputEventAdapter adapter;
     
     private volatile OnscreenSurfaceOptions options;
@@ -153,7 +155,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         vsyncNeedsUpdate = true;
         closable = true;
         
-        adapter = new LwjglInputEventAdapter(this);
+        dispatcher = new MouseKeyEventDispatcher(this);
+        adapter = new LwjglInputEventAdapter(dispatcher);
     }
     
     /**
@@ -330,22 +333,22 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public void addMouseListener(MouseListener listener) {
-        adapter.addMouseListener(listener);
+        dispatcher.addMouseListener(listener);
     }
 
     @Override
     public void removeMouseListener(MouseListener listener) {
-        adapter.removeMouseListener(listener);
+        dispatcher.removeMouseListener(listener);
     }
 
     @Override
     public void addKeyListener(KeyListener listener) {
-        adapter.addKeyListener(listener);
+        dispatcher.addKeyListener(listener);
     }
 
     @Override
     public void removeKeyListener(KeyListener listener) {
-        adapter.removeKeyListener(listener);
+        dispatcher.removeKeyListener(listener);
     }
 
     @Override
@@ -366,7 +369,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     protected void destroyImpl() {
-        //adapter.stopPolling();
+        dispatcher.shutdown();
         
         // destroy() should be safe on any thread at this point because
         // destroyImpl() is only called after we've released the context

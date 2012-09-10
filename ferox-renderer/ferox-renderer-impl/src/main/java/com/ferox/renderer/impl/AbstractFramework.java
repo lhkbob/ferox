@@ -8,7 +8,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.ferox.input.EventQueue;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.FrameworkException;
@@ -51,8 +50,6 @@ public abstract class AbstractFramework implements Framework {
     private final ResourceManager resourceManager;
     private final ContextManager contextManager;
     
-    private final EventQueue eventQueue;
-    
     // fullscreen support
     private final Object fullscreenLock;
     private OnscreenSurface fullscreenSurface;
@@ -90,20 +87,8 @@ public abstract class AbstractFramework implements Framework {
         surfaces = new CopyOnWriteArraySet<AbstractSurface>();
         lifecycleManager = new LifeCycleManager("ferox-renderer");
         
-        eventQueue = new EventQueue();
-        
         fullscreenLock = new Object();
         fullscreenSurface = null;
-    }
-
-    /**
-     * Return an EventQueue that can be shared by all onscreen surfaces created
-     * by the framework that need to generate input events.
-     * 
-     * @return The EventQueue for the framework
-     */
-    public EventQueue getEventQueue() {
-        return eventQueue;
     }
 
     /**
@@ -196,9 +181,6 @@ public abstract class AbstractFramework implements Framework {
         lifecycleManager.stop(new Runnable() {
             @Override
             public void run() {
-                // Shutdown the event queue
-                eventQueue.shutdown();
-                
                 // Destroy all remaining surfaces
                 // The loop is structured this way so that we don't get an
                 // iterator snapshot that's not updated if there were any

@@ -1,21 +1,13 @@
 package com.ferox.renderer.impl.lwjgl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import com.ferox.input.AWTEventAdapter;
-import com.ferox.input.Event;
-import com.ferox.input.EventDispatcher;
-import com.ferox.input.EventQueue;
 import com.ferox.input.KeyEvent;
-import com.ferox.input.KeyListener;
 import com.ferox.input.MouseEvent;
-import com.ferox.input.MouseKeyEventSource;
-import com.ferox.input.MouseListener;
+import com.ferox.input.MouseKeyEventDispatcher;
 
 /**
  * A MouseKeyEventSource that wraps the static {@link Mouse} and
@@ -25,68 +17,17 @@ import com.ferox.input.MouseListener;
  * 
  * @author Michael Ludwig
  */
-public class LwjglInputEventAdapter implements MouseKeyEventSource {
-    private final MouseKeyEventSource realSource;
-    private final EventDispatcher dispatcher;
+public class LwjglInputEventAdapter {
+    private final MouseKeyEventDispatcher dispatcher;
     
-    private final List<KeyListener> keyListeners;
-    private final List<MouseListener> mouseListeners;
-      
     private int lastMouseX = Integer.MIN_VALUE;
     private int lastMouseY = Integer.MIN_VALUE;
     
-    public LwjglInputEventAdapter(MouseKeyEventSource realSource) {
-        if (realSource == null)
-            throw new NullPointerException("EventSource cannot be null");
+    public LwjglInputEventAdapter(MouseKeyEventDispatcher dispatcher) {
+        if (dispatcher == null)
+            throw new NullPointerException("Dispatcher cannot be null");
         
-        this.realSource = realSource;
-        
-        dispatcher = new LwjglEventDispatcher();
-        keyListeners = new ArrayList<KeyListener>();
-        mouseListeners = new ArrayList<MouseListener>();
-    }
-    
-    @Override
-    public void addMouseListener(MouseListener listener) {
-        if (listener == null)
-            throw new NullPointerException("MouseListener cannot be null");
-        synchronized(this) {
-            if (!mouseListeners.contains(listener))
-                mouseListeners.add(listener);
-        }
-    }
-
-    @Override
-    public void removeMouseListener(MouseListener listener) {
-        if (listener == null)
-            throw new NullPointerException("MouseListener cannot be null");
-        synchronized(this) {
-            mouseListeners.remove(listener);
-        }
-    }
-
-    @Override
-    public EventQueue getQueue() {
-        return realSource.getQueue();
-    }
-
-    @Override
-    public void addKeyListener(KeyListener listener) {
-        if (listener == null)
-            throw new NullPointerException("KeyListener cannot be null");
-        synchronized(this) {
-            if (!keyListeners.contains(listener))
-                keyListeners.add(listener);
-        }
-    }
-
-    @Override
-    public void removeKeyListener(KeyListener listener) {
-        if (listener == null)
-            throw new NullPointerException("KeyListener cannot be null");
-        synchronized(this) {
-            keyListeners.remove(listener);
-        }
+        this.dispatcher = dispatcher;
     }
     
     public void poll() {
@@ -103,29 +44,29 @@ public class LwjglInputEventAdapter implements MouseKeyEventSource {
             
             if (x != lastMouseX || y != lastMouseY) {
                 // push a mouse-moved event
-                getQueue().postEvent(new MouseEvent(MouseEvent.Type.MOVE, realSource,
-                                                    x, y, 0, MouseEvent.MouseButton.NONE), dispatcher);
+                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(),
+                                                    x, y, 0, MouseEvent.MouseButton.NONE));
             }
             
             int scrollDelta = Mouse.getEventDWheel();
             if (scrollDelta != 0) {
                 // push a mouse-wheel-scroll event
-                getQueue().postEvent(new MouseEvent(MouseEvent.Type.SCROLL, realSource, 
-                                                    x, y, 0, MouseEvent.MouseButton.NONE), dispatcher);
+                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), 
+                                                    x, y, 0, MouseEvent.MouseButton.NONE));
             }
             
             switch(Mouse.getEventButton()) {
             case 0: {
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
-                getQueue().postEvent(new MouseEvent(type, realSource, x, y, 0, MouseEvent.MouseButton.LEFT), dispatcher);
+                dispatcher.dispatchEvent(new MouseEvent(type, dispatcher.getSource(), x, y, 0, MouseEvent.MouseButton.LEFT));
                 break; }
             case 1:{
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
-                getQueue().postEvent(new MouseEvent(type, realSource, x, y, 0, MouseEvent.MouseButton.RIGHT), dispatcher);
+                dispatcher.dispatchEvent(new MouseEvent(type, dispatcher.getSource(), x, y, 0, MouseEvent.MouseButton.RIGHT));
                 break; }
             case 2:{
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
-                getQueue().postEvent(new MouseEvent(type, realSource, x, y, 0, MouseEvent.MouseButton.CENTER), dispatcher);
+                dispatcher.dispatchEvent(new MouseEvent(type, dispatcher.getSource(), x, y, 0, MouseEvent.MouseButton.CENTER));
                 break; }
             default:
                 // no button event
@@ -143,7 +84,7 @@ public class LwjglInputEventAdapter implements MouseKeyEventSource {
             
             KeyEvent.Type type = (Keyboard.getEventKeyState() ? KeyEvent.Type.PRESS : KeyEvent.Type.RELEASE);
             
-            getQueue().postEvent(new KeyEvent(type, realSource, keyCode, eventChar), dispatcher);
+            dispatcher.dispatchEvent(new KeyEvent(type, dispatcher.getSource(), keyCode, eventChar));
         }
     }
     
@@ -262,31 +203,6 @@ public class LwjglInputEventAdapter implements MouseKeyEventSource {
         case Keyboard.KEY_RMETA: return KeyEvent.KeyCode.RIGHT_META;
         default:
             return KeyEvent.KeyCode.UNKNOWN;
-        }
-    }
-    
-    /* 
-     * Internal class handling the event dispatching to the
-     * added Key and MouseListeners.
-     */
-    private class LwjglEventDispatcher implements EventDispatcher {
-        @Override
-        public void dispatchEvent(Event e) {
-            if (e instanceof KeyEvent) {
-                synchronized(this) {
-                    KeyEvent ke = (KeyEvent) e;
-                    int size = keyListeners.size();
-                    for (int i = 0; i < size; i++)
-                        keyListeners.get(i).handleEvent(ke);
-                }
-            } else if (e instanceof MouseEvent) {
-                synchronized(this) {
-                    MouseEvent me = (MouseEvent) e;
-                    int size = mouseListeners.size();
-                    for (int i = 0; i < size; i++)
-                        mouseListeners.get(i).handleEvent(me);
-                }
-            } // else someone is tampering with events, just ignore it
         }
     }
 }
