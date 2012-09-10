@@ -1,10 +1,10 @@
 package com.ferox.physics;
 
 import com.ferox.input.KeyEvent.KeyCode;
+import com.ferox.input.logic.Action;
 import com.ferox.input.logic.InputManager;
 import com.ferox.input.logic.InputState;
-import com.ferox.input.logic.KeyPressedCondition;
-import com.ferox.input.logic.Trigger;
+import com.ferox.input.logic.Predicates;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
@@ -45,18 +45,20 @@ public class PhysicsApplicationStub extends ApplicationStub {
     
     @Override
     protected void installInputHandlers(InputManager io) {
-        io.addTrigger(new Trigger() {
+        io.on(Predicates.keyPress(KeyCode.SPACE))
+          .trigger(new Action() {
             @Override
-            public void onTrigger(InputState prev, InputState next) {
+            public void perform(InputState prev, InputState next) {
                 paused = !paused;
             }
-        }, new KeyPressedCondition(KeyCode.SPACE));
-        io.addTrigger(new Trigger() {
+        });
+        io.on(Predicates.keyPress(KeyCode.S))
+          .trigger(new Action() {
             @Override
-            public void onTrigger(InputState prev, InputState next) {
+            public void perform(InputState prev, InputState next) {
                 stepOnce = true;
             }
-        }, new KeyPressedCondition(KeyCode.S));
+        });
     }
 
     @Override

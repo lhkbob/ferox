@@ -1,10 +1,10 @@
 package com.ferox.util;
 
 import com.ferox.input.KeyEvent.KeyCode;
+import com.ferox.input.logic.Action;
 import com.ferox.input.logic.InputManager;
 import com.ferox.input.logic.InputState;
-import com.ferox.input.logic.KeyPressedCondition;
-import com.ferox.input.logic.Trigger;
+import com.ferox.input.logic.Predicates;
 import com.ferox.math.ColorRGB;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
@@ -36,11 +36,11 @@ public abstract class ApplicationStub {
     
     public void run() {
         OnscreenSurface surface = framework.createSurface(opts);
-        InputManager io = new InputManager(surface);
-        
+        InputManager io = new InputManager();
         init(surface);
         installInputHandlers(io);
         installPrivateHandlers(io);
+        io.attach(surface);
         
         Runtime r = Runtime.getRuntime();
         CharacterSet charSet = new CharacterSet(true, false);
@@ -102,23 +102,26 @@ public abstract class ApplicationStub {
     protected abstract void renderFrame(OnscreenSurface surface);
     
     private void installPrivateHandlers(InputManager io) {
-        io.addTrigger(new Trigger() {
+        io.on(Predicates.keyPress(KeyCode.ESCAPE))
+          .trigger(new Action() {
             @Override
-            public void onTrigger(InputState prev, InputState next) {
+            public void perform(InputState prev, InputState next) {
                 framework.destroy();
             }
-        }, new KeyPressedCondition(KeyCode.ESCAPE));
-        io.addTrigger(new Trigger() {
+        });
+        io.on(Predicates.keyPress(KeyCode.F))
+          .trigger(new Action() {
             @Override
-            public void onTrigger(InputState prev, InputState next) {
+            public void perform(InputState prev, InputState next) {
                 showFPS = !showFPS;
             }
-        }, new KeyPressedCondition(KeyCode.F));
-        io.addTrigger(new Trigger() {
+        });
+        io.on(Predicates.keyPress(KeyCode.P))
+          .trigger(new Action() {
             @Override
-            public void onTrigger(InputState prev, InputState next) {
+            public void perform(InputState prev, InputState next) {
                 showProfiling = !showProfiling;
             }
-        }, new KeyPressedCondition(KeyCode.P));
+        });
     }
 }
