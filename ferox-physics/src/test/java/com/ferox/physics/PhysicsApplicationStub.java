@@ -82,6 +82,8 @@ public class PhysicsApplicationStub extends ApplicationStub {
         system.getControllerManager().addController(new VisibilityController());
         system.getControllerManager().addController(new LightGroupController(worldBounds));
         system.getControllerManager().addController(new FixedFunctionRenderController(surface.getFramework()));
+        
+        surface.setVSyncEnabled(true);
     }
 
     @Override
