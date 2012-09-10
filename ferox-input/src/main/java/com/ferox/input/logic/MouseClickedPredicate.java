@@ -2,6 +2,13 @@ package com.ferox.input.logic;
 
 import com.ferox.input.MouseEvent.MouseButton;
 
+/**
+ * MouseClickedPredicate is an advanced Predicate capable of identifying and
+ * triggering actions on single clicks up to N-count clicks within a specific
+ * time period.
+ * 
+ * @author Michael Ludwig
+ */
 class MouseClickedPredicate implements Predicate {
     private final MouseButton button;
     private final long clickDuration;
@@ -20,7 +27,7 @@ class MouseClickedPredicate implements Predicate {
         
         this.button = button;
         this.numClicks = numClicks;
-        this.clickDuration = clickDuration;
+        this.clickDuration = clickDuration * 1000000; // convert from millis to nanos
         
         startTime = -1;
         currentClickCount = 0;

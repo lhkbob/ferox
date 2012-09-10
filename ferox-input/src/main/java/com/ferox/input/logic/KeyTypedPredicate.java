@@ -2,6 +2,12 @@ package com.ferox.input.logic;
 
 import com.ferox.input.KeyEvent.KeyCode;
 
+/**
+ * KeyTypedPredicate is an advanced Predicate capable of identifying when a key
+ * is typed (e.g. pressed and released quickly).
+ * 
+ * @author Michael Ludwig
+ */
 class KeyTypedPredicate implements Predicate {
     private final KeyCode code;
     private final long typeDuration;
@@ -15,7 +21,7 @@ class KeyTypedPredicate implements Predicate {
             throw new IllegalArgumentException("Type duration must be a positive number of milliseconds, not: " + typeDuration);
         
         this.code = code;
-        this.typeDuration = typeDuration;
+        this.typeDuration = typeDuration * 1000000; // convert from millis to nanoseconds
         startTime = -1;
     }
     

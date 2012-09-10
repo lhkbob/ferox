@@ -6,6 +6,14 @@ import com.ferox.input.MouseEvent.MouseButton;
 public final class Predicates {
     private Predicates() { }
     
+    /**
+     * Return a Predicate that evaluates to true when the key code transitions
+     * from the up to down position.
+     * 
+     * @param code The key that is pressed
+     * @return A Predicate for matching key presses
+     * @throws NullPointerException if code is null
+     */
     public static Predicate keyPressed(final KeyCode code) {
         if (code == null)
             throw new NullPointerException("KeyCode cannot be null");
@@ -17,6 +25,14 @@ public final class Predicates {
         };
     }
     
+    /**
+     * Return a Predicate that evaluates to true when the key code transitions
+     * from the down to up position.
+     * 
+     * @param code The key that is released
+     * @return A Predicate for matching key releases
+     * @throws NullPointerException if code is null
+     */
     public static Predicate keyReleased(final KeyCode code) {
         if (code == null)
             throw new NullPointerException("KeyCode cannot be null");
@@ -28,13 +44,26 @@ public final class Predicates {
         };
     }
     
+    /**
+     * Return a Predicate that evaluates to true when the key code is held down
+     * for the duration of the state transition. This will continue to evaluate
+     * to true until the key is released.
+     * 
+     * @param code The key that is held
+     * @return A Predicate for matching key held
+     * @throws NullPointerException if code is null
+     */
     public static Predicate keyHeld(final KeyCode code) {
         if (code == null)
             throw new NullPointerException("KeyCode cannot be null");
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getKeyboardState().isKeyDown(code);
+                // we use prev as the signal so that we still trigger during
+                // the transition of a release (since it was held until the 
+                // very end), but not the transition for a press (since it was
+                // not held until the very end).
+                return prev.getKeyboardState().isKeyDown(code);
             }
         };
     }
@@ -107,7 +136,9 @@ public final class Predicates {
             return new Predicate() {
                 @Override
                 public boolean apply(InputState prev, InputState next) {
-                    return next.getMouseState().getDeltaX() != 0 || next.getMouseState().getDeltaY() != 0;
+                    MouseState pm = prev.getMouseState();
+                    MouseState nm = next.getMouseState();
+                    return pm.getX() != nm.getX() || pm.getY() != nm.getY();
                 }
             };
         } else {
@@ -123,7 +154,7 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollDelta() < 0;
+                return next.getMouseState().getScrollCount() < next.getMouseState().getScrollCount();
             }
         };
     }
@@ -132,7 +163,7 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollDelta() > 0;
+                return next.getMouseState().getScrollCount() > next.getMouseState().getScrollCount();
             }
         };
     }
