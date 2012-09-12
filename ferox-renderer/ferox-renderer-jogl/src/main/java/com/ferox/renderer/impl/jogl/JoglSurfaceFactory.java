@@ -1,11 +1,12 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import javax.media.nativewindow.util.SurfaceSize;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
@@ -23,6 +24,10 @@ import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.SurfaceFactory;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.ScreenMode;
 
 /**
  * JoglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL
@@ -33,12 +38,20 @@ import com.ferox.renderer.impl.SurfaceFactory;
  * 
  * @author Michael Ludwig
  */
-public class JoglSurfaceFactory implements SurfaceFactory {
+public class JoglSurfaceFactory extends SurfaceFactory {
+    private static final int TARGET_REFRESH_RATE = 60;
+
     private final int capBits;
     private final GLProfile profile;
     
     private final DisplayMode defaultMode;
     private final DisplayMode[] availableModes;
+    
+    private final Map<DisplayMode, ScreenMode> convertMap;
+    
+    // the Display and Screen used by all windows created by this factory
+    private final Display display;
+    private final Screen screen;
 
     /**
      * Create a new JoglSurfaceFactory that will use the given profile and
@@ -56,40 +69,150 @@ public class JoglSurfaceFactory implements SurfaceFactory {
         this.capBits = capBits;
         this.profile = profile;
         
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        Set<DisplayMode> modes = new HashSet<DisplayMode>();
-        for (java.awt.DisplayMode awtMode: device.getDisplayModes()) {
-            DisplayMode mode = convert(awtMode);
-            if (mode != null)
-                modes.add(mode);
-        }
-        availableModes = modes.toArray(new DisplayMode[modes.size()]);
-        defaultMode = convert(device.getDisplayMode());
-    }
-
-    /**
-     * Return an AWT DisplayMode that exactly matches the given DisplayMode, or
-     * null if there was no exact match.
-     * 
-     * @param mode The mode to "convert"
-     * @return The AWT DisplayMode matching mode, or null
-     */
-    public java.awt.DisplayMode getAWTDisplayMode(DisplayMode mode) {
-        java.awt.DisplayMode[] awtModes = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayModes();
-        for (java.awt.DisplayMode awtMode: awtModes) {
-            if (mode.getWidth() == awtMode.getWidth() && mode.getHeight() == awtMode.getHeight()
-                && mode.getPixelFormat().getBitDepth() == awtMode.getBitDepth()) {
-                return awtMode;
+        display = NewtFactory.createDisplay(null);
+        display.addReference();
+        
+        screen = NewtFactory.createScreen(display, 0);
+        screen.addReference();
+        
+        convertMap = new HashMap<DisplayMode, ScreenMode>();
+        
+        List<ScreenMode> modes = screen.getScreenModes();
+        for (ScreenMode joglMode: modes) {
+            DisplayMode feroxMode = convert(joglMode);
+            if (convertMap.containsKey(feroxMode)) {
+                // compare refresh rates and pick the one closest to target
+                if (Math.abs(TARGET_REFRESH_RATE - joglMode.getMonitorMode().getRefreshRate()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode).getMonitorMode().getRefreshRate())) {
+                    convertMap.put(feroxMode, joglMode);
+                }
+            } else {
+                // no refresh rate overlap
+                convertMap.put(feroxMode, joglMode);
             }
         }
         
-        // no match, so return null
-        return null;
+        availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
+        defaultMode = convert(screen.getOriginalScreenMode());
     }
     
-    private static DisplayMode convert(java.awt.DisplayMode awtMode) {
+    @Override
+    public void destroy() {
+        screen.removeReference();
+        display.removeReference();
+    }
+    
+    public Screen getScreen() {
+        return screen;
+    }
+    
+    public Display getDisplay() {
+        return display;
+    }
+    
+    public GLCapabilities chooseCapabilities(OnscreenSurfaceOptions request) {
+        GLCapabilities caps = new GLCapabilities(profile);
+        
+        // update the caps fields
+        PixelFormat pf;
+        if (request.getFullscreenMode() != null) {
+            pf = request.getFullscreenMode().getPixelFormat();
+        } else {
+            pf = getDefaultDisplayMode().getPixelFormat();
+        }
+        
+        switch (pf) {
+        case RGB_16BIT:
+            caps.setRedBits(5);
+            caps.setGreenBits(6);
+            caps.setBlueBits(5);
+            caps.setAlphaBits(0);
+            break;
+        case RGB_24BIT: case UNKNOWN:
+            caps.setRedBits(8);
+            caps.setGreenBits(8);
+            caps.setBlueBits(8);
+            caps.setAlphaBits(0);
+            break;
+        case RGBA_32BIT:
+            caps.setRedBits(8);
+            caps.setGreenBits(8);
+            caps.setBlueBits(8);
+            caps.setAlphaBits(8);
+            break;
+        }
+
+        // FIXME On Mac, requesting any other depth than 16-bit causes a JVM crash
+        caps.setDepthBits(16);
+//        switch (request.getDepthFormat()) {
+//        case DEPTH_16BIT:
+//            caps.setDepthBits(16);
+//            break;
+//        case DEPTH_24BIT: case UNKNOWN:
+//            caps.setDepthBits(24);
+//            break;
+//        case DEPTH_32BIT:
+//            caps.setDepthBits(32);
+//            break;
+//        case NONE:
+//            caps.setDepthBits(0);
+//            break;
+//        }
+
+        switch (request.getStencilFormat()) {
+        case STENCIL_16BIT:
+            caps.setStencilBits(16);
+            break;
+        case STENCIL_8BIT:
+            caps.setStencilBits(8);
+            break;
+        case STENCIL_4BIT:
+            caps.setStencilBits(4);
+            break;
+        case STENCIL_1BIT:
+            caps.setStencilBits(1);
+            break;
+        case NONE: case UNKNOWN:
+            caps.setStencilBits(0);
+            break;
+        }
+
+        switch (request.getMultiSampling()) {
+        case EIGHT_X:
+            caps.setNumSamples(8);
+            caps.setSampleBuffers(true);
+            break;
+        case FOUR_X:
+            caps.setNumSamples(4);
+            caps.setSampleBuffers(true);
+            break;
+        case TWO_X:
+            caps.setNumSamples(2);
+            caps.setSampleBuffers(true);
+            break;
+        case NONE: case UNKNOWN:
+            caps.setNumSamples(0);
+            caps.setSampleBuffers(false);
+            break;
+        }
+        
+        return caps;
+    }
+    
+    /**
+     * Return an JOGL ScreenMode that exactly matches the given DisplayMode, or
+     * null if there was no exact match.
+     * 
+     * @param mode The mode to "convert"
+     * @return The JOGL DisplayMode matching mode, or null
+     */
+    public ScreenMode getScreenMode(DisplayMode mode) {
+        return convertMap.get(mode);
+    }
+    
+    private static DisplayMode convert(ScreenMode mode) {
+        SurfaceSize realMode = mode.getMonitorMode().getSurfaceSize();
         PixelFormat pixFormat;
-        switch(awtMode.getBitDepth()) {
+        switch(realMode.getBitsPerPixel()) {
         case 16:
             pixFormat = PixelFormat.RGB_16BIT;
             break;
@@ -104,7 +227,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
             break;
         }
         
-        return new DisplayMode(awtMode.getWidth(), awtMode.getHeight(), pixFormat);
+        return new DisplayMode(realMode.getResolution().getWidth(), realMode.getResolution().getHeight(), pixFormat);
     }
     
     @Override
@@ -123,8 +246,8 @@ public class JoglSurfaceFactory implements SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        return new JoglAWTSurface(framework, this, options, (JoglContext) sharedContext,
-                                  new JoglRendererProvider());
+        return new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext,
+                                   new JoglRendererProvider());
     }
 
     @Override

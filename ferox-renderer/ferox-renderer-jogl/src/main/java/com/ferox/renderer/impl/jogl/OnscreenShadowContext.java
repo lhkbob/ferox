@@ -1,15 +1,14 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.Frame;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
 
 import com.ferox.renderer.impl.RendererProvider;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Window;
 
 /**
  * OnscreenShadowContext is a special JoglContext that is intended for use as
@@ -20,24 +19,22 @@ import com.ferox.renderer.impl.RendererProvider;
  * @author Michael Ludwig
  */
 public class OnscreenShadowContext extends JoglContext {
-    private final Frame frame;
+    private final Window frame;
     
-    private OnscreenShadowContext(JoglSurfaceFactory creator, Frame frame, GLCanvas surface, RendererProvider provider) {
-        super(creator, surface.getContext(), provider);
+    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame, GLContext context, RendererProvider provider) {
+        super(creator, context, provider);
         this.frame = frame;
     }
     
     @Override
     public void destroy() {
-        // We don't need to call super.destroy() because frame.dispose()
-        // will automatically call context.destroy() for us when appropriate.
-        Utils.invokeOnAWTThread(new Runnable() {
-            public void run() {
-                // must lock to see surface context update
-                frame.setVisible(false);
-                frame.dispose();
-            }
-        }, false);
+    	// we need to clear the thread's interrupted status because NEWT's
+    	// EDT thread locking is a little crazy
+    	Thread.interrupted();
+    	
+        frame.setVisible(false);
+        super.destroy();
+        frame.destroy();
     }
 
     /**
@@ -55,43 +52,17 @@ public class OnscreenShadowContext extends JoglContext {
         if (creator == null)
             throw new NullPointerException("Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
         
-        GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        final GLCanvas canvas = new PaintDisabledGLCanvas(new GLCapabilities(creator.getGLProfile()),
-                                                          new DefaultGLCapabilitiesChooser(),
-                                                          realShare, device);
-        final Frame frame = new Frame();
-
-        // unfortunately we have to make the Frame visible before we
-        // have access to the context
-        Utils.invokeOnAWTThread(new Runnable() {
-            @Override
-            public void run() {
-                frame.setSize(1, 1);
-                frame.setResizable(false);
-                frame.setUndecorated(true);
-                frame.setTitle("");
-                frame.add(canvas);
-                
-                frame.setIgnoreRepaint(false);
-                canvas.setIgnoreRepaint(false);
-                
-                frame.setVisible(true);
-            }
-        }, true);
+        GLCapabilities caps = new GLCapabilities(creator.getGLProfile());
+        Window window = NewtFactory.createWindow(creator.getScreen(), caps);
+        window.setUndecorated(true);
+        window.setSize(1, 1);
+        window.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
         
-        try {
-            return new OnscreenShadowContext(creator, frame, canvas, provider);
-        } catch(RuntimeException re) {
-            // last minute cleanup - context will be destroyed automatically
-            Utils.invokeOnAWTThread(new Runnable() {
-                public void run() {
-                    frame.setVisible(false);
-                    frame.dispose();
-                }
-            }, false);
-            
-            throw re;
-        }
+        window.setVisible(true);
+        
+        GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLDrawable(window);
+        GLContext context = drawable.createContext(shareWith == null ? null : shareWith.getGLContext());
+
+        return new OnscreenShadowContext(creator, window, context, provider);
     }
 }

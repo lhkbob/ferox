@@ -360,7 +360,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     public void flush(OpenGLContext context) {
         try {
             // Just swap the buffers during flush(), we'll process messages
-            // in another thread that isn't a render thread
+            // in another queued task
             Display.swapBuffers();
         } catch (LWJGLException e) {
             throw new FrameworkException("Error swapping Display's buffers", e);
@@ -370,9 +370,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     @Override
     protected void destroyImpl() {
         dispatcher.shutdown();
-        
-        // destroy() should be safe on any thread at this point because
-        // destroyImpl() is only called after we've released the context
+        context.destroy();
         Display.destroy();
         
         try {
@@ -387,8 +385,6 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    // This will also call context.destroy() when appropriate so we 
-                    // have to do it ourselves
                     parentFrame.setVisible(false);
                     parentFrame.dispose();
                 }

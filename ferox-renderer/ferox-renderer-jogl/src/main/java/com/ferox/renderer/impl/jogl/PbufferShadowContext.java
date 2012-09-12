@@ -18,8 +18,17 @@ import com.ferox.renderer.impl.RendererProvider;
  * @author Michael Ludwig
  */
 public class PbufferShadowContext extends JoglContext {
+    private final GLPbuffer pbuffer;
+    
     private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface, RendererProvider provider) {
         super(creator, surface.getContext(), provider);
+        pbuffer = surface;
+    }
+    
+    @Override
+    public void destroy() {
+        super.destroy();
+        pbuffer.destroy();
     }
     
     /**

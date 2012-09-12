@@ -133,13 +133,14 @@ public class LifeCycleManager {
      * invoked stop(). <tt>postDestroy</tt> must be safe to call from the
      * shutdown thread that is started by this manager.
      * 
-     * @param stopping A Runnable executed after the exclusive lock is held,
+     * @param preDestroy A Runnable executed after the exclusive lock is held,
      *            but before the state transitions to STOPPING
-     * @return True if the manager transitions to STOPPING or STOPPED and false
+     * @param postDestroy A Runnable executed after status changes to STOPPED
+     * @return True if the manager will transition to STOPPING or STOPPED and false
      *         otherwise
      * @throws NullPointerException if either runnable is null
      */
-    public boolean stop(Runnable preDestroy) {
+    public boolean stop(Runnable preDestroy, Runnable postDestroy) {
         lock.writeLock().lock();
         try {
             // Cannot destroy if actively being started, destroyed or has already been destroyed
@@ -157,6 +158,9 @@ public class LifeCycleManager {
                 // invoke this task while STOPPING, but before we block on children
                 if (preDestroy != null)
                     preDestroy.run();
+                
+                // Send an interrupt to all managed threads
+                managedThreadGroup.interrupt();
                 status = Status.WAITING_ON_CHILDREN;
                 
                 ThreadGroup shutdownOwner = Thread.currentThread().getThreadGroup();
@@ -166,7 +170,7 @@ public class LifeCycleManager {
                     shutdownOwner = shutdownOwner.getParent();
                 }
                 
-                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(), 
+                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(postDestroy), 
                                              "lifecycle-shutdown-thread");
                 shutdown.setDaemon(false); // Don't let the JVM die until this is finished
                 shutdown.start();
@@ -263,11 +267,14 @@ public class LifeCycleManager {
      * the code provided in stop()
      */
     private class ShutdownTask implements Runnable {
+        private final Runnable postStop;
+        
+        public ShutdownTask(Runnable postStop) {
+            this.postStop = postStop;
+        }
+        
         @Override
         public void run() {
-            // Send an interrupt to all managed threads
-            managedThreadGroup.interrupt();
-            
             // This iteration does not need to worry about changes to the thread-list
             // since the shutdown task is only started after the status is set to STOPPING
             // at which point no threads can be added to the managed group.
@@ -289,6 +296,8 @@ public class LifeCycleManager {
             // We don't need to lock here since this is the only place where STOPPING -> STOPPED
             // and there will only ever be one shutdown thread.
             status = Status.STOPPED;
+            
+            postStop.run();
         }
     }
 }

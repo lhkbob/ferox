@@ -101,6 +101,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
     @Override
     protected void destroyImpl() {
         context.destroy();
+        pbuffer.destroy();
     }
     
     /*

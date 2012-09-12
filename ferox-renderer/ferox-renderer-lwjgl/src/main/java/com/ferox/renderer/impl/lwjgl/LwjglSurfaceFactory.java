@@ -1,10 +1,8 @@
 package com.ferox.renderer.impl.lwjgl;
 
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
@@ -13,10 +11,10 @@ import org.lwjgl.opengl.Pbuffer;
 import com.ferox.renderer.DisplayMode;
 import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
@@ -35,11 +33,15 @@ import com.ferox.renderer.impl.SurfaceFactory;
  * 
  * @author Michael Ludwig
  */
-public class LwjglSurfaceFactory implements SurfaceFactory {
+public class LwjglSurfaceFactory extends SurfaceFactory {
+    private static final int TARGET_REFRESH_RATE = 60;
+    
     private final int capBits;
     
     private final DisplayMode defaultMode;
     private final DisplayMode[] availableModes;
+    
+    private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
     /**
      * Create a new LwjglSurfaceFactory that will use the given profile and
@@ -53,17 +55,31 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
     public LwjglSurfaceFactory(int capBits) {
         this.capBits = capBits;
         
-        // For now we'll use AWT to determine available graphics devices, but
-        // must keep track if there are incompatibilities with LWJGL's display list
-        GraphicsDevice device = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        Set<DisplayMode> modes = new HashSet<DisplayMode>();
-        for (java.awt.DisplayMode awtMode: device.getDisplayModes()) {
-            DisplayMode mode = convert(awtMode);
-            if (mode != null)
-                modes.add(mode);
+        convertMap = new HashMap<DisplayMode, org.lwjgl.opengl.DisplayMode>();
+        
+        try {
+            org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
+            for (org.lwjgl.opengl.DisplayMode lwjglMode: modes) {
+                if (!lwjglMode.isFullscreenCapable())
+                    continue;
+                
+                DisplayMode feroxMode = convert(lwjglMode);
+                if (convertMap.containsKey(feroxMode)) {
+                    // compare refresh rates and pick the one closest to target
+                    if (Math.abs(TARGET_REFRESH_RATE - lwjglMode.getFrequency()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode).getFrequency())) {
+                        convertMap.put(feroxMode, lwjglMode);
+                    }
+                } else {
+                    // no refresh rate overlap
+                    convertMap.put(feroxMode, lwjglMode);
+                }
+            }
+        } catch (LWJGLException e) {
+            throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
         }
-        availableModes = modes.toArray(new DisplayMode[modes.size()]);
-        defaultMode = convert(device.getDisplayMode());
+        
+        availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
+        defaultMode = convert(Display.getDesktopDisplayMode());
     }
     
     /**
@@ -74,52 +90,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
      * @return The AWT DisplayMode matching mode, or null
      */
     public org.lwjgl.opengl.DisplayMode getLWJGLDisplayMode(DisplayMode mode) {
-        org.lwjgl.opengl.DisplayMode[] modes;
-        try {
-            modes = Display.getAvailableDisplayModes();
-        } catch (LWJGLException e) {
-            throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
-        }
-        
-        for (org.lwjgl.opengl.DisplayMode lwjglMode: modes) {
-            if (mode.getWidth() == lwjglMode.getWidth() && mode.getHeight() == lwjglMode.getHeight()
-                && mode.getPixelFormat().getBitDepth() == lwjglMode.getBitsPerPixel()
-                && lwjglMode.isFullscreenCapable()) {
-                return lwjglMode;
-            }
-        }
-        
-        // no match, so return null
-        return null;
-    }
-    
-    public DisplayMode chooseCompatibleDisplayMode(DisplayMode requested) {
-        // we assume there is at least 1 (would be the default)
-        DisplayMode best = availableModes[0];
-        int reqArea = requested.getWidth() * requested.getHeight();
-        int bestArea = best.getWidth() * best.getHeight();
-        for (int i = 1; i < availableModes.length; i++) {
-            int area = availableModes[i].getWidth() * availableModes[i].getHeight();
-            if (Math.abs(area - reqArea) <= Math.abs(bestArea - reqArea)) {
-                // available[i] has a better or same match with screen resolution,
-                // now evaluate pixel format
-                
-                if (availableModes[i].getPixelFormat() == requested.getPixelFormat()) {
-                    // exact match on format, go with available[i]
-                    best = availableModes[i];
-                    bestArea = area;
-                } else {
-                    // go with the highest bit depth pixel format
-                    // PixelFormat's declared ordering is by bit depth so we can use compareTo
-                    if (availableModes[i].getPixelFormat().compareTo(best.getPixelFormat()) >= 0) {
-                        best = availableModes[i];
-                        bestArea = area;
-                    }
-                }
-            }
-        }
-        
-        return best;
+        return convertMap.get(mode);
     }
     
     public org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request) {
@@ -195,9 +166,9 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         return caps;
     }
     
-    private static DisplayMode convert(java.awt.DisplayMode awtMode) {
+    private static DisplayMode convert(org.lwjgl.opengl.DisplayMode lwjglMode) {
         PixelFormat pixFormat;
-        switch(awtMode.getBitDepth()) {
+        switch(lwjglMode.getBitsPerPixel()) {
         case 16:
             pixFormat = PixelFormat.RGB_16BIT;
             break;
@@ -212,7 +183,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
             break;
         }
         
-        return new DisplayMode(awtMode.getWidth(), awtMode.getHeight(), pixFormat);
+        return new DisplayMode(lwjglMode.getWidth(), lwjglMode.getHeight(), pixFormat);
     }
     
     @Override

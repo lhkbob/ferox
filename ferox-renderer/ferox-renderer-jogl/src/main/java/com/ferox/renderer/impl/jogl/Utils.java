@@ -1,7 +1,8 @@
 package com.ferox.renderer.impl.jogl;
 
-import java.awt.EventQueue;
-import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
@@ -18,6 +19,7 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.Renderer.StencilUpdate;
+import com.ferox.renderer.impl.ContextManager;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslShader.ShaderType;
@@ -710,29 +712,33 @@ public class Utils {
 
         return -1;
     }
-
+    
     /**
-     * Utility method to invoke a Runnable on the AWT event dispatch thread
-     * (e.g. for modifying AWT and Swing components). This will throw a runtime
-     * exception if a problem occurs. It works properly if called from the AWT
-     * thread. This should be used when EventQueue.invokeAndWait() or
-     * SwingUtilities.invokeAndWait() would be used, except that this is thread
-     * safe.
+     * Utility method to invoke a Runnable on the context-thread of the given
+     * framework. This will throw a runtime exception if a problem occurs. It
+     * works properly if called from the context thread. This should be used
+     * when EventQueue.invokeAndWait() or SwingUtilities.invokeAndWait() would
+     * be used, except that this is thread safe.
      */
-    public static void invokeOnAWTThread(Runnable r, boolean block) {
-        if (EventQueue.isDispatchThread()) {
+    public static void invokeOnContextThread(ContextManager cm, final Runnable r, boolean block) {
+        if (cm.isContextThread()) {
             r.run();
         } else {
+            Future<Void> task = cm.invokeOnContextThread(new Callable<Void>() {
+                @Override
+                public Void call() {
+                    r.run();
+                    return null;
+                }
+            }, false);
             if (block) {
                 try {
-                    EventQueue.invokeAndWait(r);
+                    task.get();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
-                } catch (InvocationTargetException e) {
+                } catch (ExecutionException e) {
                     throw new RuntimeException(e);
                 }
-            } else {
-                EventQueue.invokeLater(r);
             }
         }
     }

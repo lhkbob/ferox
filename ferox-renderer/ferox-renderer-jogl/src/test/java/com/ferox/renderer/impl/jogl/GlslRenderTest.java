@@ -54,7 +54,7 @@ public class GlslRenderTest extends ApplicationStub {
     private GlslPass pass;
     
     public GlslRenderTest() {
-        super(JoglFramework.create(false, false, true, false));
+        super(JoglFramework.create());
     }
     
     @Override

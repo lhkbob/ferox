@@ -32,11 +32,10 @@ public class JoglFramework extends AbstractFramework {
         
         // FIXME: how to handle forceNoFfp?
         
-        // FIXME: select profile better, based on properties?
+        // FIXME: select profile better, based on properties? can't select GL3
+        // until we have GL3-only FFP implemented
         GLProfile profile;
-        if (GLProfile.isAvailable(GLProfile.GL3))
-            profile = GLProfile.get(GLProfile.GL3);
-        else if (GLProfile.isAvailable(GLProfile.GL2))
+        if (GLProfile.isAvailable(GLProfile.GL2))
             profile = GLProfile.get(GLProfile.GL2);
         else
             throw new RuntimeException("Minimum required GL profile of GL2 is not available");

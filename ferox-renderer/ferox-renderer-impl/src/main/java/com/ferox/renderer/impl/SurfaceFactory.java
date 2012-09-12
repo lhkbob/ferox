@@ -13,7 +13,7 @@ import com.ferox.renderer.TextureSurfaceOptions;
  * 
  * @author Michael Ludwig
  */
-public interface SurfaceFactory {
+public abstract class SurfaceFactory {
     /**
      * Create an AbstractTextureSurface implementation. This is used by the
      * AbstractFramework to implement
@@ -28,8 +28,8 @@ public interface SurfaceFactory {
      * @return A new texture surface
      * @throws NullPointerException if any of the arguments are null
      */
-    public AbstractTextureSurface createTextureSurface(AbstractFramework framework, TextureSurfaceOptions options, 
-                                                       OpenGLContext sharedContext);
+    public abstract AbstractTextureSurface createTextureSurface(AbstractFramework framework, TextureSurfaceOptions options, 
+                                                                OpenGLContext sharedContext);
 
     /**
      * Create an AbstractOnscreenSurface implementation. This is used by the
@@ -45,8 +45,8 @@ public interface SurfaceFactory {
      * @return A new, visible onscreen surface
      * @throws NullPointerException if any of the arguments are null
      */
-    public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework, OnscreenSurfaceOptions options, 
-                                                         OpenGLContext sharedContext);
+    public abstract AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework, OnscreenSurfaceOptions options, 
+                                                                  OpenGLContext sharedContext);
 
     /**
      * Create an OpenGLContext that wraps an underlying OpenGL context.
@@ -59,17 +59,66 @@ public interface SurfaceFactory {
      *            if this is null then no sharing is done
      * @return An offscreen context
      */
-    public OpenGLContext createOffscreenContext(OpenGLContext sharedContext);
+    public abstract OpenGLContext createOffscreenContext(OpenGLContext sharedContext);
 
     /**
      * @return The default display mode, as required
      *         {@link Framework#getDefaultDisplayMode()}
      */
-    public DisplayMode getDefaultDisplayMode();
+    public abstract DisplayMode getDefaultDisplayMode();
     
     /**
      * @return Available display modes, as required by
      *         {@link Framework#getAvailableDisplayModes()}
      */
-    public DisplayMode[] getAvailableDisplayModes();
+    public abstract DisplayMode[] getAvailableDisplayModes();
+    
+    /**
+     * Perform any native resource destruction, called by the Framework when
+     * it's lifecycle is completed.
+     */
+    public void destroy() { }
+    
+    /**
+     * Select the closest matching of the supported DisplayModes given the
+     * requested.
+     * 
+     * @param requested The requested display mode
+     * @return Best matching mode
+     * @throws NullPointerException if requested is null
+     */
+    public DisplayMode chooseCompatibleDisplayMode(DisplayMode requested) {
+        DisplayMode[] availableModes = getAvailableDisplayModes();
+        
+        // we assume there is at least 1 (would be the default)
+        DisplayMode best = availableModes[0];
+        int reqArea = requested.getWidth() * requested.getHeight();
+        int bestArea = best.getWidth() * best.getHeight();
+        for (int i = 1; i < availableModes.length; i++) {
+            int area = availableModes[i].getWidth() * availableModes[i].getHeight();
+            boolean update = false;
+            if (Math.abs(area - reqArea) < Math.abs(bestArea - reqArea)) {
+                // available[i] has a better  match with screen resolution
+                update = true;
+            } else if (Math.abs(area - reqArea) == Math.abs(bestArea - reqArea)) {
+                // resolution tie, so evaluate the pixel format
+                if (availableModes[i].getPixelFormat() == requested.getPixelFormat()) {
+                    // exact match on format, go with available[i]
+                    update = true;
+                } else {
+                    // go with the highest bit depth pixel format
+                    if (availableModes[i].getPixelFormat().getBitDepth() > best.getPixelFormat().getBitDepth()) {
+                        update = true;
+                    }
+                }
+            }
+            
+            if (update) {
+                best = availableModes[i];
+                bestArea = area;
+            }
+        }
+        
+        return best;
+    }
 }

@@ -13,7 +13,7 @@ public class SelfDestructTest {
         final Framework f = JoglFramework.create(false, false, true, false);
         System.out.println("framework created");
         final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
-            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
+//            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
             .setUndecorated(true)
             .setResizable(false)
             .setWidth(500)

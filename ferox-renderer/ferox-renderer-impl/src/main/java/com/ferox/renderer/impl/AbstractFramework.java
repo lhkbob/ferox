@@ -196,6 +196,12 @@ public abstract class AbstractFramework implements Framework {
                     }
                 }
             }
+        }, new Runnable() {
+            @Override
+            public void run() {
+                // Don't destroy native surface resources until the very end
+                surfaceFactory.destroy();
+            }
         });
         
         if (!surfaceDestroyExceptions.isEmpty()) {

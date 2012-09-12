@@ -98,6 +98,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
     @Override
     protected void destroyImpl() {
         context.destroy();
+        pbuffer.destroy();
     }
     
     /*

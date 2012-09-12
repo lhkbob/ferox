@@ -406,7 +406,6 @@ public class ContextManager {
                 deactivateSurface();
             }
             releaseContext();
-            
             // This thread is the owner of the shared context
             sharedContext.destroy();
             

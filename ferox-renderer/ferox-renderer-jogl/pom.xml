@@ -11,9 +11,12 @@
     <packaging>jar</packaging>
     <name>Ferox JOGL Renderer Implementation</name>
 
+    <properties>
+        <jogl.version>2.0-rc10</jogl.version>
+    </properties>
 
     <!-- JOGL is not actually in Maven, but this POM will do a local install 
-        of the jars in the "jogl/2.0-rc3" folder so that the dependencies can be 
+        of the jars in the "jogl/${jogl.version}" folder so that the dependencies can be 
         resolved. Define "install.jogl" to install the JOGL jars, and leave it blank 
         for normal usage. -->
     <profiles>
@@ -39,10 +42,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-jogl-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-jogl-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-linux64</classifier>
-                                    <file>jogl/2.0-rc3/natives/jogl-all-natives-linux-amd64.jar</file>
+                                    <file>jogl/${jogl.version}/natives/jogl-all-natives-linux-amd64.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -52,10 +55,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-jogl-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-jogl-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-linux</classifier>
-                                    <file>jogl/2.0-rc3/natives/jogl-all-natives-linux-i586.jar</file>
+                                    <file>jogl/${jogl.version}/natives/jogl-all-natives-linux-i586.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -65,10 +68,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-jogl-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-jogl-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-windows64</classifier>
-                                    <file>jogl/2.0-rc3/natives/jogl-all-natives-windows-amd64.jar</file>
+                                    <file>jogl/${jogl.version}/natives/jogl-all-natives-windows-amd64.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -78,10 +81,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-jogl-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-jogl-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-windows</classifier>
-                                    <file>jogl/2.0-rc3/natives/jogl-all-natives-windows-i586.jar</file>
+                                    <file>jogl/${jogl.version}/natives/jogl-all-natives-windows-i586.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -91,10 +94,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-jogl-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-jogl-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-osx</classifier>
-                                    <file>jogl/2.0-rc3/natives/jogl-all-natives-macosx-universal.jar</file>
+                                    <file>jogl/${jogl.version}/natives/jogl-all-natives-macosx-universal.jar</file>
                                 </configuration>
                             </execution>
 
@@ -105,10 +108,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-gluegen-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-gluegen-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-linux64</classifier>
-                                    <file>jogl/2.0-rc3/natives/gluegen-rt-natives-linux-amd64.jar</file>
+                                    <file>jogl/${jogl.version}/natives/gluegen-rt-natives-linux-amd64.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -118,10 +121,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-gluegen-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-gluegen-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-linux</classifier>
-                                    <file>jogl/2.0-rc3/natives/gluegen-rt-natives-linux-i586.jar</file>
+                                    <file>jogl/${jogl.version}/natives/gluegen-rt-natives-linux-i586.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -131,10 +134,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-gluegen-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-gluegen-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-windows64</classifier>
-                                    <file>jogl/2.0-rc3/natives/gluegen-rt-natives-windows-amd64.jar</file>
+                                    <file>jogl/${jogl.version}/natives/gluegen-rt-natives-windows-amd64.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -144,10 +147,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-gluegen-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-gluegen-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-windows</classifier>
-                                    <file>jogl/2.0-rc3/natives/gluegen-rt-natives-windows-i586.jar</file>
+                                    <file>jogl/${jogl.version}/natives/gluegen-rt-natives-windows-i586.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -157,10 +160,10 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-gluegen-platform.xml</pomFile>
+                                    <pomFile>jogl/${jogl.version}/pom-gluegen-platform.xml</pomFile>
                                     <packaging>jar</packaging>
                                     <classifier>natives-osx</classifier>
-                                    <file>jogl/2.0-rc3/natives/gluegen-rt-natives-macosx-universal.jar</file>
+                                    <file>jogl/${jogl.version}/natives/gluegen-rt-natives-macosx-universal.jar</file>
                                 </configuration>
                             </execution>
 
@@ -171,8 +174,8 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-jogl.xml</pomFile>
-                                    <file>jogl/2.0-rc3/jogl.all.jar</file>
+                                    <pomFile>jogl/${jogl.version}/pom-jogl.xml</pomFile>
+                                    <file>jogl/${jogl.version}/jogl.jar</file>
                                 </configuration>
                             </execution>
                             <execution>
@@ -182,8 +185,8 @@
                                     <goal>install-file</goal>
                                 </goals>
                                 <configuration>
-                                    <pomFile>jogl/2.0-rc3/pom-gluegen.xml</pomFile>
-                                    <file>jogl/2.0-rc3/gluegen-rt.jar</file>
+                                    <pomFile>jogl/${jogl.version}/pom-gluegen.xml</pomFile>
+                                    <file>jogl/${jogl.version}/gluegen-rt.jar</file>
                                 </configuration>
                             </execution>
                         </executions>
@@ -225,7 +228,7 @@
                 <dependency>
                     <groupId>com.jogamp.jogl</groupId>
                     <artifactId>jogl</artifactId>
-                    <version>2.0-rc3</version>
+                    <version>${jogl.version}</version>
                 </dependency>
             </dependencies>
         </profile>
