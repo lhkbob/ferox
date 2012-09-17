@@ -428,6 +428,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             case VERTICES:
                 getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
+            case COLORS:
+            	getGL().glColorPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
+            	break;
             }
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
@@ -442,6 +445,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             case VERTICES:
                 getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
                 break;
+            case COLORS:
+            	getGL().glColorPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
             }
         }
     }

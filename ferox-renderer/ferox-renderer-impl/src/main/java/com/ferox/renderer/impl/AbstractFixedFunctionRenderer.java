@@ -59,7 +59,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
     
     protected static enum VertexTarget {
-        VERTICES, NORMALS, TEXCOORDS
+        VERTICES, NORMALS, TEXCOORDS, COLORS
     }
     
     // cached defaults
@@ -216,6 +216,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     // bindings for vbos and rendering
     protected final VertexState vertexBinding = new VertexState(VertexTarget.VERTICES, 0);
     protected final VertexState normalBinding = new VertexState(VertexTarget.NORMALS, 0);
+    protected final VertexState colorBinding = new VertexState(VertexTarget.COLORS, 0);
     protected VertexState[] texBindings = null; // "final"
 
     protected VertexBufferObject arrayVboBinding = null;
@@ -356,6 +357,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         // reset attribute binding
         setVertices(null);
         setNormals(null);
+        setColors(null);
         for (int i = 0; i < texBindings.length; i++)
             setTextureCoordinates(i, null);
     }
@@ -1180,6 +1182,18 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (normals != null && normals.getElementSize() != 3)
             throw new IllegalArgumentException("Normals element size must be 3");
         setAttribute(normalBinding, normals);
+    }
+    
+    @Override
+    public void setColors(VertexAttribute colors) {
+    	if (colors != null && colors.getElementSize() != 3 && colors.getElementSize() != 4)
+    		throw new IllegalArgumentException("Colors element size must be 3 or 4");
+    	setAttribute(colorBinding, colors);
+    	if (colorBinding.handle == null) {
+    		// per-vertex coloring is disabled, so make sure we have a predictable diffuse color
+    		glMaterialColor(LightColor.DIFFUSE, DEFAULT_MAT_D_COLOR);
+    		matDiffuse.set(DEFAULT_MAT_D_COLOR);
+    	}
     }
 
     @Override

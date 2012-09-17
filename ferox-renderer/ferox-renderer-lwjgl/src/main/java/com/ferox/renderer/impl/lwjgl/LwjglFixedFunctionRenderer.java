@@ -408,6 +408,9 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             case VERTICES:
                 GL11.glVertexPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
+            case COLORS:
+            	GL11.glColorPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+            	break;
             }
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
@@ -422,6 +425,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             case VERTICES:
                 GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
+            case COLORS:
+            	GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
             }
         }
     }
