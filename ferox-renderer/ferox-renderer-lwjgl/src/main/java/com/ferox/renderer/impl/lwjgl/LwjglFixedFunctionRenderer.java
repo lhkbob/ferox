@@ -444,6 +444,9 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         case VERTICES:
             state = GL11.GL_VERTEX_ARRAY;
             break;
+        case COLORS:
+        	state = GL11.GL_COLOR_ARRAY;
+        	break;
         }
         
         if (enable)

@@ -464,6 +464,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         case VERTICES:
             state = GL2.GL_VERTEX_ARRAY;
             break;
+        case COLORS:
+        	state = GL2.GL_COLOR_ARRAY;
+        	break;
         }
         
         if (enable)
