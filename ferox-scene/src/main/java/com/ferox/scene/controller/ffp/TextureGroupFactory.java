@@ -6,8 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
+import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
+import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
+import com.ferox.scene.DecalColorMap;
 import com.ferox.scene.DiffuseColorMap;
 import com.ferox.scene.EmittedColorMap;
 import com.lhkbob.entreri.Entity;
@@ -15,68 +19,109 @@ import com.lhkbob.entreri.EntitySystem;
 
 public class TextureGroupFactory implements StateGroupFactory {
     private final StateGroupFactory childFactory;
-    
+
     private final int diffuseUnit;
     private final int emissiveUnit;
-    
+    private final int decalUnit;
+
     private final DiffuseColorMap diffuse;
+    private final DecalColorMap decal;
     private final EmittedColorMap emissive;
-    
+
     private final TextureSet access;
-    
-    public TextureGroupFactory(EntitySystem system, int diffuseUnit, int emissiveUnit,
+
+    public TextureGroupFactory(EntitySystem system,
+                               int diffuseUnit,
+                               int decalUnit,
+                               int emissiveUnit,
                                StateGroupFactory childFactory) {
         diffuse = system.createDataInstance(DiffuseColorMap.ID);
+        decal = system.createDataInstance(DecalColorMap.ID);
         emissive = system.createDataInstance(EmittedColorMap.ID);
         access = new TextureSet();
-        
+
         this.diffuseUnit = diffuseUnit;
+        this.decalUnit = decalUnit;
         this.emissiveUnit = emissiveUnit;
         this.childFactory = childFactory;
     }
-    
+
+    @Override
     public StateGroup newGroup() {
         return new TextureGroup();
     }
-    
+
     private class TextureGroup implements StateGroup {
         private final List<StateNode> allNodes;
         private final Map<TextureSet, StateNode> index;
-        
+
         public TextureGroup() {
             allNodes = new ArrayList<StateNode>();
             index = new HashMap<TextureSet, StateNode>();
         }
-        
+
         @Override
         public StateNode getNode(Entity e) {
             e.get(diffuse);
             e.get(emissive);
-            
-            access.set(diffuse, emissive);
+            e.get(decal);
+
+            access.set(diffuse, decal, emissive);
             StateNode node = index.get(access);
             if (node == null) {
                 // haven't seen this texture configuration before
-                StateGroup child = (childFactory != null ? childFactory.newGroup() : null);
-                if (diffuseUnit != emissiveUnit || !diffuse.isEnabled() || !emissive.isEnabled()) {
-                    // we have enough units to use a single state, or only 
-                    // one texture is enabled
-                    TextureState state = new TextureState(new TextureSet(diffuse, emissive));
-                    node = new StateNode(child, state);
-                    allNodes.add(node);
-                    index.put(state.textures, node);
+                int availableUnits = 1 + (decalUnit != diffuseUnit ? 1 : 0)
+                                     + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1
+                                                                                                : 0);
+                int requiredUnits = (diffuse.isEnabled() ? 1 : 0) + (decal.isEnabled() ? 1
+                                                                                      : 0)
+                                    + (emissive.isEnabled() ? 1 : 0);
+
+                TextureSet state;
+                if (availableUnits >= requiredUnits) {
+                    // we have enough texture units without explicitly dropping
+                    // a texture, we'll let texture-set sort out which happen to
+                    // be enabled
+                    state = new TextureSet(diffuse, decal, emissive);
                 } else {
-                    // we only have 1 unit available, but both diffuse and emissive
-                    // are enabled.
-                    // - 
-                    TextureSet key = new TextureSet(diffuse, emissive);
-                    node = new StateNode(child, new TextureState(key), 
-                                         new TextureState(key));
-                    allNodes.add(node);
-                    index.put(key, node);
+                    // hypothetically we could use multiplicative blending and
+                    // multiple texture states to simulate multi-texturing, but
+                    // that's expensive and complicated when combined with
+                    // multiple
+                    // light groups and shadow mapping (and it's an unlikely
+                    // situation
+                    // to begin with).
+                    if (availableUnits == 2) {
+                        // we have 3 textures present and only 2 units, we drop
+                        // the
+                        // texture whose unit is the same
+                        if (emissiveUnit == decalUnit || emissiveUnit == diffuseUnit) {
+                            // emissive is the spare texture to drop
+                            state = new TextureSet(diffuse, decal, null);
+                        } else {
+                            // decal is the spare texture to drop
+                            state = new TextureSet(diffuse, null, emissive);
+                        }
+                    } else { // available units == 1
+                        // we have 2 or 3 textures and only 1 unit, here we
+                        // prefer
+                        // diffuse > decal > emissive
+                        if (diffuse.isEnabled()) {
+                            state = new TextureSet(diffuse, null, null);
+                        } else if (decal.isEnabled()) {
+                            state = new TextureSet(null, decal, null);
+                        } else {
+                            state = new TextureSet(null, null, emissive);
+                        }
+                    }
                 }
+
+                StateGroup child = (childFactory != null ? childFactory.newGroup() : null);
+                node = new StateNode(child, new TextureState(state));
+                allNodes.add(node);
+                index.put(state, node);
             }
-            
+
             return node;
         }
 
@@ -84,90 +129,168 @@ public class TextureGroupFactory implements StateGroupFactory {
         public List<StateNode> getNodes() {
             return allNodes;
         }
-        
+
+        @Override
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
+            return effects;
+        }
+
+        @Override
+        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+            r.setTexture(diffuseUnit, null);
+            r.setTexture(decalUnit, null);
+            r.setTexture(emissiveUnit, null);
+        }
     }
-    
+
     private class TextureState implements State {
         private final TextureSet textures; // immutable, don't call set()
-        
+
         public TextureState(TextureSet textures) {
             this.textures = textures;
         }
-        
+
         @Override
         public void add(Entity e) {
             // do nothing
         }
 
         @Override
-        public boolean applyState(FixedFunctionRenderer r) {
-            
-            
-            
-            // FIXME if this is the 2nd state, we need to turn additive blending
-            // for the emissive texture instead of using the texture environment
+        public AppliedEffects applyState(FixedFunctionRenderer r,
+                                         AppliedEffects effects,
+                                         int state) {
             if (textures.diffuse != null) {
                 r.setTexture(diffuseUnit, textures.diffuse);
                 r.setTextureCoordinates(diffuseUnit, textures.diffuseCoords);
-                // FIXME: what environment do we want for diffuse?
+                // multiplicative blending with vertex color
+                r.setTextureCombineRGB(diffuseUnit,
+                                       CombineFunction.MODULATE,
+                                       CombineSource.CURR_TEX,
+                                       CombineOperand.COLOR,
+                                       CombineSource.PREV_TEX,
+                                       CombineOperand.COLOR,
+                                       CombineSource.CONST_COLOR,
+                                       CombineOperand.COLOR);
+                r.setTextureCombineAlpha(diffuseUnit,
+                                         CombineFunction.MODULATE,
+                                         CombineSource.CURR_TEX,
+                                         CombineOperand.ALPHA,
+                                         CombineSource.PREV_TEX,
+                                         CombineOperand.ALPHA,
+                                         CombineSource.CONST_COLOR,
+                                         CombineOperand.ALPHA);
             } else {
                 // disable diffuse texture
                 r.setTexture(diffuseUnit, null);
             }
-            
-            if (textures.emissive != null ) {
+
+            if (textures.decal != null) {
+                r.setTexture(decalUnit, textures.decal);
+                r.setTextureCoordinates(decalUnit, textures.decalCoords);
+                // alpha blended with previous color based on decal map alpha
+                r.setTextureCombineRGB(decalUnit,
+                                       CombineFunction.INTERPOLATE,
+                                       CombineSource.CURR_TEX,
+                                       CombineOperand.COLOR,
+                                       CombineSource.PREV_TEX,
+                                       CombineOperand.COLOR,
+                                       CombineSource.CURR_TEX,
+                                       CombineOperand.ALPHA);
+                // REPLACE with alpha(PREV_TEX) as arg0 preserves original alpha
+                r.setTextureCombineAlpha(decalUnit,
+                                         CombineFunction.REPLACE,
+                                         CombineSource.PREV_TEX,
+                                         CombineOperand.ALPHA,
+                                         CombineSource.CURR_TEX,
+                                         CombineOperand.ALPHA,
+                                         CombineSource.CONST_COLOR,
+                                         CombineOperand.ALPHA);
+            } else {
+                // disable decal texture but only if we're on a different unit
+                if (diffuseUnit != decalUnit) {
+                    r.setTexture(decalUnit, null);
+                }
+            }
+
+            if (textures.emissive != null) {
                 r.setTexture(emissiveUnit, textures.emissive);
                 r.setTextureCoordinates(emissiveUnit, textures.emissiveCoords);
-                // FIXME: what environment do we want for emissive?
+                // emitted light is just added to the color output
+                r.setTextureCombineRGB(emissiveUnit,
+                                       CombineFunction.ADD,
+                                       CombineSource.CURR_TEX,
+                                       CombineOperand.COLOR,
+                                       CombineSource.PREV_TEX,
+                                       CombineOperand.COLOR,
+                                       CombineSource.CONST_COLOR,
+                                       CombineOperand.COLOR);
+                // REPLACE with alpha(PREV_TEX) as arg0 preserves the original
+                // alpha
+                r.setTextureCombineAlpha(emissiveUnit,
+                                         CombineFunction.REPLACE,
+                                         CombineSource.PREV_TEX,
+                                         CombineOperand.ALPHA,
+                                         CombineSource.CURR_TEX,
+                                         CombineOperand.ALPHA,
+                                         CombineSource.CONST_COLOR,
+                                         CombineOperand.ALPHA);
             } else {
-                // disable emissive texture, but only if we're on a 
-                // different unit than diffuse (to prevent overwrite)
-                if (diffuseUnit != emissiveUnit) {
+                // disable emissive texture, but only if we're on a
+                // different unit (to prevent overwrite)
+                if (diffuseUnit != emissiveUnit && decalUnit != emissiveUnit) {
                     r.setTexture(emissiveUnit, null);
                 }
             }
-            
-            return true;
+
+            return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r) {
+        public void unapplyState(FixedFunctionRenderer r,
+                                 AppliedEffects effects,
+                                 int state) {
             // do nothing
-            // FIXME set textures to null?
         }
     }
-    
-    private static class TextureConfiguration {
-        private Texture texture;
-        private VertexAttribute coords;
-        
-        private Env
-    }
-    
+
     private static class TextureSet {
         private Texture diffuse;
+        private Texture decal;
         private Texture emissive;
-        
+
         private VertexAttribute diffuseCoords;
+        private VertexAttribute decalCoords;
         private VertexAttribute emissiveCoords;
-        
+
         public TextureSet() {
             // invalid until set() called
         }
-        
-        public TextureSet(DiffuseColorMap diffuse, EmittedColorMap emissive) {
-            set(diffuse, emissive);
+
+        public TextureSet(DiffuseColorMap diffuse,
+                          DecalColorMap decal,
+                          EmittedColorMap emissive) {
+            set(diffuse, decal, emissive);
         }
-        
-        public void set(DiffuseColorMap diffuse, EmittedColorMap emissive) {
-            if (diffuse.isEnabled()) {
+
+        public void set(DiffuseColorMap diffuse,
+                        DecalColorMap decal,
+                        EmittedColorMap emissive) {
+            if (diffuse != null && diffuse.isEnabled()) {
                 this.diffuse = diffuse.getTexture();
                 diffuseCoords = diffuse.getTextureCoordinates();
             } else {
                 this.diffuse = null;
                 diffuseCoords = null;
             }
-            if (emissive.isEnabled()) {
+            if (decal != null && decal.isEnabled()) {
+                this.decal = decal.getTexture();
+                decalCoords = decal.getTextureCoordinates();
+            } else {
+                this.decal = null;
+                decalCoords = null;
+            }
+            if (emissive != null && emissive.isEnabled()) {
                 this.emissive = emissive.getTexture();
                 emissiveCoords = emissive.getTextureCoordinates();
             } else {
@@ -175,46 +298,57 @@ public class TextureGroupFactory implements StateGroupFactory {
                 emissiveCoords = null;
             }
         }
-        
+
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof TextureSet))
+            if (!(o instanceof TextureSet)) {
                 return false;
+            }
             TextureSet t = (TextureSet) o;
-            
-            return (equals(diffuse, diffuseCoords, t.diffuse, t.diffuseCoords) &&
-                    equals(emissive, emissiveCoords, t.emissive, t.emissiveCoords));
+
+            return (equals(diffuse, diffuseCoords, t.diffuse, t.diffuseCoords) && equals(decal,
+                                                                                         decalCoords,
+                                                                                         t.decal,
+                                                                                         t.decalCoords) && equals(emissive,
+                                                                                                                  emissiveCoords,
+                                                                                                                  t.emissive,
+                                                                                                                  t.emissiveCoords));
         }
-        
-        private static boolean equals(Texture t1, VertexAttribute tc1,
-                                      Texture t2, VertexAttribute tc2) {
+
+        private static boolean equals(Texture t1,
+                                      VertexAttribute tc1,
+                                      Texture t2,
+                                      VertexAttribute tc2) {
             if (t1 == t2) {
                 // check texture coordinates
                 if (tc1 != tc2) {
                     // if ref's aren't the same, the data might still be
                     if (tc1 != null && tc2 != null) {
                         // check access pattern
-                        if (tc1.getData() != tc2.getData()
-                            || tc1.getElementSize() != tc2.getElementSize()
+                        if (tc1.getData() != tc2.getData() || tc1.getElementSize() != tc2.getElementSize()
                             || tc1.getOffset() != tc2.getOffset()
                             || tc1.getStride() != tc2.getStride()) {
                             return false;
                         }
                     }
                 }
-                
+
                 return true;
             } else {
                 return false;
             }
         }
-        
+
         @Override
         public int hashCode() {
             int result = 17;
             if (diffuse != null) {
                 result += 31 * diffuse.getId();
                 result += 31 * diffuseCoords.getData().getId();
+            }
+            if (decal != null) {
+                result += 31 * decal.getId();
+                result += 31 * decalCoords.getData().getId();
             }
             if (emissive != null) {
                 result += 31 * emissive.getId();
