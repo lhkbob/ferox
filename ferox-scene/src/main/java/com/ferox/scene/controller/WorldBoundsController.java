@@ -10,13 +10,13 @@ public class WorldBoundsController extends SimpleController {
     @Override
     public void process(double dt) {
         AxisAlignedBox worldBounds = new AxisAlignedBox();
-        
+
         Renderable renderable = getEntitySystem().createDataInstance(Renderable.ID);
         Transform transform = getEntitySystem().createDataInstance(Transform.ID);
         ComponentIterator it = new ComponentIterator(getEntitySystem())
-            .addRequired(renderable)
-            .addRequired(transform);
-        
+        .addRequired(renderable)
+        .addRequired(transform);
+
         while(it.next()) {
             worldBounds.transform(renderable.getLocalBounds(), transform.getMatrix());
             renderable.setWorldBounds(worldBounds);

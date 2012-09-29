@@ -23,16 +23,18 @@ public class FlushSurfaceTask implements Task<Void> {
      * @throws NullPointerException if surface is null
      */
     public FlushSurfaceTask(Surface surface) {
-        if (surface == null)
+        if (surface == null) {
             throw new NullPointerException("Surface cannot be null");
+        }
         this.surface = surface;
     }
-    
+
     @Override
     public Void run(HardwareAccessLayer access) {
         Context context = access.setActiveSurface(surface);
-        if (context != null)
+        if (context != null) {
             context.flush();
+        }
         return null;
     }
 }

@@ -35,25 +35,25 @@ public final class Renderable extends ComponentData<Renderable> {
      * The shared TypedId representing Renderable.
      */
     public static final TypeId<Renderable> ID = TypeId.get(Renderable.class);
-    
+
     private ObjectProperty<VertexAttribute> vertices;
     private ObjectProperty<VertexBufferObject> indices;
     private ObjectProperty<PolygonType> polyType;
-    
+
     private IntProperty indexOffset;
     private IntProperty indexCount;
-    
+
     private AxisAlignedBoxProperty localBounds;
     private AxisAlignedBoxProperty worldBounds;
-    
+
     @Unmanaged
     private final AxisAlignedBox localBoundsCache = new AxisAlignedBox();
-    
+
     @Unmanaged
     private final AxisAlignedBox worldBoundsCache = new AxisAlignedBox();
 
     private Renderable() { }
-    
+
     /**
      * Set the vertex attribute that holds the vertex position information for
      * the Renderable. The way the vertices are combined in 3D primitives
@@ -67,13 +67,16 @@ public final class Renderable extends ComponentData<Renderable> {
      *             element size is 1
      */
     public Renderable setVertices(VertexAttribute vertices) {
-        if (vertices == null)
+        if (vertices == null) {
             throw new NullPointerException("Vertices cannot be null");
-        if (vertices.getData().getData().getDataType() != DataType.FLOAT)
+        }
+        if (vertices.getData().getData().getDataType() != DataType.FLOAT) {
             throw new IllegalArgumentException("Vertices must have a datatype of FLOAT");
-        if (vertices.getElementSize() == 1)
+        }
+        if (vertices.getElementSize() == 1) {
             throw new IllegalArgumentException("Vertices can only have an element size of 2, 3, or 4");
-        
+        }
+
         this.vertices.set(vertices, getIndex());
         return this;
     }
@@ -136,22 +139,26 @@ public final class Renderable extends ComponentData<Renderable> {
      *             size of the indices
      */
     public Renderable setIndices(PolygonType type, VertexBufferObject indices, int first, int count) {
-        if (type == null)
+        if (type == null) {
             throw new NullPointerException("PolygonType cannot be null");
-        if (indices != null && indices.getData().getDataType() == DataType.FLOAT)
+        }
+        if (indices != null && indices.getData().getDataType() == DataType.FLOAT) {
             throw new IllegalArgumentException("Indices cannot have a FLOAT datatype");
-        if (first < 0 || count < 0)
+        }
+        if (first < 0 || count < 0) {
             throw new IllegalArgumentException("First and count must be at least 0");
-        if (indices != null && (first + count) > indices.getData().getLength())
+        }
+        if (indices != null && (first + count) > indices.getData().getLength()) {
             throw new IndexOutOfBoundsException("First and count would reference out-of-bounds indices");
-        
+        }
+
         int componentIndex = getIndex();
-        
+
         this.indices.set(indices, componentIndex);
         polyType.set(type, componentIndex);
         indexOffset.set(first, componentIndex);
         indexCount.set(count, componentIndex);
-        
+
         return this;
     }
 
@@ -192,7 +199,7 @@ public final class Renderable extends ComponentData<Renderable> {
     public int getIndexOffset() {
         return indexOffset.get(getIndex());
     }
-    
+
     /**
      * @return The PolygonType rendered by this Renderable
      */
@@ -214,7 +221,7 @@ public final class Renderable extends ComponentData<Renderable> {
     /**
      * Set the local bounds of this entity. The bounds should contain the
      * entire geometry of the Entity, including any modifications dynamic
-     * animation might cause. 
+     * animation might cause.
      * 
      * @param bounds The new local bounds of the entity
      * @return This component, for chaining purposes
@@ -253,7 +260,7 @@ public final class Renderable extends ComponentData<Renderable> {
         worldBounds.set(bounds, getIndex());
         return this;
     }
-    
+
     @Override
     protected void onSet(int index) {
         worldBounds.get(index, worldBoundsCache);

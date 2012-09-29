@@ -4,6 +4,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.EnumSet;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 
 import com.ferox.renderer.RenderCapabilities;
@@ -21,7 +22,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 public class JoglGlslRenderer extends AbstractGlslRenderer {
     private boolean initialized;
     private EnumSet<Target> supportedTargets;
-    
+
     public JoglGlslRenderer(JoglRendererDelegate delegate) {
         super(delegate);
     }
@@ -36,12 +37,12 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
     @Override
     public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
-        
+
         if (!initialized) {
             // detect caps
             RenderCapabilities caps = surface.getFramework().getCapabilities();
             supportedTargets = caps.getSupportedTextureTargets();
-            
+
             initialized = true;
         }
     }
@@ -123,24 +124,25 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
             JoglContext ctx = (JoglContext) context;
             GL2GL3 gl = getGL();
             ctx.setActiveTexture(gl, tex);
-            ctx.bindTexture(gl, Utils.getGLTextureTarget(target), 
+            ctx.bindTexture(gl, Utils.getGLTextureTarget(target),
                             (handle == null ? 0 : handle.texID));
         }
     }
 
     @Override
     protected void glEnableAttribute(int attr, boolean enable) {
-        if (enable)
+        if (enable) {
             getGL().glEnableVertexAttribArray(attr);
-        else
+        } else {
             getGL().glDisableVertexAttribArray(attr);
+        }
     }
 
     @Override
     protected void glBindArrayVbo(VertexBufferObjectHandle h) {
         JoglContext ctx = (JoglContext) context;
         GL2GL3 gl = getGL();
-        
+
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
                 // Must bind the VBO
@@ -156,19 +158,19 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, 
+    protected void glAttributePointer(int attr, VertexBufferObjectHandle h,
                                       int offset, int stride, int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
-        
+
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
-            getGL().glVertexAttribPointer(attr, elementSize, GL2GL3.GL_FLOAT, false, strideBytes, h.inmemoryBuffer);
+            getGL().glVertexAttribPointer(attr, elementSize, GL.GL_FLOAT, false, strideBytes, h.inmemoryBuffer);
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
-            getGL().glVertexAttribPointer(attr, elementSize, GL2GL3.GL_FLOAT, false, strideBytes, vboOffset);
+            getGL().glVertexAttribPointer(attr, elementSize, GL.GL_FLOAT, false, strideBytes, vboOffset);
         }
     }
-    
+
     private GL2GL3 getGL() {
         return ((JoglContext) context).getGLContext().getGL().getGL2GL3();
     }

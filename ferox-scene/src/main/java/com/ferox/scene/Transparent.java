@@ -34,12 +34,12 @@ public final class Transparent extends ComponentData<Transparent> {
      * The shared TypedId representing Transparent.
      */
     public static final TypeId<Transparent> ID = TypeId.get(Transparent.class);
-    
+
     @DefaultDouble(0.5)
     private DoubleProperty opacity;
 
     private Transparent() { }
-    
+
     /**
      * Return the opacity of the Entity. This is a value between 0 and 1,
      * representing the fraction of light that is blocked by the Entity. A value
@@ -63,8 +63,9 @@ public final class Transparent extends ComponentData<Transparent> {
      * @throws IllegalArgumentException if opacity is not between 0 and 1
      */
     public Transparent setOpacity(double opacity) {
-        if (opacity < 0f || opacity > 1f)
+        if (opacity < 0f || opacity > 1f) {
             throw new IllegalArgumentException("Opacity must be in [0, 1], not: " + opacity);
+        }
         this.opacity.set(opacity, getIndex());
         return this;
     }

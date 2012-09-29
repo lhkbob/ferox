@@ -31,27 +31,27 @@ import com.ferox.resource.Texture.WrapMode;
 public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
     private final ThreadLocal<Integer> texBinding;
     private final ThreadLocal<Integer> texTarget;
-    
+
     public LwjglTextureResourceDriver() {
         texBinding = new ThreadLocal<Integer>();
         texTarget = new ThreadLocal<Integer>();
     }
-    
+
     @Override
     protected void glTextureParameters(OpenGLContext context, Texture tex, TextureHandle handle) {
         RenderCapabilities caps = context.getRenderCapabilities();
         int target = Utils.getGLTextureTarget(handle.target);
-        
+
         // filter
         if (handle.filter != tex.getFilter()) {
             handle.filter = tex.getFilter();
             int min = Utils.getGLMinFilter(handle.filter);
             int mag = Utils.getGLMagFilter(handle.filter);
-            
+
             GL11.glTexParameteri(target, GL11.GL_TEXTURE_MIN_FILTER, min);
             GL11.glTexParameteri(target, GL11.GL_TEXTURE_MAG_FILTER, mag);
         }
-        
+
         // wrap s/t/r
         if (handle.wrapS != tex.getWrapModeS()) {
             handle.wrapS = tex.getWrapModeS();
@@ -65,7 +65,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
             handle.wrapR = tex.getWrapModeS();
             GL11.glTexParameteri(target, GL12.GL_TEXTURE_WRAP_R, getWrapMode(handle.wrapR, caps));
         }
-        
+
         // depth test
         if (caps.getDepthTextureSupport() && caps.getVersion() < 3f) {
             if (handle.depthTest != tex.getDepthComparison()) {
@@ -74,11 +74,11 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
             }
             if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
                 handle.enableDepthCompare = tex.isDepthCompareEnabled();
-                GL11.glTexParameteri(target, GL14.GL_TEXTURE_COMPARE_MODE, (handle.enableDepthCompare ? GL14.GL_COMPARE_R_TO_TEXTURE 
+                GL11.glTexParameteri(target, GL14.GL_TEXTURE_COMPARE_MODE, (handle.enableDepthCompare ? GL14.GL_COMPARE_R_TO_TEXTURE
                                                                                                       : GL11.GL_NONE));
             }
         }
-        
+
         // anisotropic filtering
         if (caps.getMaxAnisotropicLevel() > 0) {
             if (handle.anisoLevel != tex.getAnisotropicFilterLevel()) {
@@ -87,7 +87,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL11.glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, amount);
             }
         }
-        
+
         // mipmap range
         if (handle.baseMipmap != tex.getBaseMipmapLevel()) {
             handle.baseMipmap = tex.getBaseMipmapLevel();
@@ -98,27 +98,30 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
             GL11.glTexParameteri(target, GL12.GL_TEXTURE_MAX_LEVEL, handle.baseMipmap);
         }
     }
-    
+
     private int getWrapMode(WrapMode mode, RenderCapabilities caps) {
-        if (!caps.getClampToEdgeSupport() && mode == WrapMode.CLAMP)
+        if (!caps.getClampToEdgeSupport() && mode == WrapMode.CLAMP) {
             return GL11.GL_CLAMP;
-        if (!caps.getMirrorWrapModeSupport() && mode == WrapMode.MIRROR)
+        }
+        if (!caps.getMirrorWrapModeSupport() && mode == WrapMode.MIRROR) {
             return GL11.GL_REPEAT;
+        }
         return Utils.getGLWrapMode(mode);
     }
 
     @Override
     protected void glBindTexture(OpenGLContext context, TextureHandle handle) {
         LwjglContext c = (LwjglContext) context;
-        
+
         int activeTex = c.getActiveTexture();
         int target = Utils.getGLTextureTarget(handle.target);
-        if (target == c.getTextureTarget(activeTex))
+        if (target == c.getTextureTarget(activeTex)) {
             texBinding.set(c.getTexture(activeTex));
-        else
+        } else {
             texBinding.set(0);
+        }
         texTarget.set(target);
-        
+
         GL11.glBindTexture(target, handle.texID);
     }
 
@@ -140,7 +143,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
         int srcFormat = Utils.getGLSrcFormat(h.format);
         int dstFormat = Utils.getGLDstFormat(h.format, h.type);
         int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type));
-        
+
         switch(h.target) {
         case T_1D:
             switch(h.type) {
@@ -206,7 +209,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
         int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
         int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type));
-        
+
         switch(h.target) {
         case T_1D:
             switch(h.type) {

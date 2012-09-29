@@ -22,7 +22,7 @@ public interface KeyEventSource extends EventSource {
      * @throws NullPointerException if listener is null
      */
     public void addKeyListener(KeyListener listener);
-    
+
     /**
      * Remove the given KeyListener from this KeyEventSource. Nothing is
      * done if the given listener has never been added, or was already removed.

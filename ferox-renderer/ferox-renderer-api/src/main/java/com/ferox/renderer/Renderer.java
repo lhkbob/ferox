@@ -2,6 +2,7 @@ package com.ferox.renderer;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
+import com.ferox.renderer.Renderer.StencilUpdate;
 import com.ferox.resource.VertexBufferObject;
 
 /**
@@ -42,27 +43,27 @@ public interface Renderer {
      * </ul>
      */
     public static enum BlendFactor {
-        /** 
+        /**
          * Produces (0, 0, 0, 0).
          */
         ZERO,
-        /** 
+        /**
          * Produces (1, 1, 1, 1).
          */
         ONE,
-        /** 
+        /**
          * Produces (Rs, Gs, Bs, As).
          */
         SRC_COLOR,
-        /** 
+        /**
          * Produces (1 - Rs, 1 - Gs, 1 - Bs, 1 - As).
          */
         ONE_MINUS_SRC_COLOR,
-        /** 
+        /**
          * Produces (As, As, As, As).
          */
         SRC_ALPHA,
-        /** 
+        /**
          * Produces (1 - As, 1 - As, 1 - As, 1 - As).
          */
         ONE_MINUS_SRC_ALPHA,
@@ -72,35 +73,35 @@ public interface Renderer {
          * Can only be used as a source BlendFactor.
          */
         SRC_ALPHA_SATURATE,
-        /** 
+        /**
          * Produces (Rd, Gd, Bd, Ad).
          */
         DST_COLOR,
-        /** 
+        /**
          * Produces (1 - Rd, 1 - Gd, 1 - Bd, 1 - Ad).
          */
         ONE_MINUS_DST_COLOR,
-        /** 
+        /**
          * Produces (Ad, Ad, Ad, Ad).
          */
         DST_ALPHA,
-        /** 
+        /**
          * Produces (1 - Ad, 1 - Ad, 1 - Ad, 1 - Ad).
          */
         ONE_MINUS_DST_ALPHA,
-        /** 
+        /**
          * Produces (Rc, Gc, Bc, Ac).
          */
         CONSTANT_COLOR,
-        /** 
+        /**
          * Produces (Ac, Ac, Ac, Ac).
          */
         CONSTANT_ALPHA,
-        /** 
+        /**
          * Produces (1 - Rc, 1 - Gc, 1 - Bc, 1 - Ac).
          */
         ONE_MINUS_CONSTANT_COLOR,
-        /** 
+        /**
          * Produces (1 - Ac, 1 - Ac, 1 - Ac, 1 - Ac).
          */
         ONE_MINUS_CONSTANT_ALPHA
@@ -166,15 +167,15 @@ public interface Renderer {
      * NEVER and ALWAYS, the inputs are ignored.
      */
     public static enum Comparison {
-        /** 
+        /**
          * Returns true if the pixel value is equal to the reference value.
          */
         EQUAL,
-        /** 
+        /**
          * Returns true if the pixel value is greater than the reference value.
          */
         GREATER,
-        /** 
+        /**
          * Returns true if the pixel value is less than the reference value.
          */
         LESS,
@@ -188,16 +189,16 @@ public interface Renderer {
          * reference value.
          */
         LEQUAL,
-        /** 
-         * Returns true if the pixel value is not equal to the reference value. 
+        /**
+         * Returns true if the pixel value is not equal to the reference value.
          */
         NOT_EQUAL,
-        /** 
-         * Always returns false, regardless of the inputs. 
+        /**
+         * Always returns false, regardless of the inputs.
          */
         NEVER,
-        /** 
-         * Always returns true, regardless of the inputs. 
+        /**
+         * Always returns true, regardless of the inputs.
          */
         ALWAYS
     }
@@ -209,16 +210,16 @@ public interface Renderer {
      * is determined by the counter-clockwise ordering of its vertices.
      */
     public static enum DrawStyle {
-        /** 
-         * Polygons are rendered as solid regions. 
+        /**
+         * Polygons are rendered as solid regions.
          */
         SOLID,
-        /** 
-         * Polygons are rendered as line segments around its edges. 
+        /**
+         * Polygons are rendered as line segments around its edges.
          */
         LINE,
-        /** 
-         * Polygons are rendered as points on its vertices. 
+        /**
+         * Polygons are rendered as points on its vertices.
          */
         POINT,
         /**
@@ -250,11 +251,11 @@ public interface Renderer {
      * limited to 2 to 8).
      */
     public static enum StencilUpdate {
-        /** 
+        /**
          * Performs no edits to the stencil buffer at the current pixel.
          */
         KEEP,
-        /** 
+        /**
          * Sets the stencil's value to 0 at the current pixel.
          */
         ZERO,
@@ -263,13 +264,13 @@ public interface Renderer {
          * the current pixel.
          */
         REPLACE,
-        /** 
+        /**
          * Add one to the stencil's current value, clamping it to the maximum
          * (dependent on buffer precision), at the current pixel.
          */
         INCREMENT,
-        /** 
-         * Subtract one from the stencil's current value, clamping it to 0, 
+        /**
+         * Subtract one from the stencil's current value, clamping it to 0,
          * at the current pixel.
          */
         DECREMENT,
@@ -296,8 +297,8 @@ public interface Renderer {
      * referenced by an index array.
      */
     public static enum PolygonType {
-        /** 
-         * Every vertex is treated as a single point. 
+        /**
+         * Every vertex is treated as a single point.
          */
         POINTS {
             @Override
@@ -388,7 +389,7 @@ public interface Renderer {
      * @param depthPass The StencilUpdate applied when the depth test passes
      * @throws NullPointerException if any enum is null
      */
-    public void setStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail, 
+    public void setStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
                                  StencilUpdate depthPass);
 
     /**
@@ -405,8 +406,8 @@ public interface Renderer {
      *            front-facing polygons
      * @throws NullPointerException if any enum is null
      */
-    public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail, 
-                                         StencilUpdate depthPass);
+    public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                      StencilUpdate depthPass);
 
     /**
      * This method sets the StencilUpdates that are applied with back-facing
@@ -422,7 +423,7 @@ public interface Renderer {
      *            back-facing polygons
      * @throws NullPointerException if any enum is null
      */
-    public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail, 
+    public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail,
                                      StencilUpdate depthPass);
 
     /**
@@ -512,7 +513,7 @@ public interface Renderer {
      * @param enable True if the stencil test is enabled
      */
     public void setStencilTestEnabled(boolean enable);
-    
+
     /**
      * Convenience function to set the front and back stencil masks to the same
      * value. See {@link #setStencilWriteMask(int, int)} for more details on the
@@ -654,7 +655,7 @@ public interface Renderer {
      * <p>
      * The starting draw styles are SOLID for front-facing polygons, and NONE
      * for back-facing polygons.
-     *  
+     * 
      * @see DrawStyle
      * @param front The DrawStyle for front-facing polygons
      * @param back The DrawStyle for back-facing polygons
@@ -844,7 +845,7 @@ public interface Renderer {
      * is automatically called for its renderers.
      */
     public void reset();
-    
+
     /**
      * <p>
      * Clear the framebuffers of the current Surface based on
@@ -888,9 +889,9 @@ public interface Renderer {
      * @throws IllegalArgumentException if depth is not in [0, 1] when
      *             clearDepth is true
      */
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, 
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
                       @Const Vector4 color, double depth, int stencil);
-   
+
     /**
      * <p>
      * Set the active region of the current Surface. This effectively changes

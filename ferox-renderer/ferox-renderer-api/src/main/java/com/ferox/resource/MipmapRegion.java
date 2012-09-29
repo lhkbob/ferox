@@ -51,17 +51,21 @@ public class MipmapRegion {
      * @throws IllegalArgumentException if width, height, depth < 1, or any
      *             other argument is less than 0
      */
-    public MipmapRegion(int layer, int mipmap, int x, int y, int z, 
+    public MipmapRegion(int layer, int mipmap, int x, int y, int z,
                         int width, int height, int depth) {
-        if (width < 1 || height < 1 || depth < 1)
+        if (width < 1 || height < 1 || depth < 1) {
             throw new IllegalArgumentException("Cannot have dimensions less than 1");
-        if (x < 0 || y < 0 || z < 0)
+        }
+        if (x < 0 || y < 0 || z < 0) {
             throw new IllegalArgumentException("Offsets must be at least 0");
-        if (layer < 0)
+        }
+        if (layer < 0) {
             throw new IllegalArgumentException("Layer must be at least 0");
-        if (mipmap < 0)
+        }
+        if (mipmap < 0) {
             throw new IllegalArgumentException("Mipmap level must be at least 0");
-        
+        }
+
         this.x = x;
         this.y = y;
         this.z = z;

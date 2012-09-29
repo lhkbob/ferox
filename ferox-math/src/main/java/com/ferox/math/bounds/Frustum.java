@@ -40,7 +40,7 @@ public class Frustum {
         /**
          * Returned when a candidate object is fully enclosed by the Frustum.
          */
-        INSIDE, 
+        INSIDE,
         /**
          * Returned when a candidate object is completely outside of the
          * Frustum.
@@ -52,7 +52,7 @@ public class Frustum {
          */
         INTERSECT
     }
-    
+
     public static final int NUM_PLANES = 6;
 
     public static final int NEAR_PLANE = 0;
@@ -61,7 +61,7 @@ public class Frustum {
     public static final int BOTTOM_PLANE = 3;
     public static final int LEFT_PLANE = 4;
     public static final int RIGHT_PLANE = 5;
-    
+
     private boolean useOrtho;
 
     // local values
@@ -71,22 +71,22 @@ public class Frustum {
     private double frustumBottom;
     private double frustumNear;
     private double frustumFar;
-    
+
     // frustum orientation
     private final Vector3 up;
     private final Vector3 direction;
     private final Vector3 location;
-    
+
     private final Matrix4 projection;
     private final Matrix4 view;
-    
+
     // planes representing frustum, adjusted for
     // position, direction and up
     private final Vector4[] worldPlanes;
-    
+
     // temporary vector used during intersection queries, saved to avoid allocation
     private final Vector3 temp;
-    
+
     /**
      * Instantiate a new Frustum that's positioned at the origin, looking down
      * the negative z-axis. The given values are equivalent to those described
@@ -120,7 +120,7 @@ public class Frustum {
         this();
         setFrustum(ortho, fl, fr, fb, ft, fn, ff);
     }
-    
+
     // initialize everything
     private Frustum() {
         worldPlanes = new Vector4[6];
@@ -128,13 +128,13 @@ public class Frustum {
         location = new Vector3();
         up = new Vector3(0, 1, 0);
         direction = new Vector3(0, 0, -1);
-        
+
         view = new Matrix4();
         projection = new Matrix4();
-        
+
         temp = new Vector3();
     }
-    
+
     /**
      * Get the left edge of the near frustum plane.
      * 
@@ -223,11 +223,13 @@ public class Frustum {
      *             far, or near <= 0 when the view isn't orthographic
      */
     public void setFrustum(boolean ortho, double left, double right, double bottom, double top, double near, double far) {
-        if (left > right || bottom > top || near > far)
-            throw new IllegalArgumentException("Frustum values would create an invalid frustum: " + 
-                                               left + " " + right + " x " + bottom + " " + top + " x " + near + " " + far);
-        if (near <= 0 && !ortho)
+        if (left > right || bottom > top || near > far) {
+            throw new IllegalArgumentException("Frustum values would create an invalid frustum: " +
+                    left + " " + right + " x " + bottom + " " + top + " x " + near + " " + far);
+        }
+        if (near <= 0 && !ortho) {
             throw new IllegalArgumentException("Illegal value for near frustum when using perspective projection: " + near);
+        }
 
         frustumLeft = left;
         frustumRight = right;
@@ -235,9 +237,9 @@ public class Frustum {
         frustumTop = top;
         frustumNear = near;
         frustumFar = far;
-        
+
         useOrtho = ortho;
-        
+
         update();
     }
 
@@ -257,12 +259,14 @@ public class Frustum {
      *             is <= 0, or near > far, or if near <= 0
      */
     public void setPerspective(double fov, double aspect, double near, double far) {
-        if (fov <= 0f || fov > 180f)
+        if (fov <= 0f || fov > 180f) {
             throw new IllegalArgumentException("Field of view must be in (0, 180], not: " + fov);
-        if (aspect <= 0)
+        }
+        if (aspect <= 0) {
             throw new IllegalArgumentException("Aspect ration must be >= 0, not: " + aspect);
-        
-        double h = (double) Math.tan(Math.toRadians(fov * .5f)) * near;
+        }
+
+        double h = Math.tan(Math.toRadians(fov * .5f)) * near;
         double w = h * aspect;
         setFrustum(false, -w, w, -h, h, near, far);
     }
@@ -282,7 +286,7 @@ public class Frustum {
     public void setOrtho(double left, double right, double bottom, double top) {
         setFrustum(true, left, right, bottom, top, -1f, 1f);
     }
-    
+
     /**
      * Whether or not this view uses a perspective or orthogonal projection.
      * 
@@ -343,9 +347,10 @@ public class Frustum {
      * @return The field of view of this Frustum
      */
     public double getFieldOfView() {
-        if (useOrtho)
+        if (useOrtho) {
             return -1f;
-        
+        }
+
         double fovTop = Math.atan(frustumTop / frustumNear);
         double fovBottom = Math.atan(frustumBottom / frustumNear);
         return Math.toDegrees(fovTop - fovBottom);
@@ -406,16 +411,17 @@ public class Frustum {
      * @throws NullPointerException if location, direction or up is null
      */
     public void setOrientation(@Const Vector3 location, @Const Vector3 direction, @Const Vector3 up) {
-        if (location == null || direction == null || up == null)
-            throw new NullPointerException("Orientation vectors cannot be null: " + 
-                                           location + " " + direction + " " + up);
-        
+        if (location == null || direction == null || up == null) {
+            throw new NullPointerException("Orientation vectors cannot be null: " +
+                    location + " " + direction + " " + up);
+        }
+
         this.location.set(location);
         this.direction.set(direction);
         this.up.set(up);
         update();
     }
-    
+
     /**
      * Set the orientation of this Frustum based on the affine
      * <tt>transform</tt>. The 4th column's first 3 values encode the
@@ -426,15 +432,16 @@ public class Frustum {
      * @throws NullPointerException if transform is null
      */
     public void setOrientation(@Const Matrix4 transform) {
-        if (transform == null)
+        if (transform == null) {
             throw new NullPointerException("Transform cannot be null");
-        
+        }
+
         this.location.set(transform.m03, transform.m13, transform.m23);
         this.direction.set(transform.m02, transform.m12, transform.m22);
         this.up.set(transform.m01, transform.m11, transform.m21);
         update();
     }
-    
+
     /**
      * Set the orientation of this Frustum based on the given location vector
      * and 3x3 rotation matrix. Together the vector and rotation represent an
@@ -446,11 +453,13 @@ public class Frustum {
      * @throws NullPointerException if location or rotation are null
      */
     public void setOrientation(@Const Vector3 location, @Const Matrix3 rotation) {
-        if (location == null)
+        if (location == null) {
             throw new NullPointerException("Location cannot be null");
-        if (rotation == null)
+        }
+        if (rotation == null) {
             throw new NullPointerException("Rotation matrix cannot be null");
-        
+        }
+
         this.location.set(location);
         this.direction.set(rotation.m02, rotation.m12, rotation.m22);
         this.up.set(rotation.m01, rotation.m11, rotation.m21);
@@ -478,7 +487,7 @@ public class Frustum {
     public @Const Vector4 getFrustumPlane(int i) {
         return worldPlanes[i];
     }
-    
+
     /**
      * <p>
      * Compute and return the intersection of the AxisAlignedBox and this
@@ -521,13 +530,15 @@ public class Frustum {
      * @throws NullPointerException if bounds is null
      */
     public FrustumIntersection intersects(@Const AxisAlignedBox bounds, PlaneState planeState) {
-        if (bounds == null)
+        if (bounds == null) {
             throw new NullPointerException("Bounds cannot be null");
-        
+        }
+
         // early escape for potentially deeply nested nodes in a tree
-        if (planeState != null && !planeState.getTestsRequired())
+        if (planeState != null && !planeState.getTestsRequired()) {
             return FrustumIntersection.INSIDE;
-        
+        }
+
         FrustumIntersection result = FrustumIntersection.INSIDE;
         double distMax;
         double distMin;
@@ -542,7 +553,7 @@ public class Frustum {
                 // normal later if needed
                 temp.set(p.x, p.y, p.z).farExtent(bounds, temp);
                 distMax = Plane.getSignedDistance(p, temp, true);
-                
+
                 if (distMax < 0) {
                     // the point closest to the plane is behind the plane, so
                     // we know the bounds must be outside of the frustum
@@ -550,12 +561,12 @@ public class Frustum {
                 } else {
                     // the point closest to the plane is in front of the plane,
                     // but we need to check the farthest away point
-                    
+
                     // make sure to reset temp to the normal before computing
                     // the near extent in-place
                     temp.set(p.x, p.y, p.z).nearExtent(bounds, temp);
                     distMin = Plane.getSignedDistance(p, temp, true);
-                    
+
                     if (distMin < 0) {
                         // the farthest point is behind the plane, so at best
                         // this box will be intersecting the frustum
@@ -563,16 +574,17 @@ public class Frustum {
                     } else {
                         // the box is completely contained by the plane, so
                         // the return result can be INSIDE or INTERSECT (if set by another plane)
-                        if (planeState != null)
+                        if (planeState != null) {
                             planeState.setTestRequired(plane, false);
+                        }
                     }
                 }
             }
         }
-        
+
         return result;
     }
-    
+
     /*
      * Update the plane instances returned by getFrustumPlane() to reflect any
      * changes to the frustum's local parameters or orientation. Also update the
@@ -582,33 +594,35 @@ public class Frustum {
         // compute the right-handed basis vectors of the frustum
         Vector3 n = new Vector3().scale(direction.normalize(), -1); // normalize direction as well
         Vector3 u = new Vector3().cross(up.normalize(), n); // normalize up as well
-        Vector3 v = up.cross(n, u); // recompute up to properly orthogonal to direction 
-        
+        Vector3 v = up.cross(n, u); // recompute up to properly orthogonal to direction
+
         // view matrix
         view.set(u.x, u.y, u.z, -location.dot(u),
                  v.x, v.y, v.z, -location.dot(v),
                  n.x, n.y, n.z, -location.dot(n),
                  0f, 0f, 0f, 1f);
-        
+
         // projection matrix
-        if (useOrtho)
+        if (useOrtho) {
             projection.set(2 / (frustumRight - frustumLeft), 0, 0, -(frustumRight + frustumLeft) / (frustumRight - frustumLeft),
                            0, 2 / (frustumTop - frustumBottom), 0, -(frustumTop + frustumBottom) / (frustumTop - frustumBottom),
                            0, 0, 2 / (frustumNear - frustumFar), -(frustumFar + frustumNear) / (frustumFar - frustumNear),
                            0, 0, 0, 1);
-        else
+        } else {
             projection.set(2 * frustumNear / (frustumRight - frustumLeft), 0, (frustumRight + frustumLeft) / (frustumRight - frustumLeft), 0,
                            0, 2 * frustumNear / (frustumTop - frustumBottom), (frustumTop + frustumBottom) / (frustumTop - frustumBottom), 0,
                            0, 0, -(frustumFar + frustumNear) / (frustumFar - frustumNear), -2 * frustumFar * frustumNear / (frustumFar - frustumNear),
                            0, 0, -1, 0);
-        
+        }
+
         // generate world-space frustum planes, we pass in n and u since we
         // created them to compute the view matrix and they're just garbage
         // at this point, might as well let plane generation reuse them.
-        if (useOrtho)
+        if (useOrtho) {
             computeOrthoWorldPlanes(n, u);
-        else
+        } else {
             computePerspectiveWorldPlanes(n, u);
+        }
     }
 
     private void computeOrthoWorldPlanes(Vector3 n, Vector3 p) {
@@ -624,7 +638,7 @@ public class Frustum {
 
         // compute right vector for LEFT and RIGHT usage
         n.cross(direction, up);
-        
+
         // LEFT
         p.scale(n, frustumLeft).add(location);
         setWorldPlane(LEFT_PLANE, n, p);
@@ -649,7 +663,7 @@ public class Frustum {
         p.scale(direction, frustumFar).add(location);
         p.scale(direction, -1);
         setWorldPlane(FAR_PLANE, n, p);
-        
+
         // NEAR
         p.scale(direction, frustumNear).add(location);
         n.set(direction);
@@ -664,17 +678,17 @@ public class Frustum {
         setWorldPlane(LEFT_PLANE, n, location);
 
         // RIGHT
-        invHyp = 1 / (double) Math.sqrt(frustumNear * frustumNear + frustumRight * frustumRight);
+        invHyp = 1 / Math.sqrt(frustumNear * frustumNear + frustumRight * frustumRight);
         n.scale(direction, Math.abs(frustumRight) / frustumNear).add(p).scale(frustumNear * invHyp);
         setWorldPlane(RIGHT_PLANE, n, location);
 
         // BOTTOM
-        invHyp = 1 / (double) Math.sqrt(frustumNear * frustumNear + frustumBottom * frustumBottom);
+        invHyp = 1 / Math.sqrt(frustumNear * frustumNear + frustumBottom * frustumBottom);
         n.scale(direction, Math.abs(frustumBottom) / frustumNear).add(up).scale(frustumNear * invHyp);
         setWorldPlane(BOTTOM_PLANE, n, location);
 
         // TOP
-        invHyp = 1 / (double) Math.sqrt(frustumNear * frustumNear + frustumTop * frustumTop);
+        invHyp = 1 / Math.sqrt(frustumNear * frustumNear + frustumTop * frustumTop);
         n.scale(direction, Math.abs(frustumTop) / frustumNear).sub(up).scale(frustumNear * invHyp);
         setWorldPlane(TOP_PLANE, n, location);
     }
@@ -691,8 +705,9 @@ public class Frustum {
         if (cp == null) {
             cp = new Vector4(a, b, c, d);
             worldPlanes[plane] = cp;
-        } else
+        } else {
             cp.set(a, b, c, d);
+        }
         Plane.normalize(cp);
     }
 }

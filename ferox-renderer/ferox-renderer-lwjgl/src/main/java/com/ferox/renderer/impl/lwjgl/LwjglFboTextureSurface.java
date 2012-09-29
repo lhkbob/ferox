@@ -17,7 +17,6 @@ import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.impl.lwjgl.LwjglSurfaceFactory;
 import com.ferox.resource.Texture.Target;
 
 /**
@@ -32,16 +31,16 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
     // one real fbo per context, vague documentation in object sharing
     // makes it sound as though fbo's aren't shared
     private final WeakHashMap<LwjglContext, FrameBufferObject> fbos;
-    
+
     private final boolean useEXT;
-    
-    public LwjglFboTextureSurface(AbstractFramework framework, LwjglSurfaceFactory creator, 
-                                 TextureSurfaceOptions options) {
+
+    public LwjglFboTextureSurface(AbstractFramework framework, LwjglSurfaceFactory creator,
+                                  TextureSurfaceOptions options) {
         super(framework, options);
         fbos = new WeakHashMap<LwjglContext, FrameBufferObject>();
         useEXT = framework.getCapabilities().getVersion() < 3.0;
     }
-    
+
     @Override
     public OpenGLContext getContext() {
         return null;
@@ -52,7 +51,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         // fbos are rendered into directly so we have no
         // copying to be done (as with pbuffers), or buffer
         // swapping to do.
-        
+
         // just call glFlush()
         GL11.glFlush();
     }
@@ -66,30 +65,32 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
             e.getKey().queueCleanupTask(new FBOCleanupTask(e.getValue()));
         }
     }
-    
+
+    @Override
     public void onSurfaceActivate(OpenGLContext context, int layer) {
         super.onSurfaceActivate(context, layer);
-        
+
         LwjglContext jctx = (LwjglContext) context;
         FrameBufferObject fbo = fbos.get(jctx);
         if (fbo == null) {
             fbo = new FrameBufferObject(jctx);
             fbos.put(jctx, fbo);
         }
-        
+
         fbo.bind(jctx, layer);
     }
-    
+
     @Override
     public void onSurfaceDeactivate(OpenGLContext context) {
         LwjglContext jctx = (LwjglContext) context;
         FrameBufferObject fbo = fbos.get(jctx);
-        if (fbo != null)
+        if (fbo != null) {
             fbo.release(jctx);
-        
+        }
+
         super.onSurfaceDeactivate(context);
     }
-    
+
     private class FrameBufferObject {
         private final int fboId;
         private final int renderBufferId;
@@ -97,42 +98,48 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         private final Target target;
 
         private final int[] colorImageIds;
-        
+
         private int boundLayer;
-        
+
         private int glGenFramebuffers() {
-            if (useEXT)
+            if (useEXT) {
                 return EXTFramebufferObject.glGenFramebuffersEXT();
-            else
+            } else {
                 return GL30.glGenFramebuffers();
+            }
         }
-        
+
         private int glGenRenderbuffers() {
-            if (useEXT)
+            if (useEXT) {
                 return EXTFramebufferObject.glGenRenderbuffersEXT();
-            else
+            } else {
                 return GL30.glGenRenderbuffers();
+            }
         }
-        
+
         private void glBindFramebuffer(int id) {
-            if (useEXT)
+            if (useEXT) {
                 EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, id);
-            else
+            } else {
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, id);
+            }
         }
 
         private void glBindRenderbuffer(int id) {
-            if (useEXT)
+            if (useEXT) {
                 EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, id);
-            else
+            } else {
                 GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, id);
+            }
         }
-        
+
         public FrameBufferObject(LwjglContext context) {
-            if (context == null)
+            if (context == null) {
                 throw new FrameworkException("FramebufferObject's can only be constructed when there's a current context");
-            if (!context.getRenderCapabilities().getFboSupport())
+            }
+            if (!context.getRenderCapabilities().getFboSupport()) {
                 throw new FrameworkException("Current hardware doesn't support the creation of fbos");
+            }
 
             target = getTarget();
             boundLayer = 0;
@@ -155,7 +162,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
 
                 glBindRenderbuffer(renderBufferId);
                 if (useEXT) {
-                    EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, 
+                    EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT,
                                                                   GL11.GL_DEPTH_COMPONENT, width, height);
                 } else {
                     GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT, width, height);
@@ -165,13 +172,14 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     glBindRenderbuffer(0);
                     destroy();
                     throw new FrameworkException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
-                } else
+                } else {
                     glBindRenderbuffer(0);
-                
+                }
+
                 if (useEXT) {
-                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 
-                                                                      EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, 
-                                                                      EXTFramebufferObject.GL_RENDERBUFFER_EXT, 
+                    EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                                                                      EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT,
+                                                                      EXTFramebufferObject.GL_RENDERBUFFER_EXT,
                                                                       renderBufferId);
                 } else {
                     GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, renderBufferId);
@@ -190,15 +198,17 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
             if (colorImageIds != null) {
                 IntBuffer drawBuffers = BufferUtil.newIntBuffer(colorImageIds.length);
                 for (int i = 0; i < colorImageIds.length; i++) {
-                    if (useEXT)
+                    if (useEXT) {
                         drawBuffers.put(i, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + i);
-                    else
+                    } else {
                         drawBuffers.put(i, GL30.GL_COLOR_ATTACHMENT0 + i);
+                    }
                 }
 
                 GL20.glDrawBuffers(drawBuffers);
-            } else
+            } else {
                 GL11.glDrawBuffer(GL11.GL_NONE);
+            }
 
             // I'm getting a little sick of this duplication
             if (useEXT) {
@@ -258,11 +268,11 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     throw new FrameworkException(msg);
                 }
             }
-            
+
             // restore the old binding
             glBindFramebuffer(context.getFbo());
         }
-        
+
         public void bind(LwjglContext context, int layer) {
             // bind the fbo if needed
             context.bindFbo(fboId);
@@ -271,8 +281,9 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
             int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(target));
             if (layer != boundLayer) {
                 if (colorImageIds != null) {
-                    for (int i = 0; i < colorImageIds.length; i++)
+                    for (int i = 0; i < colorImageIds.length; i++) {
                         attachImage(glTarget, colorImageIds[i], layer, i);
+                    }
                 }
                 // we don't have to re-attach depth images -> 1 layer only
                 boundLayer = layer;
@@ -286,27 +297,30 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         public void destroyFBO() {
             if (useEXT) {
                 EXTFramebufferObject.glDeleteFramebuffersEXT(fboId);
-                if (renderBufferId != 0)
+                if (renderBufferId != 0) {
                     EXTFramebufferObject.glDeleteRenderbuffersEXT(renderBufferId);
+                }
             } else {
                 GL30.glDeleteFramebuffers(fboId);
-                if (renderBufferId != 0)
+                if (renderBufferId != 0) {
                     GL30.glDeleteRenderbuffers(renderBufferId);
+                }
             }
         }
-        
+
         // Attach the given texture image to the currently bound fbo (on target FRAMEBUFFER)
         // Use 0-i for positive COLOR_ATTACHMENT, and -1 for DEPTH_ATTACHMENT
         private void attachImage(int target, int id, int layer, int attachment) {
             if (useEXT) {
-                if (attachment == -1)
+                if (attachment == -1) {
                     attachment = EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT;
-                else
+                } else {
                     attachment = EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + attachment;
-                
+                }
+
                 switch(target) {
                 case GL11.GL_TEXTURE_1D:
-                    EXTFramebufferObject.glFramebufferTexture1DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 
+                    EXTFramebufferObject.glFramebufferTexture1DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
                                                                    attachment, target, id, 0);
                     break;
                 case GL12.GL_TEXTURE_3D:
@@ -314,18 +328,19 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                                                                    attachment, target, id, 0, layer);
                     break;
                 default:
-                    EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment, 
+                    EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
                                                                    target, id, 0);
                 }
             } else {
-                if (attachment == -1)
+                if (attachment == -1) {
                     attachment = GL30.GL_DEPTH_ATTACHMENT;
-                else
+                } else {
                     attachment = GL30.GL_COLOR_ATTACHMENT0 + attachment;
-                
+                }
+
                 switch(target) {
                 case GL11.GL_TEXTURE_1D:
-                    GL30.glFramebufferTexture1D(GL30.GL_FRAMEBUFFER, 
+                    GL30.glFramebufferTexture1D(GL30.GL_FRAMEBUFFER,
                                                 attachment, target, id, 0);
                     break;
                 case GL12.GL_TEXTURE_3D:
@@ -333,20 +348,20 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                                                 attachment, target, id, 0, layer);
                     break;
                 default:
-                    GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, attachment, 
+                    GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, attachment,
                                                 target, id, 0);
                 }
             }
         }
     }
-    
+
     private class FBOCleanupTask implements Runnable {
         private final FrameBufferObject fbo;
-        
+
         public FBOCleanupTask(FrameBufferObject fbo) {
             this.fbo = fbo;
         }
-        
+
         @Override
         public void run() {
             fbo.destroyFBO();

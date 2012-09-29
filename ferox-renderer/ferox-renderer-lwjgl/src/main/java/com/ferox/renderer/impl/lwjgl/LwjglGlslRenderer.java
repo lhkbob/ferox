@@ -22,7 +22,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 public class LwjglGlslRenderer extends AbstractGlslRenderer {
     private boolean initialized;
     private EnumSet<Target> supportedTargets;
-    
+
     public LwjglGlslRenderer(LwjglRendererDelegate delegate) {
         super(delegate);
     }
@@ -37,12 +37,12 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     @Override
     public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
-        
+
         if (!initialized) {
             // detect caps
             RenderCapabilities caps = surface.getFramework().getCapabilities();
             supportedTargets = caps.getSupportedTextureTargets();
-            
+
             initialized = true;
         }
     }
@@ -123,23 +123,24 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
         if (supportedTargets.contains(target)) {
             LwjglContext ctx = (LwjglContext) context;
             ctx.setActiveTexture(tex);
-            ctx.bindTexture(Utils.getGLTextureTarget(target), 
+            ctx.bindTexture(Utils.getGLTextureTarget(target),
                             (handle == null ? 0 : handle.texID));
         }
     }
 
     @Override
     protected void glEnableAttribute(int attr, boolean enable) {
-        if (enable)
+        if (enable) {
             GL20.glEnableVertexAttribArray(attr);
-        else
+        } else {
             GL20.glDisableVertexAttribArray(attr);
+        }
     }
 
     @Override
     protected void glBindArrayVbo(VertexBufferObjectHandle h) {
         LwjglContext ctx = (LwjglContext) context;
-        
+
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
                 // Must bind the VBO
@@ -157,7 +158,7 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     @Override
     protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset, int stride, int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
-        
+
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
             GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes, (FloatBuffer) h.inmemoryBuffer);

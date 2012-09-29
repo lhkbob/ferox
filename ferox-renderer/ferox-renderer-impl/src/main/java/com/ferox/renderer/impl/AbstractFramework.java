@@ -39,17 +39,17 @@ public abstract class AbstractFramework implements Framework {
      * and dispose() and other internal resource related tasks.
      */
     public static final String DEFAULT_RESOURCE_TASK_GROUP = "resource";
-    
+
     private final CopyOnWriteArraySet<AbstractSurface> surfaces;
-    
+
     private final SurfaceFactory surfaceFactory;
-    
+
     private RenderCapabilities renderCaps; // final after initialize() has been called.
-    
+
     private final LifeCycleManager lifecycleManager;
     private final ResourceManager resourceManager;
     private final ContextManager contextManager;
-    
+
     // fullscreen support
     private final Object fullscreenLock;
     private OnscreenSurface fullscreenSurface;
@@ -76,17 +76,18 @@ public abstract class AbstractFramework implements Framework {
      * @throws NullPointerException if surfaceFactory or any driver is null
      */
     public AbstractFramework(SurfaceFactory surfaceFactory, ResourceDriver... drivers) {
-        if (surfaceFactory == null)
+        if (surfaceFactory == null) {
             throw new NullPointerException("SurfaceFactory cannot be null");
-        
+        }
+
         this.surfaceFactory = surfaceFactory;
 
         contextManager = new ContextManager();
         resourceManager = new ResourceManager(contextManager, drivers);
-        
+
         surfaces = new CopyOnWriteArraySet<AbstractSurface>();
         lifecycleManager = new LifeCycleManager("ferox-renderer");
-        
+
         fullscreenLock = new Object();
         fullscreenSurface = null;
     }
@@ -104,9 +105,9 @@ public abstract class AbstractFramework implements Framework {
                 // Start up the context manager and resource manager
                 contextManager.initialize(lifecycleManager, surfaceFactory);
                 resourceManager.initialize(lifecycleManager);
-                
+
                 // Fetch the RenderCapabilities now, we do it this way to improve
-                // the Framework creation time instead of forcing OpenGL wrappers to 
+                // the Framework creation time instead of forcing OpenGL wrappers to
                 // create and discard a context solely for capabilities detection.
                 Future<RenderCapabilities> caps = contextManager.invokeOnContextThread(new Callable<RenderCapabilities>() {
                     @Override
@@ -115,31 +116,34 @@ public abstract class AbstractFramework implements Framework {
                         return context.getRenderCapabilities();
                     }
                 }, false);
-                
+
                 renderCaps = getFuture(caps);
             }
         });
     }
-    
+
     @Override
     public OnscreenSurface createSurface(final OnscreenSurfaceOptions options) {
-        if (options == null)
+        if (options == null) {
             throw new NullPointerException("Options cannot be null");
-        
+        }
+
         // This task is not accepted during shutdown
         Future<OnscreenSurface> create = contextManager.invokeOnContextThread(new Callable<OnscreenSurface>() {
             @Override
             public OnscreenSurface call() throws Exception {
                 synchronized(fullscreenLock) {
-                    if (options.getFullscreenMode() != null && fullscreenSurface != null)
+                    if (options.getFullscreenMode() != null && fullscreenSurface != null) {
                         throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");
-                    
-                    AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(AbstractFramework.this, options, 
+                    }
+
+                    AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(AbstractFramework.this, options,
                                                                                            contextManager.getSharedContext());
                     surfaces.add(created);
-                    if (created.getOptions().getFullscreenMode() != null)
+                    if (created.getOptions().getFullscreenMode() != null) {
                         fullscreenSurface = created;
-                    
+                    }
+
                     contextManager.setActiveSurface(created, 0);
                     return created;
                 }
@@ -150,28 +154,31 @@ public abstract class AbstractFramework implements Framework {
 
     @Override
     public TextureSurface createSurface(final TextureSurfaceOptions options) {
-        if (options == null)
+        if (options == null) {
             throw new NullPointerException("Options cannot be null");
-        
+        }
+
         // This task is not accepted during shutdown
         Future<TextureSurface> create = contextManager.invokeOnContextThread(new Callable<TextureSurface>() {
             @Override
             public TextureSurface call() throws Exception {
-                AbstractTextureSurface created = surfaceFactory.createTextureSurface(AbstractFramework.this, options, 
+                AbstractTextureSurface created = surfaceFactory.createTextureSurface(AbstractFramework.this, options,
                                                                                      contextManager.getSharedContext());
                 surfaces.add(created);
 
                 // Mark all textures as non-disposable
-                if (created.getDepthBuffer() != null)
+                if (created.getDepthBuffer() != null) {
                     resourceManager.setDisposable(created.getDepthBuffer(), false);
-                for (int i = 0; i < created.getNumColorBuffers(); i++)
+                }
+                for (int i = 0; i < created.getNumColorBuffers(); i++) {
                     resourceManager.setDisposable(created.getColorBuffer(i), false);
-                
+                }
+
                 contextManager.setActiveSurface(created, 0);
                 return created;
             }
         }, false);
-        
+
         return getFuture(create);
     }
 
@@ -203,9 +210,9 @@ public abstract class AbstractFramework implements Framework {
                 surfaceFactory.destroy();
             }
         });
-        
+
         if (!surfaceDestroyExceptions.isEmpty()) {
-            throw new FrameworkException(surfaceDestroyExceptions.size() + " exception(s) while destroying surface, first failure:", 
+            throw new FrameworkException(surfaceDestroyExceptions.size() + " exception(s) while destroying surface, first failure:",
                                          surfaceDestroyExceptions.get(0));
         }
     }
@@ -241,7 +248,7 @@ public abstract class AbstractFramework implements Framework {
     public void sync() {
         getFuture(queue(new EmptyTask()));
     }
-    
+
     private <T> T getFuture(Future<T> future) {
         try {
             return future.get();
@@ -250,7 +257,7 @@ public abstract class AbstractFramework implements Framework {
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         } catch (CancellationException e) {
-            // bury the cancel request so that the help methods don't 
+            // bury the cancel request so that the help methods don't
             // throw exceptions when the framework is being destroyed
             return null;
         }
@@ -270,7 +277,7 @@ public abstract class AbstractFramework implements Framework {
     public RenderCapabilities getCapabilities() {
         return renderCaps;
     }
-    
+
     @Override
     public DisplayMode[] getAvailableDisplayModes() {
         return surfaceFactory.getAvailableDisplayModes();
@@ -287,7 +294,7 @@ public abstract class AbstractFramework implements Framework {
             return fullscreenSurface;
         }
     }
-    
+
     /**
      * @return The ResourceManager that handles the updates and disposals of all
      *         known resources
@@ -303,7 +310,7 @@ public abstract class AbstractFramework implements Framework {
     public ContextManager getContextManager() {
         return contextManager;
     }
-    
+
     /**
      * @return The LifeCycleManager that controls the Framework's lifecycle
      *         implementation
@@ -319,40 +326,44 @@ public abstract class AbstractFramework implements Framework {
      * @throws NullPointerException if surface is null
      */
     void markSurfaceDestroyed(AbstractSurface surface) {
-        if (surface == null)
+        if (surface == null) {
             throw new NullPointerException("Surface cannot be null");
-        
+        }
+
         if (surfaces.remove(surface)) {
             if (surface instanceof TextureSurface) {
                 // Mark all textures as non-disposable
                 TextureSurface ts = (TextureSurface) surface;
-                if (ts.getDepthBuffer() != null)
+                if (ts.getDepthBuffer() != null) {
                     resourceManager.setDisposable(ts.getDepthBuffer(), false);
-                for (int i = 0; i < ts.getNumColorBuffers(); i++)
+                }
+                for (int i = 0; i < ts.getNumColorBuffers(); i++) {
                     resourceManager.setDisposable(ts.getColorBuffer(i), false);
+                }
             } else if (surface instanceof OnscreenSurface) {
                 if (((OnscreenSurface) surface).getOptions().getFullscreenMode() != null) {
                     synchronized(fullscreenLock) {
                         // last double check (probably unneeded)
-                        if (fullscreenSurface == surface)
+                        if (fullscreenSurface == surface) {
                             fullscreenSurface = null;
+                        }
                     }
                 }
             }
         }
     }
-    
+
     /*
      * Internal Callable that runs a single Task with a new
      * HardwareAccessLayerImpl instance.
      */
     private class TaskCallable<T> implements Callable<T> {
         private final Task<T> task;
-        
+
         public TaskCallable(Task<T> task) {
             this.task = task;
         }
-        
+
         @Override
         public T call() throws Exception {
             return task.run(new HardwareAccessLayerImpl(AbstractFramework.this));

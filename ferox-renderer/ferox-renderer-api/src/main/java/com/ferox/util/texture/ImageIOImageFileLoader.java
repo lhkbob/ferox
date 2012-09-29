@@ -22,12 +22,14 @@ public class ImageIOImageFileLoader implements ImageFileLoader {
 
         BufferedImage b = ImageIO.read(stream);
         if (b != null) {
-            if (b.getHeight() == 1)
+            if (b.getHeight() == 1) {
                 return TextureLoader.createTexture1D(b);
-            else
+            } else {
                 return TextureLoader.createTexture2D(b);
-        } else
+            }
+        } else {
             return null;
+        }
     }
 
 }

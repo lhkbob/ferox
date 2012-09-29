@@ -15,7 +15,7 @@ public abstract class AxisSweptShape extends ConvexShape {
     public static enum Axis {
         X, Y, Z
     }
-    
+
     protected final Vector3 inertiaTensorPartial;
     protected final Axis dominantAxis;
 
@@ -26,12 +26,13 @@ public abstract class AxisSweptShape extends ConvexShape {
      * @throws NullPointerException if dominantAxis is null
      */
     public AxisSweptShape(Axis dominantAxis) {
-        if (dominantAxis == null)
+        if (dominantAxis == null) {
             throw new NullPointerException("Axis cannot be null");
+        }
         this.dominantAxis = dominantAxis;
         inertiaTensorPartial = new Vector3();
     }
-    
+
     /**
      * @return The dominant axis of the shape
      */
@@ -41,8 +42,9 @@ public abstract class AxisSweptShape extends ConvexShape {
 
     @Override
     public Vector3 getInertiaTensor(double mass, Vector3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector3();
+        }
         return result.scale(inertiaTensorPartial, mass);
     }
 
@@ -80,7 +82,7 @@ public abstract class AxisSweptShape extends ConvexShape {
         case Z: c1 = v.x; c2 = v.y; break;
         default: return -1;
         }
-        
+
         return Math.sqrt(c1 * c1 + c2 * c2);
     }
 }

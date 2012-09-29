@@ -27,11 +27,11 @@ import com.ferox.util.geom.Sphere;
 
 public class FixedFunctionRenderTest extends ApplicationStub {
     private FixedFunctionPass pass;
-    
+
     public FixedFunctionRenderTest() {
         super(LwjglFramework.create());
     }
-    
+
     @Override
     protected void installInputHandlers(InputManager io) { }
 
@@ -44,29 +44,29 @@ public class FixedFunctionRenderTest extends ApplicationStub {
     protected void renderFrame(OnscreenSurface surface) {
         surface.getFramework().queue(pass);
     }
-    
+
     private static class FixedFunctionPass implements Task<Void> {
         final Geometry shape;
-        
+
         final Texture volume;
-        
+
         final Frustum f;
-        
+
         boolean statusChecked;
         final Surface surface;
-        
+
         public FixedFunctionPass(Surface surface) {
             this.surface = surface;
-            
+
             shape = Sphere.create(2f, 32, StorageMode.GPU_STATIC);
-            
+
             f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
             f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
-            
+
             int width = 256;
             int height = 256;
             int depth = 256;
-            
+
             byte[] volumeBuffer = new byte[width * height * depth * 4];
             for (int z = 0; z < depth; z++) {
                 for (int y = 0; y < height; y++) {
@@ -80,33 +80,34 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                     }
                 }
             }
-            
+
             Mipmap data = new Mipmap(new BufferData(volumeBuffer), width, height, depth, TextureFormat.RGBA);
             volume = new Texture(Target.T_3D, data);
             volume.setFilter(Filter.NEAREST);
         }
-        
+
         @Override
         public Void run(HardwareAccessLayer access) {
             Context context = access.setActiveSurface(surface);
-            if (context == null)
+            if (context == null) {
                 return null;
-            
+            }
+
             FixedFunctionRenderer g = context.getFixedFunctionRenderer();
             if (g != null) {
                 g.clear(true, true, true, new Vector4(.2f, .2f, .2f, 1f), 1, 0);
-                
+
                 g.setDrawStyle(DrawStyle.SOLID);
-                
+
                 g.setVertices(shape.getVertices());
                 g.setNormals(shape.getNormals());
                 g.setTextureCoordinates(0, shape.getTextureCoordinates());
-                
+
                 g.setTexture(0, volume);
                 g.setTextureCoordGeneration(0, TexCoord.R, TexCoordSource.OBJECT);
-                
+
                 g.setProjectionMatrix(f.getProjectionMatrix());
-                
+
                 Matrix4 t = new Matrix4();
                 int rendered = 0;
                 for (int i = 0; i < 10000; i++) {
@@ -116,18 +117,19 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                     t.set(2, 3, (float) Math.random() * 100 - 50);
 
                     g.setModelViewMatrix(f.getViewMatrix().mul(t, t));
-                    
-                    if (shape.getIndices() != null)
+
+                    if (shape.getIndices() != null) {
                         rendered += g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
-                    else
+                    } else {
                         rendered += g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
-                }   
-                
+                    }
+                }
+
                 if (!statusChecked) {
                     statusChecked = true;
-                    
+
                     System.out.println("Rendered count: " + rendered);
-                    
+
                     System.out.println("\nvertices status: " + surface.getFramework().getStatus(shape.getVertices().getData()));
                     System.out.println("\nnormals status: " + surface.getFramework().getStatus(shape.getNormals().getData()));
                     System.out.println("\ntexcoords status: " + surface.getFramework().getStatus(shape.getTextureCoordinates().getData()));
@@ -135,11 +137,11 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                     System.out.println("\ntexture status: " + surface.getFramework().getStatus(volume) + " " + surface.getFramework().getStatusMessage(volume));
                 }
             }
-            
+
             return null;
         }
     }
-    
+
     public static void main(String[] args){
         new FixedFunctionRenderTest().run();
     }

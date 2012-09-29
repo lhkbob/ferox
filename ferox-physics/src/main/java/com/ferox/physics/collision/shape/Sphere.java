@@ -31,9 +31,10 @@ public class Sphere extends ConvexShape {
      * @throws IllegalArgumentException if radius is less than or equal to 0
      */
     public void setRadius(double radius) {
-        if (radius <= 0.0)
+        if (radius <= 0.0) {
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
-        
+        }
+
         this.radius = radius;
         inertiaTensorPartial = 2.0 * radius * radius / 5.0;
         updateBounds();
@@ -47,18 +48,20 @@ public class Sphere extends ConvexShape {
     public double getRadius() {
         return radius;
     }
-    
+
     @Override
     public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector3();
+        }
         return result.normalize(v).scale(radius);
     }
 
     @Override
     public Vector3 getInertiaTensor(double mass, Vector3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector3();
+        }
         double m = inertiaTensorPartial * mass;
         return result.set(m, m, m);
     }

@@ -30,7 +30,7 @@ public final class Vector4 implements Cloneable {
     public double y;
     public double z;
     public double w;
-    
+
     /**
      * Create a new vector with all components equal to 0.
      */
@@ -62,12 +62,12 @@ public final class Vector4 implements Cloneable {
         this.z = z;
         this.w = w;
     }
-    
+
     @Override
     public Vector4 clone() {
         return new Vector4(this);
     }
-    
+
     /**
      * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and store the resultant values of
      * (x, y, z, w) into this vector:
@@ -110,7 +110,7 @@ public final class Vector4 implements Cloneable {
      * @throws NullPointerException if m or b are null
      */
     public Vector4 mul(@Const Vector4 b, @Const Matrix4 m) {
-        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z + m.m30 * b.w, 
+        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z + m.m30 * b.w,
                    m.m01 * b.x + m.m11 * b.y + m.m21 * b.z + m.m31 * b.w,
                    m.m02 * b.x + m.m12 * b.y + m.m22 * b.z + m.m32 * b.w,
                    m.m03 * b.x + m.m13 * b.y + m.m23 * b.z + m.m33 * b.w);
@@ -128,12 +128,12 @@ public final class Vector4 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Vector4 mul(@Const Matrix4 m, @Const Vector4 b) {
-        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z + m.m03 * b.w, 
+        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z + m.m03 * b.w,
                    m.m10 * b.x + m.m11 * b.y + m.m12 * b.z + m.m13 * b.w,
                    m.m20 * b.x + m.m21 * b.y + m.m22 * b.z + m.m23 * b.w,
                    m.m30 * b.x + m.m31 * b.y + m.m32 * b.z + m.m33 * b.w);
     }
-    
+
     /**
      * Compute the length of this vector.
      * 
@@ -153,7 +153,7 @@ public final class Vector4 implements Cloneable {
     public double lengthSquared() {
         return x * x + y * y + z * z + w * w;
     }
-    
+
     /**
      * Compute the distance between this vector and <tt>v</tt>, treating both
      * vectors as 4D points.
@@ -223,12 +223,12 @@ public final class Vector4 implements Cloneable {
         double ty = a.y;
         double tz = a.z;
         double tw = a.w;
-        
+
         // if this == a, project modifies a, which is why we preserve tx, ty, tz, tw
         project(a, b);
         return set(tx - x, ty - y, tz - z, tw - w);
     }
-    
+
     /**
      * Project <tt>a</tt> onto <tt>b</tt> and store the result in this vector.
      * 
@@ -289,8 +289,9 @@ public final class Vector4 implements Cloneable {
      */
     public Vector4 normalize(@Const Vector4 v) {
         double d = v.length();
-        if (d == 0f)
+        if (d == 0f) {
             throw new ArithmeticException("Cannot normalize 0 vector");
+        }
         return scale(v, 1 / d);
     }
 
@@ -436,7 +437,7 @@ public final class Vector4 implements Cloneable {
     public Vector4 set(double[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the float
      * array instead of a double array.
@@ -448,7 +449,7 @@ public final class Vector4 implements Cloneable {
     public Vector4 set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the
      * DoubleBuffer.
@@ -476,7 +477,7 @@ public final class Vector4 implements Cloneable {
     public Vector4 set(FloatBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
-    
+
     /**
      * Get the given component from this vector; index must be 0 (x), 1 (y), 2
      * (z), or 3 (w)
@@ -518,7 +519,7 @@ public final class Vector4 implements Cloneable {
         vals[offset + 2] = z;
         vals[offset + 3] = w;
     }
-    
+
     /**
      * As {@link #get(double[], int)} except the double coordinates are cast
      * into floats before storing in the array.
@@ -532,7 +533,7 @@ public final class Vector4 implements Cloneable {
         vals[offset + 2] = (float) z;
         vals[offset + 3] = (float) w;
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a DoubleBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -548,7 +549,7 @@ public final class Vector4 implements Cloneable {
         store.put(offset + 2, z);
         store.put(offset + 3, w);
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a FloatBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -585,8 +586,9 @@ public final class Vector4 implements Cloneable {
     @Override
     public boolean equals(Object o) {
         // this conditional correctly handles null values
-        if (!(o instanceof Vector4))
+        if (!(o instanceof Vector4)) {
             return false;
+        }
         Vector4 v = (Vector4) o;
         return x == v.x && y == v.y && z == v.z && w == v.w;
     }
@@ -601,8 +603,9 @@ public final class Vector4 implements Cloneable {
      *         component of v
      */
     public boolean epsilonEquals(@Const Vector4 v, double eps) {
-        if (v == null)
+        if (v == null) {
             return false;
+        }
 
         double tx = Math.abs(x - v.x);
         double ty = Math.abs(y - v.y);

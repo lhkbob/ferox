@@ -44,7 +44,7 @@ public class Glyph {
      * @param width The width of the character
      * @param height The height of the character
      */
-    public Glyph(float advance, float tcL, float tcR, float tcB, float tcT, 
+    public Glyph(float advance, float tcL, float tcR, float tcB, float tcT,
                  float x, float y, float width, float height) {
         this.advance = advance;
         this.tcL = tcL;

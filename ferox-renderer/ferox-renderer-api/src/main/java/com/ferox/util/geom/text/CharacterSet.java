@@ -56,8 +56,9 @@ public class CharacterSet {
 
     static {
         StringBuilder b = new StringBuilder();
-        for (int i = 32; i < 128; i++)
+        for (int i = 32; i < 128; i++) {
             b.append((char) i);
+        }
         DEFAULT_CHAR_SET = b.toString();
     }
 
@@ -109,10 +110,12 @@ public class CharacterSet {
      * @param useNpotTexture Whether or not an NPOT Texture2D can be used
      */
     public CharacterSet(Font font, String characterSet, boolean antiAlias, boolean useNpotTexture) {
-        if (font == null)
+        if (font == null) {
             font = Font.decode("Arial-BOLD-14");
-        if (characterSet == null)
+        }
+        if (characterSet == null) {
             characterSet = DEFAULT_CHAR_SET;
+        }
 
         this.font = font;
         this.antiAlias = antiAlias;
@@ -213,8 +216,8 @@ public class CharacterSet {
             bounds = g.getBounds2D();
 
             glyphs[i] = g;
-            glyphRectangles[i] = rp.insert(g, (int) bounds.getWidth() + CHAR_PADDING * 2, 
-                                              (int) bounds.getHeight() + CHAR_PADDING * 2);
+            glyphRectangles[i] = rp.insert(g, (int) bounds.getWidth() + CHAR_PADDING * 2,
+                                           (int) bounds.getHeight() + CHAR_PADDING * 2);
         }
         g2d.dispose(); // dispose of dummy image
 
@@ -231,7 +234,7 @@ public class CharacterSet {
         // prepare the text to be rendered as white,
         g2d.setColor(Color.WHITE);
         g2d.setFont(font);
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, (antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON 
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, (antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
                                                                               : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
 
         // and flipped, so glyph dimensions make sense in openGL coord system
@@ -254,8 +257,8 @@ public class CharacterSet {
                               (float) glyphBounds.getWidth() + CHAR_PADDING * 2, (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
             metrics.put(Character.valueOf(characters[i]), glyph);
 
-            g2d.drawChars(characters, i, 1, 
-                          r.getX() - (int) glyphBounds.getX() + CHAR_PADDING, 
+            g2d.drawChars(characters, i, 1,
+                          r.getX() - (int) glyphBounds.getX() + CHAR_PADDING,
                           r.getY() - (int) glyphBounds.getY() + CHAR_PADDING);
         }
         g2d.dispose();
@@ -271,9 +274,11 @@ public class CharacterSet {
      */
     private char[] getCharArray(String characterSet) {
         Set<Character> set = new HashSet<Character>();
-        for (char c : characterSet.toCharArray())
-            if (font.canDisplay(c) && !Character.isWhitespace(c))
+        for (char c : characterSet.toCharArray()) {
+            if (font.canDisplay(c) && !Character.isWhitespace(c)) {
                 set.add(Character.valueOf(c));
+            }
+        }
 
         // always add these
         set.add(Character.valueOf((char) font.getMissingGlyphCode()));
@@ -281,8 +286,9 @@ public class CharacterSet {
 
         char[] characters = new char[set.size()];
         int i = 0;
-        for (Character c : set)
+        for (Character c : set) {
             characters[i++] = c.charValue();
+        }
 
         return characters;
     }
@@ -290,8 +296,9 @@ public class CharacterSet {
     // Return smallest POT >= num
     private static int ceilPot(int num) {
         int pot = 1;
-        while (pot < num)
+        while (pot < num) {
             pot = pot << 1;
+        }
         return pot;
     }
 }

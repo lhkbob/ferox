@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.ARBBufferObject;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.EXTFramebufferObject;
@@ -13,8 +14,8 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.FrameworkException;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.resource.Resource;
@@ -28,26 +29,26 @@ import com.ferox.resource.Resource;
 public class LwjglContext extends OpenGLContext {
     private final LwjglSurfaceFactory creator;
     private final Drawable context;
-    
+
     private RenderCapabilities cachedCaps;
-    
+
     // cleanup
     private List<Runnable> cleanupTasks;
-    
+
     // bound object state
     private boolean stateInitialized;
     private int activeTexture;
-    
+
     private int[] textures;
     private int[] boundTargets;
-    
+
     private int arrayVbo;
     private int elementVbo;
-    
+
     private int fbo;
 
     private int glslProgram;
-    
+
     // cached switches for extensions
     private boolean useARBVertexBufferObject;
     private boolean useEXTFramebufferObject;
@@ -63,30 +64,31 @@ public class LwjglContext extends OpenGLContext {
      */
     public LwjglContext(LwjglSurfaceFactory factory, Drawable context, RendererProvider provider) {
         super(provider);
-        if (factory == null || context == null)
+        if (factory == null || context == null) {
             throw new NullPointerException("Factory and context cannot be null");
-        
+        }
+
         this.context = context;
         creator = factory;
         stateInitialized = false;
         cleanupTasks = new CopyOnWriteArrayList<Runnable>();
     }
-    
+
     private void initializedMaybe() {
         if (!stateInitialized) {
             RenderCapabilities caps = getRenderCapabilities();
-            
+
             int ffp = caps.getMaxFixedPipelineTextures();
             int frag = caps.getMaxFragmentShaderTextures();
             int vert = caps.getMaxVertexShaderTextures();
-            
+
             int maxTextures = Math.max(ffp, Math.max(frag, vert));
             textures = new int[maxTextures];
             boundTargets = new int[maxTextures];
-            
+
             useARBVertexBufferObject = caps.getVersion() < 1.5f;
             useEXTFramebufferObject = caps.getVersion() < 3.0f;
-            
+
             stateInitialized = true;
         }
     }
@@ -110,46 +112,47 @@ public class LwjglContext extends OpenGLContext {
      * @throws NullPointerException if task is null
      */
     public void queueCleanupTask(Runnable task) {
-        if (task == null)
+        if (task == null) {
             throw new NullPointerException("Task cannot be null");
+        }
         cleanupTasks.add(task);
     }
-    
+
     /**
      * @return The id of the GLSL program object currently in use
      */
     public int getGlslProgram() {
         return glslProgram;
     }
-    
+
     /**
      * @return The id of the VBO bound to the ARRAY_BUFFER target
      */
     public int getArrayVbo() {
         return arrayVbo;
     }
-    
+
     /**
      * @return The id of the VBO bound to the ELEMENT_ARRAY_BUFFER target
      */
     public int getElementVbo() {
         return elementVbo;
     }
-    
+
     /**
      * @return The active texture, index from 0
      */
     public int getActiveTexture() {
         return activeTexture;
     }
-    
+
     /**
      * @return The id of the currently bound framebuffer object
      */
     public int getFbo() {
         return fbo;
     }
-    
+
     /**
      * @param tex The 0-based texture unit to lookup
      * @return The id of the currently bound texture image
@@ -193,14 +196,15 @@ public class LwjglContext extends OpenGLContext {
         initializedMaybe();
         if (vbo != arrayVbo) {
             arrayVbo = vbo;
-            
-            if (useARBVertexBufferObject)
-                ARBVertexBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, vbo);
-            else
+
+            if (useARBVertexBufferObject) {
+                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, vbo);
+            } else {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
+            }
         }
     }
-    
+
     /**
      * Bind the given vbo to the ARRAY_BUFFER target.
      * 
@@ -211,11 +215,12 @@ public class LwjglContext extends OpenGLContext {
         initializedMaybe();
         if (vbo != elementVbo) {
             elementVbo = vbo;
-            
-            if (useARBVertexBufferObject)
-                ARBVertexBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
-            else
+
+            if (useARBVertexBufferObject) {
+                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
+            } else {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo);
+            }
         }
     }
 
@@ -246,14 +251,14 @@ public class LwjglContext extends OpenGLContext {
         initializedMaybe();
         int prevTarget = boundTargets[activeTexture];
         int prevTex = textures[activeTexture];
-        
+
         if (prevTex != texId) {
             if (prevTex != 0 && prevTarget != target) {
                 // unbind old texture
                 GL11.glBindTexture(prevTarget, 0);
             }
             GL11.glBindTexture(target, texId);
-            
+
             boundTargets[activeTexture] = target;
             textures[activeTexture] = texId;
         }
@@ -269,27 +274,28 @@ public class LwjglContext extends OpenGLContext {
         initializedMaybe();
         if (fbo != fboId) {
             fbo = fboId;
-            
-            if (useEXTFramebufferObject)
+
+            if (useEXTFramebufferObject) {
                 EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
-            else
+            } else {
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fboId);
+            }
         }
     }
-    
+
     /**
      * @return The Drawable wrapped by this LWJGLContext
      */
     public Drawable getDrawable() {
         return context;
     }
-    
+
     @Override
     public RenderCapabilities getRenderCapabilities() {
         if (cachedCaps == null) {
             cachedCaps = new LwjglRenderCapabilities(creator.getCapabilityForceBits());
         }
-        
+
         return cachedCaps;
     }
 
@@ -305,9 +311,10 @@ public class LwjglContext extends OpenGLContext {
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to make context current", e);
         }
-        
-        for (Runnable task: cleanupTasks)
+
+        for (Runnable task: cleanupTasks) {
             task.run();
+        }
     }
 
     @Override

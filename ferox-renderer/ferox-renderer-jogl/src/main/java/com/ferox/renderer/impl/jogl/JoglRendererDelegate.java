@@ -3,7 +3,6 @@ package com.ferox.renderer.impl.jogl;
 import java.nio.Buffer;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 
 import com.ferox.math.Const;
@@ -34,37 +33,39 @@ public class JoglRendererDelegate extends RendererDelegate {
     private boolean supportsSeparateBlending;
     private boolean supportsSeparateStencil;
     private boolean supportsStencilWrap;
-    
+
     private boolean initialized;
-    
+
     // state tracking for buffer clearing
     private final Vector4 clearColor = new Vector4(0, 0, 0, 0);
     private double clearDepth = 1f;
     private int clearStencil = 0;
-    
+
     // state tracking for draw styles
     private boolean cullEnabled = true;
     private int frontPolyMode = GL2GL3.GL_FILL;
     private int backPolyMode = GL2GL3.GL_FILL;
-    
+
     private GL2GL3 getGL() {
         return ((JoglContext) context).getGLContext().getGL().getGL2GL3();
     }
-    
+
     @Override
     protected void glBlendColor(@Const Vector4 color) {
-        if (supportsBlending)
+        if (supportsBlending) {
             getGL().glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+        }
     }
 
     @Override
     protected void glBlendEquations(BlendFunction funcRgb, BlendFunction funcAlpha) {
         if (supportsBlending) {
-            if (supportsSeparateBlending)
-                getGL().glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb), 
+            if (supportsSeparateBlending) {
+                getGL().glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb),
                                                 Utils.getGLBlendEquation(funcAlpha));
-            else
+            } else {
                 getGL().glBlendEquation(Utils.getGLBlendEquation(funcRgb));
+            }
         }
     }
 
@@ -72,7 +73,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha) {
         if (supportsBlending) {
             // separate blend functions were supported before separate blend equations
-            getGL().glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb), 
+            getGL().glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb),
                                         Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
         }
     }
@@ -100,7 +101,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     @Override
     protected void glDrawStyle(DrawStyle front, DrawStyle back) {
         GL2GL3 gl = getGL();
-        
+
         int cullFace = 0;
         if (front == DrawStyle.NONE && back == DrawStyle.NONE) {
             cullFace = GL.GL_FRONT_AND_BACK;
@@ -109,7 +110,7 @@ public class JoglRendererDelegate extends RendererDelegate {
         } else if (back == DrawStyle.NONE) {
             cullFace = GL.GL_BACK;
         }
-        
+
         if (cullFace == 0) {
             // to show both sides, must disable culling
             if (cullEnabled) {
@@ -123,7 +124,7 @@ public class JoglRendererDelegate extends RendererDelegate {
             }
             gl.glCullFace(cullFace);
         }
-        
+
         if (front != DrawStyle.NONE) {
             int frontMode = Utils.getGLPolygonMode(front);
             if (frontPolyMode != frontMode) {
@@ -131,7 +132,7 @@ public class JoglRendererDelegate extends RendererDelegate {
                 gl.glPolygonMode(GL.GL_FRONT, frontMode);
             }
         }
-        
+
         if (back != DrawStyle.NONE) {
             int backMode = Utils.getGLPolygonMode(back);
             if (backPolyMode != backMode) {
@@ -140,12 +141,13 @@ public class JoglRendererDelegate extends RendererDelegate {
             }
         }
     }
-    
+
     private void glEnable(int flag, boolean enable) {
-        if (enable)
+        if (enable) {
             getGL().glEnable(flag);
-        else
+        } else {
             getGL().glDisable(flag);
+        }
     }
 
     @Override
@@ -157,7 +159,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     protected void glEnableDepthOffset(boolean enable) {
         glEnable(GL2GL3.GL_POLYGON_OFFSET_LINE, enable);
         glEnable(GL2GL3.GL_POLYGON_OFFSET_POINT, enable);
-        glEnable(GL2GL3.GL_POLYGON_OFFSET_FILL, enable);
+        glEnable(GL.GL_POLYGON_OFFSET_FILL, enable);
     }
 
     @Override
@@ -170,7 +172,7 @@ public class JoglRendererDelegate extends RendererDelegate {
         if (supportsSeparateStencil) {
             int face = (front ? GL.GL_FRONT : GL.GL_BACK);
             getGL().glStencilMaskSeparate(face, mask);
-        } else if (front) { 
+        } else if (front) {
             // fallback to use front mask
             getGL().glStencilMask(mask);
         }
@@ -181,7 +183,7 @@ public class JoglRendererDelegate extends RendererDelegate {
         if (supportsSeparateStencil) {
             int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
             getGL().glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
-        } else if (isFront) { 
+        } else if (isFront) {
             // fallback to use front mask
             getGL().glStencilFunc(Utils.getGLPixelTest(test), refValue, mask);
         }
@@ -192,7 +194,7 @@ public class JoglRendererDelegate extends RendererDelegate {
         int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
         int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
         int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
-        
+
         if (supportsSeparateStencil) {
             int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
             getGL().glStencilOpSeparate(face, sf, df, dp);
@@ -212,7 +214,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     @Override
     public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
-        
+
         if (!initialized) {
             // grab capabilities
             RenderCapabilities caps = surface.getFramework().getCapabilities();
@@ -220,13 +222,13 @@ public class JoglRendererDelegate extends RendererDelegate {
             supportsSeparateBlending = caps.getSeparateBlendSupport();
             supportsSeparateStencil = caps.getSeparateStencilSupport();
             supportsStencilWrap = caps.getVersion() >= 1.4f;
-            
+
             // initial state configu
             GL2GL3 gl = getGL();
-            gl.glEnable(GL2.GL_DEPTH_TEST);
-            gl.glEnable(GL2.GL_CULL_FACE);
-            gl.glEnable(GL2.GL_SCISSOR_TEST);
-            
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glEnable(GL.GL_CULL_FACE);
+            gl.glEnable(GL.GL_SCISSOR_TEST);
+
             initialized = true;
         }
     }
@@ -234,13 +236,15 @@ public class JoglRendererDelegate extends RendererDelegate {
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
                       @Const Vector4 color, double depth, int stencil) {
-        if (color == null)
+        if (color == null) {
             throw new NullPointerException("Clear color cannot be null");
-        if (depth < 0f || depth > 1f)
+        }
+        if (depth < 0f || depth > 1f) {
             throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
-        
+        }
+
         GL2GL3 gl = getGL();
-        
+
         if (!this.clearColor.equals(color)) {
             this.clearColor.set(color);
             gl.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
@@ -253,24 +257,28 @@ public class JoglRendererDelegate extends RendererDelegate {
             this.clearStencil = stencil;
             gl.glClearStencil(stencil);
         }
-        
+
         int clearBits = 0;
-        if (clearColor)
+        if (clearColor) {
             clearBits |= GL.GL_COLOR_BUFFER_BIT;
-        if (clearDepth)
+        }
+        if (clearDepth) {
             clearBits |= GL.GL_DEPTH_BUFFER_BIT;
-        if (clearStencil)
+        }
+        if (clearStencil) {
             clearBits |= GL.GL_STENCIL_BUFFER_BIT;
-        
-        if (clearBits != 0)
+        }
+
+        if (clearBits != 0) {
             gl.glClear(clearBits);
+        }
     }
 
     @Override
     protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h, int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         int glDataType = Utils.getGLType(h.dataType);
-        
+
         if (h.mode == StorageMode.IN_MEMORY) {
             Buffer data = h.inmemoryBuffer;
             data.limit(offset + count).position(offset);
@@ -290,7 +298,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     protected void glBindElementVbo(VertexBufferObjectHandle h) {
         GL2GL3 gl = getGL();
         JoglContext ctx = (JoglContext) context;
-        
+
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
                 // Must bind the VBO

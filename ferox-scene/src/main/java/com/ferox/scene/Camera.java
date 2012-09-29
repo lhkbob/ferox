@@ -25,27 +25,27 @@ public final class Camera extends ComponentData<Camera> {
      * The shared TypedId instance corresponding to Camera.
      */
     public static final TypeId<Camera> ID = TypeId.get(Camera.class);
-    
+
     private ObjectProperty<Surface> surface;
-    
+
     @DefaultDouble(60.0)
     private DoubleProperty fov;
-    
+
     @DefaultDouble(0.01)
     private DoubleProperty znear;
-    
+
     @DefaultDouble(100.0)
     private DoubleProperty zfar;
-    
+
     private Camera() { }
-    
+
     /**
      * @return The field of view for this Camera, in degrees
      */
     public double getFieldOfView() {
         return fov.get(getIndex());
     }
-    
+
     /**
      * Set the field of view for this Camera, in degrees.
      * 
@@ -55,19 +55,20 @@ public final class Camera extends ComponentData<Camera> {
      *             180
      */
     public Camera setFieldOfView(double fov) {
-        if (fov < 0.0 || fov > 180.0)
+        if (fov < 0.0 || fov > 180.0) {
             throw new IllegalArgumentException("Field of view must be in [0, 180]: " + fov);
+        }
         this.fov.set(fov, getIndex());
         return this;
     }
-    
+
     /**
      * @return The distance to the near z plane of the camera
      */
     public double getNearZDistance() {
         return znear.get(getIndex());
     }
-    
+
     /**
      * Set the distance to the near and far z planes.
      * 
@@ -78,15 +79,17 @@ public final class Camera extends ComponentData<Camera> {
      *             if zfar is less than znear
      */
     public Camera setZDistances(double znear, double zfar) {
-        if (znear <= 0.0)
+        if (znear <= 0.0) {
             throw new IllegalArgumentException("Near distances must be greater than 0: " + znear);
-        if (znear > zfar)
+        }
+        if (znear > zfar) {
             throw new IllegalArgumentException("Near distance must be less than far: " + znear + ", " + zfar);
+        }
         this.znear.set(znear, getIndex());
         this.zfar.set(zfar, getIndex());
         return this;
     }
-    
+
     /**
      * @return The distance to the far z plane of the camera
      */

@@ -16,38 +16,41 @@ public final class Influences extends ComponentData<Influences> {
      * TypeId for Influences Component type
      */
     public static final TypeId<Influences> ID = TypeId.get(Influences.class);
-    
+
     @Factory(SetFactory.class)
     private ObjectProperty<Set<Entity>> entities;
-    
+
     private Influences() { }
-    
+
     public Set<Entity> getInfluencedSet() {
         return Collections.unmodifiableSet(entities.get(getIndex()));
     }
-    
+
     public Influences setInfluenced(Entity e, boolean canInfluence) {
-        if (e == null)
+        if (e == null) {
             throw new NullPointerException("Entity cannot be null");
-        
+        }
+
         // SetFactory ensures that this is not null
         Set<Entity> set = entities.get(getIndex());
-        if (canInfluence)
+        if (canInfluence) {
             set.add(e);
-        else
+        } else {
             set.remove(e);
+        }
         return this;
     }
-    
+
     public boolean canInfluence(Entity e) {
-        if (e == null)
+        if (e == null) {
             throw new NullPointerException("Entity cannot be null");
-        
+        }
+
         // SetFactory ensures that this is not null
         Set<Entity> set = entities.get(getIndex());
         return set.contains(e);
     }
-    
+
     private static class SetFactory implements PropertyFactory<ObjectProperty<Set<Entity>>> {
         @Override
         public ObjectProperty<Set<Entity>> create() {

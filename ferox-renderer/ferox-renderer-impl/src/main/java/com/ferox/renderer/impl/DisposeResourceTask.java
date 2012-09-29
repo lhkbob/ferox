@@ -22,11 +22,12 @@ public class DisposeResourceTask implements Task<Void> {
      * @throws NullPointerException if resource is null
      */
     public DisposeResourceTask(Resource resource) {
-        if (resource == null)
+        if (resource == null) {
             throw new NullPointerException("Resourcea cannot be null");
+        }
         this.resource = resource;
     }
-    
+
     @Override
     public Void run(HardwareAccessLayer access) {
         access.dispose(resource);

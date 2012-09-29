@@ -9,6 +9,6 @@ public interface LightInfluence {
     public static interface Factory<T extends Light<T>> {
         public LightInfluence create(T light, @Const Matrix4 lightTransform);
     }
-    
+
     public boolean influences(@Const AxisAlignedBox entityBounds);
 }

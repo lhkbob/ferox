@@ -113,7 +113,7 @@ public class Texture extends Resource {
     public static enum Filter {
         NEAREST, LINEAR, MIPMAP_NEAREST, MIPMAP_LINEAR
     }
-    
+
     /**
      * Layer indices for Textures with target {@link Target#T_CUBEMAP}.
      */
@@ -125,7 +125,7 @@ public class Texture extends Resource {
     public static final int NZ = 5;
 
     private final BulkChangeQueue<MipmapRegion> changeQueue;
-    
+
     private WrapMode wrapS;
     private WrapMode wrapT;
     private WrapMode wrapR;
@@ -135,7 +135,7 @@ public class Texture extends Resource {
 
     private boolean enableDepthCompare;
     private Comparison depthCompareTest;
-    
+
     private final Target target;
     private Mipmap[] layers;
     private int baseLevel, maxLevel;
@@ -174,13 +174,14 @@ public class Texture extends Resource {
      *             are the number of layers is incorrect for the target
      */
     public Texture(Target target, Mipmap[] mipmaps) {
-        if (target == null)
+        if (target == null) {
             throw new NullPointerException("Target cannot be null");
+        }
         this.target = target;
         changeQueue = new BulkChangeQueue<MipmapRegion>();
-        
+
         filter = Filter.LINEAR;
-        
+
         setLayers(mipmaps);
         setWrapMode(WrapMode.CLAMP);
         setAnisotropicFilterLevel(1f);
@@ -245,44 +246,54 @@ public class Texture extends Resource {
      *             met
      */
     public synchronized int setLayers(Mipmap[] mipmaps) {
-        if (mipmaps == null)
+        if (mipmaps == null) {
             throw new NullPointerException("Mipmap array cannot be null");
+        }
 
         // validate number of layers
-        if (target == Target.T_CUBEMAP && mipmaps.length != 6)
+        if (target == Target.T_CUBEMAP && mipmaps.length != 6) {
             throw new IllegalArgumentException("Cube maps require exactly 6 layers, not: " + mipmaps.length);
-        else if (target != Target.T_CUBEMAP && mipmaps.length != 1)
+        } else if (target != Target.T_CUBEMAP && mipmaps.length != 1) {
             throw new IllegalArgumentException("1D, 2D, and 3D textures require exactly 1 layer, not: " + mipmaps.length);
-        
+        }
+
         int baseLevel = Integer.MAX_VALUE;
         int maxLevel = Integer.MIN_VALUE;
         // validate that each layer has correct dimensions, type and format, and not null
         for (int i = 0; i < mipmaps.length; i++) {
-            if (mipmaps[i] == null)
+            if (mipmaps[i] == null) {
                 throw new NullPointerException("Mipmap layer cannot be null: " + i);
-            
+            }
+
             if (i == 0) {
                 // first pass through, assume 1st layer is representative
-                if (target != Target.T_3D && mipmaps[i].getDepth(0) != 1)
+                if (target != Target.T_3D && mipmaps[i].getDepth(0) != 1) {
                     throw new IllegalArgumentException("Textures with target=" + target + " must have a depth of 1");
-                if (target == Target.T_1D && mipmaps[i].getHeight(0) != 1)
+                }
+                if (target == Target.T_1D && mipmaps[i].getHeight(0) != 1) {
                     throw new IllegalArgumentException("Textures with target=" + target + " must have a height of 1");
-                if (target == Target.T_CUBEMAP && mipmaps[i].getWidth(0) != mipmaps[i].getHeight(0))
+                }
+                if (target == Target.T_CUBEMAP && mipmaps[i].getWidth(0) != mipmaps[i].getHeight(0)) {
                     throw new IllegalArgumentException("Textures with target=" + target + " must have square mipmap layers");
+                }
             } else {
                 // remaining mipmaps must match properties of 1st mipmap
-                if (mipmaps[i].getDepth(0) != mipmaps[0].getDepth(0) || 
-                    mipmaps[i].getHeight(0) != mipmaps[0].getHeight(0) || 
-                    mipmaps[i].getWidth(0) != mipmaps[0].getWidth(0))
+                if (mipmaps[i].getDepth(0) != mipmaps[0].getDepth(0) ||
+                        mipmaps[i].getHeight(0) != mipmaps[0].getHeight(0) ||
+                        mipmaps[i].getWidth(0) != mipmaps[0].getWidth(0)) {
                     throw new IllegalArgumentException("Mipmap layers must all have the same dimensions");
-                if (mipmaps[i].getNumMipmaps() != mipmaps[0].getNumMipmaps())
+                }
+                if (mipmaps[i].getNumMipmaps() != mipmaps[0].getNumMipmaps()) {
                     throw new IllegalArgumentException("Mipmap layers must all have the same number of mipmaps");
-                if (mipmaps[i].getFormat() != mipmaps[0].getFormat())
+                }
+                if (mipmaps[i].getFormat() != mipmaps[0].getFormat()) {
                     throw new IllegalArgumentException("Mipmap layers must all have the same TextureFormat");
-                if (mipmaps[i].getDataType() != mipmaps[0].getDataType())
+                }
+                if (mipmaps[i].getDataType() != mipmaps[0].getDataType()) {
                     throw new IllegalArgumentException("Mipmap layers must all have the same Buffer data type");
+                }
             }
-            
+
             // perform default detection of valid mipmap levels
             for (int j = 0; j < mipmaps[i].getNumMipmaps(); j++) {
                 if (mipmaps[i].getData(j).getArray() != null) {
@@ -291,8 +302,8 @@ public class Texture extends Resource {
                 }
             }
         }
-        
-        
+
+
         // at this point we know things are as valid as we can determine them,
         layers = Arrays.copyOf(mipmaps, mipmaps.length); // defensive copy
         if (baseLevel > maxLevel) {
@@ -300,7 +311,7 @@ public class Texture extends Resource {
             baseLevel = 0;
             maxLevel = mipmaps[0].getNumMipmaps() - 1;
         }
-        
+
         setValidMipmapLevels(baseLevel, maxLevel);
         setFilter(filter); // must call this in case we lose mipmaps
         changeQueue.clear();
@@ -324,26 +335,32 @@ public class Texture extends Resource {
      *             format and number of mipmaps differ from the last mipmap
      */
     public synchronized int setLayer(int layer, Mipmap mipmap) {
-        if (layer < 0 || layer >= layers.length)
+        if (layer < 0 || layer >= layers.length) {
             throw new IndexOutOfBoundsException("Illegal layer argument: " + layer);
-        if (mipmap == null)
+        }
+        if (mipmap == null) {
             throw new NullPointerException("Mipmap cannot be null");
-        
+        }
+
         Mipmap old = layers[layer];
-        if (old.getDataType() != mipmap.getDataType())
+        if (old.getDataType() != mipmap.getDataType()) {
             throw new IllegalArgumentException("New mipmap does not have expected type (" + old.getDataType() + "), but was " + mipmap.getDataType());
-        if (old.getFormat() != mipmap.getFormat())
+        }
+        if (old.getFormat() != mipmap.getFormat()) {
             throw new IllegalArgumentException("New mipmap does not have expected format (" + old.getFormat() + "), but was " + mipmap.getFormat());
+        }
         if (old.getWidth(0) != mipmap.getWidth(0) || old.getHeight(0) != mipmap.getHeight(0)
-            || old.getDepth(0) != mipmap.getDepth(0))
+                || old.getDepth(0) != mipmap.getDepth(0)) {
             throw new IllegalArgumentException("New mipmap does not match required dimensions");
-        if (old.getNumMipmaps() != mipmap.getNumMipmaps())
+        }
+        if (old.getNumMipmaps() != mipmap.getNumMipmaps()) {
             throw new IllegalArgumentException("New mipmap does not have expected number of mipmaps");
-        
+        }
+
         layers[layer] = mipmap;
         return markDirty(layer);
     }
-    
+
     /**
      * @return The width of the top-most mipmap level of each layer in the
      *         Texture
@@ -351,7 +368,7 @@ public class Texture extends Resource {
     public synchronized int getWidth() {
         return layers[0].getWidth(0);
     }
-    
+
     /**
      * @return The height of the top-most mipmap level of each layer in the
      *         Texture
@@ -359,7 +376,7 @@ public class Texture extends Resource {
     public synchronized int getHeight() {
         return layers[0].getHeight(0);
     }
-    
+
     /**
      * @return The depth of the top-most mipmap level of each layer in the
      *         Texture
@@ -374,7 +391,7 @@ public class Texture extends Resource {
     public synchronized TextureFormat getFormat() {
         return layers[0].getFormat();
     }
-    
+
     /**
      * @return The Buffer class type of all the Buffer data within each Mipmap
      *         layer within this Texture
@@ -382,7 +399,7 @@ public class Texture extends Resource {
     public synchronized DataType getDataType() {
         return layers[0].getDataType();
     }
-    
+
     /**
      * Set the S, T, and R coordinate's WrapMode to <tt>wrap</tt>.
      * 
@@ -403,13 +420,14 @@ public class Texture extends Resource {
      * @throws NullPointerException if s, t, or r are null
      */
     public synchronized void setWrapMode(WrapMode s, WrapMode t, WrapMode r) {
-        if (s == null || t == null || r == null)
+        if (s == null || t == null || r == null) {
             throw new NullPointerException("WrapModes cannot be null: " + s + ", " + t + ", " + r);
+        }
         wrapS = s;
         wrapT = t;
         wrapR = r;
     }
-    
+
     /**
      * Get the type of texture coordinate wrapping when coordinates go beyond
      * the edge of the image, along the S texture coordinate.
@@ -419,7 +437,7 @@ public class Texture extends Resource {
     public synchronized WrapMode getWrapModeS() {
         return wrapS;
     }
-    
+
     /**
      * Get the type of texture coordinate wrapping when coordinates go beyond
      * the edge of the image, along the T texture coordinate.
@@ -429,7 +447,7 @@ public class Texture extends Resource {
     public synchronized WrapMode getWrapModeT() {
         return wrapT;
     }
-    
+
     /**
      * Get the type of texture coordinate wrapping when coordinates go beyond
      * the edge of the image, along the R texture coordinate.
@@ -451,18 +469,20 @@ public class Texture extends Resource {
      * @throws NullPointerException if filter is null
      */
     public synchronized void setFilter(Filter filter) {
-        if (filter == null)
+        if (filter == null) {
             throw new NullPointerException("Filter cannot be null");
-        if (!layers[0].isMipmapped()) {
-            if (filter == Filter.MIPMAP_LINEAR)
-                filter = Filter.LINEAR;
-            else if (filter == Filter.MIPMAP_NEAREST)
-                filter = Filter.NEAREST;
         }
-        
+        if (!layers[0].isMipmapped()) {
+            if (filter == Filter.MIPMAP_LINEAR) {
+                filter = Filter.LINEAR;
+            } else if (filter == Filter.MIPMAP_NEAREST) {
+                filter = Filter.NEAREST;
+            }
+        }
+
         this.filter = filter;
     }
-    
+
     /**
      * @return The Filter to apply to the texels when rendering the texture
      */
@@ -480,11 +500,12 @@ public class Texture extends Resource {
      * @throws IllegalArgumentException if level is outside of [0, 1]
      */
     public synchronized void setAnisotropicFilterLevel(float level) {
-        if (level < 0f || level > 1f)
+        if (level < 0f || level > 1f) {
             throw new IllegalArgumentException("Invalid level, must be in [0, 1], not: " + level);
+        }
         anisoLevel = level;
     }
-    
+
     /**
      * @return The amount of anisotropic filtering from 0 to 1
      */
@@ -513,24 +534,27 @@ public class Texture extends Resource {
      *             base > max
      */
     public synchronized void setValidMipmapLevels(int base, int max) {
-        if (base < 0)
+        if (base < 0) {
             throw new IllegalArgumentException("Base level must be at least 0, not: " + base);
-        if (max >= layers[0].getNumMipmaps())
+        }
+        if (max >= layers[0].getNumMipmaps()) {
             throw new IllegalArgumentException("Max level must be at most the number of levels in the image (" + layers[0].getNumMipmaps() + "), not: " + max);
-        if (base > max)
+        }
+        if (base > max) {
             throw new IllegalArgumentException("Base level must be less than or equal to max, not: " + base + " > " + max);
-        
+        }
+
         baseLevel = base;
         maxLevel = max;
     }
-    
+
     /**
      * @return The lowest valid mipmap level to use during rasterization
      */
     public synchronized int getBaseMipmapLevel() {
         return baseLevel;
     }
-    
+
     /**
      * @return The highest valid mipmap level to use during rasterization
      */
@@ -578,7 +602,7 @@ public class Texture extends Resource {
     public synchronized Mipmap getLayer(int layer) {
         return layers[layer];
     }
-    
+
     /**
      * @return The number of layers present in this Texture
      */
@@ -617,7 +641,7 @@ public class Texture extends Resource {
     public synchronized void setDepthCompareEnabled(boolean enable) {
         enableDepthCompare = enable;
     }
-    
+
     /**
      * @return The Comparison function used when depth comparisons are enabled
      *         for depth textures
@@ -636,8 +660,9 @@ public class Texture extends Resource {
      * @throws NullPointerException if compare is null
      */
     public synchronized void setDepthComparison(Comparison compare) {
-        if (compare == null)
+        if (compare == null) {
             throw new NullPointerException("Comparison cannot be null");
+        }
         depthCompareTest = compare;
     }
 
@@ -654,8 +679,9 @@ public class Texture extends Resource {
      * @throws NullPointerException if region is null
      */
     public synchronized int markDirty(MipmapRegion region) {
-        if (region == null)
+        if (region == null) {
             throw new NullPointerException("MipmapRegion cannot be null");
+        }
         return changeQueue.push(region);
     }
 
@@ -674,8 +700,8 @@ public class Texture extends Resource {
      */
     public synchronized int markDirty(int layer, int level) {
         Mipmap m = getLayer(layer);
-        return markDirty(new MipmapRegion(layer, level, 0, 0, 0, 
-                                          m.getWidth(level), 
+        return markDirty(new MipmapRegion(layer, level, 0, 0, 0,
+                                          m.getWidth(level),
                                           m.getHeight(level),
                                           m.getDepth(level)));
     }
@@ -693,8 +719,9 @@ public class Texture extends Resource {
      */
     public synchronized int markDirty(int layer) {
         int lastVersion = 0;
-        for (int i = 0; i < layers[layer].getNumMipmaps(); i++)
+        for (int i = 0; i < layers[layer].getNumMipmaps(); i++) {
             lastVersion = markDirty(layer, i);
+        }
         return lastVersion;
     }
 
@@ -707,8 +734,9 @@ public class Texture extends Resource {
      */
     public synchronized int markDirty() {
         int lastVersion = 0;
-        for (int i = 0; i < layers.length; i++)
+        for (int i = 0; i < layers.length; i++) {
             lastVersion = markDirty(i);
+        }
         return lastVersion;
     }
 

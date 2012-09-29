@@ -31,54 +31,56 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     private final Window window;
     private final GLDrawable drawable;
     private final JoglContext context;
-    
+
     private final NEWTEventAdapter adapter;
     private final MouseKeyEventDispatcher dispatcher;
-    
+
     private volatile OnscreenSurfaceOptions options;
     private boolean optionsNeedVerify;
-    
+
     private final Object surfaceLock; // guards editing properties of this surface
-    
+
     private boolean vsync;
     private boolean vsyncNeedsUpdate;
     private boolean closable;
-    
-    public JoglNEWTSurface(AbstractFramework framework, final JoglSurfaceFactory factory, 
+
+    public JoglNEWTSurface(AbstractFramework framework, final JoglSurfaceFactory factory,
                            OnscreenSurfaceOptions options, JoglContext shareWith,
                            RendererProvider provider) {
         super(framework);
         surfaceLock = new Object();
-        
-        if (options == null)
+
+        if (options == null) {
             options = new OnscreenSurfaceOptions();
-        
-        if (options.getFullscreenMode() != null)
+        }
+
+        if (options.getFullscreenMode() != null) {
             options = options.setFullscreenMode(factory.chooseCompatibleDisplayMode(options.getFullscreenMode()));
-        
+        }
+
         DisplayMode fullscreen = options.getFullscreenMode();
         if (fullscreen != null) {
             options = options.setResizable(false)
-                             .setUndecorated(true)
-                             .setWidth(fullscreen.getWidth())
-                             .setHeight(fullscreen.getHeight())
-                             .setX(0)
-                             .setY(0);
+                    .setUndecorated(true)
+                    .setWidth(fullscreen.getWidth())
+                    .setHeight(fullscreen.getHeight())
+                    .setX(0)
+                    .setY(0);
         } else {
             // the NEWT windowing API does not allow us to make a window
             // a fixed-size
             options = options.setResizable(true);
         }
-        
+
         GLCapabilities caps = factory.chooseCapabilities(options);
         window = NewtFactory.createWindow(factory.getScreen(), caps);
         window.setUndecorated(options.isUndecorated());
         window.setSize(options.getWidth(), options.getHeight());
         window.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
-        
+
         window.setVisible(true);
         window.requestFocus();
-        
+
         if (options.getFullscreenMode() != null) {
             // make the window fullscreen
             if (!window.getScreen().setCurrentScreenMode(factory.getScreenMode(options.getFullscreenMode()))) {
@@ -90,22 +92,22 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
                 options = options.setFullscreenMode(null);
             }
         }
-        
+
         window.addWindowListener(this);
-        
+
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         drawable = GLDrawableFactory.getFactory(factory.getGLProfile()).createGLDrawable(window);
         context = new JoglContext(factory, drawable.createContext(realShare), provider);
         drawable.setRealized(true);
-        
+
         vsync = false;
         vsyncNeedsUpdate = true;
         closable = true;
-        
+
         dispatcher = new MouseKeyEventDispatcher(this);
         adapter = new NEWTEventAdapter(dispatcher);
         adapter.attach(window);
-        
+
         optionsNeedVerify = true;
         this.options = options;
     }
@@ -152,30 +154,34 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     @Override
     public int getX() {
         synchronized(surfaceLock) {
-            if (window.isFullscreen())
+            if (window.isFullscreen()) {
                 return 0;
-            else
+            } else {
                 return window.getX();
+            }
         }
     }
 
     @Override
     public int getY() {
         synchronized(surfaceLock) {
-            if (window.isFullscreen())
+            if (window.isFullscreen()) {
                 return 0;
-            else
+            } else {
                 return window.getY();
+            }
         }
     }
 
     @Override
     public void setWindowSize(final int width, final int height) {
-        if (width < 1 || height < 1)
+        if (width < 1 || height < 1) {
             throw new IllegalArgumentException("Dimensions must be at least 1");
-        if (options.getFullscreenMode() != null)
+        }
+        if (options.getFullscreenMode() != null) {
             throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
-        
+        }
+
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
             @Override
             public void run() {
@@ -188,9 +194,10 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public void setLocation(final int x, final int y) {
-        if (options.getFullscreenMode() != null)
+        if (options.getFullscreenMode() != null) {
             throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
-        
+        }
+
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
             @Override
             public void run() {
@@ -218,10 +225,10 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     @Override
     public int getWidth() {
         synchronized(surfaceLock) {
-        	// FIXME On Mac's NEWT creates the window so that the insets are not included
-        	// in the window's content width, and that the requested size does not include
-        	// them either
-        	// - I should verify this behavior on Windows
+            // FIXME On Mac's NEWT creates the window so that the insets are not included
+            // in the window's content width, and that the requested size does not include
+            // them either
+            // - I should verify this behavior on Windows
             int insetWidth = 0;//window.getInsets().getLeftWidth() + window.getInsets().getRightWidth();
             return window.getWidth() - insetWidth;
         }
@@ -264,17 +271,17 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     public void flush(OpenGLContext context) {
         drawable.swapBuffers();
     }
-    
+
     @Override
     public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
         super.onSurfaceActivate(context, activeLayer);
         GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
-        
+
         if (optionsNeedVerify) {
             detectOptions(gl);
             optionsNeedVerify = false;
         }
-        
+
         synchronized(surfaceLock) {
             if (vsyncNeedsUpdate) {
                 gl.setSwapInterval(vsync ? 1 : 0);
@@ -288,22 +295,22 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         adapter.detach();
         dispatcher.shutdown();
         window.removeWindowListener(this);
-        
+
         if (options.getFullscreenMode() != null) {
             // restore original screen mode
             window.getScreen().setCurrentScreenMode(window.getScreen().getOriginalScreenMode());
         }
-        
+
         window.setVisible(false);
         context.destroy();
         window.destroy();
     }
-    
+
     private void detectOptions(GL2GL3 gl) {
         int[] t = new int[1];
         int red, green, blue, alpha, stencil, depth;
         int samples, sampleBuffers;
-        
+
         gl.glGetIntegerv(GL.GL_RED_BITS, t, 0);
         red = t[0];
         gl.glGetIntegerv(GL.GL_GREEN_BITS, t, 0);
@@ -317,20 +324,21 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         stencil = t[0];
         gl.glGetIntegerv(GL.GL_DEPTH_BITS, t, 0);
         depth = t[0];
-        
+
         gl.glGetIntegerv(GL.GL_SAMPLES, t, 0);
         samples = t[0];
         gl.glGetIntegerv(GL.GL_SAMPLE_BUFFERS, t, 0);
         sampleBuffers = t[0];
 
         PixelFormat format = PixelFormat.UNKNOWN;
-        if (red == 8 && green == 8 && blue == 8 && alpha == 8)
+        if (red == 8 && green == 8 && blue == 8 && alpha == 8) {
             format = PixelFormat.RGBA_32BIT;
-        else if (red == 8 && green == 8 && blue == 8 && alpha == 0)
+        } else if (red == 8 && green == 8 && blue == 8 && alpha == 0) {
             format = PixelFormat.RGB_24BIT;
-        else if (red == 5 && green == 6 && blue == 5)
+        } else if (red == 5 && green == 6 && blue == 5) {
             format = PixelFormat.RGB_16BIT;
-        
+        }
+
         DepthFormat df = DepthFormat.UNKNOWN;
         switch (depth) {
         case 16:
@@ -383,28 +391,30 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
             }
 
             gl.glEnable(GL.GL_MULTISAMPLE);
-        } else
+        } else {
             gl.glDisable(GL.GL_MULTISAMPLE);
-        
+        }
+
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
             options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
         }
-        
+
         options = options.setMultiSampling(aa)
-                         .setDepthFormat(df)
-                         .setStencilFormat(sf);
+                .setDepthFormat(df)
+                .setStencilFormat(sf);
     }
-    
+
     @Override
     public void windowDestroyNotify(WindowEvent e) {
         synchronized(surfaceLock) {
             // If the window is not user closable, we perform no action.
             // windowClosing() listeners are responsible for disposing the window
-            if (!closable)
+            if (!closable) {
                 return;
+            }
         }
-        
+
         // just call destroy() and let it take care of everything
         destroy();
     }
@@ -415,7 +425,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public void windowDestroyed(WindowEvent e) { }
-    
+
     @Override
     public void windowResized(WindowEvent e) { }
 

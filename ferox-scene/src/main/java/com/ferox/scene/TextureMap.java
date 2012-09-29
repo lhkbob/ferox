@@ -21,7 +21,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     private ObjectProperty<VertexAttribute> textureCoordinates;
 
     protected TextureMap() { }
-    
+
     /**
      * @return The texture coordinates used to access this TextureMap's texture
      */
@@ -42,11 +42,13 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
      */
     @SuppressWarnings("unchecked")
     public final T setTextureCoordinates(VertexAttribute texCoords) {
-        if (texCoords == null)
+        if (texCoords == null) {
             throw new NullPointerException("Texture coordinates cannot be null");
-        if (texCoords.getData().getData().getDataType() != DataType.FLOAT)
+        }
+        if (texCoords.getData().getData().getDataType() != DataType.FLOAT) {
             throw new IllegalArgumentException("VertexAttribute must have FLOAT data");
-        
+        }
+
         textureCoordinates.set(texCoords, getIndex());
         return (T) this;
     }
@@ -75,8 +77,9 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
      */
     @SuppressWarnings("unchecked")
     public final T setTexture(Texture texture) {
-        if (texture == null)
+        if (texture == null) {
             throw new NullPointerException("Texture cannot be null");
+        }
         validate(texture);
         this.texture.set(texture, getIndex());
         return (T) this;

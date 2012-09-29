@@ -18,7 +18,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  */
 public class Box {
     private Box() { }
-    
+
     /**
      * Construct a box centered on its origin, with the given side length. So,
      * Box(1f) creates a unit cube. Uses StorageMode.IN_MEMORY for its
@@ -59,7 +59,7 @@ public class Box {
      * @throws IllegalArgumentException if side is negative
      */
     public static Geometry create(double side, StorageMode mode) {
-        return create(new Vector3(-side / 2, -side / 2, -side / 2), 
+        return create(new Vector3(-side / 2, -side / 2, -side / 2),
                       new Vector3(side / 2, side / 2, side / 2), mode);
     }
 
@@ -78,7 +78,7 @@ public class Box {
     public static Geometry create(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
         return new BoxImpl(min, max, mode);
     }
-    
+
     private static class BoxImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
         // ordered in such a way as to not need indices
@@ -92,13 +92,16 @@ public class Box {
 
         public BoxImpl(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
 
-            if (min == null || max == null)
+            if (min == null || max == null) {
                 throw new NullPointerException("Min and max vectors cannot be null");
-            if (mode == null)
+            }
+            if (mode == null) {
                 throw new NullPointerException("StorageMode cannot be null");
+            }
 
-            if (min.x > max.x || min.y > max.y || min.z > max.z)
+            if (min.x > max.x || min.y > max.y || min.z > max.z) {
                 throw new IllegalArgumentException("Min vertex has coordinate greater than 'max': " + min + " - " + max);
+            }
 
             float maxX = (float) max.x;
             float maxY = (float) max.y;

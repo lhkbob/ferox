@@ -25,9 +25,9 @@ public class RenderCapabilities {
     protected int maxFragmentShaderTextures = 0; //
     protected int maxFixedPipelineTextures = 0; //
     protected int maxCombinedTextures = 0; //
-    
+
     protected float maxAnisoLevel = 0f; //
-    
+
     protected boolean hasDepthTextures = false; //
     protected boolean hasEnvCombine = false; //
     protected boolean hasMirrorRepeat = false; //
@@ -43,35 +43,35 @@ public class RenderCapabilities {
     protected boolean fpTextures = false; //
     protected boolean npotTextures = false; //
     protected boolean s3tcTextures = false; //
-    
+
     protected EnumSet<Target> supportedTargets = EnumSet.noneOf(Target.class); //
 
     // geometry properties
     protected int maxVertexAttributes = 0; //
     protected int maxTextureCoordinates = 0; //
-    protected boolean vboSupported = false; // 
+    protected boolean vboSupported = false; //
 
     // misc
     protected int maxActiveLights = 0; //
     protected boolean blendSupported = false; //
     protected boolean hasSeparateBlend = false; //
     protected boolean hasSeparateStencil = false; //
-    
+
     protected boolean hasFfpRenderer = false; //
-    
+
     // glsl
     protected boolean hasGlslRenderer = false; //
     protected EnumSet<ShaderType> supportedShaders = EnumSet.noneOf(ShaderType.class);
     protected Version glslVersion;
-    
-    protected String vendor = ""; // 
-    protected float version = 0f; // 
-    
+
+    protected String vendor = ""; //
+    protected float version = 0f; //
+
     // frame properties
     protected boolean fboSupported = false; //
     protected boolean pbuffersSupported = false; //
     protected int maxColorTargets = 0; //
-    
+
     /**
      * @return True if the blending operation exposed in {@link Renderer} is
      *         supported.
@@ -79,7 +79,7 @@ public class RenderCapabilities {
     public boolean isBlendingSupported() {
         return blendSupported;
     }
-    
+
     /**
      * @return The set of supported texture Targets on this hardware.
      */
@@ -93,14 +93,14 @@ public class RenderCapabilities {
     public boolean getDepthTextureSupport() {
         return hasDepthTextures;
     }
-    
+
     /**
      * @return True if the COMBINE EnvMode is supported by FixedFunctionRenderers
      */
     public boolean getCombineEnvModeSupport() {
         return hasEnvCombine;
     }
-    
+
     /**
      * @return True if the MIRROR WrapMode is supported
      */
@@ -116,7 +116,7 @@ public class RenderCapabilities {
     public boolean getClampToEdgeSupport() {
         return hasClampEdge;
     }
-    
+
     /**
      * @return True if blending can be correctly separated across front and back
      *         facing polygons.
@@ -132,7 +132,7 @@ public class RenderCapabilities {
     public boolean getSeparateStencilSupport() {
         return hasSeparateStencil;
     }
-    
+
     /**
      * Return the maximum side dimension of a Texture with targets of T_1D or
      * T_2D.

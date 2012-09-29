@@ -15,6 +15,6 @@ public final class AmbientLight extends Light<AmbientLight> {
      * The shared TypedId representing AmbientLight.
      */
     public static final TypeId<AmbientLight> ID = TypeId.get(AmbientLight.class);
-    
+
     private AmbientLight() { }
 }

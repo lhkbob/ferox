@@ -26,14 +26,14 @@ public class Vector3Property implements Property {
     private static final int REQUIRED_ELEMENTS = 3;
 
     private DoubleDataStore data;
-    
+
     /**
      * Create a new Vector3Property.
      */
     public Vector3Property() {
         data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
-    
+
     /**
      * Get the vector of this property, for the component at the given index,
      * and store it into <tt>result</tt>. If result is null, a new Vector3 is
@@ -44,13 +44,14 @@ public class Vector3Property implements Property {
      * @return result, or a new Vector3 if result was null
      */
     public Vector3 get(int index, Vector3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector3();
-        
+        }
+
         result.set(data.getArray(), index * REQUIRED_ELEMENTS);
         return result;
     }
-    
+
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -62,7 +63,7 @@ public class Vector3Property implements Property {
     public void set(@Const Vector3 v, int index) {
         v.get(data.getArray(), index * REQUIRED_ELEMENTS);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -72,7 +73,7 @@ public class Vector3Property implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to Vector3Property declarations.
      * 
@@ -95,7 +96,7 @@ public class Vector3Property implements Property {
          */
         double z();
     }
-    
+
     /**
      * Default factory implementation for Vector3Properties, supports the
      * {@link DefaultVector3} annotation to specify the default vector
@@ -105,7 +106,7 @@ public class Vector3Property implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<Vector3Property> {
         private final Vector3 dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             if (attrs.hasAttribute(DefaultVector3.class)) {
@@ -115,7 +116,7 @@ public class Vector3Property implements Property {
                 dflt = new Vector3();
             }
         }
-        
+
         public Factory(@Const Vector3 v) {
             super(null);
             dflt = new Vector3(v);

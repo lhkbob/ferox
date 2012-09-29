@@ -32,7 +32,7 @@ public class DisplayMode {
          * Red, green, blue, and alpha pixels are packed in a 8/8/8/8 scheme.
          */
         RGBA_32BIT(32);
-        
+
         private final int bitdepth;
         private PixelFormat(int bitdepth) { this.bitdepth = bitdepth; }
 
@@ -43,10 +43,10 @@ public class DisplayMode {
             return bitdepth;
         }
     }
-    
+
     private final int width;
     private final int height;
-    
+
     private final PixelFormat pixelFormat;
 
     /**
@@ -60,10 +60,12 @@ public class DisplayMode {
      * @throws NullPointerException if pixelFormat is null
      */
     public DisplayMode(int width, int height, PixelFormat pixelFormat) {
-        if (width < 1 || height < 1)
+        if (width < 1 || height < 1) {
             throw new IllegalArgumentException("Invalid dimensions: " + width + ", " + height);
-        if (pixelFormat == null)
+        }
+        if (pixelFormat == null) {
             throw new NullPointerException("PixelFormat cannot be null");
+        }
         this.width = width;
         this.height = height;
         this.pixelFormat = pixelFormat;
@@ -108,8 +110,9 @@ public class DisplayMode {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof DisplayMode))
+        if (!(o instanceof DisplayMode)) {
             return false;
+        }
         DisplayMode d = (DisplayMode) o;
         return d.width == width && d.height == height || d.pixelFormat == pixelFormat;
     }

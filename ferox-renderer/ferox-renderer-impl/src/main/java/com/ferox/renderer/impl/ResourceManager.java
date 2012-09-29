@@ -29,13 +29,13 @@ public class ResourceManager {
     // These are final after "initialize()" is called
     private LifeCycleManager lifecycleManager;
     private Thread garbageCollector;
-    
+
     private final ContextManager contextManager;
-        
+
     private final ReferenceQueue<Resource> collectedResources;
     private final ConcurrentMap<Integer, ResourceData> resources;
     private final Map<Class<? extends Resource>, ResourceDriver> drivers;
-    
+
     /**
      * <p>
      * Create a new ResourceManager that uses the given ContextManager to queue
@@ -54,23 +54,25 @@ public class ResourceManager {
      *             null
      */
     public ResourceManager(ContextManager contextManager, ResourceDriver... drivers) {
-        if (contextManager == null)
+        if (contextManager == null) {
             throw new NullPointerException("ContextManager cannot be null");
+        }
         this.contextManager = contextManager;
-        
+
         collectedResources = new ReferenceQueue<Resource>();
         resources = new ConcurrentHashMap<Integer, ResourceData>();
-        
+
         Map<Class<? extends Resource>, ResourceDriver> tmpDrivers = new HashMap<Class<? extends Resource>, ResourceDriver>();
         if (drivers != null) {
             // Build up the map of drivers based on the input array
             for (ResourceDriver driver: drivers) {
-                if (driver == null)
+                if (driver == null) {
                     throw new NullPointerException("ResourceDriver cannot be null");
+                }
                 tmpDrivers.put(driver.getResourceType(), driver);
             }
         }
-        
+
         // We don't modify the map after the constructor so that it is thread-safe,
         // but wrap it in an immutable collection to make sure.
         this.drivers = Collections.unmodifiableMap(tmpDrivers);
@@ -106,27 +108,30 @@ public class ResourceManager {
      *             initialized
      */
     public void initialize(LifeCycleManager lifecycle) {
-        if (lifecycle == null)
+        if (lifecycle == null) {
             throw new NullPointerException("LifeCycleManager cannot be null");
-        
+        }
+
         // We are assuming that we're in the right threading situation, so this is safe.
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
-        if (lifecycle.getStatus() != com.ferox.renderer.impl.LifeCycleManager.Status.STARTING)
+        if (lifecycle.getStatus() != com.ferox.renderer.impl.LifeCycleManager.Status.STARTING) {
             throw new IllegalStateException("LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
-        
+        }
+
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
         // since we should already be in lifecycle's write lock.
         synchronized(this) {
-            if (lifecycleManager != null)
+            if (lifecycleManager != null) {
                 throw new IllegalStateException("ResourceManager already initialized");
+            }
             lifecycleManager = lifecycle;
         }
-        
+
         garbageCollector = new Thread(lifecycleManager.getManagedThreadGroup(), new WeakReferenceMonitor(), "resource-gc-thread");
         garbageCollector.setDaemon(true);
         lifecycleManager.startManagedThread(garbageCollector);
     }
-    
+
     /**
      * Get an exclusive lock on the resource that prevents it from being
      * updated, disposed of, or locked via
@@ -137,20 +142,22 @@ public class ResourceManager {
      *         unsuccessful
      */
     public Object lockExclusively(Resource resource) {
-        if (resource == null)
+        if (resource == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         ResourceData data = getData(resource);
         if (data != null) {
             data.lock();
-            if (data.handle == null)
+            if (data.handle == null) {
                 data.handle = data.driver.init(resource);
+            }
             return data.handle;
         } else {
             return null;
         }
     }
-    
+
     /**
      * Release the exclusive lock on the given resource after
      * {@link #lockExclusively(Resource)} returned a non-null handle. After a
@@ -161,12 +168,14 @@ public class ResourceManager {
      * @param resource
      */
     public void unlockExclusively(Resource resource) {
-        if (resource == null)
+        if (resource == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         ResourceData data = getDataIfExists(resource);
-        if (data != null)
+        if (data != null) {
             data.unlock();
+        }
     }
 
     /**
@@ -180,12 +189,14 @@ public class ResourceManager {
      * @throws NullPointerException if resource is null
      */
     public void unlock(Resource resource) {
-        if (resource == null)
+        if (resource == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         ResourceData data = getDataIfExists(resource);
-        if (data != null)
+        if (data != null) {
             data.unlockShared();
+        }
     }
 
     /**
@@ -209,10 +220,12 @@ public class ResourceManager {
      * @throws NullPointerException if context or r are null
      */
     public Object lock(OpenGLContext context, Resource r) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        if (context == null)
+        }
+        if (context == null) {
             throw new NullPointerException("Context cannot be null");
+        }
 
         boolean needsUpdate;
         ResourceData data;
@@ -223,7 +236,7 @@ public class ResourceManager {
             data = getDataIfExists(r);
             needsUpdate = false;
         }
-        
+
         if (data != null) {
             if (needsUpdate && !data.isLocked()) {
                 // only do the update if we're not already bound, otherwise
@@ -236,7 +249,7 @@ public class ResourceManager {
                 return data.handle;
             }
         }
-        
+
         // If we've reached this point, it means the resource was one of:
         //  - UNSUPPORTED
         //  - DISPOSED with an update policy of MANUAL
@@ -259,22 +272,26 @@ public class ResourceManager {
      * @throws NullPointerException if context or r are null
      */
     public Status update(OpenGLContext context, Resource r) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        if (context == null)
+        }
+        if (context == null) {
             throw new NullPointerException("Context cannot be null");
-        
+        }
+
         ResourceData data = getData(r);
-        if (data == null)
+        if (data == null) {
             return Status.UNSUPPORTED;
+        }
 
         data.lock();
         try {
-            if (data.handle == null)
+            if (data.handle == null) {
                 data.handle = data.driver.init(r);
+            }
 
             try {
-                // for correct thread-safe access of the resource, 
+                // for correct thread-safe access of the resource,
                 // we must synchronize on resource here
                 synchronized(r) {
                     data.message = data.driver.update(context, r, data.handle);
@@ -306,21 +323,25 @@ public class ResourceManager {
      *             {@link #setDisposable(Resource, boolean)}).
      */
     public <R extends Resource> void dispose(OpenGLContext context, R r) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        if (context == null)
+        }
+        if (context == null) {
             throw new NullPointerException("Context cannot be null");
-        
+        }
+
         ResourceData data = getDataIfExists(r);
-        if (data == null)
+        if (data == null) {
             return; // Don't need to dispose
-        else if (!data.disposable)
+        } else if (!data.disposable) {
             throw new IllegalStateException("Resource is in use by a Surface and cannot be disposed");
+        }
 
         data.lock();
         try {
-            if (data.handle != null)
+            if (data.handle != null) {
                 data.driver.dispose(context, data.handle);
+            }
         } finally {
             data.unlock();
         }
@@ -344,13 +365,16 @@ public class ResourceManager {
      * @throws NullPointerException if r is null
      */
     public void reset(Resource r) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         ResourceData data = getDataIfExists(r);
         if (data == null || data.handle == null)
+        {
             return; // Nothing to reset
-        
+        }
+
         data.driver.reset(data.handle);
     }
 
@@ -373,12 +397,14 @@ public class ResourceManager {
      * @throws NullPointerException if r is null
      */
     public void setDisposable(Resource r, boolean disposable) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         ResourceData data = getData(r);
-        if (data != null)
+        if (data != null) {
             data.disposable = disposable;
+        }
     }
 
     /**
@@ -393,12 +419,14 @@ public class ResourceManager {
      * @throws NullPointerException if r is null
      */
     public String getStatusMessage(Resource r) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         // Special case for if we're shutting down
-        if (lifecycleManager.isStopped())
+        if (lifecycleManager.isStopped()) {
             return null;
+        }
 
         ResourceData data = getDataIfExists(r);
         if (data == null) {
@@ -406,7 +434,7 @@ public class ResourceManager {
             // but all of that is encoded in the Status, the message doesn't matter
             return "";
         }
-        
+
         return data.message;
     }
 
@@ -420,29 +448,32 @@ public class ResourceManager {
      * @throws NullPointerException if r is null
      */
     public Status getStatus(Resource r) {
-        if (r == null)
+        if (r == null) {
             throw new NullPointerException("Resource cannot be null");
-        
+        }
+
         // Special case for if we're shutting down
-        if (lifecycleManager.isStopped())
+        if (lifecycleManager.isStopped()) {
             return Status.DISPOSED;
-        
+        }
+
         ResourceData data = getDataIfExists(r);
         if (data == null) {
             // This is either disposed or unsupported, so we have to check the driver.
             // If there is a driver, then it is supported but disposed
             return (getDriver(r) == null ? Status.UNSUPPORTED : Status.DISPOSED);
         }
-        
+
         return data.status;
     }
-    
+
     private ResourceDriver getDriver(Resource resource) {
         Class<?> clazz = resource.getClass();
         while(clazz != null && Resource.class.isAssignableFrom(clazz)) {
             ResourceDriver d = drivers.get(clazz);
-            if (d != null)
+            if (d != null) {
                 return d;
+            }
             clazz = clazz.getSuperclass();
         }
         return null;
@@ -454,8 +485,10 @@ public class ResourceManager {
             // no data, but we must allocate it
             ResourceDriver driver = getDriver(resource);
             if (driver == null)
+            {
                 return null; // Unsupported resources never store an RD
-            
+            }
+
             data = new ResourceData(resource, driver, collectedResources);
             ResourceData contendedInsert = resources.putIfAbsent(resource.getId(), data);
             if (contendedInsert != null) {
@@ -465,15 +498,15 @@ public class ResourceManager {
                 data = contendedInsert;
             }
         }
-        
+
         return data;
     }
-    
+
     private ResourceData getDataIfExists(Resource resource) {
         // resources is a ConcurrentMap so this is always safe
         return resources.get(resource.getId());
     }
-    
+
     /*
      * Internal runner that monitors a ReferenceQueue to dispose of
      * ResourceHandles after their owning Resources have been collected.
@@ -487,14 +520,14 @@ public class ResourceManager {
                     // which means its impossible for getResourceData(),
                     // update(), dispose(), etc to be called
                     ResourceData data = (ResourceData) collectedResources.remove();
-                    
+
                     if (data.handle != null) {
                         // Don't block on this, we just need it to be disposed of in the future
                         // and don't bother accepting during shutdown since the context
                         // is about to be destroyed then anyway.
                         contextManager.invokeOnContextThread(new DisposeOrphanedHandleTask(data), false);
                     }
-                    
+
                     // Remove it from the collection of current resources
                     resources.remove(data.resourceId);
                 } catch (InterruptedException e) {
@@ -503,25 +536,26 @@ public class ResourceManager {
             }
         }
     }
-    
+
     /*
      * Internal task to clean up a resource after it has been garbage collected.
      */
     private class DisposeOrphanedHandleTask implements Callable<Void> {
         private final ResourceData data;
-        
+
         public DisposeOrphanedHandleTask(ResourceData data) {
             this.data = data;
         }
-        
+
         @Override
         public Void call() throws Exception {
             OpenGLContext context = contextManager.ensureContext();
-            
+
             // We don't need to worry about the disposable property at this point,
             // if the Resource has been GC'ed, we need the handle disposed of no matter what.
-            if (data.handle != null)
+            if (data.handle != null) {
                 data.driver.dispose(context, data.handle);
+            }
             data.handle = null;
             data.status = Status.DISPOSED;
             data.message = "Resource was garbage-collected";
@@ -536,61 +570,66 @@ public class ResourceManager {
     private static class ResourceData extends WeakReference<Resource> {
         final ResourceDriver driver;
         final int resourceId;
-        
+
         // not volatile, should only be accessed on context thread
         Object handle;
         boolean disposable; // True if resource can be disposed
         int sharedLockCount; // number of times bound by a Renderer
         boolean exclusiveLock; // true if cannot be updated or bound
-        
+
         // marked volatile so that other threads can safely read values,
         // only the context thread will ever write values so no explicit
         // synchronization is necessary
         volatile String message;
         volatile Status status;
-        
+
         public ResourceData(Resource resource, ResourceDriver driver, ReferenceQueue<Resource> queue) {
             super(resource, queue);
-            
+
             this.driver = driver;
             resourceId = resource.getId();
             disposable = true;
             handle = null;
             sharedLockCount = 0;
             exclusiveLock = false;
-            
+
             // these values should never be null
             status = Status.DISPOSED;
             message = "";
         }
-        
+
         public boolean isLocked() {
             return sharedLockCount > 0 || exclusiveLock;
         }
-        
+
         public void lock() {
-            if (sharedLockCount > 0)
+            if (sharedLockCount > 0) {
                 throw new IllegalStateException("Resource is already locked in shared mode, cannot obtain exclusive lock");
-            if (exclusiveLock)
+            }
+            if (exclusiveLock) {
                 throw new IllegalStateException("Resource is already exlusively locked");
+            }
             exclusiveLock = true;
         }
-        
+
         public void unlock() {
-            if (!exclusiveLock)
+            if (!exclusiveLock) {
                 throw new IllegalStateException("Resource is not exclusively locked, and cannot be unlocked");
+            }
             exclusiveLock = false;
         }
-        
+
         public void lockShared() {
-            if (exclusiveLock)
+            if (exclusiveLock) {
                 throw new IllegalStateException("Resource is already exclusively locked, cannot obtain a shared lock");
+            }
             sharedLockCount++;
         }
-        
+
         public void unlockShared() {
-            if (sharedLockCount == 0)
+            if (sharedLockCount == 0) {
                 throw new IllegalStateException("Resource is not locked in shared mode, and cannot be unlocked");
+            }
             sharedLockCount--;
         }
     }

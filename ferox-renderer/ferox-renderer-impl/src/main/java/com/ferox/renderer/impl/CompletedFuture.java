@@ -14,11 +14,11 @@ import java.util.concurrent.TimeoutException;
  */
 public class CompletedFuture<T> implements Future<T> {
     private final T value;
-    
+
     public CompletedFuture(T value) {
         this.value = value;
     }
-    
+
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         return false;

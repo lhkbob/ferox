@@ -18,7 +18,7 @@ import com.ferox.math.Vector4;
  */
 public class Plane {
     private static final float ROOT_2_OVER_2 = .7071067811865f;
-    
+
     /**
      * Interpret <tt>plane</tt> as a plane within the 3D coordinate space. The
      * plane is normalized by dividing all four coordinates by the magnitude of
@@ -67,30 +67,30 @@ public class Plane {
         double num = point.x * plane.x + point.y * plane.y + point.z * plane.z + plane.w;
         return (assumeNormalized ? num : num / lengthAsVector3(plane));
     }
-    
+
     // FIXME: verify behavior, math and document behavior
     // FIXME: this doesn't have much to do with Planes, so we should move it somewhere
     // else
     public static void getTangentSpace(@Const Vector3 normal, Vector3 tan0, Vector3 tan1) {
         // Gratz to Erwin Couman's and Bullet for this code
-        
+
         if (Math.abs(normal.z) > ROOT_2_OVER_2) {
             // choose p in y-z plane
             double a = normal.y * normal.y + normal.z * normal.z;
             double k = 1 / Math.sqrt(a);
-            
+
             tan0.set(0, -normal.z * k, normal.y * k);
             tan1.set(a * k, -normal.x * tan0.z, normal.x * tan0.y); // n x tan0
         } else {
             // choose p in x-y plane
             double a = normal.x * normal.x + normal.y * normal.y;
             double k = 1 / Math.sqrt(a);
-            
+
             tan0.set(-normal.y * k, normal.x * k, 0);
             tan1.set(-normal.z * tan0.y, normal.z * tan0.x, a * k); // n x tan0
         }
     }
-    
+
     private static double lengthAsVector3(Vector4 v) {
         return Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
     }

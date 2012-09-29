@@ -40,11 +40,11 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     // parentFrame and glCanvas are null when Display.setParent() was not used
     private final Frame parentFrame;
     private final Canvas glCanvas;
-    
+
     private final LwjglContext context;
     private final MouseKeyEventDispatcher dispatcher;
     private final LwjglInputEventAdapter adapter;
-    
+
     private volatile OnscreenSurfaceOptions options;
     private boolean optionsNeedVerify;
 
@@ -54,64 +54,67 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     private boolean vsyncNeedsUpdate;
     private boolean closable;
 
-    public LwjglStaticDisplaySurface(AbstractFramework framework, LwjglSurfaceFactory factory, 
+    public LwjglStaticDisplaySurface(AbstractFramework framework, LwjglSurfaceFactory factory,
                                      OnscreenSurfaceOptions options,
                                      LwjglContext shareWith,  RendererProvider provider) {
         super(framework);
-        
-        if (Display.isCreated())
+
+        if (Display.isCreated()) {
             throw new SurfaceCreationException("Static LWJGL Display is already in use, cannot create another surface");
-        
+        }
+
         surfaceLock = new Object();
 
-        if (options == null)
+        if (options == null) {
             options = new OnscreenSurfaceOptions();
-        
+        }
+
         org.lwjgl.opengl.PixelFormat format = factory.choosePixelFormat(options);
         Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
-        
+
         boolean fullscreen = false;
         if (options.getFullscreenMode() != null) {
             // try to configure this as a fullscreen window without an AWT parent
             DisplayMode bestMode = factory.chooseCompatibleDisplayMode(options.getFullscreenMode());
             org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(bestMode);
-            
+
             if (lwjglMode != null) {
                 try {
                     Display.setDisplayModeAndFullscreen(lwjglMode);
                     Display.create(format, realShare);
-                    
+
                     // By default, create() makes the surface current on the calling thread,
                     // which is incorrect behavior in this case.
                     Display.releaseContext();
                 } catch (LWJGLException e) {
-                    if (Display.isCreated())
+                    if (Display.isCreated()) {
                         Display.destroy();
+                    }
                     throw new SurfaceCreationException("Unable to create static display", e);
                 }
-                
+
                 // update options to reflect successful fullscreen support
                 options = options.setResizable(false)
-                                 .setUndecorated(true)
-                                 .setFullscreenMode(bestMode)
-                                 .setWidth(bestMode.getWidth())
-                                 .setHeight(bestMode.getHeight())
-                                 .setX(0)
-                                 .setY(0);
-                
+                        .setUndecorated(true)
+                        .setFullscreenMode(bestMode)
+                        .setWidth(bestMode.getWidth())
+                        .setHeight(bestMode.getHeight())
+                        .setX(0)
+                        .setY(0);
+
                 fullscreen = true;
             }
-            
+
             // fall through to parent'ed AWT display
         }
-        
+
         this.options = options;
         optionsNeedVerify = true;
-        
+
         if (!fullscreen) {
             // not a fullscreen window
             glCanvas = new PaintDisabledCanvas();
-            
+
             parentFrame = new Frame();
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
@@ -120,27 +123,28 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                     parentFrame.setResizable(options.isResizable());
                     parentFrame.setUndecorated(options.isUndecorated());
                     parentFrame.setBounds(options.getX(), options.getY(), options.getWidth(), options.getHeight());
-                    
+
                     parentFrame.add(glCanvas);
-                    
+
                     parentFrame.setVisible(true);
                     glCanvas.requestFocusInWindow(); // We use LWJGL's input system, but just in case
-                    
+
                     parentFrame.setIgnoreRepaint(true);
                     glCanvas.setIgnoreRepaint(true);
                 }
             }, true);
-            
+
             try {
                 Display.setParent(glCanvas);
                 Display.create(format, realShare);
-                
+
                 // By default, create() makes the surface current on the calling thread,
                 // which is incorrect behavior in this case.
                 Display.releaseContext();
             } catch (LWJGLException e) {
-                if (Display.isCreated())
+                if (Display.isCreated()) {
                     Display.destroy();
+                }
                 throw new SurfaceCreationException("Unable to create static display", e);
             }
         } else {
@@ -150,28 +154,28 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         }
 
         context = new LwjglContext(factory, Display.getDrawable(), provider);
-       
+
         vsync = false;
         vsyncNeedsUpdate = true;
         closable = true;
-        
+
         dispatcher = new MouseKeyEventDispatcher(this);
         adapter = new LwjglInputEventAdapter(dispatcher);
     }
-    
+
     /**
-     * Start the monitoring threads needed for event pulling and window 
+     * Start the monitoring threads needed for event pulling and window
      * management.
      */
-    public void initialize() {      
-    	ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
-    	Thread eventMonitor = new Thread(managedGroup, new EventMonitor(), "lwjgl-event-monitor");
-    	eventMonitor.setDaemon(true);
-    	getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
+    public void initialize() {
+        ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
+        Thread eventMonitor = new Thread(managedGroup, new EventMonitor(), "lwjgl-event-monitor");
+        eventMonitor.setDaemon(true);
+        getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
 
-    	if (parentFrame != null) {
-    		parentFrame.addWindowListener(this);
-    	}
+        if (parentFrame != null) {
+            parentFrame.addWindowListener(this);
+        }
     }
 
     @Override
@@ -214,58 +218,65 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     @Override
     public String getTitle() {
         synchronized(surfaceLock) {
-            if (parentFrame != null)
+            if (parentFrame != null) {
                 return parentFrame.getTitle();
-            else
+            } else {
                 return Display.getTitle();
+            }
         }
     }
 
     @Override
     public void setTitle(final String title) {
-            if (parentFrame != null) {
-                Utils.invokeOnAWTThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized(surfaceLock) {
-                            parentFrame.setTitle(title);
-                        }
+        if (parentFrame != null) {
+            Utils.invokeOnAWTThread(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized(surfaceLock) {
+                        parentFrame.setTitle(title);
                     }
-                }, false);
-            } else {
-                synchronized(surfaceLock) {
-                    // Display.setTitle() does not require the display to be current.
-                    Display.setTitle(title);
                 }
+            }, false);
+        } else {
+            synchronized(surfaceLock) {
+                // Display.setTitle() does not require the display to be current.
+                Display.setTitle(title);
             }
+        }
     }
 
     @Override
     public int getX() {
         synchronized(surfaceLock) {
-            if (parentFrame != null)
+            if (parentFrame != null) {
                 return parentFrame.getX();
-            else
+            }
+            else {
                 return 0; // fullscreen
+            }
         }
     }
 
     @Override
     public int getY() {
         synchronized(surfaceLock) {
-            if (parentFrame != null)
+            if (parentFrame != null) {
                 return parentFrame.getY();
-            else
+            }
+            else {
                 return 0; // fullscreen
+            }
         }
     }
 
     @Override
     public void setWindowSize(final int width, final int height) {
-        if (width < 1 || height < 1)
+        if (width < 1 || height < 1) {
             throw new IllegalArgumentException("Dimensions must be at least 1");
-        if (options.getFullscreenMode() != null)
+        }
+        if (options.getFullscreenMode() != null) {
             throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
+        }
 
         if (parentFrame != null) {
             Utils.invokeOnAWTThread(new Runnable() {
@@ -276,15 +287,17 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                     }
                 }
             }, false);
-        } else // should be caught by first check
+        } else {
             throw new IllegalStateException("Surface is fullscreen");
+        }
     }
 
     @Override
     public void setLocation(final int x, final int y) {
-        if (options.getFullscreenMode() != null)
+        if (options.getFullscreenMode() != null) {
             throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
-        
+        }
+
         if (parentFrame != null) {
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
@@ -294,8 +307,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                     }
                 }
             }, false);
-        } else // should be caught by first check
+        } else {
             throw new IllegalStateException("Surface is fullscreen");
+        }
     }
 
     @Override
@@ -315,20 +329,22 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     @Override
     public int getWidth() {
         synchronized(surfaceLock) {
-            if (parentFrame != null)
+            if (parentFrame != null) {
                 return glCanvas.getWidth();
-            else
+            } else {
                 return Display.getWidth();
+            }
         }
     }
 
     @Override
     public int getHeight() {
         synchronized(surfaceLock) {
-            if (parentFrame != null)
+            if (parentFrame != null) {
                 return glCanvas.getHeight();
-            else
+            } else {
                 return Display.getHeight();
+            }
         }    }
 
     @Override
@@ -372,16 +388,16 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         dispatcher.shutdown();
         context.destroy();
         Display.destroy();
-        
+
         try {
             Display.setParent(null);
         } catch (LWJGLException e) {
             // don't do anything
         }
-        
+
         if (parentFrame != null) {
             parentFrame.removeWindowListener(this);
-            
+
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
@@ -391,20 +407,21 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             }, false);
         }
     }
-    
+
     @Override
     public void windowClosing(WindowEvent e) {
         synchronized(surfaceLock) {
             // If the window is not user closable, we perform no action.
             // windowClosing() listeners are responsible for disposing the window
-            if (!closable)
+            if (!closable) {
                 return;
+            }
         }
-        
+
         // just call destroy() and let it take care of everything
         destroy();
     }
-    
+
     @Override
     public void windowOpened(WindowEvent e) { }
 
@@ -439,12 +456,13 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         sampleBuffers = GL11.glGetInteger(GL13.GL_SAMPLE_BUFFERS);
 
         PixelFormat format = PixelFormat.UNKNOWN;
-        if (red == 8 && green == 8 && blue == 8 && alpha == 8)
+        if (red == 8 && green == 8 && blue == 8 && alpha == 8) {
             format = PixelFormat.RGBA_32BIT;
-        else if (red == 8 && green == 8 && blue == 8 && alpha == 0)
+        } else if (red == 8 && green == 8 && blue == 8 && alpha == 0) {
             format = PixelFormat.RGB_24BIT;
-        else if (red == 5 && green == 6 && blue == 5)
+        } else if (red == 5 && green == 6 && blue == 5) {
             format = PixelFormat.RGB_16BIT;
+        }
 
         DepthFormat df = DepthFormat.UNKNOWN;
         switch (depth) {
@@ -508,10 +526,10 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         }
 
         options = options.setMultiSampling(aa)
-                         .setDepthFormat(df)
-                         .setStencilFormat(sf);
+                .setDepthFormat(df)
+                .setStencilFormat(sf);
     }
-    
+
     /*
      * Internal class that queues tasks to the gpu thread to periodically check
      * OS state to push input events, or close the window.
@@ -520,48 +538,49 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         @Override
         public void run() {
             while(!isDestroyed()) {
-            	try {
-            		long blockedTime = -System.nanoTime();
-            		getFramework().getContextManager().invokeOnContextThread(new InputTask(), false).get();
-            		getFramework().getContextManager().invokeOnContextThread(new CloseRequestTask(), false).get();
-            		blockedTime += System.nanoTime();
-            		
-                	if (blockedTime < 1000000) {
-                		// sleep if we haven't been waiting a full millisecond, so as 
-                		// not to flood the queue
-                		Thread.sleep(1);
-                	}
-            	} catch(InterruptedException e) {
-            		// don't care
-            	} catch(CancellationException e) {
-            		// don't care, this happens when we're shutting down
-            	} catch(Exception e) {
-            		throw new RuntimeException(e);
-            	}
+                try {
+                    long blockedTime = -System.nanoTime();
+                    getFramework().getContextManager().invokeOnContextThread(new InputTask(), false).get();
+                    getFramework().getContextManager().invokeOnContextThread(new CloseRequestTask(), false).get();
+                    blockedTime += System.nanoTime();
+
+                    if (blockedTime < 1000000) {
+                        // sleep if we haven't been waiting a full millisecond, so as
+                        // not to flood the queue
+                        Thread.sleep(1);
+                    }
+                } catch(InterruptedException e) {
+                    // don't care
+                } catch(CancellationException e) {
+                    // don't care, this happens when we're shutting down
+                } catch(Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
-    
+
     private class InputTask implements Callable<Void> {
-		@Override
-		public Void call() throws Exception {
-			adapter.poll();
-			return null;
-		}
+        @Override
+        public Void call() throws Exception {
+            adapter.poll();
+            return null;
+        }
     }
-    
+
     private class CloseRequestTask implements Callable<Void> {
-    	@Override
-    	public Void call() throws Exception {
-    		boolean closeAllowed;
+        @Override
+        public Void call() throws Exception {
+            boolean closeAllowed;
             synchronized(surfaceLock) {
                 closeAllowed = closable;
             }
-            
-            if (closeAllowed && Display.isCloseRequested())
+
+            if (closeAllowed && Display.isCloseRequested()) {
                 destroy();
-            
+            }
+
             return null;
-    	}
+        }
     }
 }

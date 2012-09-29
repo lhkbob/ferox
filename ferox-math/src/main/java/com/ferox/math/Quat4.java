@@ -28,7 +28,7 @@ public final class Quat4 implements Cloneable {
     public double y;
     public double z;
     public double w;
-    
+
     /**
      * Create a new Quat4 initialized to the identity quaternion.
      */
@@ -57,7 +57,7 @@ public final class Quat4 implements Cloneable {
     public Quat4(double x, double y, double z, double w) {
         set(x, y, z, w);
     }
-    
+
     @Override
     public Quat4 clone() {
         return new Quat4(this);
@@ -79,22 +79,22 @@ public final class Quat4 implements Cloneable {
         double db = b.lengthSquared();
         Vector3 na = (Math.abs(da - 1.0) < .00001 ? a : new Vector3().scale(a, 1 / Math.sqrt(da)));
         Vector3 nb = (Math.abs(db - 1.0) < .00001 ? b : new Vector3().scale(b, 1 / Math.sqrt(db)));
-        
+
         double d = na.dot(nb);
         if (d < 1.0) {
             Vector3 n = new Vector3();
             Plane.getTangentSpace(na, n, new Vector3()); // FIXME
-            
+
             return set(n.x, n.y, n.z, 0.0);
         } else {
             Vector3 c = new Vector3().cross(na, nb);
             double s = Math.sqrt(2.0 * (1.0 + d));
             double rs = 1.0 / s;
-            
+
             return set(c.x * rs, c.y * rs, c.z * rs, .5 * s);
         }
     }
-    
+
     /**
      * Compute <code>a + b</code> and store it in this quaternion.
      * 
@@ -151,7 +151,7 @@ public final class Quat4 implements Cloneable {
         return set(a.w * b.x + a.y * b.z - a.z * b.y,
                    a.w * b.y + a.z * b.x - a.x * b.z,
                    a.w * b.z + a.x * b.y - a.y * b.x,
-                 -(a.x * b.x + a.y * b.y + a.z * b.z));
+                   -(a.x * b.x + a.y * b.y + a.z * b.z));
     }
 
     /**
@@ -177,8 +177,9 @@ public final class Quat4 implements Cloneable {
      */
     public Quat4 normalize(@Const Quat4 a) {
         double d = a.length();
-        if (d == 0f)
+        if (d == 0f) {
             throw new ArithmeticException("Cannot normalize quaternion with 0 length");
+        }
         return scale(a, 1.0 / d);
     }
 
@@ -189,7 +190,7 @@ public final class Quat4 implements Cloneable {
     public double length() {
         return Math.sqrt(lengthSquared());
     }
-    
+
     /**
      * @return The squared length of this quaternion (identical to a 4-vector
      *         with the same components)
@@ -227,8 +228,10 @@ public final class Quat4 implements Cloneable {
     public Vector3 getAxis() {
         double s2 = 1.0 - w * w;
         if (s2 < .0001)
+        {
             return new Vector3(1, 0, 0); // arbitrary
-        
+        }
+
         double s = Math.sqrt(s2);
         return new Vector3(x / s, y / s, z / s);
     }
@@ -244,9 +247,10 @@ public final class Quat4 implements Cloneable {
      */
     public double angle(@Const Quat4 q) {
         double s = Math.sqrt(lengthSquared() * q.lengthSquared());
-        if (s == 0)
+        if (s == 0) {
             throw new ArithmeticException("Undefined angle between two quaternions");
-        
+        }
+
         return Math.acos(dot(q) / s);
     }
 
@@ -275,24 +279,27 @@ public final class Quat4 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Quat4 slerp(@Const Quat4 a, @Const Quat4 b, double t) {
-        if (t < 0 || t > 1)
+        if (t < 0 || t > 1) {
             throw new IllegalArgumentException("t must be in [0, 1], not: " + t);
-        
+        }
+
         double theta = a.angle(b);
         if (theta != 0) {
             double d = 1f / Math.sin(theta);
             double s0 = Math.sin((1 - t) * theta);
             double s1 = Math.sin(t * theta);
-            
-            if (a.dot(b) < 0) // long angle case, see http://en.wikipedia.org/wiki/Slerp
+
+            if (a.dot(b) < 0) {
                 s1 *= -1;
-            
+            }
+
             return set((a.x * s0 + b.x * s1) * d,
                        (a.y * s0 + b.y * s1) * d,
                        (a.z * s0 + b.z * s1) * d,
                        (a.w * s0 + b.w * s1) * d);
-        } else
+        } else {
             return set(a.x, a.y, a.z, a.w);
+        }
     }
 
     /**
@@ -333,7 +340,7 @@ public final class Quat4 implements Cloneable {
      * 
      * @param v
      * @return This quaternion
-     * @throws NullPointerException if q is null 
+     * @throws NullPointerException if q is null
      */
     public Quat4 mul(@Const Vector3 v) {
         return mul(this, v);
@@ -394,7 +401,7 @@ public final class Quat4 implements Cloneable {
         double s = Math.sin(.5 * angle) / d;
         return set(axis.x * s, axis.y * s, axis.z * s, Math.cos(.5 * angle));
     }
-    
+
     /**
      * Set this quaternion to be the rotation described by the Euler angles:
      * <tt>yaw</tt>, <tt>pitch</tt> and <tt>roll</tt>. Yaw is the rotation
@@ -410,19 +417,19 @@ public final class Quat4 implements Cloneable {
     public Quat4 setEuler(double yaw, double pitch, double roll) {
         double cosYaw = Math.cos(.5 * yaw);
         double sinYaw = Math.sin(.5 * yaw);
-        
+
         double cosPitch = Math.cos(.5 * pitch);
         double sinPitch = Math.sin(.5 * pitch);
-        
+
         double cosRoll = Math.cos(.5 * roll);
         double sinRoll = Math.sin(.5 * roll);
-        
+
         return set(cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw,
                    cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw,
                    sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw,
                    cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw);
     }
-    
+
     /**
      * Set the value of this quaternion to represent the rotation of the given
      * matrix, <tt>e</tt>. It is assumed that <tt>e</tt> contains a rotation
@@ -438,7 +445,7 @@ public final class Quat4 implements Cloneable {
             double s = Math.sqrt(trace + 1.0);
             w = .5 * s;
             s = .5 / s;
-            
+
             x = s * (e.m21 - e.m12);
             y = s * (e.m02 - e.m20);
             z = s * (e.m10 - e.m01);
@@ -448,19 +455,19 @@ public final class Quat4 implements Cloneable {
                                    : (e.m00 < e.m22 ? 2 : 0));
             int j = (i + 1) % 3;
             int k = (i + 2) % 3;
-            
+
             double s = Math.sqrt(e.get(i, i) - e.get(j, j) - e.get(k, k) + 1.0);
             set(i, .5 * s);
             s = .5 / s;
-            
+
             set(3, (e.get(k, j) - e.get(j, k)) * s);
             set(j, (e.get(j, i) + e.get(i, j)) * s);
             set(k, (e.get(k, i) + e.get(i, k)) * s);
         }
-        
+
         return this;
     }
-    
+
     /**
      * Set the quaternion coordinate at index to the given value. index must be
      * one of 0 (x), 1 (y), 2 (z), or 3 (w).
@@ -533,7 +540,7 @@ public final class Quat4 implements Cloneable {
     public Quat4 set(double[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the
      * float[].
@@ -547,7 +554,7 @@ public final class Quat4 implements Cloneable {
     public Quat4 set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the
      * DoubleBuffer.
@@ -561,7 +568,7 @@ public final class Quat4 implements Cloneable {
     public Quat4 set(DoubleBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the
      * FloatBuffer.
@@ -575,7 +582,7 @@ public final class Quat4 implements Cloneable {
     public Quat4 set(FloatBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
     }
-    
+
     /**
      * Get the given component from this quaternion; index must be 0 (x), 1 (y),
      * 2 (z), or 3 (w)
@@ -633,7 +640,7 @@ public final class Quat4 implements Cloneable {
         vals[offset + 2] = (float) z;
         vals[offset + 3] = (float) w;
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a DoubleBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -649,7 +656,7 @@ public final class Quat4 implements Cloneable {
         store.put(offset + 2, z);
         store.put(offset + 3, w);
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a FloatBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -686,8 +693,9 @@ public final class Quat4 implements Cloneable {
     @Override
     public boolean equals(Object o) {
         // this conditional correctly handles null values
-        if (!(o instanceof Quat4))
+        if (!(o instanceof Quat4)) {
             return false;
+        }
         Quat4 v = (Quat4) o;
         return x == v.x && y == v.y && z == v.z && w == v.w;
     }
@@ -702,8 +710,9 @@ public final class Quat4 implements Cloneable {
      *         component of q
      */
     public boolean epsilonEquals(Quat4 q, double eps) {
-        if (q == null)
+        if (q == null) {
             return false;
+        }
 
         double tx = Math.abs(x - q.x);
         double ty = Math.abs(y - q.y);

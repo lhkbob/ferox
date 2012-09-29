@@ -35,12 +35,12 @@ import com.ferox.renderer.impl.SurfaceFactory;
  */
 public class LwjglSurfaceFactory extends SurfaceFactory {
     private static final int TARGET_REFRESH_RATE = 60;
-    
+
     private final int capBits;
-    
+
     private final DisplayMode defaultMode;
     private final DisplayMode[] availableModes;
-    
+
     private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
     /**
@@ -54,15 +54,16 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
      */
     public LwjglSurfaceFactory(int capBits) {
         this.capBits = capBits;
-        
+
         convertMap = new HashMap<DisplayMode, org.lwjgl.opengl.DisplayMode>();
-        
+
         try {
             org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
             for (org.lwjgl.opengl.DisplayMode lwjglMode: modes) {
-                if (!lwjglMode.isFullscreenCapable())
+                if (!lwjglMode.isFullscreenCapable()) {
                     continue;
-                
+                }
+
                 DisplayMode feroxMode = convert(lwjglMode);
                 if (convertMap.containsKey(feroxMode)) {
                     // compare refresh rates and pick the one closest to target
@@ -77,11 +78,11 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
         }
-        
+
         availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
         defaultMode = convert(Display.getDesktopDisplayMode());
     }
-    
+
     /**
      * Return an LWJGL DisplayMode that exactly matches the given DisplayMode, or
      * null if there was no exact match.
@@ -92,7 +93,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public org.lwjgl.opengl.DisplayMode getLWJGLDisplayMode(DisplayMode mode) {
         return convertMap.get(mode);
     }
-    
+
     public org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request) {
         PixelFormat pf;
         if (request.getFullscreenMode() != null) {
@@ -100,9 +101,9 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         } else {
             pf = getDefaultDisplayMode().getPixelFormat();
         }
-        
+
         org.lwjgl.opengl.PixelFormat caps = new org.lwjgl.opengl.PixelFormat();
-        
+
         switch (pf) {
         case RGB_16BIT:
             caps = caps.withBitsPerPixel(16).withAlphaBits(0);
@@ -162,10 +163,10 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
             caps = caps.withSamples(0);
             break;
         }
-        
+
         return caps;
     }
-    
+
     private static DisplayMode convert(org.lwjgl.opengl.DisplayMode lwjglMode) {
         PixelFormat pixFormat;
         switch(lwjglMode.getBitsPerPixel()) {
@@ -182,20 +183,21 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
             pixFormat = PixelFormat.UNKNOWN;
             break;
         }
-        
+
         return new DisplayMode(lwjglMode.getWidth(), lwjglMode.getHeight(), pixFormat);
     }
-    
+
     @Override
     public AbstractTextureSurface createTextureSurface(AbstractFramework framework,
                                                        TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
-        if (framework.getCapabilities().getFboSupport())
+        if (framework.getCapabilities().getFboSupport()) {
             return new LwjglFboTextureSurface(framework, this, options);
-        else if (framework.getCapabilities().getPbufferSupport())
+        } else if (framework.getCapabilities().getPbufferSupport()) {
             return new LwjglPbufferTextureSurface(framework, this, options, (LwjglContext) sharedContext, new LwjglRendererProvider());
-        else
+        } else {
             throw new SurfaceCreationException("No render-to-texture support on current hardware");
+        }
     }
 
     @Override
@@ -210,11 +212,12 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 
-            && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0)
+        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0
+                && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
             return PbufferShadowContext.create(this, (LwjglContext) sharedContext, new LwjglRendererProvider());
-        else
+        } else {
             throw new FrameworkException("No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
+        }
     }
 
     /**
@@ -225,7 +228,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public int getCapabilityForceBits() {
         return capBits;
     }
-    
+
     @Override
     public DisplayMode getDefaultDisplayMode() {
         return defaultMode;
@@ -235,23 +238,24 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public DisplayMode[] getAvailableDisplayModes() {
         return Arrays.copyOf(availableModes, availableModes.length);
     }
-    
+
     private class LwjglRendererProvider implements RendererProvider {
         private FixedFunctionRenderer ffp;
         private GlslRenderer glsl;
-        
+
         private LwjglRendererDelegate sharedDelegate;
-        
+
         @Override
         public FixedFunctionRenderer getFixedFunctionRenderer(RenderCapabilities caps) {
             if (ffp == null) {
                 if (caps.hasFixedFunctionRenderer()) {
-                    if (sharedDelegate == null)
+                    if (sharedDelegate == null) {
                         sharedDelegate = new LwjglRendererDelegate();
+                    }
                     ffp = new LwjglFixedFunctionRenderer(sharedDelegate);
                 }
             }
-            
+
             return ffp;
         }
 
@@ -259,12 +263,13 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         public GlslRenderer getGlslRenderer(RenderCapabilities caps) {
             if (glsl == null) {
                 if (caps.hasGlslRenderer()) {
-                    if (sharedDelegate == null)
+                    if (sharedDelegate == null) {
                         sharedDelegate = new LwjglRendererDelegate();
+                    }
                     glsl = new LwjglGlslRenderer(sharedDelegate);
                 }
             }
-            
+
             return glsl;
         }
     }

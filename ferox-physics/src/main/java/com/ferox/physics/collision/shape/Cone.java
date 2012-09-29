@@ -6,53 +6,57 @@ import com.ferox.math.Vector3;
 public class Cone extends AxisSweptShape {
     private double halfHeight;
     private double baseRadius;
-    
+
     public Cone(double baseRadius, double height) {
         this(baseRadius, height, Axis.Z);
     }
-    
+
     public Cone(double baseRadius, double height, Axis dominantAxis) {
         super(dominantAxis);
         setBaseRadius(baseRadius);
         setHeight(height);
     }
-    
+
     public double getHeight() {
         return 2.0 * halfHeight;
     }
-    
+
     public double getBaseRadius() {
         return baseRadius;
     }
-    
+
     public void setHeight(double height) {
-        if (height <= 0f)
+        if (height <= 0f) {
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
+        }
         this.halfHeight = height / 2.0;
         update();
     }
-    
+
     public void setBaseRadius(double radius) {
-        if (radius <= 0f)
+        if (radius <= 0f) {
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
+        }
         baseRadius = radius;
         update();
     }
-    
+
     @Override
     public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector3();
-        
+        }
+
         double sin = baseRadius / Math.sqrt(baseRadius * baseRadius + 4 * halfHeight * halfHeight);
         switch(dominantAxis) {
         case X:
             if (v.x <= v.length() * sin) {
                 double sigma = sigma(v);
-                if (sigma <= 0.0)
+                if (sigma <= 0.0) {
                     result.set(-halfHeight, 0.0, 0.0);
-                else
+                } else {
                     result.set(-halfHeight, baseRadius / sigma * v.y, baseRadius / sigma * v.z);
+                }
             } else {
                 result.set(halfHeight, 0.0, 0.0);
             }
@@ -60,10 +64,11 @@ public class Cone extends AxisSweptShape {
         case Y:
             if (v.y <= v.length() * sin) {
                 double sigma = sigma(v);
-                if (sigma <= 0.0)
+                if (sigma <= 0.0) {
                     result.set(0.0, -halfHeight, 0.0);
-                else
+                } else {
                     result.set(baseRadius / sigma * v.x, -halfHeight, baseRadius / sigma * v.z);
+                }
             } else {
                 result.set(0.0, halfHeight, 0.0);
             }
@@ -71,10 +76,11 @@ public class Cone extends AxisSweptShape {
         case Z:
             if (v.z <= v.length() * sin) {
                 double sigma = sigma(v);
-                if (sigma <= 0.0)
+                if (sigma <= 0.0) {
                     result.set(-0.0, 0.0, -halfHeight);
-                else
+                } else {
                     result.set(baseRadius / sigma * v.x, baseRadius / sigma * v.y, -halfHeight);
+                }
             } else {
                 result.set(0.0, 0.0, halfHeight);
             }
@@ -83,11 +89,11 @@ public class Cone extends AxisSweptShape {
 
         return result;
     }
-    
+
     private void update() {
         double m1 = 4.0 / 10.0 * halfHeight * halfHeight + 3.0 / 20.0 * baseRadius * baseRadius;
         double m2 = 3.0/ 10.0 * baseRadius * baseRadius;
-        
+
         switch(dominantAxis) {
         case X:
             inertiaTensorPartial.set(m2, m1, m1);

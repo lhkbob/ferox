@@ -37,8 +37,8 @@ public abstract class Resource {
      * status of ERROR is unusable until it's been repaired.
      */
     public static enum Status {
-        /** 
-         * The resource has been updated successfully and is ready to use. 
+        /**
+         * The resource has been updated successfully and is ready to use.
          */
         READY,
         /**
@@ -89,24 +89,24 @@ public abstract class Resource {
          */
         MANUAL
     }
-    
+
     private static AtomicInteger idCounter = new AtomicInteger(0);
-    
+
     private final int id;
     private volatile UpdatePolicy policy;
-    
+
     public Resource() {
         id = idCounter.incrementAndGet();
         policy = UpdatePolicy.ON_DEMAND;
     }
-    
+
     /**
      * @return The current UpdatePolicy
      */
     public UpdatePolicy getUpdatePolicy() {
         return policy;
     }
-    
+
     /**
      * Set the update policy for the Resource. It is not necessary to
      * synchronize on the Resource to safely call this method, as it is stored
@@ -116,11 +116,12 @@ public abstract class Resource {
      * @throws NullPointerException if policy is null
      */
     public void setUpdatePolicy(UpdatePolicy policy) {
-        if (policy == null)
+        if (policy == null) {
             throw new NullPointerException("UpdatePolicy cannot be null");
+        }
         this.policy = policy;
     }
-    
+
     /**
      * Return a unique numeric id that's assigned to this Resource instance.
      * Each instantiated Resource is assigned an id, starting at 0, which is
@@ -136,7 +137,7 @@ public abstract class Resource {
     public final int hashCode() {
         return id;
     }
-    
+
     @Override
     public final boolean equals(Object o) {
         return o == this;

@@ -115,7 +115,7 @@ public class Utils {
 
         return null;
     }
-    
+
     /**
      * Return the GL shader type enum for the given type.
      */
@@ -382,44 +382,49 @@ public class Utils {
             // if we've gotten here, we have a type-less format, and have to
             // take the type into account
         case R:
-            if (type == DataType.UNSIGNED_BYTE)
+            if (type == DataType.UNSIGNED_BYTE) {
                 return GL11.GL_LUMINANCE8;
-            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
+            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
                 return GL11.GL_LUMINANCE16;
-            else
+            } else {
                 return GL11.GL_LUMINANCE;
+            }
         case RG:
-            if (type == DataType.UNSIGNED_BYTE)
+            if (type == DataType.UNSIGNED_BYTE) {
                 return GL11.GL_LUMINANCE8_ALPHA8;
-            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
+            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
                 return GL11.GL_LUMINANCE16_ALPHA16;
-            else
+            } else {
                 return GL11.GL_LUMINANCE_ALPHA;
+            }
         case DEPTH:
-            if (type == DataType.UNSIGNED_BYTE)
+            if (type == DataType.UNSIGNED_BYTE) {
                 return GL14.GL_DEPTH_COMPONENT16;
-            else if (type == DataType.UNSIGNED_SHORT)
+            } else if (type == DataType.UNSIGNED_SHORT) {
                 return GL14.GL_DEPTH_COMPONENT24;
-            else if (type == DataType.UNSIGNED_INT)
+            } else if (type == DataType.UNSIGNED_INT) {
                 return GL14.GL_DEPTH_COMPONENT32;
-            else
+            } else {
                 return GL11.GL_DEPTH_COMPONENT;
+            }
         case RGB:
         case BGR:
-            if (type == DataType.UNSIGNED_BYTE)
+            if (type == DataType.UNSIGNED_BYTE) {
                 return GL11.GL_RGB8;
-            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
+            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
                 return GL11.GL_RGB16;
-            else
+            } else {
                 return GL11.GL_RGB;
+            }
         case RGBA:
         case BGRA:
-            if (type == DataType.UNSIGNED_BYTE)
+            if (type == DataType.UNSIGNED_BYTE) {
                 return GL11.GL_RGBA8;
-            else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT)
+            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
                 return GL11.GL_RGBA16;
-            else
+            } else {
                 return GL11.GL_RGBA;
+            }
         }
 
         return -1;
@@ -579,7 +584,7 @@ public class Utils {
 
         return -1;
     }
-    
+
     /** Coord must be null */
     public static int getGLTexCoord(TexCoord coord, boolean forEnable) {
         switch(coord) {
@@ -592,7 +597,7 @@ public class Utils {
         case T:
             return (forEnable ? GL11.GL_TEXTURE_GEN_T : GL11.GL_T);
         }
-        
+
         return -1;
     }
 

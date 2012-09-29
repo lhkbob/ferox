@@ -25,7 +25,7 @@ public abstract class Material<T extends Material<T>> extends ComponentData<T> {
     private ObjectProperty<VertexAttribute> normals;
 
     protected Material() { }
-    
+
     /**
      * Set the normal vectors store per-vertex normal data used when computing
      * lighting. Normals are used when rendering an entity that is a
@@ -40,17 +40,20 @@ public abstract class Material<T extends Material<T>> extends ComponentData<T> {
      */
     @SuppressWarnings("unchecked")
     public final T setNormals(VertexAttribute normals) {
-        if (normals == null)
+        if (normals == null) {
             throw new NullPointerException("Normals cannot be null");
-        if (normals.getData().getData().getDataType() != DataType.FLOAT)
+        }
+        if (normals.getData().getData().getDataType() != DataType.FLOAT) {
             throw new IllegalArgumentException("Normals must have FLOAT data");
-        if (normals.getElementSize() != 3)
+        }
+        if (normals.getElementSize() != 3) {
             throw new IllegalArgumentException("Normals must have an element size of 3, not: " + normals.getElementSize());
+        }
 
         this.normals.set(normals, getIndex());
         return (T) this;
     }
-    
+
     /**
      * @return The normal vector data to use for lighting calculations
      */

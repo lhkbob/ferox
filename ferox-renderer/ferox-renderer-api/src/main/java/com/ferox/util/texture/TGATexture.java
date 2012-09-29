@@ -3,16 +3,12 @@ package com.ferox.util.texture;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.TextureFormat;
 
 /**
  * <p>
@@ -54,8 +50,9 @@ public class TGATexture {
      *             invalid or unsupported
      */
     public static Texture readTexture(InputStream stream) throws IOException {
-        if (stream == null)
+        if (stream == null) {
             throw new IOException("Cannot read from a null stream");
+        }
         TGATexture res = new TGATexture(stream);
         return new Texture(Target.T_2D, new Mipmap(res.data, res.header.width, res.header.height, 1, res.format));
     }
@@ -78,11 +75,14 @@ public class TGATexture {
      * @throws NullPointerException if stream is null
      */
     public static boolean isTGATexture(InputStream stream) {
-        if (stream == null)
+        if (stream == null) {
             throw new NullPointerException("Cannot test a null stream");
+        }
 
         if (!(stream instanceof BufferedInputStream))
+        {
             stream = new BufferedInputStream(stream); // this way marking is supported
+        }
         Header header;
         try {
             stream.mark(18);
@@ -103,11 +103,13 @@ public class TGATexture {
     private TGATexture(InputStream stream) throws IOException {
         header = new Header(stream, true);
         String msg = validateHeader(header);
-        if (msg != null)
+        if (msg != null) {
             throw new IOException("TGA header failed validation with: " + msg);
+        }
         msg = checkHeaderSupported(header);
-        if (msg != null)
+        if (msg != null) {
             throw new IOException("TGA image is unsupported, because: " + msg);
+        }
         // we should be supported now, so decode the image
         decodeImage(stream);
     }
@@ -196,8 +198,9 @@ public class TGATexture {
                 byte[] imageIDbuf = new byte[idLength];
                 readAll(in, imageIDbuf);
                 imageID = new String(imageIDbuf, "US-ASCII");
-            } else
+            } else {
                 imageID = "";
+            }
         }
 
         /* bitfields in imageDescriptor */
@@ -282,16 +285,21 @@ public class TGATexture {
      * supported. This assumes that the header has already been validated.
      */
     private static String checkHeaderSupported(Header h) {
-        if (h.isBlackAndWhite())
+        if (h.isBlackAndWhite()) {
             return "Cannot load black and white image data";
-        if (h.isRightToLeft())
+        }
+        if (h.isRightToLeft()) {
             return "Cannot load image data that goes right-to-left";
-        if (h.isCompressed())
+        }
+        if (h.isCompressed()) {
             return "Cannot load images with runlength encoding";
-        if (h.imageType == TYPE_NO_IMAGE)
+        }
+        if (h.imageType == TYPE_NO_IMAGE) {
             return "Cannot load an image with no image data";
-        if (h.getInterleavedType() != 0)
+        }
+        if (h.getInterleavedType() != 0) {
             return "Interleaved image data is not supported";
+        }
 
         // we're supported
         return null;
@@ -301,10 +309,12 @@ public class TGATexture {
      * Return the error message if header is invalid; null if it's valid.
      */
     private static String validateHeader(Header h) {
-        if (h.idLength < 0 || h.idLength > 255)
+        if (h.idLength < 0 || h.idLength > 255) {
             return "Bad idLength value: " + h.idLength;
-        if (h.colorMapType != 0 && h.colorMapType != 1)
+        }
+        if (h.colorMapType != 0 && h.colorMapType != 1) {
             return "Bad color map type: " + h.colorMapType;
+        }
 
         switch (h.imageType) {
         case TYPE_BLACKWHITE:
@@ -322,41 +332,53 @@ public class TGATexture {
         }
 
         if (h.hasColorMap()) {
-            if (h.firstEntryIndex < 0)
+            if (h.firstEntryIndex < 0) {
                 return "Bad first entry index for a color map: " + h.firstEntryIndex;
-            if (h.colorMapLength < 0)
+            }
+            if (h.colorMapLength < 0) {
                 return "Bad number of color map entries: " + h.colorMapLength;
-            if (!h.isBlackAndWhite())
-                if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24 && h.colorMapEntrySize != 32)
+            }
+            if (!h.isBlackAndWhite()) {
+                if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24 && h.colorMapEntrySize != 32) {
                     return "Unsupported color map entry size: " + h.colorMapEntrySize;
-            if (h.pixelDepth != 8 && h.pixelDepth != 16)
+                }
+            }
+            if (h.pixelDepth != 8 && h.pixelDepth != 16) {
                 return "Pixel depth doesn't have a valid value: " + h.pixelDepth;
-            if (h.hasColorMap() && h.colorMapType == 0)
+            }
+            if (h.hasColorMap() && h.colorMapType == 0) {
                 return "Image type expects a color map, but one is not specified";
-        } else if (!h.isBlackAndWhite())
+            }
+        } else if (!h.isBlackAndWhite()) {
             switch (h.pixelDepth) {
             case 16:
-                if (h.getAttribsPerPixel() != 1)
+                if (h.getAttribsPerPixel() != 1) {
                     return "Bad attribs pixel count, must be 1 for 16 bit colors: " + h.getAttribsPerPixel();
+                }
                 break;
             case 24:
-                if (h.getAttribsPerPixel() != 0)
+                if (h.getAttribsPerPixel() != 0) {
                     return "Bad attribs pixel count, must be 0 for 24 bit colors: " + h.getAttribsPerPixel();
+                }
                 break;
             case 32:
-                if (h.getAttribsPerPixel() != 8)
+                if (h.getAttribsPerPixel() != 8) {
                     return "Bad attribs pixel count, must be 8 for 32 bit colors: " + h.getAttribsPerPixel();
+                }
                 break;
             default:
                 return "Unsupported pixel depth: " + h.pixelDepth;
             }
+        }
 
         // ignore the x and y origins of the image (pertain only to screen
         // location)
-        if (h.width < 0)
+        if (h.width < 0) {
             return "Bad width, must be positive: " + h.width;
-        if (h.height < 0)
+        }
+        if (h.height < 0) {
             return "Bad height, must be positive: " + h.height;
+        }
 
         // we should be valid
         return null;
@@ -372,16 +394,18 @@ public class TGATexture {
             // load the color map
             ColorMap cm = (header.hasColorMap() ? new ColorMap(header, in) : null);
 
-            if (cm.elementByteCount == 2)
+            if (cm.elementByteCount == 2) {
                 decodeColorMap16(cm, in);
-            else
+            } else {
                 decodeColorMap24_32(cm, in);
+            }
             break;
         case TYPE_TRUECOLOR:
-            if (header.pixelDepth == 16)
+            if (header.pixelDepth == 16) {
                 decodeTrueColor16(in);
-            else
+            } else {
                 decodeTrueColor24_32(in);
+            }
             break;
         default:
             throw new IOException("Unsupported image type: " + header.imageType);
@@ -452,7 +476,7 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    System.arraycopy(cm.colorMapData, index, tmpData, 
+                    System.arraycopy(cm.colorMapData, index, tmpData,
                                      y * rawWidth + c * cm.elementByteCount, cm.elementByteCount);
                 }
             }
@@ -463,9 +487,10 @@ public class TGATexture {
                 readAll(dIn, rawIndices);
                 y = (header.isTopToBottom() ? header.height - i - 1 : i);
 
-                for (c = 0; c < header.width; c++)
-                    System.arraycopy(cm.colorMapData, rawIndices[c], tmpData, 
+                for (c = 0; c < header.width; c++) {
+                    System.arraycopy(cm.colorMapData, rawIndices[c], tmpData,
                                      y * rawWidth + c * cm.elementByteCount, cm.elementByteCount);
+                }
             }
         }
 
@@ -485,8 +510,9 @@ public class TGATexture {
         format = TextureFormat.ARGB_1555;
         for (i = 0; i < header.height; i++) {
             readAll(dIn, rawBuf);
-            for (c = 0; c < header.width; c++)
+            for (c = 0; c < header.width; c++) {
                 swapRow[c] = (short) bytesToLittleEndianShort(rawBuf, c << 1);
+            }
 
             y = (header.isTopToBottom() ? header.height - i - 1 : i);
             System.arraycopy(swapRow, 0, tmpData, y * header.width, swapRow.length);
@@ -526,30 +552,32 @@ public class TGATexture {
         int read = 0;
         while (remaining > 0) {
             read = in.read(array, offset, remaining);
-            if (read < 0)
+            if (read < 0) {
                 throw new IOException("Unexpected end of stream");
+            }
             offset += read;
             remaining -= read;
         }
     }
 
     private static int bytesToLittleEndianShort(byte[] b, int offset) {
-        return ((b[offset + 0] & 0xff) | 
-               ((b[offset + 1] & 0xff) << 8));
+        return ((b[offset + 0] & 0xff) |
+                ((b[offset + 1] & 0xff) << 8));
     }
 
     // read an short represented in little endian from the given input stream
     private static int readUnsignedLEShort(InputStream in) throws IOException {
         byte[] b = new byte[2];
         readAll(in, b);
-        return ((b[0] & 0xff) | 
-               ((b[1] & 0xff) << 8));
+        return ((b[0] & 0xff) |
+                ((b[1] & 0xff) << 8));
     }
 
     private static int readUnsignedByte(InputStream in) throws IOException {
         int ch = in.read();
-        if (ch < 0)
+        if (ch < 0) {
             throw new IOException("Unexpected end of stream");
+        }
         return ch;
     }
 }

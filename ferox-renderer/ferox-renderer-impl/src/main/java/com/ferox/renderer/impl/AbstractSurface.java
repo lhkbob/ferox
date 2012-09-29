@@ -30,9 +30,10 @@ public abstract class AbstractSurface implements Surface {
      * @throws NullPointerException if framework is null
      */
     public AbstractSurface(AbstractFramework framework) {
-        if (framework == null)
+        if (framework == null) {
             throw new NullPointerException("Framework cannot be null");
-        
+        }
+
         destroyed = new AtomicBoolean(false);
         this.framework = framework;
     }
@@ -78,12 +79,14 @@ public abstract class AbstractSurface implements Surface {
     public void onSurfaceActivate(OpenGLContext context, int layer) {
         RenderCapabilities caps = context.getRenderCapabilities();
         FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
-        if (ffp instanceof AbstractRenderer)
+        if (ffp instanceof AbstractRenderer) {
             ((AbstractRenderer) ffp).activate(this, context, framework.getResourceManager());
-        
+        }
+
         GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
-        if (glsl instanceof AbstractRenderer)
+        if (glsl instanceof AbstractRenderer) {
             ((AbstractRenderer) glsl).activate(this, context, framework.getResourceManager());
+        }
     }
 
     /**
@@ -100,12 +103,14 @@ public abstract class AbstractSurface implements Surface {
         // and any locked resources get released
         RenderCapabilities caps = context.getRenderCapabilities();
         FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
-        if (ffp != null)
+        if (ffp != null) {
             ffp.reset();
-        
+        }
+
         GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
-        if (glsl != null)
+        if (glsl != null) {
             glsl.reset();
+        }
     }
 
     /**
@@ -137,7 +142,7 @@ public abstract class AbstractSurface implements Surface {
             return new CompletedFuture<Void>(null);
         }
     }
-    
+
     @Override
     public boolean isDestroyed() {
         return destroyed.get();

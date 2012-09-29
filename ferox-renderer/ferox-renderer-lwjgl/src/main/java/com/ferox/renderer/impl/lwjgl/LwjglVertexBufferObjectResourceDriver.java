@@ -6,6 +6,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
+import org.lwjgl.opengl.ARBBufferObject;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GL15;
 
@@ -25,31 +26,32 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferObjectResourceDriver {
     private final ThreadLocal<Integer> arrayVboBinding;
     private final ThreadLocal<Integer> elementVboBinding;
-    
+
     private boolean useARB;
     private boolean capsChecked;
-    
+
     public LwjglVertexBufferObjectResourceDriver() {
         arrayVboBinding = new ThreadLocal<Integer>();
         elementVboBinding = new ThreadLocal<Integer>();
-        
+
         capsChecked = false;
     }
-    
+
     private void checkCaps(OpenGLContext context) {
         if (!capsChecked) {
             useARB = context.getRenderCapabilities().getVersion() < 1.5f;
             capsChecked = true;
         }
     }
-    
+
     @Override
     protected void glDeleteBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
         checkCaps(context);
-        if (useARB)
-            ARBVertexBufferObject.glDeleteBuffersARB(handle.vboID);
-        else
+        if (useARB) {
+            ARBBufferObject.glDeleteBuffersARB(handle.vboID);
+        } else {
             GL15.glDeleteBuffers(handle.vboID);
+        }
     }
 
     @Override
@@ -91,24 +93,24 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
         checkCaps(context);
         glBufferData(true, data, type, mode);
     }
-    
+
     private void glBufferData(boolean elementBuffer, Buffer data, DataType type, StorageMode mode) {
         if (useARB) {
-            int usage = (mode == StorageMode.GPU_DYNAMIC ? ARBVertexBufferObject.GL_STREAM_DRAW_ARB : ARBVertexBufferObject.GL_STATIC_DRAW_ARB);
+            int usage = (mode == StorageMode.GPU_DYNAMIC ? ARBBufferObject.GL_STREAM_DRAW_ARB : ARBBufferObject.GL_STATIC_DRAW_ARB);
             int target = (elementBuffer ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
-            
+
             switch(type) {
             case FLOAT:
-                ARBVertexBufferObject.glBufferDataARB(target, (FloatBuffer) data, usage);
+                ARBBufferObject.glBufferDataARB(target, (FloatBuffer) data, usage);
                 break;
             case UNSIGNED_BYTE:
-                ARBVertexBufferObject.glBufferDataARB(target, (ByteBuffer) data, usage);
+                ARBBufferObject.glBufferDataARB(target, (ByteBuffer) data, usage);
                 break;
             case UNSIGNED_INT:
-                ARBVertexBufferObject.glBufferDataARB(target, (IntBuffer) data, usage);
+                ARBBufferObject.glBufferDataARB(target, (IntBuffer) data, usage);
                 break;
             case UNSIGNED_SHORT:
-                ARBVertexBufferObject.glBufferDataARB(target, (ShortBuffer) data, usage);
+                ARBBufferObject.glBufferDataARB(target, (ShortBuffer) data, usage);
                 break;
             }
         } else {
@@ -145,24 +147,24 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
         checkCaps(context);
         glBufferSubData(true, data, type, offset);
     }
-    
+
     private void glBufferSubData(boolean elementBuffer, Buffer data, DataType type, int offset) {
         int vboOffset = offset * type.getByteCount();
         if (useARB) {
             int target = (elementBuffer ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
-            
+
             switch(type) {
             case FLOAT:
-                ARBVertexBufferObject.glBufferSubDataARB(target, vboOffset, (FloatBuffer) data);
+                ARBBufferObject.glBufferSubDataARB(target, vboOffset, (FloatBuffer) data);
                 break;
             case UNSIGNED_BYTE:
-                ARBVertexBufferObject.glBufferSubDataARB(target, vboOffset, (ByteBuffer) data);
+                ARBBufferObject.glBufferSubDataARB(target, vboOffset, (ByteBuffer) data);
                 break;
             case UNSIGNED_INT:
-                ARBVertexBufferObject.glBufferSubDataARB(target, vboOffset, (IntBuffer) data);
+                ARBBufferObject.glBufferSubDataARB(target, vboOffset, (IntBuffer) data);
                 break;
             case UNSIGNED_SHORT:
-                ARBVertexBufferObject.glBufferSubDataARB(target, vboOffset, (ShortBuffer) data);
+                ARBBufferObject.glBufferSubDataARB(target, vboOffset, (ShortBuffer) data);
                 break;
             }
         } else {

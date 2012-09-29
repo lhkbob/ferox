@@ -16,18 +16,18 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 public class VertexBufferObjectHandle {
     public DataType dataType;
     public int length;
-    
+
     public StorageMode mode;
     public Buffer inmemoryBuffer;
-    
+
     public int lastSyncedVersion;
     public Object lastSyncedKey;
-    
+
     public final int vboID;
-    
+
     public VertexBufferObjectHandle(VertexBufferObject res) {
         vboID = res.getId();
-        
+
         // blank parameters
         length = 0;
         inmemoryBuffer = null;

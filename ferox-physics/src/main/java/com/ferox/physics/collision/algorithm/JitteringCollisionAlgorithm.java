@@ -8,20 +8,21 @@ import com.ferox.physics.collision.Shape;
 
 public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape> implements CollisionAlgorithm<A, B> {
     private static final int MAX_JITTERS = 4;
-    
+
     private final CollisionAlgorithm<A, B> wrapped;
-    
+
     private final Vector3 jitter;
     private final Matrix4 jitteredTransform;
-    
+
     public JitteringCollisionAlgorithm(CollisionAlgorithm<A, B> wrapped) {
-        if (wrapped == null)
+        if (wrapped == null) {
             throw new NullPointerException("CollisionAlgorithm cannot be null");
+        }
         this.wrapped = wrapped;
         jitter = new Vector3();
         jitteredTransform = new Matrix4();
     }
-    
+
     @Override
     public ClosestPair getClosestPair(A shapeA, Matrix4 transA, B shapeB, Matrix4 transB) {
         ClosestPair unjittered = wrapped.getClosestPair(shapeA, transA, shapeB, transB);
@@ -32,12 +33,12 @@ public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape> imple
             // apply random jitters to one transform
             for (int i = 0; i < MAX_JITTERS; i++) {
                 jitter.set(Math.random() * shapeA.getMargin(), Math.random() * shapeA.getMargin(), Math.random() * shapeA.getMargin());
-                
+
                 jitteredTransform.set(transA);
                 jitteredTransform.m03 += jitter.x;
                 jitteredTransform.m13 += jitter.y;
                 jitteredTransform.m23 += jitter.z;
-                
+
                 ClosestPair jittered = wrapped.getClosestPair(shapeA, jitteredTransform, shapeB, transB);
                 if (jittered != null) {
                     // remove any jittering from the two closest points
@@ -48,7 +49,7 @@ public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape> imple
                     return new ClosestPair(newPointOnA, jittered.getContactNormal(), jittered.getDistance());
                 }
             }
-            
+
             // jittering did not find a solution
             return null;
         }

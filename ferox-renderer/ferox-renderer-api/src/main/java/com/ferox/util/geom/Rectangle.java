@@ -72,12 +72,12 @@ public class Rectangle {
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException if xAxis, yAxis, or mode are null
      */
-    public static Geometry create(double left, double right, double bottom, double top, 
+    public static Geometry create(double left, double right, double bottom, double top,
                                   @Const Vector3 xAxis, @Const Vector3 yAxis,
                                   StorageMode mode) {
         return new RectangleImpl(left, right, bottom, top, xAxis, yAxis, mode);
     }
-        
+
     private static class RectangleImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
         // ordered in such a way as to not need indices
@@ -89,15 +89,18 @@ public class Rectangle {
 
         private final AxisAlignedBox bounds;
 
-        public RectangleImpl(double left, double right, double bottom, double top, 
+        public RectangleImpl(double left, double right, double bottom, double top,
                              @Const Vector3 xAxis, @Const Vector3 yAxis,
                              StorageMode mode) {
-            if (left > right || bottom > top)
+            if (left > right || bottom > top) {
                 throw new IllegalArgumentException("Side positions of the square are incorrect");
-            if (xAxis == null || yAxis == null)
+            }
+            if (xAxis == null || yAxis == null) {
                 throw new NullPointerException("Axis cannot be null");
-            if (mode == null)
+            }
+            if (mode == null) {
                 throw new NullPointerException("StorageMode cannot be null");
+            }
 
             Vector3 normal = new Vector3().cross(xAxis, yAxis);
 
@@ -115,7 +118,7 @@ public class Rectangle {
 
             va[i++] = 0f;
             va[i++] = 0f;
-            
+
             // lower-right
             va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
             va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
@@ -139,7 +142,7 @@ public class Rectangle {
 
             va[i++] = 1f;
             va[i++] = 1f;
-            
+
             // upper-left
             va[i++] = (float) (xAxis.x * left + yAxis.x * top);
             va[i++] = (float) (xAxis.y * left + yAxis.y * top);

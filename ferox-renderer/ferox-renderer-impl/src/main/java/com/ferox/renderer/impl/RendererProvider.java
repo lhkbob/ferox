@@ -24,7 +24,7 @@ public interface RendererProvider {
      * @throws NullPointerException if caps is null
      */
     public FixedFunctionRenderer getFixedFunctionRenderer(RenderCapabilities caps);
-    
+
     /**
      * Return the GlslRenderer to use. This does not need to worry about whether
      * or not a FixedFunctionRenderer has already been requested. This should

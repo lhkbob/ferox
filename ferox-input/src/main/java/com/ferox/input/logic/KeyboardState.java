@@ -14,14 +14,14 @@ import com.ferox.input.KeyEvent.Type;
  */
 public class KeyboardState {
     private final EnumSet<KeyCode> keysDown;
-    
+
     /**
      * Create a new KeyboardState that has zero keys marked as down.
      */
     public KeyboardState() {
         keysDown = EnumSet.noneOf(KeyCode.class);
     }
-    
+
     /**
      * Create a new KeyboardState that will mark a key as down if the event is a
      * PRESS, or will mark it as up if the event is a RELEASE. Any other key
@@ -32,17 +32,19 @@ public class KeyboardState {
      * @throws NullPointerException if event is null
      */
     public KeyboardState(KeyboardState prev, KeyEvent event) {
-        if (prev != null)
+        if (prev != null) {
             keysDown = EnumSet.copyOf(prev.keysDown);
-        else
+        } else {
             keysDown = EnumSet.noneOf(KeyCode.class);
-        
-        if (event.getEventType() == Type.PRESS)
+        }
+
+        if (event.getEventType() == Type.PRESS) {
             keysDown.add(event.getKeyCode());
-        else
+        } else {
             keysDown.remove(event.getKeyCode());
+        }
     }
-    
+
     /**
      * Return whether or not the given key is down. The PRESS event that marked
      * the key as down could have happened any number of frames in the past, but

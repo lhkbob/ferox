@@ -16,10 +16,10 @@ import com.ferox.input.MouseEvent.Type;
 public class MouseState {
     private final int x;
     private final int y;
-    
+
     private final EnumSet<MouseButton> buttonsDown;
     private final int scrollCount;
-    
+
     /**
      * Create a new MouseState that starts at (0, 0) and has an initial scroll
      * value of 0.
@@ -27,11 +27,11 @@ public class MouseState {
     public MouseState() {
         x = 0;
         y = 0;
-        
+
         buttonsDown = EnumSet.noneOf(MouseButton.class);
         scrollCount = 0;
     }
-    
+
     /**
      * <p>
      * Create a new MouseState that will mark a button as down if the event is a
@@ -48,23 +48,26 @@ public class MouseState {
     public MouseState(MouseState prev, MouseEvent event) {
         x = event.getX();
         y = event.getY();
-        
-        if (prev != null)
+
+        if (prev != null) {
             buttonsDown = EnumSet.copyOf(prev.buttonsDown);
-        else
+        } else {
             buttonsDown = EnumSet.noneOf(MouseButton.class);
-        
-        if (event.getEventType() == Type.PRESS)
+        }
+
+        if (event.getEventType() == Type.PRESS) {
             buttonsDown.add(event.getButton());
-        else if (event.getEventType() == Type.RELEASE)
+        } else if (event.getEventType() == Type.RELEASE) {
             buttonsDown.remove(event.getButton());
-        
-        if (event.getEventType() == Type.SCROLL)
+        }
+
+        if (event.getEventType() == Type.SCROLL) {
             scrollCount = prev.scrollCount + event.getScrollDelta();
-        else
+        } else {
             scrollCount = prev.scrollCount;
+        }
     }
-    
+
     /**
      * <p>
      * Return whether or not the given mouse button is pressed as of this state.
@@ -81,26 +84,27 @@ public class MouseState {
      * @return True if the button is currently held down
      */
     public boolean isButtonDown(MouseButton button) {
-        if (button == MouseButton.NONE)
+        if (button == MouseButton.NONE) {
             return buttonsDown.isEmpty();
-        else
+        } else {
             return buttonsDown.contains(button);
+        }
     }
-    
+
     /**
      * @return The current x position of the mouse
      */
     public int getX() {
         return x;
     }
-    
+
     /**
      * @return The current y position of the mouse
      */
     public int getY() {
         return y;
     }
-    
+
     /**
      * <p>
      * Get the number of scroll ticks that have been performed as of this state.

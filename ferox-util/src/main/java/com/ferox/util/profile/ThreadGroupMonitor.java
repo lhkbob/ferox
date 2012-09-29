@@ -84,13 +84,16 @@ public class ThreadGroupMonitor
             }
             aliveId2mon.put(Long.valueOf(newId), new ThreadMonitor(name, newId, default_slots));
         }
-        for (long deadId : deadIds)
+        for (long deadId : deadIds) {
             deadId2mon.put(Long.valueOf(deadId), aliveId2mon.remove(Long.valueOf(deadId)));
+        }
 
-        for (ThreadMonitor mon : aliveId2mon.values())
+        for (ThreadMonitor mon : aliveId2mon.values()) {
             mon.poll();
-        for (ThreadMonitor mon : deadId2mon.values())
+        }
+        for (ThreadMonitor mon : deadId2mon.values()) {
             mon.poll();
+        }
 
         this.analyzeThreads(threads);
 
@@ -100,16 +103,18 @@ public class ThreadGroupMonitor
     public synchronized double getAvgCpuTimeStats(int pollCount)
     {
         double sum = 0.0;
-        for (ThreadMonitor mon : aliveId2mon.values())
+        for (ThreadMonitor mon : aliveId2mon.values()) {
             sum += mon.getCpuTimeStats().avg(pollCount);
+        }
         return sum;
     }
 
     public synchronized double getAvgUserTimeStats(int pollCount)
     {
         double sum = 0.0;
-        for (ThreadMonitor mon : aliveId2mon.values())
+        for (ThreadMonitor mon : aliveId2mon.values()) {
             sum += mon.getUserTimeStats().avg(pollCount);
+        }
         return sum;
     }
 
@@ -130,12 +135,14 @@ public class ThreadGroupMonitor
 
         for (Thread thread : threads)
         {
-            if (!thread.isAlive())
+            if (!thread.isAlive()) {
                 continue;
-            if (thread.isDaemon())
+            }
+            if (thread.isDaemon()) {
                 deamonThreadCount++;
-            else
+            } else {
                 regularThreadCount++;
+            }
         }
 
         this.deamonThreadCount = deamonThreadCount;
@@ -147,8 +154,9 @@ public class ThreadGroupMonitor
         int threadCount;
 
         Thread[] tempThreadArray = new Thread[8];
-        while ((threadCount = this.group.enumerate(tempThreadArray)) == tempThreadArray.length)
+        while ((threadCount = this.group.enumerate(tempThreadArray)) == tempThreadArray.length) {
             tempThreadArray = Arrays.copyOf(tempThreadArray, tempThreadArray.length * 2);
+        }
 
         Thread[] threadArray = new Thread[threadCount];
         System.arraycopy(tempThreadArray, 0, threadArray, 0, threadCount);
@@ -158,8 +166,9 @@ public class ThreadGroupMonitor
     private long[] findAllThreadIds(Thread[] threads)
     {
         long[] allThreadIds = new long[threads.length];
-        for (int i = 0; i < allThreadIds.length; i++)
+        for (int i = 0; i < allThreadIds.length; i++) {
             allThreadIds[i] = threads[i].getId();
+        }
         return allThreadIds;
     }
 
@@ -170,9 +179,11 @@ public class ThreadGroupMonitor
 
         outer: for (int i = 0; i < currThreads.length; i++)
         {
-            for (int k = 0; k < lastThreads.length; k++)
-                if (currThreads[i] == lastThreads[k])
+            for (int k = 0; k < lastThreads.length; k++) {
+                if (currThreads[i] == lastThreads[k]) {
                     continue outer;
+                }
+            }
             newThreadIds[newThreadIndex++] = currThreads[i];
         }
 
@@ -188,9 +199,11 @@ public class ThreadGroupMonitor
 
         outer: for (int i = 0; i < lastThreads.length; i++)
         {
-            for (int k = 0; k < currThreads.length; k++)
-                if (lastThreads[i] == currThreads[k])
+            for (int k = 0; k < currThreads.length; k++) {
+                if (lastThreads[i] == currThreads[k]) {
                     continue outer;
+                }
+            }
             deadThreadIds[deadThreadIndex++] = lastThreads[i];
         }
 

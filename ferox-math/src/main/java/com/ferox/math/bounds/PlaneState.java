@@ -9,7 +9,7 @@ package com.ferox.math.bounds;
  */
 public class PlaneState {
     private static final int PLANE_MASK = 0x3f;
-    
+
     private int planeBits;
 
     /**
@@ -19,7 +19,7 @@ public class PlaneState {
     public boolean getTestsRequired() {
         return (planeBits & PLANE_MASK) != PLANE_MASK;
     }
-    
+
     /**
      * <p>
      * Return true if the given plane is required for testing during a
@@ -37,7 +37,7 @@ public class PlaneState {
     public boolean isTestRequired(int plane) {
         return ((1 << plane) & planeBits) == 0;
     }
-    
+
     /**
      * <p>
      * Set whether or not the given plane must be tested during subsequent
@@ -51,12 +51,13 @@ public class PlaneState {
      * @param required Whether or not the given plane requires testing
      */
     public void setTestRequired(int plane, boolean required) {
-        if (required)
+        if (required) {
             planeBits &= ~(1 << plane);
-        else
+        } else {
             planeBits |= (1 << plane);
+        }
     }
-    
+
     /**
      * Adjust this PlaneState to use the given bit set of frustum planes. If a 1
      * is stored at a given bit, then that plane does not require testing. Any
@@ -67,14 +68,14 @@ public class PlaneState {
     public void set(int planeBits) {
         this.planeBits = planeBits;
     }
-    
-    /** 
+
+    /**
      * @return The current plane bit set used for this PlaneState
      */
     public int get() {
         return planeBits;
     }
-    
+
     /**
      * Reset this PlaneState so that all planes require testing.
      */

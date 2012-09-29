@@ -19,7 +19,7 @@ public class PbufferShadowContext extends LwjglContext {
     private PbufferShadowContext(LwjglSurfaceFactory creator, Pbuffer surface, RendererProvider provider) {
         super(creator, surface, provider);
     }
-    
+
     /**
      * Create a new PbufferShadowContext that will be returned by
      * {@link LwjglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
@@ -33,9 +33,10 @@ public class PbufferShadowContext extends LwjglContext {
      * @throws NullPointerException if framework or profile is null
      */
     public static PbufferShadowContext create(LwjglSurfaceFactory creator, LwjglContext shareWith, RendererProvider provider) {
-        if (creator == null)
+        if (creator == null) {
             throw new NullPointerException("Cannot create a PbufferShadowContext with a null LwjglSurfaceFactory");
-        
+        }
+
         Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
         Pbuffer pbuffer;
         try {

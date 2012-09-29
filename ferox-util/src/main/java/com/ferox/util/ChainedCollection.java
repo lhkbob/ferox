@@ -28,8 +28,9 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
      */
     @SuppressWarnings("unchecked")
     public ChainedCollection(Collection<? extends T> c1, Collection<? extends T> c2) {
-        if (c1 == null || c2 == null)
+        if (c1 == null || c2 == null) {
             throw new NullPointerException("Collections cannot be null");
+        }
         chain = new Collection[] { c1, c2 };
     }
 
@@ -45,18 +46,20 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
      */
     @SuppressWarnings("unchecked")
     public ChainedCollection(Collection<Collection<? extends T>> toChain) {
-        if (toChain == null)
+        if (toChain == null) {
             throw new NullPointerException("Collections cannot be null");
-        
+        }
+
         chain = new Collection[toChain.size()];
         int i = 0;
         for (Collection<? extends T> c: toChain) {
-            if (c == null)
+            if (c == null) {
                 throw new NullPointerException("Collections cannot be null");
+            }
             chain[i++] = c;
         }
     }
-    
+
     @Override
     public Iterator<T> iterator() {
         return new ChainIterator();
@@ -65,42 +68,46 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
     @Override
     public int size() {
         int size = 0;
-        for (int i = 0; i < chain.length; i++)
+        for (int i = 0; i < chain.length; i++) {
             size += chain[i].size();
+        }
         return size;
     }
-    
+
     private class ChainIterator implements Iterator<T> {
         private int index;
         private Iterator<? extends T> current;
-        
+
         public ChainIterator() {
             index = 0;
             current = chain[0].iterator();
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (current.hasNext())
+            if (current.hasNext()) {
                 return true;
+            }
             advance();
             return current.hasNext(); // rely on current to report correctly
         }
 
         @Override
         public T next() {
-            if (current.hasNext())
+            if (current.hasNext()) {
                 return current.next();
+            }
             advance();
             return current.next(); // rely on current to throw NoSuchElementException()
         }
-        
+
         private void advance() {
             while(!current.hasNext()) {
-                if ((++index) < chain.length)
+                if ((++index) < chain.length) {
                     current = chain[index].iterator();
-                else
+                } else {
                     break;
+                }
             }
         }
 

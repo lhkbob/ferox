@@ -26,7 +26,7 @@ public class BufferUtil {
     public static FloatBuffer newFloatBuffer(int size) {
         return newByteBuffer(size * DataType.FLOAT.getByteCount()).asFloatBuffer();
     }
-    
+
     /**
      * Create a new IntBuffer of the given capacity.
      * 
@@ -36,7 +36,7 @@ public class BufferUtil {
     public static IntBuffer newIntBuffer(int size) {
         return newByteBuffer(size * DataType.UNSIGNED_INT.getByteCount()).asIntBuffer();
     }
-    
+
     /**
      * Create a new ShortBuffer of the given capacity.
      * 
@@ -46,7 +46,7 @@ public class BufferUtil {
     public static ShortBuffer newShortBuffer(int size) {
         return newByteBuffer(size * DataType.UNSIGNED_SHORT.getByteCount()).asShortBuffer();
     }
-    
+
     /**
      * Create a new ByteBuffer of the given capacity.
      * 
@@ -193,7 +193,7 @@ public class BufferUtil {
         case UNSIGNED_INT: return IntBuffer.class;
         case UNSIGNED_SHORT: return ShortBuffer.class;
         }
-        
+
         return null; // won't happen
     }
 }

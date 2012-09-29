@@ -45,14 +45,14 @@ public interface CollisionAlgorithm<A extends Shape, B extends Shape> {
      *         or null if no pair could be computed
      * @throws NullPointerException if any argument is null
      */
-    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, 
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA,
                                       B shapeB, @Const Matrix4 transB);
-    
+
     /**
      * @return The Class representing the type A
      */
     public Class<A> getShapeTypeA();
-    
+
     /**
      * @return The Class representing the type B
      */

@@ -41,13 +41,13 @@ import com.ferox.math.bounds.SpatialIndex;
 public class AxisAlignedBox implements Cloneable {
     public final Vector3 min = new Vector3();
     public final Vector3 max = new Vector3();
-    
+
     /**
      * Create a new AxisAlignedBox that has its minimum and maximum at the
      * origin.
      */
     public AxisAlignedBox() { }
-    
+
     /**
      * Create a new AxisAlignedBox that uses the given minimum and maximum
      * vectors as its two control points. Both <tt>min</tt> and <tt>max</tt>
@@ -91,15 +91,17 @@ public class AxisAlignedBox implements Cloneable {
      *             numVertices would cause an out-of-bounds access into vertices
      */
     public AxisAlignedBox(float[] vertices, int offset, int stride, int numVertices) {
-        if (vertices == null)
+        if (vertices == null) {
             throw new NullPointerException("Vertices cannot be null");
-        
+        }
+
         max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
         min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 
         int realStride = 3 + stride;
-        for (int i = offset; i < numVertices * realStride; i += realStride)
-            enclosePoint(vertices[i], vertices[i + 1], vertices[i + 2]); 
+        for (int i = offset; i < numVertices * realStride; i += realStride) {
+            enclosePoint(vertices[i], vertices[i + 1], vertices[i + 2]);
+        }
     }
 
     /**
@@ -118,27 +120,29 @@ public class AxisAlignedBox implements Cloneable {
      *             would cause an out-of-bounds access into vertices
      */
     public AxisAlignedBox(FloatBuffer vertices, int offset, int stride, int numVertices) {
-        if (vertices == null)
+        if (vertices == null) {
             throw new NullPointerException("Vertices cannot be null");
-        
+        }
+
         max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
         min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-        
+
         int realStride = 3 + stride;
-        for (int i = offset; i < numVertices * realStride; i += realStride)
-            enclosePoint(vertices.get(i), vertices.get(i + 1), vertices.get(i + 2)); 
+        for (int i = offset; i < numVertices * realStride; i += realStride) {
+            enclosePoint(vertices.get(i), vertices.get(i + 1), vertices.get(i + 2));
+        }
     }
-    
+
     private void enclosePoint(float x, float y, float z) {
         max.set(Math.max(max.x, x), Math.max(max.y, y), Math.max(max.z, z));
         min.set(Math.min(min.x, x), Math.min(min.y, y), Math.min(min.z, z));
     }
-    
+
     @Override
     public AxisAlignedBox clone() {
         return new AxisAlignedBox(this);
     }
-    
+
     /**
      * Copy the state of <tt>aabb</tt> into this AxisAlignedBox so that this
      * AxisAlignedBox is equivalent to <tt>aabb</tt>.
@@ -209,8 +213,8 @@ public class AxisAlignedBox implements Cloneable {
      */
     public boolean intersects(@Const AxisAlignedBox other) {
         return (max.x >= other.min.x && min.x <= other.max.x) &&
-               (max.y >= other.min.y && min.y <= other.max.y) &&
-               (max.z >= other.min.z && min.z <= other.max.z);
+                (max.y >= other.min.y && min.y <= other.max.y) &&
+                (max.z >= other.min.z && min.z <= other.max.z);
     }
 
     /**
@@ -224,8 +228,8 @@ public class AxisAlignedBox implements Cloneable {
      */
     public boolean contains(@Const AxisAlignedBox other) {
         return (min.x <= other.min.x && max.x >= other.max.x) &&
-               (min.y <= other.min.y && max.y >= other.max.y) &&
-               (min.z <= other.min.z && max.z >= other.max.z);
+                (min.y <= other.min.y && max.y >= other.max.y) &&
+                (min.z <= other.min.z && max.z >= other.max.z);
     }
 
     /**
@@ -294,18 +298,18 @@ public class AxisAlignedBox implements Cloneable {
         double maxX = aabb.max.x;
         double maxY = aabb.max.y;
         double maxZ = aabb.max.z;
-        
+
         double av, bv;
         double minc, maxc;
-        
+
         // this is an unrolled loop that goes over the upper 3x3 matrix
         // - this avoids the if's required if we used get(i, j)
-        
+
         // row 0
         {
             minc = m.m03;
             maxc = m.m03;
-            
+
             // col 0
             av = m.m00 * minX;
             bv = m.m00 * maxX;
@@ -336,7 +340,7 @@ public class AxisAlignedBox implements Cloneable {
                 minc += bv;
                 maxc += av;
             }
-            
+
             min.x = minc;
             max.x = maxc;
         }
@@ -344,7 +348,7 @@ public class AxisAlignedBox implements Cloneable {
         {
             minc = m.m13;
             maxc = m.m13;
-            
+
             // col 0
             av = m.m10 * minX;
             bv = m.m10 * maxX;
@@ -375,7 +379,7 @@ public class AxisAlignedBox implements Cloneable {
                 minc += bv;
                 maxc += av;
             }
-            
+
             min.y = minc;
             max.y = maxc;
         }
@@ -383,7 +387,7 @@ public class AxisAlignedBox implements Cloneable {
         {
             minc = m.m23;
             maxc = m.m23;
-            
+
             // col 0
             av = m.m20 * minX;
             bv = m.m20 * maxX;
@@ -414,27 +418,28 @@ public class AxisAlignedBox implements Cloneable {
                 minc += bv;
                 maxc += av;
             }
-            
+
             min.z = minc;
             max.z = maxc;
         }
 
         return this;
     }
-    
+
     @Override
     public int hashCode() {
         return (17 * min.hashCode()) ^ (31 * max.hashCode());
     }
-    
+
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof AxisAlignedBox))
+        if (!(o instanceof AxisAlignedBox)) {
             return false;
+        }
         AxisAlignedBox that = (AxisAlignedBox) o;
         return min.equals(that.min) && max.equals(that.max);
     }
-    
+
     @Override
     public String toString() {
         return "(min=" + min + ", max=" + max + ")";

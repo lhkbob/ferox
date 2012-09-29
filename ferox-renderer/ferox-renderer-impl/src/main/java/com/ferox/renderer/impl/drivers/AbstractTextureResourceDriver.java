@@ -34,17 +34,17 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
     public Class<Texture> getResourceType() {
         return Texture.class;
     }
-    
+
     @Override
     public TextureHandle init(Resource resource) {
         return new TextureHandle((Texture) resource);
     }
-    
+
     @Override
     public void reset(Object handle) {
         if (handle instanceof TextureHandle) {
             TextureHandle h = (TextureHandle) handle;
-            
+
             h.baseMipmap = -1; // outside of valid range
             h.maxMipmap = -1; // outside of valid range
 
@@ -57,32 +57,33 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             h.depthTest = null;
             h.enableDepthCompare = null;
             h.anisoLevel = -2f; // outside of valid range
-            
+
             h.lastSyncedVersion = -1;
             Arrays.fill(h.lastSyncedKeys, null);
         }
     }
-    
+
     @Override
     public void dispose(OpenGLContext context, Object handle) {
-        if (handle instanceof TextureHandle)
+        if (handle instanceof TextureHandle) {
             glDeleteTexture(context, (TextureHandle) handle);
+        }
     }
 
     @Override
     public String update(OpenGLContext context, Resource res, Object handle) throws UpdateResourceException {
         Texture tex = (Texture) res;
         TextureHandle h = (TextureHandle) handle;
-        
+
         if (!context.getRenderCapabilities().getSupportedTextureTargets().contains(tex.getTarget())) {
             throw new UpdateResourceException("Texture target " + tex.getTarget() + " is unsupported");
         }
-        
+
         boolean isBound = false;
-            
+
         // Check for errors in dimensions, format, type, etc.
         validateTexture(context, tex, h);
-            
+
         // Check for (and possibly update) texture parameters
         if (haveParametersChanged(tex, h)) {
             glBindTexture(context, h);
@@ -90,15 +91,15 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
 
             glTextureParameters(context, tex, h);
         }
-            
+
         if (tex.getChangeQueue().isVersionStale(h.lastSyncedVersion)) {
             if (!isBound) {
                 glBindTexture(context, h);
                 isBound = true;
             }
-                
+
             boolean isMissingChanges = tex.getChangeQueue().hasLostChanges(h.lastSyncedVersion);
-                
+
             // organize all changes by layer and mipmap level
             @SuppressWarnings("unchecked")
             Map<Integer, List<MipmapRegion>>[] changes = new Map[h.lastSyncedKeys.length];
@@ -107,15 +108,19 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
                 int mipmap = edit.getMipmapLevel();
 
                 if (layer >= changes.length)
+                {
                     continue; // user created a bad mipmap region
+                }
 
-                if (changes[layer] == null)
+                if (changes[layer] == null) {
                     changes[layer] = new HashMap<Integer, List<MipmapRegion>>();
-                if (changes[layer].get(mipmap) == null)
+                }
+                if (changes[layer].get(mipmap) == null) {
                     changes[layer].put(mipmap, new ArrayList<MipmapRegion>());
+                }
                 changes[layer].get(mipmap).add(edit);
             }
-                
+
             // update type/format/isMipmapped based on potentially new sets of mipmaps
             TextureFormat format = tex.getFormat();
             if (!context.getRenderCapabilities().getUnclampedFloatTextureSupport()) {
@@ -142,14 +147,15 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             h.format = format;
             h.type = tex.getDataType();
             h.isMipmapped = tex.getLayer(0).isMipmapped();
-                
+
             for (int i = 0; i < h.lastSyncedKeys.length; i++) {
                 Mipmap mipmap = tex.getLayer(i);
                 int numMipmaps = mipmap.getNumMipmaps();
-                if (h.lastSyncedKeys[i] == null)
+                if (h.lastSyncedKeys[i] == null) {
                     h.lastSyncedKeys[i] = new Object[numMipmaps];
-                else if (numMipmaps != h.lastSyncedKeys[i].length)
+                } else if (numMipmaps != h.lastSyncedKeys[i].length) {
                     h.lastSyncedKeys[i] = Arrays.copyOf(h.lastSyncedKeys[i], numMipmaps);
+                }
 
                 for (int j = 0; j < numMipmaps; j++) {
                     BufferData data = mipmap.getData(j);
@@ -159,14 +165,16 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
                         doTexImage(context, h, mipmap, i, j);
                     } else if (h.format == TextureFormat.DEPTH || h.format.isCompressed()) {
                         // depth/compressed textures don't seem to behave well with glTexSubImage
-                        if (changes[i] != null && changes[i].containsKey(j))
+                        if (changes[i] != null && changes[i].containsKey(j)) {
                             doTexImage(context, h, mipmap, i, j);
+                        }
                     } else {
                         // use glTexSubImage to process all mipmap regions
                         List<MipmapRegion> toFlush = (changes[i] != null ? changes[i].get(j) : null);
                         if (toFlush != null) {
-                            for (MipmapRegion rg: toFlush)
+                            for (MipmapRegion rg: toFlush) {
                                 doTexSubImage(context, h, mipmap, rg);
+                            }
                         }
                     }
 
@@ -176,14 +184,16 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
 
             h.lastSyncedVersion = tex.getChangeQueue().getVersion();
         }
-            
-        if (isBound)
+
+        if (isBound) {
             glRestoreTexture(context);
-            
-        if (h.format != tex.getFormat())
+        }
+
+        if (h.format != tex.getFormat()) {
             return "TextureFormat changed from " + tex.getFormat() + " to " + h.format + " to meet hardware support";
-        else
+        } else {
             return "";
+        }
     }
 
     /**
@@ -195,19 +205,25 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * @return
      */
     protected boolean haveParametersChanged(Texture tex, TextureHandle handle) {
-        if (handle.baseMipmap != tex.getBaseMipmapLevel() || handle.maxMipmap != tex.getMaxMipmapLevel())
+        if (handle.baseMipmap != tex.getBaseMipmapLevel() || handle.maxMipmap != tex.getMaxMipmapLevel()) {
             return true;
-        if (handle.filter != tex.getFilter())
+        }
+        if (handle.filter != tex.getFilter()) {
             return true;
-        if (handle.wrapR != tex.getWrapModeR() || handle.wrapS != tex.getWrapModeS() || handle.wrapT != tex.getWrapModeT())
+        }
+        if (handle.wrapR != tex.getWrapModeR() || handle.wrapS != tex.getWrapModeS() || handle.wrapT != tex.getWrapModeT()) {
             return true;
-        if (handle.depthTest != tex.getDepthComparison())
+        }
+        if (handle.depthTest != tex.getDepthComparison()) {
             return true;
-        if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled())
+        }
+        if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
             return true;
-        if (handle.anisoLevel != tex.getAnisotropicFilterLevel())
+        }
+        if (handle.anisoLevel != tex.getAnisotropicFilterLevel()) {
             return true;
-        
+        }
+
         return false;
     }
 
@@ -229,27 +245,30 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
         //  3. They cannot be mipmapped -> this might go away
         if (tex.getOwner() != null) {
             TextureSurface owner = tex.getOwner();
-            if (tex.getWidth() != owner.getWidth() || tex.getHeight() != owner.getHeight() || tex.getDepth() != owner.getDepth())
+            if (tex.getWidth() != owner.getWidth() || tex.getHeight() != owner.getHeight() || tex.getDepth() != owner.getDepth()) {
                 throw new UpdateResourceException("Cannot change dimensions of a Texture owned by a TextureSurface");
-            else if (handle.format != null && tex.getFormat() != handle.format)
+            } else if (handle.format != null && tex.getFormat() != handle.format) {
                 throw new UpdateResourceException("Cannot change TextureFormat of a Texture owned by a TextureSurface");
-            else if (handle.type != null && tex.getDataType() != handle.type)
+            } else if (handle.type != null && tex.getDataType() != handle.type) {
                 throw new UpdateResourceException("Cannot change DataType of a Texture owned by a TextureSurface");
-            else if (tex.getLayer(0).isMipmapped())
+            } else if (tex.getLayer(0).isMipmapped()) {
                 throw new UpdateResourceException("Cannot use multiple mipmap levels with a Texture owned by a TextureSurface");
+            }
         }
-        
+
         RenderCapabilities caps = context.getRenderCapabilities();
-        if (!caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH)
+        if (!caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH) {
             throw new UpdateResourceException("Depth textures are not supported");
-        
-        if (!caps.getNpotTextureSupport()) {
-            if (tex.getWidth() != ceilPot(tex.getWidth()) || 
-                tex.getHeight() != ceilPot(tex.getHeight()) ||
-                tex.getDepth() != ceilPot(tex.getDepth()))
-                throw new UpdateResourceException("Non-power of two textures are not supported");
         }
-        
+
+        if (!caps.getNpotTextureSupport()) {
+            if (tex.getWidth() != ceilPot(tex.getWidth()) ||
+                    tex.getHeight() != ceilPot(tex.getHeight()) ||
+                    tex.getDepth() != ceilPot(tex.getDepth())) {
+                throw new UpdateResourceException("Non-power of two textures are not supported");
+            }
+        }
+
         int maxSize = 0;
         switch(tex.getTarget()) {
         case T_1D:
@@ -263,9 +282,10 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             maxSize = caps.getMaxTexture3DSize();
             break;
         }
-        
-        if ((tex.getWidth() > maxSize || tex.getHeight() > maxSize || tex.getDepth() > maxSize))
+
+        if ((tex.getWidth() > maxSize || tex.getHeight() > maxSize || tex.getDepth() > maxSize)) {
             throw new UpdateResourceException("Dimensions excede supported maximum of " + maxSize);
+        }
     }
 
     /**
@@ -296,7 +316,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * Thread.
      */
     protected abstract void glRestoreTexture(OpenGLContext context);
-    
+
     /**
      * Destroy the texture pointed to by the given handle, it can be assumed
      * that the handle's id is greater than 0.
@@ -304,7 +324,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * @param handle
      */
     protected abstract void glDeleteTexture(OpenGLContext context, TextureHandle handle);
-    
+
     /**
      * Use glTexImage{1D/2D/3D} as appropriate to allocate a texture image for
      * the given layer and mipmap on the currently bound texture object. If the
@@ -328,12 +348,12 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * Additionally, the unpack alignment should be set to 1.
      */
     protected abstract void glUnpackRegion(OpenGLContext context, int xOffset, int yOffset, int zOffset, int blockWidth, int blockHeight);
-    
+
     private void doTexImage(OpenGLContext context, TextureHandle handle, Mipmap mipmap, int layer, int level) {
         int w = mipmap.getWidth(level);
         int h = mipmap.getHeight(level);
         int d = mipmap.getDepth(level);
-        
+
         BufferData data = mipmap.getData(level);
         if (data.getArray() != null) {
             glUnpackRegion(context, 0, 0, 0, w, h);
@@ -344,25 +364,27 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             glTexImage(context, handle, layer, level, w, h, d, handle.format.getBufferSize(w, h, d), null);
         }
     }
-    
+
     private void doTexSubImage(OpenGLContext context, TextureHandle handle, Mipmap mipmap, MipmapRegion dirty) {
         BufferData data = mipmap.getData(dirty.getMipmapLevel());
         if (data.getArray() == null)
+        {
             return; // no update to perform
-        
+        }
+
         // this is only called if we know the layer and level are valid, but
         // we still have to check the dimensions and clamp them.
         int maxWidth = mipmap.getWidth(dirty.getMipmapLevel());
         int maxHeight = mipmap.getHeight(dirty.getMipmapLevel());
         int maxDepth = mipmap.getDepth(dirty.getMipmapLevel());
-        
+
         int x = Math.min(dirty.getXOffset(), maxWidth - 1);
         int y = Math.min(dirty.getYOffset(), maxHeight - 1);
         int z = Math.min(dirty.getZOffset(), maxDepth - 1);
         int w = Math.min(dirty.getWidth(), maxWidth - x);
         int h = Math.min(dirty.getHeight(), maxHeight - y);
         int d = Math.min(dirty.getDepth(), maxDepth - z);
-        
+
         glUnpackRegion(context, x, y, z, w, h);
         Buffer nioData = BufferUtil.newBuffer(data);
         // FIXME: would be awesome here to figure out how send/transfer a buffer that only
@@ -375,8 +397,9 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
 
     private static int ceilPot(int num) {
         int pot = 1;
-        while (pot < num)
+        while (pot < num) {
             pot = pot << 1;
+        }
         return pot;
     }
 }

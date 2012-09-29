@@ -13,16 +13,16 @@ import com.lhkbob.entreri.SimpleController;
 
 public class VisibilityController extends SimpleController {
     private Bag<FrustumResult> frustums;
-    
+
     private SpatialIndex<Entity> index;
-    
+
     @Override
     public void process(double dt) {
         if (index != null) {
             for (FrustumResult f: frustums) {
                 VisibilityCallback query = new VisibilityCallback(getEntitySystem());
                 index.query(f.getFrustum(), query);
-                
+
                 // sort the PVS by entity id before reporting it so that
                 // iteration over the bag has more optimal cache behavior when
                 // accessing entity properties
@@ -31,17 +31,17 @@ public class VisibilityController extends SimpleController {
             }
         }
     }
-    
+
     @Override
     public void preProcess(double dt) {
         frustums = new Bag<FrustumResult>();
     }
-    
+
     @Override
     public void postProcess(double dt) {
         index = null;
     }
-    
+
     @Override
     public void report(Result result) {
         if (result instanceof SpatialIndexResult) {
@@ -50,10 +50,10 @@ public class VisibilityController extends SimpleController {
             frustums.add((FrustumResult) result);
         }
     }
-    
+
     private static class VisibilityCallback implements QueryCallback<Entity> {
         private final Renderable renderable;
-        
+
         private final Bag<Entity> pvs;
 
         /**
@@ -67,7 +67,7 @@ public class VisibilityController extends SimpleController {
             renderable = system.createDataInstance(Renderable.ID);
             pvs = new Bag<Entity>();
         }
-        
+
         @Override
         public void process(Entity r, @Const AxisAlignedBox bounds) {
             // using ComponentData to query existence is faster

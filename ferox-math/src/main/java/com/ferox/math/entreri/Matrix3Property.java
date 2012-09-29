@@ -33,7 +33,7 @@ public class Matrix3Property implements Property {
     public Matrix3Property() {
         data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
-    
+
     /**
      * Get the matrix of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
@@ -44,13 +44,14 @@ public class Matrix3Property implements Property {
      * @return result, or a new Matrix3 if result was null
      */
     public Matrix3 get(int index, Matrix3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Matrix3();
-        
+        }
+
         result.set(data.getArray(), index * REQUIRED_ELEMENTS, false);
         return result;
     }
-    
+
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -62,7 +63,7 @@ public class Matrix3Property implements Property {
     public void set(Matrix3 v, int index) {
         v.get(data.getArray(), index * REQUIRED_ELEMENTS, false);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -72,7 +73,7 @@ public class Matrix3Property implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to Matrix3Property declarations.
      * 
@@ -119,7 +120,7 @@ public class Matrix3Property implements Property {
          */
         double m22();
     }
-    
+
     /**
      * Default factory implementation for Matrix3Properties, supports the
      * {@link DefaultMatrix3} annotation to specify the default matrix
@@ -129,7 +130,7 @@ public class Matrix3Property implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<Matrix3Property> {
         private final Matrix3 dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             if (attrs.hasAttribute(DefaultMatrix3.class)) {
@@ -141,7 +142,7 @@ public class Matrix3Property implements Property {
                 dflt = new Matrix3();
             }
         }
-        
+
         public Factory(@Const Matrix3 v) {
             super(null);
             dflt = new Matrix3(v);

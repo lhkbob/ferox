@@ -52,7 +52,7 @@ import com.ferox.util.geom.Geometry;
 public class Text {
     /** Number of spaces a tab character represents. Initially this is set to 4. */
     public static int TAB_SPACE_COUNT = 4;
-    
+
     private CharacterSet charSet;
     private String text;
 
@@ -62,9 +62,9 @@ public class Text {
 
     private float maxTextWidth; // if <= 0, then no wrapping is done
     private float scale;
-    
+
     private float[] lastTextLayout;
-    
+
     /**
      * Create a Text that will use the given CharacterSet for laying out text.
      * 
@@ -84,8 +84,9 @@ public class Text {
      */
     public Text(CharacterSet charSet, String text) {
         // avoid the setters so we can do one layout at the end
-        if (charSet == null)
+        if (charSet == null) {
             throw new NullPointerException("CharacterSet cannot be null");
+        }
         this.charSet = charSet;
         this.text = (text == null ? "" : text);
         maxTextWidth = -1f;
@@ -93,7 +94,7 @@ public class Text {
 
         layoutText();
     }
-    
+
     /**
      * @return The current scale factor used to scale the vertices when
      *         performing layouts
@@ -115,8 +116,9 @@ public class Text {
      * @throws IllegalArgumentException if scale is less than or equal to 0
      */
     public void setScale(float scale) {
-        if (scale <= 0f)
+        if (scale <= 0f) {
             throw new IllegalArgumentException("Text scale cannot be negative: " + scale);
+        }
         this.scale = scale;
         layoutText();
     }
@@ -201,8 +203,9 @@ public class Text {
      * @throws NullPointerException if text is null
      */
     public void setText(String text) {
-        if (text == null)
+        if (text == null) {
             throw new NullPointerException("Text cannot be null");
+        }
 
         this.text = text;
         layoutText();
@@ -238,20 +241,21 @@ public class Text {
      * @throws NullPointerException if set is null
      */
     public void setCharacterSet(CharacterSet set) {
-        if (set == null)
+        if (set == null) {
             throw new NullPointerException("Cannot use a null CharacterSet");
+        }
 
         charSet = set;
         layoutText();
     }
-    
+
     public Geometry create() {
         return create(StorageMode.IN_MEMORY);
     }
-    
+
     public Geometry create(StorageMode mode) {
         final int vertexCount = lastTextLayout.length / 4;
-        
+
         float[] v = new float[vertexCount * 8]; // V3F_N3F_T2F
 
         // compute centering information
@@ -270,18 +274,18 @@ public class Text {
             v[i++] = 0f;
             v[i++] = 0f;
             v[i++] = 1f;
-            
+
             // tex
             v[i++] = lastTextLayout[j * 4 + 0];
             v[i++] = lastTextLayout[j * 4 + 1];
         }
-        
+
         VertexBufferObject vbo = new VertexBufferObject(new BufferData(v), mode);
         final VertexAttribute vs = new VertexAttribute(vbo, 3, 0, 5);
         final VertexAttribute ns = new VertexAttribute(vbo, 3, 3, 5);
         final VertexAttribute ts = new VertexAttribute(vbo, 2, 6, 6);
         final AxisAlignedBox bounds = new AxisAlignedBox(v, 0, 5, vertexCount);
-        
+
         return new Geometry() {
             @Override
             public @Const AxisAlignedBox getBounds() {
@@ -329,12 +333,12 @@ public class Text {
             }
         };
     }
-    
+
     private void layoutText() {
         LineMetrics lm = charSet.getFont().getLineMetrics(text, charSet.getFontRenderContext());
         TextLayout tl = new TextLayout(charSet, lm, maxTextWidth);
         lastTextLayout = tl.doLayout(text);
-        
+
         width = scale * tl.getMaxWidth();
         height = scale * tl.getMaxHeight();
     }
@@ -435,15 +439,17 @@ public class Text {
          * Does nothing if word is empty, resets the word afterwards.
          */
         private int placeWord(StringBuilder word, float[] coords, int index) {
-            if (word.length() == 0)
+            if (word.length() == 0) {
                 return index;
+            }
 
             if (wrapWidth > 0) {
                 // check if we need to move the word down
                 // char-by-char wrapping happens in placeChars
                 float wordWidth = getWordWidth(word);
-                if (wordWidth < wrapWidth && (wordWidth + cursorX) > wrapWidth)
+                if (wordWidth < wrapWidth && (wordWidth + cursorX) > wrapWidth) {
                     newline();
+                }
             }
 
             index = placeChars(word, coords, index);
@@ -470,8 +476,9 @@ public class Text {
                     newline();
                     break;
                 case '\r':
-                    if (i == 0 || c.charAt(i - 1) != '\n')
+                    if (i == 0 || c.charAt(i - 1) != '\n') {
                         newline();
+                    }
                     break;
                 case '\t':
                     // advance TAB_SPACE_COUNT spaces, but don't place anything
@@ -482,8 +489,9 @@ public class Text {
                     // just advance the space width, but don't place glyphs
                     // only place space if we've moved off of left edge, or on first line
                     g = charSet.getGlyph(' ');
-                    if (cursorX > 0 || cursorY == -ascent)
+                    if (cursorX > 0 || cursorY == -ascent) {
                         cursorX += g.getAdvance();
+                    }
                     break;
                 default:
                     // place a glyph for the char
@@ -493,8 +501,9 @@ public class Text {
                         // place a newline if the char can't fit on this line
                         // and it wasn't the first char for the line (we always
                         // put 1 char)
-                        if (cursorX > 0 && cursorX + g.getAdvance() > wrapWidth)
+                        if (cursorX > 0 && cursorX + g.getAdvance() > wrapWidth) {
                             newline();
+                        }
                     }
                     index = placeGlyph(g, coords, index);
                     break;
@@ -545,7 +554,7 @@ public class Text {
             coords[index++] = tcT;
             coords[index++] = vtL;
             coords[index++] = vtT;
-            
+
             // advance the x position
             cursorX += g.getAdvance();
             lineWidth = vtR;

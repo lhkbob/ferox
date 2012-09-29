@@ -62,7 +62,7 @@ public interface Shape {
      * @throws IllegalArgumentException if margin is less than 0
      */
     public void setMargin(double margin);
-    
+
     /**
      * @return Return the current margin for this shape, defaults to .05
      */

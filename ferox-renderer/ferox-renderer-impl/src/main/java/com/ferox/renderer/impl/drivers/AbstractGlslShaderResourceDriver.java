@@ -25,7 +25,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
     public Object init(Resource resource) {
         return new GlslShaderHandle();
     }
-    
+
     @Override
     public String update(OpenGLContext context, Resource resource, Object handle) throws UpdateResourceException {
         GlslShader shader = (GlslShader) resource;
@@ -35,13 +35,13 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
         if (supported.isEmpty() || context.getRenderCapabilities().getGlslVersion() == null) {
             throw new UpdateResourceException("GLSL is not supported on current hardware");
         }
-        
-        
+
+
         if (h.programID <= 0) {
             // Create a new shader program id
             h.programID = glCreateProgram(context);
         }
-        
+
         // Loop over all shaders and see if they've been changed
         List<String> problems = null;
         boolean needsRelink = false;
@@ -72,8 +72,9 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
                         String errorLog = glCompileShader(context, shaderId, newShaderSource);
                         if (errorLog != null) {
-                            if (problems == null)
+                            if (problems == null) {
                                 problems = new ArrayList<String>();
+                            }
                             problems.add("Error compiling " + type + " shader: " + errorLog);
                         } else {
                             // No error so update the shader source map so future updates
@@ -89,14 +90,15 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
                     // Record that we've changed the program
                     needsRelink = true;
                 } else {
-                    if (problems == null)
+                    if (problems == null) {
                         problems = new ArrayList<String>();
+                    }
                     problems.add("Hardware does not support shader type: " + type);
                     needsRelink = true; // set to true to fall into the error handling code
                 }
             }
         }
-            
+
         // Update the program if we changed the shaders at all
         if (needsRelink) {
             h.attributes.clear();
@@ -118,11 +120,11 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
             updateUniforms(context, h);
             updateAttributes(context, h);
         }
-        
+
         // Made it this far, the handle has been configured correctly
         return "";
     }
-    
+
     @Override
     public void reset(Object handle) {
         if (handle instanceof GlslShaderHandle) {
@@ -130,7 +132,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
             h.shaderSource.clear();
         }
     }
-    
+
     @Override
     public Class<GlslShader> getResourceType() {
         return GlslShader.class;
@@ -140,25 +142,26 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
     public void dispose(OpenGLContext context, Object handle) {
         if (handle instanceof GlslShaderHandle) {
             GlslShaderHandle h = (GlslShaderHandle) handle;
-            
+
             // Detach and delete all shader objects
             for (Integer shader: h.shaders.values()) {
                 glDetachShader(context, shader.intValue(), h.programID);
                 glDeleteShader(context, shader.intValue());
             }
-            
+
             // Delete program
             glDeleteProgram(context, h.programID);
         }
     }
-    
+
     private boolean areSourcesDifferent(String oldSrc, String newSrc) {
-        if (oldSrc == null)
+        if (oldSrc == null) {
             return newSrc != null;
-        else if (newSrc == null)
+        } else if (newSrc == null) {
             return oldSrc != null;
-        else
+        } else {
             return !oldSrc.equals(newSrc);
+        }
     }
 
     /**

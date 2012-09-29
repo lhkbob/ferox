@@ -48,42 +48,42 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public enum TextureFormat {
-    RGBA(null, 4, 4, true), 
-    RGBA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-    RGBA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
-    RGBA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    RGBA(null, 4, 4, true),
+    RGBA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
+    RGBA_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
+    RGBA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true),
     RGBA_FLOAT(DataType.FLOAT, 4, 4, true),
 
-    RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, 4, true), 
+    RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, 4, true),
     RGBA_DXT3(DataType.UNSIGNED_BYTE, -1, 4, true),
     RGBA_DXT5(DataType.UNSIGNED_BYTE, -1, 4, true),
 
-    BGRA(null, 4, 4, true), 
-    BGRA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-    BGRA_8888(DataType.UNSIGNED_INT, 1, 4, true, true), 
+    BGRA(null, 4, 4, true),
+    BGRA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
+    BGRA_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
     BGRA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true),
 
-    ARGB_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-    ARGB_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    ARGB_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
+    ARGB_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true),
     ARGB_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
 
-    ABGR_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
-    ABGR_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true), 
+    ABGR_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
+    ABGR_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true),
     ABGR_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
 
-    RGB(null, 3, 3, false), 
-    RGB_565(DataType.UNSIGNED_SHORT, 1, 3, false, true), 
-    RGB_FLOAT(DataType.FLOAT, 3, 3, false), 
+    RGB(null, 3, 3, false),
+    RGB_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
+    RGB_FLOAT(DataType.FLOAT, 3, 3, false),
     RGB_DXT1(DataType.UNSIGNED_BYTE, -1, 3, false),
 
-    BGR(null, 3, 3, false), 
+    BGR(null, 3, 3, false),
     BGR_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
 
     R(null, 1, 1, false),
     R_FLOAT(DataType.FLOAT, 1, 1, false),
     RG(null, 2, 2, false),
     RG_FLOAT(DataType.FLOAT, 2, 2, false),
-    
+
     DEPTH(DataType.UNSIGNED_INT, 1, 1, false),
     DEPTH_FLOAT(DataType.FLOAT, 1, 1, false),
     DEPTH_STENCIL(DataType.UNSIGNED_INT, 1, 1, false);
@@ -112,7 +112,7 @@ public enum TextureFormat {
     public boolean isPackedFormat() {
         return isPacked;
     }
-    
+
     /**
      * Return the number of components representing the color. An RGB color
      * would have 3 components and an RGBA color would have 4, etc.
@@ -172,13 +172,15 @@ public enum TextureFormat {
      * @throws NullPointerException if type is null
      */
     public boolean isTypeValid(DataType type) {
-        if (type == null)
+        if (type == null) {
             throw new NullPointerException("Type cannot be null");
-        
-        if (this.type == null)
+        }
+
+        if (this.type == null) {
             return true;
-        else
+        } else {
             return this.type.equals(type);
+        }
     }
 
     /**
@@ -205,18 +207,23 @@ public enum TextureFormat {
      *         texture of the given dimensions with this format
      */
     public int getBufferSize(int width, int height, int depth) {
-        if (width <= 0 || height <= 0 || depth <= 0)
+        if (width <= 0 || height <= 0 || depth <= 0) {
             return -1;
-        if (isCompressed() && (width % 4 != 0 || height % 4 != 0))
+        }
+        if (isCompressed() && (width % 4 != 0 || height % 4 != 0)) {
             // compression needs to have multiple of 4 dimensions
-            if (width != 1 && width != 2 && height != 1 && height != 2)
+            if (width != 1 && width != 2 && height != 1 && height != 2) {
                 return -1;
-        if (isCompressed() && depth != 1)
+            }
+        }
+        if (isCompressed() && depth != 1) {
             return -1;
+        }
 
-        if (isCompressed())
+        if (isCompressed()) {
             return (int) ((this == RGBA_DXT1 || this == RGB_DXT1 ? 8 : 16) * Math.ceil(width / 4f) * Math.ceil(height / 4f));
-        else
+        } else {
             return width * height * depth * getPrimitivesPerColor();
+        }
     }
 }

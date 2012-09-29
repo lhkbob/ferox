@@ -3,11 +3,12 @@ package com.ferox.renderer.impl.jogl;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 
-import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.FrameworkException;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.resource.Resource;
@@ -21,22 +22,22 @@ import com.ferox.resource.Resource;
 public class JoglContext extends OpenGLContext {
     private final JoglSurfaceFactory creator;
     private final GLContext context;
-    
+
     private RenderCapabilities cachedCaps;
-    
+
     // cleanup
     private List<Runnable> cleanupTasks;
-    
+
     // bound object state
     private boolean stateInitialized;
     private int activeTexture;
-    
+
     private int[] textures;
     private int[] boundTargets;
-    
+
     private int arrayVbo;
     private int elementVbo;
-    
+
     private int fbo;
 
     private int glslProgram;
@@ -52,23 +53,24 @@ public class JoglContext extends OpenGLContext {
      */
     public JoglContext(JoglSurfaceFactory factory, GLContext context, RendererProvider provider) {
         super(provider);
-        if (factory == null || context == null)
+        if (factory == null || context == null) {
             throw new NullPointerException("Factory and context cannot be null");
-        
+        }
+
         this.context = context;
         creator = factory;
         stateInitialized = false;
         cleanupTasks = new CopyOnWriteArrayList<Runnable>();
     }
-    
+
     private void initializedMaybe() {
         if (!stateInitialized) {
             RenderCapabilities caps = getRenderCapabilities();
-            
+
             int ffp = caps.getMaxFixedPipelineTextures();
             int frag = caps.getMaxFragmentShaderTextures();
             int vert = caps.getMaxVertexShaderTextures();
-            
+
             int maxTextures = Math.max(ffp, Math.max(frag, vert));
             textures = new int[maxTextures];
             boundTargets = new int[maxTextures];
@@ -95,46 +97,47 @@ public class JoglContext extends OpenGLContext {
      * @throws NullPointerException if task is null
      */
     public void queueCleanupTask(Runnable task) {
-        if (task == null)
+        if (task == null) {
             throw new NullPointerException("Task cannot be null");
+        }
         cleanupTasks.add(task);
     }
-    
+
     /**
      * @return The id of the GLSL program object currently in use
      */
     public int getGlslProgram() {
         return glslProgram;
     }
-    
+
     /**
      * @return The id of the VBO bound to the ARRAY_BUFFER target
      */
     public int getArrayVbo() {
         return arrayVbo;
     }
-    
+
     /**
      * @return The id of the VBO bound to the ELEMENT_ARRAY_BUFFER target
      */
     public int getElementVbo() {
         return elementVbo;
     }
-    
+
     /**
      * @return The active texture, index from 0
      */
     public int getActiveTexture() {
         return activeTexture;
     }
-    
+
     /**
      * @return The id of the currently bound framebuffer object
      */
     public int getFbo() {
         return fbo;
     }
-    
+
     /**
      * @param tex The 0-based texture unit to lookup
      * @return The id of the currently bound texture image
@@ -178,10 +181,10 @@ public class JoglContext extends OpenGLContext {
         initializedMaybe();
         if (vbo != arrayVbo) {
             arrayVbo = vbo;
-            gl.glBindBuffer(GL2GL3.GL_ARRAY_BUFFER, vbo);
+            gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo);
         }
     }
-    
+
     /**
      * Bind the given vbo to the ARRAY_BUFFER target.
      * 
@@ -192,7 +195,7 @@ public class JoglContext extends OpenGLContext {
         initializedMaybe();
         if (vbo != elementVbo) {
             elementVbo = vbo;
-            gl.glBindBuffer(GL2GL3.GL_ELEMENT_ARRAY_BUFFER, vbo);
+            gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, vbo);
         }
     }
 
@@ -207,7 +210,7 @@ public class JoglContext extends OpenGLContext {
         initializedMaybe();
         if (activeTexture != tex) {
             activeTexture = tex;
-            gl.glActiveTexture(GL2GL3.GL_TEXTURE0 + tex);
+            gl.glActiveTexture(GL.GL_TEXTURE0 + tex);
         }
     }
 
@@ -223,14 +226,14 @@ public class JoglContext extends OpenGLContext {
         initializedMaybe();
         int prevTarget = boundTargets[activeTexture];
         int prevTex = textures[activeTexture];
-        
+
         if (prevTex != texId) {
             if (prevTex != 0 && prevTarget != target) {
                 // unbind old texture
                 gl.glBindTexture(prevTarget, 0);
             }
             gl.glBindTexture(target, texId);
-            
+
             boundTargets[activeTexture] = target;
             textures[activeTexture] = texId;
         }
@@ -246,23 +249,23 @@ public class JoglContext extends OpenGLContext {
         initializedMaybe();
         if (fbo != fboId) {
             fbo = fboId;
-            gl.glBindFramebuffer(GL2GL3.GL_FRAMEBUFFER, fboId);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
         }
     }
-    
+
     /**
      * @return The GLContext wrapped by this JoglContext
      */
     public GLContext getGLContext() {
         return context;
     }
-    
+
     @Override
     public RenderCapabilities getRenderCapabilities() {
         if (cachedCaps == null) {
             cachedCaps = new JoglRenderCapabilities(context.getGL(), creator.getGLProfile(), creator.getCapabilityForceBits());
         }
-        
+
         return cachedCaps;
     }
 
@@ -274,11 +277,13 @@ public class JoglContext extends OpenGLContext {
     @Override
     public void makeCurrent() {
         int result = context.makeCurrent();
-        if (result == GLContext.CONTEXT_NOT_CURRENT)
+        if (result == GLContext.CONTEXT_NOT_CURRENT) {
             throw new FrameworkException("Unable to make context current");
-        
-        for (Runnable task: cleanupTasks)
+        }
+
+        for (Runnable task: cleanupTasks) {
             task.run();
+        }
     }
 
     @Override

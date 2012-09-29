@@ -25,16 +25,16 @@ import com.lhkbob.entreri.property.DoubleProperty;
 @Factory(AxisAlignedBoxProperty.Factory.class)
 public class AxisAlignedBoxProperty implements Property {
     private static final int REQUIRED_ELEMENTS = 6;
-    
+
     private DoubleDataStore data;
-    
+
     /**
      * Create a new AxisAlignedBoxProperty.
      */
     public AxisAlignedBoxProperty() {
         data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
-    
+
     /**
      * Get the axis aligned box of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
@@ -45,15 +45,16 @@ public class AxisAlignedBoxProperty implements Property {
      * @return result, or a new AxisAlignedBox if result was null
      */
     public AxisAlignedBox get(int index, AxisAlignedBox result) {
-        if (result == null)
+        if (result == null) {
             result = new AxisAlignedBox();
-        
+        }
+
         result.min.set(data.getArray(), index * REQUIRED_ELEMENTS);
         result.max.set(data.getArray(), index * REQUIRED_ELEMENTS + 3);
-        
+
         return result;
     }
-    
+
     /**
      * Copy the state of <tt>b</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -66,7 +67,7 @@ public class AxisAlignedBoxProperty implements Property {
         b.min.get(data.getArray(), index * REQUIRED_ELEMENTS);
         b.max.get(data.getArray(), index * REQUIRED_ELEMENTS + 3);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -76,7 +77,7 @@ public class AxisAlignedBoxProperty implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to AxisAlignedBoxProperty declarations,
      * to specify the minimum coordinate of the box.
@@ -100,7 +101,7 @@ public class AxisAlignedBoxProperty implements Property {
          */
         double z();
     }
-    
+
     /**
      * Attribute annotation to apply to AxisAlignedBoxProperty declarations,
      * to specify the maximum coordinate of the box.
@@ -124,7 +125,7 @@ public class AxisAlignedBoxProperty implements Property {
          */
         double z();
     }
-    
+
     /**
      * Default factory implementation for AxisAlignedBoxProperties, supports the
      * {@link DefaultMin} and {@link DefaultMax} annotations to specify the
@@ -134,22 +135,22 @@ public class AxisAlignedBoxProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<AxisAlignedBoxProperty> {
         private final AxisAlignedBox dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             dflt = new AxisAlignedBox();
-            
+
             if (attrs.hasAttribute(DefaultMin.class)) {
                 DefaultMin min = attrs.getAttribute(DefaultMin.class);
                 dflt.min.set(min.x(), min.y(), min.z());
             }
-            
+
             if (attrs.hasAttribute(DefaultMax.class)) {
                 DefaultMax max = attrs.getAttribute(DefaultMax.class);
                 dflt.min.set(max.x(), max.y(), max.z());
             }
         }
-        
+
         public Factory(@Const AxisAlignedBox v) {
             super(null);
             dflt = new AxisAlignedBox(v);

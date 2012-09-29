@@ -10,13 +10,13 @@ public class PointLightInfluence implements LightInfluence {
     private final Vector3 lightPos;
     private final Vector3 objectPos;
     private final double falloff;
-    
+
     public PointLightInfluence(@Const Matrix4 lightTransform, double falloff) {
         lightPos = new Vector3(lightTransform.m03, lightTransform.m13, lightTransform.m23);
         objectPos = new Vector3();
         this.falloff = falloff * falloff;
     }
-    
+
     @Override
     public boolean influences(@Const AxisAlignedBox bounds) {
         // center of aabb
@@ -25,15 +25,15 @@ public class PointLightInfluence implements LightInfluence {
         objectPos.sub(lightPos);
         // compute near extent in place
         objectPos.nearExtent(bounds, objectPos);
-        
+
         // make sure the bounds intersects with the bounding sphere centered
         // on the light with a radius equal to the falloff distance
-        
+
         // distance between lightPos and objectPos is distance of light
         // to closest point on the entity bounds
         return objectPos.distanceSquared(lightPos) <= falloff;
     }
-    
+
     public static LightInfluence.Factory<PointLight> factory() {
         return new LightInfluence.Factory<PointLight>() {
             @Override

@@ -25,7 +25,7 @@ public interface Context {
      *         non-null renderer (ignoring which renderer was selected first)
      */
     public boolean hasFixedFunctionRenderer();
-    
+
     /**
      * <p>
      * Return a GlslRenderer to render into the surface that is currently in

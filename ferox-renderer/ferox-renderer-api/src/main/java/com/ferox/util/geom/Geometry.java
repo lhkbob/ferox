@@ -24,7 +24,7 @@ public interface Geometry {
      * @return The bounds of the geometry in its local coordinate system
      */
     public @Const AxisAlignedBox getBounds();
-    
+
     /**
      * Return the polygon type that determines how consecutive vertex elements
      * or indices are converted into polygons.

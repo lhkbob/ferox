@@ -25,9 +25,9 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 public class Sphere {
     // we need a float PI since we're building float vertices
     private static final float PI = (float) Math.PI;
-    
+
     private Sphere() { }
-    
+
     /**
      * Create a new Sphere with the given radius, a resolution of 8, and a
      * StorageMode of IN_MEMORY.
@@ -81,7 +81,7 @@ public class Sphere {
     public static Geometry create(double radius, int res, StorageMode mode) {
         return new SphereImpl(radius, res, mode);
     }
-        
+
     private static class SphereImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
         // ordered in such a way as to not need indices
@@ -97,17 +97,20 @@ public class Sphere {
 
         public SphereImpl(double radius, int res, StorageMode mode) {
 
-            if (radius <= 0f)
+            if (radius <= 0f) {
                 throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
-            if (res < 4)
+            }
+            if (res < 4) {
                 throw new IllegalArgumentException("Invalid resolution, must be > 3, not: " + res);
-            if (mode == null)
+            }
+            if (mode == null) {
                 throw new NullPointerException("StorageMode cannot be null");
+            }
 
             int vertexCount = res * (res + 1);
 
             float[] xCoord = new float[res + 1];
-            float[] zCoord = new float[res + 1];        
+            float[] zCoord = new float[res + 1];
             float[] u = new float[res + 1];
 
             float xzAngle = 0;

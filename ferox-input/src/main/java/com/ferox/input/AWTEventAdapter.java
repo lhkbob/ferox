@@ -18,9 +18,9 @@ import com.ferox.input.MouseEvent.MouseButton;
  */
 public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.event.MouseListener, MouseMotionListener, MouseWheelListener {
     private Component component;
-    
+
     private final MouseKeyEventDispatcher dispatcher;
-    
+
     /**
      * Create a new AWTEventAdapter that will convert AWT events and dispatch
      * them to the given MouseKeyEventDispatcher.
@@ -28,12 +28,13 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
      * @param dispatcher The dispatcher to use
      */
     public AWTEventAdapter(MouseKeyEventDispatcher dispatcher) {
-        if (dispatcher == null)
+        if (dispatcher == null) {
             throw new NullPointerException("Dispatcher cannot be null");
-        
+        }
+
         this.dispatcher = dispatcher;
     }
-    
+
     /**
      * <p>
      * Attach the adapter to the given component. The adapter can only be
@@ -52,22 +53,24 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
      *             another component
      */
     public void attach(Component component) {
-        if (component == null)
+        if (component == null) {
             throw new NullPointerException("Component cannot be null");
-        
+        }
+
         synchronized(this) {
-            if (this.component != null)
+            if (this.component != null) {
                 throw new IllegalStateException("AWTEventAdapter already attached to another Component");
-            
+            }
+
             component.addKeyListener(this);
             component.addMouseListener(this);
             component.addMouseMotionListener(this);
             component.addMouseWheelListener(this);
-            
+
             this.component = component;
         }
     }
-    
+
     /**
      * Detach this adapter from the component it's currently attached to. If the
      * adapter is not attached to a component, nothing happens. After detaching,
@@ -80,14 +83,14 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
                 component.removeMouseListener(this);
                 component.removeMouseMotionListener(this);
                 component.removeMouseWheelListener(this);
-                
+
                 component = null;
             }
         }
     }
-    
+
     /* AWT event listener methods */
-    
+
     private KeyCode getKeyCode(java.awt.event.KeyEvent e) {
         switch(e.getKeyCode()) {
         case java.awt.event.KeyEvent.VK_ESCAPE: return KeyEvent.KeyCode.ESCAPE;
@@ -106,9 +109,9 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
         case java.awt.event.KeyEvent.VK_EQUALS: return KeyEvent.KeyCode.EQUALS;
         case java.awt.event.KeyEvent.VK_BACK_SPACE: return KeyEvent.KeyCode.BACK_SPACE;
         case java.awt.event.KeyEvent.VK_DELETE: return KeyEvent.KeyCode.DELETE;
-        
+
         case java.awt.event.KeyEvent.VK_SPACE: return KeyEvent.KeyCode.SPACE;
-        
+
         case java.awt.event.KeyEvent.VK_PAUSE: return KeyEvent.KeyCode.PAUSE;
         case java.awt.event.KeyEvent.VK_INSERT: return KeyEvent.KeyCode.INSERT;
 
@@ -121,7 +124,7 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
         case java.awt.event.KeyEvent.VK_LEFT: return KeyEvent.KeyCode.LEFT;
         case java.awt.event.KeyEvent.VK_RIGHT: return KeyEvent.KeyCode.RIGHT;
         case java.awt.event.KeyEvent.VK_DOWN: return KeyEvent.KeyCode.DOWN;
-        
+
         case java.awt.event.KeyEvent.VK_F1: return KeyEvent.KeyCode.F1;
         case java.awt.event.KeyEvent.VK_F2: return KeyEvent.KeyCode.F2;
         case java.awt.event.KeyEvent.VK_F3: return KeyEvent.KeyCode.F3;
@@ -134,7 +137,7 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
         case java.awt.event.KeyEvent.VK_F10: return KeyEvent.KeyCode.F10;
         case java.awt.event.KeyEvent.VK_F11: return KeyEvent.KeyCode.F11;
         case java.awt.event.KeyEvent.VK_F12: return KeyEvent.KeyCode.F12;
-        
+
         case java.awt.event.KeyEvent.VK_1: return KeyEvent.KeyCode.N1;
         case java.awt.event.KeyEvent.VK_2: return KeyEvent.KeyCode.N2;
         case java.awt.event.KeyEvent.VK_3: return KeyEvent.KeyCode.N3;
@@ -145,7 +148,7 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
         case java.awt.event.KeyEvent.VK_8: return KeyEvent.KeyCode.N8;
         case java.awt.event.KeyEvent.VK_9: return KeyEvent.KeyCode.N9;
         case java.awt.event.KeyEvent.VK_0: return KeyEvent.KeyCode.N0;
-        
+
         case java.awt.event.KeyEvent.VK_A: return KeyEvent.KeyCode.A;
         case java.awt.event.KeyEvent.VK_B: return KeyEvent.KeyCode.B;
         case java.awt.event.KeyEvent.VK_C: return KeyEvent.KeyCode.C;
@@ -192,40 +195,45 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
         case java.awt.event.KeyEvent.VK_DECIMAL: return KeyEvent.KeyCode.NUMPAD_DECIMAL;
         case java.awt.event.KeyEvent.VK_DIVIDE: return KeyEvent.KeyCode.NUMPAD_DIVIDE;
         case java.awt.event.KeyEvent.VK_MULTIPLY: return KeyEvent.KeyCode.NUMPAD_MULTIPLY;
-        
+
         case java.awt.event.KeyEvent.VK_ALT:
-            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT)
+            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT) {
                 return KeyEvent.KeyCode.RIGHT_ALT;
-            else
+            } else {
                 return KeyEvent.KeyCode.LEFT_ALT;
-        case java.awt.event.KeyEvent.VK_CONTROL: 
-            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT)
+            }
+        case java.awt.event.KeyEvent.VK_CONTROL:
+            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT) {
                 return KeyEvent.KeyCode.RIGHT_CONTROL;
-            else
+            } else {
                 return KeyEvent.KeyCode.LEFT_CONTROL;
-        case java.awt.event.KeyEvent.VK_SHIFT: 
-            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT)
+            }
+        case java.awt.event.KeyEvent.VK_SHIFT:
+            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT) {
                 return KeyEvent.KeyCode.RIGHT_SHIFT;
-            else
+            } else {
                 return KeyEvent.KeyCode.LEFT_SHIFT;
-        case java.awt.event.KeyEvent.VK_META: 
-            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT)
+            }
+        case java.awt.event.KeyEvent.VK_META:
+            if (e.getKeyLocation() == java.awt.event.KeyEvent.KEY_LOCATION_RIGHT) {
                 return KeyEvent.KeyCode.RIGHT_META;
-            else
+            } else {
                 return KeyEvent.KeyCode.LEFT_META;
-            
+            }
+
         default:
             return KeyEvent.KeyCode.UNKNOWN;
         }
     }
-    
+
     private char getCharacter(java.awt.event.KeyEvent e) {
-        if (e.getKeyChar() == java.awt.event.KeyEvent.CHAR_UNDEFINED)
+        if (e.getKeyChar() == java.awt.event.KeyEvent.CHAR_UNDEFINED) {
             return KeyEvent.CHAR_UNKNOWN;
-        else
+        } else {
             return e.getKeyChar();
+        }
     }
-    
+
     private MouseButton getButton(java.awt.event.MouseEvent e) {
         switch(e.getButton()) {
         case java.awt.event.MouseEvent.NOBUTTON:
@@ -240,14 +248,14 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
             throw new IllegalArgumentException("Unknown AWT button code");
         }
     }
-    
+
     private int getY(java.awt.event.MouseEvent e) {
         return component.getHeight() - e.getY();
     }
 
     @Override
     public void keyPressed(java.awt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(), 
+        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(),
                                       getKeyCode(e), getCharacter(e));
         dispatcher.dispatchEvent(event);
     }
@@ -281,14 +289,14 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(),
                                           e.getX(), getY(e), 0, getButton(e));
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(),
                                           e.getX(), getY(e), 0, getButton(e));
         dispatcher.dispatchEvent(event);
     }
@@ -302,14 +310,14 @@ public class AWTEventAdapter implements java.awt.event.KeyListener, java.awt.eve
 
     @Override
     public void mouseMoved(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(),
                                           e.getX(), getY(e), 0, MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }
-    
+
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(),
                                           e.getX(), getY(e), e.getWheelRotation(), MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }

@@ -52,7 +52,7 @@ public class VertexBufferObject extends Resource {
          */
         GPU_STATIC
     }
-    
+
     private BufferData data;
     private StorageMode storageMode;
     private final BulkChangeQueue<DataRange> changeQueue;
@@ -78,14 +78,15 @@ public class VertexBufferObject extends Resource {
      * @throws NullPointerException if any argument is null
      */
     public VertexBufferObject(BufferData data, StorageMode storageMode) {
-        if (storageMode == null)
+        if (storageMode == null) {
             throw new NullPointerException("StorageMode cannot be null");
+        }
         this.storageMode = storageMode;
         changeQueue = new BulkChangeQueue<DataRange>();
-        
+
         setData(data);
     }
-    
+
     /**
      * @return The underlying BufferData for this VertexBufferObject
      */
@@ -108,8 +109,9 @@ public class VertexBufferObject extends Resource {
      * @throws NullPointerException if mode is null
      */
     public synchronized void setStorageMode(StorageMode mode) {
-        if (mode == null)
+        if (mode == null) {
             throw new NullPointerException("StorageMode cannot be null");
+        }
         storageMode = mode;
     }
 
@@ -124,9 +126,10 @@ public class VertexBufferObject extends Resource {
      * @throws NullPointerException if data is null
      */
     public synchronized int setData(BufferData data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("BufferData cannot be null");
-        
+        }
+
         this.data = data;
         changeQueue.clear();
         return markDirty(0, data.getLength());

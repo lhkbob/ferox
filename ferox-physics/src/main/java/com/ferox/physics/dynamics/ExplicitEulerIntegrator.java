@@ -13,7 +13,7 @@ public class ExplicitEulerIntegrator implements Integrator {
     private final Vector3 tempv = new Vector3();
     private final Quat4 tempq1 = new Quat4();
     private final Quat4 tempq2 = new Quat4();
-    
+
     @Override
     public void integrateLinearAcceleration(@Const Vector3 a, double dt, Vector3 velocity) {
         integrateVector(a, dt, velocity);
@@ -24,7 +24,7 @@ public class ExplicitEulerIntegrator implements Integrator {
         integrateVector(a, dt, angularVelocity);
         applyDamping(angularVelocity, dt, ANGULAR_VELOCITY_DAMPING);
     }
-    
+
     private void applyDamping(Vector3 v, double dt, double damping) {
         v.scale(Math.pow(1.0 - damping, dt));
     }
@@ -48,15 +48,16 @@ public class ExplicitEulerIntegrator implements Integrator {
         } else {
             axis.set(v); // don't need to clamp so just set axis to angular velocity
         }
-        
+
         // angular velocity uses the exponential map method
         // "Practical Parameterization of Rotations Using the Exponential Map", F. Sebastian Grassia
 
         // limit the angular motion - but update the velocity vector
         double fAngle = angvel;
-        if (angvel * dt > ANGULAR_MOTION_THRESHOLD)
+        if (angvel * dt > ANGULAR_MOTION_THRESHOLD) {
             fAngle = ANGULAR_MOTION_THRESHOLD / dt;
-        
+        }
+
         if (fAngle < .001) {
             // use Taylor's expansions of sync function
             axis.scale((.5 * dt) - (dt * dt * dt) * (.02083333333333 * fAngle * fAngle));
@@ -64,17 +65,18 @@ public class ExplicitEulerIntegrator implements Integrator {
             // sync(fAngle) = sin(c * fAngle) / t
             axis.scale(Math.sin(.5 * fAngle * dt) / fAngle);
         }
-        
+
         Quat4 newRot = tempq1.set(axis.x, axis.y, axis.z, Math.cos(.5 * fAngle * dt));
         Quat4 oldRot = tempq2.set(orientation);
         newRot.mul(oldRot).normalize();
-        
+
         orientation.set(newRot);
     }
-    
+
     private void integrateVector(@Const Vector3 deriv, double dt, Vector3 func) {
-        if (deriv == null || func == null)
+        if (deriv == null || func == null) {
             throw new NullPointerException("Arguments cannot be null");
+        }
         func.add(tempv.scale(deriv, dt));
     }
 }

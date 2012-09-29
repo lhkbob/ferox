@@ -43,12 +43,12 @@ public class InputManager {
     private InputState lastState;
     private InputState lastProcessedState;
     private final Queue<InputState> stateQueue;
-    
+
     private final InternalListener listener; // also acts as synchronization lock
     private final List<PredicatedAction> triggers;
-    
+
     private MouseKeyEventSource source;
-    
+
     /**
      * Create a new InputManager that is not attached to any
      * MouseKeyEventSource, and must be attached before it can process any
@@ -58,12 +58,12 @@ public class InputManager {
     public InputManager() {
         stateQueue = new ArrayDeque<InputState>();
         triggers = new ArrayList<PredicatedAction>();
-        
+
         listener = new InternalListener();
         lastState = new InputState();
         lastProcessedState = lastState;
     }
-    
+
     /**
      * <p>
      * Attach the InputManager to the given MouseKeyEventSource. The manager can
@@ -81,20 +81,22 @@ public class InputManager {
      *             another component
      */
     public void attach(MouseKeyEventSource source) {
-        if (source == null)
+        if (source == null) {
             throw new NullPointerException("Source cannot be null");
-        
+        }
+
         synchronized(this) {
-            if (this.source != null)
+            if (this.source != null) {
                 throw new IllegalStateException("InputManager already attached to another event source");
-            
+            }
+
             source.addKeyListener(listener);
             source.addMouseListener(listener);
-            
+
             this.source = source;
         }
     }
-    
+
     /**
      * Detach this InputManager from the event source it's currently attached
      * to. If the adapter is not attached to a component, nothing happens. After
@@ -106,19 +108,19 @@ public class InputManager {
             if (source != null) {
                 source.removeKeyListener(listener);
                 source.removeMouseListener(listener);
-                
+
                 source = null;
             }
         }
     }
-    
+
     /**
      * @return The event source this manager is attached to or null
      */
     public MouseKeyEventSource getEventSource() {
         return source;
     }
-    
+
     /**
      * <p>
      * Begin registering a new action with this InputManager that will be
@@ -136,7 +138,7 @@ public class InputManager {
     public ActionBuilder on(Predicate predicate) {
         return new ActionBuilderImpl(predicate);
     }
-    
+
     /**
      * Remove or unregister the given action from this manager. If the action
      * was registered with multiple predicates, all occurrences of it will be
@@ -147,9 +149,10 @@ public class InputManager {
      * @throws NullPointerException if trigger is null
      */
     public void removeAction(Action trigger) {
-        if (trigger == null)
+        if (trigger == null) {
             throw new NullPointerException("Action cannot be null");
-        
+        }
+
         synchronized(listener) {
             Iterator<PredicatedAction> it = triggers.iterator();
             while(it.hasNext()) {
@@ -160,7 +163,7 @@ public class InputManager {
             }
         }
     }
-    
+
     /**
      * Process all events that have been accumulated since the last call to
      * {@link #process()} and run all actions that are triggered based on their
@@ -181,16 +184,17 @@ public class InputManager {
 
     private void processTriggers(InputState prev, InputState next) {
         int ct = triggers.size();
-        for (int i = 0; i < ct; i++)
+        for (int i = 0; i < ct; i++) {
             triggers.get(i).apply(prev, next);
+        }
     }
-    
+
     // caller must be synchronized on event listener
     private void advanceState(InputState next) {
         lastState = next;
         stateQueue.add(next);
     }
-    
+
     /*
      * Internal class used to listen for events to prevent InputManager being
      * used as a listener directly. It is also the monitor used by each manager.
@@ -210,45 +214,48 @@ public class InputManager {
             }
         }
     }
-    
+
     /*
      * Internal ActionBuilder implementation
      */
     private class ActionBuilderImpl implements ActionBuilder {
         Predicate condition;
-        
+
         public ActionBuilderImpl(Predicate base) {
-            if (base == null)
+            if (base == null) {
                 throw new NullPointerException("Predicate cannot be null");
+            }
             condition = base;
         }
-        
+
         @Override
         public void trigger(Action action) {
-            if (action == null)
+            if (action == null) {
                 throw new NullPointerException("Action cannot be null");
-            
+            }
+
             synchronized(listener) {
                 triggers.add(new PredicatedAction(action, condition));
             }
         }
     }
-    
+
     /*
      * Simple pair between an action and its triggering predicate
      */
     private static class PredicatedAction {
         final Action trigger;
         final Predicate condition;
-        
+
         public PredicatedAction(Action trigger, Predicate condition) {
             this.trigger = trigger;
             this.condition = condition;
         }
-        
+
         public void apply(InputState prev, InputState next) {
-            if (condition.apply(prev, next))
+            if (condition.apply(prev, next)) {
                 trigger.perform(prev, next);
+            }
         }
     }
 }

@@ -30,9 +30,10 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
      * @throws NullPointerException if framework is null
      */
     public HardwareAccessLayerImpl(AbstractFramework framework) {
-        if (framework == null)
+        if (framework == null) {
             throw new NullPointerException("Framework cannot be null");
-        
+        }
+
         this.framework = framework;
     }
 
@@ -41,24 +42,27 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         // Special handling for TextureSurface
         if (surface instanceof TextureSurface) {
             TextureSurface ts = (TextureSurface) surface;
-            if (ts.getTarget() == Target.T_3D)
+            if (ts.getTarget() == Target.T_3D) {
                 return setActiveSurface(ts, ts.getActiveDepthPlane());
-            else if (ts.getTarget() == Target.T_CUBEMAP)
+            } else if (ts.getTarget() == Target.T_CUBEMAP) {
                 return setActiveSurface(ts, ts.getActiveLayer());
-            else
+            } else {
                 return setActiveSurface(ts, 0);
+            }
         }
-        
+
         // Validate the Framework of the surface, we don't check destroyed
         // since that will be handled by the ContextManager
-        if (surface != null && framework != surface.getFramework())
+        if (surface != null && framework != surface.getFramework()) {
             throw new IllegalArgumentException("Surface is not owned by the current Framework");
-        
+        }
+
         // Since this isn't a TextureSurface, there is no need to validate
         // the layer and we just use 0.
         OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, 0);
-        if (context == null)
+        if (context == null) {
             return null;
+        }
         return new ContextImpl(context, (AbstractSurface) surface);
     }
 
@@ -67,8 +71,9 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         if (surface != null) {
             // Validate the Framework of the surface, we don't check destroyed
             // since that will be handled by the ContextManager
-            if (framework != surface.getFramework())
+            if (framework != surface.getFramework()) {
                 throw new IllegalArgumentException("Surface is not owned by the current Framework");
+            }
 
             // Validate the layer argument
             int maxLayer;
@@ -78,13 +83,15 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             default: maxLayer = 1; break;
             }
 
-            if (layer >= maxLayer || layer < 0)
+            if (layer >= maxLayer || layer < 0) {
                 throw new IllegalArgumentException("Layer is out of range, must be in [0, " + maxLayer + "), not: " + layer);
+            }
         }
-        
+
         OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, layer);
-        if (context == null)
+        if (context == null) {
             return null;
+        }
         return new ContextImpl(context, (AbstractSurface) surface);
     }
 
@@ -104,13 +111,13 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     public <R extends Resource> void reset(R resource) {
         framework.getResourceManager().reset(resource);
     }
-    
+
     private class ContextImpl implements Context {
         private final OpenGLContext context;
         private final AbstractSurface surface;
-        
+
         private Renderer selectedRenderer;
-        
+
         public ContextImpl(OpenGLContext context, AbstractSurface surface) {
             this.context = context;
             this.surface = surface;
@@ -121,17 +128,19 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             if (selectedRenderer == null) {
                 // need to select a renderer
                 selectedRenderer = context.getRendererProvider().getGlslRenderer(context.getRenderCapabilities());
-                
+
                 if (selectedRenderer != null) {
                     // have selected a GlslRenderer to use
                     selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
                 }
             }
-            
-            if (selectedRenderer instanceof FixedFunctionRenderer)
+
+            if (selectedRenderer instanceof FixedFunctionRenderer) {
                 throw new IllegalStateException("FixedFunctionRenderer already selected");
-            else
+            }
+            else {
                 return (GlslRenderer) selectedRenderer; // may be null
+            }
         }
 
         @Override
@@ -139,17 +148,19 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             if (selectedRenderer == null) {
                 // need to select a renderer
                 selectedRenderer = context.getRendererProvider().getFixedFunctionRenderer(context.getRenderCapabilities());
-                
+
                 if (selectedRenderer != null) {
                     // have selected a FixedFunctionRenderer to use
                     selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
                 }
             }
-            
-            if (selectedRenderer instanceof GlslRenderer)
+
+            if (selectedRenderer instanceof GlslRenderer) {
                 throw new IllegalStateException("GlslRenderer already selected");
-            else
+            }
+            else {
                 return (FixedFunctionRenderer) selectedRenderer; // may be null
+            }
         }
 
         @Override

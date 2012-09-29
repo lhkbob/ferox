@@ -45,7 +45,7 @@ public class Mipmap {
     private final int width;
     private final int height;
     private final int depth;
-    
+
     private final DataType dataType;
     private final TextureFormat format;
 
@@ -72,18 +72,20 @@ public class Mipmap {
      *             compatible, or if the dimensions are invalid
      */
     public Mipmap(DataType dataType, boolean mipmap, int width, int height, int depth, TextureFormat format) {
-        if (format == null)
+        if (format == null) {
             throw new NullPointerException("Format cannot be null");
-        if (!format.isTypeValid(dataType))
+        }
+        if (!format.isTypeValid(dataType)) {
             throw new IllegalArgumentException("Data type is not supported by desired TextureFormat: " + dataType + " " + format);
-        
+        }
+
         int mipCount = getMipmapCount(width, height, depth);
         this.dataType = dataType;
         this.format = format;
         this.width = width;
         this.height = height;
         this.depth = depth;
-        
+
         levels = new BufferData[mipmap ? mipCount : 1];
         for (int i = 0; i < levels.length; i++) {
             levels[i] = new BufferData(dataType, format.getBufferSize(width, height, depth));
@@ -141,25 +143,28 @@ public class Mipmap {
      *             determined
      */
     public Mipmap(BufferData[] levels, int width, int height, int depth, TextureFormat format) {
-        if (levels == null)
+        if (levels == null) {
             throw new NullPointerException("BufferData levels cannot be a null array");
-        if (format == null)
+        }
+        if (format == null) {
             throw new NullPointerException("TextureFormat cannot be null");
-        
+        }
+
         int mipmapCount = getMipmapCount(width, height, depth);
-        if (levels.length != 1 && levels.length != mipmapCount)
+        if (levels.length != 1 && levels.length != mipmapCount) {
             throw new IllegalArgumentException("The number of levels must be 1, or the expected number of levels (" + mipmapCount + "), and not " + levels.length);
-        
+        }
+
         dataType = validate(levels, width, height, depth, format);
         this.levels = Arrays.copyOf(levels, levels.length); // defensive copy
-        
+
         this.width = width;
         this.height = height;
         this.depth = depth;
-        
+
         this.format = format;
     }
-    
+
     /**
      * @return True if this Mipmap has a complete set of mipmaps, or false if it
      *         only provides the root layer
@@ -203,17 +208,21 @@ public class Mipmap {
      *             the incorrect type, or is not direct
      */
     public void setData(int level, BufferData data) {
-        if (level < 0 || level >= levels.length)
+        if (level < 0 || level >= levels.length) {
             throw new IndexOutOfBoundsException("Mipmap level is invalid, must be in [0, " + (levels.length - 1) + "], not " + level);
-        if (data == null)
+        }
+        if (data == null) {
             throw new NullPointerException("BufferData cannot be null");
-        
-        if (dataType != data.getDataType())
+        }
+
+        if (dataType != data.getDataType()) {
             throw new IllegalArgumentException("Buffer was expected to be a " + dataType + ", but was a " + data.getClass());
+        }
         int reqCap = format.getBufferSize(getWidth(level), getHeight(level), getDepth(level));
-        if (data.getLength() != reqCap)
+        if (data.getLength() != reqCap) {
             throw new IllegalArgumentException("Buffer does not have the correct capacity, expected to be " + reqCap + ", but was " + data.getLength());
-        
+        }
+
         levels[level] = data;
     }
 
@@ -225,11 +234,12 @@ public class Mipmap {
      *             {@link #getNumMipmaps()}
      */
     public int getWidth(int level) {
-        if (level < 0 || level >= levels.length)
+        if (level < 0 || level >= levels.length) {
             throw new IndexOutOfBoundsException("Mipmap level is invalid, must be in [0, " + (levels.length - 1) + "], not " + level);
+        }
         return Math.max(width >> level, 1);
     }
-    
+
     /**
      * @param level The mipmap level
      * @return The height of the mipmap at the given level. getHeight(0) is the
@@ -238,11 +248,12 @@ public class Mipmap {
      *             {@link #getNumMipmaps()}
      */
     public int getHeight(int level) {
-        if (level < 0 || level >= levels.length)
+        if (level < 0 || level >= levels.length) {
             throw new IndexOutOfBoundsException("Mipmap level is invalid, must be in [0, " + (levels.length - 1) + "], not " + level);
+        }
         return Math.max(height >> level, 1);
     }
-    
+
     /**
      * @param level The mipmap level
      * @return The depth of the mipmap at the given level. getDepth(0) is the
@@ -251,8 +262,9 @@ public class Mipmap {
      *             {@link #getNumMipmaps()}
      */
     public int getDepth(int level) {
-        if (level < 0 || level >= levels.length)
+        if (level < 0 || level >= levels.length) {
             throw new IndexOutOfBoundsException("Mipmap level is invalid, must be in [0, " + (levels.length - 1) + "], not " + level);
+        }
         return Math.max(depth >> level, 1);
     }
 
@@ -262,7 +274,7 @@ public class Mipmap {
     public DataType getDataType() {
         return dataType;
     }
-    
+
     /**
      * @return The TextureFormat of all the pixel data within this Mipmap
      */
@@ -286,39 +298,45 @@ public class Mipmap {
      * @throws IllegalArgumentException if any dimensions is < 1
      */
     public static int getMipmapCount(int width, int height, int depth) {
-        if (width <= 0 || height <= 0 || depth <= 0)
+        if (width <= 0 || height <= 0 || depth <= 0) {
             throw new IllegalArgumentException("Dimensions must all be at least 1: " + width + " x " + height + " x " + depth);
+        }
         int max = Math.max(width, Math.max(height, depth));
         return (int) Math.floor(Math.log(max) / Math.log(2)) + 1;
     }
-    
+
     // internal method used to verify that every non-null BufferData is the correct size for its level
     // that it matches the required data type, and that all levels have the same type
     private DataType validate(BufferData[] levels, int width, int height, int depth, TextureFormat format) {
         DataType type = format.getSupportedType();
-        
+
         for (int i = 0; i < levels.length; i++) {
             if (levels[i] != null) {
-                if (type == null)
+                if (type == null) {
                     type = levels[i].getDataType();
-                
-                if (type != levels[i].getDataType())
+                }
+
+                if (type != levels[i].getDataType()) {
                     throw new IllegalArgumentException("Buffer data at level " + i + " does not match expected type of " + type + ", but was " + levels[i].getDataType());
+                }
                 int expectedSize = format.getBufferSize(width, height, depth);
-                if (expectedSize != levels[i].getLength())
+                if (expectedSize != levels[i].getLength()) {
                     throw new IllegalArgumentException("Buffer data at level " + i + " does not have expected capacity of " + expectedSize + ", but was " + levels[i].getLength());
-            } else
+                }
+            } else {
                 throw new NullPointerException("BufferData cannot be null");
+            }
             width = Math.max(width >> 1, 1);
             height = Math.max(height >> 1, 1);
             depth = Math.max(depth >> 1, 1);
         }
-        
+
         // this will only be null if every level was null and the provided format
-        // can support any data type (this situation should be used with the other 
+        // can support any data type (this situation should be used with the other
         // constructor anyway)
-        if (type == null)
+        if (type == null) {
             throw new IllegalArgumentException("Required Buffer type is indeterminate with provided arguments");
+        }
         return type;
     }
 }

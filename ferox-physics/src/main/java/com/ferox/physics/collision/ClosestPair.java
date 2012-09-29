@@ -33,8 +33,9 @@ public class ClosestPair {
      * @throws NullPointerException if pointOnA or contactNormal are null
      */
     public ClosestPair(Vector3 pointOnA, Vector3 contactNormal, double distance) {
-        if (pointOnA == null || contactNormal == null)
+        if (pointOnA == null || contactNormal == null) {
             throw new NullPointerException("Input cannot be null");
+        }
         this.distance = distance;
 
         contactNormalFromA = contactNormal;
@@ -98,7 +99,7 @@ public class ClosestPair {
     public boolean isIntersecting() {
         return distance <= .00001;
     }
-    
+
     @Override
     public String toString() {
         return "Pair(normal: " + contactNormalFromA + ", a: " + closestPointOnA + ", b: " + closestPointOnB + ", dist: " + distance + ")";

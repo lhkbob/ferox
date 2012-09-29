@@ -24,18 +24,19 @@ public abstract class OpenGLContext {
      * @throws NullPointerException if provider is null
      */
     public OpenGLContext(RendererProvider provider) {
-        if (provider == null)
+        if (provider == null) {
             throw new NullPointerException("RendererProvider cannot be null");
+        }
         rendererProvider = provider;
     }
-    
+
     /**
      * @return The RendererProvider for this context
      */
     public RendererProvider getRendererProvider() {
         return rendererProvider;
     }
-    
+
     /**
      * <p>
      * Determine the RenderCapabilities of the current context. Since a

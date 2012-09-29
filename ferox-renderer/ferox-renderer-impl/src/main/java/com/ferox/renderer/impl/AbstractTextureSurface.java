@@ -22,73 +22,75 @@ import com.ferox.resource.TextureFormat;
 public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
     private volatile int activeLayer;
     private volatile int activeDepth;
-    
+
     private final Texture[] colorTextures;
     private final Texture depthTexture;
-    
+
     private final TextureSurfaceOptions options;
-    
+
     private final Object[] colorLocks;
     private Object depthLock;
-    
+
     public AbstractTextureSurface(AbstractFramework framework, TextureSurfaceOptions options) {
         super(framework);
-        if (options == null)
+        if (options == null) {
             options = new TextureSurfaceOptions();
-        
+        }
+
         RenderCapabilities caps = framework.getCapabilities();
         options = validateFormat(options, caps);
         options = validateDimensions(options, caps);
-        
+
         colorTextures = createColorTextures(this, options);
         depthTexture = createDepthTexture(this, options);
-        
+
         this.options = options;
         activeLayer = options.getActiveLayer();
         activeDepth = options.getActiveDepthPlane();
-        
+
         colorLocks = new Object[colorTextures.length];
         depthLock = null;
-        
+
         updateTextures(colorTextures, depthTexture, framework);
     }
-    
+
     protected Object getColorHandle(int i) {
         return colorLocks[i];
     }
-    
+
     protected Object getDepthHandle() {
         return depthLock;
     }
-    
+
     @Override
     public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
         super.onSurfaceActivate(context, activeLayer);
-        
+
         // lock all used textures completely so that even if they aren't
         // mutated/read by another surface when being rendered into
         ResourceManager manager = getFramework().getResourceManager();
         for (int i = 0; i < colorLocks.length; i++) {
             colorLocks[i] = manager.lockExclusively(colorTextures[i]);
         }
-        
-        if (depthTexture != null)
+
+        if (depthTexture != null) {
             depthLock = manager.lockExclusively(depthTexture);
-        else
+        } else {
             depthLock = null;
+        }
     }
-    
+
     @Override
     public void onSurfaceDeactivate(OpenGLContext context) {
         super.onSurfaceDeactivate(context);
-        
+
         // unlock all held locks in reverse order they were acquired
         ResourceManager manager = getFramework().getResourceManager();
         if (depthLock != null) {
             manager.unlockExclusively(depthTexture);
             depthLock = null;
         }
-        
+
         for (int i = colorLocks.length - 1; i >= 0; i--) {
             if (colorLocks[i] != null) {
                 manager.unlockExclusively(colorTextures[i]);
@@ -96,7 +98,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             }
         }
     }
-    
+
     @Override
     public TextureSurfaceOptions getOptions() {
         return options;
@@ -134,15 +136,17 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
 
     @Override
     public void setActiveDepthPlane(int depth) {
-        if (depth < 0 || depth >= getDepth())
+        if (depth < 0 || depth >= getDepth()) {
             throw new IllegalArgumentException("Active depth is invalid: " + depth);
+        }
         activeDepth = depth;
     }
 
     @Override
     public void setActiveLayer(int layer) {
-        if (layer < 0 || layer >= getNumLayers())
+        if (layer < 0 || layer >= getNumLayers()) {
             throw new IllegalArgumentException("Active layer is invalid: " + layer);
+        }
         activeLayer = layer;
     }
 
@@ -155,7 +159,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     public int getWidth() {
         return options.getWidth();
     }
-    
+
     @Override
     public int getDepth() {
         return options.getDepth();
@@ -163,39 +167,44 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
 
     @Override
     public int getNumLayers() {
-        if (getTarget() == Target.T_CUBEMAP)
+        if (getTarget() == Target.T_CUBEMAP) {
             return 6;
-        else
+        } else {
             return 1;
+        }
     }
-    
+
     /*
      * Internal validation and option-modifications
      */
-    
+
     private static TextureSurfaceOptions validateFormat(TextureSurfaceOptions options, RenderCapabilities caps) {
         int numBuffers = Math.min(caps.getMaxColorBuffers(), options.getNumColorBuffers());
-        
+
         TextureFormat[] formats = new TextureFormat[numBuffers];
         for (int i = 0; i < formats.length; i++) {
             formats[i] = options.getColorBufferFormat(i);
-            if (formats[i].isCompressed())
+            if (formats[i].isCompressed()) {
                 throw new SurfaceCreationException("Cannot create a TextureSurface using a compressed format: " + formats[i]);
-            
-            if (!caps.getUnclampedFloatTextureSupport() && 
-                (formats[i] == TextureFormat.RGB_FLOAT || formats[i] == TextureFormat.RGBA_FLOAT))
+            }
+
+            if (!caps.getUnclampedFloatTextureSupport() &&
+                    (formats[i] == TextureFormat.RGB_FLOAT || formats[i] == TextureFormat.RGBA_FLOAT)) {
                 formats[i] = (formats[i] == TextureFormat.RGB_FLOAT ? TextureFormat.RGB : TextureFormat.RGBA);
+            }
         }
-        
+
         // FIXME: update capabilities to encode support for depth cubemaps
         options = options.setColorBufferFormats(formats);
-        if (options.hasDepthTexture() && (options.getTarget() == Target.T_CUBEMAP || options.getTarget() == Target.T_3D))
+        if (options.hasDepthTexture() && (options.getTarget() == Target.T_CUBEMAP || options.getTarget() == Target.T_3D)) {
             options = options.setUseDepthTexture(false);
-        if (options.hasDepthTexture() && !caps.getDepthTextureSupport())
+        }
+        if (options.hasDepthTexture() && !caps.getDepthTextureSupport()) {
             options = options.setUseDepthTexture(false);
+        }
         return options;
     }
-    
+
     private static TextureSurfaceOptions validateDimensions(TextureSurfaceOptions options, RenderCapabilities caps) {
         // set unneeded dimensions to expected values for target
         switch(options.getTarget()) {
@@ -209,7 +218,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             options = options.setHeight(options.getWidth()).setDepth(1);
             break;
         }
-        
+
         if (!caps.getNpotTextureSupport()) {
             // make dimensions power of two's
             switch(options.getTarget()) {
@@ -238,25 +247,27 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             break;
         }
         maxDimension = Math.min(maxDimension, caps.getMaxTextureSurfaceSize());
-        
-        options = options.setWidth(Math.min(options.getWidth(), maxDimension))
-                         .setHeight(Math.min(options.getHeight(), maxDimension))
-                         .setDepth(Math.min(options.getDepth(), maxDimension));
 
-        if (options.getActiveDepthPlane() >= options.getDepth())
+        options = options.setWidth(Math.min(options.getWidth(), maxDimension))
+                .setHeight(Math.min(options.getHeight(), maxDimension))
+                .setDepth(Math.min(options.getDepth(), maxDimension));
+
+        if (options.getActiveDepthPlane() >= options.getDepth()) {
             options = options.setActiveDepthPlane(options.getDepth() - 1);
+        }
         if (options.getTarget() == Target.T_CUBEMAP) {
             // cube map has 6 layers
             options = options.setActiveLayer(Math.min(options.getActiveLayer(), 6));
-        } else
+        } else {
             options = options.setActiveLayer(0);
-        
+        }
+
         return options;
     }
-    
+
     private static Texture[] createColorTextures(AbstractTextureSurface owner, TextureSurfaceOptions options) {
         Texture[] colorTextures = new Texture[options.getNumColorBuffers()];
-        
+
         if (options.getTarget() == Target.T_CUBEMAP) {
             for (int i = 0; i < colorTextures.length; i++) {
                 Mipmap[] mips = new Mipmap[] { createMipmap(options.getColorBufferFormat(i), options),
@@ -268,36 +279,39 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
                 colorTextures[i] = new OwnedTexture(owner, options.getTarget(), mips);
             }
         } else {
-            for (int i = 0; i < colorTextures.length; i++)
-                colorTextures[i] = new OwnedTexture(owner, options.getTarget(), 
+            for (int i = 0; i < colorTextures.length; i++) {
+                colorTextures[i] = new OwnedTexture(owner, options.getTarget(),
                                                     new Mipmap[] { createMipmap(options.getColorBufferFormat(i), options) });
+            }
         }
-        
+
         return colorTextures;
     }
-        
+
     private static Mipmap createMipmap(TextureFormat format, TextureSurfaceOptions options) {
         DataType type = format.getSupportedType();
-        if (type == null)
+        if (type == null) {
             type = DataType.FLOAT;
+        }
         return new Mipmap(type, false, options.getWidth(), options.getHeight(), options.getDepth(), format);
     }
-    
+
     private static Texture createDepthTexture(AbstractTextureSurface owner, TextureSurfaceOptions options) {
         if (options.hasDepthTexture()) {
-            return new OwnedTexture(owner, options.getTarget(), 
+            return new OwnedTexture(owner, options.getTarget(),
                                     new Mipmap[] { createMipmap(TextureFormat.DEPTH, options) });
-        } else
+        } else {
             return null;
+        }
     }
-    
+
     private static void updateTextures(Texture[] color, Texture depth, AbstractFramework framework) {
         ContextManager contextManager = framework.getContextManager();
         if (contextManager.isContextThread()) {
             // Don't use the Framework methods since then we'll deadblock
             OpenGLContext context = contextManager.ensureContext();
             ResourceManager resourceManager = framework.getResourceManager();
-            
+
             for (int i = 0; i < color.length; i++) {
                 if (resourceManager.update(context, color[i]) != Status.READY) {
                     // Something went wrong, so we should fail
@@ -305,7 +319,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
                 }
             }
             if (depth != null) {
-                if (resourceManager.update(context, depth) != Status.READY){ 
+                if (resourceManager.update(context, depth) != Status.READY){
                     // Fail like before
                     throw new SurfaceCreationException("Requested options created an unsupported depth texture, cannot construct the TextureSurface");
                 }
@@ -319,21 +333,22 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
                 }
             }
             if (depth != null) {
-                if (framework.update(depth) != Status.READY){ 
+                if (framework.update(depth) != Status.READY){
                     // Fail like before
                     throw new SurfaceCreationException("Requested options created an unsupported depth texture, cannot construct the TextureSurface");
                 }
             }
         }
     }
-    
+
     private static int ceilPot(int num) {
         int pot = 1;
-        while (pot < num)
+        while (pot < num) {
             pot = pot << 1;
+        }
         return pot;
     }
-    
+
     /**
      * A Texture extension that overrides {@link #getOwner()} to return a non-null
      * TextureSurface.
@@ -342,16 +357,17 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
      */
     private static class OwnedTexture extends Texture {
         private TextureSurface owner;
-        
+
         public OwnedTexture(TextureSurface owner, Target target, Mipmap[] mipmaps) {
             super(target, mipmaps);
             this.owner = owner;
         }
-        
+
         @Override
         public synchronized TextureSurface getOwner() {
-            if (owner != null && owner.isDestroyed())
+            if (owner != null && owner.isDestroyed()) {
                 owner = null;
+            }
             return owner;
         }
     }

@@ -21,7 +21,7 @@ import com.lhkbob.entreri.Unmanaged;
  */
 public abstract class ColorComponent<T extends ColorComponent<T>> extends ComponentData<T> {
     private ColorRGBProperty color;
-    
+
     @Unmanaged
     private final ColorRGB cache = new ColorRGB();
 
@@ -50,13 +50,14 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
      */
     @SuppressWarnings("unchecked")
     public final T setColor(@Const ColorRGB color) {
-        if (color == null)
+        if (color == null) {
             throw new NullPointerException("Color cannot be null");
+        }
         cache.set(color);
         this.color.set(color, getIndex());
         return (T) this;
     }
-    
+
     @Override
     protected void onSet(int index) {
         color.get(index, cache);

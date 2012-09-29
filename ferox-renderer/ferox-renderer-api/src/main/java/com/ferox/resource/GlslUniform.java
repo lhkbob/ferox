@@ -19,12 +19,12 @@ public class GlslUniform {
         FLOAT_MAT2(4), FLOAT_MAT3(9), FLOAT_MAT4(16),
 
         INT(1), INT_VEC2(2), INT_VEC3(3), INT_VEC4(4),
-        
+
         TEXTURE_1D(1), TEXTURE_2D(1), TEXTURE_3D(1), TEXTURE_CUBEMAP(1), SHADOW_MAP(1),
-        
+
         BOOL(1),
         UNSUPPORTED(0);
-        
+
         private final int primCount;
         private UniformType(int primCount) { this.primCount = primCount; }
 
@@ -32,19 +32,22 @@ public class GlslUniform {
             return primCount;
         }
     }
-    
+
     private final UniformType type;
     private final int length;
     private final String name;
 
     public GlslUniform(String name, UniformType type, int length) {
-        if (name == null)
+        if (name == null) {
             throw new NullPointerException("Cannot specify a null name");
-        if (type == null)
+        }
+        if (type == null) {
             throw new NullPointerException("Cannot specify a null uniform type");
+        }
 
-        if (length < 1)
+        if (length < 1) {
             throw new IllegalArgumentException("Cannot specify length < 1: " + length);
+        }
 
         this.name = name;
         this.type = type;
@@ -80,11 +83,11 @@ public class GlslUniform {
     public String getName() {
         return name;
     }
-    
+
     public boolean isReserved() {
         return name.startsWith("gl_");
     }
-    
+
     public boolean isArray() {
         return length > 1;
     }

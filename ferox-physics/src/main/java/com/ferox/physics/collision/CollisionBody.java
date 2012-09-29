@@ -41,33 +41,33 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * ids are limited to be between 0 and 63.
      */
     public static final int MAX_GROUPS = 64;
-    
+
     /**
      * TypeId for CollisionBody's.
      */
     public static final TypeId<CollisionBody> ID = TypeId.get(CollisionBody.class);
-    
+
     @DefaultMatrix4(m00=1.0, m01=0.0, m02=0.0, m03=0.0,
-                    m10=0.0, m11=1.0, m12=0.0, m13=0.0,
-                    m20=0.0, m21=0.0, m22=1.0, m23=0.0,
-                    m30=0.0, m31=0.0, m32=0.0, m33=1.0)
+            m10=0.0, m11=1.0, m12=0.0, m13=0.0,
+            m20=0.0, m21=0.0, m22=1.0, m23=0.0,
+            m30=0.0, m31=0.0, m32=0.0, m33=1.0)
     private Matrix4Property worldTransform;
-    
+
     private AxisAlignedBoxProperty worldBounds;
     private ObjectProperty<Shape> shape;
-    
+
     @DefaultDouble(0.0)
     private DoubleProperty restitution;
-    
+
     @DefaultDouble(0.5)
     private DoubleProperty friction;
-    
+
     @DefaultLong(1)
     private LongProperty collisionGroups;
-    
+
     @DefaultLong(1)
     private LongProperty collisionMask;
-    
+
     @Unmanaged private final AxisAlignedBox boundsCache = new AxisAlignedBox();
     @Unmanaged private final Matrix4 transformCache = new Matrix4();
 
@@ -94,8 +94,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @throws IllegalArgumentException if friction is less than 0
      */
     public CollisionBody setFriction(double friction) {
-        if (friction < 0.0)
+        if (friction < 0.0) {
             throw new IllegalArgumentException("Friction coefficient must be at least 0, not: " + friction);
+        }
         this.friction.set(friction, getIndex());
         return this;
     }
@@ -121,8 +122,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @throws IllegalArgumentException if restitution is less than 0
      */
     public CollisionBody setRestitution(double restitution) {
-        if (restitution < 0.0)
+        if (restitution < 0.0) {
             throw new IllegalArgumentException("Restitution coefficient must be at least 0, not: " + restitution);
+        }
         this.restitution.set(restitution, getIndex());
         return this;
     }
@@ -138,24 +140,26 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @throws NullPointerException if other is null
      */
     public boolean canCollide(CollisionBody other) {
-        if (other == null)
+        if (other == null) {
             throw new NullPointerException("Collidable cannot be null");
-        
+        }
+
         return isSet(collisionGroups.get(getIndex()), other.collisionMask.get(other.getIndex())) ||
-               isSet(other.collisionGroups.get(other.getIndex()), collisionMask.get(getIndex()));
+                isSet(other.collisionGroups.get(other.getIndex()), collisionMask.get(getIndex()));
     }
 
     private static boolean isSet(long groups, long mask) {
         return (groups & mask) != 0;
     }
-    
+
     private static long set(long groups, long group, boolean set) {
-        if (set)
+        if (set) {
             return groups | group;
-        else
+        } else {
             return groups & ~group;
+        }
     }
-    
+
     /**
      * Check if this CollisionBody is the member of the given integer group. All
      * CollisionBodies are in group 0 by default.
@@ -166,8 +170,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *             than MAX_GROUPS
      */
     public boolean isMemberOfGroup(int group) {
-        if (group < 0 || group >= MAX_GROUPS)
+        if (group < 0 || group >= MAX_GROUPS) {
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
+        }
         long groups = collisionGroups.get(getIndex());
         return isSet(groups, 1 << group);
     }
@@ -181,8 +186,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *             than MAX_GROUPS
      */
     public boolean canCollideWithGroup(int group) {
-        if (group < 0 || group >= MAX_GROUPS)
+        if (group < 0 || group >= MAX_GROUPS) {
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
+        }
         long mask = collisionMask.get(getIndex());
         return isSet(1 << group, mask);
     }
@@ -199,12 +205,13 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *             MAX_GROUPS
      */
     public CollisionBody setMemberOfGroup(int group, boolean member) {
-        if (group < 0 || group >= MAX_GROUPS)
+        if (group < 0 || group >= MAX_GROUPS) {
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
+        }
         collisionGroups.set(set(collisionGroups.get(getIndex()), 1 << group, member), getIndex());
         return this;
     }
-    
+
     /**
      * Set whether or not this CollisionBody can collide with the provided
      * group.
@@ -216,8 +223,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *             MAX_GROUPS
      */
     public CollisionBody setCollidesWithGroup(int group, boolean collide) {
-        if (group < 0 || group >= MAX_GROUPS)
+        if (group < 0 || group >= MAX_GROUPS) {
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
+        }
         collisionMask.set(set(collisionMask.get(getIndex()), 1 << group, collide), getIndex());
         return this;
     }
@@ -239,8 +247,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @throws NullPointerException if shape is null
      */
     public CollisionBody setShape(Shape shape) {
-        if (shape == null)
+        if (shape == null) {
             throw new NullPointerException("Shape cannot be null");
+        }
         this.shape.set(shape, getIndex());
         updateBounds();
         return this;
@@ -279,18 +288,18 @@ public class CollisionBody extends ComponentData<CollisionBody> {
     public @Const AxisAlignedBox getWorldBounds() {
         return boundsCache;
     }
-    
+
     private void updateBounds() {
         Shape shape = getShape();
         if (shape != null) {
-            // do the if check just to be nice, if someone calls the 
+            // do the if check just to be nice, if someone calls the
             // setTransform() before setShape(), we really don't want to throw
             // a weird exception
             boundsCache.transform(shape.getBounds(), getTransform());
             worldBounds.set(boundsCache, getIndex());
         }
     }
-    
+
     @Override
     protected void onSet(int index) {
         worldTransform.get(index, transformCache);

@@ -22,7 +22,7 @@ public class PaintDisabledCanvas extends Canvas {
     public void paint(Graphics g) {
         // do nothing, DO NOT call super.paint() since that invokes display
     }
-    
+
     @Override
     public Graphics getGraphics() {
         // Must return a bogus graphics object because things are painted once,

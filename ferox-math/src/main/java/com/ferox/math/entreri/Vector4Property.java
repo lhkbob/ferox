@@ -26,14 +26,14 @@ public class Vector4Property implements Property {
     private static final int REQUIRED_ELEMENTS = 4;
 
     private DoubleDataStore data;
-    
+
     /**
      * Create a new Vector4Property.
      */
     public Vector4Property() {
         data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
-    
+
     /**
      * Get the vector of this property, for the component at the given index,
      * and store it into <tt>result</tt>. If result is null, a new Vector3 is
@@ -44,13 +44,14 @@ public class Vector4Property implements Property {
      * @return result, or a new Vector4 if result was null
      */
     public Vector4 get(int index, Vector4 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector4();
-        
+        }
+
         result.set(data.getArray(), index * REQUIRED_ELEMENTS);
         return result;
     }
-    
+
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -62,7 +63,7 @@ public class Vector4Property implements Property {
     public void set(@Const Vector4 v, int index) {
         v.get(data.getArray(), index * REQUIRED_ELEMENTS);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -72,7 +73,7 @@ public class Vector4Property implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to Vector4Property declarations.
      * 
@@ -99,7 +100,7 @@ public class Vector4Property implements Property {
          */
         double w();
     }
-    
+
     /**
      * Default factory implementation for Vector4Properties, supports the
      * {@link DefaultVector4} annotation to specify the default vector
@@ -109,7 +110,7 @@ public class Vector4Property implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<Vector4Property> {
         private final Vector4 dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             if (attrs.hasAttribute(DefaultVector4.class)) {
@@ -119,7 +120,7 @@ public class Vector4Property implements Property {
                 dflt = new Vector4();
             }
         }
-        
+
         public Factory(@Const Vector4 v) {
             super(null);
             dflt = new Vector4(v);

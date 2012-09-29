@@ -47,7 +47,7 @@ public interface TextureSurface extends Surface {
      * @return The depth of the Textures of this TextureSurface
      */
     public int getDepth();
-    
+
     /**
      * @return The number of layers present in each of the Textures of this
      *         TextureSurface
@@ -67,7 +67,7 @@ public interface TextureSurface extends Surface {
      *         {@link HardwareAccessLayer#setActiveSurface(TextureSurface, int)}
      */
     public int getActiveDepthPlane();
-    
+
     /**
      * @return The options used to create this Surface. Any changes to the
      *         returned options will not be reflected by the Surface or future

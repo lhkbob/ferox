@@ -27,7 +27,7 @@ public class BufferData {
          * Each primitive is a 4-byte float, and is stored internally as a Java
          * float array (e.g. <code>float[]</code>).
          */
-        FLOAT(4), 
+        FLOAT(4),
         /**
          * <p>
          * Each primitive is an unsigned 4-byte integer and is stored internally
@@ -36,7 +36,7 @@ public class BufferData {
          * Although Java does not support unsigned ints, the GPU will interpret
          * the 32-bit int as unsigned, so values must be assigned appropriately.
          */
-        UNSIGNED_INT(4), 
+        UNSIGNED_INT(4),
         /**
          * <p>
          * Each primitive is an unsigned 2-byte integer and should be stored
@@ -46,7 +46,7 @@ public class BufferData {
          * interpret the 16-bit short as unsigned, so values must be assigned
          * appropriately.
          */
-        UNSIGNED_SHORT(2), 
+        UNSIGNED_SHORT(2),
         /**
          * <p>
          * Each primitive is an unsigned byte and should be stored internally as
@@ -56,25 +56,25 @@ public class BufferData {
          * the 8-bit byte as unsigned, so values must be assigned appropriately.
          */
         UNSIGNED_BYTE(1);
-        
+
         private final int byteCount;
         private DataType(int byteCount) { this.byteCount = byteCount; }
-        
+
         /**
          * @return The number of bytes used by each primitive
          */
         public int getByteCount() { return byteCount; }
     }
-    
+
     private Object data; // actually a primitive array, of different types
     private final int length;
     private final DataType type;
-    
+
     // key is an identity specifier that does not prevent the BufferData from
     // being GC'ed, so the Framework can store the keys instead of the actual
     // BufferData when it tracks a resource's state
     private final Object key = new Object();
-    
+
     /**
      * <p>
      * Create a BufferData that uses the given float[] as its data store. The
@@ -89,13 +89,14 @@ public class BufferData {
      * @throws NullPointerException if data is null
      */
     public BufferData(float[] data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("Array cannot be null");
+        }
         this.data = data;
         length = data.length;
         type = DataType.FLOAT;
     }
-    
+
     /**
      * <p>
      * Create a BufferData that uses the given int[] as its data store. The
@@ -110,13 +111,14 @@ public class BufferData {
      * @throws NullPointerException if data is null
      */
     public BufferData(int[] data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("Array cannot be null");
+        }
         this.data = data;
         length = data.length;
         type = DataType.UNSIGNED_INT;
     }
-    
+
     /**
      * <p>
      * Create a BufferData that uses the given short[] as its data store. The
@@ -131,13 +133,14 @@ public class BufferData {
      * @throws NullPointerException if data is null
      */
     public BufferData(short[] data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("Array cannot be null");
+        }
         this.data = data;
         length = data.length;
         type = DataType.UNSIGNED_SHORT;
     }
-    
+
     /**
      * <p>
      * Create a BufferData that uses the given byte[] as its data store. The
@@ -152,13 +155,14 @@ public class BufferData {
      * @throws NullPointerException if data is null
      */
     public BufferData(byte[] data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("Array cannot be null");
+        }
         this.data = data;
         length = data.length;
         type = DataType.UNSIGNED_BYTE;
     }
-    
+
     /**
      * <p>
      * Create a BufferData with a null internal array, but will be configured to
@@ -174,16 +178,18 @@ public class BufferData {
      * @throws IllegalArgumentException if length is less than 1
      */
     public BufferData(DataType type, int length) {
-        if (type == null)
+        if (type == null) {
             throw new NullPointerException("DataType cannot be null");
-        if (length < 1)
+        }
+        if (length < 1) {
             throw new IllegalArgumentException("Length must be at least 1, not: " + length);
-        
+        }
+
         this.length = length;
         this.type = type;
         data = null;
     }
-    
+
     /**
      * <p>
      * Get a simple object whose identity mirrors the reference identity of this
@@ -201,7 +207,7 @@ public class BufferData {
     public Object getKey() {
         return key;
     }
-    
+
     /**
      * Get the length or size of this BufferData. All arrays stored by this
      * buffer data will have this length. This allows BufferData to describe an
@@ -213,7 +219,7 @@ public class BufferData {
     public int getLength() {
         return length;
     }
-    
+
     /**
      * Get the data type of this BufferData. After creation, the data type
      * cannot be changed. This allows the BufferData to describe the data type
@@ -225,7 +231,7 @@ public class BufferData {
     public DataType getDataType() {
         return type;
     }
-    
+
     /**
      * <p>
      * Get the current data array that this BufferData wraps. If the returned
@@ -263,7 +269,7 @@ public class BufferData {
     public void setData(float[] data) {
         setData(data, (data == null ? length : data.length), DataType.FLOAT);
     }
-    
+
     /**
      * Set the data this BufferData wraps to the given array. The given array
      * must have a length equal to the value returned by {@link #getLength()}.
@@ -278,7 +284,7 @@ public class BufferData {
     public void setData(int[] data) {
         setData(data, (data == null ? length : data.length), DataType.UNSIGNED_INT);
     }
-    
+
     /**
      * Set the data this BufferData wraps to the given array. The given array
      * must have a length equal to the value returned by {@link #getLength()}.
@@ -293,7 +299,7 @@ public class BufferData {
     public void setData(short[] data) {
         setData(data, (data == null ? length : data.length), DataType.UNSIGNED_SHORT);
     }
-    
+
     /**
      * Set the data this BufferData wraps to the given array. The given array
      * must have a length equal to the value returned by {@link #getLength()}.
@@ -308,7 +314,7 @@ public class BufferData {
     public void setData(byte[] data) {
         setData(data, (data == null ? length : data.length), DataType.UNSIGNED_BYTE);
     }
-    
+
     private void setData(Object array, int arrayLength, DataType expectedType) {
         if (type != expectedType) {
             throw new IllegalStateException("BufferData's type is " + type + ", but " + expectedType + " is required");
@@ -316,7 +322,7 @@ public class BufferData {
         if (arrayLength != length) {
             throw new IllegalArgumentException("Incorrect array length, must be " + length + ", by is " + arrayLength);
         }
-        
+
         data = array;
     }
 }

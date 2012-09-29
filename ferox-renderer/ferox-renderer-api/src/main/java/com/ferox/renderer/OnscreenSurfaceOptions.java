@@ -92,18 +92,18 @@ public final class OnscreenSurfaceOptions {
          */
         UNKNOWN
     }
-    
+
     private final boolean undecorated;
     private final boolean resizable;
-    
+
     private final int width;
     private final int height;
-    
+
     private final int x;
     private final int y;
-    
+
     private final DisplayMode fullMode;
-    
+
     private final DepthFormat depth;
     private final MultiSampling aa;
     private final StencilFormat stencil;
@@ -125,25 +125,27 @@ public final class OnscreenSurfaceOptions {
      * </ul>
      */
     public OnscreenSurfaceOptions() {
-        this(DepthFormat.DEPTH_24BIT, MultiSampling.NONE, StencilFormat.NONE, 
+        this(DepthFormat.DEPTH_24BIT, MultiSampling.NONE, StencilFormat.NONE,
              false, false, 0, 0, 600, 600, null);
     }
-    
-    private OnscreenSurfaceOptions(DepthFormat d, MultiSampling a, StencilFormat s, 
-                                   boolean undecorated, boolean resizable, int x, int y, 
+
+    private OnscreenSurfaceOptions(DepthFormat d, MultiSampling a, StencilFormat s,
+                                   boolean undecorated, boolean resizable, int x, int y,
                                    int width, int height, DisplayMode ff) {
-        if (d == null || a == null || s == null)
+        if (d == null || a == null || s == null) {
             throw new NullPointerException("Format options cannot be null");
-        if (width < 1 || height < 1)
+        }
+        if (width < 1 || height < 1) {
             throw new IllegalArgumentException("Window dimensions must be at least 1");
-        
+        }
+
         this.undecorated = undecorated;
         this.resizable = resizable;
         this.width = width;
         this.height = height;
         this.x = x;
         this.y = y;
-        
+
         fullMode = ff;
         depth = d;
         aa = a;
@@ -159,10 +161,10 @@ public final class OnscreenSurfaceOptions {
      * @throws IllegalArgumentException if width < 1
      */
     public OnscreenSurfaceOptions setWidth(int width) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
-    
+
     /**
      * Set the requested initial height of the surface, when it's windowed.
      * 
@@ -172,10 +174,10 @@ public final class OnscreenSurfaceOptions {
      * @throws IllegalArgumentException if height < 1
      */
     public OnscreenSurfaceOptions setHeight(int height) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
-    
+
     /**
      * Set the requested initial x coordinate of the surface, when it's windowed.
      * 
@@ -184,10 +186,10 @@ public final class OnscreenSurfaceOptions {
      *         the new x value
      */
     public OnscreenSurfaceOptions setX(int x) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
-    
+
     /**
      * Set the requested initial y coordinate of the surface, when it's windowed.
      * 
@@ -196,7 +198,7 @@ public final class OnscreenSurfaceOptions {
      *         the new y value
      */
     public OnscreenSurfaceOptions setY(int y) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
 
@@ -209,10 +211,10 @@ public final class OnscreenSurfaceOptions {
      * @throws NullPointerException if depth is null
      */
     public OnscreenSurfaceOptions setDepthFormat(DepthFormat depth) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
-    
+
     /**
      * Set the requested StencilFormat of the surface.
      * 
@@ -222,7 +224,7 @@ public final class OnscreenSurfaceOptions {
      * @throws NullPointerException if stencil is null
      */
     public OnscreenSurfaceOptions setStencilFormat(StencilFormat stencil) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
 
@@ -235,7 +237,7 @@ public final class OnscreenSurfaceOptions {
      * @throws NullPointerException if aa is null
      */
     public OnscreenSurfaceOptions setMultiSampling(MultiSampling aa) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
 
@@ -247,10 +249,10 @@ public final class OnscreenSurfaceOptions {
      *         the new undecorated value
      */
     public OnscreenSurfaceOptions setUndecorated(boolean undecorated) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
-    
+
     /**
      * Set the whether or not the surface is user resizable when it's windowed.
      * 
@@ -259,7 +261,7 @@ public final class OnscreenSurfaceOptions {
      *         the new resizable value
      */
     public OnscreenSurfaceOptions setResizable(boolean resizable) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
 
@@ -274,25 +276,25 @@ public final class OnscreenSurfaceOptions {
      *         the new DisplayMode
      */
     public OnscreenSurfaceOptions setFullscreenMode(DisplayMode fullMode) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y, 
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x, y,
                                           width, height, fullMode);
     }
-    
+
     /**
      * @return The initial x coordinate of the OnscreenSurface when windowed
      */
     public int getX() { return x; }
-    
+
     /**
      * @return The initial y coordinate of the OnscreenSurface when windowed
      */
     public int getY() { return y; }
-    
+
     /**
      * @return Whether or not the window is undecorated
      */
     public boolean isUndecorated() { return undecorated; }
-    
+
     /**
      * @return Whether or not the window is user-resizable
      */
@@ -304,27 +306,27 @@ public final class OnscreenSurfaceOptions {
      *         supported DisplayMode closest to the requested
      */
     public DisplayMode getFullscreenMode() { return fullMode; }
-    
+
     /**
      * @return The requested DepthFormat for the depth buffer
      */
     public DepthFormat getDepthFormat() { return depth; }
-    
+
     /**
      * @return The requested StencilFormat for the stencil buffer
      */
     public StencilFormat getStencilFormat() { return stencil; }
-    
+
     /**
      * @return The requested MultiSampling for the buffers
      */
     public MultiSampling getMultiSampling() { return aa; }
-    
+
     /**
      * @return The initial width of the surface when windowed
      */
     public int getWidth() { return width; }
-    
+
     /**
      * @return The initial height of the surface when windowed
      */

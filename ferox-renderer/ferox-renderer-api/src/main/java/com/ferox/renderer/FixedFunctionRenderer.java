@@ -102,7 +102,7 @@ public interface FixedFunctionRenderer extends Renderer {
          */
         DOT3_RGBA
     }
-    
+
     /**
      * <p>
      * Each CombineOperand represents a simple function that acts on component
@@ -130,19 +130,19 @@ public interface FixedFunctionRenderer extends Renderer {
          * This operand returns As unmodified. It can be used with both the
          * alpha and RGB CombineFunctions.
          */
-        ALPHA, 
+        ALPHA,
         /**
          * This operand returns (1 - Cs). It cannot be used with the alpha
          * CombineOperand.
          */
-        ONE_MINUS_COLOR, 
+        ONE_MINUS_COLOR,
         /**
          * This operand returns (1 - As). It can be used with both the alpha and
          * RGB CombineFunctions.
          */
         ONE_MINUS_ALPHA
     }
-    
+
     /**
      * <p>
      * The source of color and alpha values for an associated
@@ -165,13 +165,13 @@ public interface FixedFunctionRenderer extends Renderer {
      * </p>
      */
     public static enum CombineSource {
-        CURR_TEX, PREV_TEX, CONST_COLOR, VERTEX_COLOR, 
-        TEX0, TEX1, TEX2, TEX3, TEX4, TEX5, TEX6, TEX7, TEX8, 
-        TEX9, TEX10, TEX11, TEX12, TEX13, TEX14, TEX15, TEX16, 
-        TEX17, TEX18, TEX19, TEX20, TEX21, TEX22, TEX23, TEX24, 
+        CURR_TEX, PREV_TEX, CONST_COLOR, VERTEX_COLOR,
+        TEX0, TEX1, TEX2, TEX3, TEX4, TEX5, TEX6, TEX7, TEX8,
+        TEX9, TEX10, TEX11, TEX12, TEX13, TEX14, TEX15, TEX16,
+        TEX17, TEX18, TEX19, TEX20, TEX21, TEX22, TEX23, TEX24,
         TEX25, TEX26, TEX27, TEX28, TEX29, TEX30, TEX31
     }
-    
+
     /**
      * TexCoord represents the enum of available texture coordinates used to
      * access a texture. Each texture can be accessed by up to four coordinates:
@@ -182,11 +182,11 @@ public interface FixedFunctionRenderer extends Renderer {
      */
     public static enum TexCoord {
         /** The first texture coordinate. */
-        S, 
+        S,
         /** The second texture coordinate. */
-        T, 
+        T,
         /** The third texture coordinate. */
-        R, 
+        R,
         /** The fourth texture coordinate. */
         Q
     }
@@ -420,7 +420,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException if ambient is null
      */
     public void setGlobalAmbientLight(@Const Vector4 ambient);
-    
+
     /**
      * <p>
      * Configure the lighting model to use Gauroud shading or non-interpolated
@@ -433,7 +433,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param smoothed True if polygons are smoothly shaded
      */
     public void setSmoothedLightingEnabled(boolean smoothed);
-    
+
     /**
      * <p>
      * Set whether or not back-facing polygons should have their lighting
@@ -522,7 +522,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws IndexOutOfBoundsException if the hardware does not support a
      *             light at the provided index, or if light is less than 0
      */
-    public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, 
+    public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff,
                               @Const Vector4 spec);
 
     /**
@@ -807,7 +807,7 @@ public interface FixedFunctionRenderer extends Renderer {
                                      CombineSource src0, CombineOperand op0,
                                      CombineSource src1, CombineOperand op1,
                                      CombineSource src2, CombineOperand op2);
-    
+
     /**
      * <p>
      * Configure how the texture's alpha value for the unit, <tt>text</tt> is
@@ -890,122 +890,122 @@ public interface FixedFunctionRenderer extends Renderer {
     public void setModelViewMatrix(@Const Matrix4 modelView);
 
     /**
-	 * <p>
-	 * Set the VertexAttribute that is used as the source of vertex positions
-	 * when {@link #render(PolygonType, int, int)} or
-	 * {@link #render(PolygonType, VertexBufferObject, int)} is invoked. The
-	 * attribute must be of type FLOAT. The attribute can have an element size
-	 * of 2, 3 or 4. If the 4th component is not provided, it defaults to 1. If
-	 * the 3rd component is not provided, it defaults to 0.
-	 * <p>
-	 * This updates the currently bound vertex position attribute. The bound
-	 * attribute will remain unchanged after rendering until this method is
-	 * called again. Rendering will not be performed if no vertex positions are
-	 * bound. The attribute can be unbound if a null VertexAttribute is
-	 * provided.
-	 * <p>
-	 * By default, no vertices are bound and must be specified before rendering
-	 * can occur successfully.
-	 * 
-	 * @param vertices
-	 *            The VertexAttribute holding the position data and access
-	 *            information
-	 * @throws IllegalArgumentException
-	 *             if vertices' buffer data type is not FLOAT or if its element
-	 *             size is 1
-	 */
+     * <p>
+     * Set the VertexAttribute that is used as the source of vertex positions
+     * when {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, VertexBufferObject, int)} is invoked. The
+     * attribute must be of type FLOAT. The attribute can have an element size
+     * of 2, 3 or 4. If the 4th component is not provided, it defaults to 1. If
+     * the 3rd component is not provided, it defaults to 0.
+     * <p>
+     * This updates the currently bound vertex position attribute. The bound
+     * attribute will remain unchanged after rendering until this method is
+     * called again. Rendering will not be performed if no vertex positions are
+     * bound. The attribute can be unbound if a null VertexAttribute is
+     * provided.
+     * <p>
+     * By default, no vertices are bound and must be specified before rendering
+     * can occur successfully.
+     * 
+     * @param vertices
+     *            The VertexAttribute holding the position data and access
+     *            information
+     * @throws IllegalArgumentException
+     *             if vertices' buffer data type is not FLOAT or if its element
+     *             size is 1
+     */
     public void setVertices(VertexAttribute vertices);
 
     /**
-	 * <p>
-	 * Set the VertexAttribute that is used as a source of normal vectors when
-	 * {@link #render(PolygonType, int, int)} or
-	 * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
-	 * is invoked. The attribute type must be FLOAT. The attribute must have an
-	 * element size of 3.
-	 * <p>
-	 * This updates the currently bound normal attribute. The bound attribute
-	 * will remain unchanged after rendering until this method is called again.
-	 * A normals attribute is not necessary if lighting is disabled. If normals
-	 * aren't bound when rendering with lighting, an undefined normal vector is
-	 * used. The attribute can be unbound if a null VertexAttribute is provided.
-	 * <p>
-	 * By default, no normals are bound and any normal vector used for lighting
-	 * is undefined.
-	 * 
-	 * @param normals
-	 *            The VertexAttribute holding the normal vector data and access
-	 *            information
-	 * @throws IllegalArgumentException
-	 *             if normals element size is not 3 or if its type is not FLOAT
-	 */
+     * <p>
+     * Set the VertexAttribute that is used as a source of normal vectors when
+     * {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
+     * is invoked. The attribute type must be FLOAT. The attribute must have an
+     * element size of 3.
+     * <p>
+     * This updates the currently bound normal attribute. The bound attribute
+     * will remain unchanged after rendering until this method is called again.
+     * A normals attribute is not necessary if lighting is disabled. If normals
+     * aren't bound when rendering with lighting, an undefined normal vector is
+     * used. The attribute can be unbound if a null VertexAttribute is provided.
+     * <p>
+     * By default, no normals are bound and any normal vector used for lighting
+     * is undefined.
+     * 
+     * @param normals
+     *            The VertexAttribute holding the normal vector data and access
+     *            information
+     * @throws IllegalArgumentException
+     *             if normals element size is not 3 or if its type is not FLOAT
+     */
     public void setNormals(VertexAttribute normals);
-    
+
     /**
-	 * <p>
-	 * Set the VertexAttribute that provides per-vertex colors when
-	 * {@link #render(PolygonType, int, int)} or
-	 * {@link #render(PolygonType, VertexBufferObject, int, int)} is invoked.
-	 * The attribute data type must be FLOAT and its element size equal to 3 or
-	 * 4. Values are assumed to be between 0 and 1 to properly represent packed
-	 * RGB colors. The first primitive in a vertex's element is the red, the
-	 * second is green, and the third is blue. If the element size is 4, the
-	 * fourth value is the alpha, otherwise the alpha is set to 1.
-	 * <p>
-	 * This will replace the diffuse color that specified in
-	 * {@link #setMaterial(Vector4, Vector4, Vector4, Vector4)}. The ambient,
-	 * specular, and emissive colors still affect the final rendering, but the
-	 * diffuse color will be taken from this attribute.
-	 * <p>
-	 * This updates the currently bound color attribute. The bound attribute
-	 * will remain unchanged after rendering until this method is called again.
-	 * If a null attribute is bound, per-vertex coloring is disabled and the
-	 * diffuse color is set to the default.
-	 * <p>
-	 * By default, no color attribute is bound.
-	 * 
-	 * @param colors
-	 *            The VertexAttribute holding the color vector data
-	 * @throws IllegalArgumentException
-	 *             if colors element size is not 3 or 4, or if its type is not
-	 *             FLOAT
-	 */
+     * <p>
+     * Set the VertexAttribute that provides per-vertex colors when
+     * {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, VertexBufferObject, int, int)} is invoked.
+     * The attribute data type must be FLOAT and its element size equal to 3 or
+     * 4. Values are assumed to be between 0 and 1 to properly represent packed
+     * RGB colors. The first primitive in a vertex's element is the red, the
+     * second is green, and the third is blue. If the element size is 4, the
+     * fourth value is the alpha, otherwise the alpha is set to 1.
+     * <p>
+     * This will replace the diffuse color that specified in
+     * {@link #setMaterial(Vector4, Vector4, Vector4, Vector4)}. The ambient,
+     * specular, and emissive colors still affect the final rendering, but the
+     * diffuse color will be taken from this attribute.
+     * <p>
+     * This updates the currently bound color attribute. The bound attribute
+     * will remain unchanged after rendering until this method is called again.
+     * If a null attribute is bound, per-vertex coloring is disabled and the
+     * diffuse color is set to the default.
+     * <p>
+     * By default, no color attribute is bound.
+     * 
+     * @param colors
+     *            The VertexAttribute holding the color vector data
+     * @throws IllegalArgumentException
+     *             if colors element size is not 3 or 4, or if its type is not
+     *             FLOAT
+     */
     public void setColors(VertexAttribute colors);
 
     /**
-	 * <p>
-	 * Set the VertexAttribute that is used as a source of texture coordinates
-	 * on the texture unit, <tt>tex</tt> when
-	 * {@link #render(PolygonType, int, int)} or
-	 * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
-	 * is invoked. The attribute element size can be any value between 1 and 4.
-	 * If the element size of the attribute doesn't meet the expected coordinate
-	 * size of the bound texture, a default is used for the missing components.
-	 * The 2nd and 3rd components default to 0 and the 4th defaults to 1. The
-	 * attribute type must be FLOAT.
-	 * <p>
-	 * This updates the currently bound texture coordinate attribute for the
-	 * given texture unit. The bound attribute will remain unchanged after
-	 * rendering until this method is called again for the same texture unit.
-	 * Invoking this on one texture unit does not affect the binding of any
-	 * other unit. Texture coordinate attributes do not need to be bound to a
-	 * texture unit if there is no bound texture image. If a texture is bound
-	 * without texture coordinates, an undefined texture coordinate is used. The
-	 * attribute can be unbound from the texture unit if a null VertexAttribute
-	 * is provided.
-	 * <p>
-	 * Every texture unit starst with no attribute bound.
-	 * 
-	 * @param tex
-	 *            The texture unit to bind <tt>texCoords</tt> to
-	 * @param texCoords
-	 *            The VertexAttribute holding the texture coordinate data and
-	 *            access information
-	 * @throws IllegalArgumentException
-	 *             if texCoords' data type is not FLOAT
-	 * @throws IndexOutOfBoundsException
-	 *             if the hardware does not support a texture at the provided
-	 *             index, or if tex is less than 0
-	 */
+     * <p>
+     * Set the VertexAttribute that is used as a source of texture coordinates
+     * on the texture unit, <tt>tex</tt> when
+     * {@link #render(PolygonType, int, int)} or
+     * {@link #render(PolygonType, com.ferox.resource.VertexBufferObject, int)}
+     * is invoked. The attribute element size can be any value between 1 and 4.
+     * If the element size of the attribute doesn't meet the expected coordinate
+     * size of the bound texture, a default is used for the missing components.
+     * The 2nd and 3rd components default to 0 and the 4th defaults to 1. The
+     * attribute type must be FLOAT.
+     * <p>
+     * This updates the currently bound texture coordinate attribute for the
+     * given texture unit. The bound attribute will remain unchanged after
+     * rendering until this method is called again for the same texture unit.
+     * Invoking this on one texture unit does not affect the binding of any
+     * other unit. Texture coordinate attributes do not need to be bound to a
+     * texture unit if there is no bound texture image. If a texture is bound
+     * without texture coordinates, an undefined texture coordinate is used. The
+     * attribute can be unbound from the texture unit if a null VertexAttribute
+     * is provided.
+     * <p>
+     * Every texture unit starst with no attribute bound.
+     * 
+     * @param tex
+     *            The texture unit to bind <tt>texCoords</tt> to
+     * @param texCoords
+     *            The VertexAttribute holding the texture coordinate data and
+     *            access information
+     * @throws IllegalArgumentException
+     *             if texCoords' data type is not FLOAT
+     * @throws IndexOutOfBoundsException
+     *             if the hardware does not support a texture at the provided
+     *             index, or if tex is less than 0
+     */
     public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }

@@ -26,14 +26,14 @@ public class Quat4Property implements Property {
     private static final int REQUIRED_ELEMENTS = 4;
 
     private DoubleDataStore data;
-    
+
     /**
      * Create a new Quat4Property.
      */
     public Quat4Property() {
         data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
-    
+
     /**
      * Get the quaternion of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
@@ -44,13 +44,14 @@ public class Quat4Property implements Property {
      * @return result, or a new Quat4 if result was null
      */
     public Quat4 get(int index, Quat4 result) {
-        if (result == null)
+        if (result == null) {
             result = new Quat4();
-        
+        }
+
         result.set(data.getArray(), index * REQUIRED_ELEMENTS);
         return result;
     }
-    
+
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -62,7 +63,7 @@ public class Quat4Property implements Property {
     public void set(@Const Quat4 v, int index) {
         v.get(data.getArray(), index * REQUIRED_ELEMENTS);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -72,7 +73,7 @@ public class Quat4Property implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to Quat4Property declarations.
      * 
@@ -99,7 +100,7 @@ public class Quat4Property implements Property {
          */
         double w();
     }
-    
+
     /**
      * Default factory implementation for Quat4Properties, supports the
      * {@link DefaultQuat4} annotation to specify the default quaternion
@@ -109,7 +110,7 @@ public class Quat4Property implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<Quat4Property> {
         private final Quat4 dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             if (attrs.hasAttribute(DefaultQuat4.class)) {
@@ -119,7 +120,7 @@ public class Quat4Property implements Property {
                 dflt = new Quat4();
             }
         }
-        
+
         public Factory(@Const Quat4 v) {
             super(null);
             dflt = new Quat4(v);

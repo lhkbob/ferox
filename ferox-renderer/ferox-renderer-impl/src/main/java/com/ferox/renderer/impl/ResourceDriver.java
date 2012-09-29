@@ -32,7 +32,7 @@ public interface ResourceDriver {
      * @return A new ResourceHandle associated with the given resource
      */
     public Object init(Resource resource);
-    
+
     /**
      * <p>
      * Perform an update on the given resource. This is responsible for

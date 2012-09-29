@@ -8,7 +8,7 @@ package com.ferox.math;
  */
 public final class Functions {
     private Functions() {}
-    
+
     /**
      * <p>
      * Compute the smallest power-of-two that is greater than or equal to the
@@ -23,9 +23,10 @@ public final class Functions {
      * @return Smallest power-of-two greater than or equal to num
      */
     public static int potCeil(int num) {
-        if (num <= 0)
+        if (num <= 0) {
             return 1;
-        
+        }
+
         num--;
         num |= (num >> 1);
         num |= (num >> 2);
@@ -33,10 +34,10 @@ public final class Functions {
         num |= (num >> 8);
         num |= (num >> 16);
         num++;
-        
+
         return num;
     }
-    
+
     /**
      * Compute the integer log base 2 of the given number. If num is not a power
      * of two (i.e. its log base 2 is not an integral value), this effectively
@@ -50,7 +51,7 @@ public final class Functions {
     public static int log2(int num) {
         return 32 - Integer.numberOfLeadingZeros(num - 1);
     }
-    
+
     /**
      * Return true if the given integer is a power of two. This is an efficient,
      * constant time implementation. Numbers less than or equal to 0 will always
@@ -60,8 +61,9 @@ public final class Functions {
      * @return True if num is a power of two
      */
     public static boolean isPowerOfTwo(int num) {
-        if (num <= 0)
+        if (num <= 0) {
             return false;
+        }
         return (num & (num - 1)) == 0;
     }
 }

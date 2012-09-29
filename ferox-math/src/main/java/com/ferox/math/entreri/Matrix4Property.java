@@ -26,14 +26,14 @@ public class Matrix4Property implements Property {
     private static final int REQUIRED_ELEMENTS = 16;
 
     private DoubleDataStore data;
-    
+
     /**
      * Create a new Matrix4Property.
      */
     public Matrix4Property() {
         data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
     }
-    
+
     /**
      * Get the matrix of this property, for the component at the given
      * index, and store it into <tt>result</tt>. If result is null, a new
@@ -44,13 +44,14 @@ public class Matrix4Property implements Property {
      * @return result, or a new Matrix4 if result was null
      */
     public Matrix4 get(int index, Matrix4 result) {
-        if (result == null)
+        if (result == null) {
             result = new Matrix4();
-        
+        }
+
         result.set(data.getArray(), index * REQUIRED_ELEMENTS, false);
         return result;
     }
-    
+
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -62,7 +63,7 @@ public class Matrix4Property implements Property {
     public void set(@Const Matrix4 v, int index) {
         v.get(data.getArray(), index * REQUIRED_ELEMENTS, false);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -72,7 +73,7 @@ public class Matrix4Property implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to Matrix4Property declarations.
      * 
@@ -147,7 +148,7 @@ public class Matrix4Property implements Property {
          */
         double m33();
     }
-    
+
     /**
      * Default factory implementation for Matrix4Properties, supports the
      * {@link DefaultMatrix4} annotation to specify the default matrix
@@ -157,7 +158,7 @@ public class Matrix4Property implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<Matrix4Property> {
         private final Matrix4 dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             if (attrs.hasAttribute(DefaultMatrix4.class)) {
@@ -170,7 +171,7 @@ public class Matrix4Property implements Property {
                 dflt = new Matrix4();
             }
         }
-        
+
         public Factory(@Const Matrix4 v) {
             super(null);
             dflt = new Matrix4(v);

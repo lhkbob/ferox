@@ -29,10 +29,10 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * The shared TypedId representing BlinnPhongMaterial.
      */
     public static final TypeId<BlinnPhongMaterial> ID = TypeId.get(BlinnPhongMaterial.class);
-    
+
     @DefaultDouble(1.0)
     private DoubleProperty shininess;
-    
+
     private BlinnPhongMaterial() { }
 
     /**
@@ -47,8 +47,9 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * @throws IllegalArgumentException if shiny is less than 0
      */
     public void setShininess(double shiny) {
-        if (shiny < 0f)
+        if (shiny < 0f) {
             throw new IllegalArgumentException("Shininess must be positive, not: " + shiny);
+        }
         shininess.set(shiny, getIndex());
     }
 

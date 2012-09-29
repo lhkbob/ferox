@@ -28,23 +28,24 @@ import com.ferox.resource.VertexBufferObject;
  */
 public abstract class AbstractRenderer implements Renderer {
     private static final Vector4 BLACK = new Vector4(0, 0, 0, 0);
-    
+
     private final RendererDelegate delegate;
-    
+
     protected OpenGLContext context;
     protected ResourceManager resourceManager;
-    
+
     public AbstractRenderer(RendererDelegate delegate) {
-        if (delegate == null)
+        if (delegate == null) {
             throw new NullPointerException("Delegate cannot be null");
+        }
         this.delegate = delegate;
     }
-    
+
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, double depth, int stencil) {
         delegate.clear(clearColor, clearDepth, clearStencil, color, depth, stencil);
     }
-    
+
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil) {
         clear(clearColor, clearDepth, clearStencil, BLACK, 1.0, 0);
@@ -134,7 +135,7 @@ public abstract class AbstractRenderer implements Renderer {
     public void setStencilTestFront(Comparison test, int refValue, int testMask) {
         delegate.setStencilTestFront(test, refValue, testMask);
     }
-    
+
     @Override
     public void setStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
                                  StencilUpdate depthPass) {
@@ -168,7 +169,7 @@ public abstract class AbstractRenderer implements Renderer {
     public void setViewport(int x, int y, int width, int height) {
         delegate.setViewport(x, y, width, height);
     }
-    
+
     @Override
     public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
         return delegate.render(polyType, indices, offset, count);
@@ -191,7 +192,7 @@ public abstract class AbstractRenderer implements Renderer {
      */
     public void activate(AbstractSurface active, OpenGLContext context, ResourceManager resourceManager) {
         delegate.activate(active, context, resourceManager);
-        
+
         this.context = context;
         this.resourceManager = resourceManager;
     }

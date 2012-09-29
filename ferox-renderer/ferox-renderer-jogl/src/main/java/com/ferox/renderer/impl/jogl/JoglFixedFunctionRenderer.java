@@ -5,6 +5,11 @@ import java.util.EnumSet;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GL2GL3;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
@@ -33,40 +38,40 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     private boolean supportsMultitexture;
     private boolean supportsCombine;
     private EnumSet<Target> supportedTargets;
-    
+
     private boolean initialized;
-    
+
     // math object transfer objects
     private final FloatBuffer transferBuffer;
-    
+
     // state tracking
     private boolean alphaTestEnabled;
-    
+
     public JoglFixedFunctionRenderer(JoglRendererDelegate delegate) {
         super(delegate);
-        
+
         initialized = false;
-        
+
         transferBuffer = BufferUtil.newFloatBuffer(16);
         alphaTestEnabled = false;
     }
-    
+
     @Override
     public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
-        
+
         if (!initialized) {
             // detect caps
             RenderCapabilities caps = surface.getFramework().getCapabilities();
             supportsMultitexture = caps.getMaxFixedPipelineTextures() > 1;
             supportsCombine = caps.getCombineEnvModeSupport();
             supportedTargets = caps.getSupportedTextureTargets();
-            
+
             // set initial state
             GL2 gl = getGL();
-            gl.glColorMaterial(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE);
-            gl.glEnable(GL2.GL_COLOR_MATERIAL);
-            
+            gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GLLightingFunc.GL_DIFFUSE);
+            gl.glEnable(GLLightingFunc.GL_COLOR_MATERIAL);
+
             initialized = true;
         }
     }
@@ -75,13 +80,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glMatrixMode(MatrixMode mode) {
         switch(mode) {
         case MODELVIEW:
-            getGL().glMatrixMode(GL2.GL_MODELVIEW);
+            getGL().glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             break;
         case PROJECTION:
-            getGL().glMatrixMode(GL2.GL_PROJECTION);
+            getGL().glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             break;
         case TEXTURE:
-            getGL().glMatrixMode(GL2.GL_TEXTURE);
+            getGL().glMatrixMode(GL.GL_TEXTURE);
             break;
         }
     }
@@ -98,14 +103,14 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         if (test == Comparison.ALWAYS) {
             if (alphaTestEnabled) {
                 alphaTestEnabled = false;
-                glEnable(GL2.GL_ALPHA_TEST, false);
+                glEnable(GL2ES1.GL_ALPHA_TEST, false);
             }
         } else {
             if (!alphaTestEnabled) {
                 alphaTestEnabled = true;
-                glEnable(GL2.GL_ALPHA_TEST, true);
+                glEnable(GL2ES1.GL_ALPHA_TEST, true);
             }
-            
+
             getGL().glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
         }
     }
@@ -114,36 +119,36 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glFogColor(@Const Vector4 color) {
         color.get(transferBuffer, 0);
         transferBuffer.rewind();
-        getGL().glFogfv(GL2.GL_FOG_COLOR, transferBuffer);
+        getGL().glFogfv(GL2ES1.GL_FOG_COLOR, transferBuffer);
     }
 
     @Override
     protected void glEnableFog(boolean enable) {
-        glEnable(GL2.GL_FOG, enable);
+        glEnable(GL2ES1.GL_FOG, enable);
     }
 
     @Override
     protected void glFogDensity(double density) {
-        getGL().glFogf(GL2.GL_FOG_DENSITY, (float) density);
+        getGL().glFogf(GL2ES1.GL_FOG_DENSITY, (float) density);
     }
 
     @Override
     protected void glFogRange(double start, double end) {
-        getGL().glFogf(GL2.GL_FOG_START, (float) start);
-        getGL().glFogf(GL2.GL_FOG_END, (float) end);
+        getGL().glFogf(GL2ES1.GL_FOG_START, (float) start);
+        getGL().glFogf(GL2ES1.GL_FOG_END, (float) end);
     }
 
     @Override
     protected void glFogMode(FogMode fog) {
         switch(fog) {
         case EXP:
-            getGL().glFogi(GL2.GL_FOG_MODE, GL2.GL_EXP);
+            getGL().glFogi(GL2ES1.GL_FOG_MODE, GL2ES1.GL_EXP);
             break;
         case EXP_SQUARED:
-            getGL().glFogi(GL2.GL_FOG_MODE, GL2.GL_EXP2);
+            getGL().glFogi(GL2ES1.GL_FOG_MODE, GL2ES1.GL_EXP2);
             break;
         case LINEAR:
-            getGL().glFogi(GL2.GL_FOG_MODE, GL2.GL_LINEAR);
+            getGL().glFogi(GL2ES1.GL_FOG_MODE, GL.GL_LINEAR);
             break;
         }
     }
@@ -152,10 +157,10 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glGlobalLighting(@Const Vector4 ambient) {
         ambient.get(transferBuffer, 0);
         transferBuffer.rewind();
-        getGL().glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, transferBuffer);
+        getGL().glLightModelfv(GL2ES1.GL_LIGHT_MODEL_AMBIENT, transferBuffer);
     }
-    
-    
+
+
 
     @Override
     protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
@@ -163,18 +168,18 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         transferBuffer.rewind();
 
         int c = getGLLight(lc);
-        getGL().glLightfv(GL2.GL_LIGHT0 + light, c, transferBuffer);
+        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light, c, transferBuffer);
     }
 
     @Override
     protected void glEnableLight(int light, boolean enable) {
-        glEnable(GL2.GL_LIGHT0 + light, enable);
+        glEnable(GLLightingFunc.GL_LIGHT0 + light, enable);
     }
 
     @Override
     protected void glLightPosition(int light, @Const Vector4 pos) {
         pos.get(transferBuffer, 0);
-        getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_POSITION, transferBuffer);
+        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_POSITION, transferBuffer);
     }
 
     @Override
@@ -182,36 +187,36 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         dir.get(transferBuffer, 0);
         transferBuffer.rewind();
 
-        getGL().glLightfv(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_DIRECTION, transferBuffer);
+        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_SPOT_DIRECTION, transferBuffer);
     }
 
     @Override
     protected void glLightAngle(int light, double angle) {
-        getGL().glLightf(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_CUTOFF, (float) angle);
+        getGL().glLightf(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_SPOT_CUTOFF, (float) angle);
     }
 
     @Override
     protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
-        light += GL2.GL_LIGHT0;
+        light += GLLightingFunc.GL_LIGHT0;
         GL2 gl = getGL();
-        gl.glLightf(light, GL2.GL_CONSTANT_ATTENUATION, (float) constant);
-        gl.glLightf(light, GL2.GL_LINEAR_ATTENUATION, (float) linear);
-        gl.glLightf(light, GL2.GL_QUADRATIC_ATTENUATION, (float) quadratic);
+        gl.glLightf(light, GLLightingFunc.GL_CONSTANT_ATTENUATION, (float) constant);
+        gl.glLightf(light, GLLightingFunc.GL_LINEAR_ATTENUATION, (float) linear);
+        gl.glLightf(light, GLLightingFunc.GL_QUADRATIC_ATTENUATION, (float) quadratic);
     }
 
     @Override
     protected void glEnableLighting(boolean enable) {
-        glEnable(GL2.GL_LIGHTING, enable);
+        glEnable(GLLightingFunc.GL_LIGHTING, enable);
     }
 
     @Override
     protected void glEnableSmoothShading(boolean enable) {
-        getGL().glShadeModel(enable ? GL2.GL_SMOOTH : GL2.GL_FLAT);
+        getGL().glShadeModel(enable ? GLLightingFunc.GL_SMOOTH : GLLightingFunc.GL_FLAT);
     }
 
     @Override
     protected void glEnableTwoSidedLighting(boolean enable) {
-        getGL().glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL2.GL_TRUE : GL2.GL_FALSE);
+        getGL().glLightModeli(GL2ES1.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL.GL_TRUE : GL.GL_FALSE);
     }
 
     @Override
@@ -230,20 +235,21 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         transferBuffer.rewind();
 
         int c = getGLLight(component);
-        if (component == LightColor.DIFFUSE)
+        if (component == LightColor.DIFFUSE) {
             getGL().glColor4fv(transferBuffer);
-        else
+        } else {
             getGL().glMaterialfv(GL.GL_FRONT_AND_BACK, c, transferBuffer);
+        }
     }
 
     @Override
     protected void glMaterialShininess(double shininess) {
-        getGL().glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, (float) shininess);
+        getGL().glMaterialf(GL.GL_FRONT_AND_BACK, GLLightingFunc.GL_SHININESS, (float) shininess);
     }
 
     @Override
     protected void glEnablePointAntiAliasing(boolean enable) {
-        glEnable(GL2.GL_POINT_SMOOTH, enable);
+        glEnable(GL2ES1.GL_POINT_SMOOTH, enable);
     }
 
     @Override
@@ -253,19 +259,20 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnablePolyAntiAliasing(boolean enable) {
-        glEnable(GL2.GL_POLYGON_SMOOTH, enable);
+        glEnable(GL2GL3.GL_POLYGON_SMOOTH, enable);
     }
 
     @Override
     protected void glBindTexture(Target target, TextureHandle image) {
         if (supportedTargets.contains(target)) {
             int glTarget = Utils.getGLTextureTarget(target);
-            
+
             GL2 gl = getGL();
-            if (image == null)
+            if (image == null) {
                 ((JoglContext) context).bindTexture(gl, glTarget, 0);
-            else
+            } else {
                 ((JoglContext) context).bindTexture(gl, glTarget, image.texID);
+            }
         }
     }
 
@@ -282,23 +289,24 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         color.get(transferBuffer, 0);
         transferBuffer.rewind();
 
-        getGL().glTexEnvfv(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_COLOR, transferBuffer);
+        getGL().glTexEnvfv(GL2ES1.GL_TEXTURE_ENV, GL2ES1.GL_TEXTURE_ENV_COLOR, transferBuffer);
     }
 
     @Override
     protected void glCombineFunction(CombineFunction func, boolean rgb) {
         if (supportsCombine) {
             int c = Utils.getGLCombineFunc(func);
-            int target = (rgb ? GL2.GL_COMBINE_RGB : GL2.GL_COMBINE_ALPHA);
-            getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, target, c);
+            int target = (rgb ? GL2ES1.GL_COMBINE_RGB : GL2ES1.GL_COMBINE_ALPHA);
+            getGL().glTexEnvi(GL2ES1.GL_TEXTURE_ENV, target, c);
         }
     }
 
     @Override
     protected void glCombineSrc(int operand, CombineSource src, boolean rgb) {
-        if (!supportsCombine)
+        if (!supportsCombine) {
             return;
-        
+        }
+
         int o = Utils.getGLCombineSrc(src);
         int target = -1;
         if (rgb) {
@@ -314,44 +322,48 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             case 2: target = GL2.GL_SOURCE2_ALPHA; break;
             }
         }
-        
-        getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, target, o);
+
+        getGL().glTexEnvi(GL2ES1.GL_TEXTURE_ENV, target, o);
     }
 
     @Override
     protected void glCombineOp(int operand, CombineOperand op, boolean rgb) {
-        if (!supportsCombine)
+        if (!supportsCombine) {
             return;
-        
+        }
+
         int o = Utils.getGLCombineOp(op);
         int target = -1;
         if (rgb) {
             switch(operand) {
-            case 0: target = GL2.GL_OPERAND0_RGB; break;
-            case 1: target = GL2.GL_OPERAND1_RGB; break;
-            case 2: target = GL2.GL_OPERAND2_RGB; break;
+            case 0: target = GL2ES1.GL_OPERAND0_RGB; break;
+            case 1: target = GL2ES1.GL_OPERAND1_RGB; break;
+            case 2: target = GL2ES1.GL_OPERAND2_RGB; break;
             }
         } else {
             switch(operand) {
-            case 0: target = GL2.GL_OPERAND0_ALPHA; break;
-            case 1: target = GL2.GL_OPERAND1_ALPHA; break;
-            case 2: target = GL2.GL_OPERAND2_ALPHA; break;
+            case 0: target = GL2ES1.GL_OPERAND0_ALPHA; break;
+            case 1: target = GL2ES1.GL_OPERAND1_ALPHA; break;
+            case 2: target = GL2ES1.GL_OPERAND2_ALPHA; break;
             }
         }
-        
-        getGL().glTexEnvi(GL2.GL_TEXTURE_ENV, target, o);
+
+        getGL().glTexEnvi(GL2ES1.GL_TEXTURE_ENV, target, o);
     }
 
     @Override
     protected void glTexGen(TexCoord coord, TexCoordSource gen) {
         if (gen == TexCoordSource.ATTRIBUTE)
+        {
             return; // don't need to do anything, it's already disabled
-        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) && !supportedTargets.contains(Target.T_CUBEMAP))
+        }
+        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) && !supportedTargets.contains(Target.T_CUBEMAP)) {
             gen = TexCoordSource.OBJECT;
-        
+        }
+
         int mode = Utils.getGLTexGen(gen);
         int tc = Utils.getGLTexCoord(coord, false);
-        getGL().glTexGeni(tc, GL2.GL_TEXTURE_GEN_MODE, mode);
+        getGL().glTexGeni(tc, GL2ES1.GL_TEXTURE_GEN_MODE, mode);
     }
 
     @Override
@@ -395,7 +407,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glBindArrayVbo(VertexBufferObjectHandle h) {
         JoglContext ctx = (JoglContext) context;
         GL2 gl = getGL();
-        
+
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
                 // Must bind the VBO
@@ -414,39 +426,39 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset,
                                       int stride, int elementSize) {
         int strideBytes = (stride + elementSize) * h.dataType.getByteCount();
-        
+
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
-           
+
             switch(target) {
             case NORMALS:
-                getGL().glNormalPointer(GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
+                getGL().glNormalPointer(GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                getGL().glTexCoordPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
+                getGL().glTexCoordPointer(elementSize, GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case VERTICES:
-                getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
+                getGL().glVertexPointer(elementSize, GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case COLORS:
-            	getGL().glColorPointer(elementSize, GL2.GL_FLOAT, strideBytes, h.inmemoryBuffer);
-            	break;
+                getGL().glColorPointer(elementSize, GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
+                break;
             }
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
-            
+
             switch(target) {
             case NORMALS:
-                getGL().glNormalPointer(GL2.GL_FLOAT, strideBytes, vboOffset);
+                getGL().glNormalPointer(GL.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                getGL().glTexCoordPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
+                getGL().glTexCoordPointer(elementSize, GL.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case VERTICES:
-                getGL().glVertexPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
+                getGL().glVertexPointer(elementSize, GL.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case COLORS:
-            	getGL().glColorPointer(elementSize, GL2.GL_FLOAT, strideBytes, vboOffset);
+                getGL().glColorPointer(elementSize, GL.GL_FLOAT, strideBytes, vboOffset);
             }
         }
     }
@@ -456,42 +468,44 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         int state = 0;
         switch(target) {
         case NORMALS:
-            state = GL2.GL_NORMAL_ARRAY;
+            state = GLPointerFunc.GL_NORMAL_ARRAY;
             break;
         case TEXCOORDS:
-            state = GL2.GL_TEXTURE_COORD_ARRAY;
+            state = GLPointerFunc.GL_TEXTURE_COORD_ARRAY;
             break;
         case VERTICES:
-            state = GL2.GL_VERTEX_ARRAY;
+            state = GLPointerFunc.GL_VERTEX_ARRAY;
             break;
         case COLORS:
-        	state = GL2.GL_COLOR_ARRAY;
-        	break;
+            state = GLPointerFunc.GL_COLOR_ARRAY;
+            break;
         }
-        
-        if (enable)
+
+        if (enable) {
             getGL().glEnableClientState(state);
-        else
+        } else {
             getGL().glDisableClientState(state);
+        }
     }
-    
+
     private GL2 getGL() {
         return ((JoglContext) context).getGLContext().getGL().getGL2();
     }
-    
+
     private void glEnable(int flag, boolean enable) {
-        if (enable)
+        if (enable) {
             getGL().glEnable(flag);
-        else
+        } else {
             getGL().glDisable(flag);
+        }
     }
-    
+
     private int getGLLight(LightColor c) {
         switch(c) {
-        case AMBIENT: return GL2.GL_AMBIENT;
-        case DIFFUSE: return GL2.GL_DIFFUSE;
-        case EMISSIVE: return GL2.GL_EMISSION;
-        case SPECULAR: return GL2.GL_SPECULAR;
+        case AMBIENT: return GLLightingFunc.GL_AMBIENT;
+        case DIFFUSE: return GLLightingFunc.GL_DIFFUSE;
+        case EMISSIVE: return GLLightingFunc.GL_EMISSION;
+        case SPECULAR: return GLLightingFunc.GL_SPECULAR;
         }
         return -1;
     }

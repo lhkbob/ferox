@@ -33,10 +33,10 @@ import java.util.List;
  */
 public class BulkChangeQueue<T> {
     public static final int MAX_CHANGE_QUEUE_SIZE = 20;
-    
+
     private int version;
     private LinkedList<VersionedChange<T>> latestChanges;
-    
+
     /**
      * Create a new BulkChangeQueue.
      */
@@ -54,15 +54,17 @@ public class BulkChangeQueue<T> {
      * @throws NullPointerException if change is null
      */
     public int push(T change) {
-        if (change == null)
+        if (change == null) {
             throw new NullPointerException("Change cannot be null");
-        
+        }
+
         latestChanges.addLast(new VersionedChange<T>(change, ++version));
-        if (latestChanges.size() > MAX_CHANGE_QUEUE_SIZE)
+        if (latestChanges.size() > MAX_CHANGE_QUEUE_SIZE) {
             latestChanges.removeFirst();
+        }
         return version;
     }
-    
+
     /**
      * @return The current version of the queue
      */
@@ -102,22 +104,24 @@ public class BulkChangeQueue<T> {
     public List<T> getChangesSince(int lastKnownVersion) {
         // If we can easily tell that there are no new changes, just use emptyList
         // to avoid object creation overhead
-        if (!isVersionStale(lastKnownVersion))
+        if (!isVersionStale(lastKnownVersion)) {
             return Collections.emptyList();
-        
+        }
+
         // At this point there is a very good chance that we will have at least
-        // one object to put into the returned array, so the object creation is 
+        // one object to put into the returned array, so the object creation is
         // acceptable.
         List<T> changes = new ArrayList<T>();
         Iterator<VersionedChange<T>> it = latestChanges.iterator();
-        
+
         VersionedChange<T> v;
         while(it.hasNext()) {
             v = it.next();
-            if (v.version > lastKnownVersion || (lastKnownVersion > 0 && version < 0))
+            if (v.version > lastKnownVersion || (lastKnownVersion > 0 && version < 0)) {
                 changes.add(v.change);
+            }
         }
-        
+
         return changes;
     }
 
@@ -144,9 +148,10 @@ public class BulkChangeQueue<T> {
      * @return True if unprocessed changes have been discarded
      */
     public boolean hasLostChanges(int lastKnownVersion) {
-        if (latestChanges.isEmpty())
+        if (latestChanges.isEmpty()) {
             return lastKnownVersion < version - MAX_CHANGE_QUEUE_SIZE;
-        
+        }
+
         // If the input version is over 1 version behind the last
         // stored version, a change has been dropped, so the input version
         // is too old
@@ -167,11 +172,11 @@ public class BulkChangeQueue<T> {
         latestChanges.clear();
         return ++version; // Increment version just in case
     }
-    
+
     private static class VersionedChange<T> {
         final int version;
         final T change;
-        
+
         public VersionedChange(T change, int version) {
             this.change = change;
             this.version = version;

@@ -28,7 +28,7 @@ public abstract class SurfaceFactory {
      * @return A new texture surface
      * @throws NullPointerException if any of the arguments are null
      */
-    public abstract AbstractTextureSurface createTextureSurface(AbstractFramework framework, TextureSurfaceOptions options, 
+    public abstract AbstractTextureSurface createTextureSurface(AbstractFramework framework, TextureSurfaceOptions options,
                                                                 OpenGLContext sharedContext);
 
     /**
@@ -45,7 +45,7 @@ public abstract class SurfaceFactory {
      * @return A new, visible onscreen surface
      * @throws NullPointerException if any of the arguments are null
      */
-    public abstract AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework, OnscreenSurfaceOptions options, 
+    public abstract AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework, OnscreenSurfaceOptions options,
                                                                   OpenGLContext sharedContext);
 
     /**
@@ -66,19 +66,19 @@ public abstract class SurfaceFactory {
      *         {@link Framework#getDefaultDisplayMode()}
      */
     public abstract DisplayMode getDefaultDisplayMode();
-    
+
     /**
      * @return Available display modes, as required by
      *         {@link Framework#getAvailableDisplayModes()}
      */
     public abstract DisplayMode[] getAvailableDisplayModes();
-    
+
     /**
      * Perform any native resource destruction, called by the Framework when
      * it's lifecycle is completed.
      */
     public void destroy() { }
-    
+
     /**
      * Select the closest matching of the supported DisplayModes given the
      * requested.
@@ -89,7 +89,7 @@ public abstract class SurfaceFactory {
      */
     public DisplayMode chooseCompatibleDisplayMode(DisplayMode requested) {
         DisplayMode[] availableModes = getAvailableDisplayModes();
-        
+
         // we assume there is at least 1 (would be the default)
         DisplayMode best = availableModes[0];
         int reqArea = requested.getWidth() * requested.getHeight();
@@ -112,13 +112,13 @@ public abstract class SurfaceFactory {
                     }
                 }
             }
-            
+
             if (update) {
                 best = availableModes[i];
                 bestArea = area;
             }
         }
-        
+
         return best;
     }
 }

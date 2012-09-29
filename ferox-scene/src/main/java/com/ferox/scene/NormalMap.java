@@ -36,11 +36,11 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * The shared TypedId representing NormalMap.
      */
     public static final TypeId<NormalMap> ID = TypeId.get(NormalMap.class);
-    
+
     private ObjectProperty<VertexAttribute> tangentVectors;
 
     private NormalMap() { }
-    
+
     /**
      * Return whether or not the normal vectors are in object space or tangent
      * space. See {@link #setTangents(boolean)} for details.
@@ -90,10 +90,12 @@ public final class NormalMap extends TextureMap<NormalMap> {
      */
     public NormalMap setTangents(VertexAttribute tangents) {
         if (tangents != null) {
-            if (tangents.getData().getData().getDataType() != DataType.FLOAT)
+            if (tangents.getData().getData().getDataType() != DataType.FLOAT) {
                 throw new IllegalArgumentException("Tangents must have FLOAT data");
-            if (tangents.getElementSize() != 3)
+            }
+            if (tangents.getElementSize() != 3) {
                 throw new IllegalArgumentException("Tangents must have an element size of 3, not: " + tangents.getElementSize());
+            }
         }
         tangentVectors.set(tangents, getIndex());
         return this;
@@ -101,8 +103,9 @@ public final class NormalMap extends TextureMap<NormalMap> {
 
     @Override
     protected void validate(Texture tex) {
-        if (tex.getFormat().getNumComponents() != 3)
-            throw new IllegalArgumentException("Normal map must use a texture format with 3 components, not: " 
-                                               + tex.getFormat());
+        if (tex.getFormat().getNumComponents() != 3) {
+            throw new IllegalArgumentException("Normal map must use a texture format with 3 components, not: "
+                    + tex.getFormat());
+        }
     }
 }

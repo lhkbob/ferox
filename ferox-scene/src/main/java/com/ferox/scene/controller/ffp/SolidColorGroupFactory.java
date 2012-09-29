@@ -13,7 +13,7 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         // TODO Auto-generated method stub
         return null;
     }
- 
+
     private class SolidColorGroup implements StateGroup {
 
         @Override
@@ -37,18 +37,18 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         @Override
         public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
             // TODO Auto-generated method stub
-            
+
         }
-        
+
     }
-    
+
     private class SolidColorState implements State {
         private final ColorRGB rgb;
-        
+
         public SolidColorState(ColorRGB rgb) {
-            
+
         }
-        
+
         @Override
         public void add(Entity e) {
             // do nothing
@@ -63,7 +63,7 @@ public class SolidColorGroupFactory implements StateGroupFactory {
 
         @Override
         public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
-               
+
         }
     }
 }

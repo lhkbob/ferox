@@ -19,18 +19,18 @@ import com.ferox.renderer.impl.RendererProvider;
  */
 public class PbufferShadowContext extends JoglContext {
     private final GLPbuffer pbuffer;
-    
+
     private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface, RendererProvider provider) {
         super(creator, surface.getContext(), provider);
         pbuffer = surface;
     }
-    
+
     @Override
     public void destroy() {
         super.destroy();
         pbuffer.destroy();
     }
-    
+
     /**
      * Create a new PbufferShadowContext that will be returned by
      * {@link JoglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
@@ -44,14 +44,15 @@ public class PbufferShadowContext extends JoglContext {
      * @throws NullPointerException if framework or profile is null
      */
     public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith, RendererProvider provider) {
-        if (creator == null)
+        if (creator == null) {
             throw new NullPointerException("Cannot create a PbufferShadowContext with a null JoglSurfaceFactory");
-        
+        }
+
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
         AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
-        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(device, glCaps, 
-                                                                                                 new DefaultGLCapabilitiesChooser(), 
+        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(device, glCaps,
+                                                                                                 new DefaultGLCapabilitiesChooser(),
                                                                                                  1, 1, realShare);
         try {
             return new PbufferShadowContext(creator, pbuffer, provider);

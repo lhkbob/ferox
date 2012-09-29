@@ -42,44 +42,44 @@ public class LightGroupController extends SimpleController {
     // read-only so threadsafe
     private static final Matrix4 DEFAULT_MAT = new Matrix4().setIdentity();
     private static final AxisAlignedBox DEFAULT_AABB = new AxisAlignedBox();
-    
+
     private SpatialIndex<LightSource> lightIndex;
-    
+
     private IntProperty assignments;
     private List<Bag<Entity>> allVisibleSets;
-    
-    
+
+
     public LightGroupController(@Const AxisAlignedBox worldBounds) {
         this.lightIndex = new QuadTree<LightSource>(worldBounds, 1);
     }
-    
-    private <T extends Light<T>> void processLights(TypeId<T> id, LightInfluence.Factory<T> factory, 
+
+    private <T extends Light<T>> void processLights(TypeId<T> id, LightInfluence.Factory<T> factory,
                                                     List<LightSource> globalLights,
                                                     List<LightSource> allLights) {
         Transform transform = getEntitySystem().createDataInstance(Transform.ID);
         T light = getEntitySystem().createDataInstance(id);
         Influences influenceSet = getEntitySystem().createDataInstance(Influences.ID);
         InfluenceRegion region = getEntitySystem().createDataInstance(InfluenceRegion.ID);
-        
+
         ComponentIterator dlt = new ComponentIterator(getEntitySystem())
-            .addRequired(light)
-            .addOptional(transform)
-            .addOptional(influenceSet)
-            .addOptional(region);
+        .addRequired(light)
+        .addOptional(transform)
+        .addOptional(influenceSet)
+        .addOptional(region);
         while(dlt.next()) {
             Matrix4 t = (transform.isEnabled() ? transform.getMatrix() : DEFAULT_MAT);
             AxisAlignedBox bounds = null;
             boolean invertBounds = false;
-            
+
             if (region.isEnabled()) {
                 bounds = new AxisAlignedBox().transform(region.getBounds(), t);
                 invertBounds = region.isNegated();
             }
-            
-            LightSource l = new LightSource(allLights.size(), light.getComponent(), factory.create(light, t), 
+
+            LightSource l = new LightSource(allLights.size(), light.getComponent(), factory.create(light, t),
                                             (influenceSet.isEnabled() ? influenceSet.getInfluencedSet() : null),
                                             bounds, invertBounds);
-            
+
             if (bounds != null && !invertBounds) {
                 // this light is not a globally influencing light so add it to the index
                 if (!lightIndex.add(l, bounds)) {
@@ -89,37 +89,39 @@ public class LightGroupController extends SimpleController {
             } else {
                 globalLights.add(l);
             }
-            
+
             // always add it to the full list
             allLights.add(l);
         }
     }
-    
+
     private void queryGlobalLights(Entity e, LightCallback callback, List<LightSource> globalLights) {
         // accumulate globally influencing lights into bit set
         int numGlobalLights = globalLights.size();
         for (int i = 0; i < numGlobalLights; i++) {
             LightSource light = globalLights.get(i);
-            
+
             // check influence region of light
             if (light.bounds != null) {
                 if (light.invertBounds) {
                     // skip light if entity is contained entirely in light bounds
-                    if (light.bounds.contains(callback.entityBounds))
+                    if (light.bounds.contains(callback.entityBounds)) {
                         continue;
+                    }
                 } else {
                     // skip light if entity does not intersect light bounds
-                    if (!light.bounds.intersects(callback.entityBounds))
+                    if (!light.bounds.intersects(callback.entityBounds)) {
                         continue;
+                    }
                 }
             }
-            
+
             // check influence set of light
-            if (light.validEntities != null 
-                && !light.validEntities.contains(e)) {
+            if (light.validEntities != null
+                    && !light.validEntities.contains(e)) {
                 continue;
             }
-            
+
             // final check
             if (light.influence.influences(callback.entityBounds)) {
                 // passed the last check, so the entity is influence by the ith light
@@ -127,7 +129,7 @@ public class LightGroupController extends SimpleController {
             }
         }
     }
-    
+
     /*
      * This method makes excessive use of raw types, but it is safe given that
      * TypeIds are used correctly. Java's type inference is just not good enough
@@ -142,30 +144,30 @@ public class LightGroupController extends SimpleController {
         processLights(AmbientLight.ID, GlobalLightInfluence.<AmbientLight>factory(), globalLights, allLights);
         processLights(SpotLight.ID, SpotLightInfluence.factory(), globalLights, allLights);
         processLights(PointLight.ID, PointLightInfluence.factory(), globalLights, allLights);
-        
+
         int groupId = 0;
         Map<BitSet, Integer> groups = new HashMap<BitSet, Integer>();
-        
+
         LightCallback callback = new LightCallback(getEntitySystem(), allLights.size());
-        
+
         // process every visible entity
         for (Bag<Entity> pvs: allVisibleSets) {
             for (Entity entity: pvs) {
                 // reset callback for this entity
                 callback.set(entity);
-                
+
                 // check if we've already processed this entity in another pvs
-                if (!callback.renderable.isEnabled() 
-                    || assignments.get(callback.renderable.getIndex()) >= 0) {
+                if (!callback.renderable.isEnabled()
+                        || assignments.get(callback.renderable.getIndex()) >= 0) {
                     continue;
                 }
-                
+
                 queryGlobalLights(entity, callback, globalLights);
                 // FIXME must look into performance cost of this part of the callback,
                 // some small evidence suggests that just the re-working to use
                 // fewer component fetches is significantly faster, I'm not sure why
                 lightIndex.query(callback.entityBounds, callback);
-                
+
                 // light influence bit set is complete for the entity
                 Integer lightGroup = groups.get(callback.lights);
                 if (lightGroup == null) {
@@ -173,12 +175,12 @@ public class LightGroupController extends SimpleController {
                     lightGroup = groupId++;
                     groups.put((BitSet) callback.lights.clone(), lightGroup);
                 }
-                
+
                 // assign group to entity
                 assignments.set(lightGroup.intValue(), callback.renderable.getIndex());
             }
         }
-        
+
         // convert computed groups into LightGroupResult
         List<Set<Component<? extends Light<?>>>> finalGroups = new ArrayList<Set<Component<? extends Light<?>>>>(groups.size());
         for (int i = 0; i < groups.size(); i++) {
@@ -186,34 +188,34 @@ public class LightGroupController extends SimpleController {
             // sets below don't cause index oob exceptions
             finalGroups.add(null);
         }
-        
+
         for (Entry<BitSet, Integer> group: groups.entrySet()) {
             BitSet groupAsBitSet = group.getKey();
             Set<Component<? extends Light<?>>> lightsInGroup = new HashSet<Component<? extends Light<?>>>();
             for (int i = groupAsBitSet.nextSetBit(0); i >= 0; i = groupAsBitSet.nextSetBit(i+1)) {
                 lightsInGroup.add(allLights.get(i).source);
             }
-            
+
             // store in array
             finalGroups.set(group.getValue(), Collections.unmodifiableSet(lightsInGroup));
         }
-        
+
         getEntitySystem().getControllerManager().report(new LightGroupResult(finalGroups, assignments));
     }
-    
+
     @Override
     public void preProcess(double dt) {
         allVisibleSets = new ArrayList<Bag<Entity>>();
         Arrays.fill(assignments.getIndexedData(), -1);
         lightIndex.clear(true);
     }
-    
+
     @Override
     public void init(EntitySystem system) {
         super.init(system);
         assignments = system.decorate(Renderable.ID, new IntProperty.Factory(-1));
     }
-    
+
     @Override
     public void destroy() {
         getEntitySystem().undecorate(Renderable.ID, assignments);
@@ -221,7 +223,7 @@ public class LightGroupController extends SimpleController {
         lightIndex.clear();
         super.destroy();
     }
-    
+
     @Override
     public void report(Result r) {
         if (r instanceof PVSResult) {
@@ -233,18 +235,18 @@ public class LightGroupController extends SimpleController {
             }
         }
     }
-    
+
     private static class LightCallback implements QueryCallback<LightSource> {
         final BitSet lights;
         final Renderable renderable;
         AxisAlignedBox entityBounds;
-        
+
         public LightCallback(EntitySystem system, int numLights) {
             lights = new BitSet(numLights);
             renderable = system.createDataInstance(Renderable.ID);
             entityBounds = DEFAULT_AABB;
         }
-        
+
         public void set(Entity e) {
             if (e.get(renderable)) {
                 entityBounds = renderable.getWorldBounds();
@@ -253,7 +255,7 @@ public class LightGroupController extends SimpleController {
             }
             lights.clear();
         }
-        
+
         @Override
         public void process(LightSource item, @Const AxisAlignedBox lightBounds) {
             if (item.influence.influences(entityBounds)) {
@@ -262,22 +264,22 @@ public class LightGroupController extends SimpleController {
             }
         }
     }
-    
+
     private static class LightSource {
         final int id;
         final Component<? extends Light<?>> source;
         final LightInfluence influence;
-        
+
         // non-null only if Influences is present
         final Set<Entity> validEntities;
-        
+
         // non-null only if InfluenceRegion is present
         final AxisAlignedBox bounds;
         final boolean invertBounds;
-        
-        public LightSource(int id, Component<? extends Light<?>> source, 
-                           LightInfluence influence, Set<Entity> validEntities, 
-                           AxisAlignedBox bounds, boolean invertBounds) {
+
+        public LightSource(int id, Component<? extends Light<?>> source,
+                                             LightInfluence influence, Set<Entity> validEntities,
+                                             AxisAlignedBox bounds, boolean invertBounds) {
             this.id = id;
             this.source = source;
             this.influence = influence;

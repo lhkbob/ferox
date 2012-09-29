@@ -27,7 +27,7 @@ public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
      * The shared TypedId representing DepthOffsetMap.
      */
     public static final TypeId<SpecularColorMap> ID = TypeId.get(SpecularColorMap.class);
-    
+
     private SpecularColorMap() { }
 
     @Override

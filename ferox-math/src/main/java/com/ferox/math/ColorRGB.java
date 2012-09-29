@@ -33,14 +33,14 @@ import java.nio.FloatBuffer;
  */
 public final class ColorRGB implements Cloneable {
     private static final double DEFAULT_FACTOR = 0.7;
-    
+
     private static final int RED = 0;
     private static final int GREEN = 1;
     private static final int BLUE = 2;
-    
+
     private final double[] rgb;
     private final double[] rgbHDR;
-    
+
     /**
      * Create a new ColorRGB with red, green, and blue values equal to 0.
      */
@@ -75,7 +75,7 @@ public final class ColorRGB implements Cloneable {
         this();
         set(red, green, blue);
     }
-    
+
     @Override
     public ColorRGB clone() {
         return new ColorRGB(this);
@@ -105,27 +105,32 @@ public final class ColorRGB implements Cloneable {
      * @throws NullPointerException if color is null
      */
     public ColorRGB brighter(@Const ColorRGB color, double factor) {
-        if (factor < 1f)
+        if (factor < 1f) {
             throw new IllegalArgumentException("Brightening factor must be at least 1, not: " + factor);
-        
+        }
+
         double minBrightness = factor / (255 * factor - 255);
         double r = redHDR();
         double g = greenHDR();
         double b = blueHDR();
-        
+
         // if the color is black, then the brighter color must be a gray
-        if (r == 0 && g == 0 && b == 0)
-           return set(minBrightness, minBrightness, minBrightness);
+        if (r == 0 && g == 0 && b == 0) {
+            return set(minBrightness, minBrightness, minBrightness);
+        }
 
         // check for > 0 here so that non-black colors don't have component creep,
         // this is so that dark blue brightens into a brighter blue, without adding
         // any red or green
-        if (r > 0 && r < minBrightness) 
+        if (r > 0 && r < minBrightness) {
             r = minBrightness;
-        if (g > 0 && g < minBrightness) 
+        }
+        if (g > 0 && g < minBrightness) {
             g = minBrightness;
-        if (b > 0 && b < minBrightness) 
+        }
+        if (b > 0 && b < minBrightness) {
             b = minBrightness;
+        }
 
         return set(r * factor, g * factor, b * factor);
     }
@@ -153,14 +158,15 @@ public final class ColorRGB implements Cloneable {
      * @throws NullPointerException if color is null
      */
     public ColorRGB darker(@Const ColorRGB color, double factor) {
-        if (factor <= 0f || factor > 1f)
+        if (factor <= 0f || factor > 1f) {
             throw new IllegalArgumentException("Darkening factor must be in the range (0, 1], not: " + factor);
+        }
 
         return set(Math.max(0, factor * redHDR()),
                    Math.max(0, factor * greenHDR()),
                    Math.max(0, factor * blueHDR()));
     }
-    
+
     /**
      * Copy the color values from <tt>color</tt> into this color.
      * 
@@ -224,7 +230,7 @@ public final class ColorRGB implements Cloneable {
     public ColorRGB blue(double blue) {
         return setValue(blue, BLUE);
     }
-    
+
     private ColorRGB setValue(double v, int i) {
         rgbHDR[i] = Math.max(0, v);
         rgb[i] = Math.min(rgbHDR[i], 1f);
@@ -243,10 +249,11 @@ public final class ColorRGB implements Cloneable {
      * @throws IndexOutOfBoundsException if index isn't 0, 1, or 2
      */
     public ColorRGB set(int index, double value) {
-        if (index >= 0 && index < 3)
+        if (index >= 0 && index < 3) {
             return setValue(value, index);
-        else
+        } else {
             throw new IndexOutOfBoundsException("Illegal index, must be in [0, 2], not: " + index);
+        }
     }
 
     /**
@@ -289,7 +296,7 @@ public final class ColorRGB implements Cloneable {
     public ColorRGB set(DoubleBuffer values, int offset) {
         return set(values.get(offset), values.get(offset + 1), values.get(offset + 2));
     }
-    
+
     /**
      * As {@link #set(double[], int)} but a FloatBuffer is used as a source for
      * float values.
@@ -443,7 +450,7 @@ public final class ColorRGB implements Cloneable {
         vals[offset + 1] = (float) green();
         vals[offset + 2] = (float) blue();
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a DoubleBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -458,7 +465,7 @@ public final class ColorRGB implements Cloneable {
         store.put(offset + 1, green());
         store.put(offset + 2, blue());
     }
-    
+
     /**
      * As {@link #getHDR(double[], int)}, but with a DoubleBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -473,7 +480,7 @@ public final class ColorRGB implements Cloneable {
         store.put(offset + 1, greenHDR());
         store.put(offset + 2, blueHDR());
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a FloatBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -488,7 +495,7 @@ public final class ColorRGB implements Cloneable {
         store.put(offset + 1, (float) green());
         store.put(offset + 2, (float) blue());
     }
-    
+
     /**
      * As {@link #getHDR(double[], int)}, but with a FloatBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -543,27 +550,29 @@ public final class ColorRGB implements Cloneable {
      * @return True if they are equal
      */
     public boolean equals(@Const ColorRGB color, boolean asHDR) {
-        if (color == null)
+        if (color == null) {
             return false;
-        
+        }
+
         if (asHDR) {
             return Double.compare(redHDR(), color.redHDR()) == 0 &&
-                   Double.compare(greenHDR(), color.greenHDR()) == 0 &&
-                   Double.compare(blueHDR(), color.blueHDR()) == 0;
+                    Double.compare(greenHDR(), color.greenHDR()) == 0 &&
+                    Double.compare(blueHDR(), color.blueHDR()) == 0;
         } else {
             return Double.compare(red(), color.red()) == 0 &&
-                   Double.compare(green(), color.green()) == 0 &&
-                   Double.compare(blue(), color.blue()) == 0;
+                    Double.compare(green(), color.green()) == 0 &&
+                    Double.compare(blue(), color.blue()) == 0;
         }
     }
-    
+
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof ColorRGB))
+        if (!(o instanceof ColorRGB)) {
             return false;
+        }
         return equals((ColorRGB) o, true);
     }
-    
+
     @Override
     public int hashCode() {
         long result = 17;

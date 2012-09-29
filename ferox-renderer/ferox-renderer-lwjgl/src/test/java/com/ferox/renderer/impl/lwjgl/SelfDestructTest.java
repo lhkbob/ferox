@@ -13,15 +13,15 @@ public class SelfDestructTest {
         final Framework f = LwjglFramework.create();
         System.out.println("framework created");
         final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
-            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
-            .setUndecorated(true)
-            .setResizable(false)
-            .setWidth(500)
-            .setHeight(500));
-        
+        .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
+        .setUndecorated(true)
+        .setResizable(false)
+        .setWidth(500)
+        .setHeight(500));
+
         System.out.println("surface created");
         Thread.sleep(5000);
-        
+
         String result = f.queue(new Task<String>() {
             @Override
             public String run(HardwareAccessLayer access) {
@@ -32,7 +32,7 @@ public class SelfDestructTest {
                 return "finished";
             }
         }).get();
-        
+
         System.out.println(result);
     }
 }

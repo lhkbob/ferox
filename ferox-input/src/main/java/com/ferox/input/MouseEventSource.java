@@ -22,7 +22,7 @@ public interface MouseEventSource extends EventSource {
      * @throws NullPointerException if listener is null
      */
     public void addMouseListener(MouseListener listener);
-    
+
     /**
      * Remove the given MouseListener from this MouseEventSource. Nothing is
      * done if the given listener has never been added, or was already removed.

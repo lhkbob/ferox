@@ -26,7 +26,7 @@ public class ColorRGBProperty implements Property {
     private static final int REQUIRED_ELEMENTS = 3;
 
     private DoubleDataStore data;
-    
+
     /**
      * Create a new ColorRGBProperty.
      */
@@ -44,13 +44,14 @@ public class ColorRGBProperty implements Property {
      * @return result, or a new ColorRGB if result was null
      */
     public ColorRGB get(int index, ColorRGB result) {
-        if (result == null)
+        if (result == null) {
             result = new ColorRGB();
-        
+        }
+
         result.set(data.getArray(), index * REQUIRED_ELEMENTS);
         return result;
     }
-    
+
     /**
      * Copy the values of <tt>v</tt> into the underlying data of this property,
      * for the component at the given index.
@@ -62,7 +63,7 @@ public class ColorRGBProperty implements Property {
     public void set(@Const ColorRGB v, int index) {
         v.getHDR(data.getArray(), index * REQUIRED_ELEMENTS);
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return data;
@@ -72,7 +73,7 @@ public class ColorRGBProperty implements Property {
     public void setDataStore(IndexedDataStore store) {
         data = (DoubleDataStore) store;
     }
-    
+
     /**
      * Attribute annotation to apply to ColorRGBProperty declarations.
      * 
@@ -95,7 +96,7 @@ public class ColorRGBProperty implements Property {
          */
         double blue();
     }
-    
+
     /**
      * Default factory implementation for ColorRGBProperties, supports the
      * {@link DefaultColor} annotation to specify the default color.
@@ -104,7 +105,7 @@ public class ColorRGBProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<ColorRGBProperty> {
         private final ColorRGB dflt;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
             if (attrs.hasAttribute(DefaultColor.class)) {
@@ -114,7 +115,7 @@ public class ColorRGBProperty implements Property {
                 dflt = new ColorRGB();
             }
         }
-        
+
         public Factory(@Const ColorRGB v) {
             super(null);
             dflt = new ColorRGB(v);

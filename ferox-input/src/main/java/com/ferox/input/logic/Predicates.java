@@ -12,7 +12,7 @@ import com.ferox.input.MouseEvent.MouseButton;
  */
 public final class Predicates {
     private Predicates() { }
-    
+
     /**
      * Return a Predicate that evaluates to true when the key code transitions
      * from the up to down position.
@@ -22,8 +22,9 @@ public final class Predicates {
      * @throws NullPointerException if code is null
      */
     public static Predicate keyPress(final KeyCode code) {
-        if (code == null)
+        if (code == null) {
             throw new NullPointerException("KeyCode cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -31,7 +32,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the key code transitions
      * from the down to up position.
@@ -41,8 +42,9 @@ public final class Predicates {
      * @throws NullPointerException if code is null
      */
     public static Predicate keyRelease(final KeyCode code) {
-        if (code == null)
+        if (code == null) {
             throw new NullPointerException("KeyCode cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -50,7 +52,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the key code is held down
      * for the duration of the state transition. This will continue to evaluate
@@ -61,20 +63,21 @@ public final class Predicates {
      * @throws NullPointerException if code is null
      */
     public static Predicate keyHeld(final KeyCode code) {
-        if (code == null)
+        if (code == null) {
             throw new NullPointerException("KeyCode cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
                 // we use prev as the signal so that we still trigger during
-                // the transition of a release (since it was held until the 
+                // the transition of a release (since it was held until the
                 // very end), but not the transition for a press (since it was
                 // not held until the very end).
                 return prev.getKeyboardState().isKeyDown(code);
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the key code is pressed
      * and released in under 250 milliseconds (i.e. typing that key). This will
@@ -88,7 +91,7 @@ public final class Predicates {
     public static Predicate keyTyped(KeyCode code) {
         return keyTyped(code, 250L);
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the key code is pressed
      * and released in under <tt>delay</tt> milliseconds (i.e. typing that key).
@@ -104,7 +107,7 @@ public final class Predicates {
     public static Predicate keyTyped(KeyCode code, long delay) {
         return new KeyTypedPredicate(code, delay);
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button
      * transitions from the up to down position. When the NONE button is used,
@@ -115,8 +118,9 @@ public final class Predicates {
      * @throws NullPointerException if button is null
      */
     public static Predicate mousePress(final MouseButton button) {
-        if (button == null)
+        if (button == null) {
             throw new NullPointerException("MouseButton cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -124,7 +128,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button transitions
      * from the down to up position. When the NONE button is used, it
@@ -136,8 +140,9 @@ public final class Predicates {
      * @throws NullPointerException if button is null
      */
     public static Predicate mouseRelease(final MouseButton button) {
-        if (button == null)
+        if (button == null) {
             throw new NullPointerException("MouseButton cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -145,7 +150,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button is held
      * down for the duration of the state transition. This will continue to
@@ -158,8 +163,9 @@ public final class Predicates {
      * @throws NullPointerException if button is null
      */
     public static Predicate mouseHeld(final MouseButton button) {
-        if (button == null)
+        if (button == null) {
             throw new NullPointerException("MouseButton cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -168,7 +174,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button is
      * pressed and released once in under 150 milliseconds (i.e. a single
@@ -183,7 +189,7 @@ public final class Predicates {
     public static Predicate mouseClick(MouseButton button) {
         return mouseClick(button, 1);
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button is
      * pressed and released <tt>numClicks</tt> times in under 150 milliseconds
@@ -199,7 +205,7 @@ public final class Predicates {
     public static Predicate mouseClick(MouseButton button, int numClicks) {
         return mouseClick(button, numClicks, 150L);
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button is
      * pressed and released <tt>numClicks</tt> times in under <tt>delay</tt>
@@ -216,7 +222,7 @@ public final class Predicates {
     public static Predicate mouseClick(MouseButton button, int numClicks, long delay) {
         return new MouseClickedPredicate(button, numClicks, delay);
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse button is
      * pressed and released twice in under 150 milliseconds
@@ -231,7 +237,7 @@ public final class Predicates {
     public static Predicate doubleClick(MouseButton button) {
         return mouseClick(button, 2);
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse's position
      * changes and no button is held down.
@@ -241,7 +247,7 @@ public final class Predicates {
     public static Predicate mouseMove() {
         return mouseMove(false);
     }
-    
+
     /**
      * <p>
      * Return a Predicate that evaluates to true when the mouse's position
@@ -272,7 +278,7 @@ public final class Predicates {
             return mouseDrag(MouseButton.NONE);
         }
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the mouse's position
      * changes and the specified mouse button is held down. If the NONE button
@@ -285,7 +291,7 @@ public final class Predicates {
     public static Predicate mouseDrag(MouseButton button) {
         return and(mouseMove(true), mouseHeld(button));
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the amount of wheel
      * scrolling moves in the negative direction, which is synonymous with
@@ -301,7 +307,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that evaluates to true when the amount of wheel
      * scrolling moves in the positive direction, which is synonymous with
@@ -317,7 +323,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that returns true when the logical AND of the left and
      * right predicates returns true (i.e. when both left and right return
@@ -330,8 +336,9 @@ public final class Predicates {
      * @throws NullPointerException if left or right are null
      */
     public static Predicate and(final Predicate left, final Predicate right) {
-        if (left == null || right == null)
+        if (left == null || right == null) {
             throw new NullPointerException("Predicate arguments to and() cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -342,7 +349,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that returns true when the logical OR of the left and
      * right predicates returns true (i.e. when either left or right return
@@ -355,8 +362,9 @@ public final class Predicates {
      * @throws NullPointerException if left or right are null
      */
     public static Predicate or(final Predicate left, final Predicate right) {
-        if (left == null || right == null)
+        if (left == null || right == null) {
             throw new NullPointerException("Predicate arguments to or() cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
@@ -367,7 +375,7 @@ public final class Predicates {
             }
         };
     }
-    
+
     /**
      * Return a Predicate that returns true when the provided predicate returns
      * false. This performs a logical NOT operation.
@@ -377,8 +385,9 @@ public final class Predicates {
      * @throws NullPointerException if not is null
      */
     public static Predicate not(final Predicate not) {
-        if (not == null)
+        if (not == null) {
             throw new NullPointerException("Predicate argument to not() cannot be null");
+        }
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {

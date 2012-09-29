@@ -67,8 +67,9 @@ public class TextureLoader {
         synchronized (loaders) {
             if (e != null) {
                 int index = loaders.indexOf(e);
-                if (index >= 0)
+                if (index >= 0) {
                     loaders.remove(index);
+                }
                 loaders.add(e);
             }
         }
@@ -83,8 +84,9 @@ public class TextureLoader {
      */
     public static void unregisterLoader(ImageFileLoader e) {
         synchronized (loaders) {
-            if (e != null)
+            if (e != null) {
                 loaders.remove(e);
+            }
         }
     }
 
@@ -97,8 +99,9 @@ public class TextureLoader {
      * @throws IOException if the file can't be read, if it's unsupported, etc.
      */
     public static Texture readTexture(File file) throws IOException {
-        if (file == null)
+        if (file == null) {
             throw new IOException("Cannot load a texture image from a null file");
+        }
 
         InputStream stream = new FileInputStream(file);
         Texture image;
@@ -121,8 +124,9 @@ public class TextureLoader {
      *             or invalid, etc.
      */
     public static Texture readTexture(URL url) throws IOException {
-        if (url == null)
+        if (url == null) {
             throw new IOException("Cannot read from a null URL");
+        }
         InputStream urlStream = url.openStream();
         Texture image;
         try {
@@ -158,8 +162,9 @@ public class TextureLoader {
     public static Texture readTexture(InputStream stream) throws IOException {
         try {
             // make sure we're buffered
-            if (!(stream instanceof BufferedInputStream))
+            if (!(stream instanceof BufferedInputStream)) {
                 stream = new BufferedInputStream(stream);
+            }
 
             // load the file
             Texture t;
@@ -168,16 +173,19 @@ public class TextureLoader {
                 for (int i = loaders.size() - 1; i >= 0; i--) {
                     t = loaders.get(i).readImage(stream);
                     if (t != null)
+                    {
                         return t; // we've loaded it
+                    }
                 }
             }
 
             throw new IOException("Unable to load the given texture, no registered loader with support");
         } catch (Exception io) {
-            if (!(io instanceof IOException))
+            if (!(io instanceof IOException)) {
                 throw new IOException(io);
-            else
+            } else {
                 throw (IOException) io;
+            }
         }
     }
 
@@ -193,11 +201,13 @@ public class TextureLoader {
      * @throws IllegalArgumentException if image doesn't have a height of 1
      */
     public static Texture createTexture1D(BufferedImage image) {
-        if (image == null)
+        if (image == null) {
             throw new NullPointerException("Cannot convert a null BufferedImage");
-        if (image.getHeight() != 1)
-            throw new IllegalArgumentException("A BufferedImage can only be converted to a Texture1D with height == 1, not: " 
-                                               + image.getHeight());
+        }
+        if (image.getHeight() != 1) {
+            throw new IllegalArgumentException("A BufferedImage can only be converted to a Texture1D with height == 1, not: "
+                    + image.getHeight());
+        }
 
         RasterImage im = new RasterImage(image.getType(), image.getWidth(), 1);
 
@@ -230,8 +240,9 @@ public class TextureLoader {
      * @throws NullPointerException if image is null
      */
     public static Texture createTexture2D(BufferedImage image) {
-        if (image == null)
+        if (image == null) {
             throw new NullPointerException("Cannot convert a null BufferedImage");
+        }
 
         RasterImage im = new RasterImage(image.getType(), image.getWidth(), image.getHeight());
 
@@ -263,13 +274,13 @@ public class TextureLoader {
      * </p>
      * The image is laid out like so:
      * <pre>
-     * ¥----¥----¥----¥----¥
+     * ï¿½----ï¿½----ï¿½----ï¿½----ï¿½
      * | -- | NZ | -- | -- |
-     * ¥----¥----¥----¥----¥
+     * ï¿½----ï¿½----ï¿½----ï¿½----ï¿½
      * | NX | NY | PX | PY |
-     * ¥----¥----¥----¥----¥
+     * ï¿½----ï¿½----ï¿½----ï¿½----ï¿½
      * | -- | PZ | -- | -- |
-     * ¥----¥----¥----¥----¥
+     * ï¿½----ï¿½----ï¿½----ï¿½----ï¿½
      * </pre>
      * <p>
      * Because of this, the specified image must have an aspect ration of 4/3
@@ -284,12 +295,14 @@ public class TextureLoader {
      *             image.getHeight() / 3
      */
     public static Texture createTextureCubeMap(BufferedImage image) {
-        if (image == null)
+        if (image == null) {
             throw new NullPointerException("Cannot create a cube map from a null BufferedImage");
+        }
 
         int side = image.getWidth() / 4;
-        if (side * 4 != image.getWidth() || side * 3 != image.getHeight())
+        if (side * 4 != image.getWidth() || side * 3 != image.getHeight()) {
             throw new IllegalArgumentException("Base image doesn't have the 4x3 aspect ration necessary for a cube map");
+        }
 
         RasterImage im = new RasterImage(image.getType(), side, side);
         BufferedImage formatted = new BufferedImage(im.colorModel, im.data, false, null);
@@ -300,7 +313,7 @@ public class TextureLoader {
         Mipmap nx = createCubeMapFace(image, formatted, Texture.NX, im);
         Mipmap ny = createCubeMapFace(image, formatted, Texture.NY, im);
         Mipmap nz = createCubeMapFace(image, formatted, Texture.NZ, im);
-        
+
         return new Texture(Target.T_CUBEMAP, new Mipmap[] { px, py, pz, nx, ny, nz });
     }
 
@@ -309,7 +322,7 @@ public class TextureLoader {
      * out the raster data into a new BufferData. A copy is made since it is
      * assumed that faceStore is re-used for each cube face.
      */
-    private static Mipmap createCubeMapFace(BufferedImage fullImage, BufferedImage faceStore, 
+    private static Mipmap createCubeMapFace(BufferedImage fullImage, BufferedImage faceStore,
                                             int face, RasterImage im) {
         Graphics2D g2 = faceStore.createGraphics();
         AffineTransform t = AffineTransform.getScaleInstance(1, 1);
@@ -396,8 +409,8 @@ public class TextureLoader {
             case BufferedImage.TYPE_INT_RGB:
             case BufferedImage.TYPE_USHORT_555_RGB:
             case BufferedImage.TYPE_USHORT_565_RGB:
-                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), 
-                                                     new int[] { 8, 8, 8, 0 }, false, false, 
+                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                                                     new int[] { 8, 8, 8, 0 }, false, false,
                                                      Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 3, null);
 
@@ -405,8 +418,8 @@ public class TextureLoader {
                 format = TextureFormat.RGB;
                 break;
             case BufferedImage.TYPE_USHORT_GRAY:
-                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY), 
-                                                     new int[] { 16 }, false, false, 
+                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY),
+                                                     new int[] { 16 }, false, false,
                                                      Transparency.OPAQUE, DataBuffer.TYPE_USHORT);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_USHORT, width, height, 1, null);
 
@@ -414,8 +427,8 @@ public class TextureLoader {
                 format = TextureFormat.R;
                 break;
             case BufferedImage.TYPE_BYTE_GRAY:
-                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY), 
-                                                     new int[] { 8 }, false, false, 
+                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY),
+                                                     new int[] { 8 }, false, false,
                                                      Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 1, null);
 
@@ -423,8 +436,8 @@ public class TextureLoader {
                 format = TextureFormat.R;
                 break;
             default:
-                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), 
-                                                     new int[] { 8, 8, 8, 8 }, true, false, 
+                colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                                                     new int[] { 8, 8, 8, 8 }, true, false,
                                                      Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
 

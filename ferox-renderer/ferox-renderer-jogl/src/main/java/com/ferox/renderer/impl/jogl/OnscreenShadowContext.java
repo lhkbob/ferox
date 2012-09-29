@@ -20,18 +20,18 @@ import com.jogamp.newt.Window;
  */
 public class OnscreenShadowContext extends JoglContext {
     private final Window frame;
-    
+
     private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame, GLContext context, RendererProvider provider) {
         super(creator, context, provider);
         this.frame = frame;
     }
-    
+
     @Override
     public void destroy() {
-    	// we need to clear the thread's interrupted status because NEWT's
-    	// EDT thread locking is a little crazy
-    	Thread.interrupted();
-    	
+        // we need to clear the thread's interrupted status because NEWT's
+        // EDT thread locking is a little crazy
+        Thread.interrupted();
+
         frame.setVisible(false);
         super.destroy();
         frame.destroy();
@@ -49,17 +49,18 @@ public class OnscreenShadowContext extends JoglContext {
      * @throws NullPointerException if framework or profile is null
      */
     public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith, RendererProvider provider) {
-        if (creator == null)
+        if (creator == null) {
             throw new NullPointerException("Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
-        
+        }
+
         GLCapabilities caps = new GLCapabilities(creator.getGLProfile());
         Window window = NewtFactory.createWindow(creator.getScreen(), caps);
         window.setUndecorated(true);
         window.setSize(1, 1);
         window.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
-        
+
         window.setVisible(true);
-        
+
         GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLDrawable(window);
         GLContext context = drawable.createContext(shareWith == null ? null : shareWith.getGLContext());
 

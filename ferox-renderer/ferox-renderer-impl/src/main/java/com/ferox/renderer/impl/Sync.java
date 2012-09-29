@@ -30,92 +30,105 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  */
 public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     private static final long serialVersionUID = 1L;
-    
+
     private static final int RUNNING = 1;
     private static final int COMPLETED = 2;
     private static final int CANCELLED = 8;
-    
+
     private final Callable<V> task;
     private volatile Thread runner;
-    
+
     private V result;
     private Throwable exception;
-    
+
     public Sync(Callable<V> task) {
-        if (task == null)
+        if (task == null) {
             throw new NullPointerException("Task cannot be null");
+        }
         this.task = task;
     }
-    
+
     public Callable<V> getTask() {
         return task;
     }
-    
+
     public boolean isCancelled() {
         return getState() == CANCELLED;
     }
-    
+
     public boolean isDone() {
         return completed(getState());
     }
-    
+
     public boolean cancel(boolean mayInterrupt) {
         for (;;) {
             int s = getState();
-            if (completed(s))
+            if (completed(s)) {
                 return false;
-            if (compareAndSetState(s, CANCELLED))
+            }
+            if (compareAndSetState(s, CANCELLED)) {
                 break;
+            }
         }
-        
+
         if (mayInterrupt) {
             Thread r = runner;
-            if (r != null)
+            if (r != null) {
                 r.interrupt();
+            }
         }
         releaseShared(0);
         return true;
     }
-    
+
     public V get() throws InterruptedException, ExecutionException {
         acquireSharedInterruptibly(0);
-        if (getState() == CANCELLED)
+        if (getState() == CANCELLED) {
             throw new CancellationException();
-        if (exception != null)
+        }
+        if (exception != null) {
             throw new ExecutionException(exception);
+        }
         return result;
     }
-    
+
     public V get(long timeout, TimeUnit units) throws InterruptedException, ExecutionException, TimeoutException {
-        if (!tryAcquireSharedNanos(0, units.toNanos(timeout)))
+        if (!tryAcquireSharedNanos(0, units.toNanos(timeout))) {
             throw new TimeoutException();
-        if (getState() == CANCELLED)
+        }
+        if (getState() == CANCELLED) {
             throw new CancellationException();
-        if (exception != null)
+        }
+        if (exception != null) {
             throw new ExecutionException(exception);
+        }
         return result;
     }
-    
+
     @Override
     public void run() {
-         if (!compareAndSetState(0, RUNNING))
-             return;
-         try {
-             runner = Thread.currentThread();
-             if (getState() == RUNNING) // recheck after setting thread
-                 set(task.call());
-             else
-                 releaseShared(0); // cancel
-         } catch (Throwable ex) {
-             setException(ex);
-         }
+        if (!compareAndSetState(0, RUNNING)) {
+            return;
+        }
+        try {
+            runner = Thread.currentThread();
+            if (getState() == RUNNING) {
+                set(task.call());
+            }
+            else {
+                releaseShared(0); // cancel
+            }
+        } catch (Throwable ex) {
+            setException(ex);
+        }
     }
-    
+
     public void set(V v) {
         for (;;) {
             int s = getState();
-            if (s == COMPLETED)
+            if (s == COMPLETED) {
                 return;
+            }
             if (s == CANCELLED) {
                 // aggressively release to set runner to null,
                 // in case we are racing with a cancel request
@@ -134,8 +147,9 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     private void setException(Throwable t) {
         for (;;) {
             int s = getState();
-            if (s == COMPLETED)
+            if (s == COMPLETED) {
                 return;
+            }
             if (s == CANCELLED) {
                 // aggressively release to set runner to null,
                 // in case we are racing with a cancel request
@@ -151,11 +165,11 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
             }
         }
     }
-    
+
     private boolean completed(int state) {
         return (state & (COMPLETED | CANCELLED)) != 0;
     }
-    
+
     /**
      * Implements AQS base acquire to succeed if ran or cancelled
      */

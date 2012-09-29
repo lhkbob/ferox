@@ -43,12 +43,12 @@ public class JoglSurfaceFactory extends SurfaceFactory {
 
     private final int capBits;
     private final GLProfile profile;
-    
+
     private final DisplayMode defaultMode;
     private final DisplayMode[] availableModes;
-    
+
     private final Map<DisplayMode, ScreenMode> convertMap;
-    
+
     // the Display and Screen used by all windows created by this factory
     private final Display display;
     private final Screen screen;
@@ -63,20 +63,21 @@ public class JoglSurfaceFactory extends SurfaceFactory {
      * @throws NullPointerException if profile is null
      */
     public JoglSurfaceFactory(GLProfile profile, int capBits) {
-        if (profile == null)
+        if (profile == null) {
             throw new NullPointerException("GLProfile cannot be null");
-        
+        }
+
         this.capBits = capBits;
         this.profile = profile;
-        
+
         display = NewtFactory.createDisplay(null);
         display.addReference();
-        
+
         screen = NewtFactory.createScreen(display, 0);
         screen.addReference();
-        
+
         convertMap = new HashMap<DisplayMode, ScreenMode>();
-        
+
         List<ScreenMode> modes = screen.getScreenModes();
         for (ScreenMode joglMode: modes) {
             DisplayMode feroxMode = convert(joglMode);
@@ -90,28 +91,28 @@ public class JoglSurfaceFactory extends SurfaceFactory {
                 convertMap.put(feroxMode, joglMode);
             }
         }
-        
+
         availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
         defaultMode = convert(screen.getOriginalScreenMode());
     }
-    
+
     @Override
     public void destroy() {
         screen.removeReference();
         display.removeReference();
     }
-    
+
     public Screen getScreen() {
         return screen;
     }
-    
+
     public Display getDisplay() {
         return display;
     }
-    
+
     public GLCapabilities chooseCapabilities(OnscreenSurfaceOptions request) {
         GLCapabilities caps = new GLCapabilities(profile);
-        
+
         // update the caps fields
         PixelFormat pf;
         if (request.getFullscreenMode() != null) {
@@ -119,7 +120,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         } else {
             pf = getDefaultDisplayMode().getPixelFormat();
         }
-        
+
         switch (pf) {
         case RGB_16BIT:
             caps.setRedBits(5);
@@ -143,20 +144,20 @@ public class JoglSurfaceFactory extends SurfaceFactory {
 
         // FIXME On Mac, requesting any other depth than 16-bit causes a JVM crash
         caps.setDepthBits(16);
-//        switch (request.getDepthFormat()) {
-//        case DEPTH_16BIT:
-//            caps.setDepthBits(16);
-//            break;
-//        case DEPTH_24BIT: case UNKNOWN:
-//            caps.setDepthBits(24);
-//            break;
-//        case DEPTH_32BIT:
-//            caps.setDepthBits(32);
-//            break;
-//        case NONE:
-//            caps.setDepthBits(0);
-//            break;
-//        }
+        //        switch (request.getDepthFormat()) {
+        //        case DEPTH_16BIT:
+        //            caps.setDepthBits(16);
+        //            break;
+        //        case DEPTH_24BIT: case UNKNOWN:
+        //            caps.setDepthBits(24);
+        //            break;
+        //        case DEPTH_32BIT:
+        //            caps.setDepthBits(32);
+        //            break;
+        //        case NONE:
+        //            caps.setDepthBits(0);
+        //            break;
+        //        }
 
         switch (request.getStencilFormat()) {
         case STENCIL_16BIT:
@@ -194,10 +195,10 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             caps.setSampleBuffers(false);
             break;
         }
-        
+
         return caps;
     }
-    
+
     /**
      * Return an JOGL ScreenMode that exactly matches the given DisplayMode, or
      * null if there was no exact match.
@@ -208,7 +209,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     public ScreenMode getScreenMode(DisplayMode mode) {
         return convertMap.get(mode);
     }
-    
+
     private static DisplayMode convert(ScreenMode mode) {
         SurfaceSize realMode = mode.getMonitorMode().getSurfaceSize();
         PixelFormat pixFormat;
@@ -226,20 +227,21 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             pixFormat = PixelFormat.UNKNOWN;
             break;
         }
-        
+
         return new DisplayMode(realMode.getResolution().getWidth(), realMode.getResolution().getHeight(), pixFormat);
     }
-    
+
     @Override
     public AbstractTextureSurface createTextureSurface(AbstractFramework framework,
                                                        TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
-        if (framework.getCapabilities().getFboSupport())
+        if (framework.getCapabilities().getFboSupport()) {
             return new JoglFboTextureSurface(framework, this, options);
-        else if (framework.getCapabilities().getPbufferSupport())
+        } else if (framework.getCapabilities().getPbufferSupport()) {
             return new JoglPbufferTextureSurface(framework, this, options, (JoglContext) sharedContext, new JoglRendererProvider());
-        else
+        } else {
             throw new SurfaceCreationException("No render-to-texture support on current hardware");
+        }
     }
 
     @Override
@@ -252,13 +254,14 @@ public class JoglSurfaceFactory extends SurfaceFactory {
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0 
-            && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null))
+        if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0
+                && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null)) {
             return PbufferShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());
-        else
+        } else {
             return OnscreenShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());
+        }
     }
-    
+
     /**
      * @return The GLProfile selected by this factory
      */
@@ -274,7 +277,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     public int getCapabilityForceBits() {
         return capBits;
     }
-    
+
     @Override
     public DisplayMode getDefaultDisplayMode() {
         return defaultMode;
@@ -284,23 +287,24 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     public DisplayMode[] getAvailableDisplayModes() {
         return Arrays.copyOf(availableModes, availableModes.length);
     }
-    
+
     private class JoglRendererProvider implements RendererProvider {
         private FixedFunctionRenderer ffp;
         private GlslRenderer glsl;
-        
+
         private JoglRendererDelegate sharedDelegate;
-        
+
         @Override
         public FixedFunctionRenderer getFixedFunctionRenderer(RenderCapabilities caps) {
             if (ffp == null) {
                 if (caps.hasFixedFunctionRenderer()) {
-                    if (sharedDelegate == null)
+                    if (sharedDelegate == null) {
                         sharedDelegate = new JoglRendererDelegate();
+                    }
                     ffp = new JoglFixedFunctionRenderer(sharedDelegate);
                 }
             }
-            
+
             return ffp;
         }
 
@@ -308,12 +312,13 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         public GlslRenderer getGlslRenderer(RenderCapabilities caps) {
             if (glsl == null) {
                 if (caps.hasGlslRenderer()) {
-                    if (sharedDelegate == null)
+                    if (sharedDelegate == null) {
                         sharedDelegate = new JoglRendererDelegate();
+                    }
                     glsl = new JoglGlslRenderer(sharedDelegate);
                 }
             }
-            
+
             return glsl;
         }
     }

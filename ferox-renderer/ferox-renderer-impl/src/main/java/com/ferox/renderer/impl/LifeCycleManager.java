@@ -33,11 +33,11 @@ public class LifeCycleManager {
     public static enum Status {
         WAITING_INIT, STARTING, ACTIVE, STOPPING, WAITING_ON_CHILDREN, STOPPED
     }
-    
+
     private final ReentrantReadWriteLock lock;
     private final ThreadGroup managedThreadGroup;
     private final CopyOnWriteArrayList<Thread> managedThreads;
-    
+
     private volatile Status status;
 
     /**
@@ -49,12 +49,13 @@ public class LifeCycleManager {
      * @throws NullPointerException if groupName is null
      */
     public LifeCycleManager(String groupName) {
-        if (groupName == null)
+        if (groupName == null) {
             throw new NullPointerException("groupName cannot be null");
-        
+        }
+
         managedThreadGroup = new ThreadGroup(groupName);
         managedThreads = new CopyOnWriteArrayList<Thread>();
-        
+
         status = Status.WAITING_INIT;
         lock = new ReentrantReadWriteLock();
     }
@@ -69,7 +70,7 @@ public class LifeCycleManager {
         Status status = this.status;
         return status == Status.STOPPING || status == Status.STOPPED || status == Status.WAITING_ON_CHILDREN;
     }
-    
+
     /**
      * <p>
      * Start or initialize this LifeCycleManager. This will transition its
@@ -96,11 +97,13 @@ public class LifeCycleManager {
     public boolean start(Runnable onInit) {
         lock.writeLock().lock();
         try {
-            if (status != Status.WAITING_INIT)
+            if (status != Status.WAITING_INIT) {
                 return false;
+            }
             status = Status.STARTING;
-            if (onInit != null)
+            if (onInit != null) {
                 onInit.run();
+            }
             status = Status.ACTIVE;
             return true;
         } finally {
@@ -144,9 +147,10 @@ public class LifeCycleManager {
         lock.writeLock().lock();
         try {
             // Cannot destroy if actively being started, destroyed or has already been destroyed
-            if (status != Status.WAITING_INIT && status != Status.ACTIVE)
+            if (status != Status.WAITING_INIT && status != Status.ACTIVE) {
                 return false;
-            
+            }
+
             if (status == Status.WAITING_INIT) {
                 // never initialized
                 status = Status.STOPPED;
@@ -154,27 +158,28 @@ public class LifeCycleManager {
             } else {
                 // status must be ACTIVE, so start a shutdown thread
                 status = Status.STOPPING;
-                
+
                 // invoke this task while STOPPING, but before we block on children
-                if (preDestroy != null)
+                if (preDestroy != null) {
                     preDestroy.run();
-                
+                }
+
                 // Send an interrupt to all managed threads
                 managedThreadGroup.interrupt();
                 status = Status.WAITING_ON_CHILDREN;
-                
+
                 ThreadGroup shutdownOwner = Thread.currentThread().getThreadGroup();
                 while(managedThreadGroup.parentOf(shutdownOwner)) {
                     // The shutdown thread joins on threads within the managedThreads group,
                     // so it can't be part of that thread group.
                     shutdownOwner = shutdownOwner.getParent();
                 }
-                
-                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(postDestroy), 
-                                             "lifecycle-shutdown-thread");
+
+                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(postDestroy),
+                        "lifecycle-shutdown-thread");
                 shutdown.setDaemon(false); // Don't let the JVM die until this is finished
                 shutdown.start();
-                
+
                 return true;
             }
         } finally {
@@ -194,7 +199,7 @@ public class LifeCycleManager {
     public Lock getLock() {
         return lock.readLock();
     }
-    
+
     /**
      * @return The current status of the manager
      */
@@ -242,17 +247,20 @@ public class LifeCycleManager {
      * @return True if the thread becomes managed and has been started
      */
     public boolean startManagedThread(Thread thread) {
-        if (thread == null)
+        if (thread == null) {
             throw new NullPointerException("Thread cannot be null");
-        if (!managedThreadGroup.parentOf(thread.getThreadGroup()))
+        }
+        if (!managedThreadGroup.parentOf(thread.getThreadGroup())) {
             throw new IllegalArgumentException("Managed thread must be in the ThreadGroup provided by this LifeCycleManager");
-        
+        }
+
         lock.readLock().lock();
         try {
             // Cannot start a thread if the lifecycle is ending or hasn't started
-            if (status == Status.STOPPED || status == Status.STOPPING || status == Status.WAITING_INIT)
+            if (status == Status.STOPPED || status == Status.STOPPING || status == Status.WAITING_INIT) {
                 return false;
-            
+            }
+
             // It is okay to start a thread while active, or starting
             thread.start();
             managedThreads.add(thread);
@@ -268,11 +276,11 @@ public class LifeCycleManager {
      */
     private class ShutdownTask implements Runnable {
         private final Runnable postStop;
-        
+
         public ShutdownTask(Runnable postStop) {
             this.postStop = postStop;
         }
-        
+
         @Override
         public void run() {
             // This iteration does not need to worry about changes to the thread-list
@@ -292,11 +300,11 @@ public class LifeCycleManager {
                     }
                 }
             } while(loop);
-            
+
             // We don't need to lock here since this is the only place where STOPPING -> STOPPED
             // and there will only ever be one shutdown thread.
             status = Status.STOPPED;
-            
+
             postStop.run();
         }
     }

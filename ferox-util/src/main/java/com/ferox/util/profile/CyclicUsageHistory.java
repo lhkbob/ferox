@@ -43,9 +43,11 @@ public class CyclicUsageHistory
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
 
         double max = 0.0;
-        for (int i = 0; i < count; i++)
-            if (this.previous(i) > max)
+        for (int i = 0; i < count; i++) {
+            if (this.previous(i) > max) {
                 max = this.previous(i);
+            }
+        }
         return max;
     }
 
@@ -61,8 +63,9 @@ public class CyclicUsageHistory
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
 
         double sum = 0.0;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++) {
             sum += this.previous(i);
+        }
         return sum;
     }
 
@@ -90,12 +93,14 @@ public class CyclicUsageHistory
     public double nom(int slots)
     {
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
-        if (count == 0)
+        if (count == 0) {
             return 0.0;
+        }
 
         double[] arr = new double[count];
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < count; i++) {
             arr[i] = this.previous(i);
+        }
         Arrays.sort(arr);
         return arr[arr.length / 2];
     }

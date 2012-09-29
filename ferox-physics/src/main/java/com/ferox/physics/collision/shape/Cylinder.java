@@ -13,7 +13,7 @@ import com.ferox.math.Vector3;
 public class Cylinder extends AxisSweptShape {
     private double capRadius;
     private double halfHeight;
-    
+
     /**
      * 
      * @param capRadius
@@ -22,40 +22,43 @@ public class Cylinder extends AxisSweptShape {
     public Cylinder(double capRadius, double height) {
         this(capRadius, height, Axis.Z);
     }
-    
+
     public Cylinder(double capRadius, double height, Axis dominantAxis) {
         super(dominantAxis);
         setCapRadius(capRadius);
         setHeight(height);
     }
-    
+
     public double getCapRadius() {
         return capRadius;
     }
-    
+
     public double getHeight() {
         return 2.0 * halfHeight;
     }
-    
+
     public void setCapRadius(double radius) {
-        if (radius <= 0.0)
+        if (radius <= 0.0) {
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
+        }
         capRadius = radius;
         update();
     }
-    
+
     public void setHeight(double height) {
-        if (height <= 0.0)
+        if (height <= 0.0) {
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
+        }
         halfHeight = height / 2.0;
         update();
     }
 
     @Override
     public Vector3 computeSupport(@Const Vector3 v, Vector3 result) {
-        if (result == null)
+        if (result == null) {
             result = new Vector3();
-        
+        }
+
         double sigma = sigma(v);
         if (sigma > 0.0) {
             double scale = capRadius / sigma;
@@ -74,11 +77,11 @@ public class Cylinder extends AxisSweptShape {
 
         return result;
     }
-    
+
     private void update() {
         double m1 = (3.0 * capRadius * capRadius + 4.0 * halfHeight * halfHeight) / 12.0;
         double m2 = capRadius * capRadius / 2.0;
-        
+
         switch(dominantAxis) {
         case X:
             inertiaTensorPartial.set(m2, m1, m1);

@@ -2,8 +2,8 @@ package com.ferox.renderer;
 
 import java.util.Arrays;
 
-import com.ferox.resource.TextureFormat;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.TextureFormat;
 
 /**
  * TextureSurfaceOptions represents the set of configurable parameters used to
@@ -16,14 +16,14 @@ import com.ferox.resource.Texture.Target;
  */
 public final class TextureSurfaceOptions {
     private final Target textureTarget;
-    
+
     private final int width;
     private final int height;
     private final int depth;
-    
+
     private final TextureFormat[] colorTargetFormats;
     private final boolean useDepthTexture;
-    
+
     private final int activeLayer;
     private final int activeDepthPlane;
 
@@ -44,37 +44,44 @@ public final class TextureSurfaceOptions {
     public TextureSurfaceOptions() {
         this(Target.T_2D, new TextureFormat[] { TextureFormat.RGB }, 1, 1, 1, false, 0, 0);
     }
-    
-    private TextureSurfaceOptions(Target target, TextureFormat[] colorFormats, 
+
+    private TextureSurfaceOptions(Target target, TextureFormat[] colorFormats,
                                   int width, int height, int depth, boolean useDepthTexture,
                                   int activeLayer, int activeDepth) {
-        if (target == null)
+        if (target == null) {
             throw new NullPointerException("Target cannot be null");
-        if (colorFormats == null)
-            colorFormats = new TextureFormat[0];
-        for (int i = 0; i < colorFormats.length; i++) {
-            if (colorFormats[i] == null)
-                throw new NullPointerException("TextureFormat cannot be null, at index: " + i);
-            if (colorFormats[i] == TextureFormat.DEPTH)
-                throw new IllegalArgumentException("TextureFormat cannot be DEPTH, at index: " + i);
         }
-        
-        if (width < 1 || height < 1 || depth < 1)
+        if (colorFormats == null) {
+            colorFormats = new TextureFormat[0];
+        }
+        for (int i = 0; i < colorFormats.length; i++) {
+            if (colorFormats[i] == null) {
+                throw new NullPointerException("TextureFormat cannot be null, at index: " + i);
+            }
+            if (colorFormats[i] == TextureFormat.DEPTH) {
+                throw new IllegalArgumentException("TextureFormat cannot be DEPTH, at index: " + i);
+            }
+        }
+
+        if (width < 1 || height < 1 || depth < 1) {
             throw new IllegalArgumentException("Invalid dimensions: " + width + ", " + height + ", " + depth);
-        if (activeLayer < 0)
+        }
+        if (activeLayer < 0) {
             throw new IllegalArgumentException("Active layer must be at least 0");
-        if (activeDepth < 0)
+        }
+        if (activeDepth < 0) {
             throw new IllegalArgumentException("Active depth slice must be at least 0");
-        
+        }
+
         this.width = width;
         this.height = height;
         this.depth = depth;
-        
+
         this.useDepthTexture = useDepthTexture;
         this.activeLayer = activeLayer;
-        
+
         activeDepthPlane = activeDepth;
-        
+
         textureTarget = target;
         colorTargetFormats = colorFormats;
     }
@@ -93,7 +100,7 @@ public final class TextureSurfaceOptions {
      * @throws NullPointerException if textureTarget is null
      */
     public TextureSurfaceOptions setTarget(Target textureTarget) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
 
@@ -113,10 +120,10 @@ public final class TextureSurfaceOptions {
      */
     public TextureSurfaceOptions setColorBufferFormats(TextureFormat... formats) {
         TextureFormat[] copy = (formats == null ? null : Arrays.copyOf(formats, formats.length));
-        return new TextureSurfaceOptions(textureTarget, copy, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, copy, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
-    
+
     /**
      * Set the width size of the TextureSurface and any Textures it may need to
      * create.
@@ -127,10 +134,10 @@ public final class TextureSurfaceOptions {
      * @throws IllegalArgumentException if width < 1
      */
     public TextureSurfaceOptions setWidth(int width) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
-    
+
     /**
      * Set the height size of the TextureSurface and any Textures it may need to
      * create. The height will be ignored when the target is T_1D.
@@ -141,7 +148,7 @@ public final class TextureSurfaceOptions {
      * @throws IllegalArgumentException if height < 1
      */
     public TextureSurfaceOptions setHeight(int height) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
 
@@ -155,7 +162,7 @@ public final class TextureSurfaceOptions {
      * @throws IllegalArgumentException if depth < 1
      */
     public TextureSurfaceOptions setDepth(int depth) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
 
@@ -170,7 +177,7 @@ public final class TextureSurfaceOptions {
      *         new depth texture parameter
      */
     public TextureSurfaceOptions setUseDepthTexture(boolean useDepthTexture) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
 
@@ -184,7 +191,7 @@ public final class TextureSurfaceOptions {
      * @throws IllegalArgumentException if activeLayer < 0
      */
     public TextureSurfaceOptions setActiveLayer(int activeLayer) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
 
@@ -199,10 +206,10 @@ public final class TextureSurfaceOptions {
      * @throws IllegalArgumentException if activeDepthPlane < 0
      */
     public TextureSurfaceOptions setActiveDepthPlane(int activeDepthPlane) {
-        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth, 
+        return new TextureSurfaceOptions(textureTarget, colorTargetFormats, width, height, depth,
                                          useDepthTexture, activeLayer, activeDepthPlane);
     }
-    
+
     /**
      * @return The requested Target of the Textures used by the created
      *         TextureSurface
@@ -220,7 +227,7 @@ public final class TextureSurfaceOptions {
      *             {@link #getNumColorBuffers()}
      */
     public TextureFormat getColorBufferFormat(int colorBuffer) { return colorTargetFormats[colorBuffer]; }
-    
+
     /**
      * @return The number of requested color buffers
      */
@@ -231,28 +238,28 @@ public final class TextureSurfaceOptions {
      *         false if depth information can be stored in a non-external source
      */
     public boolean hasDepthTexture() { return useDepthTexture; }
-    
+
     /**
      * @return The width for Textures for the created TextureSurface
      */
     public int getWidth() { return width; }
-    
+
     /**
      * @return The height for Textures of surfaces with a Target of T_2D, T_3D or T_CUBEMAP
      */
     public int getHeight() { return height; }
-    
+
     /**
      * @return The depth for Textures of surfaces with a Target of T_3D
      */
     public int getDepth() { return depth; }
-    
+
     /**
      * @return The initial active layer for surfaces with multiple layers (e.g.
      *         cube maps)
      */
     public int getActiveLayer() { return activeLayer; }
-    
+
     /**
      * @return The initial active depth layer for 3D textures
      */

@@ -29,7 +29,7 @@ public final class Vector3 implements Cloneable {
     public double x;
     public double y;
     public double z;
-    
+
     /**
      * Create a new vector with all components equal to 0.
      */
@@ -59,12 +59,12 @@ public final class Vector3 implements Cloneable {
         this.y = y;
         this.z = z;
     }
-    
+
     @Override
     public Vector3 clone() {
         return new Vector3(this);
     }
-    
+
     /**
      * Compute the length of this vector.
      * 
@@ -152,7 +152,7 @@ public final class Vector3 implements Cloneable {
         double tx = a.x;
         double ty = a.y;
         double tz = a.z;
-        
+
         // if this == a, project modifies a, which is why we preserve tx, ty, tz
         project(a, b);
         return set(tx - x, ty - y, tz - z);
@@ -259,8 +259,9 @@ public final class Vector3 implements Cloneable {
      */
     public Vector3 normalize(@Const Vector3 v) {
         double d = v.length();
-        if (d == 0f)
+        if (d == 0f) {
             throw new ArithmeticException("Can't normalize 0 vector");
+        }
         return scale(v, 1 / d);
     }
 
@@ -275,8 +276,8 @@ public final class Vector3 implements Cloneable {
      * @throws NullPointerException if m or b are null
      */
     public Vector3 mul(@Const Matrix3 m, @Const Vector3 b) {
-        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z, 
-                   m.m10 * b.x + m.m11 * b.y + m.m12 * b.z, 
+        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z,
+                   m.m10 * b.x + m.m11 * b.y + m.m12 * b.z,
                    m.m20 * b.x + m.m21 * b.y + m.m22 * b.z);
     }
 
@@ -296,8 +297,8 @@ public final class Vector3 implements Cloneable {
      * @throws NullPointerException if m or b are null
      */
     public Vector3 mul(@Const Vector3 b, @Const Matrix3 m) {
-        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z, 
-                   m.m01 * b.x + m.m11 * b.y + m.m21 * b.z, 
+        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z,
+                   m.m01 * b.x + m.m11 * b.y + m.m21 * b.z,
                    m.m02 * b.x + m.m12 * b.y + m.m22 * b.z);
     }
 
@@ -320,8 +321,9 @@ public final class Vector3 implements Cloneable {
      */
     public Vector3 solve(@Const Matrix3 m, @Const Vector3 a) {
         double invDet = m.determinant();
-        if (Math.abs(invDet) < .00001)
+        if (Math.abs(invDet) < .00001) {
             throw new ArithmeticException("No solution, or infinite solutions, cannot solve system");
+        }
         invDet = 1f / invDet;
 
         return set(invDet * (a.x * (m.m11 * m.m22 - m.m12 * m.m21) - a.y * (m.m01 * m.m22 - m.m02 * m.m21) + a.z * (m.m01 * m.m12 - m.m02 * m.m11)),
@@ -409,7 +411,7 @@ public final class Vector3 implements Cloneable {
     public Vector3 normalize() {
         return normalize(this);
     }
-    
+
     /**
      * Compute the corner of the box that is most extended along the given
      * direction vector and store it in this vector. This will return one of the
@@ -424,7 +426,7 @@ public final class Vector3 implements Cloneable {
     public Vector3 farExtent(@Const AxisAlignedBox bounds, @Const Vector3 dir) {
         return extent(bounds.min, bounds.max, dir);
     }
-    
+
     /**
      * Compute the corner of the box that is least extended along the given
      * direction vector and store it in this vector. This is equivalent to
@@ -439,7 +441,7 @@ public final class Vector3 implements Cloneable {
     public Vector3 nearExtent(@Const AxisAlignedBox bounds, @Const Vector3 dir) {
         return extent(bounds.max, bounds.min, dir);
     }
-    
+
     private Vector3 extent(@Const Vector3 min, @Const Vector3 max, @Const Vector3 dir) {
         x = (dir.x > 0 ? max.x : min.x);
         y = (dir.y > 0 ? max.y : min.y);
@@ -526,7 +528,7 @@ public final class Vector3 implements Cloneable {
     public Vector3 set(float[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2]);
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the
      * DoubleBuffer.
@@ -540,7 +542,7 @@ public final class Vector3 implements Cloneable {
     public Vector3 set(DoubleBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2));
     }
-    
+
     /**
      * As {@link #set(double[], int)} but the values are taken from the
      * FloatBuffer.
@@ -606,7 +608,7 @@ public final class Vector3 implements Cloneable {
         vals[offset + 1] = (float) y;
         vals[offset + 2] = (float) z;
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a DoubleBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -621,7 +623,7 @@ public final class Vector3 implements Cloneable {
         store.put(offset + 1, y);
         store.put(offset + 2, z);
     }
-    
+
     /**
      * As {@link #get(double[], int)}, but with a FloatBuffer.
      * <tt>offset</tt> is measured from 0, not the buffer's position.
@@ -656,8 +658,9 @@ public final class Vector3 implements Cloneable {
     @Override
     public boolean equals(Object v) {
         // this conditional correctly handles null values
-        if (!(v instanceof Vector3))
+        if (!(v instanceof Vector3)) {
             return false;
+        }
         Vector3 e = (Vector3) v;
         return x == e.x && y == e.y && z == e.z;
     }
@@ -672,15 +675,19 @@ public final class Vector3 implements Cloneable {
      *         component of v
      */
     public boolean epsilonEquals(@Const Vector3 v, double eps) {
-        if (v == null)
+        if (v == null) {
             return false;
+        }
 
-        if (Math.abs(x - v.x) > eps)
+        if (Math.abs(x - v.x) > eps) {
             return false;
-        if (Math.abs(y - v.y) > eps)
+        }
+        if (Math.abs(y - v.y) > eps) {
             return false;
-        if (Math.abs(z - v.z) > eps)
+        }
+        if (Math.abs(z - v.z) > eps) {
             return false;
+        }
 
         return true;
     }

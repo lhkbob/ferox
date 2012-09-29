@@ -19,9 +19,9 @@ import com.jogamp.newt.event.MouseListener;
  */
 public class NEWTEventAdapter implements KeyListener, MouseListener {
     private Window component;
-    
+
     private final MouseKeyEventDispatcher dispatcher;
-    
+
     /**
      * Create a new AWTEventAdapter that will convert AWT events and dispatch
      * them to the given MouseKeyEventDispatcher.
@@ -29,12 +29,13 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
      * @param dispatcher The dispatcher to use
      */
     public NEWTEventAdapter(MouseKeyEventDispatcher dispatcher) {
-        if (dispatcher == null)
+        if (dispatcher == null) {
             throw new NullPointerException("Dispatcher cannot be null");
-        
+        }
+
         this.dispatcher = dispatcher;
     }
-    
+
     /**
      * <p>
      * Attach the adapter to the given component. The adapter can only be
@@ -53,20 +54,22 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
      *             another component
      */
     public void attach(Window component) {
-        if (component == null)
+        if (component == null) {
             throw new NullPointerException("Window cannot be null");
-        
+        }
+
         synchronized(this) {
-            if (this.component != null)
+            if (this.component != null) {
                 throw new IllegalStateException("NEWTEventAdapter already attached to another Window");
-            
+            }
+
             component.addKeyListener(this);
             component.addMouseListener(this);
-            
+
             this.component = component;
         }
     }
-    
+
     /**
      * Detach this adapter from the window it's currently attached to. If the
      * adapter is not attached to a component, nothing happens. After detaching,
@@ -77,14 +80,14 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
             if (component != null) {
                 component.removeKeyListener(this);
                 component.removeMouseListener(this);
-                
+
                 component = null;
             }
         }
     }
-    
+
     /* AWT event listener methods */
-    
+
     private KeyCode getKeyCode(com.jogamp.newt.event.KeyEvent e) {
         switch(e.getKeyCode()) {
         case com.jogamp.newt.event.KeyEvent.VK_ESCAPE: return KeyCode.ESCAPE;
@@ -103,9 +106,9 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
         case com.jogamp.newt.event.KeyEvent.VK_EQUALS: return KeyCode.EQUALS;
         case com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE: return KeyCode.BACK_SPACE;
         case com.jogamp.newt.event.KeyEvent.VK_DELETE: return KeyCode.DELETE;
-        
+
         case com.jogamp.newt.event.KeyEvent.VK_SPACE: return KeyCode.SPACE;
-        
+
         case com.jogamp.newt.event.KeyEvent.VK_PAUSE: return KeyCode.PAUSE;
         case com.jogamp.newt.event.KeyEvent.VK_INSERT: return KeyCode.INSERT;
 
@@ -118,7 +121,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
         case com.jogamp.newt.event.KeyEvent.VK_LEFT: return KeyCode.LEFT;
         case com.jogamp.newt.event.KeyEvent.VK_RIGHT: return KeyCode.RIGHT;
         case com.jogamp.newt.event.KeyEvent.VK_DOWN: return KeyCode.DOWN;
-        
+
         case com.jogamp.newt.event.KeyEvent.VK_F1: return KeyCode.F1;
         case com.jogamp.newt.event.KeyEvent.VK_F2: return KeyCode.F2;
         case com.jogamp.newt.event.KeyEvent.VK_F3: return KeyCode.F3;
@@ -131,7 +134,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
         case com.jogamp.newt.event.KeyEvent.VK_F10: return KeyCode.F10;
         case com.jogamp.newt.event.KeyEvent.VK_F11: return KeyCode.F11;
         case com.jogamp.newt.event.KeyEvent.VK_F12: return KeyCode.F12;
-        
+
         case com.jogamp.newt.event.KeyEvent.VK_1: return KeyCode.N1;
         case com.jogamp.newt.event.KeyEvent.VK_2: return KeyCode.N2;
         case com.jogamp.newt.event.KeyEvent.VK_3: return KeyCode.N3;
@@ -142,7 +145,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
         case com.jogamp.newt.event.KeyEvent.VK_8: return KeyCode.N8;
         case com.jogamp.newt.event.KeyEvent.VK_9: return KeyCode.N9;
         case com.jogamp.newt.event.KeyEvent.VK_0: return KeyCode.N0;
-        
+
         case com.jogamp.newt.event.KeyEvent.VK_A: return KeyCode.A;
         case com.jogamp.newt.event.KeyEvent.VK_B: return KeyCode.B;
         case com.jogamp.newt.event.KeyEvent.VK_C: return KeyCode.C;
@@ -189,28 +192,29 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
         case com.jogamp.newt.event.KeyEvent.VK_DECIMAL: return KeyCode.NUMPAD_DECIMAL;
         case com.jogamp.newt.event.KeyEvent.VK_DIVIDE: return KeyCode.NUMPAD_DIVIDE;
         case com.jogamp.newt.event.KeyEvent.VK_MULTIPLY: return KeyCode.NUMPAD_MULTIPLY;
-        
+
         case com.jogamp.newt.event.KeyEvent.VK_ALT:
             // as far as I can tell NEWT does not provide locations
-                return KeyCode.LEFT_ALT;
-        case com.jogamp.newt.event.KeyEvent.VK_CONTROL: 
-                return KeyCode.LEFT_CONTROL;
-        case com.jogamp.newt.event.KeyEvent.VK_SHIFT: 
-                return KeyCode.LEFT_SHIFT;
-        case com.jogamp.newt.event.KeyEvent.VK_META: 
-                return KeyCode.LEFT_META;
+            return KeyCode.LEFT_ALT;
+        case com.jogamp.newt.event.KeyEvent.VK_CONTROL:
+            return KeyCode.LEFT_CONTROL;
+        case com.jogamp.newt.event.KeyEvent.VK_SHIFT:
+            return KeyCode.LEFT_SHIFT;
+        case com.jogamp.newt.event.KeyEvent.VK_META:
+            return KeyCode.LEFT_META;
         default:
             return KeyCode.UNKNOWN;
         }
     }
-    
+
     private char getCharacter(com.jogamp.newt.event.KeyEvent e) {
-        if (e.getKeyChar() == com.jogamp.newt.event.KeyEvent.VK_UNDEFINED)
+        if (e.getKeyChar() == com.jogamp.newt.event.KeyEvent.VK_UNDEFINED) {
             return KeyEvent.CHAR_UNKNOWN;
-        else
+        } else {
             return e.getKeyChar();
+        }
     }
-    
+
     private MouseButton getButton(com.jogamp.newt.event.MouseEvent e) {
         switch(e.getButton()) {
         case 0:
@@ -225,9 +229,9 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
             throw new IllegalArgumentException("Unknown NEWT button code");
         }
     }
-    
+
     private int getY(com.jogamp.newt.event.MouseEvent e) {
-    	// NEWT uses the same coordinate space as AWT so we have to flip y values
+        // NEWT uses the same coordinate space as AWT so we have to flip y values
         return component.getHeight() - e.getY();
     }
 
@@ -235,7 +239,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     public void keyPressed(com.jogamp.newt.event.KeyEvent e) {
         // FIXME NEWT on Mac does not seem to fire of press/release events
         // for modifier keys
-        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(), 
+        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(),
                                       getKeyCode(e), getCharacter(e));
         dispatcher.dispatchEvent(event);
     }
@@ -269,14 +273,14 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void mousePressed(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(),
                                           e.getX(), getY(e), 0, getButton(e));
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseReleased(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(),
                                           e.getX(), getY(e), 0, getButton(e));
         dispatcher.dispatchEvent(event);
     }
@@ -290,14 +294,14 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(),
                                           e.getX(), getY(e), 0, MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }
-    
+
     @Override
     public void mouseWheelMoved(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), 
+        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(),
                                           e.getX(), getY(e), e.getWheelRotation(), MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }

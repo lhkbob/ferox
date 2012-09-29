@@ -35,7 +35,7 @@ public class VertexAttribute {
     private final int elementSize;
     private final int offset;
     private final int stride;
-    
+
     private final VertexBufferObject buffer;
 
     /**
@@ -77,15 +77,19 @@ public class VertexAttribute {
      * @throws NullPointerException if buffer is null
      */
     public VertexAttribute(VertexBufferObject buffer, int elementSize, int offset, int stride) {
-        if (buffer == null)
+        if (buffer == null) {
             throw new NullPointerException("Buffer cannot be null");
-        if (elementSize < 1 || elementSize > 4)
+        }
+        if (elementSize < 1 || elementSize > 4) {
             throw new IllegalArgumentException("Illegal element size, must be in [1, 4], not: " + elementSize);
-        if (offset < 0 || offset >= buffer.getData().getLength())
+        }
+        if (offset < 0 || offset >= buffer.getData().getLength()) {
             throw new IllegalArgumentException("Illegal offset, must be in [0, " + buffer.getData().getLength() + "), not: " + offset);
-        if (stride < 0)
+        }
+        if (stride < 0) {
             throw new IllegalArgumentException("Illegal stride, must be at least 0, not: " + stride);
-        
+        }
+
         this.offset = offset;
         this.stride = stride;
         this.elementSize = elementSize;
@@ -111,20 +115,22 @@ public class VertexAttribute {
      *             in [0, {@link #getElementSize()} - 1]
      */
     public int getArrayIndex(int vertex, int component) {
-        if (vertex < 0 || vertex >= getMaximumNumVertices())
+        if (vertex < 0 || vertex >= getMaximumNumVertices()) {
             throw new IndexOutOfBoundsException("Vertex index is out of range: " + vertex);
-        if (component < 0 || component >= elementSize)
+        }
+        if (component < 0 || component >= elementSize) {
             throw new IndexOutOfBoundsException("Component index is out of range: " + component);
+        }
         return offset + (elementSize + stride) * vertex + component;
     }
-    
+
     /**
      * @return The number of array elements to skip before accessing vertex data
      */
     public int getOffset() {
         return offset;
     }
-    
+
     /**
      * @return The number of array elements between vertices
      */

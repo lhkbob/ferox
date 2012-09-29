@@ -37,7 +37,7 @@ public class MouseEvent implements Event {
          * yet. Use {@link MouseEvent#getButton()} to determine which button was
          * pressed.
          */
-        PRESS, 
+        PRESS,
         /**
          * One of the mouse's buttons was released that has previously been
          * pressed. Use {@link MouseEvent#getButton()} to determine which button
@@ -51,7 +51,7 @@ public class MouseEvent implements Event {
          */
         SCROLL
     }
-    
+
     /**
      * MouseButton is an enum representing all supported buttons in this event
      * framework. Some mice might not be capable of using the right or center
@@ -76,16 +76,16 @@ public class MouseEvent implements Event {
          */
         CENTER
     }
-    
+
     private final MouseEventSource source;
     private final Type type;
-    
+
     private final int x;
     private final int y;
     private final int scrollDelta;
-    
+
     private final MouseButton button;
-    
+
     /**
      * Create a new MouseEvent with the given arguments.
      * 
@@ -100,29 +100,36 @@ public class MouseEvent implements Event {
      *             incompatible
      */
     public MouseEvent(Type type, MouseEventSource source, int x, int y, int scrollDelta, MouseButton button) {
-        if (source == null)
+        if (source == null) {
             throw new NullPointerException("Event source cannot be null");
-        if (type == null)
+        }
+        if (type == null) {
             throw new NullPointerException("Type cannot be null");
-        if (button == null)
+        }
+        if (button == null) {
             throw new IllegalArgumentException("Mouse button cannot be null");
-        
+        }
+
         // verify state
         if (type == Type.PRESS || type == Type.RELEASE) {
-            if (button == MouseButton.NONE)
+            if (button == MouseButton.NONE) {
                 throw new IllegalArgumentException("Button cannot be NONE for a " + type + " event");
+            }
         } else {
-            if (button != MouseButton.NONE)
+            if (button != MouseButton.NONE) {
                 throw new IllegalArgumentException("Button must be NONE for a " + type + " event");
+            }
         }
         if (type == Type.SCROLL) {
-            if (scrollDelta == 0)
+            if (scrollDelta == 0) {
                 throw new IllegalArgumentException("Scroll delta must be non-zero for a " + type + " event");
+            }
         } else {
-            if (scrollDelta != 0)
+            if (scrollDelta != 0) {
                 throw new IllegalArgumentException("Scroll delta must be 0 for a " + type + " event");
+            }
         }
-        
+
         this.source = source;
         this.type = type;
         this.x = x;
@@ -130,14 +137,14 @@ public class MouseEvent implements Event {
         this.scrollDelta = scrollDelta;
         this.button = button;
     }
-    
+
     /**
      * @return The type of mouse event
      */
     public Type getEventType() {
         return type;
     }
-    
+
     /**
      * <p>
      * Get the x position of the mouse at the time of the event. Given that most
@@ -152,7 +159,7 @@ public class MouseEvent implements Event {
     public int getX() {
         return x;
     }
-    
+
     /**
      * <p>
      * Get the y position of the mouse at the time of the event. Given that most
@@ -168,7 +175,7 @@ public class MouseEvent implements Event {
     public int getY() {
         return y;
     }
-    
+
     /**
      * Get the amount of scroll increments the scroll wheel has been adjusted
      * by. This value is always 0 if the type is not SCROLL. When the event is a
@@ -181,7 +188,7 @@ public class MouseEvent implements Event {
     public int getScrollDelta() {
         return scrollDelta;
     }
-    
+
     /**
      * Get the mouse button that produced the event if the type is PRESS or
      * RELEASE. MOVE and SCROLL will always return NONE. PRESS and RELEASE will
@@ -192,12 +199,12 @@ public class MouseEvent implements Event {
     public MouseButton getButton() {
         return button;
     }
-    
+
     @Override
     public MouseEventSource getSource() {
         return source;
     }
-    
+
     @Override
     public String toString() {
         return "[Mouse " + type + " at (" + x + ", " + y + "), button: " + button + ", scroll: " + scrollDelta + "]";

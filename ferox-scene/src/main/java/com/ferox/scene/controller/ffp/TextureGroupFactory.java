@@ -71,11 +71,11 @@ public class TextureGroupFactory implements StateGroupFactory {
             if (node == null) {
                 // haven't seen this texture configuration before
                 int availableUnits = 1 + (decalUnit != diffuseUnit ? 1 : 0)
-                                     + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1
-                                                                                                : 0);
+                        + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1
+                                                                                    : 0);
                 int requiredUnits = (diffuse.isEnabled() ? 1 : 0) + (decal.isEnabled() ? 1
-                                                                                      : 0)
-                                    + (emissive.isEnabled() ? 1 : 0);
+                                                                                       : 0)
+                                                                                       + (emissive.isEnabled() ? 1 : 0);
 
                 TextureSet state;
                 if (availableUnits >= requiredUnits) {
@@ -326,8 +326,8 @@ public class TextureGroupFactory implements StateGroupFactory {
                     if (tc1 != null && tc2 != null) {
                         // check access pattern
                         if (tc1.getData() != tc2.getData() || tc1.getElementSize() != tc2.getElementSize()
-                            || tc1.getOffset() != tc2.getOffset()
-                            || tc1.getStride() != tc2.getStride()) {
+                                || tc1.getOffset() != tc2.getOffset()
+                                || tc1.getStride() != tc2.getStride()) {
                             return false;
                         }
                     }

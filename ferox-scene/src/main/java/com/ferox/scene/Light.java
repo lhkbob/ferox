@@ -29,12 +29,12 @@ import com.lhkbob.entreri.Unmanaged;
 public abstract class Light<T extends Light<T>> extends ComponentData<T> {
     @DefaultColor(red=0.2, green=0.2, blue=0.2)
     private ColorRGBProperty color;
-    
+
     @Unmanaged
     private final ColorRGB cache = new ColorRGB();
 
     protected Light() { }
-    
+
     /**
      * Return the color of this Light. The returned ColorRGB instance is reused
      * by this Light instance so it should be cloned before changing which
@@ -45,7 +45,7 @@ public abstract class Light<T extends Light<T>> extends ComponentData<T> {
     public final @Const ColorRGB getColor() {
         return cache;
     }
-    
+
     /**
      * Set the color of this Light. The color values in <tt>color</tt> are
      * copied into an internal instance, so any future changes to <tt>color</tt>
@@ -57,13 +57,14 @@ public abstract class Light<T extends Light<T>> extends ComponentData<T> {
      */
     @SuppressWarnings("unchecked")
     public final T setColor(@Const ColorRGB color) {
-        if (color == null)
+        if (color == null) {
             throw new NullPointerException("Color cannot be null");
+        }
         cache.set(color);
         this.color.set(color, getIndex());
         return (T) this;
     }
-    
+
     @Override
     protected void onSet(int index) {
         color.get(index, cache);

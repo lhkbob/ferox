@@ -29,18 +29,20 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape> implem
      * @throws NullPointerException if toSwap is null
      */
     public SwappingCollisionAlgorithm(CollisionAlgorithm<B, A> toSwap) {
-        if (toSwap == null)
+        if (toSwap == null) {
             throw new NullPointerException("Algorithm cannot be null");
+        }
         delegate = toSwap;
     }
-    
+
     @Override
-    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, 
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA,
                                       B shapeB, @Const Matrix4 transB) {
         ClosestPair original = delegate.getClosestPair(shapeB, transB, shapeA, transA);
-        if (original == null)
+        if (original == null) {
             return null;
-        
+        }
+
         // swap the points and contact normal
         return new ClosestPair(original.getClosestPointOnB(), new Vector3().scale(original.getContactNormal(), -1.0),
                                original.getDistance());

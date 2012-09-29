@@ -19,21 +19,22 @@ import com.ferox.input.MouseKeyEventDispatcher;
  */
 public class LwjglInputEventAdapter {
     private final MouseKeyEventDispatcher dispatcher;
-    
+
     private int lastMouseX = Integer.MIN_VALUE;
     private int lastMouseY = Integer.MIN_VALUE;
-    
+
     public LwjglInputEventAdapter(MouseKeyEventDispatcher dispatcher) {
-        if (dispatcher == null)
+        if (dispatcher == null) {
             throw new NullPointerException("Dispatcher cannot be null");
-        
+        }
+
         this.dispatcher = dispatcher;
     }
-    
+
     public void poll() {
-    	// Must call processMessages() to read new events from the OS
+        // Must call processMessages() to read new events from the OS
         Display.processMessages();
-        
+
         // Process all incoming mouse events
         // FIXME race condition exists if shutdown occurs after above
         // boolean check, and an exception is thrown (should just eat it)
@@ -41,20 +42,20 @@ public class LwjglInputEventAdapter {
         while(Mouse.next()) {
             int x = Mouse.getEventX();
             int y = Mouse.getEventY();
-            
+
             if (x != lastMouseX || y != lastMouseY) {
                 // push a mouse-moved event
                 dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(),
-                                                    x, y, 0, MouseEvent.MouseButton.NONE));
+                                                        x, y, 0, MouseEvent.MouseButton.NONE));
             }
-            
+
             int scrollDelta = Mouse.getEventDWheel();
             if (scrollDelta != 0) {
                 // push a mouse-wheel-scroll event
-                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), 
-                                                    x, y, 0, MouseEvent.MouseButton.NONE));
+                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(),
+                                                        x, y, 0, MouseEvent.MouseButton.NONE));
             }
-            
+
             switch(Mouse.getEventButton()) {
             case 0: {
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
@@ -73,21 +74,22 @@ public class LwjglInputEventAdapter {
                 break;
             }
         }
-        
+
         // Process all incoming keyboard events
         while(Keyboard.next()) {
             KeyEvent.KeyCode keyCode = getKeyCode(Keyboard.getEventKey());
-            
+
             char eventChar = Keyboard.getEventCharacter();
-            if (eventChar == Keyboard.CHAR_NONE)
+            if (eventChar == Keyboard.CHAR_NONE) {
                 eventChar = KeyEvent.CHAR_UNKNOWN;
-            
+            }
+
             KeyEvent.Type type = (Keyboard.getEventKeyState() ? KeyEvent.Type.PRESS : KeyEvent.Type.RELEASE);
-            
+
             dispatcher.dispatchEvent(new KeyEvent(type, dispatcher.getSource(), keyCode, eventChar));
         }
     }
-    
+
     private static KeyEvent.KeyCode getKeyCode(int code) {
         switch(code) {
         case Keyboard.KEY_ESCAPE: return KeyEvent.KeyCode.ESCAPE;
@@ -106,9 +108,9 @@ public class LwjglInputEventAdapter {
         case Keyboard.KEY_EQUALS: return KeyEvent.KeyCode.EQUALS;
         case Keyboard.KEY_BACK: return KeyEvent.KeyCode.BACK_SPACE;
         case Keyboard.KEY_DELETE: return KeyEvent.KeyCode.DELETE;
-        
+
         case Keyboard.KEY_SPACE: return KeyEvent.KeyCode.SPACE;
-        
+
         case Keyboard.KEY_PAUSE: return KeyEvent.KeyCode.PAUSE;
         case Keyboard.KEY_INSERT: return KeyEvent.KeyCode.INSERT;
 
@@ -116,12 +118,12 @@ public class LwjglInputEventAdapter {
         case Keyboard.KEY_END: return KeyEvent.KeyCode.END;
         case Keyboard.KEY_PRIOR: return KeyEvent.KeyCode.PAGE_UP;
         case Keyboard.KEY_NEXT: return KeyEvent.KeyCode.PAGE_DOWN;
-        
+
         case Keyboard.KEY_UP: return KeyEvent.KeyCode.UP;
         case Keyboard.KEY_LEFT: return KeyEvent.KeyCode.LEFT;
         case Keyboard.KEY_RIGHT: return KeyEvent.KeyCode.RIGHT;
         case Keyboard.KEY_DOWN: return KeyEvent.KeyCode.DOWN;
-        
+
         case Keyboard.KEY_F1: return KeyEvent.KeyCode.F1;
         case Keyboard.KEY_F2: return KeyEvent.KeyCode.F2;
         case Keyboard.KEY_F3: return KeyEvent.KeyCode.F3;
@@ -134,7 +136,7 @@ public class LwjglInputEventAdapter {
         case Keyboard.KEY_F10: return KeyEvent.KeyCode.F10;
         case Keyboard.KEY_F11: return KeyEvent.KeyCode.F11;
         case Keyboard.KEY_F12: return KeyEvent.KeyCode.F12;
-        
+
         case Keyboard.KEY_0: return KeyEvent.KeyCode.N0;
         case Keyboard.KEY_1: return KeyEvent.KeyCode.N1;
         case Keyboard.KEY_2: return KeyEvent.KeyCode.N2;
@@ -145,7 +147,7 @@ public class LwjglInputEventAdapter {
         case Keyboard.KEY_7: return KeyEvent.KeyCode.N7;
         case Keyboard.KEY_8: return KeyEvent.KeyCode.N8;
         case Keyboard.KEY_9: return KeyEvent.KeyCode.N9;
-        
+
         case Keyboard.KEY_A: return KeyEvent.KeyCode.A;
         case Keyboard.KEY_B: return KeyEvent.KeyCode.B;
         case Keyboard.KEY_C: return KeyEvent.KeyCode.C;
@@ -192,7 +194,7 @@ public class LwjglInputEventAdapter {
         case Keyboard.KEY_DECIMAL: return KeyEvent.KeyCode.NUMPAD_DECIMAL;
         case Keyboard.KEY_DIVIDE: return KeyEvent.KeyCode.NUMPAD_DIVIDE;
         case Keyboard.KEY_MULTIPLY: return KeyEvent.KeyCode.NUMPAD_MULTIPLY;
-        
+
         case Keyboard.KEY_LMENU: return KeyEvent.KeyCode.LEFT_ALT;
         case Keyboard.KEY_RMENU: return KeyEvent.KeyCode.RIGHT_ALT;
         case Keyboard.KEY_LCONTROL: return KeyEvent.KeyCode.LEFT_CONTROL;

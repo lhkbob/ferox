@@ -37,33 +37,35 @@ public class LwjglRendererDelegate extends RendererDelegate {
     private boolean supportsSeparateBlending;
     private boolean supportsSeparateStencil;
     private boolean supportsStencilWrap;
-    
+
     private boolean initialized;
-    
+
     // state tracking for buffer clearing
     private final Vector4 clearColor = new Vector4(0f, 0f, 0f, 0f);
     private double clearDepth = 1;
     private int clearStencil = 0;
-    
+
     // state tracking for draw styles
     private boolean cullEnabled = true;
     private int frontPolyMode = GL11.GL_FILL;
     private int backPolyMode = GL11.GL_FILL;
-    
+
     @Override
     protected void glBlendColor(@Const Vector4 color) {
-        if (supportsBlending)
+        if (supportsBlending) {
             GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+        }
     }
 
     @Override
     protected void glBlendEquations(BlendFunction funcRgb, BlendFunction funcAlpha) {
         if (supportsBlending) {
-            if (supportsSeparateBlending)
-                GL20.glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb), 
+            if (supportsSeparateBlending) {
+                GL20.glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb),
                                              Utils.getGLBlendEquation(funcAlpha));
-            else
+            } else {
                 GL14.glBlendEquation(Utils.getGLBlendEquation(funcRgb));
+            }
         }
     }
 
@@ -71,7 +73,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
     protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha) {
         if (supportsBlending) {
             // separate blend functions were supported before separate blend equations
-            GL14.glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb), 
+            GL14.glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb),
                                      Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
         }
     }
@@ -106,7 +108,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
         } else if (back == DrawStyle.NONE) {
             cullFace = GL11.GL_BACK;
         }
-        
+
         if (cullFace == 0) {
             // to show both sides, must disable culling
             if (cullEnabled) {
@@ -120,7 +122,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
             }
             GL11.glCullFace(cullFace);
         }
-        
+
         if (front != DrawStyle.NONE) {
             int frontMode = Utils.getGLPolygonMode(front);
             if (frontPolyMode != frontMode) {
@@ -128,7 +130,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
                 GL11.glPolygonMode(GL11.GL_FRONT, frontMode);
             }
         }
-        
+
         if (back != DrawStyle.NONE) {
             int backMode = Utils.getGLPolygonMode(back);
             if (backPolyMode != backMode) {
@@ -137,12 +139,13 @@ public class LwjglRendererDelegate extends RendererDelegate {
             }
         }
     }
-    
+
     private void glEnable(int flag, boolean enable) {
-        if (enable)
+        if (enable) {
             GL11.glEnable(flag);
-        else
+        } else {
             GL11.glDisable(flag);
+        }
     }
 
     @Override
@@ -167,7 +170,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
         if (supportsSeparateStencil) {
             int face = (front ? GL11.GL_FRONT : GL11.GL_BACK);
             GL20.glStencilMaskSeparate(face, mask);
-        } else if (front) { 
+        } else if (front) {
             // fallback to use front mask
             GL11.glStencilMask(mask);
         }
@@ -178,7 +181,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
         if (supportsSeparateStencil) {
             int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
             GL20.glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
-        } else if (isFront) { 
+        } else if (isFront) {
             // fallback to use front mask
             GL11.glStencilFunc(Utils.getGLPixelTest(test), refValue, mask);
         }
@@ -189,7 +192,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
         int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
         int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
         int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
-        
+
         if (supportsSeparateStencil) {
             int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
             GL20.glStencilOpSeparate(face, sf, df, dp);
@@ -208,7 +211,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
     @Override
     public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
-        
+
         if (!initialized) {
             // grab capabilities
             RenderCapabilities caps = surface.getFramework().getCapabilities();
@@ -216,12 +219,12 @@ public class LwjglRendererDelegate extends RendererDelegate {
             supportsSeparateBlending = caps.getSeparateBlendSupport();
             supportsSeparateStencil = caps.getSeparateStencilSupport();
             supportsStencilWrap = caps.getVersion() >= 1.4f;
-            
+
             // initial state configuration
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             GL11.glEnable(GL11.GL_CULL_FACE);
             GL11.glEnable(GL11.GL_SCISSOR_TEST);
-            
+
             initialized = true;
         }
     }
@@ -229,11 +232,13 @@ public class LwjglRendererDelegate extends RendererDelegate {
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
                       @Const Vector4 color, double depth, int stencil) {
-        if (color == null)
+        if (color == null) {
             throw new NullPointerException("Clear color cannot be null");
-        if (depth < 0f || depth > 1f)
+        }
+        if (depth < 0f || depth > 1f) {
             throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
-        
+        }
+
         if (!this.clearColor.equals(color)) {
             this.clearColor.set(color);
             GL11.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
@@ -246,24 +251,28 @@ public class LwjglRendererDelegate extends RendererDelegate {
             this.clearStencil = stencil;
             GL11.glClearStencil(stencil);
         }
-        
+
         int clearBits = 0;
-        if (clearColor)
+        if (clearColor) {
             clearBits |= GL11.GL_COLOR_BUFFER_BIT;
-        if (clearDepth)
+        }
+        if (clearDepth) {
             clearBits |= GL11.GL_DEPTH_BUFFER_BIT;
-        if (clearStencil)
+        }
+        if (clearStencil) {
             clearBits |= GL11.GL_STENCIL_BUFFER_BIT;
-        
-        if (clearBits != 0)
+        }
+
+        if (clearBits != 0) {
             GL11.glClear(clearBits);
+        }
     }
 
     @Override
     protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h, int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         int glDataType = Utils.getGLType(h.dataType);
-        
+
         if (h.mode == StorageMode.IN_MEMORY) {
             Buffer data = h.inmemoryBuffer;
             data.limit(offset + count).position(offset);
@@ -292,7 +301,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
     @Override
     protected void glBindElementVbo(VertexBufferObjectHandle h) {
         LwjglContext ctx = (LwjglContext) context;
-        
+
         if (h != null) {
             if (h.mode != StorageMode.IN_MEMORY) {
                 // Must bind the VBO

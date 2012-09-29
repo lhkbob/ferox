@@ -21,22 +21,24 @@ public class DataRange {
      * @throws IllegalArgumentException if offset < 0 or length < 1
      */
     public DataRange(int offset, int length) {
-        if (offset < 0)
+        if (offset < 0) {
             throw new IllegalArgumentException("Offset must be at least 0, not: " + offset);
-        if (length < 1)
+        }
+        if (length < 1) {
             throw new IllegalArgumentException("Length must be at least 1, not: " + length);
-        
+        }
+
         this.offset = offset;
         this.length = length;
     }
-    
+
     /**
      * @return The offset into the modified array or buffer, will be at least 0
      */
     public int getOffset() {
         return offset;
     }
-    
+
     /**
      * @return The length of modified data, will be at least 1
      */

@@ -11,7 +11,7 @@ import java.lang.management.ThreadMXBean;
 // task profiler in detail in entreri
 
 // I think I will have memory querying in EntitySystem, and automated profiling
-// handled by the ControllerManager. The stack profiler isn't really needed. 
+// handled by the ControllerManager. The stack profiler isn't really needed.
 // Thread monitoring will be cool, but it's not part of entreri
 public class ThreadMonitor
 {
@@ -40,10 +40,10 @@ public class ThreadMonitor
         this.userTimeHistory = new CyclicUsageHistory(slots);
         this.cpuUsageHistory = new CyclicUsageHistory(slots);
         this.userUsageHistory = new CyclicUsageHistory(slots);
-        
+
         lastPoll = System.nanoTime();
     }
-    
+
     public String getName() {
         return name;
     }
@@ -57,7 +57,7 @@ public class ThreadMonitor
     private double totalUserTime;
     // FIXME: cpu time includes user time and system time
     // system time = cpu time - user time
-    
+
     private long lastPoll;
 
     public double getTotalCpuTime()
@@ -76,25 +76,25 @@ public class ThreadMonitor
         long now = System.nanoTime();
         double wallTime = (now - lastPoll) / 1000000000.0;
         lastPoll = now;
-        
+
         double cpuTime = tmxb.getThreadCpuTime(this.tid) / 1000000000.0;
-//        this.totalCpuTime += cpuTime < 0 ? 0 : cpuTime;
+        //        this.totalCpuTime += cpuTime < 0 ? 0 : cpuTime;
         totalCpuTime = cpuTime < 0 ? 0 : cpuTime;
         cpuTimeHistory.log(totalCpuTime);
         cpuUsageHistory.log((cpuTimeHistory.previous(0) - cpuTimeHistory.previous(1)) / wallTime * 100.0);
 
         double userTime = tmxb.getThreadUserTime(this.tid) / 1000000000.0;
-//        this.totalUserTime += userTime < 0 ? 0 : userTime;
+        //        this.totalUserTime += userTime < 0 ? 0 : userTime;
         totalUserTime = userTime < 0 ? 0 : userTime;
         userTimeHistory.log(totalUserTime);
         userUsageHistory.log((userTimeHistory.previous(0) - userTimeHistory.previous(1)) / wallTime * 100.0);
-        
-        
-//        System.out.println("poll: " + name + ", cpu: " + cpuUsageHistory.previous() + ", user: " + userUsageHistory.previous() + ", wall: " + wallClock);
-//        System.out.println("      " + name + ", total cpu: " + cpuTime + ", total user: " + userTime);
-//        usage.log(cpuTime / wallClock * 100.0);
+
+
+        //        System.out.println("poll: " + name + ", cpu: " + cpuUsageHistory.previous() + ", user: " + userUsageHistory.previous() + ", wall: " + wallClock);
+        //        System.out.println("      " + name + ", total cpu: " + cpuTime + ", total user: " + userTime);
+        //        usage.log(cpuTime / wallClock * 100.0);
     }
-    
+
     public CyclicUsageHistory getCpuUsageStats()
     {
         return this.cpuUsageHistory;

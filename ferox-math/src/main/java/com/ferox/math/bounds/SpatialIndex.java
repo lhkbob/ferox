@@ -59,7 +59,7 @@ public interface SpatialIndex<T> {
      * @throws NullPointerException if item is null
      */
     public boolean remove(T item);
-    
+
     /**
      * Empty this SpatialIndex so that it no longer contains any items. If
      * <tt>fast</tt> is true, the index is not required to remove references to
@@ -70,7 +70,7 @@ public interface SpatialIndex<T> {
      * @param fast True if the index can optimize the clear
      */
     public void clear(boolean fast);
-    
+
     /**
      * Empty this SpatialIndex so that it no longer contains any items. This is
      * a convenience for <code>clear(false);</code>.
@@ -112,7 +112,7 @@ public interface SpatialIndex<T> {
      * @throws NullPointerException if frustum or callback is null
      */
     public void query(Frustum f, QueryCallback<T> callback);
-    
+
     /**
      * <p>
      * Query this SpatialIndex for all pairs of items intersecting based on

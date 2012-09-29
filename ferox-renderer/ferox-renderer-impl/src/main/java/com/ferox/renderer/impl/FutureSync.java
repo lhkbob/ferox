@@ -24,8 +24,9 @@ public class FutureSync<V> implements Future<V> {
      * @throws NullPointerException if sync is null
      */
     public FutureSync(Sync<V> sync) {
-        if (sync == null)
+        if (sync == null) {
             throw new NullPointerException("Cannot create a FutureSync with a null Sync");
+        }
         this.sync = sync;
     }
 

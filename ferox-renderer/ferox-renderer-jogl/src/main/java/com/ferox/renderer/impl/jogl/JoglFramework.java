@@ -10,11 +10,11 @@ public class JoglFramework extends AbstractFramework {
     private JoglFramework(JoglSurfaceFactory factory, ResourceDriver... drivers) {
         super(factory, drivers);
     }
-    
+
     public static JoglFramework create() {
         return create(false, false);
     }
-    
+
     public static JoglFramework create(boolean forceNoFfp, boolean forceNoGlsl) {
         return create(forceNoFfp, forceNoGlsl, false, false);
     }
@@ -23,33 +23,38 @@ public class JoglFramework extends AbstractFramework {
                                        boolean forceNoPbuffers, boolean forceNoFbos) {
 
         int capBits = 0;
-        if (forceNoGlsl)
+        if (forceNoGlsl) {
             capBits |= JoglRenderCapabilities.FORCE_NO_GLSL;
-        if (forceNoPbuffers)
+        }
+        if (forceNoPbuffers) {
             capBits |= JoglRenderCapabilities.FORCE_NO_PBUFFER;
-        if (forceNoFbos)
+        }
+        if (forceNoFbos) {
             capBits |= JoglRenderCapabilities.FORCE_NO_FBO;
-        
+        }
+
         // FIXME: how to handle forceNoFfp?
-        
+
         // FIXME: select profile better, based on properties? can't select GL3
         // until we have GL3-only FFP implemented
         GLProfile profile;
-        if (GLProfile.isAvailable(GLProfile.GL2))
+        if (GLProfile.isAvailable(GLProfile.GL2)) {
             profile = GLProfile.get(GLProfile.GL2);
-        else
+        } else {
             throw new RuntimeException("Minimum required GL profile of GL2 is not available");
+        }
 
         // Must configure JOGL to let us control the threading
-        if (Threading.isSingleThreaded())
+        if (Threading.isSingleThreaded()) {
             Threading.disableSingleThreading();
-        
+        }
+
         JoglSurfaceFactory factory = new JoglSurfaceFactory(profile, capBits);
         JoglFramework framework = new JoglFramework(factory,
                                                     new JoglTextureResourceDriver(),
                                                     new JoglVertexBufferObjectResourceDriver(),
                                                     new JoglGlslShaderResourceDriver());
-        
+
         framework.initialize();
         return framework;
     }

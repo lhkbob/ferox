@@ -29,9 +29,9 @@ public class MouseKeyEventDispatcher {
     private final ExecutorService executor;
     private final CopyOnWriteArrayList<KeyListener> keyListeners;
     private final CopyOnWriteArrayList<MouseListener> mouseListeners;
-    
+
     private final MouseKeyEventSource source;
-    
+
     /**
      * Create a new MouseKeyEventDispatcher.
      * 
@@ -39,21 +39,22 @@ public class MouseKeyEventDispatcher {
      *            dispatcher
      */
     public MouseKeyEventDispatcher(MouseKeyEventSource source) {
-        if (source == null)
+        if (source == null) {
             throw new NullPointerException("Source cannot be null");
+        }
         this.source = source;
         executor = Executors.newFixedThreadPool(1);
         keyListeners = new CopyOnWriteArrayList<KeyListener>();
         mouseListeners = new CopyOnWriteArrayList<MouseListener>();
     }
-    
+
     /**
      * @return The source of events that are dispatched by this dispatcher
      */
     public MouseKeyEventSource getSource() {
         return source;
     }
-    
+
     /**
      * Function compatible with
      * {@link KeyEventSource#addKeyListener(KeyListener)}.
@@ -61,11 +62,12 @@ public class MouseKeyEventDispatcher {
      * @param listener The listener to register
      */
     public void addKeyListener(KeyListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new NullPointerException("KeyListener cannot be null");
+        }
         keyListeners.addIfAbsent(listener);
     }
-    
+
     /**
      * Function compatible with
      * {@link KeyEventSource#removeKeyListener(KeyListener)}.
@@ -73,8 +75,9 @@ public class MouseKeyEventDispatcher {
      * @param listener The listener to unregister
      */
     public void removeKeyListener(KeyListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new NullPointerException("KeyListener cannot be null");
+        }
         keyListeners.remove(listener);
     }
 
@@ -85,8 +88,9 @@ public class MouseKeyEventDispatcher {
      * @param listener The listener to register
      */
     public void addMouseListener(MouseListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new NullPointerException("MouseListener cannot be null");
+        }
         mouseListeners.addIfAbsent(listener);
     }
 
@@ -97,11 +101,12 @@ public class MouseKeyEventDispatcher {
      * @param listener The listener to unregister
      */
     public void removeMouseListener(MouseListener listener) {
-        if (listener == null)
+        if (listener == null) {
             throw new NullPointerException("MouseListener cannot be null");
+        }
         mouseListeners.remove(listener);
     }
-    
+
     /**
      * Dispatch the given event to all registered listeners that are interested
      * in the event. This will be invoked on an internal thread managed by this
@@ -112,16 +117,18 @@ public class MouseKeyEventDispatcher {
      *             the dispatcher's
      */
     public void dispatchEvent(Event e) {
-        if (e.getSource() != source)
+        if (e.getSource() != source) {
             throw new IllegalArgumentException("Event's source does not match this dispatcher's source");
-        
+        }
+
         try {
-            if (e instanceof MouseEvent)
+            if (e instanceof MouseEvent) {
                 executor.submit(new MouseEventTask((MouseEvent) e));
-            else if (e instanceof KeyEvent)
+            } else if (e instanceof KeyEvent) {
                 executor.submit(new KeyEventTask((KeyEvent) e));
-            else
+            } else {
                 throw new UnsupportedOperationException("Unsupported type of event: " + e.getClass());
+            }
         } catch(RejectedExecutionException ree) {
             // ignore
         }
@@ -135,14 +142,14 @@ public class MouseKeyEventDispatcher {
     public void shutdown() {
         executor.shutdownNow();
     }
-    
+
     private class KeyEventTask implements Runnable {
         private final KeyEvent e;
-        
+
         public KeyEventTask(KeyEvent e) {
             this.e = e;
         }
-        
+
         @Override
         public void run() {
             for (KeyListener l: keyListeners) {
@@ -150,14 +157,14 @@ public class MouseKeyEventDispatcher {
             }
         }
     }
-    
+
     private class MouseEventTask implements Runnable {
         private final MouseEvent e;
-        
+
         public MouseEventTask(MouseEvent e) {
             this.e = e;
         }
-        
+
         @Override
         public void run() {
             for (MouseListener l: mouseListeners) {

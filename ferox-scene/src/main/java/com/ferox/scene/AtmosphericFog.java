@@ -26,7 +26,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * The shared TypedId representing AtmosphericFog.
      */
     public static final TypeId<AtmosphericFog> ID = TypeId.get(AtmosphericFog.class);
-    
+
     /**
      * Falloff represents how the visibility of fog decreases as distance
      * increases. The opacity of the fog, at some distance, can be considered as
@@ -51,14 +51,14 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
          */
         EXPONENTIAL
     }
-    
+
     private ColorRGBProperty color;
-    
+
     @DefaultDouble(10)
     private DoubleProperty distanceToOpaque;
-    
+
     private ObjectProperty<Falloff> falloff;
-    
+
     @Unmanaged
     private final ColorRGB colorCache = new ColorRGB();
 
@@ -71,8 +71,9 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @throws NullPointerException if falloff is null
      */
     public AtmosphericFog setFalloff(Falloff falloff) {
-        if (falloff == null)
+        if (falloff == null) {
             throw new NullPointerException("Falloff cannot be null");
+        }
         this.falloff.set(falloff, getIndex());
         return this;
     }
@@ -101,8 +102,9 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @throws IllegalArgumentException if dist <= 0
      */
     public AtmosphericFog setOpaqueDistance(double dist) {
-        if (dist <= 0)
+        if (dist <= 0) {
             throw new IllegalArgumentException("Distance must be positive, not: " + dist);
+        }
         distanceToOpaque.set(dist, getIndex());
         return this;
     }
@@ -127,8 +129,9 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @throws NullPointerException if color is null
      */
     public AtmosphericFog setColor(@Const ColorRGB color) {
-        if (color == null)
+        if (color == null) {
             throw new NullPointerException("Color cannot be null");
+        }
         colorCache.set(color);
         this.color.set(color, getIndex());
         return this;

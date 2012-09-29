@@ -27,13 +27,14 @@ public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
      * The shared TypedId representing DepthOffsetMap.
      */
     public static final TypeId<DepthOffsetMap> ID = TypeId.get(DepthOffsetMap.class);
-    
+
     private DepthOffsetMap() { }
 
     @Override
     protected void validate(Texture tex) {
-        if (tex.getFormat().getNumComponents() != 1)
-            throw new IllegalArgumentException("Cannot specify a depth map that has more than one component: " 
-                                               + tex.getFormat());
+        if (tex.getFormat().getNumComponents() != 1) {
+            throw new IllegalArgumentException("Cannot specify a depth map that has more than one component: "
+                    + tex.getFormat());
+        }
     }
 }

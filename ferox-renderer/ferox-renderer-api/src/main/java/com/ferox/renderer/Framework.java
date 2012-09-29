@@ -46,7 +46,7 @@ public interface Framework {
      * @return All available display modes on the system
      */
     public DisplayMode[] getAvailableDisplayModes();
-    
+
     /**
      * Return the DisplayMode representing the default display mode selected
      * when the surface is no longer fullscreen. This will be the original
@@ -138,7 +138,7 @@ public interface Framework {
      * </p>
      */
     public void destroy();
-    
+
     /**
      * @return True if the Framework has been destroyed
      */

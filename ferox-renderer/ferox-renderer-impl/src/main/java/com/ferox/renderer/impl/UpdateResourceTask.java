@@ -23,11 +23,12 @@ public class UpdateResourceTask implements Task<Status> {
      * @throws NullPointerException if resource is null
      */
     public UpdateResourceTask(Resource resource) {
-        if (resource == null)
+        if (resource == null) {
             throw new NullPointerException("Resource cannot be null");
+        }
         this.resource = resource;
     }
-    
+
     @Override
     public Status run(HardwareAccessLayer access) {
         return access.update(resource);

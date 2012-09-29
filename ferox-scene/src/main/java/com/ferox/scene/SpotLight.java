@@ -25,12 +25,12 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * The shared TypedId representing SpotLight.
      */
     public static final TypeId<SpotLight> ID = TypeId.get(SpotLight.class);
-    
+
     @DefaultDouble(30.0)
     private DoubleProperty cutoffAngle;
 
     private SpotLight() { }
-    
+
     /**
      * Return the cutoff angle, in degrees, representing the maximum angle light
      * will spread from the {@link #getDirection() direction vector}. This
@@ -54,8 +54,9 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      * @throws IllegalArgumentException if angle is not between 0 and 90
      */
     public SpotLight setCutoffAngle(double angle) {
-        if (angle < 0 || angle > 90)
+        if (angle < 0 || angle > 90) {
             throw new IllegalArgumentException("Illegal cutoff angle, must be in [0, 90], not: " + angle);
+        }
         cutoffAngle.set(angle, getIndex());
         return this;
     }

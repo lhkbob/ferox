@@ -26,7 +26,7 @@ import com.ferox.renderer.impl.LifeCycleManager.Status;
  */
 public class ContextManager {
     // "final" after initialize() is called
-    private LifeCycleManager lifecycleManager; 
+    private LifeCycleManager lifecycleManager;
     private ContextThread thread;
     private OpenGLContext sharedContext;
 
@@ -60,30 +60,34 @@ public class ContextManager {
      *             initialized
      */
     public void initialize(LifeCycleManager lifecycle, SurfaceFactory surfaceFactory) {
-        if (lifecycle == null)
+        if (lifecycle == null) {
             throw new NullPointerException("LifeCycleManager cannot be null");
-        if (surfaceFactory == null)
+        }
+        if (surfaceFactory == null) {
             throw new NullPointerException("SurfaceFactory cannot be null");
-        
+        }
+
         // We are assuming that we're in the right threading situation, so this is safe.
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
-        if (lifecycle.getStatus() != Status.STARTING)
+        if (lifecycle.getStatus() != Status.STARTING) {
             throw new IllegalStateException("LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
-        
+        }
+
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
         // since we should already be in lifecycle's write lock.
         synchronized(this) {
-            if (lifecycleManager != null)
+            if (lifecycleManager != null) {
                 throw new IllegalStateException("ContextManager already initialized");
+            }
             lifecycleManager = lifecycle;
         }
-        
+
         thread = new ContextThread(lifecycle.getManagedThreadGroup(), "gpu-task-thread");
 
         // Must start a managed thread, but we can't use the convenience method
         // because the ContextManager uses a special subclass of Thread
         lifecycle.startManagedThread(thread);
-        
+
         // Very first task must be to allocate the shared context
         try {
             invokeOnContextThread(new ConstructContextCallable(surfaceFactory), false).get();
@@ -93,7 +97,7 @@ public class ContextManager {
             throw new FrameworkException("Error creating shared context", e.getCause());
         }
     }
-    
+
     /**
      * @return The shared context that must be used by all surfaces for this
      *         manager
@@ -101,8 +105,9 @@ public class ContextManager {
      *             initialized yet
      */
     public OpenGLContext getSharedContext() {
-        if (sharedContext == null)
+        if (sharedContext == null) {
             throw new IllegalStateException("Shared context has not been created yet");
+        }
         return sharedContext;
     }
 
@@ -127,12 +132,13 @@ public class ContextManager {
      * @throws NullPointerException if task is null
      */
     public <T> Future<T> invokeOnContextThread(Callable<T> task, boolean acceptOnShutdown) {
-        if (task == null)
+        if (task == null) {
             throw new NullPointerException("Task cannot be null");
+        }
         // Create the Future now so that it can be easily canceled later if need be
         Sync<T> sync = new Sync<T>(task);
         Future<T> future = new FutureSync<T>(sync);
-        
+
         lifecycleManager.getLock().lock();
         try {
             Status status = lifecycleManager.getStatus();
@@ -146,8 +152,9 @@ public class ContextManager {
                         queued = thread.tasks.offerLast(sync);
 
                         try {
-                            if (!queued)
+                            if (!queued) {
                                 Thread.sleep(1);
+                            }
                         } catch(InterruptedException ie) { }
                     }
                 }
@@ -155,7 +162,7 @@ public class ContextManager {
                 // LifecycleManager is shutting down or already has been, so cancel it
                 future.cancel(false);
             }
-            
+
             return future;
         } finally {
             lifecycleManager.getLock().unlock();
@@ -214,7 +221,7 @@ public class ContextManager {
             throw new IllegalThreadStateException("setActiveSurface() cannot be called on this Thread");
         }
     }
-    
+
     /**
      * <p>
      * Force the context thread to deactivate the given surface (if it was
@@ -230,9 +237,10 @@ public class ContextManager {
      * @throws IllegalStateException if this is not the context thread
      */
     public void forceRelease(AbstractSurface surface) {
-        if (surface == null)
+        if (surface == null) {
             throw new NullPointerException("Surface cannot be null");
-        
+        }
+
         Thread current = Thread.currentThread();
         if (current == thread) {
             // Delegate to the thread implementation
@@ -278,17 +286,17 @@ public class ContextManager {
     private class ContextThread extends Thread {
         private AbstractSurface activeSurface; // active surface, might differ from contextProvider
         private AbstractSurface contextProvider; // source of currentContext if it's not the shared context
-        
+
         private OpenGLContext currentContext; // non-null when a context is current
-        
+
         private final BlockingDeque<Sync<?>> tasks; // pending tasks
-        
+
         public ContextThread(ThreadGroup group, String name) {
             super(group, name);
             tasks = new LinkedBlockingDeque<Sync<?>>(10);
             setDaemon(true);
         }
-        
+
         public OpenGLContext ensureContext() {
             if (currentContext == null) {
                 // There is no surface to piggy-back off of, so we we use the shared context
@@ -297,33 +305,34 @@ public class ContextManager {
                     // context was created (should not happen)
                     throw new IllegalStateException("Shared context has not been created yet");
                 }
-                
+
                 sharedContext.makeCurrent();
-                
+
                 currentContext = sharedContext;
                 contextProvider = null;
             } // else there's a current context from somewhere, just go with it
-            
+
             return currentContext;
         }
-        
+
         public OpenGLContext setActiveSurface(AbstractSurface surface, int layer) {
             if (surface != activeSurface) {
                 // The new surface is different from the active surface, so
                 // we must deactivate the last active surface.
                 deactivateSurface();
-                
-                // If we don't have a surface to activate, just return now 
+
+                // If we don't have a surface to activate, just return now
                 // before tampering with the current context
-                if (surface == null || surface.isDestroyed())
+                if (surface == null || surface.isDestroyed()) {
                     return null;
-                
+                }
+
                 // Now check to see if the underlying context needs to change
                 OpenGLContext newContext = surface.getContext();
                 if (newContext != null) {
                     // New surface needs its own context, so release and unlock the current context
                     releaseContext();
-                    
+
                     // Now make its context current
                     newContext.makeCurrent();
                     currentContext = newContext;
@@ -332,7 +341,7 @@ public class ContextManager {
                     // Make sure we have a context for this surface, since it doesn't have its own
                     ensureContext();
                 }
-                
+
                 activeSurface = surface;
                 surface.onSurfaceActivate(currentContext, layer);
             } else {
@@ -341,47 +350,49 @@ public class ContextManager {
                 surface.onSurfaceDeactivate(currentContext);
                 surface.onSurfaceActivate(currentContext, layer);
             }
-            
+
             return currentContext;
         }
-        
+
         public void releaseSurface(AbstractSurface surface) {
             // first deactivate it if it's the active surface
-            if (surface == activeSurface)
+            if (surface == activeSurface) {
                 deactivateSurface();
-            
+            }
+
             // then make sure we release its context
-            if (surface == contextProvider)
+            if (surface == contextProvider) {
                 releaseContext();
+            }
         }
-        
+
         private void deactivateSurface() {
             if (activeSurface != null) {
                 // Since activeSurface is not null, a currentContext won't be null
                 activeSurface.onSurfaceDeactivate(currentContext);
                 activeSurface = null;
-                
+
                 // we do not release the current context, even if
                 // the active surface was the context provider
             }
         }
-        
+
         private void releaseContext() {
             if (activeSurface != null) {
                 // If we're unlocking the context, we can't have any active surface
                 deactivateSurface();
             }
-            
+
             if (currentContext != null) {
                 currentContext.release();
                 currentContext = null;
                 contextProvider = null;
             }
         }
-        
+
         @Override
         public void run() {
-            // loop until we hit WAITING_ON_CHILDREN, so that we still process 
+            // loop until we hit WAITING_ON_CHILDREN, so that we still process
             // tasks while in the STOPPING stage
             while(lifecycleManager.getStatus().compareTo(Status.WAITING_ON_CHILDREN) < 0) {
                 // Grab a single task from the queue and run it
@@ -390,7 +401,7 @@ public class ContextManager {
                 Sync<?> task;
                 try {
                     task = tasks.take();
-                    
+
                     // We don't need to check for exceptions here because
                     // the sync catches everything and stores it for later.
                     // - If CM's code throws an exception, that should break everything
@@ -399,7 +410,7 @@ public class ContextManager {
                 } catch (InterruptedException e) {
                     // Ignore the interrupted exception and loop again
                 }
-                
+
                 // Because all surfaces that are active must be AbstractSurfaces, this will
                 // reset all of the renderers so resources will be unlocked correctly,
                 // even in the event of an exception.
@@ -408,28 +419,29 @@ public class ContextManager {
             releaseContext();
             // This thread is the owner of the shared context
             sharedContext.destroy();
-            
+
             // At this point, the task queue is no longer being modified.
             // The lifecycle manager is shutting down, so any calls to queue()
             // will have the tasks automatically canceled.
-            
+
             // All remaining tasks need to be canceled
-            for (Sync<?> sync: tasks)
+            for (Sync<?> sync: tasks) {
                 sync.cancel(false);
+            }
             tasks.clear();
         }
     }
-    
+
     /*
      * Simple task to initialize the shared context of this manager
      */
     private class ConstructContextCallable implements Callable<Void> {
         private final SurfaceFactory surfaceFactory;
-        
+
         public ConstructContextCallable(SurfaceFactory surfaceFactory) {
             this.surfaceFactory = surfaceFactory;
         }
-        
+
         @Override
         public Void call() throws Exception {
             // the context is only ever used on the thread running this

@@ -17,10 +17,10 @@ import com.ferox.resource.TextureFormat;
 public class TextureHandle {
     public final Target target;
     public final int texID;
-    
+
     public TextureFormat format;
     public DataType type;
-    
+
     public boolean isMipmapped;
 
     public int lastSyncedVersion;
@@ -41,26 +41,26 @@ public class TextureHandle {
     public Boolean enableDepthCompare;
 
     public float anisoLevel;
-    
+
     public TextureHandle(Texture texture) {
         texID = texture.getId();
         target = texture.getTarget();
         lastSyncedKeys = new Object[texture.getNumLayers()][];
-        
+
         // blank parameters
         baseMipmap = -1;
         maxMipmap = -1;
-        
+
         filter = null;
         wrapS = null;
         wrapT = null;
         wrapR = null;
-        
+
         depthTest = null;
         enableDepthCompare = null;
-        
+
         anisoLevel = -1f;
-        
+
         format = null;
         type = null;
         lastSyncedVersion = -1;
