@@ -165,8 +165,13 @@ public class LifeCycleManager {
                 }
 
                 // Send an interrupt to all managed threads
-                managedThreadGroup.interrupt();
                 status = Status.WAITING_ON_CHILDREN;
+                // - we can't just interrupt the group because some impl's use AWT
+                //   which then inherits this group and gets fussy when we send
+                //   interrupts out.
+                for (Thread m: managedThreads) {
+                    m.interrupt();
+                }
 
                 ThreadGroup shutdownOwner = Thread.currentThread().getThreadGroup();
                 while(managedThreadGroup.parentOf(shutdownOwner)) {
