@@ -18,7 +18,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -217,7 +216,7 @@ public class TextureLoader {
         g2.dispose();
 
         BufferData data;
-        if (im.type.equals(ByteBuffer.class)) {
+        if (im.type.equals(DataType.UNSIGNED_BYTE)) {
             byte[] rd = ((DataBufferByte) formatted.getRaster().getDataBuffer()).getData();
             data = new BufferData(rd);
         } else { // assumes ShortBuffer
@@ -254,7 +253,7 @@ public class TextureLoader {
         g2.dispose();
 
         BufferData data;
-        if (im.type.equals(ByteBuffer.class)) {
+        if (im.type.equals(DataType.UNSIGNED_BYTE)) {
             byte[] rd = ((DataBufferByte) formatted.getRaster().getDataBuffer()).getData();
             data = new BufferData(rd);
         } else { // assumes ShortBuffer
@@ -377,7 +376,7 @@ public class TextureLoader {
         g2.dispose();
 
         BufferData data;
-        if (im.type.equals(ByteBuffer.class)) {
+        if (im.type.equals(DataType.UNSIGNED_BYTE)) {
             byte[] rd = ((DataBufferByte) faceStore.getRaster().getDataBuffer()).getData();
             data = new BufferData(rd);
         } else { // assumes ShortBuffer
