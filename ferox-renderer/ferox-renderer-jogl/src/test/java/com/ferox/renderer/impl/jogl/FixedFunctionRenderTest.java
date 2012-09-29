@@ -29,7 +29,7 @@ public class FixedFunctionRenderTest extends ApplicationStub {
     private FixedFunctionPass pass;
 
     public FixedFunctionRenderTest() {
-        super(JoglFramework.create(false, false, true, false));
+        super(JoglFramework.create());
     }
 
     @Override
