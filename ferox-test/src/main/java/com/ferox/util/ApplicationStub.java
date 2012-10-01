@@ -86,13 +86,34 @@ public abstract class ApplicationStub {
     }
 
     private TextRenderer formatFPS(double fps, CharacterSet charSet) {
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, String.format("FPS: %.2f", fps));
+        String[] extra = getExtraFPSMessages();
+        String[] total = new String[extra.length + 1];
+        total[0] = String.format("FPS: %.2f", fps);
+        for (int i = 0; i < extra.length; i++) {
+            total[i + 1] = extra[i];
+        }
+        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, total);
     }
 
     private TextRenderer formatProfiling(long heap, long maxHeap, CharacterSet charSet) {
         double heapM = heap / (1024.0 * 1024.0);
         double maxM = maxHeap / (1024.0 * 1024.0);
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, String.format("MEM: %.2f / %.2f M", heapM, maxM));
+
+        String[] extra = getExtraProfilingMessages();
+        String[] total = new String[extra.length + 1];
+        total[0] = String.format("MEM: %.2f / %.2f M", heapM, maxM);
+        for (int i = 0; i < extra.length; i++) {
+            total[i + 1] = extra[i];
+        }
+        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, total);
+    }
+
+    protected String[] getExtraFPSMessages() {
+        return new String[0];
+    }
+
+    protected String[] getExtraProfilingMessages() {
+        return new String[0];
     }
 
     protected final Framework getFramework() {
