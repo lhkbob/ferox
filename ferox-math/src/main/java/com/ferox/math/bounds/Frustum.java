@@ -592,9 +592,9 @@ public class Frustum {
      */
     private void update() {
         // compute the right-handed basis vectors of the frustum
-        Vector3 n = new Vector3().scale(direction.normalize(), -1); // normalize direction as well
-        Vector3 u = new Vector3().cross(up.normalize(), n); // normalize up as well
-        Vector3 v = up.cross(n, u); // recompute up to properly orthogonal to direction
+        Vector3 n = new Vector3().scale(direction.normalize(), -1); // normalizes direction as well
+        Vector3 u = new Vector3().cross(up, n).normalize();
+        Vector3 v = up.cross(n, u).normalize(); // recompute up to properly orthogonal to direction
 
         // view matrix
         view.set(u.x, u.y, u.z, -location.dot(u),
