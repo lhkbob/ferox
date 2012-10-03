@@ -12,8 +12,8 @@ public class AppliedEffects {
     // to specify all shadowed lights so that all of them can be disabled.
     private final Component<? extends Light<?>> shadowLight;
 
-    // FIXME should this just be a transparentPhase?
-    private final boolean blendingEnabled;
+    // BlendFunction will always be ADD
+    // FIXME do we need to specify separate factors for RGB and alpha?
     private final BlendFactor destBlend;
     private final BlendFactor sourceBlend;
 
@@ -22,10 +22,23 @@ public class AppliedEffects {
     public AppliedEffects(@Const Matrix4 view) {
         shadowedLightingPhase = false;
         shadowLight = null;
-        blendingEnabled = false;
         destBlend = BlendFactor.ZERO;
         sourceBlend = BlendFactor.ONE;
         viewMatrix = view;
+    }
+
+    private AppliedEffects(@Const Matrix4 view, boolean shadowedLighting,
+                           BlendFactor sourceBlend, BlendFactor destBlend,
+                           Component<? extends Light<?>> shadowLight) {
+        this.sourceBlend = sourceBlend;
+        this.destBlend = destBlend;
+        this.shadowLight = shadowLight;
+        viewMatrix = view;
+        shadowedLightingPhase = shadowedLighting;
+    }
+
+    public AppliedEffects setBlending(BlendFactor source, BlendFactor dest) {
+        return new AppliedEffects(viewMatrix, shadowedLightingPhase, source, dest, shadowLight);
     }
 
     public @Const Matrix4 getViewMatrix() {
@@ -37,7 +50,7 @@ public class AppliedEffects {
     }
 
     public boolean isBlendingEnabled() {
-        return blendingEnabled;
+        return destBlend != BlendFactor.ZERO;
     }
 
     public BlendFactor getSourceBlendFactor() {

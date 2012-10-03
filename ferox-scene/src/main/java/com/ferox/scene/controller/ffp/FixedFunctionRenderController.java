@@ -32,15 +32,16 @@ import com.lhkbob.entreri.Result;
 import com.lhkbob.entreri.SimpleController;
 
 public class FixedFunctionRenderController extends SimpleController {
-    private final Framework framework;
-    private final TextureSurface shadowMap;
+    private final Framework           framework;
+    private final TextureSurface      shadowMap;
 
-    private final int shadowmapTextureUnit;
-    private final int diffuseTextureUnit;
-    private final int emissiveTextureUnit;
+    private final int                 shadowmapTextureUnit;
+    private final int                 diffuseTextureUnit;
+    private final int                 emissiveTextureUnit;
+    private final int                 decalTextureUnit;
 
-    private List<PVSResult> pvs;
-    private LightGroupResult lightGroups;
+    private List<PVSResult>           pvs;
+    private LightGroupResult          lightGroups;
 
     private final Queue<Future<Void>> previousFrame;
 
@@ -55,7 +56,8 @@ public class FixedFunctionRenderController extends SimpleController {
 
         RenderCapabilities caps = framework.getCapabilities();
         if (!caps.hasFixedFunctionRenderer()) {
-            throw new IllegalArgumentException("Framework must support a FixedFunctionRenderer");
+            throw new IllegalArgumentException(
+                                               "Framework must support a FixedFunctionRenderer");
         }
 
         this.framework = framework;
@@ -64,59 +66,60 @@ public class FixedFunctionRenderController extends SimpleController {
 
         int numTex = caps.getMaxFixedPipelineTextures();
         boolean shadowsRequested = shadowMapSize > 0; // size is positive
-        boolean shadowSupport = (caps.getFboSupport() || caps.getPbufferSupport()) &&
-                numTex > 1 && caps.getDepthTextureSupport();
+        boolean shadowSupport = ((caps.getFboSupport() || caps.getPbufferSupport()) &&
+                                 numTex > 1 && caps.getDepthTextureSupport());
 
-                if (shadowsRequested && shadowSupport) {
-                    // convert size to a power of two
-                    int sz = 1;
-                    while(sz < shadowMapSize) {
-                        sz = sz << 1;
-                    }
-                    // create the shadow map
-                    TextureSurfaceOptions options = new TextureSurfaceOptions().setTarget(Target.T_2D)
-                            .setWidth(sz)
-                            .setHeight(sz)
-                            .setUseDepthTexture(true)
-                            .setColorBufferFormats();
-                    shadowMap = framework.createSurface(options);
+        if (shadowsRequested && shadowSupport) {
+            // convert size to a power of two
+            int sz = 1;
+            while (sz < shadowMapSize) {
+                sz = sz << 1;
+            }
+            // create the shadow map
+            TextureSurfaceOptions options = new TextureSurfaceOptions().setTarget(Target.T_2D)
+                                                                       .setWidth(sz)
+                                                                       .setHeight(sz)
+                                                                       .setUseDepthTexture(true)
+                                                                       .setColorBufferFormats();
+            shadowMap = framework.createSurface(options);
 
-                    // set up the depth comparison
-                    Texture sm = shadowMap.getDepthBuffer();
-                    sm.setFilter(Filter.LINEAR);
-                    sm.setWrapMode(WrapMode.CLAMP);
-                    sm.setDepthCompareEnabled(true);
-                    sm.setDepthComparison(Comparison.LEQUAL);
+            // set up the depth comparison
+            Texture sm = shadowMap.getDepthBuffer();
+            sm.setFilter(Filter.LINEAR);
+            sm.setWrapMode(WrapMode.CLAMP);
+            sm.setDepthCompareEnabled(true);
+            sm.setDepthComparison(Comparison.LEQUAL);
 
-                    // use the 3rd unit if available, or the 2nd if not
-                    shadowmapTextureUnit = (numTex > 2 ? 2 : 1);
-                    // reserve one unit for the shadow map
-                    numTex--;
-                } else {
-                    shadowMap = null;
-                    shadowmapTextureUnit = -1;
-                }
+            // use the 3rd unit if available, or the 2nd if not
+            shadowmapTextureUnit = (numTex > 2 ? 2 : 1);
+            // reserve one unit for the shadow map
+            numTex--;
+        } else {
+            shadowMap = null;
+            shadowmapTextureUnit = -1;
+        }
 
-                // FIXME should this be the responsibility of the TextureGroupFactory
-                // I'm not sure because other factories might also need texture units
-                if (numTex >= 2) {
-                    diffuseTextureUnit = 0;
-                    emissiveTextureUnit = 1;
-                } else {
-                    // multiple passes for textures
-                    diffuseTextureUnit = 0;
-                    emissiveTextureUnit = 0;
-                }
+        // FIXME should this be the responsibility of the TextureGroupFactory
+        // I'm not sure because other factories might also need texture units
+        if (numTex >= 2) {
+            diffuseTextureUnit = 0;
+            emissiveTextureUnit = 1;
+        } else {
+            // multiple passes for textures
+            diffuseTextureUnit = 0;
+            emissiveTextureUnit = 0;
+        }
     }
 
     public static long blocktime = 0L;
+
     @Override
     @SuppressWarnings("unchecked")
     public void process(double dt) {
         // go through all results and render all camera frustums
         List<Future<Void>> thisFrame = new ArrayList<Future<Void>>();
         Camera camera = getEntitySystem().createDataInstance(Camera.ID);
-        for (PVSResult visible: pvs) {
+        for (PVSResult visible : pvs) {
             if (visible.getSource().getTypeId() == Camera.ID) {
                 camera.set((Component<Camera>) visible.getSource());
                 thisFrame.add(render(camera.getSurface(), visible.getFrustum(),
@@ -126,10 +129,10 @@ public class FixedFunctionRenderController extends SimpleController {
 
         // Block until previous frame is completed to prevent the main thread
         // from getting too ahead of the rendering thread.
-        //  - We do the blocking at the end so that this thread finishes all
-        //    processing before waiting on the rendering thread.
+        // - We do the blocking at the end so that this thread finishes all
+        // processing before waiting on the rendering thread.
         long now = System.nanoTime();
-        while(!previousFrame.isEmpty()) {
+        while (!previousFrame.isEmpty()) {
             Future<Void> f = previousFrame.poll();
             try {
                 f.get();
@@ -142,18 +145,28 @@ public class FixedFunctionRenderController extends SimpleController {
     }
 
     public static long rendertime = 0L;
-    private Future<Void> render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
-        GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(), view.getViewMatrix());
-        //        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(), diffuseTextureUnit, emissiveTextureUnit,
-        //                                                                   geomGroup);
-        MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(), geomGroup);
-        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(), lightGroups,
-                                                             framework.getCapabilities().getMaxActiveLights(),
+
+    private Future<Void>
+            render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
+        GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(),
+                                                                  view.getViewMatrix());
+        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(),
+                                                                   diffuseTextureUnit,
+                                                                   emissiveTextureUnit,
+                                                                   geomGroup);
+        MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(),
+                                                                      geomGroup);
+        LightGroupFactory lightGroup = new LightGroupFactory(
+                                                             getEntitySystem(),
+                                                             lightGroups,
+                                                             framework.getCapabilities()
+                                                                      .getMaxActiveLights(),
                                                              materialGroup);
-        LightingGroupFactory lightingGroup = new LightingGroupFactory(materialGroup, lightGroup);
+        LightingGroupFactory lightingGroup = new LightingGroupFactory(materialGroup,
+                                                                      lightGroup);
 
         final StateNode rootNode = new StateNode(lightingGroup.newGroup());
-        for (Entity e: pvs) {
+        for (Entity e : pvs) {
             rootNode.add(e);
         }
 

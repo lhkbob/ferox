@@ -9,6 +9,8 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.Renderer.BlendFactor;
+import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Light;
@@ -198,10 +200,6 @@ public class LightGroupFactory implements StateGroupFactory {
 
         @Override
         public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
-            if (index > 0) {
-                // FIXME configure additive blending
-            } // FIXME if index == 0 and doing transparent shadows, also do blending?
-
             int numLights = 0;
 
             if (!effects.isShadowBeingRendered() && ambientColor != null) {
@@ -252,15 +250,30 @@ public class LightGroupFactory implements StateGroupFactory {
                 }
             }
 
-            // if there aren't any configured lights, no need to render
-            // everything
-            return (numLights > 0 || !effects.isShadowBeingRendered() ? effects : null);
+            if (numLights > 0 || !effects.isShadowBeingRendered()) {
+                // update blending state
+                if (index > 0 && !effects.isShadowBeingRendered()) {
+                    // update blending state, we only do this when accumulating into the previous
+                    // lights that were already rendered. If we're in the shadowing pass, we
+                    // know that only a single light is active so it doesn't matter if the index > 0,
+                    // we don't touch the blending
+                    r.setBlendingEnabled(true);
+                    r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(), BlendFactor.ONE);
+                    return effects.setBlending(effects.getSourceBlendFactor(), BlendFactor.ONE);
+                } else {
+                    return effects;
+                }
+            } else {
+                // if there aren't any configured lights, no need to render everything
+                return null;
+            }
         }
 
         @Override
         public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
-            if (index > 0) {
-                // FIXME revert changes to blending
+            if (index > 0 && !effects.isShadowBeingRendered()) {
+                r.setBlendingEnabled(effects.isBlendingEnabled());
+                r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(), effects.getDestinationBlendFactor());
             }
         }
     }

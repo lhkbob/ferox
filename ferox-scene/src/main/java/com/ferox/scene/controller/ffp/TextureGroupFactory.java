@@ -30,10 +30,7 @@ public class TextureGroupFactory implements StateGroupFactory {
 
     private final TextureSet access;
 
-    public TextureGroupFactory(EntitySystem system,
-                               int diffuseUnit,
-                               int decalUnit,
-                               int emissiveUnit,
+    public TextureGroupFactory(EntitySystem system, int diffuseUnit, int decalUnit, int emissiveUnit,
                                StateGroupFactory childFactory) {
         diffuse = system.createDataInstance(DiffuseColorMap.ID);
         decal = system.createDataInstance(DecalColorMap.ID);
@@ -71,11 +68,10 @@ public class TextureGroupFactory implements StateGroupFactory {
             if (node == null) {
                 // haven't seen this texture configuration before
                 int availableUnits = 1 + (decalUnit != diffuseUnit ? 1 : 0)
-                        + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1
-                                                                                    : 0);
-                int requiredUnits = (diffuse.isEnabled() ? 1 : 0) + (decal.isEnabled() ? 1
-                                                                                       : 0)
-                                                                                       + (emissive.isEnabled() ? 1 : 0);
+                        + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1 : 0);
+                int requiredUnits = (diffuse.isEnabled() ? 1 : 0)
+                        + (decal.isEnabled() ? 1 : 0)
+                        + (emissive.isEnabled() ? 1 : 0);
 
                 TextureSet state;
                 if (availableUnits >= requiredUnits) {
@@ -86,15 +82,12 @@ public class TextureGroupFactory implements StateGroupFactory {
                 } else {
                     // hypothetically we could use multiplicative blending and
                     // multiple texture states to simulate multi-texturing, but
-                    // that's expensive and complicated when combined with
-                    // multiple
+                    // that's expensive and complicated when combined with multiple
                     // light groups and shadow mapping (and it's an unlikely
-                    // situation
-                    // to begin with).
+                    // situation to begin with).
                     if (availableUnits == 2) {
                         // we have 3 textures present and only 2 units, we drop
-                        // the
-                        // texture whose unit is the same
+                        // the texture whose unit is the same
                         if (emissiveUnit == decalUnit || emissiveUnit == diffuseUnit) {
                             // emissive is the spare texture to drop
                             state = new TextureSet(diffuse, decal, null);
@@ -104,8 +97,7 @@ public class TextureGroupFactory implements StateGroupFactory {
                         }
                     } else { // available units == 1
                         // we have 2 or 3 textures and only 1 unit, here we
-                        // prefer
-                        // diffuse > decal > emissive
+                        // prefer diffuse > decal > emissive
                         if (diffuse.isEnabled()) {
                             state = new TextureSet(diffuse, null, null);
                         } else if (decal.isEnabled()) {
@@ -131,8 +123,7 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
-                                              AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
             return effects;
         }
 
@@ -157,29 +148,19 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r,
-                                         AppliedEffects effects,
-                                         int state) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int state) {
             if (textures.diffuse != null) {
                 r.setTexture(diffuseUnit, textures.diffuse);
                 r.setTextureCoordinates(diffuseUnit, textures.diffuseCoords);
                 // multiplicative blending with vertex color
-                r.setTextureCombineRGB(diffuseUnit,
-                                       CombineFunction.MODULATE,
-                                       CombineSource.CURR_TEX,
-                                       CombineOperand.COLOR,
-                                       CombineSource.PREV_TEX,
-                                       CombineOperand.COLOR,
-                                       CombineSource.CONST_COLOR,
-                                       CombineOperand.COLOR);
-                r.setTextureCombineAlpha(diffuseUnit,
-                                         CombineFunction.MODULATE,
-                                         CombineSource.CURR_TEX,
-                                         CombineOperand.ALPHA,
-                                         CombineSource.PREV_TEX,
-                                         CombineOperand.ALPHA,
-                                         CombineSource.CONST_COLOR,
-                                         CombineOperand.ALPHA);
+                r.setTextureCombineRGB(diffuseUnit, CombineFunction.MODULATE,
+                                       CombineSource.CURR_TEX, CombineOperand.COLOR,
+                                       CombineSource.PREV_TEX, CombineOperand.COLOR,
+                                       CombineSource.CONST_COLOR, CombineOperand.COLOR);
+                r.setTextureCombineAlpha(diffuseUnit, CombineFunction.MODULATE,
+                                         CombineSource.CURR_TEX, CombineOperand.ALPHA,
+                                         CombineSource.PREV_TEX, CombineOperand.ALPHA,
+                                         CombineSource.CONST_COLOR, CombineOperand.ALPHA);
             } else {
                 // disable diffuse texture
                 r.setTexture(diffuseUnit, null);
@@ -189,23 +170,15 @@ public class TextureGroupFactory implements StateGroupFactory {
                 r.setTexture(decalUnit, textures.decal);
                 r.setTextureCoordinates(decalUnit, textures.decalCoords);
                 // alpha blended with previous color based on decal map alpha
-                r.setTextureCombineRGB(decalUnit,
-                                       CombineFunction.INTERPOLATE,
-                                       CombineSource.CURR_TEX,
-                                       CombineOperand.COLOR,
-                                       CombineSource.PREV_TEX,
-                                       CombineOperand.COLOR,
-                                       CombineSource.CURR_TEX,
-                                       CombineOperand.ALPHA);
+                r.setTextureCombineRGB(decalUnit, CombineFunction.INTERPOLATE,
+                                       CombineSource.CURR_TEX, CombineOperand.COLOR,
+                                       CombineSource.PREV_TEX, CombineOperand.COLOR,
+                                       CombineSource.CURR_TEX, CombineOperand.ALPHA);
                 // REPLACE with alpha(PREV_TEX) as arg0 preserves original alpha
-                r.setTextureCombineAlpha(decalUnit,
-                                         CombineFunction.REPLACE,
-                                         CombineSource.PREV_TEX,
-                                         CombineOperand.ALPHA,
-                                         CombineSource.CURR_TEX,
-                                         CombineOperand.ALPHA,
-                                         CombineSource.CONST_COLOR,
-                                         CombineOperand.ALPHA);
+                r.setTextureCombineAlpha(decalUnit, CombineFunction.REPLACE,
+                                         CombineSource.PREV_TEX, CombineOperand.ALPHA,
+                                         CombineSource.CURR_TEX, CombineOperand.ALPHA,
+                                         CombineSource.CONST_COLOR, CombineOperand.ALPHA);
             } else {
                 // disable decal texture but only if we're on a different unit
                 if (diffuseUnit != decalUnit) {
@@ -217,24 +190,16 @@ public class TextureGroupFactory implements StateGroupFactory {
                 r.setTexture(emissiveUnit, textures.emissive);
                 r.setTextureCoordinates(emissiveUnit, textures.emissiveCoords);
                 // emitted light is just added to the color output
-                r.setTextureCombineRGB(emissiveUnit,
-                                       CombineFunction.ADD,
-                                       CombineSource.CURR_TEX,
-                                       CombineOperand.COLOR,
-                                       CombineSource.PREV_TEX,
-                                       CombineOperand.COLOR,
-                                       CombineSource.CONST_COLOR,
-                                       CombineOperand.COLOR);
+                r.setTextureCombineRGB(emissiveUnit, CombineFunction.ADD,
+                                       CombineSource.CURR_TEX, CombineOperand.COLOR,
+                                       CombineSource.PREV_TEX, CombineOperand.COLOR,
+                                       CombineSource.CONST_COLOR, CombineOperand.COLOR);
                 // REPLACE with alpha(PREV_TEX) as arg0 preserves the original
                 // alpha
-                r.setTextureCombineAlpha(emissiveUnit,
-                                         CombineFunction.REPLACE,
-                                         CombineSource.PREV_TEX,
-                                         CombineOperand.ALPHA,
-                                         CombineSource.CURR_TEX,
-                                         CombineOperand.ALPHA,
-                                         CombineSource.CONST_COLOR,
-                                         CombineOperand.ALPHA);
+                r.setTextureCombineAlpha(emissiveUnit, CombineFunction.REPLACE,
+                                         CombineSource.PREV_TEX, CombineOperand.ALPHA,
+                                         CombineSource.CURR_TEX, CombineOperand.ALPHA,
+                                         CombineSource.CONST_COLOR, CombineOperand.ALPHA);
             } else {
                 // disable emissive texture, but only if we're on a
                 // different unit (to prevent overwrite)
@@ -247,9 +212,7 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r,
-                                 AppliedEffects effects,
-                                 int state) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int state) {
             // do nothing
         }
     }
@@ -306,19 +269,12 @@ public class TextureGroupFactory implements StateGroupFactory {
             }
             TextureSet t = (TextureSet) o;
 
-            return (equals(diffuse, diffuseCoords, t.diffuse, t.diffuseCoords) && equals(decal,
-                                                                                         decalCoords,
-                                                                                         t.decal,
-                                                                                         t.decalCoords) && equals(emissive,
-                                                                                                                  emissiveCoords,
-                                                                                                                  t.emissive,
-                                                                                                                  t.emissiveCoords));
+            return (equals(diffuse, diffuseCoords, t.diffuse, t.diffuseCoords) &&
+                    equals(decal, decalCoords, t.decal, t.decalCoords)
+                    && equals(emissive, emissiveCoords, t.emissive, t.emissiveCoords));
         }
 
-        private static boolean equals(Texture t1,
-                                      VertexAttribute tc1,
-                                      Texture t2,
-                                      VertexAttribute tc2) {
+        private static boolean equals(Texture t1, VertexAttribute tc1, Texture t2, VertexAttribute tc2) {
             if (t1 == t2) {
                 // check texture coordinates
                 if (tc1 != tc2) {
