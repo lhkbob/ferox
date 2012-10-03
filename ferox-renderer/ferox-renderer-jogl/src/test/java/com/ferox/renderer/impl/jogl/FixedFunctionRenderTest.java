@@ -33,7 +33,7 @@ public class FixedFunctionRenderTest extends ApplicationStub {
     }
 
     @Override
-    protected void installInputHandlers(InputManager io) { }
+    protected void installInputHandlers(InputManager io) {}
 
     @Override
     protected void init(OnscreenSurface surface) {
@@ -60,8 +60,12 @@ public class FixedFunctionRenderTest extends ApplicationStub {
 
             shape = Sphere.create(2f, 32, StorageMode.GPU_STATIC);
 
-            f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
-            f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
+            f = new Frustum(60f,
+                            surface.getWidth() / (float) surface.getHeight(),
+                            1f,
+                            100f);
+            f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f),
+                             new Vector3(0f, 1f, 0f));
 
             int width = 256;
             int height = 256;
@@ -81,7 +85,11 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                 }
             }
 
-            Mipmap data = new Mipmap(new BufferData(volumeBuffer), width, height, depth, TextureFormat.RGBA);
+            Mipmap data = new Mipmap(new BufferData(volumeBuffer),
+                                     width,
+                                     height,
+                                     depth,
+                                     TextureFormat.RGBA);
             volume = new Texture(Target.T_3D, data);
             volume.setFilter(Filter.NEAREST);
         }
@@ -119,9 +127,13 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                     g.setModelViewMatrix(f.getViewMatrix().mul(t, t));
 
                     if (shape.getIndices() != null) {
-                        rendered += g.render(shape.getPolygonType(), shape.getIndices(), shape.getIndexOffset(), shape.getIndexCount());
+                        rendered += g.render(shape.getPolygonType(), shape.getIndices(),
+                                             shape.getIndexOffset(),
+                                             shape.getIndexCount());
                     } else {
-                        rendered += g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
+                        rendered += g.render(shape.getPolygonType(),
+                                             shape.getIndexOffset(),
+                                             shape.getIndexCount());
                     }
                 }
 
@@ -130,11 +142,19 @@ public class FixedFunctionRenderTest extends ApplicationStub {
 
                     System.out.println("Rendered count: " + rendered);
 
-                    System.out.println("\nvertices status: " + surface.getFramework().getStatus(shape.getVertices().getData()));
-                    System.out.println("\nnormals status: " + surface.getFramework().getStatus(shape.getNormals().getData()));
-                    System.out.println("\ntexcoords status: " + surface.getFramework().getStatus(shape.getTextureCoordinates().getData()));
+                    System.out.println("\nvertices status: " + surface.getFramework()
+                                                                      .getStatus(shape.getVertices()
+                                                                                      .getData()));
+                    System.out.println("\nnormals status: " + surface.getFramework()
+                                                                     .getStatus(shape.getNormals()
+                                                                                     .getData()));
+                    System.out.println("\ntexcoords status: " + surface.getFramework()
+                                                                       .getStatus(shape.getTextureCoordinates()
+                                                                                       .getData()));
 
-                    System.out.println("\ntexture status: " + surface.getFramework().getStatus(volume) + " " + surface.getFramework().getStatusMessage(volume));
+                    System.out.println("\ntexture status: " + surface.getFramework()
+                                                                     .getStatus(volume) + " " + surface.getFramework()
+                                                                                                       .getStatusMessage(volume));
                 }
             }
 
@@ -142,7 +162,7 @@ public class FixedFunctionRenderTest extends ApplicationStub {
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         new FixedFunctionRenderTest().run();
     }
 }

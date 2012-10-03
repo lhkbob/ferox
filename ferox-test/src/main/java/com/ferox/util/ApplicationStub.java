@@ -21,9 +21,8 @@ public abstract class ApplicationStub {
     private boolean showProfiling;
 
     public ApplicationStub(Framework framework) {
-        this(framework, new OnscreenSurfaceOptions().setWidth(800)
-             .setHeight(600)
-             .setResizable(false));
+        this(framework, new OnscreenSurfaceOptions().setWidth(800).setHeight(600)
+                                                    .setResizable(false));
 
         showFPS = true;
         showProfiling = true;
@@ -49,7 +48,7 @@ public abstract class ApplicationStub {
 
         int numFrames = 0;
         long last = System.currentTimeMillis();
-        while(!surface.isDestroyed()) {
+        while (!surface.isDestroyed()) {
             io.process();
             renderFrame(surface);
             numFrames++;
@@ -74,7 +73,8 @@ public abstract class ApplicationStub {
                 }
 
                 if (showProfiling) {
-                    profile = formatProfiling(r.totalMemory() - r.freeMemory(), r.totalMemory(), charSet);
+                    profile = formatProfiling(r.totalMemory() - r.freeMemory(),
+                                              r.totalMemory(), charSet);
                 } else {
                     profile = null;
                 }
@@ -105,7 +105,10 @@ public abstract class ApplicationStub {
         for (int i = 0; i < extra.length; i++) {
             total[i + 1] = extra[i];
         }
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, total);
+        return new TextRenderer(charSet,
+                                new ColorRGB(1, 1, 1),
+                                Anchor.BOTTOM_RIGHT,
+                                total);
     }
 
     protected String[] getExtraFPSMessages() {
@@ -127,22 +130,19 @@ public abstract class ApplicationStub {
     protected abstract void renderFrame(OnscreenSurface surface);
 
     private void installPrivateHandlers(InputManager io) {
-        io.on(Predicates.keyPress(KeyCode.ESCAPE))
-        .trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.ESCAPE)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 framework.destroy();
             }
         });
-        io.on(Predicates.keyPress(KeyCode.F))
-        .trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.F)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 showFPS = !showFPS;
             }
         });
-        io.on(Predicates.keyPress(KeyCode.P))
-        .trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.P)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 showProfiling = !showProfiling;

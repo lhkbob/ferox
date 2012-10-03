@@ -50,8 +50,8 @@ public class ResourceManager {
      *            the rest of the framework)
      * @param drivers A varargs array of resource drivers, cannot have any null
      *            values
-     * @throws NullPointerException if lockOrder, contextManager or any of the drivers are
-     *             null
+     * @throws NullPointerException if lockOrder, contextManager or any of the
+     *             drivers are null
      */
     public ResourceManager(ContextManager contextManager, ResourceDriver... drivers) {
         if (contextManager == null) {
@@ -65,7 +65,7 @@ public class ResourceManager {
         Map<Class<? extends Resource>, ResourceDriver> tmpDrivers = new HashMap<Class<? extends Resource>, ResourceDriver>();
         if (drivers != null) {
             // Build up the map of drivers based on the input array
-            for (ResourceDriver driver: drivers) {
+            for (ResourceDriver driver : drivers) {
                 if (driver == null) {
                     throw new NullPointerException("ResourceDriver cannot be null");
                 }
@@ -120,14 +120,16 @@ public class ResourceManager {
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
         // since we should already be in lifecycle's write lock.
-        synchronized(this) {
+        synchronized (this) {
             if (lifecycleManager != null) {
                 throw new IllegalStateException("ResourceManager already initialized");
             }
             lifecycleManager = lifecycle;
         }
 
-        garbageCollector = new Thread(lifecycleManager.getManagedThreadGroup(), new WeakReferenceMonitor(), "resource-gc-thread");
+        garbageCollector = new Thread(lifecycleManager.getManagedThreadGroup(),
+                                      new WeakReferenceMonitor(),
+                                      "resource-gc-thread");
         garbageCollector.setDaemon(true);
         lifecycleManager.startManagedThread(garbageCollector);
     }
@@ -293,11 +295,11 @@ public class ResourceManager {
             try {
                 // for correct thread-safe access of the resource,
                 // we must synchronize on resource here
-                synchronized(r) {
+                synchronized (r) {
                     data.message = data.driver.update(context, r, data.handle);
                 }
                 data.status = Status.READY;
-            } catch(UpdateResourceException e) {
+            } catch (UpdateResourceException e) {
                 data.message = e.getMessage();
                 data.status = Status.ERROR;
             }
@@ -370,8 +372,7 @@ public class ResourceManager {
         }
 
         ResourceData data = getDataIfExists(r);
-        if (data == null || data.handle == null)
-        {
+        if (data == null || data.handle == null) {
             return; // Nothing to reset
         }
 
@@ -410,9 +411,9 @@ public class ResourceManager {
     /**
      * Return the current status message of the given resource. This functions
      * identically to {@link Framework#getStatusMessage(Resource)}. This returns
-     * null if the manager's lifecycle has ended. In most cases, the empty string
-     * is returned unless the resource has a status of ERROR (since that is when
-     * the message is most informative).
+     * null if the manager's lifecycle has ended. In most cases, the empty
+     * string is returned unless the resource has a status of ERROR (since that
+     * is when the message is most informative).
      * 
      * @param r The resource whose status message is queried
      * @return The status message of r
@@ -469,7 +470,7 @@ public class ResourceManager {
 
     private ResourceDriver getDriver(Resource resource) {
         Class<?> clazz = resource.getClass();
-        while(clazz != null && Resource.class.isAssignableFrom(clazz)) {
+        while (clazz != null && Resource.class.isAssignableFrom(clazz)) {
             ResourceDriver d = drivers.get(clazz);
             if (d != null) {
                 return d;
@@ -484,8 +485,7 @@ public class ResourceManager {
         if (data == null) {
             // no data, but we must allocate it
             ResourceDriver driver = getDriver(resource);
-            if (driver == null)
-            {
+            if (driver == null) {
                 return null; // Unsupported resources never store an RD
             }
 
@@ -514,7 +514,7 @@ public class ResourceManager {
     private class WeakReferenceMonitor implements Runnable {
         @Override
         public void run() {
-            while(!lifecycleManager.isStopped()) {
+            while (!lifecycleManager.isStopped()) {
                 try {
                     // The Resource associated with this data has been GC'ed,
                     // which means its impossible for getResourceData(),
@@ -525,7 +525,8 @@ public class ResourceManager {
                         // Don't block on this, we just need it to be disposed of in the future
                         // and don't bother accepting during shutdown since the context
                         // is about to be destroyed then anyway.
-                        contextManager.invokeOnContextThread(new DisposeOrphanedHandleTask(data), false);
+                        contextManager.invokeOnContextThread(new DisposeOrphanedHandleTask(data),
+                                                             false);
                     }
 
                     // Remove it from the collection of current resources
@@ -583,7 +584,8 @@ public class ResourceManager {
         volatile String message;
         volatile Status status;
 
-        public ResourceData(Resource resource, ResourceDriver driver, ReferenceQueue<Resource> queue) {
+        public ResourceData(Resource resource, ResourceDriver driver,
+                            ReferenceQueue<Resource> queue) {
             super(resource, queue);
 
             this.driver = driver;

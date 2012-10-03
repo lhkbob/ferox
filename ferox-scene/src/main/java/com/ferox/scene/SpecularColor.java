@@ -27,5 +27,5 @@ public final class SpecularColor extends ColorComponent<SpecularColor> {
      */
     public static final TypeId<SpecularColor> ID = TypeId.get(SpecularColor.class);
 
-    private SpecularColor() { }
+    private SpecularColor() {}
 }

@@ -98,7 +98,8 @@ public class JoglRenderCapabilities extends RenderCapabilities {
 
         hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
         hasGlslRenderer = glslVersion != null;
-        pbuffersSupported = !isSet(FORCE_NO_PBUFFER) && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null);
+        pbuffersSupported = !isSet(FORCE_NO_PBUFFER) && GLDrawableFactory.getFactory(profile)
+                                                                         .canCreateGLPbuffer(null);
 
         fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || gl.isExtensionAvailable("GL_EXT_framebuffer_object"));
         if (fboSupported) {
@@ -138,7 +139,7 @@ public class JoglRenderCapabilities extends RenderCapabilities {
             gl.glGetIntegerv(GL2ES2.GL_MAX_TEXTURE_IMAGE_UNITS, store, 0);
             maxFragmentShaderTextures = store[0];
             gl.glGetIntegerv(GL2ES2.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, store, 0);
-            maxCombinedTextures= store[0];
+            maxCombinedTextures = store[0];
             gl.glGetIntegerv(GL2.GL_MAX_TEXTURE_COORDS, store, 0);
             maxTextureCoordinates = store[0];
         } else {

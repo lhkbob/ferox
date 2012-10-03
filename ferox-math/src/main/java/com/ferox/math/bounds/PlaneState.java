@@ -13,8 +13,7 @@ public class PlaneState {
     private int planeBits;
 
     /**
-     * @return True if any plane returns true from
-     *         {@link #isTestRequired(int)}
+     * @return True if any plane returns true from {@link #isTestRequired(int)}
      */
     public boolean getTestsRequired() {
         return (planeBits & PLANE_MASK) != PLANE_MASK;

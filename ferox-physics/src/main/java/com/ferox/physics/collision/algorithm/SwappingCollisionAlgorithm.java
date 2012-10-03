@@ -36,15 +36,16 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape> implem
     }
 
     @Override
-    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA,
-                                      B shapeB, @Const Matrix4 transB) {
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, B shapeB,
+                                      @Const Matrix4 transB) {
         ClosestPair original = delegate.getClosestPair(shapeB, transB, shapeA, transA);
         if (original == null) {
             return null;
         }
 
         // swap the points and contact normal
-        return new ClosestPair(original.getClosestPointOnB(), new Vector3().scale(original.getContactNormal(), -1.0),
+        return new ClosestPair(original.getClosestPointOnB(),
+                               new Vector3().scale(original.getContactNormal(), -1.0),
                                original.getDistance());
     }
 

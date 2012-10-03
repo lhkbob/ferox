@@ -8,5 +8,4 @@ package com.ferox.input;
  * 
  * @author Michael Ludwig
  */
-public interface EventListener {
-}
+public interface EventListener {}

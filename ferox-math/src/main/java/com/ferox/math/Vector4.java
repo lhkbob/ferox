@@ -69,8 +69,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and store the resultant values of
-     * (x, y, z, w) into this vector:
+     * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and
+     * store the resultant values of (x, y, z, w) into this vector:
      * 
      * <pre>
      * m.m00*x + m.m01*y + m.m02*z + m.m03*w = a.x
@@ -308,8 +308,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #project(Vector4, Vector4)} with the first argument being
-     * this vector.
+     * As {@link #project(Vector4, Vector4)} with the first argument being this
+     * vector.
      * 
      * @param proj
      * @return This vector
@@ -355,8 +355,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Normalize this vector in place, equivalent to
-     * {@link #normalize(Vector4)} with the first argument being this vector.
+     * Normalize this vector in place, equivalent to {@link #normalize(Vector4)}
+     * with the first argument being this vector.
      * 
      * @return This vector
      * @throws ArithmeticException if this vector cannot be normalized
@@ -461,7 +461,8 @@ public final class Vector4 implements Cloneable {
      *             starting at offset
      */
     public Vector4 set(DoubleBuffer vals, int offset) {
-        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2),
+                   vals.get(offset + 3));
     }
 
     /**
@@ -475,7 +476,8 @@ public final class Vector4 implements Cloneable {
      *             starting at offset
      */
     public Vector4 set(FloatBuffer vals, int offset) {
-        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2),
+                   vals.get(offset + 3));
     }
 
     /**
@@ -535,8 +537,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -551,8 +553,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The FloatBuffer to hold the row values
      * @param offset The first index to use in the store

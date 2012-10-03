@@ -75,7 +75,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
         Texture tex = (Texture) res;
         TextureHandle h = (TextureHandle) handle;
 
-        if (!context.getRenderCapabilities().getSupportedTextureTargets().contains(tex.getTarget())) {
+        if (!context.getRenderCapabilities().getSupportedTextureTargets()
+                    .contains(tex.getTarget())) {
             throw new UpdateResourceException("Texture target " + tex.getTarget() + " is unsupported");
         }
 
@@ -98,17 +99,17 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
                 isBound = true;
             }
 
-            boolean isMissingChanges = tex.getChangeQueue().hasLostChanges(h.lastSyncedVersion);
+            boolean isMissingChanges = tex.getChangeQueue()
+                                          .hasLostChanges(h.lastSyncedVersion);
 
             // organize all changes by layer and mipmap level
-            @SuppressWarnings("unchecked")
-            Map<Integer, List<MipmapRegion>>[] changes = new Map[h.lastSyncedKeys.length];
-            for (MipmapRegion edit: tex.getChangeQueue().getChangesSince(h.lastSyncedVersion)) {
+            @SuppressWarnings("unchecked") Map<Integer, List<MipmapRegion>>[] changes = new Map[h.lastSyncedKeys.length];
+            for (MipmapRegion edit : tex.getChangeQueue()
+                                        .getChangesSince(h.lastSyncedVersion)) {
                 int layer = edit.getLayer();
                 int mipmap = edit.getMipmapLevel();
 
-                if (layer >= changes.length)
-                {
+                if (layer >= changes.length) {
                     continue; // user created a bad mipmap region
                 }
 
@@ -125,7 +126,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             TextureFormat format = tex.getFormat();
             if (!context.getRenderCapabilities().getUnclampedFloatTextureSupport()) {
                 // our best bet is to switch to clamped float formatting
-                switch(format) {
+                switch (format) {
                 case R_FLOAT:
                     format = TextureFormat.R;
                     break;
@@ -172,7 +173,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
                         // use glTexSubImage to process all mipmap regions
                         List<MipmapRegion> toFlush = (changes[i] != null ? changes[i].get(j) : null);
                         if (toFlush != null) {
-                            for (MipmapRegion rg: toFlush) {
+                            for (MipmapRegion rg : toFlush) {
                                 doTexSubImage(context, h, mipmap, rg);
                             }
                         }
@@ -238,7 +239,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * @param handle
      * @return True if the texture can be updated
      */
-    protected void validateTexture(OpenGLContext context, Texture tex, TextureHandle handle) throws UpdateResourceException {
+    protected void validateTexture(OpenGLContext context, Texture tex,
+                                   TextureHandle handle) throws UpdateResourceException {
         // error handling for textures that are owned by texture surfaces
         //  1. They cannot change size from what is reported by the surface
         //  2. They cannot change texture format or data type
@@ -262,15 +264,13 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
         }
 
         if (!caps.getNpotTextureSupport()) {
-            if (tex.getWidth() != ceilPot(tex.getWidth()) ||
-                    tex.getHeight() != ceilPot(tex.getHeight()) ||
-                    tex.getDepth() != ceilPot(tex.getDepth())) {
+            if (tex.getWidth() != ceilPot(tex.getWidth()) || tex.getHeight() != ceilPot(tex.getHeight()) || tex.getDepth() != ceilPot(tex.getDepth())) {
                 throw new UpdateResourceException("Non-power of two textures are not supported");
             }
         }
 
         int maxSize = 0;
-        switch(tex.getTarget()) {
+        switch (tex.getTarget()) {
         case T_1D:
         case T_2D:
             maxSize = caps.getMaxTextureSize();
@@ -297,7 +297,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * @param tex
      * @param handle
      */
-    protected abstract void glTextureParameters(OpenGLContext context, Texture tex, TextureHandle handle);
+    protected abstract void glTextureParameters(OpenGLContext context, Texture tex,
+                                                TextureHandle handle);
 
     /**
      * Bind the given TextureHandle to the context on the current Thread so that
@@ -332,7 +333,9 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * appropriate glCompressedTexImage command should be used instead. The data
      * buffer may be null.
      */
-    protected abstract void glTexImage(OpenGLContext context, TextureHandle h, int layer, int mipmap, int width, int height, int depth, int capacity, Buffer data);
+    protected abstract void glTexImage(OpenGLContext context, TextureHandle h, int layer,
+                                       int mipmap, int width, int height, int depth,
+                                       int capacity, Buffer data);
 
     /**
      * As
@@ -341,15 +344,20 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
      * mipmap. It can be assumed that the the texture will not be compressed,
      * and that its data array will not be null.
      */
-    protected abstract void glTexSubImage(OpenGLContext context, TextureHandle h, int layer, int mipmap, int x, int y, int z, int width, int height, int depth, Buffer data);
+    protected abstract void glTexSubImage(OpenGLContext context, TextureHandle h,
+                                          int layer, int mipmap, int x, int y, int z,
+                                          int width, int height, int depth, Buffer data);
 
     /**
      * Set the unpack region for pixel data to use the given parameters.
      * Additionally, the unpack alignment should be set to 1.
      */
-    protected abstract void glUnpackRegion(OpenGLContext context, int xOffset, int yOffset, int zOffset, int blockWidth, int blockHeight);
+    protected abstract void glUnpackRegion(OpenGLContext context, int xOffset,
+                                           int yOffset, int zOffset, int blockWidth,
+                                           int blockHeight);
 
-    private void doTexImage(OpenGLContext context, TextureHandle handle, Mipmap mipmap, int layer, int level) {
+    private void doTexImage(OpenGLContext context, TextureHandle handle, Mipmap mipmap,
+                            int layer, int level) {
         int w = mipmap.getWidth(level);
         int h = mipmap.getHeight(level);
         int d = mipmap.getDepth(level);
@@ -361,14 +369,15 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             glTexImage(context, handle, layer, level, w, h, d, data.getLength(), nioData);
         } else if (handle.lastSyncedKeys[layer][level] == null) {
             // First time for this texture handle, so alloc the image
-            glTexImage(context, handle, layer, level, w, h, d, handle.format.getBufferSize(w, h, d), null);
+            glTexImage(context, handle, layer, level, w, h, d,
+                       handle.format.getBufferSize(w, h, d), null);
         }
     }
 
-    private void doTexSubImage(OpenGLContext context, TextureHandle handle, Mipmap mipmap, MipmapRegion dirty) {
+    private void doTexSubImage(OpenGLContext context, TextureHandle handle,
+                               Mipmap mipmap, MipmapRegion dirty) {
         BufferData data = mipmap.getData(dirty.getMipmapLevel());
-        if (data.getArray() == null)
-        {
+        if (data.getArray() == null) {
             return; // no update to perform
         }
 
@@ -392,7 +401,8 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
         // as actually sending a subimage to the gfx card
         //  - it would modify the unpack region to change the x/y offset to 0
         //  - have to fill the buffer manually from the array
-        glTexSubImage(context, handle, dirty.getLayer(), dirty.getMipmapLevel(), x, y, z, w, h, d, nioData);
+        glTexSubImage(context, handle, dirty.getLayer(), dirty.getMipmapLevel(), x, y, z,
+                      w, h, d, nioData);
     }
 
     private static int ceilPot(int num) {

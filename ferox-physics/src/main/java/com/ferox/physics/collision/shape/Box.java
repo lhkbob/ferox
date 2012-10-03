@@ -14,7 +14,8 @@ public class Box extends ConvexShape {
         setExtents(xExtent, yExtent, zExtent);
     }
 
-    public @Const Vector3 getHalfExtents() {
+    public @Const
+    Vector3 getHalfExtents() {
         return halfExtents;
     }
 

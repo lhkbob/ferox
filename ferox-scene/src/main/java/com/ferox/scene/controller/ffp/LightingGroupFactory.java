@@ -51,7 +51,8 @@ public class LightingGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
             return effects;
         }
 
@@ -75,13 +76,15 @@ public class LightingGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                         int index) {
             r.setLightingEnabled(enable);
             return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int index) {
             r.setLightingEnabled(false);
         }
     }

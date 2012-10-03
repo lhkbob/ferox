@@ -15,8 +15,8 @@ package com.ferox.input;
  */
 public interface KeyEventSource extends EventSource {
     /**
-     * Register the given KeyListener with this KeyEventSource. Nothing is
-     * done if the given listener has already been added.
+     * Register the given KeyListener with this KeyEventSource. Nothing is done
+     * if the given listener has already been added.
      * 
      * @param listener The listener to add
      * @throws NullPointerException if listener is null
@@ -24,8 +24,8 @@ public interface KeyEventSource extends EventSource {
     public void addKeyListener(KeyListener listener);
 
     /**
-     * Remove the given KeyListener from this KeyEventSource. Nothing is
-     * done if the given listener has never been added, or was already removed.
+     * Remove the given KeyListener from this KeyEventSource. Nothing is done if
+     * the given listener has never been added, or was already removed.
      * 
      * @param listener The listener to remove
      * @throws NullPointerException if listener is null

@@ -6,8 +6,8 @@ import com.ferox.math.Vector3;
 /**
  * ClosestPair is a data-storage class that contains the closest pair of points
  * between two Collidables, A and B. It can differentiate between separated
- * objects and intersecting objects. It is used by a {@link CollisionAlgorithm} to
- * compute accurate collision information between pairs of objects.
+ * objects and intersecting objects. It is used by a {@link CollisionAlgorithm}
+ * to compute accurate collision information between pairs of objects.
  * 
  * @author Michael Ludwig
  */
@@ -53,7 +53,8 @@ public class ClosestPair {
      * 
      * @return The contact normal
      */
-    public @Const Vector3 getContactNormal() {
+    public @Const
+    Vector3 getContactNormal() {
         return contactNormalFromA;
     }
 
@@ -63,7 +64,8 @@ public class ClosestPair {
      * 
      * @return The closest point in this pair on the surface of A
      */
-    public @Const Vector3 getClosestPointOnA() {
+    public @Const
+    Vector3 getClosestPointOnA() {
         return closestPointOnA;
     }
 
@@ -73,7 +75,8 @@ public class ClosestPair {
      * 
      * @return The closest point in this pair on the surface of B
      */
-    public @Const Vector3 getClosestPointOnB() {
+    public @Const
+    Vector3 getClosestPointOnB() {
         return closestPointOnB;
     }
 

@@ -23,5 +23,5 @@ public final class DirectionLight extends Light<DirectionLight> {
      */
     public static final TypeId<DirectionLight> ID = TypeId.get(DirectionLight.class);
 
-    private DirectionLight() { }
+    private DirectionLight() {}
 }

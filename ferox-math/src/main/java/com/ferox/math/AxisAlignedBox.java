@@ -46,7 +46,7 @@ public class AxisAlignedBox implements Cloneable {
      * Create a new AxisAlignedBox that has its minimum and maximum at the
      * origin.
      */
-    public AxisAlignedBox() { }
+    public AxisAlignedBox() {}
 
     /**
      * Create a new AxisAlignedBox that uses the given minimum and maximum
@@ -212,9 +212,7 @@ public class AxisAlignedBox implements Cloneable {
      * @throws NullPointerException if other is null
      */
     public boolean intersects(@Const AxisAlignedBox other) {
-        return (max.x >= other.min.x && min.x <= other.max.x) &&
-                (max.y >= other.min.y && min.y <= other.max.y) &&
-                (max.z >= other.min.z && min.z <= other.max.z);
+        return (max.x >= other.min.x && min.x <= other.max.x) && (max.y >= other.min.y && min.y <= other.max.y) && (max.z >= other.min.z && min.z <= other.max.z);
     }
 
     /**
@@ -227,9 +225,7 @@ public class AxisAlignedBox implements Cloneable {
      * @throws NullPointerException if other is null
      */
     public boolean contains(@Const AxisAlignedBox other) {
-        return (min.x <= other.min.x && max.x >= other.max.x) &&
-                (min.y <= other.min.y && max.y >= other.max.y) &&
-                (min.z <= other.min.z && max.z >= other.max.z);
+        return (min.x <= other.min.x && max.x >= other.max.x) && (min.y <= other.min.y && max.y >= other.max.y) && (min.z <= other.min.z && max.z >= other.max.z);
     }
 
     /**
@@ -245,11 +241,9 @@ public class AxisAlignedBox implements Cloneable {
      */
     public AxisAlignedBox intersect(@Const AxisAlignedBox a, @Const AxisAlignedBox b) {
         // in the event that getMin() > getMax(), there is no true intersection
-        min.set(Math.max(a.min.x, b.min.x),
-                Math.max(a.min.y, b.min.y),
+        min.set(Math.max(a.min.x, b.min.x), Math.max(a.min.y, b.min.y),
                 Math.max(a.min.z, b.min.z));
-        max.set(Math.min(a.max.x, b.max.x),
-                Math.min(a.max.y, b.max.y),
+        max.set(Math.min(a.max.x, b.max.x), Math.min(a.max.y, b.max.y),
                 Math.min(a.max.z, b.max.z));
         return this;
     }
@@ -264,23 +258,20 @@ public class AxisAlignedBox implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public AxisAlignedBox union(@Const AxisAlignedBox a, @Const AxisAlignedBox b) {
-        min.set(Math.min(a.min.x, b.min.x),
-                Math.min(a.min.y, b.min.y),
+        min.set(Math.min(a.min.x, b.min.x), Math.min(a.min.y, b.min.y),
                 Math.min(a.min.z, b.min.z));
-        max.set(Math.max(a.max.x, b.max.x),
-                Math.max(a.max.y, b.max.y),
+        max.set(Math.max(a.max.x, b.max.x), Math.max(a.max.y, b.max.y),
                 Math.max(a.max.z, b.max.z));
         return this;
     }
 
     /**
      * <p>
-     * Transform <tt>aabb</tt> by <tt>m</tt> and store the transformed bounds
-     * in this AxisAlignedBox. This can be used to transform an
-     * AxisAlignedBox from one coordinate space to another while
-     * preserving the property that whatever was contained by the box in its
-     * original space, will be contained by the transformed box after it
-     * has been transformed as well.
+     * Transform <tt>aabb</tt> by <tt>m</tt> and store the transformed bounds in
+     * this AxisAlignedBox. This can be used to transform an AxisAlignedBox from
+     * one coordinate space to another while preserving the property that
+     * whatever was contained by the box in its original space, will be
+     * contained by the transformed box after it has been transformed as well.
      * <p>
      * For best results, <tt>m</tt> should be an affine transformation.
      * </p>

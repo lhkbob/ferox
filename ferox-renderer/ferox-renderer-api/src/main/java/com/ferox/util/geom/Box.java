@@ -17,7 +17,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * @author Michael Ludwig
  */
 public class Box {
-    private Box() { }
+    private Box() {}
 
     /**
      * Construct a box centered on its origin, with the given side length. So,
@@ -114,47 +114,217 @@ public class Box {
             float[] va = new float[192]; // 72v + 72n + 48t
 
             // back
-            /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 1f; va[i++] = 1f;
-            /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 0f; va[i++] = 1f;
-            /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 0f; va[i++] = 0f;
-            /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = -1f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+            /* v */va[i++] = minX;
+            va[i++] = maxY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = -1f; /* t */
+            va[i++] = 1f;
+            va[i++] = 1f;
+            /* v */va[i++] = maxX;
+            va[i++] = maxY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = -1f; /* t */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            /* v */va[i++] = maxX;
+            va[i++] = minY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = -1f; /* t */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            /* v */va[i++] = minX;
+            va[i++] = minY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = -1f; /* t */
+            va[i++] = 1f;
+            va[i++] = 0f;
 
             // right
-            /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
-            /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
-            /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
-            /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+            /* v */va[i++] = maxX;
+            va[i++] = maxY;
+            va[i++] = minZ; /* n */
+            va[i++] = 1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 1f;
+            /* v */va[i++] = maxX;
+            va[i++] = maxY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            /* v */va[i++] = maxX;
+            va[i++] = minY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            /* v */va[i++] = maxX;
+            va[i++] = minY;
+            va[i++] = minZ; /* n */
+            va[i++] = 1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 0f;
 
             // front
-            /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 1f; va[i++] = 1f;
-            /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 0f; va[i++] = 1f;
-            /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 0f; va[i++] = 0f;
-            /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 0f; va[i++] = 1f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+            /* v */va[i++] = maxX;
+            va[i++] = maxY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = 1f; /* t */
+            va[i++] = 1f;
+            va[i++] = 1f;
+            /* v */va[i++] = minX;
+            va[i++] = maxY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = 1f; /* t */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            /* v */va[i++] = minX;
+            va[i++] = minY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = 1f; /* t */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            /* v */va[i++] = maxX;
+            va[i++] = minY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            va[i++] = 1f; /* t */
+            va[i++] = 1f;
+            va[i++] = 0f;
 
             // left
-            /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
-            /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
-            /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
-            /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = -1f; va[i++] = 0f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+            /* v */va[i++] = minX;
+            va[i++] = maxY;
+            va[i++] = maxZ; /* n */
+            va[i++] = -1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 1f;
+            /* v */va[i++] = minX;
+            va[i++] = maxY;
+            va[i++] = minZ; /* n */
+            va[i++] = -1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            /* v */va[i++] = minX;
+            va[i++] = minY;
+            va[i++] = minZ; /* n */
+            va[i++] = -1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            /* v */va[i++] = minX;
+            va[i++] = minY;
+            va[i++] = maxZ; /* n */
+            va[i++] = -1f;
+            va[i++] = 0f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 0f;
 
             // top
-            /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
-            /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
-            /*v*/ va[i++] = minX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
-            /*v*/ va[i++] = maxX; va[i++] = maxY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = 1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+            /* v */va[i++] = maxX;
+            va[i++] = maxY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 1f;
+            /* v */va[i++] = minX;
+            va[i++] = maxY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            /* v */va[i++] = minX;
+            va[i++] = maxY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            /* v */va[i++] = maxX;
+            va[i++] = maxY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 0f;
 
             // bottom
-            /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 1f;
-            /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = minZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 1f;
-            /*v*/ va[i++] = maxX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 0f; va[i++] = 0f;
-            /*v*/ va[i++] = minX; va[i++] = minY; va[i++] = maxZ; /*n*/ va[i++] = 0f; va[i++] = -1f; va[i++] = 0f; /*t*/ va[i++] = 1f; va[i++] = 0f;
+            /* v */va[i++] = minX;
+            va[i++] = minY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = -1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 1f;
+            /* v */va[i++] = maxX;
+            va[i++] = minY;
+            va[i++] = minZ; /* n */
+            va[i++] = 0f;
+            va[i++] = -1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 1f;
+            /* v */va[i++] = maxX;
+            va[i++] = minY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = -1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            va[i++] = 0f;
+            /* v */va[i++] = minX;
+            va[i++] = minY;
+            va[i++] = maxZ; /* n */
+            va[i++] = 0f;
+            va[i++] = -1f;
+            va[i++] = 0f; /* t */
+            va[i++] = 1f;
+            va[i++] = 0f;
 
             vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
 
-            bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
+            bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ), new Vector3(maxX,
+                                                                                   maxY,
+                                                                                   maxZ));
         }
 
         @Override
@@ -198,7 +368,8 @@ public class Box {
         }
 
         @Override
-        public @Const AxisAlignedBox getBounds() {
+        public @Const
+        AxisAlignedBox getBounds() {
             return bounds;
         }
     }

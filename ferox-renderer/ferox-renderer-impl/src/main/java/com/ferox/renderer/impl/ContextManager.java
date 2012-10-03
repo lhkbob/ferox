@@ -75,7 +75,7 @@ public class ContextManager {
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
         // since we should already be in lifecycle's write lock.
-        synchronized(this) {
+        synchronized (this) {
             if (lifecycleManager != null) {
                 throw new IllegalStateException("ContextManager already initialized");
             }
@@ -148,14 +148,14 @@ public class ContextManager {
                     sync.run();
                 } else {
                     boolean queued = false;
-                    while(!queued) {
+                    while (!queued) {
                         queued = thread.tasks.offerLast(sync);
 
                         try {
                             if (!queued) {
                                 Thread.sleep(1);
                             }
-                        } catch(InterruptedException ie) { }
+                        } catch (InterruptedException ie) {}
                     }
                 }
             } else {
@@ -280,8 +280,8 @@ public class ContextManager {
     /*
      * Internal thread class that manages the contexts and locks for the active
      * surface, allowing this to be used easily with a simple
-     * HardwareAccessLayer implementation. It uses up to two surfaces at a
-     * time (one for being "active" and one that provides a context).
+     * HardwareAccessLayer implementation. It uses up to two surfaces at a time
+     * (one for being "active" and one that provides a context).
      */
     private class ContextThread extends Thread {
         private AbstractSurface activeSurface; // active surface, might differ from contextProvider
@@ -394,7 +394,7 @@ public class ContextManager {
         public void run() {
             // loop until we hit WAITING_ON_CHILDREN, so that we still process
             // tasks while in the STOPPING stage
-            while(lifecycleManager.getStatus().compareTo(Status.WAITING_ON_CHILDREN) < 0) {
+            while (lifecycleManager.getStatus().compareTo(Status.WAITING_ON_CHILDREN) < 0) {
                 // Grab a single task from the queue and run it
                 // Unlocking a surface is handled by pushing a special task
                 // to the front of the queue so it skips any line from actual tasks
@@ -425,7 +425,7 @@ public class ContextManager {
             // will have the tasks automatically canceled.
 
             // All remaining tasks need to be canceled
-            for (Sync<?> sync: tasks) {
+            for (Sync<?> sync : tasks) {
                 sync.cancel(false);
             }
             tasks.clear();

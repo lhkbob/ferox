@@ -76,7 +76,8 @@ public class VertexAttribute {
      *             buffer's length, or if stride is less than 0
      * @throws NullPointerException if buffer is null
      */
-    public VertexAttribute(VertexBufferObject buffer, int elementSize, int offset, int stride) {
+    public VertexAttribute(VertexBufferObject buffer, int elementSize, int offset,
+                           int stride) {
         if (buffer == null) {
             throw new NullPointerException("Buffer cannot be null");
         }
@@ -84,7 +85,8 @@ public class VertexAttribute {
             throw new IllegalArgumentException("Illegal element size, must be in [1, 4], not: " + elementSize);
         }
         if (offset < 0 || offset >= buffer.getData().getLength()) {
-            throw new IllegalArgumentException("Illegal offset, must be in [0, " + buffer.getData().getLength() + "), not: " + offset);
+            throw new IllegalArgumentException("Illegal offset, must be in [0, " + buffer.getData()
+                                                                                         .getLength() + "), not: " + offset);
         }
         if (stride < 0) {
             throw new IllegalArgumentException("Illegal stride, must be at least 0, not: " + stride);

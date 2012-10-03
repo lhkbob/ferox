@@ -58,12 +58,17 @@ public class BufferData {
         UNSIGNED_BYTE(1);
 
         private final int byteCount;
-        private DataType(int byteCount) { this.byteCount = byteCount; }
+
+        private DataType(int byteCount) {
+            this.byteCount = byteCount;
+        }
 
         /**
          * @return The number of bytes used by each primitive
          */
-        public int getByteCount() { return byteCount; }
+        public int getByteCount() {
+            return byteCount;
+        }
     }
 
     private Object data; // actually a primitive array, of different types

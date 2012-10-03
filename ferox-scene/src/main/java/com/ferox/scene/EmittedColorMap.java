@@ -31,7 +31,7 @@ public class EmittedColorMap extends TextureMap<EmittedColorMap> {
      */
     public static final TypeId<EmittedColorMap> ID = TypeId.get(EmittedColorMap.class);
 
-    private EmittedColorMap() { }
+    private EmittedColorMap() {}
 
     @Override
     protected void validate(Texture tex) {

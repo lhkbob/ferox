@@ -28,7 +28,8 @@ public abstract class SurfaceFactory {
      * @return A new texture surface
      * @throws NullPointerException if any of the arguments are null
      */
-    public abstract AbstractTextureSurface createTextureSurface(AbstractFramework framework, TextureSurfaceOptions options,
+    public abstract AbstractTextureSurface createTextureSurface(AbstractFramework framework,
+                                                                TextureSurfaceOptions options,
                                                                 OpenGLContext sharedContext);
 
     /**
@@ -45,18 +46,19 @@ public abstract class SurfaceFactory {
      * @return A new, visible onscreen surface
      * @throws NullPointerException if any of the arguments are null
      */
-    public abstract AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework, OnscreenSurfaceOptions options,
+    public abstract AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
+                                                                  OnscreenSurfaceOptions options,
                                                                   OpenGLContext sharedContext);
 
     /**
-     * Create an OpenGLContext that wraps an underlying OpenGL context.
-     * The context should be "offscreen" and not attached to a Surface. This can
-     * be a context owned by a pbuffer, or it can be a context attached to a 1x1
+     * Create an OpenGLContext that wraps an underlying OpenGL context. The
+     * context should be "offscreen" and not attached to a Surface. This can be
+     * a context owned by a pbuffer, or it can be a context attached to a 1x1
      * hidden window. The term "offscreen" is loosely defined but should not be
      * noticeable by a user.
      * 
-     * @param sharedContext An OpenGLContext to share all resources with,
-     *            if this is null then no sharing is done
+     * @param sharedContext An OpenGLContext to share all resources with, if
+     *            this is null then no sharing is done
      * @return An offscreen context
      */
     public abstract OpenGLContext createOffscreenContext(OpenGLContext sharedContext);
@@ -77,7 +79,7 @@ public abstract class SurfaceFactory {
      * Perform any native resource destruction, called by the Framework when
      * it's lifecycle is completed.
      */
-    public void destroy() { }
+    public void destroy() {}
 
     /**
      * Select the closest matching of the supported DisplayModes given the
@@ -107,7 +109,8 @@ public abstract class SurfaceFactory {
                     update = true;
                 } else {
                     // go with the highest bit depth pixel format
-                    if (availableModes[i].getPixelFormat().getBitDepth() > best.getPixelFormat().getBitDepth()) {
+                    if (availableModes[i].getPixelFormat().getBitDepth() > best.getPixelFormat()
+                                                                               .getBitDepth()) {
                         update = true;
                     }
                 }

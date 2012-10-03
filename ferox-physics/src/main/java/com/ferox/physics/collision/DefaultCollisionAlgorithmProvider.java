@@ -33,9 +33,9 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
      * {@link SphereSphereCollisionAlgorithm} registered.
      */
     public DefaultCollisionAlgorithmProvider() {
-        algorithms = new ArrayList<CollisionAlgorithm<?,?>>();
+        algorithms = new ArrayList<CollisionAlgorithm<?, ?>>();
 
-        algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?,?>>();
+        algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?, ?>>();
         lookup = new TypePair(null, null);
 
         // wrap the GJK/EPA algorithm with a jittering algorithm to help overcome
@@ -46,7 +46,8 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> aType, Class<B> bType) {
+    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> aType,
+                                                                                    Class<B> bType) {
         if (aType == null || bType == null) {
             throw new NullPointerException("Shape types cannot be null");
         }
@@ -94,14 +95,16 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
     }
 
     @SuppressWarnings("unchecked")
-    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getBestMatch(Class<A> aType, Class<B> bType) {
+    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getBestMatch(Class<A> aType,
+                                                                                     Class<B> bType) {
         int bestDepth = 0;
         CollisionAlgorithm<?, ?> bestAlgo = null;
 
         int ct = algorithms.size();
         for (int i = 0; i < ct; i++) {
             CollisionAlgorithm<?, ?> algo = algorithms.get(i);
-            if (algo.getShapeTypeA().isAssignableFrom(aType) && algo.getShapeTypeB().isAssignableFrom(bType)) {
+            if (algo.getShapeTypeA().isAssignableFrom(aType) && algo.getShapeTypeB()
+                                                                    .isAssignableFrom(bType)) {
                 int depthA = depth(aType, algo.getShapeTypeA());
                 int depthB = depth(bType, algo.getShapeTypeB());
 
@@ -124,7 +127,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
 
     private int depth(Class<?> child, Class<?> parent) {
         int depth = 0;
-        while(!child.equals(parent) && parent.isAssignableFrom(child)) {
+        while (!child.equals(parent) && parent.isAssignableFrom(child)) {
             // move up one in class hierarchy
             child = child.getSuperclass();
             depth++;

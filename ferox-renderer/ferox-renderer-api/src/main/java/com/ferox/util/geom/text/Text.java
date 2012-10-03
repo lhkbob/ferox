@@ -288,7 +288,8 @@ public class Text {
 
         return new Geometry() {
             @Override
-            public @Const AxisAlignedBox getBounds() {
+            public @Const
+            AxisAlignedBox getBounds() {
                 return bounds;
             }
 
@@ -335,7 +336,8 @@ public class Text {
     }
 
     private void layoutText() {
-        LineMetrics lm = charSet.getFont().getLineMetrics(text, charSet.getFontRenderContext());
+        LineMetrics lm = charSet.getFont().getLineMetrics(text,
+                                                          charSet.getFontRenderContext());
         TextLayout tl = new TextLayout(charSet, lm, maxTextWidth);
         lastTextLayout = tl.doLayout(text);
 

@@ -25,7 +25,7 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
     @Unmanaged
     private final ColorRGB cache = new ColorRGB();
 
-    protected ColorComponent() { }
+    protected ColorComponent() {}
 
     /**
      * Return the color stored by this component. This color will be used for
@@ -36,7 +36,8 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
      * 
      * @return This component's color
      */
-    public final @Const ColorRGB getColor() {
+    public final @Const
+    ColorRGB getColor() {
         return cache;
     }
 

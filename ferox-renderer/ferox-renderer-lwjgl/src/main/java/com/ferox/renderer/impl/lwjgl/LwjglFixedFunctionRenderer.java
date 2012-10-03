@@ -52,7 +52,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -72,7 +73,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glMatrixMode(MatrixMode mode) {
-        switch(mode) {
+        switch (mode) {
         case MODELVIEW:
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
             break;
@@ -132,7 +133,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glFogMode(FogMode fog) {
-        switch(fog) {
+        switch (fog) {
         case EXP:
             GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_EXP);
             break;
@@ -181,7 +182,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
+    protected void glLightAttenuation(int light, double constant, double linear,
+                                      double quadratic) {
         light += GL11.GL_LIGHT0;
         GL11.glLightf(light, GL11.GL_CONSTANT_ATTENUATION, (float) constant);
         GL11.glLightf(light, GL11.GL_LINEAR_ATTENUATION, (float) linear);
@@ -200,7 +202,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnableTwoSidedLighting(boolean enable) {
-        GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL11.GL_TRUE : GL11.GL_FALSE);
+        GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE,
+                           enable ? GL11.GL_TRUE : GL11.GL_FALSE);
     }
 
     @Override
@@ -289,16 +292,28 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         int o = Utils.getGLCombineSrc(src);
         int target = -1;
         if (rgb) {
-            switch(operand) {
-            case 0: target = GL13.GL_SOURCE0_RGB; break;
-            case 1: target = GL13.GL_SOURCE1_RGB; break;
-            case 2: target = GL13.GL_SOURCE2_RGB; break;
+            switch (operand) {
+            case 0:
+                target = GL13.GL_SOURCE0_RGB;
+                break;
+            case 1:
+                target = GL13.GL_SOURCE1_RGB;
+                break;
+            case 2:
+                target = GL13.GL_SOURCE2_RGB;
+                break;
             }
         } else {
-            switch(operand) {
-            case 0: target = GL13.GL_SOURCE0_ALPHA; break;
-            case 1: target = GL13.GL_SOURCE1_ALPHA; break;
-            case 2: target = GL13.GL_SOURCE2_ALPHA; break;
+            switch (operand) {
+            case 0:
+                target = GL13.GL_SOURCE0_ALPHA;
+                break;
+            case 1:
+                target = GL13.GL_SOURCE1_ALPHA;
+                break;
+            case 2:
+                target = GL13.GL_SOURCE2_ALPHA;
+                break;
             }
         }
 
@@ -314,16 +329,28 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         int o = Utils.getGLCombineOp(op);
         int target = -1;
         if (rgb) {
-            switch(operand) {
-            case 0: target = GL13.GL_OPERAND0_RGB; break;
-            case 1: target = GL13.GL_OPERAND1_RGB; break;
-            case 2: target = GL13.GL_OPERAND2_RGB; break;
+            switch (operand) {
+            case 0:
+                target = GL13.GL_OPERAND0_RGB;
+                break;
+            case 1:
+                target = GL13.GL_OPERAND1_RGB;
+                break;
+            case 2:
+                target = GL13.GL_OPERAND2_RGB;
+                break;
             }
         } else {
-            switch(operand) {
-            case 0: target = GL13.GL_OPERAND0_ALPHA; break;
-            case 1: target = GL13.GL_OPERAND1_ALPHA; break;
-            case 2: target = GL13.GL_OPERAND2_ALPHA; break;
+            switch (operand) {
+            case 0:
+                target = GL13.GL_OPERAND0_ALPHA;
+                break;
+            case 1:
+                target = GL13.GL_OPERAND1_ALPHA;
+                break;
+            case 2:
+                target = GL13.GL_OPERAND2_ALPHA;
+                break;
             }
         }
 
@@ -332,8 +359,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glTexGen(TexCoord coord, TexCoordSource gen) {
-        if (gen == TexCoordSource.ATTRIBUTE)
-        {
+        if (gen == TexCoordSource.ATTRIBUTE) {
             return; // don't need to do anything, it's already disabled
         }
         if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) && !supportedTargets.contains(Target.T_CUBEMAP)) {
@@ -397,31 +423,34 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset,
-                                      int stride, int elementSize) {
+    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h,
+                                      int offset, int stride, int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
 
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
 
-            switch(target) {
+            switch (target) {
             case NORMALS:
                 GL11.glNormalPointer(strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glTexCoordPointer(elementSize, strideBytes,
+                                       (FloatBuffer) h.inmemoryBuffer);
                 break;
             case VERTICES:
-                GL11.glVertexPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glVertexPointer(elementSize, strideBytes,
+                                     (FloatBuffer) h.inmemoryBuffer);
                 break;
             case COLORS:
-                GL11.glColorPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glColorPointer(elementSize, strideBytes,
+                                    (FloatBuffer) h.inmemoryBuffer);
                 break;
             }
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
 
-            switch(target) {
+            switch (target) {
             case NORMALS:
                 GL11.glNormalPointer(GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
@@ -440,7 +469,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glEnableAttribute(VertexTarget target, boolean enable) {
         int state = 0;
-        switch(target) {
+        switch (target) {
         case NORMALS:
             state = GL11.GL_NORMAL_ARRAY;
             break;
@@ -471,11 +500,15 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     private int getGLLight(LightColor c) {
-        switch(c) {
-        case AMBIENT: return GL11.GL_AMBIENT;
-        case DIFFUSE: return GL11.GL_DIFFUSE;
-        case EMISSIVE: return GL11.GL_EMISSION;
-        case SPECULAR: return GL11.GL_SPECULAR;
+        switch (c) {
+        case AMBIENT:
+            return GL11.GL_AMBIENT;
+        case DIFFUSE:
+            return GL11.GL_DIFFUSE;
+        case EMISSIVE:
+            return GL11.GL_EMISSION;
+        case SPECULAR:
+            return GL11.GL_SPECULAR;
         }
         return -1;
     }

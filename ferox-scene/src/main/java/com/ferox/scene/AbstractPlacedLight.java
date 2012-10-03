@@ -24,7 +24,7 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
     @DefaultDouble(-1.0)
     private DoubleProperty falloffDistance;
 
-    protected AbstractPlacedLight() { }
+    protected AbstractPlacedLight() {}
 
     /**
      * Set the distance to where the light's energy has fallen to zero and no

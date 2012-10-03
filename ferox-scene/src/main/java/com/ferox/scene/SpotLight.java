@@ -29,7 +29,7 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     @DefaultDouble(30.0)
     private DoubleProperty cutoffAngle;
 
-    private SpotLight() { }
+    private SpotLight() {}
 
     /**
      * Return the cutoff angle, in degrees, representing the maximum angle light
@@ -61,4 +61,3 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
         return this;
     }
 }
-

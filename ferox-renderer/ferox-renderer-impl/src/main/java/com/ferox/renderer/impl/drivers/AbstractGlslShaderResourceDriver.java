@@ -30,12 +30,12 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
     public String update(OpenGLContext context, Resource resource, Object handle) throws UpdateResourceException {
         GlslShader shader = (GlslShader) resource;
         GlslShaderHandle h = (GlslShaderHandle) handle;
-        EnumSet<ShaderType> supported = context.getRenderCapabilities().getSupportedShaderTypes();
+        EnumSet<ShaderType> supported = context.getRenderCapabilities()
+                                               .getSupportedShaderTypes();
 
         if (supported.isEmpty() || context.getRenderCapabilities().getGlslVersion() == null) {
             throw new UpdateResourceException("GLSL is not supported on current hardware");
         }
-
 
         if (h.programID <= 0) {
             // Create a new shader program id
@@ -70,7 +70,8 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
                             h.shaders.put(type, shaderId);
                         }
 
-                        String errorLog = glCompileShader(context, shaderId, newShaderSource);
+                        String errorLog = glCompileShader(context, shaderId,
+                                                          newShaderSource);
                         if (errorLog != null) {
                             if (problems == null) {
                                 problems = new ArrayList<String>();
@@ -144,7 +145,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
             GlslShaderHandle h = (GlslShaderHandle) handle;
 
             // Detach and delete all shader objects
-            for (Integer shader: h.shaders.values()) {
+            for (Integer shader : h.shaders.values()) {
                 glDetachShader(context, shader.intValue(), h.programID);
                 glDeleteShader(context, shader.intValue());
             }
@@ -191,7 +192,8 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
      * @param code
      * @return
      */
-    protected abstract String glCompileShader(OpenGLContext context, int shaderId, String code);
+    protected abstract String glCompileShader(OpenGLContext context, int shaderId,
+                                              String code);
 
     /**
      * Delete a shader with the given shader id.
@@ -216,7 +218,8 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
      * @param programId
      * @param shaderId
      */
-    protected abstract void glAttachShader(OpenGLContext context, int programId, int shaderId);
+    protected abstract void glAttachShader(OpenGLContext context, int programId,
+                                           int shaderId);
 
     /**
      * Detach the given shader id from the program.
@@ -225,7 +228,8 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
      * @param programId
      * @param shaderId
      */
-    protected abstract void glDetachShader(OpenGLContext context, int programId, int shaderId);
+    protected abstract void glDetachShader(OpenGLContext context, int programId,
+                                           int shaderId);
 
     /**
      * Finish linking the given program. This is called after all attached
@@ -245,7 +249,8 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
      * @param context
      * @param handle
      */
-    protected abstract void updateAttributes(OpenGLContext context, GlslShaderHandle handle);
+    protected abstract void updateAttributes(OpenGLContext context,
+                                             GlslShaderHandle handle);
 
     /**
      * Query OpenGL to update the uniform map within the given handle. The map

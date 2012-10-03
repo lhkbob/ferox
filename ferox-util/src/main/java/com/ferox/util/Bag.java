@@ -378,9 +378,9 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Shuffle the elements within this bag randomly. This performs
-     * equivalently to {@link Collections#shuffle(java.util.List)} except
-     * that it operates on the Bag instead of a List.
+     * Shuffle the elements within this bag randomly. This performs equivalently
+     * to {@link Collections#shuffle(java.util.List)} except that it operates on
+     * the Bag instead of a List.
      */
     public void shuffle() {
         for (int i = size; i >= 1; i--) {
@@ -409,7 +409,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
             size = totalSize;
         } else {
             // default implementation
-            for (E t: c) {
+            for (E t : c) {
                 add(t);
             }
         }
@@ -422,7 +422,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
             throw new NullPointerException("Collection can't be null");
         }
 
-        for (Object o: c) {
+        for (Object o : c) {
             if (!contains(o)) {
                 return false;
             }
@@ -447,7 +447,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
         }
 
         boolean rm = false;
-        for (Object o: c) {
+        for (Object o : c) {
             rm |= remove(o);
         }
         return rm;
@@ -516,12 +516,12 @@ public class Bag<E> implements Collection<E>, RandomAccess {
         }
 
         // choose a partition element, v
-        int m = off + (len >> 1);       // small arrays, middle element
+        int m = off + (len >> 1); // small arrays, middle element
         if (len > 7) {
             int l = off;
             int n = off + len - 1;
-            if (len > 40) {        // big arrays, pseudomedian of 9
-                int s = len/8;
+            if (len > 40) { // big arrays, pseudomedian of 9
+                int s = len / 8;
                 l = med3(x, l, l + s, l + 2 * s);
                 m = med3(x, m - s, m, m + s);
                 n = med3(x, n - 2 * s, n - s, n);
@@ -531,7 +531,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
         int v = x[m];
 
         int a = off, b = a, c = off + len - 1, d = c;
-        while(true) {
+        while (true) {
             while (b <= c && x[b] <= v) {
                 if (v == x[b]) {
                     swap(x, a++, b);
@@ -582,15 +582,14 @@ public class Bag<E> implements Collection<E>, RandomAccess {
 
     // swaps n elements starting at a and b, such that (a,b), (a+1, b+1), etc. are swapped
     private void vecswap(int[] x, int a, int b, int n) {
-        for (int i=0; i<n; i++, a++, b++) {
+        for (int i = 0; i < n; i++, a++, b++) {
             swap(x, a, b);
         }
     }
 
     // returns the index of the median of the three indexed elements
     private static int med3(int x[], int a, int b, int c) {
-        return (x[a] < x[b] ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a)
-                            : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
+        return (x[a] < x[b] ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a) : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
     }
 
     private class BagIterator implements Iterator<E> {

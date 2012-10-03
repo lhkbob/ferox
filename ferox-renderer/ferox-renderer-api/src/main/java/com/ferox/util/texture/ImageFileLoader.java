@@ -21,8 +21,8 @@ import com.ferox.resource.Texture;
 public interface ImageFileLoader {
     /**
      * <p>
-     * Process the data from the given stream and return a Texture
-     * representing its contents.
+     * Process the data from the given stream and return a Texture representing
+     * its contents.
      * </p>
      * <p>
      * Return null if the stream doesn't represent an image of any supported

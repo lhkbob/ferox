@@ -33,7 +33,7 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
     @DefaultDouble(1.0)
     private DoubleProperty shininess;
 
-    private BlinnPhongMaterial() { }
+    private BlinnPhongMaterial() {}
 
     /**
      * Set the shininess exponent to use with this material. The shininess

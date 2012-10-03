@@ -54,7 +54,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
         // Queue up tasks to every context that has an FBO lying around
         // we can't destroy them now because they require the contexts
         // to be current, so we'll just "flag" them for deletion.
-        for (Entry<JoglContext, FrameBufferObject> e: fbos.entrySet()) {
+        for (Entry<JoglContext, FrameBufferObject> e : fbos.entrySet()) {
             e.getKey().queueCleanupTask(new FBOCleanupTask(e.getValue(), e.getKey()));
         }
     }
@@ -131,7 +131,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 renderBufferId = id[0];
 
                 gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, renderBufferId);
-                gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT, width, height);
+                gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT,
+                                         width, height);
 
                 if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
@@ -221,9 +222,9 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
 
         public void destroyFBO(JoglContext context) {
             GL2GL3 gl = getGL(context);
-            gl.glDeleteFramebuffers(1, new int[] { fboId }, 0);
+            gl.glDeleteFramebuffers(1, new int[] {fboId}, 0);
             if (renderBufferId != 0) {
-                gl.glDeleteRenderbuffers(1, new int[] { renderBufferId }, 0);
+                gl.glDeleteRenderbuffers(1, new int[] {renderBufferId}, 0);
             }
         }
 
@@ -234,7 +235,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 gl.glFramebufferTexture1D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
                 break;
             case GL2ES2.GL_TEXTURE_3D:
-                gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0, layer);
+                gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0,
+                                          layer);
                 break;
             default: // 2d or a cubemap face
                 gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);

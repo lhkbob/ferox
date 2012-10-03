@@ -37,7 +37,7 @@ public final class Camera extends ComponentData<Camera> {
     @DefaultDouble(100.0)
     private DoubleProperty zfar;
 
-    private Camera() { }
+    private Camera() {}
 
     /**
      * @return The field of view for this Camera, in degrees

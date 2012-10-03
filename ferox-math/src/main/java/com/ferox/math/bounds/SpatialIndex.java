@@ -9,9 +9,8 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * A SpatialIndex partitions the three dimensions of a space to provide
  * efficient spatial queries. These queries are generally of the form: find all
  * objects that are within a certain region. For SpatialIndex, a region can
- * either be a {@link Frustum} or an {@link AxisAlignedBox}. It is
- * assumed that each region exists within the same transform space as the
- * SpatialIndex.
+ * either be a {@link Frustum} or an {@link AxisAlignedBox}. It is assumed that
+ * each region exists within the same transform space as the SpatialIndex.
  * <p>
  * SpatialIndices are intended for collections of higher-level entities, such as
  * a physics object, or entire geometries. It is not meant to store indices of
@@ -80,8 +79,7 @@ public interface SpatialIndex<T> {
     /**
      * <p>
      * Query this SpatialIndex for all previously added items that have their
-     * provided bounds
-     * {@link AxisAlignedBox#intersects(AxisAlignedBox)
+     * provided bounds {@link AxisAlignedBox#intersects(AxisAlignedBox)
      * intersecting} with <tt>volume</tt>.
      * <p>
      * The provided QueryCallback has its {@link QueryCallback#process(Object)}
@@ -97,8 +95,7 @@ public interface SpatialIndex<T> {
     /**
      * <p>
      * Query this SpatialIndex for all previously added items that have their
-     * provided bounds
-     * {@link Frustum#intersects(AxisAlignedBox, PlaneState)
+     * provided bounds {@link Frustum#intersects(AxisAlignedBox, PlaneState)
      * intersecting} with <tt>frustum</tt>. An item's bounds intersects with the
      * Frustum if its FrustumIntersection is not
      * {@link FrustumIntersection#OUTSIDE}.

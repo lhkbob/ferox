@@ -6,11 +6,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * FutureSync is a Future implementation that relies on a {@link Sync}
- * to manage the Future's state and provide the final value to return
- * from {@link #get()}.
+ * FutureSync is a Future implementation that relies on a {@link Sync} to manage
+ * the Future's state and provide the final value to return from {@link #get()}.
+ * 
  * @author Michael Ludwig
- *
+ * 
  * @param <V>
  */
 public class FutureSync<V> implements Future<V> {

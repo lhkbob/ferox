@@ -21,7 +21,8 @@ import com.jogamp.newt.Window;
 public class OnscreenShadowContext extends JoglContext {
     private final Window frame;
 
-    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame, GLContext context, RendererProvider provider) {
+    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame,
+                                  GLContext context, RendererProvider provider) {
         super(creator, context, provider);
         this.frame = frame;
     }
@@ -48,7 +49,9 @@ public class OnscreenShadowContext extends JoglContext {
      * @return An OnscreenShadowContext
      * @throws NullPointerException if framework or profile is null
      */
-    public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith, RendererProvider provider) {
+    public static OnscreenShadowContext create(JoglSurfaceFactory creator,
+                                               JoglContext shareWith,
+                                               RendererProvider provider) {
         if (creator == null) {
             throw new NullPointerException("Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
         }
@@ -61,7 +64,8 @@ public class OnscreenShadowContext extends JoglContext {
 
         window.setVisible(true);
 
-        GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLDrawable(window);
+        GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile())
+                                               .createGLDrawable(window);
         GLContext context = drawable.createContext(shareWith == null ? null : shareWith.getGLContext());
 
         return new OnscreenShadowContext(creator, window, context, provider);

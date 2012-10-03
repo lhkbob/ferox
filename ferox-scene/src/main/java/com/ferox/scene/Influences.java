@@ -20,7 +20,7 @@ public final class Influences extends ComponentData<Influences> {
     @Factory(SetFactory.class)
     private ObjectProperty<Set<Entity>> entities;
 
-    private Influences() { }
+    private Influences() {}
 
     public Set<Entity> getInfluencedSet() {
         return Collections.unmodifiableSet(entities.get(getIndex()));

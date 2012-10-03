@@ -25,16 +25,15 @@ public final class Transform extends ComponentData<Transform> {
     public static final TypeId<Transform> ID = TypeId.get(Transform.class);
 
     // the identity matrix
-    @DefaultMatrix4(m00=1.0, m01=0.0, m02=0.0, m03=0.0,
-            m10=0.0, m11=1.0, m12=0.0, m13=0.0,
-            m20=0.0, m21=0.0, m22=1.0, m23=0.0,
-            m30=0.0, m31=0.0, m32=0.0, m33=1.0)
+    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
+                    m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
+                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
     private Matrix4Property matrix;
 
     @Unmanaged
     private final Matrix4 cache = new Matrix4();
 
-    private Transform() { }
+    private Transform() {}
 
     /**
      * Copy the given transform matrix into this Transform's matrix.
@@ -51,13 +50,14 @@ public final class Transform extends ComponentData<Transform> {
     }
 
     /**
-     * Return the matrix of this Transform. The returned Matrix4 instance
-     * is reused by this Transform instance so it should be cloned before
-     * changing which Component is referenced
+     * Return the matrix of this Transform. The returned Matrix4 instance is
+     * reused by this Transform instance so it should be cloned before changing
+     * which Component is referenced
      * 
      * @return The current world affine transform matrix
      */
-    public @Const Matrix4 getMatrix() {
+    public @Const
+    Matrix4 getMatrix() {
         return cache;
     }
 

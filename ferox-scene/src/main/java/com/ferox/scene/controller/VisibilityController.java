@@ -19,7 +19,7 @@ public class VisibilityController extends SimpleController {
     @Override
     public void process(double dt) {
         if (index != null) {
-            for (FrustumResult f: frustums) {
+            for (FrustumResult f : frustums) {
                 VisibilityCallback query = new VisibilityCallback(getEntitySystem());
                 index.query(f.getFrustum(), query);
 
@@ -27,7 +27,10 @@ public class VisibilityController extends SimpleController {
                 // iteration over the bag has more optimal cache behavior when
                 // accessing entity properties
                 query.pvs.sort();
-                getEntitySystem().getControllerManager().report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
+                getEntitySystem().getControllerManager()
+                                 .report(new PVSResult(f.getSource(),
+                                                       f.getFrustum(),
+                                                       query.pvs));
             }
         }
     }
@@ -57,8 +60,9 @@ public class VisibilityController extends SimpleController {
         private final Bag<Entity> pvs;
 
         /**
-         * Create a new VisibilityCallback that set each discovered Entity with a
-         * Transform's visibility to true for the given entity, <tt>camera</tt>.
+         * Create a new VisibilityCallback that set each discovered Entity with
+         * a Transform's visibility to true for the given entity,
+         * <tt>camera</tt>.
          * 
          * @param camera The Entity that will be flagged as visible
          * @throws NullPointerException if camera is null

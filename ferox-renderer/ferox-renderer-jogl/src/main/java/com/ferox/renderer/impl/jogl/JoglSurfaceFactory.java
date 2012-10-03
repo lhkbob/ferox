@@ -79,11 +79,14 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         convertMap = new HashMap<DisplayMode, ScreenMode>();
 
         List<ScreenMode> modes = screen.getScreenModes();
-        for (ScreenMode joglMode: modes) {
+        for (ScreenMode joglMode : modes) {
             DisplayMode feroxMode = convert(joglMode);
             if (convertMap.containsKey(feroxMode)) {
                 // compare refresh rates and pick the one closest to target
-                if (Math.abs(TARGET_REFRESH_RATE - joglMode.getMonitorMode().getRefreshRate()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode).getMonitorMode().getRefreshRate())) {
+                if (Math.abs(TARGET_REFRESH_RATE - joglMode.getMonitorMode()
+                                                           .getRefreshRate()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode)
+                                                                                                                         .getMonitorMode()
+                                                                                                                         .getRefreshRate())) {
                     convertMap.put(feroxMode, joglMode);
                 }
             } else {
@@ -128,7 +131,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             caps.setBlueBits(5);
             caps.setAlphaBits(0);
             break;
-        case RGB_24BIT: case UNKNOWN:
+        case RGB_24BIT:
+        case UNKNOWN:
             caps.setRedBits(8);
             caps.setGreenBits(8);
             caps.setBlueBits(8);
@@ -172,7 +176,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         case STENCIL_1BIT:
             caps.setStencilBits(1);
             break;
-        case NONE: case UNKNOWN:
+        case NONE:
+        case UNKNOWN:
             caps.setStencilBits(0);
             break;
         }
@@ -190,7 +195,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             caps.setNumSamples(2);
             caps.setSampleBuffers(true);
             break;
-        case NONE: case UNKNOWN:
+        case NONE:
+        case UNKNOWN:
             caps.setNumSamples(0);
             caps.setSampleBuffers(false);
             break;
@@ -213,7 +219,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     private static DisplayMode convert(ScreenMode mode) {
         SurfaceSize realMode = mode.getMonitorMode().getSurfaceSize();
         PixelFormat pixFormat;
-        switch(realMode.getBitsPerPixel()) {
+        switch (realMode.getBitsPerPixel()) {
         case 16:
             pixFormat = PixelFormat.RGB_16BIT;
             break;
@@ -228,7 +234,9 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             break;
         }
 
-        return new DisplayMode(realMode.getResolution().getWidth(), realMode.getResolution().getHeight(), pixFormat);
+        return new DisplayMode(realMode.getResolution().getWidth(),
+                               realMode.getResolution().getHeight(),
+                               pixFormat);
     }
 
     @Override
@@ -238,7 +246,11 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         if (framework.getCapabilities().getFboSupport()) {
             return new JoglFboTextureSurface(framework, this, options);
         } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new JoglPbufferTextureSurface(framework, this, options, (JoglContext) sharedContext, new JoglRendererProvider());
+            return new JoglPbufferTextureSurface(framework,
+                                                 this,
+                                                 options,
+                                                 (JoglContext) sharedContext,
+                                                 new JoglRendererProvider());
         } else {
             throw new SurfaceCreationException("No render-to-texture support on current hardware");
         }
@@ -248,17 +260,22 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        return new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext,
+        return new JoglNEWTSurface(framework,
+                                   this,
+                                   options,
+                                   (JoglContext) sharedContext,
                                    new JoglRendererProvider());
     }
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0
-                && GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null)) {
-            return PbufferShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());
+        if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0 && GLDrawableFactory.getFactory(profile)
+                                                                                         .canCreateGLPbuffer(null)) {
+            return PbufferShadowContext.create(this, (JoglContext) sharedContext,
+                                               new JoglRendererProvider());
         } else {
-            return OnscreenShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());
+            return OnscreenShadowContext.create(this, (JoglContext) sharedContext,
+                                                new JoglRendererProvider());
         }
     }
 

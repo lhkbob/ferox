@@ -16,8 +16,7 @@ import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.DoubleDataStore;
 
 /**
- * Quat4Property is a caching property that wraps a DoubleProperty as a
- * Quat4.
+ * Quat4Property is a caching property that wraps a DoubleProperty as a Quat4.
  * 
  * @author Michael Ludwig
  */
@@ -36,11 +35,12 @@ public class Quat4Property implements Property {
 
     /**
      * Get the quaternion of this property, for the component at the given
-     * index, and store it into <tt>result</tt>. If result is null, a new
-     * Quat4 is created and returned.
+     * index, and store it into <tt>result</tt>. If result is null, a new Quat4
+     * is created and returned.
      * 
      * @param index The component index to retrieve
-     * @param result The quaternion to store the data for the requested component
+     * @param result The quaternion to store the data for the requested
+     *            component
      * @return result, or a new Quat4 if result was null
      */
     public Quat4 get(int index, Quat4 result) {
@@ -87,14 +87,17 @@ public class Quat4Property implements Property {
          * @return Default x coordinate
          */
         double x();
+
         /**
          * @return Default y coordinate
          */
         double y();
+
         /**
          * @return Default z coordinate
          */
         double z();
+
         /**
          * @return Default w coordinate
          */

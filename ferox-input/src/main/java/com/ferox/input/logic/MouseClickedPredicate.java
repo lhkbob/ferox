@@ -41,7 +41,8 @@ class MouseClickedPredicate implements Predicate {
 
     @Override
     public boolean apply(InputState prev, InputState next) {
-        if (!prev.getMouseState().isButtonDown(button) && next.getMouseState().isButtonDown(button)) {
+        if (!prev.getMouseState().isButtonDown(button) && next.getMouseState()
+                                                              .isButtonDown(button)) {
             // record time of first press
             if (currentClickCount == 0) {
                 startTime = next.getTimestamp();
@@ -50,7 +51,8 @@ class MouseClickedPredicate implements Predicate {
             // increase the number of 'clicks', which for our purposes is tracked on mouse down
             currentClickCount++;
             return false;
-        } else if (prev.getMouseState().isButtonDown(button) && !next.getMouseState().isButtonDown(button)) {
+        } else if (prev.getMouseState().isButtonDown(button) && !next.getMouseState()
+                                                                     .isButtonDown(button)) {
             // button was released, see if we reached our click goal and were fast enough
             if (currentClickCount == numClicks) {
                 long start = startTime;

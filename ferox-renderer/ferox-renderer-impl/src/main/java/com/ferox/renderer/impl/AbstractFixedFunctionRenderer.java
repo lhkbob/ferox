@@ -51,8 +51,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * OpenGL provides only one way to update matrices, and to switch
-     * between matrix types, you must set the current mode.
+     * OpenGL provides only one way to update matrices, and to switch between
+     * matrix types, you must set the current mode.
      */
     protected static enum MatrixMode {
         MODELVIEW, PROJECTION, TEXTURE
@@ -78,7 +78,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     private static final Vector4 DEFAULT_S_PLANE = new Vector4(1, 0, 0, 0);
     private static final Vector4 DEFAULT_T_PLANE = new Vector4(0, 1, 0, 0);
     private static final Vector4 DEFAULT_RQ_PLANE = new Vector4(0, 0, 0, 0);
-
 
     /**
      * An inner class that contains per-light state. Although it's accessible to
@@ -133,11 +132,18 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         public CombineFunction rgbFunc = CombineFunction.MODULATE;
         public CombineFunction alphaFunc = CombineFunction.MODULATE;
 
-        public final CombineOperand[] opRgb = {CombineOperand.COLOR, CombineOperand.COLOR, CombineOperand.ALPHA};
-        public final CombineOperand[] opAlpha = {CombineOperand.ALPHA, CombineOperand.ALPHA, CombineOperand.ALPHA};
+        public final CombineOperand[] opRgb = {CombineOperand.COLOR,
+                                               CombineOperand.COLOR, CombineOperand.ALPHA};
+        public final CombineOperand[] opAlpha = {CombineOperand.ALPHA,
+                                                 CombineOperand.ALPHA,
+                                                 CombineOperand.ALPHA};
 
-        public final CombineSource[] srcRgb = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
-        public final CombineSource[] srcAlpha = {CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR};
+        public final CombineSource[] srcRgb = {CombineSource.CURR_TEX,
+                                               CombineSource.PREV_TEX,
+                                               CombineSource.CONST_COLOR};
+        public final CombineSource[] srcAlpha = {CombineSource.CURR_TEX,
+                                                 CombineSource.PREV_TEX,
+                                                 CombineSource.CONST_COLOR};
 
         public TextureState(int unit) {
             this.unit = unit;
@@ -242,7 +248,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager resourceManager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager resourceManager) {
         super.activate(surface, context, resourceManager);
 
         // Complete initialization the first time we're activated. We can't do this
@@ -260,7 +267,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         }
 
         if (textures == null) {
-            int numTextures = surface.getFramework().getCapabilities().getMaxFixedPipelineTextures();
+            int numTextures = surface.getFramework().getCapabilities()
+                                     .getMaxFixedPipelineTextures();
 
             textures = new TextureState[numTextures];
             for (int i = 0; i < textures.length; i++) {
@@ -269,7 +277,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         }
 
         if (texBindings == null) {
-            int numBindings = surface.getFramework().getCapabilities().getMaxTextureCoordinates();
+            int numBindings = surface.getFramework().getCapabilities()
+                                     .getMaxTextureCoordinates();
 
             texBindings = new VertexState[numBindings];
             for (int i = 0; i < texBindings.length; i++) {
@@ -331,14 +340,14 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
             setTextureColor(i, ZERO);
 
-            setTextureCombineRGB(i, CombineFunction.MODULATE,
-                                 CombineSource.CURR_TEX, CombineOperand.COLOR,
-                                 CombineSource.PREV_TEX, CombineOperand.COLOR,
-                                 CombineSource.CONST_COLOR, CombineOperand.ALPHA);
-            setTextureCombineAlpha(i, CombineFunction.MODULATE,
-                                   CombineSource.CURR_TEX, CombineOperand.ALPHA,
-                                   CombineSource.PREV_TEX, CombineOperand.ALPHA,
-                                   CombineSource.CONST_COLOR, CombineOperand.ALPHA);
+            setTextureCombineRGB(i, CombineFunction.MODULATE, CombineSource.CURR_TEX,
+                                 CombineOperand.COLOR, CombineSource.PREV_TEX,
+                                 CombineOperand.COLOR, CombineSource.CONST_COLOR,
+                                 CombineOperand.ALPHA);
+            setTextureCombineAlpha(i, CombineFunction.MODULATE, CombineSource.CURR_TEX,
+                                   CombineOperand.ALPHA, CombineSource.PREV_TEX,
+                                   CombineOperand.ALPHA, CombineSource.CONST_COLOR,
+                                   CombineOperand.ALPHA);
 
             setTextureCoordGeneration(i, TexCoordSource.ATTRIBUTE);
 
@@ -368,7 +377,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     @Override
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
+                      int count) {
         flushModelView();
         return super.render(polyType, indices, offset, count);
     }
@@ -548,7 +558,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glGlobalLighting(@Const Vector4 ambient);
 
     @Override
-    public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec) {
+    public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff,
+                              @Const Vector4 spec) {
         if (amb == null || diff == null || spec == null) {
             throw new NullPointerException("Colors cannot be null");
         }
@@ -642,7 +653,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glLightAngle(int light, double angle);
 
     @Override
-    public void setLightAttenuation(int light, double constant, double linear, double quadratic) {
+    public void setLightAttenuation(int light, double constant, double linear,
+                                    double quadratic) {
         if (constant < 0f) {
             throw new IllegalArgumentException("Constant factor must be positive: " + constant);
         }
@@ -665,7 +677,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     /**
      * Invoke OpenGL calls to set a light's attenuation factors
      */
-    protected abstract void glLightAttenuation(int light, double constant, double linear, double quadratic);
+    protected abstract void glLightAttenuation(int light, double constant, double linear,
+                                               double quadratic);
 
     @Override
     public void setLightingEnabled(boolean enable) {
@@ -736,7 +749,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glLineWidth(double width);
 
     @Override
-    public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec, @Const Vector4 emm) {
+    public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec,
+                            @Const Vector4 emm) {
         if (amb == null || diff == null || spec == null || emm == null) {
             throw new NullPointerException("Material colors can't be null: " + amb + ", " + diff + ", " + spec + ", " + emm);
         }
@@ -904,11 +918,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glTextureColor(@Const Vector4 color);
 
     @Override
-    public void setTextureCombineRGB(int tex, CombineFunction function, CombineSource src0,
-                                     CombineOperand op0, CombineSource src1, CombineOperand op1,
+    public void setTextureCombineRGB(int tex, CombineFunction function,
+                                     CombineSource src0, CombineOperand op0,
+                                     CombineSource src1, CombineOperand op1,
                                      CombineSource src2, CombineOperand op2) {
-        if (function == null || src0 == null || src1 == null || src2 == null
-                || op0 == null || op1 == null || op2 == null) {
+        if (function == null || src0 == null || src1 == null || src2 == null || op0 == null || op1 == null || op2 == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
 
@@ -947,11 +961,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     @Override
-    public void setTextureCombineAlpha(int tex, CombineFunction function, CombineSource src0,
-                                       CombineOperand op0, CombineSource src1, CombineOperand op1,
+    public void setTextureCombineAlpha(int tex, CombineFunction function,
+                                       CombineSource src0, CombineOperand op0,
+                                       CombineSource src1, CombineOperand op1,
                                        CombineSource src2, CombineOperand op2) {
-        if (function == null || src0 == null || src1 == null || src2 == null
-                || op0 == null || op1 == null || op2 == null) {
+        if (function == null || src0 == null || src1 == null || src2 == null || op0 == null || op1 == null || op2 == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
         if (function == CombineFunction.DOT3_RGB || function == CombineFunction.DOT3_RGBA) {
@@ -1035,13 +1049,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (tex < 0) {
             throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
         }
-        if (tex >= textures.length)
-        {
+        if (tex >= textures.length) {
             return; // Ignore it
         }
 
         TextureState t = textures[tex];
-        switch(coord) {
+        switch (coord) {
         case S:
             if (t.tcS != gen) {
                 setTextureUnit(tex);
@@ -1118,8 +1131,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (tex < 0) {
             throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
         }
-        if (tex >= textures.length)
-        {
+        if (tex >= textures.length) {
             return; // Ignore it
         }
 
@@ -1132,7 +1144,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL to set the eye plane for the given coordinate on the active texture
+     * Invoke OpenGL to set the eye plane for the given coordinate on the active
+     * texture
      */
     protected abstract void glTexEyePlane(TexCoord coord, @Const Vector4 plane);
 
@@ -1147,13 +1160,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (tex < 0) {
             throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
         }
-        if (tex >= textures.length)
-        {
+        if (tex >= textures.length) {
             return; // Ignore it
         }
 
         TextureState t = textures[tex];
-        switch(coord) {
+        switch (coord) {
         case S:
             if (!t.objPlaneS.equals(plane)) {
                 t.objPlaneS.set(plane);
@@ -1198,8 +1210,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (tex < 0) {
             throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
         }
-        if (tex >= textures.length)
-        {
+        if (tex >= textures.length) {
             return; // Ignore it
         }
 
@@ -1257,8 +1268,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (tex < 0) {
             throw new IllegalArgumentException("Texture unit must be at least 0");
         }
-        if (tex >= texBindings.length)
-        {
+        if (tex >= texBindings.length) {
             return; // ignore it
         }
         setAttribute(texBindings[tex], texCoords);
@@ -1267,9 +1277,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     private void setAttribute(VertexState state, VertexAttribute attr) {
         if (attr != null) {
             // We are setting a new vertex attribute
-            boolean accessDiffers = (state.offset != attr.getOffset() ||
-                    state.stride != attr.getStride() ||
-                    state.elementSize != attr.getElementSize());
+            boolean accessDiffers = (state.offset != attr.getOffset() || state.stride != attr.getStride() || state.elementSize != attr.getElementSize());
             if (state.vbo != attr.getData() || accessDiffers) {
                 // The attributes will be different so must make a change
                 VertexBufferObject oldVbo = state.vbo;
@@ -1284,7 +1292,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
                 if (state.vbo == null) {
                     // Lock the new vbo
-                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context, attr.getData());
+                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
+                                                                                                         attr.getData());
                     if (newHandle != null && newHandle.dataType != DataType.FLOAT) {
                         resourceManager.unlock(attr.getData());
                         failTypeCheck = true;
@@ -1311,7 +1320,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                     if (oldVbo == null) {
                         glEnableAttribute(state.target, true);
                     }
-                    glAttributePointer(state.target, state.handle, state.offset, state.stride, state.elementSize);
+                    glAttributePointer(state.target, state.handle, state.offset,
+                                       state.stride, state.elementSize);
                 } else if (oldVbo != null) {
                     // Since there was an old vbo we need to clean some things up
                     // which weren't cleaned up when we unlocked the old vbo
@@ -1342,7 +1352,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         }
     }
 
-    private void bindArrayVbo(VertexBufferObject vbo, VertexBufferObjectHandle handle, VertexBufferObject oldVboOnSlot) {
+    private void bindArrayVbo(VertexBufferObject vbo, VertexBufferObjectHandle handle,
+                              VertexBufferObject oldVboOnSlot) {
         if (vbo != arrayVboBinding) {
             glBindArrayVbo(handle);
             activeArrayVbos = 0;
@@ -1386,7 +1397,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      * will have already been bound using glBindArrayVbo. If this is for a
      * texture coordinate, glActiveClientTexture will already have been called.
      */
-    protected abstract void glAttributePointer(VertexTarget target, VertexBufferObjectHandle handle, int offset, int stride, int elementSize);
+    protected abstract void glAttributePointer(VertexTarget target,
+                                               VertexBufferObjectHandle handle,
+                                               int offset, int stride, int elementSize);
 
     /**
      * Invoke OpenGL commands to enable the given client attribute pointer. If

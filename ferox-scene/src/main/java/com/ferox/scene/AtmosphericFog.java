@@ -32,9 +32,9 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * increases. The opacity of the fog, at some distance, can be considered as
      * a floating point number within [0, 1]. When at a distance less than or
      * equal to 0, the opacity is 0. When at a distance greater than or equal to
-     * the {@link AtmosphericFog#getOpaqueDistance() opacity distance of the fog}, the
-     * opacity is 1. The Falloff enum represents how the opacity value changes
-     * between 0 and 1.
+     * the {@link AtmosphericFog#getOpaqueDistance() opacity distance of the
+     * fog}, the opacity is 1. The Falloff enum represents how the opacity value
+     * changes between 0 and 1.
      */
     public static enum Falloff {
         /**
@@ -121,8 +121,8 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
     }
 
     /**
-     * Copy <tt>color</tt> into this AtmosphericFog's color instance. The color represents
-     * the color of the fog when fully opaque.
+     * Copy <tt>color</tt> into this AtmosphericFog's color instance. The color
+     * represents the color of the fog when fully opaque.
      * 
      * @param color The new fog color
      * @return The new version, via {@link #notifyChange()}
@@ -144,7 +144,8 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * 
      * @return The fog color
      */
-    public @Const ColorRGB getColor() {
+    public @Const
+    ColorRGB getColor() {
         return colorCache;
     }
 }

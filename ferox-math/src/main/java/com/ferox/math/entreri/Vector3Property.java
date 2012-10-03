@@ -87,10 +87,12 @@ public class Vector3Property implements Property {
          * @return Default x coordinate
          */
         double x();
+
         /**
          * @return Default y coordinate
          */
         double y();
+
         /**
          * @return Default z coordinate
          */

@@ -30,18 +30,20 @@ public class JoglVertexBufferObjectResourceDriver extends AbstractVertexBufferOb
 
     @Override
     protected void glDeleteBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
-        getGL(context).glDeleteBuffers(1, new int[] { handle.vboID }, 0);
+        getGL(context).glDeleteBuffers(1, new int[] {handle.vboID}, 0);
     }
 
     @Override
-    protected void glBindArrayBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
+    protected void glBindArrayBuffer(OpenGLContext context,
+                                     VertexBufferObjectHandle handle) {
         JoglContext c = (JoglContext) context;
         arrayVboBinding.set(c.getArrayVbo());
         c.bindArrayVbo(getGL(context), handle.vboID);
     }
 
     @Override
-    protected void glBindElementBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
+    protected void glBindElementBuffer(OpenGLContext context,
+                                       VertexBufferObjectHandle handle) {
         JoglContext c = (JoglContext) context;
         elementVboBinding.set(c.getElementVbo());
         c.bindElementVbo(getGL(context), handle.vboID);
@@ -60,33 +62,36 @@ public class JoglVertexBufferObjectResourceDriver extends AbstractVertexBufferOb
     }
 
     @Override
-    protected void glArrayBufferData(OpenGLContext context, Buffer data, DataType type, int length,
-                                     StorageMode mode) {
+    protected void glArrayBufferData(OpenGLContext context, Buffer data, DataType type,
+                                     int length, StorageMode mode) {
         int usage = (mode == StorageMode.GPU_DYNAMIC ? GL2ES2.GL_STREAM_DRAW : GL.GL_STATIC_DRAW);
-        getGL(context).glBufferData(GL.GL_ARRAY_BUFFER, length * type.getByteCount(), data, usage);
+        getGL(context).glBufferData(GL.GL_ARRAY_BUFFER, length * type.getByteCount(),
+                                    data, usage);
     }
 
     @Override
     protected void glElementBufferData(OpenGLContext context, Buffer data, DataType type,
                                        int length, StorageMode mode) {
         int usage = (mode == StorageMode.GPU_DYNAMIC ? GL2ES2.GL_STREAM_DRAW : GL.GL_STATIC_DRAW);
-        getGL(context).glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, length * type.getByteCount(), data, usage);
+        getGL(context).glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,
+                                    length * type.getByteCount(), data, usage);
     }
 
     @Override
-    protected void glArrayBufferSubData(OpenGLContext context, Buffer data, DataType type,
-                                        int offset, int length) {
+    protected void glArrayBufferSubData(OpenGLContext context, Buffer data,
+                                        DataType type, int offset, int length) {
         int vboOffset = offset * type.getByteCount();
         int vboLength = length * type.getByteCount();
         getGL(context).glBufferSubData(GL.GL_ARRAY_BUFFER, vboOffset, vboLength, data);
     }
 
     @Override
-    protected void glElementBufferSubData(OpenGLContext context, Buffer data, DataType type,
-                                          int offset, int length) {
+    protected void glElementBufferSubData(OpenGLContext context, Buffer data,
+                                          DataType type, int offset, int length) {
         int vboOffset = offset * type.getByteCount();
         int vboLength = length * type.getByteCount();
-        getGL(context).glBufferSubData(GL.GL_ELEMENT_ARRAY_BUFFER, vboOffset, vboLength, data);
+        getGL(context).glBufferSubData(GL.GL_ELEMENT_ARRAY_BUFFER, vboOffset, vboLength,
+                                       data);
     }
 
     private GL2GL3 getGL(OpenGLContext context) {

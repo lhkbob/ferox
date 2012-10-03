@@ -34,7 +34,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
 
     private final boolean useEXT;
 
-    public LwjglFboTextureSurface(AbstractFramework framework, LwjglSurfaceFactory creator,
+    public LwjglFboTextureSurface(AbstractFramework framework,
+                                  LwjglSurfaceFactory creator,
                                   TextureSurfaceOptions options) {
         super(framework, options);
         fbos = new WeakHashMap<LwjglContext, FrameBufferObject>();
@@ -61,7 +62,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         // Queue up tasks to every context that has an FBO lying around
         // we can't destroy them now because they require the contexts
         // to be current, so we'll just "flag" them for deletion.
-        for (Entry<LwjglContext, FrameBufferObject> e: fbos.entrySet()) {
+        for (Entry<LwjglContext, FrameBufferObject> e : fbos.entrySet()) {
             e.getKey().queueCleanupTask(new FBOCleanupTask(e.getValue()));
         }
     }
@@ -119,7 +120,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
 
         private void glBindFramebuffer(int id) {
             if (useEXT) {
-                EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, id);
+                EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                                                          id);
             } else {
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, id);
             }
@@ -127,7 +129,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
 
         private void glBindRenderbuffer(int id) {
             if (useEXT) {
-                EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, id);
+                EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT,
+                                                           id);
             } else {
                 GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, id);
             }
@@ -163,9 +166,11 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                 glBindRenderbuffer(renderBufferId);
                 if (useEXT) {
                     EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT,
-                                                                  GL11.GL_DEPTH_COMPONENT, width, height);
+                                                                  GL11.GL_DEPTH_COMPONENT,
+                                                                  width, height);
                 } else {
-                    GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL11.GL_DEPTH_COMPONENT, width, height);
+                    GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER,
+                                               GL11.GL_DEPTH_COMPONENT, width, height);
                 }
 
                 if (GL11.glGetError() == GL11.GL_OUT_OF_MEMORY) {
@@ -182,7 +187,9 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                                                                       EXTFramebufferObject.GL_RENDERBUFFER_EXT,
                                                                       renderBufferId);
                 } else {
-                    GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, renderBufferId);
+                    GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER,
+                                                   GL30.GL_DEPTH_ATTACHMENT,
+                                                   GL30.GL_RENDERBUFFER, renderBufferId);
                 }
             }
 
@@ -199,7 +206,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                 IntBuffer drawBuffers = BufferUtil.newIntBuffer(colorImageIds.length);
                 for (int i = 0; i < colorImageIds.length; i++) {
                     if (useEXT) {
-                        drawBuffers.put(i, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + i);
+                        drawBuffers.put(i,
+                                        EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + i);
                     } else {
                         drawBuffers.put(i, GL30.GL_COLOR_ATTACHMENT0 + i);
                     }
@@ -241,7 +249,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                 }
             } else {
                 int complete = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
-                if (complete != GL30.GL_FRAMEBUFFER_COMPLETE ) {
+                if (complete != GL30.GL_FRAMEBUFFER_COMPLETE) {
                     String msg = "FBO failed completion test, unable to render";
                     switch (complete) {
                     case GL30.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
@@ -318,18 +326,21 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     attachment = EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT + attachment;
                 }
 
-                switch(target) {
+                switch (target) {
                 case GL11.GL_TEXTURE_1D:
                     EXTFramebufferObject.glFramebufferTexture1DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                                                                   attachment, target, id, 0);
+                                                                   attachment, target,
+                                                                   id, 0);
                     break;
                 case GL12.GL_TEXTURE_3D:
                     EXTFramebufferObject.glFramebufferTexture3DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                                                                   attachment, target, id, 0, layer);
+                                                                   attachment, target,
+                                                                   id, 0, layer);
                     break;
                 default:
-                    EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
-                                                                   target, id, 0);
+                    EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                                                                   attachment, target,
+                                                                   id, 0);
                 }
             } else {
                 if (attachment == -1) {
@@ -338,18 +349,18 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     attachment = GL30.GL_COLOR_ATTACHMENT0 + attachment;
                 }
 
-                switch(target) {
+                switch (target) {
                 case GL11.GL_TEXTURE_1D:
-                    GL30.glFramebufferTexture1D(GL30.GL_FRAMEBUFFER,
-                                                attachment, target, id, 0);
+                    GL30.glFramebufferTexture1D(GL30.GL_FRAMEBUFFER, attachment, target,
+                                                id, 0);
                     break;
                 case GL12.GL_TEXTURE_3D:
-                    GL30.glFramebufferTexture3D(GL30.GL_FRAMEBUFFER,
-                                                attachment, target, id, 0, layer);
+                    GL30.glFramebufferTexture3D(GL30.GL_FRAMEBUFFER, attachment, target,
+                                                id, 0, layer);
                     break;
                 default:
-                    GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, attachment,
-                                                target, id, 0);
+                    GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, attachment, target,
+                                                id, 0);
                 }
             }
         }

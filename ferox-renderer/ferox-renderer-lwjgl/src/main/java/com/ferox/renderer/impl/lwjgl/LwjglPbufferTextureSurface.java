@@ -34,9 +34,10 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
 
     private int activeLayerForFrame;
 
-    public LwjglPbufferTextureSurface(AbstractFramework framework, LwjglSurfaceFactory creator,
-                                      TextureSurfaceOptions options, LwjglContext shareWith,
-                                      RendererProvider provider) {
+    public LwjglPbufferTextureSurface(AbstractFramework framework,
+                                      LwjglSurfaceFactory creator,
+                                      TextureSurfaceOptions options,
+                                      LwjglContext shareWith, RendererProvider provider) {
         super(framework, options);
 
         Texture[] colorBuffers = new Texture[getNumColorBuffers()];
@@ -123,8 +124,8 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             GL11.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
             break;
         case GL12.GL_TEXTURE_3D:
-            GL12.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame,
-                                     0, 0, getWidth(), getHeight());
+            GL12.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 0, 0,
+                                     getWidth(), getHeight());
             break;
         }
     }
@@ -137,8 +138,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             if (target == colorTarget) {
                 // restore enabled texture
                 GL11.glBindTexture(colorTarget, tex);
-            }
-            else {
+            } else {
                 GL11.glBindTexture(colorTarget, 0); // not really the active unit
             }
         }
@@ -146,8 +146,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             if (target == depthTarget) {
                 // restore enabled texture
                 GL11.glBindTexture(depthTarget, tex);
-            }
-            else {
+            } else {
                 GL11.glBindTexture(depthTarget, 0); // not really the active unit
             }
         }
@@ -160,38 +159,52 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             pf = pf.withBitsPerPixel(0);
         } else {
             TextureFormat format = colors[0].getFormat();
-            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT
-                    || format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
+            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT || format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
                 pf = pf.withFloatingPoint(true);
             }
 
-            switch(format) {
+            switch (format) {
             // 8, 8, 8, 0
-            case R: case RGB: case BGR:
+            case R:
+            case RGB:
+            case BGR:
                 pf = pf.withBitsPerPixel(24);
                 break;
-                // 5, 6, 5, 0
-            case BGR_565: case RGB_565:
+            // 5, 6, 5, 0
+            case BGR_565:
+            case RGB_565:
                 pf = pf.withBitsPerPixel(16);
                 break;
-                // 5, 6, 5, 8 - not sure how supported this is
-            case BGRA_4444: case ABGR_4444: case RGBA_4444: case ARGB_4444:
+            // 5, 6, 5, 8 - not sure how supported this is
+            case BGRA_4444:
+            case ABGR_4444:
+            case RGBA_4444:
+            case ARGB_4444:
                 pf = pf.withBitsPerPixel(12).withAlphaBits(4);
                 break;
-            case BGRA_5551: case ARGB_1555:  case RGBA_5551: case ABGR_1555:
+            case BGRA_5551:
+            case ARGB_1555:
+            case RGBA_5551:
+            case ABGR_1555:
                 pf = pf.withBitsPerPixel(15).withAlphaBits(1);
                 break;
             case RG_FLOAT:
-            case R_FLOAT: case RGBA_FLOAT:
+            case R_FLOAT:
+            case RGBA_FLOAT:
                 pf = pf.withBitsPerPixel(32).withAlphaBits(32);
                 break;
-                // 32, 32, 32, 0
+            // 32, 32, 32, 0
             case RGB_FLOAT:
                 pf = pf.withBitsPerPixel(24);
                 break;
-                // 8, 8, 8, 8
-            case RG: case BGRA: case BGRA_8888:
-            case RGBA_8888: case RGBA: case ARGB_8888: case ABGR_8888:
+            // 8, 8, 8, 8
+            case RG:
+            case BGRA:
+            case BGRA_8888:
+            case RGBA_8888:
+            case RGBA:
+            case ARGB_8888:
+            case ABGR_8888:
             default:
                 pf = pf.withBitsPerPixel(24).withAlphaBits(8);
                 break;

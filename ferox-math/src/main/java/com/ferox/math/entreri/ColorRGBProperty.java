@@ -35,9 +35,9 @@ public class ColorRGBProperty implements Property {
     }
 
     /**
-     * Get the color of this property, for the component at the given
-     * index, and store it into <tt>result</tt>. If result is null, a new
-     * ColorRGB is created and returned.
+     * Get the color of this property, for the component at the given index, and
+     * store it into <tt>result</tt>. If result is null, a new ColorRGB is
+     * created and returned.
      * 
      * @param index The component index to retrieve
      * @param result The color to store the data for the requested component
@@ -87,10 +87,12 @@ public class ColorRGBProperty implements Property {
          * @return Default red value in HDR
          */
         double red();
+
         /**
          * @return Default green value in HDR
          */
         double green();
+
         /**
          * @return Default blue value in HDR
          */

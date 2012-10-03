@@ -30,8 +30,12 @@ public class PhysicsApplicationStub extends ApplicationStub {
     protected static final int BOUNDS = 100;
     protected static final double MARGIN = .05;
 
-    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1, -2 * BOUNDS - 1, -2 * BOUNDS - 1),
-                                                                           new Vector3(2 * BOUNDS + 1, 2 * BOUNDS + 1, 2 * BOUNDS + 1));
+    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1,
+                                                                                       -2 * BOUNDS - 1,
+                                                                                       -2 * BOUNDS - 1),
+                                                                           new Vector3(2 * BOUNDS + 1,
+                                                                                       2 * BOUNDS + 1,
+                                                                                       2 * BOUNDS + 1));
 
     private boolean paused;
     private boolean stepOnce;
@@ -45,15 +49,13 @@ public class PhysicsApplicationStub extends ApplicationStub {
 
     @Override
     protected void installInputHandlers(InputManager io) {
-        io.on(Predicates.keyPress(KeyCode.SPACE))
-        .trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.SPACE)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 paused = !paused;
             }
         });
-        io.on(Predicates.keyPress(KeyCode.S))
-        .trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.S)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 stepOnce = true;
@@ -64,24 +66,34 @@ public class PhysicsApplicationStub extends ApplicationStub {
     @Override
     protected void init(OnscreenSurface surface) {
         // physics handling
-        system.getControllerManager().addController(new com.ferox.physics.controller.ForcesController());
+        system.getControllerManager()
+              .addController(new com.ferox.physics.controller.ForcesController());
 
         //        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.QuadTree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
         //        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.SimpleSpatialIndex<Entity>(), new DefaultCollisionAlgorithmProvider()));
-        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.Octree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
+        system.getControllerManager()
+              .addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.Octree<Entity>(worldBounds,
+                                                                                                          6),
+                                                                 new DefaultCollisionAlgorithmProvider()));
 
-        system.getControllerManager().addController(new com.ferox.physics.controller.ConstraintSolvingController());
-        system.getControllerManager().addController(new com.ferox.physics.controller.MotionController());
+        system.getControllerManager()
+              .addController(new com.ferox.physics.controller.ConstraintSolvingController());
+        system.getControllerManager()
+              .addController(new com.ferox.physics.controller.MotionController());
 
         system.getControllerManager().addController(new TransformController());
 
         // rendering
         system.getControllerManager().addController(new WorldBoundsController());
         system.getControllerManager().addController(new CameraController());
-        system.getControllerManager().addController(new SpatialIndexController(new QuadTree<Entity>(worldBounds, 6)));
+        system.getControllerManager()
+              .addController(new SpatialIndexController(new QuadTree<Entity>(worldBounds,
+                                                                             6)));
         system.getControllerManager().addController(new VisibilityController());
-        system.getControllerManager().addController(new LightGroupController(worldBounds));
-        system.getControllerManager().addController(new FixedFunctionRenderController(surface.getFramework()));
+        system.getControllerManager()
+              .addController(new LightGroupController(worldBounds));
+        system.getControllerManager()
+              .addController(new FixedFunctionRenderController(surface.getFramework()));
 
         surface.setVSyncEnabled(true);
     }
@@ -104,7 +116,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
             it.addRequired(cb);
             it.addRequired(t);
 
-            while(it.next()) {
+            while (it.next()) {
                 t.setMatrix(cb.getTransform());
             }
         }

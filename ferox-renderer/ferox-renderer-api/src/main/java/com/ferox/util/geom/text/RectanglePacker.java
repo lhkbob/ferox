@@ -112,13 +112,11 @@ public class RectanglePacker<T> {
                 }
                 return n;
             } else {
-                if (this.data != null)
-                {
+                if (this.data != null) {
                     return null; // already filled up
                 }
 
-                if (this.rc.width < width || this.rc.height < height)
-                {
+                if (this.rc.width < width || this.rc.height < height) {
                     return null; // we're too small
                 }
 
@@ -136,13 +134,23 @@ public class RectanglePacker<T> {
 
                 // create rectangles
                 if (dw > dh) {
-                    this.child1.rc = new Rectangle(this.rc.x, this.rc.y, width, this.rc.height);
-                    this.child2.rc = new Rectangle(this.rc.x + width, this.rc.y,
-                                                   this.rc.width - width, this.rc.height);
+                    this.child1.rc = new Rectangle(this.rc.x,
+                                                   this.rc.y,
+                                                   width,
+                                                   this.rc.height);
+                    this.child2.rc = new Rectangle(this.rc.x + width,
+                                                   this.rc.y,
+                                                   this.rc.width - width,
+                                                   this.rc.height);
                 } else {
-                    this.child1.rc = new Rectangle(this.rc.x, this.rc.y, this.rc.width, height);
-                    this.child2.rc = new Rectangle(this.rc.x, this.rc.y + height,
-                                                   this.rc.width, this.rc.height - height);
+                    this.child1.rc = new Rectangle(this.rc.x,
+                                                   this.rc.y,
+                                                   this.rc.width,
+                                                   height);
+                    this.child2.rc = new Rectangle(this.rc.x,
+                                                   this.rc.y + height,
+                                                   this.rc.width,
+                                                   this.rc.height - height);
                 }
 
                 return this.child1.insert(data, width, height);
@@ -279,7 +287,9 @@ public class RectanglePacker<T> {
             n.child1 = this.root; // first child is old root
             n.child2 = new Node<T>(); // second child is leaf with left-over
             // space
-            n.child2.rc = new Rectangle(oldBounds.width, 0, newW - oldBounds.width,
+            n.child2.rc = new Rectangle(oldBounds.width,
+                                        0,
+                                        newW - oldBounds.width,
                                         oldBounds.height);
             this.root = n;
         }
@@ -303,7 +313,9 @@ public class RectanglePacker<T> {
             n.child1 = this.root; // first child is old root
             n.child2 = new Node<T>(); // second child is leaf with left-over
             // space
-            n.child2.rc = new Rectangle(0, oldBounds.height, oldBounds.width,
+            n.child2.rc = new Rectangle(0,
+                                        oldBounds.height,
+                                        oldBounds.width,
                                         newH - oldBounds.height);
             this.root = n;
         }

@@ -129,7 +129,7 @@ public class MouseKeyEventDispatcher {
             } else {
                 throw new UnsupportedOperationException("Unsupported type of event: " + e.getClass());
             }
-        } catch(RejectedExecutionException ree) {
+        } catch (RejectedExecutionException ree) {
             // ignore
         }
     }
@@ -152,7 +152,7 @@ public class MouseKeyEventDispatcher {
 
         @Override
         public void run() {
-            for (KeyListener l: keyListeners) {
+            for (KeyListener l : keyListeners) {
                 l.handleEvent(e);
             }
         }
@@ -167,7 +167,7 @@ public class MouseKeyEventDispatcher {
 
         @Override
         public void run() {
-            for (MouseListener l: mouseListeners) {
+            for (MouseListener l : mouseListeners) {
                 l.handleEvent(e);
             }
         }

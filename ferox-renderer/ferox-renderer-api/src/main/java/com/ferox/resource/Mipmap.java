@@ -71,7 +71,8 @@ public class Mipmap {
      * @throws IllegalArgumentException if dataType and format are not
      *             compatible, or if the dimensions are invalid
      */
-    public Mipmap(DataType dataType, boolean mipmap, int width, int height, int depth, TextureFormat format) {
+    public Mipmap(DataType dataType, boolean mipmap, int width, int height, int depth,
+                  TextureFormat format) {
         if (format == null) {
             throw new NullPointerException("Format cannot be null");
         }
@@ -88,7 +89,8 @@ public class Mipmap {
 
         levels = new BufferData[mipmap ? mipCount : 1];
         for (int i = 0; i < levels.length; i++) {
-            levels[i] = new BufferData(dataType, format.getBufferSize(width, height, depth));
+            levels[i] = new BufferData(dataType, format.getBufferSize(width, height,
+                                                                      depth));
             width = Math.max(width >> 1, 1);
             height = Math.max(height >> 1, 1);
             depth = Math.max(depth >> 1, 1);
@@ -142,7 +144,8 @@ public class Mipmap {
      *             capacity for its level, or if a unique data type cannot be
      *             determined
      */
-    public Mipmap(BufferData[] levels, int width, int height, int depth, TextureFormat format) {
+    public Mipmap(BufferData[] levels, int width, int height, int depth,
+                  TextureFormat format) {
         if (levels == null) {
             throw new NullPointerException("BufferData levels cannot be a null array");
         }
@@ -196,9 +199,9 @@ public class Mipmap {
     }
 
     /**
-     * Assign a new BufferData to use at the given mipmap level. The BufferData may be
-     * null; if it is not null then it must have an appropriate capacity to fit
-     * the mipmap level, and it must have the same DataType.
+     * Assign a new BufferData to use at the given mipmap level. The BufferData
+     * may be null; if it is not null then it must have an appropriate capacity
+     * to fit the mipmap level, and it must have the same DataType.
      * 
      * @param level The mipmap level whose data is being reassigned
      * @param data The new BufferData of pixel data for the mipmap level
@@ -218,7 +221,8 @@ public class Mipmap {
         if (dataType != data.getDataType()) {
             throw new IllegalArgumentException("Buffer was expected to be a " + dataType + ", but was a " + data.getClass());
         }
-        int reqCap = format.getBufferSize(getWidth(level), getHeight(level), getDepth(level));
+        int reqCap = format.getBufferSize(getWidth(level), getHeight(level),
+                                          getDepth(level));
         if (data.getLength() != reqCap) {
             throw new IllegalArgumentException("Buffer does not have the correct capacity, expected to be " + reqCap + ", but was " + data.getLength());
         }
@@ -307,7 +311,8 @@ public class Mipmap {
 
     // internal method used to verify that every non-null BufferData is the correct size for its level
     // that it matches the required data type, and that all levels have the same type
-    private DataType validate(BufferData[] levels, int width, int height, int depth, TextureFormat format) {
+    private DataType validate(BufferData[] levels, int width, int height, int depth,
+                              TextureFormat format) {
         DataType type = format.getSupportedType();
 
         for (int i = 0; i < levels.length; i++) {

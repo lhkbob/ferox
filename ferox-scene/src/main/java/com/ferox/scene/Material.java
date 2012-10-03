@@ -24,7 +24,7 @@ import com.lhkbob.entreri.property.ObjectProperty;
 public abstract class Material<T extends Material<T>> extends ComponentData<T> {
     private ObjectProperty<VertexAttribute> normals;
 
-    protected Material() { }
+    protected Material() {}
 
     /**
      * Set the normal vectors store per-vertex normal data used when computing

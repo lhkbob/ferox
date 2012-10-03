@@ -39,8 +39,8 @@ public abstract class AbstractSurface implements Surface {
     }
 
     /**
-     * Return the OpenGLContext that must be current in order to render
-     * into this Surface. It can be null to signal that the surface requires any
+     * Return the OpenGLContext that must be current in order to render into
+     * this Surface. It can be null to signal that the surface requires any
      * other context to use (such as when a TextureSurface is backed by an FBO).
      * 
      * @return The context of this surface
@@ -78,14 +78,17 @@ public abstract class AbstractSurface implements Surface {
      */
     public void onSurfaceActivate(OpenGLContext context, int layer) {
         RenderCapabilities caps = context.getRenderCapabilities();
-        FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
+        FixedFunctionRenderer ffp = context.getRendererProvider()
+                                           .getFixedFunctionRenderer(caps);
         if (ffp instanceof AbstractRenderer) {
-            ((AbstractRenderer) ffp).activate(this, context, framework.getResourceManager());
+            ((AbstractRenderer) ffp).activate(this, context,
+                                              framework.getResourceManager());
         }
 
         GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
         if (glsl instanceof AbstractRenderer) {
-            ((AbstractRenderer) glsl).activate(this, context, framework.getResourceManager());
+            ((AbstractRenderer) glsl).activate(this, context,
+                                               framework.getResourceManager());
         }
     }
 
@@ -102,7 +105,8 @@ public abstract class AbstractSurface implements Surface {
         // Reset the renderers so that the next task sees a clean slate
         // and any locked resources get released
         RenderCapabilities caps = context.getRenderCapabilities();
-        FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
+        FixedFunctionRenderer ffp = context.getRendererProvider()
+                                           .getFixedFunctionRenderer(caps);
         if (ffp != null) {
             ffp.reset();
         }
@@ -126,16 +130,18 @@ public abstract class AbstractSurface implements Surface {
         // First call to destroy handles the destroy operation
         if (destroyed.compareAndSet(false, true)) {
             // Accept this even during shutdown so that surfaces are destroyed
-            return framework.getContextManager().invokeOnContextThread(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    // Must force a release in case this surface was a context provider
-                    framework.getContextManager().forceRelease(AbstractSurface.this);
-                    destroyImpl();
-                    framework.markSurfaceDestroyed(AbstractSurface.this);
-                    return null;
-                }
-            }, true);
+            return framework.getContextManager()
+                            .invokeOnContextThread(new Callable<Void>() {
+                                @Override
+                                public Void call() throws Exception {
+                                    // Must force a release in case this surface was a context provider
+                                    framework.getContextManager()
+                                             .forceRelease(AbstractSurface.this);
+                                    destroyImpl();
+                                    framework.markSurfaceDestroyed(AbstractSurface.this);
+                                    return null;
+                                }
+                            }, true);
         } else {
             // If we've already been destroyed, use a completed future so
             // it's seen as completed

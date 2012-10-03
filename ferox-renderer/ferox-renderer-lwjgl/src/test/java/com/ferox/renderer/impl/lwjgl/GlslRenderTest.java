@@ -29,27 +29,16 @@ import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 
 public class GlslRenderTest extends ApplicationStub {
-    private static final String VERTEX_SHADER =
-            "uniform mat4 projection;" +
-                    "uniform mat4 modelview;" +
-                    "uniform vec2 transform;" +
+    private static final String VERTEX_SHADER = "uniform mat4 projection;" + "uniform mat4 modelview;" + "uniform vec2 transform;" +
 
-        "attribute vec3 vertex;" +
-        "varying vec3 tcs;" +
+    "attribute vec3 vertex;" + "varying vec3 tcs;" +
 
-        "void main() {" +
-        "   tcs = vec3((vertex.x + transform.x) * transform.y, (vertex.y + transform.x) * transform.y, (vertex.z + transform.x) * transform.y);" +
-        "   gl_Position = projection * modelview * vec4(vertex, 1.0);" +
-        "}";
-    private static final String FRAGMENT_SHADER =
-            "uniform vec4 color;" +
-                    "uniform sampler3D texture;" +
+    "void main() {" + "   tcs = vec3((vertex.x + transform.x) * transform.y, (vertex.y + transform.x) * transform.y, (vertex.z + transform.x) * transform.y);" + "   gl_Position = projection * modelview * vec4(vertex, 1.0);" + "}";
+    private static final String FRAGMENT_SHADER = "uniform vec4 color;" + "uniform sampler3D texture;" +
 
-        "varying vec3 tcs;" +
+    "varying vec3 tcs;" +
 
-        "void main() {" +
-        "   gl_FragColor = texture3D(texture, tcs) * color;" +
-        "}";
+    "void main() {" + "   gl_FragColor = texture3D(texture, tcs) * color;" + "}";
 
     private GlslPass pass;
 
@@ -58,7 +47,7 @@ public class GlslRenderTest extends ApplicationStub {
     }
 
     @Override
-    protected void installInputHandlers(InputManager io) { }
+    protected void installInputHandlers(InputManager io) {}
 
     @Override
     protected void init(OnscreenSurface surface) {
@@ -101,8 +90,12 @@ public class GlslRenderTest extends ApplicationStub {
             shader.setShader(ShaderType.VERTEX, VERTEX_SHADER);
             shader.setShader(ShaderType.FRAGMENT, FRAGMENT_SHADER);
 
-            f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f, 100f);
-            f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f), new Vector3(0f, 1f, 0f));
+            f = new Frustum(60f,
+                            surface.getWidth() / (float) surface.getHeight(),
+                            1f,
+                            100f);
+            f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f),
+                             new Vector3(0f, 1f, 0f));
 
             int width = 256;
             int height = 256;
@@ -122,7 +115,11 @@ public class GlslRenderTest extends ApplicationStub {
                 }
             }
 
-            Mipmap data = new Mipmap(new BufferData(volumeBuffer), width, height, depth, TextureFormat.RGBA);
+            Mipmap data = new Mipmap(new BufferData(volumeBuffer),
+                                     width,
+                                     height,
+                                     depth,
+                                     TextureFormat.RGBA);
             volume = new Texture(Target.T_3D, data);
             volume.setFilter(Filter.NEAREST);
         }
@@ -149,7 +146,8 @@ public class GlslRenderTest extends ApplicationStub {
 
                 g.setUniform("transform", 2f, .25f);
 
-                int rendered = g.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
+                int rendered = g.render(shape.getPolygonType(), shape.getIndexOffset(),
+                                        shape.getIndexCount());
 
                 if (!statusChecked) {
                     statusChecked = true;
@@ -163,7 +161,7 @@ public class GlslRenderTest extends ApplicationStub {
 
                     System.out.println("uniforms:");
                     Map<String, GlslUniform> uniforms = g.getUniforms();
-                    for (Entry<String, GlslUniform> u: uniforms.entrySet()) {
+                    for (Entry<String, GlslUniform> u : uniforms.entrySet()) {
                         GlslUniform uniform = u.getValue();
                         System.out.println(uniform.getName() + " " + uniform.getType() + " " + uniform.getLength());
                     }
@@ -171,7 +169,9 @@ public class GlslRenderTest extends ApplicationStub {
                     System.out.println("\nattributes:");
                     System.out.println(g.getAttributes());
 
-                    System.out.println("\ntexture status: " + surface.getFramework().getStatus(volume) + " " + surface.getFramework().getStatusMessage(volume));
+                    System.out.println("\ntexture status: " + surface.getFramework()
+                                                                     .getStatus(volume) + " " + surface.getFramework()
+                                                                                                       .getStatusMessage(volume));
                 }
             }
 

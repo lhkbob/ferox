@@ -30,8 +30,8 @@ import com.ferox.resource.TextureFormat;
 
 /**
  * <p>
- * TextureIO provides functionality to load image files as Texture objects.
- * It provides some utilities to generate a Texture from a BufferedImage.
+ * TextureIO provides functionality to load image files as Texture objects. It
+ * provides some utilities to generate a Texture from a BufferedImage.
  * </p>
  * <p>
  * By default, the DDS, TGA and ImageIO image file loaders are registered.
@@ -152,9 +152,9 @@ public class TextureLoader {
      * </p>
      * 
      * @param stream The InputStream to read the texture from
-     * @return The read Texture, will be a Texture1D, Texture2D,
-     *         TextureCubeMap or Texture3D (2d images use Texture2D by default,
-     *         see convertToRectangle())
+     * @return The read Texture, will be a Texture1D, Texture2D, TextureCubeMap
+     *         or Texture3D (2d images use Texture2D by default, see
+     *         convertToRectangle())
      * @throws IOException if the stream can't be read from, it represents an
      *             invalid or unsupported texture type, etc.
      */
@@ -171,8 +171,7 @@ public class TextureLoader {
             synchronized (loaders) {
                 for (int i = loaders.size() - 1; i >= 0; i--) {
                     t = loaders.get(i).readImage(stream);
-                    if (t != null)
-                    {
+                    if (t != null) {
                         return t; // we've loaded it
                     }
                 }
@@ -204,8 +203,7 @@ public class TextureLoader {
             throw new NullPointerException("Cannot convert a null BufferedImage");
         }
         if (image.getHeight() != 1) {
-            throw new IllegalArgumentException("A BufferedImage can only be converted to a Texture1D with height == 1, not: "
-                    + image.getHeight());
+            throw new IllegalArgumentException("A BufferedImage can only be converted to a Texture1D with height == 1, not: " + image.getHeight());
         }
 
         RasterImage im = new RasterImage(image.getType(), image.getWidth(), 1);
@@ -224,7 +222,11 @@ public class TextureLoader {
             data = new BufferData(rd);
         }
 
-        return new Texture(Target.T_1D, new Mipmap(data, image.getWidth(), 1, 1, im.format));
+        return new Texture(Target.T_1D, new Mipmap(data,
+                                                   image.getWidth(),
+                                                   1,
+                                                   1,
+                                                   im.format));
     }
 
     /**
@@ -243,7 +245,9 @@ public class TextureLoader {
             throw new NullPointerException("Cannot convert a null BufferedImage");
         }
 
-        RasterImage im = new RasterImage(image.getType(), image.getWidth(), image.getHeight());
+        RasterImage im = new RasterImage(image.getType(),
+                                         image.getWidth(),
+                                         image.getHeight());
 
         BufferedImage formatted = new BufferedImage(im.colorModel, im.data, false, null);
         Graphics2D g2 = formatted.createGraphics();
@@ -261,7 +265,11 @@ public class TextureLoader {
             data = new BufferData(rd);
         }
 
-        return new Texture(Target.T_2D, new Mipmap(data, image.getWidth(), image.getHeight(), 1, im.format));
+        return new Texture(Target.T_2D, new Mipmap(data,
+                                                   image.getWidth(),
+                                                   image.getHeight(),
+                                                   1,
+                                                   im.format));
     }
 
     /**
@@ -272,6 +280,7 @@ public class TextureLoader {
      * height).
      * </p>
      * The image is laid out like so:
+     * 
      * <pre>
      * �----�----�----�----�
      * | -- | NZ | -- | -- |
@@ -313,7 +322,7 @@ public class TextureLoader {
         Mipmap ny = createCubeMapFace(image, formatted, Texture.NY, im);
         Mipmap nz = createCubeMapFace(image, formatted, Texture.NZ, im);
 
-        return new Texture(Target.T_CUBEMAP, new Mipmap[] { px, py, pz, nx, ny, nz });
+        return new Texture(Target.T_CUBEMAP, new Mipmap[] {px, py, pz, nx, ny, nz});
     }
 
     /*
@@ -321,8 +330,9 @@ public class TextureLoader {
      * out the raster data into a new BufferData. A copy is made since it is
      * assumed that faceStore is re-used for each cube face.
      */
-    private static Mipmap createCubeMapFace(BufferedImage fullImage, BufferedImage faceStore,
-                                            int face, RasterImage im) {
+    private static Mipmap createCubeMapFace(BufferedImage fullImage,
+                                            BufferedImage faceStore, int face,
+                                            RasterImage im) {
         Graphics2D g2 = faceStore.createGraphics();
         AffineTransform t = AffineTransform.getScaleInstance(1, 1);
 
@@ -330,45 +340,63 @@ public class TextureLoader {
         // space for a single face
         switch (face) {
         case Texture.PX:
-            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(), .5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(),
+                                                               .5 * faceStore.getHeight()));
             t.concatenate(AffineTransform.getScaleInstance(-1, 1));
             t.concatenate(AffineTransform.getRotateInstance(-Math.PI / 2));
-            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(), -.5 * faceStore.getHeight()));
-            t.concatenate(AffineTransform.getTranslateInstance(-2 * faceStore.getWidth(), -1 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(),
+                                                               -.5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-2 * faceStore.getWidth(),
+                                                               -1 * faceStore.getHeight()));
             break;
         case Texture.PY:
-            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(), .5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(),
+                                                               .5 * faceStore.getHeight()));
             t.concatenate(AffineTransform.getScaleInstance(-1, 1));
             t.concatenate(AffineTransform.getRotateInstance(0));
-            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(), -.5 * faceStore.getHeight()));
-            t.concatenate(AffineTransform.getTranslateInstance(-3 * faceStore.getWidth(), -1 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(),
+                                                               -.5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-3 * faceStore.getWidth(),
+                                                               -1 * faceStore.getHeight()));
             break;
         case Texture.PZ:
-            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(), .5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(),
+                                                               .5 * faceStore.getHeight()));
             t.concatenate(AffineTransform.getScaleInstance(-1, 1));
             t.concatenate(AffineTransform.getRotateInstance(-Math.PI));
-            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(), -.5 * faceStore.getHeight()));
-            t.concatenate(AffineTransform.getTranslateInstance(-1 * faceStore.getWidth(), -2 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(),
+                                                               -.5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-1 * faceStore.getWidth(),
+                                                               -2 * faceStore.getHeight()));
             break;
         case Texture.NX:
-            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(), .5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(),
+                                                               .5 * faceStore.getHeight()));
             t.concatenate(AffineTransform.getScaleInstance(-1, 1));
             t.concatenate(AffineTransform.getRotateInstance(Math.PI / 2));
-            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(), -.5 * faceStore.getHeight()));
-            t.concatenate(AffineTransform.getTranslateInstance(0 * faceStore.getWidth(), -1 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(),
+                                                               -.5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(0 * faceStore.getWidth(),
+                                                               -1 * faceStore.getHeight()));
         case Texture.NY:
-            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(), .5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(),
+                                                               .5 * faceStore.getHeight()));
             t.concatenate(AffineTransform.getScaleInstance(1, -1));
             t.concatenate(AffineTransform.getRotateInstance(0));
-            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(), -.5 * faceStore.getHeight()));
-            t.concatenate(AffineTransform.getTranslateInstance(-1 * faceStore.getWidth(), -1 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(),
+                                                               -.5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-1 * faceStore.getWidth(),
+                                                               -1 * faceStore.getHeight()));
             break;
         case Texture.NZ:
-            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(), .5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(.5 * faceStore.getWidth(),
+                                                               .5 * faceStore.getHeight()));
             t.concatenate(AffineTransform.getScaleInstance(1, 1));
             t.concatenate(AffineTransform.getRotateInstance(0));
-            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(), -.5 * faceStore.getHeight()));
-            t.concatenate(AffineTransform.getTranslateInstance(-1 * faceStore.getWidth(), -0 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-.5 * faceStore.getWidth(),
+                                                               -.5 * faceStore.getHeight()));
+            t.concatenate(AffineTransform.getTranslateInstance(-1 * faceStore.getWidth(),
+                                                               -0 * faceStore.getHeight()));
             break;
         }
 
@@ -409,36 +437,52 @@ public class TextureLoader {
             case BufferedImage.TYPE_USHORT_555_RGB:
             case BufferedImage.TYPE_USHORT_565_RGB:
                 colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                                     new int[] { 8, 8, 8, 0 }, false, false,
-                                                     Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-                data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 3, null);
+                                                     new int[] {8, 8, 8, 0},
+                                                     false,
+                                                     false,
+                                                     Transparency.OPAQUE,
+                                                     DataBuffer.TYPE_BYTE);
+                data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width,
+                                                      height, 3, null);
 
                 type = DataType.UNSIGNED_BYTE;
                 format = TextureFormat.RGB;
                 break;
             case BufferedImage.TYPE_USHORT_GRAY:
                 colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY),
-                                                     new int[] { 16 }, false, false,
-                                                     Transparency.OPAQUE, DataBuffer.TYPE_USHORT);
-                data = Raster.createInterleavedRaster(DataBuffer.TYPE_USHORT, width, height, 1, null);
+                                                     new int[] {16},
+                                                     false,
+                                                     false,
+                                                     Transparency.OPAQUE,
+                                                     DataBuffer.TYPE_USHORT);
+                data = Raster.createInterleavedRaster(DataBuffer.TYPE_USHORT, width,
+                                                      height, 1, null);
 
                 type = DataType.UNSIGNED_SHORT;
                 format = TextureFormat.R;
                 break;
             case BufferedImage.TYPE_BYTE_GRAY:
                 colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY),
-                                                     new int[] { 8 }, false, false,
-                                                     Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-                data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 1, null);
+                                                     new int[] {8},
+                                                     false,
+                                                     false,
+                                                     Transparency.OPAQUE,
+                                                     DataBuffer.TYPE_BYTE);
+                data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width,
+                                                      height, 1, null);
 
                 type = DataType.UNSIGNED_BYTE;
                 format = TextureFormat.R;
                 break;
             default:
                 colorModel = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                                     new int[] { 8, 8, 8, 8 }, true, false,
-                                                     Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-                data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 4, null);
+                                                     new int[] {8, 8, 8, 8},
+                                                     true,
+                                                     false,
+                                                     Transparency.TRANSLUCENT,
+                                                     DataBuffer.TYPE_BYTE);
+                data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width,
+                                                      height, 4, null);
 
                 type = DataType.UNSIGNED_BYTE;
                 format = TextureFormat.RGBA;

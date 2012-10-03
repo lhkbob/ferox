@@ -114,8 +114,7 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
             runner = Thread.currentThread();
             if (getState() == RUNNING) {
                 set(task.call());
-            }
-            else {
+            } else {
                 releaseShared(0); // cancel
             }
         } catch (Throwable ex) {
@@ -175,12 +174,12 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
      */
     @Override
     protected int tryAcquireShared(int ignore) {
-        return isDone()? 1 : -1;
+        return isDone() ? 1 : -1;
     }
 
     /**
-     * Implements AQS base release to always signal after setting
-     * final done status by nulling runner thread.
+     * Implements AQS base release to always signal after setting final done
+     * status by nulling runner thread.
      */
     @Override
     protected boolean tryReleaseShared(int ignore) {

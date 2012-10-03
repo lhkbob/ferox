@@ -57,8 +57,7 @@ public class MinkowskiShape {
         Vector3 b = computePointOnB(simplex);
 
         double scale = 1.0; // no direction flip
-        if (translationA.distanceSquared(b) < translationA.distanceSquared(a) ||
-                translationB.distanceSquared(a) < translationB.distanceSquared(b)) {
+        if (translationA.distanceSquared(b) < translationA.distanceSquared(a) || translationB.distanceSquared(a) < translationB.distanceSquared(b)) {
             // shapes are intersecting, so flip everything
             scale = -1.0;
         }
@@ -100,7 +99,8 @@ public class MinkowskiShape {
     private Vector3 computePointOnA(Simplex simplex) {
         Vector3 a = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
-            support(shapeA, rotationA, translationA, simplex.getInput(i), false, pointTemp);
+            support(shapeA, rotationA, translationA, simplex.getInput(i), false,
+                    pointTemp);
             a.add(pointTemp.scale(simplex.getWeight(i)));
         }
         return a;

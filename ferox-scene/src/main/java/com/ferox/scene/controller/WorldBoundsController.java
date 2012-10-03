@@ -13,11 +13,10 @@ public class WorldBoundsController extends SimpleController {
 
         Renderable renderable = getEntitySystem().createDataInstance(Renderable.ID);
         Transform transform = getEntitySystem().createDataInstance(Transform.ID);
-        ComponentIterator it = new ComponentIterator(getEntitySystem())
-        .addRequired(renderable)
-        .addRequired(transform);
+        ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(renderable)
+                                                                       .addRequired(transform);
 
-        while(it.next()) {
+        while (it.next()) {
             worldBounds.transform(renderable.getLocalBounds(), transform.getMatrix());
             renderable.setWorldBounds(worldBounds);
         }

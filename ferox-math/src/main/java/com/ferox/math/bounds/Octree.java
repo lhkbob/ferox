@@ -17,8 +17,8 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * are very fast.
  * </p>
  * <p>
- * Unless all three dimensions are required to suitably index the space,
- * a {@link QuadTree} will generally perform faster and use less memory.
+ * Unless all three dimensions are required to suitably index the space, a
+ * {@link QuadTree} will generally perform faster and use less memory.
  * </p>
  * 
  * @author Michael Ludwig
@@ -78,9 +78,13 @@ public class Octree<T> implements SpatialIndex<T> {
      * @param objSize The estimated object size
      */
     public Octree(double sideLength, double objSize) {
-        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0, -sideLength / 2.0, -sideLength / 2.0),
-                                new Vector3(sideLength / 2.0, sideLength / 2.0, sideLength / 2.0)),
-                                Functions.log2((int) Math.ceil(sideLength / objSize)));
+        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0,
+                                            -sideLength / 2.0,
+                                            -sideLength / 2.0),
+                                new Vector3(sideLength / 2.0,
+                                            sideLength / 2.0,
+                                            sideLength / 2.0)),
+             Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
 
     /**
@@ -116,7 +120,7 @@ public class Octree<T> implements SpatialIndex<T> {
         heightScaleFactor = maxCellDimension / (aabb.max.y - aabb.min.y);
         depthScaleFactor = maxCellDimension / (aabb.max.z - aabb.min.z);
 
-        widthOffset =  -aabb.min.x;
+        widthOffset = -aabb.min.x;
         heightOffset = -aabb.min.y;
         depthOffset = -aabb.min.z;
 
@@ -158,9 +162,8 @@ public class Octree<T> implements SpatialIndex<T> {
     }
 
     /*
-     * Update cell references to oldIndex to point to toIndex (e.g.
-     * when an element has been swapped because original value for toIndex
-     * was removed)
+     * Update cell references to oldIndex to point to toIndex (e.g. when an
+     * element has been swapped because original value for toIndex was removed)
      */
     private void updateItemIndex(int oldIndex, int toIndex) {
         // do an aabb query using the last known aabb state so that we
@@ -247,8 +250,7 @@ public class Octree<T> implements SpatialIndex<T> {
             throw new NullPointerException("Item bounds cannot be null");
         }
 
-        if (!rootBounds.contains(bounds))
-        {
+        if (!rootBounds.contains(bounds)) {
             return false; // skip the element
         }
 
@@ -349,6 +351,7 @@ public class Octree<T> implements SpatialIndex<T> {
     public static long intersectionCount = 0;
     public static long maxCellCount = 0;
     public static long usedCellCount = 0;
+
     @Override
     @SuppressWarnings("unchecked")
     public void query(IntersectionCallback<T> callback) {
@@ -441,7 +444,8 @@ public class Octree<T> implements SpatialIndex<T> {
                                 updateBounds(itemBounds, item);
                                 if (bounds.intersects(itemBounds)) {
                                     // we have an intersection, invoke the callback
-                                    callback.process((T) elements[cell.keys[i]], itemBounds);
+                                    callback.process((T) elements[cell.keys[i]],
+                                                     itemBounds);
                                 }
 
                                 // record we've visited this item so other cells don't
@@ -466,14 +470,14 @@ public class Octree<T> implements SpatialIndex<T> {
 
         // start at root quadtree and walk the tree to compute intersections,
         // building in place an aabb for testing.
-        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter,
-              f, new PlaneState(), false, callback,
-              new AxisAlignedBox());
+        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, f,
+              new PlaneState(), false, callback, new AxisAlignedBox());
     }
 
     @SuppressWarnings("unchecked")
-    private void query(int level, int index, AxisAlignedBox nodeBounds, int query, Frustum f, PlaneState planeState,
-                       boolean insideGuaranteed, QueryCallback<T> callback, AxisAlignedBox itemBounds) {
+    private void query(int level, int index, AxisAlignedBox nodeBounds, int query,
+                       Frustum f, PlaneState planeState, boolean insideGuaranteed,
+                       QueryCallback<T> callback, AxisAlignedBox itemBounds) {
         // we assume that this node has items and nodeBounds has been updated to
         // equal this node. we still have to check if the node intersects the frustum
         if (!insideGuaranteed) {
@@ -529,7 +533,8 @@ public class Octree<T> implements SpatialIndex<T> {
                 if (octree[childOffset + childIndex] > 0) {
                     // visit child
                     toChildBounds(i, nodeBounds);
-                    query(level + 1, childIndex, nodeBounds, query, f, planeState, insideGuaranteed, callback, itemBounds);
+                    query(level + 1, childIndex, nodeBounds, query, f, planeState,
+                          insideGuaranteed, callback, itemBounds);
                     restoreParentBounds(i, nodeBounds);
 
                     // restore planestate for this node
@@ -542,9 +547,11 @@ public class Octree<T> implements SpatialIndex<T> {
     private static boolean inPositiveX(int index) {
         return (index & POS_X) != 0;
     }
+
     private static boolean inPositiveY(int index) {
         return (index & POS_Y) != 0;
     }
+
     private static boolean inPositiveZ(int index) {
         return (index & POS_Z) != 0;
     }

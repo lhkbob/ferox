@@ -41,17 +41,33 @@ public class PhysicsTest extends PhysicsApplicationStub {
         // camera
         Entity camera = system.addEntity();
         camera.add(Camera.ID).getData().setSurface(surface)
-        .setZDistances(1.0, 6 * BOUNDS);
-        camera.add(Transform.ID).getData().setMatrix(new Matrix4(-.707, -.577, -.707, .3 * BOUNDS,
-                                                                 0, .577, 0, .2 * BOUNDS,
-                                                                 .707, -.577, -.707,  .3 * BOUNDS,
-                                                                 0, 0, 0, 1));
+              .setZDistances(1.0, 6 * BOUNDS);
+        camera.add(Transform.ID)
+              .getData()
+              .setMatrix(new Matrix4(-.707,
+                                     -.577,
+                                     -.707,
+                                     .3 * BOUNDS,
+                                     0,
+                                     .577,
+                                     0,
+                                     .2 * BOUNDS,
+                                     .707,
+                                     -.577,
+                                     -.707,
+                                     .3 * BOUNDS,
+                                     0,
+                                     0,
+                                     0,
+                                     1));
 
         // shapes
         Geometry box = Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
         //        Geometry sphere = Sphere.create(1 + MARGIN, 8, COMPILE_TYPE);
 
-        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(2, 2, 2);
+        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(2,
+                                                                                               2,
+                                                                                               2);
         //        com.ferox.physics.collision.Shape sphereShape = new com.ferox.physics.collision.shape.Sphere(1);
         boxShape.setMargin(MARGIN);
         //        sphereShape.setMargin(MARGIN);
@@ -80,18 +96,36 @@ public class PhysicsTest extends PhysicsApplicationStub {
                     double rz = (Math.random() * randZLim - randZLim / 2);
 
                     Entity e = system.addEntity();
-                    e.add(Renderable.ID).getData().setVertices(geomShape.getVertices())
-                    .setLocalBounds(geomShape.getBounds())
-                    .setIndices(geomShape.getPolygonType(), geomShape.getIndices(), geomShape.getIndexOffset(), geomShape.getIndexCount());
-                    e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape.getNormals());
+                    e.add(Renderable.ID)
+                     .getData()
+                     .setVertices(geomShape.getVertices())
+                     .setLocalBounds(geomShape.getBounds())
+                     .setIndices(geomShape.getPolygonType(), geomShape.getIndices(),
+                                 geomShape.getIndexOffset(), geomShape.getIndexCount());
+                    e.add(BlinnPhongMaterial.ID).getData()
+                     .setNormals(geomShape.getNormals());
                     e.add(DiffuseColor.ID).getData().setColor(color);
                     e.add(Transform.ID);
 
-                    e.add(CollisionBody.ID).getData().setShape(physShape)
-                    .setTransform(new Matrix4(1, 0, 0, (SCALE_X + 2 * MARGIN) * x + rx + startX,
-                                              0, 1, 0, (SCALE_Y + 2 * MARGIN + (y > NUM_Y / 2 ? 1 : 0)) * y + ry + startY,
-                                              0, 0, 1, (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
-                                              0, 0, 0, 1));
+                    e.add(CollisionBody.ID)
+                     .getData()
+                     .setShape(physShape)
+                     .setTransform(new Matrix4(1,
+                                               0,
+                                               0,
+                                               (SCALE_X + 2 * MARGIN) * x + rx + startX,
+                                               0,
+                                               1,
+                                               0,
+                                               (SCALE_Y + 2 * MARGIN + (y > NUM_Y / 2 ? 1 : 0)) * y + ry + startY,
+                                               0,
+                                               0,
+                                               1,
+                                               (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
+                                               0,
+                                               0,
+                                               0,
+                                               1));
                     e.add(RigidBody.ID).getData().setMass(1.0);
                 }
             }
@@ -100,29 +134,61 @@ public class PhysicsTest extends PhysicsApplicationStub {
         // some walls
         Geometry bottomWall = Box.create(BOUNDS + 2 * MARGIN, COMPILE_TYPE);
         Entity wall = system.addEntity();
-        wall.add(Renderable.ID).getData().setVertices(bottomWall.getVertices())
-        .setLocalBounds(bottomWall.getBounds())
-        .setIndices(bottomWall.getPolygonType(), bottomWall.getIndices(), bottomWall.getIndexOffset(), bottomWall.getIndexCount());
+        wall.add(Renderable.ID)
+            .getData()
+            .setVertices(bottomWall.getVertices())
+            .setLocalBounds(bottomWall.getBounds())
+            .setIndices(bottomWall.getPolygonType(), bottomWall.getIndices(),
+                        bottomWall.getIndexOffset(), bottomWall.getIndexCount());
         wall.add(BlinnPhongMaterial.ID).getData().setNormals(bottomWall.getNormals());
         wall.add(DiffuseColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
         wall.add(Transform.ID);
 
-        wall.add(CollisionBody.ID).getData().setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, BOUNDS, BOUNDS))
-        .setTransform(new Matrix4(1, 0, 0, 0,
-                                  0, 1, 0, -BOUNDS / 2,
-                                  0, 0, 1, 0,
-                                  0, 0, 0, 1));
+        wall.add(CollisionBody.ID)
+            .getData()
+            .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, BOUNDS, BOUNDS))
+            .setTransform(new Matrix4(1,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      1,
+                                      0,
+                                      -BOUNDS / 2,
+                                      0,
+                                      0,
+                                      1,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      1));
 
         // ambient light
-        system.addEntity().add(AmbientLight.ID).getData().setColor(new ColorRGB(0.2, 0.2, 0.2));
+        system.addEntity().add(AmbientLight.ID).getData()
+              .setColor(new ColorRGB(0.2, 0.2, 0.2));
 
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        point.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, BOUNDS / 2,
-                                                                0, 1, 0, BOUNDS / 2,
-                                                                0, 0, 1, BOUNDS / 2,
-                                                                0, 0, 0, 1));
+        point.add(Transform.ID)
+             .getData()
+             .setMatrix(new Matrix4(1,
+                                    0,
+                                    0,
+                                    BOUNDS / 2,
+                                    0,
+                                    1,
+                                    0,
+                                    BOUNDS / 2,
+                                    0,
+                                    0,
+                                    1,
+                                    BOUNDS / 2,
+                                    0,
+                                    0,
+                                    0,
+                                    1));
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();

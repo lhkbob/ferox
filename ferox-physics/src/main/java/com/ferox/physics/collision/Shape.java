@@ -14,7 +14,8 @@ import com.ferox.math.Vector3;
  * <p>
  * Collisions between Shapes and different shape types are not the
  * responsibility of Shape implementations. Instead {@link CollisionAlgorithm
- * CollisionAlgorithms} are implemented that support limited sets of shape types.
+ * CollisionAlgorithms} are implemented that support limited sets of shape
+ * types.
  * </p>
  * 
  * @author Michael Ludwig
@@ -30,7 +31,8 @@ public interface Shape {
      * 
      * @return The Shape's local bounds
      */
-    public @Const AxisAlignedBox getBounds();
+    public @Const
+    AxisAlignedBox getBounds();
 
     /**
      * Return the vector containing the inertia tensor for this shape, in its

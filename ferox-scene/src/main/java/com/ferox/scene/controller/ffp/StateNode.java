@@ -18,7 +18,7 @@ public class StateNode {
 
     public StateNode(StateGroup child, State... state) {
         if (state == null || state.length == 0) {
-            state = new State[] { new NullState() };
+            state = new State[] {new NullState()};
         }
 
         this.state = state;
@@ -45,7 +45,8 @@ public class StateNode {
         // FIXME we're applying a child group state before the specific states
         // of this node, which means they can mutate the applied effects too soon,
         // maybe the StateGroup mutations don't get to mutate the effects?
-        AppliedEffects forStates = (children != null ? children.applyGroupState(r, effects) : effects);
+        AppliedEffects forStates = (children != null ? children.applyGroupState(r,
+                                                                                effects) : effects);
         if (forStates != null) {
             for (int i = 0; i < state.length; i++) {
                 AppliedEffects childEffects = state[i].applyState(r, forStates, i);
@@ -73,13 +74,15 @@ public class StateNode {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                         int index) {
             // do nothing, but continue
             return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int index) {
             // do nothing
         }
     }

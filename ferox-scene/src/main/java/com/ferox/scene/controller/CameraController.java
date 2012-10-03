@@ -22,23 +22,27 @@ public class CameraController extends SimpleController {
         Camera camera = getEntitySystem().createDataInstance(Camera.ID);
         Transform transform = getEntitySystem().createDataInstance(Transform.ID);
 
-        ComponentIterator it = new ComponentIterator(getEntitySystem())
-        .addRequired(camera)
-        .addOptional(transform);
+        ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(camera)
+                                                                       .addOptional(transform);
 
-        while(it.next()) {
-            double aspect = camera.getSurface().getWidth() / (double) camera.getSurface().getHeight();
-            Frustum f = new Frustum(camera.getFieldOfView(), aspect,
-                                    camera.getNearZDistance(), camera.getFarZDistance());
+        while (it.next()) {
+            double aspect = camera.getSurface().getWidth() / (double) camera.getSurface()
+                                                                            .getHeight();
+            Frustum f = new Frustum(camera.getFieldOfView(),
+                                    aspect,
+                                    camera.getNearZDistance(),
+                                    camera.getFarZDistance());
 
             if (transform.isEnabled()) {
                 Matrix4 m = transform.getMatrix();
-                f.setOrientation(new Vector3(m.m03, m.m13, m.m23),
-                                 new Vector3(m.m02, m.m12, m.m22),
+                f.setOrientation(new Vector3(m.m03, m.m13, m.m23), new Vector3(m.m02,
+                                                                               m.m12,
+                                                                               m.m22),
                                  new Vector3(m.m01, m.m11, m.m21));
             }
 
-            getEntitySystem().getControllerManager().report(new FrustumResult(camera.getComponent(), f));
+            getEntitySystem().getControllerManager()
+                             .report(new FrustumResult(camera.getComponent(), f));
         }
     }
 }

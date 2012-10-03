@@ -108,9 +108,10 @@ public interface Renderer {
     }
 
     /**
-     * When blending is enabled, incoming pixels are combined with the previously
-     * written pixel based on the configured BlendFunction and {@link BlendFactor}'s.
-     * In the functions available, the following variables are used:
+     * When blending is enabled, incoming pixels are combined with the
+     * previously written pixel based on the configured BlendFunction and
+     * {@link BlendFactor}'s. In the functions available, the following
+     * variables are used:
      * <ul>
      * <li>sC = Incoming pixel color</li>
      * <li>dC = Previous pixel color</li>
@@ -270,8 +271,8 @@ public interface Renderer {
          */
         INCREMENT,
         /**
-         * Subtract one from the stencil's current value, clamping it to 0,
-         * at the current pixel.
+         * Subtract one from the stencil's current value, clamping it to 0, at
+         * the current pixel.
          */
         DECREMENT,
         /**
@@ -640,8 +641,9 @@ public interface Renderer {
     /**
      * <p>
      * Set the DrawStyle to be used for front-facing polygons and back-facing
-     * polygons. The <tt>front</tt> DrawStylespecifies how front-facing polygons are
-     * rendered, and <tt>back</tt> specifies how back-facing polygons are rendered.
+     * polygons. The <tt>front</tt> DrawStylespecifies how front-facing polygons
+     * are rendered, and <tt>back</tt> specifies how back-facing polygons are
+     * rendered.
      * <p>
      * The facing of a polygon is determined by the counter-clockwise ordering
      * of its vertices. When a polygon is rendered, if it's vertices are
@@ -808,7 +810,8 @@ public interface Renderer {
      * @throws IndexOutOfBoundsException if offset + count is greater than the
      *             size of the indices buffer
      */
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count);
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
+                      int count);
 
     /**
      * <p>

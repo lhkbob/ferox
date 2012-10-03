@@ -39,7 +39,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
 
     private ObjectProperty<VertexAttribute> tangentVectors;
 
-    private NormalMap() { }
+    private NormalMap() {}
 
     /**
      * Return whether or not the normal vectors are in object space or tangent
@@ -104,8 +104,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
     @Override
     protected void validate(Texture tex) {
         if (tex.getFormat().getNumComponents() != 3) {
-            throw new IllegalArgumentException("Normal map must use a texture format with 3 components, not: "
-                    + tex.getFormat());
+            throw new IllegalArgumentException("Normal map must use a texture format with 3 components, not: " + tex.getFormat());
         }
     }
 }

@@ -20,7 +20,8 @@ import com.ferox.renderer.impl.RendererProvider;
 public class PbufferShadowContext extends JoglContext {
     private final GLPbuffer pbuffer;
 
-    private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface, RendererProvider provider) {
+    private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface,
+                                 RendererProvider provider) {
         super(creator, surface.getContext(), provider);
         pbuffer = surface;
     }
@@ -43,7 +44,9 @@ public class PbufferShadowContext extends JoglContext {
      * @return An PbufferShadowContext
      * @throws NullPointerException if framework or profile is null
      */
-    public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith, RendererProvider provider) {
+    public static PbufferShadowContext create(JoglSurfaceFactory creator,
+                                              JoglContext shareWith,
+                                              RendererProvider provider) {
         if (creator == null) {
             throw new NullPointerException("Cannot create a PbufferShadowContext with a null JoglSurfaceFactory");
         }
@@ -51,12 +54,14 @@ public class PbufferShadowContext extends JoglContext {
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
         AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
-        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(device, glCaps,
-                                                                                                 new DefaultGLCapabilitiesChooser(),
-                                                                                                 1, 1, realShare);
+        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile())
+                                             .createGLPbuffer(device,
+                                                              glCaps,
+                                                              new DefaultGLCapabilitiesChooser(),
+                                                              1, 1, realShare);
         try {
             return new PbufferShadowContext(creator, pbuffer, provider);
-        } catch(RuntimeException re) {
+        } catch (RuntimeException re) {
             // extra cleanup if we never finished constructing the shadow context
             pbuffer.destroy();
             throw re;

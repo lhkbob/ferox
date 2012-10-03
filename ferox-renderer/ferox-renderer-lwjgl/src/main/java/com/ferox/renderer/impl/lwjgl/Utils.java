@@ -34,8 +34,9 @@ import com.ferox.resource.Texture.WrapMode;
 import com.ferox.resource.TextureFormat;
 
 /**
- * Utils provides conversions for the commonly used enums in Resources and Renderers
- * to their appropriate GL enum values, as well as some other useful utilities.
+ * Utils provides conversions for the commonly used enums in Resources and
+ * Renderers to their appropriate GL enum values, as well as some other useful
+ * utilities.
  * 
  * @author Michael Ludwig
  */
@@ -91,8 +92,8 @@ public class Utils {
     }
 
     /**
-     * Return the AttributeType enum value associated with the returned GL11 enum
-     * for attribute variable type. Returns null if there's no matching
+     * Return the AttributeType enum value associated with the returned GL11
+     * enum for attribute variable type. Returns null if there's no matching
      * AttributeType.
      */
     public static AttributeType getAttributeType(int type) {
@@ -120,7 +121,7 @@ public class Utils {
      * Return the GL shader type enum for the given type.
      */
     public static int getGLShaderType(ShaderType type) {
-        switch(type) {
+        switch (type) {
         case FRAGMENT:
             return GL20.GL_FRAGMENT_SHADER;
         case GEOMETRY:
@@ -471,15 +472,18 @@ public class Utils {
     }
 
     /**
-     * This shouldn't be used for packed data
-     * types.
+     * This shouldn't be used for packed data types.
      */
     public static int getGLType(DataType type) {
-        switch(type) {
-        case FLOAT: return GL11.GL_FLOAT;
-        case UNSIGNED_BYTE: return GL11.GL_UNSIGNED_BYTE;
-        case UNSIGNED_INT: return GL11.GL_UNSIGNED_INT;
-        case UNSIGNED_SHORT: return GL11.GL_UNSIGNED_SHORT;
+        switch (type) {
+        case FLOAT:
+            return GL11.GL_FLOAT;
+        case UNSIGNED_BYTE:
+            return GL11.GL_UNSIGNED_BYTE;
+        case UNSIGNED_INT:
+            return GL11.GL_UNSIGNED_INT;
+        case UNSIGNED_SHORT:
+            return GL11.GL_UNSIGNED_SHORT;
         }
 
         return -1;
@@ -566,7 +570,8 @@ public class Utils {
     }
 
     /**
-     * Should not be called with ATTRIBUTE or null, as nothing parallels its meaning.
+     * Should not be called with ATTRIBUTE or null, as nothing parallels its
+     * meaning.
      */
     public static int getGLTexGen(TexCoordSource gen) {
         switch (gen) {
@@ -587,7 +592,7 @@ public class Utils {
 
     /** Coord must be null */
     public static int getGLTexCoord(TexCoord coord, boolean forEnable) {
-        switch(coord) {
+        switch (coord) {
         case Q:
             return (forEnable ? GL11.GL_TEXTURE_GEN_Q : GL11.GL_Q);
         case R:

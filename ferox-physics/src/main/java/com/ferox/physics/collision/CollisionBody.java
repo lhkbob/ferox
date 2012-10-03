@@ -47,10 +47,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      */
     public static final TypeId<CollisionBody> ID = TypeId.get(CollisionBody.class);
 
-    @DefaultMatrix4(m00=1.0, m01=0.0, m02=0.0, m03=0.0,
-            m10=0.0, m11=1.0, m12=0.0, m13=0.0,
-            m20=0.0, m21=0.0, m22=1.0, m23=0.0,
-            m30=0.0, m31=0.0, m32=0.0, m33=1.0)
+    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
+                    m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
+                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
     private Matrix4Property worldTransform;
 
     private AxisAlignedBoxProperty worldBounds;
@@ -68,16 +67,18 @@ public class CollisionBody extends ComponentData<CollisionBody> {
     @DefaultLong(1)
     private LongProperty collisionMask;
 
-    @Unmanaged private final AxisAlignedBox boundsCache = new AxisAlignedBox();
-    @Unmanaged private final Matrix4 transformCache = new Matrix4();
+    @Unmanaged
+    private final AxisAlignedBox boundsCache = new AxisAlignedBox();
+    @Unmanaged
+    private final Matrix4 transformCache = new Matrix4();
 
-    private CollisionBody() { }
+    private CollisionBody() {}
 
     /**
-     * Return the friction coefficient for the surface of this CollisionBody. This
-     * is a pseudo-physical value combining both static and kinetic friction. A
-     * value of 0 represents no friction and higher values represent rougher
-     * surfaces.
+     * Return the friction coefficient for the surface of this CollisionBody.
+     * This is a pseudo-physical value combining both static and kinetic
+     * friction. A value of 0 represents no friction and higher values represent
+     * rougher surfaces.
      * 
      * @return The current friction coefficient
      */
@@ -144,8 +145,9 @@ public class CollisionBody extends ComponentData<CollisionBody> {
             throw new NullPointerException("Collidable cannot be null");
         }
 
-        return isSet(collisionGroups.get(getIndex()), other.collisionMask.get(other.getIndex())) ||
-                isSet(other.collisionGroups.get(other.getIndex()), collisionMask.get(getIndex()));
+        return isSet(collisionGroups.get(getIndex()),
+                     other.collisionMask.get(other.getIndex())) || isSet(other.collisionGroups.get(other.getIndex()),
+                                                                         collisionMask.get(getIndex()));
     }
 
     private static boolean isSet(long groups, long mask) {
@@ -208,7 +210,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
         if (group < 0 || group >= MAX_GROUPS) {
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
         }
-        collisionGroups.set(set(collisionGroups.get(getIndex()), 1 << group, member), getIndex());
+        collisionGroups.set(set(collisionGroups.get(getIndex()), 1 << group, member),
+                            getIndex());
         return this;
     }
 
@@ -226,7 +229,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
         if (group < 0 || group >= MAX_GROUPS) {
             throw new IndexOutOfBoundsException("Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
         }
-        collisionMask.set(set(collisionMask.get(getIndex()), 1 << group, collide), getIndex());
+        collisionMask.set(set(collisionMask.get(getIndex()), 1 << group, collide),
+                          getIndex());
         return this;
     }
 
@@ -235,7 +239,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * 
      * @return The world transform of the Collidable
      */
-    public @Const Matrix4 getTransform() {
+    public @Const
+    Matrix4 getTransform() {
         return transformCache;
     }
 
@@ -285,7 +290,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * 
      * @return The world bounds of this CollisionBody
      */
-    public @Const AxisAlignedBox getWorldBounds() {
+    public @Const
+    AxisAlignedBox getWorldBounds() {
         return boundsCache;
     }
 

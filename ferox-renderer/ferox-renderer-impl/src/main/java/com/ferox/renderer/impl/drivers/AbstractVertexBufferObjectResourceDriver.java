@@ -52,8 +52,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                     glDeleteBuffer(context, h);
                 }
             }
-            if (storageModeChange || h.lastSyncedKey != vbo.getData().getKey()
-                    || vbo.getChangeQueue().hasLostChanges(h.lastSyncedVersion)) {
+            if (storageModeChange || h.lastSyncedKey != vbo.getData().getKey() || vbo.getChangeQueue()
+                                                                                     .hasLostChanges(h.lastSyncedVersion)) {
                 // Must push the whole buffer
                 if (newIsGPU) {
                     // Operate on an actual VBO
@@ -62,11 +62,15 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                     if (nioData != null || h.lastSyncedKey == null) {
                         if (isElementBuffer) {
                             glBindElementBuffer(context, h);
-                            glElementBufferData(context, nioData, vbo.getData().getDataType(), vbo.getData().getLength(), newMode);
+                            glElementBufferData(context, nioData, vbo.getData()
+                                                                     .getDataType(),
+                                                vbo.getData().getLength(), newMode);
                             glRestoreElementBuffer(context);
                         } else {
                             glBindArrayBuffer(context, h);
-                            glArrayBufferData(context, nioData, vbo.getData().getDataType(), vbo.getData().getLength(), newMode);
+                            glArrayBufferData(context, nioData, vbo.getData()
+                                                                   .getDataType(),
+                                              vbo.getData().getLength(), newMode);
                             glRestoreArrayBuffer(context);
                         }
                     } // no data and we've allocated data before, so don't change anything
@@ -76,7 +80,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                     // Storage mode is IN_MEMORY so we want a buffer
                     Buffer nioData = bufferAlloc(vbo.getData(), h.inmemoryBuffer);
                     if (nioData == null) {
-                        nioData = BufferUtil.newBuffer(vbo.getData().getDataType(), vbo.getData().getLength());
+                        nioData = BufferUtil.newBuffer(vbo.getData().getDataType(),
+                                                       vbo.getData().getLength());
                     }
                     h.inmemoryBuffer = nioData;
                 }
@@ -90,7 +95,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                 // Process all queued changes
                 if (vbo.getData().getArray() != null) {
                     // Can only update if we actually have data to sync
-                    List<DataRange> changes = vbo.getChangeQueue().getChangesSince(h.lastSyncedVersion);
+                    List<DataRange> changes = vbo.getChangeQueue()
+                                                 .getChangesSince(h.lastSyncedVersion);
                     int numChanges = changes.size();
 
                     if (h.mode != StorageMode.IN_MEMORY) {
@@ -116,16 +122,21 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                 nioData = h.inmemoryBuffer;
                                 nioData.limit(length).position(0);
                             } else {
-                                nioData = BufferUtil.newBuffer(vbo.getData().getDataType(), length);
+                                nioData = BufferUtil.newBuffer(vbo.getData()
+                                                                  .getDataType(), length);
                             }
 
                             bulkPut(vbo.getData(), offset, length, nioData);
                             nioData.rewind();
 
                             if (isElementBuffer) {
-                                glElementBufferSubData(context, nioData, vbo.getData().getDataType(), offset, length);
+                                glElementBufferSubData(context, nioData,
+                                                       vbo.getData().getDataType(),
+                                                       offset, length);
                             } else {
-                                glArrayBufferSubData(context, nioData, vbo.getData().getDataType(), offset, length);
+                                glArrayBufferSubData(context, nioData, vbo.getData()
+                                                                          .getDataType(),
+                                                     offset, length);
                             }
 
                         }
@@ -170,15 +181,22 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
 
     private Buffer bufferAlloc(BufferData data, Buffer result) {
         if (data.getArray() != null) {
-            if (BufferUtil.getBufferType(data.getDataType()).isInstance(result)
-                    && result.capacity() >= data.getLength()) {
+            if (BufferUtil.getBufferType(data.getDataType()).isInstance(result) && result.capacity() >= data.getLength()) {
                 result.limit(data.getLength()).position(0);
 
-                switch(data.getDataType()) {
-                case FLOAT: ((FloatBuffer) result).put(data.<float[]>getArray()); break;
-                case UNSIGNED_BYTE: ((ByteBuffer) result).put(data.<byte[]>getArray()); break;
-                case UNSIGNED_INT: ((IntBuffer) result).put(data.<int[]>getArray()); break;
-                case UNSIGNED_SHORT:((ShortBuffer) result).put(data.<short[]>getArray()); break;
+                switch (data.getDataType()) {
+                case FLOAT:
+                    ((FloatBuffer) result).put(data.<float[]> getArray());
+                    break;
+                case UNSIGNED_BYTE:
+                    ((ByteBuffer) result).put(data.<byte[]> getArray());
+                    break;
+                case UNSIGNED_INT:
+                    ((IntBuffer) result).put(data.<int[]> getArray());
+                    break;
+                case UNSIGNED_SHORT:
+                    ((ShortBuffer) result).put(data.<short[]> getArray());
+                    break;
                 }
 
                 return result.rewind();
@@ -192,7 +210,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     }
 
     private void bulkPut(BufferData data, int offset, int length, Buffer result) {
-        switch(data.getDataType()) {
+        switch (data.getDataType()) {
         case FLOAT:
             float[] fd = data.getArray();
             ((FloatBuffer) result).put(fd, offset, length);
@@ -218,7 +236,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param context
      * @param handle
      */
-    protected abstract void glDeleteBuffer(OpenGLContext context, VertexBufferObjectHandle handle);
+    protected abstract void glDeleteBuffer(OpenGLContext context,
+                                           VertexBufferObjectHandle handle);
 
     /**
      * Bind the VBO represented by the handle's <tt>vboID</tt> to the array
@@ -227,7 +246,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param context
      * @param handle
      */
-    protected abstract void glBindArrayBuffer(OpenGLContext context, VertexBufferObjectHandle handle);
+    protected abstract void glBindArrayBuffer(OpenGLContext context,
+                                              VertexBufferObjectHandle handle);
 
     /**
      * Bind the VBO represented by the handle's <tt>vboID</tt> to the element
@@ -236,7 +256,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param context
      * @param handle
      */
-    protected abstract void glBindElementBuffer(OpenGLContext context, VertexBufferObjectHandle handle);
+    protected abstract void glBindElementBuffer(OpenGLContext context,
+                                                VertexBufferObjectHandle handle);
 
     /**
      * Rebind whatever VBO binding was overridden by the last call to
@@ -266,7 +287,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param length
      * @param mode
      */
-    protected abstract void glArrayBufferData(OpenGLContext context, Buffer data, DataType type, int length, StorageMode mode);
+    protected abstract void glArrayBufferData(OpenGLContext context, Buffer data,
+                                              DataType type, int length, StorageMode mode);
 
     /**
      * Invoke glBufferData on the element buffer target. The provided storage
@@ -280,7 +302,9 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param length
      * @param mode
      */
-    protected abstract void glElementBufferData(OpenGLContext context, Buffer data, DataType type, int length, StorageMode mode);
+    protected abstract void glElementBufferData(OpenGLContext context, Buffer data,
+                                                DataType type, int length,
+                                                StorageMode mode);
 
     /**
      * Invoke glBufferSubData on the array buffer target. The buffer will not be
@@ -293,11 +317,12 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param offset
      * @param length
      */
-    protected abstract void glArrayBufferSubData(OpenGLContext context, Buffer data, DataType type, int offset, int length);
+    protected abstract void glArrayBufferSubData(OpenGLContext context, Buffer data,
+                                                 DataType type, int offset, int length);
 
     /**
-     * Invoke glBufferSubData on the element buffer target. The buffer will not be
-     * null and its position and limit are configured already. The offset and
+     * Invoke glBufferSubData on the element buffer target. The buffer will not
+     * be null and its position and limit are configured already. The offset and
      * length are into the VBO, and are in units of <tt>type</tt>.
      * 
      * @param context
@@ -306,5 +331,6 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param offset
      * @param length
      */
-    protected abstract void glElementBufferSubData(OpenGLContext context, Buffer data, DataType type, int offset, int length);
+    protected abstract void glElementBufferSubData(OpenGLContext context, Buffer data,
+                                                   DataType type, int offset, int length);
 }

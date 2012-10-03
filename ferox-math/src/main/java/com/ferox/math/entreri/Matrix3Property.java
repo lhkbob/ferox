@@ -35,9 +35,9 @@ public class Matrix3Property implements Property {
     }
 
     /**
-     * Get the matrix of this property, for the component at the given
-     * index, and store it into <tt>result</tt>. If result is null, a new
-     * Matrix3 is created and returned.
+     * Get the matrix of this property, for the component at the given index,
+     * and store it into <tt>result</tt>. If result is null, a new Matrix3 is
+     * created and returned.
      * 
      * @param index The component index to retrieve
      * @param result The matrix to store the data for the requested component
@@ -87,34 +87,42 @@ public class Matrix3Property implements Property {
          * @return Default m00 value
          */
         double m00();
+
         /**
          * @return Default m01 value
          */
         double m01();
+
         /**
          * @return Default m02 value
          */
         double m02();
+
         /**
          * @return Default m10 value
          */
         double m10();
+
         /**
          * @return Default m11 value
          */
         double m11();
+
         /**
          * @return Default m12 value
          */
         double m12();
+
         /**
          * @return Default m20 value
          */
         double m20();
+
         /**
          * @return Default m21 value
          */
         double m21();
+
         /**
          * @return Default m22 value
          */
@@ -135,9 +143,15 @@ public class Matrix3Property implements Property {
             super(attrs);
             if (attrs.hasAttribute(DefaultMatrix3.class)) {
                 DefaultMatrix3 v = attrs.getAttribute(DefaultMatrix3.class);
-                dflt = new Matrix3(v.m00(), v.m01(), v.m02(),
-                                   v.m10(), v.m11(), v.m12(),
-                                   v.m20(), v.m21(), v.m22());
+                dflt = new Matrix3(v.m00(),
+                                   v.m01(),
+                                   v.m02(),
+                                   v.m10(),
+                                   v.m11(),
+                                   v.m12(),
+                                   v.m20(),
+                                   v.m21(),
+                                   v.m22());
             } else {
                 dflt = new Matrix3();
             }

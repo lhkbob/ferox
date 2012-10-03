@@ -30,8 +30,8 @@ public class TextureGroupFactory implements StateGroupFactory {
 
     private final TextureSet access;
 
-    public TextureGroupFactory(EntitySystem system, int diffuseUnit, int decalUnit, int emissiveUnit,
-                               StateGroupFactory childFactory) {
+    public TextureGroupFactory(EntitySystem system, int diffuseUnit, int decalUnit,
+                               int emissiveUnit, StateGroupFactory childFactory) {
         diffuse = system.createDataInstance(DiffuseColorMap.ID);
         decal = system.createDataInstance(DecalColorMap.ID);
         emissive = system.createDataInstance(EmittedColorMap.ID);
@@ -67,11 +67,8 @@ public class TextureGroupFactory implements StateGroupFactory {
             StateNode node = index.get(access);
             if (node == null) {
                 // haven't seen this texture configuration before
-                int availableUnits = 1 + (decalUnit != diffuseUnit ? 1 : 0)
-                        + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1 : 0);
-                int requiredUnits = (diffuse.isEnabled() ? 1 : 0)
-                        + (decal.isEnabled() ? 1 : 0)
-                        + (emissive.isEnabled() ? 1 : 0);
+                int availableUnits = 1 + (decalUnit != diffuseUnit ? 1 : 0) + (emissiveUnit != decalUnit && emissiveUnit != diffuseUnit ? 1 : 0);
+                int requiredUnits = (diffuse.isEnabled() ? 1 : 0) + (decal.isEnabled() ? 1 : 0) + (emissive.isEnabled() ? 1 : 0);
 
                 TextureSet state;
                 if (availableUnits >= requiredUnits) {
@@ -82,9 +79,9 @@ public class TextureGroupFactory implements StateGroupFactory {
                 } else {
                     // hypothetically we could use multiplicative blending and
                     // multiple texture states to simulate multi-texturing, but
-                    // that's expensive and complicated when combined with multiple
-                    // light groups and shadow mapping (and it's an unlikely
-                    // situation to begin with).
+                    // that's expensive and complicated when combined with
+                    // multiple light groups and shadow mapping (and it's an
+                    // unlikely situation to begin with).
                     if (availableUnits == 2) {
                         // we have 3 textures present and only 2 units, we drop
                         // the texture whose unit is the same
@@ -123,7 +120,8 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
             return effects;
         }
 
@@ -148,7 +146,8 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int state) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                         int state) {
             if (textures.diffuse != null) {
                 r.setTexture(diffuseUnit, textures.diffuse);
                 r.setTextureCoordinates(diffuseUnit, textures.diffuseCoords);
@@ -201,8 +200,8 @@ public class TextureGroupFactory implements StateGroupFactory {
                                          CombineSource.CURR_TEX, CombineOperand.ALPHA,
                                          CombineSource.CONST_COLOR, CombineOperand.ALPHA);
             } else {
-                // disable emissive texture, but only if we're on a
-                // different unit (to prevent overwrite)
+                // disable emissive texture, but only if we're on a different
+                // unit (to prevent overwrite)
                 if (diffuseUnit != emissiveUnit && decalUnit != emissiveUnit) {
                     r.setTexture(emissiveUnit, null);
                 }
@@ -212,7 +211,8 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int state) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int state) {
             // do nothing
         }
     }
@@ -230,14 +230,12 @@ public class TextureGroupFactory implements StateGroupFactory {
             // invalid until set() called
         }
 
-        public TextureSet(DiffuseColorMap diffuse,
-                          DecalColorMap decal,
+        public TextureSet(DiffuseColorMap diffuse, DecalColorMap decal,
                           EmittedColorMap emissive) {
             set(diffuse, decal, emissive);
         }
 
-        public void set(DiffuseColorMap diffuse,
-                        DecalColorMap decal,
+        public void set(DiffuseColorMap diffuse, DecalColorMap decal,
                         EmittedColorMap emissive) {
             if (diffuse != null && diffuse.isEnabled()) {
                 this.diffuse = diffuse.getTexture();
@@ -269,21 +267,21 @@ public class TextureGroupFactory implements StateGroupFactory {
             }
             TextureSet t = (TextureSet) o;
 
-            return (equals(diffuse, diffuseCoords, t.diffuse, t.diffuseCoords) &&
-                    equals(decal, decalCoords, t.decal, t.decalCoords)
-                    && equals(emissive, emissiveCoords, t.emissive, t.emissiveCoords));
+            boolean df = equals(diffuse, diffuseCoords, t.diffuse, t.diffuseCoords);
+            boolean dl = equals(decal, decalCoords, t.decal, t.decalCoords);
+            boolean em = equals(emissive, emissiveCoords, t.emissive, t.emissiveCoords);
+            return df && dl && em;
         }
 
-        private static boolean equals(Texture t1, VertexAttribute tc1, Texture t2, VertexAttribute tc2) {
+        private static boolean equals(Texture t1, VertexAttribute tc1, Texture t2,
+                                      VertexAttribute tc2) {
             if (t1 == t2) {
                 // check texture coordinates
                 if (tc1 != tc2) {
                     // if ref's aren't the same, the data might still be
                     if (tc1 != null && tc2 != null) {
                         // check access pattern
-                        if (tc1.getData() != tc2.getData() || tc1.getElementSize() != tc2.getElementSize()
-                                || tc1.getOffset() != tc2.getOffset()
-                                || tc1.getStride() != tc2.getStride()) {
+                        if (tc1.getData() != tc2.getData() || tc1.getElementSize() != tc2.getElementSize() || tc1.getOffset() != tc2.getOffset() || tc1.getStride() != tc2.getStride()) {
                             return false;
                         }
                     }

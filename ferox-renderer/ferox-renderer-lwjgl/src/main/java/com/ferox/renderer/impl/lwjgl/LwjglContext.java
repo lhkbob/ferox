@@ -62,7 +62,8 @@ public class LwjglContext extends OpenGLContext {
      * @param provider The provider of renderers
      * @throws NullPointerException if factory, context, or provider are null
      */
-    public LwjglContext(LwjglSurfaceFactory factory, Drawable context, RendererProvider provider) {
+    public LwjglContext(LwjglSurfaceFactory factory, Drawable context,
+                        RendererProvider provider) {
         super(provider);
         if (factory == null || context == null) {
             throw new NullPointerException("Factory and context cannot be null");
@@ -198,7 +199,8 @@ public class LwjglContext extends OpenGLContext {
             arrayVbo = vbo;
 
             if (useARBVertexBufferObject) {
-                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, vbo);
+                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB,
+                                                vbo);
             } else {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
             }
@@ -217,7 +219,8 @@ public class LwjglContext extends OpenGLContext {
             elementVbo = vbo;
 
             if (useARBVertexBufferObject) {
-                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
+                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB,
+                                                vbo);
             } else {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo);
             }
@@ -276,7 +279,8 @@ public class LwjglContext extends OpenGLContext {
             fbo = fboId;
 
             if (useEXTFramebufferObject) {
-                EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
+                EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
+                                                          fboId);
             } else {
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fboId);
             }
@@ -312,7 +316,7 @@ public class LwjglContext extends OpenGLContext {
             throw new FrameworkException("Unable to make context current", e);
         }
 
-        for (Runnable task: cleanupTasks) {
+        for (Runnable task : cleanupTasks) {
             task.run();
         }
     }

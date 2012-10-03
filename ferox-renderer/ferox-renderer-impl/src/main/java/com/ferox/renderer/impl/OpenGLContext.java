@@ -3,13 +3,13 @@ package com.ferox.renderer.impl;
 import com.ferox.renderer.RenderCapabilities;
 
 /**
- * OpenGLContext is a wrapper around an OpenGL context that has been
- * created by some low-level OpenGL wrapper for Java (such as JOGL or LWJGL). An
- * OpenGL context can be current on a single thread at a time, and a context
- * must be current in order to perform graphics operations. This adapter
- * provides operations to make the context current and to release it. These
- * methods should not be used directly because contexts are carefully organized
- * by the {@link ContextManager}.
+ * OpenGLContext is a wrapper around an OpenGL context that has been created by
+ * some low-level OpenGL wrapper for Java (such as JOGL or LWJGL). An OpenGL
+ * context can be current on a single thread at a time, and a context must be
+ * current in order to perform graphics operations. This adapter provides
+ * operations to make the context current and to release it. These methods
+ * should not be used directly because contexts are carefully organized by the
+ * {@link ContextManager}.
  * 
  * @author Michael Ludwig
  */

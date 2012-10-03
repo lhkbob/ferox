@@ -18,7 +18,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * @author Michael Ludwig
  */
 public class Rectangle {
-    private Rectangle() { }
+    private Rectangle() {}
 
     /**
      * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis
@@ -33,15 +33,16 @@ public class Rectangle {
      * @throws IllegalArgumentException if left > right or bottom > top
      */
     public static Geometry create(double left, double right, double bottom, double top) {
-        return create(left, right, bottom, top,
-                      new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
+        return create(left, right, bottom, top, new Vector3(1f, 0f, 0f), new Vector3(0f,
+                                                                                     1f,
+                                                                                     0f));
     }
 
     /**
      * Create a Rectangle with the given basis vectors and edge dimensions and a
      * storage mode of IN_MEMORY.
      * 
-
+     * 
      * @param left The left edge of the rectangle
      * @param right The right edge of the rectangle
      * @param bottom The bottom edge of the rectangle
@@ -90,8 +91,7 @@ public class Rectangle {
         private final AxisAlignedBox bounds;
 
         public RectangleImpl(double left, double right, double bottom, double top,
-                             @Const Vector3 xAxis, @Const Vector3 yAxis,
-                             StorageMode mode) {
+                             @Const Vector3 xAxis, @Const Vector3 yAxis, StorageMode mode) {
             if (left > right || bottom > top) {
                 throw new IllegalArgumentException("Side positions of the square are incorrect");
             }
@@ -204,7 +204,8 @@ public class Rectangle {
         }
 
         @Override
-        public @Const AxisAlignedBox getBounds() {
+        public @Const
+        AxisAlignedBox getBounds() {
             return bounds;
         }
     }

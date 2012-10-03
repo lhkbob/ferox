@@ -146,14 +146,18 @@ public class LinearConstraintSolver {
             deltaLinearImpulse.get(ba, linear);
             deltaAngularImpulse.get(ba, angular);
 
-            deltaImpulse -= jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueA(constraint).dot(angular));
+            deltaImpulse -= jacobian * (group.getConstraintDirection(constraint)
+                                             .dot(linear) + group.getTorqueA(constraint)
+                                                                 .dot(angular));
         }
 
         if (bb >= 0) {
             deltaLinearImpulse.get(bb, linear);
             deltaAngularImpulse.get(bb, angular);
 
-            deltaImpulse += jacobian * (group.getConstraintDirection(constraint).dot(linear) + group.getTorqueB(constraint).dot(angular));
+            deltaImpulse += jacobian * (group.getConstraintDirection(constraint)
+                                             .dot(linear) + group.getTorqueB(constraint)
+                                                                 .dot(angular));
         }
 
         double applied = group.getAppliedImpulse(constraint);

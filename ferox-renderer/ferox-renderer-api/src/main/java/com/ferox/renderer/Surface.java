@@ -2,7 +2,6 @@ package com.ferox.renderer;
 
 import java.util.concurrent.Future;
 
-
 /**
  * <p>
  * Represents a two dimensional surface that stores a collection of logical

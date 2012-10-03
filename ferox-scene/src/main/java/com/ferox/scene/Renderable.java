@@ -52,7 +52,7 @@ public final class Renderable extends ComponentData<Renderable> {
     @Unmanaged
     private final AxisAlignedBox worldBoundsCache = new AxisAlignedBox();
 
-    private Renderable() { }
+    private Renderable() {}
 
     /**
      * Set the vertex attribute that holds the vertex position information for
@@ -138,7 +138,8 @@ public final class Renderable extends ComponentData<Renderable> {
      * @throws IndexOutOfBoundsException if (first + count) is larger than the
      *             size of the indices
      */
-    public Renderable setIndices(PolygonType type, VertexBufferObject indices, int first, int count) {
+    public Renderable setIndices(PolygonType type, VertexBufferObject indices, int first,
+                                 int count) {
         if (type == null) {
             throw new NullPointerException("PolygonType cannot be null");
         }
@@ -214,14 +215,15 @@ public final class Renderable extends ComponentData<Renderable> {
      * 
      * @return A cached local bounds instance
      */
-    public @Const AxisAlignedBox getLocalBounds() {
+    public @Const
+    AxisAlignedBox getLocalBounds() {
         return localBoundsCache;
     }
 
     /**
-     * Set the local bounds of this entity. The bounds should contain the
-     * entire geometry of the Entity, including any modifications dynamic
-     * animation might cause.
+     * Set the local bounds of this entity. The bounds should contain the entire
+     * geometry of the Entity, including any modifications dynamic animation
+     * might cause.
      * 
      * @param bounds The new local bounds of the entity
      * @return This component, for chaining purposes
@@ -240,7 +242,8 @@ public final class Renderable extends ComponentData<Renderable> {
      * 
      * @return A cached world bounds instance
      */
-    public @Const AxisAlignedBox getWorldBounds() {
+    public @Const
+    AxisAlignedBox getWorldBounds() {
         return worldBoundsCache;
     }
 

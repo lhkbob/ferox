@@ -6,15 +6,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ThreadGroupMonitor
-{
-    public ThreadGroupMonitor()
-    {
+public class ThreadGroupMonitor {
+    public ThreadGroupMonitor() {
         this(Thread.currentThread().getThreadGroup());
     }
 
-    public ThreadGroupMonitor(ThreadGroup group)
-    {
+    public ThreadGroupMonitor(ThreadGroup group) {
         this.group = group;
         this.lastThreadIds = new long[0];
         this.aliveId2mon = new HashMap<Long, ThreadMonitor>();
@@ -25,8 +22,7 @@ public class ThreadGroupMonitor
 
     private final ThreadGroup group;
 
-    public ThreadGroup getThreadGroup()
-    {
+    public ThreadGroup getThreadGroup() {
         return group;
     }
 
@@ -34,8 +30,7 @@ public class ThreadGroupMonitor
 
     private int totalDeadThreadCount = 0;
 
-    public synchronized int getTotalDeadThreadCount()
-    {
+    public synchronized int getTotalDeadThreadCount() {
         return this.totalDeadThreadCount;
     }
 
@@ -43,8 +38,7 @@ public class ThreadGroupMonitor
 
     private int regularThreadCount = 0;
 
-    public synchronized int getRegularThreadCount()
-    {
+    public synchronized int getRegularThreadCount() {
         return this.regularThreadCount;
     }
 
@@ -52,21 +46,19 @@ public class ThreadGroupMonitor
 
     private int deamonThreadCount = 0;
 
-    public synchronized int getDeamonThreadCount()
-    {
+    public synchronized int getDeamonThreadCount() {
         return this.deamonThreadCount;
     }
 
     //
 
-    private static final int         default_slots = 3600;
+    private static final int default_slots = 3600;
 
-    private long[]                   lastThreadIds;
+    private long[] lastThreadIds;
     private Map<Long, ThreadMonitor> aliveId2mon;
     private Map<Long, ThreadMonitor> deadId2mon;
 
-    public synchronized void poll()
-    {
+    public synchronized void poll() {
         Thread[] threads = this.findAllThreads();
 
         long[] currThreadIds = this.findAllThreadIds(threads);
@@ -77,12 +69,14 @@ public class ThreadGroupMonitor
 
         for (long newId : newIds) {
             String name = "Unnamed(" + newId + ")";
-            for (Thread t: threads) {
+            for (Thread t : threads) {
                 if (t.getId() == newId) {
                     name = t.getName();
                 }
             }
-            aliveId2mon.put(Long.valueOf(newId), new ThreadMonitor(name, newId, default_slots));
+            aliveId2mon.put(Long.valueOf(newId), new ThreadMonitor(name,
+                                                                   newId,
+                                                                   default_slots));
         }
         for (long deadId : deadIds) {
             deadId2mon.put(Long.valueOf(deadId), aliveId2mon.remove(Long.valueOf(deadId)));
@@ -100,8 +94,7 @@ public class ThreadGroupMonitor
         this.lastThreadIds = currThreadIds;
     }
 
-    public synchronized double getAvgCpuTimeStats(int pollCount)
-    {
+    public synchronized double getAvgCpuTimeStats(int pollCount) {
         double sum = 0.0;
         for (ThreadMonitor mon : aliveId2mon.values()) {
             sum += mon.getCpuTimeStats().avg(pollCount);
@@ -109,8 +102,7 @@ public class ThreadGroupMonitor
         return sum;
     }
 
-    public synchronized double getAvgUserTimeStats(int pollCount)
-    {
+    public synchronized double getAvgUserTimeStats(int pollCount) {
         double sum = 0.0;
         for (ThreadMonitor mon : aliveId2mon.values()) {
             sum += mon.getUserTimeStats().avg(pollCount);
@@ -118,23 +110,19 @@ public class ThreadGroupMonitor
         return sum;
     }
 
-    public Collection<ThreadMonitor> getAliveThreadMonitors()
-    {
+    public Collection<ThreadMonitor> getAliveThreadMonitors() {
         return Collections.unmodifiableCollection(this.aliveId2mon.values());
     }
 
-    public Collection<ThreadMonitor> getDeadThreadMonitors()
-    {
+    public Collection<ThreadMonitor> getDeadThreadMonitors() {
         return Collections.unmodifiableCollection(this.deadId2mon.values());
     }
 
-    private void analyzeThreads(Thread[] threads)
-    {
+    private void analyzeThreads(Thread[] threads) {
         int deamonThreadCount = 0;
         int regularThreadCount = 0;
 
-        for (Thread thread : threads)
-        {
+        for (Thread thread : threads) {
             if (!thread.isAlive()) {
                 continue;
             }
@@ -149,8 +137,7 @@ public class ThreadGroupMonitor
         this.regularThreadCount = regularThreadCount;
     }
 
-    public Thread[] findAllThreads()
-    {
+    public Thread[] findAllThreads() {
         int threadCount;
 
         Thread[] tempThreadArray = new Thread[8];
@@ -163,8 +150,7 @@ public class ThreadGroupMonitor
         return threadArray;
     }
 
-    private long[] findAllThreadIds(Thread[] threads)
-    {
+    private long[] findAllThreadIds(Thread[] threads) {
         long[] allThreadIds = new long[threads.length];
         for (int i = 0; i < allThreadIds.length; i++) {
             allThreadIds[i] = threads[i].getId();
@@ -172,13 +158,11 @@ public class ThreadGroupMonitor
         return allThreadIds;
     }
 
-    private long[] findNewThreadIds(long[] lastThreads, long[] currThreads)
-    {
+    private long[] findNewThreadIds(long[] lastThreads, long[] currThreads) {
         long[] newThreadIds = new long[currThreads.length];
         int newThreadIndex = 0;
 
-        outer: for (int i = 0; i < currThreads.length; i++)
-        {
+        outer: for (int i = 0; i < currThreads.length; i++) {
             for (int k = 0; k < lastThreads.length; k++) {
                 if (currThreads[i] == lastThreads[k]) {
                     continue outer;
@@ -192,13 +176,11 @@ public class ThreadGroupMonitor
         return ids;
     }
 
-    private long[] findDeadThreadIds(long[] lastThreads, long[] currThreads)
-    {
+    private long[] findDeadThreadIds(long[] lastThreads, long[] currThreads) {
         long[] deadThreadIds = new long[lastThreads.length];
         int deadThreadIndex = 0;
 
-        outer: for (int i = 0; i < lastThreads.length; i++)
-        {
+        outer: for (int i = 0; i < lastThreads.length; i++) {
             for (int k = 0; k < currThreads.length; k++) {
                 if (lastThreads[i] == currThreads[k]) {
                     continue outer;

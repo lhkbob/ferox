@@ -109,7 +109,8 @@ public abstract class RendererDelegate {
      * @param context The current context
      * @param resourceManager The ResourceManager to use
      */
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager resourceManager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager resourceManager) {
         this.context = context;
         this.resourceManager = resourceManager;
 
@@ -158,7 +159,9 @@ public abstract class RendererDelegate {
      * . The color does not need to be clamped because OpenGL performs this for
      * us.
      */
-    public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, double depth, int stencil);
+    public abstract void clear(boolean clearColor, boolean clearDepth,
+                               boolean clearStencil, @Const Vector4 color, double depth,
+                               int stencil);
 
     public void setBlendColor(@Const Vector4 color) {
         if (color == null) {
@@ -225,12 +228,14 @@ public abstract class RendererDelegate {
     /**
      * Invoke OpenGL calls to set the blend factors.
      */
-    protected abstract void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha);
+    protected abstract void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb,
+                                           BlendFactor srcAlpha, BlendFactor dstAlpha);
 
     /**
      * Invoke OpenGL calls to set the blend equations.
      */
-    protected abstract void glBlendEquations(BlendFunction funcRgb, BlendFunction funcAlpha);
+    protected abstract void glBlendEquations(BlendFunction funcRgb,
+                                             BlendFunction funcAlpha);
 
     public void setBlendingEnabled(boolean enable) {
         if (blendEnabled != enable) {
@@ -245,8 +250,7 @@ public abstract class RendererDelegate {
     protected abstract void glEnableBlending(boolean enable);
 
     public void setColorWriteMask(boolean red, boolean green, boolean blue, boolean alpha) {
-        if (colorMask[0] != red || colorMask[1] != green
-                || colorMask[2] != blue || colorMask[3] != alpha) {
+        if (colorMask[0] != red || colorMask[1] != green || colorMask[2] != blue || colorMask[3] != alpha) {
             colorMask[0] = red;
             colorMask[1] = green;
             colorMask[2] = blue;
@@ -259,7 +263,8 @@ public abstract class RendererDelegate {
     /**
      * Invoke OpenGL calls to configure the color mask.
      */
-    protected abstract void glColorMask(boolean red, boolean green, boolean blue, boolean alpha);
+    protected abstract void glColorMask(boolean red, boolean green, boolean blue,
+                                        boolean alpha);
 
     public void setDepthOffsets(double factor, double units) {
         if (depthOffsetFactor != factor || depthOffsetUnits != units) {
@@ -386,7 +391,8 @@ public abstract class RendererDelegate {
     /**
      * Invoke OpenGL calls to set the stencil test
      */
-    protected abstract void glStencilTest(Comparison test, int refValue, int mask, boolean isFront);
+    protected abstract void glStencilTest(Comparison test, int refValue, int mask,
+                                          boolean isFront);
 
     public void setStencilTestEnabled(boolean enable) {
         if (stencilEnabled != enable) {
@@ -400,7 +406,8 @@ public abstract class RendererDelegate {
      */
     protected abstract void glEnableStencilTest(boolean enable);
 
-    public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
+    public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                     StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null) {
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         }
@@ -412,7 +419,8 @@ public abstract class RendererDelegate {
         }
     }
 
-    public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass) {
+    public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                      StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null) {
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         }
@@ -427,7 +435,9 @@ public abstract class RendererDelegate {
     /**
      * Invoke OpenGL calls to set the StencilOps
      */
-    protected abstract void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass, boolean isFront);
+    protected abstract void glStencilUpdate(StencilUpdate stencilFail,
+                                            StencilUpdate depthFail,
+                                            StencilUpdate depthPass, boolean isFront);
 
     public void setViewport(int x, int y, int width, int height) {
         if (x < 0 || y < 0 || width < 0 || height < 0) {
@@ -447,7 +457,8 @@ public abstract class RendererDelegate {
      */
     protected abstract void glViewport(int x, int y, int width, int height);
 
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
+                      int count) {
         if (polyType == null || indices == null) {
             throw new NullPointerException("PolygonType and indices cannot be null");
         }
@@ -455,8 +466,7 @@ public abstract class RendererDelegate {
             throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
         }
 
-        if (count == 0)
-        {
+        if (count == 0) {
             return 0; // shortcut
         }
 
@@ -472,7 +482,8 @@ public abstract class RendererDelegate {
                 indexBindingHandle = null;
             }
 
-            VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context, indices);
+            VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
+                                                                                                 indices);
 
             // check if the actual VBO is of the correct type (must use handle, can't rely
             // on the resource reporting the most up-to-date type)
@@ -518,7 +529,9 @@ public abstract class RendererDelegate {
     /**
      * Perform the glDrawElements rendering command. The inputs will be valid.
      */
-    protected abstract void glDrawElements(PolygonType type, VertexBufferObjectHandle handle, int offset, int count);
+    protected abstract void glDrawElements(PolygonType type,
+                                           VertexBufferObjectHandle handle, int offset,
+                                           int count);
 
     public int render(PolygonType polyType, int first, int count) {
         if (polyType == null) {

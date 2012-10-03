@@ -118,9 +118,8 @@ public class Simplex {
     }
 
     private boolean encloseOriginImpl() {
-        switch(rank) {
-        case 1:
-        {
+        switch (rank) {
+        case 1: {
             Vector3 axis = new Vector3();
             for (int i = 0; i < 3; i++) {
                 axis.set(0, 0, 0).set(i, 1.0);
@@ -137,8 +136,7 @@ public class Simplex {
             }
             break;
         }
-        case 2:
-        {
+        case 2: {
             Vector3 d = new Vector3().sub(vertices[1], vertices[0]);
             Vector3 axis = new Vector3();
             for (int i = 0; i < 3; i++) {
@@ -159,8 +157,7 @@ public class Simplex {
             }
             break;
         }
-        case 3:
-        {
+        case 3: {
             Vector3 n = Util.normal(vertices[0], vertices[1], vertices[2], null);
             if (n.lengthSquared() > 0) {
                 addVertex(n, false);
@@ -176,8 +173,7 @@ public class Simplex {
             }
             break;
         }
-        case 4:
-        {
+        case 4: {
             if (Math.abs(Util.tripleProduct(new Vector3().sub(vertices[0], vertices[3]),
                                             new Vector3().sub(vertices[1], vertices[3]),
                                             new Vector3().sub(vertices[2], vertices[3]))) > 0.0) {
@@ -233,7 +229,7 @@ public class Simplex {
 
     private int projectOrigin() {
         Projection proj = null;
-        switch(rank) {
+        switch (rank) {
         case 2:
             proj = projectOrigin2(vertices[0], vertices[1]);
             break;
@@ -262,11 +258,13 @@ public class Simplex {
         if (l > 0.0) {
             double t = -a.dot(d) / l;
             if (t >= 1.0) {
-                return new Projection(b.lengthSquared(), new double[] { 0.0, 1.0 }, 2);
+                return new Projection(b.lengthSquared(), new double[] {0.0, 1.0}, 2);
             } else if (t <= 0.0) {
-                return new Projection(a.lengthSquared(), new double[] { 1.0, 0.0 }, 1);
+                return new Projection(a.lengthSquared(), new double[] {1.0, 0.0}, 1);
             } else {
-                return new Projection(d.scale(t).add(a).lengthSquared(), new double[] { 1 - t, t }, 3);
+                return new Projection(d.scale(t).add(a).lengthSquared(),
+                                      new double[] {1 - t, t},
+                                      3);
             }
         } else {
             return null;
@@ -274,7 +272,7 @@ public class Simplex {
     }
 
     private Projection projectOrigin3(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c) {
-        Vector3[] vs = new Vector3[] { a, b, c };
+        Vector3[] vs = new Vector3[] {a, b, c};
         Vector3[] ds = new Vector3[3];
 
         ds[0] = new Vector3().sub(a, b);
@@ -291,14 +289,13 @@ public class Simplex {
 
             Vector3 p = new Vector3();
             for (int i = 0; i < 3; i++) {
-                if (vs[i].dot(p.cross(ds[i], n))  > 0.0) {
+                if (vs[i].dot(p.cross(ds[i], n)) > 0.0) {
                     int j = (i + 1) % 3;
                     Projection subProj = projectOrigin2(vs[i], vs[j]);
 
                     if (subProj != null && (minDist < 0.0 || subProj.distance < minDist)) {
                         minDist = subProj.distance;
-                        mask = ((subProj.mask & 1) != 0 ? (1 << i) : 0) |
-                                ((subProj.mask & 2) != 0 ? (1 << j) : 0);
+                        mask = ((subProj.mask & 1) != 0 ? (1 << i) : 0) | ((subProj.mask & 2) != 0 ? (1 << j) : 0);
                         weights[i] = subProj.weights[0];
                         weights[j] = subProj.weights[1];
                         weights[(j + 1) % 3] = 0.0;
@@ -324,8 +321,9 @@ public class Simplex {
         }
     }
 
-    private Projection projectOrigin4(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c, @Const Vector3 d) {
-        Vector3[] vs = new Vector3[] { a, b, c, d };
+    private Projection projectOrigin4(@Const Vector3 a, @Const Vector3 b,
+                                      @Const Vector3 c, @Const Vector3 d) {
+        Vector3[] vs = new Vector3[] {a, b, c, d};
         Vector3[] ds = new Vector3[3];
         ds[0] = new Vector3().sub(a, d);
         ds[1] = new Vector3().sub(b, d);
@@ -346,9 +344,7 @@ public class Simplex {
                     Projection subProj = projectOrigin3(vs[i], vs[j], d);
                     if (subProj != null && (minDist < 0.0 || subProj.distance < minDist)) {
                         minDist = subProj.distance;
-                        mask  = ((subProj.mask & 1) != 0 ? (1 << i) : 0) |
-                                ((subProj.mask & 2) != 0 ? (1 << j) : 0) |
-                                ((subProj.mask & 4) != 0 ? 8 : 0);
+                        mask = ((subProj.mask & 1) != 0 ? (1 << i) : 0) | ((subProj.mask & 2) != 0 ? (1 << j) : 0) | ((subProj.mask & 4) != 0 ? 8 : 0);
                         weights[i] = subProj.weights[0];
                         weights[j] = subProj.weights[1];
                         weights[(j + 1) % 3] = 0.0;

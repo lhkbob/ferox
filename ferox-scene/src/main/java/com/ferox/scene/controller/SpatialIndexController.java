@@ -24,7 +24,7 @@ public class SpatialIndexController extends SimpleController {
     public void process(double dt) {
         Renderable r;
         Iterator<Renderable> it = getEntitySystem().iterator(Renderable.ID);
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             r = it.next();
             index.add(r.getEntity(), r.getWorldBounds());
         }

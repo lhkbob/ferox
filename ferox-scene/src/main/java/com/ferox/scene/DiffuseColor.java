@@ -26,5 +26,5 @@ public final class DiffuseColor extends ColorComponent<DiffuseColor> {
      */
     public static final TypeId<DiffuseColor> ID = TypeId.get(DiffuseColor.class);
 
-    private DiffuseColor() { }
+    private DiffuseColor() {}
 }

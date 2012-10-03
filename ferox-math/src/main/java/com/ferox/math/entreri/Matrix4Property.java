@@ -35,9 +35,9 @@ public class Matrix4Property implements Property {
     }
 
     /**
-     * Get the matrix of this property, for the component at the given
-     * index, and store it into <tt>result</tt>. If result is null, a new
-     * Matrix4 is created and returned.
+     * Get the matrix of this property, for the component at the given index,
+     * and store it into <tt>result</tt>. If result is null, a new Matrix4 is
+     * created and returned.
      * 
      * @param index The component index to retrieve
      * @param result The matrix to store the data for the requested component
@@ -87,62 +87,77 @@ public class Matrix4Property implements Property {
          * @return Default m00 value
          */
         double m00();
+
         /**
          * @return Default m01 value
          */
         double m01();
+
         /**
          * @return Default m02 value
          */
         double m02();
+
         /**
          * @return Default m03 value
          */
         double m03();
+
         /**
          * @return Default m10 value
          */
         double m10();
+
         /**
          * @return Default m11 value
          */
         double m11();
+
         /**
          * @return Default m12 value
          */
         double m12();
+
         /**
          * @return Default m13 value
          */
         double m13();
+
         /**
          * @return Default m20 value
          */
         double m20();
+
         /**
          * @return Default m21 value
          */
         double m21();
+
         /**
          * @return Default m22 value
          */
         double m22();
+
         /**
          * @return Default m23 value
          */
         double m23();
+
         /**
          * @return Default m30 value
          */
         double m30();
+
         /**
          * @return Default m31 value
          */
         double m31();
+
         /**
          * @return Default m32 value
          */
         double m32();
+
         /**
          * @return Default m33 value
          */
@@ -163,10 +178,22 @@ public class Matrix4Property implements Property {
             super(attrs);
             if (attrs.hasAttribute(DefaultMatrix4.class)) {
                 DefaultMatrix4 v = attrs.getAttribute(DefaultMatrix4.class);
-                dflt = new Matrix4(v.m00(), v.m01(), v.m02(), v.m03(),
-                                   v.m10(), v.m11(), v.m12(), v.m13(),
-                                   v.m20(), v.m21(), v.m22(), v.m23(),
-                                   v.m30(), v.m31(), v.m32(), v.m33());
+                dflt = new Matrix4(v.m00(),
+                                   v.m01(),
+                                   v.m02(),
+                                   v.m03(),
+                                   v.m10(),
+                                   v.m11(),
+                                   v.m12(),
+                                   v.m13(),
+                                   v.m20(),
+                                   v.m21(),
+                                   v.m22(),
+                                   v.m23(),
+                                   v.m30(),
+                                   v.m31(),
+                                   v.m32(),
+                                   v.m33());
             } else {
                 dflt = new Matrix4();
             }

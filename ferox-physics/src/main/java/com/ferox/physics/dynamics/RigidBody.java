@@ -24,17 +24,24 @@ public class RigidBody extends ComponentData<RigidBody> {
     private Vector3Property totalTorque;
 
     // This got pretty ugly pretty fast
-    @Unmanaged private final Vector3 velocityCache = new Vector3();
-    @Unmanaged private final Vector3 angularVelocityCache = new Vector3();
-    @Unmanaged private final Vector3 forceCache = new Vector3();
-    @Unmanaged private final Vector3 torqueCache = new Vector3();
-    @Unmanaged private final Matrix3 tensorCache = new Matrix3();
+    @Unmanaged
+    private final Vector3 velocityCache = new Vector3();
+    @Unmanaged
+    private final Vector3 angularVelocityCache = new Vector3();
+    @Unmanaged
+    private final Vector3 forceCache = new Vector3();
+    @Unmanaged
+    private final Vector3 torqueCache = new Vector3();
+    @Unmanaged
+    private final Matrix3 tensorCache = new Matrix3();
 
-    @Unmanaged private final Vector3 temp = new Vector3();
+    @Unmanaged
+    private final Vector3 temp = new Vector3();
 
-    private RigidBody() { }
+    private RigidBody() {}
 
-    public @Const Matrix3 getInertiaTensorInverse() {
+    public @Const
+    Matrix3 getInertiaTensorInverse() {
         return tensorCache;
     }
 
@@ -123,19 +130,23 @@ public class RigidBody extends ComponentData<RigidBody> {
         return inverseMass.get(getIndex());
     }
 
-    public @Const Vector3 getVelocity() {
+    public @Const
+    Vector3 getVelocity() {
         return velocityCache;
     }
 
-    public @Const Vector3 getAngularVelocity() {
+    public @Const
+    Vector3 getAngularVelocity() {
         return angularVelocityCache;
     }
 
-    public @Const Vector3 getTotalForce() {
+    public @Const
+    Vector3 getTotalForce() {
         return forceCache;
     }
 
-    public @Const Vector3 getTotalTorque() {
+    public @Const
+    Vector3 getTotalTorque() {
         return torqueCache;
     }
 

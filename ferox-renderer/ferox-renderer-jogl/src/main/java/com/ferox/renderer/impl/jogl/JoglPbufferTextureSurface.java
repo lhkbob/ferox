@@ -35,9 +35,10 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
 
     private int activeLayerForFrame;
 
-    public JoglPbufferTextureSurface(AbstractFramework framework, JoglSurfaceFactory creator,
-                                     TextureSurfaceOptions options, JoglContext shareWith,
-                                     RendererProvider provider) {
+    public JoglPbufferTextureSurface(AbstractFramework framework,
+                                     JoglSurfaceFactory creator,
+                                     TextureSurfaceOptions options,
+                                     JoglContext shareWith, RendererProvider provider) {
         super(framework, options);
 
         Texture[] colorBuffers = new Texture[getNumColorBuffers()];
@@ -45,12 +46,14 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             colorBuffers[i] = getColorBuffer(i);
         }
 
-
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
-        GLCapabilities caps = chooseCapabilities(creator.getGLProfile(), colorBuffers, getDepthBuffer());
+        GLCapabilities caps = chooseCapabilities(creator.getGLProfile(), colorBuffers,
+                                                 getDepthBuffer());
         AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
-        pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLPbuffer(device, caps, new DefaultGLCapabilitiesChooser(),
-                                                                                       getWidth(), getHeight(), realShare);
+        pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile())
+                                   .createGLPbuffer(device, caps,
+                                                    new DefaultGLCapabilitiesChooser(),
+                                                    getWidth(), getHeight(), realShare);
         pbuffer.setAutoSwapBufferMode(false);
 
         context = new JoglContext(creator, pbuffer.getContext(), provider);
@@ -121,8 +124,8 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
             break;
         case GL2ES2.GL_TEXTURE_3D:
-            gl.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame,
-                                   0, 0, getWidth(), getHeight());
+            gl.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 0, 0,
+                                   getWidth(), getHeight());
             break;
         }
     }
@@ -135,8 +138,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             if (target == colorTarget) {
                 // restore enabled texture
                 gl.glBindTexture(colorTarget, tex);
-            }
-            else {
+            } else {
                 gl.glBindTexture(colorTarget, 0); // not really the active unit
             }
         }
@@ -144,14 +146,14 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             if (target == depthTarget) {
                 // restore enabled texture
                 gl.glBindTexture(depthTarget, tex);
-            }
-            else {
+            } else {
                 gl.glBindTexture(depthTarget, 0); // not really the active unit
             }
         }
     }
 
-    private static GLCapabilities chooseCapabilities(GLProfile profile, Texture[] colors, Texture depth) {
+    private static GLCapabilities chooseCapabilities(GLProfile profile, Texture[] colors,
+                                                     Texture depth) {
         GLCapabilities caps = new GLCapabilities(profile);
         caps.setPBuffer(true);
 
@@ -162,39 +164,71 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             caps.setAlphaBits(0);
         } else {
             TextureFormat format = colors[0].getFormat();
-            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT ||
-                    format == TextureFormat.DEPTH_FLOAT || format == TextureFormat.RGB_FLOAT ||
-                    format == TextureFormat.RGBA_FLOAT) {
+            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT || format == TextureFormat.DEPTH_FLOAT || format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
                 caps.setPbufferFloatingPointBuffers(true);
             }
 
-            switch(format) {
+            switch (format) {
             // 8, 8, 8, 0
-            case R: case RGB: case BGR:
-                caps.setRedBits(8); caps.setGreenBits(8); caps.setBlueBits(8); caps.setAlphaBits(0);
+            case R:
+            case RGB:
+            case BGR:
+                caps.setRedBits(8);
+                caps.setGreenBits(8);
+                caps.setBlueBits(8);
+                caps.setAlphaBits(0);
                 break;
-                // 5, 6, 5, 0
-            case BGR_565: case RGB_565:
-                caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5); caps.setAlphaBits(0);
+            // 5, 6, 5, 0
+            case BGR_565:
+            case RGB_565:
+                caps.setRedBits(5);
+                caps.setGreenBits(6);
+                caps.setBlueBits(5);
+                caps.setAlphaBits(0);
                 break;
-                // 5, 6, 5, 8 - not sure how supported this is
-            case BGRA_5551: case BGRA_4444: case ABGR_1555: case ABGR_4444:
-            case ARGB_4444: case ARGB_1555: case RGBA_4444: case RGBA_5551:
-                caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5); caps.setAlphaBits(8);
+            // 5, 6, 5, 8 - not sure how supported this is
+            case BGRA_5551:
+            case BGRA_4444:
+            case ABGR_1555:
+            case ABGR_4444:
+            case ARGB_4444:
+            case ARGB_1555:
+            case RGBA_4444:
+            case RGBA_5551:
+                caps.setRedBits(5);
+                caps.setGreenBits(6);
+                caps.setBlueBits(5);
+                caps.setAlphaBits(8);
                 break;
-                // 32, 32, 32, 32
-            case R_FLOAT: case RG_FLOAT: case RGBA_FLOAT:
-                caps.setRedBits(32); caps.setGreenBits(32); caps.setBlueBits(32); caps.setAlphaBits(32);
+            // 32, 32, 32, 32
+            case R_FLOAT:
+            case RG_FLOAT:
+            case RGBA_FLOAT:
+                caps.setRedBits(32);
+                caps.setGreenBits(32);
+                caps.setBlueBits(32);
+                caps.setAlphaBits(32);
                 break;
-                // 32, 32, 32, 0
+            // 32, 32, 32, 0
             case RGB_FLOAT:
-                caps.setRedBits(32); caps.setGreenBits(32); caps.setBlueBits(32); caps.setAlphaBits(0);
+                caps.setRedBits(32);
+                caps.setGreenBits(32);
+                caps.setBlueBits(32);
+                caps.setAlphaBits(0);
                 break;
-                // 8, 8, 8, 8
-            case RG: case BGRA: case BGRA_8888:
-            case RGBA_8888: case RGBA: case ARGB_8888: case ABGR_8888:
+            // 8, 8, 8, 8
+            case RG:
+            case BGRA:
+            case BGRA_8888:
+            case RGBA_8888:
+            case RGBA:
+            case ARGB_8888:
+            case ABGR_8888:
             default:
-                caps.setRedBits(8); caps.setGreenBits(8); caps.setBlueBits(8); caps.setAlphaBits(8);
+                caps.setRedBits(8);
+                caps.setGreenBits(8);
+                caps.setBlueBits(8);
+                caps.setAlphaBits(8);
                 break;
             }
         }

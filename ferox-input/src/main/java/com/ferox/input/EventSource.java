@@ -8,4 +8,4 @@ package com.ferox.input;
  * 
  * @author Michael Ludwig
  */
-public interface EventSource { }
+public interface EventSource {}

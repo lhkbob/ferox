@@ -6,7 +6,7 @@ import com.ferox.math.Quat4;
 import com.ferox.math.Vector3;
 
 public class ExplicitEulerIntegrator implements Integrator {
-    private static final double MAX_ANGULAR_VELOCITY = Math.PI  / 2.0;
+    private static final double MAX_ANGULAR_VELOCITY = Math.PI / 2.0;
     private static final double ANGULAR_MOTION_THRESHOLD = Math.PI / 4.0;
     private static final double ANGULAR_VELOCITY_DAMPING = .5;
 
@@ -20,7 +20,8 @@ public class ExplicitEulerIntegrator implements Integrator {
     }
 
     @Override
-    public void integrateAngularAcceleration(@Const Vector3 a, double dt, Vector3 angularVelocity) {
+    public void integrateAngularAcceleration(@Const Vector3 a, double dt,
+                                             Vector3 angularVelocity) {
         integrateVector(a, dt, angularVelocity);
         applyDamping(angularVelocity, dt, ANGULAR_VELOCITY_DAMPING);
     }

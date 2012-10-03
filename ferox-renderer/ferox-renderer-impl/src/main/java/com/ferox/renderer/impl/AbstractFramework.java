@@ -110,12 +110,13 @@ public abstract class AbstractFramework implements Framework {
                 // the Framework creation time instead of forcing OpenGL wrappers to
                 // create and discard a context solely for capabilities detection.
                 Future<RenderCapabilities> caps = contextManager.invokeOnContextThread(new Callable<RenderCapabilities>() {
-                    @Override
-                    public RenderCapabilities call() throws Exception {
-                        OpenGLContext context = contextManager.ensureContext();
-                        return context.getRenderCapabilities();
-                    }
-                }, false);
+                                                                                           @Override
+                                                                                           public RenderCapabilities call() throws Exception {
+                                                                                               OpenGLContext context = contextManager.ensureContext();
+                                                                                               return context.getRenderCapabilities();
+                                                                                           }
+                                                                                       },
+                                                                                       false);
 
                 renderCaps = getFuture(caps);
             }
@@ -130,25 +131,28 @@ public abstract class AbstractFramework implements Framework {
 
         // This task is not accepted during shutdown
         Future<OnscreenSurface> create = contextManager.invokeOnContextThread(new Callable<OnscreenSurface>() {
-            @Override
-            public OnscreenSurface call() throws Exception {
-                synchronized(fullscreenLock) {
-                    if (options.getFullscreenMode() != null && fullscreenSurface != null) {
-                        throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");
-                    }
+                                                                                  @Override
+                                                                                  public OnscreenSurface call() throws Exception {
+                                                                                      synchronized (fullscreenLock) {
+                                                                                          if (options.getFullscreenMode() != null && fullscreenSurface != null) {
+                                                                                              throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");
+                                                                                          }
 
-                    AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(AbstractFramework.this, options,
-                                                                                           contextManager.getSharedContext());
-                    surfaces.add(created);
-                    if (created.getOptions().getFullscreenMode() != null) {
-                        fullscreenSurface = created;
-                    }
+                                                                                          AbstractOnscreenSurface created = surfaceFactory.createOnscreenSurface(AbstractFramework.this,
+                                                                                                                                                                 options,
+                                                                                                                                                                 contextManager.getSharedContext());
+                                                                                          surfaces.add(created);
+                                                                                          if (created.getOptions()
+                                                                                                     .getFullscreenMode() != null) {
+                                                                                              fullscreenSurface = created;
+                                                                                          }
 
-                    contextManager.setActiveSurface(created, 0);
-                    return created;
-                }
-            }
-        }, false);
+                                                                                          contextManager.setActiveSurface(created,
+                                                                                                                          0);
+                                                                                          return created;
+                                                                                      }
+                                                                                  }
+                                                                              }, false);
         return getFuture(create);
     }
 
@@ -160,24 +164,28 @@ public abstract class AbstractFramework implements Framework {
 
         // This task is not accepted during shutdown
         Future<TextureSurface> create = contextManager.invokeOnContextThread(new Callable<TextureSurface>() {
-            @Override
-            public TextureSurface call() throws Exception {
-                AbstractTextureSurface created = surfaceFactory.createTextureSurface(AbstractFramework.this, options,
-                                                                                     contextManager.getSharedContext());
-                surfaces.add(created);
+                                                                                 @Override
+                                                                                 public TextureSurface call() throws Exception {
+                                                                                     AbstractTextureSurface created = surfaceFactory.createTextureSurface(AbstractFramework.this,
+                                                                                                                                                          options,
+                                                                                                                                                          contextManager.getSharedContext());
+                                                                                     surfaces.add(created);
 
-                // Mark all textures as non-disposable
-                if (created.getDepthBuffer() != null) {
-                    resourceManager.setDisposable(created.getDepthBuffer(), false);
-                }
-                for (int i = 0; i < created.getNumColorBuffers(); i++) {
-                    resourceManager.setDisposable(created.getColorBuffer(i), false);
-                }
+                                                                                     // Mark all textures as non-disposable
+                                                                                     if (created.getDepthBuffer() != null) {
+                                                                                         resourceManager.setDisposable(created.getDepthBuffer(),
+                                                                                                                       false);
+                                                                                     }
+                                                                                     for (int i = 0; i < created.getNumColorBuffers(); i++) {
+                                                                                         resourceManager.setDisposable(created.getColorBuffer(i),
+                                                                                                                       false);
+                                                                                     }
 
-                contextManager.setActiveSurface(created, 0);
-                return created;
-            }
-        }, false);
+                                                                                     contextManager.setActiveSurface(created,
+                                                                                                                     0);
+                                                                                     return created;
+                                                                                 }
+                                                                             }, false);
 
         return getFuture(create);
     }
@@ -192,11 +200,11 @@ public abstract class AbstractFramework implements Framework {
                 // The loop is structured this way so that we don't get an
                 // iterator snapshot that's not updated if there were any
                 // pending creates before we transitioned to STOPPING
-                while(!surfaces.isEmpty()) {
+                while (!surfaces.isEmpty()) {
                     AbstractSurface toDestroy = surfaces.iterator().next();
                     try {
                         toDestroy.destroy().get();
-                    } catch(Exception e) {
+                    } catch (Exception e) {
                         // accumulate the exceptions but continue to destroy
                         // all of the surfaces
                         surfaceDestroyExceptions.add(e);
@@ -290,7 +298,7 @@ public abstract class AbstractFramework implements Framework {
 
     @Override
     public OnscreenSurface getFullscreenSurface() {
-        synchronized(fullscreenLock) {
+        synchronized (fullscreenLock) {
             return fullscreenSurface;
         }
     }
@@ -342,7 +350,7 @@ public abstract class AbstractFramework implements Framework {
                 }
             } else if (surface instanceof OnscreenSurface) {
                 if (((OnscreenSurface) surface).getOptions().getFullscreenMode() != null) {
-                    synchronized(fullscreenLock) {
+                    synchronized (fullscreenLock) {
                         // last double check (probably unneeded)
                         if (fullscreenSurface == surface) {
                             fullscreenSurface = null;

@@ -32,16 +32,16 @@ import com.lhkbob.entreri.Result;
 import com.lhkbob.entreri.SimpleController;
 
 public class FixedFunctionRenderController extends SimpleController {
-    private final Framework           framework;
-    private final TextureSurface      shadowMap;
+    private final Framework framework;
+    private final TextureSurface shadowMap;
 
-    private final int                 shadowmapTextureUnit;
-    private final int                 diffuseTextureUnit;
-    private final int                 emissiveTextureUnit;
-    private final int                 decalTextureUnit;
+    private final int shadowmapTextureUnit;
+    private final int diffuseTextureUnit;
+    private final int emissiveTextureUnit;
+    private final int decalTextureUnit;
 
-    private List<PVSResult>           pvs;
-    private LightGroupResult          lightGroups;
+    private List<PVSResult> pvs;
+    private LightGroupResult lightGroups;
 
     private final Queue<Future<Void>> previousFrame;
 
@@ -56,8 +56,7 @@ public class FixedFunctionRenderController extends SimpleController {
 
         RenderCapabilities caps = framework.getCapabilities();
         if (!caps.hasFixedFunctionRenderer()) {
-            throw new IllegalArgumentException(
-                                               "Framework must support a FixedFunctionRenderer");
+            throw new IllegalArgumentException("Framework must support a FixedFunctionRenderer");
         }
 
         this.framework = framework;
@@ -66,8 +65,7 @@ public class FixedFunctionRenderController extends SimpleController {
 
         int numTex = caps.getMaxFixedPipelineTextures();
         boolean shadowsRequested = shadowMapSize > 0; // size is positive
-        boolean shadowSupport = ((caps.getFboSupport() || caps.getPbufferSupport()) &&
-                                 numTex > 1 && caps.getDepthTextureSupport());
+        boolean shadowSupport = ((caps.getFboSupport() || caps.getPbufferSupport()) && numTex > 1 && caps.getDepthTextureSupport());
 
         if (shadowsRequested && shadowSupport) {
             // convert size to a power of two
@@ -146,8 +144,7 @@ public class FixedFunctionRenderController extends SimpleController {
 
     public static long rendertime = 0L;
 
-    private Future<Void>
-            render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
+    private Future<Void> render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
         GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(),
                                                                   view.getViewMatrix());
         TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(),
@@ -156,8 +153,7 @@ public class FixedFunctionRenderController extends SimpleController {
                                                                    geomGroup);
         MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(),
                                                                       geomGroup);
-        LightGroupFactory lightGroup = new LightGroupFactory(
-                                                             getEntitySystem(),
+        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(),
                                                              lightGroups,
                                                              framework.getCapabilities()
                                                                       .getMaxActiveLights(),

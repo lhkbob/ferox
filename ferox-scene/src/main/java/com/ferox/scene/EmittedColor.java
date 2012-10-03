@@ -21,5 +21,5 @@ public final class EmittedColor extends ColorComponent<EmittedColor> {
      */
     public static final TypeId<EmittedColor> ID = TypeId.get(EmittedColor.class);
 
-    private EmittedColor() { }
+    private EmittedColor() {}
 }

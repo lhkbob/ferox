@@ -95,7 +95,8 @@ public class RenderCapabilities {
     }
 
     /**
-     * @return True if the COMBINE EnvMode is supported by FixedFunctionRenderers
+     * @return True if the COMBINE EnvMode is supported by
+     *         FixedFunctionRenderers
      */
     public boolean getCombineEnvModeSupport() {
         return hasEnvCombine;
@@ -109,9 +110,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE extension,
-     *         which improves appearance, or false when it must fallback to
-     *         GL_CLAMP
+     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE
+     *         extension, which improves appearance, or false when it must
+     *         fallback to GL_CLAMP
      */
     public boolean getClampToEdgeSupport() {
         return hasClampEdge;

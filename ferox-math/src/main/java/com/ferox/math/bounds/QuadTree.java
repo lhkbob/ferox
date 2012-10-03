@@ -80,9 +80,13 @@ public class QuadTree<T> implements SpatialIndex<T> {
      * @param objSize The estimated object size
      */
     public QuadTree(double sideLength, double objSize) {
-        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0, -10 * objSize, -sideLength / 2.0),
-                                new Vector3(sideLength / 2.0, 10 * objSize, sideLength / 2.0)),
-                                Functions.log2((int) Math.ceil(sideLength / objSize)));
+        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0,
+                                            -10 * objSize,
+                                            -sideLength / 2.0),
+                                new Vector3(sideLength / 2.0,
+                                            10 * objSize,
+                                            sideLength / 2.0)),
+             Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
 
     /**
@@ -121,7 +125,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
         widthScaleFactor = maxCellDimension / (getFirstDimension(aabb.max) - getFirstDimension(aabb.min));
         heightScaleFactor = maxCellDimension / (getSecondDimension(aabb.max) - getSecondDimension(aabb.min));
 
-        widthOffset =  -getFirstDimension(aabb.min);
+        widthOffset = -getFirstDimension(aabb.min);
         heightOffset = -getSecondDimension(aabb.min);
 
         int numNodes = getLevelOffset(depth);
@@ -162,9 +166,8 @@ public class QuadTree<T> implements SpatialIndex<T> {
     }
 
     /*
-     * Update cell references to oldIndex to point to toIndex (e.g.
-     * when an element has been swapped because original value for toIndex
-     * was removed)
+     * Update cell references to oldIndex to point to toIndex (e.g. when an
+     * element has been swapped because original value for toIndex was removed)
      */
     private void updateItemIndex(int oldIndex, int toIndex) {
         // do an aabb query using the last known aabb state so that we
@@ -243,8 +246,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
             throw new NullPointerException("Item bounds cannot be null");
         }
 
-        if (!rootBounds.contains(bounds))
-        {
+        if (!rootBounds.contains(bounds)) {
             return false; // skip the element
         }
 
@@ -341,6 +343,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
     public static long intersectionCount = 0;
     public static long maxCellCount = 0;
     public static long usedCellCount = 0;
+
     @Override
     @SuppressWarnings("unchecked")
     public void query(IntersectionCallback<T> callback) {
@@ -450,14 +453,14 @@ public class QuadTree<T> implements SpatialIndex<T> {
 
         // start at root quadtree and walk the tree to compute intersections,
         // building in place an aabb for testing.
-        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter,
-              f, new PlaneState(), false, callback,
-              new AxisAlignedBox());
+        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, f,
+              new PlaneState(), false, callback, new AxisAlignedBox());
     }
 
     @SuppressWarnings("unchecked")
-    private void query(int level, int index, AxisAlignedBox nodeBounds, int query, Frustum f, PlaneState planeState,
-                       boolean insideGuaranteed, QueryCallback<T> callback, AxisAlignedBox itemBounds) {
+    private void query(int level, int index, AxisAlignedBox nodeBounds, int query,
+                       Frustum f, PlaneState planeState, boolean insideGuaranteed,
+                       QueryCallback<T> callback, AxisAlignedBox itemBounds) {
         // we assume that this node has items and nodeBounds has been updated to
         // equal this node. we still have to check if the node intersects the frustum
         if (!insideGuaranteed) {
@@ -513,7 +516,8 @@ public class QuadTree<T> implements SpatialIndex<T> {
                 if (quadtree[childOffset + childIndex] > 0) {
                     // visit child
                     toChildBounds(i, nodeBounds);
-                    query(level + 1, childIndex, nodeBounds, query, f, planeState, insideGuaranteed, callback, itemBounds);
+                    query(level + 1, childIndex, nodeBounds, query, f, planeState,
+                          insideGuaranteed, callback, itemBounds);
                     restoreParentBounds(i, nodeBounds);
 
                     // restore planestate for this node
@@ -526,6 +530,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
     private static boolean inPositiveX(int index) {
         return (index & POS_X) != 0;
     }
+
     private static boolean inPositiveY(int index) {
         return (index & POS_Y) != 0;
     }
@@ -533,36 +538,44 @@ public class QuadTree<T> implements SpatialIndex<T> {
     private void toChildBounds(int child, AxisAlignedBox bounds) {
         if (inPositiveX(child)) {
             // new min x is the center of the node
-            setFirstDimension(bounds.min, (getFirstDimension(bounds.min) + getFirstDimension(bounds.max)) / 2.0);
+            setFirstDimension(bounds.min,
+                              (getFirstDimension(bounds.min) + getFirstDimension(bounds.max)) / 2.0);
         } else {
             // new max x is the center of the node
-            setFirstDimension(bounds.max, (getFirstDimension(bounds.min) + getFirstDimension(bounds.max)) / 2.0);
+            setFirstDimension(bounds.max,
+                              (getFirstDimension(bounds.min) + getFirstDimension(bounds.max)) / 2.0);
         }
 
         if (inPositiveY(child)) {
             // new min y is the center of the node
-            setSecondDimension(bounds.min, (getSecondDimension(bounds.min) + getSecondDimension(bounds.max)) / 2.0);
+            setSecondDimension(bounds.min,
+                               (getSecondDimension(bounds.min) + getSecondDimension(bounds.max)) / 2.0);
         } else {
             // new max y is the center of the node
-            setSecondDimension(bounds.max, (getSecondDimension(bounds.min) + getSecondDimension(bounds.max)) / 2.0);
+            setSecondDimension(bounds.max,
+                               (getSecondDimension(bounds.min) + getSecondDimension(bounds.max)) / 2.0);
         }
     }
 
     private void restoreParentBounds(int child, AxisAlignedBox bounds) {
         if (inPositiveX(child)) {
             // new min x = min x - distance from min to max = 2 * min - max
-            setFirstDimension(bounds.min, 2 * getFirstDimension(bounds.min) - getFirstDimension(bounds.max));
+            setFirstDimension(bounds.min,
+                              2 * getFirstDimension(bounds.min) - getFirstDimension(bounds.max));
         } else {
             // new max x = max x + distance from min to max = 2 * max - min
-            setFirstDimension(bounds.max, 2 * getFirstDimension(bounds.max) - getFirstDimension(bounds.min));
+            setFirstDimension(bounds.max,
+                              2 * getFirstDimension(bounds.max) - getFirstDimension(bounds.min));
         }
 
         if (inPositiveY(child)) {
             // new min y = min y - distance from min to max = 2 * min - max
-            setSecondDimension(bounds.min, 2 * getSecondDimension(bounds.min) - getSecondDimension(bounds.max));
+            setSecondDimension(bounds.min,
+                               2 * getSecondDimension(bounds.min) - getSecondDimension(bounds.max));
         } else {
             // new max y = max y + distance from min to max = 2 * max - min
-            setSecondDimension(bounds.max, 2 * getSecondDimension(bounds.max) - getSecondDimension(bounds.min));
+            setSecondDimension(bounds.max,
+                               2 * getSecondDimension(bounds.max) - getSecondDimension(bounds.min));
         }
     }
 

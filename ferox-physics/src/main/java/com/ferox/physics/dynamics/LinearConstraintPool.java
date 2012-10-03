@@ -88,14 +88,11 @@ public class LinearConstraintPool {
         return dynamicLimits[i];
     }
 
-    public int addConstraint(RigidBody bodyA, RigidBody bodyB,
-                             float taX, float taY, float taZ,
-                             float tbX, float tbY, float tbZ,
-                             float nX, float nY, float nZ,
-                             float laX, float laY, float laZ,
-                             float lbX, float lbY, float lbZ,
-                             float aaX, float aaY, float aaZ,
-                             float abX, float abY, float abZ) {
+    public int addConstraint(RigidBody bodyA, RigidBody bodyB, float taX, float taY,
+                             float taZ, float tbX, float tbY, float tbZ, float nX,
+                             float nY, float nZ, float laX, float laY, float laZ,
+                             float lbX, float lbY, float lbZ, float aaX, float aaY,
+                             float aaZ, float abX, float abY, float abZ) {
         int i = count++;
         int veci = i * 3;
         if (i >= bodyAs.length) {
@@ -103,21 +100,35 @@ public class LinearConstraintPool {
             setCapacity((i + 1) * 2);
         }
 
-        directions[veci] = nX; directions[veci + 1] = nY; directions[veci + 2] = nZ;
-        torqueAs[veci] = taX; torqueAs[veci + 1] = taY; torqueAs[veci + 2] = taZ;
-        torqueBs[veci] = tbX; torqueBs[veci + 1] = tbY; torqueBs[veci + 2] = tbZ;
+        directions[veci] = nX;
+        directions[veci + 1] = nY;
+        directions[veci + 2] = nZ;
+        torqueAs[veci] = taX;
+        torqueAs[veci + 1] = taY;
+        torqueAs[veci + 2] = taZ;
+        torqueBs[veci] = tbX;
+        torqueBs[veci + 1] = tbY;
+        torqueBs[veci + 2] = tbZ;
 
         if (bodyA != null) {
-            linearDirAs[veci] = laX; linearDirAs[veci + 1] = laY; linearDirAs[veci + 2] = laZ;
-            angleDirAs[veci] = aaX; angleDirAs[veci + 1] = aaY; angleDirAs[veci + 2] = aaZ;
+            linearDirAs[veci] = laX;
+            linearDirAs[veci + 1] = laY;
+            linearDirAs[veci + 2] = laZ;
+            angleDirAs[veci] = aaX;
+            angleDirAs[veci + 1] = aaY;
+            angleDirAs[veci + 2] = aaZ;
             bodyAs[i] = bodyA.getIndex();
         } else {
             bodyAs[i] = -1;
         }
 
         if (bodyB != null) {
-            linearDirBs[veci] = lbX; linearDirBs[veci + 1] = lbY; linearDirBs[veci + 2] = lbZ;
-            angleDirBs[veci] = abX; angleDirBs[veci + 1] = abY; angleDirBs[veci + 2] = abZ;
+            linearDirBs[veci] = lbX;
+            linearDirBs[veci + 1] = lbY;
+            linearDirBs[veci + 2] = lbZ;
+            angleDirBs[veci] = abX;
+            angleDirBs[veci + 1] = abY;
+            angleDirBs[veci + 2] = abZ;
             bodyBs[i] = bodyB.getIndex();
         } else {
             bodyBs[i] = -1;
@@ -126,8 +137,8 @@ public class LinearConstraintPool {
         return i;
     }
 
-    public int addConstraint(RigidBody bodyA, RigidBody bodyB,
-                             @Const Vector3 direction, @Const Vector3 torqueA, @Const Vector3 torqueB) {
+    public int addConstraint(RigidBody bodyA, RigidBody bodyB, @Const Vector3 direction,
+                             @Const Vector3 torqueA, @Const Vector3 torqueB) {
         int i = count++;
         int veci = i * 3;
         if (i >= bodyAs.length) {
@@ -186,19 +197,23 @@ public class LinearConstraintPool {
         return i;
     }
 
-    public @Const Vector3 getLinearImpulseA(int i, double impulse) {
+    public @Const
+    Vector3 getLinearImpulseA(int i, double impulse) {
         return linearA.set(linearDirAs, i * 3).scale(impulse);
     }
 
-    public @Const Vector3 getLinearImpulseB(int i, double impulse) {
+    public @Const
+    Vector3 getLinearImpulseB(int i, double impulse) {
         return linearB.set(linearDirBs, i * 3).scale(impulse);
     }
 
-    public @Const Vector3 getAngularImpulseA(int i, double impulse) {
+    public @Const
+    Vector3 getAngularImpulseA(int i, double impulse) {
         return angularA.set(angleDirAs, i * 3).scale(impulse);
     }
 
-    public @Const Vector3 getAngularImpulseB(int i, double impulse) {
+    public @Const
+    Vector3 getAngularImpulseB(int i, double impulse) {
         return angularB.set(angleDirBs, i * 3).scale(impulse);
     }
 
@@ -236,15 +251,18 @@ public class LinearConstraintPool {
         dynamicScaleFactors[i] = scale;
     }
 
-    public @Const Vector3 getConstraintDirection(int i) {
+    public @Const
+    Vector3 getConstraintDirection(int i) {
         return direction.set(directions, i * 3);
     }
 
-    public @Const Vector3 getTorqueA(int i) {
+    public @Const
+    Vector3 getTorqueA(int i) {
         return torqueA.set(torqueAs, i * 3);
     }
 
-    public @Const Vector3 getTorqueB(int i) {
+    public @Const
+    Vector3 getTorqueB(int i) {
         return torqueB.set(torqueBs, i * 3);
     }
 

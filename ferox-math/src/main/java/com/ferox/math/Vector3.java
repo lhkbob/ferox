@@ -197,8 +197,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the cross product <code>a X b</code> and store the result
-     * in this vector.
+     * Compute the cross product <code>a X b</code> and store the result in this
+     * vector.
      * 
      * @param a The left side of the cross product
      * @param b The right side of the cross product
@@ -206,9 +206,7 @@ public final class Vector3 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Vector3 cross(@Const Vector3 a, @Const Vector3 b) {
-        return set(a.y * b.z - b.y * a.z,
-                   a.z * b.x - b.z * a.x,
-                   a.x * b.y - b.x * a.y);
+        return set(a.y * b.z - b.y * a.z, a.z * b.x - b.z * a.x, a.x * b.y - b.x * a.y);
     }
 
     /**
@@ -392,7 +390,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #scale(Vector3, double)}, where the first argument is this vector.
+     * As {@link #scale(Vector3, double)}, where the first argument is this
+     * vector.
      * 
      * @param scalar
      * @return This vector
@@ -402,8 +401,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Normalize this vector in place, equivalent to
-     * {@link #normalize(Vector3)}, where the first argument is this vector.
+     * Normalize this vector in place, equivalent to {@link #normalize(Vector3)}
+     * , where the first argument is this vector.
      * 
      * @return This vector
      * @throws ArithmeticException if the vector cannot be normalized
@@ -610,8 +609,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -625,8 +624,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The FloatBuffer to hold the row values
      * @param offset The first index to use in the store

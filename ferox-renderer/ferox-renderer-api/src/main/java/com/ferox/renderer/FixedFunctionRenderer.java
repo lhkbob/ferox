@@ -165,20 +165,19 @@ public interface FixedFunctionRenderer extends Renderer {
      * </p>
      */
     public static enum CombineSource {
-        CURR_TEX, PREV_TEX, CONST_COLOR, VERTEX_COLOR,
-        TEX0, TEX1, TEX2, TEX3, TEX4, TEX5, TEX6, TEX7, TEX8,
-        TEX9, TEX10, TEX11, TEX12, TEX13, TEX14, TEX15, TEX16,
-        TEX17, TEX18, TEX19, TEX20, TEX21, TEX22, TEX23, TEX24,
-        TEX25, TEX26, TEX27, TEX28, TEX29, TEX30, TEX31
+        CURR_TEX, PREV_TEX, CONST_COLOR, VERTEX_COLOR, TEX0, TEX1, TEX2, TEX3, TEX4,
+        TEX5, TEX6, TEX7, TEX8, TEX9, TEX10, TEX11, TEX12, TEX13, TEX14, TEX15, TEX16,
+        TEX17, TEX18, TEX19, TEX20, TEX21, TEX22, TEX23, TEX24, TEX25, TEX26, TEX27,
+        TEX28, TEX29, TEX30, TEX31
     }
 
     /**
      * TexCoord represents the enum of available texture coordinates used to
      * access a texture. Each texture can be accessed by up to four coordinates:
      * (s, t, r, q). Often however, only the first two or three are used. When
-     * all four are specified, the q coordinate acts as a homogeneous coordinate.
-     * If r is not provided for when a Texture requires three coordinates,
-     * undefined results occur.
+     * all four are specified, the q coordinate acts as a homogeneous
+     * coordinate. If r is not provided for when a Texture requires three
+     * coordinates, undefined results occur.
      */
     public static enum TexCoord {
         /** The first texture coordinate. */
@@ -192,9 +191,9 @@ public interface FixedFunctionRenderer extends Renderer {
     }
 
     /**
-     * When mapping a Texture onto a rendered Geometry, texture coordinates
-     * are used to wrap the image about the shape. There are multiple options
-     * for how these coordinates are derived.
+     * When mapping a Texture onto a rendered Geometry, texture coordinates are
+     * used to wrap the image about the shape. There are multiple options for
+     * how these coordinates are derived.
      */
     public static enum TexCoordSource {
         /**
@@ -233,13 +232,13 @@ public interface FixedFunctionRenderer extends Renderer {
          */
         SPHERE,
         /**
-         * Texture coordinates are generated and set to the normal vector
-         * of each associated vertex.
+         * Texture coordinates are generated and set to the normal vector of
+         * each associated vertex.
          */
         NORMAL,
         /**
          * Texture coordinates are generated and set to a computed reflection
-         * vector at each vertex.  The reflection vector is based on the vertex
+         * vector at each vertex. The reflection vector is based on the vertex
          * normal and the current eye point.
          */
         REFLECTION
@@ -589,7 +588,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws IndexOutOfBoundsException if the hardware does not support a
      *             light at the provided index, or if light is less than 0
      */
-    public void setLightAttenuation(int light, double constant, double linear, double quadratic);
+    public void setLightAttenuation(int light, double constant, double linear,
+                                    double quadratic);
 
     /**
      * <p>
@@ -907,12 +907,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * By default, no vertices are bound and must be specified before rendering
      * can occur successfully.
      * 
-     * @param vertices
-     *            The VertexAttribute holding the position data and access
+     * @param vertices The VertexAttribute holding the position data and access
      *            information
-     * @throws IllegalArgumentException
-     *             if vertices' buffer data type is not FLOAT or if its element
-     *             size is 1
+     * @throws IllegalArgumentException if vertices' buffer data type is not
+     *             FLOAT or if its element size is 1
      */
     public void setVertices(VertexAttribute vertices);
 
@@ -933,11 +931,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * By default, no normals are bound and any normal vector used for lighting
      * is undefined.
      * 
-     * @param normals
-     *            The VertexAttribute holding the normal vector data and access
-     *            information
-     * @throws IllegalArgumentException
-     *             if normals element size is not 3 or if its type is not FLOAT
+     * @param normals The VertexAttribute holding the normal vector data and
+     *            access information
+     * @throws IllegalArgumentException if normals element size is not 3 or if
+     *             its type is not FLOAT
      */
     public void setNormals(VertexAttribute normals);
 
@@ -964,11 +961,9 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * By default, no color attribute is bound.
      * 
-     * @param colors
-     *            The VertexAttribute holding the color vector data
-     * @throws IllegalArgumentException
-     *             if colors element size is not 3 or 4, or if its type is not
-     *             FLOAT
+     * @param colors The VertexAttribute holding the color vector data
+     * @throws IllegalArgumentException if colors element size is not 3 or 4, or
+     *             if its type is not FLOAT
      */
     public void setColors(VertexAttribute colors);
 
@@ -996,16 +991,12 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p>
      * Every texture unit starst with no attribute bound.
      * 
-     * @param tex
-     *            The texture unit to bind <tt>texCoords</tt> to
-     * @param texCoords
-     *            The VertexAttribute holding the texture coordinate data and
-     *            access information
-     * @throws IllegalArgumentException
-     *             if texCoords' data type is not FLOAT
-     * @throws IndexOutOfBoundsException
-     *             if the hardware does not support a texture at the provided
-     *             index, or if tex is less than 0
+     * @param tex The texture unit to bind <tt>texCoords</tt> to
+     * @param texCoords The VertexAttribute holding the texture coordinate data
+     *            and access information
+     * @throws IllegalArgumentException if texCoords' data type is not FLOAT
+     * @throws IndexOutOfBoundsException if the hardware does not support a
+     *             texture at the provided index, or if tex is less than 0
      */
     public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }

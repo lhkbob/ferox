@@ -41,8 +41,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
         GL20.glCompileShader(shaderId);
 
         // query compile status and possibly read log
-        if (GL20.glGetShader(shaderId, GL20.GL_COMPILE_STATUS) == GL11.GL_TRUE)
-        {
+        if (GL20.glGetShader(shaderId, GL20.GL_COMPILE_STATUS) == GL11.GL_TRUE) {
             return null; // everything compiled successfully, no log
         }
 
@@ -81,8 +80,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
         GL20.glLinkProgram(programId);
 
         // check link status
-        if (GL20.glGetProgram(programId, GL20.GL_LINK_STATUS) == GL11.GL_TRUE)
-        {
+        if (GL20.glGetProgram(programId, GL20.GL_LINK_STATUS) == GL11.GL_TRUE) {
             return null; // program linked successfully
         }
 
@@ -98,7 +96,8 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
     @Override
     protected void updateAttributes(OpenGLContext context, GlslShaderHandle handle) {
         int numAttrs = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTES);
-        int maxAttributeNameLength = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
+        int maxAttributeNameLength = GL20.glGetProgram(handle.programID,
+                                                       GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
         ByteBuffer name = BufferUtil.newByteBuffer(maxAttributeNameLength);
 
         IntBuffer nameLen = BufferUtil.newIntBuffer(1);
@@ -112,7 +111,9 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             String attrName = new String(bs);
 
             int index = GL20.glGetAttribLocation(handle.programID, attrName);
-            Attribute a = new Attribute(attrName, Utils.getAttributeType(type.get(0)), index);
+            Attribute a = new Attribute(attrName,
+                                        Utils.getAttributeType(type.get(0)),
+                                        index);
 
             handle.attributes.put(attrName, a);
         }
@@ -121,7 +122,8 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
     @Override
     protected void updateUniforms(OpenGLContext context, GlslShaderHandle handle) {
         int numUniforms = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORMS);
-        int maxUniformNameLength = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH);
+        int maxUniformNameLength = GL20.glGetProgram(handle.programID,
+                                                     GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH);
         ByteBuffer name = BufferUtil.newByteBuffer(maxUniformNameLength);
 
         IntBuffer nameLen = BufferUtil.newIntBuffer(1);
@@ -134,7 +136,9 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             name.get(bs, 0, bs.length).position(0);
             String uniformName = new String(bs);
 
-            GlslUniform u = new GlslUniform(uniformName, Utils.getUniformType(type.get(0)), len.get(0));
+            GlslUniform u = new GlslUniform(uniformName,
+                                            Utils.getUniformType(type.get(0)),
+                                            len.get(0));
 
             // get uniform location
             int location = GL20.glGetUniformLocation(handle.programID, uniformName);

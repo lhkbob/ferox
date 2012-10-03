@@ -45,8 +45,8 @@ public final class ColorRGB implements Cloneable {
      * Create a new ColorRGB with red, green, and blue values equal to 0.
      */
     public ColorRGB() {
-        rgb = new double[] { 0, 0, 0 };
-        rgbHDR = new double[] { 0, 0, 0 };
+        rgb = new double[] {0, 0, 0};
+        rgbHDR = new double[] {0, 0, 0};
     }
 
     /**
@@ -63,8 +63,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Create a new ColorRGB that uses the given red, green and blue color values
-     * initially.
+     * Create a new ColorRGB that uses the given red, green and blue color
+     * values initially.
      * 
      * @see #set(float, float, float)
      * @param red The red value
@@ -162,8 +162,7 @@ public final class ColorRGB implements Cloneable {
             throw new IllegalArgumentException("Darkening factor must be in the range (0, 1], not: " + factor);
         }
 
-        return set(Math.max(0, factor * redHDR()),
-                   Math.max(0, factor * greenHDR()),
+        return set(Math.max(0, factor * redHDR()), Math.max(0, factor * greenHDR()),
                    Math.max(0, factor * blueHDR()));
     }
 
@@ -180,8 +179,8 @@ public final class ColorRGB implements Cloneable {
 
     /**
      * Set this color to use the given red, green and blue values. This is
-     * equivalent to calling {@link #red(float)}, {@link #green(float)},
-     * and {@link #blue(float)} with their appropriate values.
+     * equivalent to calling {@link #red(float)}, {@link #green(float)}, and
+     * {@link #blue(float)} with their appropriate values.
      * 
      * @param red The new red value
      * @param green The new green value
@@ -194,9 +193,9 @@ public final class ColorRGB implements Cloneable {
 
     /**
      * Set the red component value to <tt>blue</tt>. This value can be greater
-     * than 1 and will be unclamped for {@link #redHDR()}, but will be
-     * clamped to below 1 for {@link #red()}. Values below 0 will always be
-     * clamped to 0, regardless of dynamic range.
+     * than 1 and will be unclamped for {@link #redHDR()}, but will be clamped
+     * to below 1 for {@link #red()}. Values below 0 will always be clamped to
+     * 0, regardless of dynamic range.
      * 
      * @param red The new red color value
      * @return This color
@@ -207,9 +206,9 @@ public final class ColorRGB implements Cloneable {
 
     /**
      * Set the green component value to <tt>blue</tt>. This value can be greater
-     * than 1 and will be unclamped for {@link #greenHDR()}, but will be
-     * clamped to below 1 for {@link #green()}. Values below 0 will always be
-     * clamped to 0, regardless of dynamic range.
+     * than 1 and will be unclamped for {@link #greenHDR()}, but will be clamped
+     * to below 1 for {@link #green()}. Values below 0 will always be clamped to
+     * 0, regardless of dynamic range.
      * 
      * @param green The new green color value
      * @return This color
@@ -220,9 +219,9 @@ public final class ColorRGB implements Cloneable {
 
     /**
      * Set the blue component value to <tt>blue</tt>. This value can be greater
-     * than 1 and will be unclamped for {@link #blueHDR()}, but will be
-     * clamped to below 1 for {@link #blue()}. Values below 0 will always be
-     * clamped to 0, regardless of dynamic range.
+     * than 1 and will be unclamped for {@link #blueHDR()}, but will be clamped
+     * to below 1 for {@link #blue()}. Values below 0 will always be clamped to
+     * 0, regardless of dynamic range.
      * 
      * @param blue The new blue color value
      * @return This color
@@ -314,8 +313,8 @@ public final class ColorRGB implements Cloneable {
     /**
      * Return the clamped color value for the red component. This value will be
      * between 0 and 1, where 1 represents full saturation for the component.
-     * This will return 1 if {@link #redHDR()} returns a value greater than
-     * 1. Only clamping is performed to get this to [0, 1], tone-mapping is not
+     * This will return 1 if {@link #redHDR()} returns a value greater than 1.
+     * Only clamping is performed to get this to [0, 1], tone-mapping is not
      * performed.
      * 
      * @return The clamped red value
@@ -327,8 +326,8 @@ public final class ColorRGB implements Cloneable {
     /**
      * Return the clamped color value for the green component. This value will
      * be between 0 and 1, where 1 represents full saturation for the component.
-     * This will return 1 if {@link #greenHDR()} returns a value greater than
-     * 1. Only clamping is performed to get this to [0, 1], tone-mapping is not
+     * This will return 1 if {@link #greenHDR()} returns a value greater than 1.
+     * Only clamping is performed to get this to [0, 1], tone-mapping is not
      * performed.
      * 
      * @return The clamped green value
@@ -340,8 +339,8 @@ public final class ColorRGB implements Cloneable {
     /**
      * Return the clamped color value for the blue component. This value will be
      * between 0 and 1, where 1 represents full saturation for the component.
-     * This will return 1 if {@link #blueHDR()} returns a value greater than
-     * 1. Only clamping is performed to get this to [0, 1], tone-mapping is not
+     * This will return 1 if {@link #blueHDR()} returns a value greater than 1.
+     * Only clamping is performed to get this to [0, 1], tone-mapping is not
      * performed.
      * 
      * @return The clamped blue value
@@ -391,7 +390,7 @@ public final class ColorRGB implements Cloneable {
      * @return The clamped color for the given component
      */
     public double get(int component) {
-        switch(component) {
+        switch (component) {
         case 0:
             return red();
         case 1:
@@ -411,7 +410,7 @@ public final class ColorRGB implements Cloneable {
      * @return The unclamped, HDR color for the given component
      */
     public double getHDR(int component) {
-        switch(component) {
+        switch (component) {
         case 0:
             return redHDR();
         case 1:
@@ -452,8 +451,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -482,8 +481,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The FloatBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -555,13 +554,13 @@ public final class ColorRGB implements Cloneable {
         }
 
         if (asHDR) {
-            return Double.compare(redHDR(), color.redHDR()) == 0 &&
-                    Double.compare(greenHDR(), color.greenHDR()) == 0 &&
-                    Double.compare(blueHDR(), color.blueHDR()) == 0;
+            return Double.compare(redHDR(), color.redHDR()) == 0 && Double.compare(greenHDR(),
+                                                                                   color.greenHDR()) == 0 && Double.compare(blueHDR(),
+                                                                                                                            color.blueHDR()) == 0;
         } else {
-            return Double.compare(red(), color.red()) == 0 &&
-                    Double.compare(green(), color.green()) == 0 &&
-                    Double.compare(blue(), color.blue()) == 0;
+            return Double.compare(red(), color.red()) == 0 && Double.compare(green(),
+                                                                             color.green()) == 0 && Double.compare(blue(),
+                                                                                                                   color.blue()) == 0;
         }
     }
 

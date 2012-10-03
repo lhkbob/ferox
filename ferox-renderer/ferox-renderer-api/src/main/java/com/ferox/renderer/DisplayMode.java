@@ -34,7 +34,10 @@ public class DisplayMode {
         RGBA_32BIT(32);
 
         private final int bitdepth;
-        private PixelFormat(int bitdepth) { this.bitdepth = bitdepth; }
+
+        private PixelFormat(int bitdepth) {
+            this.bitdepth = bitdepth;
+        }
 
         /**
          * @return The bitdepth of the PixelFormat

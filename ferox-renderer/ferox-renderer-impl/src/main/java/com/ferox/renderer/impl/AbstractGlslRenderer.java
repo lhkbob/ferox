@@ -133,15 +133,29 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             isTextureBinding = false;
             valuesValid = false;
 
-            int length = uniform.uniform.getLength() * uniform.uniform.getType().getPrimitiveCount();
-            switch(uniform.uniform.getType()) {
-            case FLOAT: case FLOAT_MAT2: case FLOAT_MAT3: case FLOAT_MAT4:
-            case FLOAT_VEC2: case FLOAT_VEC3: case FLOAT_VEC4:
+            int length = uniform.uniform.getLength() * uniform.uniform.getType()
+                                                                      .getPrimitiveCount();
+            switch (uniform.uniform.getType()) {
+            case FLOAT:
+            case FLOAT_MAT2:
+            case FLOAT_MAT3:
+            case FLOAT_MAT4:
+            case FLOAT_VEC2:
+            case FLOAT_VEC3:
+            case FLOAT_VEC4:
                 floatValues = BufferUtil.newFloatBuffer(length);
                 intValues = null;
                 break;
-            case INT: case INT_VEC2: case INT_VEC3: case INT_VEC4: case BOOL:
-            case SHADOW_MAP: case TEXTURE_1D: case TEXTURE_2D: case TEXTURE_3D: case TEXTURE_CUBEMAP:
+            case INT:
+            case INT_VEC2:
+            case INT_VEC3:
+            case INT_VEC4:
+            case BOOL:
+            case SHADOW_MAP:
+            case TEXTURE_1D:
+            case TEXTURE_2D:
+            case TEXTURE_3D:
+            case TEXTURE_CUBEMAP:
                 intValues = BufferUtil.newIntBuffer(length);
                 floatValues = null;
                 break;
@@ -156,30 +170,40 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     /*
      * Valid type definitions for the different setUniform() calls
      */
-    private static final UniformType[] VALID_FLOAT = { UniformType.FLOAT };
-    private static final UniformType[] VALID_FLOAT2 = { UniformType.FLOAT_VEC2 };
-    private static final UniformType[] VALID_FLOAT3 = { UniformType.FLOAT_VEC3 };
-    private static final UniformType[] VALID_FLOAT4 = { UniformType.FLOAT_VEC4, UniformType.FLOAT_MAT2 };
-    private static final UniformType[] VALID_FLOAT_MAT3 = { UniformType.FLOAT_MAT3 };
-    private static final UniformType[] VALID_FLOAT_MAT4 = { UniformType.FLOAT_MAT4 };
-    private static final UniformType[] VALID_FLOAT_ANY = { UniformType.FLOAT, UniformType.FLOAT_VEC2, UniformType.FLOAT_VEC3,
-                                                           UniformType.FLOAT_VEC3, UniformType.FLOAT_VEC4, UniformType.FLOAT_MAT2,
-                                                           UniformType.FLOAT_MAT3, UniformType.FLOAT_MAT4 };
-    private static final UniformType[] VALID_INT = { UniformType.INT };
-    private static final UniformType[] VALID_INT2 = { UniformType.INT_VEC2 };
-    private static final UniformType[] VALID_INT3 = { UniformType.INT_VEC3 };
-    private static final UniformType[] VALID_INT4 = { UniformType.INT_VEC4 };
-    private static final UniformType[] VALID_INT_ANY = { UniformType.INT, UniformType.INT_VEC2,
-                                                         UniformType.INT_VEC3, UniformType.INT_VEC4 };
-    private static final UniformType[] VALID_BOOL = { UniformType.BOOL };
-    private static final UniformType[] VALID_T1D = { UniformType.TEXTURE_1D };
-    private static final UniformType[] VALID_T2D = { UniformType.TEXTURE_2D, UniformType.SHADOW_MAP };
-    private static final UniformType[] VALID_T3D = { UniformType.TEXTURE_3D };
-    private static final UniformType[] VALID_TCM = { UniformType.TEXTURE_CUBEMAP };
-    private static final UniformType[] VALID_TEXTURE_ANY = { UniformType.TEXTURE_1D, UniformType.TEXTURE_2D,
-                                                             UniformType.TEXTURE_3D, UniformType.TEXTURE_CUBEMAP,
-                                                             UniformType.SHADOW_MAP };
-
+    private static final UniformType[] VALID_FLOAT = {UniformType.FLOAT};
+    private static final UniformType[] VALID_FLOAT2 = {UniformType.FLOAT_VEC2};
+    private static final UniformType[] VALID_FLOAT3 = {UniformType.FLOAT_VEC3};
+    private static final UniformType[] VALID_FLOAT4 = {UniformType.FLOAT_VEC4,
+                                                       UniformType.FLOAT_MAT2};
+    private static final UniformType[] VALID_FLOAT_MAT3 = {UniformType.FLOAT_MAT3};
+    private static final UniformType[] VALID_FLOAT_MAT4 = {UniformType.FLOAT_MAT4};
+    private static final UniformType[] VALID_FLOAT_ANY = {UniformType.FLOAT,
+                                                          UniformType.FLOAT_VEC2,
+                                                          UniformType.FLOAT_VEC3,
+                                                          UniformType.FLOAT_VEC3,
+                                                          UniformType.FLOAT_VEC4,
+                                                          UniformType.FLOAT_MAT2,
+                                                          UniformType.FLOAT_MAT3,
+                                                          UniformType.FLOAT_MAT4};
+    private static final UniformType[] VALID_INT = {UniformType.INT};
+    private static final UniformType[] VALID_INT2 = {UniformType.INT_VEC2};
+    private static final UniformType[] VALID_INT3 = {UniformType.INT_VEC3};
+    private static final UniformType[] VALID_INT4 = {UniformType.INT_VEC4};
+    private static final UniformType[] VALID_INT_ANY = {UniformType.INT,
+                                                        UniformType.INT_VEC2,
+                                                        UniformType.INT_VEC3,
+                                                        UniformType.INT_VEC4};
+    private static final UniformType[] VALID_BOOL = {UniformType.BOOL};
+    private static final UniformType[] VALID_T1D = {UniformType.TEXTURE_1D};
+    private static final UniformType[] VALID_T2D = {UniformType.TEXTURE_2D,
+                                                    UniformType.SHADOW_MAP};
+    private static final UniformType[] VALID_T3D = {UniformType.TEXTURE_3D};
+    private static final UniformType[] VALID_TCM = {UniformType.TEXTURE_CUBEMAP};
+    private static final UniformType[] VALID_TEXTURE_ANY = {UniformType.TEXTURE_1D,
+                                                            UniformType.TEXTURE_2D,
+                                                            UniformType.TEXTURE_3D,
+                                                            UniformType.TEXTURE_CUBEMAP,
+                                                            UniformType.SHADOW_MAP};
 
     protected GlslShader shader;
     protected GlslShaderHandle shaderHandle;
@@ -198,12 +222,14 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (textureBindings == null) {
             RenderCapabilities caps = surface.getFramework().getCapabilities();
-            int numTextures = Math.max(caps.getMaxVertexShaderTextures(), caps.getMaxFragmentShaderTextures());
+            int numTextures = Math.max(caps.getMaxVertexShaderTextures(),
+                                       caps.getMaxFragmentShaderTextures());
             textureBindings = new TextureBinding[numTextures];
             for (int i = 0; i < numTextures; i++) {
                 textureBindings[i] = new TextureBinding(i);
@@ -211,7 +237,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         if (genericAttributeStates == null) {
-            int numAttrs = surface.getFramework().getCapabilities().getMaxVertexAttributes();
+            int numAttrs = surface.getFramework().getCapabilities()
+                                  .getMaxVertexAttributes();
             genericAttributeStates = new VertexAttributeBinding[numAttrs];
             for (int i = 0; i < numAttrs; i++) {
                 genericAttributeStates[i] = new VertexAttributeBinding(i);
@@ -260,7 +287,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             }
 
             if (shader != null) {
-                GlslShaderHandle newHandle = (GlslShaderHandle) resourceManager.lock(context, shader);
+                GlslShaderHandle newHandle = (GlslShaderHandle) resourceManager.lock(context,
+                                                                                     shader);
                 if (newHandle != null) {
                     this.shader = shader;
                     shaderHandle = newHandle;
@@ -273,13 +301,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
                 // fill in the attribute bindings
                 attributeBindings = new HashMap<String, AttributeBinding>();
-                for (Entry<String, Attribute> a: shaderHandle.attributes.entrySet()) {
+                for (Entry<String, Attribute> a : shaderHandle.attributes.entrySet()) {
                     attributeBindings.put(a.getKey(), new AttributeBinding(a.getValue()));
                 }
 
                 // fill in the uniform bindings
                 uniformBindings = new HashMap<String, UniformBinding>();
-                for (Entry<String, Uniform> u: shaderHandle.uniforms.entrySet()) {
+                for (Entry<String, Uniform> u : shaderHandle.uniforms.entrySet()) {
                     uniformBindings.put(u.getKey(), new UniformBinding(u.getValue()));
                 }
             } else {
@@ -309,7 +337,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
         Attribute attr;
         Map<String, AttributeType> attrs = new HashMap<String, AttributeType>();
-        for (Entry<String, AttributeBinding> a: attributeBindings.entrySet()) {
+        for (Entry<String, AttributeBinding> a : attributeBindings.entrySet()) {
             attr = a.getValue().attr;
             attrs.put(attr.name, attr.type);
         }
@@ -325,7 +353,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
         Uniform uniform;
         Map<String, GlslUniform> uniforms = new HashMap<String, GlslUniform>();
-        for (Entry<String, UniformBinding> u: uniformBindings.entrySet()) {
+        for (Entry<String, UniformBinding> u : uniformBindings.entrySet()) {
             uniform = u.getValue().uniform;
             uniforms.put(uniform.name, uniform.uniform);
         }
@@ -341,16 +369,14 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void bindAttribute(String glslAttrName, int column, VertexAttribute attr) {
         if (attr != null) {
-            AttributeBinding a = verifyAttribute(glslAttrName, attr.getElementSize(), column + 1);
-            if (a == null)
-            {
+            AttributeBinding a = verifyAttribute(glslAttrName, attr.getElementSize(),
+                                                 column + 1);
+            if (a == null) {
                 return; // ignore call for unsupported attribute types
             }
 
             VertexAttributeBinding state = a.columnVBOs[column];
-            boolean accessDiffers = (state.offset != attr.getOffset() ||
-                    state.stride != attr.getStride() ||
-                    state.elementSize != attr.getElementSize());
+            boolean accessDiffers = (state.offset != attr.getOffset() || state.stride != attr.getStride() || state.elementSize != attr.getElementSize());
             if (state.vbo != attr.getData() || accessDiffers) {
                 VertexBufferObject oldVbo = state.vbo;
                 if (state.vbo != null && oldVbo != attr.getData()) {
@@ -362,7 +388,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
                 if (state.vbo == null) {
                     // lock the new vbo
-                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context, attr.getData());
+                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
+                                                                                                         attr.getData());
                     if (newHandle != null) {
                         state.vbo = attr.getData();
                         state.handle = newHandle;
@@ -380,7 +407,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                     if (oldVbo == null) {
                         glEnableAttribute(state.attributeIndex, true);
                     }
-                    glAttributePointer(state.attributeIndex, state.handle, state.offset, state.stride, state.elementSize);
+                    glAttributePointer(state.attributeIndex, state.handle, state.offset,
+                                       state.stride, state.elementSize);
                     a.columnValuesValid[column] = false;
                 } else if (oldVbo != null) {
                     // Since there was an old vbo we need clean some things up
@@ -423,7 +451,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
     }
 
-    private AttributeBinding verifyAttribute(String glslAttrName, int rowCount, int colCount) {
+    private AttributeBinding verifyAttribute(String glslAttrName, int rowCount,
+                                             int colCount) {
         if (glslAttrName == null) {
             throw new NullPointerException("GLSL attribute name cannot be null");
         }
@@ -448,9 +477,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         return a;
     }
 
-    private void bindAttribute(AttributeBinding a, int col, int rowCount, float v1, float v2, float v3, float v4) {
-        if (a == null)
-        {
+    private void bindAttribute(AttributeBinding a, int col, int rowCount, float v1,
+                               float v2, float v3, float v4) {
+        if (a == null) {
             return; // unsupported or unknown binding, ignore at this stage
         }
 
@@ -465,7 +494,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
         int index = col * rowCount;
         boolean pushChanges = !a.columnValuesValid[col];
-        switch(rowCount) {
+        switch (rowCount) {
         case 4:
             pushChanges = pushChanges || a.columnValues.get(index + 3) != v4;
             a.columnValues.put(index + 3, v4);
@@ -491,7 +520,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
      * v1, v2, v3, and v4. Depending on rowCount, certain vector values can be
      * ignored (i.e. if rowCount is 3, v4 is meaningless).
      */
-    protected abstract void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3, float v4);
+    protected abstract void glAttributeValue(int attr, int rowCount, float v1, float v2,
+                                             float v3, float v4);
 
     @Override
     public void bindAttribute(String glslAttrName, float val) {
@@ -521,19 +551,26 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     public void bindAttribute(String glslAttrName, @Const Matrix3 v) {
         AttributeBinding ab = verifyAttribute(glslAttrName, 3, 3);
 
-        bindAttribute(ab, 0, 3, (float) v.get(0, 0), (float) v.get(1, 0), (float) v.get(2, 0), -1f);
-        bindAttribute(ab, 1, 3, (float) v.get(0, 1), (float) v.get(1, 1), (float) v.get(2, 1), -1f);
-        bindAttribute(ab, 2, 3, (float) v.get(0, 2), (float) v.get(1, 2), (float) v.get(2, 2), -1f);
+        bindAttribute(ab, 0, 3, (float) v.get(0, 0), (float) v.get(1, 0),
+                      (float) v.get(2, 0), -1f);
+        bindAttribute(ab, 1, 3, (float) v.get(0, 1), (float) v.get(1, 1),
+                      (float) v.get(2, 1), -1f);
+        bindAttribute(ab, 2, 3, (float) v.get(0, 2), (float) v.get(1, 2),
+                      (float) v.get(2, 2), -1f);
     }
 
     @Override
     public void bindAttribute(String glslAttrName, @Const Matrix4 v) {
         AttributeBinding ab = verifyAttribute(glslAttrName, 4, 4);
 
-        bindAttribute(ab, 0, 4, (float) v.get(0, 0), (float) v.get(1, 0), (float) v.get(2, 0), (float) v.get(3, 0));
-        bindAttribute(ab, 1, 4, (float) v.get(0, 1), (float) v.get(1, 1), (float) v.get(2, 1), (float) v.get(3, 1));
-        bindAttribute(ab, 2, 4, (float) v.get(0, 2), (float) v.get(1, 2), (float) v.get(2, 2), (float) v.get(3, 2));
-        bindAttribute(ab, 3, 4, (float) v.get(0, 3), (float) v.get(1, 3), (float) v.get(2, 3), (float) v.get(3, 3));
+        bindAttribute(ab, 0, 4, (float) v.get(0, 0), (float) v.get(1, 0),
+                      (float) v.get(2, 0), (float) v.get(3, 0));
+        bindAttribute(ab, 1, 4, (float) v.get(0, 1), (float) v.get(1, 1),
+                      (float) v.get(2, 1), (float) v.get(3, 1));
+        bindAttribute(ab, 2, 4, (float) v.get(0, 2), (float) v.get(1, 2),
+                      (float) v.get(2, 2), (float) v.get(3, 2));
+        bindAttribute(ab, 3, 4, (float) v.get(0, 3), (float) v.get(1, 3),
+                      (float) v.get(2, 3), (float) v.get(3, 3));
     }
 
     private UniformBinding verifyUniform(String name, UniformType[] validTypes) {
@@ -568,8 +605,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, float val) {
         UniformBinding u = verifyUniform(name, VALID_FLOAT);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -585,8 +621,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, float v1, float v2) {
         UniformBinding u = verifyUniform(name, VALID_FLOAT2);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
         if (!u.valuesValid || u.floatValues.get(0) != v1 || u.floatValues.get(1) != v2) {
@@ -609,8 +644,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, float v1, float v2, float v3) {
         UniformBinding u = verifyUniform(name, VALID_FLOAT3);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -628,8 +662,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, float v1, float v2, float v3, float v4) {
         UniformBinding u = verifyUniform(name, VALID_FLOAT4);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -651,8 +684,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             throw new NullPointerException("Matrix cannot be null");
         }
         UniformBinding u = verifyUniform(name, VALID_FLOAT_MAT3);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -668,8 +700,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             throw new NullPointerException("Matrix cannot be null");
         }
         UniformBinding u = verifyUniform(name, VALID_FLOAT_MAT4);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -707,31 +738,30 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         if (isHDR) {
-            setUniform(name, (float) color.redHDR(), (float) color.greenHDR(), (float) color.blueHDR());
+            setUniform(name, (float) color.redHDR(), (float) color.greenHDR(),
+                       (float) color.blueHDR());
         } else {
-            setUniform(name, (float) color.red(), (float) color.green(), (float) color.blue());
+            setUniform(name, (float) color.red(), (float) color.green(),
+                       (float) color.blue());
         }
     }
 
     @Override
     public void setUniform(String name, float[] vals) {
         UniformBinding u = verifyUniform(name, VALID_FLOAT_ANY);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
         GlslUniform uniform = u.uniform.uniform;
         int primitiveCount = uniform.getType().getPrimitiveCount();
         if (vals.length % primitiveCount != 0) {
-            throw new IllegalArgumentException("Length does not align with primitive count of uniform "
-                    + name + " with type " + uniform.getType());
+            throw new IllegalArgumentException("Length does not align with primitive count of uniform " + name + " with type " + uniform.getType());
         }
 
         int totalElements = vals.length / primitiveCount;
         if (totalElements != uniform.getLength()) {
-            throw new IllegalArgumentException("Number of elements ( " + totalElements + ") does not equal the length of uniform "
-                    + name + " with " + uniform.getLength() + " elements");
+            throw new IllegalArgumentException("Number of elements ( " + totalElements + ") does not equal the length of uniform " + name + " with " + uniform.getLength() + " elements");
         }
 
         // the float array is of the proper length, we assume that it is
@@ -749,8 +779,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, int val) {
         UniformBinding u = verifyUniform(name, VALID_INT);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -773,8 +802,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, int v1, int v2) {
         UniformBinding u = verifyUniform(name, VALID_INT2);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -791,8 +819,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, int v1, int v2, int v3) {
         UniformBinding u = verifyUniform(name, VALID_INT3);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -810,8 +837,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, int v1, int v2, int v3, int v4) {
         UniformBinding u = verifyUniform(name, VALID_INT4);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -834,22 +860,19 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         UniformBinding u = verifyUniform(name, VALID_INT_ANY);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
         GlslUniform uniform = u.uniform.uniform;
         int primitiveCount = uniform.getType().getPrimitiveCount();
         if (vals.length % primitiveCount != 0) {
-            throw new IllegalArgumentException("Length does not align with primitive count of uniform "
-                    + name + " with type " + uniform.getType());
+            throw new IllegalArgumentException("Length does not align with primitive count of uniform " + name + " with type " + uniform.getType());
         }
 
         int totalElements = vals.length / primitiveCount;
         if (totalElements != uniform.getLength()) {
-            throw new IllegalArgumentException("Number of elements ( " + totalElements + ") does not equal the length of uniform "
-                    + name + " with " + uniform.getLength() + " elements");
+            throw new IllegalArgumentException("Number of elements ( " + totalElements + ") does not equal the length of uniform " + name + " with " + uniform.getLength() + " elements");
         }
 
         // the int array is of the proper length, we assume that it is
@@ -867,8 +890,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, boolean val) {
         UniformBinding u = verifyUniform(name, VALID_BOOL);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
@@ -885,15 +907,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setUniform(String name, boolean[] vals) {
         UniformBinding u = verifyUniform(name, VALID_BOOL);
-        if (u == null)
-        {
+        if (u == null) {
             return; // ignore unsupported uniforms
         }
 
         GlslUniform uniform = u.uniform.uniform;
         if (uniform.getLength() != vals.length) {
-            throw new IllegalArgumentException("Number of elements ( " + vals.length + ") does not equal the length of uniform "
-                    + name + " with " + uniform.getLength() + " elements");
+            throw new IllegalArgumentException("Number of elements ( " + vals.length + ") does not equal the length of uniform " + name + " with " + uniform.getLength() + " elements");
         }
 
         // convert the boolean array into an integer array
@@ -912,16 +932,23 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     public void setUniform(String name, Texture texture) {
         if (texture != null) {
             UniformType[] validTypes = null;
-            switch(texture.getTarget()) {
-            case T_1D: validTypes = VALID_T1D; break;
-            case T_2D: validTypes = VALID_T2D; break;
-            case T_3D: validTypes = VALID_T3D; break;
-            case T_CUBEMAP: validTypes = VALID_TCM; break;
+            switch (texture.getTarget()) {
+            case T_1D:
+                validTypes = VALID_T1D;
+                break;
+            case T_2D:
+                validTypes = VALID_T2D;
+                break;
+            case T_3D:
+                validTypes = VALID_T3D;
+                break;
+            case T_CUBEMAP:
+                validTypes = VALID_TCM;
+                break;
             }
 
             UniformBinding u = verifyUniform(name, validTypes);
-            if (u == null)
-            {
+            if (u == null) {
                 return; // ignore unsupported uniforms
             }
             if (u.uniform.uniform.getType() == UniformType.SHADOW_MAP && texture.getFormat() != TextureFormat.DEPTH) {
@@ -933,8 +960,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (u.isTextureBinding) {
                 // if u.isTextureBinding is true, we can assume that handle is not null
                 TextureBinding oldBinding = textureBindings[u.intValues.get(0)];
-                if (oldBinding.texture == texture)
-                {
+                if (oldBinding.texture == texture) {
                     return; // no change is needed
                 }
 
@@ -971,7 +997,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 // use the first found empty unit if there is one
                 if (firstEmpty >= 0) {
                     // must lock the texture to the unit
-                    TextureHandle newHandle = (TextureHandle) resourceManager.lock(context, texture);
+                    TextureHandle newHandle = (TextureHandle) resourceManager.lock(context,
+                                                                                   texture);
                     if (newHandle != null) {
                         textureBindings[firstEmpty].texture = texture;
                         textureBindings[firstEmpty].handle = newHandle;
@@ -1018,7 +1045,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
                 if (textureBindings[oldTexUnit].referenceCount == 0) {
                     // unlock texture too
-                    glBindTexture(oldTexUnit, textureBindings[oldTexUnit].handle.target, null);
+                    glBindTexture(oldTexUnit, textureBindings[oldTexUnit].handle.target,
+                                  null);
                     resourceManager.unlock(textureBindings[oldTexUnit].texture);
                     textureBindings[oldTexUnit].texture = null;
                     textureBindings[oldTexUnit].handle = null;
@@ -1056,9 +1084,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
      * will have already been bound using glBindArrayVbo. If this is for a
      * texture coordinate, glActiveClientTexture will already have been called.
      */
-    protected abstract void glAttributePointer(int attr, VertexBufferObjectHandle handle, int offset, int stride, int elementSize);
+    protected abstract void glAttributePointer(int attr, VertexBufferObjectHandle handle,
+                                               int offset, int stride, int elementSize);
 
-    private void bindArrayVbo(VertexBufferObject vbo, VertexBufferObjectHandle handle, VertexBufferObject oldVboOnSlot) {
+    private void bindArrayVbo(VertexBufferObject vbo, VertexBufferObjectHandle handle,
+                              VertexBufferObject oldVboOnSlot) {
         if (vbo != arrayVboBinding) {
             glBindArrayVbo(handle);
             activeArrayVbos = 0;

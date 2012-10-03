@@ -41,7 +41,8 @@ public class PointLightInfluence implements LightInfluence {
                 if (light.getFalloffDistance() <= 0.0) {
                     return GlobalLightInfluence.INSTANCE;
                 } else {
-                    return new PointLightInfluence(lightTransform, light.getFalloffDistance());
+                    return new PointLightInfluence(lightTransform,
+                                                   light.getFalloffDistance());
                 }
             }
         };

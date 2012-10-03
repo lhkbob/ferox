@@ -20,7 +20,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     private ObjectProperty<Texture> texture;
     private ObjectProperty<VertexAttribute> textureCoordinates;
 
-    protected TextureMap() { }
+    protected TextureMap() {}
 
     /**
      * @return The texture coordinates used to access this TextureMap's texture
@@ -86,8 +86,8 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     }
 
     /**
-     * Throw an IllegalArgumentException if the given texture is not valid for the given
-     * subclass.
+     * Throw an IllegalArgumentException if the given texture is not valid for
+     * the given subclass.
      * 
      * @param tex The potentially new texture, will not be null
      */

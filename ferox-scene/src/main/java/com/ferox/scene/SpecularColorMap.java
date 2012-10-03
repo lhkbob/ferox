@@ -28,7 +28,7 @@ public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
      */
     public static final TypeId<SpecularColorMap> ID = TypeId.get(SpecularColorMap.class);
 
-    private SpecularColorMap() { }
+    private SpecularColorMap() {}
 
     @Override
     protected void validate(Texture tex) {

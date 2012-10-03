@@ -4,8 +4,6 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 
-
-
 /**
  * The Plane class consists of a few static methods that can be used to
  * interpret a {@link Vector4} as if it were a plane. Often a plane is
@@ -63,7 +61,8 @@ public class Plane {
      * @return The signed distance from the plane to the point
      * @throws NullPointerException if plane or point are null
      */
-    public static double getSignedDistance(@Const Vector4 plane, @Const Vector3 point, boolean assumeNormalized) {
+    public static double getSignedDistance(@Const Vector4 plane, @Const Vector3 point,
+                                           boolean assumeNormalized) {
         double num = point.x * plane.x + point.y * plane.y + point.z * plane.z + plane.w;
         return (assumeNormalized ? num : num / lengthAsVector3(plane));
     }

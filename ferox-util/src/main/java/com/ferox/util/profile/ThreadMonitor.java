@@ -13,12 +13,10 @@ import java.lang.management.ThreadMXBean;
 // I think I will have memory querying in EntitySystem, and automated profiling
 // handled by the ControllerManager. The stack profiler isn't really needed.
 // Thread monitoring will be cool, but it's not part of entreri
-public class ThreadMonitor
-{
+public class ThreadMonitor {
     private static ThreadMXBean tmxb;
 
-    static
-    {
+    static {
         tmxb = ManagementFactory.getThreadMXBean();
         tmxb.setThreadCpuTimeEnabled(true);
     }
@@ -26,14 +24,13 @@ public class ThreadMonitor
     //
 
     private String name;
-    private long                tid;
-    private CyclicUsageHistory  cpuTimeHistory;
-    private CyclicUsageHistory  userTimeHistory;
-    private CyclicUsageHistory  cpuUsageHistory;
-    private CyclicUsageHistory  userUsageHistory;
+    private long tid;
+    private CyclicUsageHistory cpuTimeHistory;
+    private CyclicUsageHistory userTimeHistory;
+    private CyclicUsageHistory cpuUsageHistory;
+    private CyclicUsageHistory userUsageHistory;
 
-    public ThreadMonitor(String name, long tid, int slots)
-    {
+    public ThreadMonitor(String name, long tid, int slots) {
         this.tid = tid;
         this.name = name;
         this.cpuTimeHistory = new CyclicUsageHistory(slots);
@@ -48,8 +45,7 @@ public class ThreadMonitor
         return name;
     }
 
-    public long getId()
-    {
+    public long getId() {
         return tid;
     }
 
@@ -60,18 +56,15 @@ public class ThreadMonitor
 
     private long lastPoll;
 
-    public double getTotalCpuTime()
-    {
+    public double getTotalCpuTime() {
         return this.totalCpuTime;
     }
 
-    public double getTotalUserTime()
-    {
+    public double getTotalUserTime() {
         return this.totalUserTime;
     }
 
-    public void poll()
-    {
+    public void poll() {
         // a time of -1 means not alive
         long now = System.nanoTime();
         double wallTime = (now - lastPoll) / 1000000000.0;
@@ -89,29 +82,24 @@ public class ThreadMonitor
         userTimeHistory.log(totalUserTime);
         userUsageHistory.log((userTimeHistory.previous(0) - userTimeHistory.previous(1)) / wallTime * 100.0);
 
-
         //        System.out.println("poll: " + name + ", cpu: " + cpuUsageHistory.previous() + ", user: " + userUsageHistory.previous() + ", wall: " + wallClock);
         //        System.out.println("      " + name + ", total cpu: " + cpuTime + ", total user: " + userTime);
         //        usage.log(cpuTime / wallClock * 100.0);
     }
 
-    public CyclicUsageHistory getCpuUsageStats()
-    {
+    public CyclicUsageHistory getCpuUsageStats() {
         return this.cpuUsageHistory;
     }
 
-    public CyclicUsageHistory getUserUsageStats()
-    {
+    public CyclicUsageHistory getUserUsageStats() {
         return this.userUsageHistory;
     }
 
-    public CyclicUsageHistory getCpuTimeStats()
-    {
+    public CyclicUsageHistory getCpuTimeStats() {
         return this.cpuTimeHistory;
     }
 
-    public CyclicUsageHistory getUserTimeStats()
-    {
+    public CyclicUsageHistory getUserTimeStats() {
         return this.userTimeHistory;
     }
 }

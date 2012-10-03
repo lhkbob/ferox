@@ -16,8 +16,7 @@ public class GJK {
 
         Simplex simplex = new Simplex(shape);
         Vector3 ray = new Vector3(guess);
-        if (ray.lengthSquared() < GJK_MIN_DISTANCE * GJK_MIN_DISTANCE)
-        {
+        if (ray.lengthSquared() < GJK_MIN_DISTANCE * GJK_MIN_DISTANCE) {
             ray.set(1, 0, 0); // arbitrary guess
         }
 
@@ -28,8 +27,8 @@ public class GJK {
         simplex.setWeight(0, 1.0);
 
         Vector3 scaledVertex = new Vector3();
-        Vector3[] oldSupports = new Vector3[] { new Vector3(ray), new Vector3(ray),
-                                                new Vector3(ray), new Vector3(ray) };
+        Vector3[] oldSupports = new Vector3[] {new Vector3(ray), new Vector3(ray),
+                                               new Vector3(ray), new Vector3(ray)};
         int lastSupportIndex = 0;
         for (int i = 0; i < GJK_MAX_ITERATIONS; i++) {
             double rayLength = ray.length();

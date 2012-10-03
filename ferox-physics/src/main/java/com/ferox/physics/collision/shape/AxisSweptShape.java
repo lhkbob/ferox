@@ -58,11 +58,15 @@ public abstract class AxisSweptShape extends ConvexShape {
      * @throws NullPointerException if v is null
      */
     protected int sign(@Const Vector3 v) {
-        switch(dominantAxis) {
-        case X: return (v.x >= 0.0 ? 1 : -1);
-        case Y: return (v.y >= 0.0 ? 1 : -1);
-        case Z: return (v.z >= 0.0 ? 1 : -1);
-        default: return 0;
+        switch (dominantAxis) {
+        case X:
+            return (v.x >= 0.0 ? 1 : -1);
+        case Y:
+            return (v.y >= 0.0 ? 1 : -1);
+        case Z:
+            return (v.z >= 0.0 ? 1 : -1);
+        default:
+            return 0;
         }
     }
 
@@ -76,11 +80,21 @@ public abstract class AxisSweptShape extends ConvexShape {
      */
     protected double sigma(Vector3 v) {
         double c1, c2;
-        switch(dominantAxis) {
-        case X: c1 = v.y; c2 = v.z; break;
-        case Y: c1 = v.x; c2 = v.z; break;
-        case Z: c1 = v.x; c2 = v.y; break;
-        default: return -1;
+        switch (dominantAxis) {
+        case X:
+            c1 = v.y;
+            c2 = v.z;
+            break;
+        case Y:
+            c1 = v.x;
+            c2 = v.z;
+            break;
+        case Z:
+            c1 = v.x;
+            c2 = v.y;
+            break;
+        default:
+            return -1;
         }
 
         return Math.sqrt(c1 * c1 + c2 * c2);

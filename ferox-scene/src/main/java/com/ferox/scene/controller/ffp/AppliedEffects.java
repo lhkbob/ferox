@@ -38,10 +38,15 @@ public class AppliedEffects {
     }
 
     public AppliedEffects setBlending(BlendFactor source, BlendFactor dest) {
-        return new AppliedEffects(viewMatrix, shadowedLightingPhase, source, dest, shadowLight);
+        return new AppliedEffects(viewMatrix,
+                                  shadowedLightingPhase,
+                                  source,
+                                  dest,
+                                  shadowLight);
     }
 
-    public @Const Matrix4 getViewMatrix() {
+    public @Const
+    Matrix4 getViewMatrix() {
         return viewMatrix;
     }
 

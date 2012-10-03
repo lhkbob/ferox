@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 
 import com.ferox.math.bounds.Plane;
 
-
 /**
  * <p>
  * Quat4 is an implementation of a 4-component quaternion.
@@ -15,9 +14,9 @@ import com.ferox.math.bounds.Plane;
  * href="http://en.wikipedia.org/wiki/Quaternion">here</a>.
  * </p>
  * <p>
- * In all mathematical functions whose result is a quaternion, the Quat4
- * calling the method will contain the result. The input quaternions will be
- * left unmodified. It is safe for the calling quaternion to be any quaternion
+ * In all mathematical functions whose result is a quaternion, the Quat4 calling
+ * the method will contain the result. The input quaternions will be left
+ * unmodified. It is safe for the calling quaternion to be any quaternion
  * parameter into the function.
  * </p>
  * 
@@ -77,8 +76,10 @@ public final class Quat4 implements Cloneable {
         // if they aren't unit length, get the normalized version as new vectors
         double da = a.lengthSquared();
         double db = b.lengthSquared();
-        Vector3 na = (Math.abs(da - 1.0) < .00001 ? a : new Vector3().scale(a, 1 / Math.sqrt(da)));
-        Vector3 nb = (Math.abs(db - 1.0) < .00001 ? b : new Vector3().scale(b, 1 / Math.sqrt(db)));
+        Vector3 na = (Math.abs(da - 1.0) < .00001 ? a : new Vector3().scale(a,
+                                                                            1 / Math.sqrt(da)));
+        Vector3 nb = (Math.abs(db - 1.0) < .00001 ? b : new Vector3().scale(b,
+                                                                            1 / Math.sqrt(db)));
 
         double d = na.dot(nb);
         if (d < 1.0) {
@@ -120,9 +121,9 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Compute <code>[a] x [b]</code> and store it in this quaternion. This is similar
-     * to matrix multiplication in that it is not commutative and can be thought
-     * of as concatenation of transforms.
+     * Compute <code>[a] x [b]</code> and store it in this quaternion. This is
+     * similar to matrix multiplication in that it is not commutative and can be
+     * thought of as concatenation of transforms.
      * 
      * @param a The quaternion on the left side of the multiplication
      * @param b The quaternion on the right side of the multiplication
@@ -148,8 +149,7 @@ public final class Quat4 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Quat4 mul(@Const Quat4 a, @Const Vector3 b) {
-        return set(a.w * b.x + a.y * b.z - a.z * b.y,
-                   a.w * b.y + a.z * b.x - a.x * b.z,
+        return set(a.w * b.x + a.y * b.z - a.z * b.y, a.w * b.y + a.z * b.x - a.x * b.z,
                    a.w * b.z + a.x * b.y - a.y * b.x,
                    -(a.x * b.x + a.y * b.y + a.z * b.z));
     }
@@ -227,8 +227,7 @@ public final class Quat4 implements Cloneable {
      */
     public Vector3 getAxis() {
         double s2 = 1.0 - w * w;
-        if (s2 < .0001)
-        {
+        if (s2 < .0001) {
             return new Vector3(1, 0, 0); // arbitrary
         }
 
@@ -293,10 +292,8 @@ public final class Quat4 implements Cloneable {
                 s1 *= -1;
             }
 
-            return set((a.x * s0 + b.x * s1) * d,
-                       (a.y * s0 + b.y * s1) * d,
-                       (a.z * s0 + b.z * s1) * d,
-                       (a.w * s0 + b.w * s1) * d);
+            return set((a.x * s0 + b.x * s1) * d, (a.y * s0 + b.y * s1) * d,
+                       (a.z * s0 + b.z * s1) * d, (a.w * s0 + b.w * s1) * d);
         } else {
             return set(a.x, a.y, a.z, a.w);
         }
@@ -451,8 +448,7 @@ public final class Quat4 implements Cloneable {
             z = s * (e.m10 - e.m01);
         } else {
             // get the column that has the highest diagonal element
-            int i = (e.m00 < e.m11 ? (e.m11 < e.m22 ? 2 : 1)
-                                   : (e.m00 < e.m22 ? 2 : 0));
+            int i = (e.m00 < e.m11 ? (e.m11 < e.m22 ? 2 : 1) : (e.m00 < e.m22 ? 2 : 0));
             int j = (i + 1) % 3;
             int k = (i + 2) % 3;
 
@@ -527,8 +523,8 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Set the x, y, z and w values of this Quat4 to the four values held
-     * within the vals array, starting at offset.
+     * Set the x, y, z and w values of this Quat4 to the four values held within
+     * the vals array, starting at offset.
      * 
      * @param vals Array to take 4 component values from
      * @param offset Index of the x coordinate
@@ -542,8 +538,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * As {@link #set(double[], int)} but the values are taken from the
-     * float[].
+     * As {@link #set(double[], int)} but the values are taken from the float[].
      * 
      * @param vals The double value source
      * @param offset The index into vals for the x coordinate
@@ -566,7 +561,8 @@ public final class Quat4 implements Cloneable {
      *             starting at offset
      */
     public Quat4 set(DoubleBuffer vals, int offset) {
-        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2),
+                   vals.get(offset + 3));
     }
 
     /**
@@ -580,7 +576,8 @@ public final class Quat4 implements Cloneable {
      *             starting at offset
      */
     public Quat4 set(FloatBuffer vals, int offset) {
-        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2), vals.get(offset + 3));
+        return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2),
+                   vals.get(offset + 3));
     }
 
     /**
@@ -642,8 +639,8 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -658,8 +655,8 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
      * 
      * @param store The FloatBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -701,8 +698,8 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Determine if these two quaternions are equal, within an error range of eps.
-     * Returns false if q is null.
+     * Determine if these two quaternions are equal, within an error range of
+     * eps. Returns false if q is null.
      * 
      * @param q Quaternion to check approximate equality to
      * @param eps Error tolerance of each component

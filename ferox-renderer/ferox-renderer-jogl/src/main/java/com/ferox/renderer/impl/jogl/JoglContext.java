@@ -51,7 +51,8 @@ public class JoglContext extends OpenGLContext {
      * @param provider The provider of renderers
      * @throws NullPointerException if factory, context, or provider are null
      */
-    public JoglContext(JoglSurfaceFactory factory, GLContext context, RendererProvider provider) {
+    public JoglContext(JoglSurfaceFactory factory, GLContext context,
+                       RendererProvider provider) {
         super(provider);
         if (factory == null || context == null) {
             throw new NullPointerException("Factory and context cannot be null");
@@ -263,7 +264,9 @@ public class JoglContext extends OpenGLContext {
     @Override
     public RenderCapabilities getRenderCapabilities() {
         if (cachedCaps == null) {
-            cachedCaps = new JoglRenderCapabilities(context.getGL(), creator.getGLProfile(), creator.getCapabilityForceBits());
+            cachedCaps = new JoglRenderCapabilities(context.getGL(),
+                                                    creator.getGLProfile(),
+                                                    creator.getCapabilityForceBits());
         }
 
         return cachedCaps;
@@ -281,7 +284,7 @@ public class JoglContext extends OpenGLContext {
             throw new FrameworkException("Unable to make context current");
         }
 
-        for (Runnable task: cleanupTasks) {
+        for (Runnable task : cleanupTasks) {
             task.run();
         }
     }

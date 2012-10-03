@@ -59,7 +59,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
 
         try {
             org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
-            for (org.lwjgl.opengl.DisplayMode lwjglMode: modes) {
+            for (org.lwjgl.opengl.DisplayMode lwjglMode : modes) {
                 if (!lwjglMode.isFullscreenCapable()) {
                     continue;
                 }
@@ -67,7 +67,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                 DisplayMode feroxMode = convert(lwjglMode);
                 if (convertMap.containsKey(feroxMode)) {
                     // compare refresh rates and pick the one closest to target
-                    if (Math.abs(TARGET_REFRESH_RATE - lwjglMode.getFrequency()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode).getFrequency())) {
+                    if (Math.abs(TARGET_REFRESH_RATE - lwjglMode.getFrequency()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode)
+                                                                                                                            .getFrequency())) {
                         convertMap.put(feroxMode, lwjglMode);
                     }
                 } else {
@@ -76,7 +77,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                 }
             }
         } catch (LWJGLException e) {
-            throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
+            throw new FrameworkException("Unable to query available DisplayModes through LWJGL",
+                                         e);
         }
 
         availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
@@ -84,8 +86,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     }
 
     /**
-     * Return an LWJGL DisplayMode that exactly matches the given DisplayMode, or
-     * null if there was no exact match.
+     * Return an LWJGL DisplayMode that exactly matches the given DisplayMode,
+     * or null if there was no exact match.
      * 
      * @param mode The mode to "convert"
      * @return The AWT DisplayMode matching mode, or null
@@ -108,7 +110,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         case RGB_16BIT:
             caps = caps.withBitsPerPixel(16).withAlphaBits(0);
             break;
-        case RGB_24BIT: case UNKNOWN:
+        case RGB_24BIT:
+        case UNKNOWN:
             caps = caps.withBitsPerPixel(24).withAlphaBits(0);
             break;
         case RGBA_32BIT:
@@ -120,7 +123,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         case DEPTH_16BIT:
             caps = caps.withDepthBits(16);
             break;
-        case DEPTH_24BIT: case UNKNOWN:
+        case DEPTH_24BIT:
+        case UNKNOWN:
             caps = caps.withDepthBits(24);
             break;
         case DEPTH_32BIT:
@@ -144,7 +148,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         case STENCIL_1BIT:
             caps = caps.withStencilBits(1);
             break;
-        case NONE: case UNKNOWN:
+        case NONE:
+        case UNKNOWN:
             caps = caps.withStencilBits(0);
             break;
         }
@@ -159,7 +164,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         case TWO_X:
             caps = caps.withSamples(2);
             break;
-        case NONE: case UNKNOWN:
+        case NONE:
+        case UNKNOWN:
             caps = caps.withSamples(0);
             break;
         }
@@ -169,7 +175,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
 
     private static DisplayMode convert(org.lwjgl.opengl.DisplayMode lwjglMode) {
         PixelFormat pixFormat;
-        switch(lwjglMode.getBitsPerPixel()) {
+        switch (lwjglMode.getBitsPerPixel()) {
         case 16:
             pixFormat = PixelFormat.RGB_16BIT;
             break;
@@ -194,7 +200,11 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         if (framework.getCapabilities().getFboSupport()) {
             return new LwjglFboTextureSurface(framework, this, options);
         } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new LwjglPbufferTextureSurface(framework, this, options, (LwjglContext) sharedContext, new LwjglRendererProvider());
+            return new LwjglPbufferTextureSurface(framework,
+                                                  this,
+                                                  options,
+                                                  (LwjglContext) sharedContext,
+                                                  new LwjglRendererProvider());
         } else {
             throw new SurfaceCreationException("No render-to-texture support on current hardware");
         }
@@ -204,7 +214,10 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework, this, options, (LwjglContext) sharedContext,
+        LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework,
+                                                                          this,
+                                                                          options,
+                                                                          (LwjglContext) sharedContext,
                                                                           new LwjglRendererProvider());
         surface.initialize();
         return surface;
@@ -212,9 +225,9 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0
-                && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
-            return PbufferShadowContext.create(this, (LwjglContext) sharedContext, new LwjglRendererProvider());
+        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
+            return PbufferShadowContext.create(this, (LwjglContext) sharedContext,
+                                               new LwjglRendererProvider());
         } else {
             throw new FrameworkException("No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
         }

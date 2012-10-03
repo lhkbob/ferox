@@ -60,12 +60,9 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         DisplayMode fullscreen = options.getFullscreenMode();
         if (fullscreen != null) {
-            options = options.setResizable(false)
-                    .setUndecorated(true)
-                    .setWidth(fullscreen.getWidth())
-                    .setHeight(fullscreen.getHeight())
-                    .setX(0)
-                    .setY(0);
+            options = options.setResizable(false).setUndecorated(true)
+                             .setWidth(fullscreen.getWidth())
+                             .setHeight(fullscreen.getHeight()).setX(0).setY(0);
         } else {
             // the NEWT windowing API does not allow us to make a window
             // a fixed-size
@@ -83,7 +80,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         if (options.getFullscreenMode() != null) {
             // make the window fullscreen
-            if (!window.getScreen().setCurrentScreenMode(factory.getScreenMode(options.getFullscreenMode()))) {
+            if (!window.getScreen()
+                       .setCurrentScreenMode(factory.getScreenMode(options.getFullscreenMode()))) {
                 // not successful
                 options = options.setFullscreenMode(factory.getDefaultDisplayMode());
             }
@@ -96,7 +94,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         window.addWindowListener(this);
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
-        drawable = GLDrawableFactory.getFactory(factory.getGLProfile()).createGLDrawable(window);
+        drawable = GLDrawableFactory.getFactory(factory.getGLProfile())
+                                    .createGLDrawable(window);
         context = new JoglContext(factory, drawable.createContext(realShare), provider);
         drawable.setRealized(true);
 
@@ -119,14 +118,14 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public boolean isVSyncEnabled() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             return vsync;
         }
     }
 
     @Override
     public void setVSyncEnabled(boolean enable) {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             vsync = enable;
             vsyncNeedsUpdate = true;
         }
@@ -134,7 +133,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public String getTitle() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             return window.getTitle();
         }
     }
@@ -144,7 +143,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
             @Override
             public void run() {
-                synchronized(surfaceLock) {
+                synchronized (surfaceLock) {
                     window.setTitle(title);
                 }
             }
@@ -153,7 +152,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public int getX() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (window.isFullscreen()) {
                 return 0;
             } else {
@@ -164,7 +163,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public int getY() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (window.isFullscreen()) {
                 return 0;
             } else {
@@ -185,7 +184,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
             @Override
             public void run() {
-                synchronized(surfaceLock) {
+                synchronized (surfaceLock) {
                     window.setSize(width, height);
                 }
             }
@@ -201,7 +200,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
             @Override
             public void run() {
-                synchronized(surfaceLock) {
+                synchronized (surfaceLock) {
                     window.setPosition(x, y);
                 }
             }
@@ -210,21 +209,21 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public boolean isClosable() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             return closable;
         }
     }
 
     @Override
     public void setClosable(boolean userClosable) {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             closable = userClosable;
         }
     }
 
     @Override
     public int getWidth() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             // FIXME On Mac's NEWT creates the window so that the insets are not included
             // in the window's content width, and that the requested size does not include
             // them either
@@ -236,7 +235,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
     @Override
     public int getHeight() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             int insetHeight = 0;//window.getInsets().getBottomHeight() + window.getInsets().getTopHeight();
             return window.getHeight() - insetHeight;
         }
@@ -282,7 +281,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
             optionsNeedVerify = false;
         }
 
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (vsyncNeedsUpdate) {
                 gl.setSwapInterval(vsync ? 1 : 0);
                 vsyncNeedsUpdate = false;
@@ -298,7 +297,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         if (options.getFullscreenMode() != null) {
             // restore original screen mode
-            window.getScreen().setCurrentScreenMode(window.getScreen().getOriginalScreenMode());
+            window.getScreen().setCurrentScreenMode(window.getScreen()
+                                                          .getOriginalScreenMode());
         }
 
         window.setVisible(false);
@@ -397,17 +397,17 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
-            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
+            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(),
+                                                                fullscreen.getHeight(),
+                                                                format));
         }
 
-        options = options.setMultiSampling(aa)
-                .setDepthFormat(df)
-                .setStencilFormat(sf);
+        options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);
     }
 
     @Override
     public void windowDestroyNotify(WindowEvent e) {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             // If the window is not user closable, we perform no action.
             // windowClosing() listeners are responsible for disposing the window
             if (!closable) {
@@ -424,20 +424,20 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
      */
 
     @Override
-    public void windowDestroyed(WindowEvent e) { }
+    public void windowDestroyed(WindowEvent e) {}
 
     @Override
-    public void windowResized(WindowEvent e) { }
+    public void windowResized(WindowEvent e) {}
 
     @Override
-    public void windowMoved(WindowEvent e) { }
+    public void windowMoved(WindowEvent e) {}
 
     @Override
-    public void windowGainedFocus(WindowEvent e) { }
+    public void windowGainedFocus(WindowEvent e) {}
 
     @Override
-    public void windowLostFocus(WindowEvent e) { }
+    public void windowLostFocus(WindowEvent e) {}
 
     @Override
-    public void windowRepaint(WindowUpdateEvent e) { }
+    public void windowRepaint(WindowUpdateEvent e) {}
 }

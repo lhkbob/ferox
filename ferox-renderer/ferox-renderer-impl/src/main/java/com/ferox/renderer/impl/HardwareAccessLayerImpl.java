@@ -59,7 +59,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
 
         // Since this isn't a TextureSurface, there is no need to validate
         // the layer and we just use 0.
-        OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, 0);
+        OpenGLContext context = framework.getContextManager()
+                                         .setActiveSurface((AbstractSurface) surface, 0);
         if (context == null) {
             return null;
         }
@@ -77,10 +78,16 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
 
             // Validate the layer argument
             int maxLayer;
-            switch(surface.getTarget()) {
-            case T_3D: maxLayer = surface.getDepth(); break;
-            case T_CUBEMAP: maxLayer = surface.getNumLayers(); break;
-            default: maxLayer = 1; break;
+            switch (surface.getTarget()) {
+            case T_3D:
+                maxLayer = surface.getDepth();
+                break;
+            case T_CUBEMAP:
+                maxLayer = surface.getNumLayers();
+                break;
+            default:
+                maxLayer = 1;
+                break;
             }
 
             if (layer >= maxLayer || layer < 0) {
@@ -88,7 +95,9 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             }
         }
 
-        OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, layer);
+        OpenGLContext context = framework.getContextManager()
+                                         .setActiveSurface((AbstractSurface) surface,
+                                                           layer);
         if (context == null) {
             return null;
         }
@@ -127,18 +136,19 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public GlslRenderer getGlslRenderer() {
             if (selectedRenderer == null) {
                 // need to select a renderer
-                selectedRenderer = context.getRendererProvider().getGlslRenderer(context.getRenderCapabilities());
+                selectedRenderer = context.getRendererProvider()
+                                          .getGlslRenderer(context.getRenderCapabilities());
 
                 if (selectedRenderer != null) {
                     // have selected a GlslRenderer to use
-                    selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
+                    selectedRenderer.setViewport(0, 0, surface.getWidth(),
+                                                 surface.getHeight());
                 }
             }
 
             if (selectedRenderer instanceof FixedFunctionRenderer) {
                 throw new IllegalStateException("FixedFunctionRenderer already selected");
-            }
-            else {
+            } else {
                 return (GlslRenderer) selectedRenderer; // may be null
             }
         }
@@ -147,18 +157,19 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public FixedFunctionRenderer getFixedFunctionRenderer() {
             if (selectedRenderer == null) {
                 // need to select a renderer
-                selectedRenderer = context.getRendererProvider().getFixedFunctionRenderer(context.getRenderCapabilities());
+                selectedRenderer = context.getRendererProvider()
+                                          .getFixedFunctionRenderer(context.getRenderCapabilities());
 
                 if (selectedRenderer != null) {
                     // have selected a FixedFunctionRenderer to use
-                    selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
+                    selectedRenderer.setViewport(0, 0, surface.getWidth(),
+                                                 surface.getHeight());
                 }
             }
 
             if (selectedRenderer instanceof GlslRenderer) {
                 throw new IllegalStateException("GlslRenderer already selected");
-            }
-            else {
+            } else {
                 return (FixedFunctionRenderer) selectedRenderer; // may be null
             }
         }
@@ -170,12 +181,14 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
 
         @Override
         public boolean hasGlslRenderer() {
-            return context.getRendererProvider().getGlslRenderer(context.getRenderCapabilities()) != null;
+            return context.getRendererProvider()
+                          .getGlslRenderer(context.getRenderCapabilities()) != null;
         }
 
         @Override
         public boolean hasFixedFunctionRenderer() {
-            return context.getRendererProvider().getFixedFunctionRenderer(context.getRenderCapabilities()) != null;
+            return context.getRendererProvider()
+                          .getFixedFunctionRenderer(context.getRenderCapabilities()) != null;
         }
     }
 }

@@ -115,7 +115,7 @@ public class BulkChangeQueue<T> {
         Iterator<VersionedChange<T>> it = latestChanges.iterator();
 
         VersionedChange<T> v;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             v = it.next();
             if (v.version > lastKnownVersion || (lastKnownVersion > 0 && version < 0)) {
                 changes.add(v.change);

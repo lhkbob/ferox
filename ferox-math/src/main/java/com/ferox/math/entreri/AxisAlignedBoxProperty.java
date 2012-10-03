@@ -79,8 +79,8 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Attribute annotation to apply to AxisAlignedBoxProperty declarations,
-     * to specify the minimum coordinate of the box.
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to
+     * specify the minimum coordinate of the box.
      * 
      * @author Michael Ludwig
      */
@@ -92,10 +92,12 @@ public class AxisAlignedBoxProperty implements Property {
          * @return Default x coordinate
          */
         double x();
+
         /**
          * @return Default y coordinate
          */
         double y();
+
         /**
          * @return Default z coordinate
          */
@@ -103,8 +105,8 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Attribute annotation to apply to AxisAlignedBoxProperty declarations,
-     * to specify the maximum coordinate of the box.
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to
+     * specify the maximum coordinate of the box.
      * 
      * @author Michael Ludwig
      */
@@ -116,10 +118,12 @@ public class AxisAlignedBoxProperty implements Property {
          * @return Default x coordinate
          */
         double x();
+
         /**
          * @return Default y coordinate
          */
         double y();
+
         /**
          * @return Default z coordinate
          */

@@ -35,7 +35,8 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -54,8 +55,9 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3, float v4) {
-        switch(rowCount) {
+    protected void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3,
+                                    float v4) {
+        switch (rowCount) {
         case 1:
             GL20.glVertexAttrib1f(attr, v1);
             break;
@@ -73,7 +75,7 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
 
     @Override
     protected void glUniform(Uniform u, FloatBuffer values, int count) {
-        switch(u.uniform.getType()) {
+        switch (u.uniform.getType()) {
         case FLOAT:
             GL20.glUniform1(u.index, values);
             break;
@@ -100,10 +102,14 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
 
     @Override
     protected void glUniform(Uniform u, IntBuffer values, int count) {
-        switch(u.uniform.getType()) {
-        case BOOL: case INT: case SHADOW_MAP:
-        case TEXTURE_1D: case TEXTURE_2D:
-        case TEXTURE_3D: case TEXTURE_CUBEMAP:
+        switch (u.uniform.getType()) {
+        case BOOL:
+        case INT:
+        case SHADOW_MAP:
+        case TEXTURE_1D:
+        case TEXTURE_2D:
+        case TEXTURE_3D:
+        case TEXTURE_CUBEMAP:
             GL20.glUniform1(u.index, values);
             break;
         case INT_VEC2:
@@ -156,15 +162,18 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset, int stride, int elementSize) {
+    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset,
+                                      int stride, int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
 
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
-            GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+            GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes,
+                                       (FloatBuffer) h.inmemoryBuffer);
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
-            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false, strideBytes, vboOffset);
+            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false,
+                                       strideBytes, vboOffset);
         }
     }
 }

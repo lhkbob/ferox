@@ -27,13 +27,13 @@ import com.lhkbob.entreri.Unmanaged;
  * @param <T> The concrete type of light
  */
 public abstract class Light<T extends Light<T>> extends ComponentData<T> {
-    @DefaultColor(red=0.2, green=0.2, blue=0.2)
+    @DefaultColor(red = 0.2, green = 0.2, blue = 0.2)
     private ColorRGBProperty color;
 
     @Unmanaged
     private final ColorRGB cache = new ColorRGB();
 
-    protected Light() { }
+    protected Light() {}
 
     /**
      * Return the color of this Light. The returned ColorRGB instance is reused
@@ -42,7 +42,8 @@ public abstract class Light<T extends Light<T>> extends ComponentData<T> {
      * 
      * @return The color of this Light
      */
-    public final @Const ColorRGB getColor() {
+    public final @Const
+    ColorRGB getColor() {
         return cache;
     }
 

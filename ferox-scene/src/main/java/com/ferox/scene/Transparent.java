@@ -38,7 +38,7 @@ public final class Transparent extends ComponentData<Transparent> {
     @DefaultDouble(0.5)
     private DoubleProperty opacity;
 
-    private Transparent() { }
+    private Transparent() {}
 
     /**
      * Return the opacity of the Entity. This is a value between 0 and 1,

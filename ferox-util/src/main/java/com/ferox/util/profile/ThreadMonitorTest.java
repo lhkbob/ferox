@@ -11,7 +11,7 @@ public class ThreadMonitorTest {
                 public void run() {
                     Random r = new Random();
                     double total = 0;
-                    while(true) {
+                    while (true) {
                         double a = r.nextDouble();
                         double b = r.nextDouble();
                         total += (a * b);
@@ -20,25 +20,23 @@ public class ThreadMonitorTest {
             }, "Task " + i).start();
         }
 
-
         ThreadGroupMonitor gmonitor = new ThreadGroupMonitor();
 
         long start = System.currentTimeMillis();
         long veryStart = System.currentTimeMillis();
-        while(true)
-        {
+        while (true) {
             gmonitor.poll();
 
             if ((System.currentTimeMillis() - start) > 1000) {
                 System.out.println("-----------------------");
                 System.out.println("Estimated run time: " + ((System.currentTimeMillis() - veryStart) / 1000.0));
-                for(ThreadMonitor tmon: gmonitor.getAliveThreadMonitors())
-                {
+                for (ThreadMonitor tmon : gmonitor.getAliveThreadMonitors()) {
                     //              double avg = tmon.getCpuTimeStats().avg();  // avg of last polls
                     //              double avg = tmon.getCpuTimeStats().avg(3); // avg of last 3 polls
                     //                   double avg = tmon.getCpuTimeStats().avg(1000); // avg of last 5 polls
                     //                   System.out.println("Alive " + tmon.getId() + ": " + avg);
-                    System.out.println("Alive " + tmon.getName() + ": " + tmon.getTotalCpuTime() + ", " + tmon.getCpuUsageStats().avg(5));
+                    System.out.println("Alive " + tmon.getName() + ": " + tmon.getTotalCpuTime() + ", " + tmon.getCpuUsageStats()
+                                                                                                              .avg(5));
                 }
 
                 //               double totalCpu = gmonitor.getAvgCpuTimeStats(1000);

@@ -28,7 +28,7 @@ public class DiffuseColorMap extends TextureMap<DiffuseColorMap> {
      */
     public static final TypeId<DiffuseColorMap> ID = TypeId.get(DiffuseColorMap.class);
 
-    private DiffuseColorMap() { }
+    private DiffuseColorMap() {}
 
     @Override
     protected void validate(Texture tex) {

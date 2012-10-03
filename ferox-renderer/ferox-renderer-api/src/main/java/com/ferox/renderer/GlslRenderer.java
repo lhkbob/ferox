@@ -27,7 +27,6 @@ public interface GlslRenderer extends Renderer {
 
     public Map<String, GlslUniform> getUniforms();
 
-
     public void bindAttribute(String glslAttrName, VertexAttribute attr);
 
     public void bindAttribute(String glslAttrName, int column, VertexAttribute attr);
@@ -43,7 +42,6 @@ public interface GlslRenderer extends Renderer {
     public void bindAttribute(String glslAttrName, @Const Matrix3 v);
 
     public void bindAttribute(String glslAttrName, @Const Matrix4 v);
-
 
     // FIXME should these be changed to doubles?
     public void setUniform(String name, float val);
@@ -65,7 +63,6 @@ public interface GlslRenderer extends Renderer {
     // FIXME should I get rid of the array versions?
     public void setUniform(String name, float[] vals);
 
-
     public void setUniform(String name, int val);
 
     public void setUniform(String name, int v1, int v2);
@@ -76,11 +73,9 @@ public interface GlslRenderer extends Renderer {
 
     public void setUniform(String name, int[] vals);
 
-
     public void setUniform(String name, boolean val);
 
     public void setUniform(String name, boolean[] vals);
-
 
     public void setUniform(String name, Texture texture);
 

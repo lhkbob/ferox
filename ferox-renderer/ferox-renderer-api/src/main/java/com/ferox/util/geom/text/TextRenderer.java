@@ -75,8 +75,8 @@ public class TextRenderer {
         /**
          * Each String will be justified to the right edge of the screen. Within
          * a given block of text, the layout will still be left justified if
-         * that block contains new lines. Subsequent string blocks will flow
-         * up the screen from the bottom right corner.
+         * that block contains new lines. Subsequent string blocks will flow up
+         * the screen from the bottom right corner.
          */
         BOTTOM_RIGHT {
             @Override
@@ -90,8 +90,11 @@ public class TextRenderer {
             }
         };
 
-        protected abstract double getNextX(double nextWidth, double prevX, double prevWidth);
-        protected abstract double getNextY(double nextHeight, double prevY, double prevHeight);
+        protected abstract double getNextX(double nextWidth, double prevX,
+                                           double prevWidth);
+
+        protected abstract double getNextY(double nextHeight, double prevY,
+                                           double prevHeight);
 
         private static double right(double nextWidth, double prevX, double prevWidth) {
             double rightEdge = prevX + prevWidth / 2.0;
@@ -131,9 +134,13 @@ public class TextRenderer {
         this(charSet, textColor, Anchor.TOP_LEFT, text);
     }
 
-    public TextRenderer(CharacterSet charSet, ColorRGB textColor, Anchor anchor, String... text) {
+    public TextRenderer(CharacterSet charSet, ColorRGB textColor, Anchor anchor,
+                        String... text) {
         textBlocks = Arrays.asList(text);
-        this.textColor = new Vector4(textColor.red(), textColor.green(), textColor.blue(), 1.0);
+        this.textColor = new Vector4(textColor.red(),
+                                     textColor.green(),
+                                     textColor.blue(),
+                                     1.0);
         this.charSet = charSet;
         this.anchor = anchor;
     }
@@ -150,7 +157,7 @@ public class TextRenderer {
         factory.setWrapWidth(surface.getWidth());
 
         final Map<Geometry, Matrix4> textLayout = new HashMap<Geometry, Matrix4>();
-        for (String t: textBlocks) {
+        for (String t : textBlocks) {
             factory.setText(t);
 
             Geometry block = factory.create(StorageMode.IN_MEMORY);
@@ -167,7 +174,13 @@ public class TextRenderer {
         }
 
         // compute a projection matrix spanning the entire surface
-        Frustum ortho = new Frustum(true, 0, surface.getWidth(), 0, surface.getHeight(), -1, 1);
+        Frustum ortho = new Frustum(true,
+                                    0,
+                                    surface.getWidth(),
+                                    0,
+                                    surface.getHeight(),
+                                    -1,
+                                    1);
         final Matrix4 projection = ortho.getProjectionMatrix();
 
         return surface.getFramework().queue(new Task<Void>() {
@@ -180,7 +193,8 @@ public class TextRenderer {
                     ffp.setProjectionMatrix(projection);
 
                     ffp.setBlendingEnabled(true);
-                    ffp.setBlendMode(BlendFunction.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA);
+                    ffp.setBlendMode(BlendFunction.ADD, BlendFactor.SRC_ALPHA,
+                                     BlendFactor.ONE_MINUS_SRC_ALPHA);
                     ffp.setDepthTest(Comparison.ALWAYS);
                     ffp.setDepthWriteMask(false);
 
@@ -188,7 +202,7 @@ public class TextRenderer {
 
                     ffp.setTexture(0, charSet.getTexture());
 
-                    for (Entry<Geometry, Matrix4> e: textLayout.entrySet()) {
+                    for (Entry<Geometry, Matrix4> e : textLayout.entrySet()) {
                         ffp.setModelViewMatrix(e.getValue());
 
                         Geometry g = e.getKey();
@@ -196,9 +210,11 @@ public class TextRenderer {
                         ffp.setVertices(g.getVertices());
 
                         if (g.getIndices() == null) {
-                            ffp.render(g.getPolygonType(), g.getIndexOffset(), g.getIndexCount());
+                            ffp.render(g.getPolygonType(), g.getIndexOffset(),
+                                       g.getIndexCount());
                         } else {
-                            ffp.render(g.getPolygonType(), g.getIndices(), g.getIndexOffset(), g.getIndexCount());
+                            ffp.render(g.getPolygonType(), g.getIndices(),
+                                       g.getIndexOffset(), g.getIndexCount());
                         }
                     }
                 }

@@ -36,10 +36,7 @@ public final class Matrix4 implements Cloneable {
      * Construct a new Matrix4 that's set to the identity matrix.
      */
     public Matrix4() {
-        set(0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0,
-            0, 0, 0, 0);
+        set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
     /**
@@ -76,14 +73,11 @@ public final class Matrix4 implements Cloneable {
      * @param m32
      * @param m33
      */
-    public Matrix4(double m00, double m01, double m02, double m03,
-                   double m10, double m11, double m12, double m13,
-                   double m20, double m21, double m22, double m23,
-                   double m30, double m31, double m32, double m33) {
-        set(m00, m01, m02, m03,
-            m10, m11, m12, m13,
-            m20, m21, m22, m23,
-            m30, m31, m32, m33);
+    public Matrix4(double m00, double m01, double m02, double m03, double m10,
+                   double m11, double m12, double m13, double m20, double m21,
+                   double m22, double m23, double m30, double m31, double m32, double m33) {
+        set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32,
+            m33);
     }
 
     @Override
@@ -116,9 +110,8 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 add(@Const Matrix4 m, double c) {
-        return set(m.m00 + c, m.m01 + c, m.m02 + c, m.m03 + c,
-                   m.m10 + c, m.m11 + c, m.m12 + c, m.m13 + c,
-                   m.m20 + c, m.m21 + c, m.m22 + c, m.m23 + c,
+        return set(m.m00 + c, m.m01 + c, m.m02 + c, m.m03 + c, m.m10 + c, m.m11 + c,
+                   m.m12 + c, m.m13 + c, m.m20 + c, m.m21 + c, m.m22 + c, m.m23 + c,
                    m.m30 + c, m.m31 + c, m.m32 + c, m.m33 + c);
     }
 
@@ -196,10 +189,10 @@ public final class Matrix4 implements Cloneable {
         double t23 = m.m21 * ra2 - m.m23 * ra0 - m.m20 * ra4;
         double t33 = m.m20 * ra3 - m.m21 * ra1 + m.m22 * ra0;
 
-        return set(invDet * t00, invDet * t01, invDet * t02, invDet * t03,
-                   invDet * t10, invDet * t11, invDet * t12, invDet * t13,
-                   invDet * t20, invDet * t21, invDet * t22, invDet * t23,
-                   invDet * t30, invDet * t31, invDet * t32, invDet * t33);
+        return set(invDet * t00, invDet * t01, invDet * t02, invDet * t03, invDet * t10,
+                   invDet * t11, invDet * t12, invDet * t13, invDet * t20, invDet * t21,
+                   invDet * t22, invDet * t23, invDet * t30, invDet * t31, invDet * t32,
+                   invDet * t33);
     }
 
     /**
@@ -255,16 +248,16 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Matrix4 mulDiagonal(@Const Matrix4 a, @Const Vector4 b) {
-        return set(a.m00 * b.x, a.m01 * b.y, a.m02 * b.z, a.m03 * b.w,
-                   a.m10 * b.x, a.m11 * b.y, a.m12 * b.z, a.m13 * b.w,
-                   a.m20 * b.x, a.m21 * b.y, a.m22 * b.z, a.m23 * b.w,
-                   a.m30 * b.x, a.m31 * b.y, a.m32 * b.z, a.m33 * b.w);
+        return set(a.m00 * b.x, a.m01 * b.y, a.m02 * b.z, a.m03 * b.w, a.m10 * b.x,
+                   a.m11 * b.y, a.m12 * b.z, a.m13 * b.w, a.m20 * b.x, a.m21 * b.y,
+                   a.m22 * b.z, a.m23 * b.w, a.m30 * b.x, a.m31 * b.y, a.m32 * b.z,
+                   a.m33 * b.w);
     }
 
     /**
      * <p>
-     * Multiply the transpose of <tt>a</tt> by the transpose of <tt>b</tt>, or compute
-     * <code>[a]^T x [b]^T</code> and store it in this matrix.
+     * Multiply the transpose of <tt>a</tt> by the transpose of <tt>b</tt>, or
+     * compute <code>[a]^T x [b]^T</code> and store it in this matrix.
      * </p>
      * <p>
      * Note that <code>[a]^T x [b]^T = ([b] x [a])^T</code>
@@ -366,15 +359,13 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 transpose(@Const Matrix4 m) {
-        return set(m.m00, m.m10, m.m20, m.m30,
-                   m.m01, m.m11, m.m21, m.m31,
-                   m.m02, m.m12, m.m22, m.m32,
-                   m.m03, m.m13, m.m23, m.m33);
+        return set(m.m00, m.m10, m.m20, m.m30, m.m01, m.m11, m.m21, m.m31, m.m02, m.m12,
+                   m.m22, m.m32, m.m03, m.m13, m.m23, m.m33);
     }
 
     /**
-     * As {@link #add(Matrix4, Matrix4)} with the first parameter being
-     * this matrix.
+     * As {@link #add(Matrix4, Matrix4)} with the first parameter being this
+     * matrix.
      * 
      * @param r
      * @return This matrix
@@ -385,8 +376,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #add(Matrix4, double)} with the first parameter being
-     * this matrix.
+     * As {@link #add(Matrix4, double)} with the first parameter being this
+     * matrix.
      * 
      * @param c
      * @return This matrix
@@ -396,8 +387,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Invert this matrix in place, equivalent to {@link #inverse(Matrix4)}
-     * with the first parameter being this matrix.
+     * Invert this matrix in place, equivalent to {@link #inverse(Matrix4)} with
+     * the first parameter being this matrix.
      * 
      * @return This matrix
      * @throws ArithmeticException if this matrix isn't invertible
@@ -407,8 +398,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mul(Matrix4, Matrix4)} with the first parameter being
-     * this matrix.
+     * As {@link #mul(Matrix4, Matrix4)} with the first parameter being this
+     * matrix.
      * 
      * @param r
      * @return This matrix
@@ -419,8 +410,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulDiagonal(Matrix4, Vector4)} with the first parameter
-     * being this matrix.
+     * As {@link #mulDiagonal(Matrix4, Vector4)} with the first parameter being
+     * this matrix.
      * 
      * @param diag
      * @return This matrix
@@ -431,8 +422,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeBoth(Matrix4, Matrix4)} with the first parameter being
-     * this matrix.
+     * As {@link #mulTransposeBoth(Matrix4, Matrix4)} with the first parameter
+     * being this matrix.
      * 
      * @param r
      * @return This matrix
@@ -443,8 +434,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeLeft(Matrix4, Matrix4)} with the first parameter being
-     * this matrix.
+     * As {@link #mulTransposeLeft(Matrix4, Matrix4)} with the first parameter
+     * being this matrix.
      * 
      * @param r
      * @return This matrix
@@ -455,8 +446,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeRight(Matrix4, Matrix4)} with the first parameter being
-     * this matrix.
+     * As {@link #mulTransposeRight(Matrix4, Matrix4)} with the first parameter
+     * being this matrix.
      * 
      * @param r
      * @return This matrix
@@ -467,8 +458,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #scale(Matrix4, float)} with the first parameter being
-     * this matrix.
+     * As {@link #scale(Matrix4, float)} with the first parameter being this
+     * matrix.
      * 
      * @param scalar
      * @return This matrix
@@ -478,9 +469,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Transpose this matrix in place, equivalent to
-     * {@link #transpose(Matrix4)} with the first parameter being
-     * this matrix.
+     * Transpose this matrix in place, equivalent to {@link #transpose(Matrix4)}
+     * with the first parameter being this matrix.
      * 
      * @return This matrix
      */
@@ -646,15 +636,19 @@ public final class Matrix4 implements Cloneable {
      */
     public Matrix4 set(double[] values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values[offset], values[offset + 1], values[offset + 2], values[offset + 3],
-                       values[offset + 4], values[offset + 5], values[offset + 6], values[offset + 7],
-                       values[offset + 8], values[offset + 9], values[offset + 10], values[offset + 11],
-                       values[offset + 12], values[offset + 13], values[offset + 14], values[offset + 15]);
+            return set(values[offset], values[offset + 1], values[offset + 2],
+                       values[offset + 3], values[offset + 4], values[offset + 5],
+                       values[offset + 6], values[offset + 7], values[offset + 8],
+                       values[offset + 9], values[offset + 10], values[offset + 11],
+                       values[offset + 12], values[offset + 13], values[offset + 14],
+                       values[offset + 15]);
         } else {
-            return set(values[offset], values[offset + 4], values[offset + 8], values[offset + 12],
-                       values[offset + 1], values[offset + 5], values[offset + 9], values[offset + 13],
-                       values[offset + 2], values[offset + 6], values[offset + 10], values[offset + 14],
-                       values[offset + 3], values[offset + 7], values[offset + 11], values[offset + 15]);
+            return set(values[offset], values[offset + 4], values[offset + 8],
+                       values[offset + 12], values[offset + 1], values[offset + 5],
+                       values[offset + 9], values[offset + 13], values[offset + 2],
+                       values[offset + 6], values[offset + 10], values[offset + 14],
+                       values[offset + 3], values[offset + 7], values[offset + 11],
+                       values[offset + 15]);
         }
     }
 
@@ -672,15 +666,19 @@ public final class Matrix4 implements Cloneable {
      */
     public Matrix4 set(float[] values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values[offset], values[offset + 1], values[offset + 2], values[offset + 3],
-                       values[offset + 4], values[offset + 5], values[offset + 6], values[offset + 7],
-                       values[offset + 8], values[offset + 9], values[offset + 10], values[offset + 11],
-                       values[offset + 12], values[offset + 13], values[offset + 14], values[offset + 15]);
+            return set(values[offset], values[offset + 1], values[offset + 2],
+                       values[offset + 3], values[offset + 4], values[offset + 5],
+                       values[offset + 6], values[offset + 7], values[offset + 8],
+                       values[offset + 9], values[offset + 10], values[offset + 11],
+                       values[offset + 12], values[offset + 13], values[offset + 14],
+                       values[offset + 15]);
         } else {
-            return set(values[offset], values[offset + 4], values[offset + 8], values[offset + 12],
-                       values[offset + 1], values[offset + 5], values[offset + 9], values[offset + 13],
-                       values[offset + 2], values[offset + 6], values[offset + 10], values[offset + 14],
-                       values[offset + 3], values[offset + 7], values[offset + 11], values[offset + 15]);
+            return set(values[offset], values[offset + 4], values[offset + 8],
+                       values[offset + 12], values[offset + 1], values[offset + 5],
+                       values[offset + 9], values[offset + 13], values[offset + 2],
+                       values[offset + 6], values[offset + 10], values[offset + 14],
+                       values[offset + 3], values[offset + 7], values[offset + 11],
+                       values[offset + 15]);
         }
     }
 
@@ -698,15 +696,23 @@ public final class Matrix4 implements Cloneable {
      */
     public Matrix4 set(DoubleBuffer values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values.get(offset), values.get(offset + 1), values.get(offset + 2), values.get(offset + 3),
-                       values.get(offset + 4), values.get(offset + 5), values.get(offset + 6), values.get(offset + 7),
-                       values.get(offset + 8), values.get(offset + 9), values.get(offset + 10), values.get(offset + 11),
-                       values.get(offset + 12), values.get(offset + 13), values.get(offset + 14), values.get(offset + 15));
+            return set(values.get(offset), values.get(offset + 1),
+                       values.get(offset + 2), values.get(offset + 3),
+                       values.get(offset + 4), values.get(offset + 5),
+                       values.get(offset + 6), values.get(offset + 7),
+                       values.get(offset + 8), values.get(offset + 9),
+                       values.get(offset + 10), values.get(offset + 11),
+                       values.get(offset + 12), values.get(offset + 13),
+                       values.get(offset + 14), values.get(offset + 15));
         } else {
-            return set(values.get(offset), values.get(offset + 4), values.get(offset + 8), values.get(offset + 12),
-                       values.get(offset + 1), values.get(offset + 5), values.get(offset + 9), values.get(offset + 13),
-                       values.get(offset + 2), values.get(offset + 6), values.get(offset + 10), values.get(offset + 14),
-                       values.get(offset + 3), values.get(offset + 7), values.get(offset + 11), values.get(offset + 15));
+            return set(values.get(offset), values.get(offset + 4),
+                       values.get(offset + 8), values.get(offset + 12),
+                       values.get(offset + 1), values.get(offset + 5),
+                       values.get(offset + 9), values.get(offset + 13),
+                       values.get(offset + 2), values.get(offset + 6),
+                       values.get(offset + 10), values.get(offset + 14),
+                       values.get(offset + 3), values.get(offset + 7),
+                       values.get(offset + 11), values.get(offset + 15));
         }
 
     }
@@ -725,15 +731,23 @@ public final class Matrix4 implements Cloneable {
      */
     public Matrix4 set(FloatBuffer values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values.get(offset), values.get(offset + 1), values.get(offset + 2), values.get(offset + 3),
-                       values.get(offset + 4), values.get(offset + 5), values.get(offset + 6), values.get(offset + 7),
-                       values.get(offset + 8), values.get(offset + 9), values.get(offset + 10), values.get(offset + 11),
-                       values.get(offset + 12), values.get(offset + 13), values.get(offset + 14), values.get(offset + 15));
+            return set(values.get(offset), values.get(offset + 1),
+                       values.get(offset + 2), values.get(offset + 3),
+                       values.get(offset + 4), values.get(offset + 5),
+                       values.get(offset + 6), values.get(offset + 7),
+                       values.get(offset + 8), values.get(offset + 9),
+                       values.get(offset + 10), values.get(offset + 11),
+                       values.get(offset + 12), values.get(offset + 13),
+                       values.get(offset + 14), values.get(offset + 15));
         } else {
-            return set(values.get(offset), values.get(offset + 4), values.get(offset + 8), values.get(offset + 12),
-                       values.get(offset + 1), values.get(offset + 5), values.get(offset + 9), values.get(offset + 13),
-                       values.get(offset + 2), values.get(offset + 6), values.get(offset + 10), values.get(offset + 14),
-                       values.get(offset + 3), values.get(offset + 7), values.get(offset + 11), values.get(offset + 15));
+            return set(values.get(offset), values.get(offset + 4),
+                       values.get(offset + 8), values.get(offset + 12),
+                       values.get(offset + 1), values.get(offset + 5),
+                       values.get(offset + 9), values.get(offset + 13),
+                       values.get(offset + 2), values.get(offset + 6),
+                       values.get(offset + 10), values.get(offset + 14),
+                       values.get(offset + 3), values.get(offset + 7),
+                       values.get(offset + 11), values.get(offset + 15));
         }
 
     }
@@ -760,14 +774,26 @@ public final class Matrix4 implements Cloneable {
      * @param m33 New value for 4th row and 4th column
      * @return This matrix
      */
-    public Matrix4 set(double m00, double m01, double m02, double m03,
-                       double m10, double m11, double m12, double m13,
-                       double m20, double m21, double m22, double m23,
-                       double m30, double m31, double m32, double m33) {
-        this.m00 = m00; this.m01 = m01; this.m02 = m02; this.m03 = m03;
-        this.m10 = m10; this.m11 = m11; this.m12 = m12; this.m13 = m13;
-        this.m20 = m20; this.m21 = m21; this.m22 = m22; this.m23 = m23;
-        this.m30 = m30; this.m31 = m31; this.m32 = m32; this.m33 = m33;
+    public Matrix4 set(double m00, double m01, double m02, double m03, double m10,
+                       double m11, double m12, double m13, double m20, double m21,
+                       double m22, double m23, double m30, double m31, double m32,
+                       double m33) {
+        this.m00 = m00;
+        this.m01 = m01;
+        this.m02 = m02;
+        this.m03 = m03;
+        this.m10 = m10;
+        this.m11 = m11;
+        this.m12 = m12;
+        this.m13 = m13;
+        this.m20 = m20;
+        this.m21 = m21;
+        this.m22 = m22;
+        this.m23 = m23;
+        this.m30 = m30;
+        this.m31 = m31;
+        this.m32 = m32;
+        this.m33 = m33;
         return this;
     }
 
@@ -780,10 +806,8 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 setUpper(@Const Matrix3 m) {
-        return set(m.m00, m.m01, m.m02, m03,
-                   m.m10, m.m11, m.m12, m13,
-                   m.m20, m.m21, m.m22, m23,
-                   m30,   m31,   m32, m33);
+        return set(m.m00, m.m01, m.m02, m03, m.m10, m.m11, m.m12, m13, m.m20, m.m21,
+                   m.m22, m23, m30, m31, m32, m33);
     }
 
     /**
@@ -794,10 +818,22 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if o is null
      */
     public Matrix4 set(@Const Matrix4 o) {
-        m00 = o.m00; m01 = o.m01; m02 = o.m02; m03 = o.m03;
-        m10 = o.m10; m11 = o.m11; m12 = o.m12; m13 = o.m13;
-        m20 = o.m20; m21 = o.m21; m22 = o.m22; m23 = o.m23;
-        m30 = o.m30; m31 = o.m31; m32 = o.m32; m33 = o.m33;
+        m00 = o.m00;
+        m01 = o.m01;
+        m02 = o.m02;
+        m03 = o.m03;
+        m10 = o.m10;
+        m11 = o.m11;
+        m12 = o.m12;
+        m13 = o.m13;
+        m20 = o.m20;
+        m21 = o.m21;
+        m22 = o.m22;
+        m23 = o.m23;
+        m30 = o.m30;
+        m31 = o.m31;
+        m32 = o.m32;
+        m33 = o.m33;
         return this;
     }
 
@@ -807,10 +843,7 @@ public final class Matrix4 implements Cloneable {
      * @return This matrix
      */
     public Matrix4 setIdentity() {
-        return set(1, 0, 0, 0,
-                   0, 1, 0, 0,
-                   0, 0, 1, 0,
-                   0, 0, 0, 1);
+        return set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     }
 
     /**
@@ -935,13 +968,12 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but the data is cast
-     * to floats.
+     * As {@link #get(double[], int, boolean)}, but the data is cast to floats.
      * 
      * @param store The float[] to hold the row values
      * @param offset The first index to use in the store
      * @param rowMajor True if the matrix values are stored as rows, otherwise
-     * as columns
+     *            as columns
      * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
      *             for the column
      */
@@ -990,7 +1022,7 @@ public final class Matrix4 implements Cloneable {
      * @param store The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
      * @param rowMajor True if the matrix values are stored as rows, otherwise
-     * as columns
+     *            as columns
      * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
      *             for the column
      */
@@ -1039,7 +1071,7 @@ public final class Matrix4 implements Cloneable {
      * @param store The FloatBuffer to hold the row values
      * @param offset The first index to use in the store
      * @param rowMajor True if the matrix values are stored as rows, otherwise
-     * as columns
+     *            as columns
      * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
      *             for the column
      */
@@ -1088,9 +1120,7 @@ public final class Matrix4 implements Cloneable {
      * @return A 3x3 matrix representing the upper 3x3 values of this matrix
      */
     public Matrix3 getUpperMatrix() {
-        return new Matrix3(m00, m01, m02,
-                           m10, m11, m12,
-                           m20, m21, m22);
+        return new Matrix3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
     }
 
     /**
@@ -1148,14 +1178,7 @@ public final class Matrix4 implements Cloneable {
             return false;
         }
 
-        return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps &&
-                Math.abs(m02 - e.m02) <= eps && Math.abs(m03 - e.m03) <= eps &&
-                Math.abs(m10 - e.m10) <= eps && Math.abs(m11 - e.m11) <= eps &&
-                Math.abs(m12 - e.m12) <= eps && Math.abs(m13 - e.m13) <= eps &&
-                Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps &&
-                Math.abs(m22 - e.m22) <= eps && Math.abs(m23 - e.m23) <= eps &&
-                Math.abs(m30 - e.m30) <= eps && Math.abs(m31 - e.m31) <= eps &&
-                Math.abs(m32 - e.m32) <= eps && Math.abs(m33 - e.m33) <= eps;
+        return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps && Math.abs(m02 - e.m02) <= eps && Math.abs(m03 - e.m03) <= eps && Math.abs(m10 - e.m10) <= eps && Math.abs(m11 - e.m11) <= eps && Math.abs(m12 - e.m12) <= eps && Math.abs(m13 - e.m13) <= eps && Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps && Math.abs(m22 - e.m22) <= eps && Math.abs(m23 - e.m23) <= eps && Math.abs(m30 - e.m30) <= eps && Math.abs(m31 - e.m31) <= eps && Math.abs(m32 - e.m32) <= eps && Math.abs(m33 - e.m33) <= eps;
     }
 
     @Override
@@ -1165,10 +1188,7 @@ public final class Matrix4 implements Cloneable {
             return false;
         }
         Matrix4 e = (Matrix4) o;
-        return m00 == e.m00 && m01 == e.m01 && m02 == e.m02 && m03 == e.m03 &&
-                m10 == e.m10 && m11 == e.m11 && m12 == e.m12 && m13 == e.m13 &&
-                m20 == e.m20 && m21 == e.m21 && m22 == e.m22 && m23 == e.m23 &&
-                m30 == e.m30 && m31 == e.m31 && m32 == e.m32 && m33 == e.m33;
+        return m00 == e.m00 && m01 == e.m01 && m02 == e.m02 && m03 == e.m03 && m10 == e.m10 && m11 == e.m11 && m12 == e.m12 && m13 == e.m13 && m20 == e.m20 && m21 == e.m21 && m22 == e.m22 && m23 == e.m23 && m30 == e.m30 && m31 == e.m31 && m32 == e.m32 && m33 == e.m33;
     }
 
     @Override
@@ -1199,9 +1219,6 @@ public final class Matrix4 implements Cloneable {
 
     @Override
     public String toString() {
-        return "[[ " + m00 + ", " + m01 + ", " + m02 + ", " + m03 + " ]\n" +
-                " [ " + m10 + ", " + m11 + ", " + m12 + ", " + m13 + " ]\n" +
-                " [ " + m20 + ", " + m21 + ", " + m22 + ", " + m23 + " ]\n" +
-                " [ " + m30 + ", " + m31 + ", " + m32 + ", " + m33 + " ]]";
+        return "[[ " + m00 + ", " + m01 + ", " + m02 + ", " + m03 + " ]\n" + " [ " + m10 + ", " + m11 + ", " + m12 + ", " + m13 + " ]\n" + " [ " + m20 + ", " + m21 + ", " + m22 + ", " + m23 + " ]\n" + " [ " + m30 + ", " + m31 + ", " + m32 + ", " + m33 + " ]]";
     }
 }

@@ -26,7 +26,7 @@ public class Sphere {
     // we need a float PI since we're building float vertices
     private static final float PI = (float) Math.PI;
 
-    private Sphere() { }
+    private Sphere() {}
 
     /**
      * Create a new Sphere with the given radius, a resolution of 8, and a
@@ -145,15 +145,15 @@ public class Sphere {
                 for (int du = 0; du <= res; du++) {
                     // place vertices, normals and texcoords
                     va[index++] = floatRadius * r * xCoord[du]; // vx
-                    va[index++] = floatRadius * y;              // vy
+                    va[index++] = floatRadius * y; // vy
                     va[index++] = floatRadius * r * zCoord[du]; // vz
 
-                    va[index++] = r * xCoord[du];          // nx
-                    va[index++] = y;                       // ny
-                    va[index++] = r * zCoord[du];          // nz
+                    va[index++] = r * xCoord[du]; // nx
+                    va[index++] = y; // ny
+                    va[index++] = r * zCoord[du]; // nz
 
-                    va[index++] = u[du];                   // tx
-                    va[index++] = tv;                      // ty
+                    va[index++] = u[du]; // tx
+                    va[index++] = tv; // ty
                 }
             }
 
@@ -180,7 +180,8 @@ public class Sphere {
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
 
-            bounds = new AxisAlignedBox(new Vector3(-radius, -radius, -radius), new Vector3(radius, radius, radius));
+            bounds = new AxisAlignedBox(new Vector3(-radius, -radius, -radius),
+                                        new Vector3(radius, radius, radius));
         }
 
         @Override
@@ -224,7 +225,8 @@ public class Sphere {
         }
 
         @Override
-        public @Const AxisAlignedBox getBounds() {
+        public @Const
+        AxisAlignedBox getBounds() {
             return bounds;
         }
     }

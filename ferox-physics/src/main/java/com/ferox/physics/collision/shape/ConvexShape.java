@@ -47,7 +47,8 @@ public abstract class ConvexShape implements Shape {
     public abstract Vector3 computeSupport(@Const Vector3 v, @Const Vector3 result);
 
     @Override
-    public @Const AxisAlignedBox getBounds() {
+    public @Const
+    AxisAlignedBox getBounds() {
         return bounds;
     }
 

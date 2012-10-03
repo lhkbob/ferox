@@ -109,7 +109,8 @@ public class CharacterSet {
      *            antialiased
      * @param useNpotTexture Whether or not an NPOT Texture2D can be used
      */
-    public CharacterSet(Font font, String characterSet, boolean antiAlias, boolean useNpotTexture) {
+    public CharacterSet(Font font, String characterSet, boolean antiAlias,
+                        boolean useNpotTexture) {
         if (font == null) {
             font = Font.decode("Arial-BOLD-14");
         }
@@ -150,9 +151,9 @@ public class CharacterSet {
 
     /**
      * <p>
-     * Return the 2D Texture that contains the character sheet for all characters
-     * of this CharacterSet. Use the character metrics returned by getGlyph() to
-     * access the image data.
+     * Return the 2D Texture that contains the character sheet for all
+     * characters of this CharacterSet. Use the character metrics returned by
+     * getGlyph() to access the image data.
      * </p>
      * <p>
      * The texture will have a transparent background, with the characters
@@ -234,8 +235,8 @@ public class CharacterSet {
         // prepare the text to be rendered as white,
         g2d.setColor(Color.WHITE);
         g2d.setFont(font);
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, (antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
-                                                                              : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                             (antiAlias ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF));
 
         // and flipped, so glyph dimensions make sense in openGL coord system
         g2d.scale(1, -1);
@@ -251,10 +252,14 @@ public class CharacterSet {
             glyphBounds = g.getBounds2D();
 
             glyph = new Glyph(g.getAdvance(), // advance
-                              (float) r.getX() / width, (float) (r.getX() + r.getWidth()) / width, // left and right tex coords
-                              (float) (height - r.getY() - r.getHeight()) / height, (float) (height - r.getY()) / height, // bottom and top tex coords
-                              (float) glyphBounds.getX(), (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // local x and y positions
-                              (float) glyphBounds.getWidth() + CHAR_PADDING * 2, (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
+                              (float) r.getX() / width,
+                              (float) (r.getX() + r.getWidth()) / width, // left and right tex coords
+                              (float) (height - r.getY() - r.getHeight()) / height,
+                              (float) (height - r.getY()) / height, // bottom and top tex coords
+                              (float) glyphBounds.getX(),
+                              (float) -(glyphBounds.getHeight() + glyphBounds.getY()), // local x and y positions
+                              (float) glyphBounds.getWidth() + CHAR_PADDING * 2,
+                              (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
             metrics.put(Character.valueOf(characters[i]), glyph);
 
             g2d.drawChars(characters, i, 1,
@@ -265,7 +270,11 @@ public class CharacterSet {
 
         // create the texture
         int[] data = ((DataBufferInt) charSet.getRaster().getDataBuffer()).getData();
-        this.characters = new Texture(Target.T_2D, new Mipmap(new BufferData(data), width, height, 1, TextureFormat.ARGB_8888));
+        this.characters = new Texture(Target.T_2D, new Mipmap(new BufferData(data),
+                                                              width,
+                                                              height,
+                                                              1,
+                                                              TextureFormat.ARGB_8888));
     }
 
     /*

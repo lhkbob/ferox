@@ -131,7 +131,7 @@ public class BufferUtil {
      * @throws NullPointerException if type is null
      */
     public static Buffer newBuffer(DataType type, int size) {
-        switch(type) {
+        switch (type) {
         case FLOAT:
             return newFloatBuffer(size);
         case UNSIGNED_BYTE:
@@ -157,7 +157,7 @@ public class BufferUtil {
      * @throws NullPointerException if data is null
      */
     public static Buffer newBuffer(BufferData data) {
-        switch(data.getDataType()) {
+        switch (data.getDataType()) {
         case FLOAT:
             float[] fd = data.getArray();
             return (fd == null ? newFloatBuffer(data.getLength()) : newFloatBuffer(fd));
@@ -187,11 +187,15 @@ public class BufferUtil {
      * @throws NullPointerException if type is null
      */
     public static Class<? extends Buffer> getBufferType(DataType type) {
-        switch(type) {
-        case FLOAT: return FloatBuffer.class;
-        case UNSIGNED_BYTE: return ByteBuffer.class;
-        case UNSIGNED_INT: return IntBuffer.class;
-        case UNSIGNED_SHORT: return ShortBuffer.class;
+        switch (type) {
+        case FLOAT:
+            return FloatBuffer.class;
+        case UNSIGNED_BYTE:
+            return ByteBuffer.class;
+        case UNSIGNED_INT:
+            return IntBuffer.class;
+        case UNSIGNED_SHORT:
+            return ShortBuffer.class;
         }
 
         return null; // won't happen

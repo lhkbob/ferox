@@ -33,6 +33,6 @@ public interface IntersectionCallback<T> {
      * @param b The second item in the pair
      * @param boundsB The bounds of the second item
      */
-    public void process(T a, @Const AxisAlignedBox boundsA,
-                        T b, @Const AxisAlignedBox boundsB);
+    public void process(T a, @Const AxisAlignedBox boundsA, T b,
+                        @Const AxisAlignedBox boundsB);
 }

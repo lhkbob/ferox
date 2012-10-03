@@ -29,7 +29,8 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
             // TODO Auto-generated method stub
             return null;
         }
@@ -62,7 +63,8 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int index) {
 
         }
     }

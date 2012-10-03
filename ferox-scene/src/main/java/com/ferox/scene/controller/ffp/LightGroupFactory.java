@@ -35,8 +35,8 @@ public class LightGroupFactory implements StateGroupFactory {
     // components for access
     private final Renderable renderable;
 
-    public LightGroupFactory(EntitySystem system, LightGroupResult lightGroups, int maxLights,
-                             StateGroupFactory child) {
+    public LightGroupFactory(EntitySystem system, LightGroupResult lightGroups,
+                             int maxLights, StateGroupFactory child) {
         this.child = child;
         groupAssignment = lightGroups.getAssignmentProperty();
         groups = new State[lightGroups.getGroupCount()][];
@@ -61,7 +61,7 @@ public class LightGroupFactory implements StateGroupFactory {
             states.add(currentState);
 
             int index = 0;
-            for (Component<? extends Light<?>> light: group) {
+            for (Component<? extends Light<?>> light : group) {
                 Entity e = light.getEntity();
                 GLLight gl = null;
 
@@ -72,7 +72,8 @@ public class LightGroupFactory implements StateGroupFactory {
                 } else if (light.getTypeId() == SpotLight.ID && e.get(sl)) {
                     gl = new GLLight();
                     gl.setSpotLight(light, sl.getColor(), sl.getCutoffAngle(),
-                                    sl.getFalloffDistance(), (e.get(t) ? t.getMatrix() : identity));
+                                    sl.getFalloffDistance(),
+                                    (e.get(t) ? t.getMatrix() : identity));
                 } else if (light.getTypeId() == PointLight.ID && e.get(pl)) {
                     gl = new GLLight();
                     gl.setPointLight(light, pl.getColor(), pl.getFalloffDistance(),
@@ -114,7 +115,7 @@ public class LightGroupFactory implements StateGroupFactory {
 
                 // if there are still ambient lights, we need one state for
                 // each ambient light without any other configuration
-                while(!unassignedAmbientLights.isEmpty()) {
+                while (!unassignedAmbientLights.isEmpty()) {
                     Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
                     if (light.getEntity().get(al)) {
                         LightState state = new LightState(0);
@@ -143,7 +144,8 @@ public class LightGroupFactory implements StateGroupFactory {
         public LightGroup() {
             nodes = new ArrayList<StateNode>();
             for (int i = 0; i < groups.length; i++) {
-                nodes.add(new StateNode((child == null ? null : child.newGroup()), groups[i]));
+                nodes.add(new StateNode((child == null ? null : child.newGroup()),
+                                        groups[i]));
             }
         }
 
@@ -164,7 +166,8 @@ public class LightGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
             // do nothing
             return effects;
         }
@@ -199,7 +202,8 @@ public class LightGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                         int index) {
             int numLights = 0;
 
             if (!effects.isShadowBeingRendered() && ambientColor != null) {
@@ -218,8 +222,7 @@ public class LightGroupFactory implements StateGroupFactory {
                 if (light != null) {
                     // check to see if this light should be used for the current
                     // stage of shadow mapping
-                    if ((effects.isShadowBeingRendered() && light.source == effects.getShadowCaster())
-                            || (!effects.isShadowBeingRendered() && light.source != effects.getShadowCaster())) {
+                    if ((effects.isShadowBeingRendered() && light.source == effects.getShadowCaster()) || (!effects.isShadowBeingRendered() && light.source != effects.getShadowCaster())) {
                         // enable and configure the light
                         r.setLightEnabled(i, true);
                         r.setLightPosition(i, light.position);
@@ -232,7 +235,10 @@ public class LightGroupFactory implements StateGroupFactory {
                                 // the constant 15 was chosen through experimentation, basically
                                 // a value that makes lights seem bright enough but still
                                 // drop off pretty well by the desired radius
-                                r.setLightAttenuation(i, 1.0f, 0.0f, (15.0 / (light.falloff * light.falloff)));
+                                r.setLightAttenuation(i,
+                                                      1.0f,
+                                                      0.0f,
+                                                      (15.0 / (light.falloff * light.falloff)));
                             } else {
                                 // disable attenuation
                                 r.setLightAttenuation(i, 1.0f, 0.0f, 0.0f);
@@ -258,8 +264,10 @@ public class LightGroupFactory implements StateGroupFactory {
                     // know that only a single light is active so it doesn't matter if the index > 0,
                     // we don't touch the blending
                     r.setBlendingEnabled(true);
-                    r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(), BlendFactor.ONE);
-                    return effects.setBlending(effects.getSourceBlendFactor(), BlendFactor.ONE);
+                    r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(),
+                                   BlendFactor.ONE);
+                    return effects.setBlending(effects.getSourceBlendFactor(),
+                                               BlendFactor.ONE);
                 } else {
                     return effects;
                 }
@@ -270,10 +278,12 @@ public class LightGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int index) {
             if (index > 0 && !effects.isShadowBeingRendered()) {
                 r.setBlendingEnabled(effects.isBlendingEnabled());
-                r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(), effects.getDestinationBlendFactor());
+                r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(),
+                               effects.getDestinationBlendFactor());
             }
         }
     }
@@ -287,14 +297,16 @@ public class LightGroupFactory implements StateGroupFactory {
 
         Component<? extends Light<?>> source;
 
-        public void setDirectionLight(Component<? extends Light<?>> light, ColorRGB color, Matrix4 transform) {
+        public void setDirectionLight(Component<? extends Light<?>> light,
+                                      ColorRGB color, Matrix4 transform) {
             position = new Vector4(-transform.m02, -transform.m12, -transform.m22, 0.0);
             this.color = convertColor(color);
             spotlightDirection = null;
             source = light;
         }
 
-        public void setSpotLight(Component<? extends Light<?>> light, ColorRGB color, double cutoffAngle, double falloff, Matrix4 transform) {
+        public void setSpotLight(Component<? extends Light<?>> light, ColorRGB color,
+                                 double cutoffAngle, double falloff, Matrix4 transform) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
             this.color = convertColor(color);
             spotlightDirection = new Vector3(transform.m02, transform.m12, transform.m22);
@@ -303,7 +315,8 @@ public class LightGroupFactory implements StateGroupFactory {
             source = light;
         }
 
-        public void setPointLight(Component<? extends Light<?>> light, ColorRGB color, double falloff, Matrix4 transform) {
+        public void setPointLight(Component<? extends Light<?>> light, ColorRGB color,
+                                  double falloff, Matrix4 transform) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
             this.color = convertColor(color);
             spotlightDirection = new Vector3(0.0, 0.0, 1.0); // any non-null direction is fine

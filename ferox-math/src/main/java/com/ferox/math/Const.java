@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD })
-public @interface Const { }
+@Target({ElementType.PARAMETER, ElementType.METHOD, ElementType.FIELD})
+public @interface Const {}

@@ -139,8 +139,8 @@ public class LifeCycleManager {
      * @param preDestroy A Runnable executed after the exclusive lock is held,
      *            but before the state transitions to STOPPING
      * @param postDestroy A Runnable executed after status changes to STOPPED
-     * @return True if the manager will transition to STOPPING or STOPPED and false
-     *         otherwise
+     * @return True if the manager will transition to STOPPING or STOPPED and
+     *         false otherwise
      * @throws NullPointerException if either runnable is null
      */
     public boolean stop(Runnable preDestroy, Runnable postDestroy) {
@@ -169,19 +169,20 @@ public class LifeCycleManager {
                 // - we can't just interrupt the group because some impl's use AWT
                 //   which then inherits this group and gets fussy when we send
                 //   interrupts out.
-                for (Thread m: managedThreads) {
+                for (Thread m : managedThreads) {
                     m.interrupt();
                 }
 
                 ThreadGroup shutdownOwner = Thread.currentThread().getThreadGroup();
-                while(managedThreadGroup.parentOf(shutdownOwner)) {
+                while (managedThreadGroup.parentOf(shutdownOwner)) {
                     // The shutdown thread joins on threads within the managedThreads group,
                     // so it can't be part of that thread group.
                     shutdownOwner = shutdownOwner.getParent();
                 }
 
-                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(postDestroy),
-                        "lifecycle-shutdown-thread");
+                Thread shutdown = new Thread(shutdownOwner,
+                                             new ShutdownTask(postDestroy),
+                                             "lifecycle-shutdown-thread");
                 shutdown.setDaemon(false); // Don't let the JVM die until this is finished
                 shutdown.start();
 
@@ -294,8 +295,8 @@ public class LifeCycleManager {
             boolean loop = false;
             do {
                 loop = false;
-                for (Thread managed: managedThreads) {
-                    while(managed.isAlive()) {
+                for (Thread managed : managedThreads) {
+                    while (managed.isAlive()) {
                         try {
                             managed.join();
                         } catch (InterruptedException e) {
@@ -304,7 +305,7 @@ public class LifeCycleManager {
                         }
                     }
                 }
-            } while(loop);
+            } while (loop);
 
             // We don't need to lock here since this is the only place where STOPPING -> STOPPED
             // and there will only ever be one shutdown thread.

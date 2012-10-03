@@ -47,34 +47,37 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 public class SimpleTest {
     public static final boolean LWJGL = true;
+
     public static void main(String[] args) {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
-        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions()
-        .setWidth(800)
-        .setHeight(600)
-        //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
-        //            .setMultiSampling(MultiSampling.FOUR_X)
-        .setResizable(false));
+        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
+                                                                                      .setHeight(600)
+                                                                                      //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
+                                                                                      //            .setMultiSampling(MultiSampling.FOUR_X)
+                                                                                      .setResizable(false));
         surface.setVSyncEnabled(false);
 
         EntitySystem system = new EntitySystem();
 
         Entity camera = system.addEntity();
-        camera.add(Transform.ID).getData().setMatrix(new Matrix4(-1, 0, 0, 0,
-                                                                 0, 1, 0, 0,
-                                                                 0, 0, -1, 150,
-                                                                 0, 0, 0, 1));
-        camera.add(Camera.ID).getData().setSurface(surface)
-        .setZDistances(0.1, 1200)
-        .setFieldOfView(75);
+        camera.add(Transform.ID).getData()
+              .setMatrix(new Matrix4(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 150, 0, 0, 0, 1));
+        camera.add(Camera.ID).getData().setSurface(surface).setZDistances(0.1, 1200)
+              .setFieldOfView(75);
 
         Geometry b1 = Sphere.create(2f, 16, StorageMode.GPU_STATIC);
         Geometry b2 = Box.create(2f, StorageMode.GPU_STATIC);
         Geometry b3 = Teapot.create(1f, StorageMode.GPU_STATIC);
 
-        ColorRGB c1 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
-        ColorRGB c2 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
-        ColorRGB c3 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
+        ColorRGB c1 = new ColorRGB(Math.random() + 0.2,
+                                   Math.random() + 0.2,
+                                   Math.random() + 0.2);
+        ColorRGB c2 = new ColorRGB(Math.random() + 0.2,
+                                   Math.random() + 0.2,
+                                   Math.random() + 0.2);
+        ColorRGB c3 = new ColorRGB(Math.random() + 0.2,
+                                   Math.random() + 0.2,
+                                   Math.random() + 0.2);
 
         int totalpolys = 0;
         for (int i = 0; i < 10000; i++) {
@@ -98,22 +101,40 @@ public class SimpleTest {
                 c = c3;
             }
 
-            int polycount = b.getPolygonType().getPolygonCount(b.getIndexCount() - b.getIndexOffset());
+            int polycount = b.getPolygonType()
+                             .getPolygonCount(b.getIndexCount() - b.getIndexOffset());
 
             Entity e = system.addEntity();
-            e.add(Renderable.ID).getData().setVertices(b.getVertices())
-            .setLocalBounds(b.getBounds())
-            .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(), b.getIndexCount());
+            e.add(Renderable.ID)
+             .getData()
+             .setVertices(b.getVertices())
+             .setLocalBounds(b.getBounds())
+             .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(),
+                         b.getIndexCount());
             //            if (Math.random() < .9)
-                e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
-                e.add(DiffuseColor.ID).getData().setColor(c);
-                //            e.add(SpecularColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-                e.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100,
-                                                                    0, 1, 0, Math.random() * 200 - 100,
-                                                                    0, 0, 1, Math.random() * 200 - 100,
-                                                                    0, 0, 0, 1));
-                e.add(Animation.ID);
-                totalpolys += polycount;
+            e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
+            e.add(DiffuseColor.ID).getData().setColor(c);
+            //            e.add(SpecularColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
+            e.add(Transform.ID)
+             .getData()
+             .setMatrix(new Matrix4(1,
+                                    0,
+                                    0,
+                                    Math.random() * 200 - 100,
+                                    0,
+                                    1,
+                                    0,
+                                    Math.random() * 200 - 100,
+                                    0,
+                                    0,
+                                    1,
+                                    Math.random() * 200 - 100,
+                                    0,
+                                    0,
+                                    0,
+                                    1));
+            e.add(Animation.ID);
+            totalpolys += polycount;
         }
 
         System.out.println("Approximate total polygons / frame: " + totalpolys);
@@ -123,21 +144,41 @@ public class SimpleTest {
 
             Entity light = system.addEntity();
             light.add(PointLight.ID).getData().setFalloffDistance(falloff)
-            .setColor(new ColorRGB(Math.random(), Math.random(), Math.random()));
+                 .setColor(new ColorRGB(Math.random(), Math.random(), Math.random()));
 
-            light.add(InfluenceRegion.ID).getData().setBounds(new AxisAlignedBox(new Vector3(-falloff, -falloff, -falloff), new Vector3(falloff, falloff, falloff)));
-            light.add(Transform.ID).getData().setMatrix(new Matrix4(1, 0, 0, Math.random() * 200 - 100,
-                                                                    0, 1, 0, Math.random() * 200 - 100,
-                                                                    0, 0, 1, Math.random() * 200 - 100,
-                                                                    0, 0, 0, 1));
+            light.add(InfluenceRegion.ID)
+                 .getData()
+                 .setBounds(new AxisAlignedBox(new Vector3(-falloff, -falloff, -falloff),
+                                               new Vector3(falloff, falloff, falloff)));
+            light.add(Transform.ID)
+                 .getData()
+                 .setMatrix(new Matrix4(1,
+                                        0,
+                                        0,
+                                        Math.random() * 200 - 100,
+                                        0,
+                                        1,
+                                        0,
+                                        Math.random() * 200 - 100,
+                                        0,
+                                        0,
+                                        1,
+                                        Math.random() * 200 - 100,
+                                        0,
+                                        0,
+                                        0,
+                                        1));
         }
-        system.addEntity().add(AmbientLight.ID).getData().setColor(new ColorRGB(0.2, 0.2, 0.2));
+        system.addEntity().add(AmbientLight.ID).getData()
+              .setColor(new ColorRGB(0.2, 0.2, 0.2));
 
-        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-150, -150, -150), new Vector3(150, 150, 150));
+        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-150, -150, -150),
+                                                        new Vector3(150, 150, 150));
         Controller animator = new AnimationController();
         Controller boundsUpdate = new WorldBoundsController();
         Controller frustumUpdate = new CameraController();
-        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(worldBounds, 6));
+        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(worldBounds,
+                                                                                  6));
         Controller pvsComputer = new VisibilityController();
         Controller lights = new LightGroupController(worldBounds);
         Controller render = new FixedFunctionRenderController(framework);
@@ -167,12 +208,13 @@ public class SimpleTest {
             for (int i = 0; i < numRuns; i++) {
                 system.getControllerManager().process();
                 framework.flush(surface);
-                for (String name: controllers.keySet()) {
+                for (String name : controllers.keySet()) {
                     Long time = times.get(name);
                     if (time == null) {
                         time = 0L;
                     }
-                    time += system.getControllerManager().getExecutionTime(controllers.get(name));
+                    time += system.getControllerManager()
+                                  .getExecutionTime(controllers.get(name));
                     times.put(name, time);
                 }
             }
@@ -183,7 +225,7 @@ public class SimpleTest {
 
             System.out.println("***** TIMING *****");
             print("total", total, numRuns);
-            for (String name: controllers.keySet()) {
+            for (String name : controllers.keySet()) {
                 print(name, (times.containsKey(name) ? times.get(name) : 0), numRuns);
             }
             print("blocked", FixedFunctionRenderController.blocktime, numRuns);
@@ -194,7 +236,7 @@ public class SimpleTest {
             Runtime r = Runtime.getRuntime();
             printMemory("total", r.totalMemory());
             printMemory("used", r.totalMemory() - r.freeMemory());
-            for (TypeId<?> t: system.getTypes()) {
+            for (TypeId<?> t : system.getTypes()) {
                 printMemory(t.toString(), system.estimateMemory(t));
             }
         }
@@ -217,7 +259,7 @@ public class SimpleTest {
         public void process(double dt) {
             Transform t = getEntitySystem().createDataInstance(Transform.ID);
             Iterator<Animation> it = getEntitySystem().iterator(Animation.ID);
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 Animation anim = it.next();
                 Vector3 d = anim.getDirection();
 
@@ -238,7 +280,9 @@ public class SimpleTest {
 
                     if (Math.random() > .8) {
                         // no movement
-                        d.x = 0; d.y = 0; d.z = 0;
+                        d.x = 0;
+                        d.y = 0;
+                        d.z = 0;
                     } else {
                         d.x = Math.random() - 0.5;
                         d.y = Math.random() - 0.5;
@@ -262,13 +306,13 @@ public class SimpleTest {
         @DefaultDouble(1)
         private DoubleProperty life;
 
-        @DefaultVector3(x=0, y=0, z=0)
+        @DefaultVector3(x = 0, y = 0, z = 0)
         private Vector3Property direction;
 
         @Unmanaged
         private final Vector3 cache = new Vector3();
 
-        private Animation() { }
+        private Animation() {}
 
         public double getLifetime() {
             return life.get(getIndex());
@@ -278,7 +322,8 @@ public class SimpleTest {
             life.set(lt, getIndex());
         }
 
-        public @Const Vector3 getDirection() {
+        public @Const
+        Vector3 getDirection() {
             return cache;
         }
 

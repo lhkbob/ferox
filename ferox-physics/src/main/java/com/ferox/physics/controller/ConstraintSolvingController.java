@@ -43,7 +43,7 @@ public class ConstraintSolvingController extends SimpleController {
 
         // now apply all of the delta impulses back to the rigid bodies
         Iterator<RigidBody> it = getEntitySystem().iterator(RigidBody.ID);
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             RigidBody b = it.next();
 
             // linear velocity
@@ -71,8 +71,10 @@ public class ConstraintSolvingController extends SimpleController {
     @Override
     public void init(EntitySystem system) {
         super.init(system);
-        deltaLinearImpulse = system.decorate(RigidBody.ID, new Vector3Property.Factory(new Vector3()));
-        deltaAngularImpulse = system.decorate(RigidBody.ID, new Vector3Property.Factory(new Vector3()));
+        deltaLinearImpulse = system.decorate(RigidBody.ID,
+                                             new Vector3Property.Factory(new Vector3()));
+        deltaAngularImpulse = system.decorate(RigidBody.ID,
+                                              new Vector3Property.Factory(new Vector3()));
 
         solver.setDeltaLinearImpulseProperty(deltaLinearImpulse);
         solver.setDeltaAngularImpulseProperty(deltaAngularImpulse);

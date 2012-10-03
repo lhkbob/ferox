@@ -54,7 +54,11 @@ public class TGATexture {
             throw new IOException("Cannot read from a null stream");
         }
         TGATexture res = new TGATexture(stream);
-        return new Texture(Target.T_2D, new Mipmap(res.data, res.header.width, res.header.height, 1, res.format));
+        return new Texture(Target.T_2D, new Mipmap(res.data,
+                                                   res.header.width,
+                                                   res.header.height,
+                                                   1,
+                                                   res.format));
     }
 
     /**
@@ -79,8 +83,7 @@ public class TGATexture {
             throw new NullPointerException("Cannot test a null stream");
         }
 
-        if (!(stream instanceof BufferedInputStream))
-        {
+        if (!(stream instanceof BufferedInputStream)) {
             stream = new BufferedInputStream(stream); // this way marking is supported
         }
         Header header;
@@ -93,8 +96,7 @@ public class TGATexture {
             // must reset the stream no matter what
             try {
                 stream.reset();
-            } catch (IOException e) {
-            }
+            } catch (IOException e) {}
         }
 
         return validateHeader(header) == null;
@@ -433,7 +435,8 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData,
+                                                                                     index);
                 }
             }
         } else {
@@ -446,7 +449,8 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = rawIndices[c];
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData,
+                                                                                     index);
                 }
             }
         }
@@ -477,7 +481,8 @@ public class TGATexture {
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
                     System.arraycopy(cm.colorMapData, index, tmpData,
-                                     y * rawWidth + c * cm.elementByteCount, cm.elementByteCount);
+                                     y * rawWidth + c * cm.elementByteCount,
+                                     cm.elementByteCount);
                 }
             }
         } else {
@@ -489,7 +494,8 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     System.arraycopy(cm.colorMapData, rawIndices[c], tmpData,
-                                     y * rawWidth + c * cm.elementByteCount, cm.elementByteCount);
+                                     y * rawWidth + c * cm.elementByteCount,
+                                     cm.elementByteCount);
                 }
             }
         }
@@ -561,16 +567,14 @@ public class TGATexture {
     }
 
     private static int bytesToLittleEndianShort(byte[] b, int offset) {
-        return ((b[offset + 0] & 0xff) |
-                ((b[offset + 1] & 0xff) << 8));
+        return ((b[offset + 0] & 0xff) | ((b[offset + 1] & 0xff) << 8));
     }
 
     // read an short represented in little endian from the given input stream
     private static int readUnsignedLEShort(InputStream in) throws IOException {
         byte[] b = new byte[2];
         readAll(in, b);
-        return ((b[0] & 0xff) |
-                ((b[1] & 0xff) << 8));
+        return ((b[0] & 0xff) | ((b[1] & 0xff) << 8));
     }
 
     private static int readUnsignedByte(InputStream in) throws IOException {

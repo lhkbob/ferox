@@ -58,7 +58,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
             throw new NullPointerException("Window cannot be null");
         }
 
-        synchronized(this) {
+        synchronized (this) {
             if (this.component != null) {
                 throw new IllegalStateException("NEWTEventAdapter already attached to another Window");
             }
@@ -76,7 +76,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
      * the adapter will not convert and dispatch AWT events.
      */
     public void detach() {
-        synchronized(this) {
+        synchronized (this) {
             if (component != null) {
                 component.removeKeyListener(this);
                 component.removeMouseListener(this);
@@ -89,109 +89,202 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     /* AWT event listener methods */
 
     private KeyCode getKeyCode(com.jogamp.newt.event.KeyEvent e) {
-        switch(e.getKeyCode()) {
-        case com.jogamp.newt.event.KeyEvent.VK_ESCAPE: return KeyCode.ESCAPE;
-        case com.jogamp.newt.event.KeyEvent.VK_BACK_QUOTE: return KeyCode.BACK_QUOTE;
-        case com.jogamp.newt.event.KeyEvent.VK_TAB: return KeyCode.TAB;
-        case com.jogamp.newt.event.KeyEvent.VK_OPEN_BRACKET: return KeyCode.LEFT_BRACKET;
-        case com.jogamp.newt.event.KeyEvent.VK_CLOSE_BRACKET: return KeyCode.RIGHT_BRACKET;
-        case com.jogamp.newt.event.KeyEvent.VK_BACK_SLASH: return KeyCode.BACK_SLASH;
-        case com.jogamp.newt.event.KeyEvent.VK_SLASH: return KeyCode.FORWARD_SLASH;
-        case com.jogamp.newt.event.KeyEvent.VK_ENTER: return KeyCode.RETURN;
-        case com.jogamp.newt.event.KeyEvent.VK_SEMICOLON: return KeyCode.SEMICOLON;
-        case com.jogamp.newt.event.KeyEvent.VK_QUOTE: return KeyCode.QUOTE;
-        case com.jogamp.newt.event.KeyEvent.VK_COMMA: return KeyCode.COMMA;
-        case com.jogamp.newt.event.KeyEvent.VK_PERIOD: return KeyCode.PERIOD;
-        case com.jogamp.newt.event.KeyEvent.VK_MINUS: return KeyCode.MINUS;
-        case com.jogamp.newt.event.KeyEvent.VK_EQUALS: return KeyCode.EQUALS;
-        case com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE: return KeyCode.BACK_SPACE;
-        case com.jogamp.newt.event.KeyEvent.VK_DELETE: return KeyCode.DELETE;
+        switch (e.getKeyCode()) {
+        case com.jogamp.newt.event.KeyEvent.VK_ESCAPE:
+            return KeyCode.ESCAPE;
+        case com.jogamp.newt.event.KeyEvent.VK_BACK_QUOTE:
+            return KeyCode.BACK_QUOTE;
+        case com.jogamp.newt.event.KeyEvent.VK_TAB:
+            return KeyCode.TAB;
+        case com.jogamp.newt.event.KeyEvent.VK_OPEN_BRACKET:
+            return KeyCode.LEFT_BRACKET;
+        case com.jogamp.newt.event.KeyEvent.VK_CLOSE_BRACKET:
+            return KeyCode.RIGHT_BRACKET;
+        case com.jogamp.newt.event.KeyEvent.VK_BACK_SLASH:
+            return KeyCode.BACK_SLASH;
+        case com.jogamp.newt.event.KeyEvent.VK_SLASH:
+            return KeyCode.FORWARD_SLASH;
+        case com.jogamp.newt.event.KeyEvent.VK_ENTER:
+            return KeyCode.RETURN;
+        case com.jogamp.newt.event.KeyEvent.VK_SEMICOLON:
+            return KeyCode.SEMICOLON;
+        case com.jogamp.newt.event.KeyEvent.VK_QUOTE:
+            return KeyCode.QUOTE;
+        case com.jogamp.newt.event.KeyEvent.VK_COMMA:
+            return KeyCode.COMMA;
+        case com.jogamp.newt.event.KeyEvent.VK_PERIOD:
+            return KeyCode.PERIOD;
+        case com.jogamp.newt.event.KeyEvent.VK_MINUS:
+            return KeyCode.MINUS;
+        case com.jogamp.newt.event.KeyEvent.VK_EQUALS:
+            return KeyCode.EQUALS;
+        case com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE:
+            return KeyCode.BACK_SPACE;
+        case com.jogamp.newt.event.KeyEvent.VK_DELETE:
+            return KeyCode.DELETE;
 
-        case com.jogamp.newt.event.KeyEvent.VK_SPACE: return KeyCode.SPACE;
+        case com.jogamp.newt.event.KeyEvent.VK_SPACE:
+            return KeyCode.SPACE;
 
-        case com.jogamp.newt.event.KeyEvent.VK_PAUSE: return KeyCode.PAUSE;
-        case com.jogamp.newt.event.KeyEvent.VK_INSERT: return KeyCode.INSERT;
+        case com.jogamp.newt.event.KeyEvent.VK_PAUSE:
+            return KeyCode.PAUSE;
+        case com.jogamp.newt.event.KeyEvent.VK_INSERT:
+            return KeyCode.INSERT;
 
-        case com.jogamp.newt.event.KeyEvent.VK_HOME: return KeyCode.HOME;
-        case com.jogamp.newt.event.KeyEvent.VK_END: return KeyCode.END;
-        case com.jogamp.newt.event.KeyEvent.VK_PAGE_UP: return KeyCode.PAGE_UP;
-        case com.jogamp.newt.event.KeyEvent.VK_PAGE_DOWN: return KeyCode.PAGE_DOWN;
+        case com.jogamp.newt.event.KeyEvent.VK_HOME:
+            return KeyCode.HOME;
+        case com.jogamp.newt.event.KeyEvent.VK_END:
+            return KeyCode.END;
+        case com.jogamp.newt.event.KeyEvent.VK_PAGE_UP:
+            return KeyCode.PAGE_UP;
+        case com.jogamp.newt.event.KeyEvent.VK_PAGE_DOWN:
+            return KeyCode.PAGE_DOWN;
 
-        case com.jogamp.newt.event.KeyEvent.VK_UP: return KeyCode.UP;
-        case com.jogamp.newt.event.KeyEvent.VK_LEFT: return KeyCode.LEFT;
-        case com.jogamp.newt.event.KeyEvent.VK_RIGHT: return KeyCode.RIGHT;
-        case com.jogamp.newt.event.KeyEvent.VK_DOWN: return KeyCode.DOWN;
+        case com.jogamp.newt.event.KeyEvent.VK_UP:
+            return KeyCode.UP;
+        case com.jogamp.newt.event.KeyEvent.VK_LEFT:
+            return KeyCode.LEFT;
+        case com.jogamp.newt.event.KeyEvent.VK_RIGHT:
+            return KeyCode.RIGHT;
+        case com.jogamp.newt.event.KeyEvent.VK_DOWN:
+            return KeyCode.DOWN;
 
-        case com.jogamp.newt.event.KeyEvent.VK_F1: return KeyCode.F1;
-        case com.jogamp.newt.event.KeyEvent.VK_F2: return KeyCode.F2;
-        case com.jogamp.newt.event.KeyEvent.VK_F3: return KeyCode.F3;
-        case com.jogamp.newt.event.KeyEvent.VK_F4: return KeyCode.F4;
-        case com.jogamp.newt.event.KeyEvent.VK_F5: return KeyCode.F5;
-        case com.jogamp.newt.event.KeyEvent.VK_F6: return KeyCode.F6;
-        case com.jogamp.newt.event.KeyEvent.VK_F7: return KeyCode.F7;
-        case com.jogamp.newt.event.KeyEvent.VK_F8: return KeyCode.F8;
-        case com.jogamp.newt.event.KeyEvent.VK_F9: return KeyCode.F9;
-        case com.jogamp.newt.event.KeyEvent.VK_F10: return KeyCode.F10;
-        case com.jogamp.newt.event.KeyEvent.VK_F11: return KeyCode.F11;
-        case com.jogamp.newt.event.KeyEvent.VK_F12: return KeyCode.F12;
+        case com.jogamp.newt.event.KeyEvent.VK_F1:
+            return KeyCode.F1;
+        case com.jogamp.newt.event.KeyEvent.VK_F2:
+            return KeyCode.F2;
+        case com.jogamp.newt.event.KeyEvent.VK_F3:
+            return KeyCode.F3;
+        case com.jogamp.newt.event.KeyEvent.VK_F4:
+            return KeyCode.F4;
+        case com.jogamp.newt.event.KeyEvent.VK_F5:
+            return KeyCode.F5;
+        case com.jogamp.newt.event.KeyEvent.VK_F6:
+            return KeyCode.F6;
+        case com.jogamp.newt.event.KeyEvent.VK_F7:
+            return KeyCode.F7;
+        case com.jogamp.newt.event.KeyEvent.VK_F8:
+            return KeyCode.F8;
+        case com.jogamp.newt.event.KeyEvent.VK_F9:
+            return KeyCode.F9;
+        case com.jogamp.newt.event.KeyEvent.VK_F10:
+            return KeyCode.F10;
+        case com.jogamp.newt.event.KeyEvent.VK_F11:
+            return KeyCode.F11;
+        case com.jogamp.newt.event.KeyEvent.VK_F12:
+            return KeyCode.F12;
 
-        case com.jogamp.newt.event.KeyEvent.VK_1: return KeyCode.N1;
-        case com.jogamp.newt.event.KeyEvent.VK_2: return KeyCode.N2;
-        case com.jogamp.newt.event.KeyEvent.VK_3: return KeyCode.N3;
-        case com.jogamp.newt.event.KeyEvent.VK_4: return KeyCode.N4;
-        case com.jogamp.newt.event.KeyEvent.VK_5: return KeyCode.N5;
-        case com.jogamp.newt.event.KeyEvent.VK_6: return KeyCode.N6;
-        case com.jogamp.newt.event.KeyEvent.VK_7: return KeyCode.N7;
-        case com.jogamp.newt.event.KeyEvent.VK_8: return KeyCode.N8;
-        case com.jogamp.newt.event.KeyEvent.VK_9: return KeyCode.N9;
-        case com.jogamp.newt.event.KeyEvent.VK_0: return KeyCode.N0;
+        case com.jogamp.newt.event.KeyEvent.VK_1:
+            return KeyCode.N1;
+        case com.jogamp.newt.event.KeyEvent.VK_2:
+            return KeyCode.N2;
+        case com.jogamp.newt.event.KeyEvent.VK_3:
+            return KeyCode.N3;
+        case com.jogamp.newt.event.KeyEvent.VK_4:
+            return KeyCode.N4;
+        case com.jogamp.newt.event.KeyEvent.VK_5:
+            return KeyCode.N5;
+        case com.jogamp.newt.event.KeyEvent.VK_6:
+            return KeyCode.N6;
+        case com.jogamp.newt.event.KeyEvent.VK_7:
+            return KeyCode.N7;
+        case com.jogamp.newt.event.KeyEvent.VK_8:
+            return KeyCode.N8;
+        case com.jogamp.newt.event.KeyEvent.VK_9:
+            return KeyCode.N9;
+        case com.jogamp.newt.event.KeyEvent.VK_0:
+            return KeyCode.N0;
 
-        case com.jogamp.newt.event.KeyEvent.VK_A: return KeyCode.A;
-        case com.jogamp.newt.event.KeyEvent.VK_B: return KeyCode.B;
-        case com.jogamp.newt.event.KeyEvent.VK_C: return KeyCode.C;
-        case com.jogamp.newt.event.KeyEvent.VK_D: return KeyCode.D;
-        case com.jogamp.newt.event.KeyEvent.VK_E: return KeyCode.E;
-        case com.jogamp.newt.event.KeyEvent.VK_F: return KeyCode.F;
-        case com.jogamp.newt.event.KeyEvent.VK_G: return KeyCode.G;
-        case com.jogamp.newt.event.KeyEvent.VK_H: return KeyCode.H;
-        case com.jogamp.newt.event.KeyEvent.VK_I: return KeyCode.I;
-        case com.jogamp.newt.event.KeyEvent.VK_J: return KeyCode.J;
-        case com.jogamp.newt.event.KeyEvent.VK_K: return KeyCode.K;
-        case com.jogamp.newt.event.KeyEvent.VK_L: return KeyCode.L;
-        case com.jogamp.newt.event.KeyEvent.VK_M: return KeyCode.M;
-        case com.jogamp.newt.event.KeyEvent.VK_N: return KeyCode.N;
-        case com.jogamp.newt.event.KeyEvent.VK_O: return KeyCode.O;
-        case com.jogamp.newt.event.KeyEvent.VK_P: return KeyCode.P;
-        case com.jogamp.newt.event.KeyEvent.VK_Q: return KeyCode.Q;
-        case com.jogamp.newt.event.KeyEvent.VK_R: return KeyCode.R;
-        case com.jogamp.newt.event.KeyEvent.VK_S: return KeyCode.S;
-        case com.jogamp.newt.event.KeyEvent.VK_T: return KeyCode.T;
-        case com.jogamp.newt.event.KeyEvent.VK_U: return KeyCode.U;
-        case com.jogamp.newt.event.KeyEvent.VK_V: return KeyCode.V;
-        case com.jogamp.newt.event.KeyEvent.VK_W: return KeyCode.W;
-        case com.jogamp.newt.event.KeyEvent.VK_X: return KeyCode.X;
-        case com.jogamp.newt.event.KeyEvent.VK_Y: return KeyCode.Y;
-        case com.jogamp.newt.event.KeyEvent.VK_Z: return KeyCode.Z;
+        case com.jogamp.newt.event.KeyEvent.VK_A:
+            return KeyCode.A;
+        case com.jogamp.newt.event.KeyEvent.VK_B:
+            return KeyCode.B;
+        case com.jogamp.newt.event.KeyEvent.VK_C:
+            return KeyCode.C;
+        case com.jogamp.newt.event.KeyEvent.VK_D:
+            return KeyCode.D;
+        case com.jogamp.newt.event.KeyEvent.VK_E:
+            return KeyCode.E;
+        case com.jogamp.newt.event.KeyEvent.VK_F:
+            return KeyCode.F;
+        case com.jogamp.newt.event.KeyEvent.VK_G:
+            return KeyCode.G;
+        case com.jogamp.newt.event.KeyEvent.VK_H:
+            return KeyCode.H;
+        case com.jogamp.newt.event.KeyEvent.VK_I:
+            return KeyCode.I;
+        case com.jogamp.newt.event.KeyEvent.VK_J:
+            return KeyCode.J;
+        case com.jogamp.newt.event.KeyEvent.VK_K:
+            return KeyCode.K;
+        case com.jogamp.newt.event.KeyEvent.VK_L:
+            return KeyCode.L;
+        case com.jogamp.newt.event.KeyEvent.VK_M:
+            return KeyCode.M;
+        case com.jogamp.newt.event.KeyEvent.VK_N:
+            return KeyCode.N;
+        case com.jogamp.newt.event.KeyEvent.VK_O:
+            return KeyCode.O;
+        case com.jogamp.newt.event.KeyEvent.VK_P:
+            return KeyCode.P;
+        case com.jogamp.newt.event.KeyEvent.VK_Q:
+            return KeyCode.Q;
+        case com.jogamp.newt.event.KeyEvent.VK_R:
+            return KeyCode.R;
+        case com.jogamp.newt.event.KeyEvent.VK_S:
+            return KeyCode.S;
+        case com.jogamp.newt.event.KeyEvent.VK_T:
+            return KeyCode.T;
+        case com.jogamp.newt.event.KeyEvent.VK_U:
+            return KeyCode.U;
+        case com.jogamp.newt.event.KeyEvent.VK_V:
+            return KeyCode.V;
+        case com.jogamp.newt.event.KeyEvent.VK_W:
+            return KeyCode.W;
+        case com.jogamp.newt.event.KeyEvent.VK_X:
+            return KeyCode.X;
+        case com.jogamp.newt.event.KeyEvent.VK_Y:
+            return KeyCode.Y;
+        case com.jogamp.newt.event.KeyEvent.VK_Z:
+            return KeyCode.Z;
 
-        case com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK: return KeyCode.NUM_LOCK;
-        case com.jogamp.newt.event.KeyEvent.VK_SCROLL_LOCK: return KeyCode.SCROLL_LOCK;
-        case com.jogamp.newt.event.KeyEvent.VK_CAPS_LOCK: return KeyCode.CAPS_LOCK;
+        case com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK:
+            return KeyCode.NUM_LOCK;
+        case com.jogamp.newt.event.KeyEvent.VK_SCROLL_LOCK:
+            return KeyCode.SCROLL_LOCK;
+        case com.jogamp.newt.event.KeyEvent.VK_CAPS_LOCK:
+            return KeyCode.CAPS_LOCK;
 
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD1: return KeyCode.NUMPAD_1;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD2: return KeyCode.NUMPAD_2;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD3: return KeyCode.NUMPAD_3;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD4: return KeyCode.NUMPAD_4;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD5: return KeyCode.NUMPAD_5;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD6: return KeyCode.NUMPAD_6;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD7: return KeyCode.NUMPAD_7;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD8: return KeyCode.NUMPAD_8;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD9: return KeyCode.NUMPAD_9;
-        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD0: return KeyCode.NUMPAD_0;
-        case com.jogamp.newt.event.KeyEvent.VK_ADD: return KeyCode.NUMPAD_ADD;
-        case com.jogamp.newt.event.KeyEvent.VK_SUBTRACT: return KeyCode.NUMPAD_SUBTRACT;
-        case com.jogamp.newt.event.KeyEvent.VK_DECIMAL: return KeyCode.NUMPAD_DECIMAL;
-        case com.jogamp.newt.event.KeyEvent.VK_DIVIDE: return KeyCode.NUMPAD_DIVIDE;
-        case com.jogamp.newt.event.KeyEvent.VK_MULTIPLY: return KeyCode.NUMPAD_MULTIPLY;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD1:
+            return KeyCode.NUMPAD_1;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD2:
+            return KeyCode.NUMPAD_2;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD3:
+            return KeyCode.NUMPAD_3;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD4:
+            return KeyCode.NUMPAD_4;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD5:
+            return KeyCode.NUMPAD_5;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD6:
+            return KeyCode.NUMPAD_6;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD7:
+            return KeyCode.NUMPAD_7;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD8:
+            return KeyCode.NUMPAD_8;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD9:
+            return KeyCode.NUMPAD_9;
+        case com.jogamp.newt.event.KeyEvent.VK_NUMPAD0:
+            return KeyCode.NUMPAD_0;
+        case com.jogamp.newt.event.KeyEvent.VK_ADD:
+            return KeyCode.NUMPAD_ADD;
+        case com.jogamp.newt.event.KeyEvent.VK_SUBTRACT:
+            return KeyCode.NUMPAD_SUBTRACT;
+        case com.jogamp.newt.event.KeyEvent.VK_DECIMAL:
+            return KeyCode.NUMPAD_DECIMAL;
+        case com.jogamp.newt.event.KeyEvent.VK_DIVIDE:
+            return KeyCode.NUMPAD_DIVIDE;
+        case com.jogamp.newt.event.KeyEvent.VK_MULTIPLY:
+            return KeyCode.NUMPAD_MULTIPLY;
 
         case com.jogamp.newt.event.KeyEvent.VK_ALT:
             // as far as I can tell NEWT does not provide locations
@@ -216,7 +309,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     }
 
     private MouseButton getButton(com.jogamp.newt.event.MouseEvent e) {
-        switch(e.getButton()) {
+        switch (e.getButton()) {
         case 0:
             return MouseButton.NONE;
         case com.jogamp.newt.event.MouseEvent.BUTTON1:
@@ -239,15 +332,19 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     public void keyPressed(com.jogamp.newt.event.KeyEvent e) {
         // FIXME NEWT on Mac does not seem to fire of press/release events
         // for modifier keys
-        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(),
-                                      getKeyCode(e), getCharacter(e));
+        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS,
+                                      dispatcher.getSource(),
+                                      getKeyCode(e),
+                                      getCharacter(e));
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void keyReleased(com.jogamp.newt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, dispatcher.getSource(),
-                                      getKeyCode(e), getCharacter(e));
+        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE,
+                                      dispatcher.getSource(),
+                                      getKeyCode(e),
+                                      getCharacter(e));
         dispatcher.dispatchEvent(event);
     }
 
@@ -273,15 +370,23 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void mousePressed(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(),
-                                          e.getX(), getY(e), 0, getButton(e));
+        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS,
+                                          dispatcher.getSource(),
+                                          e.getX(),
+                                          getY(e),
+                                          0,
+                                          getButton(e));
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseReleased(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(),
-                                          e.getX(), getY(e), 0, getButton(e));
+        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE,
+                                          dispatcher.getSource(),
+                                          e.getX(),
+                                          getY(e),
+                                          0,
+                                          getButton(e));
         dispatcher.dispatchEvent(event);
     }
 
@@ -294,15 +399,23 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(),
-                                          e.getX(), getY(e), 0, MouseButton.NONE);
+        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE,
+                                          dispatcher.getSource(),
+                                          e.getX(),
+                                          getY(e),
+                                          0,
+                                          MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseWheelMoved(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(),
-                                          e.getX(), getY(e), e.getWheelRotation(), MouseButton.NONE);
+        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL,
+                                          dispatcher.getSource(),
+                                          e.getX(),
+                                          getY(e),
+                                          e.getWheelRotation(),
+                                          MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }
 }

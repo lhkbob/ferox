@@ -29,11 +29,13 @@ class KeyTypedPredicate implements Predicate {
 
     @Override
     public boolean apply(InputState prev, InputState next) {
-        if (!prev.getKeyboardState().isKeyDown(code) && next.getKeyboardState().isKeyDown(code)) {
+        if (!prev.getKeyboardState().isKeyDown(code) && next.getKeyboardState()
+                                                            .isKeyDown(code)) {
             // record time of first press
             startTime = next.getTimestamp();
             return false;
-        } else if (prev.getKeyboardState().isKeyDown(code) && !next.getKeyboardState().isKeyDown(code)) {
+        } else if (prev.getKeyboardState().isKeyDown(code) && !next.getKeyboardState()
+                                                                   .isKeyDown(code)) {
             // key is released, see if it was fast enough
             long start = startTime;
             startTime = -1;

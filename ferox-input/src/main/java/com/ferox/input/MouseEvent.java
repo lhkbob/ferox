@@ -99,7 +99,8 @@ public class MouseEvent implements Event {
      * @throws IllegalArgumentException if type, scrollDelta and button are
      *             incompatible
      */
-    public MouseEvent(Type type, MouseEventSource source, int x, int y, int scrollDelta, MouseButton button) {
+    public MouseEvent(Type type, MouseEventSource source, int x, int y, int scrollDelta,
+                      MouseButton button) {
         if (source == null) {
             throw new NullPointerException("Event source cannot be null");
         }

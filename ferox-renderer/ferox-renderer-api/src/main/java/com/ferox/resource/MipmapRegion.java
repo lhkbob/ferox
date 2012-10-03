@@ -51,8 +51,8 @@ public class MipmapRegion {
      * @throws IllegalArgumentException if width, height, depth < 1, or any
      *             other argument is less than 0
      */
-    public MipmapRegion(int layer, int mipmap, int x, int y, int z,
-                        int width, int height, int depth) {
+    public MipmapRegion(int layer, int mipmap, int x, int y, int z, int width,
+                        int height, int depth) {
         if (width < 1 || height < 1 || depth < 1) {
             throw new IllegalArgumentException("Cannot have dimensions less than 1");
         }

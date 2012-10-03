@@ -134,7 +134,7 @@ public class LwjglRenderCapabilities extends RenderCapabilities {
         if (hasGlslRenderer) {
             maxVertexShaderTextures = GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
             maxFragmentShaderTextures = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
-            maxCombinedTextures= GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+            maxCombinedTextures = GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
             maxTextureCoordinates = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_COORDS);
         } else {
             maxVertexShaderTextures = 0;

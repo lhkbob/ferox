@@ -52,8 +52,7 @@ import com.ferox.resource.BufferData.DataType;
  */
 public class Texture extends Resource {
     /**
-     * Target represents the way in which the Texture's Mipmaps are
-     * interpreted.
+     * Target represents the way in which the Texture's Mipmaps are interpreted.
      */
     public static enum Target {
         /**
@@ -163,8 +162,7 @@ public class Texture extends Resource {
      * Create a Texture that uses the specified target and array of Mipmap
      * layers. This constructor is used primarily for creating cubemaps. Other
      * targets can use {@link #Texture(Target, Mipmap)}. See
-     * {@link #setLayers(Mipmap[])} for how the parameters are
-     * validated.
+     * {@link #setLayers(Mipmap[])} for how the parameters are validated.
      * 
      * @param target The Target which specifies how the Texture is accessed
      * @param mipmaps An array of Mipmaps representing the layers of the Texture
@@ -278,9 +276,7 @@ public class Texture extends Resource {
                 }
             } else {
                 // remaining mipmaps must match properties of 1st mipmap
-                if (mipmaps[i].getDepth(0) != mipmaps[0].getDepth(0) ||
-                        mipmaps[i].getHeight(0) != mipmaps[0].getHeight(0) ||
-                        mipmaps[i].getWidth(0) != mipmaps[0].getWidth(0)) {
+                if (mipmaps[i].getDepth(0) != mipmaps[0].getDepth(0) || mipmaps[i].getHeight(0) != mipmaps[0].getHeight(0) || mipmaps[i].getWidth(0) != mipmaps[0].getWidth(0)) {
                     throw new IllegalArgumentException("Mipmap layers must all have the same dimensions");
                 }
                 if (mipmaps[i].getNumMipmaps() != mipmaps[0].getNumMipmaps()) {
@@ -302,7 +298,6 @@ public class Texture extends Resource {
                 }
             }
         }
-
 
         // at this point we know things are as valid as we can determine them,
         layers = Arrays.copyOf(mipmaps, mipmaps.length); // defensive copy
@@ -349,8 +344,7 @@ public class Texture extends Resource {
         if (old.getFormat() != mipmap.getFormat()) {
             throw new IllegalArgumentException("New mipmap does not have expected format (" + old.getFormat() + "), but was " + mipmap.getFormat());
         }
-        if (old.getWidth(0) != mipmap.getWidth(0) || old.getHeight(0) != mipmap.getHeight(0)
-                || old.getDepth(0) != mipmap.getDepth(0)) {
+        if (old.getWidth(0) != mipmap.getWidth(0) || old.getHeight(0) != mipmap.getHeight(0) || old.getDepth(0) != mipmap.getDepth(0)) {
             throw new IllegalArgumentException("New mipmap does not match required dimensions");
         }
         if (old.getNumMipmaps() != mipmap.getNumMipmaps()) {
@@ -461,9 +455,9 @@ public class Texture extends Resource {
     /**
      * Set the Filter to use when minimizing or magnifying a texel when
      * rendering it to a Surface. The MIPMAP_x values are only valid if this
-     * Texture has more than 1 level in its mipmap layers. If its layers
-     * are not mipmapped, then MIPMAP_LINEAR becomes LINEAR and MIPMAP_NEAREST
-     * becomes NEAREST.
+     * Texture has more than 1 level in its mipmap layers. If its layers are not
+     * mipmapped, then MIPMAP_LINEAR becomes LINEAR and MIPMAP_NEAREST becomes
+     * NEAREST.
      * 
      * @param filter The new Filter
      * @throws NullPointerException if filter is null
@@ -516,10 +510,10 @@ public class Texture extends Resource {
     /**
      * <p>
      * Set the range of mipmap levels to use when rasterizing a mipmapped
-     * Texture. Frameworks do not need to allocate driver-level texture
-     * data for mipmaps that are not needed. This can be used to do progressive
-     * texture loading or to free up resources when textures are applied to far
-     * away objects.
+     * Texture. Frameworks do not need to allocate driver-level texture data for
+     * mipmaps that are not needed. This can be used to do progressive texture
+     * loading or to free up resources when textures are applied to far away
+     * objects.
      * </p>
      * <p>
      * Initially, the base level is set to the lowest level that has non-null
@@ -563,11 +557,11 @@ public class Texture extends Resource {
     }
 
     /**
-     * Return the chosen Target for this Texture. The Target imposes a
-     * number of restrictions on the dimensions of the Texture. For
-     * example:
+     * Return the chosen Target for this Texture. The Target imposes a number of
+     * restrictions on the dimensions of the Texture. For example:
      * <ol>
-     * <li>T_1D requires a height and depth of 1 for the root mipmap, and one layer.</li>
+     * <li>T_1D requires a height and depth of 1 for the root mipmap, and one
+     * layer.</li>
      * <li>T_2D requires a depth of 1 for the root mipmap, and one layer.</li>
      * <li>T_3D requires there to be only one layer.</li>
      * <li>T_CUBEMAP requires a depth of 1, its width and height to be equal,
@@ -583,13 +577,13 @@ public class Texture extends Resource {
     /**
      * <p>
      * Return the {@link Mipmap} containing the hierarchical image data for a
-     * given layer of the Texture. In many cases there will only be 1 layer
-     * (for targets T_1D, T_2D and T_3D). For cube maps there are 6 layers with
+     * given layer of the Texture. In many cases there will only be 1 layer (for
+     * targets T_1D, T_2D and T_3D). For cube maps there are 6 layers with
      * layers arranged as PX, PY, PZ, NX, NY, NZ (one layer for each cube face).
      * </p>
      * <p>
-     * Each Mipmap layer within a Texture will have the same dimensions,
-     * the same number of mipmap levels, the same Buffer data type, and same
+     * Each Mipmap layer within a Texture will have the same dimensions, the
+     * same number of mipmap levels, the same Buffer data type, and same
      * TextureFormat. There is always at least one layer in a Texture.
      * </p>
      * 
@@ -700,7 +694,11 @@ public class Texture extends Resource {
      */
     public synchronized int markDirty(int layer, int level) {
         Mipmap m = getLayer(layer);
-        return markDirty(new MipmapRegion(layer, level, 0, 0, 0,
+        return markDirty(new MipmapRegion(layer,
+                                          level,
+                                          0,
+                                          0,
+                                          0,
                                           m.getWidth(level),
                                           m.getHeight(level),
                                           m.getDepth(level)));

@@ -85,7 +85,8 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
             return effects;
         }
 
@@ -131,7 +132,8 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                         int index) {
             r.setVertices(geometry.vertices);
             r.setNormals(geometry.normals);
 
@@ -151,8 +153,8 @@ public final class GeometryGroupFactory implements StateGroupFactory {
                     modelMatrix.mul(viewMatrix, modelMatrix);
 
                     r.setModelViewMatrix(modelMatrix);
-                    r.render(geometry.polyType, geometry.indices,
-                             geometry.indexOffset, geometry.indexCount);
+                    r.render(geometry.polyType, geometry.indices, geometry.indexOffset,
+                             geometry.indexCount);
                 }
             }
 
@@ -160,14 +162,15 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int index) {
             // do nothing
         }
     }
 
     /*
-     * Internal POJO to store the geometry data used for clustering, of
-     * which there is a surprisingly large amount.
+     * Internal POJO to store the geometry data used for clustering, of which
+     * there is a surprisingly large amount.
      */
     private static class Geometry {
         private VertexAttribute vertices;
@@ -205,10 +208,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
             // vertices
             if (vertices != g.vertices) {
                 // if ref's aren't equal they might still use the same data
-                if (vertices.getData() != g.vertices.getData()
-                        || vertices.getElementSize() != g.vertices.getElementSize()
-                        || vertices.getOffset() != g.vertices.getOffset()
-                        || vertices.getStride() != g.vertices.getStride()) {
+                if (vertices.getData() != g.vertices.getData() || vertices.getElementSize() != g.vertices.getElementSize() || vertices.getOffset() != g.vertices.getOffset() || vertices.getStride() != g.vertices.getStride()) {
                     return false;
                 }
             }
@@ -219,10 +219,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
                 // but we also have to control for nullability
                 if (normals != null && g.normals != null) {
                     // check access pattern
-                    if (normals.getData() != g.normals.getData()
-                            || normals.getElementSize() != g.normals.getElementSize()
-                            || normals.getOffset() != g.normals.getOffset()
-                            || normals.getStride() != g.normals.getStride()) {
+                    if (normals.getData() != g.normals.getData() || normals.getElementSize() != g.normals.getElementSize() || normals.getOffset() != g.normals.getOffset() || normals.getStride() != g.normals.getStride()) {
                         return false;
                     }
                 }
@@ -230,9 +227,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
 
             // indices
             if (indices == g.indices) {
-                if (indexCount != g.indexCount
-                        || indexOffset != g.indexOffset
-                        || polyType != g.polyType) {
+                if (indexCount != g.indexCount || indexOffset != g.indexOffset || polyType != g.polyType) {
                     return false;
                 }
             } else {

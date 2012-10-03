@@ -23,7 +23,7 @@ public class DecalColorMap extends TextureMap<DecalColorMap> {
      */
     public static final TypeId<DecalColorMap> ID = TypeId.get(DecalColorMap.class);
 
-    private DecalColorMap() { }
+    private DecalColorMap() {}
 
     @Override
     protected void validate(Texture tex) {

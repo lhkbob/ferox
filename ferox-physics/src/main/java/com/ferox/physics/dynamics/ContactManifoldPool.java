@@ -80,7 +80,8 @@ public class ContactManifoldPool {
         this(.1, .0343);
     }
 
-    public ContactManifoldPool(double contactProcessingThreshold, double contactBreakingThreshold) {
+    public ContactManifoldPool(double contactProcessingThreshold,
+                               double contactBreakingThreshold) {
         manifolds = new HashMap<CollisionPair, Integer>();
         query = new CollisionPair();
         maxAliveContact = 0;
@@ -121,7 +122,8 @@ public class ContactManifoldPool {
         return contactBreakingThreshold;
     }
 
-    public void computeWarmstartImpulses(LinearConstraintPool contactPool, LinearConstraintPool frictionPool) {
+    public void computeWarmstartImpulses(LinearConstraintPool contactPool,
+                                         LinearConstraintPool frictionPool) {
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
                 for (int point = 0; point < MANIFOLD_POINT_SIZE; point++) {
@@ -141,7 +143,8 @@ public class ContactManifoldPool {
         }
     }
 
-    public void generateConstraints(double dt, LinearConstraintPool contactPool, LinearConstraintPool frictionPool) {
+    public void generateConstraints(double dt, LinearConstraintPool contactPool,
+                                    LinearConstraintPool frictionPool) {
         CollisionBody bodyA = entitySystem.createDataInstance(CollisionBody.ID);
         CollisionBody bodyB = entitySystem.createDataInstance(CollisionBody.ID);
         RigidBody rbA = entitySystem.createDataInstance(RigidBody.ID);
@@ -180,26 +183,39 @@ public class ContactManifoldPool {
                             worldB.set(mfWorldBs, vec4Index);
                             normalInB.set(mfWorldNormalInBs, vec3Index);
 
-                            relPosA.set(worldA.x - ta.m03, worldA.y - ta.m13, worldA.z - ta.m23);
-                            relPosB.set(worldB.x - tb.m03, worldB.y - tb.m13, worldB.z - tb.m23);
+                            relPosA.set(worldA.x - ta.m03, worldA.y - ta.m13,
+                                        worldA.z - ta.m23);
+                            relPosB.set(worldB.x - tb.m03, worldB.y - tb.m13,
+                                        worldB.z - tb.m23);
 
                             // generate contact constraint
-                            int contact = setupConstraint(rbA, rbB, normalInB, relPosA, relPosB, t1, t2,
-                                                          -mfDistances[index] * ERP / dt, mfAppliedContactImpulses[index],
-                                                          mfLifetimes[index], combinedRestitutions[manifold], contactPool);
+                            int contact = setupConstraint(rbA,
+                                                          rbB,
+                                                          normalInB,
+                                                          relPosA,
+                                                          relPosB,
+                                                          t1,
+                                                          t2,
+                                                          -mfDistances[index] * ERP / dt,
+                                                          mfAppliedContactImpulses[index],
+                                                          mfLifetimes[index],
+                                                          combinedRestitutions[manifold],
+                                                          contactPool);
                             mfContactConstraints[index] = contact;
 
                             if (!mfFrictionComputed[index]) {
                                 // compute lateral friction direction
                                 Vector3 velA, velB;
                                 if (rbA.isEnabled()) {
-                                    velA = t1.cross(rbA.getAngularVelocity(), relPosA).add(rbA.getVelocity());
+                                    velA = t1.cross(rbA.getAngularVelocity(), relPosA)
+                                             .add(rbA.getVelocity());
                                 } else {
                                     velA = t1.set(0, 0, 0);
                                 }
 
                                 if (rbB.isEnabled()) {
-                                    velB = t2.cross(rbB.getAngularVelocity(), relPosB).add(rbB.getVelocity());
+                                    velB = t2.cross(rbB.getAngularVelocity(), relPosB)
+                                             .add(rbB.getVelocity());
                                 } else {
                                     velB = t2.set(0, 0, 0);
                                 }
@@ -207,7 +223,8 @@ public class ContactManifoldPool {
                                 Vector3 velocity = velA.sub(velB); // == t1 (t2 can be reused now)
                                 double relVelocity = normalInB.dot(velocity);
 
-                                Vector3 fricDir = t2.scale(normalInB, -relVelocity).add(velocity); // == t2 (t1 can be reused now)
+                                Vector3 fricDir = t2.scale(normalInB, -relVelocity)
+                                                    .add(velocity); // == t2 (t1 can be reused now)
                                 double lateralRelVelocity = fricDir.length();
                                 if (lateralRelVelocity > 0.0001) {
                                     fricDir.scale(1.0 / lateralRelVelocity);
@@ -222,11 +239,21 @@ public class ContactManifoldPool {
 
                             // generate friction constraint
                             normalInB.set(mfFrictionDirs, vec3Index);
-                            int friction = setupConstraint(rbA, rbB, normalInB, relPosA, relPosB, t1, t2,
-                                                           0.0, mfAppliedFrictionImpulses[index], -1,
-                                                           combinedRestitutions[manifold], frictionPool);
+                            int friction = setupConstraint(rbA,
+                                                           rbB,
+                                                           normalInB,
+                                                           relPosA,
+                                                           relPosB,
+                                                           t1,
+                                                           t2,
+                                                           0.0,
+                                                           mfAppliedFrictionImpulses[index],
+                                                           -1,
+                                                           combinedRestitutions[manifold],
+                                                           frictionPool);
                             mfFrictionConstraints[index] = friction;
-                            frictionPool.setDynamicLimits(friction, contact, combinedFrictions[manifold]);
+                            frictionPool.setDynamicLimits(friction, contact,
+                                                          combinedFrictions[manifold]);
                         }
                     }
                 }
@@ -257,7 +284,8 @@ public class ContactManifoldPool {
 
     private void removeManifold(int manifold) {
         // remove map entry
-        query.set(objAs[manifold].get(CollisionBody.ID), objBs[manifold].get(CollisionBody.ID));
+        query.set(objAs[manifold].get(CollisionBody.ID),
+                  objBs[manifold].get(CollisionBody.ID));
         manifolds.remove(query);
 
         // clear packed data
@@ -276,8 +304,10 @@ public class ContactManifoldPool {
     }
 
     private int setupConstraint(RigidBody rbA, RigidBody rbB,
-                                @Const Vector3 constraintAxis, @Const Vector3 relPosA, @Const Vector3 relPosB,
-                                Vector3 torqueA, Vector3 torqueB, // torqueA,B are computed in here
+                                @Const Vector3 constraintAxis, @Const Vector3 relPosA,
+                                @Const Vector3 relPosB,
+                                Vector3 torqueA,
+                                Vector3 torqueB, // torqueA,B are computed in here
                                 double positionalError, double appliedImpulse,
                                 int lifetime, double combinedRestitution,
                                 LinearConstraintPool pool) {
@@ -294,12 +324,16 @@ public class ContactManifoldPool {
         if (rbA.isEnabled()) {
             relativeVelocity += (constraintAxis.dot(rbA.getVelocity()) + torqueA.dot(rbA.getAngularVelocity()));
             // we don't need torqueA anymore, so the multiply and cross can be in-place
-            denom +=  (rbA.getInverseMass() + torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
+            denom += (rbA.getInverseMass() + torqueA.mul(rbA.getInertiaTensorInverse(),
+                                                         torqueA).cross(relPosA)
+                                                    .dot(constraintAxis));
         }
         if (rbB.isEnabled()) {
             relativeVelocity -= (constraintAxis.dot(rbB.getVelocity()) + torqueB.dot(rbB.getAngularVelocity()));
             // we don't need torqueB anymore, so the multiply and cross can be in-place
-            denom += (rbB.getInverseMass() + torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
+            denom += (rbB.getInverseMass() + torqueB.mul(rbB.getInertiaTensorInverse(),
+                                                         torqueB).cross(relPosB)
+                                                    .dot(constraintAxis));
         }
 
         double jacobian = 1.0 / denom;
@@ -325,7 +359,8 @@ public class ContactManifoldPool {
         return constraint;
     }
 
-    private boolean updateManifoldPoint(int manifold, int point, CollisionBody bodyA, CollisionBody bodyB) {
+    private boolean updateManifoldPoint(int manifold, int point, CollisionBody bodyA,
+                                        CollisionBody bodyB) {
         int index = toIndex(manifold, point);
 
         if (mfLifetimes[index] < 0) {
@@ -387,8 +422,10 @@ public class ContactManifoldPool {
         objBs = Arrays.copyOf(objBs, newCount);
 
         // per manifold point simple values
-        mfAppliedContactImpulses = Arrays.copyOf(mfAppliedContactImpulses, newManifoldCount);
-        mfAppliedFrictionImpulses = Arrays.copyOf(mfAppliedFrictionImpulses, newManifoldCount);
+        mfAppliedContactImpulses = Arrays.copyOf(mfAppliedContactImpulses,
+                                                 newManifoldCount);
+        mfAppliedFrictionImpulses = Arrays.copyOf(mfAppliedFrictionImpulses,
+                                                  newManifoldCount);
         mfContactConstraints = Arrays.copyOf(mfContactConstraints, newManifoldCount);
         mfFrictionConstraints = Arrays.copyOf(mfFrictionConstraints, newManifoldCount);
         mfDistances = Arrays.copyOf(mfDistances, newManifoldCount);
@@ -406,7 +443,7 @@ public class ContactManifoldPool {
         maxAliveContact = Math.min(maxAliveContact, newCount);
         // remove all indices that are outside the valid range
         Iterator<Integer> it = reuseQueue.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             if (it.next() >= newCount) {
                 it.remove();
             }
@@ -422,7 +459,8 @@ public class ContactManifoldPool {
         }
 
         // otherwise we need a new index
-        int newIndex = (reuseQueue.isEmpty() ? maxAliveContact++ : reuseQueue.poll().intValue());
+        int newIndex = (reuseQueue.isEmpty() ? maxAliveContact++ : reuseQueue.poll()
+                                                                             .intValue());
         if (newIndex >= objAs.length) {
             // increase size
             setCapacity((newIndex + 1) * 2);
@@ -433,7 +471,9 @@ public class ContactManifoldPool {
         objAs[newIndex] = a.getEntity();
         objBs[newIndex] = b.getEntity();
         combinedRestitutions[newIndex] = a.getRestitution() * b.getRestitution();
-        combinedFrictions[newIndex] = Math.min(10.0, Math.max(a.getFriction() * b.getFriction(), -10.0));
+        combinedFrictions[newIndex] = Math.min(10.0,
+                                               Math.max(a.getFriction() * b.getFriction(),
+                                                        -10.0));
 
         // invalidate all manifold points
         for (int i = 0; i < MANIFOLD_POINT_SIZE; i++) {
@@ -446,7 +486,8 @@ public class ContactManifoldPool {
         return newIndex;
     }
 
-    private void addManifoldPoint(int manifold, CollisionBody bodyA, CollisionBody bodyB, ClosestPair pair) {
+    private void addManifoldPoint(int manifold, CollisionBody bodyA, CollisionBody bodyB,
+                                  ClosestPair pair) {
         boolean swap = objAs[manifold] != bodyA.getEntity();
 
         Vector3 pa = pair.getClosestPointOnA();
@@ -557,10 +598,18 @@ public class ContactManifoldPool {
 
         // compute hypothetical area of manifold if each of the 4 points were
         // removed (unless it is the deepest point)
-        double area0Removed = (deepestIndex == 0 ? 0.0 : computeManifoldArea(manifold, localB, 1, 3, 2, t1, t2));
-        double area1Removed = (deepestIndex == 1 ? 0.0 : computeManifoldArea(manifold, localB, 0, 3, 2, t1, t2));
-        double area2Removed = (deepestIndex == 2 ? 0.0 : computeManifoldArea(manifold, localB, 0, 3, 1, t1, t2));
-        double area3Removed = (deepestIndex == 3 ? 0.0 : computeManifoldArea(manifold, localB, 0, 2, 1, t1, t2));
+        double area0Removed = (deepestIndex == 0 ? 0.0 : computeManifoldArea(manifold,
+                                                                             localB, 1,
+                                                                             3, 2, t1, t2));
+        double area1Removed = (deepestIndex == 1 ? 0.0 : computeManifoldArea(manifold,
+                                                                             localB, 0,
+                                                                             3, 2, t1, t2));
+        double area2Removed = (deepestIndex == 2 ? 0.0 : computeManifoldArea(manifold,
+                                                                             localB, 0,
+                                                                             3, 1, t1, t2));
+        double area3Removed = (deepestIndex == 3 ? 0.0 : computeManifoldArea(manifold,
+                                                                             localB, 0,
+                                                                             2, 1, t1, t2));
 
         // find the index that maximizes the manifold area when replaced with localB
         int worstIndex = 0;
@@ -581,15 +630,18 @@ public class ContactManifoldPool {
         return worstIndex;
     }
 
-    private double computeManifoldArea(int manifold, @Const Vector4 p1, int p2, int p3, int p4,
-                                       Vector3 edge1, Vector3 edge2) {
+    private double computeManifoldArea(int manifold, @Const Vector4 p1, int p2, int p3,
+                                       int p4, Vector3 edge1, Vector3 edge2) {
         // p1 is a hypothetical point not in the manifold yet
         // p2, p3, and p4 are taken from manifold data
         int p2vec = toVector4Index(manifold, p2);
         int p3vec = toVector4Index(manifold, p3);
         int p4vec = toVector4Index(manifold, p4);
-        edge1.set(p1.x - mfLocalBs[p2vec], p1.y - mfLocalBs[p2vec + 1], p1.z - mfLocalBs[p2vec + 2]);
-        edge2.set(mfLocalBs[p3vec] - mfLocalBs[p4vec], mfLocalBs[p3vec + 1] - mfLocalBs[p4vec + 1], mfLocalBs[p3vec + 2] - mfLocalBs[p4vec + 2]);
+        edge1.set(p1.x - mfLocalBs[p2vec], p1.y - mfLocalBs[p2vec + 1],
+                  p1.z - mfLocalBs[p2vec + 2]);
+        edge2.set(mfLocalBs[p3vec] - mfLocalBs[p4vec],
+                  mfLocalBs[p3vec + 1] - mfLocalBs[p4vec + 1],
+                  mfLocalBs[p3vec + 2] - mfLocalBs[p4vec + 2]);
         return edge1.cross(edge2).lengthSquared();
     }
 
@@ -609,7 +661,7 @@ public class ContactManifoldPool {
         private Component<CollisionBody> a;
         private Component<CollisionBody> b;
 
-        public CollisionPair() { }
+        public CollisionPair() {}
 
         public CollisionPair(Component<CollisionBody> a, Component<CollisionBody> b) {
             set(a, b);

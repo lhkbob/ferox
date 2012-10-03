@@ -53,7 +53,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
     @Override
     protected void glBlendColor(@Const Vector4 color) {
         if (supportsBlending) {
-            GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+            GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z,
+                              (float) color.w);
         }
     }
 
@@ -70,11 +71,14 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha) {
+    protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb,
+                                  BlendFactor srcAlpha, BlendFactor dstAlpha) {
         if (supportsBlending) {
             // separate blend functions were supported before separate blend equations
-            GL14.glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb),
-                                     Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
+            GL14.glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb),
+                                     Utils.getGLBlendFactor(dstRgb),
+                                     Utils.getGLBlendFactor(srcAlpha),
+                                     Utils.getGLBlendFactor(dstAlpha));
         }
     }
 
@@ -188,7 +192,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass, boolean isFront) {
+    protected void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                   StencilUpdate depthPass, boolean isFront) {
         int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
         int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
         int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
@@ -209,7 +214,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -241,7 +247,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
 
         if (!this.clearColor.equals(color)) {
             this.clearColor.set(color);
-            GL11.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+            GL11.glClearColor((float) color.x, (float) color.y, (float) color.z,
+                              (float) color.w);
         }
         if (this.clearDepth != depth) {
             this.clearDepth = depth;
@@ -269,14 +276,15 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h, int offset, int count) {
+    protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h,
+                                  int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         int glDataType = Utils.getGLType(h.dataType);
 
         if (h.mode == StorageMode.IN_MEMORY) {
             Buffer data = h.inmemoryBuffer;
             data.limit(offset + count).position(offset);
-            switch(h.dataType) {
+            switch (h.dataType) {
             case UNSIGNED_BYTE:
                 GL11.glDrawElements(glPolyType, (ByteBuffer) data);
                 break;
@@ -288,7 +296,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
                 break;
             }
         } else {
-            GL11.glDrawElements(glPolyType, count, glDataType, offset * h.dataType.getByteCount());
+            GL11.glDrawElements(glPolyType, count, glDataType,
+                                offset * h.dataType.getByteCount());
         }
     }
 

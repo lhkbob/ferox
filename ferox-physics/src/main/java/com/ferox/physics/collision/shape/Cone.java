@@ -48,14 +48,15 @@ public class Cone extends AxisSweptShape {
         }
 
         double sin = baseRadius / Math.sqrt(baseRadius * baseRadius + 4 * halfHeight * halfHeight);
-        switch(dominantAxis) {
+        switch (dominantAxis) {
         case X:
             if (v.x <= v.length() * sin) {
                 double sigma = sigma(v);
                 if (sigma <= 0.0) {
                     result.set(-halfHeight, 0.0, 0.0);
                 } else {
-                    result.set(-halfHeight, baseRadius / sigma * v.y, baseRadius / sigma * v.z);
+                    result.set(-halfHeight, baseRadius / sigma * v.y,
+                               baseRadius / sigma * v.z);
                 }
             } else {
                 result.set(halfHeight, 0.0, 0.0);
@@ -67,7 +68,8 @@ public class Cone extends AxisSweptShape {
                 if (sigma <= 0.0) {
                     result.set(0.0, -halfHeight, 0.0);
                 } else {
-                    result.set(baseRadius / sigma * v.x, -halfHeight, baseRadius / sigma * v.z);
+                    result.set(baseRadius / sigma * v.x, -halfHeight,
+                               baseRadius / sigma * v.z);
                 }
             } else {
                 result.set(0.0, halfHeight, 0.0);
@@ -79,7 +81,8 @@ public class Cone extends AxisSweptShape {
                 if (sigma <= 0.0) {
                     result.set(-0.0, 0.0, -halfHeight);
                 } else {
-                    result.set(baseRadius / sigma * v.x, baseRadius / sigma * v.y, -halfHeight);
+                    result.set(baseRadius / sigma * v.x, baseRadius / sigma * v.y,
+                               -halfHeight);
                 }
             } else {
                 result.set(0.0, 0.0, halfHeight);
@@ -92,9 +95,9 @@ public class Cone extends AxisSweptShape {
 
     private void update() {
         double m1 = 4.0 / 10.0 * halfHeight * halfHeight + 3.0 / 20.0 * baseRadius * baseRadius;
-        double m2 = 3.0/ 10.0 * baseRadius * baseRadius;
+        double m2 = 3.0 / 10.0 * baseRadius * baseRadius;
 
-        switch(dominantAxis) {
+        switch (dominantAxis) {
         case X:
             inertiaTensorPartial.set(m2, m1, m1);
             break;

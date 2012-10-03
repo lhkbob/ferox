@@ -67,7 +67,8 @@ public class MaterialGroupFactory implements StateGroupFactory {
                 // new color combination
                 MaterialState newState = new MaterialState();
                 newState.set(diffuseColor, specularColor, emittedColor, transparent);
-                node = new StateNode((childFactory == null ? null : childFactory.newGroup()), newState);
+                node = new StateNode((childFactory == null ? null : childFactory.newGroup()),
+                                     newState);
                 nodeLookup.put(newState, node);
                 allNodes.add(node);
             }
@@ -81,7 +82,8 @@ public class MaterialGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+                                              AppliedEffects effects) {
             return effects;
         }
 
@@ -104,7 +106,8 @@ public class MaterialGroupFactory implements StateGroupFactory {
             ambient = new Vector4();
         }
 
-        public void set(DiffuseColor diff, SpecularColor spec, EmittedColor emit, Transparent t) {
+        public void set(DiffuseColor diff, SpecularColor spec, EmittedColor emit,
+                        Transparent t) {
             ColorRGB rgb;
             if (diff.isEnabled()) {
                 rgb = diff.getColor();
@@ -148,14 +151,17 @@ public class MaterialGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
+        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                         int index) {
             r.setMaterial(ambient, diffuse, specular, emitted);
             return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index) {
-            r.setMaterial(DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR, DEFAULT_EMITTED);
+        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+                                 int index) {
+            r.setMaterial(DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR,
+                          DEFAULT_EMITTED);
         }
 
         @Override
@@ -164,10 +170,7 @@ public class MaterialGroupFactory implements StateGroupFactory {
                 return false;
             }
             MaterialState m = (MaterialState) o;
-            return (m.diffuse.equals(diffuse) &&
-                    m.specular.equals(specular) &&
-                    m.emitted.equals(emitted) &&
-                    m.ambient.equals(ambient));
+            return (m.diffuse.equals(diffuse) && m.specular.equals(specular) && m.emitted.equals(emitted) && m.ambient.equals(ambient));
         }
 
         @Override

@@ -10,13 +10,13 @@ import com.ferox.physics.collision.CollisionBody;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 
-
 public class SpatialIndexCollisionController extends CollisionController {
     private SpatialIndex<Entity> index;
     private CollisionAlgorithmProvider algorithms;
 
     // FIXME: add a setter, too
-    public SpatialIndexCollisionController(SpatialIndex<Entity> index, CollisionAlgorithmProvider algorithms) {
+    public SpatialIndexCollisionController(SpatialIndex<Entity> index,
+                                           CollisionAlgorithmProvider algorithms) {
         this.index = index;
         this.algorithms = algorithms;
     }
@@ -36,7 +36,7 @@ public class SpatialIndexCollisionController extends CollisionController {
         ComponentIterator it = new ComponentIterator(getEntitySystem());
         it.addRequired(body1);
 
-        while(it.next()) {
+        while (it.next()) {
             index.add(body1.getEntity(), body1.getWorldBounds());
         }
 
@@ -62,20 +62,25 @@ public class SpatialIndexCollisionController extends CollisionController {
         }
 
         @Override
-        @SuppressWarnings({ "rawtypes", "unchecked" })
-        public void process(Entity a, AxisAlignedBox boundsA, Entity b, AxisAlignedBox boundsB) {
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        public void process(Entity a, AxisAlignedBox boundsA, Entity b,
+                            AxisAlignedBox boundsB) {
             // at this point we know the world bounds of a and b intersect, but
             // we need to test for collision against their actual shapes
             a.get(bodyA);
             b.get(bodyB);
 
-            CollisionAlgorithm algorithm = algorithms.getAlgorithm(bodyA.getShape().getClass(),
-                                                                   bodyB.getShape().getClass());
+            CollisionAlgorithm algorithm = algorithms.getAlgorithm(bodyA.getShape()
+                                                                        .getClass(),
+                                                                   bodyB.getShape()
+                                                                        .getClass());
 
             if (algorithm != null) {
                 // have a valid algorithm to test
-                ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(), bodyA.getTransform(),
-                                                            bodyB.getShape(), bodyB.getTransform());
+                ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(),
+                                                            bodyA.getTransform(),
+                                                            bodyB.getShape(),
+                                                            bodyB.getTransform());
 
                 if (pair != null && pair.isIntersecting()) {
                     notifyContact(bodyA, bodyB, pair);

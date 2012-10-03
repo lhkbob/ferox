@@ -12,13 +12,16 @@ public class GlslShader extends Resource {
     }
 
     public static enum AttributeType {
-        FLOAT(1, 1), FLOAT_VEC2(2, 1), FLOAT_VEC3(3, 1), FLOAT_VEC4(4, 1),
-        FLOAT_MAT2(2, 2), FLOAT_MAT3(3, 3), FLOAT_MAT4(4, 4), UNSUPPORTED(0, 0);
+        FLOAT(1, 1), FLOAT_VEC2(2, 1), FLOAT_VEC3(3, 1), FLOAT_VEC4(4, 1), FLOAT_MAT2(2,
+                                                                                      2),
+        FLOAT_MAT3(3, 3), FLOAT_MAT4(4, 4), UNSUPPORTED(0, 0);
 
         private final int row;
         private final int col;
+
         private AttributeType(int r, int c) {
-            row = r; col = c;
+            row = r;
+            col = c;
         }
 
         public int getRowCount() {
@@ -80,19 +83,31 @@ public class GlslShader extends Resource {
         clone.put(type, codeSrc);
 
         Version detectedVersion = null;
-        for (String code: clone.values()) {
+        for (String code : clone.values()) {
             if (code.startsWith("#version")) {
                 Scanner s = new Scanner(code.substring(9));
                 int version = s.nextInt();
                 Version v = null;
 
-                switch(version) {
-                case 120: v = Version.V1_20; break;
-                case 130: v = Version.V1_30; break;
-                case 140: v = Version.V1_40; break;
-                case 150: v = Version.V1_50; break;
-                case 330: v = Version.V3_30; break;
-                case 400: v = Version.V4_00; break;
+                switch (version) {
+                case 120:
+                    v = Version.V1_20;
+                    break;
+                case 130:
+                    v = Version.V1_30;
+                    break;
+                case 140:
+                    v = Version.V1_40;
+                    break;
+                case 150:
+                    v = Version.V1_50;
+                    break;
+                case 330:
+                    v = Version.V3_30;
+                    break;
+                case 400:
+                    v = Version.V4_00;
+                    break;
                 }
 
                 if (detectedVersion == null) {

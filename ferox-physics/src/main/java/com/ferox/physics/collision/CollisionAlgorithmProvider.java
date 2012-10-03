@@ -1,6 +1,5 @@
 package com.ferox.physics.collision;
 
-
 /**
  * CollisionAlgorithmProviders are responsible for providing CollisionAlgorithm
  * instances that can be used to compute accurate intersections between two
@@ -24,5 +23,6 @@ public interface CollisionAlgorithmProvider {
      *         is registered
      * @throws NullPointerException if shapeA or shapeB are null
      */
-    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> shapeA, Class<B> shapeB);
+    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> shapeA,
+                                                                                    Class<B> shapeB);
 }

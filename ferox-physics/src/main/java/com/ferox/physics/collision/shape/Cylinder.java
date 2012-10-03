@@ -62,16 +62,28 @@ public class Cylinder extends AxisSweptShape {
         double sigma = sigma(v);
         if (sigma > 0.0) {
             double scale = capRadius / sigma;
-            switch(dominantAxis) {
-            case X: result.set(sign(v) * halfHeight, scale * v.y, scale * v.z); break;
-            case Y: result.set(scale * v.x, sign(v) * halfHeight, scale * v.z); break;
-            case Z: result.set(scale * v.x, scale * v.y, sign(v) * halfHeight); break;
+            switch (dominantAxis) {
+            case X:
+                result.set(sign(v) * halfHeight, scale * v.y, scale * v.z);
+                break;
+            case Y:
+                result.set(scale * v.x, sign(v) * halfHeight, scale * v.z);
+                break;
+            case Z:
+                result.set(scale * v.x, scale * v.y, sign(v) * halfHeight);
+                break;
             }
         } else {
-            switch(dominantAxis) {
-            case X: result.set(sign(v) * halfHeight, 0, 0); break;
-            case Y: result.set(0, sign(v) * halfHeight, 0); break;
-            case Z: result.set(0, 0, sign(v) * halfHeight); break;
+            switch (dominantAxis) {
+            case X:
+                result.set(sign(v) * halfHeight, 0, 0);
+                break;
+            case Y:
+                result.set(0, sign(v) * halfHeight, 0);
+                break;
+            case Z:
+                result.set(0, 0, sign(v) * halfHeight);
+                break;
             }
         }
 
@@ -82,7 +94,7 @@ public class Cylinder extends AxisSweptShape {
         double m1 = (3.0 * capRadius * capRadius + 4.0 * halfHeight * halfHeight) / 12.0;
         double m2 = capRadius * capRadius / 2.0;
 
-        switch(dominantAxis) {
+        switch (dominantAxis) {
         case X:
             inertiaTensorPartial.set(m2, m1, m1);
             break;

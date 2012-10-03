@@ -31,7 +31,7 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
         if (c1 == null || c2 == null) {
             throw new NullPointerException("Collections cannot be null");
         }
-        chain = new Collection[] { c1, c2 };
+        chain = new Collection[] {c1, c2};
     }
 
     /**
@@ -52,7 +52,7 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
 
         chain = new Collection[toChain.size()];
         int i = 0;
-        for (Collection<? extends T> c: toChain) {
+        for (Collection<? extends T> c : toChain) {
             if (c == null) {
                 throw new NullPointerException("Collections cannot be null");
             }
@@ -102,7 +102,7 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
         }
 
         private void advance() {
-            while(!current.hasNext()) {
+            while (!current.hasNext()) {
                 if ((++index) < chain.length) {
                     current = chain[index].iterator();
                 } else {

@@ -2,44 +2,37 @@ package com.ferox.util.profile;
 
 import java.util.Arrays;
 
-public class CyclicUsageHistory
-{
+public class CyclicUsageHistory {
     private final double[] values;
 
-    public CyclicUsageHistory(int slots)
-    {
+    public CyclicUsageHistory(int slots) {
         this.values = new double[slots];
     }
 
     private int addIndex;
 
-    public void log(double value)
-    {
+    public void log(double value) {
         this.values[this.addIndex++ % this.values.length] = value;
     }
 
     //
 
-    public double previous()
-    {
+    public double previous() {
         return this.previous(0);
     }
 
-    public double previous(int age)
-    {
+    public double previous(int age) {
         int len = this.values.length;
         return this.values[(((this.addIndex - 1 - age) % len) + len) % len];
     }
 
     //
 
-    public double max()
-    {
+    public double max() {
         return this.max(this.values.length);
     }
 
-    public double max(int slots)
-    {
+    public double max(int slots) {
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
 
         double max = 0.0;
@@ -53,13 +46,11 @@ public class CyclicUsageHistory
 
     //
 
-    public double sum()
-    {
+    public double sum() {
         return this.sum(this.values.length);
     }
 
-    public double sum(int slots)
-    {
+    public double sum(int slots) {
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
 
         double sum = 0.0;
@@ -71,13 +62,11 @@ public class CyclicUsageHistory
 
     //
 
-    public double avg()
-    {
+    public double avg() {
         return this.avg(this.values.length);
     }
 
-    public double avg(int slots)
-    {
+    public double avg(int slots) {
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
 
         return this.sum(slots) / count;
@@ -85,13 +74,11 @@ public class CyclicUsageHistory
 
     //
 
-    public double nom()
-    {
+    public double nom() {
         return this.nom(this.values.length);
     }
 
-    public double nom(int slots)
-    {
+    public double nom(int slots) {
         int count = Math.min(this.values.length, Math.min(slots, this.addIndex - 1));
         if (count == 0) {
             return 0.0;

@@ -85,7 +85,7 @@ public class InputManager {
             throw new NullPointerException("Source cannot be null");
         }
 
-        synchronized(this) {
+        synchronized (this) {
             if (this.source != null) {
                 throw new IllegalStateException("InputManager already attached to another event source");
             }
@@ -104,7 +104,7 @@ public class InputManager {
      * {@link #process()} will no longer work.
      */
     public void detach() {
-        synchronized(this) {
+        synchronized (this) {
             if (source != null) {
                 source.removeKeyListener(listener);
                 source.removeMouseListener(listener);
@@ -153,9 +153,9 @@ public class InputManager {
             throw new NullPointerException("Action cannot be null");
         }
 
-        synchronized(listener) {
+        synchronized (listener) {
             Iterator<PredicatedAction> it = triggers.iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 // remove all occurrences of the action
                 if (it.next().trigger == trigger) {
                     it.remove();
@@ -170,9 +170,9 @@ public class InputManager {
      * associated predicate. This will run the actions on the calling thread.
      */
     public void process() {
-        synchronized(listener) {
+        synchronized (listener) {
             InputState prev = lastProcessedState;
-            for (InputState next: stateQueue) {
+            for (InputState next : stateQueue) {
                 processTriggers(prev, next);
                 prev = next;
             }
@@ -202,14 +202,14 @@ public class InputManager {
     private class InternalListener implements KeyListener, MouseListener {
         @Override
         public void handleEvent(KeyEvent event) {
-            synchronized(this) {
+            synchronized (this) {
                 advanceState(new InputState(lastState, event));
             }
         }
 
         @Override
         public void handleEvent(MouseEvent event) {
-            synchronized(this) {
+            synchronized (this) {
                 advanceState(new InputState(lastState, event));
             }
         }
@@ -234,7 +234,7 @@ public class InputManager {
                 throw new NullPointerException("Action cannot be null");
             }
 
-            synchronized(listener) {
+            synchronized (listener) {
                 triggers.add(new PredicatedAction(action, condition));
             }
         }

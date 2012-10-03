@@ -11,7 +11,7 @@ import com.ferox.input.MouseEvent.MouseButton;
  * @author Michael Ludwig
  */
 public final class Predicates {
-    private Predicates() { }
+    private Predicates() {}
 
     /**
      * Return a Predicate that evaluates to true when the key code transitions
@@ -28,7 +28,8 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return !prev.getKeyboardState().isKeyDown(code) && next.getKeyboardState().isKeyDown(code);
+                return !prev.getKeyboardState().isKeyDown(code) && next.getKeyboardState()
+                                                                       .isKeyDown(code);
             }
         };
     }
@@ -48,7 +49,8 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return prev.getKeyboardState().isKeyDown(code) && !next.getKeyboardState().isKeyDown(code);
+                return prev.getKeyboardState().isKeyDown(code) && !next.getKeyboardState()
+                                                                       .isKeyDown(code);
             }
         };
     }
@@ -124,15 +126,16 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return !prev.getMouseState().isButtonDown(button) && next.getMouseState().isButtonDown(button);
+                return !prev.getMouseState().isButtonDown(button) && next.getMouseState()
+                                                                         .isButtonDown(button);
             }
         };
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button transitions
-     * from the down to up position. When the NONE button is used, it
-     * evaluates to true when any button is pressed and there were no other
+     * Return a Predicate that evaluates to true when the mouse button
+     * transitions from the down to up position. When the NONE button is used,
+     * it evaluates to true when any button is pressed and there were no other
      * buttons pressed before that.
      * 
      * @param button The button that is released
@@ -146,7 +149,8 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return prev.getMouseState().isButtonDown(button) && !next.getMouseState().isButtonDown(button);
+                return prev.getMouseState().isButtonDown(button) && !next.getMouseState()
+                                                                         .isButtonDown(button);
             }
         };
     }
@@ -225,9 +229,9 @@ public final class Predicates {
 
     /**
      * Return a Predicate that evaluates to true when the mouse button is
-     * pressed and released twice in under 150 milliseconds
-     * (i.e. a double-click). This will not evaluate to true until the button
-     * is released. If the release occurs too slowly, it will not trigger.
+     * pressed and released twice in under 150 milliseconds (i.e. a
+     * double-click). This will not evaluate to true until the button is
+     * released. If the release occurs too slowly, it will not trigger.
      * 
      * @param button The button that is clicked
      * @return A Predicate for matching double-clicking
@@ -303,7 +307,8 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollCount() < next.getMouseState().getScrollCount();
+                return next.getMouseState().getScrollCount() < next.getMouseState()
+                                                                   .getScrollCount();
             }
         };
     }
@@ -319,7 +324,8 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollCount() > next.getMouseState().getScrollCount();
+                return next.getMouseState().getScrollCount() > next.getMouseState()
+                                                                   .getScrollCount();
             }
         };
     }

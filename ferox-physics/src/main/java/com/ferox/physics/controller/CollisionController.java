@@ -62,12 +62,14 @@ public abstract class CollisionController extends SimpleController {
 
     protected void reportConstraints(double dt) {
         manifolds.generateConstraints(dt, contactGroup, frictionGroup);
-        getEntitySystem().getControllerManager().report(new ConstraintResult(contactGroup));
-        getEntitySystem().getControllerManager().report(new ConstraintResult(frictionGroup));
+        getEntitySystem().getControllerManager()
+                         .report(new ConstraintResult(contactGroup));
+        getEntitySystem().getControllerManager()
+                         .report(new ConstraintResult(frictionGroup));
     }
 
-
-    protected void notifyContact(CollisionBody bodyA, CollisionBody bodyB, ClosestPair contact) {
+    protected void notifyContact(CollisionBody bodyA, CollisionBody bodyB,
+                                 ClosestPair contact) {
         manifolds.addContact(bodyA, bodyB, contact);
     }
 }

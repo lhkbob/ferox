@@ -54,9 +54,10 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     private boolean vsyncNeedsUpdate;
     private boolean closable;
 
-    public LwjglStaticDisplaySurface(AbstractFramework framework, LwjglSurfaceFactory factory,
+    public LwjglStaticDisplaySurface(AbstractFramework framework,
+                                     LwjglSurfaceFactory factory,
                                      OnscreenSurfaceOptions options,
-                                     LwjglContext shareWith,  RendererProvider provider) {
+                                     LwjglContext shareWith, RendererProvider provider) {
         super(framework);
 
         if (Display.isCreated()) {
@@ -90,17 +91,15 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                     if (Display.isCreated()) {
                         Display.destroy();
                     }
-                    throw new SurfaceCreationException("Unable to create static display", e);
+                    throw new SurfaceCreationException("Unable to create static display",
+                                                       e);
                 }
 
                 // update options to reflect successful fullscreen support
-                options = options.setResizable(false)
-                        .setUndecorated(true)
-                        .setFullscreenMode(bestMode)
-                        .setWidth(bestMode.getWidth())
-                        .setHeight(bestMode.getHeight())
-                        .setX(0)
-                        .setY(0);
+                options = options.setResizable(false).setUndecorated(true)
+                                 .setFullscreenMode(bestMode)
+                                 .setWidth(bestMode.getWidth())
+                                 .setHeight(bestMode.getHeight()).setX(0).setY(0);
 
                 fullscreen = true;
             }
@@ -122,7 +121,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                     OnscreenSurfaceOptions options = LwjglStaticDisplaySurface.this.options;
                     parentFrame.setResizable(options.isResizable());
                     parentFrame.setUndecorated(options.isUndecorated());
-                    parentFrame.setBounds(options.getX(), options.getY(), options.getWidth(), options.getHeight());
+                    parentFrame.setBounds(options.getX(), options.getY(),
+                                          options.getWidth(), options.getHeight());
 
                     parentFrame.add(glCanvas);
 
@@ -168,8 +168,11 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
      * management.
      */
     public void initialize() {
-        ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
-        Thread eventMonitor = new Thread(managedGroup, new EventMonitor(), "lwjgl-event-monitor");
+        ThreadGroup managedGroup = getFramework().getLifeCycleManager()
+                                                 .getManagedThreadGroup();
+        Thread eventMonitor = new Thread(managedGroup,
+                                         new EventMonitor(),
+                                         "lwjgl-event-monitor");
         eventMonitor.setDaemon(true);
         getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
 
@@ -187,7 +190,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             optionsNeedVerify = false;
         }
 
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (vsyncNeedsUpdate) {
                 Display.setSwapInterval(vsync ? 1 : 0);
                 vsyncNeedsUpdate = false;
@@ -202,14 +205,14 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public boolean isVSyncEnabled() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             return vsync;
         }
     }
 
     @Override
     public void setVSyncEnabled(boolean enable) {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             vsync = enable;
             vsyncNeedsUpdate = true;
         }
@@ -217,7 +220,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public String getTitle() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (parentFrame != null) {
                 return parentFrame.getTitle();
             } else {
@@ -232,13 +235,13 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized(surfaceLock) {
+                    synchronized (surfaceLock) {
                         parentFrame.setTitle(title);
                     }
                 }
             }, false);
         } else {
-            synchronized(surfaceLock) {
+            synchronized (surfaceLock) {
                 // Display.setTitle() does not require the display to be current.
                 Display.setTitle(title);
             }
@@ -247,11 +250,10 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public int getX() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (parentFrame != null) {
                 return parentFrame.getX();
-            }
-            else {
+            } else {
                 return 0; // fullscreen
             }
         }
@@ -259,11 +261,10 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public int getY() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (parentFrame != null) {
                 return parentFrame.getY();
-            }
-            else {
+            } else {
                 return 0; // fullscreen
             }
         }
@@ -282,7 +283,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized(surfaceLock) {
+                    synchronized (surfaceLock) {
                         parentFrame.setSize(width, height);
                     }
                 }
@@ -302,7 +303,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized(surfaceLock) {
+                    synchronized (surfaceLock) {
                         parentFrame.setLocation(x, y);
                     }
                 }
@@ -314,21 +315,21 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public boolean isClosable() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             return closable;
         }
     }
 
     @Override
     public void setClosable(boolean userClosable) {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             closable = userClosable;
         }
     }
 
     @Override
     public int getWidth() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (parentFrame != null) {
                 return glCanvas.getWidth();
             } else {
@@ -339,13 +340,14 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public int getHeight() {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             if (parentFrame != null) {
                 return glCanvas.getHeight();
             } else {
                 return Display.getHeight();
             }
-        }    }
+        }
+    }
 
     @Override
     public void addMouseListener(MouseListener listener) {
@@ -410,7 +412,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public void windowClosing(WindowEvent e) {
-        synchronized(surfaceLock) {
+        synchronized (surfaceLock) {
             // If the window is not user closable, we perform no action.
             // windowClosing() listeners are responsible for disposing the window
             if (!closable) {
@@ -423,22 +425,22 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     }
 
     @Override
-    public void windowOpened(WindowEvent e) { }
+    public void windowOpened(WindowEvent e) {}
 
     @Override
-    public void windowClosed(WindowEvent e) { }
+    public void windowClosed(WindowEvent e) {}
 
     @Override
-    public void windowIconified(WindowEvent e) { }
+    public void windowIconified(WindowEvent e) {}
 
     @Override
-    public void windowDeiconified(WindowEvent e) { }
+    public void windowDeiconified(WindowEvent e) {}
 
     @Override
-    public void windowActivated(WindowEvent e) { }
+    public void windowActivated(WindowEvent e) {}
 
     @Override
-    public void windowDeactivated(WindowEvent e) { }
+    public void windowDeactivated(WindowEvent e) {}
 
     private void detectOptions() {
         int red, green, blue, alpha, stencil, depth;
@@ -522,12 +524,12 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
-            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
+            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(),
+                                                                fullscreen.getHeight(),
+                                                                format));
         }
 
-        options = options.setMultiSampling(aa)
-                .setDepthFormat(df)
-                .setStencilFormat(sf);
+        options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);
     }
 
     /*
@@ -537,11 +539,14 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     private class EventMonitor implements Runnable {
         @Override
         public void run() {
-            while(!isDestroyed()) {
+            while (!isDestroyed()) {
                 try {
                     long blockedTime = -System.nanoTime();
-                    getFramework().getContextManager().invokeOnContextThread(new InputTask(), false).get();
-                    getFramework().getContextManager().invokeOnContextThread(new CloseRequestTask(), false).get();
+                    getFramework().getContextManager()
+                                  .invokeOnContextThread(new InputTask(), false).get();
+                    getFramework().getContextManager()
+                                  .invokeOnContextThread(new CloseRequestTask(), false)
+                                  .get();
                     blockedTime += System.nanoTime();
 
                     if (blockedTime < 1000000) {
@@ -549,11 +554,11 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                         // not to flood the queue
                         Thread.sleep(1);
                     }
-                } catch(InterruptedException e) {
+                } catch (InterruptedException e) {
                     // don't care
-                } catch(CancellationException e) {
+                } catch (CancellationException e) {
                     // don't care, this happens when we're shutting down
-                } catch(Exception e) {
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -572,7 +577,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         @Override
         public Void call() throws Exception {
             boolean closeAllowed;
-            synchronized(surfaceLock) {
+            synchronized (surfaceLock) {
                 closeAllowed = closable;
             }
 

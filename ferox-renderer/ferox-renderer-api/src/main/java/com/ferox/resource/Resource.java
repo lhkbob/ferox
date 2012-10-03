@@ -70,8 +70,7 @@ public abstract class Resource {
      * The UpdatePolicy of a Resource controls the behavior of Frameworks and
      * how they manage their Resources. By default, created Resources have the
      * ON_DEMAND policy, which checks for changes when a Resource is needed for
-     * rendering. The MANUAL
-     * policy forces Resources to be updated manually with
+     * rendering. The MANUAL policy forces Resources to be updated manually with
      * {@link HardwareAccessLayer#update(Resource)} as needed.
      */
     public static enum UpdatePolicy {

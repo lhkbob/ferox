@@ -41,14 +41,15 @@ public class MotionController extends SimpleController {
         it.addRequired(rb);
         it.addRequired(cb);
 
-        while(it.next()) {
+        while (it.next()) {
             Matrix4 transform = cb.getTransform();
 
             predictedRotation.setUpper(transform);
             predictedPosition.set(transform.m03, transform.m13, transform.m23);
 
             integrator.integrateLinearVelocity(rb.getVelocity(), dt, predictedPosition);
-            integrator.integrateAngularVelocity(rb.getAngularVelocity(), dt, predictedRotation);
+            integrator.integrateAngularVelocity(rb.getAngularVelocity(), dt,
+                                                predictedRotation);
 
             // push values back into transform
             setTransform(predictedRotation, predictedPosition, transform);
@@ -65,6 +66,9 @@ public class MotionController extends SimpleController {
         t.m23 = p.z;
 
         // ensure this is still an affine transform
-        t.m30 = 0.0; t.m31 = 0.0; t.m32 = 0.0; t.m33 = 1.0;
+        t.m30 = 0.0;
+        t.m31 = 0.0;
+        t.m32 = 0.0;
+        t.m33 = 1.0;
     }
 }

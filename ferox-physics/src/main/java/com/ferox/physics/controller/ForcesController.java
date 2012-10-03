@@ -51,7 +51,7 @@ public class ForcesController extends SimpleController {
         it.addRequired(cb);
         it.addOptional(g);
 
-        while(it.next()) {
+        while (it.next()) {
             Matrix4 transform = cb.getTransform();
 
             // compute the body's new inertia tensor
@@ -76,11 +76,14 @@ public class ForcesController extends SimpleController {
 
             // integrate and apply forces to the body's velocity
             Vector3 lv = rb.getVelocity();
-            integrator.integrateLinearAcceleration(force.scale(rb.getTotalForce(), rb.getInverseMass()), dt, lv);
+            integrator.integrateLinearAcceleration(force.scale(rb.getTotalForce(),
+                                                               rb.getInverseMass()), dt,
+                                                   lv);
             rb.setVelocity(lv);
 
             Vector3 la = rb.getAngularVelocity();
-            integrator.integrateAngularAcceleration(force.mul(tensor, rb.getTotalTorque()), dt, la);
+            integrator.integrateAngularAcceleration(force.mul(tensor, rb.getTotalTorque()),
+                                                    dt, la);
             rb.setAngularVelocity(la);
 
             rb.clearForces();

@@ -55,14 +55,16 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
     }
 
     @Override
-    protected void glBindArrayBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
+    protected void glBindArrayBuffer(OpenGLContext context,
+                                     VertexBufferObjectHandle handle) {
         LwjglContext c = (LwjglContext) context;
         arrayVboBinding.set(c.getArrayVbo());
         c.bindArrayVbo(handle.vboID);
     }
 
     @Override
-    protected void glBindElementBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
+    protected void glBindElementBuffer(OpenGLContext context,
+                                       VertexBufferObjectHandle handle) {
         LwjglContext c = (LwjglContext) context;
         elementVboBinding.set(c.getElementVbo());
         c.bindElementVbo(handle.vboID);
@@ -81,8 +83,8 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
     }
 
     @Override
-    protected void glArrayBufferData(OpenGLContext context, Buffer data, DataType type, int length,
-                                     StorageMode mode) {
+    protected void glArrayBufferData(OpenGLContext context, Buffer data, DataType type,
+                                     int length, StorageMode mode) {
         checkCaps(context);
         glBufferData(false, data, type, mode);
     }
@@ -94,12 +96,13 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
         glBufferData(true, data, type, mode);
     }
 
-    private void glBufferData(boolean elementBuffer, Buffer data, DataType type, StorageMode mode) {
+    private void glBufferData(boolean elementBuffer, Buffer data, DataType type,
+                              StorageMode mode) {
         if (useARB) {
             int usage = (mode == StorageMode.GPU_DYNAMIC ? ARBBufferObject.GL_STREAM_DRAW_ARB : ARBBufferObject.GL_STATIC_DRAW_ARB);
             int target = (elementBuffer ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
 
-            switch(type) {
+            switch (type) {
             case FLOAT:
                 ARBBufferObject.glBufferDataARB(target, (FloatBuffer) data, usage);
                 break;
@@ -117,7 +120,7 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
             int usage = (mode == StorageMode.GPU_DYNAMIC ? GL15.GL_STREAM_DRAW : GL15.GL_STATIC_DRAW);
             int target = (elementBuffer ? GL15.GL_ELEMENT_ARRAY_BUFFER : GL15.GL_ARRAY_BUFFER);
 
-            switch(type) {
+            switch (type) {
             case FLOAT:
                 GL15.glBufferData(target, (FloatBuffer) data, usage);
                 break;
@@ -135,25 +138,26 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
     }
 
     @Override
-    protected void glArrayBufferSubData(OpenGLContext context, Buffer data, DataType type,
-                                        int offset, int length) {
+    protected void glArrayBufferSubData(OpenGLContext context, Buffer data,
+                                        DataType type, int offset, int length) {
         checkCaps(context);
         glBufferSubData(false, data, type, offset);
     }
 
     @Override
-    protected void glElementBufferSubData(OpenGLContext context, Buffer data, DataType type,
-                                          int offset, int length) {
+    protected void glElementBufferSubData(OpenGLContext context, Buffer data,
+                                          DataType type, int offset, int length) {
         checkCaps(context);
         glBufferSubData(true, data, type, offset);
     }
 
-    private void glBufferSubData(boolean elementBuffer, Buffer data, DataType type, int offset) {
+    private void glBufferSubData(boolean elementBuffer, Buffer data, DataType type,
+                                 int offset) {
         int vboOffset = offset * type.getByteCount();
         if (useARB) {
             int target = (elementBuffer ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
 
-            switch(type) {
+            switch (type) {
             case FLOAT:
                 ARBBufferObject.glBufferSubDataARB(target, vboOffset, (FloatBuffer) data);
                 break;
@@ -170,7 +174,7 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
         } else {
             int target = (elementBuffer ? GL15.GL_ELEMENT_ARRAY_BUFFER : GL15.GL_ARRAY_BUFFER);
 
-            switch(type) {
+            switch (type) {
             case FLOAT:
                 GL15.glBufferSubData(target, vboOffset, (FloatBuffer) data);
                 break;

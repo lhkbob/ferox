@@ -12,16 +12,15 @@ import com.ferox.resource.VertexBufferObject;
  * actual implementation of the Renderer interface. It is extended by both
  * {@link AbstractFixedFunctionRenderer} and {@link AbstractGlslRenderer}, which
  * complete the implementations for the respective renderer types. It is
- * recommended that if an OpenGLContext provides both a
- * FixedFunctionRenderer and a GlslRenderer that both use the same
- * RendererDelegate instance since that state is shared by the context.
+ * recommended that if an OpenGLContext provides both a FixedFunctionRenderer
+ * and a GlslRenderer that both use the same RendererDelegate instance since
+ * that state is shared by the context.
  * </p>
  * <p>
  * AbstractRenderer adds the
- * {@link #activate(AbstractSurface, OpenGLContext, ResourceManager)}
- * method which is invoked by AbstractSurface when it is activated. This
- * provides a hook for renderers to perform custom initialization of the OpenGL
- * state.
+ * {@link #activate(AbstractSurface, OpenGLContext, ResourceManager)} method
+ * which is invoked by AbstractSurface when it is activated. This provides a
+ * hook for renderers to perform custom initialization of the OpenGL state.
  * </p>
  * 
  * @author Michael Ludwig
@@ -42,7 +41,8 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color, double depth, int stencil) {
+    public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
+                      @Const Vector4 color, double depth, int stencil) {
         delegate.clear(clearColor, clearDepth, clearStencil, color, depth, stencil);
     }
 
@@ -171,7 +171,8 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
+                      int count) {
         return delegate.render(polyType, indices, offset, count);
     }
 
@@ -190,7 +191,8 @@ public abstract class AbstractRenderer implements Renderer {
      * @param context The current context
      * @param resourceManager The ResourceManager to use
      */
-    public void activate(AbstractSurface active, OpenGLContext context, ResourceManager resourceManager) {
+    public void activate(AbstractSurface active, OpenGLContext context,
+                         ResourceManager resourceManager) {
         delegate.activate(active, context, resourceManager);
 
         this.context = context;

@@ -53,7 +53,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     @Override
     protected void glBlendColor(@Const Vector4 color) {
         if (supportsBlending) {
-            getGL().glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+            getGL().glBlendColor((float) color.x, (float) color.y, (float) color.z,
+                                 (float) color.w);
         }
     }
 
@@ -70,11 +71,14 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha) {
+    protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb,
+                                  BlendFactor srcAlpha, BlendFactor dstAlpha) {
         if (supportsBlending) {
             // separate blend functions were supported before separate blend equations
-            getGL().glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb),
-                                        Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
+            getGL().glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb),
+                                        Utils.getGLBlendFactor(dstRgb),
+                                        Utils.getGLBlendFactor(srcAlpha),
+                                        Utils.getGLBlendFactor(dstAlpha));
         }
     }
 
@@ -182,7 +186,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     protected void glStencilTest(Comparison test, int refValue, int mask, boolean isFront) {
         if (supportsSeparateStencil) {
             int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
-            getGL().glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
+            getGL().glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue,
+                                          mask);
         } else if (isFront) {
             // fallback to use front mask
             getGL().glStencilFunc(Utils.getGLPixelTest(test), refValue, mask);
@@ -190,7 +195,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail, StencilUpdate depthPass, boolean isFront) {
+    protected void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
+                                   StencilUpdate depthPass, boolean isFront) {
         int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
         int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
         int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
@@ -212,7 +218,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context,
+                         ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -247,7 +254,8 @@ public class JoglRendererDelegate extends RendererDelegate {
 
         if (!this.clearColor.equals(color)) {
             this.clearColor.set(color);
-            gl.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+            gl.glClearColor((float) color.x, (float) color.y, (float) color.z,
+                            (float) color.w);
         }
         if (this.clearDepth != depth) {
             this.clearDepth = depth;
@@ -275,7 +283,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h, int offset, int count) {
+    protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h,
+                                  int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         int glDataType = Utils.getGLType(h.dataType);
 
@@ -284,7 +293,8 @@ public class JoglRendererDelegate extends RendererDelegate {
             data.limit(offset + count).position(offset);
             getGL().glDrawElements(glPolyType, count, glDataType, data);
         } else {
-            getGL().glDrawElements(glPolyType, count, glDataType, offset * h.dataType.getByteCount());
+            getGL().glDrawElements(glPolyType, count, glDataType,
+                                   offset * h.dataType.getByteCount());
         }
     }
 
