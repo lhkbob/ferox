@@ -42,24 +42,20 @@ public class StateNode {
         List<StateNode> childNodes = (children != null ? children.getNodes() : null);
         int childCount = (children != null ? childNodes.size() : 0);
 
-        // FIXME we're applying a child group state before the specific states
-        // of this node, which means they can mutate the applied effects too soon,
-        // maybe the StateGroup mutations don't get to mutate the effects?
-        AppliedEffects forStates = (children != null ? children.applyGroupState(r,
-                                                                                effects) : effects);
-        if (forStates != null) {
+        if (effects != null) {
             for (int i = 0; i < state.length; i++) {
-                AppliedEffects childEffects = state[i].applyState(r, forStates, i);
-                if (childEffects != null) {
+                AppliedEffects newEffects = state[i].applyState(r, effects, i);
+                if (newEffects != null) {
+                    AppliedEffects groupEffects = (children != null ? children.applyGroupState(r,
+                                                                                               newEffects) : newEffects);
                     for (int j = 0; j < childCount; j++) {
-                        childNodes.get(j).render(r, childEffects);
+                        childNodes.get(j).render(r, groupEffects);
                     }
-                    state[i].unapplyState(r, forStates, i);
+                    if (children != null) {
+                        children.unapplyGroupState(r, newEffects);
+                    }
+                    state[i].unapplyState(r, effects, i);
                 }
-            }
-
-            if (children != null) {
-                children.unapplyGroupState(r, effects);
             }
         }
     }

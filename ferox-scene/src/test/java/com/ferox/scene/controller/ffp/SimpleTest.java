@@ -15,6 +15,7 @@ import com.ferox.math.entreri.Vector3Property.DefaultVector3;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
+import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.impl.jogl.JoglFramework;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.resource.VertexBufferObject.StorageMode;
@@ -53,9 +54,9 @@ public class SimpleTest {
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                       .setHeight(600)
                                                                                       //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
-                                                                                      //            .setMultiSampling(MultiSampling.FOUR_X)
+                                                                                      .setMultiSampling(MultiSampling.FOUR_X)
                                                                                       .setResizable(false));
-        surface.setVSyncEnabled(false);
+        surface.setVSyncEnabled(true);
 
         EntitySystem system = new EntitySystem();
 
@@ -111,10 +112,10 @@ public class SimpleTest {
              .setLocalBounds(b.getBounds())
              .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(),
                          b.getIndexCount());
-            //            if (Math.random() < .9)
-            e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
+            if (Math.random() < .9) {
+                e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
+            }
             e.add(DiffuseColor.ID).getData().setColor(c);
-            //            e.add(SpecularColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
             e.add(Transform.ID)
              .getData()
              .setMatrix(new Matrix4(1,
@@ -139,17 +140,21 @@ public class SimpleTest {
 
         System.out.println("Approximate total polygons / frame: " + totalpolys);
 
-        for (int i = 0; i < 10; i++) {
-            double falloff = 10.0 + Math.random() * 10.0 + Math.random() * 100.0;
+        for (int i = 0; i < 20; i++) {
+            double falloff = 100.0 + Math.random() * 40;
 
             Entity light = system.addEntity();
             light.add(PointLight.ID).getData().setFalloffDistance(falloff)
                  .setColor(new ColorRGB(Math.random(), Math.random(), Math.random()));
 
-            light.add(InfluenceRegion.ID)
-                 .getData()
-                 .setBounds(new AxisAlignedBox(new Vector3(-falloff, -falloff, -falloff),
-                                               new Vector3(falloff, falloff, falloff)));
+            if (falloff > 0) {
+                light.add(InfluenceRegion.ID)
+                     .getData()
+                     .setBounds(new AxisAlignedBox(new Vector3(-falloff,
+                                                               -falloff,
+                                                               -falloff),
+                                                   new Vector3(falloff, falloff, falloff)));
+            }
             light.add(Transform.ID)
                  .getData()
                  .setMatrix(new Matrix4(1,
@@ -201,13 +206,13 @@ public class SimpleTest {
         system.getControllerManager().addController(lights);
         system.getControllerManager().addController(render);
 
-        int numRuns = 1000;
         long now = System.nanoTime();
-
+        int numRuns = 0;
         try {
-            for (int i = 0; i < numRuns; i++) {
+            while (System.nanoTime() - now < 10000000000L) {
                 system.getControllerManager().process();
                 framework.flush(surface);
+                numRuns++;
                 for (String name : controllers.keySet()) {
                     Long time = times.get(name);
                     if (time == null) {

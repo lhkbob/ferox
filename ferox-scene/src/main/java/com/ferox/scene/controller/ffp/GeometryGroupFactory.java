@@ -95,6 +95,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
             // set attributes to null
             r.setVertices(null);
             r.setNormals(null);
+            // restore matrix to camera only
             r.setModelViewMatrix(effects.getViewMatrix());
         }
     }

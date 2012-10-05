@@ -88,8 +88,8 @@ public class FixedFunctionRenderController extends SimpleController {
             sm.setDepthCompareEnabled(true);
             sm.setDepthComparison(Comparison.LEQUAL);
 
-            // use the 3rd unit if available, or the 2nd if not
-            shadowmapTextureUnit = (numTex > 2 ? 2 : 1);
+            // use the 4th unit if available, or the last unit if we're under
+            shadowmapTextureUnit = Math.max(numTex, 3) - 1;
             // reserve one unit for the shadow map
             numTex--;
         } else {
@@ -97,15 +97,25 @@ public class FixedFunctionRenderController extends SimpleController {
             shadowmapTextureUnit = -1;
         }
 
-        // FIXME should this be the responsibility of the TextureGroupFactory
-        // I'm not sure because other factories might also need texture units
-        if (numTex >= 2) {
+        if (numTex >= 3) {
             diffuseTextureUnit = 0;
+            emissiveTextureUnit = 2;
+            decalTextureUnit = 1;
+        } else if (numTex == 2) {
+            diffuseTextureUnit = 0;
+            // merge emissive and decal units
             emissiveTextureUnit = 1;
-        } else {
-            // multiple passes for textures
+            decalTextureUnit = 1;
+        } else if (numTex == 1) {
+            // merge all units
             diffuseTextureUnit = 0;
             emissiveTextureUnit = 0;
+            decalTextureUnit = 0;
+        } else {
+            // disable texturing
+            diffuseTextureUnit = -1;
+            emissiveTextureUnit = -1;
+            decalTextureUnit = -1;
         }
     }
 
@@ -144,24 +154,32 @@ public class FixedFunctionRenderController extends SimpleController {
 
     public static long rendertime = 0L;
 
-    private Future<Void> render(final Surface surface, final Frustum view, Bag<Entity> pvs) {
+    private Future<Void> render(final Surface surface, Frustum view, Bag<Entity> pvs) {
+        // FIXME can we somehow preserve this tree across frames instead of continuing
+        // to build it over and over again?
         GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(),
                                                                   view.getViewMatrix());
         TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(),
                                                                    diffuseTextureUnit,
                                                                    emissiveTextureUnit,
+                                                                   decalTextureUnit,
                                                                    geomGroup);
         MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(),
-                                                                      geomGroup);
+                                                                      (diffuseTextureUnit >= 0 ? textureGroup : geomGroup));
+
         LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(),
                                                              lightGroups,
                                                              framework.getCapabilities()
                                                                       .getMaxActiveLights(),
                                                              materialGroup);
-        LightingGroupFactory lightingGroup = new LightingGroupFactory(materialGroup,
-                                                                      lightGroup);
+        SolidColorGroupFactory solidColorGroup = new SolidColorGroupFactory(getEntitySystem(),
+                                                                            textureGroup);
 
-        final StateNode rootNode = new StateNode(lightingGroup.newGroup());
+        LightingGroupFactory lightingGroup = new LightingGroupFactory(solidColorGroup,
+                                                                      lightGroup);
+        CameraGroupFactory cameraGroup = new CameraGroupFactory(view, lightingGroup);
+
+        final StateNode rootNode = new StateNode(cameraGroup.newGroup());
         for (Entity e : pvs) {
             rootNode.add(e);
         }
@@ -175,11 +193,8 @@ public class FixedFunctionRenderController extends SimpleController {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
                     // FIXME clear color should be configurable somehow
                     ffp.clear(true, true, true, new Vector4(0.5, 0.5, 0.5, 1.0), 1f, 0);
-                    // FIXME should these be moved into a ViewStateGroupFactory?
-                    ffp.setProjectionMatrix(view.getProjectionMatrix());
-                    ffp.setModelViewMatrix(view.getViewMatrix());
 
-                    rootNode.render(ffp, new AppliedEffects(view.getViewMatrix()));
+                    rootNode.render(ffp, new AppliedEffects());
                 }
                 rendertime += (System.nanoTime() - now);
                 return null;

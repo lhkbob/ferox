@@ -16,10 +16,10 @@ import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 
 public class MaterialGroupFactory implements StateGroupFactory {
-    private static final Vector4 DEFAULT_DIFFUSE = new Vector4(0.8, 0.8, 0.8, 1.0);
-    private static final Vector4 DEFAULT_SPECULAR = new Vector4(0.0, 0.0, 0.0, 1.0);
-    private static final Vector4 DEFAULT_EMITTED = new Vector4(0.0, 0.0, 0.0, 1.0);
-    private static final Vector4 DEFAULT_AMBIENT = new Vector4(0.2, 0.2, 0.2, 1.0);
+    public static final Vector4 DEFAULT_DIFFUSE = new Vector4(0.8, 0.8, 0.8, 1.0);
+    public static final Vector4 DEFAULT_SPECULAR = new Vector4(0.0, 0.0, 0.0, 1.0);
+    public static final Vector4 DEFAULT_EMITTED = new Vector4(0.0, 0.0, 0.0, 1.0);
+    public static final Vector4 DEFAULT_AMBIENT = new Vector4(0.2, 0.2, 0.2, 1.0);
 
     private final DiffuseColor diffuseColor;
     private final SpecularColor specularColor;
@@ -89,7 +89,8 @@ public class MaterialGroupFactory implements StateGroupFactory {
 
         @Override
         public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
-            // do nothing
+            r.setMaterial(DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR,
+                          DEFAULT_EMITTED);
         }
     }
 
@@ -160,8 +161,7 @@ public class MaterialGroupFactory implements StateGroupFactory {
         @Override
         public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
                                  int index) {
-            r.setMaterial(DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR,
-                          DEFAULT_EMITTED);
+            // do nothing
         }
 
         @Override

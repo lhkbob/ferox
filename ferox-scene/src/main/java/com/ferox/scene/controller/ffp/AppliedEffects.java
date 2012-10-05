@@ -2,56 +2,73 @@ package com.ferox.scene.controller.ffp;
 
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
+import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer.BlendFactor;
+import com.ferox.renderer.Renderer.BlendFunction;
+import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.scene.Light;
 import com.lhkbob.entreri.Component;
 
 public class AppliedEffects {
-    private final boolean shadowedLightingPhase;
-    // FIXME this might need to be a set, since in the main phase, we need
-    // to specify all shadowed lights so that all of them can be disabled.
+    // Non-null when actively rendering a shadow map, the general set of
+    // shadow-casting lights is not the responsibility of AppliedEffects
     private final Component<? extends Light<?>> shadowLight;
 
     // BlendFunction will always be ADD
-    // FIXME do we need to specify separate factors for RGB and alpha?
     private final BlendFactor destBlend;
     private final BlendFactor sourceBlend;
 
     private final Matrix4 viewMatrix;
 
-    public AppliedEffects(@Const Matrix4 view) {
-        shadowedLightingPhase = false;
+    public AppliedEffects() {
         shadowLight = null;
         destBlend = BlendFactor.ZERO;
         sourceBlend = BlendFactor.ONE;
-        viewMatrix = view;
+        viewMatrix = new Matrix4();
     }
 
-    private AppliedEffects(@Const Matrix4 view, boolean shadowedLighting,
-                           BlendFactor sourceBlend, BlendFactor destBlend,
+    private AppliedEffects(@Const Matrix4 view, BlendFactor sourceBlend,
+                           BlendFactor destBlend,
                            Component<? extends Light<?>> shadowLight) {
         this.sourceBlend = sourceBlend;
         this.destBlend = destBlend;
         this.shadowLight = shadowLight;
         viewMatrix = view;
-        shadowedLightingPhase = shadowedLighting;
     }
 
-    public AppliedEffects setBlending(BlendFactor source, BlendFactor dest) {
-        return new AppliedEffects(viewMatrix,
-                                  shadowedLightingPhase,
-                                  source,
-                                  dest,
-                                  shadowLight);
+    public void pushBlending(FixedFunctionRenderer r) {
+        if (isBlendingEnabled()) {
+            r.setBlendingEnabled(true);
+            r.setBlendMode(BlendFunction.ADD, sourceBlend, destBlend);
+            // FIXME might need a different comparison for shadow-mapping?
+            r.setDepthTest(Comparison.LEQUAL);
+            r.setDepthWriteMask(false);
+        } else {
+            r.setBlendingEnabled(false);
+            r.setDepthTest(Comparison.LESS);
+            r.setDepthWriteMask(true);
+        }
     }
 
-    public @Const
-    Matrix4 getViewMatrix() {
+    public AppliedEffects applyBlending(BlendFactor source, BlendFactor dest) {
+        return new AppliedEffects(viewMatrix, source, dest, shadowLight);
+    }
+
+    public AppliedEffects applyShadowMapping(Component<? extends Light<?>> light) {
+        return new AppliedEffects(viewMatrix, sourceBlend, destBlend, light);
+    }
+
+    public AppliedEffects applyViewMatrix(@Const Matrix4 view) {
+        return new AppliedEffects(view, sourceBlend, destBlend, shadowLight);
+    }
+
+    @Const
+    public Matrix4 getViewMatrix() {
         return viewMatrix;
     }
 
     public boolean isShadowBeingRendered() {
-        return shadowedLightingPhase;
+        return shadowLight != null;
     }
 
     public boolean isBlendingEnabled() {
@@ -66,7 +83,7 @@ public class AppliedEffects {
         return destBlend;
     }
 
-    public Component<? extends Light<?>> getShadowCaster() {
+    public Component<? extends Light<?>> getShadowMappingLight() {
         return shadowLight;
     }
 }

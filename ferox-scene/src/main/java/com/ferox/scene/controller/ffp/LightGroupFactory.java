@@ -10,7 +10,6 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.Light;
@@ -222,7 +221,7 @@ public class LightGroupFactory implements StateGroupFactory {
                 if (light != null) {
                     // check to see if this light should be used for the current
                     // stage of shadow mapping
-                    if ((effects.isShadowBeingRendered() && light.source == effects.getShadowCaster()) || (!effects.isShadowBeingRendered() && light.source != effects.getShadowCaster())) {
+                    if ((effects.isShadowBeingRendered() && light.source == effects.getShadowMappingLight()) || (!effects.isShadowBeingRendered() && light.source != effects.getShadowMappingLight())) {
                         // enable and configure the light
                         r.setLightEnabled(i, true);
                         r.setLightPosition(i, light.position);
@@ -263,14 +262,12 @@ public class LightGroupFactory implements StateGroupFactory {
                     // lights that were already rendered. If we're in the shadowing pass, we
                     // know that only a single light is active so it doesn't matter if the index > 0,
                     // we don't touch the blending
-                    r.setBlendingEnabled(true);
-                    r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(),
-                                   BlendFactor.ONE);
-                    return effects.setBlending(effects.getSourceBlendFactor(),
-                                               BlendFactor.ONE);
-                } else {
-                    return effects;
+                    effects = effects.applyBlending(effects.getSourceBlendFactor(),
+                                                    BlendFactor.ONE);
+                    effects.pushBlending(r);
                 }
+
+                return effects;
             } else {
                 // if there aren't any configured lights, no need to render everything
                 return null;
@@ -281,9 +278,8 @@ public class LightGroupFactory implements StateGroupFactory {
         public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
                                  int index) {
             if (index > 0 && !effects.isShadowBeingRendered()) {
-                r.setBlendingEnabled(effects.isBlendingEnabled());
-                r.setBlendMode(BlendFunction.ADD, effects.getSourceBlendFactor(),
-                               effects.getDestinationBlendFactor());
+                // these effects were the original, so we restore the blend state
+                effects.pushBlending(r);
             }
         }
     }
