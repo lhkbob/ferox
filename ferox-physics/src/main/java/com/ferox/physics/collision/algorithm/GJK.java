@@ -26,7 +26,6 @@ public class GJK {
         ray.set(simplex.addVertex(guess, true));
         simplex.setWeight(0, 1.0);
 
-        Vector3 scaledVertex = new Vector3();
         Vector3[] oldSupports = new Vector3[] {new Vector3(ray), new Vector3(ray),
                                                new Vector3(ray), new Vector3(ray)};
         int lastSupportIndex = 0;
@@ -71,8 +70,7 @@ public class GJK {
                 // compute next guess
                 ray.set(0.0, 0.0, 0.0);
                 for (int j = 0; j < simplex.getRank(); j++) {
-                    scaledVertex.scale(simplex.getVertex(j), simplex.getWeight(j));
-                    ray.add(scaledVertex);
+                    ray.addScaled(simplex.getWeight(j), simplex.getVertex(j));
                 }
             } else {
                 simplex.discardLastVertex();

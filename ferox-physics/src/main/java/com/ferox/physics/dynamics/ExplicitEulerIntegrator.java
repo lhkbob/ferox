@@ -78,6 +78,6 @@ public class ExplicitEulerIntegrator implements Integrator {
         if (deriv == null || func == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
-        func.add(tempv.scale(deriv, dt));
+        func.addScaled(dt, deriv);
     }
 }

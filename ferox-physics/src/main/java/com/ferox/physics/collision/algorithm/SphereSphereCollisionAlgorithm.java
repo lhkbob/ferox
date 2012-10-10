@@ -29,7 +29,7 @@ public class SphereSphereCollisionAlgorithm implements CollisionAlgorithm<Sphere
 
         if (normal.lengthSquared() > .000001f) {
             normal.normalize();
-            Vector3 pa = cb.scale(normal, ra).add(ca); // consumes cb
+            Vector3 pa = cb.addScaled(ca, ra, normal);
             return new ClosestPair(pa, normal, dist);
         } else {
             // happens when spheres are perfectly centered on each other

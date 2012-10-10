@@ -26,6 +26,8 @@ public class MinkowskiShape {
 
     public MinkowskiShape(ConvexShape shapeA, @Const Matrix4 transformA,
                           ConvexShape shapeB, @Const Matrix4 transformB) {
+        // We could keep these as Matrix4's and use Vector3.transform, but
+        // separating them into rotation and translation is more convenient here
         rotationA = new Matrix3().setUpper(transformA);
         translationA = new Vector3(transformA.m03, transformA.m13, transformA.m23);
 
@@ -80,7 +82,7 @@ public class MinkowskiShape {
         // update positions to be only a single margin away
         if (numMargins != 1) {
             // adjust a's point by moving N margins along the contact normal
-            a.add(pointTemp.scale(normal, (1 - numMargins) * shapeA.getMargin()));
+            a.addScaled((1 - numMargins) * shapeA.getMargin(), normal);
 
             // compute how the contact depth changes
             double delta = scale * Math.abs(numMargins - 1) * (shapeA.getMargin() + shapeB.getMargin());
@@ -131,8 +133,7 @@ public class MinkowskiShape {
 
         shape.computeSupport(transformedDir, result);
         if (numMargins > 0) {
-            transformedDir.scale(numMargins * shape.getMargin());
-            result.add(transformedDir);
+            result.addScaled(numMargins * shape.getMargin(), transformedDir);
         }
 
         result.mul(r, result).add(t);

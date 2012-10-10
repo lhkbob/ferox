@@ -223,8 +223,8 @@ public class ContactManifoldPool {
                                 Vector3 velocity = velA.sub(velB); // == t1 (t2 can be reused now)
                                 double relVelocity = normalInB.dot(velocity);
 
-                                Vector3 fricDir = t2.scale(normalInB, -relVelocity)
-                                                    .add(velocity); // == t2 (t1 can be reused now)
+                                Vector3 fricDir = t2.addScaled(velocity, -relVelocity,
+                                                               normalInB); // == t2 (t1 can be reused now)
                                 double lateralRelVelocity = fricDir.length();
                                 if (lateralRelVelocity > 0.0001) {
                                     fricDir.scale(1.0 / lateralRelVelocity);

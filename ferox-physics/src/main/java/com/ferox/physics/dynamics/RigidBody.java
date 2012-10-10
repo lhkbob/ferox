@@ -64,7 +64,7 @@ public class RigidBody extends ComponentData<RigidBody> {
     }
 
     public RigidBody addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
-        velocityCache.add(temp.scale(impulse, getInverseMass()));
+        velocityCache.addScaled(getInverseMass(), impulse);
         velocity.set(velocityCache, getIndex());
 
         if (relPos != null) {
