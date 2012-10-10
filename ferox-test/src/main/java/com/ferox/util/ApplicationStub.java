@@ -23,14 +23,13 @@ public abstract class ApplicationStub {
     public ApplicationStub(Framework framework) {
         this(framework, new OnscreenSurfaceOptions().setWidth(800).setHeight(600)
                                                     .setResizable(false));
-
-        showFPS = true;
-        showProfiling = true;
     }
 
     public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts) {
         this.framework = framework;
         this.opts = opts;
+        showFPS = true;
+        showProfiling = true;
     }
 
     public void run() {
