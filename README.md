@@ -25,13 +25,13 @@ the current SNAPSHOT can be installed locally and depended on using:
     <dependency>
       <groupId>com.lhkbob.ferox</groupId>
       <artifactId>ferox</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.0.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <!-- to get the LWJGL-based renderer implementation -->
       <groupId>com.lhkbob.ferox</groupId>
       <artifactId>ferox-renderer-lwjgl</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.0.2-SNAPSHOT</version>
     </dependency>
     
 ## Modules
