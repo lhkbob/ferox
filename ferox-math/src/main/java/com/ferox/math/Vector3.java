@@ -222,6 +222,20 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
+     * Compute <code>a + (scalar * b)</code> and store the result in this
+     * vector.
+     * 
+     * @param a The left side of the addition
+     * @param scalar The scaling factor applied to
+     * @param b The vector to be scaled and then added to a
+     * @return This vector
+     * @throws NullPointerException if a or b are null
+     */
+    public Vector3 addScaled(@Const Vector3 a, double scalar, @Const Vector3 b) {
+        return set(a.x + scalar * b.x, a.y + scalar * b.y, a.z + scalar * b.z);
+    }
+
+    /**
      * Compute <code>a - b</code> and store the result in this vector.
      * 
      * @param a The left side of the subtraction
@@ -301,6 +315,57 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
+     * As {@link #transform(Matrix4, Vector3, double)} where the w-component is
+     * set to 1. Thus, the resulting computation is the transformation of
+     * <tt>a</tt> by <tt>m</tt>, interpreting <tt>a</tt> as a point in space.
+     * 
+     * @param m The transform matrix
+     * @param a The point to transform
+     * @return This vector
+     * @throws NullPointerException if m or a are null
+     */
+    public Vector3 transform(@Const Matrix4 m, @Const Vector3 a) {
+        return transform(m, a, 1.0);
+    }
+
+    /**
+     * <p>
+     * Compute <code>[m] x [a']</code> where <tt>[a']</tt> is the 4x1 matrix
+     * formed by the three values of <tt>a</tt> and the specified <tt>w</tt>.
+     * <p>
+     * Common values of <tt>w</tt> are:
+     * <ul>
+     * <li><code>w = 0</code> transforms <tt>a</tt> by the upper 3x3 of
+     * <tt>m</tt>, treating <tt>a</tt> as a direction vector.</li>
+     * <li><code>w = 1</code> transforms <tt>a</tt> as if it were a point in
+     * 3-space (assuming m is an affine transform).</li>
+     * </ul>
+     * 
+     * @param m The affine transform to transform a with
+     * @param a The vector being transformed by m
+     * @param w The fourth component of a
+     * @return This vector
+     * @throws NullPointerException if m or a are null
+     */
+    public Vector3 transform(@Const Matrix4 m, @Const Vector3 a, double w) {
+        return set(m.m00 * a.x + m.m01 * a.y + m.m02 * a.z + m.m03 * w,
+                   m.m10 * a.x + m.m11 * a.y + m.m12 * a.z + m.m13 * w,
+                   m.m20 * a.x + m.m21 * a.y + m.m22 * a.z + m.m23 * w);
+    }
+
+    /**
+     * As {@link #transform(Matrix4, Vector3)} where the calling vector is
+     * transformed by the matrix <tt>m</tt>.
+     * 
+     * @param m The matrix transforming this vector
+     * @return This vector
+     * @throws NullPointerException if m is null
+     */
+    public Vector3 transform(@Const Matrix4 m) {
+        return transform(m, this);
+    }
+
+    /**
      * Solve the linear system of equations, <code>[m]*[this] = [a]</code> and
      * store the resultant values of (x, y, z) into this vector:
      * 
@@ -375,6 +440,19 @@ public final class Vector3 implements Cloneable {
      */
     public Vector3 add(@Const Vector3 v) {
         return add(this, v);
+    }
+
+    /**
+     * As {@link #addScaled(Vector3, double, Vector3)} where the first argument
+     * is the calling Vector3.
+     * 
+     * @param scale Scale factor applied to v
+     * @param v The vector scaled then added to this vector
+     * @return This vector
+     * @throws NullPointerException if v is null
+     */
+    public Vector3 addScaled(double scale, @Const Vector3 v) {
+        return addScaled(this, scale, v);
     }
 
     /**

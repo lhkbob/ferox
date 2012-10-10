@@ -255,6 +255,21 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
+     * Compute <code>a + (scalar * b)</code> and store the result in this
+     * vector.
+     * 
+     * @param a The left side of the addition
+     * @param scalar The scaling factor applied to
+     * @param b The vector to be scaled and then added to a
+     * @return This vector
+     * @throws NullPointerException if a or b are null
+     */
+    public Vector4 addScaled(@Const Vector4 a, double scalar, @Const Vector4 b) {
+        return set(a.x + scalar * b.x, a.y + scalar * b.y, a.z + scalar * b.z,
+                   a.w + scalar * b.w);
+    }
+
+    /**
      * Compute <code>a - b</code> and store the result in this vector.
      * 
      * @param a The left side of the subtraction
@@ -329,6 +344,19 @@ public final class Vector4 implements Cloneable {
      */
     public Vector4 add(@Const Vector4 v) {
         return add(this, v);
+    }
+
+    /**
+     * As {@link #addScaled(Vector4, double, Vector4)} where the first argument
+     * is the calling Vector4.
+     * 
+     * @param scale Scale factor applied to v
+     * @param v The vector scaled then added to this vector
+     * @return This vector
+     * @throws NullPointerException if v is null
+     */
+    public Vector4 addScaled(double scale, @Const Vector4 v) {
+        return addScaled(this, scale, v);
     }
 
     /**
