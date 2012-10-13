@@ -62,4 +62,5 @@ modules are as follows:
   physics engine to easily add physics simulations to 3D scenes.
 * `ferox-util` - A collection of utilities ranging from java.util.collections
   extensions to profiling and runtime monitoring tools.
+* `ferox-test` - Test applications for the other modules.
   

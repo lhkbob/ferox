@@ -26,24 +26,5 @@
             <artifactId>entreri</artifactId>
             <version>${entreri.version}</version>
         </dependency>
-        
-        <dependency>
-            <groupId>com.lhkbob.ferox</groupId>
-            <artifactId>ferox-renderer-lwjgl</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.lhkbob.ferox</groupId>
-            <artifactId>ferox-renderer-jogl</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.lhkbob.ferox</groupId>
-            <artifactId>ferox-test</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>
