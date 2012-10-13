@@ -28,7 +28,6 @@ package com.ferox.renderer;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.Renderer.StencilUpdate;
 import com.ferox.resource.VertexBufferObject;
 
 /**
@@ -398,14 +397,14 @@ public interface Renderer {
 
     /**
      * <p>
-     * Set the {@link StencilUpdate} operations for the three stages in the
-     * pixel pipeline that can update the stencil buffer.
+     * Set the {@link Renderer.StencilUpdate} operations for the three stages in
+     * the pixel pipeline that can update the stencil buffer.
      * <p>
      * This method configures both the front and back set of StencilOps to use
      * the same set of three. Use
-     * {@link #setStencilUpdateOpsFront(StencilUpdate, StencilUpdate, StencilUpdate)}
+     * {@link #setStencilUpdateOpsFront(Renderer.StencilUpdate, Renderer.StencilUpdate, Renderer.StencilUpdate)}
      * and
-     * {@link #setStencilUpdateOpsBack(StencilUpdate, StencilUpdate, StencilUpdate)}
+     * {@link #setStencilUpdateOpsBack(Renderer.StencilUpdate, Renderer.StencilUpdate, Renderer.StencilUpdate)}
      * to configure the different sets independently.
      * <p>
      * The starting state of the Renderer is all three stages for front and back
@@ -422,7 +421,7 @@ public interface Renderer {
     /**
      * This method sets the StencilUpdates that are applied with front-facing
      * polygons. See
-     * {@link #setStencilUpdate(StencilUpdate, StencilUpdate, StencilUpdate)}
+     * {@link #setStencilUpdate(Renderer.StencilUpdate, Renderer.StencilUpdate, Renderer.StencilUpdate)}
      * for a description for details on when the updates are applied.
      * 
      * @param stencilFail The StencilUpdate applied when the stencil test fails
@@ -439,7 +438,7 @@ public interface Renderer {
     /**
      * This method sets the StencilUpdates that are applied with back-facing
      * polygons. See
-     * {@link #setStencilUpdate(StencilUpdate, StencilUpdate, StencilUpdate)}
+     * {@link #setStencilUpdate(Renderer.StencilUpdate, Renderer.StencilUpdate, Renderer.StencilUpdate)}
      * for a description for details on when the updates are applied.
      * 
      * @param stencilFail The StencilUpdate applied when the stencil test fails
