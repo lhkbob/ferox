@@ -39,8 +39,8 @@ import com.ferox.resource.VertexBufferObject;
  * Renderers are linked to the {@link Context} that produced them because each
  * Context has a unique set of state that is controlled by the renderer. Use the
  * {@link HardwareAccessLayer#setActiveSurface(Surface)} to get the context of a
- * surface, and then use the context's renderer to render into the just
- * activated surface.
+ * surface, and then use the context's renderer to render into the activated
+ * surface.
  * <p>
  * There are two sub-implementations of Renderer that provide access to the old
  * fixed-function pipeline in OpenGL, and a shader based Renderer that is

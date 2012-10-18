@@ -272,6 +272,35 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * <p>
+     * Get the current state configuration for this FixedFunctionRenderer. The
+     * returned instance can be used in {@link #setCurrentState(ContextState)}
+     * with any FixedFunctionRenderer created by the same Framework as this
+     * renderer.
+     * <p>
+     * Because the fixed-function pipeline maintains a large amount of state,
+     * getting and setting the entire state should be used infrequently.
+     * 
+     * @return The current state
+     */
+    public ContextState<FixedFunctionRenderer> getCurrentState();
+
+    /**
+     * <p>
+     * Set the current state of this renderer to equal the given state snapshot.
+     * <tt>state</tt> must have been returned by a prior call to
+     * {@link #getCurrentState()} from a FixedFunctionRenderer created by this
+     * renderer's Framework or behavior is undefined.
+     * <p>
+     * Because the fixed-function pipeline maintains a large amount of state,
+     * getting and setting the entire state should be used infrequently.
+     * 
+     * @param state The state snapshot to update this renderer
+     * @throws NullPointerException if state is null
+     */
+    public void setCurrentState(ContextState<FixedFunctionRenderer> state);
+
+    /**
+     * <p>
      * Set whether or not eye-space fogging is enabled. If this is enabled, each
      * rendered pixel's color value is blended with the configured fog color (at
      * the time of the rendering) based on the fog equation. The fog equation

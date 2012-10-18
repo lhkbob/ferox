@@ -245,6 +245,9 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         case T_CUBEMAP:
             options = options.setHeight(options.getWidth()).setDepth(1);
             break;
+        default:
+            // no validation needed for T_3D
+            break;
         }
 
         if (!caps.getNpotTextureSupport()) {

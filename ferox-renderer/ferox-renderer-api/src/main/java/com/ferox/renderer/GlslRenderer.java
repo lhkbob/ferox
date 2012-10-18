@@ -41,6 +41,36 @@ import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 
 public interface GlslRenderer extends Renderer {
+    /**
+     * <p>
+     * Get the current state configuration for this GlslRenderer. The returned
+     * instance can be used in {@link #setCurrentState(ContextState)} with any
+     * GlslRenderer created by the same Framework as this renderer. The returned
+     * snapshot must preserve all of the current uniform and attribute values or
+     * bindings.
+     * <p>
+     * Because the shader pipeline maintains a large amount of state, getting
+     * and setting the entire state should be used infrequently.
+     * 
+     * @return The current state
+     */
+    public ContextState<GlslRenderer> getCurrentState();
+
+    /**
+     * <p>
+     * Set the current state of this renderer to equal the given state snapshot.
+     * <tt>state</tt> must have been returned by a prior call to
+     * {@link #getCurrentState()} from a GlslRenderer created by this renderer's
+     * Framework or behavior is undefined.
+     * <p>
+     * Because the shader pipeline maintains a large amount of state, getting
+     * and setting the entire state should be used infrequently.
+     * 
+     * @param state The state snapshot to update this renderer
+     * @throws NullPointerException if state is null
+     */
+    public void setCurrentState(ContextState<GlslRenderer> state);
+
     // FIXME: for advanced shaders, this is the fragment variable to GL_COLOR_ATTACHMENT0+target
     //    and is configured with glBindFragDataLocation
     // for older shaders, they have to write to glFragData[target], so maybe switch
@@ -87,6 +117,9 @@ public interface GlslRenderer extends Renderer {
     public void setUniform(String name, @Const Matrix4 val);
 
     // FIXME should I get rid of the array versions?
+    // I am inclined to say yes, especially now that state snapshots require me
+    // to track everything and that's not feasible for entire arrays.
+    // - Somehow I must incorporate UniformBuffers as resource types too
     public void setUniform(String name, float[] vals);
 
     public void setUniform(String name, int val);

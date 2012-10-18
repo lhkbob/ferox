@@ -54,7 +54,7 @@ import com.ferox.resource.VertexBufferObject;
 public abstract class AbstractRenderer implements Renderer {
     private static final Vector4 BLACK = new Vector4(0, 0, 0, 0);
 
-    private final RendererDelegate delegate;
+    protected final RendererDelegate delegate;
 
     protected OpenGLContext context;
     protected ResourceManager resourceManager;
@@ -75,11 +75,6 @@ public abstract class AbstractRenderer implements Renderer {
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil) {
         clear(clearColor, clearDepth, clearStencil, BLACK, 1.0, 0);
-    }
-
-    @Override
-    public void reset() {
-        delegate.reset();
     }
 
     @Override

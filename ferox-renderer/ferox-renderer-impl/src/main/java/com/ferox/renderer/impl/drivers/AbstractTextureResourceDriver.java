@@ -168,6 +168,9 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
                 case RGBA_FLOAT:
                     format = TextureFormat.RGBA;
                     break;
+                default:
+                    // do nothing, doesn't require unclamped float support
+                    break;
                 }
             }
 

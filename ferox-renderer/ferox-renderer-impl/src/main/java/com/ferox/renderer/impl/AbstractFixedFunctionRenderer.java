@@ -30,8 +30,17 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
+import com.ferox.renderer.ContextState;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
+import com.ferox.renderer.impl.FixedFunctionState.FogMode;
+import com.ferox.renderer.impl.FixedFunctionState.LightColor;
+import com.ferox.renderer.impl.FixedFunctionState.LightState;
+import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
+import com.ferox.renderer.impl.FixedFunctionState.TextureState;
+import com.ferox.renderer.impl.FixedFunctionState.VertexState;
+import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
@@ -59,206 +68,29 @@ import com.ferox.resource.VertexBufferObject;
  * @author Michael Ludwig
  */
 public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer implements FixedFunctionRenderer {
-    /**
-     * FogMode represents the three different eye fog modes that are available
-     * in OpenGL.
-     */
-    protected static enum FogMode {
-        LINEAR, EXP, EXP_SQUARED
-    }
-
-    /**
-     * When configuring lighting and material colors, OpenGL uses the same
-     * functions to control the different types of color. For light colors, the
-     * EMISSIVE enum is unused, since it's only available for material colors.
-     */
-    protected static enum LightColor {
-        AMBIENT, DIFFUSE, SPECULAR, EMISSIVE
-    }
-
-    /**
-     * OpenGL provides only one way to update matrices, and to switch between
-     * matrix types, you must set the current mode.
-     */
-    protected static enum MatrixMode {
-        MODELVIEW, PROJECTION, TEXTURE
-    }
-
-    protected static enum VertexTarget {
-        VERTICES, NORMALS, TEXCOORDS, COLORS
-    }
-
-    // cached defaults
     private static final Matrix4 IDENTITY = new Matrix4();
-
-    private static final Vector4 DEFAULT_MAT_A_COLOR = new Vector4(.2, .2, .2, 1);
     private static final Vector4 DEFAULT_MAT_D_COLOR = new Vector4(.8, .8, .8, 1);
 
-    private static final Vector4 ZERO = new Vector4(0, 0, 0, 0);
-    private static final Vector4 BLACK = new Vector4(0, 0, 0, 1);
-    private static final Vector4 WHITE = new Vector4(1, 1, 1, 1);
+    protected FixedFunctionState state;
+    protected FixedFunctionState defaultState;
 
-    private static final Vector4 DEFAULT_LIGHT_POS = new Vector4(0, 0, 1, 0);
-    private static final Vector3 DEFAULT_SPOT_DIR = new Vector3(0, 0, -1);
+    // private handles tracking the actual resource locks of current state
+    private VertexBufferObjectHandle verticesHandle;
+    private VertexBufferObjectHandle normalsHandle;
+    private VertexBufferObjectHandle colorsHandle;
+    private VertexBufferObjectHandle[] texCoordsHandles;
 
-    private static final Vector4 DEFAULT_S_PLANE = new Vector4(1, 0, 0, 0);
-    private static final Vector4 DEFAULT_T_PLANE = new Vector4(0, 1, 0, 0);
-    private static final Vector4 DEFAULT_RQ_PLANE = new Vector4(0, 0, 0, 0);
+    private TextureHandle[] textureHandles;
 
-    /**
-     * An inner class that contains per-light state. Although it's accessible to
-     * sub-classes, it should be considered read-only because the
-     * AbstractFixedFunctionRenderer manages the updates to its variables.
-     */
-    protected class LightState {
-        // LightState does not track position or direction since
-        // they're stored by OpenGL after being modified by the current MV matrix
-        private boolean modifiedSinceReset = false;
+    // hidden state that is used to minimize opengl calls
+    private VertexBufferObject arrayVboBinding;
+    private int activeArrayVbos;
+    private int activeClientTex;
+    private int activeTex;
 
-        public final Vector4 ambient = new Vector4(BLACK);
-        public final Vector4 specular = new Vector4(BLACK);
-        public final Vector4 diffuse = new Vector4(BLACK);
-
-        public double constAtt = 1;
-        public double linAtt = 0;
-        public double quadAtt = 0;
-
-        public double spotAngle = 180;
-
-        public boolean enabled = false;
-    }
-
-    /**
-     * An inner class that contains per-texture unit state. Although it's
-     * accessible to sub-classes, it should be considered read-only because the
-     * AbstractFixedFunctionRenderer manages the updates to its variables.
-     */
-    protected class TextureState {
-        public final int unit;
-
-        // TextureState does not track texture transforms, or eye planes
-        // since these are difficult to track
-        public boolean transformModifiedSinceReset = false;
-
-        public Texture texture;
-        public TextureHandle handle;
-
-        public Vector4 color = new Vector4(0, 0, 0, 0);
-
-        public TexCoordSource tcS = TexCoordSource.ATTRIBUTE;
-        public TexCoordSource tcT = TexCoordSource.ATTRIBUTE;
-        public TexCoordSource tcR = TexCoordSource.ATTRIBUTE;
-        public TexCoordSource tcQ = TexCoordSource.ATTRIBUTE;
-
-        public final Vector4 objPlaneS = new Vector4(DEFAULT_S_PLANE);
-        public final Vector4 objPlaneT = new Vector4(DEFAULT_T_PLANE);
-        public final Vector4 objPlaneR = new Vector4(DEFAULT_RQ_PLANE);
-        public final Vector4 objPlaneQ = new Vector4(DEFAULT_RQ_PLANE);
-
-        public CombineFunction rgbFunc = CombineFunction.MODULATE;
-        public CombineFunction alphaFunc = CombineFunction.MODULATE;
-
-        public final CombineOperand[] opRgb = {CombineOperand.COLOR,
-                                               CombineOperand.COLOR, CombineOperand.ALPHA};
-        public final CombineOperand[] opAlpha = {CombineOperand.ALPHA,
-                                                 CombineOperand.ALPHA,
-                                                 CombineOperand.ALPHA};
-
-        public final CombineSource[] srcRgb = {CombineSource.CURR_TEX,
-                                               CombineSource.PREV_TEX,
-                                               CombineSource.CONST_COLOR};
-        public final CombineSource[] srcAlpha = {CombineSource.CURR_TEX,
-                                                 CombineSource.PREV_TEX,
-                                                 CombineSource.CONST_COLOR};
-
-        public TextureState(int unit) {
-            this.unit = unit;
-        }
-    }
-
-    protected class VertexState {
-        // Used to handle relocking/unlocking
-        public final VertexTarget target;
-        public final int slot;
-
-        public VertexBufferObject vbo;
-        public VertexBufferObjectHandle handle;
-
-        public int offset;
-        public int stride;
-        public int elementSize;
-
-        private VertexState(VertexTarget target, int slot) {
-            this.target = target;
-            this.slot = slot;
-        }
-
-        public void activateSlot() {
-            if (target == VertexTarget.TEXCOORDS && slot != activeClientTex) {
-                // Special case slot handling for texture coordinates (other targets ignore slot)
-                activeClientTex = slot;
-                glActiveClientTexture(slot);
-            }
-        }
-    }
-
-    // alpha test
-    protected Comparison alphaTest = Comparison.ALWAYS;
-    protected double alphaRefValue = 1;
-
-    // fog
-    protected final Vector4 fogColor = new Vector4(ZERO);
-
-    protected double fogStart = 0;
-    protected double fogEnd = 1;
-    protected double fogDensity = 1;
-
-    protected FogMode fogMode = FogMode.EXP;
-    protected boolean fogEnabled = false;
-
-    // global lighting
-    protected final Vector4 globalAmbient = new Vector4(DEFAULT_MAT_A_COLOR);
-    protected boolean lightingEnabled = false;
-    protected boolean lightingTwoSided = false;
-    protected boolean lightingSmoothed = true;
-
-    // lights
-    protected LightState[] lights; // "final"
-
-    // material
-    protected final Vector4 matDiffuse = new Vector4(DEFAULT_MAT_D_COLOR);
-    protected final Vector4 matAmbient = new Vector4(DEFAULT_MAT_A_COLOR);
-    protected final Vector4 matSpecular = new Vector4(BLACK);
-    protected final Vector4 matEmmissive = new Vector4(BLACK);
-
-    protected double matShininess = 0;
-
-    // primitive size/aa
-    protected boolean lineAAEnabled = false;
-    protected boolean pointAAEnabled = false;
-    protected boolean polyAAEnabled = false;
-
-    protected double lineWidth = 1;
-    protected double pointWidth = 1;
-
-    // texturing
-    protected int activeTex = 0;
-    protected TextureState[] textures = null; // "final"
-
-    // bindings for vbos and rendering
-    protected final VertexState vertexBinding = new VertexState(VertexTarget.VERTICES, 0);
-    protected final VertexState normalBinding = new VertexState(VertexTarget.NORMALS, 0);
-    protected final VertexState colorBinding = new VertexState(VertexTarget.COLORS, 0);
-    protected VertexState[] texBindings = null; // "final"
-
-    protected VertexBufferObject arrayVboBinding = null;
-    protected int activeArrayVbos = 0;
-    protected int activeClientTex = 0;
-
-    // matrix
-    protected MatrixMode matrixMode = MatrixMode.MODELVIEW;
-    private final Matrix4 dirtyModelView = new Matrix4(); // last set model view that hasn't been sent yet
-    private boolean isModelViewDirty = true;
+    private boolean isModelViewDirty;
+    private final Matrix4 inverseModelView; // needed for eye-plane texture coordinates
+    private boolean isModelInverseDirty;
 
     /**
      * Create an AbstractFixedFunctionRenderer that will use the given
@@ -271,6 +103,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
      */
     public AbstractFixedFunctionRenderer(RendererDelegate delegate) {
         super(delegate);
+        inverseModelView = new Matrix4();
+        isModelInverseDirty = true;
     }
 
     @Override
@@ -278,128 +112,152 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                          ResourceManager resourceManager) {
         super.activate(surface, context, resourceManager);
 
-        // Complete initialization the first time we're activated. We can't do this
-        // in the constructor because we didn't have a framework at that point.
-        if (lights == null) {
-            int numLights = surface.getFramework().getCapabilities().getMaxActiveLights();
+        if (state == null) {
+            // init state
+            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            state = new FixedFunctionState(caps.getMaxActiveLights(),
+                                           caps.getMaxFixedPipelineTextures(),
+                                           caps.getMaxTextureCoordinates());
+            defaultState = new FixedFunctionState(delegate.defaultState, state);
 
-            lights = new LightState[numLights];
-            for (int i = 0; i < lights.length; i++) {
-                lights[i] = new LightState();
-            }
-            // modify 0th light's colors
-            lights[0].specular.set(WHITE);
-            lights[0].diffuse.set(WHITE);
-        }
-
-        if (textures == null) {
-            int numTextures = surface.getFramework().getCapabilities()
-                                     .getMaxFixedPipelineTextures();
-
-            textures = new TextureState[numTextures];
-            for (int i = 0; i < textures.length; i++) {
-                textures[i] = new TextureState(i);
-            }
-        }
-
-        if (texBindings == null) {
-            int numBindings = surface.getFramework().getCapabilities()
-                                     .getMaxTextureCoordinates();
-
-            texBindings = new VertexState[numBindings];
-            for (int i = 0; i < texBindings.length; i++) {
-                texBindings[i] = new VertexState(VertexTarget.TEXCOORDS, i);
-            }
+            textureHandles = new TextureHandle[caps.getMaxFixedPipelineTextures()];
+            texCoordsHandles = new VertexBufferObjectHandle[caps.getMaxTextureCoordinates()];
         }
     }
 
     @Override
     public void reset() {
-        super.reset();
+        // this also takes care of setting the delegate's default state
+        setCurrentState(defaultState);
+    }
 
+    @Override
+    public ContextState<FixedFunctionRenderer> getCurrentState() {
+        return new FixedFunctionState(delegate.getCurrentState(), state);
+    }
+
+    @Override
+    public void setCurrentState(ContextState<FixedFunctionRenderer> state) {
+        FixedFunctionState f = (FixedFunctionState) state;
+
+        setAlphaTest(f.alphaTest, f.alphaRefValue);
+        setFogColor(f.fogColor);
+        switch (f.fogMode) {
+        case EXP:
+            setFogExponential(f.fogDensity, false);
+            break;
+        case EXP_SQUARED:
+            setFogExponential(f.fogDensity, true);
+            break;
+        case LINEAR:
+            setFogLinear(f.fogStart, f.fogEnd);
+            break;
+        default:
+            throw new UnsupportedOperationException("Unsupported FogMode value: " + f.fogMode);
+        }
+        setFogEnabled(f.fogEnabled);
+
+        setGlobalAmbientLight(f.globalAmbient);
+        setLightingEnabled(f.lightingEnabled);
+        setSmoothedLightingEnabled(f.lightingSmoothed);
+        setTwoSidedLightingEnabled(f.lightingTwoSided);
+
+        setMaterial(f.matAmbient, f.matDiffuse, f.matSpecular, f.matEmmissive);
+        setMaterialShininess(f.matShininess);
+
+        setLineAntiAliasingEnabled(f.lineAAEnabled);
+        setPointAntiAliasingEnabled(f.pointAAEnabled);
+        setPolygonAntiAliasingEnabled(f.pointAAEnabled);
+
+        setLineSize(f.lineWidth);
+        setPointSize(f.pointWidth);
+
+        setProjectionMatrix(f.projection);
+
+        // set the modelview to the identity matrix, since the subsequent state
+        // is modified by the current modelview, but we store the post-transform
         setModelViewMatrix(IDENTITY);
-        setProjectionMatrix(IDENTITY);
+        for (int i = 0; i < f.lights.length; i++) {
+            LightState fl = f.lights[i];
+            setLightEnabled(i, fl.enabled);
+            setLightPosition(i, fl.position);
+            setSpotlight(i, fl.spotlightDirection, fl.spotAngle);
+            setLightColor(i, fl.ambient, fl.diffuse, fl.specular);
+            setLightAttenuation(i, fl.constAtt, fl.linAtt, fl.quadAtt);
+        }
 
-        setAlphaTest(Comparison.ALWAYS, 1f);
+        for (int i = 0; i < f.textures.length; i++) {
+            TextureState tf = f.textures[i];
+            setTexture(i, tf.texture);
 
-        setFogColor(ZERO);
-        setFogExponential(1f, false);
-        setFogEnabled(false);
+            setTextureColor(i, tf.color);
 
-        setGlobalAmbientLight(DEFAULT_MAT_A_COLOR);
-        setLightingEnabled(false);
-        setSmoothedLightingEnabled(true);
-        setTwoSidedLightingEnabled(false);
+            setTextureCombineRGB(i, tf.rgbFunc, tf.srcRgb[0], tf.opRgb[0], tf.srcRgb[1],
+                                 tf.opRgb[1], tf.srcRgb[2], tf.opRgb[2]);
+            setTextureCombineAlpha(i, tf.alphaFunc, tf.srcAlpha[0], tf.opAlpha[0],
+                                   tf.srcAlpha[1], tf.opAlpha[1], tf.srcAlpha[2],
+                                   tf.opAlpha[2]);
 
-        setMaterial(DEFAULT_MAT_A_COLOR, DEFAULT_MAT_D_COLOR, BLACK, BLACK);
-        setMaterialShininess(0f);
+            setTextureCoordGeneration(i, TexCoord.S, tf.tcS);
+            setTextureCoordGeneration(i, TexCoord.T, tf.tcT);
+            setTextureCoordGeneration(i, TexCoord.R, tf.tcR);
+            setTextureCoordGeneration(i, TexCoord.Q, tf.tcQ);
 
-        setLineAntiAliasingEnabled(false);
-        setPointAntiAliasingEnabled(false);
-        setPolygonAntiAliasingEnabled(false);
+            setTextureObjectPlane(i, TexCoord.S, tf.objPlaneS);
+            setTextureObjectPlane(i, TexCoord.T, tf.objPlaneT);
+            setTextureObjectPlane(i, TexCoord.R, tf.objPlaneR);
+            setTextureObjectPlane(i, TexCoord.Q, tf.objPlaneQ);
 
-        setLineSize(1f);
-        setPointSize(1f);
+            setTextureObjectPlane(i, TexCoord.S, tf.eyePlaneS);
+            setTextureObjectPlane(i, TexCoord.T, tf.eyePlaneT);
+            setTextureObjectPlane(i, TexCoord.R, tf.eyePlaneR);
+            setTextureObjectPlane(i, TexCoord.Q, tf.eyePlaneQ);
 
-        // reset all lights
-        for (int i = 0; i < lights.length; i++) {
-            setLightEnabled(i, false);
-            if (lights[i].modifiedSinceReset) {
-                // special check to avoid repeated no-point calls
-                setLightPosition(i, DEFAULT_LIGHT_POS);
-                setSpotlight(i, DEFAULT_SPOT_DIR, 180.0);
-                lights[i].modifiedSinceReset = false;
-            }
+            setTextureTransform(i, tf.textureMatrix);
+        }
 
-            if (i == 0) {
-                setLightColor(i, BLACK, WHITE, WHITE);
+        if (f.vertexBinding.vbo == null) {
+            setVertices(null);
+        } else {
+            setVertices(new VertexAttribute(f.vertexBinding.vbo,
+                                            f.vertexBinding.elementSize,
+                                            f.vertexBinding.offset,
+                                            f.vertexBinding.stride));
+        }
+        if (f.normalBinding.vbo == null) {
+            setNormals(null);
+        } else {
+            setNormals(new VertexAttribute(f.normalBinding.vbo,
+                                           f.normalBinding.elementSize,
+                                           f.normalBinding.offset,
+                                           f.normalBinding.stride));
+        }
+        if (f.colorBinding.vbo == null) {
+            setColors(null);
+        } else {
+            setColors(new VertexAttribute(f.colorBinding.vbo,
+                                          f.colorBinding.elementSize,
+                                          f.colorBinding.offset,
+                                          f.colorBinding.stride));
+        }
+
+        for (int i = 0; i < f.texBindings.length; i++) {
+            VertexState fv = f.texBindings[i];
+            if (fv.vbo == null) {
+                setTextureCoordinates(i, null);
             } else {
-                setLightColor(i, BLACK, BLACK, BLACK);
+                setTextureCoordinates(i, new VertexAttribute(fv.vbo,
+                                                             fv.elementSize,
+                                                             fv.offset,
+                                                             fv.stride));
             }
-
-            setLightAttenuation(i, 1.0, 0.0, 0.0);
         }
 
-        // reset all textures
-        for (int i = 0; i < textures.length; i++) {
-            setTexture(i, null);
+        // set true modelview matrix
+        setModelViewMatrix(f.modelView);
 
-            setTextureColor(i, ZERO);
-
-            setTextureCombineRGB(i, CombineFunction.MODULATE, CombineSource.CURR_TEX,
-                                 CombineOperand.COLOR, CombineSource.PREV_TEX,
-                                 CombineOperand.COLOR, CombineSource.CONST_COLOR,
-                                 CombineOperand.ALPHA);
-            setTextureCombineAlpha(i, CombineFunction.MODULATE, CombineSource.CURR_TEX,
-                                   CombineOperand.ALPHA, CombineSource.PREV_TEX,
-                                   CombineOperand.ALPHA, CombineSource.CONST_COLOR,
-                                   CombineOperand.ALPHA);
-
-            setTextureCoordGeneration(i, TexCoordSource.ATTRIBUTE);
-
-            if (textures[i].transformModifiedSinceReset) {
-                // special check to only do it if something was modified
-                setTextureTransform(i, IDENTITY);
-                setTextureEyePlane(i, TexCoord.S, DEFAULT_S_PLANE);
-                setTextureEyePlane(i, TexCoord.T, DEFAULT_T_PLANE);
-                setTextureEyePlane(i, TexCoord.R, DEFAULT_RQ_PLANE);
-                setTextureEyePlane(i, TexCoord.Q, DEFAULT_RQ_PLANE);
-                textures[i].transformModifiedSinceReset = false;
-            }
-
-            setTextureObjectPlane(i, TexCoord.S, DEFAULT_S_PLANE);
-            setTextureObjectPlane(i, TexCoord.T, DEFAULT_T_PLANE);
-            setTextureObjectPlane(i, TexCoord.R, DEFAULT_RQ_PLANE);
-            setTextureObjectPlane(i, TexCoord.Q, DEFAULT_RQ_PLANE);
-        }
-
-        // reset attribute binding
-        setVertices(null);
-        setNormals(null);
-        setColors(null);
-        for (int i = 0; i < texBindings.length; i++) {
-            setTextureCoordinates(i, null);
-        }
+        // set shared state
+        delegate.setCurrentState(f.sharedState);
     }
 
     @Override
@@ -421,8 +279,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("Matrix cannot be null");
         }
 
-        dirtyModelView.set(matrix);
+        state.modelView.set(matrix);
         isModelViewDirty = true;
+        isModelInverseDirty = true;
     }
 
     /**
@@ -436,8 +295,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     protected abstract void glSetMatrix(@Const Matrix4 matrix);
 
     private void setMatrixMode(MatrixMode mode) {
-        if (matrixMode != mode) {
-            matrixMode = mode;
+        if (state.matrixMode != mode) {
+            state.matrixMode = mode;
             glMatrixMode(mode);
         }
     }
@@ -445,7 +304,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     private void flushModelView() {
         if (isModelViewDirty) {
             setMatrixMode(MatrixMode.MODELVIEW);
-            glSetMatrix(dirtyModelView);
+            glSetMatrix(state.modelView);
             isModelViewDirty = false;
         }
     }
@@ -456,6 +315,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("Matrix cannot be null");
         }
 
+        state.projection.set(matrix);
         setMatrixMode(MatrixMode.PROJECTION);
         glSetMatrix(matrix);
     }
@@ -465,9 +325,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (test == null) {
             throw new NullPointerException("Null comparison");
         }
-        if (alphaTest != test || alphaRefValue != refValue) {
-            alphaTest = test;
-            alphaRefValue = refValue;
+        if (state.alphaTest != test || state.alphaRefValue != refValue) {
+            state.alphaTest = test;
+            state.alphaRefValue = refValue;
             glAlphaTest(test, refValue);
         }
     }
@@ -482,8 +342,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (color == null) {
             throw new NullPointerException("Null fog color");
         }
-        if (!fogColor.equals(color)) {
-            fogColor.set(color);
+        if (!state.fogColor.equals(color)) {
+            state.fogColor.set(color);
             glFogColor(color);
         }
     }
@@ -496,8 +356,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setFogEnabled(boolean enable) {
-        if (fogEnabled != enable) {
-            fogEnabled = enable;
+        if (state.fogEnabled != enable) {
+            state.fogEnabled = enable;
             glEnableFog(enable);
         }
     }
@@ -513,16 +373,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new IllegalArgumentException("Density must be >= 0, not: " + density);
         }
 
-        if (fogDensity != density) {
-            fogDensity = density;
+        if (state.fogDensity != density) {
+            state.fogDensity = density;
             glFogDensity(density);
         }
 
-        if (squared && fogMode != FogMode.EXP_SQUARED) {
-            fogMode = FogMode.EXP_SQUARED;
+        if (squared && state.fogMode != FogMode.EXP_SQUARED) {
+            state.fogMode = FogMode.EXP_SQUARED;
             glFogMode(FogMode.EXP_SQUARED);
-        } else if (fogMode != FogMode.EXP) {
-            fogMode = FogMode.EXP;
+        } else if (state.fogMode != FogMode.EXP) {
+            state.fogMode = FogMode.EXP;
             glFogMode(FogMode.EXP);
         }
     }
@@ -538,14 +398,14 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new IllegalArgumentException("Illegal start/end range: " + start + ", " + end);
         }
 
-        if (fogStart != start || fogEnd != end) {
-            fogStart = start;
-            fogEnd = end;
+        if (state.fogStart != start || state.fogEnd != end) {
+            state.fogStart = start;
+            state.fogEnd = end;
             glFogRange(start, end);
         }
 
-        if (fogMode != FogMode.LINEAR) {
-            fogMode = FogMode.LINEAR;
+        if (state.fogMode != FogMode.LINEAR) {
+            state.fogMode = FogMode.LINEAR;
             glFogMode(FogMode.LINEAR);
         }
     }
@@ -572,9 +432,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (ambient == null) {
             throw new NullPointerException("Null global ambient color");
         }
-        if (!globalAmbient.equals(ambient)) {
-            clamp(ambient, 0, Float.MAX_VALUE, globalAmbient);
-            glGlobalLighting(globalAmbient);
+        if (!state.globalAmbient.equals(ambient)) {
+            clamp(ambient, 0, Float.MAX_VALUE, state.globalAmbient);
+            glGlobalLighting(state.globalAmbient);
         }
     }
 
@@ -590,7 +450,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("Colors cannot be null");
         }
 
-        LightState l = lights[light];
+        LightState l = state.lights[light];
         if (!l.ambient.equals(amb)) {
             clamp(amb, 0, Float.MAX_VALUE, l.ambient);
             glLightColor(light, LightColor.AMBIENT, l.ambient);
@@ -613,7 +473,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setLightEnabled(int light, boolean enable) {
-        LightState l = lights[light];
+        LightState l = state.lights[light];
         if (l.enabled != enable) {
             l.enabled = enable;
             glEnableLight(light, enable);
@@ -634,9 +494,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("pos.w must be 0 or 1, not: " + pos.w);
         }
 
-        // always set the light position since pos will be transformed by
-        // the current matrix
-        lights[light].modifiedSinceReset = true;
+        // compute the eye-space light position
+        state.lights[light].position.mul(state.lights[light].position, state.modelView);
         flushModelView();
         glLightPosition(light, pos);
     }
@@ -655,15 +514,14 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new IllegalArgumentException("Spotlight angle must be in [0, 90] or be 180, not: " + angle);
         }
 
-        LightState l = lights[light];
+        LightState l = state.lights[light];
         if (l.spotAngle != angle) {
             l.spotAngle = angle;
             glLightAngle(light, angle);
         }
 
-        // always set the spotlight direction since it will be transformed
-        // by the current matrix
-        l.modifiedSinceReset = true;
+        // compute eye-space spotlight direction
+        l.spotlightDirection.transform(state.modelView, l.spotlightDirection, 0);
         flushModelView();
         glLightDirection(light, dir);
     }
@@ -691,7 +549,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new IllegalArgumentException("Quadratic factor must be positive: " + quadratic);
         }
 
-        LightState l = lights[light];
+        LightState l = state.lights[light];
         if (l.constAtt != constant || l.linAtt != linear || l.quadAtt != quadratic) {
             l.constAtt = constant;
             l.linAtt = linear;
@@ -708,8 +566,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setLightingEnabled(boolean enable) {
-        if (lightingEnabled != enable) {
-            lightingEnabled = enable;
+        if (state.lightingEnabled != enable) {
+            state.lightingEnabled = enable;
             glEnableLighting(enable);
         }
     }
@@ -721,16 +579,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setSmoothedLightingEnabled(boolean smoothed) {
-        if (lightingSmoothed != smoothed) {
-            lightingSmoothed = smoothed;
+        if (state.lightingSmoothed != smoothed) {
+            state.lightingSmoothed = smoothed;
             glEnableSmoothShading(smoothed);
         }
     }
 
     @Override
     public void setTwoSidedLightingEnabled(boolean enable) {
-        if (lightingTwoSided != enable) {
-            lightingTwoSided = enable;
+        if (state.lightingTwoSided != enable) {
+            state.lightingTwoSided = enable;
             glEnableTwoSidedLighting(enable);
         }
     }
@@ -747,8 +605,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setLineAntiAliasingEnabled(boolean enable) {
-        if (lineAAEnabled != enable) {
-            lineAAEnabled = enable;
+        if (state.lineAAEnabled != enable) {
+            state.lineAAEnabled = enable;
             glEnableLineAntiAliasing(enable);
         }
     }
@@ -763,8 +621,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (width < 1f) {
             throw new IllegalArgumentException("Line width must be at least 1, not: " + width);
         }
-        if (lineWidth != width) {
-            lineWidth = width;
+        if (state.lineWidth != width) {
+            state.lineWidth = width;
             glLineWidth(width);
         }
     }
@@ -780,25 +638,25 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (amb == null || diff == null || spec == null || emm == null) {
             throw new NullPointerException("Material colors can't be null: " + amb + ", " + diff + ", " + spec + ", " + emm);
         }
-        if (!matAmbient.equals(amb)) {
-            clamp(amb, 0, 1, matAmbient);
-            glMaterialColor(LightColor.AMBIENT, matAmbient);
+        if (!state.matAmbient.equals(amb)) {
+            clamp(amb, 0, 1, state.matAmbient);
+            glMaterialColor(LightColor.AMBIENT, state.matAmbient);
         }
 
-        if (!matDiffuse.equals(diff)) {
-            clamp(diff, 0, 1, matDiffuse);
-            glMaterialColor(LightColor.DIFFUSE, matDiffuse);
+        if (!state.matDiffuse.equals(diff)) {
+            clamp(diff, 0, 1, state.matDiffuse);
+            glMaterialColor(LightColor.DIFFUSE, state.matDiffuse);
         }
 
-        if (!matSpecular.equals(spec)) {
-            matSpecular.set(spec);
-            clamp(spec, 0, 1, matSpecular);
-            glMaterialColor(LightColor.SPECULAR, matSpecular);
+        if (!state.matSpecular.equals(spec)) {
+            state.matSpecular.set(spec);
+            clamp(spec, 0, 1, state.matSpecular);
+            glMaterialColor(LightColor.SPECULAR, state.matSpecular);
         }
 
-        if (!matEmmissive.equals(emm)) {
-            clamp(emm, 0, Float.MAX_VALUE, matEmmissive);
-            glMaterialColor(LightColor.EMISSIVE, matEmmissive);
+        if (!state.matEmmissive.equals(emm)) {
+            clamp(emm, 0, Float.MAX_VALUE, state.matEmmissive);
+            glMaterialColor(LightColor.EMISSIVE, state.matEmmissive);
         }
     }
 
@@ -813,8 +671,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (shininess < 0.0 || shininess > 128.0) {
             throw new IllegalArgumentException("Shininess must be in [0, 128], not: " + shininess);
         }
-        if (matShininess != shininess) {
-            matShininess = shininess;
+        if (state.matShininess != shininess) {
+            state.matShininess = shininess;
             glMaterialShininess(shininess);
         }
     }
@@ -826,8 +684,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setPointAntiAliasingEnabled(boolean enable) {
-        if (pointAAEnabled != enable) {
-            pointAAEnabled = enable;
+        if (state.pointAAEnabled != enable) {
+            state.pointAAEnabled = enable;
             glEnablePointAntiAliasing(enable);
         }
     }
@@ -842,8 +700,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (width < 1.0) {
             throw new IllegalArgumentException("Point width must be at least 1, not: " + width);
         }
-        if (pointWidth != width) {
-            pointWidth = width;
+        if (state.pointWidth != width) {
+            state.pointWidth = width;
             glPointWidth(width);
         }
     }
@@ -855,8 +713,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setPolygonAntiAliasingEnabled(boolean enable) {
-        if (polyAAEnabled != enable) {
-            polyAAEnabled = enable;
+        if (state.polyAAEnabled != enable) {
+            state.polyAAEnabled = enable;
             glEnablePolyAntiAliasing(enable);
         }
     }
@@ -868,15 +726,15 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setTexture(int tex, Texture image) {
-        TextureState t = textures[tex];
+        TextureState t = state.textures[tex];
         if (t.texture != image) {
             // Release current texture if need-be
             Target oldTarget = null;
             if (t.texture != null) {
                 resourceManager.unlock(t.texture);
-                oldTarget = t.handle.target;
+                oldTarget = textureHandles[tex].target;
                 t.texture = null;
-                t.handle = null;
+                textureHandles[tex] = null;
             }
 
             // Lock new texture if needed
@@ -888,7 +746,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                     newTarget = newHandle.target;
 
                     t.texture = image;
-                    t.handle = newHandle;
+                    textureHandles[tex] = newHandle;
                 }
             }
 
@@ -929,7 +787,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("Texture color can't be null");
         }
 
-        TextureState t = textures[tex];
+        TextureState t = state.textures[tex];
         if (!t.color.equals(color)) {
             t.color.set(color);
             setTextureUnit(tex);
@@ -952,7 +810,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("Arguments cannot be null");
         }
 
-        TextureState t = textures[tex];
+        TextureState t = state.textures[tex];
         setTextureUnit(tex);
         if (t.rgbFunc != function) {
             t.rgbFunc = function;
@@ -1001,7 +859,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         checkAlphaCombineOperand(op1);
         checkAlphaCombineOperand(op2);
 
-        TextureState t = textures[tex];
+        TextureState t = state.textures[tex];
         setTextureUnit(tex);
         if (t.alphaFunc != function) {
             t.alphaFunc = function;
@@ -1072,14 +930,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (gen == null) {
             throw new NullPointerException("TexCoordSource can't be null");
         }
-        if (tex < 0) {
-            throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
-        }
-        if (tex >= textures.length) {
-            return; // Ignore it
-        }
 
-        TextureState t = textures[tex];
+        TextureState t = state.textures[tex];
         switch (coord) {
         case S:
             if (t.tcS != gen) {
@@ -1154,17 +1006,31 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (coord == null) {
             throw new NullPointerException("TexCoord cannot be null");
         }
-        if (tex < 0) {
-            throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
-        }
-        if (tex >= textures.length) {
-            return; // Ignore it
+
+        TextureState t = state.textures[tex];
+
+        if (isModelInverseDirty) {
+            // update inverse matrix
+            inverseModelView.inverse(state.modelView);
+            isModelInverseDirty = false;
         }
 
-        // always send plane
+        switch (coord) {
+        case S:
+            t.eyePlaneS.mul(t.eyePlaneS, inverseModelView);
+            break;
+        case T:
+            t.eyePlaneT.mul(t.eyePlaneT, inverseModelView);
+            break;
+        case R:
+            t.eyePlaneR.mul(t.eyePlaneR, inverseModelView);
+            break;
+        case Q:
+            t.eyePlaneQ.mul(t.eyePlaneQ, inverseModelView);
+            break;
+        }
+
         flushModelView();
-        textures[tex].transformModifiedSinceReset = true;
-
         setTextureUnit(tex);
         glTexEyePlane(coord, plane);
     }
@@ -1183,14 +1049,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (coord == null) {
             throw new NullPointerException("TexCoord cannot be null");
         }
-        if (tex < 0) {
-            throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
-        }
-        if (tex >= textures.length) {
-            return; // Ignore it
-        }
 
-        TextureState t = textures[tex];
+        TextureState t = state.textures[tex];
         switch (coord) {
         case S:
             if (!t.objPlaneS.equals(plane)) {
@@ -1233,15 +1093,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (matrix == null) {
             throw new NullPointerException("Matrix cannot be null");
         }
-        if (tex < 0) {
-            throw new IllegalArgumentException("Texture unit must be at least 0, not: " + tex);
-        }
-        if (tex >= textures.length) {
-            return; // Ignore it
-        }
 
-        // always send texture matrix
-        textures[tex].transformModifiedSinceReset = true;
+        state.textures[tex].textureMatrix.set(matrix);
 
         setTextureUnit(tex);
         setMatrixMode(MatrixMode.TEXTURE);
@@ -1265,7 +1118,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (vertices != null && vertices.getElementSize() == 1) {
             throw new IllegalArgumentException("Vertices element size cannot be 1");
         }
-        setAttribute(vertexBinding, vertices);
+        verticesHandle = setAttribute(state.vertexBinding, verticesHandle, vertices);
     }
 
     @Override
@@ -1273,7 +1126,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (normals != null && normals.getElementSize() != 3) {
             throw new IllegalArgumentException("Normals element size must be 3");
         }
-        setAttribute(normalBinding, normals);
+        normalsHandle = setAttribute(state.normalBinding, normalsHandle, normals);
     }
 
     @Override
@@ -1281,26 +1134,25 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (colors != null && colors.getElementSize() != 3 && colors.getElementSize() != 4) {
             throw new IllegalArgumentException("Colors element size must be 3 or 4");
         }
-        setAttribute(colorBinding, colors);
-        if (colorBinding.handle == null) {
+        colorsHandle = setAttribute(state.colorBinding, colorsHandle, colors);
+        if (colorsHandle == null) {
             // per-vertex coloring is disabled, so make sure we have a predictable diffuse color
             glMaterialColor(LightColor.DIFFUSE, DEFAULT_MAT_D_COLOR);
-            matDiffuse.set(DEFAULT_MAT_D_COLOR);
+            state.matDiffuse.set(DEFAULT_MAT_D_COLOR);
         }
     }
 
     @Override
     public void setTextureCoordinates(int tex, VertexAttribute texCoords) {
-        if (tex < 0) {
-            throw new IllegalArgumentException("Texture unit must be at least 0");
-        }
-        if (tex >= texBindings.length) {
-            return; // ignore it
-        }
-        setAttribute(texBindings[tex], texCoords);
+        texCoordsHandles[tex] = setAttribute(state.texBindings[tex],
+                                             texCoordsHandles[tex], texCoords);
     }
 
-    private void setAttribute(VertexState state, VertexAttribute attr) {
+    private VertexBufferObjectHandle setAttribute(VertexState state,
+                                                  VertexBufferObjectHandle currentHandle,
+                                                  VertexAttribute attr) {
+        VertexBufferObjectHandle handle = currentHandle;
+
         if (attr != null) {
             // We are setting a new vertex attribute
             boolean accessDiffers = (state.offset != attr.getOffset() || state.stride != attr.getStride() || state.elementSize != attr.getElementSize());
@@ -1313,7 +1165,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                     // Unlock the old one
                     resourceManager.unlock(oldVbo);
                     state.vbo = null;
-                    state.handle = null;
+                    handle = null;
                 }
 
                 if (state.vbo == null) {
@@ -1325,29 +1177,34 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                         failTypeCheck = true;
 
                         state.vbo = null;
-                        state.handle = null;
+                        handle = null;
                     } else {
                         // VBO is ready
                         state.vbo = attr.getData();
-                        state.handle = newHandle;
+                        handle = newHandle;
                     }
                 }
 
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
-                state.activateSlot();
+                if (state.target == VertexTarget.TEXCOORDS && state.slot != activeClientTex) {
+                    // Special case slot handling for texture coordinates (other targets ignore slot)
+                    activeClientTex = state.slot;
+                    glActiveClientTexture(state.slot);
+                }
+
                 if (state.vbo != null) {
                     // At this point, state.vbo is the new VBO (or possibly old VBO)
                     state.elementSize = attr.getElementSize();
                     state.offset = attr.getOffset();
                     state.stride = attr.getStride();
 
-                    bindArrayVbo(attr.getData(), state.handle, oldVbo);
+                    bindArrayVbo(attr.getData(), handle, oldVbo);
 
                     if (oldVbo == null) {
                         glEnableAttribute(state.target, true);
                     }
-                    glAttributePointer(state.target, state.handle, state.offset,
-                                       state.stride, state.elementSize);
+                    glAttributePointer(state.target, handle, state.offset, state.stride,
+                                       state.elementSize);
                 } else if (oldVbo != null) {
                     // Since there was an old vbo we need to clean some things up
                     // which weren't cleaned up when we unlocked the old vbo
@@ -1362,8 +1219,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         } else {
             // The attribute is meant to be unbound
             if (state.vbo != null) {
-                // Change the slot to support multiple texture coordinates
-                state.activateSlot();
+                // Make sure OpenGL is operating on the correct unit for subsequent commands
+                if (state.target == VertexTarget.TEXCOORDS && state.slot != activeClientTex) {
+                    // Special case slot handling for texture coordinates (other targets ignore slot)
+                    activeClientTex = state.slot;
+                    glActiveClientTexture(state.slot);
+                }
 
                 // Disable the attribute
                 glEnableAttribute(state.target, false);
@@ -1373,9 +1234,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                 // Unlock it
                 resourceManager.unlock(state.vbo);
                 state.vbo = null;
-                state.handle = null;
+                handle = null;
             }
         }
+
+        return handle;
     }
 
     private void bindArrayVbo(VertexBufferObject vbo, VertexBufferObjectHandle handle,

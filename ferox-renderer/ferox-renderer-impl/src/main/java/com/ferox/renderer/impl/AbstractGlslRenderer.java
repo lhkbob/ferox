@@ -40,6 +40,7 @@ import com.ferox.math.Matrix3;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
+import com.ferox.renderer.ContextState;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
@@ -1141,9 +1142,24 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
     }
 
+    // FIXME implement this at the same time I do the fixes to GlslRenderer,
+    // like adding int attrs, cleaning up arbitrary array uniforms, etc.
+    // FIXME should update the resource driver to have warnings, errors if
+    // there are uniforms/attrs of unsupported types
+    @Override
+    public ContextState<GlslRenderer> getCurrentState() {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void setCurrentState(ContextState<GlslRenderer> state) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
     @Override
     public void reset() {
-        super.reset();
+        // FIXME not fully correct yet
+        delegate.setCurrentState(delegate.defaultState);
 
         // This unbinds the shader handle, all textures and vertex attributes.
         // It clears the uniform and attribute cached values, but does not

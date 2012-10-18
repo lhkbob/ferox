@@ -56,71 +56,11 @@ import com.ferox.resource.VertexBufferObject;
  * @author Michael Ludwig
  */
 public abstract class RendererDelegate {
-    private static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
+    protected RendererState state;
+    protected RendererState defaultState;
 
-    // blending
-    protected final Vector4 blendColor = new Vector4();
-    protected BlendFunction blendFuncRgb = BlendFunction.ADD;
-    protected BlendFunction blendFuncAlpha = BlendFunction.ADD;
-
-    protected BlendFactor blendSrcRgb = BlendFactor.ONE;
-    protected BlendFactor blendDstRgb = BlendFactor.ZERO;
-    protected BlendFactor blendSrcAlpha = BlendFactor.ONE;
-    protected BlendFactor blendDstAlpha = BlendFactor.ZERO;
-
-    protected boolean blendEnabled = false;
-
-    // color masking [red, green, blue, alpha]
-    protected final boolean[] colorMask = new boolean[] {true, true, true, true};
-
-    // depth offsets
-    protected double depthOffsetFactor = 0;
-    protected double depthOffsetUnits = 0;
-    protected boolean depthOffsetEnabled = false;
-
-    // depth test and mask
-    protected Comparison depthTest = Comparison.LESS;
-    protected boolean depthMask = true;
-
-    // draw styles
-    protected DrawStyle styleFront = DrawStyle.SOLID;
-    protected DrawStyle styleBack = DrawStyle.NONE;
-
-    // stencil test
-    protected Comparison stencilTestFront = Comparison.ALWAYS;
-    protected int stencilRefFront = 0;
-    protected int stencilTestMaskFront = ~0;
-
-    protected StencilUpdate stencilFailFront = StencilUpdate.KEEP;
-    protected StencilUpdate depthFailFront = StencilUpdate.KEEP;
-    protected StencilUpdate depthPassFront = StencilUpdate.KEEP;
-
-    protected Comparison stencilTestBack = Comparison.ALWAYS;
-    protected int stencilRefBack = 0;
-    protected int stencilTestMaskBack = ~0;
-
-    protected StencilUpdate stencilFailBack = StencilUpdate.KEEP;
-    protected StencilUpdate depthFailBack = StencilUpdate.KEEP;
-    protected StencilUpdate depthPassBack = StencilUpdate.KEEP;
-
-    protected boolean stencilEnabled = false;
-
-    // stencil mask
-    protected int stencilMaskFront = ~0;
-    protected int stencilMaskBack = ~0;
-
-    // viewport
-    protected int viewX = 0;
-    protected int viewY = 0;
-    protected int viewWidth = -1;
-    protected int viewHeight = -1;
-
-    protected int viewSurfaceWidth = -1;
-    protected int viewSurfaceHeight = -1;
-
-    // rendering
-    protected VertexBufferObject indexBinding = null;
-    protected VertexBufferObjectHandle indexBindingHandle = null;
+    protected VertexBufferObjectHandle indexBindingHandle;
+    protected VertexBufferObject indexBinding;
 
     protected OpenGLContext context;
     protected ResourceManager resourceManager;
@@ -140,43 +80,47 @@ public abstract class RendererDelegate {
         this.context = context;
         this.resourceManager = resourceManager;
 
-        viewSurfaceWidth = surface.getWidth();
-        viewSurfaceHeight = surface.getHeight();
+        if (state == null) {
+            // init state
+            defaultState = new RendererState(surface);
+            state = new RendererState(defaultState);
+        }
+
+        defaultState.viewWidth = surface.getWidth();
+        defaultState.viewHeight = surface.getHeight();
     }
 
-    public void reset() {
-        // reset the portion of state described in Renderer
-        setBlendColor(DEFAULT_BLEND_COLOR);
-        setBlendMode(BlendFunction.ADD, BlendFactor.ONE, BlendFactor.ZERO);
+    public RendererState getCurrentState() {
+        return new RendererState(state);
+    }
 
-        setColorWriteMask(true, true, true, true);
+    public void setCurrentState(RendererState state) {
+        setBlendColor(state.blendColor);
+        setBlendModeRgb(state.blendFuncRgb, state.blendSrcRgb, state.blendDstRgb);
+        setBlendModeAlpha(state.blendFuncAlpha, state.blendSrcAlpha, state.blendDstAlpha);
+        setBlendingEnabled(state.blendEnabled);
 
-        setDepthOffsets(0f, 0f);
-        setDepthOffsetsEnabled(false);
+        setColorWriteMask(state.colorMask[0], state.colorMask[1], state.colorMask[2],
+                          state.colorMask[3]);
 
-        setDepthTest(Comparison.LESS);
-        setDepthWriteMask(true);
+        setDepthOffsets(state.depthOffsetFactor, state.depthOffsetUnits);
+        setDepthOffsetsEnabled(state.depthOffsetEnabled);
+        setDepthTest(state.depthTest);
+        setDepthWriteMask(state.depthMask);
 
-        setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE);
+        setDrawStyle(state.styleFront, state.styleBack);
 
-        setStencilTest(Comparison.ALWAYS, 0, ~0);
-        setStencilUpdateFront(StencilUpdate.KEEP, StencilUpdate.KEEP, StencilUpdate.KEEP);
-        setStencilUpdateBack(StencilUpdate.KEEP, StencilUpdate.KEEP, StencilUpdate.KEEP);
-        setStencilTestEnabled(false);
-        setStencilWriteMask(~0);
+        setStencilTestFront(state.stencilTestFront, state.stencilRefFront,
+                            state.stencilTestMaskFront);
+        setStencilTestBack(state.stencilTestBack, state.stencilRefBack,
+                           state.stencilTestMaskBack);
+        setStencilUpdateFront(state.stencilFailFront, state.depthFailFront,
+                              state.depthPassFront);
+        setStencilUpdateBack(state.stencilFailBack, state.depthFailBack,
+                             state.depthPassBack);
+        setStencilTestEnabled(state.stencilEnabled);
 
-        // manually unbind the index vbo
-        if (indexBinding != null) {
-            glBindElementVbo(null);
-            resourceManager.unlock(indexBinding);
-            indexBinding = null;
-            indexBindingHandle = null;
-        }
-
-        // only reset viewport if we've been assigned valid dimensions
-        if (viewSurfaceHeight >= 0 && viewSurfaceWidth >= 0) {
-            setViewport(0, 0, viewSurfaceWidth, viewSurfaceHeight);
-        }
+        setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
     }
 
     /**
@@ -194,8 +138,8 @@ public abstract class RendererDelegate {
             throw new NullPointerException("Null blend color");
         }
 
-        if (!blendColor.equals(color)) {
-            blendColor.set(color);
+        if (!state.blendColor.equals(color)) {
+            state.blendColor.set(color);
             glBlendColor(color);
         }
     }
@@ -219,15 +163,15 @@ public abstract class RendererDelegate {
             throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
         }
 
-        if (blendFuncAlpha != function) {
-            blendFuncAlpha = function;
-            glBlendEquations(blendFuncRgb, function);
+        if (state.blendFuncAlpha != function) {
+            state.blendFuncAlpha = function;
+            glBlendEquations(state.blendFuncRgb, function);
         }
 
-        if (blendSrcAlpha != src || blendDstAlpha != dst) {
-            blendSrcAlpha = src;
-            blendDstAlpha = dst;
-            glBlendFactors(blendSrcRgb, blendDstRgb, src, dst);
+        if (state.blendSrcAlpha != src || state.blendDstAlpha != dst) {
+            state.blendSrcAlpha = src;
+            state.blendDstAlpha = dst;
+            glBlendFactors(state.blendSrcRgb, state.blendDstRgb, src, dst);
         }
     }
 
@@ -239,15 +183,15 @@ public abstract class RendererDelegate {
             throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
         }
 
-        if (blendFuncRgb != function) {
-            blendFuncRgb = function;
-            glBlendEquations(function, blendFuncAlpha);
+        if (state.blendFuncRgb != function) {
+            state.blendFuncRgb = function;
+            glBlendEquations(function, state.blendFuncAlpha);
         }
 
-        if (blendSrcRgb != src || blendDstRgb != dst) {
-            blendSrcRgb = src;
-            blendDstRgb = dst;
-            glBlendFactors(src, dst, blendSrcAlpha, blendDstAlpha);
+        if (state.blendSrcRgb != src || state.blendDstRgb != dst) {
+            state.blendSrcRgb = src;
+            state.blendDstRgb = dst;
+            glBlendFactors(src, dst, state.blendSrcAlpha, state.blendDstAlpha);
         }
     }
 
@@ -264,8 +208,8 @@ public abstract class RendererDelegate {
                                              BlendFunction funcAlpha);
 
     public void setBlendingEnabled(boolean enable) {
-        if (blendEnabled != enable) {
-            blendEnabled = enable;
+        if (state.blendEnabled != enable) {
+            state.blendEnabled = enable;
             glEnableBlending(enable);
         }
     }
@@ -276,6 +220,7 @@ public abstract class RendererDelegate {
     protected abstract void glEnableBlending(boolean enable);
 
     public void setColorWriteMask(boolean red, boolean green, boolean blue, boolean alpha) {
+        boolean[] colorMask = state.colorMask;
         if (colorMask[0] != red || colorMask[1] != green || colorMask[2] != blue || colorMask[3] != alpha) {
             colorMask[0] = red;
             colorMask[1] = green;
@@ -293,9 +238,9 @@ public abstract class RendererDelegate {
                                         boolean alpha);
 
     public void setDepthOffsets(double factor, double units) {
-        if (depthOffsetFactor != factor || depthOffsetUnits != units) {
-            depthOffsetFactor = factor;
-            depthOffsetUnits = units;
+        if (state.depthOffsetFactor != factor || state.depthOffsetUnits != units) {
+            state.depthOffsetFactor = factor;
+            state.depthOffsetUnits = units;
             glDepthOffset(factor, units);
         }
     }
@@ -306,8 +251,8 @@ public abstract class RendererDelegate {
     protected abstract void glDepthOffset(double factor, double units);
 
     public void setDepthOffsetsEnabled(boolean enable) {
-        if (depthOffsetEnabled != enable) {
-            depthOffsetEnabled = enable;
+        if (state.depthOffsetEnabled != enable) {
+            state.depthOffsetEnabled = enable;
             glEnableDepthOffset(enable);
         }
     }
@@ -321,8 +266,8 @@ public abstract class RendererDelegate {
         if (test == null) {
             throw new NullPointerException("Null depth test");
         }
-        if (depthTest != test) {
-            depthTest = test;
+        if (state.depthTest != test) {
+            state.depthTest = test;
             glDepthTest(test);
         }
     }
@@ -333,8 +278,8 @@ public abstract class RendererDelegate {
     protected abstract void glDepthTest(Comparison test);
 
     public void setDepthWriteMask(boolean mask) {
-        if (depthMask != mask) {
-            depthMask = mask;
+        if (state.depthMask != mask) {
+            state.depthMask = mask;
             glDepthMask(mask);
         }
     }
@@ -352,9 +297,9 @@ public abstract class RendererDelegate {
         if (front == null || back == null) {
             throw new NullPointerException("Null DrawStyle: " + front + ", " + back);
         }
-        if (styleFront != front || styleBack != back) {
-            styleFront = front;
-            styleBack = back;
+        if (state.styleFront != front || state.styleBack != back) {
+            state.styleFront = front;
+            state.styleBack = back;
             glDrawStyle(front, back);
         }
     }
@@ -369,13 +314,13 @@ public abstract class RendererDelegate {
     }
 
     public void setStencilWriteMask(int front, int back) {
-        if (stencilMaskFront != front) {
-            stencilMaskFront = front;
+        if (state.stencilMaskFront != front) {
+            state.stencilMaskFront = front;
             glStencilMask(true, front);
         }
 
-        if (stencilMaskBack != back) {
-            stencilMaskBack = back;
+        if (state.stencilMaskBack != back) {
+            state.stencilMaskBack = back;
             glStencilMask(false, back);
         }
     }
@@ -392,24 +337,24 @@ public abstract class RendererDelegate {
 
     public void setStencilTestBack(Comparison test, int refValue, int testMask) {
         if (test == null) {
-            throw new NullPointerException("Stencil test");
+            throw new NullPointerException("Stencil test comparison can't be null");
         }
-        if (stencilTestFront != test || stencilRefFront != refValue || stencilTestMaskFront != testMask) {
-            stencilTestFront = test;
-            stencilRefFront = refValue;
-            stencilTestMaskFront = testMask;
+        if (state.stencilTestFront != test || state.stencilRefFront != refValue || state.stencilTestMaskFront != testMask) {
+            state.stencilTestFront = test;
+            state.stencilRefFront = refValue;
+            state.stencilTestMaskFront = testMask;
             glStencilTest(test, refValue, testMask, true);
         }
     }
 
     public void setStencilTestFront(Comparison test, int refValue, int testMask) {
         if (test == null) {
-            throw new NullPointerException("Stencil test");
+            throw new NullPointerException("Stencil test comparison can't be null");
         }
-        if (stencilTestBack != test || stencilRefBack != refValue || stencilTestMaskBack != testMask) {
-            stencilTestBack = test;
-            stencilRefBack = refValue;
-            stencilTestMaskBack = testMask;
+        if (state.stencilTestBack != test || state.stencilRefBack != refValue || state.stencilTestMaskBack != testMask) {
+            state.stencilTestBack = test;
+            state.stencilRefBack = refValue;
+            state.stencilTestMaskBack = testMask;
             glStencilTest(test, refValue, testMask, false);
         }
     }
@@ -421,8 +366,8 @@ public abstract class RendererDelegate {
                                           boolean isFront);
 
     public void setStencilTestEnabled(boolean enable) {
-        if (stencilEnabled != enable) {
-            stencilEnabled = enable;
+        if (state.stencilEnabled != enable) {
+            state.stencilEnabled = enable;
             glEnableStencilTest(enable);
         }
     }
@@ -437,10 +382,10 @@ public abstract class RendererDelegate {
         if (stencilFail == null || depthFail == null || depthPass == null) {
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         }
-        if (stencilFailBack != stencilFail || depthFailBack != depthFail || depthPassBack != depthPass) {
-            stencilFailBack = stencilFail;
-            depthFailBack = depthFail;
-            depthPassBack = depthPass;
+        if (state.stencilFailBack != stencilFail || state.depthFailBack != depthFail || state.depthPassBack != depthPass) {
+            state.stencilFailBack = stencilFail;
+            state.depthFailBack = depthFail;
+            state.depthPassBack = depthPass;
             glStencilUpdate(stencilFail, depthFail, depthPass, false);
         }
     }
@@ -450,10 +395,10 @@ public abstract class RendererDelegate {
         if (stencilFail == null || depthFail == null || depthPass == null) {
             throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
         }
-        if (stencilFailFront != stencilFail || depthFailFront != depthFail || depthPassFront != depthPass) {
-            stencilFailFront = stencilFail;
-            depthFailFront = depthFail;
-            depthPassFront = depthPass;
+        if (state.stencilFailFront != stencilFail || state.depthFailFront != depthFail || state.depthPassFront != depthPass) {
+            state.stencilFailFront = stencilFail;
+            state.depthFailFront = depthFail;
+            state.depthPassFront = depthPass;
             glStencilUpdate(stencilFail, depthFail, depthPass, true);
         }
     }
@@ -469,11 +414,11 @@ public abstract class RendererDelegate {
         if (x < 0 || y < 0 || width < 0 || height < 0) {
             throw new IllegalArgumentException("Invalid arguments, all must be positive: " + x + ", " + y + ", " + width + ", " + height);
         }
-        if (x != viewX || y != viewY || width != viewWidth || height != viewHeight) {
-            viewX = x;
-            viewY = y;
-            viewWidth = width;
-            viewHeight = height;
+        if (x != state.viewX || y != state.viewY || width != state.viewWidth || height != state.viewHeight) {
+            state.viewX = x;
+            state.viewY = y;
+            state.viewWidth = width;
+            state.viewHeight = height;
             glViewport(x, y, width, height);
         }
     }
@@ -483,19 +428,7 @@ public abstract class RendererDelegate {
      */
     protected abstract void glViewport(int x, int y, int width, int height);
 
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
-                      int count) {
-        if (polyType == null || indices == null) {
-            throw new NullPointerException("PolygonType and indices cannot be null");
-        }
-        if (offset < 0 || count < 0) {
-            throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
-        }
-
-        if (count == 0) {
-            return 0; // shortcut
-        }
-
+    private void setIndexBuffer(VertexBufferObject indices) {
         if (indexBinding != indices) {
             // Must bind a new element vbo
             boolean hadOldIndices = indexBinding != null;
@@ -508,8 +441,11 @@ public abstract class RendererDelegate {
                 indexBindingHandle = null;
             }
 
-            VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
-                                                                                                 indices);
+            VertexBufferObjectHandle newHandle = null;
+            if (indices != null) {
+                newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
+                                                                            indices);
+            }
 
             // check if the actual VBO is of the correct type (must use handle, can't rely
             // on the resource reporting the most up-to-date type)
@@ -534,6 +470,22 @@ public abstract class RendererDelegate {
                 throw new IllegalArgumentException("VertexBufferObject cannot have a type of FLOAT");
             }
         }
+    }
+
+    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
+                      int count) {
+        if (polyType == null || indices == null) {
+            throw new NullPointerException("PolygonType and indices cannot be null");
+        }
+        if (offset < 0 || count < 0) {
+            throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
+        }
+
+        if (count == 0) {
+            return 0; // shortcut
+        }
+
+        setIndexBuffer(indices);
 
         if (indexBinding == null) {
             // No element vbo to work with, so we can't render anything
