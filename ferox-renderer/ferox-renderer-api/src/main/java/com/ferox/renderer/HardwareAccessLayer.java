@@ -125,6 +125,15 @@ public interface HardwareAccessLayer {
     public Context setActiveSurface(TextureSurface surface, int layer);
 
     /**
+     * Get the current Context, which is the same context that was returned by
+     * the last call to setActiveSurface(). If there is no current context, null
+     * is returned.
+     * 
+     * @return The current context
+     */
+    public Context getCurrentContext();
+
+    /**
      * <p>
      * Push all changes to the given Resource to the graphics hardware. This
      * HardwareAccessLayer is responsible for detecting these changes. In many

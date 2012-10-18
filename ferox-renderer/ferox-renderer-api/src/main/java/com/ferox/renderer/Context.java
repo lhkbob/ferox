@@ -104,4 +104,23 @@ public interface Context {
      * {@link Framework#flush(Surface)} can be used as a convenience.
      */
     public void flush();
+
+    /**
+     * Get the Surface that was the argument to
+     * {@link HardwareAccessLayer#setActiveSurface(Surface)} or
+     * {@link HardwareAccessLayer#setActiveSurface(TextureSurface, int)} that
+     * initially produced this Context.
+     * 
+     * @return The Surface for this context
+     */
+    public Surface getSurface();
+
+    /**
+     * Get the active surface layer that this Context applies to. This is only
+     * meaningful if the surface is a TextureSurface and was activated using
+     * {@link HardwareAccessLayer#setActiveSurface(TextureSurface, int)}.
+     * 
+     * @return The active layer of this context's surface
+     */
+    public int getSurfaceLayer();
 }

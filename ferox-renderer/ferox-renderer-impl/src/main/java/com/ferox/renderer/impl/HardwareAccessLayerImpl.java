@@ -48,6 +48,8 @@ import com.ferox.resource.Texture.Target;
 public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     private final AbstractFramework framework;
 
+    private ContextImpl currentContext;
+
     /**
      * Create a new HardwareAccessLayerImpl that will use the ContextManager and
      * ResourceManager of the given AbstractFramework
@@ -61,6 +63,15 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         }
 
         this.framework = framework;
+        // Although there might be an OpenGL context current on the thread,
+        // the access layer never starts with an already activated surface,
+        // so the Context type at this level of the API should be null
+        currentContext = null;
+    }
+
+    @Override
+    public Context getCurrentContext() {
+        return currentContext;
     }
 
     @Override
@@ -88,9 +99,12 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         OpenGLContext context = framework.getContextManager()
                                          .setActiveSurface((AbstractSurface) surface, 0);
         if (context == null) {
-            return null;
+            currentContext = null;
+        } else {
+            currentContext = new ContextImpl(context, (AbstractSurface) surface, 0);
         }
-        return new ContextImpl(context, (AbstractSurface) surface);
+
+        return currentContext;
     }
 
     @Override
@@ -125,9 +139,12 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                                          .setActiveSurface((AbstractSurface) surface,
                                                            layer);
         if (context == null) {
-            return null;
+            currentContext = null;
+        } else {
+            currentContext = new ContextImpl(context, (AbstractSurface) surface, layer);
         }
-        return new ContextImpl(context, (AbstractSurface) surface);
+
+        return currentContext;
     }
 
     @Override
@@ -150,12 +167,14 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     private class ContextImpl implements Context {
         private final OpenGLContext context;
         private final AbstractSurface surface;
+        private final int layer;
 
         private Renderer selectedRenderer;
 
-        public ContextImpl(OpenGLContext context, AbstractSurface surface) {
+        public ContextImpl(OpenGLContext context, AbstractSurface surface, int layer) {
             this.context = context;
             this.surface = surface;
+            this.layer = layer;
         }
 
         @Override
@@ -215,6 +234,16 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public boolean hasFixedFunctionRenderer() {
             return context.getRendererProvider()
                           .getFixedFunctionRenderer(context.getRenderCapabilities()) != null;
+        }
+
+        @Override
+        public Surface getSurface() {
+            return surface;
+        }
+
+        @Override
+        public int getSurfaceLayer() {
+            return layer;
         }
     }
 }
