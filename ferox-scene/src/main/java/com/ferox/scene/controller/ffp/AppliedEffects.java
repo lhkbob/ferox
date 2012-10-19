@@ -85,7 +85,7 @@ public class AppliedEffects {
     }
 
     public AppliedEffects applyViewMatrix(@Const Matrix4 view) {
-        return new AppliedEffects(view, sourceBlend, destBlend, shadowLight);
+        return new AppliedEffects(view.clone(), sourceBlend, destBlend, shadowLight);
     }
 
     @Const

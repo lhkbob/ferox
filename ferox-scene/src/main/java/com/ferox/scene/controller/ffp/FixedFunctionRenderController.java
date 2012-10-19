@@ -28,6 +28,7 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Future;
@@ -39,16 +40,10 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Task;
-import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Filter;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.Texture.WrapMode;
 import com.ferox.scene.Camera;
+import com.ferox.scene.Light;
 import com.ferox.scene.controller.PVSResult;
 import com.ferox.scene.controller.light.LightGroupResult;
 import com.ferox.util.Bag;
@@ -59,7 +54,7 @@ import com.lhkbob.entreri.SimpleController;
 
 public class FixedFunctionRenderController extends SimpleController {
     private final Framework framework;
-    private final TextureSurface shadowMap;
+    private final ShadowMapCache shadowMap;
 
     private final int shadowmapTextureUnit;
     private final int diffuseTextureUnit;
@@ -99,20 +94,7 @@ public class FixedFunctionRenderController extends SimpleController {
             while (sz < shadowMapSize) {
                 sz = sz << 1;
             }
-            // create the shadow map
-            TextureSurfaceOptions options = new TextureSurfaceOptions().setTarget(Target.T_2D)
-                                                                       .setWidth(sz)
-                                                                       .setHeight(sz)
-                                                                       .setUseDepthTexture(true)
-                                                                       .setColorBufferFormats();
-            shadowMap = framework.createSurface(options);
-
-            // set up the depth comparison
-            Texture sm = shadowMap.getDepthBuffer();
-            sm.setFilter(Filter.LINEAR);
-            sm.setWrapMode(WrapMode.CLAMP);
-            sm.setDepthCompareEnabled(true);
-            sm.setDepthComparison(Comparison.LEQUAL);
+            shadowMap = new ShadowMapCache(framework, sz, sz);
 
             // use the 4th unit if available, or the last unit if we're under
             shadowmapTextureUnit = Math.max(numTex, 3) - 1;
@@ -150,9 +132,17 @@ public class FixedFunctionRenderController extends SimpleController {
     @Override
     @SuppressWarnings("unchecked")
     public void process(double dt) {
+        Camera camera = getEntitySystem().createDataInstance(Camera.ID);
+
+        // first cache all shadow map frustums so any view can easily prepare a texture
+        shadowMap.reset();
+        for (PVSResult visible : pvs) {
+            // cacheShadowScene properly ignores PVSResults that aren't for lights
+            shadowMap.cacheShadowScene(visible);
+        }
+
         // go through all results and render all camera frustums
         List<Future<Void>> thisFrame = new ArrayList<Future<Void>>();
-        Camera camera = getEntitySystem().createDataInstance(Camera.ID);
         for (PVSResult visible : pvs) {
             if (visible.getSource().getTypeId() == Camera.ID) {
                 camera.set((Component<Camera>) visible.getSource());
@@ -183,8 +173,7 @@ public class FixedFunctionRenderController extends SimpleController {
     private Future<Void> render(final Surface surface, Frustum view, Bag<Entity> pvs) {
         // FIXME can we somehow preserve this tree across frames instead of continuing
         // to build it over and over again?
-        GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem(),
-                                                                  view.getViewMatrix());
+        GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem());
         TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(),
                                                                    diffuseTextureUnit,
                                                                    emissiveTextureUnit,
@@ -195,14 +184,20 @@ public class FixedFunctionRenderController extends SimpleController {
 
         LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(),
                                                              lightGroups,
+                                                             (shadowMap != null ? shadowMap.getShadowCastingLights() : Collections.<Component<? extends Light<?>>> emptySet()),
                                                              framework.getCapabilities()
                                                                       .getMaxActiveLights(),
                                                              materialGroup);
+
+        ShadowMapGroupFactory shadowGroup = (shadowMap != null ? new ShadowMapGroupFactory(shadowMap,
+                                                                                           shadowmapTextureUnit,
+                                                                                           lightGroup) : null);
+
         SolidColorGroupFactory solidColorGroup = new SolidColorGroupFactory(getEntitySystem(),
                                                                             textureGroup);
 
         LightingGroupFactory lightingGroup = new LightingGroupFactory(solidColorGroup,
-                                                                      lightGroup);
+                                                                      (shadowMap != null ? shadowGroup : lightGroup));
         CameraGroupFactory cameraGroup = new CameraGroupFactory(view, lightingGroup);
 
         final StateNode rootNode = new StateNode(cameraGroup.newGroup());
@@ -210,7 +205,7 @@ public class FixedFunctionRenderController extends SimpleController {
             rootNode.add(e);
         }
 
-        Future<Void> future = framework.queue(new Task<Void>() {
+        return framework.queue(new Task<Void>() {
             @Override
             public Void run(HardwareAccessLayer access) {
                 long now = System.nanoTime();
@@ -218,15 +213,49 @@ public class FixedFunctionRenderController extends SimpleController {
                 if (ctx != null) {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
                     // FIXME clear color should be configurable somehow
-                    ffp.clear(true, true, true, new Vector4(0.5, 0.5, 0.5, 1.0), 1f, 0);
+                    ffp.clear(true, true, true, new Vector4(0, 0, 0, 1.0), 1, 0);
 
-                    rootNode.render(ffp, new AppliedEffects());
+                    rootNode.render(access, new AppliedEffects());
+
+                    //                    Frustum twoD = new Frustum(true,
+                    //                                               0,
+                    //                                               surface.getWidth(),
+                    //                                               0,
+                    //                                               surface.getHeight(),
+                    //                                               -1,
+                    //                                               1);
+                    //                    ffp.setProjectionMatrix(twoD.getProjectionMatrix());
+                    //                    ffp.setModelViewMatrix(twoD.getViewMatrix());
+                    //                    ffp.setDepthTest(Comparison.ALWAYS);
+                    //
+                    //                    shadowMap.getShadowMap().setDepthCompareEnabled(false);
+                    //                    access.update(shadowMap.getShadowMap());
+                    //                    ffp.setTexture(0, shadowMap.getShadowMap());
+                    //                    ffp.setTextureCombineRGB(0, CombineFunction.REPLACE,
+                    //                                             CombineSource.CURR_TEX,
+                    //                                             CombineOperand.COLOR,
+                    //                                             CombineSource.CURR_TEX,
+                    //                                             CombineOperand.COLOR,
+                    //                                             CombineSource.CURR_TEX, CombineOperand.COLOR);
+                    //
+                    //                    Geometry g = Rectangle.create(0, 250, 0, 250);
+                    //                    ffp.setVertices(g.getVertices());
+                    //                    if (g.getIndices() == null) {
+                    //                        ffp.render(g.getPolygonType(), g.getIndexOffset(),
+                    //                                   g.getIndexCount());
+                    //                    } else {
+                    //                        ffp.render(g.getPolygonType(), g.getIndices(),
+                    //                                   g.getIndexOffset(), g.getIndexCount());
+                    //                    }
+                    //
+                    //                    ffp.setTexture(0, null);
+                    //                    shadowMap.getShadowMap().setDepthCompareEnabled(true);
+                    //                    access.update(shadowMap.getShadowMap());
                 }
                 rendertime += (System.nanoTime() - now);
                 return null;
             }
         });
-        return future;
     }
 
     @Override

@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.lhkbob.entreri.Entity;
 
@@ -77,13 +78,13 @@ public class LightingGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
             // do nothing
         }
 
@@ -102,15 +103,19 @@ public class LightingGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setLightingEnabled(enable);
             return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setLightingEnabled(false);
         }
     }

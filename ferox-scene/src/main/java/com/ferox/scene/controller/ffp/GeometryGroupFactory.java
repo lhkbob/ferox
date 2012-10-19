@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
@@ -55,16 +55,13 @@ public final class GeometryGroupFactory implements StateGroupFactory {
 
     private final Geometry access;
 
-    private final Matrix4 viewMatrix;
-
-    public GeometryGroupFactory(EntitySystem system, @Const Matrix4 view) {
+    public GeometryGroupFactory(EntitySystem system) {
         if (system == null) {
             throw new NullPointerException("System cannot be null");
         }
 
         access = new Geometry();
         modelMatrix = new Matrix4();
-        viewMatrix = view;
         geometry = system.createDataInstance(Renderable.ID);
         transform = system.createDataInstance(Transform.ID);
         material = system.createDataInstance(BlinnPhongMaterial.ID);
@@ -111,13 +108,15 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             // set attributes to null
             r.setVertices(null);
             r.setNormals(null);
@@ -159,8 +158,11 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
+
             r.setVertices(geometry.vertices);
             r.setNormals(geometry.normals);
 
@@ -168,7 +170,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
                 for (int i = 0; i < count; i += 16) {
                     // load and multiply the model with the view
                     modelMatrix.set(matrices, i, false);
-                    modelMatrix.mul(viewMatrix, modelMatrix);
+                    modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
 
                     r.setModelViewMatrix(modelMatrix);
                     r.render(geometry.polyType, geometry.indexOffset, geometry.indexCount);
@@ -177,7 +179,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
                 for (int i = 0; i < count; i += 16) {
                     // load and multiply the model with the view
                     modelMatrix.set(matrices, i, false);
-                    modelMatrix.mul(viewMatrix, modelMatrix);
+                    modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
 
                     r.setModelViewMatrix(modelMatrix);
                     r.render(geometry.polyType, geometry.indices, geometry.indexOffset,
@@ -189,7 +191,7 @@ public final class GeometryGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {
             // do nothing
         }

@@ -34,6 +34,7 @@ import java.util.Map;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.Transparent;
 import com.lhkbob.entreri.Entity;
@@ -95,13 +96,15 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setMaterial(MaterialGroupFactory.DEFAULT_AMBIENT,
                           MaterialGroupFactory.DEFAULT_DIFFUSE,
                           MaterialGroupFactory.DEFAULT_SPECULAR,
@@ -136,8 +139,10 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setMaterial(MaterialGroupFactory.DEFAULT_AMBIENT, color,
                           MaterialGroupFactory.DEFAULT_SPECULAR,
                           MaterialGroupFactory.DEFAULT_SPECULAR);
@@ -145,7 +150,7 @@ public class SolidColorGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {
             // do nothing
         }

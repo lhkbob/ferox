@@ -35,6 +35,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.scene.DecalColorMap;
@@ -146,13 +147,15 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setTexture(diffuseUnit, null);
             r.setTexture(decalUnit, null);
             r.setTexture(emissiveUnit, null);
@@ -172,8 +175,11 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int state) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int state) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
+
             if (textures.diffuse != null) {
                 r.setTexture(diffuseUnit, textures.diffuse);
                 r.setTextureCoordinates(diffuseUnit, textures.diffuseCoords);
@@ -237,7 +243,7 @@ public class TextureGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int state) {
             // do nothing
         }

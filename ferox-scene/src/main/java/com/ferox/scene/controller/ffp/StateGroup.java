@@ -28,7 +28,7 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.List;
 
-import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.lhkbob.entreri.Entity;
 
 public interface StateGroup {
@@ -36,7 +36,8 @@ public interface StateGroup {
 
     public List<StateNode> getNodes();
 
-    public AppliedEffects applyGroupState(FixedFunctionRenderer r, AppliedEffects effects);
+    public AppliedEffects applyGroupState(HardwareAccessLayer access,
+                                          AppliedEffects effects);
 
-    public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects);
+    public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects);
 }

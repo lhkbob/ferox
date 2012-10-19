@@ -112,6 +112,50 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
+     * Compute an affine transform that translates an object to <tt>from</tt>,
+     * and has it oriented towards the point, <tt>lookAt</tt>. The up axis is
+     * the orthogonal vector closest to <tt>up</tt> that has the above described
+     * direction vector.
+     * 
+     * @param lookAt The point to look at
+     * @param from The viewing location (e.g. where the camera or object is)
+     * @param up The desired up direction
+     * @return This matrix
+     */
+    public Matrix4 lookAt(@Const Vector3 lookAt, @Const Vector3 from, @Const Vector3 up) {
+        Vector3 t = new Vector3();
+
+        // store position
+        m03 = from.x;
+        m13 = from.y;
+        m23 = from.z;
+        m33 = 1.0;
+
+        // compute viewing direction second
+        t.sub(lookAt, from).normalize();
+        m02 = t.x;
+        m12 = t.y;
+        m22 = t.z;
+        m32 = 0;
+
+        // compute left direction
+        t.cross(up, t).normalize();
+        m00 = t.x;
+        m10 = t.y;
+        m20 = t.z;
+        m30 = 0;
+
+        // compute orthogonal up direction
+        t.cross(new Vector3(m02, m12, m22), t).normalize();
+        m01 = t.x;
+        m11 = t.y;
+        m21 = t.z;
+        m31 = 0;
+
+        return this;
+    }
+
+    /**
      * Compute <code>[a] + [b]</code> and store the result in this matrix.
      * 
      * @param a The left side of the addition

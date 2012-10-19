@@ -26,6 +26,69 @@
  */
 package com.ferox.scene.controller.light;
 
-public class ShadowFrustumController {
+import com.ferox.math.Matrix4;
+import com.ferox.math.bounds.Frustum;
+import com.ferox.scene.DirectionLight;
+import com.ferox.scene.SpotLight;
+import com.ferox.scene.Transform;
+import com.ferox.scene.controller.FrustumResult;
+import com.lhkbob.entreri.ComponentIterator;
+import com.lhkbob.entreri.SimpleController;
 
+public class ShadowFrustumController extends SimpleController {
+    private static final Matrix4 DEFAULT_MAT = new Matrix4().setIdentity();
+
+    @Override
+    public void process(double dt) {
+        // Process DirectionLights
+        DirectionLight dl = getEntitySystem().createDataInstance(DirectionLight.ID);
+        Transform t = getEntitySystem().createDataInstance(Transform.ID);
+        ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(dl)
+                                                                       .addOptional(t);
+
+        while (it.next()) {
+            if (dl.isShadowCaster()) {
+                Frustum smFrustum = computeFrustum(dl, t);
+                getEntitySystem().getControllerManager()
+                                 .report(new FrustumResult(dl.getComponent(), smFrustum));
+            }
+        }
+
+        // Process SpotLights
+        SpotLight sl = getEntitySystem().createDataInstance(SpotLight.ID);
+        it = new ComponentIterator(getEntitySystem()).addRequired(sl).addOptional(t);
+
+        while (it.next()) {
+            if (sl.isShadowCaster()) {
+                Frustum smFrustum = computeFrustum(sl, t);
+                getEntitySystem().getControllerManager()
+                                 .report(new FrustumResult(sl.getComponent(), smFrustum));
+            }
+        }
+    }
+
+    private Frustum computeFrustum(DirectionLight light, Transform t) {
+        Frustum f = new Frustum(true, -15, 15, -15, 15, 0, 50);
+        if (t.isEnabled()) {
+            f.setOrientation(t.getMatrix());
+        } else {
+            f.setOrientation(DEFAULT_MAT);
+        }
+        return f;
+    }
+
+    private Frustum computeFrustum(SpotLight light, Transform t) {
+        // clamp near and far planes to the falloff distance if possible, 
+        // otherwise select a depth range that likely will not cause any problems
+        double near = (light.getFalloffDistance() > 0 ? Math.min(.1 * light.getFalloffDistance(),
+                                                                 .1) : .1);
+        double far = (light.getFalloffDistance() > 0 ? light.getFalloffDistance() : 1000);
+        Frustum f = new Frustum(light.getCutoffAngle() * 2, 1.0, near, far);
+        if (t.isEnabled()) {
+            f.setOrientation(t.getMatrix());
+        } else {
+            f.setOrientation(DEFAULT_MAT);
+        }
+        return f;
+    }
 }

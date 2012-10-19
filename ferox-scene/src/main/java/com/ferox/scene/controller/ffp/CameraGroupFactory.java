@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.lhkbob.entreri.Entity;
 
 public class CameraGroupFactory implements StateGroupFactory {
@@ -67,13 +68,13 @@ public class CameraGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {}
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {}
 
     }
 
@@ -82,15 +83,17 @@ public class CameraGroupFactory implements StateGroupFactory {
         public void add(Entity e) {}
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setProjectionMatrix(camera.getProjectionMatrix());
             r.setModelViewMatrix(camera.getViewMatrix());
             return effects.applyViewMatrix(camera.getViewMatrix());
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {}
     }
 }

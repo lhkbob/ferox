@@ -27,6 +27,8 @@
 package com.ferox.scene;
 
 import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.property.BooleanProperty;
+import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
@@ -55,7 +57,26 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     @DefaultDouble(30.0)
     private DoubleProperty cutoffAngle;
 
+    @DefaultBoolean(false)
+    private BooleanProperty shadowCaster;
+
     private SpotLight() {}
+
+    /**
+     * @return True if this spotlight should cast shadows, defaults to false
+     */
+    public boolean isShadowCaster() {
+        return shadowCaster.get(getIndex());
+    }
+
+    /**
+     * Set whether or not this spotlight should cast shadows.
+     * 
+     * @param castsShadow True if this light is a shadow caster
+     */
+    public void setShadowCaster(boolean castsShadow) {
+        shadowCaster.set(castsShadow, getIndex());
+    }
 
     /**
      * Return the cutoff angle, in degrees, representing the maximum angle light

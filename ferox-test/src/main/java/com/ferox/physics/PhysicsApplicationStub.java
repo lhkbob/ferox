@@ -32,6 +32,7 @@ import com.ferox.input.logic.InputManager;
 import com.ferox.input.logic.InputState;
 import com.ferox.input.logic.Predicates;
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.physics.collision.CollisionBody;
@@ -39,6 +40,7 @@ import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
 import com.ferox.physics.controller.SpatialIndexCollisionController;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
+import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
 import com.ferox.scene.controller.CameraController;
 import com.ferox.scene.controller.SpatialIndexController;
@@ -46,6 +48,7 @@ import com.ferox.scene.controller.VisibilityController;
 import com.ferox.scene.controller.WorldBoundsController;
 import com.ferox.scene.controller.ffp.FixedFunctionRenderController;
 import com.ferox.scene.controller.light.LightGroupController;
+import com.ferox.scene.controller.light.ShadowFrustumController;
 import com.ferox.util.ApplicationStub;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
@@ -63,8 +66,28 @@ public class PhysicsApplicationStub extends ApplicationStub {
                                                                                        2 * BOUNDS + 1,
                                                                                        2 * BOUNDS + 1));
 
+    // positive half-circle
+    private static final double MAX_THETA = Math.PI;
+    private static final double MIN_THETA = 0;
+
+    // positive octant
+    private static final double MAX_PHI = Math.PI / 2.0;
+    private static final double MIN_PHI = Math.PI / 12.0;
+
+    private static final double MIN_ZOOM = 1.0;
+    private static final double MAX_ZOOM = 30.0;
+
+    private static final double ANGLE_RATE = Math.PI / 4.0;
+    private static final double ZOOM_RATE = 10.0;
+
     private boolean paused;
     private boolean stepOnce;
+
+    private Entity camera;
+
+    private double theta; // angle of rotation around global y-axis
+    private double phi; // angle of rotation from xz plane
+    private double zoom; // distance from origin
 
     protected final EntitySystem system;
 
@@ -81,12 +104,85 @@ public class PhysicsApplicationStub extends ApplicationStub {
                 paused = !paused;
             }
         });
-        io.on(Predicates.keyPress(KeyCode.S)).trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.P)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 stepOnce = true;
             }
         });
+
+        // camera controls
+        io.on(Predicates.keyHeld(KeyCode.W)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                phi += ANGLE_RATE * ((next.getTimestamp() - prev.getTimestamp()) / 1e9);
+                if (phi > MAX_PHI) {
+                    phi = MAX_PHI;
+                }
+                updateCameraOrientation();
+            }
+        });
+        io.on(Predicates.keyHeld(KeyCode.S)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                phi -= ANGLE_RATE * ((next.getTimestamp() - prev.getTimestamp()) / 1e9);
+                if (phi < MIN_PHI) {
+                    phi = MIN_PHI;
+                }
+                updateCameraOrientation();
+            }
+        });
+        io.on(Predicates.keyHeld(KeyCode.D)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                theta -= ANGLE_RATE * ((next.getTimestamp() - prev.getTimestamp()) / 1e9);
+                if (theta < MIN_THETA) {
+                    theta = MIN_THETA;
+                }
+                updateCameraOrientation();
+            }
+        });
+        io.on(Predicates.keyHeld(KeyCode.A)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                theta += ANGLE_RATE * ((next.getTimestamp() - prev.getTimestamp()) / 1e9);
+                if (theta > MAX_THETA) {
+                    theta = MAX_THETA;
+                }
+                updateCameraOrientation();
+            }
+        });
+        io.on(Predicates.keyHeld(KeyCode.X)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                zoom += ZOOM_RATE * ((next.getTimestamp() - prev.getTimestamp()) / 1e9);
+                if (zoom > MAX_ZOOM) {
+                    zoom = MAX_ZOOM;
+                }
+                updateCameraOrientation();
+            }
+        });
+        io.on(Predicates.keyHeld(KeyCode.Z)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                zoom -= ZOOM_RATE * ((next.getTimestamp() - prev.getTimestamp()) / 1e9);
+                if (zoom < MIN_ZOOM) {
+                    zoom = MIN_ZOOM;
+                }
+                updateCameraOrientation();
+            }
+        });
+    }
+
+    private void updateCameraOrientation() {
+        Vector3 pos = new Vector3();
+        double r = zoom * Math.cos(phi);
+        pos.x = r * Math.cos(theta);
+        pos.y = zoom * Math.sin(phi);
+        pos.z = r * Math.sin(theta);
+
+        camera.get(Transform.ID).getData()
+              .setMatrix(new Matrix4().lookAt(new Vector3(), pos, new Vector3(0, 1, 0)));
     }
 
     @Override
@@ -112,6 +208,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
         // rendering
         system.getControllerManager().addController(new WorldBoundsController());
         system.getControllerManager().addController(new CameraController());
+        system.getControllerManager().addController(new ShadowFrustumController());
         system.getControllerManager()
               .addController(new SpatialIndexController(new QuadTree<Entity>(worldBounds,
                                                                              6)));
@@ -122,6 +219,17 @@ public class PhysicsApplicationStub extends ApplicationStub {
               .addController(new FixedFunctionRenderController(surface.getFramework()));
 
         surface.setVSyncEnabled(true);
+
+        // camera
+        theta = (MAX_THETA + MIN_THETA) / 2.0;
+        phi = (MAX_PHI + MIN_PHI) / 2.0;
+        zoom = (MAX_ZOOM + MIN_ZOOM) / 2.0;
+
+        camera = system.addEntity();
+        camera.add(Camera.ID).getData().setSurface(surface)
+              .setZDistances(1.0, 6 * BOUNDS);
+        camera.add(Transform.ID);
+        updateCameraOrientation();
     }
 
     @Override

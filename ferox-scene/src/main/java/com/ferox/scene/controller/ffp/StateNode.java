@@ -28,7 +28,7 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.List;
 
-import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.lhkbob.entreri.Entity;
 
 public class StateNode {
@@ -64,23 +64,23 @@ public class StateNode {
         }
     }
 
-    public void render(FixedFunctionRenderer r, AppliedEffects effects) {
+    public void render(HardwareAccessLayer access, AppliedEffects effects) {
         List<StateNode> childNodes = (children != null ? children.getNodes() : null);
         int childCount = (children != null ? childNodes.size() : 0);
 
         if (effects != null) {
             for (int i = 0; i < state.length; i++) {
-                AppliedEffects newEffects = state[i].applyState(r, effects, i);
+                AppliedEffects newEffects = state[i].applyState(access, effects, i);
                 if (newEffects != null) {
-                    AppliedEffects groupEffects = (children != null ? children.applyGroupState(r,
+                    AppliedEffects groupEffects = (children != null ? children.applyGroupState(access,
                                                                                                newEffects) : newEffects);
                     for (int j = 0; j < childCount; j++) {
-                        childNodes.get(j).render(r, groupEffects);
+                        childNodes.get(j).render(access, groupEffects);
                     }
                     if (children != null) {
-                        children.unapplyGroupState(r, newEffects);
+                        children.unapplyGroupState(access, newEffects);
                     }
-                    state[i].unapplyState(r, effects, i);
+                    state[i].unapplyState(access, effects, i);
                 }
             }
         }
@@ -96,14 +96,14 @@ public class StateNode {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
             // do nothing, but continue
             return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {
             // do nothing
         }

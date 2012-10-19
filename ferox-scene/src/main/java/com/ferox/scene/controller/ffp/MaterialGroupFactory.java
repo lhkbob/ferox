@@ -34,6 +34,7 @@ import java.util.Map;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.EmittedColor;
 import com.ferox.scene.SpecularColor;
@@ -108,13 +109,15 @@ public class MaterialGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             r.setMaterial(DEFAULT_AMBIENT, DEFAULT_DIFFUSE, DEFAULT_SPECULAR,
                           DEFAULT_EMITTED);
         }
@@ -124,13 +127,11 @@ public class MaterialGroupFactory implements StateGroupFactory {
         private final Vector4 diffuse;
         private final Vector4 specular;
         private final Vector4 emitted;
-        private final Vector4 ambient;
 
         public MaterialState() {
             diffuse = new Vector4();
             specular = new Vector4();
             emitted = new Vector4();
-            ambient = new Vector4();
         }
 
         public void set(DiffuseColor diff, SpecularColor spec, EmittedColor emit,
@@ -163,13 +164,10 @@ public class MaterialGroupFactory implements StateGroupFactory {
                 emitted.set(DEFAULT_EMITTED);
             }
 
-            ambient.set(DEFAULT_AMBIENT);
-
             double alpha = (t.isEnabled() ? t.getOpacity() : 1.0);
             diffuse.w = alpha;
             specular.w = alpha;
             emitted.w = alpha;
-            ambient.w = alpha;
         }
 
         @Override
@@ -178,14 +176,16 @@ public class MaterialGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
-            r.setMaterial(ambient, diffuse, specular, emitted);
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
+            r.setMaterial(diffuse, diffuse, specular, emitted);
             return effects;
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {
             // do nothing
         }
@@ -196,7 +196,7 @@ public class MaterialGroupFactory implements StateGroupFactory {
                 return false;
             }
             MaterialState m = (MaterialState) o;
-            return (m.diffuse.equals(diffuse) && m.specular.equals(specular) && m.emitted.equals(emitted) && m.ambient.equals(ambient));
+            return (m.diffuse.equals(diffuse) && m.specular.equals(specular) && m.emitted.equals(emitted));
         }
 
         @Override
@@ -205,7 +205,6 @@ public class MaterialGroupFactory implements StateGroupFactory {
             result += 31 * diffuse.hashCode();
             result += 31 * specular.hashCode();
             result += 31 * emitted.hashCode();
-            result += 31 * ambient.hashCode();
             return result;
         }
     }

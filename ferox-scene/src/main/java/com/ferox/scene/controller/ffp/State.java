@@ -26,14 +26,14 @@
  */
 package com.ferox.scene.controller.ffp;
 
-import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.lhkbob.entreri.Entity;
 
 public interface State {
     public void add(Entity e);
 
-    public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
+    public AppliedEffects applyState(HardwareAccessLayer access, AppliedEffects effects,
                                      int index);
 
-    public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects, int index);
+    public void unapplyState(HardwareAccessLayer access, AppliedEffects effects, int index);
 }

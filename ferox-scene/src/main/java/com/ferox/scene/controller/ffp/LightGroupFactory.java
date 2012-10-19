@@ -35,6 +35,7 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.DirectionLight;
@@ -54,6 +55,8 @@ public class LightGroupFactory implements StateGroupFactory {
 
     private final StateGroupFactory child;
 
+    private final Set<Component<? extends Light<?>>> shadowCastingLights;
+
     private final State[][] groups;
     private final IntProperty groupAssignment;
 
@@ -61,8 +64,11 @@ public class LightGroupFactory implements StateGroupFactory {
     private final Renderable renderable;
 
     public LightGroupFactory(EntitySystem system, LightGroupResult lightGroups,
+                             Set<Component<? extends Light<?>>> shadowCastingLights,
                              int maxLights, StateGroupFactory child) {
         this.child = child;
+        this.shadowCastingLights = shadowCastingLights;
+
         groupAssignment = lightGroups.getAssignmentProperty();
         groups = new State[lightGroups.getGroupCount()][];
         renderable = system.createDataInstance(Renderable.ID);
@@ -191,14 +197,14 @@ public class LightGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyGroupState(FixedFunctionRenderer r,
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
                                               AppliedEffects effects) {
             // do nothing
             return effects;
         }
 
         @Override
-        public void unapplyGroupState(FixedFunctionRenderer r, AppliedEffects effects) {
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
             // do nothing
         }
     }
@@ -227,8 +233,10 @@ public class LightGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public AppliedEffects applyState(FixedFunctionRenderer r, AppliedEffects effects,
-                                         int index) {
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             int numLights = 0;
 
             if (!effects.isShadowBeingRendered() && ambientColor != null) {
@@ -237,6 +245,8 @@ public class LightGroupFactory implements StateGroupFactory {
                 r.setGlobalAmbientLight(ambientColor);
                 numLights++;
             } else {
+                // default ambient color is black, and if we're in an SM pass,
+                // we don't want to apply ambient light multiple times
                 r.setGlobalAmbientLight(BLACK);
             }
 
@@ -247,7 +257,10 @@ public class LightGroupFactory implements StateGroupFactory {
                 if (light != null) {
                     // check to see if this light should be used for the current
                     // stage of shadow mapping
-                    if ((effects.isShadowBeingRendered() && light.source == effects.getShadowMappingLight()) || (!effects.isShadowBeingRendered() && light.source != effects.getShadowMappingLight())) {
+                    boolean ifInSM = effects.isShadowBeingRendered() && light.source == effects.getShadowMappingLight();
+                    boolean notInSM = !effects.isShadowBeingRendered() && !shadowCastingLights.contains(light.source);
+
+                    if (ifInSM || notInSM) {
                         // enable and configure the light
                         r.setLightEnabled(i, true);
                         r.setLightPosition(i, light.position);
@@ -281,7 +294,7 @@ public class LightGroupFactory implements StateGroupFactory {
                 }
             }
 
-            if (numLights > 0 || !effects.isShadowBeingRendered()) {
+            if (numLights > 0) {
                 // update blending state
                 if (index > 0 && !effects.isShadowBeingRendered()) {
                     // update blending state, we only do this when accumulating into the previous
@@ -301,8 +314,10 @@ public class LightGroupFactory implements StateGroupFactory {
         }
 
         @Override
-        public void unapplyState(FixedFunctionRenderer r, AppliedEffects effects,
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
                                  int index) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
             if (index > 0 && !effects.isShadowBeingRendered()) {
                 // these effects were the original, so we restore the blend state
                 effects.pushBlending(r);

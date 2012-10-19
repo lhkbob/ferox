@@ -27,6 +27,8 @@
 package com.ferox.scene;
 
 import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.property.BooleanProperty;
+import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
 
 /**
  * <p>
@@ -49,5 +51,24 @@ public final class DirectionLight extends Light<DirectionLight> {
      */
     public static final TypeId<DirectionLight> ID = TypeId.get(DirectionLight.class);
 
+    @DefaultBoolean(false)
+    private BooleanProperty shadowCaster;
+
     private DirectionLight() {}
+
+    /**
+     * @return True if this spotlight should cast shadows, defaults to false
+     */
+    public boolean isShadowCaster() {
+        return shadowCaster.get(getIndex());
+    }
+
+    /**
+     * Set whether or not this spotlight should cast shadows.
+     * 
+     * @param castsShadow True if this light is a shadow caster
+     */
+    public void setShadowCaster(boolean castsShadow) {
+        shadowCaster.set(castsShadow, getIndex());
+    }
 }

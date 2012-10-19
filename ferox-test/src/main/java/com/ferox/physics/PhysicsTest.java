@@ -28,13 +28,13 @@ package com.ferox.physics;
 
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.Camera;
 import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.PointLight;
@@ -50,42 +50,19 @@ public class PhysicsTest extends PhysicsApplicationStub {
     private static final int NUM_X = 5;
     private static final int NUM_Y = 5;
     private static final int NUM_Z = 5;
-    private static final double SCALE_X = 3.0;
+    private static final double SCALE_X = 2.0;
     private static final double SCALE_Y = 2.0;
-    private static final double SCALE_Z = 3.0;
+    private static final double SCALE_Z = 2.0;
 
     private static final double RANDOM = 0;
 
     private static final double START_POS_X = -5;
-    private static final double START_POS_Y = 1 + 2 * MARGIN;
+    private static final double START_POS_Y = 10 + 2 * MARGIN;
     private static final double START_POS_Z = -3;
 
     @Override
     protected void init(OnscreenSurface surface) {
         super.init(surface);
-
-        // camera
-        Entity camera = system.addEntity();
-        camera.add(Camera.ID).getData().setSurface(surface)
-              .setZDistances(1.0, 6 * BOUNDS);
-        camera.add(Transform.ID)
-              .getData()
-              .setMatrix(new Matrix4(-.707,
-                                     -.577,
-                                     -.707,
-                                     .3 * BOUNDS,
-                                     0,
-                                     .577,
-                                     0,
-                                     .2 * BOUNDS,
-                                     .707,
-                                     -.577,
-                                     -.707,
-                                     .3 * BOUNDS,
-                                     0,
-                                     0,
-                                     0,
-                                     1));
 
         // shapes
         Geometry box = Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
@@ -143,7 +120,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
                                                0,
                                                1,
                                                0,
-                                               (SCALE_Y + 2 * MARGIN + (y > NUM_Y / 2 ? 1 : 0)) * y + ry + startY,
+                                               (SCALE_Y + 2 * MARGIN) * y + ry + startY,
                                                0,
                                                0,
                                                1,
@@ -192,7 +169,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         // ambient light
         system.addEntity().add(AmbientLight.ID).getData()
-              .setColor(new ColorRGB(0.2, 0.2, 0.2));
+              .setColor(new ColorRGB(.2, .2, .2));
 
         // a point light
         Entity point = system.addEntity();
@@ -218,8 +195,12 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
-        inf.add(DirectionLight.ID).getData().setColor(new ColorRGB(1, 1, 1));
-        inf.add(Transform.ID);
+        inf.add(DirectionLight.ID).getData().setColor(new ColorRGB(1, 1, 1))
+           .setShadowCaster(true);
+        inf.add(Transform.ID)
+           .getData()
+           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15),
+                                           new Vector3(0, 1, 0)));
     }
 
     public static void main(String[] args) {

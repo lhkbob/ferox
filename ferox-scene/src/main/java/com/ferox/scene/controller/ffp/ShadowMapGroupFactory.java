@@ -26,46 +26,169 @@
  */
 package com.ferox.scene.controller.ffp;
 
-public class ShadowMapGroupFactory {
-    // I don't think this even has an index, since there is only one group
-    // and it just creates a bunch of states. Only one gropu is needed because
-    // this will be underneath the 'lit' state that enables lighting in general
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-    // FIXME I need to determine if multiple shadow-casting lights are allowed
-    // I really think they should be. but if that's the case then I need to update
-    // AppliedEffects to support that properly
+import com.ferox.math.Matrix4;
+import com.ferox.math.bounds.Frustum;
+import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
+import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
+import com.ferox.renderer.HardwareAccessLayer;
+import com.ferox.renderer.Renderer.BlendFactor;
+import com.ferox.resource.Texture;
+import com.ferox.scene.Light;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Entity;
 
-    // Okay so the last major bit of work that is needed (besides transparency)
-    // is implementing shadow mapping.  This is tricky for a number of reasons
-    // 1. The light group needs to pull in the set of all shadow-casting lights
-    //    so that it can disable all shadow lights during its main lighting phase
-    // 2. I need to figure out a way to switch active surfaces, render the SM,
-    //    and switch back and restore the GL state, since activating a surface
-    //    resets its state.
-    //
-    // One possible solution to #2 is that Renderers can return a State
-    // object that encapsulates their entire set of state, and then they also
-    // can have setters to restore such state. So then the SM cache grabs
-    // the state, activates an FBO, renders that map, reactivates the original
-    // surface and then restores the state.
-    //
-    // There are a couple of concerns with this:
-    // 1. Cost of cloning the entire state for FFP
-    // 2. Duplication of work, if we're calling reset() multiple times but don't
-    //    really need to do it after/before every surface activation
-    // 3. Some state in the FFP isn't fully tracked, just that it was changed
-    //    from the default (like eye-space planes, light positions, etc)
-    //    This would make it more of a hassle to store correctly because 
-    //    restoring the state would be dependent on a modelview matrix that is
-    //    unknown.
-    //
-    // One solution to #4 is that I compute the eye-space values for the state,
-    // as they're pushed and then on restore, set the modelview matrix to the
-    // identity and send the precomputed eye-space to OpenGL. Then set the modelview
-    // to the true matrix, and send all state that doesn't depend on the
-    // modelview matrix.
-    //
-    // This could work but it makes state tracking even slower, but probably
-    // not by very much and it would allow me to do equality checks against that
-    // block of state as well.
+public class ShadowMapGroupFactory implements StateGroupFactory {
+    // FIXME must fix auto-formatting ugliness in these situations
+    private static final Matrix4 bias = new Matrix4(.5,
+                                                    0,
+                                                    0,
+                                                    .5,
+                                                    0,
+                                                    .5,
+                                                    0,
+                                                    .5,
+                                                    0,
+                                                    0,
+                                                    .5,
+                                                    .5,
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    1);
+
+    private final StateGroupFactory childFactory;
+    private final ShadowMapCache smCache;
+
+    private final int shadowMapUnit;
+
+    public ShadowMapGroupFactory(ShadowMapCache shadowMapCache, int shadowMapUnit,
+                                 StateGroupFactory childFactory) {
+        this.childFactory = childFactory;
+        this.shadowMapUnit = shadowMapUnit;
+        smCache = shadowMapCache;
+    }
+
+    @Override
+    public StateGroup newGroup() {
+        return new ShadowMapGroup();
+    }
+
+    private class ShadowMapGroup implements StateGroup {
+        private final StateNode node;
+
+        public ShadowMapGroup() {
+            Set<Component<? extends Light<?>>> smLights = smCache.getShadowCastingLights();
+            State[] states = new State[smLights.size() + 1];
+
+            int i = 1;
+            states[0] = new BaseLightState();
+            for (Component<? extends Light<?>> l : smLights) {
+                states[i++] = new ShadowState(l);
+            }
+
+            node = new StateNode((childFactory == null ? null : childFactory.newGroup()),
+                                 states);
+        }
+
+        @Override
+        public StateNode getNode(Entity e) {
+            return node;
+        }
+
+        @Override
+        public List<StateNode> getNodes() {
+            return Collections.singletonList(node);
+        }
+
+        @Override
+        public AppliedEffects applyGroupState(HardwareAccessLayer access,
+                                              AppliedEffects effects) {
+            return effects;
+        }
+
+        @Override
+        public void unapplyGroupState(HardwareAccessLayer access, AppliedEffects effects) {
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
+            r.setTexture(shadowMapUnit, null);
+            effects.pushBlending(r); // restore blending from ShadowState passes
+        }
+    }
+
+    private class ShadowState implements State {
+        private final Component<? extends Light<?>> light;
+
+        public ShadowState(Component<? extends Light<?>> light) {
+            this.light = light;
+        }
+
+        @Override
+        public void add(Entity e) {
+            // do nothing
+        }
+
+        @Override
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            Frustum smFrustum = smCache.getShadowMapFrustum(light);
+            Texture shadowMap = smCache.getShadowMap(light, access);
+
+            // must get renderer after the shadow map because that will change
+            // and restore the active surface (invalidating any previous renderer)
+            FixedFunctionRenderer r = access.getCurrentContext()
+                                            .getFixedFunctionRenderer();
+
+            // configure shadow map texturing
+            r.setTexture(shadowMapUnit, shadowMap);
+            r.setTextureCoordGeneration(shadowMapUnit, TexCoordSource.EYE);
+
+            Matrix4 texM = new Matrix4();
+            texM.mul(bias, smFrustum.getProjectionMatrix())
+                .mul(smFrustum.getViewMatrix());
+
+            r.setTextureEyePlane(shadowMapUnit, TexCoord.S, texM.getRow(0));
+            r.setTextureEyePlane(shadowMapUnit, TexCoord.T, texM.getRow(1));
+            r.setTextureEyePlane(shadowMapUnit, TexCoord.R, texM.getRow(2));
+            r.setTextureEyePlane(shadowMapUnit, TexCoord.Q, texM.getRow(3));
+
+            // configure depth testing and blending into previous pass
+            r.setDepthOffsetsEnabled(true);
+            r.setDepthOffsets(0, -5); // offset depth in opposite direction from SM depth
+            effects = effects.applyBlending(BlendFactor.SRC_ALPHA, BlendFactor.ONE);
+            effects.pushBlending(r); // this also sets the depth-mask/test appropriately
+
+            return effects.applyShadowMapping(light);
+        }
+
+        @Override
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
+                                 int index) {
+            // do nothing
+        }
+    }
+
+    private class BaseLightState implements State {
+        @Override
+        public void add(Entity e) {
+            // do nothing
+        }
+
+        @Override
+        public AppliedEffects applyState(HardwareAccessLayer access,
+                                         AppliedEffects effects, int index) {
+            // here we assume nothing else has tampered with the shadow light
+            return effects;
+        }
+
+        @Override
+        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
+                                 int index) {
+            // do nothing
+        }
+    }
 }
