@@ -320,6 +320,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
             case UNSIGNED_INT:
                 GL11.glDrawElements(glPolyType, (IntBuffer) data);
                 break;
+            default:
+                throw new RuntimeException("Unsupported enum value: " + h.dataType);
             }
         } else {
             GL11.glDrawElements(glPolyType, count, glDataType,

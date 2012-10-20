@@ -26,6 +26,7 @@
  */
 package com.ferox.renderer.impl.drivers;
 
+import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
@@ -59,6 +60,8 @@ public class TextureHandle {
     // texture parameters
     public Filter filter;
 
+    public final Vector4 borderColor;
+
     public WrapMode wrapS;
     public WrapMode wrapT;
     public WrapMode wrapR;
@@ -77,6 +80,7 @@ public class TextureHandle {
         baseMipmap = -1;
         maxMipmap = -1;
 
+        borderColor = new Vector4();
         filter = null;
         wrapS = null;
         wrapT = null;

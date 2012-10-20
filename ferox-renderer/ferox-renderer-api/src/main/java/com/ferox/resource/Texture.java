@@ -28,6 +28,8 @@ package com.ferox.resource;
 
 import java.util.Arrays;
 
+import com.ferox.math.Const;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.resource.BufferData.DataType;
@@ -116,9 +118,17 @@ public class Texture extends Resource {
      */
     public static enum WrapMode {
         /**
-         * Texture coordinates are clamped to be in the range [0, 1].
+         * Texture coordinates are clamped to be in the range [0, 1]. Pixels
+         * outside of this range will use whatever texel color happens to lie on
+         * the edge.
          */
         CLAMP,
+        /**
+         * Texture coordinates are clamped to the range [0, 1]. Instead of using
+         * the edge texel colors when outside of the range, the texture's
+         * configured border color is used.
+         */
+        CLAMP_TO_BORDER,
         /**
          * Texture coordinates wrap around from 1 to 0 or 0 to 1, etc.
          */
@@ -154,6 +164,8 @@ public class Texture extends Resource {
     private WrapMode wrapS;
     private WrapMode wrapT;
     private WrapMode wrapR;
+
+    private final Vector4 borderColor;
 
     private Filter filter;
     private float anisoLevel; // in [0, 1]
@@ -203,6 +215,7 @@ public class Texture extends Resource {
         }
         this.target = target;
         changeQueue = new BulkChangeQueue<MipmapRegion>();
+        borderColor = new Vector4();
 
         filter = Filter.LINEAR;
 
@@ -379,6 +392,31 @@ public class Texture extends Resource {
 
         layers[layer] = mipmap;
         return markDirty(layer);
+    }
+
+    /**
+     * Get the border color of this texture. This is relevant only when the wrap
+     * mode is CLAMP_TO_BORDER. It is permitted to ignore the @Const annotation
+     * if mutating the returned instance occurs within a larger lock on this
+     * Texture.
+     * 
+     * @return The border color
+     */
+    @Const
+    public synchronized Vector4 getBorderColor() {
+        return borderColor;
+    }
+
+    /**
+     * Set the border color of this texture. The given color is copied into this
+     * texture's internal vector (the same instance as returned by
+     * {@link #getBorderColor()}.
+     * 
+     * @param color The new border color
+     * @throws NullPointerException if color is null
+     */
+    public synchronized void setBorderColor(@Const Vector4 color) {
+        borderColor.set(color);
     }
 
     /**

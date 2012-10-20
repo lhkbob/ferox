@@ -244,13 +244,15 @@ public class Utils {
         switch (wrap) {
         case CLAMP:
             return GL.GL_CLAMP_TO_EDGE;
+        case CLAMP_TO_BORDER:
+            return GL2GL3.GL_CLAMP_TO_BORDER;
         case MIRROR:
             return GL.GL_MIRRORED_REPEAT;
         case REPEAT:
             return GL.GL_REPEAT;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + wrap);
         }
-
-        return -1;
     }
 
     /** Face must be one of the constants in TextureCubeMap (0 - 5). */
@@ -347,11 +349,9 @@ public class Utils {
         case RG:
         case RG_FLOAT:
             return GL.GL_LUMINANCE_ALPHA;
-
+        default:
+            return -1;
         }
-
-        // a compressed type
-        return -1;
     }
 
     /**
@@ -452,9 +452,9 @@ public class Utils {
             } else {
                 return GL.GL_RGBA;
             }
+        default:
+            throw new RuntimeException("Unsupported enum value: " + format);
         }
-
-        return -1;
     }
 
     /**
@@ -491,10 +491,9 @@ public class Utils {
             return GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV;
         case RGB_565:
             return GL.GL_UNSIGNED_SHORT_5_6_5;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + format);
         }
-
-        // not a packed type
-        return -1;
     }
 
     /**
@@ -550,9 +549,9 @@ public class Utils {
             return GL.GL_ONE_MINUS_SRC_ALPHA;
         case SRC_ALPHA_SATURATE:
             return GL.GL_SRC_ALPHA_SATURATE;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + src);
         }
-
-        return -1;
     }
 
     /**
@@ -566,9 +565,9 @@ public class Utils {
             return GL2GL3.GL_POINT;
         case SOLID:
             return GL2GL3.GL_FILL;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + style);
         }
-
-        return -1;
     }
 
     /** Op must not be null. */
@@ -611,9 +610,9 @@ public class Utils {
             return GL2ES1.GL_REFLECTION_MAP;
         case NORMAL:
             return GL2ES1.GL_NORMAL_MAP;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + gen);
         }
-
-        return -1;
     }
 
     /** Coord must be null */

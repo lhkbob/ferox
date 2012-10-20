@@ -244,13 +244,15 @@ public class Utils {
         switch (wrap) {
         case CLAMP:
             return GL12.GL_CLAMP_TO_EDGE;
+        case CLAMP_TO_BORDER:
+            return GL13.GL_CLAMP_TO_BORDER;
         case MIRROR:
             return GL14.GL_MIRRORED_REPEAT;
         case REPEAT:
             return GL11.GL_REPEAT;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + wrap);
         }
-
-        return -1;
     }
 
     /** Face must be one of the constants in TextureCubeMap (0 - 5). */
@@ -348,10 +350,10 @@ public class Utils {
         case RG_FLOAT:
             return GL11.GL_LUMINANCE_ALPHA;
 
+        default:
+            // a compressed type
+            return -1;
         }
-
-        // a compressed type
-        return -1;
     }
 
     /**
@@ -452,9 +454,10 @@ public class Utils {
             } else {
                 return GL11.GL_RGBA;
             }
-        }
 
-        return -1;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + format);
+        }
     }
 
     /**
@@ -491,10 +494,9 @@ public class Utils {
             return GL12.GL_UNSIGNED_SHORT_5_6_5_REV;
         case RGB_565:
             return GL12.GL_UNSIGNED_SHORT_5_6_5;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + format);
         }
-
-        // not a packed type
-        return -1;
     }
 
     /**
@@ -510,9 +512,9 @@ public class Utils {
             return GL11.GL_UNSIGNED_INT;
         case UNSIGNED_SHORT:
             return GL11.GL_UNSIGNED_SHORT;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + type);
         }
-
-        return -1;
     }
 
     /** Func must not be null. */
@@ -550,9 +552,9 @@ public class Utils {
             return GL11.GL_ONE_MINUS_SRC_ALPHA;
         case SRC_ALPHA_SATURATE:
             return GL11.GL_SRC_ALPHA_SATURATE;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + src);
         }
-
-        return -1;
     }
 
     /**
@@ -566,9 +568,9 @@ public class Utils {
             return GL11.GL_POINT;
         case SOLID:
             return GL11.GL_FILL;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + style);
         }
-
-        return -1;
     }
 
     /** Op must not be null. */
@@ -611,9 +613,9 @@ public class Utils {
             return GL13.GL_REFLECTION_MAP;
         case NORMAL:
             return GL13.GL_NORMAL_MAP;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + gen);
         }
-
-        return -1;
     }
 
     /** Coord must be null */

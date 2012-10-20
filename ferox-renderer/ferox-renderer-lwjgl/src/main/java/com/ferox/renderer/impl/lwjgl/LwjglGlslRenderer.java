@@ -123,6 +123,8 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
         case FLOAT_MAT4:
             GL20.glUniformMatrix4(u.index, false, values);
             break;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + u.uniform.getType());
         }
     }
 
@@ -147,6 +149,8 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
         case INT_VEC4:
             GL20.glUniform4(u.index, values);
             break;
+        default:
+            throw new RuntimeException("Unsupported enum value: " + u.uniform.getType());
         }
     }
 

@@ -39,6 +39,7 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL14;
 
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractTextureResourceDriver;
 import com.ferox.renderer.impl.drivers.TextureHandle;
@@ -58,9 +59,12 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
     private final ThreadLocal<Integer> texBinding;
     private final ThreadLocal<Integer> texTarget;
 
+    private final FloatBuffer borderColor;
+
     public LwjglTextureResourceDriver() {
         texBinding = new ThreadLocal<Integer>();
         texTarget = new ThreadLocal<Integer>();
+        borderColor = BufferUtil.newFloatBuffer(4);
     }
 
     @Override
@@ -94,6 +98,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
             handle.wrapR = tex.getWrapModeS();
             GL11.glTexParameteri(target, GL12.GL_TEXTURE_WRAP_R,
                                  getWrapMode(handle.wrapR, caps));
+        }
+
+        // border color
+        if (!handle.borderColor.equals(tex.getBorderColor())) {
+            handle.borderColor.set(tex.getBorderColor());
+            handle.borderColor.get(borderColor, 0);
+
+            borderColor.rewind();
+            GL11.glTexParameter(target, GL11.GL_TEXTURE_BORDER_COLOR, borderColor);
         }
 
         // depth test
