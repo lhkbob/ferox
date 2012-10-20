@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.ContextState;
 import com.ferox.renderer.FixedFunctionRenderer;
@@ -67,7 +68,8 @@ public class ShadowMapCache {
 
         Texture sm = shadowMap.getDepthBuffer();
         sm.setFilter(Filter.LINEAR);
-        sm.setWrapMode(WrapMode.CLAMP);
+        sm.setWrapMode(WrapMode.CLAMP_TO_BORDER);
+        sm.setBorderColor(new Vector4(1, 1, 1, 1));
         sm.setDepthCompareEnabled(true);
         sm.setDepthComparison(Comparison.LEQUAL);
     }
