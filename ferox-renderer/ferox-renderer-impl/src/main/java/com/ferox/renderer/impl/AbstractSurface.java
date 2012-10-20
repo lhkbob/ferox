@@ -169,6 +169,7 @@ public abstract class AbstractSurface implements Surface {
                                 }
                             }, true);
         } else {
+            System.out.println("Destroy already completed");
             // If we've already been destroyed, use a completed future so
             // it's seen as completed
             return new CompletedFuture<Void>(null);

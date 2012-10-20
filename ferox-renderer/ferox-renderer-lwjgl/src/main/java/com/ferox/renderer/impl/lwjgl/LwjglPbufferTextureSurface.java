@@ -42,7 +42,6 @@ import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 
@@ -238,13 +237,15 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
         }
 
         if (depth != null) {
-            if (depth.getDataType() == DataType.UNSIGNED_BYTE) {
-                pf = pf.withDepthBits(16);
-            } else if (depth.getDataType() == DataType.UNSIGNED_SHORT) {
-                pf = pf.withDepthBits(24);
-            } else {
-                pf = pf.withDepthBits(32);
-            }
+            //            if (depth.getDataType() == DataType.UNSIGNED_BYTE) {
+            //                pf = pf.withDepthBits(16);
+            //            } else if (depth.getDataType() == DataType.UNSIGNED_SHORT) {
+            //                pf = pf.withDepthBits(24);
+            //            } else {
+            //                pf = pf.withDepthBits(32);
+            //            }
+            // FIXME On my Mac, LWJGL seems unable to select appropriate depth
+            pf = pf.withDepthBits(24);
         } else {
             pf = pf.withDepthBits(24);
         }

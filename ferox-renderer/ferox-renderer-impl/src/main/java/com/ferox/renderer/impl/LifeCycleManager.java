@@ -318,7 +318,7 @@ public class LifeCycleManager {
             // This iteration does not need to worry about changes to the thread-list
             // since the shutdown task is only started after the status is set to STOPPING
             // at which point no threads can be added to the managed group.
-            boolean loop = false;
+            boolean loop;
             do {
                 loop = false;
                 for (Thread managed : managedThreads) {

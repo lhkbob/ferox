@@ -228,7 +228,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
 
             // Enable/disable the read/draw buffers to make the fbo "complete"
             GL11.glReadBuffer(GL11.GL_NONE);
-            if (colorImageIds != null) {
+            if (colorImageIds.length > 0) {
                 IntBuffer drawBuffers = BufferUtil.newIntBuffer(colorImageIds.length);
                 for (int i = 0; i < colorImageIds.length; i++) {
                     if (useEXT) {

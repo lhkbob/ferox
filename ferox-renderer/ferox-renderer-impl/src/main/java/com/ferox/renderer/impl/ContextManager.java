@@ -311,8 +311,6 @@ public class ContextManager {
      */
     private class ContextThread extends Thread {
         private AbstractSurface activeSurface; // active surface, might differ from contextProvider
-        private AbstractSurface contextProvider; // source of currentContext if it's not the shared context
-
         private OpenGLContext currentContext; // non-null when a context is current
 
         private final BlockingDeque<Sync<?>> tasks; // pending tasks
@@ -335,7 +333,6 @@ public class ContextManager {
                 sharedContext.makeCurrent();
 
                 currentContext = sharedContext;
-                contextProvider = null;
             } // else there's a current context from somewhere, just go with it
 
             return currentContext;
@@ -356,13 +353,14 @@ public class ContextManager {
                 // Now check to see if the underlying context needs to change
                 OpenGLContext newContext = surface.getContext();
                 if (newContext != null) {
-                    // New surface needs its own context, so release and unlock the current context
-                    releaseContext();
+                    if (newContext != currentContext) {
+                        // New surface needs its own context, so release and unlock the current context
+                        releaseContext();
 
-                    // Now make its context current
-                    newContext.makeCurrent();
-                    currentContext = newContext;
-                    contextProvider = surface;
+                        // Now make its context current
+                        newContext.makeCurrent();
+                        currentContext = newContext;
+                    }
                 } else {
                     // Make sure we have a context for this surface, since it doesn't have its own
                     ensureContext();
@@ -386,10 +384,10 @@ public class ContextManager {
                 deactivateSurface();
             }
 
-            // then make sure we release its context
-            if (surface == contextProvider) {
-                releaseContext();
-            }
+            // then make sure we release the current context because many libs
+            // make the surface being destroyed current prior to destruction
+            // and release, but that makes our tracking get out of sync
+            releaseContext();
         }
 
         private void deactivateSurface() {
@@ -412,7 +410,6 @@ public class ContextManager {
             if (currentContext != null) {
                 currentContext.release();
                 currentContext = null;
-                contextProvider = null;
             }
         }
 

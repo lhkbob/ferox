@@ -180,7 +180,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
 
             // Enable/disable the read/draw buffers to make the fbo "complete"
             gl.glReadBuffer(GL.GL_NONE);
-            if (colorImageIds != null) {
+            if (colorImageIds.length > 0) {
                 int[] drawBuffers = new int[colorImageIds.length];
                 for (int i = 0; i < drawBuffers.length; i++) {
                     drawBuffers[i] = GL.GL_COLOR_ATTACHMENT0 + i;

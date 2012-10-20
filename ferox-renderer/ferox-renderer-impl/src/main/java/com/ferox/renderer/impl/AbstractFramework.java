@@ -234,6 +234,8 @@ public abstract class AbstractFramework implements Framework {
                         // accumulate the exceptions but continue to destroy
                         // all of the surfaces
                         surfaceDestroyExceptions.add(e);
+                        // must remove this surface so the loop can terminate
+                        surfaces.remove(toDestroy);
                     }
                 }
             }
