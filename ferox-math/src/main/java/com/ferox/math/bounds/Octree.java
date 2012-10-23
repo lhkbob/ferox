@@ -636,19 +636,23 @@ public class Octree<T> implements SpatialIndex<T> {
 
     protected int hashCellX(@Const Vector3 v) {
         // we add widthOffset to the coordinate value to get values into a positive-only range
-        return (int) ((v.x + widthOffset) * widthScaleFactor);
+        return clamp((int) ((v.x + widthOffset) * widthScaleFactor));
     }
 
     protected int hashCellY(@Const Vector3 v) {
-        return (int) ((v.y + heightOffset) * heightScaleFactor);
+        return clamp((int) ((v.y + heightOffset) * heightScaleFactor));
     }
 
     protected int hashCellZ(@Const Vector3 v) {
-        return (int) ((v.z + depthOffset) * depthScaleFactor);
+        return clamp((int) ((v.z + depthOffset) * depthScaleFactor));
     }
 
     protected int hash(int cellX, int cellY, int cellZ) {
         return cellX + maxCellDimension * cellY + maxCellDimension * maxCellDimension * cellZ;
+    }
+
+    protected int clamp(int discrete) {
+        return Math.max(0, Math.min(maxCellDimension - 1, discrete));
     }
 
     private void updateBounds(AxisAlignedBox bounds, int index) {

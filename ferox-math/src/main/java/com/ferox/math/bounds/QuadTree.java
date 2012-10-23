@@ -432,10 +432,10 @@ public class QuadTree<T> implements SpatialIndex<T> {
         }
 
         // hash x/z of bounds and do spatial hash query over intersecting cells
-        int minX = Math.max(0, hashCellX(bounds.min));
-        int minY = Math.max(0, hashCellY(bounds.min));
-        int maxX = Math.min(maxCellDimension - 1, hashCellX(bounds.max));
-        int maxY = Math.min(maxCellDimension - 1, hashCellY(bounds.max));
+        int minX = hashCellX(bounds.min);
+        int minY = hashCellY(bounds.min);
+        int maxX = hashCellX(bounds.max);
+        int maxY = hashCellY(bounds.max);
 
         int query = ++queryIdCounter;
         AxisAlignedBox itemBounds = new AxisAlignedBox();
@@ -623,11 +623,15 @@ public class QuadTree<T> implements SpatialIndex<T> {
 
     protected int hashCellX(@Const Vector3 v) {
         // we add widthOffset to the coordinate value to get values into a positive-only range
-        return (int) ((getFirstDimension(v) + widthOffset) * widthScaleFactor);
+        return clamp((int) ((getFirstDimension(v) + widthOffset) * widthScaleFactor));
     }
 
     protected int hashCellY(@Const Vector3 v) {
-        return (int) ((getSecondDimension(v) + heightOffset) * heightScaleFactor);
+        return clamp((int) ((getSecondDimension(v) + heightOffset) * heightScaleFactor));
+    }
+
+    protected int clamp(int discrete) {
+        return Math.max(0, Math.min(maxCellDimension - 1, discrete));
     }
 
     protected int hash(int cellX, int cellY) {
