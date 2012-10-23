@@ -48,7 +48,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * 
  * @author Michael Ludwig
  */
-public class Sphere {
+public final class Sphere {
     // we need a float PI since we're building float vertices
     private static final float PI = (float) Math.PI;
 
@@ -95,7 +95,7 @@ public class Sphere {
     }
 
     /**
-     * Create a new Sphere with the given radius, resolution and CompileType.
+     * Create a new Sphere with the given radius, resolution and StorageMode.
      * 
      * @param radius The radius of the sphere, in local space
      * @param res The resolution of the sphere
@@ -110,7 +110,6 @@ public class Sphere {
 
     private static class SphereImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
-        // ordered in such a way as to not need indices
         private final VertexBufferObject vertexAttributes;
 
         private final VertexAttribute vertices;
@@ -122,8 +121,7 @@ public class Sphere {
         private final AxisAlignedBox bounds;
 
         public SphereImpl(double radius, int res, StorageMode mode) {
-
-            if (radius <= 0f) {
+            if (radius <= 0) {
                 throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
             }
             if (res < 4) {
@@ -145,7 +143,7 @@ public class Sphere {
                 // compute cache for slices
                 xCoord[i] = (float) Math.cos(xzAngle);
                 zCoord[i] = (float) Math.sin(xzAngle);
-                u[i] = 1f - (float) i / res;
+                u[i] = i / (float) res;
                 xzAngle += dXZ;
             }
 

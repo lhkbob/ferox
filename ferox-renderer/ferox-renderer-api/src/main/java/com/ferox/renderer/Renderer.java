@@ -352,8 +352,8 @@ public interface Renderer {
             }
         },
         /**
-         * Every four vertics form a quadrilateral (ideally should be planar and
-         * convex to be rasterized properly).
+         * Every four vertices form a quadrilateral (ideally should be planar
+         * and convex to be rasterized properly).
          */
         QUADS {
             @Override

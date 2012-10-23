@@ -43,7 +43,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * 
  * @author Michael Ludwig
  */
-public class Teapot {
+public final class Teapot {
     private Teapot() {}
 
     /**

@@ -42,7 +42,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * 
  * @author Michael Ludwig
  */
-public class Box {
+public final class Box {
     private Box() {}
 
     /**

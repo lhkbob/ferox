@@ -43,7 +43,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * 
  * @author Michael Ludwig
  */
-public class Rectangle {
+public final class Rectangle {
     private Rectangle() {}
 
     /**
