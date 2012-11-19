@@ -31,14 +31,14 @@ import com.ferox.math.Matrix3;
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Matrix3Property;
 import com.ferox.math.entreri.Vector3Property;
+import com.ferox.physics.collision.CollisionBody;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 
+@Requires(CollisionBody.class)
 public class RigidBody extends ComponentData<RigidBody> {
-    public static final TypeId<RigidBody> ID = TypeId.get(RigidBody.class);
-
     private DoubleProperty inverseMass;
 
     private Matrix3Property inertiaTensorWorldInverse;
@@ -66,8 +66,8 @@ public class RigidBody extends ComponentData<RigidBody> {
 
     private RigidBody() {}
 
-    public @Const
-    Matrix3 getInertiaTensorInverse() {
+    @Const
+    public Matrix3 getInertiaTensorInverse() {
         return tensorCache;
     }
 
@@ -156,23 +156,23 @@ public class RigidBody extends ComponentData<RigidBody> {
         return inverseMass.get(getIndex());
     }
 
-    public @Const
-    Vector3 getVelocity() {
+    @Const
+    public Vector3 getVelocity() {
         return velocityCache;
     }
 
-    public @Const
-    Vector3 getAngularVelocity() {
+    @Const
+    public Vector3 getAngularVelocity() {
         return angularVelocityCache;
     }
 
-    public @Const
-    Vector3 getTotalForce() {
+    @Const
+    public Vector3 getTotalForce() {
         return forceCache;
     }
 
-    public @Const
-    Vector3 getTotalTorque() {
+    @Const
+    public Vector3 getTotalTorque() {
         return torqueCache;
     }
 

@@ -26,56 +26,96 @@
  */
 package com.ferox.physics.controller;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class SpatialIndexCollisionController extends CollisionController {
-    private SpatialIndex<Entity> index;
-    private CollisionAlgorithmProvider algorithms;
+public class SpatialIndexCollisionController extends CollisionTask implements ParallelAware {
+    private final SpatialIndex<Entity> index;
+    private final CollisionAlgorithmProvider algorithms;
 
-    // FIXME: add a setter, too
+    // cached instances that are normally local to process()
+    private CollisionBody bodyA;
+    private CollisionBody bodyB;
+
+    private ComponentIterator iterator;
+
     public SpatialIndexCollisionController(SpatialIndex<Entity> index,
                                            CollisionAlgorithmProvider algorithms) {
+        if (index == null || algorithms == null) {
+            throw new NullPointerException("Arguments cannot be null");
+        }
         this.index = index;
         this.algorithms = algorithms;
     }
 
     @Override
-    public void preProcess(double dt) {
-        super.preProcess(dt);
+    public void reset(EntitySystem system) {
+        super.reset(system);
+
+        if (bodyA == null) {
+            bodyA = system.createDataInstance(CollisionBody.class);
+            bodyB = system.createDataInstance(CollisionBody.class);
+
+            iterator = new ComponentIterator(system).addRequired(bodyA);
+        }
+
         index.clear(true);
+        iterator.reset();
     }
 
     @Override
-    public void process(double dt) {
-        CollisionBody body1 = getEntitySystem().createDataInstance(CollisionBody.ID);
-        CollisionBody body2 = getEntitySystem().createDataInstance(CollisionBody.ID);
+    public Task process(EntitySystem system, Job job) {
+        // if the index is bounded, update its size so everything is processed
+        if (index instanceof BoundedSpatialIndex) {
+            // FIXME how much does computing the union hurt our performance?
+            // FIXME do we want to shrink the extent even when the original extent
+            // is large enough? How does that affect query performance?
+            AxisAlignedBox extent = new AxisAlignedBox();
+            boolean first = true;
+            while (iterator.next()) {
+                if (first) {
+                    extent.set(bodyA.getWorldBounds());
+                    first = false;
+                } else {
+                    extent.union(bodyA.getWorldBounds());
+                }
+            }
+
+            // make the extents slightly larger so floating point errors don't
+            // cause shapes on the edge to get discarded
+            extent.min.scale(1.1);
+            extent.max.scale(1.1);
+            ((BoundedSpatialIndex<Entity>) index).setExtent(extent);
+            iterator.reset();
+        }
 
         // fill the index with all collision bodies
-        ComponentIterator it = new ComponentIterator(getEntitySystem());
-        it.addRequired(body1);
-
-        while (it.next()) {
-            index.add(body1.getEntity(), body1.getWorldBounds());
+        while (iterator.next()) {
+            index.add(bodyA.getEntity(), bodyA.getWorldBounds());
         }
 
         // query for all intersections
-        index.query(new CollisionCallback(body1, body2));
+        index.query(new CollisionCallback(bodyA, bodyB));
 
-        reportConstraints(dt);
-    }
+        reportConstraints(job);
 
-    @Override
-    public void destroy() {
-        index.clear();
-        super.destroy();
+        return super.process(system, job);
     }
 
     private class CollisionCallback implements IntersectionCallback<Entity> {
@@ -113,5 +153,15 @@ public class SpatialIndexCollisionController extends CollisionController {
                 }
             }
         }
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return Collections.<Class<? extends ComponentData<?>>> singleton(CollisionBody.class);
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }

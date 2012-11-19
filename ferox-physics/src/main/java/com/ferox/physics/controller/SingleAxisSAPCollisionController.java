@@ -26,6 +26,6 @@
  */
 package com.ferox.physics.controller;
 
-public class SingleAxisSAPCollisionController extends CollisionController {
+public class SingleAxisSAPCollisionController extends CollisionTask {
 
 }

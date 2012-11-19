@@ -26,6 +26,10 @@
  */
 package com.ferox.physics.controller;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
 import com.ferox.math.Matrix4;
@@ -34,54 +38,82 @@ import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.ExplicitEulerIntegrator;
 import com.ferox.physics.dynamics.Integrator;
 import com.ferox.physics.dynamics.RigidBody;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.ElapsedTimeResult;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class MotionController extends SimpleController {
-    private Integrator integrator;
-
-    public MotionController() {
-        setIntegrator(new ExplicitEulerIntegrator());
+public class MotionTask implements Task, ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(CollisionBody.class);
+        types.add(RigidBody.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
     }
 
-    public void setIntegrator(Integrator integrator) {
+    private final Integrator integrator;
+
+    private double dt;
+
+    // values that could be local to process(), but don't need to be allocated
+    // every frame
+    private final Vector3 predictedPosition = new Vector3();
+    private final Matrix3 predictedRotation = new Matrix3();
+
+    private RigidBody rigidBody;
+    private CollisionBody collisionBody;
+    private ComponentIterator iterator;
+
+    public MotionTask() {
+        this(new ExplicitEulerIntegrator());
+    }
+
+    public MotionTask(Integrator integrator) {
         if (integrator == null) {
             throw new NullPointerException("Integrator can't be null");
         }
         this.integrator = integrator;
     }
 
-    public Integrator getIntegrator() {
-        return integrator;
+    public void report(ElapsedTimeResult dt) {
+        this.dt = dt.getTimeDelta();
     }
 
     @Override
-    public void process(double dt) {
-        Vector3 predictedPosition = new Vector3();
-        Matrix3 predictedRotation = new Matrix3();
+    public void reset(EntitySystem system) {
+        if (iterator == null) {
+            rigidBody = system.createDataInstance(RigidBody.class);
+            collisionBody = system.createDataInstance(CollisionBody.class);
+            iterator = new ComponentIterator(system);
+        } else {
+            iterator.reset();
+        }
+    }
 
-        RigidBody rb = getEntitySystem().createDataInstance(RigidBody.ID);
-        CollisionBody cb = getEntitySystem().createDataInstance(CollisionBody.ID);
-
-        ComponentIterator it = new ComponentIterator(getEntitySystem());
-        it.addRequired(rb);
-        it.addRequired(cb);
-
-        while (it.next()) {
-            Matrix4 transform = cb.getTransform();
+    @Override
+    public Task process(EntitySystem system, Job job) {
+        while (iterator.next()) {
+            Matrix4 transform = collisionBody.getTransform();
 
             predictedRotation.setUpper(transform);
             predictedPosition.set(transform.m03, transform.m13, transform.m23);
 
-            integrator.integrateLinearVelocity(rb.getVelocity(), dt, predictedPosition);
-            integrator.integrateAngularVelocity(rb.getAngularVelocity(), dt,
+            integrator.integrateLinearVelocity(rigidBody.getVelocity(), dt,
+                                               predictedPosition);
+            integrator.integrateAngularVelocity(rigidBody.getAngularVelocity(), dt,
                                                 predictedRotation);
 
             // push values back into transform
             setTransform(predictedRotation, predictedPosition, transform);
 
-            cb.setTransform(transform);
+            collisionBody.setTransform(transform);
         }
+
+        return null;
     }
 
     private void setTransform(@Const Matrix3 r, @Const Vector3 p, Matrix4 t) {
@@ -96,5 +128,15 @@ public class MotionController extends SimpleController {
         t.m31 = 0.0;
         t.m32 = 0.0;
         t.m33 = 1.0;
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return COMPONENTS;
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }

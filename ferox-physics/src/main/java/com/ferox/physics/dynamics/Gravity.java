@@ -30,12 +30,9 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 
 public class Gravity extends ComponentData<Gravity> {
-    public static final TypeId<Gravity> ID = TypeId.get(Gravity.class);
-
     private Vector3Property gravity;
 
     @Unmanaged

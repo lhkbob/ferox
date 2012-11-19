@@ -27,9 +27,9 @@
 package com.ferox.physics.controller;
 
 import com.ferox.physics.dynamics.LinearConstraintPool;
-import com.lhkbob.entreri.Result;
+import com.lhkbob.entreri.task.Result;
 
-public class ConstraintResult implements Result {
+public class ConstraintResult extends Result {
     private final LinearConstraintPool group;
 
     public ConstraintResult(LinearConstraintPool group) {

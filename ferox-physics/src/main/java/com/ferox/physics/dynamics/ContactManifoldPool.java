@@ -171,10 +171,10 @@ public class ContactManifoldPool {
 
     public void generateConstraints(double dt, LinearConstraintPool contactPool,
                                     LinearConstraintPool frictionPool) {
-        CollisionBody bodyA = entitySystem.createDataInstance(CollisionBody.ID);
-        CollisionBody bodyB = entitySystem.createDataInstance(CollisionBody.ID);
-        RigidBody rbA = entitySystem.createDataInstance(RigidBody.ID);
-        RigidBody rbB = entitySystem.createDataInstance(RigidBody.ID);
+        CollisionBody bodyA = entitySystem.createDataInstance(CollisionBody.class);
+        CollisionBody bodyB = entitySystem.createDataInstance(CollisionBody.class);
+        RigidBody rbA = entitySystem.createDataInstance(RigidBody.class);
+        RigidBody rbB = entitySystem.createDataInstance(RigidBody.class);
 
         // we need 4 temporary vectors to compute constraint info
         Vector3 relPosA = new Vector3();
@@ -185,10 +185,16 @@ public class ContactManifoldPool {
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
                 // load in component data
-                objAs[manifold].get(bodyA);
-                objAs[manifold].get(rbA);
-                objBs[manifold].get(bodyB);
-                objBs[manifold].get(rbB);
+                boolean valid = objAs[manifold].get(bodyA);
+                valid &= objAs[manifold].get(rbA);
+                valid &= objBs[manifold].get(bodyB);
+                valid &= objBs[manifold].get(rbB);
+
+                if (!valid) {
+                    // component was removed and entity should no longer be in the manifold pool
+                    removeManifold(manifold);
+                    continue;
+                }
 
                 Matrix4 ta = bodyA.getTransform();
                 Matrix4 tb = bodyB.getTransform();
@@ -310,8 +316,8 @@ public class ContactManifoldPool {
 
     private void removeManifold(int manifold) {
         // remove map entry
-        query.set(objAs[manifold].get(CollisionBody.ID),
-                  objBs[manifold].get(CollisionBody.ID));
+        query.set(objAs[manifold].get(CollisionBody.class),
+                  objBs[manifold].get(CollisionBody.class));
         manifolds.remove(query);
 
         // clear packed data
