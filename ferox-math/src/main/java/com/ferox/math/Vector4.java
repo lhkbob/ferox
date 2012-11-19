@@ -95,6 +95,48 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
+     * Floor each component of the vector <tt>v</tt> and store them in this
+     * vector.
+     * 
+     * @param v The vector to be floored
+     * @return This vector
+     * @throws NullPointerException if v is null
+     */
+    public Vector4 floor(Vector4 v) {
+        return set(Math.floor(v.x), Math.floor(v.y), Math.floor(v.z), Math.floor(v.w));
+    }
+
+    /**
+     * Floor this vector component-wise.
+     * 
+     * @return This vector
+     */
+    public Vector4 floor() {
+        return floor(this);
+    }
+
+    /**
+     * Compute the ceiling of each component of the vector <tt>v</tt> and store
+     * them in this vector.
+     * 
+     * @param v The vector to be ceil'ed
+     * @return This vector
+     * @throws NullPointerException if v is null
+     */
+    public Vector4 ceil(Vector4 v) {
+        return set(Math.ceil(v.x), Math.ceil(v.y), Math.ceil(v.z), Math.ceil(v.w));
+    }
+
+    /**
+     * Compute the ceiling this vector component-wise.
+     * 
+     * @return This vector
+     */
+    public Vector4 ceil() {
+        return ceil(this);
+    }
+
+    /**
      * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and
      * store the resultant values of (x, y, z, w) into this vector:
      * 

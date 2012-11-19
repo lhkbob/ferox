@@ -52,7 +52,7 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * @author Michael Ludwig
  * @param <T> The data type stored in the quadtree
  */
-public class QuadTree<T> implements SpatialIndex<T> {
+public class QuadTree<T> implements BoundedSpatialIndex<T> {
     private static final int POS_X = 0x1;
     private static final int POS_Y = 0x2;
 
@@ -65,11 +65,11 @@ public class QuadTree<T> implements SpatialIndex<T> {
     private final Cell[] spatialHash;
     private final int maxCellDimension;
 
-    private final double widthScaleFactor;
-    private final double heightScaleFactor;
+    private double widthScaleFactor;
+    private double heightScaleFactor;
 
-    private final double widthOffset;
-    private final double heightOffset;
+    private double widthOffset;
+    private double heightOffset;
 
     private final AxisAlignedBox rootBounds;
 
@@ -138,7 +138,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
         }
 
         this.depth = depth;
-        rootBounds = aabb.clone();
+        rootBounds = new AxisAlignedBox();
 
         maxCellDimension = 1 << (depth - 1);
         spatialHash = new Cell[maxCellDimension * maxCellDimension];
@@ -148,11 +148,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
         size = 0;
         queryIdCounter = 0;
 
-        widthScaleFactor = maxCellDimension / (getFirstDimension(aabb.max) - getFirstDimension(aabb.min));
-        heightScaleFactor = maxCellDimension / (getSecondDimension(aabb.max) - getSecondDimension(aabb.min));
-
-        widthOffset = -getFirstDimension(aabb.min);
-        heightOffset = -getSecondDimension(aabb.min);
+        setExtent(aabb);
 
         int numNodes = getLevelOffset(depth);
         quadtree = new int[numNodes];
@@ -161,6 +157,27 @@ public class QuadTree<T> implements SpatialIndex<T> {
         // can be computed lazily later
         int leafOffset = getLevelOffset(depth - 1);
         Arrays.fill(quadtree, leafOffset, quadtree.length, -1);
+    }
+
+    @Override
+    @Const
+    public AxisAlignedBox getExtent() {
+        return rootBounds;
+    }
+
+    @Override
+    public void setExtent(AxisAlignedBox bounds) {
+        if (size > 0) {
+            throw new IllegalStateException("Index is not empty");
+        }
+
+        rootBounds.set(bounds);
+
+        widthScaleFactor = maxCellDimension / (getFirstDimension(rootBounds.max) - getFirstDimension(rootBounds.min));
+        heightScaleFactor = maxCellDimension / (getSecondDimension(rootBounds.max) - getSecondDimension(rootBounds.min));
+
+        widthOffset = -getFirstDimension(rootBounds.min);
+        heightOffset = -getSecondDimension(rootBounds.min);
     }
 
     @Override
@@ -298,7 +315,7 @@ public class QuadTree<T> implements SpatialIndex<T> {
         int minX = hashCellX(bounds.min);
         int minY = hashCellY(bounds.min);
         int maxX = hashCellX(bounds.max);
-        int maxY = hashCellY(bounds.max); // FIXME if exactly on far edge of max, we get out of bounds
+        int maxY = hashCellY(bounds.max);
 
         int hash;
         Cell cell;

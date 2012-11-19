@@ -92,6 +92,48 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
+     * Floor each component of the vector <tt>v</tt> and store them in this
+     * vector.
+     * 
+     * @param v The vector to be floored
+     * @return This vector
+     * @throws NullPointerException if v is null
+     */
+    public Vector3 floor(Vector3 v) {
+        return set(Math.floor(v.x), Math.floor(v.y), Math.floor(v.z));
+    }
+
+    /**
+     * Floor this vector component-wise.
+     * 
+     * @return This vector
+     */
+    public Vector3 floor() {
+        return floor(this);
+    }
+
+    /**
+     * Compute the ceiling of each component of the vector <tt>v</tt> and store
+     * them in this vector.
+     * 
+     * @param v The vector to be ceil'ed
+     * @return This vector
+     * @throws NullPointerException if v is null
+     */
+    public Vector3 ceil(Vector3 v) {
+        return set(Math.ceil(v.x), Math.ceil(v.y), Math.ceil(v.z));
+    }
+
+    /**
+     * Compute the ceiling this vector component-wise.
+     * 
+     * @return This vector
+     */
+    public Vector3 ceil() {
+        return ceil(this);
+    }
+
+    /**
      * Compute the length of this vector.
      * 
      * @return Length of this vector

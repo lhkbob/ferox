@@ -50,7 +50,7 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
  * @author Michael Ludwig
  * @param <T> The data type stored in the octree
  */
-public class Octree<T> implements SpatialIndex<T> {
+public class Octree<T> implements BoundedSpatialIndex<T> {
     private static final int POS_X = 0x1;
     private static final int POS_Y = 0x2;
     private static final int POS_Z = 0x4;
@@ -64,13 +64,13 @@ public class Octree<T> implements SpatialIndex<T> {
     private final Cell[] spatialHash;
     private final int maxCellDimension;
 
-    private final double widthScaleFactor;
-    private final double heightScaleFactor;
-    private final double depthScaleFactor;
+    private double widthScaleFactor;
+    private double heightScaleFactor;
+    private double depthScaleFactor;
 
-    private final double widthOffset;
-    private final double heightOffset;
-    private final double depthOffset;
+    private double widthOffset;
+    private double heightOffset;
+    private double depthOffset;
 
     private final AxisAlignedBox rootBounds;
 
@@ -132,7 +132,7 @@ public class Octree<T> implements SpatialIndex<T> {
      */
     public Octree(@Const AxisAlignedBox aabb, int depth) {
         this.depth = depth;
-        rootBounds = aabb.clone();
+        rootBounds = new AxisAlignedBox();
 
         maxCellDimension = 1 << (depth - 1);
         spatialHash = new Cell[maxCellDimension * maxCellDimension * maxCellDimension];
@@ -142,13 +142,7 @@ public class Octree<T> implements SpatialIndex<T> {
         size = 0;
         queryIdCounter = 0;
 
-        widthScaleFactor = maxCellDimension / (aabb.max.x - aabb.min.x);
-        heightScaleFactor = maxCellDimension / (aabb.max.y - aabb.min.y);
-        depthScaleFactor = maxCellDimension / (aabb.max.z - aabb.min.z);
-
-        widthOffset = -aabb.min.x;
-        heightOffset = -aabb.min.y;
-        depthOffset = -aabb.min.z;
+        setExtent(aabb);
 
         int numNodes = getLevelOffset(depth);
         octree = new int[numNodes];
@@ -157,6 +151,29 @@ public class Octree<T> implements SpatialIndex<T> {
         // can be computed lazily later
         int leafOffset = getLevelOffset(depth - 1);
         Arrays.fill(octree, leafOffset, octree.length, -1);
+    }
+
+    @Override
+    @Const
+    public AxisAlignedBox getExtent() {
+        return rootBounds;
+    }
+
+    @Override
+    public void setExtent(AxisAlignedBox bounds) {
+        if (size > 0) {
+            throw new IllegalStateException("Index is not empty");
+        }
+
+        rootBounds.set(bounds);
+
+        widthScaleFactor = maxCellDimension / (rootBounds.max.x - rootBounds.min.x);
+        heightScaleFactor = maxCellDimension / (rootBounds.max.y - rootBounds.min.y);
+        depthScaleFactor = maxCellDimension / (rootBounds.max.z - rootBounds.min.z);
+
+        widthOffset = -rootBounds.min.x;
+        heightOffset = -rootBounds.min.y;
+        depthOffset = -rootBounds.min.z;
     }
 
     @Override
