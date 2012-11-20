@@ -34,7 +34,7 @@ import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.SimpleController;
 
 public class SpatialIndexController extends SimpleController {
-    private SpatialIndex<Entity> index;
+    private final SpatialIndex<Entity> index;
 
     // FIXME: add a setter, too
     public SpatialIndexController(SpatialIndex<Entity> index) {
@@ -43,6 +43,9 @@ public class SpatialIndexController extends SimpleController {
 
     @Override
     public void preProcess(double dt) {
+        // FIXME add a way to adjust the bounds of a SpatialIndex, and have this
+        // listen for SceneBoundsResults and update the index so we don't lose
+        // objects inappropriately
         index.clear(true);
     }
 

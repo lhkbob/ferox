@@ -30,7 +30,6 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexAttribute;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -58,11 +57,6 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * @author Michael Ludwig
  */
 public final class NormalMap extends TextureMap<NormalMap> {
-    /**
-     * The shared TypedId representing NormalMap.
-     */
-    public static final TypeId<NormalMap> ID = TypeId.get(NormalMap.class);
-
     private ObjectProperty<VertexAttribute> tangentVectors;
 
     private NormalMap() {}

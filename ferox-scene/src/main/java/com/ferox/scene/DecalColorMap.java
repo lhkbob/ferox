@@ -27,7 +27,6 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -44,11 +43,6 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public class DecalColorMap extends TextureMap<DecalColorMap> {
-    /**
-     * TypeId for DecalColorMap.
-     */
-    public static final TypeId<DecalColorMap> ID = TypeId.get(DecalColorMap.class);
-
     private DecalColorMap() {}
 
     @Override

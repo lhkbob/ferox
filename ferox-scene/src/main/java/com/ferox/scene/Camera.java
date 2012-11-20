@@ -28,7 +28,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Surface;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
@@ -46,12 +46,8 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * 
  * @author Michael Ludwig
  */
+@Requires(Transform.class)
 public final class Camera extends ComponentData<Camera> {
-    /**
-     * The shared TypedId instance corresponding to Camera.
-     */
-    public static final TypeId<Camera> ID = TypeId.get(Camera.class);
-
     private ObjectProperty<Surface> surface;
 
     @DefaultDouble(60.0)

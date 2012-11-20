@@ -26,6 +26,7 @@
  */
 package com.ferox.scene;
 
+import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
@@ -46,6 +47,7 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
  * @author Michael Ludwig
  * @param <T> The component light type
  */
+@Requires(Transform.class)
 public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> extends Light<T> {
     @DefaultDouble(-1.0)
     private DoubleProperty falloffDistance;

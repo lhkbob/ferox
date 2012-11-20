@@ -30,7 +30,6 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
@@ -48,11 +47,6 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * @author Michael Ludwig
  */
 public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
-    /**
-     * The shared TypedId representing AtmosphericFog.
-     */
-    public static final TypeId<AtmosphericFog> ID = TypeId.get(AtmosphericFog.class);
-
     /**
      * Falloff represents how the visibility of fog decreases as distance
      * increases. The opacity of the fog, at some distance, can be considered as

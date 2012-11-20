@@ -27,7 +27,6 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -49,11 +48,6 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
-    /**
-     * The shared TypedId representing DepthOffsetMap.
-     */
-    public static final TypeId<SpecularColorMap> ID = TypeId.get(SpecularColorMap.class);
-
     private SpecularColorMap() {}
 
     @Override

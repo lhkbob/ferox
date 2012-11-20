@@ -56,7 +56,7 @@ import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.SimpleController;
 
 public class PhysicsApplicationStub extends ApplicationStub {
-    protected static final int BOUNDS = 100;
+    protected static final int BOUNDS = 50;
     protected static final double MARGIN = .05;
 
     protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1,
@@ -75,7 +75,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
     private static final double MIN_PHI = Math.PI / 12.0;
 
     private static final double MIN_ZOOM = 1.0;
-    private static final double MAX_ZOOM = 30.0;
+    private static final double MAX_ZOOM = BOUNDS;
 
     private static final double ANGLE_RATE = Math.PI / 4.0;
     private static final double ZOOM_RATE = 10.0;
@@ -189,7 +189,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
     protected void init(OnscreenSurface surface) {
         // physics handling
         system.getControllerManager()
-              .addController(new com.ferox.physics.controller.ForcesController());
+              .addController(new com.ferox.physics.controller.ForcesTask());
 
         //        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.QuadTree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
         //        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.SimpleSpatialIndex<Entity>(), new DefaultCollisionAlgorithmProvider()));
@@ -199,9 +199,9 @@ public class PhysicsApplicationStub extends ApplicationStub {
                                                                  new DefaultCollisionAlgorithmProvider()));
 
         system.getControllerManager()
-              .addController(new com.ferox.physics.controller.ConstraintSolvingController());
+              .addController(new com.ferox.physics.controller.ConstraintSolvingTask());
         system.getControllerManager()
-              .addController(new com.ferox.physics.controller.MotionController());
+              .addController(new com.ferox.physics.controller.MotionTask());
 
         system.getControllerManager().addController(new TransformController());
 
@@ -226,8 +226,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
         zoom = (MAX_ZOOM + MIN_ZOOM) / 2.0;
 
         camera = system.addEntity();
-        camera.add(Camera.ID).getData().setSurface(surface)
-              .setZDistances(1.0, 6 * BOUNDS);
+        camera.add(Camera.ID).getData().setSurface(surface).setZDistances(1.0, BOUNDS);
         camera.add(Transform.ID);
         updateCameraOrientation();
     }

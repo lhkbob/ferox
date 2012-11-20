@@ -36,7 +36,7 @@ import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.util.geom.Geometry;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
@@ -56,12 +56,8 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * 
  * @author Michael Ludwig
  */
+@Requires(Transform.class)
 public final class Renderable extends ComponentData<Renderable> {
-    /**
-     * The shared TypedId representing Renderable.
-     */
-    public static final TypeId<Renderable> ID = TypeId.get(Renderable.class);
-
     private ObjectProperty<VertexAttribute> vertices;
     private ObjectProperty<VertexBufferObject> indices;
     private ObjectProperty<PolygonType> polyType;

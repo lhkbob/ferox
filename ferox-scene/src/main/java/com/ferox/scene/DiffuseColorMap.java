@@ -27,7 +27,6 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -49,11 +48,6 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public class DiffuseColorMap extends TextureMap<DiffuseColorMap> {
-    /**
-     * The shared TypedId representing DiffuseColorMap.
-     */
-    public static final TypeId<DiffuseColorMap> ID = TypeId.get(DiffuseColorMap.class);
-
     private DiffuseColorMap() {}
 
     @Override

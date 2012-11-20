@@ -76,7 +76,7 @@ public final class Box {
 
     /**
      * Construct a box centered on its origin, with the given side length. So,
-     * Box(1f) creates a unit cube.
+     * Box(1.0) creates a unit cube.
      * 
      * @param side The side length of the created cube
      * @param mode The storage mode to use for the Box
@@ -87,6 +87,24 @@ public final class Box {
     public static Geometry create(double side, StorageMode mode) {
         return create(new Vector3(-side / 2, -side / 2, -side / 2),
                       new Vector3(side / 2, side / 2, side / 2), mode);
+    }
+
+    /**
+     * Construct a box centered on its origin, with the given side lengths along
+     * each local axis.
+     * 
+     * @param xExtent The side length along the x axis
+     * @param yExtent The side length along the y axis
+     * @param zExtent The side length along the z axis
+     * @param mode The storage mode
+     * @return The new geometry
+     * @throws NullPointerException if mode is null
+     * @throws IllegalMonitorStateException if any dimension is negative
+     */
+    public static Geometry create(double xExtent, double yExtent, double zExtent,
+                                  StorageMode mode) {
+        return create(new Vector3(-xExtent / 2, -yExtent / 2, -zExtent / 2),
+                      new Vector3(xExtent / 2, yExtent / 2, zExtent / 2), mode);
     }
 
     /**

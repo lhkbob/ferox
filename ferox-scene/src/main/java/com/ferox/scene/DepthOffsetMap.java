@@ -28,7 +28,6 @@ package com.ferox.scene;
 
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -49,11 +48,6 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
-    /**
-     * The shared TypedId representing DepthOffsetMap.
-     */
-    public static final TypeId<DepthOffsetMap> ID = TypeId.get(DepthOffsetMap.class);
-
     private DepthOffsetMap() {}
 
     @Override

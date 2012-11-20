@@ -30,16 +30,11 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.BooleanProperty;
 
+// FIXME requires Transform? I don't think so...
 public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
-    /**
-     * TypeId for InfluenceRegion component type.
-     */
-    public static final TypeId<InfluenceRegion> ID = TypeId.get(InfluenceRegion.class);
-
     private AxisAlignedBoxProperty bounds;
     private BooleanProperty negate;
 

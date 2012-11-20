@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.property.BooleanProperty;
 import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
 import com.lhkbob.entreri.property.DoubleProperty;
@@ -49,11 +48,6 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
  * @author Michael Ludwig
  */
 public final class SpotLight extends AbstractPlacedLight<SpotLight> {
-    /**
-     * The shared TypedId representing SpotLight.
-     */
-    public static final TypeId<SpotLight> ID = TypeId.get(SpotLight.class);
-
     @DefaultDouble(30.0)
     private DoubleProperty cutoffAngle;
 

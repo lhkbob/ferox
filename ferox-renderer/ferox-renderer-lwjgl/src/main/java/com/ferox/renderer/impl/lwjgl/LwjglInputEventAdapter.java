@@ -46,8 +46,8 @@ import com.ferox.input.MouseKeyEventDispatcher;
 public class LwjglInputEventAdapter {
     private final MouseKeyEventDispatcher dispatcher;
 
-    private int lastMouseX = Integer.MIN_VALUE;
-    private int lastMouseY = Integer.MIN_VALUE;
+    private final int lastMouseX = Integer.MIN_VALUE;
+    private final int lastMouseY = Integer.MIN_VALUE;
 
     public LwjglInputEventAdapter(MouseKeyEventDispatcher dispatcher) {
         if (dispatcher == null) {
@@ -130,7 +130,6 @@ public class LwjglInputEventAdapter {
         // Process all incoming keyboard events
         while (Keyboard.next()) {
             KeyEvent.KeyCode keyCode = getKeyCode(Keyboard.getEventKey());
-
             char eventChar = Keyboard.getEventCharacter();
             if (eventChar == Keyboard.CHAR_NONE) {
                 eventChar = KeyEvent.CHAR_UNKNOWN;

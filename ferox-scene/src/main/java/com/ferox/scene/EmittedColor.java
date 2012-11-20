@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -42,10 +41,5 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public final class EmittedColor extends ColorComponent<EmittedColor> {
-    /**
-     * The shared TypedId representing EmittedColor.
-     */
-    public static final TypeId<EmittedColor> ID = TypeId.get(EmittedColor.class);
-
     private EmittedColor() {}
 }

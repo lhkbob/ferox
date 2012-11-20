@@ -34,15 +34,9 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 public final class Influences extends ComponentData<Influences> {
-    /**
-     * TypeId for Influences Component type
-     */
-    public static final TypeId<Influences> ID = TypeId.get(Influences.class);
-
     @Factory(SetFactory.class)
     private ObjectProperty<Set<Entity>> entities;
 

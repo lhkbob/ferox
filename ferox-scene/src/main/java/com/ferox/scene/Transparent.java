@@ -27,7 +27,6 @@
 package com.ferox.scene;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
@@ -56,11 +55,6 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
  * @author Michael Ludwig
  */
 public final class Transparent extends ComponentData<Transparent> {
-    /**
-     * The shared TypedId representing Transparent.
-     */
-    public static final TypeId<Transparent> ID = TypeId.get(Transparent.class);
-
     @DefaultDouble(0.5)
     private DoubleProperty opacity;
 

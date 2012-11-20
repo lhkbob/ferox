@@ -41,7 +41,6 @@ import com.ferox.math.entreri.Vector3Property.DefaultVector3;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.impl.jogl.JoglFramework;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.resource.VertexBufferObject.StorageMode;
@@ -49,6 +48,7 @@ import com.ferox.scene.AmbientLight;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
 import com.ferox.scene.DiffuseColor;
+import com.ferox.scene.DirectionLight;
 import com.ferox.scene.InfluenceRegion;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
@@ -58,6 +58,7 @@ import com.ferox.scene.controller.SpatialIndexController;
 import com.ferox.scene.controller.VisibilityController;
 import com.ferox.scene.controller.WorldBoundsController;
 import com.ferox.scene.controller.light.LightGroupController;
+import com.ferox.scene.controller.light.ShadowFrustumController;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.Sphere;
@@ -75,20 +76,39 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 public class SimpleTest {
     public static final boolean LWJGL = true;
 
+    public static final double BOUNDS = 200;
+
     public static void main(String[] args) {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
+        System.out.println(framework.getCapabilities().getFboSupport());
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                       .setHeight(600)
                                                                                       //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
-                                                                                      .setMultiSampling(MultiSampling.FOUR_X)
+                                                                                      //                                                                                      .setMultiSampling(MultiSampling.FOUR_X)
                                                                                       .setResizable(false));
-        surface.setVSyncEnabled(true);
+        //        surface.setVSyncEnabled(true);
 
         EntitySystem system = new EntitySystem();
 
         Entity camera = system.addEntity();
-        camera.add(Transform.ID).getData()
-              .setMatrix(new Matrix4(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 150, 0, 0, 0, 1));
+        camera.add(Transform.ID)
+              .getData()
+              .setMatrix(new Matrix4(-1,
+                                     0,
+                                     0,
+                                     0,
+                                     0,
+                                     1,
+                                     0,
+                                     0,
+                                     0,
+                                     0,
+                                     -1,
+                                     .9 * BOUNDS,
+                                     0,
+                                     0,
+                                     0,
+                                     1));
         camera.add(Camera.ID).getData().setSurface(surface).setZDistances(0.1, 1200)
               .setFieldOfView(75);
 
@@ -138,24 +158,24 @@ public class SimpleTest {
              .setLocalBounds(b.getBounds())
              .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(),
                          b.getIndexCount());
-            if (Math.random() < .9) {
-                e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
-            }
+            //            if (Math.random() < .9) {
+            e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
+            //            }
             e.add(DiffuseColor.ID).getData().setColor(c);
             e.add(Transform.ID)
              .getData()
              .setMatrix(new Matrix4(1,
                                     0,
                                     0,
-                                    Math.random() * 200 - 100,
+                                    Math.random() * BOUNDS - BOUNDS / 2,
                                     0,
                                     1,
                                     0,
-                                    Math.random() * 200 - 100,
+                                    Math.random() * BOUNDS - BOUNDS / 2,
                                     0,
                                     0,
                                     1,
-                                    Math.random() * 200 - 100,
+                                    Math.random() * BOUNDS - BOUNDS / 2,
                                     0,
                                     0,
                                     0,
@@ -166,7 +186,7 @@ public class SimpleTest {
 
         System.out.println("Approximate total polygons / frame: " + totalpolys);
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 5; i++) {
             double falloff = 100.0 + Math.random() * 40;
 
             Entity light = system.addEntity();
@@ -186,15 +206,15 @@ public class SimpleTest {
                  .setMatrix(new Matrix4(1,
                                         0,
                                         0,
-                                        Math.random() * 200 - 100,
+                                        Math.random() * BOUNDS - BOUNDS / 2,
                                         0,
                                         1,
                                         0,
-                                        Math.random() * 200 - 100,
+                                        Math.random() * BOUNDS - BOUNDS / 2,
                                         0,
                                         0,
                                         1,
-                                        Math.random() * 200 - 100,
+                                        Math.random() * BOUNDS - BOUNDS / 2,
                                         0,
                                         0,
                                         0,
@@ -203,11 +223,26 @@ public class SimpleTest {
         system.addEntity().add(AmbientLight.ID).getData()
               .setColor(new ColorRGB(0.2, 0.2, 0.2));
 
-        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-150, -150, -150),
-                                                        new Vector3(150, 150, 150));
+        Entity inf = system.addEntity();
+        inf.add(DirectionLight.ID).getData().setColor(new ColorRGB(1, 1, 1))
+           .setShadowCaster(true);
+        inf.add(Transform.ID)
+           .getData()
+           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(.3 * BOUNDS,
+                                                                      .3 * BOUNDS,
+                                                                      .3 * BOUNDS),
+                                           new Vector3(0, 1, 0)));
+
+        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-1.5 * BOUNDS / 2,
+                                                                    -1.5 * BOUNDS / 2,
+                                                                    -1.5 * BOUNDS / 2),
+                                                        new Vector3(1.5 * BOUNDS / 2,
+                                                                    1.5 * BOUNDS / 2,
+                                                                    1.5 * BOUNDS / 2));
         Controller animator = new AnimationController();
         Controller boundsUpdate = new WorldBoundsController();
         Controller frustumUpdate = new CameraController();
+        Controller smUpdate = new ShadowFrustumController();
         Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(worldBounds,
                                                                                   6));
         Controller pvsComputer = new VisibilityController();
@@ -217,6 +252,7 @@ public class SimpleTest {
         Map<String, Controller> controllers = new HashMap<String, Controller>();
         controllers.put("anim", animator);
         controllers.put("bounds", boundsUpdate);
+        controllers.put("shadow", smUpdate);
         controllers.put("frustum", frustumUpdate);
         controllers.put("index-build", indexBuilder);
         controllers.put("pvs", pvsComputer);
@@ -227,6 +263,7 @@ public class SimpleTest {
         system.getControllerManager().addController(animator);
         system.getControllerManager().addController(boundsUpdate);
         system.getControllerManager().addController(frustumUpdate);
+        system.getControllerManager().addController(smUpdate);
         system.getControllerManager().addController(indexBuilder);
         system.getControllerManager().addController(pvsComputer);
         system.getControllerManager().addController(lights);

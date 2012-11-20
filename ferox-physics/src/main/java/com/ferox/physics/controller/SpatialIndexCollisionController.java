@@ -79,6 +79,19 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
         iterator.reset();
     }
 
+    // NOTE: with regards to performance and task creation, there are 
+    // non-zero costs with iterating through the system: content is pulled
+    // from the properties into local instances and then processed (either
+    // directly with getters, or the onSet() method). This means that if
+    // multiple tasks are executed consecutively but access the same component
+    // types, we're doing additional load work.
+    //
+    // It'd be faster to merge those tasks into a single loop. Is this something
+    // I should automate, or something that I should consider when I design my
+    // tasks? I think it's too awkward to automate, although it would be cool.
+    //
+    // 
+
     @Override
     public Task process(EntitySystem system, Job job) {
         // if the index is bounded, update its size so everything is processed
@@ -86,6 +99,17 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
             // FIXME how much does computing the union hurt our performance?
             // FIXME do we want to shrink the extent even when the original extent
             // is large enough? How does that affect query performance?
+
+            // FIXME right now, setTransform() computes updateBounds() for CollisionBody,
+            // which isn't the best -> what if we had a task that just computed
+            // world bounds (like world bounds task in scene module) and it could
+            // report the union as well.
+
+            // Now the only issue is whether we want to duplicate this code, since
+            // both sources need the same functionality but they are definitely not
+            // sharable.  The only place would be if the math module defined the
+            // world bounds result type (we need different tasks because they
+            // process things differently anyways).
             AxisAlignedBox extent = new AxisAlignedBox();
             boolean first = true;
             while (iterator.next()) {

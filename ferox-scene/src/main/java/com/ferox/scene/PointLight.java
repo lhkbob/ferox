@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -45,10 +44,5 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public final class PointLight extends AbstractPlacedLight<PointLight> {
-    /**
-     * The shared TypedId representing PointLight.
-     */
-    public static final TypeId<PointLight> ID = TypeId.get(PointLight.class);
-
     private PointLight() {}
 }

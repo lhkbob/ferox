@@ -40,6 +40,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Task;
 import com.ferox.scene.Camera;
@@ -67,7 +68,7 @@ public class FixedFunctionRenderController extends SimpleController {
     private final Queue<Future<Void>> previousFrame;
 
     public FixedFunctionRenderController(Framework framework) {
-        this(framework, 512);
+        this(framework, 1024);
     }
 
     public FixedFunctionRenderController(Framework framework, int shadowMapSize) {
@@ -132,9 +133,30 @@ public class FixedFunctionRenderController extends SimpleController {
     @Override
     @SuppressWarnings("unchecked")
     public void process(double dt) {
+
+        // Block until previous frame is completed to prevent the main thread
+        // from getting too ahead of the rendering thread.
+        // - We do the blocking at the end so that this thread finishes all
+        // processing before waiting on the rendering thread.
+        long now = System.nanoTime();
+        while (!previousFrame.isEmpty()) {
+            Future<Void> f = previousFrame.poll();
+            try {
+                f.get();
+            } catch (Exception e) {
+                throw new RuntimeException("Previous frame failed", e);
+            }
+        }
+        blocktime += (System.nanoTime() - now);
+
         Camera camera = getEntitySystem().createDataInstance(Camera.ID);
 
         // first cache all shadow map frustums so any view can easily prepare a texture
+        // FIXME must properly thread-safety this because we start the reset
+        // before the previous frame has completed use of it
+        // - I'm not sure but this might be the sole problem with the deadlock, or just the crash
+        //   When it doesn't crash something else might still cause it to freeze up entirely
+        //   including the rest of the OS which is bad
         shadowMap.reset();
         for (PVSResult visible : pvs) {
             // cacheShadowScene properly ignores PVSResults that aren't for lights
@@ -151,20 +173,6 @@ public class FixedFunctionRenderController extends SimpleController {
             }
         }
 
-        // Block until previous frame is completed to prevent the main thread
-        // from getting too ahead of the rendering thread.
-        // - We do the blocking at the end so that this thread finishes all
-        // processing before waiting on the rendering thread.
-        long now = System.nanoTime();
-        while (!previousFrame.isEmpty()) {
-            Future<Void> f = previousFrame.poll();
-            try {
-                f.get();
-            } catch (Exception e) {
-                throw new RuntimeException("Previous frame failed", e);
-            }
-        }
-        blocktime += (System.nanoTime() - now);
         previousFrame.addAll(thisFrame);
     }
 
@@ -214,7 +222,7 @@ public class FixedFunctionRenderController extends SimpleController {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
                     // FIXME clear color should be configurable somehow
                     ffp.clear(true, true, true, new Vector4(0, 0, 0, 1.0), 1, 0);
-
+                    ffp.setDrawStyle(DrawStyle.SOLID, DrawStyle.SOLID);
                     rootNode.render(access, new AppliedEffects());
 
                     //                    Frustum twoD = new Frustum(true,
@@ -240,6 +248,7 @@ public class FixedFunctionRenderController extends SimpleController {
                     //
                     //                    Geometry g = Rectangle.create(0, 250, 0, 250);
                     //                    ffp.setVertices(g.getVertices());
+                    //                    ffp.setTextureCoordinates(0, g.getTextureCoordinates());
                     //                    if (g.getIndices() == null) {
                     //                        ffp.render(g.getPolygonType(), g.getIndexOffset(),
                     //                                   g.getIndexCount());

@@ -26,7 +26,7 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.BooleanProperty;
 import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
 
@@ -45,12 +45,8 @@ import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
  * 
  * @author Michael Ludwig
  */
+@Requires(Transform.class)
 public final class DirectionLight extends Light<DirectionLight> {
-    /**
-     * The shared TypedId representing DirectionLight.
-     */
-    public static final TypeId<DirectionLight> ID = TypeId.get(DirectionLight.class);
-
     @DefaultBoolean(false)
     private BooleanProperty shadowCaster;
 

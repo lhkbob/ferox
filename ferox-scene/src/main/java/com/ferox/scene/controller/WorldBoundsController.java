@@ -42,9 +42,21 @@ public class WorldBoundsController extends SimpleController {
         ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(renderable)
                                                                        .addRequired(transform);
 
+        AxisAlignedBox sceneBounds = new AxisAlignedBox();
+        boolean first = true;
+
         while (it.next()) {
             worldBounds.transform(renderable.getLocalBounds(), transform.getMatrix());
             renderable.setWorldBounds(worldBounds);
+
+            if (first) {
+                sceneBounds.set(worldBounds);
+            } else {
+                sceneBounds.union(worldBounds);
+            }
         }
+
+        getEntitySystem().getControllerManager()
+                         .report(new SceneBoundsResult(sceneBounds));
     }
 }

@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
@@ -51,11 +50,6 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
  * @author Michael Ludwig
  */
 public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
-    /**
-     * The shared TypedId representing BlinnPhongMaterial.
-     */
-    public static final TypeId<BlinnPhongMaterial> ID = TypeId.get(BlinnPhongMaterial.class);
-
     @DefaultDouble(1.0)
     private DoubleProperty shininess;
 

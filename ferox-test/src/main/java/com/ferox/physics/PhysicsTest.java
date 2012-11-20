@@ -29,6 +29,7 @@ package com.ferox.physics;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
@@ -66,7 +67,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         // shapes
         Geometry box = Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
-        //        Geometry sphere = Sphere.create(1 + MARGIN, 8, COMPILE_TYPE);
+        //        Geometry sphere = Sphere.create(1 + MARGIN, 32, COMPILE_TYPE);
 
         com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(2,
                                                                                                2,
@@ -113,29 +114,20 @@ public class PhysicsTest extends PhysicsApplicationStub {
                     e.add(CollisionBody.ID)
                      .getData()
                      .setShape(physShape)
-                     .setTransform(new Matrix4(1,
-                                               0,
-                                               0,
-                                               (SCALE_X + 2 * MARGIN) * x + rx + startX,
-                                               0,
-                                               1,
-                                               0,
-                                               (SCALE_Y + 2 * MARGIN) * y + ry + startY,
-                                               0,
-                                               0,
-                                               1,
-                                               (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
-                                               0,
-                                               0,
-                                               0,
-                                               1));
+                     .setTransform(new Matrix4().setIdentity()
+                                                .setCol(3,
+                                                        new Vector4((SCALE_X + 2 * MARGIN) * x + rx + startX,
+                                                                    (SCALE_Y + 2 * MARGIN) * y + ry + startY,
+                                                                    (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
+                                                                    1)));
                     e.add(RigidBody.ID).getData().setMass(1.0);
                 }
             }
         }
 
         // some walls
-        Geometry bottomWall = Box.create(BOUNDS + 2 * MARGIN, COMPILE_TYPE);
+        Geometry bottomWall = Box.create(BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN,
+                                         COMPILE_TYPE);
         Entity wall = system.addEntity();
         wall.add(Renderable.ID)
             .getData()
@@ -149,23 +141,9 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         wall.add(CollisionBody.ID)
             .getData()
-            .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, BOUNDS, BOUNDS))
-            .setTransform(new Matrix4(1,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      1,
-                                      0,
-                                      -BOUNDS / 2,
-                                      0,
-                                      0,
-                                      1,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      1));
+            .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
+            .setTransform(new Matrix4().setIdentity()
+                                       .setCol(3, new Vector4(0, -.5, 0, 1)));
 
         // ambient light
         system.addEntity().add(AmbientLight.ID).getData()
@@ -176,22 +154,11 @@ public class PhysicsTest extends PhysicsApplicationStub {
         point.add(PointLight.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
         point.add(Transform.ID)
              .getData()
-             .setMatrix(new Matrix4(1,
-                                    0,
-                                    0,
-                                    BOUNDS / 2,
-                                    0,
-                                    1,
-                                    0,
-                                    BOUNDS / 2,
-                                    0,
-                                    0,
-                                    1,
-                                    BOUNDS / 2,
-                                    0,
-                                    0,
-                                    0,
-                                    1));
+             .setMatrix(new Matrix4().setIdentity().setCol(3,
+                                                           new Vector4(BOUNDS / 2,
+                                                                       BOUNDS / 2,
+                                                                       BOUNDS / 2,
+                                                                       1)));
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
@@ -199,7 +166,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
            .setShadowCaster(true);
         inf.add(Transform.ID)
            .getData()
-           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15),
+           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(0, 15, 15),
                                            new Vector3(0, 1, 0)));
     }
 

@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -48,10 +47,5 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public final class SpecularColor extends ColorComponent<SpecularColor> {
-    /**
-     * The shared TypedId representing SpecularColor.
-     */
-    public static final TypeId<SpecularColor> ID = TypeId.get(SpecularColor.class);
-
     private SpecularColor() {}
 }

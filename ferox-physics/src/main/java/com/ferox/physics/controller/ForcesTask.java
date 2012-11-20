@@ -51,6 +51,16 @@ import com.lhkbob.entreri.task.Task;
 // 1. inertia tensor computer (which must be done before any force can be added to a body)
 // 2. gravity force applier
 // 3. force integrator
+// Although see note in SpatialIndexCollisionController. This is the main place
+// that benefits from merging the loop -> maybe I can artificially support
+// auto-merging by calling this the PrepTask that takes preparers that operate
+// on single RigidBody/CollisionBody entities. These can be split into 
+// composable tasks but only iterated through once in this task.
+//
+// The Motion and ConstraintSolving tasks could be similarly combined, although
+// part of the constraint solving task is global... I bet it doesn't make a 
+// big performance dent so let's just keep it in mind but design for maximum
+// cleanliness right now.
 public class ForcesTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
     static {

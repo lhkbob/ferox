@@ -31,7 +31,6 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 
 /**
@@ -45,11 +44,6 @@ import com.lhkbob.entreri.Unmanaged;
  * @author Michael Ludwig
  */
 public final class Transform extends ComponentData<Transform> {
-    /**
-     * The shared TypedId representing Transform.
-     */
-    public static final TypeId<Transform> ID = TypeId.get(Transform.class);
-
     // the identity matrix
     @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
                     m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,

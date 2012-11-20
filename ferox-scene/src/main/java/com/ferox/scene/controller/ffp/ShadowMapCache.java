@@ -129,6 +129,9 @@ public class ShadowMapCache {
         } else {
             access.setActiveSurface(origSurface);
         }
+
+        // FIXME race condition on shutdown exists if the orig surface is
+        // destroyed while rendering to the shadow map, if the map is on a pbuffer
         access.getCurrentContext().getFixedFunctionRenderer().setCurrentState(origState);
 
         return shadowMap.getDepthBuffer();

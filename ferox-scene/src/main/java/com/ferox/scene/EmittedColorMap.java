@@ -27,7 +27,6 @@
 package com.ferox.scene;
 
 import com.ferox.resource.Texture;
-import com.lhkbob.entreri.TypeId;
 
 /**
  * <p>
@@ -52,11 +51,6 @@ import com.lhkbob.entreri.TypeId;
  * @author Michael Ludwig
  */
 public class EmittedColorMap extends TextureMap<EmittedColorMap> {
-    /**
-     * The shared TypedId representing DepthOffsetMap.
-     */
-    public static final TypeId<EmittedColorMap> ID = TypeId.get(EmittedColorMap.class);
-
     private EmittedColorMap() {}
 
     @Override
