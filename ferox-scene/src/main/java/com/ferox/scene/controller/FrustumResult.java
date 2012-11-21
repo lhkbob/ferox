@@ -28,9 +28,9 @@ package com.ferox.scene.controller;
 
 import com.ferox.math.bounds.Frustum;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Result;
+import com.lhkbob.entreri.task.Result;
 
-public class FrustumResult implements Result {
+public class FrustumResult extends Result {
     private final Component<?> frustumSource;
     private final Frustum frustum;
 

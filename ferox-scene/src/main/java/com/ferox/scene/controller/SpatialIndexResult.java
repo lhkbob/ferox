@@ -28,9 +28,9 @@ package com.ferox.scene.controller;
 
 import com.ferox.math.bounds.SpatialIndex;
 import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.Result;
+import com.lhkbob.entreri.task.Result;
 
-public class SpatialIndexResult implements Result {
+public class SpatialIndexResult extends Result {
     private final SpatialIndex<Entity> index;
 
     public SpatialIndexResult(SpatialIndex<Entity> index) {

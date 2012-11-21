@@ -26,45 +26,73 @@
  */
 package com.ferox.scene.controller;
 
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Set;
 
+import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
+import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class SpatialIndexController extends SimpleController {
+public class SpatialIndexController implements Task, ParallelAware {
     private final SpatialIndex<Entity> index;
 
-    // FIXME: add a setter, too
+    private AxisAlignedBox worldBounds;
+
+    // could be local scope but we can save GC work
+    private Renderable renderable;
+    private ComponentIterator iterator;
+
     public SpatialIndexController(SpatialIndex<Entity> index) {
         this.index = index;
     }
 
-    @Override
-    public void preProcess(double dt) {
-        // FIXME add a way to adjust the bounds of a SpatialIndex, and have this
-        // listen for SceneBoundsResults and update the index so we don't lose
-        // objects inappropriately
-        index.clear(true);
+    public void report(BoundsResult result) {
+        worldBounds = result.getBounds();
     }
 
     @Override
-    public void process(double dt) {
-        Renderable r;
-        Iterator<Renderable> it = getEntitySystem().iterator(Renderable.ID);
-        while (it.hasNext()) {
-            r = it.next();
-            index.add(r.getEntity(), r.getWorldBounds());
+    public void reset(EntitySystem system) {
+        if (renderable == null) {
+            renderable = system.createDataInstance(Renderable.class);
+            iterator = new ComponentIterator(system).addRequired(renderable);
+        }
+
+        index.clear(true);
+        worldBounds = null;
+        iterator.reset();
+    }
+
+    @Override
+    public Task process(EntitySystem system, Job job) {
+        if (index instanceof BoundedSpatialIndex) {
+            ((BoundedSpatialIndex<Entity>) index).setExtent(worldBounds);
+        }
+
+        while (iterator.next()) {
+            index.add(renderable.getEntity(), renderable.getWorldBounds());
         }
 
         // send the built index to everyone listened
-        getEntitySystem().getControllerManager().report(new SpatialIndexResult(index));
+        job.report(new SpatialIndexResult(index));
+
+        return null;
     }
 
     @Override
-    public void destroy() {
-        index.clear();
-        super.destroy();
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return Collections.<Class<? extends ComponentData<?>>> singleton(Renderable.class);
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }

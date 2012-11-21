@@ -30,9 +30,9 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.util.Bag;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.Result;
+import com.lhkbob.entreri.task.Result;
 
-public class PVSResult implements Result {
+public class PVSResult extends Result {
     private final Component<?> source;
     private final Frustum frustum;
 

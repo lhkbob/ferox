@@ -26,26 +26,53 @@
  */
 package com.ferox.scene.controller;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class WorldBoundsController extends SimpleController {
+public class WorldBoundsController implements Task, ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(Renderable.class);
+        types.add(Transform.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
+    }
+
+    // cached local instances
+    private Renderable renderable;
+    private Transform transform;
+    private ComponentIterator iterator;
+
     @Override
-    public void process(double dt) {
+    public void reset(EntitySystem system) {
+        if (renderable == null) {
+            renderable = system.createDataInstance(Renderable.class);
+            transform = system.createDataInstance(Transform.class);
+            iterator = new ComponentIterator(system).addRequired(renderable)
+                                                    .addRequired(transform);
+        }
+
+        iterator.reset();
+    }
+
+    @Override
+    public Task process(EntitySystem system, Job job) {
         AxisAlignedBox worldBounds = new AxisAlignedBox();
-
-        Renderable renderable = getEntitySystem().createDataInstance(Renderable.ID);
-        Transform transform = getEntitySystem().createDataInstance(Transform.ID);
-        ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(renderable)
-                                                                       .addRequired(transform);
-
         AxisAlignedBox sceneBounds = new AxisAlignedBox();
         boolean first = true;
 
-        while (it.next()) {
+        while (iterator.next()) {
             worldBounds.transform(renderable.getLocalBounds(), transform.getMatrix());
             renderable.setWorldBounds(worldBounds);
 
@@ -56,7 +83,19 @@ public class WorldBoundsController extends SimpleController {
             }
         }
 
-        getEntitySystem().getControllerManager()
-                         .report(new SceneBoundsResult(sceneBounds));
+        job.report(new BoundsResult(sceneBounds));
+
+        return null;
     }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return COMPONENTS;
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
+    }
+
 }

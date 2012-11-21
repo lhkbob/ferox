@@ -26,13 +26,21 @@
  */
 package com.ferox.scene.controller;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
 /**
  * CameraController is a controller that synchronizes a {@link Camera}'s Frustum
@@ -42,16 +50,35 @@ import com.lhkbob.entreri.SimpleController;
  * 
  * @author Michael Ludwig
  */
-public class CameraController extends SimpleController {
+public class CameraController implements Task, ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(Camera.class);
+        types.add(Transform.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
+    }
+
+    // could exist in local scope but we can prevent extra garbage this way
+    private Camera camera;
+    private Transform transform;
+    private ComponentIterator iterator;
+
     @Override
-    public void process(double dt) {
-        Camera camera = getEntitySystem().createDataInstance(Camera.ID);
-        Transform transform = getEntitySystem().createDataInstance(Transform.ID);
+    public void reset(EntitySystem system) {
+        if (camera == null) {
+            camera = system.createDataInstance(Camera.class);
+            transform = system.createDataInstance(Transform.class);
+            iterator = new ComponentIterator(system).addRequired(camera)
+                                                    .addRequired(transform);
+        }
 
-        ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(camera)
-                                                                       .addOptional(transform);
+        iterator.reset();
+    }
 
-        while (it.next()) {
+    @Override
+    public Task process(EntitySystem system, Job job) {
+        while (iterator.next()) {
             double aspect = camera.getSurface().getWidth() / (double) camera.getSurface()
                                                                             .getHeight();
             Frustum f = new Frustum(camera.getFieldOfView(),
@@ -59,16 +86,25 @@ public class CameraController extends SimpleController {
                                     camera.getNearZDistance(),
                                     camera.getFarZDistance());
 
-            if (transform.isEnabled()) {
-                Matrix4 m = transform.getMatrix();
-                f.setOrientation(new Vector3(m.m03, m.m13, m.m23), new Vector3(m.m02,
-                                                                               m.m12,
-                                                                               m.m22),
-                                 new Vector3(m.m01, m.m11, m.m21));
-            }
+            Matrix4 m = transform.getMatrix();
+            f.setOrientation(new Vector3(m.m03, m.m13, m.m23), new Vector3(m.m02,
+                                                                           m.m12,
+                                                                           m.m22),
+                             new Vector3(m.m01, m.m11, m.m21));
 
-            getEntitySystem().getControllerManager()
-                             .report(new FrustumResult(camera.getComponent(), f));
+            job.report(new FrustumResult(camera.getComponent(), f));
         }
+
+        return null;
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return COMPONENTS;
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }

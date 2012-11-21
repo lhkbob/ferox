@@ -26,58 +26,61 @@
  */
 package com.ferox.scene.controller;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.bounds.QueryCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.Bag;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.Result;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class VisibilityController extends SimpleController {
-    private Bag<FrustumResult> frustums;
-
+public class VisibilityController implements Task, ParallelAware {
+    // results
+    private final Bag<FrustumResult> frustums;
     private SpatialIndex<Entity> index;
 
+    public VisibilityController() {
+        frustums = new Bag<FrustumResult>();
+    }
+
+    public void report(FrustumResult result) {
+        frustums.add(result);
+    }
+
+    public void report(SpatialIndexResult result) {
+        index = result.getIndex();
+    }
+
     @Override
-    public void process(double dt) {
+    public void reset(EntitySystem system) {
+        frustums.clear(true);
+        index = null;
+    }
+
+    @Override
+    public Task process(EntitySystem system, Job job) {
         if (index != null) {
             for (FrustumResult f : frustums) {
-                VisibilityCallback query = new VisibilityCallback(getEntitySystem());
+                VisibilityCallback query = new VisibilityCallback(system);
                 index.query(f.getFrustum(), query);
 
                 // sort the PVS by entity id before reporting it so that
                 // iteration over the bag has more optimal cache behavior when
                 // accessing entity properties
                 query.pvs.sort();
-                getEntitySystem().getControllerManager()
-                                 .report(new PVSResult(f.getSource(),
-                                                       f.getFrustum(),
-                                                       query.pvs));
+                job.report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
             }
         }
-    }
 
-    @Override
-    public void preProcess(double dt) {
-        frustums = new Bag<FrustumResult>();
-    }
-
-    @Override
-    public void postProcess(double dt) {
-        index = null;
-    }
-
-    @Override
-    public void report(Result result) {
-        if (result instanceof SpatialIndexResult) {
-            index = ((SpatialIndexResult) result).getIndex();
-        } else if (result instanceof FrustumResult) {
-            frustums.add((FrustumResult) result);
-        }
+        return null;
     }
 
     private static class VisibilityCallback implements QueryCallback<Entity> {
@@ -94,7 +97,7 @@ public class VisibilityController extends SimpleController {
          * @throws NullPointerException if camera is null
          */
         public VisibilityCallback(EntitySystem system) {
-            renderable = system.createDataInstance(Renderable.ID);
+            renderable = system.createDataInstance(Renderable.class);
             pvs = new Bag<Entity>();
         }
 
@@ -106,5 +109,15 @@ public class VisibilityController extends SimpleController {
                 pvs.add(r);
             }
         }
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return Collections.<Class<? extends ComponentData<?>>> singleton(Renderable.class);
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }
