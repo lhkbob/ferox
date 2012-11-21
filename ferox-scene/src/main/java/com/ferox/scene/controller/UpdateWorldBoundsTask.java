@@ -40,7 +40,7 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
-public class WorldBoundsController implements Task, ParallelAware {
+public class UpdateWorldBoundsTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();

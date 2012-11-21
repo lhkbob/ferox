@@ -30,60 +30,85 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.bounds.BoundedSpatialIndex;
+import com.ferox.math.Const;
+import com.ferox.math.bounds.QueryCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
+import com.ferox.util.Bag;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
-public class SpatialIndexController implements Task, ParallelAware {
-    private final SpatialIndex<Entity> index;
+public class ComputePVSTask implements Task, ParallelAware {
+    // results
+    private final Bag<FrustumResult> frustums;
+    private SpatialIndex<Entity> index;
 
-    private AxisAlignedBox worldBounds;
-
-    // could be local scope but we can save GC work
-    private Renderable renderable;
-    private ComponentIterator iterator;
-
-    public SpatialIndexController(SpatialIndex<Entity> index) {
-        this.index = index;
+    public ComputePVSTask() {
+        frustums = new Bag<FrustumResult>();
     }
 
-    public void report(BoundsResult result) {
-        worldBounds = result.getBounds();
+    public void report(FrustumResult result) {
+        frustums.add(result);
+    }
+
+    public void report(SpatialIndexResult result) {
+        index = result.getIndex();
     }
 
     @Override
     public void reset(EntitySystem system) {
-        if (renderable == null) {
-            renderable = system.createDataInstance(Renderable.class);
-            iterator = new ComponentIterator(system).addRequired(renderable);
-        }
-
-        index.clear(true);
-        worldBounds = null;
-        iterator.reset();
+        frustums.clear(true);
+        index = null;
     }
 
     @Override
     public Task process(EntitySystem system, Job job) {
-        if (index instanceof BoundedSpatialIndex) {
-            ((BoundedSpatialIndex<Entity>) index).setExtent(worldBounds);
-        }
+        if (index != null) {
+            for (FrustumResult f : frustums) {
+                VisibilityCallback query = new VisibilityCallback(system);
+                index.query(f.getFrustum(), query);
 
-        while (iterator.next()) {
-            index.add(renderable.getEntity(), renderable.getWorldBounds());
+                // sort the PVS by entity id before reporting it so that
+                // iteration over the bag has more optimal cache behavior when
+                // accessing entity properties
+                query.pvs.sort();
+                job.report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
+            }
         }
-
-        // send the built index to everyone listened
-        job.report(new SpatialIndexResult(index));
 
         return null;
+    }
+
+    private static class VisibilityCallback implements QueryCallback<Entity> {
+        private final Renderable renderable;
+
+        private final Bag<Entity> pvs;
+
+        /**
+         * Create a new VisibilityCallback that set each discovered Entity with
+         * a Transform's visibility to true for the given entity,
+         * <tt>camera</tt>.
+         * 
+         * @param camera The Entity that will be flagged as visible
+         * @throws NullPointerException if camera is null
+         */
+        public VisibilityCallback(EntitySystem system) {
+            renderable = system.createDataInstance(Renderable.class);
+            pvs = new Bag<Entity>();
+        }
+
+        @Override
+        public void process(Entity r, @Const AxisAlignedBox bounds) {
+            // using ComponentData to query existence is faster
+            // than pulling in the actual Component
+            if (r.get(renderable)) {
+                pvs.add(r);
+            }
+        }
     }
 
     @Override

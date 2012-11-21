@@ -50,7 +50,7 @@ import com.lhkbob.entreri.task.Task;
  * 
  * @author Michael Ludwig
  */
-public class CameraController implements Task, ParallelAware {
+public class ComputeCameraFrustumTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
