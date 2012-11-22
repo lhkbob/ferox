@@ -29,8 +29,10 @@ package com.ferox.scene.controller.ffp;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import com.ferox.math.Vector4;
@@ -42,18 +44,58 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Surface;
-import com.ferox.renderer.Task;
+import com.ferox.scene.AmbientLight;
+import com.ferox.scene.AtmosphericFog;
+import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
+import com.ferox.scene.DecalColorMap;
+import com.ferox.scene.DiffuseColor;
+import com.ferox.scene.DiffuseColorMap;
+import com.ferox.scene.DirectionLight;
+import com.ferox.scene.EmittedColor;
+import com.ferox.scene.EmittedColorMap;
 import com.ferox.scene.Light;
+import com.ferox.scene.PointLight;
+import com.ferox.scene.Renderable;
+import com.ferox.scene.SpecularColor;
+import com.ferox.scene.SpecularColorMap;
+import com.ferox.scene.SpotLight;
+import com.ferox.scene.Transform;
+import com.ferox.scene.Transparent;
 import com.ferox.scene.controller.PVSResult;
 import com.ferox.scene.controller.light.LightGroupResult;
 import com.ferox.util.Bag;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.Result;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class FixedFunctionRenderController extends SimpleController {
+public class FixedFunctionRenderController implements Task, ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(AmbientLight.class);
+        types.add(DirectionLight.class);
+        types.add(SpotLight.class);
+        types.add(PointLight.class);
+        types.add(Renderable.class);
+        types.add(Transform.class);
+        types.add(BlinnPhongMaterial.class);
+        types.add(DiffuseColor.class);
+        types.add(EmittedColor.class);
+        types.add(SpecularColor.class);
+        types.add(DiffuseColorMap.class);
+        types.add(EmittedColorMap.class);
+        types.add(SpecularColorMap.class);
+        types.add(DecalColorMap.class);
+        types.add(Transparent.class);
+        types.add(Camera.class);
+        types.add(AtmosphericFog.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
+    }
     private final Framework framework;
     private final ShadowMapCache shadowMap;
 
@@ -132,7 +174,11 @@ public class FixedFunctionRenderController extends SimpleController {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void process(double dt) {
+    public Task process(EntitySystem system, Job job) {
+        // FIXME normally we'd block for the previous frame after we built
+        // the tree but before submitting it to the renderer, but this causes
+        // problems with the shadow map cache (see below). So for now, I've
+        // moved the blocking to the beginning
 
         // Block until previous frame is completed to prevent the main thread
         // from getting too ahead of the rendering thread.
@@ -149,7 +195,7 @@ public class FixedFunctionRenderController extends SimpleController {
         }
         blocktime += (System.nanoTime() - now);
 
-        Camera camera = getEntitySystem().createDataInstance(Camera.ID);
+        Camera camera = system.createDataInstance(Camera.class);
 
         // first cache all shadow map frustums so any view can easily prepare a texture
         // FIXME must properly thread-safety this because we start the reset
@@ -166,31 +212,35 @@ public class FixedFunctionRenderController extends SimpleController {
         // go through all results and render all camera frustums
         List<Future<Void>> thisFrame = new ArrayList<Future<Void>>();
         for (PVSResult visible : pvs) {
-            if (visible.getSource().getTypeId() == Camera.ID) {
+            if (visible.getSource().getType().equals(Camera.class)) {
                 camera.set((Component<Camera>) visible.getSource());
                 thisFrame.add(render(camera.getSurface(), visible.getFrustum(),
-                                     visible.getPotentiallyVisibleSet()));
+                                     visible.getPotentiallyVisibleSet(), system));
             }
         }
 
         previousFrame.addAll(thisFrame);
+
+        // FIXME return a flush task
+        return null;
     }
 
     public static long rendertime = 0L;
 
-    private Future<Void> render(final Surface surface, Frustum view, Bag<Entity> pvs) {
+    private Future<Void> render(final Surface surface, Frustum view, Bag<Entity> pvs,
+                                EntitySystem system) {
         // FIXME can we somehow preserve this tree across frames instead of continuing
         // to build it over and over again?
-        GeometryGroupFactory geomGroup = new GeometryGroupFactory(getEntitySystem());
-        TextureGroupFactory textureGroup = new TextureGroupFactory(getEntitySystem(),
+        GeometryGroupFactory geomGroup = new GeometryGroupFactory(system);
+        TextureGroupFactory textureGroup = new TextureGroupFactory(system,
                                                                    diffuseTextureUnit,
                                                                    emissiveTextureUnit,
                                                                    decalTextureUnit,
                                                                    geomGroup);
-        MaterialGroupFactory materialGroup = new MaterialGroupFactory(getEntitySystem(),
+        MaterialGroupFactory materialGroup = new MaterialGroupFactory(system,
                                                                       (diffuseTextureUnit >= 0 ? textureGroup : geomGroup));
 
-        LightGroupFactory lightGroup = new LightGroupFactory(getEntitySystem(),
+        LightGroupFactory lightGroup = new LightGroupFactory(system,
                                                              lightGroups,
                                                              (shadowMap != null ? shadowMap.getShadowCastingLights() : Collections.<Component<? extends Light<?>>> emptySet()),
                                                              framework.getCapabilities()
@@ -201,7 +251,7 @@ public class FixedFunctionRenderController extends SimpleController {
                                                                                            shadowmapTextureUnit,
                                                                                            lightGroup) : null);
 
-        SolidColorGroupFactory solidColorGroup = new SolidColorGroupFactory(getEntitySystem(),
+        SolidColorGroupFactory solidColorGroup = new SolidColorGroupFactory(system,
                                                                             textureGroup);
 
         LightingGroupFactory lightingGroup = new LightingGroupFactory(solidColorGroup,
@@ -213,7 +263,7 @@ public class FixedFunctionRenderController extends SimpleController {
             rootNode.add(e);
         }
 
-        return framework.queue(new Task<Void>() {
+        return framework.queue(new com.ferox.renderer.Task<Void>() {
             @Override
             public Void run(HardwareAccessLayer access) {
                 long now = System.nanoTime();
@@ -268,17 +318,26 @@ public class FixedFunctionRenderController extends SimpleController {
     }
 
     @Override
-    public void preProcess(double dt) {
+    public void reset(EntitySystem system) {
         pvs = new ArrayList<PVSResult>();
         lightGroups = null;
     }
 
+    public void report(PVSResult pvs) {
+        this.pvs.add(pvs);
+    }
+
+    public void report(LightGroupResult r) {
+        lightGroups = r;
+    }
+
     @Override
-    public void report(Result r) {
-        if (r instanceof PVSResult) {
-            pvs.add((PVSResult) r);
-        } else if (r instanceof LightGroupResult) {
-            lightGroups = (LightGroupResult) r;
-        }
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return COMPONENTS;
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }

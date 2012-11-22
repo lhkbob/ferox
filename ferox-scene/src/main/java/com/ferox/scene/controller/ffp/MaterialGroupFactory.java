@@ -59,10 +59,10 @@ public class MaterialGroupFactory implements StateGroupFactory {
 
     public MaterialGroupFactory(EntitySystem system, StateGroupFactory factory) {
         childFactory = factory;
-        diffuseColor = system.createDataInstance(DiffuseColor.ID);
-        specularColor = system.createDataInstance(SpecularColor.ID);
-        emittedColor = system.createDataInstance(EmittedColor.ID);
-        transparent = system.createDataInstance(Transparent.ID);
+        diffuseColor = system.createDataInstance(DiffuseColor.class);
+        specularColor = system.createDataInstance(SpecularColor.class);
+        emittedColor = system.createDataInstance(EmittedColor.class);
+        transparent = system.createDataInstance(Transparent.class);
 
         access = new MaterialState();
     }

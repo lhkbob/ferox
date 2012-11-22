@@ -59,9 +59,9 @@ public class TextureGroupFactory implements StateGroupFactory {
 
     public TextureGroupFactory(EntitySystem system, int diffuseUnit, int decalUnit,
                                int emissiveUnit, StateGroupFactory childFactory) {
-        diffuse = system.createDataInstance(DiffuseColorMap.ID);
-        decal = system.createDataInstance(DecalColorMap.ID);
-        emissive = system.createDataInstance(EmittedColorMap.ID);
+        diffuse = system.createDataInstance(DiffuseColorMap.class);
+        decal = system.createDataInstance(DecalColorMap.class);
+        emissive = system.createDataInstance(EmittedColorMap.class);
         access = new TextureSet();
 
         this.diffuseUnit = diffuseUnit;

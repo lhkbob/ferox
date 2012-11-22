@@ -139,7 +139,7 @@ public class ShadowMapCache {
 
     @SuppressWarnings("unchecked")
     public void cacheShadowScene(PVSResult pvs) {
-        if (!Light.class.isAssignableFrom(pvs.getSource().getTypeId().getType())) {
+        if (!Light.class.isAssignableFrom(pvs.getSource().getType())) {
             // only take PVS's produced by lights
             return;
         }

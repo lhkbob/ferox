@@ -50,8 +50,8 @@ public class SolidColorGroupFactory implements StateGroupFactory {
 
     public SolidColorGroupFactory(EntitySystem system, StateGroupFactory childFactory) {
         this.childFactory = childFactory;
-        color = system.createDataInstance(DiffuseColor.ID);
-        alpha = system.createDataInstance(Transparent.ID);
+        color = system.createDataInstance(DiffuseColor.class);
+        alpha = system.createDataInstance(Transparent.class);
 
         access = new SolidColorState();
     }

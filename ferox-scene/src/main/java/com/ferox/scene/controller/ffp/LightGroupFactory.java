@@ -71,14 +71,14 @@ public class LightGroupFactory implements StateGroupFactory {
 
         groupAssignment = lightGroups.getAssignmentProperty();
         groups = new State[lightGroups.getGroupCount()][];
-        renderable = system.createDataInstance(Renderable.ID);
+        renderable = system.createDataInstance(Renderable.class);
 
         // components for access
-        DirectionLight dl = system.createDataInstance(DirectionLight.ID);
-        SpotLight sl = system.createDataInstance(SpotLight.ID);
-        PointLight pl = system.createDataInstance(PointLight.ID);
-        AmbientLight al = system.createDataInstance(AmbientLight.ID);
-        Transform t = system.createDataInstance(Transform.ID);
+        DirectionLight dl = system.createDataInstance(DirectionLight.class);
+        SpotLight sl = system.createDataInstance(SpotLight.class);
+        PointLight pl = system.createDataInstance(PointLight.class);
+        AmbientLight al = system.createDataInstance(AmbientLight.class);
+        Transform t = system.createDataInstance(Transform.class);
 
         Matrix4 identity = new Matrix4().setIdentity();
 
@@ -96,20 +96,20 @@ public class LightGroupFactory implements StateGroupFactory {
                 Entity e = light.getEntity();
                 GLLight gl = null;
 
-                if (light.getTypeId() == DirectionLight.ID && e.get(dl)) {
+                if (light.getType().equals(DirectionLight.class) && e.get(dl)) {
                     gl = new GLLight();
                     gl.setDirectionLight(light, dl.getColor(),
                                          (e.get(t) ? t.getMatrix() : identity));
-                } else if (light.getTypeId() == SpotLight.ID && e.get(sl)) {
+                } else if (light.getType().equals(SpotLight.class) && e.get(sl)) {
                     gl = new GLLight();
                     gl.setSpotLight(light, sl.getColor(), sl.getCutoffAngle(),
                                     sl.getFalloffDistance(),
                                     (e.get(t) ? t.getMatrix() : identity));
-                } else if (light.getTypeId() == PointLight.ID && e.get(pl)) {
+                } else if (light.getType().equals(PointLight.class) && e.get(pl)) {
                     gl = new GLLight();
                     gl.setPointLight(light, pl.getColor(), pl.getFalloffDistance(),
                                      (e.get(t) ? t.getMatrix() : identity));
-                } else if (light.getTypeId() == AmbientLight.ID) {
+                } else if (light.getType().equals(AmbientLight.class)) {
                     if (currentState.ambientColor == null) {
                         // merge ambient light with this state group
                         e.get(al);

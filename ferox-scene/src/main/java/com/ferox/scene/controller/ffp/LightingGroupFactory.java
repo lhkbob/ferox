@@ -65,7 +65,9 @@ public class LightingGroupFactory implements StateGroupFactory {
         @Override
         public StateNode getNode(Entity e) {
             // FIXME check more than just BlinnPhongMaterials?
-            if (e.get(BlinnPhongMaterial.ID) != null) {
+            // FIXME this is slow because it does a map lookup per entity,
+            // need to create a component and lookup instead
+            if (e.get(BlinnPhongMaterial.class) != null) {
                 return lit;
             } else {
                 return unlit;

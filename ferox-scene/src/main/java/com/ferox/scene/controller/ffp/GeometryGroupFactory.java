@@ -62,9 +62,9 @@ public final class GeometryGroupFactory implements StateGroupFactory {
 
         access = new Geometry();
         modelMatrix = new Matrix4();
-        geometry = system.createDataInstance(Renderable.ID);
-        transform = system.createDataInstance(Transform.ID);
-        material = system.createDataInstance(BlinnPhongMaterial.ID);
+        geometry = system.createDataInstance(Renderable.class);
+        transform = system.createDataInstance(Transform.class);
+        material = system.createDataInstance(BlinnPhongMaterial.class);
     }
 
     @Override
