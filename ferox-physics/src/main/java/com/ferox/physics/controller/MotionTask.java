@@ -46,6 +46,25 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+// FIXME: this can be moved to the beginning, running before other per-collision/rigidbody
+// preparation actions. Thus the new code would look like:
+// Prep task:
+// 1. Integrate velocities from previous frame into transform
+// 2. Compute tensor
+// 3. Compute new world bounds per entity, and entire union
+// 4. Add gravity + other forces (sep. actions)
+// 5. Integrate forces into velocities
+// Collision task:
+// 1. Rebuild + resize spatial index
+// 2. Do broadphase + collision detection
+// 3. Generate contact constraints from manifolds
+// Constraint task:
+// 1. Solve all constraints
+// 2. Update velocities from computed deltas, and reset deltas
+// Will wait to do this until after scene rendering is done, so I can compare speed boost
+// I'll keep it even if it's not faster (so long as not too slow), because I think
+// the workflow is cleaner
+
 public class MotionTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
     static {
