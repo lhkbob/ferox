@@ -50,6 +50,7 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
     private Renderable renderable;
     private ComponentIterator iterator;
 
+    // FIXME just create it?
     public BuildVisibilityIndexTask(SpatialIndex<Entity> index) {
         this.index = index;
     }

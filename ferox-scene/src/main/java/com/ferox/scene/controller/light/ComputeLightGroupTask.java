@@ -40,9 +40,9 @@ import java.util.Set;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
+import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.bounds.QueryCallback;
-import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.Camera;
 import com.ferox.scene.DirectionLight;
@@ -53,52 +53,98 @@ import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.Transform;
+import com.ferox.scene.controller.BoundsResult;
 import com.ferox.scene.controller.PVSResult;
 import com.ferox.util.Bag;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.Result;
-import com.lhkbob.entreri.SimpleController;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class LightGroupController extends SimpleController {
+public class ComputeLightGroupTask implements Task, ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(Influences.class);
+        types.add(InfluenceRegion.class);
+        types.add(AmbientLight.class);
+        types.add(DirectionLight.class);
+        types.add(SpotLight.class);
+        types.add(PointLight.class);
+        types.add(Renderable.class);
+        types.add(Transform.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
+    }
+
     // read-only so threadsafe
     private static final Matrix4 DEFAULT_MAT = new Matrix4().setIdentity();
     private static final AxisAlignedBox DEFAULT_AABB = new AxisAlignedBox();
 
-    private SpatialIndex<LightSource> lightIndex;
-
+    private final BoundedSpatialIndex<LightSource> lightIndex;
     private IntProperty assignments;
-    private List<Bag<Entity>> allVisibleSets;
 
-    public LightGroupController(@Const AxisAlignedBox worldBounds) {
-        this.lightIndex = new QuadTree<LightSource>(worldBounds, 1);
+    // results
+    private final List<Bag<Entity>> allVisibleSets;
+    private AxisAlignedBox worldBounds;
+
+    // shared local variables for GC performance
+    private Transform transform;
+    private Influences influenceSet;
+    private InfluenceRegion influenceRegion;
+    private AmbientLight ambient;
+    private DirectionLight direction;
+    private SpotLight spot;
+    private PointLight point;
+
+    public ComputeLightGroupTask() {
+        this.lightIndex = new QuadTree<LightSource>(new AxisAlignedBox(), 2);
+        allVisibleSets = new ArrayList<Bag<Entity>>();
     }
 
-    private <T extends Light<T>> void processLights(TypeId<T> id,
-                                                    LightInfluence.Factory<T> factory,
-                                                    List<LightSource> globalLights,
-                                                    List<LightSource> allLights) {
-        Transform transform = getEntitySystem().createDataInstance(Transform.ID);
-        T light = getEntitySystem().createDataInstance(id);
-        Influences influenceSet = getEntitySystem().createDataInstance(Influences.ID);
-        InfluenceRegion region = getEntitySystem().createDataInstance(InfluenceRegion.ID);
+    @Override
+    public void reset(EntitySystem system) {
+        if (assignments == null) {
+            assignments = system.decorate(Renderable.class, new IntProperty.Factory(-1));
 
-        ComponentIterator dlt = new ComponentIterator(getEntitySystem()).addRequired(light)
-                                                                        .addOptional(transform)
-                                                                        .addOptional(influenceSet)
-                                                                        .addOptional(region);
+            transform = system.createDataInstance(Transform.class);
+            influenceSet = system.createDataInstance(Influences.class);
+            influenceRegion = system.createDataInstance(InfluenceRegion.class);
+            ambient = system.createDataInstance(AmbientLight.class);
+            direction = system.createDataInstance(DirectionLight.class);
+            spot = system.createDataInstance(SpotLight.class);
+            point = system.createDataInstance(PointLight.class);
+        }
+
+        allVisibleSets.clear();
+        worldBounds = null;
+        lightIndex.clear(true);
+        Arrays.fill(assignments.getIndexedData(), -1);
+    }
+
+    private <T extends Light<T>> void convertToLightSources(T light,
+                                                            EntitySystem system,
+                                                            LightInfluence.Factory<T> factory,
+                                                            List<LightSource> globalLights,
+                                                            List<LightSource> allLights) {
+        ComponentIterator dlt = new ComponentIterator(system).addRequired(light)
+                                                             .addOptional(transform)
+                                                             .addOptional(influenceSet)
+                                                             .addOptional(influenceRegion);
         while (dlt.next()) {
+            // we don't take advantage of some light types requiring a transform,
+            // because we process ambient lights with this same code
             Matrix4 t = (transform.isEnabled() ? transform.getMatrix() : DEFAULT_MAT);
             AxisAlignedBox bounds = null;
             boolean invertBounds = false;
 
-            if (region.isEnabled()) {
-                bounds = new AxisAlignedBox().transform(region.getBounds(), t);
-                invertBounds = region.isNegated();
+            if (influenceRegion.isEnabled()) {
+                bounds = new AxisAlignedBox().transform(influenceRegion.getBounds(), t);
+                invertBounds = influenceRegion.isNegated();
             }
 
             LightSource l = new LightSource(allLights.size(),
@@ -153,7 +199,7 @@ public class LightGroupController extends SimpleController {
             // final check
             if (light.influence.influences(callback.entityBounds)) {
                 // passed the last check, so the entity is influence by the ith light
-                callback.lights.set(i);
+                callback.lights.set(light.id);
             }
         }
     }
@@ -164,22 +210,27 @@ public class LightGroupController extends SimpleController {
      * to keep track of it.
      */
     @Override
-    public void process(double dt) {
+    public Task process(EntitySystem system, Job job) {
+        lightIndex.setExtent(worldBounds);
+
         // collect all lights
         List<LightSource> allLights = new ArrayList<LightSource>();
         List<LightSource> globalLights = new ArrayList<LightSource>();
-        processLights(DirectionLight.ID, GlobalLightInfluence.<DirectionLight> factory(),
-                      globalLights, allLights);
-        processLights(AmbientLight.ID, GlobalLightInfluence.<AmbientLight> factory(),
-                      globalLights, allLights);
-        processLights(SpotLight.ID, SpotLightInfluence.factory(), globalLights, allLights);
-        processLights(PointLight.ID, PointLightInfluence.factory(), globalLights,
-                      allLights);
+        convertToLightSources(direction, system,
+                              GlobalLightInfluence.<DirectionLight> factory(),
+                              globalLights, allLights);
+        convertToLightSources(ambient, system,
+                              GlobalLightInfluence.<AmbientLight> factory(),
+                              globalLights, allLights);
+        convertToLightSources(spot, system, SpotLightInfluence.factory(), globalLights,
+                              allLights);
+        convertToLightSources(point, system, PointLightInfluence.factory(), globalLights,
+                              allLights);
 
         int groupId = 0;
         Map<BitSet, Integer> groups = new HashMap<BitSet, Integer>();
 
-        LightCallback callback = new LightCallback(getEntitySystem(), allLights.size());
+        LightCallback callback = new LightCallback(system, allLights.size());
 
         // process every visible entity
         for (Bag<Entity> pvs : allVisibleSets) {
@@ -188,7 +239,7 @@ public class LightGroupController extends SimpleController {
                 callback.set(entity);
 
                 // check if we've already processed this entity in another pvs
-                if (!callback.renderable.isEnabled() || assignments.get(callback.renderable.getIndex()) >= 0) {
+                if (assignments.get(callback.renderable.getIndex()) >= 0) {
                     continue;
                 }
 
@@ -230,41 +281,21 @@ public class LightGroupController extends SimpleController {
             finalGroups.set(group.getValue(), Collections.unmodifiableSet(lightsInGroup));
         }
 
-        getEntitySystem().getControllerManager()
-                         .report(new LightGroupResult(finalGroups, assignments));
+        job.report(new LightGroupResult(finalGroups, assignments));
+
+        return null;
     }
 
-    @Override
-    public void preProcess(double dt) {
-        allVisibleSets = new ArrayList<Bag<Entity>>();
-        Arrays.fill(assignments.getIndexedData(), -1);
-        lightIndex.clear(true);
-    }
-
-    @Override
-    public void init(EntitySystem system) {
-        super.init(system);
-        assignments = system.decorate(Renderable.ID, new IntProperty.Factory(-1));
-    }
-
-    @Override
-    public void destroy() {
-        getEntitySystem().undecorate(Renderable.ID, assignments);
-        assignments = null;
-        lightIndex.clear();
-        super.destroy();
-    }
-
-    @Override
-    public void report(Result r) {
-        if (r instanceof PVSResult) {
-            PVSResult pvs = (PVSResult) r;
-            if (pvs.getSource().getTypeId() == Camera.ID) {
-                // we are only interested in entities that will be rendered
-                // to a surface, and not for something like a shadow map
-                allVisibleSets.add(pvs.getPotentiallyVisibleSet());
-            }
+    public void report(PVSResult pvs) {
+        if (pvs.getSource().getType().equals(Camera.class)) {
+            // we are only interested in entities that will be rendered
+            // to a surface, and not for something like a shadow map
+            allVisibleSets.add(pvs.getPotentiallyVisibleSet());
         }
+    }
+
+    public void report(BoundsResult bounds) {
+        worldBounds = bounds.getBounds();
     }
 
     private static class LightCallback implements QueryCallback<LightSource> {
@@ -274,7 +305,7 @@ public class LightGroupController extends SimpleController {
 
         public LightCallback(EntitySystem system, int numLights) {
             lights = new BitSet(numLights);
-            renderable = system.createDataInstance(Renderable.ID);
+            renderable = system.createDataInstance(Renderable.class);
             entityBounds = DEFAULT_AABB;
         }
 
@@ -318,5 +349,15 @@ public class LightGroupController extends SimpleController {
             this.bounds = bounds;
             this.invertBounds = invertBounds;
         }
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return COMPONENTS;
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }

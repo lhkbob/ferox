@@ -31,10 +31,10 @@ import java.util.Set;
 
 import com.ferox.scene.Light;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Result;
 import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.task.Result;
 
-public class LightGroupResult implements Result {
+public class LightGroupResult extends Result {
     private final IntProperty groupAssignment;
     private final List<Set<Component<? extends Light<?>>>> groups;
 

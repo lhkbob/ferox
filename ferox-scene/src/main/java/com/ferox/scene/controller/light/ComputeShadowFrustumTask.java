@@ -26,49 +26,61 @@
  */
 package com.ferox.scene.controller.light;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.Surface;
 import com.ferox.scene.Camera;
 import com.ferox.scene.DirectionLight;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.Transform;
+import com.ferox.scene.controller.BoundsResult;
 import com.ferox.scene.controller.FrustumResult;
-import com.ferox.scene.controller.SceneBoundsResult;
-import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.Result;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
 
-public class ShadowFrustumController extends SimpleController {
-    private static final Matrix4 DEFAULT_MAT = new Matrix4().setIdentity();
-
-    private SceneBoundsResult sceneBounds;
-    private FrustumResult camera;
-
-    @Override
-    public void report(Result r) {
-        if (r instanceof SceneBoundsResult) {
-            sceneBounds = (SceneBoundsResult) r;
-        } else if (r instanceof FrustumResult) {
-            FrustumResult fr = (FrustumResult) r;
-            if (fr.getSource().getTypeId() == Camera.ID) {
-                // keep the frustum that has the biggest volume, but most
-                // likely there will only be one camera ever
-                if (camera == null || frustumVolume(camera.getFrustum()) < frustumVolume(fr.getFrustum())) {
-                    camera = fr;
-                }
-            }
-        }
+public class ComputeShadowFrustumTask implements Task, ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(DirectionLight.class);
+        types.add(SpotLight.class);
+        types.add(Transform.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
     }
 
-    @Override
-    public void preProcess(double dt) {
-        sceneBounds = null;
-        camera = null;
+    private AxisAlignedBox sceneBounds;
+    private FrustumResult camera;
+
+    // cached local variables
+    private DirectionLight directionLight;
+    private SpotLight spotLight;
+    private Transform transform;
+
+    private ComponentIterator directionIterator;
+    private ComponentIterator spotIterator;
+
+    public void report(BoundsResult r) {
+        sceneBounds = r.getBounds();
+    }
+
+    public void report(FrustumResult fr) {
+        if (fr.getSource().getType().equals(Camera.class)) {
+            // keep the frustum that has the biggest volume, but most
+            // likely there will only be one camera ever
+            if (camera == null || frustumVolume(camera.getFrustum()) < frustumVolume(fr.getFrustum())) {
+                camera = fr;
+            }
+        }
     }
 
     private double frustumVolume(Frustum f) {
@@ -79,47 +91,58 @@ public class ShadowFrustumController extends SimpleController {
     }
 
     @Override
-    public void process(double dt) {
+    public void reset(EntitySystem system) {
+        if (directionLight == null) {
+            directionLight = system.createDataInstance(DirectionLight.class);
+            spotLight = system.createDataInstance(SpotLight.class);
+            transform = system.createDataInstance(Transform.class);
+
+            directionIterator = new ComponentIterator(system).addRequired(directionLight)
+                                                             .addRequired(transform);
+            spotIterator = new ComponentIterator(system).addRequired(spotLight)
+                                                        .addRequired(transform);
+        }
+
+        sceneBounds = null;
+        camera = null;
+        directionIterator.reset();
+        spotIterator.reset();
+    }
+
+    @Override
+    public Task process(EntitySystem system, Job job) {
         if (camera == null) {
             // if there's nothing being rendered into, then there's no point in
             // rendering shadows (and we don't have the info to compute a DL
             // frustum anyway).
-            return;
+            return null;
         }
 
         // Process DirectionLights
-        DirectionLight dl = getEntitySystem().createDataInstance(DirectionLight.ID);
-        Transform t = getEntitySystem().createDataInstance(Transform.ID);
-        ComponentIterator it = new ComponentIterator(getEntitySystem()).addRequired(dl)
-                                                                       .addOptional(t);
-
-        while (it.next()) {
-            if (dl.isShadowCaster()) {
-                Frustum smFrustum = computeFrustum(dl, t);
-                getEntitySystem().getControllerManager()
-                                 .report(new FrustumResult(dl.getComponent(), smFrustum));
+        while (directionIterator.next()) {
+            if (directionLight.isShadowCaster()) {
+                Frustum smFrustum = computeFrustum(directionLight, transform);
+                job.report(new FrustumResult(directionLight.getComponent(), smFrustum));
             }
         }
 
         // Process SpotLights
-        SpotLight sl = getEntitySystem().createDataInstance(SpotLight.ID);
-        it = new ComponentIterator(getEntitySystem()).addRequired(sl).addOptional(t);
-
-        while (it.next()) {
-            if (sl.isShadowCaster()) {
-                Frustum smFrustum = computeFrustum(sl, t);
-                getEntitySystem().getControllerManager()
-                                 .report(new FrustumResult(sl.getComponent(), smFrustum));
+        while (spotIterator.next()) {
+            if (spotLight.isShadowCaster()) {
+                Frustum smFrustum = computeFrustum(spotLight, transform);
+                job.report(new FrustumResult(spotLight.getComponent(), smFrustum));
             }
         }
+
+        return null;
     }
 
     private Frustum computeFrustum(DirectionLight light, Transform t) {
         // Implement basic frustum improvement techniques from:
         // http://msdn.microsoft.com/en-us/library/windows/desktop/ee416324(v=vs.85).aspx
         Frustum v = camera.getFrustum();
-        Surface s = ((Component<Camera>) camera.getSource()).getData().getSurface();
-        Matrix4 lightMatrix = (t.isEnabled() ? t.getMatrix() : DEFAULT_MAT);
+        //        Surface s = ((Component<Camera>) camera.getSource()).getData().getSurface();
+        Matrix4 lightMatrix = t.getMatrix();
 
         Frustum f = new Frustum(true, -1, 1, -1, 1, -1, 1);
         f.setOrientation(new Vector3(), lightMatrix.getUpperMatrix());
@@ -133,7 +156,7 @@ public class ShadowFrustumController extends SimpleController {
         // If we have scene bounds, tighten the near and far planes to be the
         // z-projections of the bounds in light space
         if (sceneBounds != null) {
-            clampToBounds(toLight, sceneBounds.getSceneBounds(), extent);
+            clampToBounds(toLight, sceneBounds, extent);
         }
 
         // Update values to fix texel shimmering
@@ -143,22 +166,12 @@ public class ShadowFrustumController extends SimpleController {
         // sphere over the 8 points of the view frustum so its size is rotation
         // invariant
         double worldArea = (v.getFrustumRight() - v.getFrustumLeft()) * (v.getFrustumTop() - v.getFrustumBottom());
-        //        double worldUnitsPerTexel = worldArea / (s.getWidth() * s.getHeight());
-        //        double worldArea = (extent.max.x - extent.min.x) * (extent.max.y - extent.min.y);
         double worldUnitsPerTexel = worldArea / (1024 * 1024); // FIXME buffer size
 
         extent.min.x = Math.floor(extent.min.x / worldUnitsPerTexel) * worldUnitsPerTexel;
         extent.min.y = Math.floor(extent.min.y / worldUnitsPerTexel) * worldUnitsPerTexel;
         extent.max.x = Math.floor(extent.max.x / worldUnitsPerTexel) * worldUnitsPerTexel;
         extent.max.y = Math.floor(extent.max.y / worldUnitsPerTexel) * worldUnitsPerTexel;
-
-        //                extent.min.scale(1 / worldUnitsPerTexel);
-        //        extent.min.floor();
-        //                extent.min.scale(worldUnitsPerTexel);
-
-        //                extent.max.scale(1 / worldUnitsPerTexel);
-        //        extent.max.floor();
-        //                extent.max.scale(worldUnitsPerTexel);
 
         f.setFrustum(true, extent.min.x, extent.max.x, extent.min.y, extent.max.y,
                      extent.min.z, extent.max.z);
@@ -275,11 +288,17 @@ public class ShadowFrustumController extends SimpleController {
                                                                  .1) : .1);
         double far = (light.getFalloffDistance() > 0 ? light.getFalloffDistance() : 1000);
         Frustum f = new Frustum(light.getCutoffAngle() * 2, 1.0, near, far);
-        if (t.isEnabled()) {
-            f.setOrientation(t.getMatrix());
-        } else {
-            f.setOrientation(DEFAULT_MAT);
-        }
+        f.setOrientation(t.getMatrix());
         return f;
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        return COMPONENTS;
+    }
+
+    @Override
+    public boolean isEntitySetModified() {
+        return false;
     }
 }
