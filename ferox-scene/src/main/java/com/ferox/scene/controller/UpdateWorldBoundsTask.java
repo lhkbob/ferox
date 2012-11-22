@@ -78,6 +78,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
 
             if (first) {
                 sceneBounds.set(worldBounds);
+                first = false;
             } else {
                 sceneBounds.union(worldBounds);
             }
