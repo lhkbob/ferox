@@ -42,13 +42,13 @@ import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
-import com.ferox.scene.controller.CameraController;
-import com.ferox.scene.controller.SpatialIndexController;
-import com.ferox.scene.controller.VisibilityController;
-import com.ferox.scene.controller.WorldBoundsController;
+import com.ferox.scene.controller.ComputeCameraFrustumTask;
+import com.ferox.scene.controller.BuildVisibilityIndexTask;
+import com.ferox.scene.controller.ComputePVSTask;
+import com.ferox.scene.controller.UpdateWorldBoundsTask;
 import com.ferox.scene.controller.ffp.FixedFunctionRenderController;
-import com.ferox.scene.controller.light.LightGroupController;
-import com.ferox.scene.controller.light.ShadowFrustumController;
+import com.ferox.scene.controller.light.ComputeLightGroupTask;
+import com.ferox.scene.controller.light.ComputeShadowFrustumTask;
 import com.ferox.util.ApplicationStub;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
@@ -206,15 +206,15 @@ public class PhysicsApplicationStub extends ApplicationStub {
         system.getControllerManager().addController(new TransformController());
 
         // rendering
-        system.getControllerManager().addController(new WorldBoundsController());
-        system.getControllerManager().addController(new CameraController());
-        system.getControllerManager().addController(new ShadowFrustumController());
+        system.getControllerManager().addController(new UpdateWorldBoundsTask());
+        system.getControllerManager().addController(new ComputeCameraFrustumTask());
+        system.getControllerManager().addController(new ComputeShadowFrustumTask());
         system.getControllerManager()
-              .addController(new SpatialIndexController(new QuadTree<Entity>(worldBounds,
+              .addController(new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
                                                                              6)));
-        system.getControllerManager().addController(new VisibilityController());
+        system.getControllerManager().addController(new ComputePVSTask());
         system.getControllerManager()
-              .addController(new LightGroupController(worldBounds));
+              .addController(new ComputeLightGroupTask(worldBounds));
         system.getControllerManager()
               .addController(new FixedFunctionRenderController(surface.getFramework()));
 

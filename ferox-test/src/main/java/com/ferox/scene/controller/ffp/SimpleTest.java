@@ -26,9 +26,10 @@
  */
 package com.ferox.scene.controller.ffp;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.Set;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.ColorRGB;
@@ -48,30 +49,31 @@ import com.ferox.scene.AmbientLight;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
 import com.ferox.scene.DiffuseColor;
-import com.ferox.scene.DirectionLight;
 import com.ferox.scene.InfluenceRegion;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
-import com.ferox.scene.controller.CameraController;
-import com.ferox.scene.controller.SpatialIndexController;
-import com.ferox.scene.controller.VisibilityController;
-import com.ferox.scene.controller.WorldBoundsController;
-import com.ferox.scene.controller.light.LightGroupController;
-import com.ferox.scene.controller.light.ShadowFrustumController;
+import com.ferox.scene.controller.BuildVisibilityIndexTask;
+import com.ferox.scene.controller.ComputeCameraFrustumTask;
+import com.ferox.scene.controller.ComputePVSTask;
+import com.ferox.scene.controller.UpdateWorldBoundsTask;
+import com.ferox.scene.controller.light.ComputeLightGroupTask;
+import com.ferox.scene.controller.light.ComputeShadowFrustumTask;
 import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.Sphere;
 import com.ferox.util.geom.Teapot;
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.Controller;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.SimpleController;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
+import com.lhkbob.entreri.task.ElapsedTimeResult;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
+import com.lhkbob.entreri.task.Task;
+import com.lhkbob.entreri.task.Timers;
 
 public class SimpleTest {
     public static final boolean LWJGL = true;
@@ -80,7 +82,6 @@ public class SimpleTest {
 
     public static void main(String[] args) {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
-        System.out.println(framework.getCapabilities().getFboSupport());
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                       .setHeight(600)
                                                                                       //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
@@ -91,7 +92,7 @@ public class SimpleTest {
         EntitySystem system = new EntitySystem();
 
         Entity camera = system.addEntity();
-        camera.add(Transform.ID)
+        camera.add(Transform.class)
               .getData()
               .setMatrix(new Matrix4(-1,
                                      0,
@@ -109,7 +110,7 @@ public class SimpleTest {
                                      0,
                                      0,
                                      1));
-        camera.add(Camera.ID).getData().setSurface(surface).setZDistances(0.1, 1200)
+        camera.add(Camera.class).getData().setSurface(surface).setZDistances(0.1, 1200)
               .setFieldOfView(75);
 
         Geometry b1 = Sphere.create(2f, 16, StorageMode.GPU_STATIC);
@@ -152,17 +153,17 @@ public class SimpleTest {
                              .getPolygonCount(b.getIndexCount() - b.getIndexOffset());
 
             Entity e = system.addEntity();
-            e.add(Renderable.ID)
+            e.add(Renderable.class)
              .getData()
              .setVertices(b.getVertices())
              .setLocalBounds(b.getBounds())
              .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(),
                          b.getIndexCount());
             //            if (Math.random() < .9) {
-            e.add(BlinnPhongMaterial.ID).getData().setNormals(b.getNormals());
+            e.add(BlinnPhongMaterial.class).getData().setNormals(b.getNormals());
             //            }
-            e.add(DiffuseColor.ID).getData().setColor(c);
-            e.add(Transform.ID)
+            e.add(DiffuseColor.class).getData().setColor(c);
+            e.add(Transform.class)
              .getData()
              .setMatrix(new Matrix4(1,
                                     0,
@@ -180,7 +181,7 @@ public class SimpleTest {
                                     0,
                                     0,
                                     1));
-            e.add(Animation.ID);
+            e.add(Animation.class);
             totalpolys += polycount;
         }
 
@@ -190,18 +191,18 @@ public class SimpleTest {
             double falloff = 100.0 + Math.random() * 40;
 
             Entity light = system.addEntity();
-            light.add(PointLight.ID).getData().setFalloffDistance(falloff)
+            light.add(PointLight.class).getData().setFalloffDistance(falloff)
                  .setColor(new ColorRGB(Math.random(), Math.random(), Math.random()));
 
             if (falloff > 0) {
-                light.add(InfluenceRegion.ID)
+                light.add(InfluenceRegion.class)
                      .getData()
                      .setBounds(new AxisAlignedBox(new Vector3(-falloff,
                                                                -falloff,
                                                                -falloff),
                                                    new Vector3(falloff, falloff, falloff)));
             }
-            light.add(Transform.ID)
+            light.add(Transform.class)
                  .getData()
                  .setMatrix(new Matrix4(1,
                                         0,
@@ -220,18 +221,18 @@ public class SimpleTest {
                                         0,
                                         1));
         }
-        system.addEntity().add(AmbientLight.ID).getData()
+        system.addEntity().add(AmbientLight.class).getData()
               .setColor(new ColorRGB(0.2, 0.2, 0.2));
 
-        Entity inf = system.addEntity();
-        inf.add(DirectionLight.ID).getData().setColor(new ColorRGB(1, 1, 1))
-           .setShadowCaster(true);
-        inf.add(Transform.ID)
-           .getData()
-           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(.3 * BOUNDS,
-                                                                      .3 * BOUNDS,
-                                                                      .3 * BOUNDS),
-                                           new Vector3(0, 1, 0)));
+        //        Entity inf = system.addEntity();
+        //        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
+        //           .setShadowCaster(true);
+        //        inf.add(Transform.class)
+        //           .getData()
+        //           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(.3 * BOUNDS,
+        //                                                                      .3 * BOUNDS,
+        //                                                                      .3 * BOUNDS),
+        //                                           new Vector3(0, 1, 0)));
 
         AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-1.5 * BOUNDS / 2,
                                                                     -1.5 * BOUNDS / 2,
@@ -239,52 +240,27 @@ public class SimpleTest {
                                                         new Vector3(1.5 * BOUNDS / 2,
                                                                     1.5 * BOUNDS / 2,
                                                                     1.5 * BOUNDS / 2));
-        Controller animator = new AnimationController();
-        Controller boundsUpdate = new WorldBoundsController();
-        Controller frustumUpdate = new CameraController();
-        Controller smUpdate = new ShadowFrustumController();
-        Controller indexBuilder = new SpatialIndexController(new QuadTree<Entity>(worldBounds,
-                                                                                  6));
-        Controller pvsComputer = new VisibilityController();
-        Controller lights = new LightGroupController(worldBounds);
-        Controller render = new FixedFunctionRenderController(framework);
 
-        Map<String, Controller> controllers = new HashMap<String, Controller>();
-        controllers.put("anim", animator);
-        controllers.put("bounds", boundsUpdate);
-        controllers.put("shadow", smUpdate);
-        controllers.put("frustum", frustumUpdate);
-        controllers.put("index-build", indexBuilder);
-        controllers.put("pvs", pvsComputer);
-        controllers.put("lights", lights);
-        controllers.put("render", render);
-        Map<String, Long> times = new HashMap<String, Long>();
-
-        system.getControllerManager().addController(animator);
-        system.getControllerManager().addController(boundsUpdate);
-        system.getControllerManager().addController(frustumUpdate);
-        system.getControllerManager().addController(smUpdate);
-        system.getControllerManager().addController(indexBuilder);
-        system.getControllerManager().addController(pvsComputer);
-        system.getControllerManager().addController(lights);
-        system.getControllerManager().addController(render);
+        Job renderJob = system.getScheduler()
+                              .createJob("render",
+                                         Timers.measuredDelta(),
+                                         new AnimationController(),
+                                         new UpdateWorldBoundsTask(),
+                                         new ComputeCameraFrustumTask(),
+                                         new ComputeShadowFrustumTask(),
+                                         new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
+                                                                                           6)),
+                                         new ComputePVSTask(),
+                                         new ComputeLightGroupTask(),
+                                         new FixedFunctionRenderController(framework));
 
         long now = System.nanoTime();
         int numRuns = 0;
         try {
             while (System.nanoTime() - now < 10000000000L) {
-                system.getControllerManager().process();
+                system.getScheduler().runOnCurrentThread(renderJob);
                 framework.flush(surface);
                 numRuns++;
-                for (String name : controllers.keySet()) {
-                    Long time = times.get(name);
-                    if (time == null) {
-                        time = 0L;
-                    }
-                    time += system.getControllerManager()
-                                  .getExecutionTime(controllers.get(name));
-                    times.put(name, time);
-                }
             }
         } finally {
             long total = System.nanoTime() - now;
@@ -293,9 +269,6 @@ public class SimpleTest {
 
             System.out.println("***** TIMING *****");
             print("total", total, numRuns);
-            for (String name : controllers.keySet()) {
-                print(name, (times.containsKey(name) ? times.get(name) : 0), numRuns);
-            }
             print("blocked", FixedFunctionRenderController.blocktime, numRuns);
             print("opengl", FixedFunctionRenderController.rendertime, numRuns);
             System.out.println();
@@ -304,7 +277,7 @@ public class SimpleTest {
             Runtime r = Runtime.getRuntime();
             printMemory("total", r.totalMemory());
             printMemory("used", r.totalMemory() - r.freeMemory());
-            for (TypeId<?> t : system.getTypes()) {
+            for (Class<? extends ComponentData<?>> t : system.getComponentTypes()) {
                 printMemory(t.toString(), system.estimateMemory(t));
             }
         }
@@ -320,13 +293,22 @@ public class SimpleTest {
         System.out.printf("%s - total time: %.2f, avg: %.2f\n", label, millis, avg);
     }
 
-    public static class AnimationController extends SimpleController {
+    public static class AnimationController implements Task, ParallelAware {
         public static double SPEED = 4;
 
+        private double dt;
+
+        public void report(ElapsedTimeResult dt) {
+            this.dt = dt.getTimeDelta();
+        }
+
         @Override
-        public void process(double dt) {
-            Transform t = getEntitySystem().createDataInstance(Transform.ID);
-            Iterator<Animation> it = getEntitySystem().iterator(Animation.ID);
+        public void reset(EntitySystem system) {}
+
+        @Override
+        public Task process(EntitySystem system, Job job) {
+            Transform t = system.createDataInstance(Transform.class);
+            Iterator<Animation> it = system.iterator(Animation.class);
             while (it.hasNext()) {
                 Animation anim = it.next();
                 Vector3 d = anim.getDirection();
@@ -365,12 +347,24 @@ public class SimpleTest {
                 }
                 anim.setLifetime(newLifetime);
             }
+
+            return null;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+            return new HashSet<Class<? extends ComponentData<?>>>(Arrays.asList(Animation.class,
+                                                                                Transform.class));
+        }
+
+        @Override
+        public boolean isEntitySetModified() {
+            return false;
         }
     }
 
     public static class Animation extends ComponentData<Animation> {
-        public static final TypeId<Animation> ID = TypeId.get(Animation.class);
-
         @DefaultDouble(1)
         private DoubleProperty life;
 
