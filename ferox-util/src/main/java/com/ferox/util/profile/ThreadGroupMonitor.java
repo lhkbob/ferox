@@ -78,11 +78,11 @@ public class ThreadGroupMonitor {
 
     //
 
-    private static final int default_slots = 3600;
+    private static final int default_slots = 100;
 
     private long[] lastThreadIds;
-    private Map<Long, ThreadMonitor> aliveId2mon;
-    private Map<Long, ThreadMonitor> deadId2mon;
+    private final Map<Long, ThreadMonitor> aliveId2mon;
+    private final Map<Long, ThreadMonitor> deadId2mon;
 
     public synchronized void poll() {
         Thread[] threads = this.findAllThreads();
@@ -120,18 +120,18 @@ public class ThreadGroupMonitor {
         this.lastThreadIds = currThreadIds;
     }
 
-    public synchronized double getAvgCpuTimeStats(int pollCount) {
+    public synchronized double getAvgCpuTimeStats() {
         double sum = 0.0;
         for (ThreadMonitor mon : aliveId2mon.values()) {
-            sum += mon.getCpuTimeStats().avg(pollCount);
+            sum += mon.getCpuTimeStats().average();
         }
         return sum;
     }
 
-    public synchronized double getAvgUserTimeStats(int pollCount) {
+    public synchronized double getAvgUserTimeStats() {
         double sum = 0.0;
         for (ThreadMonitor mon : aliveId2mon.values()) {
-            sum += mon.getUserTimeStats().avg(pollCount);
+            sum += mon.getUserTimeStats().average();
         }
         return sum;
     }

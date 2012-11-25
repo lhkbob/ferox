@@ -31,7 +31,7 @@ import java.util.Random;
 public class ThreadMonitorTest {
 
     public static void main(String[] args) throws Exception {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -62,7 +62,8 @@ public class ThreadMonitorTest {
                     //                   double avg = tmon.getCpuTimeStats().avg(1000); // avg of last 5 polls
                     //                   System.out.println("Alive " + tmon.getId() + ": " + avg);
                     System.out.println("Alive " + tmon.getName() + ": " + tmon.getTotalCpuTime() + ", " + tmon.getCpuUsageStats()
-                                                                                                              .avg(5));
+                                                                                                              .average() + ", " + tmon.getUserUsageStats()
+                                                                                                                                      .average());
                 }
 
                 //               double totalCpu = gmonitor.getAvgCpuTimeStats(1000);

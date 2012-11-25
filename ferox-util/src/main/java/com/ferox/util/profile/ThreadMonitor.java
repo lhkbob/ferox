@@ -49,20 +49,20 @@ public class ThreadMonitor {
 
     //
 
-    private String name;
-    private long tid;
-    private CyclicUsageHistory cpuTimeHistory;
-    private CyclicUsageHistory userTimeHistory;
-    private CyclicUsageHistory cpuUsageHistory;
-    private CyclicUsageHistory userUsageHistory;
+    private final String name;
+    private final long tid;
+    private final CyclicBuffer cpuTimeHistory;
+    private final CyclicBuffer userTimeHistory;
+    private final CyclicBuffer cpuUsageHistory;
+    private final CyclicBuffer userUsageHistory;
 
     public ThreadMonitor(String name, long tid, int slots) {
         this.tid = tid;
         this.name = name;
-        this.cpuTimeHistory = new CyclicUsageHistory(slots);
-        this.userTimeHistory = new CyclicUsageHistory(slots);
-        this.cpuUsageHistory = new CyclicUsageHistory(slots);
-        this.userUsageHistory = new CyclicUsageHistory(slots);
+        this.cpuTimeHistory = new CyclicBuffer(slots);
+        this.userTimeHistory = new CyclicBuffer(slots);
+        this.cpuUsageHistory = new CyclicBuffer(slots);
+        this.userUsageHistory = new CyclicBuffer(slots);
 
         lastPoll = System.nanoTime();
     }
@@ -77,8 +77,6 @@ public class ThreadMonitor {
 
     private double totalCpuTime;
     private double totalUserTime;
-    // FIXME: cpu time includes user time and system time
-    // system time = cpu time - user time
 
     private long lastPoll;
 
@@ -97,35 +95,29 @@ public class ThreadMonitor {
         lastPoll = now;
 
         double cpuTime = tmxb.getThreadCpuTime(this.tid) / 1000000000.0;
-        //        this.totalCpuTime += cpuTime < 0 ? 0 : cpuTime;
         totalCpuTime = cpuTime < 0 ? 0 : cpuTime;
         cpuTimeHistory.log(totalCpuTime);
         cpuUsageHistory.log((cpuTimeHistory.previous(0) - cpuTimeHistory.previous(1)) / wallTime * 100.0);
 
         double userTime = tmxb.getThreadUserTime(this.tid) / 1000000000.0;
-        //        this.totalUserTime += userTime < 0 ? 0 : userTime;
         totalUserTime = userTime < 0 ? 0 : userTime;
         userTimeHistory.log(totalUserTime);
         userUsageHistory.log((userTimeHistory.previous(0) - userTimeHistory.previous(1)) / wallTime * 100.0);
-
-        //        System.out.println("poll: " + name + ", cpu: " + cpuUsageHistory.previous() + ", user: " + userUsageHistory.previous() + ", wall: " + wallClock);
-        //        System.out.println("      " + name + ", total cpu: " + cpuTime + ", total user: " + userTime);
-        //        usage.log(cpuTime / wallClock * 100.0);
     }
 
-    public CyclicUsageHistory getCpuUsageStats() {
+    public CyclicBuffer getCpuUsageStats() {
         return this.cpuUsageHistory;
     }
 
-    public CyclicUsageHistory getUserUsageStats() {
+    public CyclicBuffer getUserUsageStats() {
         return this.userUsageHistory;
     }
 
-    public CyclicUsageHistory getCpuTimeStats() {
+    public CyclicBuffer getCpuTimeStats() {
         return this.cpuTimeHistory;
     }
 
-    public CyclicUsageHistory getUserTimeStats() {
+    public CyclicBuffer getUserTimeStats() {
         return this.userTimeHistory;
     }
 }

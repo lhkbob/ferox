@@ -26,82 +26,127 @@
  */
 package com.ferox.util.profile;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
-public class Profiler {
-    // FIXME: what types of profiling should we do?
-    // Record memory usage of component types
-    // Record timing info of course-grained tasks, explicitly started/stopped by code,
-    //  this will have to be a tree/stack as well so subtasks can be counted separately
-    // Record CPU usage of threads
-    //
-    // The tasks can be per-thread as well, so I feel like there could be nice
-    // correlation between the tasks and CPU usage. I should check how a graphics
-    // thread reports CPU usage, since I could see this being system time and not
-    // user time, and I can also see it not counted because it's waiting on the GPU,
-    // which might be smart enough to release the thread.
-    //
-    // On top of this information could be the FPS and UPS information associated
-    // with the system and its slightly decoupled renderer. The UPS is easy to
-    // compute because we can just have a high-level task that contains all of the
-    // tasks. For rendering it's harder unless we submit a single task that performs
-    // all necessary operations.
+public final class Profiler {
+    private static final ThreadLocal<Profiler> profilers = new ThreadLocal<Profiler>() {
+        @Override
+        protected Profiler initialValue() {
+            return new Profiler();
+        }
+    };
 
-    // On the other hand, if I let the rendering and updating overlap by threading,
-    // measuring both doesn't mean much because I need to take into account the
-    // amount blocking on the rendering or the updating, depending on which is slower.
-    // But this is not the same as the max, min, or sum of the two numbers.
-    //  |1---|1-------|2---|2-------| serial = sum
+    private final Map<String, ProfileRecord> rootRecords;
+    private ProfileRecord currentRecord;
 
-    //  |1---|2---...|3---...| UPS
-    //  |....|1------|2------| FPS
-    // This actually shows us that the apparent update rate is the max of the two,
-    // in the event that the rendering takes longer than the updating. Rendering
-    // lags one update behind.
-
-    // What changes when the updates take longer?
-    // |1--------|2--------|3--------| UPS
-    // |.........|1----....|2----....| FPS
-    // Still the max and lagging by an update
-
-    // Now what happens if we interpolate the rendering frames, assuming that
-    // they are faster than the updates (which is the same as just computing
-    // updates less frequently)
-    // |1-------|2-------|3-------|4-------|  UPS
-    // |.................|1-|a-|b-|2-|a-|b-|3 FPS
-
-    // I am two updates behind, but the game update rate is still locked to the
-    // the update rate of the state, and not rendering. In this case, rendering
-    // is 3x faster than updates since each state transition (1-2) is rendered
-    // (1-a, a-b, b-2), etc.
-
-    // Now what is the case when we need to skip frames because they're taking]
-    // too long? This only occurs when we mandate a fixed update rate that
-    // can't be slowed down with the graphics rate.
-
-    public void push(String label) {
-
+    private Profiler() {
+        rootRecords = new HashMap<String, ProfileRecord>();
+        currentRecord = null;
     }
 
-    public void pop(String label) {
+    public ProfilerData getData() {
+        Map<String, ProfilerData> roots = getData(rootRecords);
+        double avg = 0;
+        double min = 0;
+        double max = 0;
 
+        for (ProfilerData data : roots.values()) {
+            avg += data.getAverageTime();
+            min += data.getMinTime();
+            max += data.getMaxTime();
+        }
+
+        return new ProfilerData("root", avg, min, max, -1, roots);
     }
 
-    public Map<String, CyclicBuffer> getLabelStatistics(String parentLabel) {
-        return null;
+    private ProfilerData getData(ProfileRecord record) {
+        Map<String, ProfilerData> children = getData(record.children);
+        return new ProfilerData(record.label,
+                                record.timings.average(),
+                                record.timings.min(),
+                                record.timings.max(),
+                                record.invokeCount,
+                                children);
     }
 
-    public Map<String, CyclicBuffer> getRootLabelStatistics() {
-        return null;
+    private Map<String, ProfilerData> getData(Map<String, ProfileRecord> records) {
+        Map<String, ProfilerData> data = new HashMap<String, ProfilerData>();
+        for (Entry<String, ProfileRecord> r : records.entrySet()) {
+            data.put(r.getKey(), getData(r.getValue()));
+        }
+        return data;
     }
 
-    // If I can push and pop labels, how do I record timings, well each full path/stack
-    // gets a cyclic buffer to record. So how do we query this information?
-    // I feel like we'd have to expose the stack nature back to the user, but a simple
-    // query via label could be useful - would sum up all occurences of that label.
+    private void pushImpl(String label) {
+        if (label == null) {
+            throw new NullPointerException("Label cannot be null");
+        }
 
-    // Is a cyclicbuffer really what we want? Yes, I think so, we just don't
-    // need that large of a buffer since these will be using averages, etc.
-    // These somewhat averaged values can then be accumulated into larger cyclicbuffers
-    // for presentation purposes by some other service if need-be
+        if (currentRecord == null) {
+            // new root record
+            currentRecord = new ProfileRecord(label, null);
+            rootRecords.put(label, currentRecord);
+        } else {
+            ProfileRecord next = currentRecord.children.get(label);
+            if (next == null) {
+                next = new ProfileRecord(label, currentRecord);
+                currentRecord.children.put(label, next);
+            }
+            currentRecord = next;
+        }
+
+        currentRecord.startTime = System.nanoTime();
+        currentRecord.invokeCount++;
+    }
+
+    private void popImpl(String label) {
+        if (label == null) {
+            throw new NullPointerException("Label cannot be null");
+        }
+        if (currentRecord == null) {
+            throw new IllegalStateException("No record to pop off");
+        }
+        if (!currentRecord.label.equals(label)) {
+            throw new IllegalStateException("Mismatched pop for label: " + label + ", but found: " + currentRecord.label);
+        }
+
+        currentRecord.timings.log((System.nanoTime() - currentRecord.startTime) / 1e9);
+        currentRecord = currentRecord.parent;
+    }
+
+    public static void push(String label) {
+        Profiler profiler = profilers.get();
+        profiler.pushImpl(label);
+    }
+
+    public static void pop(String label) {
+        Profiler profiler = profilers.get();
+        profiler.popImpl(label);
+    }
+
+    public static Profiler getProfiler() {
+        return profilers.get();
+    }
+
+    private static class ProfileRecord {
+        private final String label;
+        private final CyclicBuffer timings;
+        private int invokeCount;
+
+        private final Map<String, ProfileRecord> children;
+        private final ProfileRecord parent;
+
+        private long startTime;
+
+        private ProfileRecord(String label, ProfileRecord parent) {
+            this.label = label;
+            this.parent = parent;
+
+            timings = new CyclicBuffer(20);
+            invokeCount = 0;
+            children = new HashMap<String, ProfileRecord>();
+        }
+    }
 }
