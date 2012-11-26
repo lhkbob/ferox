@@ -37,6 +37,7 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
@@ -94,6 +95,8 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("detect-collisions");
+
         // if the index is bounded, update its size so everything is processed
         if (index instanceof BoundedSpatialIndex) {
             // FIXME how much does computing the union hurt our performance?
@@ -110,6 +113,7 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
             // sharable.  The only place would be if the math module defined the
             // world bounds result type (we need different tasks because they
             // process things differently anyways).
+            Profiler.push("update-index-extent");
             AxisAlignedBox extent = new AxisAlignedBox();
             boolean first = true;
             while (iterator.next()) {
@@ -127,18 +131,26 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
             extent.max.scale(1.1);
             ((BoundedSpatialIndex<Entity>) index).setExtent(extent);
             iterator.reset();
+            Profiler.pop("update-index-extent");
         }
 
         // fill the index with all collision bodies
+        Profiler.push("build-index");
         while (iterator.next()) {
             index.add(bodyA.getEntity(), bodyA.getWorldBounds());
         }
+        Profiler.pop("build-index");
 
         // query for all intersections
+        Profiler.push("find-intersections");
         index.query(new CollisionCallback(bodyA, bodyB));
+        Profiler.pop("find-intersections");
 
+        Profiler.push("generate-constraints");
         reportConstraints(job);
+        Profiler.pop("generate-constraints");
 
+        Profiler.pop("detect-collisions");
         return super.process(system, job);
     }
 

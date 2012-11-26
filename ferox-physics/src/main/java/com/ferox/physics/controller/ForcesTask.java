@@ -39,6 +39,7 @@ import com.ferox.physics.dynamics.ExplicitEulerIntegrator;
 import com.ferox.physics.dynamics.Gravity;
 import com.ferox.physics.dynamics.Integrator;
 import com.ferox.physics.dynamics.RigidBody;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -123,6 +124,7 @@ public class ForcesTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("apply-forces");
         while (iterator.next()) {
             Matrix4 transform = colBody.getTransform();
 
@@ -161,7 +163,7 @@ public class ForcesTask implements Task, ParallelAware {
             // reset forces
             rigidBody.clearForces();
         }
-
+        Profiler.pop("apply-forces");
         return null;
     }
 

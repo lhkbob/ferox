@@ -185,10 +185,9 @@ public class ContactManifoldPool {
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
                 // load in component data
-                boolean valid = objAs[manifold].get(bodyA);
-                valid &= objAs[manifold].get(rbA);
-                valid &= objBs[manifold].get(bodyB);
-                valid &= objBs[manifold].get(rbB);
+                boolean valid = objAs[manifold].get(bodyA) && objBs[manifold].get(bodyB);
+                objAs[manifold].get(rbA);
+                objBs[manifold].get(rbB);
 
                 if (!valid) {
                     // component was removed and entity should no longer be in the manifold pool

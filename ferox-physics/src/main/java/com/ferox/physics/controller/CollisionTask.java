@@ -33,6 +33,7 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.ContactManifoldPool;
 import com.ferox.physics.dynamics.LinearConstraintPool;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.ElapsedTimeResult;
@@ -99,7 +100,9 @@ public abstract class CollisionTask implements Task {
         @Override
         public Task process(EntitySystem system, Job job) {
             // read back computed impulses from constraint solving controller
+            Profiler.push("warmstart-contacts");
             manifolds.computeWarmstartImpulses(contactGroup, frictionGroup);
+            Profiler.pop("warmstart-contacts");
             return null;
         }
 

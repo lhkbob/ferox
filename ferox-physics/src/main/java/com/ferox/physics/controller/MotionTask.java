@@ -38,6 +38,7 @@ import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.ExplicitEulerIntegrator;
 import com.ferox.physics.dynamics.Integrator;
 import com.ferox.physics.dynamics.RigidBody;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -107,7 +108,8 @@ public class MotionTask implements Task, ParallelAware {
         if (iterator == null) {
             rigidBody = system.createDataInstance(RigidBody.class);
             collisionBody = system.createDataInstance(CollisionBody.class);
-            iterator = new ComponentIterator(system);
+            iterator = new ComponentIterator(system).addRequired(rigidBody)
+                                                    .addRequired(collisionBody);
         } else {
             iterator.reset();
         }
@@ -115,6 +117,7 @@ public class MotionTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("integrate-motion");
         while (iterator.next()) {
             Matrix4 transform = collisionBody.getTransform();
 
@@ -131,6 +134,7 @@ public class MotionTask implements Task, ParallelAware {
 
             collisionBody.setTransform(transform);
         }
+        Profiler.pop("integrate-motion");
 
         return null;
     }

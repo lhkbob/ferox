@@ -36,6 +36,7 @@ import com.ferox.math.entreri.Vector3Property;
 import com.ferox.physics.dynamics.LinearConstraintPool;
 import com.ferox.physics.dynamics.LinearConstraintSolver;
 import com.ferox.physics.dynamics.RigidBody;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -82,10 +83,15 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("constraint-solving-task");
+
+        Profiler.push("solve-constraints");
         LinearConstraintPool[] asArray = groups.toArray(new LinearConstraintPool[groups.size()]);
         solver.solve(asArray);
+        Profiler.pop("solve-constraints");
 
         // now apply all of the delta impulses back to the rigid bodies
+        Profiler.push("apply-constraints");
         while (iterator.next()) {
             // linear velocity
             deltaLinearImpulse.get(rigidBody.getIndex(), delta);
@@ -100,6 +106,8 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             deltaLinearImpulse.set(delta, rigidBody.getIndex());
             deltaAngularImpulse.set(delta, rigidBody.getIndex());
         }
+        Profiler.pop("apply-constraints");
+        Profiler.pop("constraint-solving-task");
 
         return null;
     }
