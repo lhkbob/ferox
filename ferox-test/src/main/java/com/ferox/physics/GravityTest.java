@@ -53,9 +53,9 @@ public class GravityTest extends PhysicsApplicationStub {
 
         // camera
         Entity camera = system.addEntity();
-        camera.add(Camera.ID).getData().setSurface(surface)
+        camera.add(Camera.class).getData().setSurface(surface)
               .setZDistances(1.0, 6 * BOUNDS);
-        camera.add(Transform.ID)
+        camera.add(Transform.class)
               .getData()
               .setMatrix(new Matrix4(-1,
                                      0,
@@ -93,17 +93,17 @@ public class GravityTest extends PhysicsApplicationStub {
 
         // falling down entity
         Entity e = system.addEntity();
-        e.add(Renderable.ID)
+        e.add(Renderable.class)
          .getData()
          .setVertices(geomShape1.getVertices())
          .setLocalBounds(geomShape1.getBounds())
          .setIndices(geomShape1.getPolygonType(), geomShape1.getIndices(),
                      geomShape1.getIndexOffset(), geomShape1.getIndexCount());
-        e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape1.getNormals());
-        e.add(DiffuseColor.ID).getData().setColor(new ColorRGB(1.0, 0.0, 0.0));
-        e.add(Transform.ID);
+        e.add(BlinnPhongMaterial.class).getData().setNormals(geomShape1.getNormals());
+        e.add(DiffuseColor.class).getData().setColor(new ColorRGB(1.0, 0.0, 0.0));
+        e.add(Transform.class);
 
-        e.add(CollisionBody.ID)
+        e.add(CollisionBody.class)
          .getData()
          .setShape(physShape1)
          .setTransform(new Matrix4(1,
@@ -122,22 +122,22 @@ public class GravityTest extends PhysicsApplicationStub {
                                    0,
                                    0,
                                    1));
-        e.add(RigidBody.ID).getData().setMass(1.0);
-        e.add(Gravity.ID).getData().setGravity(new Vector3(0, -10, 0));
+        e.add(RigidBody.class).getData().setMass(1.0);
+        e.add(Gravity.class).getData().setGravity(new Vector3(0, -10, 0));
 
         // falling up entity
         e = system.addEntity();
-        e.add(Renderable.ID)
+        e.add(Renderable.class)
          .getData()
          .setVertices(geomShape2.getVertices())
          .setLocalBounds(geomShape2.getBounds())
          .setIndices(geomShape2.getPolygonType(), geomShape2.getIndices(),
                      geomShape2.getIndexOffset(), geomShape2.getIndexCount());
-        e.add(BlinnPhongMaterial.ID).getData().setNormals(geomShape2.getNormals());
-        e.add(DiffuseColor.ID).getData().setColor(new ColorRGB(0.0, 1.0, 0.0));
-        e.add(Transform.ID);
+        e.add(BlinnPhongMaterial.class).getData().setNormals(geomShape2.getNormals());
+        e.add(DiffuseColor.class).getData().setColor(new ColorRGB(0.0, 1.0, 0.0));
+        e.add(Transform.class);
 
-        e.add(CollisionBody.ID)
+        e.add(CollisionBody.class)
          .getData()
          .setShape(physShape2)
          .setTransform(new Matrix4(1,
@@ -156,17 +156,17 @@ public class GravityTest extends PhysicsApplicationStub {
                                    0,
                                    0,
                                    1));
-        e.add(RigidBody.ID).getData().setMass(1.0);
-        e.add(Gravity.ID).getData().setGravity(new Vector3(0, 10, 0));
+        e.add(RigidBody.class).getData().setMass(1.0);
+        e.add(Gravity.class).getData().setGravity(new Vector3(0, 10, 0));
 
         // ambient light
-        system.addEntity().add(AmbientLight.ID).getData()
+        system.addEntity().add(AmbientLight.class).getData()
               .setColor(new ColorRGB(0.2, 0.2, 0.2));
 
         // a point light
         Entity point = system.addEntity();
-        point.add(PointLight.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        point.add(Transform.ID)
+        point.add(PointLight.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
+        point.add(Transform.class)
              .getData()
              .setMatrix(new Matrix4(1,
                                     0,

@@ -58,7 +58,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
     private static final double RANDOM = 0;
 
     private static final double START_POS_X = -5;
-    private static final double START_POS_Y = 10 + 2 * MARGIN;
+    private static final double START_POS_Y = 1 + 2 * MARGIN;
     private static final double START_POS_Z = -3;
 
     @Override
@@ -100,18 +100,18 @@ public class PhysicsTest extends PhysicsApplicationStub {
                     double rz = (Math.random() * randZLim - randZLim / 2);
 
                     Entity e = system.addEntity();
-                    e.add(Renderable.ID)
+                    e.add(Renderable.class)
                      .getData()
                      .setVertices(geomShape.getVertices())
                      .setLocalBounds(geomShape.getBounds())
                      .setIndices(geomShape.getPolygonType(), geomShape.getIndices(),
                                  geomShape.getIndexOffset(), geomShape.getIndexCount());
-                    e.add(BlinnPhongMaterial.ID).getData()
+                    e.add(BlinnPhongMaterial.class).getData()
                      .setNormals(geomShape.getNormals());
-                    e.add(DiffuseColor.ID).getData().setColor(color);
-                    e.add(Transform.ID);
+                    e.add(DiffuseColor.class).getData().setColor(color);
+                    e.add(Transform.class);
 
-                    e.add(CollisionBody.ID)
+                    e.add(CollisionBody.class)
                      .getData()
                      .setShape(physShape)
                      .setTransform(new Matrix4().setIdentity()
@@ -120,7 +120,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
                                                                     (SCALE_Y + 2 * MARGIN) * y + ry + startY,
                                                                     (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
                                                                     1)));
-                    e.add(RigidBody.ID).getData().setMass(1.0);
+                    e.add(RigidBody.class).getData().setMass(1.0);
                 }
             }
         }
@@ -129,30 +129,30 @@ public class PhysicsTest extends PhysicsApplicationStub {
         Geometry bottomWall = Box.create(BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN,
                                          COMPILE_TYPE);
         Entity wall = system.addEntity();
-        wall.add(Renderable.ID)
+        wall.add(Renderable.class)
             .getData()
             .setVertices(bottomWall.getVertices())
             .setLocalBounds(bottomWall.getBounds())
             .setIndices(bottomWall.getPolygonType(), bottomWall.getIndices(),
                         bottomWall.getIndexOffset(), bottomWall.getIndexCount());
-        wall.add(BlinnPhongMaterial.ID).getData().setNormals(bottomWall.getNormals());
-        wall.add(DiffuseColor.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        wall.add(Transform.ID);
+        wall.add(BlinnPhongMaterial.class).getData().setNormals(bottomWall.getNormals());
+        wall.add(DiffuseColor.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
+        wall.add(Transform.class);
 
-        wall.add(CollisionBody.ID)
+        wall.add(CollisionBody.class)
             .getData()
             .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
             .setTransform(new Matrix4().setIdentity()
                                        .setCol(3, new Vector4(0, -.5, 0, 1)));
 
         // ambient light
-        system.addEntity().add(AmbientLight.ID).getData()
+        system.addEntity().add(AmbientLight.class).getData()
               .setColor(new ColorRGB(.2, .2, .2));
 
         // a point light
         Entity point = system.addEntity();
-        point.add(PointLight.ID).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        point.add(Transform.ID)
+        point.add(PointLight.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
+        point.add(Transform.class)
              .getData()
              .setMatrix(new Matrix4().setIdentity().setCol(3,
                                                            new Vector4(BOUNDS / 2,
@@ -162,9 +162,9 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
-        inf.add(DirectionLight.ID).getData().setColor(new ColorRGB(1, 1, 1))
+        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
            .setShadowCaster(true);
-        inf.add(Transform.ID)
+        inf.add(Transform.class)
            .getData()
            .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(0, 15, 15),
                                            new Vector3(0, 1, 0)));

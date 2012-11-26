@@ -37,23 +37,29 @@ import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
+import com.ferox.physics.controller.ConstraintSolvingTask;
+import com.ferox.physics.controller.ForcesTask;
+import com.ferox.physics.controller.MotionTask;
 import com.ferox.physics.controller.SpatialIndexCollisionController;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
-import com.ferox.scene.controller.ComputeCameraFrustumTask;
 import com.ferox.scene.controller.BuildVisibilityIndexTask;
+import com.ferox.scene.controller.ComputeCameraFrustumTask;
 import com.ferox.scene.controller.ComputePVSTask;
 import com.ferox.scene.controller.UpdateWorldBoundsTask;
 import com.ferox.scene.controller.ffp.FixedFunctionRenderController;
 import com.ferox.scene.controller.light.ComputeLightGroupTask;
 import com.ferox.scene.controller.light.ComputeShadowFrustumTask;
 import com.ferox.util.ApplicationStub;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.SimpleController;
+import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.Task;
+import com.lhkbob.entreri.task.Timers;
 
 public class PhysicsApplicationStub extends ApplicationStub {
     protected static final int BOUNDS = 50;
@@ -90,6 +96,8 @@ public class PhysicsApplicationStub extends ApplicationStub {
     private double zoom; // distance from origin
 
     protected final EntitySystem system;
+    private Job physicsJob;
+    private Job renderJob;
 
     public PhysicsApplicationStub() {
         super(LwjglFramework.create());
@@ -104,10 +112,16 @@ public class PhysicsApplicationStub extends ApplicationStub {
                 paused = !paused;
             }
         });
-        io.on(Predicates.keyPress(KeyCode.P)).trigger(new Action() {
+        io.on(Predicates.keyPress(KeyCode.I)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
                 stepOnce = true;
+            }
+        });
+        io.on(Predicates.keyPress(KeyCode.O)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                Profiler.getDataSnapshot().print(System.out);
             }
         });
 
@@ -181,42 +195,34 @@ public class PhysicsApplicationStub extends ApplicationStub {
         pos.y = zoom * Math.sin(phi);
         pos.z = r * Math.sin(theta);
 
-        camera.get(Transform.ID).getData()
+        camera.get(Transform.class).getData()
               .setMatrix(new Matrix4().lookAt(new Vector3(), pos, new Vector3(0, 1, 0)));
     }
 
     @Override
     protected void init(OnscreenSurface surface) {
         // physics handling
-        system.getControllerManager()
-              .addController(new com.ferox.physics.controller.ForcesTask());
-
-        //        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.QuadTree<Entity>(worldBounds, 6), new DefaultCollisionAlgorithmProvider()));
-        //        system.getControllerManager().addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.SimpleSpatialIndex<Entity>(), new DefaultCollisionAlgorithmProvider()));
-        system.getControllerManager()
-              .addController(new SpatialIndexCollisionController(new com.ferox.math.bounds.Octree<Entity>(worldBounds,
-                                                                                                          6),
-                                                                 new DefaultCollisionAlgorithmProvider()));
-
-        system.getControllerManager()
-              .addController(new com.ferox.physics.controller.ConstraintSolvingTask());
-        system.getControllerManager()
-              .addController(new com.ferox.physics.controller.MotionTask());
-
-        system.getControllerManager().addController(new TransformController());
+        physicsJob = system.getScheduler()
+                           .createJob("physics",
+                                      Timers.fixedDelta(1 / 60.0),
+                                      new ForcesTask(),
+                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
+                                                                                               6),
+                                                                          new DefaultCollisionAlgorithmProvider()),
+                                      new ConstraintSolvingTask(), new MotionTask(),
+                                      new TransformController());
 
         // rendering
-        system.getControllerManager().addController(new UpdateWorldBoundsTask());
-        system.getControllerManager().addController(new ComputeCameraFrustumTask());
-        system.getControllerManager().addController(new ComputeShadowFrustumTask());
-        system.getControllerManager()
-              .addController(new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
-                                                                             6)));
-        system.getControllerManager().addController(new ComputePVSTask());
-        system.getControllerManager()
-              .addController(new ComputeLightGroupTask(worldBounds));
-        system.getControllerManager()
-              .addController(new FixedFunctionRenderController(surface.getFramework()));
+        renderJob = system.getScheduler()
+                          .createJob("render",
+                                     new UpdateWorldBoundsTask(),
+                                     new ComputeCameraFrustumTask(),
+                                     new ComputeShadowFrustumTask(),
+                                     new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
+                                                                                       6)),
+                                     new ComputePVSTask(),
+                                     new ComputeLightGroupTask(),
+                                     new FixedFunctionRenderController(surface.getFramework()));
 
         surface.setVSyncEnabled(true);
 
@@ -226,32 +232,38 @@ public class PhysicsApplicationStub extends ApplicationStub {
         zoom = (MAX_ZOOM + MIN_ZOOM) / 2.0;
 
         camera = system.addEntity();
-        camera.add(Camera.ID).getData().setSurface(surface).setZDistances(1.0, BOUNDS);
-        camera.add(Transform.ID);
+        camera.add(Camera.class).getData().setSurface(surface).setZDistances(1.0, BOUNDS);
         updateCameraOrientation();
     }
 
     @Override
     protected void renderFrame(OnscreenSurface surface) {
         if (!paused || stepOnce) {
-            system.getControllerManager().process(1 / 60.0);
+            system.getScheduler().runOnCurrentThread(physicsJob);
+            system.getScheduler().runOnCurrentThread(renderJob);
             stepOnce = false;
         }
     }
 
-    private static class TransformController extends SimpleController {
+    private static class TransformController implements Task {
         @Override
-        public void process(double dt) {
-            CollisionBody cb = getEntitySystem().createDataInstance(CollisionBody.ID);
-            Transform t = getEntitySystem().createDataInstance(Transform.ID);
+        public Task process(EntitySystem system, Job job) {
+            CollisionBody cb = system.createDataInstance(CollisionBody.class);
+            Transform t = system.createDataInstance(Transform.class);
 
-            ComponentIterator it = new ComponentIterator(getEntitySystem());
+            ComponentIterator it = new ComponentIterator(system);
             it.addRequired(cb);
             it.addRequired(t);
 
             while (it.next()) {
                 t.setMatrix(cb.getTransform());
             }
+            return null;
+        }
+
+        @Override
+        public void reset(EntitySystem system) {
+
         }
     }
 }

@@ -63,6 +63,7 @@ import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
 import com.ferox.util.geom.Sphere;
 import com.ferox.util.geom.Teapot;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -269,9 +270,7 @@ public class SimpleTest {
 
             System.out.println("***** TIMING *****");
             print("total", total, numRuns);
-            print("blocked", FixedFunctionRenderController.blocktime, numRuns);
-            print("opengl", FixedFunctionRenderController.rendertime, numRuns);
-            System.out.println();
+            Profiler.getDataSnapshot().print(System.out);
 
             System.out.println("***** MEMORY *****");
             Runtime r = Runtime.getRuntime();
