@@ -57,7 +57,7 @@ public class CyclicBuffer {
 
     public double min() {
         int len = Math.min(index, values.length);
-        double min = 0;
+        double min = Double.POSITIVE_INFINITY;
         for (int i = 0; i < len; i++) {
             if (values[i] < min) {
                 min = values[i];
@@ -68,7 +68,7 @@ public class CyclicBuffer {
 
     public double max() {
         int len = Math.min(index, values.length);
-        double max = 0;
+        double max = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < len; i++) {
             if (values[i] > max) {
                 max = values[i];

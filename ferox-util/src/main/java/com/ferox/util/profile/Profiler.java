@@ -46,7 +46,9 @@ public final class Profiler {
         currentRecord = null;
     }
 
-    public ProfilerData getData() {
+    // FIXME for most utility this should expose/clone the cyclic buffer so
+    // in depth histograms of performance can be presented
+    private ProfilerData getProfilerData() {
         Map<String, ProfilerData> roots = getData(rootRecords);
         double avg = 0;
         double min = 0;
@@ -85,12 +87,16 @@ public final class Profiler {
         }
 
         if (currentRecord == null) {
-            // new root record
-            currentRecord = new ProfileRecord(label, null);
-            rootRecords.put(label, currentRecord);
+            // root record
+            currentRecord = rootRecords.get(label);
+            if (currentRecord == null) {
+                currentRecord = new ProfileRecord(label, null);
+                rootRecords.put(label, currentRecord);
+            }
         } else {
             ProfileRecord next = currentRecord.children.get(label);
             if (next == null) {
+                // new label
                 next = new ProfileRecord(label, currentRecord);
                 currentRecord.children.put(label, next);
             }
@@ -126,8 +132,11 @@ public final class Profiler {
         profiler.popImpl(label);
     }
 
-    public static Profiler getProfiler() {
-        return profilers.get();
+    // FIXME there really needs to be a thread-safe way of getting the data
+    // from another thread
+    public static ProfilerData getDataSnapshot() {
+        Profiler profiler = profilers.get();
+        return profiler.getProfilerData();
     }
 
     private static class ProfileRecord {
@@ -144,7 +153,7 @@ public final class Profiler {
             this.label = label;
             this.parent = parent;
 
-            timings = new CyclicBuffer(20);
+            timings = new CyclicBuffer(100);
             invokeCount = 0;
             children = new HashMap<String, ProfileRecord>();
         }
