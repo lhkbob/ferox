@@ -33,6 +33,7 @@ import java.util.Set;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -68,6 +69,8 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("update-world-bounds");
+
         AxisAlignedBox worldBounds = new AxisAlignedBox();
         AxisAlignedBox sceneBounds = new AxisAlignedBox();
         boolean first = true;
@@ -86,6 +89,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
 
         job.report(new BoundsResult(sceneBounds));
 
+        Profiler.pop("update-world-bounds");
         return null;
     }
 

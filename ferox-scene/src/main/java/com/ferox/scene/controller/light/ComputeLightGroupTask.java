@@ -56,6 +56,7 @@ import com.ferox.scene.Transform;
 import com.ferox.scene.controller.BoundsResult;
 import com.ferox.scene.controller.PVSResult;
 import com.ferox.util.Bag;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
@@ -211,9 +212,12 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
      */
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("compute-light-groups");
+
         lightIndex.setExtent(worldBounds);
 
         // collect all lights
+        Profiler.push("collect-lights");
         List<LightSource> allLights = new ArrayList<LightSource>();
         List<LightSource> globalLights = new ArrayList<LightSource>();
         convertToLightSources(direction, system,
@@ -226,6 +230,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                               allLights);
         convertToLightSources(point, system, PointLightInfluence.factory(), globalLights,
                               allLights);
+        Profiler.pop("collect-lights");
 
         int groupId = 0;
         Map<BitSet, Integer> groups = new HashMap<BitSet, Integer>();
@@ -233,6 +238,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         LightCallback callback = new LightCallback(system, allLights.size());
 
         // process every visible entity
+        Profiler.push("assign-lights");
         for (Bag<Entity> pvs : allVisibleSets) {
             for (Entity entity : pvs) {
                 // reset callback for this entity
@@ -261,8 +267,10 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 assignments.set(lightGroup.intValue(), callback.renderable.getIndex());
             }
         }
+        Profiler.pop("assign-lights");
 
         // convert computed groups into LightGroupResult
+        Profiler.push("report");
         List<Set<Component<? extends Light<?>>>> finalGroups = new ArrayList<Set<Component<? extends Light<?>>>>(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             // must fill with nulls up to the full size so that the random
@@ -282,7 +290,9 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         }
 
         job.report(new LightGroupResult(finalGroups, assignments));
+        Profiler.pop("report");
 
+        Profiler.pop("compute-light-groups");
         return null;
     }
 

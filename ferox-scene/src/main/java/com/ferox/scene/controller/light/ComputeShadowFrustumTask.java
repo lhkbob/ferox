@@ -41,6 +41,7 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.Transform;
 import com.ferox.scene.controller.BoundsResult;
 import com.ferox.scene.controller.FrustumResult;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -118,21 +119,29 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
             return null;
         }
 
+        Profiler.push("compute-shadow-frustum");
+
         // Process DirectionLights
         while (directionIterator.next()) {
             if (directionLight.isShadowCaster()) {
+                Profiler.push("direction-light");
                 Frustum smFrustum = computeFrustum(directionLight, transform);
                 job.report(new FrustumResult(directionLight.getComponent(), smFrustum));
+                Profiler.pop("direction-light");
             }
         }
 
         // Process SpotLights
         while (spotIterator.next()) {
             if (spotLight.isShadowCaster()) {
+                Profiler.push("spot-light");
                 Frustum smFrustum = computeFrustum(spotLight, transform);
                 job.report(new FrustumResult(spotLight.getComponent(), smFrustum));
+                Profiler.pop("spot-light");
             }
         }
+
+        Profiler.pop("compute-shadow-frustum");
 
         return null;
     }

@@ -33,6 +33,7 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
@@ -73,6 +74,8 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("build-visibility-index");
+
         if (index instanceof BoundedSpatialIndex) {
             ((BoundedSpatialIndex<Entity>) index).setExtent(worldBounds);
         }
@@ -84,6 +87,7 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
         // send the built index to everyone listened
         job.report(new SpatialIndexResult(index));
 
+        Profiler.pop("build-visibility-index");
         return null;
     }
 

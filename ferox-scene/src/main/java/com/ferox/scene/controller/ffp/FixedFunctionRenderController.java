@@ -65,6 +65,7 @@ import com.ferox.scene.Transparent;
 import com.ferox.scene.controller.PVSResult;
 import com.ferox.scene.controller.light.LightGroupResult;
 import com.ferox.util.Bag;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
@@ -170,11 +171,11 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
         }
     }
 
-    public static long blocktime = 0L;
-
     @Override
     @SuppressWarnings("unchecked")
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("render");
+
         // FIXME normally we'd block for the previous frame after we built
         // the tree but before submitting it to the renderer, but this causes
         // problems with the shadow map cache (see below). So for now, I've
@@ -184,7 +185,7 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
         // from getting too ahead of the rendering thread.
         // - We do the blocking at the end so that this thread finishes all
         // processing before waiting on the rendering thread.
-        long now = System.nanoTime();
+        Profiler.push("block-opengl");
         while (!previousFrame.isEmpty()) {
             Future<Void> f = previousFrame.poll();
             try {
@@ -193,7 +194,7 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
                 throw new RuntimeException("Previous frame failed", e);
             }
         }
-        blocktime += (System.nanoTime() - now);
+        Profiler.pop("block-opengl");
 
         Camera camera = system.createDataInstance(Camera.class);
 
@@ -203,29 +204,32 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
         // - I'm not sure but this might be the sole problem with the deadlock, or just the crash
         //   When it doesn't crash something else might still cause it to freeze up entirely
         //   including the rest of the OS which is bad
+        Profiler.push("generate-shadow-map-scene");
         shadowMap.reset();
         for (PVSResult visible : pvs) {
             // cacheShadowScene properly ignores PVSResults that aren't for lights
             shadowMap.cacheShadowScene(visible);
         }
+        Profiler.pop("generate-shadow-map-scene");
 
         // go through all results and render all camera frustums
         List<Future<Void>> thisFrame = new ArrayList<Future<Void>>();
         for (PVSResult visible : pvs) {
             if (visible.getSource().getType().equals(Camera.class)) {
+                Profiler.push("build-render-tree");
                 camera.set((Component<Camera>) visible.getSource());
                 thisFrame.add(render(camera.getSurface(), visible.getFrustum(),
                                      visible.getPotentiallyVisibleSet(), system));
+                Profiler.pop("build-render-tree");
             }
         }
 
         previousFrame.addAll(thisFrame);
 
+        Profiler.pop("render");
         // FIXME return a flush task
         return null;
     }
-
-    public static long rendertime = 0L;
 
     private Future<Void> render(final Surface surface, Frustum view, Bag<Entity> pvs,
                                 EntitySystem system) {
@@ -263,10 +267,10 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
             rootNode.add(e);
         }
 
+        // FIXME add profiling within rendering thread too
         return framework.queue(new com.ferox.renderer.Task<Void>() {
             @Override
             public Void run(HardwareAccessLayer access) {
-                long now = System.nanoTime();
                 Context ctx = access.setActiveSurface(surface);
                 if (ctx != null) {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
@@ -311,7 +315,6 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
                     //                    shadowMap.getShadowMap().setDepthCompareEnabled(true);
                     //                    access.update(shadowMap.getShadowMap());
                 }
-                rendertime += (System.nanoTime() - now);
                 return null;
             }
         });

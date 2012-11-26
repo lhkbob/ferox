@@ -35,6 +35,7 @@ import com.ferox.math.bounds.QueryCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.Bag;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -67,8 +68,12 @@ public class ComputePVSTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("compute-pvs-root");
+
         if (index != null) {
             for (FrustumResult f : frustums) {
+                Profiler.push("compute-pvs");
+
                 VisibilityCallback query = new VisibilityCallback(system);
                 index.query(f.getFrustum(), query);
 
@@ -77,9 +82,12 @@ public class ComputePVSTask implements Task, ParallelAware {
                 // accessing entity properties
                 query.pvs.sort();
                 job.report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
+
+                Profiler.pop("compute-pvs");
             }
         }
 
+        Profiler.pop("compute-pvs-root");
         return null;
     }
 

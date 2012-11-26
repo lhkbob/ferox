@@ -35,6 +35,7 @@ import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
+import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -78,6 +79,8 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
+        Profiler.push("compute-camera-frustum");
+
         while (iterator.next()) {
             double aspect = camera.getSurface().getWidth() / (double) camera.getSurface()
                                                                             .getHeight();
@@ -95,6 +98,7 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
             job.report(new FrustumResult(camera.getComponent(), f));
         }
 
+        Profiler.pop("compute-camera-frustum");
         return null;
     }
 
