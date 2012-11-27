@@ -102,7 +102,7 @@ public abstract class CollisionTask implements Task {
             // read back computed impulses from constraint solving controller
             Profiler.push("warmstart-contacts");
             manifolds.computeWarmstartImpulses(contactGroup, frictionGroup);
-            Profiler.pop("warmstart-contacts");
+            Profiler.pop();
             return null;
         }
 

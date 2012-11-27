@@ -78,53 +78,45 @@ public class RigidBody extends ComponentData<RigidBody> {
     }
 
     public RigidBody addForce(@Const Vector3 force, @Const Vector3 relPos) {
-        forceCache.add(force);
-        totalForce.set(forceCache, getIndex());
+        totalForce.set(getTotalForce().add(force), getIndex());
 
         if (relPos != null) {
-            torqueCache.add(temp.cross(relPos, force));
-            totalTorque.set(torqueCache, getIndex());
+            totalTorque.set(getTotalTorque().add(temp.cross(relPos, force)), getIndex());
         }
 
         return this;
     }
 
     public RigidBody addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
-        velocityCache.addScaled(getInverseMass(), impulse);
-        velocity.set(velocityCache, getIndex());
+        velocity.set(getVelocity().addScaled(getInverseMass(), impulse), getIndex());
 
         if (relPos != null) {
             temp.cross(relPos, impulse);
-            temp.mul(tensorCache, temp);
-            angularVelocityCache.add(temp);
+            temp.mul(getInertiaTensorInverse(), temp);
 
-            angularVelocity.set(angularVelocityCache, getIndex());
+            angularVelocity.set(getAngularVelocity().add(temp), getIndex());
         }
 
         return this;
     }
 
     public RigidBody setForce(@Const Vector3 f) {
-        forceCache.set(f);
         totalForce.set(f, getIndex());
         return this;
     }
 
     public RigidBody setTorque(@Const Vector3 t) {
-        torqueCache.set(t);
         totalTorque.set(t, getIndex());
         return this;
     }
 
     public RigidBody setVelocity(@Const Vector3 vel) {
-        velocityCache.set(vel);
         velocity.set(vel, getIndex());
 
         return this;
     }
 
     public RigidBody setAngularVelocity(@Const Vector3 angVel) {
-        angularVelocityCache.set(angVel);
         angularVelocity.set(angVel, getIndex());
 
         return this;
@@ -158,32 +150,25 @@ public class RigidBody extends ComponentData<RigidBody> {
 
     @Const
     public Vector3 getVelocity() {
+        velocity.get(getIndex(), velocityCache);
         return velocityCache;
     }
 
     @Const
     public Vector3 getAngularVelocity() {
+        angularVelocity.get(getIndex(), angularVelocityCache);
         return angularVelocityCache;
     }
 
     @Const
     public Vector3 getTotalForce() {
+        totalForce.get(getIndex(), forceCache);
         return forceCache;
     }
 
     @Const
     public Vector3 getTotalTorque() {
+        totalTorque.get(getIndex(), torqueCache);
         return torqueCache;
-    }
-
-    @Override
-    protected void onSet(int index) {
-        // FIXME this might be a performance bottleneck if we don't need to
-        // access every single vector object when processing a given rigid body
-        angularVelocity.get(index, angularVelocityCache);
-        velocity.get(index, velocityCache);
-        inertiaTensorWorldInverse.get(index, tensorCache);
-        totalForce.get(index, forceCache);
-        totalTorque.get(index, torqueCache);
     }
 }

@@ -134,7 +134,7 @@ public class MotionTask implements Task, ParallelAware {
 
             collisionBody.setTransform(transform);
         }
-        Profiler.pop("integrate-motion");
+        Profiler.pop();
 
         return null;
     }

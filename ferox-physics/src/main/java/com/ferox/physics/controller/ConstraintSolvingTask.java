@@ -88,7 +88,7 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
         Profiler.push("solve-constraints");
         LinearConstraintPool[] asArray = groups.toArray(new LinearConstraintPool[groups.size()]);
         solver.solve(asArray);
-        Profiler.pop("solve-constraints");
+        Profiler.pop();
 
         // now apply all of the delta impulses back to the rigid bodies
         Profiler.push("apply-constraints");
@@ -106,8 +106,8 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             deltaLinearImpulse.set(delta, rigidBody.getIndex());
             deltaAngularImpulse.set(delta, rigidBody.getIndex());
         }
-        Profiler.pop("apply-constraints");
-        Profiler.pop("constraint-solving-task");
+        Profiler.pop();
+        Profiler.pop();
 
         return null;
     }

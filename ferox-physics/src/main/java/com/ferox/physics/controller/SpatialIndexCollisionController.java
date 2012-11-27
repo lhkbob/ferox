@@ -27,6 +27,7 @@
 package com.ferox.physics.controller;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.ferox.math.AxisAlignedBox;
@@ -37,6 +38,7 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
@@ -47,6 +49,14 @@ import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
 public class SpatialIndexCollisionController extends CollisionTask implements ParallelAware {
+    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    static {
+        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        types.add(CollisionBody.class);
+        types.add(RigidBody.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
+    }
+
     private final SpatialIndex<Entity> index;
     private final CollisionAlgorithmProvider algorithms;
 
@@ -131,7 +141,7 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
             extent.max.scale(1.1);
             ((BoundedSpatialIndex<Entity>) index).setExtent(extent);
             iterator.reset();
-            Profiler.pop("update-index-extent");
+            Profiler.pop();
         }
 
         // fill the index with all collision bodies
@@ -139,18 +149,18 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
         while (iterator.next()) {
             index.add(bodyA.getEntity(), bodyA.getWorldBounds());
         }
-        Profiler.pop("build-index");
+        Profiler.pop();
 
         // query for all intersections
         Profiler.push("find-intersections");
         index.query(new CollisionCallback(bodyA, bodyB));
-        Profiler.pop("find-intersections");
+        Profiler.pop();
 
         Profiler.push("generate-constraints");
         reportConstraints(job);
-        Profiler.pop("generate-constraints");
+        Profiler.pop();
 
-        Profiler.pop("detect-collisions");
+        Profiler.pop();
         return super.process(system, job);
     }
 
@@ -184,7 +194,7 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
                                                             bodyB.getShape(),
                                                             bodyB.getTransform());
 
-                if (pair != null && pair.isIntersecting()) {
+                if (pair != null && pair.isIntersecting() && (a.get(RigidBody.class) != null || b.get(RigidBody.class) != null)) {
                     notifyContact(bodyA, bodyB, pair);
                 }
             }
@@ -193,7 +203,7 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
 
     @Override
     public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>> singleton(CollisionBody.class);
+        return COMPONENTS;
     }
 
     @Override

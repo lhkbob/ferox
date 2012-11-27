@@ -261,6 +261,7 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      */
     @Const
     public Matrix4 getTransform() {
+        worldTransform.get(getIndex(), transformCache);
         return transformCache;
     }
 
@@ -298,7 +299,6 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @throws NullPointerException if t is null
      */
     public CollisionBody setTransform(@Const Matrix4 t) {
-        transformCache.set(t);
         worldTransform.set(t, getIndex());
         updateBounds();
         return this;
@@ -312,6 +312,7 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      */
     @Const
     public AxisAlignedBox getWorldBounds() {
+        worldBounds.get(getIndex(), boundsCache);
         return boundsCache;
     }
 
@@ -324,11 +325,5 @@ public class CollisionBody extends ComponentData<CollisionBody> {
             boundsCache.transform(shape.getBounds(), getTransform());
             worldBounds.set(boundsCache, getIndex());
         }
-    }
-
-    @Override
-    protected void onSet(int index) {
-        worldTransform.get(index, transformCache);
-        worldBounds.get(index, boundsCache);
     }
 }

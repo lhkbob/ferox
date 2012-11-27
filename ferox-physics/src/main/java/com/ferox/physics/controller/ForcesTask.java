@@ -163,7 +163,7 @@ public class ForcesTask implements Task, ParallelAware {
             // reset forces
             rigidBody.clearForces();
         }
-        Profiler.pop("apply-forces");
+        Profiler.pop();
         return null;
     }
 

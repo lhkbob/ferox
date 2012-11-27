@@ -47,7 +47,7 @@ public class LinearConstraintSolver {
 
     public LinearConstraintSolver() {
         shuffler = new Random();
-        setShuffleConstraints(false);
+        setShuffleConstraints(true);
         setShuffleEveryIteration(true);
         setIterationCount(10);
     }
