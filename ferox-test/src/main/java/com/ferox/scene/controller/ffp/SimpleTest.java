@@ -49,6 +49,7 @@ import com.ferox.scene.AmbientLight;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
 import com.ferox.scene.DiffuseColor;
+import com.ferox.scene.DirectionLight;
 import com.ferox.scene.InfluenceRegion;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
@@ -225,15 +226,15 @@ public class SimpleTest {
         system.addEntity().add(AmbientLight.class).getData()
               .setColor(new ColorRGB(0.2, 0.2, 0.2));
 
-        //        Entity inf = system.addEntity();
-        //        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
-        //           .setShadowCaster(true);
-        //        inf.add(Transform.class)
-        //           .getData()
-        //           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(.3 * BOUNDS,
-        //                                                                      .3 * BOUNDS,
-        //                                                                      .3 * BOUNDS),
-        //                                           new Vector3(0, 1, 0)));
+        Entity inf = system.addEntity();
+        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
+           .setShadowCaster(false);
+        inf.add(Transform.class)
+           .getData()
+           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(.3 * BOUNDS,
+                                                                      .3 * BOUNDS,
+                                                                      .3 * BOUNDS),
+                                           new Vector3(0, 1, 0)));
 
         AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-1.5 * BOUNDS / 2,
                                                                     -1.5 * BOUNDS / 2,
@@ -258,7 +259,7 @@ public class SimpleTest {
         long now = System.nanoTime();
         int numRuns = 0;
         try {
-            while (System.nanoTime() - now < 10000000000L) {
+            while (System.nanoTime() - now < 20000000000L) {
                 system.getScheduler().runOnCurrentThread(renderJob);
                 framework.flush(surface);
                 numRuns++;

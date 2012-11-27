@@ -49,16 +49,16 @@ public class PhysicsTest extends PhysicsApplicationStub {
     private static final StorageMode COMPILE_TYPE = StorageMode.GPU_STATIC;
 
     private static final int NUM_X = 5;
-    private static final int NUM_Y = 5;
+    private static final int NUM_Y = 30;
     private static final int NUM_Z = 5;
     private static final double SCALE_X = 2.0;
-    private static final double SCALE_Y = 2.0;
+    private static final double SCALE_Y = 4.0;
     private static final double SCALE_Z = 2.0;
 
     private static final double RANDOM = 0;
 
     private static final double START_POS_X = -5;
-    private static final double START_POS_Y = 1 + 2 * MARGIN;
+    private static final double START_POS_Y = 10 + 2 * MARGIN;
     private static final double START_POS_Z = -3;
 
     @Override
