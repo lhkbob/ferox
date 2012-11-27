@@ -230,7 +230,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                               allLights);
         convertToLightSources(point, system, PointLightInfluence.factory(), globalLights,
                               allLights);
-        Profiler.pop("collect-lights");
+        Profiler.pop();
 
         int groupId = 0;
         Map<BitSet, Integer> groups = new HashMap<BitSet, Integer>();
@@ -267,7 +267,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 assignments.set(lightGroup.intValue(), callback.renderable.getIndex());
             }
         }
-        Profiler.pop("assign-lights");
+        Profiler.pop();
 
         // convert computed groups into LightGroupResult
         Profiler.push("report");
@@ -290,9 +290,9 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         }
 
         job.report(new LightGroupResult(finalGroups, assignments));
-        Profiler.pop("report");
+        Profiler.pop();
 
-        Profiler.pop("compute-light-groups");
+        Profiler.pop();
         return null;
     }
 

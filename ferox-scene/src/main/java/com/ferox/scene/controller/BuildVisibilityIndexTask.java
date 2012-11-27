@@ -87,7 +87,7 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
         // send the built index to everyone listened
         job.report(new SpatialIndexResult(index));
 
-        Profiler.pop("build-visibility-index");
+        Profiler.pop();
         return null;
     }
 

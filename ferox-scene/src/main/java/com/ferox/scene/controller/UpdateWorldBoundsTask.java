@@ -89,7 +89,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
 
         job.report(new BoundsResult(sceneBounds));
 
-        Profiler.pop("update-world-bounds");
+        Profiler.pop();
         return null;
     }
 

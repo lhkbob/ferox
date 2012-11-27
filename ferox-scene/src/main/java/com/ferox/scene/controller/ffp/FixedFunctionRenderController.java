@@ -98,7 +98,8 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
         COMPONENTS = Collections.unmodifiableSet(types);
     }
     private final Framework framework;
-    private final ShadowMapCache shadowMap;
+    private final ShadowMapCache shadowMapA;
+    private final ShadowMapCache shadowMapB;
 
     private final int shadowmapTextureUnit;
     private final int diffuseTextureUnit;
@@ -108,6 +109,7 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
     private List<PVSResult> pvs;
     private LightGroupResult lightGroups;
 
+    private ShadowMapCache inuseCache;
     private final Queue<Future<Void>> previousFrame;
 
     public FixedFunctionRenderController(Framework framework) {
@@ -138,14 +140,16 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
             while (sz < shadowMapSize) {
                 sz = sz << 1;
             }
-            shadowMap = new ShadowMapCache(framework, sz, sz);
+            shadowMapA = new ShadowMapCache(framework, sz, sz);
+            shadowMapB = new ShadowMapCache(framework, sz, sz);
 
             // use the 4th unit if available, or the last unit if we're under
             shadowmapTextureUnit = Math.max(numTex, 3) - 1;
             // reserve one unit for the shadow map
             numTex--;
         } else {
-            shadowMap = null;
+            shadowMapA = null;
+            shadowMapB = null;
             shadowmapTextureUnit = -1;
         }
 
@@ -176,15 +180,32 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
     public Task process(EntitySystem system, Job job) {
         Profiler.push("render");
 
-        // FIXME normally we'd block for the previous frame after we built
-        // the tree but before submitting it to the renderer, but this causes
-        // problems with the shadow map cache (see below). So for now, I've
-        // moved the blocking to the beginning
+        Camera camera = system.createDataInstance(Camera.class);
 
-        // Block until previous frame is completed to prevent the main thread
-        // from getting too ahead of the rendering thread.
-        // - We do the blocking at the end so that this thread finishes all
-        // processing before waiting on the rendering thread.
+        // first cache all shadow map frustums so any view can easily prepare a texture
+        Profiler.push("generate-shadow-map-scene");
+        ShadowMapCache shadowMap = (inuseCache == shadowMapA ? shadowMapB : shadowMapA);
+
+        shadowMap.reset();
+        for (PVSResult visible : pvs) {
+            // cacheShadowScene properly ignores PVSResults that aren't for lights
+            shadowMap.cacheShadowScene(visible);
+        }
+        Profiler.pop();
+
+        // go through all results and render all camera frustums
+        List<com.ferox.renderer.Task<Void>> thisFrame = new ArrayList<com.ferox.renderer.Task<Void>>();
+        for (PVSResult visible : pvs) {
+            if (visible.getSource().getType().equals(Camera.class)) {
+                Profiler.push("build-render-tree");
+                camera.set((Component<Camera>) visible.getSource());
+                thisFrame.add(render(camera.getSurface(), visible.getFrustum(),
+                                     visible.getPotentiallyVisibleSet(), system,
+                                     shadowMap));
+                Profiler.pop();
+            }
+        }
+
         Profiler.push("block-opengl");
         while (!previousFrame.isEmpty()) {
             Future<Void> f = previousFrame.poll();
@@ -194,45 +215,21 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
                 throw new RuntimeException("Previous frame failed", e);
             }
         }
-        Profiler.pop("block-opengl");
+        Profiler.pop();
 
-        Camera camera = system.createDataInstance(Camera.class);
-
-        // first cache all shadow map frustums so any view can easily prepare a texture
-        // FIXME must properly thread-safety this because we start the reset
-        // before the previous frame has completed use of it
-        // - I'm not sure but this might be the sole problem with the deadlock, or just the crash
-        //   When it doesn't crash something else might still cause it to freeze up entirely
-        //   including the rest of the OS which is bad
-        Profiler.push("generate-shadow-map-scene");
-        shadowMap.reset();
-        for (PVSResult visible : pvs) {
-            // cacheShadowScene properly ignores PVSResults that aren't for lights
-            shadowMap.cacheShadowScene(visible);
-        }
-        Profiler.pop("generate-shadow-map-scene");
-
-        // go through all results and render all camera frustums
-        List<Future<Void>> thisFrame = new ArrayList<Future<Void>>();
-        for (PVSResult visible : pvs) {
-            if (visible.getSource().getType().equals(Camera.class)) {
-                Profiler.push("build-render-tree");
-                camera.set((Component<Camera>) visible.getSource());
-                thisFrame.add(render(camera.getSurface(), visible.getFrustum(),
-                                     visible.getPotentiallyVisibleSet(), system));
-                Profiler.pop("build-render-tree");
-            }
+        inuseCache = shadowMap;
+        for (com.ferox.renderer.Task<Void> rf : thisFrame) {
+            previousFrame.add(framework.queue(rf));
         }
 
-        previousFrame.addAll(thisFrame);
-
-        Profiler.pop("render");
+        Profiler.pop();
         // FIXME return a flush task
         return null;
     }
 
-    private Future<Void> render(final Surface surface, Frustum view, Bag<Entity> pvs,
-                                EntitySystem system) {
+    private com.ferox.renderer.Task<Void> render(final Surface surface, Frustum view,
+                                                 Bag<Entity> pvs, EntitySystem system,
+                                                 ShadowMapCache shadowMap) {
         // FIXME can we somehow preserve this tree across frames instead of continuing
         // to build it over and over again?
         GeometryGroupFactory geomGroup = new GeometryGroupFactory(system);
@@ -268,7 +265,7 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
         }
 
         // FIXME add profiling within rendering thread too
-        return framework.queue(new com.ferox.renderer.Task<Void>() {
+        return new com.ferox.renderer.Task<Void>() {
             @Override
             public Void run(HardwareAccessLayer access) {
                 Context ctx = access.setActiveSurface(surface);
@@ -317,7 +314,7 @@ public class FixedFunctionRenderController implements Task, ParallelAware {
                 }
                 return null;
             }
-        });
+        };
     }
 
     @Override

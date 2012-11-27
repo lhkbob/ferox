@@ -98,7 +98,7 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
             job.report(new FrustumResult(camera.getComponent(), f));
         }
 
-        Profiler.pop("compute-camera-frustum");
+        Profiler.pop();
         return null;
     }
 

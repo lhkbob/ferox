@@ -83,11 +83,11 @@ public class ComputePVSTask implements Task, ParallelAware {
                 query.pvs.sort();
                 job.report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
 
-                Profiler.pop("compute-pvs");
+                Profiler.pop();
             }
         }
 
-        Profiler.pop("compute-pvs-root");
+        Profiler.pop();
         return null;
     }
 

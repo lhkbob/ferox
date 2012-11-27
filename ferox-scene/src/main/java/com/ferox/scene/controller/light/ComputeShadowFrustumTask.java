@@ -127,7 +127,7 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
                 Profiler.push("direction-light");
                 Frustum smFrustum = computeFrustum(directionLight, transform);
                 job.report(new FrustumResult(directionLight.getComponent(), smFrustum));
-                Profiler.pop("direction-light");
+                Profiler.pop();
             }
         }
 
@@ -137,11 +137,11 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
                 Profiler.push("spot-light");
                 Frustum smFrustum = computeFrustum(spotLight, transform);
                 job.report(new FrustumResult(spotLight.getComponent(), smFrustum));
-                Profiler.pop("spot-light");
+                Profiler.pop();
             }
         }
 
-        Profiler.pop("compute-shadow-frustum");
+        Profiler.pop();
 
         return null;
     }
