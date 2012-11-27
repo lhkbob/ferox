@@ -1,8 +1,11 @@
 package com.ferox.util.profile;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ProfilerData {
@@ -50,28 +53,55 @@ public class ProfilerData {
     }
 
     public void print(PrintStream out) {
-        printWithOffset(out, 0);
+        printWithOffset(out, 0, getLabelColumnWidth(0));
     }
 
-    private void printWithOffset(PrintStream out, int offset) {
+    private void printWithOffset(PrintStream out, int offset, int labelWidth) {
         for (int i = 0; i < offset; i++) {
             out.print(' ');
         }
 
         out.print(label);
-        out.print(" -\tavg: ");
-        out.print(formatTime(avg));
-        out.print("\tmin: ");
-        out.print(formatTime(min));
-        out.print("\tmax: ");
-        out.print(formatTime(max));
-        out.print("\tcount: ");
-        out.print(count);
-        out.print('\n');
 
-        for (ProfilerData child : children.values()) {
-            child.printWithOffset(out, offset + 2);
+        for (int i = offset + label.length(); i < labelWidth; i++) {
+            out.print(' ');
         }
+
+        out.print(" - ");
+
+        for (int i = 0; i < offset; i++) {
+            out.print(' ');
+        }
+
+        out.print("avg: ");
+        out.print(formatTime(avg));
+        out.print(" min: ");
+        out.print(formatTime(min));
+        out.print(" max: ");
+        out.print(formatTime(max));
+        out.print(" count: ");
+        out.print(count);
+        out.println();
+
+        List<ProfilerData> sorted = new ArrayList<ProfilerData>(children.values());
+        Collections.sort(sorted, new Comparator<ProfilerData>() {
+            @Override
+            public int compare(ProfilerData o1, ProfilerData o2) {
+                return Double.compare(o2.avg, o1.avg);
+            }
+        });
+
+        for (ProfilerData child : sorted) {
+            child.printWithOffset(out, offset + 2, labelWidth);
+        }
+    }
+
+    private int getLabelColumnWidth(int offset) {
+        int currentWidth = offset + label.length();
+        for (ProfilerData child : children.values()) {
+            currentWidth = Math.max(currentWidth, child.getLabelColumnWidth(offset + 2));
+        }
+        return currentWidth;
     }
 
     private String formatTime(double time) {

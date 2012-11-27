@@ -54,6 +54,7 @@ public final class Profiler {
         double min = 0;
         double max = 0;
 
+        // FIXME need to actually measure proper root data
         for (ProfilerData data : roots.values()) {
             avg += data.getAverageTime();
             min += data.getMinTime();
@@ -107,15 +108,9 @@ public final class Profiler {
         currentRecord.invokeCount++;
     }
 
-    private void popImpl(String label) {
-        if (label == null) {
-            throw new NullPointerException("Label cannot be null");
-        }
+    private void popImpl() {
         if (currentRecord == null) {
             throw new IllegalStateException("No record to pop off");
-        }
-        if (!currentRecord.label.equals(label)) {
-            throw new IllegalStateException("Mismatched pop for label: " + label + ", but found: " + currentRecord.label);
         }
 
         currentRecord.timings.log((System.nanoTime() - currentRecord.startTime) / 1e9);
@@ -127,9 +122,9 @@ public final class Profiler {
         profiler.pushImpl(label);
     }
 
-    public static void pop(String label) {
+    public static void pop() {
         Profiler profiler = profilers.get();
-        profiler.popImpl(label);
+        profiler.popImpl();
     }
 
     // FIXME there really needs to be a thread-safe way of getting the data
@@ -153,7 +148,7 @@ public final class Profiler {
             this.label = label;
             this.parent = parent;
 
-            timings = new CyclicBuffer(100);
+            timings = new CyclicBuffer(10);
             invokeCount = 0;
             children = new HashMap<String, ProfileRecord>();
         }
