@@ -6,9 +6,9 @@
         <version>0.0.2-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-    <artifactId>ferox-test</artifactId>
+    <artifactId>ferox-demos</artifactId>
     <packaging>jar</packaging>
-    <name>Ferox Test Utilities</name>
+    <name>Ferox Demo Applications</name>
     
     <dependencies>
         <dependency>

@@ -13,6 +13,9 @@ import com.ferox.math.Const;
  * 
  * @param <T>
  */
+// FIXME should I just make this part of the main spec?
+// Must resolve what happens for unbounded spatial indexes?
+// Become bounded? Size change ignored?
 public interface BoundedSpatialIndex<T> extends SpatialIndex<T> {
     /**
      * @return The current extent of the index

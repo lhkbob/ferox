@@ -7,13 +7,13 @@
 	<name>Ferox</name>
 
 	<modules>
+	    <module>ferox-demos</module>
 		<module>ferox-input</module>
 		<module>ferox-math</module>
 		<module>ferox-renderer</module>
 		<module>ferox-scene</module>
 		<module>ferox-physics</module>
 		<module>ferox-util</module>
-		<module>ferox-test</module>
 	</modules>
 
 	<developers>

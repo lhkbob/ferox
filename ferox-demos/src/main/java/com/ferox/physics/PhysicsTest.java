@@ -49,11 +49,11 @@ public class PhysicsTest extends PhysicsApplicationStub {
     private static final StorageMode COMPILE_TYPE = StorageMode.GPU_STATIC;
 
     private static final int NUM_X = 5;
-    private static final int NUM_Y = 30;
+    private static final int NUM_Y = 10;
     private static final int NUM_Z = 5;
-    private static final double SCALE_X = 2.0;
-    private static final double SCALE_Y = 4.0;
-    private static final double SCALE_Z = 2.0;
+    private static final double SCALE_X = 3.0;
+    private static final double SCALE_Y = 3.0;
+    private static final double SCALE_Z = 3.0;
 
     private static final double RANDOM = 0;
 
@@ -164,9 +164,9 @@ public class PhysicsTest extends PhysicsApplicationStub {
         Entity inf = system.addEntity();
         inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
            .setShadowCaster(true);
-        inf.add(Transform.class)
+        inf.get(Transform.class)
            .getData()
-           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(0, 15, 15),
+           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15),
                                            new Vector3(0, 1, 0)));
     }
 
