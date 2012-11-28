@@ -68,11 +68,11 @@ public class RigidBody extends ComponentData<RigidBody> {
 
     @Const
     public Matrix3 getInertiaTensorInverse() {
+        inertiaTensorWorldInverse.get(getIndex(), tensorCache);
         return tensorCache;
     }
 
     public RigidBody setInertiaTensorInverse(@Const Matrix3 tensorInverse) {
-        tensorCache.set(tensorInverse);
         inertiaTensorWorldInverse.set(tensorInverse, getIndex());
         return this;
     }
