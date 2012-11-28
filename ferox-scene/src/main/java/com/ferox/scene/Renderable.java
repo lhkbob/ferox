@@ -37,6 +37,7 @@ import com.ferox.resource.VertexBufferObject;
 import com.ferox.util.geom.Geometry;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Requires;
+import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
@@ -182,6 +183,7 @@ public final class Renderable extends ComponentData<Renderable> {
         indexOffset.set(first, componentIndex);
         indexCount.set(count, componentIndex);
 
+        updateVersion();
         return this;
     }
 
@@ -237,8 +239,10 @@ public final class Renderable extends ComponentData<Renderable> {
      * 
      * @return A cached local bounds instance
      */
-    public @Const
-    AxisAlignedBox getLocalBounds() {
+    @Const
+    @SharedInstance
+    public AxisAlignedBox getLocalBounds() {
+        localBounds.get(getIndex(), localBoundsCache);
         return localBoundsCache;
     }
 
@@ -252,8 +256,8 @@ public final class Renderable extends ComponentData<Renderable> {
      * @throws NullPointerException if bounds is null
      */
     public Renderable setLocalBounds(@Const AxisAlignedBox bounds) {
-        localBoundsCache.set(bounds);
         localBounds.set(bounds, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -264,8 +268,10 @@ public final class Renderable extends ComponentData<Renderable> {
      * 
      * @return A cached world bounds instance
      */
-    public @Const
-    AxisAlignedBox getWorldBounds() {
+    @Const
+    @SharedInstance
+    public AxisAlignedBox getWorldBounds() {
+        worldBounds.get(getIndex(), worldBoundsCache);
         return worldBoundsCache;
     }
 
@@ -281,14 +287,8 @@ public final class Renderable extends ComponentData<Renderable> {
      * @throws NullPointerException if bounds is null
      */
     public Renderable setWorldBounds(@Const AxisAlignedBox bounds) {
-        worldBoundsCache.set(bounds);
         worldBounds.set(bounds, getIndex());
+        updateVersion();
         return this;
-    }
-
-    @Override
-    protected void onSet(int index) {
-        worldBounds.get(index, worldBoundsCache);
-        localBounds.get(index, localBoundsCache);
     }
 }

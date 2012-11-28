@@ -63,8 +63,11 @@ public final class DirectionLight extends Light<DirectionLight> {
      * Set whether or not this spotlight should cast shadows.
      * 
      * @param castsShadow True if this light is a shadow caster
+     * @return This component
      */
-    public void setShadowCaster(boolean castsShadow) {
+    public DirectionLight setShadowCaster(boolean castsShadow) {
         shadowCaster.set(castsShadow, getIndex());
+        updateVersion();
+        return this;
     }
 }

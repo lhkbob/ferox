@@ -118,6 +118,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
             }
         }
         tangentVectors.set(tangents, getIndex());
+        updateVersion();
         return this;
     }
 

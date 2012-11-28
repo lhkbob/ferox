@@ -69,6 +69,7 @@ public abstract class AbstractPlacedLight<T extends AbstractPlacedLight<T>> exte
         // No argument checking, a negative distance disables
         // light falloff so every value is supported
         falloffDistance.set(distance, getIndex());
+        updateVersion();
         return (T) this;
     }
 

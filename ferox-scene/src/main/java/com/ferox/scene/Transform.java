@@ -31,6 +31,7 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 
 /**
@@ -64,8 +65,8 @@ public final class Transform extends ComponentData<Transform> {
      */
     public Transform setMatrix(@Const Matrix4 m) {
         // set the cache to m as well so that it is always valid
-        cache.set(m);
         matrix.set(m, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -76,13 +77,10 @@ public final class Transform extends ComponentData<Transform> {
      * 
      * @return The current world affine transform matrix
      */
-    public @Const
-    Matrix4 getMatrix() {
+    @Const
+    @SharedInstance
+    public Matrix4 getMatrix() {
+        matrix.get(getIndex(), cache);
         return cache;
-    }
-
-    @Override
-    protected void onSet(int index) {
-        matrix.get(index, cache);
     }
 }

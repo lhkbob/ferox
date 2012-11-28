@@ -30,6 +30,7 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.BooleanProperty;
 
@@ -43,8 +44,10 @@ public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
 
     private InfluenceRegion() {}
 
-    public @Const
-    AxisAlignedBox getBounds() {
+    @Const
+    @SharedInstance
+    public AxisAlignedBox getBounds() {
+        bounds.get(getIndex(), boundsCache);
         return boundsCache;
     }
 
@@ -52,8 +55,8 @@ public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
         if (bounds == null) {
             throw new NullPointerException("Bounds cannot be null");
         }
-        boundsCache.set(bounds);
         this.bounds.set(bounds, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -63,11 +66,7 @@ public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
 
     public InfluenceRegion setNegated(boolean negate) {
         this.negate.set(negate, getIndex());
+        updateVersion();
         return this;
-    }
-
-    @Override
-    protected void onSet(int index) {
-        bounds.get(index, boundsCache);
     }
 }

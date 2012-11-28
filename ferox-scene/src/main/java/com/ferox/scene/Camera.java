@@ -81,6 +81,7 @@ public final class Camera extends ComponentData<Camera> {
             throw new IllegalArgumentException("Field of view must be in [0, 180]: " + fov);
         }
         this.fov.set(fov, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -109,6 +110,7 @@ public final class Camera extends ComponentData<Camera> {
         }
         this.znear.set(znear, getIndex());
         this.zfar.set(zfar, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -137,6 +139,7 @@ public final class Camera extends ComponentData<Camera> {
      */
     public Camera setSurface(Surface surface) {
         this.surface.set(surface, getIndex());
+        updateVersion();
         return this;
     }
 }

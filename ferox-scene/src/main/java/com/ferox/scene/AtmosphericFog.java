@@ -30,6 +30,7 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
@@ -95,6 +96,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
             throw new NullPointerException("Falloff cannot be null");
         }
         this.falloff.set(falloff, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -126,6 +128,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
             throw new IllegalArgumentException("Distance must be positive, not: " + dist);
         }
         distanceToOpaque.set(dist, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -152,8 +155,8 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
         if (color == null) {
             throw new NullPointerException("Color cannot be null");
         }
-        colorCache.set(color);
         this.color.set(color, getIndex());
+        updateVersion();
         return this;
     }
 
@@ -164,8 +167,10 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * 
      * @return The fog color
      */
-    public @Const
-    ColorRGB getColor() {
+    @Const
+    @SharedInstance
+    public ColorRGB getColor() {
+        color.get(getIndex(), colorCache);
         return colorCache;
     }
 }

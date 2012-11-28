@@ -77,6 +77,7 @@ public abstract class Material<T extends Material<T>> extends ComponentData<T> {
         }
 
         this.normals.set(normals, getIndex());
+        updateVersion();
         return (T) this;
     }
 

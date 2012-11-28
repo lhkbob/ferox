@@ -64,13 +64,16 @@ public final class BlinnPhongMaterial extends Material<BlinnPhongMaterial> {
      * this might get clamped to when rendering.
      * 
      * @param shiny The new shininess exponent
+     * @return This component
      * @throws IllegalArgumentException if shiny is less than 0
      */
-    public void setShininess(double shiny) {
+    public BlinnPhongMaterial setShininess(double shiny) {
         if (shiny < 0f) {
             throw new IllegalArgumentException("Shininess must be positive, not: " + shiny);
         }
         shininess.set(shiny, getIndex());
+        updateVersion();
+        return this;
     }
 
     /**

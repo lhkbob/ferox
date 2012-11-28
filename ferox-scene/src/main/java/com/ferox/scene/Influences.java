@@ -58,6 +58,8 @@ public final class Influences extends ComponentData<Influences> {
         } else {
             set.remove(e);
         }
+
+        updateVersion();
         return this;
     }
 

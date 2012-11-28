@@ -76,6 +76,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
         }
 
         textureCoordinates.set(texCoords, getIndex());
+        updateVersion();
         return (T) this;
     }
 
@@ -108,6 +109,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
         }
         validate(texture);
         this.texture.set(texture, getIndex());
+        updateVersion();
         return (T) this;
     }
 

@@ -87,6 +87,7 @@ public final class Transparent extends ComponentData<Transparent> {
             throw new IllegalArgumentException("Opacity must be in [0, 1], not: " + opacity);
         }
         this.opacity.set(opacity, getIndex());
+        updateVersion();
         return this;
     }
 }

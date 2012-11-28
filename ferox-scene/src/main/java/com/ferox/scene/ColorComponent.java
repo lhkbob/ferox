@@ -30,6 +30,7 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 
 /**
@@ -62,8 +63,10 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
      * 
      * @return This component's color
      */
-    public final @Const
-    ColorRGB getColor() {
+    @Const
+    @SharedInstance
+    public final ColorRGB getColor() {
+        color.get(getIndex(), cache);
         return cache;
     }
 
@@ -80,13 +83,8 @@ public abstract class ColorComponent<T extends ColorComponent<T>> extends Compon
         if (color == null) {
             throw new NullPointerException("Color cannot be null");
         }
-        cache.set(color);
         this.color.set(color, getIndex());
+        updateVersion();
         return (T) this;
-    }
-
-    @Override
-    protected void onSet(int index) {
-        color.get(index, cache);
     }
 }
