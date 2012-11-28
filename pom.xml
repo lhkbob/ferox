@@ -42,7 +42,7 @@
 	</scm>
 
 	<properties>
-		<entreri.version>1.6.0-SNAPSHOT</entreri.version>
+		<entreri.version>1.6.0</entreri.version>
 	</properties>
 
 	<profiles>
