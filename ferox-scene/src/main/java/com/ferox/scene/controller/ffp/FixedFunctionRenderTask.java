@@ -503,6 +503,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         atom.lit = blinnPhong.isEnabled();
     }
 
+    // FIXME pull Frame and RenderAtom out into package-private classes
     private static class Frame {
         final ShadowMapCache shadowMap;
 
@@ -655,7 +656,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         }
 
         void resetStates() {
-            System.out.println("RESET");
             textureState = new TextureState[0];
             geometryState = new GeometryState[0];
             colorState = new ColorState[0];
