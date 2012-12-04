@@ -263,7 +263,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         // synchronize render atoms for all visible entities
         Profiler.push("state-sync");
-        if (Math.random() < .05) {
+        if (currentFrame.needsReset()) {
             currentFrame.resetStates();
         }
 
@@ -406,12 +406,19 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             public Void run(HardwareAccessLayer access) {
                 Context ctx = access.setActiveSurface(surface);
                 if (ctx != null) {
+                    Profiler.push("render-tree");
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
                     // FIXME clear color should be configurable somehow
                     ffp.clear(true, true, true, new Vector4(0, 0, 0, 1.0), 1, 0);
                     ffp.setDrawStyle(DrawStyle.SOLID, DrawStyle.SOLID);
                     root.visit(new AppliedEffects(), access);
+                    Profiler.pop();
 
+                    count++;
+                    if (count > 100) {
+                        Profiler.getDataSnapshot().print(System.out);
+                        count = 0;
+                    }
                     if (flush) {
                         ctx.flush();
                     }
@@ -421,17 +428,19 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         };
     }
 
-    // FIXME this is the bottleneck now
-    // I need to figure out if it's just expensive because of accessing all
-    // of the components, or because of the many, many if statements, or
-    // if there is a bug and it keeps rebuilding it more than expected
+    static int count = 0;
+
     private void syncEntityState(Entity e, RenderAtom atom, Frame frame) {
         // sync render state
         e.get(renderable);
         boolean renderableChanged = atom.renderableVersion != renderable.getVersion();
         if (renderableChanged || atom.renderStateIndex < 0) {
             atom.renderableVersion = renderable.getVersion();
+            if (atom.renderStateIndex >= 0) {
+                frame.renderUsage[atom.renderStateIndex]--;
+            }
             atom.renderStateIndex = frame.getRenderState(renderable);
+            frame.renderUsage[atom.renderStateIndex]++;
         }
 
         // sync geometry state
@@ -439,8 +448,12 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         boolean blinnChanged = (blinnPhong.isEnabled() ? atom.blinnPhongVersion != blinnPhong.getVersion() : atom.blinnPhongVersion >= 0);
         if (renderableChanged || blinnChanged || atom.geometryStateIndex < 0) {
             // renderable version already synced above
-            atom.blinnPhongVersion = blinnPhong.getVersion();
+            atom.blinnPhongVersion = (blinnPhong.isEnabled() ? blinnPhong.getVersion() : -1);
+            if (atom.geometryStateIndex >= 0) {
+                frame.geometryUsage[atom.geometryStateIndex]--;
+            }
             atom.geometryStateIndex = frame.getGeometryState(renderable, blinnPhong);
+            frame.geometryUsage[atom.geometryStateIndex]++;
         }
 
         // sync texture state
@@ -451,11 +464,16 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         boolean dctChanged = (decalTexture.isEnabled() ? atom.decalTextureVersion != decalTexture.getVersion() : atom.decalTextureVersion >= 0);
         boolean emtChanged = (emittedTexture.isEnabled() ? atom.emittedTextureVersion != emittedTexture.getVersion() : atom.emittedTextureVersion >= 0);
         if (dftChanged || dctChanged || emtChanged || atom.textureStateIndex < 0) {
-            atom.diffuseTextureVersion = diffuseTexture.getVersion();
-            atom.decalTextureVersion = decalTexture.getVersion();
-            atom.emittedTextureVersion = emittedTexture.getVersion();
+            atom.diffuseTextureVersion = (diffuseTexture.isEnabled() ? diffuseTexture.getVersion() : -1);
+            atom.decalTextureVersion = (decalTexture.isEnabled() ? decalTexture.getVersion() : -1);
+            atom.emittedTextureVersion = (emittedTexture.isEnabled() ? emittedTexture.getVersion() : -1);
+
+            if (atom.textureStateIndex >= 0) {
+                frame.textureUsage[atom.textureStateIndex]--;
+            }
             atom.textureStateIndex = frame.getTextureState(diffuseTexture, decalTexture,
                                                            emittedTexture);
+            frame.textureUsage[atom.textureStateIndex]++;
         }
 
         // sync color state
@@ -469,12 +487,17 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         boolean transparentChanged = (transparent.isEnabled() ? atom.transparentVersion != transparent.getVersion() : atom.transparentVersion >= 0);
         if (dfcChanged || spcChanged || emcChanged || blinnChanged || transparentChanged || atom.colorStateIndex < 0) {
             // blinn phong version already synced
-            atom.diffuseColorVersion = diffuseColor.getVersion();
-            atom.specularColorVersion = specularColor.getVersion();
-            atom.emittedColorVersion = emittedColor.getVersion();
+            atom.diffuseColorVersion = (diffuseColor.isEnabled() ? diffuseColor.getVersion() : -1);
+            atom.specularColorVersion = (specularColor.isEnabled() ? specularColor.getVersion() : -1);
+            atom.emittedColorVersion = (emittedColor.isEnabled() ? emittedColor.getVersion() : -1);
+
+            if (atom.colorStateIndex >= 0) {
+                frame.colorUsage[atom.colorStateIndex]--;
+            }
             atom.colorStateIndex = frame.getColorState(diffuseColor, specularColor,
                                                        emittedColor, transparent,
                                                        blinnPhong);
+            frame.colorUsage[atom.colorStateIndex]++;
         }
 
         // lit state
@@ -502,6 +525,11 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         Map<ColorState, Integer> colorLookup;
         Map<RenderState, Integer> renderLookup;
 
+        int[] textureUsage;
+        int[] geometryUsage;
+        int[] colorUsage;
+        int[] renderUsage;
+
         // per-entity tracking
         ObjectProperty<RenderAtom> atoms;
 
@@ -520,6 +548,11 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             geometryState = new GeometryState[0];
             colorState = new ColorState[0];
             renderState = new RenderState[0];
+
+            textureUsage = new int[0];
+            geometryUsage = new int[0];
+            colorUsage = new int[0];
+            renderUsage = new int[0];
 
             textureLookup = new HashMap<TextureState, Integer>();
             geometryLookup = new HashMap<GeometryState, Integer>();
@@ -547,6 +580,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 // must create a new state
                 index = textureState.length;
                 textureState = Arrays.copyOf(textureState, textureState.length + 1);
+                textureUsage = Arrays.copyOf(textureUsage, textureUsage.length + 1);
                 textureState[index] = state;
                 textureLookup.put(state, index);
             }
@@ -566,6 +600,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 // needs a new state
                 index = geometryState.length;
                 geometryState = Arrays.copyOf(geometryState, geometryState.length + 1);
+                geometryUsage = Arrays.copyOf(geometryUsage, geometryUsage.length + 1);
                 geometryState[index] = state;
                 geometryLookup.put(state, index);
             }
@@ -590,6 +625,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 // must form a new state
                 index = colorState.length;
                 colorState = Arrays.copyOf(colorState, colorState.length + 1);
+                colorUsage = Arrays.copyOf(colorUsage, colorUsage.length + 1);
                 colorState[index] = state;
                 colorLookup.put(state, index);
             }
@@ -604,11 +640,14 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             state.set(renderable.getPolygonType(), renderable.getIndices(),
                       renderable.getIndexOffset(), renderable.getIndexCount());
 
+            //            System.out.println("getting render state");
             Integer index = renderLookup.get(state);
             if (index == null) {
+                //                System.out.println("new render state");
                 // must form a new state
                 index = renderState.length;
                 renderState = Arrays.copyOf(renderState, renderState.length + 1);
+                renderUsage = Arrays.copyOf(renderUsage, renderUsage.length + 1);
                 renderState[index] = state;
                 renderLookup.put(state, index);
             }
@@ -617,10 +656,16 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         }
 
         void resetStates() {
+            System.out.println("RESET");
             textureState = new TextureState[0];
             geometryState = new GeometryState[0];
             colorState = new ColorState[0];
             renderState = new RenderState[0];
+
+            textureUsage = new int[0];
+            geometryUsage = new int[0];
+            colorUsage = new int[0];
+            renderUsage = new int[0];
 
             textureLookup = new HashMap<TextureState, Integer>();
             geometryLookup = new HashMap<GeometryState, Integer>();
@@ -630,6 +675,37 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             // clearing the render atoms effectively invalidates all of the
             // version tracking we do as well
             Arrays.fill(atoms.getIndexedData(), null);
+        }
+
+        boolean needsReset() {
+            int empty = 0;
+            int total = textureUsage.length + geometryUsage.length + colorUsage.length + renderUsage.length;
+
+            for (int i = 0; i < textureUsage.length; i++) {
+                if (textureUsage[i] == 0) {
+                    empty++;
+                }
+            }
+
+            for (int i = 0; i < geometryUsage.length; i++) {
+                if (geometryUsage[i] == 0) {
+                    empty++;
+                }
+            }
+
+            for (int i = 0; i < colorUsage.length; i++) {
+                if (colorUsage[i] == 0) {
+                    empty++;
+                }
+            }
+
+            for (int i = 0; i < renderUsage.length; i++) {
+                if (renderUsage[i] == 0) {
+                    empty++;
+                }
+            }
+
+            return empty / (double) total > .5;
         }
 
         @SuppressWarnings("unchecked")
