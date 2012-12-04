@@ -205,4 +205,24 @@ public class VertexAttribute {
     public int getMaximumNumVertices() {
         return (buffer.getData().getLength() - offset) / (elementSize + stride);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof VertexAttribute)) {
+            return false;
+        }
+
+        VertexAttribute v = (VertexAttribute) o;
+        return v.buffer == buffer && v.offset == offset && v.stride == stride && v.elementSize == elementSize;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 17;
+        hash += 31 * buffer.hashCode();
+        hash += 31 * offset;
+        hash += 31 * stride;
+        hash += 31 * elementSize;
+        return hash;
+    }
 }

@@ -223,6 +223,9 @@ public class PhysicsApplicationStub extends ApplicationStub {
                                      new ComputePVSTask(),
                                      new ComputeLightGroupTask(),
                                      new FixedFunctionRenderController(surface.getFramework()));
+        //                                     new FixedFunctionRenderTask(surface.getFramework(),
+        //                                                                 1024,
+        //                                                                 false));
 
         surface.setVSyncEnabled(true);
 

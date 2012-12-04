@@ -281,6 +281,11 @@ public final class Renderable extends ComponentData<Renderable> {
      * might cause, in world space. A controller or other processor must use
      * this method to keep the world bounds in sync with any changes to the
      * local bounds.
+     * <p>
+     * Note that unlike all other properties of the renderable, setting the
+     * world bounds does not update the version of the component. This is
+     * because the world bounds is dependent on the local bounds (which will
+     * update the version) and the transform (not part of the renderable).
      * 
      * @param bounds The new world bounds of the entity
      * @return This component, for chaining purposes
@@ -288,7 +293,6 @@ public final class Renderable extends ComponentData<Renderable> {
      */
     public Renderable setWorldBounds(@Const AxisAlignedBox bounds) {
         worldBounds.set(bounds, getIndex());
-        updateVersion();
         return this;
     }
 }

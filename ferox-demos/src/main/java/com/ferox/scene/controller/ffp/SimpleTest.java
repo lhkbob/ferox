@@ -86,8 +86,6 @@ public class SimpleTest {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                       .setHeight(600)
-                                                                                      //            .setFullscreenMode(new DisplayMode(1440, 900, PixelFormat.RGB_24BIT))
-                                                                                      //                                                                                      .setMultiSampling(MultiSampling.FOUR_X)
                                                                                       .setResizable(false));
         //        surface.setVSyncEnabled(true);
 
@@ -96,22 +94,8 @@ public class SimpleTest {
         Entity camera = system.addEntity();
         camera.add(Transform.class)
               .getData()
-              .setMatrix(new Matrix4(-1,
-                                     0,
-                                     0,
-                                     0,
-                                     0,
-                                     1,
-                                     0,
-                                     0,
-                                     0,
-                                     0,
-                                     -1,
-                                     .9 * BOUNDS,
-                                     0,
-                                     0,
-                                     0,
-                                     1));
+              .setMatrix(new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1,
+                                           .9 * BOUNDS, 0, 0, 0, 1));
         camera.add(Camera.class).getData().setSurface(surface).setZDistances(0.1, 1200)
               .setFieldOfView(75);
 
@@ -167,22 +151,10 @@ public class SimpleTest {
             e.add(DiffuseColor.class).getData().setColor(c);
             e.add(Transform.class)
              .getData()
-             .setMatrix(new Matrix4(1,
-                                    0,
-                                    0,
-                                    Math.random() * BOUNDS - BOUNDS / 2,
-                                    0,
-                                    1,
-                                    0,
-                                    Math.random() * BOUNDS - BOUNDS / 2,
-                                    0,
-                                    0,
-                                    1,
-                                    Math.random() * BOUNDS - BOUNDS / 2,
-                                    0,
-                                    0,
-                                    0,
-                                    1));
+             .setMatrix(new Matrix4().set(1, 0, 0, Math.random() * BOUNDS - BOUNDS / 2,
+                                          0, 1, 0, Math.random() * BOUNDS - BOUNDS / 2,
+                                          0, 0, 1, Math.random() * BOUNDS - BOUNDS / 2,
+                                          0, 0, 0, 1));
             e.add(Animation.class);
             totalpolys += polycount;
         }
@@ -206,22 +178,11 @@ public class SimpleTest {
             }
             light.add(Transform.class)
                  .getData()
-                 .setMatrix(new Matrix4(1,
-                                        0,
-                                        0,
-                                        Math.random() * BOUNDS - BOUNDS / 2,
-                                        0,
-                                        1,
-                                        0,
-                                        Math.random() * BOUNDS - BOUNDS / 2,
-                                        0,
-                                        0,
-                                        1,
-                                        Math.random() * BOUNDS - BOUNDS / 2,
-                                        0,
-                                        0,
-                                        0,
-                                        1));
+                 .setMatrix(new Matrix4().set(1, 0, 0,
+                                              Math.random() * BOUNDS - BOUNDS / 2, 0, 1,
+                                              0, Math.random() * BOUNDS - BOUNDS / 2, 0,
+                                              0, 1, Math.random() * BOUNDS - BOUNDS / 2,
+                                              0, 0, 0, 1));
         }
         system.addEntity().add(AmbientLight.class).getData()
               .setColor(new ColorRGB(0.2, 0.2, 0.2));
@@ -255,6 +216,9 @@ public class SimpleTest {
                                          new ComputePVSTask(),
                                          new ComputeLightGroupTask(),
                                          new FixedFunctionRenderController(framework));
+        //                                         new FixedFunctionRenderTask(framework,
+        //                                                                     1024,
+        //                                                                     false));
 
         long now = System.nanoTime();
         int numRuns = 0;

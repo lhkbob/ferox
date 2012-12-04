@@ -44,22 +44,8 @@ import com.lhkbob.entreri.Entity;
 
 public class ShadowMapGroupFactory implements StateGroupFactory {
     // FIXME must fix auto-formatting ugliness in these situations
-    private static final Matrix4 bias = new Matrix4(.5,
-                                                    0,
-                                                    0,
-                                                    .5,
-                                                    0,
-                                                    .5,
-                                                    0,
-                                                    .5,
-                                                    0,
-                                                    0,
-                                                    .5,
-                                                    .5,
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    1);
+    private static final Matrix4 bias = new Matrix4().set(.5, 0, 0, .5, 0, .5, 0, .5, 0,
+                                                          0, .5, .5, 0, 0, 0, 1);
 
     private final StateGroupFactory childFactory;
     private final ShadowMapCache smCache;
