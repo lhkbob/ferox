@@ -1,4 +1,4 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,6 @@ import com.ferox.scene.Light;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.SpotLight;
 import com.ferox.scene.Transform;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 

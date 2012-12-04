@@ -1,4 +1,4 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import com.ferox.math.Matrix4;
 import com.ferox.math.bounds.Frustum;
@@ -9,7 +9,6 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.resource.Texture;
 import com.ferox.scene.Light;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 import com.lhkbob.entreri.Component;
 
 public class ShadowMapState implements State {

@@ -26,8 +26,10 @@
  */
 package com.ferox.scene.controller.ffp;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,9 +49,12 @@ import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
 import com.ferox.scene.Light;
+import com.ferox.scene.Renderable;
+import com.ferox.scene.Transform;
 import com.ferox.scene.controller.PVSResult;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.EntitySystem;
 
 public class ShadowMapCache {
     private final TextureSurface shadowMap;
@@ -121,7 +126,7 @@ public class ShadowMapCache {
         r.setDepthOffsets(0, 5);
         r.setDepthOffsetsEnabled(true);
 
-        scene.scene.render(access, new AppliedEffects());
+        scene.scene.visit(new AppliedEffects(), access);
 
         // restore original surface and state
         if (origSurface instanceof TextureSurface) {
@@ -144,17 +149,63 @@ public class ShadowMapCache {
             return;
         }
 
-        GeometryGroupFactory geom = new GeometryGroupFactory(pvs.getSource()
-                                                                .getEntitySystem());
-        CameraGroupFactory cam = new CameraGroupFactory(pvs.getFrustum(), geom);
-        StateNode scene = new StateNode(cam.newGroup());
+        EntitySystem system = pvs.getSource().getEntitySystem();
+        Renderable renderable = system.createDataInstance(Renderable.class);
+        Transform transform = system.createDataInstance(Transform.class);
 
+        GeometryState geom = new GeometryState();
+        RenderState render = new RenderState();
+
+        // build up required states and tree simultaneously
+        StateNode root = new StateNode(new CameraState(pvs.getFrustum()));
+
+        List<GeometryState> geomLookup = new ArrayList<GeometryState>();
+        List<RenderState> renderLookup = new ArrayList<RenderState>();
+
+        Map<GeometryState, Integer> geomState = new HashMap<GeometryState, Integer>();
+        Map<RenderState, Integer> renderState = new HashMap<RenderState, Integer>();
         for (Entity e : pvs.getPotentiallyVisibleSet()) {
-            scene.add(e);
+            e.get(renderable);
+
+            geom.set(renderable.getVertices(), null); // don't need normals
+            render.set(renderable.getPolygonType(), renderable.getIndices(),
+                       renderable.getIndexOffset(), renderable.getIndexCount());
+
+            Integer geomStateIndex = geomState.get(geom);
+            if (geomStateIndex == null) {
+                geomStateIndex = geomLookup.size();
+                geomLookup.add(geom);
+                geomState.put(geom, geomStateIndex);
+                // create a new state so we don't mutate value stached in collection
+                geom = new GeometryState();
+            }
+            Integer renderStateIndex = geomState.get(geom);
+            if (renderStateIndex == null) {
+                renderStateIndex = renderLookup.size();
+                renderLookup.add(render);
+                renderState.put(render, geomStateIndex);
+                // create a new state so we don't mutate value stached in collection
+                render = new RenderState();
+            }
+
+            StateNode geomNode = root.getChild(geomStateIndex);
+            if (geomNode == null) {
+                geomNode = new StateNode(geomLookup.get(geomStateIndex));
+                root.setChild(geomStateIndex, geomNode);
+            }
+
+            StateNode renderNode = geomNode.getChild(renderStateIndex);
+            if (renderNode == null) {
+                renderNode = new StateNode(renderLookup.get(renderStateIndex)
+                                                       .cloneGeometry());
+                geomNode.setChild(renderStateIndex, renderNode);
+            }
+
+            ((RenderState) renderNode.getState()).add(transform.getMatrix());
         }
 
         Component<? extends Light<?>> source = (Component<? extends Light<?>>) pvs.getSource();
-        shadowScenes.put(source, new ShadowMapScene(pvs.getFrustum(), scene));
+        shadowScenes.put(source, new ShadowMapScene(pvs.getFrustum(), root));
     }
 
     private static class ShadowMapScene {

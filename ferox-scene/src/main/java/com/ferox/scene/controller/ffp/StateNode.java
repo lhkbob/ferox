@@ -1,111 +1,55 @@
-/*
- * Ferox, a graphics and game library in Java
- *
- * Copyright (c) 2012, Michael Ludwig
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- *     Redistributions of source code must retain the above copyright notice,
- *         this list of conditions and the following disclaimer.
- *     Redistributions in binary form must reproduce the above copyright notice,
- *         this list of conditions and the following disclaimer in the
- *         documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package com.ferox.scene.controller.ffp;
 
-import java.util.List;
+import java.util.Arrays;
 
 import com.ferox.renderer.HardwareAccessLayer;
-import com.lhkbob.entreri.Entity;
 
 public class StateNode {
-    // for low-level reasons a single high-level state
-    // might be represented as multiple actual states
-    private final State[] state;
+    private final State state;
+    private StateNode[] children;
 
-    private final StateGroup children;
-
-    public StateNode(StateGroup child) {
-        this(child, (State[]) null);
-    }
-
-    public StateNode(StateGroup child, State... state) {
-        if (state == null || state.length == 0) {
-            state = new State[] {new NullState()};
-        }
-
+    public StateNode(State state) {
         this.state = state;
-        children = child;
+        children = null;
     }
 
-    public void add(Entity e) {
-        for (int i = 0; i < state.length; i++) {
-            state[i].add(e);
+    public StateNode(State state, int expectedChildCount) {
+        this.state = state;
+        children = new StateNode[expectedChildCount];
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public void setChild(int index, StateNode child) {
+        if (children == null) {
+            children = new StateNode[2 * (index + 1)];
+        } else if (children.length <= index) {
+            children = Arrays.copyOf(children, 2 * index);
         }
+
+        children[index] = child;
+    }
+
+    public StateNode getChild(int index) {
+        if (children == null || children.length <= index) {
+            return null;
+        }
+        return children[index];
+    }
+
+    public void visit(AppliedEffects effects, HardwareAccessLayer access) {
+        state.visitNode(this, effects, access);
+    }
+
+    public void visitChildren(AppliedEffects effects, HardwareAccessLayer access) {
         if (children != null) {
-            // recurse to children if we're not a leaf
-            StateNode child = children.getNode(e);
-            if (child != null) {
-                child.add(e);
-            }
-        }
-    }
-
-    public void render(HardwareAccessLayer access, AppliedEffects effects) {
-        List<StateNode> childNodes = (children != null ? children.getNodes() : null);
-        int childCount = (children != null ? childNodes.size() : 0);
-
-        if (effects != null) {
-            for (int i = 0; i < state.length; i++) {
-                AppliedEffects newEffects = state[i].applyState(access, effects, i);
-                if (newEffects != null) {
-                    AppliedEffects groupEffects = (children != null ? children.applyGroupState(access,
-                                                                                               newEffects) : newEffects);
-                    for (int j = 0; j < childCount; j++) {
-                        childNodes.get(j).render(access, groupEffects);
-                    }
-                    if (children != null) {
-                        children.unapplyGroupState(access, newEffects);
-                    }
-                    state[i].unapplyState(access, effects, i);
+            for (int i = 0; i < children.length; i++) {
+                if (children[i] != null) {
+                    children[i].visit(effects, access);
                 }
             }
-        }
-    }
-
-    /*
-     * A state that doesn't do anything but effectively pass-through to children
-     */
-    private static class NullState implements State {
-        @Override
-        public void add(Entity e) {
-            // do nothing
-        }
-
-        @Override
-        public AppliedEffects applyState(HardwareAccessLayer access,
-                                         AppliedEffects effects, int index) {
-            // do nothing, but continue
-            return effects;
-        }
-
-        @Override
-        public void unapplyState(HardwareAccessLayer access, AppliedEffects effects,
-                                 int index) {
-            // do nothing
         }
     }
 }

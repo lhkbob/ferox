@@ -1,4 +1,4 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import java.util.Arrays;
 
@@ -8,7 +8,6 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexBufferObject;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 
 public class RenderState implements State {
     private VertexBufferObject indices;

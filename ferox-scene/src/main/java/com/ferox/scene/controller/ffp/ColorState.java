@@ -1,11 +1,10 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 
 public class ColorState implements State {
     public static final Vector4 DEFAULT_DIFFUSE = new Vector4(0.8, 0.8, 0.8, 1.0);

@@ -1,8 +1,7 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 
 public class LightingState implements State {
     private final boolean lit;

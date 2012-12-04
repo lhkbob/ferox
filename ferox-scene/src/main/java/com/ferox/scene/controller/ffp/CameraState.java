@@ -1,9 +1,8 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 
 public class CameraState implements State {
     private final Frustum camera;

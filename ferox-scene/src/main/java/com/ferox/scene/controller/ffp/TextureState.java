@@ -1,4 +1,4 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
@@ -7,7 +7,6 @@ import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 
 public class TextureState implements State {
     private final int diffuseTextureUnit;

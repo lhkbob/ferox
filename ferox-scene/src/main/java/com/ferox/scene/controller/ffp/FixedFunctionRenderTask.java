@@ -1,4 +1,4 @@
-package com.ferox.scene.controller.ffp2;
+package com.ferox.scene.controller.ffp;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -43,7 +43,6 @@ import com.ferox.scene.SpotLight;
 import com.ferox.scene.Transform;
 import com.ferox.scene.Transparent;
 import com.ferox.scene.controller.PVSResult;
-import com.ferox.scene.controller.ffp.AppliedEffects;
 import com.ferox.scene.controller.light.LightGroupResult;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
