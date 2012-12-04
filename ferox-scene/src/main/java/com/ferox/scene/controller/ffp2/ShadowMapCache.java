@@ -197,7 +197,8 @@ public class ShadowMapCache {
 
             StateNode renderNode = geomNode.getChild(renderStateIndex);
             if (renderNode == null) {
-                renderNode = new StateNode(renderLookup.get(renderStateIndex));
+                renderNode = new StateNode(renderLookup.get(renderStateIndex)
+                                                       .cloneGeometry());
                 geomNode.setChild(renderStateIndex, renderNode);
             }
 
