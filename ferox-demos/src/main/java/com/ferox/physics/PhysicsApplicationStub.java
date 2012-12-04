@@ -49,7 +49,7 @@ import com.ferox.scene.controller.BuildVisibilityIndexTask;
 import com.ferox.scene.controller.ComputeCameraFrustumTask;
 import com.ferox.scene.controller.ComputePVSTask;
 import com.ferox.scene.controller.UpdateWorldBoundsTask;
-import com.ferox.scene.controller.ffp.FixedFunctionRenderController;
+import com.ferox.scene.controller.ffp.FixedFunctionRenderTask;
 import com.ferox.scene.controller.light.ComputeLightGroupTask;
 import com.ferox.scene.controller.light.ComputeShadowFrustumTask;
 import com.ferox.util.ApplicationStub;
@@ -222,10 +222,9 @@ public class PhysicsApplicationStub extends ApplicationStub {
                                                                                        6)),
                                      new ComputePVSTask(),
                                      new ComputeLightGroupTask(),
-                                     new FixedFunctionRenderController(surface.getFramework()));
-        //                                     new FixedFunctionRenderTask(surface.getFramework(),
-        //                                                                 1024,
-        //                                                                 false));
+                                     new FixedFunctionRenderTask(surface.getFramework(),
+                                                                 1024,
+                                                                 false));
 
         surface.setVSyncEnabled(true);
 

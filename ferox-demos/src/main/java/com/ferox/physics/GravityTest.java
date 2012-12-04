@@ -57,22 +57,8 @@ public class GravityTest extends PhysicsApplicationStub {
               .setZDistances(1.0, 6 * BOUNDS);
         camera.add(Transform.class)
               .getData()
-              .setMatrix(new Matrix4(-1,
-                                     0,
-                                     0,
-                                     0,
-                                     0,
-                                     1,
-                                     0,
-                                     0,
-                                     0,
-                                     0,
-                                     -1,
-                                     .75 * BOUNDS,
-                                     0,
-                                     0,
-                                     0,
-                                     1));
+              .setMatrix(new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1,
+                                           .75 * BOUNDS, 0, 0, 0, 1));
 
         // shapes
         Geometry geomShape1 = com.ferox.util.geom.Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
@@ -106,22 +92,8 @@ public class GravityTest extends PhysicsApplicationStub {
         e.add(CollisionBody.class)
          .getData()
          .setShape(physShape1)
-         .setTransform(new Matrix4(1,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   1,
-                                   0,
-                                   BOUNDS / 2,
-                                   0,
-                                   0,
-                                   1,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   1));
+         .setTransform(new Matrix4().set(1, 0, 0, 0, 0, 1, 0, BOUNDS / 2, 0, 0, 1, 0, 0,
+                                         0, 0, 1));
         e.add(RigidBody.class).getData().setMass(1.0);
         e.add(Gravity.class).getData().setGravity(new Vector3(0, -10, 0));
 
@@ -140,22 +112,8 @@ public class GravityTest extends PhysicsApplicationStub {
         e.add(CollisionBody.class)
          .getData()
          .setShape(physShape2)
-         .setTransform(new Matrix4(1,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   1,
-                                   0,
-                                   -BOUNDS / 2,
-                                   0,
-                                   0,
-                                   1,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   1));
+         .setTransform(new Matrix4().set(1, 0, 0, 0, 0, 1, 0, -BOUNDS / 2, 0, 0, 1, 0, 0,
+                                         0, 0, 1));
         e.add(RigidBody.class).getData().setMass(1.0);
         e.add(Gravity.class).getData().setGravity(new Vector3(0, 10, 0));
 
@@ -168,22 +126,8 @@ public class GravityTest extends PhysicsApplicationStub {
         point.add(PointLight.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
         point.add(Transform.class)
              .getData()
-             .setMatrix(new Matrix4(1,
-                                    0,
-                                    0,
-                                    BOUNDS / 2,
-                                    0,
-                                    1,
-                                    0,
-                                    BOUNDS / 2,
-                                    0,
-                                    0,
-                                    1,
-                                    BOUNDS / 2,
-                                    0,
-                                    0,
-                                    0,
-                                    1));
+             .setMatrix(new Matrix4().set(1, 0, 0, BOUNDS / 2, 0, 1, 0, BOUNDS / 2, 0, 0,
+                                          1, BOUNDS / 2, 0, 0, 0, 1));
     }
 
     public static void main(String[] args) throws Exception {

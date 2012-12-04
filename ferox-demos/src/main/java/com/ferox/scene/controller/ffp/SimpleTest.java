@@ -215,10 +215,9 @@ public class SimpleTest {
                                                                                            6)),
                                          new ComputePVSTask(),
                                          new ComputeLightGroupTask(),
-                                         new FixedFunctionRenderController(framework));
-        //                                         new FixedFunctionRenderTask(framework,
-        //                                                                     1024,
-        //                                                                     false));
+                                         new FixedFunctionRenderTask(framework,
+                                                                     1024,
+                                                                     false));
 
         long now = System.nanoTime();
         int numRuns = 0;
