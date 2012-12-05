@@ -109,7 +109,6 @@ public class PhysicsTest extends PhysicsApplicationStub {
                     e.add(BlinnPhongMaterial.class).getData()
                      .setNormals(geomShape.getNormals());
                     e.add(DiffuseColor.class).getData().setColor(color);
-                    e.add(Transform.class);
 
                     e.add(CollisionBody.class)
                      .getData()
@@ -137,13 +136,17 @@ public class PhysicsTest extends PhysicsApplicationStub {
                         bottomWall.getIndexOffset(), bottomWall.getIndexCount());
         wall.add(BlinnPhongMaterial.class).getData().setNormals(bottomWall.getNormals());
         wall.add(DiffuseColor.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        wall.add(Transform.class);
 
         wall.add(CollisionBody.class)
             .getData()
             .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
             .setTransform(new Matrix4().setIdentity()
                                        .setCol(3, new Vector4(0, -.5, 0, 1)));
+
+        // fog
+        //        system.addEntity().add(AtmosphericFog.class).getData()
+        //              .setOpaqueDistance(3 * BOUNDS).setFalloff(Falloff.EXPONENTIAL_SQUARED)
+        //              .setColor(new ColorRGB());
 
         // ambient light
         system.addEntity().add(AmbientLight.class).getData()
@@ -152,7 +155,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        point.add(Transform.class)
+        point.get(Transform.class)
              .getData()
              .setMatrix(new Matrix4().setIdentity().setCol(3,
                                                            new Vector4(BOUNDS / 2,

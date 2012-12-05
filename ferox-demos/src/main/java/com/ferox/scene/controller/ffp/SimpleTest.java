@@ -39,6 +39,8 @@ import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.entreri.Vector3Property;
 import com.ferox.math.entreri.Vector3Property.DefaultVector3;
+import com.ferox.renderer.DisplayMode;
+import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
@@ -86,6 +88,9 @@ public class SimpleTest {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
         OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
                                                                                       .setHeight(600)
+                                                                                      .setFullscreenMode(new DisplayMode(1440,
+                                                                                                                         900,
+                                                                                                                         PixelFormat.RGB_24BIT))
                                                                                       .setResizable(false));
         //        surface.setVSyncEnabled(true);
 
