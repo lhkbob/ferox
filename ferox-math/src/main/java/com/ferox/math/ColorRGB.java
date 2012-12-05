@@ -108,6 +108,26 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
+     * Get the approximate luminance of this color, clamping the component
+     * values to non-HDR values.
+     * 
+     * @return The luminance
+     */
+    public double luminance() {
+        return .3 * red() + .59 * green() + .11 * blue();
+    }
+
+    /**
+     * Get the approximate luminance of this color, using its HDR component
+     * values.
+     * 
+     * @return The HDR luminance
+     */
+    public double luminanceHDR() {
+        return .3 * redHDR() + .59 * greenHDR() + .11 * blueHDR();
+    }
+
+    /**
      * Convenience function to brighten this color. This is equivalent to
      * <code>brighter(this, 1.43);</code>
      * 
