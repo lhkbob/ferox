@@ -35,6 +35,8 @@ import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.scene.AmbientLight;
+import com.ferox.scene.AtmosphericFog;
+import com.ferox.scene.AtmosphericFog.Falloff;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.DirectionLight;
@@ -144,9 +146,9 @@ public class PhysicsTest extends PhysicsApplicationStub {
                                        .setCol(3, new Vector4(0, -.5, 0, 1)));
 
         // fog
-        //        system.addEntity().add(AtmosphericFog.class).getData()
-        //              .setOpaqueDistance(3 * BOUNDS).setFalloff(Falloff.EXPONENTIAL_SQUARED)
-        //              .setColor(new ColorRGB());
+        system.addEntity().add(AtmosphericFog.class).getData()
+              .setOpaqueDistance(2 * BOUNDS).setFalloff(Falloff.EXPONENTIAL_SQUARED)
+              .setColor(new ColorRGB());
 
         // ambient light
         system.addEntity().add(AmbientLight.class).getData()
