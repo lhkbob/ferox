@@ -29,12 +29,13 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
+import com.ferox.math.entreri.ColorRGBProperty.DefaultColor;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.property.IntProperty;
 
 /**
  * <p>
@@ -70,18 +71,28 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
          * resemble a long tail of low opacity followed with a rapid increase to
          * fully opaque.
          */
-        EXPONENTIAL
+        EXPONENTIAL,
+        /**
+         * The opacity increases exponentially from 0 to 1 as the square of the
+         * distance increases from 0 to the squared opaque distance.
+         */
+        EXPONENTIAL_SQUARED
     }
 
+    private static final Falloff[] VALUES = Falloff.values();
+
+    @DefaultColor(red = 0.5, green = 0.5, blue = 0.5)
     private ColorRGBProperty color;
 
     @DefaultDouble(10)
     private DoubleProperty distanceToOpaque;
 
-    private ObjectProperty<Falloff> falloff;
+    private IntProperty falloff;
 
     @Unmanaged
     private final ColorRGB colorCache = new ColorRGB();
+
+    private AtmosphericFog() {}
 
     /**
      * Set the Falloff to use for this fog. See {@link #getFalloff()} and
@@ -95,7 +106,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
         if (falloff == null) {
             throw new NullPointerException("Falloff cannot be null");
         }
-        this.falloff.set(falloff, getIndex());
+        this.falloff.set(falloff.ordinal(), getIndex());
         updateVersion();
         return this;
     }
@@ -109,7 +120,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @return The Falloff of this fog
      */
     public Falloff getFalloff() {
-        return falloff.get(getIndex());
+        return VALUES[falloff.get(getIndex())];
     }
 
     /**

@@ -45,12 +45,6 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
  * scattering or applying Fresnel effects, although these might require
  * additional Components to properly configure.
  * </p>
- * <p>
- * If no Transparent component is in an Entity, the Entity should be considered
- * fully opaque unless another type of component can configure transparency
- * (such as a particle system). This behavior also depends on the controllers
- * used to process the scene.
- * </p>
  * 
  * @author Michael Ludwig
  */
