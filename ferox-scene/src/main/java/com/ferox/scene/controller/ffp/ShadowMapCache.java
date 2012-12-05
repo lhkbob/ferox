@@ -166,6 +166,7 @@ public class ShadowMapCache {
         Map<RenderState, Integer> renderState = new HashMap<RenderState, Integer>();
         for (Entity e : pvs.getPotentiallyVisibleSet()) {
             e.get(renderable);
+            e.get(transform);
 
             geom.set(renderable.getVertices(), null); // don't need normals
             render.set(renderable.getPolygonType(), renderable.getIndices(),

@@ -375,7 +375,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                                     Frame frame, final Surface surface) {
         // static tree construction that doesn't depend on entities
         final StateNode root = new StateNode(new CameraState(camera)); // children = lit, unlit or fog
-        StateNode fogNode = null; //getFog(camera);
+        StateNode fogNode = getFog(camera);
         StateNode litNode = new StateNode(frame.litState); // child = shadowmap state
         StateNode unlitNode = new StateNode(frame.unlitState); // child = texture states
         StateNode smNode = new StateNode(new ShadowMapState(frame.shadowMap,
