@@ -408,7 +408,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                                               pointLight,
                                                               ambientLight,
                                                               transform),
-                                          frame.drawStates.count()));
+                                          frame.textureStates.count()));
         }
 
         IntProperty groupAssgn = lightGroups.getAssignmentProperty();
@@ -420,20 +420,12 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
             StateNode firstNode = (atom.blinnPhongVersion >= 0 ? smNode.getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
 
-            // draw style state
-            StateNode drawNode = firstNode.getChild(atom.drawStateIndex);
-            if (drawNode == null) {
-                drawNode = new StateNode(frame.drawStates.getState(atom.drawStateIndex),
-                                         frame.textureStates.count());
-                firstNode.setChild(atom.drawStateIndex, drawNode);
-            }
-
             // texture state
-            StateNode texNode = drawNode.getChild(atom.textureStateIndex);
+            StateNode texNode = firstNode.getChild(atom.textureStateIndex);
             if (texNode == null) {
                 texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
                                         frame.geometryStates.count());
-                drawNode.setChild(atom.textureStateIndex, texNode);
+                firstNode.setChild(atom.textureStateIndex, texNode);
             }
 
             // geometry state
@@ -501,10 +493,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     private void syncEntityState(Entity e, RenderAtom atom, Frame frame) {
         // sync render state and draw state
         int newRenderableVersion = (e.get(renderable) ? renderable.getVersion() : -1);
-        if (newRenderableVersion != atom.renderableVersion || atom.renderStateIndex < 0 || atom.drawStateIndex < 0) {
+        if (newRenderableVersion != atom.renderableVersion || atom.renderStateIndex < 0) {
             atom.renderStateIndex = frame.getRenderState(renderable,
                                                          atom.renderStateIndex);
-            atom.drawStateIndex = frame.getDrawStyleState(renderable, atom.drawStateIndex);
         }
 
         // sync geometry state
@@ -556,7 +547,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         StateCache<GeometryState> geometryStates;
         StateCache<ColorState> colorStates;
         StateCache<RenderState> renderStates;
-        StateCache<DrawStyleState> drawStates;
 
         // per-entity tracking
         ObjectProperty<RenderAtom> atoms;
@@ -577,7 +567,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             geometryStates = new StateCache<GeometryState>(GeometryState.class);
             colorStates = new StateCache<ColorState>(ColorState.class);
             renderStates = new StateCache<RenderState>(RenderState.class);
-            drawStates = new StateCache<DrawStyleState>(DrawStyleState.class);
         }
 
         int getTextureState(DiffuseColorMap diffuse, DecalColorMap decal,
@@ -614,11 +603,13 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         int getGeometryState(Renderable renderable, BlinnPhongMaterial blinnPhong,
                              int oldIndex) {
-            VertexAttribute verts = renderable.getVertices();
+            // we can assume that the renderable is always valid, since
+            // we're processing renderable entities
             VertexAttribute norms = (blinnPhong.isEnabled() ? blinnPhong.getNormals() : null);
 
             GeometryState state = new GeometryState();
-            state.set(verts, norms);
+            state.set(renderable.getVertices(), norms, renderable.getFrontDrawStyle(),
+                      renderable.getBackDrawStyle());
 
             return geometryStates.getStateIndex(state, oldIndex);
         }
@@ -648,21 +639,11 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             return renderStates.getStateIndex(state, oldIndex);
         }
 
-        int getDrawStyleState(Renderable renderable, int oldIndex) {
-            // we can assume that the renderable is always valid, since
-            // we're processing renderable entities
-            DrawStyleState state = new DrawStyleState();
-            state.set(renderable.getFrontDrawStyle(), renderable.getBackDrawStyle());
-
-            return drawStates.getStateIndex(state, oldIndex);
-        }
-
         void resetStates() {
             textureStates = new StateCache<TextureState>(TextureState.class);
             geometryStates = new StateCache<GeometryState>(GeometryState.class);
             colorStates = new StateCache<ColorState>(ColorState.class);
             renderStates = new StateCache<RenderState>(RenderState.class);
-            drawStates = new StateCache<DrawStyleState>(DrawStyleState.class);
 
             // clearing the render atoms effectively invalidates all of the
             // version tracking we do as well
@@ -670,7 +651,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         }
 
         boolean needsReset() {
-            return textureStates.needsReset() || geometryStates.needsReset() || colorStates.needsReset() || renderStates.needsReset() || drawStates.needsReset();
+            return textureStates.needsReset() || geometryStates.needsReset() || colorStates.needsReset() || renderStates.needsReset();
         }
 
         @SuppressWarnings("unchecked")
@@ -685,7 +666,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         int colorStateIndex = -1; // depends on blinnphong-material and 3 color versions
         int geometryStateIndex = -1; // depends on renderable, blinnphong-material
         int renderStateIndex = -1; // depends on indices within renderable
-        int drawStateIndex = -1; // depends on drawstyle of renderable
 
         // component versions
         int renderableVersion = -1;

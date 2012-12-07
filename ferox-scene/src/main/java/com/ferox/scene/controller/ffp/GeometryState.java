@@ -2,23 +2,22 @@ package com.ferox.scene.controller.ffp;
 
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
+import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.resource.VertexAttribute;
 
 public class GeometryState implements StaticState {
     private VertexAttribute vertices;
     private VertexAttribute normals;
 
-    public void set(VertexAttribute vertices, VertexAttribute normals) {
+    private DrawStyle front;
+    private DrawStyle back;
+
+    public void set(VertexAttribute vertices, VertexAttribute normals, DrawStyle front,
+                    DrawStyle back) {
         this.vertices = vertices;
         this.normals = normals;
-    }
-
-    public VertexAttribute getVertices() {
-        return vertices;
-    }
-
-    public VertexAttribute getNormals() {
-        return normals;
+        this.front = front;
+        this.back = back;
     }
 
     @Override
@@ -26,6 +25,7 @@ public class GeometryState implements StaticState {
                           HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
+        r.setDrawStyle(front, back);
         r.setVertices(vertices);
         r.setNormals(normals);
 
@@ -37,6 +37,8 @@ public class GeometryState implements StaticState {
         int hash = 17;
         hash = 31 * hash + (vertices == null ? 0 : vertices.hashCode());
         hash = 31 * hash + (normals == null ? 0 : normals.hashCode());
+        hash = 31 * hash + front.hashCode();
+        hash = 31 * hash + back.hashCode();
         return hash;
     }
 
@@ -47,7 +49,7 @@ public class GeometryState implements StaticState {
         }
 
         GeometryState ts = (GeometryState) o;
-        return nullEquals(ts.normals, normals) && nullEquals(ts.vertices, vertices);
+        return nullEquals(ts.normals, normals) && nullEquals(ts.vertices, vertices) && ts.front == front && ts.back == back;
     }
 
     private static boolean nullEquals(Object a, Object b) {

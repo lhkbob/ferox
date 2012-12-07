@@ -119,9 +119,6 @@ public class ShadowMapCache {
         r.clear(true, true, true);
         r.setColorWriteMask(false, false, false, false);
 
-        // set style to be just depth, while drawing only back faces
-        r.setDrawStyle(DrawStyle.NONE, DrawStyle.SOLID);
-
         // move everything backwards slightly to account for floating errors
         r.setDepthOffsets(0, 5);
         r.setDepthOffsetsEnabled(true);
@@ -168,7 +165,10 @@ public class ShadowMapCache {
             e.get(renderable);
             e.get(transform);
 
-            geom.set(renderable.getVertices(), null); // don't need normals
+            // don't need normals, and use front style for back faces and disable
+            // front faces so we only render those in the back
+            geom.set(renderable.getVertices(), null, DrawStyle.NONE,
+                     renderable.getFrontDrawStyle());
             render.set(renderable.getPolygonType(), renderable.getIndices(),
                        renderable.getIndexOffset(), renderable.getIndexCount());
 
