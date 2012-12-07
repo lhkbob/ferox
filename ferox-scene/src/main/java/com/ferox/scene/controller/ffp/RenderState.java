@@ -9,7 +9,7 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexBufferObject;
 
-public class RenderState implements State {
+public class RenderState implements StaticState {
     private VertexBufferObject indices;
     private int indexOffset;
     private int indexCount;

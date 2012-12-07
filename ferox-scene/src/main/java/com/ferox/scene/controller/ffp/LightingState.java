@@ -10,10 +10,6 @@ public class LightingState implements State {
         this.lit = lit;
     }
 
-    public boolean isLightingEnabled() {
-        return lit;
-    }
-
     @Override
     public void visitNode(StateNode currentNode, AppliedEffects effects,
                           HardwareAccessLayer access) {

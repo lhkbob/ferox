@@ -40,6 +40,7 @@ import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -59,12 +60,19 @@ import com.lhkbob.entreri.property.ObjectProperty;
  */
 @Requires(Transform.class)
 public final class Renderable extends ComponentData<Renderable> {
+    private static final DrawStyle[] VALUES = DrawStyle.values();
+
     private ObjectProperty<VertexAttribute> vertices;
     private ObjectProperty<VertexBufferObject> indices;
     private ObjectProperty<PolygonType> polyType;
 
     private IntProperty indexOffset;
     private IntProperty indexCount;
+
+    @DefaultInt(0 /* SOLID */)
+    private IntProperty frontStyle;
+    @DefaultInt(3 /* NONE */)
+    private IntProperty backStyle;
 
     private AxisAlignedBoxProperty localBounds;
     private AxisAlignedBoxProperty worldBounds;
@@ -101,6 +109,41 @@ public final class Renderable extends ComponentData<Renderable> {
         }
 
         this.vertices.set(vertices, getIndex());
+        return this;
+    }
+
+    /**
+     * @return The DrawStyle for front facing polygons
+     */
+    public DrawStyle getFrontDrawStyle() {
+        return VALUES[frontStyle.get(getIndex())];
+    }
+
+    /**
+     * @return The DrawStyle for back facing polygons
+     */
+    public DrawStyle getBackDrawStyle() {
+        return VALUES[backStyle.get(getIndex())];
+    }
+
+    /**
+     * Set the front and back draw styles for polygons rendered by this
+     * Renderable.
+     * 
+     * @param front The front style
+     * @param back The back style
+     * @return This component
+     * @throws NullPointerException if front or back are null
+     */
+    public Renderable setDrawStyle(DrawStyle front, DrawStyle back) {
+        if (front == null || back == null) {
+            throw new NullPointerException("Arguments cannot be null");
+        }
+
+        frontStyle.set(front.ordinal(), getIndex());
+        backStyle.set(back.ordinal(), getIndex());
+
+        updateVersion();
         return this;
     }
 

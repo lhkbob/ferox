@@ -2,6 +2,7 @@ package com.ferox.scene.controller.ffp;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.ColorRGB;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
@@ -20,6 +22,8 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Surface;
+import com.ferox.resource.Texture;
+import com.ferox.resource.VertexAttribute;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.AtmosphericFog;
 import com.ferox.scene.BlinnPhongMaterial;
@@ -48,6 +52,7 @@ import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
@@ -376,8 +381,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // static tree construction that doesn't depend on entities
         final StateNode root = new StateNode(new CameraState(camera)); // children = lit, unlit or fog
         StateNode fogNode = getFog(camera);
-        StateNode litNode = new StateNode(frame.litState); // child = shadowmap state
-        StateNode unlitNode = new StateNode(frame.unlitState); // child = texture states
+        StateNode litNode = new StateNode(new LightingState(true)); // child = shadowmap state
+        StateNode unlitNode = new StateNode(new LightingState(false)); // child = texture states
         StateNode smNode = new StateNode(new ShadowMapState(frame.shadowMap,
                                                             shadowmapTextureUnit)); // children = light groups
 
@@ -403,7 +408,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                                               pointLight,
                                                               ambientLight,
                                                               transform),
-                                          frame.textureState.length));
+                                          frame.drawStates.count()));
         }
 
         IntProperty groupAssgn = lightGroups.getAssignmentProperty();
@@ -413,29 +418,37 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             e.get(renderable);
             atom = frame.atoms.get(renderable.getIndex());
 
-            StateNode firstNode = (atom.lit ? smNode.getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
+            StateNode firstNode = (atom.blinnPhongVersion >= 0 ? smNode.getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
+
+            // draw style state
+            StateNode drawNode = firstNode.getChild(atom.drawStateIndex);
+            if (drawNode == null) {
+                drawNode = new StateNode(frame.drawStates.getState(atom.drawStateIndex),
+                                         frame.textureStates.count());
+                firstNode.setChild(atom.drawStateIndex, drawNode);
+            }
 
             // texture state
-            StateNode texNode = firstNode.getChild(atom.textureStateIndex);
+            StateNode texNode = drawNode.getChild(atom.textureStateIndex);
             if (texNode == null) {
-                texNode = new StateNode(frame.textureState[atom.textureStateIndex],
-                                        frame.geometryState.length);
-                firstNode.setChild(atom.textureStateIndex, texNode);
+                texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
+                                        frame.geometryStates.count());
+                drawNode.setChild(atom.textureStateIndex, texNode);
             }
 
             // geometry state
             StateNode geomNode = texNode.getChild(atom.geometryStateIndex);
             if (geomNode == null) {
-                geomNode = new StateNode(frame.geometryState[atom.geometryStateIndex],
-                                         frame.colorState.length);
+                geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
+                                         frame.colorStates.count());
                 texNode.setChild(atom.geometryStateIndex, geomNode);
             }
 
             // color state
             StateNode colorNode = geomNode.getChild(atom.colorStateIndex);
             if (colorNode == null) {
-                colorNode = new StateNode(frame.colorState[atom.colorStateIndex],
-                                          frame.renderState.length);
+                colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex),
+                                          frame.renderStates.count());
                 geomNode.setChild(atom.colorStateIndex, colorNode);
             }
 
@@ -444,7 +457,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             if (renderNode == null) {
                 // must clone the geometry since each node accumulates its own
                 // packed transforms that must be rendered
-                renderNode = new StateNode(frame.renderState[atom.renderStateIndex].cloneGeometry());
+                renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
+                                                             .cloneGeometry());
                 colorNode.setChild(atom.renderStateIndex, renderNode);
             }
 
@@ -485,68 +499,203 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     static int count = 0;
 
     private void syncEntityState(Entity e, RenderAtom atom, Frame frame) {
-        // sync render state
-        e.get(renderable);
-        boolean renderableChanged = atom.renderableVersion != renderable.getVersion();
-        if (renderableChanged || atom.renderStateIndex < 0) {
-            atom.renderableVersion = renderable.getVersion();
-            atom.renderStateIndex = frame.updateRenderUsage(atom.renderStateIndex,
-                                                            frame.getRenderState(renderable));
+        // sync render state and draw state
+        int newRenderableVersion = (e.get(renderable) ? renderable.getVersion() : -1);
+        if (newRenderableVersion != atom.renderableVersion || atom.renderStateIndex < 0 || atom.drawStateIndex < 0) {
+            atom.renderStateIndex = frame.getRenderState(renderable,
+                                                         atom.renderStateIndex);
+            atom.drawStateIndex = frame.getDrawStyleState(renderable, atom.drawStateIndex);
         }
 
         // sync geometry state
-        e.get(blinnPhong);
-        boolean blinnChanged = (blinnPhong.isEnabled() ? atom.blinnPhongVersion != blinnPhong.getVersion() : atom.blinnPhongVersion >= 0);
-        if (renderableChanged || blinnChanged || atom.geometryStateIndex < 0) {
-            // renderable version already synced above
-            atom.blinnPhongVersion = (blinnPhong.isEnabled() ? blinnPhong.getVersion() : -1);
-            atom.geometryStateIndex = frame.updateGeometryUsage(atom.geometryStateIndex,
-                                                                frame.getGeometryState(renderable,
-                                                                                       blinnPhong));
+        int newBlinnPhongVersion = (e.get(blinnPhong) ? blinnPhong.getVersion() : -1);
+        if (atom.blinnPhongVersion != newBlinnPhongVersion || atom.renderableVersion != newRenderableVersion || atom.geometryStateIndex < 0) {
+            atom.geometryStateIndex = frame.getGeometryState(renderable, blinnPhong,
+                                                             atom.geometryStateIndex);
         }
 
         // sync texture state
-        e.get(diffuseTexture);
-        e.get(decalTexture);
-        e.get(emittedTexture);
-        boolean dftChanged = (diffuseTexture.isEnabled() ? atom.diffuseTextureVersion != diffuseTexture.getVersion() : atom.diffuseTextureVersion >= 0);
-        boolean dctChanged = (decalTexture.isEnabled() ? atom.decalTextureVersion != decalTexture.getVersion() : atom.decalTextureVersion >= 0);
-        boolean emtChanged = (emittedTexture.isEnabled() ? atom.emittedTextureVersion != emittedTexture.getVersion() : atom.emittedTextureVersion >= 0);
-        if (dftChanged || dctChanged || emtChanged || atom.textureStateIndex < 0) {
-            atom.diffuseTextureVersion = (diffuseTexture.isEnabled() ? diffuseTexture.getVersion() : -1);
-            atom.decalTextureVersion = (decalTexture.isEnabled() ? decalTexture.getVersion() : -1);
-            atom.emittedTextureVersion = (emittedTexture.isEnabled() ? emittedTexture.getVersion() : -1);
-
-            atom.textureStateIndex = frame.updateTextureUsage(atom.textureStateIndex,
-                                                              frame.getTextureState(diffuseTexture,
-                                                                                    decalTexture,
-                                                                                    emittedTexture));
+        int newDiffuseTexVersion = (e.get(diffuseTexture) ? diffuseTexture.getVersion() : -1);
+        int newDecalTexVersion = (e.get(decalTexture) ? decalTexture.getVersion() : -1);
+        int newEmittedTexVersion = (e.get(emittedTexture) ? emittedTexture.getVersion() : -1);
+        if (newDiffuseTexVersion != atom.diffuseTextureVersion || newDecalTexVersion != atom.decalTextureVersion || newEmittedTexVersion != atom.emittedTextureVersion || atom.textureStateIndex < 0) {
+            atom.textureStateIndex = frame.getTextureState(diffuseTexture, decalTexture,
+                                                           emittedTexture,
+                                                           atom.textureStateIndex);
         }
 
         // sync color state
-        e.get(diffuseColor);
-        e.get(specularColor);
-        e.get(emittedColor);
-        e.get(transparent);
-        boolean dfcChanged = (diffuseColor.isEnabled() ? atom.diffuseColorVersion != diffuseColor.getVersion() : atom.diffuseColorVersion >= 0);
-        boolean spcChanged = (specularColor.isEnabled() ? atom.specularColorVersion != specularColor.getVersion() : atom.specularColorVersion >= 0);
-        boolean emcChanged = (emittedColor.isEnabled() ? atom.emittedColorVersion != emittedColor.getVersion() : atom.emittedColorVersion >= 0);
-        boolean transparentChanged = (transparent.isEnabled() ? atom.transparentVersion != transparent.getVersion() : atom.transparentVersion >= 0);
-        if (dfcChanged || spcChanged || emcChanged || blinnChanged || transparentChanged || atom.colorStateIndex < 0) {
-            // blinn phong version already synced
-            atom.diffuseColorVersion = (diffuseColor.isEnabled() ? diffuseColor.getVersion() : -1);
-            atom.specularColorVersion = (specularColor.isEnabled() ? specularColor.getVersion() : -1);
-            atom.emittedColorVersion = (emittedColor.isEnabled() ? emittedColor.getVersion() : -1);
-
-            atom.colorStateIndex = frame.updateColorUsage(atom.colorStateIndex,
-                                                          frame.getColorState(diffuseColor,
-                                                                              specularColor,
-                                                                              emittedColor,
-                                                                              transparent,
-                                                                              blinnPhong));
+        int newTransparentVersion = (e.get(transparent) ? transparent.getVersion() : -1);
+        int newDiffuseColorVersion = (e.get(diffuseColor) ? diffuseColor.getVersion() : -1);
+        int newSpecularColorVersion = (e.get(specularColor) ? specularColor.getVersion() : -1);
+        int newEmittedColorVersion = (e.get(emittedColor) ? emittedColor.getVersion() : -1);
+        if (newTransparentVersion != atom.transparentVersion || newDiffuseColorVersion != atom.diffuseColorVersion || newSpecularColorVersion != atom.specularColorVersion || newEmittedColorVersion != atom.emittedColorVersion || atom.colorStateIndex < 0) {
+            atom.colorStateIndex = frame.getColorState(diffuseColor, specularColor,
+                                                       emittedColor, transparent,
+                                                       blinnPhong, atom.colorStateIndex);
         }
 
-        // lit state
-        atom.lit = blinnPhong.isEnabled();
+        // record new versions
+        atom.renderableVersion = newRenderableVersion;
+        atom.blinnPhongVersion = newBlinnPhongVersion;
+        atom.diffuseTextureVersion = newDiffuseTexVersion;
+        atom.decalTextureVersion = newDecalTexVersion;
+        atom.emittedTextureVersion = newEmittedTexVersion;
+        atom.transparentVersion = newTransparentVersion;
+        atom.diffuseColorVersion = newDiffuseColorVersion;
+        atom.specularColorVersion = newSpecularColorVersion;
+        atom.emittedColorVersion = newEmittedColorVersion;
+    }
+
+    private static class Frame {
+        final ShadowMapCache shadowMap;
+
+        //FIXME        TransparentState[] transparentStates;
+
+        StateCache<TextureState> textureStates;
+        StateCache<GeometryState> geometryStates;
+        StateCache<ColorState> colorStates;
+        StateCache<RenderState> renderStates;
+        StateCache<DrawStyleState> drawStates;
+
+        // per-entity tracking
+        ObjectProperty<RenderAtom> atoms;
+
+        private final int diffuseTextureUnit;
+        private final int emissiveTextureUnit;
+        private final int decalTextureUnit;
+
+        Frame(ShadowMapCache map, int diffuseTextureUnit, int decalTextureUnit,
+              int emissiveTextureUnit) {
+            shadowMap = map;
+
+            this.diffuseTextureUnit = diffuseTextureUnit;
+            this.decalTextureUnit = decalTextureUnit;
+            this.emissiveTextureUnit = emissiveTextureUnit;
+
+            textureStates = new StateCache<TextureState>(TextureState.class);
+            geometryStates = new StateCache<GeometryState>(GeometryState.class);
+            colorStates = new StateCache<ColorState>(ColorState.class);
+            renderStates = new StateCache<RenderState>(RenderState.class);
+            drawStates = new StateCache<DrawStyleState>(DrawStyleState.class);
+        }
+
+        int getTextureState(DiffuseColorMap diffuse, DecalColorMap decal,
+                            EmittedColorMap emitted, int oldIndex) {
+            Texture diffuseTex = null;
+            Texture decalTex = null;
+            Texture emittedTex = null;
+
+            VertexAttribute diffuseCoord = null;
+            VertexAttribute decalCoord = null;
+            VertexAttribute emittedCoord = null;
+
+            if (diffuse.isEnabled()) {
+                diffuseTex = diffuse.getTexture();
+                diffuseCoord = diffuse.getTextureCoordinates();
+            }
+            if (decal.isEnabled()) {
+                decalTex = decal.getTexture();
+                decalCoord = decal.getTextureCoordinates();
+            }
+            if (emitted.isEnabled()) {
+                emittedTex = emitted.getTexture();
+                emittedCoord = emitted.getTextureCoordinates();
+            }
+
+            TextureState state = new TextureState(diffuseTextureUnit,
+                                                  decalTextureUnit,
+                                                  emissiveTextureUnit);
+            state.set(diffuseTex, diffuseCoord, decalTex, decalCoord, emittedTex,
+                      emittedCoord);
+
+            return textureStates.getStateIndex(state, oldIndex);
+        }
+
+        int getGeometryState(Renderable renderable, BlinnPhongMaterial blinnPhong,
+                             int oldIndex) {
+            VertexAttribute verts = renderable.getVertices();
+            VertexAttribute norms = (blinnPhong.isEnabled() ? blinnPhong.getNormals() : null);
+
+            GeometryState state = new GeometryState();
+            state.set(verts, norms);
+
+            return geometryStates.getStateIndex(state, oldIndex);
+        }
+
+        int getColorState(DiffuseColor diffuse, SpecularColor specular,
+                          EmittedColor emitted, Transparent transparent,
+                          BlinnPhongMaterial blinnPhong, int oldIndex) {
+            double alpha = (transparent.isEnabled() ? transparent.getOpacity() : 1.0);
+            double shininess = (blinnPhong.isEnabled() ? blinnPhong.getShininess() : 0.0);
+            ColorRGB d = (diffuse.isEnabled() ? diffuse.getColor() : null);
+            ColorRGB s = (specular.isEnabled() ? specular.getColor() : null);
+            ColorRGB e = (emitted.isEnabled() ? emitted.getColor() : null);
+
+            ColorState state = new ColorState();
+            state.set(d, s, e, alpha, shininess);
+
+            return colorStates.getStateIndex(state, oldIndex);
+        }
+
+        int getRenderState(Renderable renderable, int oldIndex) {
+            // we can assume that the renderable is always valid, since
+            // we're processing renderable entities
+            RenderState state = new RenderState();
+            state.set(renderable.getPolygonType(), renderable.getIndices(),
+                      renderable.getIndexOffset(), renderable.getIndexCount());
+
+            return renderStates.getStateIndex(state, oldIndex);
+        }
+
+        int getDrawStyleState(Renderable renderable, int oldIndex) {
+            // we can assume that the renderable is always valid, since
+            // we're processing renderable entities
+            DrawStyleState state = new DrawStyleState();
+            state.set(renderable.getFrontDrawStyle(), renderable.getBackDrawStyle());
+
+            return drawStates.getStateIndex(state, oldIndex);
+        }
+
+        void resetStates() {
+            textureStates = new StateCache<TextureState>(TextureState.class);
+            geometryStates = new StateCache<GeometryState>(GeometryState.class);
+            colorStates = new StateCache<ColorState>(ColorState.class);
+            renderStates = new StateCache<RenderState>(RenderState.class);
+            drawStates = new StateCache<DrawStyleState>(DrawStyleState.class);
+
+            // clearing the render atoms effectively invalidates all of the
+            // version tracking we do as well
+            Arrays.fill(atoms.getIndexedData(), null);
+        }
+
+        boolean needsReset() {
+            return textureStates.needsReset() || geometryStates.needsReset() || colorStates.needsReset() || renderStates.needsReset() || drawStates.needsReset();
+        }
+
+        @SuppressWarnings("unchecked")
+        void decorate(EntitySystem system) {
+            atoms = system.decorate(Renderable.class, new ObjectProperty.Factory(null));
+        }
+    }
+
+    private static class RenderAtom {
+        // state indices
+        int textureStateIndex = -1; // depends on the 3 texture versions
+        int colorStateIndex = -1; // depends on blinnphong-material and 3 color versions
+        int geometryStateIndex = -1; // depends on renderable, blinnphong-material
+        int renderStateIndex = -1; // depends on indices within renderable
+        int drawStateIndex = -1; // depends on drawstyle of renderable
+
+        // component versions
+        int renderableVersion = -1;
+        int diffuseColorVersion = -1;
+        int emittedColorVersion = -1;
+        int specularColorVersion = -1;
+        int diffuseTextureVersion = -1;
+        int emittedTextureVersion = -1;
+        int decalTextureVersion = -1;
+        int blinnPhongVersion = -1;
+        int transparentVersion = -1;
     }
 }

@@ -27,6 +27,8 @@
 package com.ferox.scene;
 
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.property.BooleanProperty;
+import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
@@ -52,7 +54,31 @@ public final class Transparent extends ComponentData<Transparent> {
     @DefaultDouble(0.5)
     private DoubleProperty opacity;
 
+    @DefaultBoolean(false)
+    private BooleanProperty additive;
+
     private Transparent() {}
+
+    /**
+     * @return True if the transparent object emits light, such as fire might
+     */
+    public boolean isAdditive() {
+        return additive.get(getIndex());
+    }
+
+    /**
+     * Set whether or not the transparent object emits light, and thus needs to
+     * use additive blending. An example would be the particles of fire, which
+     * is additive, versus particles of smoke that do not emit light.
+     * 
+     * @param additive True if object emits light
+     * @return This component
+     */
+    public Transparent setAdditive(boolean additive) {
+        this.additive.set(additive, getIndex());
+        updateVersion();
+        return this;
+    }
 
     /**
      * Return the opacity of the Entity. This is a value between 0 and 1,

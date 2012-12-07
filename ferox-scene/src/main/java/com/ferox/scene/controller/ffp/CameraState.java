@@ -11,10 +11,6 @@ public class CameraState implements State {
         this.camera = camera;
     }
 
-    public Frustum getFrustum() {
-        return camera;
-    }
-
     @Override
     public void visitNode(StateNode currentNode, AppliedEffects effects,
                           HardwareAccessLayer access) {

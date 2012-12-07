@@ -49,6 +49,7 @@ public class ShadowMapState implements State {
         r = access.getCurrentContext().getFixedFunctionRenderer(); // must re-get renderer, though
         effects.pushBlending(r);
         r.setDepthOffsetsEnabled(false);
+        r.setTexture(shadowMapUnit, null);
     }
 
     private void renderShadowPass(Component<? extends Light<?>> shadowCaster,

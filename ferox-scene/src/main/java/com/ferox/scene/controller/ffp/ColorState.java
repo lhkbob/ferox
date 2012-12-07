@@ -6,7 +6,7 @@ import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 
-public class ColorState implements State {
+public class ColorState implements StaticState {
     public static final Vector4 DEFAULT_DIFFUSE = new Vector4(0.8, 0.8, 0.8, 1.0);
     public static final Vector4 DEFAULT_SPECULAR = new Vector4(0.0, 0.0, 0.0, 1.0);
     public static final Vector4 DEFAULT_EMITTED = new Vector4(0.0, 0.0, 0.0, 1.0);

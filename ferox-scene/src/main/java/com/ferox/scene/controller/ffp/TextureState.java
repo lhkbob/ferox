@@ -8,7 +8,7 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 
-public class TextureState implements State {
+public class TextureState implements StaticState {
     private final int diffuseTextureUnit;
     private final int decalTextureUnit;
     private final int emittedTextureUnit;

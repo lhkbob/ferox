@@ -4,7 +4,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.resource.VertexAttribute;
 
-public class GeometryState implements State {
+public class GeometryState implements StaticState {
     private VertexAttribute vertices;
     private VertexAttribute normals;
 
