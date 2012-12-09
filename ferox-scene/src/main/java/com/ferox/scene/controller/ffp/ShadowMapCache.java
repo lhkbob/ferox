@@ -180,7 +180,7 @@ public class ShadowMapCache {
                 // create a new state so we don't mutate value stached in collection
                 geom = new GeometryState();
             }
-            Integer renderStateIndex = geomState.get(geom);
+            Integer renderStateIndex = renderState.get(render);
             if (renderStateIndex == null) {
                 renderStateIndex = renderLookup.size();
                 renderLookup.add(render);
