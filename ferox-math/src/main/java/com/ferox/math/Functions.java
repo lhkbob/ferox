@@ -33,6 +33,12 @@ package com.ferox.math;
  * @author Michael Ludwig
  */
 public final class Functions {
+    public static final long LONG_SIGN_BIT = 0x8000000000000000L;
+    public static final int INT_SIGN_BIT = 0x80000000;
+
+    public static final long LONG_SIGN_MASK = ~LONG_SIGN_BIT;
+    public static final int INT_SIGN_MASK = ~INT_SIGN_BIT;
+
     private Functions() {}
 
     /**
@@ -91,5 +97,47 @@ public final class Functions {
             return false;
         }
         return (num & (num - 1)) == 0;
+    }
+
+    public static int sortableFloatToIntBits(float v) {
+        int bits = Float.floatToIntBits(v);
+        if ((bits & INT_SIGN_BIT) != 0) {
+            // reverse negative numbers
+            return (~bits) | INT_SIGN_BIT;
+        } else {
+            // flip sign for positive numbers
+            return bits;
+        }
+    }
+
+    public static float sortableIntBitsToFloat(int v) {
+        if ((v & INT_SIGN_BIT) == 0) {
+            // flip sign
+            return Float.intBitsToFloat(~(v & INT_SIGN_MASK));
+        } else {
+            // reverse bits
+            return Float.intBitsToFloat(~v);
+        }
+    }
+
+    public static long sortableDoubleToLongBits(double v) {
+        long bits = Double.doubleToLongBits(v);
+        if ((bits & LONG_SIGN_BIT) != 0) {
+            // reverse negative numbers
+            return (~bits) | LONG_SIGN_BIT;
+        } else {
+            // flip sign for positive numbers
+            return bits;
+        }
+    }
+
+    public static double sortableLongBitsToDouble(long v) {
+        if ((v & LONG_SIGN_BIT) == 0) {
+            // flip sign
+            return Double.longBitsToDouble(v);
+        } else {
+            // reverse bits
+            return Double.longBitsToDouble(~(v & LONG_SIGN_MASK));
+        }
     }
 }

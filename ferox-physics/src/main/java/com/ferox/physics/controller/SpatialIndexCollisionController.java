@@ -34,8 +34,6 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.SpatialIndex;
-import com.ferox.physics.collision.ClosestPair;
-import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
@@ -58,7 +56,6 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
     }
 
     private final SpatialIndex<Entity> index;
-    private final CollisionAlgorithmProvider algorithms;
 
     // cached instances that are normally local to process()
     private CollisionBody bodyA;
@@ -68,11 +65,11 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
 
     public SpatialIndexCollisionController(SpatialIndex<Entity> index,
                                            CollisionAlgorithmProvider algorithms) {
-        if (index == null || algorithms == null) {
-            throw new NullPointerException("Arguments cannot be null");
+        super(algorithms);
+        if (index == null) {
+            throw new NullPointerException("SpatialIndex cannot be null");
         }
         this.index = index;
-        this.algorithms = algorithms;
     }
 
     @Override
@@ -174,7 +171,6 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
         }
 
         @Override
-        @SuppressWarnings({"rawtypes", "unchecked"})
         public void process(Entity a, AxisAlignedBox boundsA, Entity b,
                             AxisAlignedBox boundsB) {
             // at this point we know the world bounds of a and b intersect, but
@@ -182,22 +178,7 @@ public class SpatialIndexCollisionController extends CollisionTask implements Pa
             a.get(bodyA);
             b.get(bodyB);
 
-            CollisionAlgorithm algorithm = algorithms.getAlgorithm(bodyA.getShape()
-                                                                        .getClass(),
-                                                                   bodyB.getShape()
-                                                                        .getClass());
-
-            if (algorithm != null) {
-                // have a valid algorithm to test
-                ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(),
-                                                            bodyA.getTransform(),
-                                                            bodyB.getShape(),
-                                                            bodyB.getTransform());
-
-                if (pair != null && pair.isIntersecting() && (a.get(RigidBody.class) != null || b.get(RigidBody.class) != null)) {
-                    notifyContact(bodyA, bodyB, pair);
-                }
-            }
+            notifyPotentialContact(bodyA, bodyB);
         }
     }
 

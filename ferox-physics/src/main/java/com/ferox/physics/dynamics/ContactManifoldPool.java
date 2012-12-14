@@ -40,6 +40,7 @@ import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Plane;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.physics.collision.CollisionPair;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -686,36 +687,5 @@ public class ContactManifoldPool {
 
     private int toVector3Index(int manifold, int point) {
         return toIndex(manifold, point) * 3;
-    }
-
-    private static class CollisionPair {
-        private Component<CollisionBody> a;
-        private Component<CollisionBody> b;
-
-        public CollisionPair() {}
-
-        public CollisionPair(Component<CollisionBody> a, Component<CollisionBody> b) {
-            set(a, b);
-        }
-
-        public void set(Component<CollisionBody> a, Component<CollisionBody> b) {
-            this.a = a;
-            this.b = b;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof CollisionPair)) {
-                return false;
-            }
-            CollisionPair t = (CollisionPair) o;
-            return (t.a == a && t.b == b) || (t.b == a && t.a == b);
-        }
-
-        @Override
-        public int hashCode() {
-            // sum of hashes -> follow Set hashcode since a pair is just a 2 element set
-            return a.hashCode() + b.hashCode();
-        }
     }
 }

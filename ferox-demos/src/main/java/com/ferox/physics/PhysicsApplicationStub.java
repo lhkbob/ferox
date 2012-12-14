@@ -40,7 +40,7 @@ import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
 import com.ferox.physics.controller.ConstraintSolvingTask;
 import com.ferox.physics.controller.ForcesTask;
 import com.ferox.physics.controller.MotionTask;
-import com.ferox.physics.controller.SpatialIndexCollisionController;
+import com.ferox.physics.controller.TemporalSAPCollisionController;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.Camera;
@@ -206,9 +206,11 @@ public class PhysicsApplicationStub extends ApplicationStub {
                            .createJob("physics",
                                       Timers.fixedDelta(1 / 60.0),
                                       new ForcesTask(),
-                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
-                                                                                               6),
-                                                                          new DefaultCollisionAlgorithmProvider()),
+                                      //                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
+                                      //                                                                                               6),
+                                      //                                                                          new DefaultCollisionAlgorithmProvider()),
+                                      //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
+                                      new TemporalSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
                                       new ConstraintSolvingTask(), new MotionTask(),
                                       new TransformController());
 

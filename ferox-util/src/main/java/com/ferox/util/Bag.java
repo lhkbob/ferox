@@ -191,7 +191,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
      */
     public E get(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
+            throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "], not: " + index);
         }
         return elements[index];
     }

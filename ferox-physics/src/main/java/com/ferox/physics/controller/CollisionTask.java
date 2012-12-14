@@ -30,9 +30,12 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.ferox.physics.collision.ClosestPair;
+import com.ferox.physics.collision.CollisionAlgorithm;
+import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.ContactManifoldPool;
 import com.ferox.physics.dynamics.LinearConstraintPool;
+import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.EntitySystem;
@@ -42,6 +45,8 @@ import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
 public abstract class CollisionTask implements Task {
+    private final CollisionAlgorithmProvider algorithms;
+
     private final ContactManifoldPool manifolds;
 
     private final LinearConstraintPool contactGroup;
@@ -49,7 +54,12 @@ public abstract class CollisionTask implements Task {
 
     protected double dt;
 
-    public CollisionTask() {
+    public CollisionTask(CollisionAlgorithmProvider algorithms) {
+        if (algorithms == null) {
+            throw new NullPointerException("Algorithm provider cannot be null");
+        }
+
+        this.algorithms = algorithms;
         manifolds = new ContactManifoldPool();
         contactGroup = new LinearConstraintPool(null);
         frictionGroup = new LinearConstraintPool(contactGroup);
@@ -81,9 +91,36 @@ public abstract class CollisionTask implements Task {
         job.report(new ConstraintResult(frictionGroup));
     }
 
-    protected void notifyContact(CollisionBody bodyA, CollisionBody bodyB,
-                                 ClosestPair contact) {
-        manifolds.addContact(bodyA, bodyB, contact);
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void notifyPotentialContact(CollisionBody bodyA, CollisionBody bodyB) {
+        // test collision groups and masks
+        if (!bodyA.canCollide(bodyB)) {
+            return;
+        }
+        // collisions must have at least one rigid body to act on
+        if (bodyA.getEntity().get(RigidBody.class) == null && bodyB.getEntity()
+                                                                   .get(RigidBody.class) == null) {
+            return;
+        }
+
+        // get the appropriate algorithm
+        CollisionAlgorithm algorithm = algorithms.getAlgorithm(bodyA.getShape()
+                                                                    .getClass(),
+                                                               bodyB.getShape()
+                                                                    .getClass());
+
+        if (algorithm != null) {
+            // compute closest pair between the two shapes
+            ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(),
+                                                        bodyA.getTransform(),
+                                                        bodyB.getShape(),
+                                                        bodyB.getTransform());
+
+            if (pair != null && pair.isIntersecting()) {
+                // add to manifold only when there is an intersection
+                manifolds.addContact(bodyA, bodyB, pair);
+            }
+        }
     }
 
     private class WarmstartTask implements Task, ParallelAware {
