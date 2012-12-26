@@ -36,9 +36,11 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 @Requires(CollisionBody.class)
 public class RigidBody extends ComponentData<RigidBody> {
+    @DefaultDouble(1.0)
     private DoubleProperty inverseMass;
 
     private Matrix3Property inertiaTensorWorldInverse;
