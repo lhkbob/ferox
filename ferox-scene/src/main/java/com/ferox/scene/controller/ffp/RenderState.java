@@ -10,16 +10,16 @@ import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.VertexBufferObject;
 
 public class RenderState implements StaticState {
-    private VertexBufferObject indices;
-    private int indexOffset;
-    private int indexCount;
-    private PolygonType polyType;
+    protected VertexBufferObject indices;
+    protected int indexOffset;
+    protected int indexCount;
+    protected PolygonType polyType;
 
-    private final Matrix4 modelMatrix = new Matrix4();
+    protected final Matrix4 modelMatrix = new Matrix4();
 
     // packed objects to render
-    private float[] matrices;
-    private int count;
+    protected float[] matrices;
+    protected int count;
 
     public RenderState() {
         matrices = new float[16];
@@ -68,6 +68,12 @@ public class RenderState implements StaticState {
 
     public RenderState cloneGeometry() {
         RenderState r = new RenderState();
+        r.set(polyType, indices, indexOffset, indexCount);
+        return r;
+    }
+
+    public TransparentRenderState cloneTransparent() {
+        TransparentRenderState r = new TransparentRenderState();
         r.set(polyType, indices, indexOffset, indexCount);
         return r;
     }

@@ -12,6 +12,8 @@ import java.util.concurrent.Future;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.ColorRGB;
+import com.ferox.math.Functions;
+import com.ferox.math.Matrix4;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
@@ -46,6 +48,7 @@ import com.ferox.scene.Transparent;
 import com.ferox.scene.controller.PVSResult;
 import com.ferox.scene.controller.light.LightGroupResult;
 import com.ferox.util.Bag;
+import com.ferox.util.HashFunction;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
@@ -117,7 +120,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     private DiffuseColorMap diffuseTexture;
     private DecalColorMap decalTexture;
     private EmittedColorMap emittedTexture;
-    private Transparent transparent; // FIXME not fully implemented either
+    private Transparent transparent;
     private AtmosphericFog fog;
     private InfluenceRegion influence;
 
@@ -327,7 +330,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         return null;
     }
 
-    private StateNode getFog(Frustum frustum) {
+    private StateNode getFogNode(Frustum frustum) {
         AxisAlignedBox bounds = new AxisAlignedBox();
 
         FogState bestState = null;
@@ -376,27 +379,40 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         return (bestState == null ? null : new StateNode(bestState));
     }
 
-    private com.ferox.renderer.Task<Void> buildTree(Bag<Entity> pvs, Frustum camera,
-                                                    Frame frame, final Surface surface) {
+    private com.ferox.renderer.Task<Void> buildTree(Bag<Entity> pvs,
+                                                    final Frustum camera, Frame frame,
+                                                    final Surface surface) {
         // static tree construction that doesn't depend on entities
-        final StateNode root = new StateNode(new CameraState(camera)); // children = lit, unlit or fog
-        StateNode fogNode = getFog(camera);
+        final StateNode root = new StateNode(new CameraState(camera)); // children = (opaque, trans) or fog
+        StateNode fogNode = getFogNode(camera); // children = (opaque, trans) if non-null
+
+        // FIXME implement switch support for normal vs additive
+        StateNode transparentNode = new StateNode(TransparentState.normalBlend());
+        StateNode opaqueNode = new StateNode(TransparentState.opaque());
+
+        // opaque node must be an earlier child node than transparent so atoms
+        // are rendered in the correct order
+        if (fogNode == null) {
+            root.setChild(0, opaqueNode);
+            root.setChild(1, transparentNode);
+        } else {
+            root.setChild(0, fogNode);
+            fogNode.setChild(0, opaqueNode);
+            fogNode.setChild(1, transparentNode);
+        }
+
+        // lit and unlit state nodes for opaque node
         StateNode litNode = new StateNode(new LightingState(true)); // child = shadowmap state
         StateNode unlitNode = new StateNode(new LightingState(false)); // child = texture states
         StateNode smNode = new StateNode(new ShadowMapState(frame.shadowMap,
                                                             shadowmapTextureUnit)); // children = light groups
 
-        if (fogNode == null) {
-            root.setChild(0, litNode);
-            root.setChild(1, unlitNode);
-        } else {
-            root.setChild(0, fogNode);
-            fogNode.setChild(0, litNode);
-            fogNode.setChild(1, unlitNode);
-        }
+        opaqueNode.setChild(0, unlitNode);
+        opaqueNode.setChild(1, litNode);
         litNode.setChild(0, smNode);
 
         // insert light group nodes
+        IntProperty groupAssgn = lightGroups.getAssignmentProperty();
         for (int i = 0; i < lightGroups.getGroupCount(); i++) {
             smNode.setChild(i,
                             new StateNode(new LightGroupState(lightGroups.getGroup(i),
@@ -411,52 +427,67 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                           frame.textureStates.count()));
         }
 
-        IntProperty groupAssgn = lightGroups.getAssignmentProperty();
+        // bag to collect transparent entities for sorting
+        Bag<Entity> transparentEntities = new Bag<Entity>();
 
         RenderAtom atom;
         for (Entity e : pvs) {
             e.get(renderable);
             atom = frame.atoms.get(renderable.getIndex());
 
+            if (atom.transparentVersion >= 0) {
+                // has transparency, assume it must be rendered in depth correct order
+                transparentEntities.add(e);
+                continue;
+            }
+
+            // first node is either the proper light group, or the unlit node
             StateNode firstNode = (atom.blinnPhongVersion >= 0 ? smNode.getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
+            addOpaqueAtom(e, atom, firstNode, frame, groupAssgn);
+        }
 
-            // texture state
-            StateNode texNode = firstNode.getChild(atom.textureStateIndex);
-            if (texNode == null) {
-                texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
-                                        frame.geometryStates.count());
-                firstNode.setChild(atom.textureStateIndex, texNode);
+        if (!transparentEntities.isEmpty()) {
+            // now depth sort all transparent entities by depth
+            Profiler.push("transparent-depth-sort");
+            transparentEntities.sort(new HashFunction<Entity>() {
+                @Override
+                public int hashCode(Entity value) {
+                    value.get(transform);
+                    Matrix4 m = transform.getMatrix();
+                    Matrix4 v = camera.getViewMatrix();
+                    // transformed z value is 3rd row of view dotted with 4th col of the model
+                    double cameraDepth = m.m03 * v.m20 + m.m13 * v.m21 + m.m23 * v.m22 + m.m33 + v.m23;
+                    return Functions.sortableFloatToIntBits((float) cameraDepth);
+                }
+            });
+            Profiler.pop();
+
+            // build subtree for lighting within transparent state
+            Profiler.push("transparent-tree");
+            StateNode aLitNode = new StateNode(new LightingState(true));
+            StateNode aUnlitNode = new StateNode(new LightingState(false));
+            transparentNode.setChild(0, aUnlitNode);
+            transparentNode.setChild(1, aLitNode);
+
+            for (int i = 0; i < lightGroups.getGroupCount(); i++) {
+                // add light group state, but copy from opaque tree, since we
+                // don't need to redo the work (note that we are skipping the
+                // shadow map node for transparent objects).
+                // - also, the expected count is updated to reflect that each
+                //   atom gets its own node
+                aLitNode.setChild(i, new StateNode(smNode.getChild(i).getState(),
+                                                   transparentEntities.size()));
             }
 
-            // geometry state
-            StateNode geomNode = texNode.getChild(atom.geometryStateIndex);
-            if (geomNode == null) {
-                geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
-                                         frame.colorStates.count());
-                texNode.setChild(atom.geometryStateIndex, geomNode);
+            // insert sorted entities into the transparent node of the tree, but
+            // they cannot share nodes so that their depth order is preserved
+            for (Entity e : transparentEntities) {
+                e.get(renderable);
+                atom = frame.atoms.get(renderable.getIndex());
+                StateNode firstNode = (atom.blinnPhongVersion >= 0 ? aLitNode.getChild(groupAssgn.get(renderable.getIndex())) : aUnlitNode);
+                addTransparentAtom(e, atom, firstNode, frame, groupAssgn);
             }
-
-            // color state
-            StateNode colorNode = geomNode.getChild(atom.colorStateIndex);
-            if (colorNode == null) {
-                colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex),
-                                          frame.renderStates.count());
-                geomNode.setChild(atom.colorStateIndex, colorNode);
-            }
-
-            // render state
-            StateNode renderNode = colorNode.getChild(atom.renderStateIndex);
-            if (renderNode == null) {
-                // must clone the geometry since each node accumulates its own
-                // packed transforms that must be rendered
-                renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
-                                                             .cloneGeometry());
-                colorNode.setChild(atom.renderStateIndex, renderNode);
-            }
-
-            // now record the transform into the render node's state
-            e.get(transform);
-            ((RenderState) renderNode.getState()).add(transform.getMatrix());
+            Profiler.pop();
         }
 
         // every entity in the PVS has been put into the tree, which is automatically
@@ -489,6 +520,75 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     }
 
     static int count = 0;
+
+    private void addTransparentAtom(Entity e, RenderAtom atom, StateNode firstNode,
+                                    Frame frame, IntProperty groupAssgn) {
+        // texture state
+        StateNode texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
+                                          1);
+        firstNode.addChild(texNode);
+
+        // geometry state
+        StateNode geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
+                                           1);
+        texNode.setChild(0, geomNode);
+
+        // color state
+        StateNode colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex),
+                                            1);
+        geomNode.setChild(0, colorNode);
+
+        // transparent render state
+        StateNode renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
+                                                               .cloneTransparent());
+        colorNode.setChild(0, renderNode);
+
+        // now record transform into the state
+        e.get(transform);
+        ((RenderState) renderNode.getState()).add(transform.getMatrix());
+    }
+
+    private void addOpaqueAtom(Entity e, RenderAtom atom, StateNode firstNode,
+                               Frame frame, IntProperty groupAssgn) {
+
+        // texture state
+        StateNode texNode = firstNode.getChild(atom.textureStateIndex);
+        if (texNode == null) {
+            texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
+                                    frame.geometryStates.count());
+            firstNode.setChild(atom.textureStateIndex, texNode);
+        }
+
+        // geometry state
+        StateNode geomNode = texNode.getChild(atom.geometryStateIndex);
+        if (geomNode == null) {
+            geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
+                                     frame.colorStates.count());
+            texNode.setChild(atom.geometryStateIndex, geomNode);
+        }
+
+        // color state
+        StateNode colorNode = geomNode.getChild(atom.colorStateIndex);
+        if (colorNode == null) {
+            colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex),
+                                      frame.renderStates.count());
+            geomNode.setChild(atom.colorStateIndex, colorNode);
+        }
+
+        // render state
+        StateNode renderNode = colorNode.getChild(atom.renderStateIndex);
+        if (renderNode == null) {
+            // must clone the geometry since each node accumulates its own
+            // packed transforms that must be rendered
+            renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
+                                                         .cloneGeometry());
+            colorNode.setChild(atom.renderStateIndex, renderNode);
+        }
+
+        // now record the transform into the render node's state
+        e.get(transform);
+        ((RenderState) renderNode.getState()).add(transform.getMatrix());
+    }
 
     private void syncEntityState(Entity e, RenderAtom atom, Frame frame) {
         // sync render state and draw state
@@ -540,8 +640,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     private static class Frame {
         final ShadowMapCache shadowMap;
-
-        //FIXME        TransparentState[] transparentStates;
 
         StateCache<TextureState> textureStates;
         StateCache<GeometryState> geometryStates;

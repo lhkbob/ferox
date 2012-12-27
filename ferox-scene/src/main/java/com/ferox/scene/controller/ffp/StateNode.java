@@ -8,9 +8,12 @@ public class StateNode {
     private final State state;
     private StateNode[] children;
 
+    private int maxIndex;
+
     public StateNode(State state) {
         this.state = state;
         children = null;
+        maxIndex = 0;
     }
 
     public StateNode(State state, int expectedChildCount) {
@@ -30,6 +33,11 @@ public class StateNode {
         }
 
         children[index] = child;
+        maxIndex = Math.max(index + 1, maxIndex);
+    }
+
+    public void addChild(StateNode child) {
+        setChild(maxIndex, child);
     }
 
     public StateNode getChild(int index) {
@@ -45,7 +53,7 @@ public class StateNode {
 
     public void visitChildren(AppliedEffects effects, HardwareAccessLayer access) {
         if (children != null) {
-            for (int i = 0; i < children.length; i++) {
+            for (int i = 0; i < maxIndex; i++) {
                 if (children[i] != null) {
                     children[i].visit(effects, access);
                 }

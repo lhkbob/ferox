@@ -1,5 +1,5 @@
 package com.ferox.scene.controller.ffp;
 
-public class TransparentRenderState {
+public class TransparentRenderState extends RenderState {
 
 }
