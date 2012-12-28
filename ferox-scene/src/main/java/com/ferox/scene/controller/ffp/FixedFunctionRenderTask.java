@@ -385,31 +385,26 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // static tree construction that doesn't depend on entities
         final StateNode root = new StateNode(new CameraState(camera)); // children = (opaque, trans) or fog
         StateNode fogNode = getFogNode(camera); // children = (opaque, trans) if non-null
-
-        // FIXME implement switch support for normal vs additive
-        StateNode transparentNode = new StateNode(TransparentState.normalBlend());
-        StateNode opaqueNode = new StateNode(TransparentState.opaque());
+        StateNode opaqueNode = new StateNode(TransparentState.OPAQUE);
 
         // opaque node must be an earlier child node than transparent so atoms
         // are rendered in the correct order
         if (fogNode == null) {
-            root.setChild(0, opaqueNode);
-            root.setChild(1, transparentNode);
+            root.addChild(opaqueNode);
         } else {
-            root.setChild(0, fogNode);
-            fogNode.setChild(0, opaqueNode);
-            fogNode.setChild(1, transparentNode);
+            root.addChild(fogNode);
+            fogNode.addChild(opaqueNode);
         }
 
         // lit and unlit state nodes for opaque node
-        StateNode litNode = new StateNode(new LightingState(true)); // child = shadowmap state
-        StateNode unlitNode = new StateNode(new LightingState(false)); // child = texture states
+        StateNode litNode = new StateNode(LightingState.LIT); // child = shadowmap state
+        StateNode unlitNode = new StateNode(LightingState.UNLIT); // child = texture states
         StateNode smNode = new StateNode(new ShadowMapState(frame.shadowMap,
                                                             shadowmapTextureUnit)); // children = light groups
 
-        opaqueNode.setChild(0, unlitNode);
-        opaqueNode.setChild(1, litNode);
-        litNode.setChild(0, smNode);
+        opaqueNode.addChild(unlitNode);
+        opaqueNode.addChild(litNode);
+        litNode.addChild(smNode);
 
         // insert light group nodes
         IntProperty groupAssgn = lightGroups.getAssignmentProperty();
@@ -464,28 +459,52 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
             // build subtree for lighting within transparent state
             Profiler.push("transparent-tree");
-            StateNode aLitNode = new StateNode(new LightingState(true));
-            StateNode aUnlitNode = new StateNode(new LightingState(false));
-            transparentNode.setChild(0, aUnlitNode);
-            transparentNode.setChild(1, aLitNode);
-
-            for (int i = 0; i < lightGroups.getGroupCount(); i++) {
-                // add light group state, but copy from opaque tree, since we
-                // don't need to redo the work (note that we are skipping the
-                // shadow map node for transparent objects).
-                // - also, the expected count is updated to reflect that each
-                //   atom gets its own node
-                aLitNode.setChild(i, new StateNode(smNode.getChild(i).getState(),
-                                                   transparentEntities.size()));
+            StateNode transparentRoot = new StateNode(NullState.INSTANCE,
+                                                      transparentEntities.size());
+            if (fogNode == null) {
+                root.addChild(transparentRoot);
+            } else {
+                fogNode.addChild(transparentRoot);
             }
+
+            boolean nodeIsAdditive = false;
+            boolean nodeIsLit = false;
+            StateNode lastNode = null;
 
             // insert sorted entities into the transparent node of the tree, but
             // they cannot share nodes so that their depth order is preserved
             for (Entity e : transparentEntities) {
                 e.get(renderable);
                 atom = frame.atoms.get(renderable.getIndex());
-                StateNode firstNode = (atom.blinnPhongVersion >= 0 ? aLitNode.getChild(groupAssgn.get(renderable.getIndex())) : aUnlitNode);
-                addTransparentAtom(e, atom, firstNode, frame, groupAssgn);
+
+                boolean litUpdate = (nodeIsLit ? atom.blinnPhongVersion < 0 : atom.blinnPhongVersion >= 0);
+                boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending : atom.additiveBlending);
+                if (lastNode == null || litUpdate || blendUpdate) {
+                    StateNode blendNode = new StateNode(atom.additiveBlending ? TransparentState.ADDITIVE : TransparentState.NORMAL,
+                                                        1);
+                    transparentRoot.addChild(blendNode);
+
+                    if (atom.blinnPhongVersion >= 0) {
+                        StateNode lit = new StateNode(LightingState.LIT, 1);
+                        blendNode.addChild(lit);
+                        StateNode sm = new StateNode(smNode.getChild(groupAssgn.get(renderable.getIndex()))
+                                                           .getState(),
+                                                     1);
+                        lit.addChild(sm);
+
+                        lastNode = sm;
+                    } else {
+                        StateNode unlit = new StateNode(LightingState.UNLIT, 1);
+                        blendNode.addChild(unlit);
+
+                        lastNode = unlit;
+                    }
+
+                    nodeIsLit = atom.blinnPhongVersion >= 0;
+                    nodeIsAdditive = atom.additiveBlending;
+                }
+
+                addTransparentAtom(e, atom, lastNode, frame, groupAssgn);
             }
             Profiler.pop();
         }
@@ -625,6 +644,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                                        emittedColor, transparent,
                                                        blinnPhong, atom.colorStateIndex);
         }
+
+        atom.additiveBlending = transparent.isEnabled() && transparent.isAdditive();
 
         // record new versions
         atom.renderableVersion = newRenderableVersion;
@@ -775,5 +796,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         int decalTextureVersion = -1;
         int blinnPhongVersion = -1;
         int transparentVersion = -1;
+
+        boolean additiveBlending = false;
     }
 }

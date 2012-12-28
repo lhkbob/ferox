@@ -68,12 +68,10 @@ public class ComputePVSTask implements Task, ParallelAware {
 
     @Override
     public Task process(EntitySystem system, Job job) {
-        Profiler.push("compute-pvs-root");
+        Profiler.push("compute-pvs");
 
         if (index != null) {
             for (FrustumResult f : frustums) {
-                Profiler.push("compute-pvs");
-
                 VisibilityCallback query = new VisibilityCallback(system);
                 index.query(f.getFrustum(), query);
 
@@ -82,8 +80,6 @@ public class ComputePVSTask implements Task, ParallelAware {
                 // accessing entity properties
                 query.pvs.sort();
                 job.report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
-
-                Profiler.pop();
             }
         }
 

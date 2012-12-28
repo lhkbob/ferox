@@ -4,6 +4,9 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 
 public class LightingState implements State {
+    public static final LightingState LIT = new LightingState(true);
+    public static final LightingState UNLIT = new LightingState(false);
+
     private final boolean lit;
 
     public LightingState(boolean lit) {
