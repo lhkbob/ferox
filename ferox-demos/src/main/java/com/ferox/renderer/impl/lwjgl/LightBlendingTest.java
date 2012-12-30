@@ -109,8 +109,8 @@ public class LightBlendingTest extends ApplicationStub {
                 //                ffp.setLightPosition(2, new Vector4(4, 4, -4, 1));
                 //                ffp.setLightEnabled(2, true);
 
-                ffp.render(shape.getPolygonType(), shape.getIndexOffset(),
-                           shape.getIndexCount());
+                ffp.renderArray(shape.getPolygonType(), shape.getIndexOffset(),
+                                shape.getIndexCount());
 
                 // second light
                 ffp.setBlendingEnabled(true);

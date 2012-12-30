@@ -472,8 +472,8 @@ public abstract class RendererDelegate {
         }
     }
 
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
-                      int count) {
+    public int renderElements(PolygonType polyType, VertexBufferObject indices,
+                              int offset, int count) {
         if (polyType == null || indices == null) {
             throw new NullPointerException("PolygonType and indices cannot be null");
         }
@@ -511,7 +511,7 @@ public abstract class RendererDelegate {
                                            VertexBufferObjectHandle handle, int offset,
                                            int count);
 
-    public int render(PolygonType polyType, int first, int count) {
+    public int renderArray(PolygonType polyType, int first, int count) {
         if (polyType == null) {
             throw new NullPointerException("PolygonType cannot be null");
         }

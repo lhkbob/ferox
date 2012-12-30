@@ -172,8 +172,9 @@ public class GlslRenderTest extends ApplicationStub {
 
                 g.setUniform("transform", 2f, .25f);
 
-                int rendered = g.render(shape.getPolygonType(), shape.getIndexOffset(),
-                                        shape.getIndexCount());
+                int rendered = g.renderArray(shape.getPolygonType(),
+                                             shape.getIndexOffset(),
+                                             shape.getIndexCount());
 
                 if (!statusChecked) {
                     statusChecked = true;

@@ -261,16 +261,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     @Override
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
-                      int count) {
+    public int renderElements(PolygonType polyType, VertexBufferObject indices,
+                              int offset, int count) {
         flushModelView();
-        return super.render(polyType, indices, offset, count);
+        return super.renderElements(polyType, indices, offset, count);
     }
 
     @Override
-    public int render(PolygonType polyType, int first, int count) {
+    public int renderArray(PolygonType polyType, int first, int count) {
         flushModelView();
-        return super.render(polyType, first, count);
+        return super.renderArray(polyType, first, count);
     }
 
     @Override

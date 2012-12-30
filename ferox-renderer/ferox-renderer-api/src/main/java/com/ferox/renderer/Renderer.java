@@ -835,8 +835,8 @@ public interface Renderer {
      * @throws IndexOutOfBoundsException if offset + count is greater than the
      *             size of the indices buffer
      */
-    public int render(PolygonType polyType, VertexBufferObject indices, int offset,
-                      int count);
+    public int renderElements(PolygonType polyType, VertexBufferObject indices,
+                              int offset, int count);
 
     /**
      * <p>
@@ -864,7 +864,7 @@ public interface Renderer {
      * @return The number of polygons rendered
      * @throws IllegalArgumentException if first or count are negative
      */
-    public int render(PolygonType polyType, int first, int count);
+    public int renderArray(PolygonType polyType, int first, int count);
 
     /**
      * Manually reset all of the OpenGL-related state in this Renderer to the

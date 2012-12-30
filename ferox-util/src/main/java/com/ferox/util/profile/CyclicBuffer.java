@@ -26,6 +26,8 @@
  */
 package com.ferox.util.profile;
 
+import java.util.Arrays;
+
 public class CyclicBuffer {
     private final double[] values;
 
@@ -75,5 +77,18 @@ public class CyclicBuffer {
             }
         }
         return max;
+    }
+
+    public double[] values() {
+        if (index <= values.length) {
+            // first time filling the array
+            return Arrays.copyOf(values, index);
+        } else {
+            // reorder array about index
+            double[] nv = new double[values.length];
+            System.arraycopy(values, index, nv, 0, values.length - index);
+            System.arraycopy(values, 0, nv, values.length - index, index);
+            return nv;
+        }
     }
 }

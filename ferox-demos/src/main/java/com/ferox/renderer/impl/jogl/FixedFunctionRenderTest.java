@@ -153,13 +153,14 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                     g.setModelViewMatrix(f.getViewMatrix().mul(t, t));
 
                     if (shape.getIndices() != null) {
-                        rendered += g.render(shape.getPolygonType(), shape.getIndices(),
-                                             shape.getIndexOffset(),
-                                             shape.getIndexCount());
+                        rendered += g.renderElements(shape.getPolygonType(),
+                                                     shape.getIndices(),
+                                                     shape.getIndexOffset(),
+                                                     shape.getIndexCount());
                     } else {
-                        rendered += g.render(shape.getPolygonType(),
-                                             shape.getIndexOffset(),
-                                             shape.getIndexCount());
+                        rendered += g.renderArray(shape.getPolygonType(),
+                                                  shape.getIndexOffset(),
+                                                  shape.getIndexCount());
                     }
                 }
 

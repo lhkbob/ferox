@@ -148,7 +148,7 @@ public final class Profiler {
             this.label = label;
             this.parent = parent;
 
-            timings = new CyclicBuffer(10);
+            timings = new CyclicBuffer(100);
             invokeCount = 0;
             children = new HashMap<String, ProfileRecord>();
         }

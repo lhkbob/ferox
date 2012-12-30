@@ -236,11 +236,11 @@ public class TextRenderer {
                         ffp.setVertices(g.getVertices());
 
                         if (g.getIndices() == null) {
-                            ffp.render(g.getPolygonType(), g.getIndexOffset(),
-                                       g.getIndexCount());
+                            ffp.renderArray(g.getPolygonType(), g.getIndexOffset(),
+                                            g.getIndexCount());
                         } else {
-                            ffp.render(g.getPolygonType(), g.getIndices(),
-                                       g.getIndexOffset(), g.getIndexCount());
+                            ffp.renderElements(g.getPolygonType(), g.getIndices(),
+                                               g.getIndexOffset(), g.getIndexCount());
                         }
                     }
                 }
