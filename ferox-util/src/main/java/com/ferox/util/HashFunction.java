@@ -36,6 +36,12 @@ package com.ferox.util;
  * @param <E> The Object type that will be hashed
  */
 public interface HashFunction<E> {
+    public static final HashFunction<Object> NATURAL_HASHER = new HashFunction<Object>() {
+        @Override
+        public int hashCode(Object o) {
+            return o.hashCode();
+        }
+    };
 
     /**
      * Compute and return the hash code for the given <tt>value</tt>. If
