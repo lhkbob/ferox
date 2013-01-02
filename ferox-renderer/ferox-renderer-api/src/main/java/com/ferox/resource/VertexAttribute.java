@@ -178,7 +178,7 @@ public class VertexAttribute {
      *         {@link BufferData#getDataType()} to determine the array type
      *         stored by the BufferData.
      */
-    public VertexBufferObject getData() {
+    public VertexBufferObject getVBO() {
         return buffer;
     }
 

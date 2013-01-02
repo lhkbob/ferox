@@ -404,9 +404,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
             VertexAttributeBinding state = a.columnVBOs[column];
             boolean accessDiffers = (state.offset != attr.getOffset() || state.stride != attr.getStride() || state.elementSize != attr.getElementSize());
-            if (state.vbo != attr.getData() || accessDiffers) {
+            if (state.vbo != attr.getVBO() || accessDiffers) {
                 VertexBufferObject oldVbo = state.vbo;
-                if (state.vbo != null && oldVbo != attr.getData()) {
+                if (state.vbo != null && oldVbo != attr.getVBO()) {
                     // unlock the old vbo
                     resourceManager.unlock(state.vbo);
                     state.vbo = null;
@@ -416,9 +416,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 if (state.vbo == null) {
                     // lock the new vbo
                     VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
-                                                                                                         attr.getData());
+                                                                                                         attr.getVBO());
                     if (newHandle != null) {
-                        state.vbo = attr.getData();
+                        state.vbo = attr.getVBO();
                         state.handle = newHandle;
                     }
                 }
@@ -429,7 +429,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                     state.offset = attr.getOffset();
                     state.stride = attr.getStride();
 
-                    bindArrayVbo(attr.getData(), state.handle, oldVbo);
+                    bindArrayVbo(attr.getVBO(), state.handle, oldVbo);
 
                     if (oldVbo == null) {
                         glEnableAttribute(state.attributeIndex, true);

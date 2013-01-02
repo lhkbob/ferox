@@ -1156,12 +1156,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (attr != null) {
             // We are setting a new vertex attribute
             boolean accessDiffers = (state.offset != attr.getOffset() || state.stride != attr.getStride() || state.elementSize != attr.getElementSize());
-            if (state.vbo != attr.getData() || accessDiffers) {
+            if (state.vbo != attr.getVBO() || accessDiffers) {
                 // The attributes will be different so must make a change
                 VertexBufferObject oldVbo = state.vbo;
                 boolean failTypeCheck = false;
 
-                if (state.vbo != null && oldVbo != attr.getData()) {
+                if (state.vbo != null && oldVbo != attr.getVBO()) {
                     // Unlock the old one
                     resourceManager.unlock(oldVbo);
                     state.vbo = null;
@@ -1171,16 +1171,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                 if (state.vbo == null) {
                     // Lock the new vbo
                     VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
-                                                                                                         attr.getData());
+                                                                                                         attr.getVBO());
                     if (newHandle != null && newHandle.dataType != DataType.FLOAT) {
-                        resourceManager.unlock(attr.getData());
+                        resourceManager.unlock(attr.getVBO());
                         failTypeCheck = true;
 
                         state.vbo = null;
                         handle = null;
                     } else {
                         // VBO is ready
-                        state.vbo = attr.getData();
+                        state.vbo = attr.getVBO();
                         handle = newHandle;
                     }
                 }
@@ -1198,7 +1198,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                     state.offset = attr.getOffset();
                     state.stride = attr.getStride();
 
-                    bindArrayVbo(attr.getData(), handle, oldVbo);
+                    bindArrayVbo(attr.getVBO(), handle, oldVbo);
 
                     if (oldVbo == null) {
                         glEnableAttribute(state.target, true);
