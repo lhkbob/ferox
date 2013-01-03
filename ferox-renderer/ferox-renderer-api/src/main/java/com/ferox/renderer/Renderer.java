@@ -331,6 +331,11 @@ public interface Renderer {
             public int getPolygonCount(int count) {
                 return count;
             }
+
+            @Override
+            public int getPolygonSize() {
+                return 1;
+            }
         },
         /**
          * Every two vertices form a line, so [i0, i1, i2, i3] creates 2 lines,
@@ -341,6 +346,11 @@ public interface Renderer {
             public int getPolygonCount(int count) {
                 return count >> 1;
             }
+
+            @Override
+            public int getPolygonSize() {
+                return 2;
+            }
         },
         /**
          * Every three vertices form an individual triangle.
@@ -349,6 +359,11 @@ public interface Renderer {
             @Override
             public int getPolygonCount(int count) {
                 return count / 3;
+            }
+
+            @Override
+            public int getPolygonSize() {
+                return 3;
             }
         },
         /**
@@ -360,6 +375,11 @@ public interface Renderer {
             public int getPolygonCount(int count) {
                 return count >> 2;
             }
+
+            @Override
+            public int getPolygonSize() {
+                return 4;
+            }
         },
         /**
          * The first three vertices form a triangle, and then every subsequent
@@ -370,6 +390,11 @@ public interface Renderer {
             public int getPolygonCount(int count) {
                 return Math.max(0, count - 2);
             }
+
+            @Override
+            public int getPolygonSize() {
+                return 3;
+            }
         },
         /**
          * The first four vertices form a quad, and then every two vertices form
@@ -379,6 +404,11 @@ public interface Renderer {
             @Override
             public int getPolygonCount(int count) {
                 return Math.max(0, count - 2) >> 1;
+            }
+
+            @Override
+            public int getPolygonSize() {
+                return 4;
             }
         };
 
@@ -393,6 +423,16 @@ public interface Renderer {
          * @return The polygon count
          */
         public abstract int getPolygonCount(int numIndices);
+
+        /**
+         * Return the number of vertices in each polygon. The vertices may be
+         * shared by multiple polygons, this is just the number of vertices
+         * required for a single primitive. As an example, both TRIANGLES and
+         * TRIANGLE_STRIP return 3.
+         * 
+         * @return The number of vertices in a polygon
+         */
+        public abstract int getPolygonSize();
     }
 
     /**
