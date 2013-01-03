@@ -95,24 +95,15 @@ public class IndexBufferState {
             FixedFunctionRenderer r = access.getCurrentContext()
                                             .getFixedFunctionRenderer();
 
-            if (indices == null) {
-                for (int i = 0; i < count; i += 16) {
-                    // load and multiply the model with the view
-                    modelMatrix.set(matrices, i, false);
-                    modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
+            r.setIndices(indices);
 
-                    r.setModelViewMatrix(modelMatrix);
-                    r.renderArray(polyType, indexOffset, indexCount);
-                }
-            } else {
-                for (int i = 0; i < count; i += 16) {
-                    // load and multiply the model with the view
-                    modelMatrix.set(matrices, i, false);
-                    modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
+            for (int i = 0; i < count; i += 16) {
+                // load and multiply the model with the view
+                modelMatrix.set(matrices, i, false);
+                modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
 
-                    r.setModelViewMatrix(modelMatrix);
-                    r.renderElements(polyType, indices, indexOffset, indexCount);
-                }
+                r.setModelViewMatrix(modelMatrix);
+                r.render(polyType, indexOffset, indexCount);
             }
 
             // restore modelview matrix for lighting, etc.
@@ -183,14 +174,18 @@ public class IndexBufferState {
                 // load and multiply the model with the view
                 modelMatrix.set(matrices, i, false);
                 modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
+                r.setModelViewMatrix(modelMatrix);
 
                 // sort indices within sortedIndicesShared
                 QuickSort.sort(view);
                 sortedIndicesShared.markDirty(0, inflatedIndexCount);
-                access.update(sortedIndicesShared);
 
-                r.setModelViewMatrix(modelMatrix);
-                r.renderElements(polyType, sortedIndicesShared, 0, inflatedIndexCount);
+                // clear, update and rebind sorted indices
+                r.setIndices(null);
+                access.update(sortedIndicesShared);
+                r.setIndices(sortedIndicesShared);
+
+                r.render(polyType, 0, inflatedIndexCount);
             }
 
             // restore modelview matrix for lighting, etc.
