@@ -2,7 +2,9 @@ package com.ferox.util;
 
 import java.util.List;
 
-public class QuickSort {
+public final class QuickSort {
+    private QuickSort() {}
+
     public static void sort(ItemView view) {
         int[] hashes = new int[view.length()];
         for (int i = 0; i < hashes.length; i++) {
