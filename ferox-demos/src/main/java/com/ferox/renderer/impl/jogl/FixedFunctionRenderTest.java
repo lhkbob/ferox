@@ -152,16 +152,9 @@ public class FixedFunctionRenderTest extends ApplicationStub {
 
                     g.setModelViewMatrix(f.getViewMatrix().mul(t, t));
 
-                    if (shape.getIndices() != null) {
-                        rendered += g.renderElements(shape.getPolygonType(),
-                                                     shape.getIndices(),
-                                                     shape.getIndexOffset(),
-                                                     shape.getIndexCount());
-                    } else {
-                        rendered += g.renderArray(shape.getPolygonType(),
-                                                  shape.getIndexOffset(),
-                                                  shape.getIndexCount());
-                    }
+                    g.setIndices(shape.getIndices());
+                    rendered += g.render(shape.getPolygonType(), shape.getIndexOffset(),
+                                         shape.getIndexCount());
                 }
 
                 if (!statusChecked) {
@@ -171,13 +164,13 @@ public class FixedFunctionRenderTest extends ApplicationStub {
 
                     System.out.println("\nvertices status: " + surface.getFramework()
                                                                       .getStatus(shape.getVertices()
-                                                                                      .getData()));
+                                                                                      .getVBO()));
                     System.out.println("\nnormals status: " + surface.getFramework()
                                                                      .getStatus(shape.getNormals()
-                                                                                     .getData()));
+                                                                                     .getVBO()));
                     System.out.println("\ntexcoords status: " + surface.getFramework()
                                                                        .getStatus(shape.getTextureCoordinates()
-                                                                                       .getData()));
+                                                                                       .getVBO()));
 
                     System.out.println("\ntexture status: " + surface.getFramework()
                                                                      .getStatus(volume) + " " + surface.getFramework()

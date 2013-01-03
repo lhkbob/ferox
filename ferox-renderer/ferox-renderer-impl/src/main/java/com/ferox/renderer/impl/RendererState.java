@@ -35,6 +35,7 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.StencilUpdate;
 import com.ferox.renderer.Surface;
+import com.ferox.resource.VertexBufferObject;
 
 public class RendererState {
     public static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
@@ -85,6 +86,9 @@ public class RendererState {
     public StencilUpdate depthPassBack;
 
     public boolean stencilEnabled;
+
+    // rendering
+    public VertexBufferObject indices;
 
     // stencil mask
     public int stencilMaskFront;
@@ -143,6 +147,8 @@ public class RendererState {
         viewY = 0;
         viewWidth = surface.getWidth();
         viewHeight = surface.getHeight();
+
+        indices = null;
     }
 
     public RendererState(RendererState toClone) {
@@ -192,5 +198,7 @@ public class RendererState {
         viewY = toClone.viewY;
         viewWidth = toClone.viewWidth;
         viewHeight = toClone.viewHeight;
+
+        indices = toClone.indices;
     }
 }

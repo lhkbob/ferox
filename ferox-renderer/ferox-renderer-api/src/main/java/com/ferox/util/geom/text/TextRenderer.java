@@ -235,13 +235,9 @@ public class TextRenderer {
                         ffp.setTextureCoordinates(0, g.getTextureCoordinates());
                         ffp.setVertices(g.getVertices());
 
-                        if (g.getIndices() == null) {
-                            ffp.renderArray(g.getPolygonType(), g.getIndexOffset(),
-                                            g.getIndexCount());
-                        } else {
-                            ffp.renderElements(g.getPolygonType(), g.getIndices(),
-                                               g.getIndexOffset(), g.getIndexCount());
-                        }
+                        ffp.setIndices(g.getIndices());
+                        ffp.render(g.getPolygonType(), g.getIndexOffset(),
+                                   g.getIndexCount());
                     }
                 }
                 // FIXME support a glsl shader that can do the same rendering

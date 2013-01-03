@@ -192,14 +192,13 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public int renderElements(PolygonType polyType, VertexBufferObject indices,
-                              int offset, int count) {
-        return delegate.renderElements(polyType, indices, offset, count);
+    public void setIndices(VertexBufferObject indices) {
+        delegate.setIndices(indices);
     }
 
     @Override
-    public int renderArray(PolygonType polyType, int first, int count) {
-        return delegate.renderArray(polyType, first, count);
+    public int render(PolygonType polyType, int first, int count) {
+        return delegate.render(polyType, first, count);
     }
 
     /**

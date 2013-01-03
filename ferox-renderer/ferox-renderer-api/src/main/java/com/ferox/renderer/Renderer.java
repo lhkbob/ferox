@@ -840,55 +840,35 @@ public interface Renderer {
 
     /**
      * <p>
-     * Render the polygons described in the indices buffer, <tt>indices</tt>.
-     * Polygons are formed from consecutive indices as determined by the
-     * provided polygon type. The first index is taken from <tt>offset</tt>. The
-     * indices point to the vertices and attributes in the other currently
-     * configured VertexBufferObjects. In OpenGL, this operation is equivalent
-     * to <code>glDrawElements</code>. For performance reasons, it is not
-     * checked if <tt>indices</tt> contains indices that reference vertices
-     * outside the range of configured vertices. If this happens, rendering will
-     * be undefined, and may cause the JVM to crash.
+     * Set the index buffer that is used when rendering. If the index buffer is
+     * not null, the rendered polygons are described by the index values in
+     * <tt>indices</tt> and the polygon type specified by
+     * {@link #render(PolygonType, int, int)}.
      * <p>
      * The VertexBufferObject might be updated before rendering depending on its
      * update policy. The VertexBufferObject must have an integral data type of
      * INT, SHORT, or BYTE. The integer indices are considered as unsigned
      * values, even though unsigned integers are not supported in Java.
      * <p>
-     * The Renderer interface does not provide a mechanism to configure the
-     * active set of vertex attributes needed to form the actual vertices.
-     * Specifying vertex attributes depends on the type of Renderer because the
-     * fixed-function pipeline and programmable shaders use different
-     * mechanisms. However, they can both perform the actual rendering in the
-     * same manner. It is possible that specific Renderer types will support
-     * more rendering methods, such as rendering multiple instances.
+     * When the index buffer is null, any previous buffer is unbound and
+     * rendered polygons are constructed by accessing the vertex attributes
+     * consecutively.
      * 
-     * @param polyType The type of polygon to render
      * @param indices An array of integer indices into the configured vertex
      *            attributes
-     * @param offset The offset into indices
-     * @param count The number of indices to turn into polygons
-     * @return The number of polygons rendered
-     * @throws NullPointerException if polyType or indices is null
-     * @throws IllegalArgumentException if offset or count are negative, or if
-     *             indices has a data type of FLOAT
-     * @throws IndexOutOfBoundsException if offset + count is greater than the
-     *             size of the indices buffer
+     * @throws IllegalArgumentException if indices is not null and has a type of
+     *             FLOAT
      */
-    public int renderElements(PolygonType polyType, VertexBufferObject indices,
-                              int offset, int count);
+    public void setIndices(VertexBufferObject indices);
 
     /**
      * <p>
-     * Render polygons by iterating through <tt>count</tt> vertices in the
-     * currently configured vertex attributes. The first vertex is read from the
-     * index, <tt>first</tt>.The vertices form polygons based on the provided
-     * polygon type. In OpenGL, this operation is equivalent to
-     * <code>glDrawArray</code>. If <tt>first</tt> and <tt>count</tt> would
-     * cause this to access undefined vertices, undefined and probably
-     * disastrous behavior will result. This will render
-     * {@link PolygonType#getPolygonCount(int)} primitives, with <tt>count</tt>
-     * as the argument.
+     * Render polygons by iterating through <tt>count</tt> of the configured
+     * indices starting at <tt>offset</tt>. Polygons are formed based on the
+     * polygon type provided. If there is a non-null bound index buffer count
+     * index values are read and used to access the vertex attributes. If there
+     * is no index buffer, vertex attributes are read directly starting at
+     * offset.
      * <p>
      * The Renderer interface does not provide a mechanism to configure the
      * active set of vertex attributes needed to form the actual vertices.
@@ -903,8 +883,10 @@ public interface Renderer {
      * @param count The number of vertices to render
      * @return The number of polygons rendered
      * @throws IllegalArgumentException if first or count are negative
+     * @throws IndexOutOfBoundsException if there's a bound index buffer and the
+     *             configured offset and count would access invalid elements
      */
-    public int renderArray(PolygonType polyType, int first, int count);
+    public int render(PolygonType polyType, int offset, int count);
 
     /**
      * Manually reset all of the OpenGL-related state in this Renderer to the

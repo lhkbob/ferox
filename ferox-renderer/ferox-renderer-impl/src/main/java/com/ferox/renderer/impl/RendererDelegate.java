@@ -60,7 +60,6 @@ public abstract class RendererDelegate {
     protected RendererState defaultState;
 
     protected VertexBufferObjectHandle indexBindingHandle;
-    protected VertexBufferObject indexBinding;
 
     protected OpenGLContext context;
     protected ResourceManager resourceManager;
@@ -121,6 +120,7 @@ public abstract class RendererDelegate {
         setStencilTestEnabled(state.stencilEnabled);
 
         setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
+        setIndices(state.indices);
     }
 
     /**
@@ -428,16 +428,16 @@ public abstract class RendererDelegate {
      */
     protected abstract void glViewport(int x, int y, int width, int height);
 
-    private void setIndexBuffer(VertexBufferObject indices) {
-        if (indexBinding != indices) {
+    public void setIndices(VertexBufferObject indices) {
+        if (state.indices != indices) {
             // Must bind a new element vbo
-            boolean hadOldIndices = indexBinding != null;
+            boolean hadOldIndices = state.indices != null;
             boolean failTypeCheck = false;
 
             if (hadOldIndices) {
                 // Unlock old vbo first
-                resourceManager.unlock(indexBinding);
-                indexBinding = null;
+                resourceManager.unlock(state.indices);
+                state.indices = null;
                 indexBindingHandle = null;
             }
 
@@ -457,7 +457,7 @@ public abstract class RendererDelegate {
 
             // Handle actual binding of the vbo
             if (newHandle != null) {
-                indexBinding = indices;
+                state.indices = indices;
                 indexBindingHandle = newHandle;
                 glBindElementVbo(newHandle);
             } else if (hadOldIndices) {
@@ -472,10 +472,9 @@ public abstract class RendererDelegate {
         }
     }
 
-    public int renderElements(PolygonType polyType, VertexBufferObject indices,
-                              int offset, int count) {
-        if (polyType == null || indices == null) {
-            throw new NullPointerException("PolygonType and indices cannot be null");
+    public int render(PolygonType polyType, int offset, int count) {
+        if (polyType == null) {
+            throw new NullPointerException("PolygonType cannot be null");
         }
         if (offset < 0 || count < 0) {
             throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
@@ -485,20 +484,19 @@ public abstract class RendererDelegate {
             return 0; // shortcut
         }
 
-        setIndexBuffer(indices);
-
-        if (indexBinding == null) {
-            // No element vbo to work with, so we can't render anything
-            return 0;
-        } else {
-            // check if the actual VBO is of the correct size (must use handle can't
-            // rely on the resource reporting the most up-to-date size)
+        if (state.indices != null) {
+            // use glDrawElements
+            // - check if the actual VBO is of the correct size (must use handle can't
+            // - rely on the resource reporting the most up-to-date size)
             if ((offset + count) > indexBindingHandle.length) {
                 throw new IllegalArgumentException("Index and count access elements outside of VBO range");
             }
 
             // Element vbo is bound this time (or from a previous rendering)
             glDrawElements(polyType, indexBindingHandle, offset, count);
+        } else {
+            // use glDrawArrays
+            glDrawArrays(polyType, offset, count);
         }
 
         return polyType.getPolygonCount(count);
@@ -510,23 +508,6 @@ public abstract class RendererDelegate {
     protected abstract void glDrawElements(PolygonType type,
                                            VertexBufferObjectHandle handle, int offset,
                                            int count);
-
-    public int renderArray(PolygonType polyType, int first, int count) {
-        if (polyType == null) {
-            throw new NullPointerException("PolygonType cannot be null");
-        }
-        if (first < 0 || count < 0) {
-            throw new IllegalArgumentException("First and count must be at least 0, not: " + first + ", " + count);
-        }
-
-        // short cut
-        if (count == 0) {
-            return 0;
-        }
-
-        glDrawArrays(polyType, first, count);
-        return polyType.getPolygonCount(count);
-    }
 
     /**
      * Perform the glDrawArrays rendering command. The inputs will be valid.
