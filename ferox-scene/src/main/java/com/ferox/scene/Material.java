@@ -69,7 +69,7 @@ public abstract class Material<T extends Material<T>> extends ComponentData<T> {
         if (normals == null) {
             throw new NullPointerException("Normals cannot be null");
         }
-        if (normals.getData().getData().getDataType() != DataType.FLOAT) {
+        if (normals.getVBO().getData().getDataType() != DataType.FLOAT) {
             throw new IllegalArgumentException("Normals must have FLOAT data");
         }
         if (normals.getElementSize() != 3) {

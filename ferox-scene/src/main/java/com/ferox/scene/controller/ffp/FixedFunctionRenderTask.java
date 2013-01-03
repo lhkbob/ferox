@@ -24,8 +24,12 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Surface;
+import com.ferox.resource.BufferData;
+import com.ferox.resource.Resource.UpdatePolicy;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.AtmosphericFog;
 import com.ferox.scene.BlinnPhongMaterial;
@@ -504,7 +508,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                     nodeIsAdditive = atom.additiveBlending;
                 }
 
-                addTransparentAtom(e, atom, lastNode, frame, groupAssgn);
+                addTransparentAtom(e, atom, renderable.getVertices(), lastNode, frame,
+                                   groupAssgn);
             }
             Profiler.pop();
         }
@@ -540,8 +545,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     static int count = 0;
 
-    private void addTransparentAtom(Entity e, RenderAtom atom, StateNode firstNode,
-                                    Frame frame, IntProperty groupAssgn) {
+    private void addTransparentAtom(Entity e, RenderAtom atom, VertexAttribute vertices,
+                                    StateNode firstNode, Frame frame,
+                                    IntProperty groupAssgn) {
         // texture state
         StateNode texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
                                           1);
@@ -559,7 +565,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         // transparent render state
         StateNode renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
-                                                               .cloneTransparent());
+                                                               .newTransparentRenderState(vertices,
+                                                                                          frame.sortedIndices));
         colorNode.setChild(0, renderNode);
 
         // now record transform into the state
@@ -600,7 +607,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             // must clone the geometry since each node accumulates its own
             // packed transforms that must be rendered
             renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
-                                                         .cloneGeometry());
+                                                         .newOpaqueRenderState());
             colorNode.setChild(atom.renderStateIndex, renderNode);
         }
 
@@ -661,11 +668,12 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     private static class Frame {
         final ShadowMapCache shadowMap;
+        final VertexBufferObject sortedIndices;
 
         StateCache<TextureState> textureStates;
         StateCache<GeometryState> geometryStates;
         StateCache<ColorState> colorStates;
-        StateCache<RenderState> renderStates;
+        StateCache<IndexBufferState> renderStates;
 
         // per-entity tracking
         ObjectProperty<RenderAtom> atoms;
@@ -685,7 +693,11 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             textureStates = new StateCache<TextureState>(TextureState.class);
             geometryStates = new StateCache<GeometryState>(GeometryState.class);
             colorStates = new StateCache<ColorState>(ColorState.class);
-            renderStates = new StateCache<RenderState>(RenderState.class);
+            renderStates = new StateCache<IndexBufferState>(IndexBufferState.class);
+
+            sortedIndices = new VertexBufferObject(new BufferData(new int[1]),
+                                                   StorageMode.GPU_DYNAMIC);
+            sortedIndices.setUpdatePolicy(UpdatePolicy.MANUAL);
         }
 
         int getTextureState(DiffuseColorMap diffuse, DecalColorMap decal,
@@ -751,7 +763,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         int getRenderState(Renderable renderable, int oldIndex) {
             // we can assume that the renderable is always valid, since
             // we're processing renderable entities
-            RenderState state = new RenderState();
+            IndexBufferState state = new IndexBufferState();
             state.set(renderable.getPolygonType(), renderable.getIndices(),
                       renderable.getIndexOffset(), renderable.getIndexCount());
 
@@ -762,7 +774,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             textureStates = new StateCache<TextureState>(TextureState.class);
             geometryStates = new StateCache<GeometryState>(GeometryState.class);
             colorStates = new StateCache<ColorState>(ColorState.class);
-            renderStates = new StateCache<RenderState>(RenderState.class);
+            renderStates = new StateCache<IndexBufferState>(IndexBufferState.class);
 
             // clearing the render atoms effectively invalidates all of the
             // version tracking we do as well

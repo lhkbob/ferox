@@ -151,16 +151,16 @@ public class ShadowMapCache {
         Transform transform = system.createDataInstance(Transform.class);
 
         GeometryState geom = new GeometryState();
-        RenderState render = new RenderState();
+        IndexBufferState render = new IndexBufferState();
 
         // build up required states and tree simultaneously
         StateNode root = new StateNode(new CameraState(pvs.getFrustum()));
 
         List<GeometryState> geomLookup = new ArrayList<GeometryState>();
-        List<RenderState> renderLookup = new ArrayList<RenderState>();
+        List<IndexBufferState> renderLookup = new ArrayList<IndexBufferState>();
 
         Map<GeometryState, Integer> geomState = new HashMap<GeometryState, Integer>();
-        Map<RenderState, Integer> renderState = new HashMap<RenderState, Integer>();
+        Map<IndexBufferState, Integer> renderState = new HashMap<IndexBufferState, Integer>();
         for (Entity e : pvs.getPotentiallyVisibleSet()) {
             e.get(renderable);
             e.get(transform);
@@ -186,7 +186,7 @@ public class ShadowMapCache {
                 renderLookup.add(render);
                 renderState.put(render, geomStateIndex);
                 // create a new state so we don't mutate value stached in collection
-                render = new RenderState();
+                render = new IndexBufferState();
             }
 
             StateNode geomNode = root.getChild(geomStateIndex);
@@ -198,7 +198,7 @@ public class ShadowMapCache {
             StateNode renderNode = geomNode.getChild(renderStateIndex);
             if (renderNode == null) {
                 renderNode = new StateNode(renderLookup.get(renderStateIndex)
-                                                       .cloneGeometry());
+                                                       .newOpaqueRenderState());
                 geomNode.setChild(renderStateIndex, renderNode);
             }
 

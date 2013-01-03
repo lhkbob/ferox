@@ -71,7 +71,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
         if (texCoords == null) {
             throw new NullPointerException("Texture coordinates cannot be null");
         }
-        if (texCoords.getData().getData().getDataType() != DataType.FLOAT) {
+        if (texCoords.getVBO().getData().getDataType() != DataType.FLOAT) {
             throw new IllegalArgumentException("VertexAttribute must have FLOAT data");
         }
 

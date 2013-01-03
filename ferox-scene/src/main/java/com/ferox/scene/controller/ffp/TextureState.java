@@ -8,7 +8,7 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 
-public class TextureState implements StaticState {
+public class TextureState implements State {
     private final int diffuseTextureUnit;
     private final int decalTextureUnit;
     private final int emittedTextureUnit;
@@ -38,30 +38,6 @@ public class TextureState implements StaticState {
         this.diffuseTexCoords = diffuseTexCoords;
         this.decalTexCoords = decalTexCoords;
         this.emittedTexCoords = emittedTexCoords;
-    }
-
-    public Texture getDiffuseTexture() {
-        return diffuseTexture;
-    }
-
-    public Texture getDecalTexture() {
-        return decalTexture;
-    }
-
-    public Texture getEmittedTexture() {
-        return emittedTexture;
-    }
-
-    public VertexAttribute getDiffuseTexCoords() {
-        return diffuseTexCoords;
-    }
-
-    public VertexAttribute getDecalTexCoords() {
-        return decalTexCoords;
-    }
-
-    public VertexAttribute getEmittedTexCoords() {
-        return emittedTexCoords;
     }
 
     @Override

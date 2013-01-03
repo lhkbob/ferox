@@ -101,7 +101,7 @@ public final class Renderable extends ComponentData<Renderable> {
         if (vertices == null) {
             throw new NullPointerException("Vertices cannot be null");
         }
-        if (vertices.getData().getData().getDataType() != DataType.FLOAT) {
+        if (vertices.getVBO().getData().getDataType() != DataType.FLOAT) {
             throw new IllegalArgumentException("Vertices must have a datatype of FLOAT");
         }
         if (vertices.getElementSize() == 1) {

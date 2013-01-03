@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StateCache<T extends StaticState> {
+public class StateCache<T> {
     private T[] states;
     private int[] usage;
     private Map<T, Integer> lookup;

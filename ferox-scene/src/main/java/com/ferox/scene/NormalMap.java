@@ -110,7 +110,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
      */
     public NormalMap setTangents(VertexAttribute tangents) {
         if (tangents != null) {
-            if (tangents.getData().getData().getDataType() != DataType.FLOAT) {
+            if (tangents.getVBO().getData().getDataType() != DataType.FLOAT) {
                 throw new IllegalArgumentException("Tangents must have FLOAT data");
             }
             if (tangents.getElementSize() != 3) {
