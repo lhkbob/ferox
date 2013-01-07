@@ -10,6 +10,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
+import com.ferox.resource.UnsignedDataView;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.util.ItemView;
@@ -194,7 +195,7 @@ public class IndexBufferState {
     }
 
     private static final class FaceView implements ItemView {
-        private final VertexBufferObject indices;
+        private final UnsignedDataView indices;
         private final int count;
         private final PolygonType polyType;
 
@@ -207,7 +208,7 @@ public class IndexBufferState {
         // and contains non-strip polygons only (points, lines, tris, or quads)
         public FaceView(PolygonType type, VertexBufferObject indices, int count,
                         VertexAttribute vertices, @Const Matrix4 modelview) {
-            this.indices = indices;
+            this.indices = indices.getData().getUnsignedView();
             this.count = count;
             this.polyType = type;
             this.vertices = vertices;
@@ -217,7 +218,6 @@ public class IndexBufferState {
 
         @Override
         public int hash(int index) {
-            int[] iData = indices.getData().getArray();
             float[] vData = vertices.getVBO().getData().getArray();
 
             // convert polygon index to vertex index
@@ -225,7 +225,7 @@ public class IndexBufferState {
 
             float centroid = 0f;
             for (int i = 0; i < polyType.getPolygonSize(); i++) {
-                v.set(vData, vertices.getArrayIndex(iData[index + i], 0));
+                v.set(vData, vertices.getArrayIndex((int) indices.get(index + i), 0));
                 v.transform(modelview);
                 centroid += v.z;
             }
@@ -237,17 +237,15 @@ public class IndexBufferState {
 
         @Override
         public void swap(int srcIndex, int dstIndex) {
-            int[] data = indices.getData().getArray();
-
             // convert polygon index to vertex index
             srcIndex *= polyType.getPolygonSize();
             dstIndex *= polyType.getPolygonSize();
 
             // swap the entire polygon
             for (int i = 0; i < polyType.getPolygonSize(); i++) {
-                int t = data[srcIndex + i];
-                data[srcIndex + i] = data[dstIndex + i];
-                data[dstIndex + i] = t;
+                long t = indices.get(srcIndex + i);
+                indices.set(srcIndex + i, indices.get(dstIndex + i));
+                indices.set(dstIndex + i, t);
             }
         }
 
