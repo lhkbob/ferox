@@ -214,13 +214,13 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                 case FLOAT:
                     ((FloatBuffer) result).put(data.<float[]> getArray());
                     break;
-                case UNSIGNED_BYTE:
+                case BYTE:
                     ((ByteBuffer) result).put(data.<byte[]> getArray());
                     break;
-                case UNSIGNED_INT:
+                case INT:
                     ((IntBuffer) result).put(data.<int[]> getArray());
                     break;
-                case UNSIGNED_SHORT:
+                case SHORT:
                     ((ShortBuffer) result).put(data.<short[]> getArray());
                     break;
                 }
@@ -241,15 +241,15 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
             float[] fd = data.getArray();
             ((FloatBuffer) result).put(fd, offset, length);
             break;
-        case UNSIGNED_BYTE:
+        case BYTE:
             byte[] bd = data.getArray();
             ((ByteBuffer) result).put(bd, offset, length);
             break;
-        case UNSIGNED_INT:
+        case INT:
             int[] id = data.getArray();
             ((IntBuffer) result).put(id, offset, length);
             break;
-        case UNSIGNED_SHORT:
+        case SHORT:
             short[] sd = data.getArray();
             ((ShortBuffer) result).put(sd, offset, length);
             break;

@@ -260,9 +260,9 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
         }
 
         if (depth != null) {
-            if (depth.getDataType() == DataType.UNSIGNED_BYTE) {
+            if (depth.getDataType() == DataType.BYTE) {
                 caps.setDepthBits(16);
-            } else if (depth.getDataType() == DataType.UNSIGNED_SHORT) {
+            } else if (depth.getDataType() == DataType.SHORT) {
                 caps.setDepthBits(24);
             } else {
                 caps.setDepthBits(32);

@@ -312,7 +312,7 @@ public class JoglRendererDelegate extends RendererDelegate {
     protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h,
                                   int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
-        int glDataType = Utils.getGLType(h.dataType);
+        int glDataType = Utils.getGLType(h.dataType, false);
 
         if (h.mode == StorageMode.IN_MEMORY) {
             Buffer data = h.inmemoryBuffer;

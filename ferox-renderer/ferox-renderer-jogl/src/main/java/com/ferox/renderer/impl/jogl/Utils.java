@@ -409,45 +409,45 @@ public class Utils {
             // if we've gotten here, we have a type-less format, and have to
             // take the type into account
         case R:
-            if (type == DataType.UNSIGNED_BYTE) {
+            if (type == DataType.BYTE) {
                 return GL2.GL_ALPHA8;
-            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
+            } else if (type == DataType.SHORT || type == DataType.INT) {
                 return GL2.GL_ALPHA16;
             } else {
                 return GL.GL_ALPHA;
             }
         case RG:
-            if (type == DataType.UNSIGNED_BYTE) {
+            if (type == DataType.BYTE) {
                 return GL2.GL_LUMINANCE8_ALPHA8;
-            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
+            } else if (type == DataType.SHORT || type == DataType.INT) {
                 return GL2.GL_LUMINANCE16_ALPHA16;
             } else {
                 return GL.GL_LUMINANCE_ALPHA;
             }
         case DEPTH:
-            if (type == DataType.UNSIGNED_BYTE) {
+            if (type == DataType.BYTE) {
                 return GL.GL_DEPTH_COMPONENT16;
-            } else if (type == DataType.UNSIGNED_SHORT) {
+            } else if (type == DataType.SHORT) {
                 return GL.GL_DEPTH_COMPONENT24;
-            } else if (type == DataType.UNSIGNED_INT) {
+            } else if (type == DataType.INT) {
                 return GL.GL_DEPTH_COMPONENT32;
             } else {
                 return GL2ES2.GL_DEPTH_COMPONENT;
             }
         case RGB:
         case BGR:
-            if (type == DataType.UNSIGNED_BYTE) {
+            if (type == DataType.BYTE) {
                 return GL.GL_RGB8;
-            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
+            } else if (type == DataType.SHORT || type == DataType.INT) {
                 return GL2GL3.GL_RGB16;
             } else {
                 return GL.GL_RGB;
             }
         case RGBA:
         case BGRA:
-            if (type == DataType.UNSIGNED_BYTE) {
+            if (type == DataType.BYTE) {
                 return GL.GL_RGBA8;
-            } else if (type == DataType.UNSIGNED_SHORT || type == DataType.UNSIGNED_INT) {
+            } else if (type == DataType.SHORT || type == DataType.INT) {
                 return GL2GL3.GL_RGBA16;
             } else {
                 return GL.GL_RGBA;
@@ -497,18 +497,18 @@ public class Utils {
     }
 
     /**
-     * This shouldn't be used for packed data types.
+     * This shouldn't be used for packed data types
      */
-    public static int getGLType(DataType type) {
+    public static int getGLType(DataType type, boolean signed) {
         switch (type) {
         case FLOAT:
             return GL.GL_FLOAT;
-        case UNSIGNED_BYTE:
-            return GL.GL_UNSIGNED_BYTE;
-        case UNSIGNED_INT:
-            return GL.GL_UNSIGNED_INT;
-        case UNSIGNED_SHORT:
-            return GL.GL_UNSIGNED_SHORT;
+        case BYTE:
+            return (signed ? GL.GL_BYTE : GL.GL_UNSIGNED_BYTE);
+        case INT:
+            return (signed ? GL2.GL_INT : GL.GL_UNSIGNED_INT);
+        case SHORT:
+            return (signed ? GL2.GL_SHORT : GL.GL_UNSIGNED_SHORT);
         }
 
         return -1;

@@ -51,8 +51,8 @@ import com.ferox.resource.BufferData.DataType;
  * blue, 7-0 are alpha).</li>
  * <li>XYZ_DXT?: The format represents texture data in a specific DXT
  * compression algorithm. At the moment, only DXT1, DXT3 and DXT5 formats are
- * supported for RGB and RGBA textures. The data type must be UNSIGNED_BYTE and
- * have dimensions a multiple of 4.</li>
+ * supported for RGB and RGBA textures. The data type must be BYTE and have
+ * dimensions a multiple of 4.</li>
  * <li>XYZ_FLOAT: Formats with this are treated identically to the equivalent
  * XYZ with a required type of FLOAT, except that when stored on the graphics
  * cards, the floating point values are NOT clamped.</li>
@@ -74,38 +74,37 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public enum TextureFormat {
-    RGBA(null, 4, 4, true), RGBA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
-    RGBA_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
-    RGBA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true), RGBA_FLOAT(DataType.FLOAT, 4,
-                                                                     4, true),
+    RGBA(null, 4, 4, true), RGBA_4444(DataType.SHORT, 1, 4, true, true),
+    RGBA_8888(DataType.INT, 1, 4, true, true),
+    RGBA_5551(DataType.SHORT, 1, 4, true, true), RGBA_FLOAT(DataType.FLOAT, 4, 4, true),
 
-    RGBA_DXT1(DataType.UNSIGNED_BYTE, -1, 4, true), RGBA_DXT3(DataType.UNSIGNED_BYTE, -1,
-                                                              4, true),
-    RGBA_DXT5(DataType.UNSIGNED_BYTE, -1, 4, true),
+    RGBA_DXT1(DataType.BYTE, -1, 4, true), RGBA_DXT3(DataType.BYTE, -1, 4, true),
+    RGBA_DXT5(DataType.BYTE, -1, 4, true),
 
-    BGRA(null, 4, 4, true), BGRA_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
-    BGRA_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
-    BGRA_5551(DataType.UNSIGNED_SHORT, 1, 4, true, true),
+    BGRA(null, 4, 4, true), BGRA_4444(DataType.SHORT, 1, 4, true, true),
+    BGRA_8888(DataType.INT, 1, 4, true, true),
+    BGRA_5551(DataType.SHORT, 1, 4, true, true),
 
-    ARGB_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
-    ARGB_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true),
-    ARGB_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
+    ARGB_4444(DataType.SHORT, 1, 4, true, true), ARGB_1555(DataType.SHORT, 1, 4, true,
+                                                           true), ARGB_8888(DataType.INT,
+                                                                            1, 4, true,
+                                                                            true),
 
-    ABGR_4444(DataType.UNSIGNED_SHORT, 1, 4, true, true),
-    ABGR_1555(DataType.UNSIGNED_SHORT, 1, 4, true, true),
-    ABGR_8888(DataType.UNSIGNED_INT, 1, 4, true, true),
+    ABGR_4444(DataType.SHORT, 1, 4, true, true), ABGR_1555(DataType.SHORT, 1, 4, true,
+                                                           true), ABGR_8888(DataType.INT,
+                                                                            1, 4, true,
+                                                                            true),
 
-    RGB(null, 3, 3, false), RGB_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
-    RGB_FLOAT(DataType.FLOAT, 3, 3, false),
-    RGB_DXT1(DataType.UNSIGNED_BYTE, -1, 3, false),
+    RGB(null, 3, 3, false), RGB_565(DataType.SHORT, 1, 3, false, true),
+    RGB_FLOAT(DataType.FLOAT, 3, 3, false), RGB_DXT1(DataType.BYTE, -1, 3, false),
 
-    BGR(null, 3, 3, false), BGR_565(DataType.UNSIGNED_SHORT, 1, 3, false, true),
+    BGR(null, 3, 3, false), BGR_565(DataType.SHORT, 1, 3, false, true),
 
     R(null, 1, 1, false), R_FLOAT(DataType.FLOAT, 1, 1, false), RG(null, 2, 2, false),
     RG_FLOAT(DataType.FLOAT, 2, 2, false),
 
-    DEPTH(DataType.UNSIGNED_INT, 1, 1, false), DEPTH_FLOAT(DataType.FLOAT, 1, 1, false),
-    DEPTH_STENCIL(DataType.UNSIGNED_INT, 1, 1, false);
+    DEPTH(DataType.INT, 1, 1, false), DEPTH_FLOAT(DataType.FLOAT, 1, 1, false),
+    DEPTH_STENCIL(DataType.INT, 1, 1, false);
 
     private DataType type;
     private boolean hasAlpha, isPacked;

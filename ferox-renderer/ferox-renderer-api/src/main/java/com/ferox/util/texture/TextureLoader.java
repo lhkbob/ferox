@@ -240,7 +240,7 @@ public class TextureLoader {
         g2.dispose();
 
         BufferData data;
-        if (im.type.equals(DataType.UNSIGNED_BYTE)) {
+        if (im.type.equals(DataType.BYTE)) {
             byte[] rd = ((DataBufferByte) formatted.getRaster().getDataBuffer()).getData();
             data = new BufferData(rd);
         } else { // assumes ShortBuffer
@@ -283,7 +283,7 @@ public class TextureLoader {
         g2.dispose();
 
         BufferData data;
-        if (im.type.equals(DataType.UNSIGNED_BYTE)) {
+        if (im.type.equals(DataType.BYTE)) {
             byte[] rd = ((DataBufferByte) formatted.getRaster().getDataBuffer()).getData();
             data = new BufferData(rd);
         } else { // assumes ShortBuffer
@@ -430,7 +430,7 @@ public class TextureLoader {
         g2.dispose();
 
         BufferData data;
-        if (im.type.equals(DataType.UNSIGNED_BYTE)) {
+        if (im.type.equals(DataType.BYTE)) {
             byte[] rd = ((DataBufferByte) faceStore.getRaster().getDataBuffer()).getData();
             data = new BufferData(rd);
         } else { // assumes ShortBuffer
@@ -471,7 +471,7 @@ public class TextureLoader {
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width,
                                                       height, 3, null);
 
-                type = DataType.UNSIGNED_BYTE;
+                type = DataType.BYTE;
                 format = TextureFormat.RGB;
                 break;
             case BufferedImage.TYPE_USHORT_GRAY:
@@ -484,7 +484,7 @@ public class TextureLoader {
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_USHORT, width,
                                                       height, 1, null);
 
-                type = DataType.UNSIGNED_SHORT;
+                type = DataType.SHORT;
                 format = TextureFormat.R;
                 break;
             case BufferedImage.TYPE_BYTE_GRAY:
@@ -497,7 +497,7 @@ public class TextureLoader {
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width,
                                                       height, 1, null);
 
-                type = DataType.UNSIGNED_BYTE;
+                type = DataType.BYTE;
                 format = TextureFormat.R;
                 break;
             default:
@@ -510,7 +510,7 @@ public class TextureLoader {
                 data = Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width,
                                                       height, 4, null);
 
-                type = DataType.UNSIGNED_BYTE;
+                type = DataType.BYTE;
                 format = TextureFormat.RGBA;
                 break;
             }

@@ -60,7 +60,7 @@ public class BufferUtil {
      * @return A new direct IntBuffer
      */
     public static IntBuffer newIntBuffer(int size) {
-        return newByteBuffer(size * DataType.UNSIGNED_INT.getByteCount()).asIntBuffer();
+        return newByteBuffer(size * DataType.INT.getByteCount()).asIntBuffer();
     }
 
     /**
@@ -70,7 +70,7 @@ public class BufferUtil {
      * @return A new direct ShortBuffer
      */
     public static ShortBuffer newShortBuffer(int size) {
-        return newByteBuffer(size * DataType.UNSIGNED_SHORT.getByteCount()).asShortBuffer();
+        return newByteBuffer(size * DataType.SHORT.getByteCount()).asShortBuffer();
     }
 
     /**
@@ -160,11 +160,11 @@ public class BufferUtil {
         switch (type) {
         case FLOAT:
             return newFloatBuffer(size);
-        case UNSIGNED_BYTE:
+        case BYTE:
             return newByteBuffer(size);
-        case UNSIGNED_INT:
+        case INT:
             return newIntBuffer(size);
-        case UNSIGNED_SHORT:
+        case SHORT:
             return newShortBuffer(size);
         default:
             throw new IllegalArgumentException();
@@ -187,13 +187,13 @@ public class BufferUtil {
         case FLOAT:
             float[] fd = data.getArray();
             return (fd == null ? newFloatBuffer(data.getLength()) : newFloatBuffer(fd));
-        case UNSIGNED_BYTE:
+        case BYTE:
             byte[] bd = data.getArray();
             return (bd == null ? newByteBuffer(data.getLength()) : newByteBuffer(bd));
-        case UNSIGNED_SHORT:
+        case SHORT:
             short[] sd = data.getArray();
             return (sd == null ? newShortBuffer(data.getLength()) : newShortBuffer(sd));
-        case UNSIGNED_INT:
+        case INT:
             int[] id = data.getArray();
             return (id == null ? newIntBuffer(data.getLength()) : newIntBuffer(id));
         default:
@@ -205,8 +205,8 @@ public class BufferUtil {
      * Return the Class of Buffer that will be created by
      * {@link #newBuffer(BufferData)} and {@link #newBuffer(DataType, int)}
      * based on the given DataType. A DataType of FLOAT creates FloatBuffers; a
-     * DataType of UNSIGNED_BYTE creates ByteBuffers; a type of UNSIGNED_INT
-     * creates IntBuffers; and a type of UNSIGNED_SHORT creates ShortBuffers.
+     * DataType of BYTE creates ByteBuffers; a type of INT creates IntBuffers;
+     * and a type of SHORT creates ShortBuffers.
      * 
      * @param type The DataType
      * @return The class of buffer matching the given DataType
@@ -216,11 +216,11 @@ public class BufferUtil {
         switch (type) {
         case FLOAT:
             return FloatBuffer.class;
-        case UNSIGNED_BYTE:
+        case BYTE:
             return ByteBuffer.class;
-        case UNSIGNED_INT:
+        case INT:
             return IntBuffer.class;
-        case UNSIGNED_SHORT:
+        case SHORT:
             return ShortBuffer.class;
         }
 

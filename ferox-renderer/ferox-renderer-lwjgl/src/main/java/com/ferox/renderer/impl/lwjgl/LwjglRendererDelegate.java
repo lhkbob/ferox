@@ -305,19 +305,19 @@ public class LwjglRendererDelegate extends RendererDelegate {
     protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h,
                                   int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
-        int glDataType = Utils.getGLType(h.dataType);
+        int glDataType = Utils.getGLType(h.dataType, false);
 
         if (h.mode == StorageMode.IN_MEMORY) {
             Buffer data = h.inmemoryBuffer;
             data.limit(offset + count).position(offset);
             switch (h.dataType) {
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL11.glDrawElements(glPolyType, (ByteBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL11.glDrawElements(glPolyType, (ShortBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL11.glDrawElements(glPolyType, (IntBuffer) data);
                 break;
             default:

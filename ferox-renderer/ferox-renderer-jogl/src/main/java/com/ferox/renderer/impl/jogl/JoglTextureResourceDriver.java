@@ -171,7 +171,8 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
         int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
         int dstFormat = Utils.getGLDstFormat(h.format, h.type);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
+                                                                                                  false));
 
         switch (h.target) {
         case T_1D:
@@ -203,7 +204,8 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
                                  int depth, Buffer data) {
         int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
+                                                                                                  false));
 
         switch (h.target) {
         case T_1D:

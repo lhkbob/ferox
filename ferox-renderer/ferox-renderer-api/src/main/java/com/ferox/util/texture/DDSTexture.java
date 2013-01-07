@@ -268,7 +268,7 @@ public class DDSTexture {
         DXGI_FORMAT_R32G32B32_SINT,
         DXGI_FORMAT_R16G16B16A16_TYPELESS,
         DXGI_FORMAT_R16G16B16A16_FLOAT,
-        DXGI_FORMAT_R16G16B16A16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.RGBA),
+        DXGI_FORMAT_R16G16B16A16_UNORM(DataType.SHORT, TextureFormat.RGBA),
         DXGI_FORMAT_R16G16B16A16_UINT,
         DXGI_FORMAT_R16G16B16A16_SNORM,
         DXGI_FORMAT_R16G16B16A16_SINT,
@@ -285,20 +285,19 @@ public class DDSTexture {
         DXGI_FORMAT_R10G10B10A2_UINT,
         DXGI_FORMAT_R11G11B10_FLOAT,
         DXGI_FORMAT_R8G8B8A8_TYPELESS,
-        DXGI_FORMAT_R8G8B8A8_UNORM(DataType.UNSIGNED_INT, TextureFormat.RGBA_8888),
-        DXGI_FORMAT_R8G8B8A8_UNORM_SRGB(DataType.UNSIGNED_INT, TextureFormat.RGBA_8888),
+        DXGI_FORMAT_R8G8B8A8_UNORM(DataType.INT, TextureFormat.RGBA_8888),
+        DXGI_FORMAT_R8G8B8A8_UNORM_SRGB(DataType.INT, TextureFormat.RGBA_8888),
         DXGI_FORMAT_R8G8B8A8_UINT,
         DXGI_FORMAT_R8G8B8A8_SNORM,
         DXGI_FORMAT_R8G8B8A8_SINT,
         DXGI_FORMAT_R16G16_TYPELESS,
         DXGI_FORMAT_R16G16_FLOAT,
-        DXGI_FORMAT_R16G16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.RG),
+        DXGI_FORMAT_R16G16_UNORM(DataType.SHORT, TextureFormat.RG),
         DXGI_FORMAT_R16G16_UINT,
         DXGI_FORMAT_R16G16_SNORM,
         DXGI_FORMAT_R16G16_SINT,
         DXGI_FORMAT_R32_TYPELESS,
         DXGI_FORMAT_D32_FLOAT(DataType.FLOAT, TextureFormat.DEPTH),
-        // not the best mapping, but it works
         DXGI_FORMAT_R32_FLOAT(DataType.FLOAT, TextureFormat.R_FLOAT),
         DXGI_FORMAT_R32_UINT,
         DXGI_FORMAT_R32_SINT,
@@ -307,33 +306,45 @@ public class DDSTexture {
         DXGI_FORMAT_R24_UNORM_X8_TYPELESS,
         DXGI_FORMAT_X24_TYPELESS_G8_UINT,
         DXGI_FORMAT_R8G8_TYPELESS,
-        // not the best mapping, but it works
-        DXGI_FORMAT_R8G8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.RG),
-        DXGI_FORMAT_R8G8_UINT, DXGI_FORMAT_R8G8_SNORM, DXGI_FORMAT_R8G8_SINT,
-        DXGI_FORMAT_R16_TYPELESS, DXGI_FORMAT_R16_FLOAT,
-        DXGI_FORMAT_D16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.DEPTH),
-        DXGI_FORMAT_R16_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.R),
-        DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R16_SNORM, DXGI_FORMAT_R16_SINT,
-        DXGI_FORMAT_R8_TYPELESS, DXGI_FORMAT_R8_UNORM(DataType.UNSIGNED_BYTE,
-                                                      TextureFormat.R),
-        DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R8_SNORM, DXGI_FORMAT_R8_SINT,
-        DXGI_FORMAT_A8_UNORM(DataType.UNSIGNED_BYTE, TextureFormat.R),
-        DXGI_FORMAT_R1_UNORM, DXGI_FORMAT_R9G9B9E5_SHAREDEXP,
-        DXGI_FORMAT_R8G8_B8G8_UNORM, DXGI_FORMAT_G8R8_G8B8_UNORM,
-        DXGI_FORMAT_BC1_TYPELESS, DXGI_FORMAT_BC1_UNORM(DataType.UNSIGNED_BYTE,
-                                                        TextureFormat.RGB_DXT1),
-        DXGI_FORMAT_BC1_UNORM_SRGB(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT1),
-        DXGI_FORMAT_BC2_TYPELESS, DXGI_FORMAT_BC2_UNORM(DataType.UNSIGNED_BYTE,
-                                                        TextureFormat.RGBA_DXT3),
-        DXGI_FORMAT_BC2_UNORM_SRGB(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT3),
-        DXGI_FORMAT_BC3_TYPELESS, DXGI_FORMAT_BC3_UNORM(DataType.UNSIGNED_BYTE,
-                                                        TextureFormat.RGBA_DXT5),
-        DXGI_FORMAT_BC3_UNORM_SRGB(DataType.UNSIGNED_BYTE, TextureFormat.RGBA_DXT5),
-        DXGI_FORMAT_BC4_TYPELESS, DXGI_FORMAT_BC4_UNORM, DXGI_FORMAT_BC4_SNORM,
-        DXGI_FORMAT_BC5_TYPELESS, DXGI_FORMAT_BC5_UNORM, DXGI_FORMAT_BC5_SNORM,
-        DXGI_FORMAT_B5G6R5_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.BGR_565),
-        DXGI_FORMAT_B5G5R5A1_UNORM(DataType.UNSIGNED_SHORT, TextureFormat.BGRA_5551),
-        DXGI_FORMAT_B8G8R8A8_UNORM(DataType.UNSIGNED_INT, TextureFormat.BGRA_8888),
+        DXGI_FORMAT_R8G8_UNORM(DataType.BYTE, TextureFormat.RG),
+        DXGI_FORMAT_R8G8_UINT,
+        DXGI_FORMAT_R8G8_SNORM,
+        DXGI_FORMAT_R8G8_SINT,
+        DXGI_FORMAT_R16_TYPELESS,
+        DXGI_FORMAT_R16_FLOAT,
+        DXGI_FORMAT_D16_UNORM(DataType.SHORT, TextureFormat.DEPTH),
+        DXGI_FORMAT_R16_UNORM(DataType.SHORT, TextureFormat.R),
+        DXGI_FORMAT_R16_UINT,
+        DXGI_FORMAT_R16_SNORM,
+        DXGI_FORMAT_R16_SINT,
+        DXGI_FORMAT_R8_TYPELESS,
+        DXGI_FORMAT_R8_UNORM(DataType.BYTE, TextureFormat.R),
+        DXGI_FORMAT_R8_UINT,
+        DXGI_FORMAT_R8_SNORM,
+        DXGI_FORMAT_R8_SINT,
+        DXGI_FORMAT_A8_UNORM(DataType.BYTE, TextureFormat.R),
+        DXGI_FORMAT_R1_UNORM,
+        DXGI_FORMAT_R9G9B9E5_SHAREDEXP,
+        DXGI_FORMAT_R8G8_B8G8_UNORM,
+        DXGI_FORMAT_G8R8_G8B8_UNORM,
+        DXGI_FORMAT_BC1_TYPELESS,
+        DXGI_FORMAT_BC1_UNORM(DataType.BYTE, TextureFormat.RGB_DXT1),
+        DXGI_FORMAT_BC1_UNORM_SRGB(DataType.BYTE, TextureFormat.RGBA_DXT1),
+        DXGI_FORMAT_BC2_TYPELESS,
+        DXGI_FORMAT_BC2_UNORM(DataType.BYTE, TextureFormat.RGBA_DXT3),
+        DXGI_FORMAT_BC2_UNORM_SRGB(DataType.BYTE, TextureFormat.RGBA_DXT3),
+        DXGI_FORMAT_BC3_TYPELESS,
+        DXGI_FORMAT_BC3_UNORM(DataType.BYTE, TextureFormat.RGBA_DXT5),
+        DXGI_FORMAT_BC3_UNORM_SRGB(DataType.BYTE, TextureFormat.RGBA_DXT5),
+        DXGI_FORMAT_BC4_TYPELESS,
+        DXGI_FORMAT_BC4_UNORM,
+        DXGI_FORMAT_BC4_SNORM,
+        DXGI_FORMAT_BC5_TYPELESS,
+        DXGI_FORMAT_BC5_UNORM,
+        DXGI_FORMAT_BC5_SNORM,
+        DXGI_FORMAT_B5G6R5_UNORM(DataType.SHORT, TextureFormat.BGR_565),
+        DXGI_FORMAT_B5G5R5A1_UNORM(DataType.SHORT, TextureFormat.BGRA_5551),
+        DXGI_FORMAT_B8G8R8A8_UNORM(DataType.INT, TextureFormat.BGRA_8888),
         DXGI_FORMAT_B8G8R8X8_UNORM;
 
         boolean supported;
@@ -409,28 +420,28 @@ public class DDSTexture {
                                                                       0xff00,
                                                                       0xff,
                                                                       0,
-                                                                      DataType.UNSIGNED_BYTE,
+                                                                      DataType.BYTE,
                                                                       TextureFormat.RGB),
                                                           new DDPFMap(24,
                                                                       0xff,
                                                                       0xff00,
                                                                       0xff0000,
                                                                       0,
-                                                                      DataType.UNSIGNED_BYTE,
+                                                                      DataType.BYTE,
                                                                       TextureFormat.BGR),
                                                           new DDPFMap(16,
                                                                       0xf800,
                                                                       0x7e0,
                                                                       0x1f,
                                                                       0,
-                                                                      DataType.UNSIGNED_BYTE,
+                                                                      DataType.BYTE,
                                                                       TextureFormat.RGB_565),
                                                           new DDPFMap(16,
                                                                       0x1f,
                                                                       0x7e0,
                                                                       0xf800,
                                                                       0,
-                                                                      DataType.UNSIGNED_BYTE,
+                                                                      DataType.BYTE,
                                                                       TextureFormat.BGR_565)};
 
     // Supported RGBA types
@@ -440,28 +451,28 @@ public class DDSTexture {
                                                                        0xff00,
                                                                        0xff,
                                                                        0xff000000,
-                                                                       DataType.UNSIGNED_INT,
+                                                                       DataType.INT,
                                                                        TextureFormat.ARGB_8888),
                                                            new DDPFMap(32,
                                                                        0xff000000,
                                                                        0xff0000,
                                                                        0xff00,
                                                                        0x000000ff,
-                                                                       DataType.UNSIGNED_INT,
+                                                                       DataType.INT,
                                                                        TextureFormat.RGBA_8888),
                                                            new DDPFMap(32,
                                                                        0xff,
                                                                        0xff00,
                                                                        0xff0000,
                                                                        0xff000000,
-                                                                       DataType.UNSIGNED_INT,
+                                                                       DataType.INT,
                                                                        TextureFormat.ABGR_8888),
                                                            new DDPFMap(32,
                                                                        0xff00,
                                                                        0xff0000,
                                                                        0xff000000,
                                                                        0xff,
-                                                                       DataType.UNSIGNED_INT,
+                                                                       DataType.INT,
                                                                        TextureFormat.BGRA_8888)};
 
     // Supported Luminance types
@@ -470,7 +481,7 @@ public class DDSTexture {
                                                                     0,
                                                                     0,
                                                                     0,
-                                                                    DataType.UNSIGNED_BYTE,
+                                                                    DataType.BYTE,
                                                                     TextureFormat.R)};
 
     // Supported Luminance/Alpha types
@@ -479,7 +490,7 @@ public class DDSTexture {
                                                                      0,
                                                                      0,
                                                                      0xff00,
-                                                                     DataType.UNSIGNED_BYTE,
+                                                                     DataType.BYTE,
                                                                      TextureFormat.RG)};
 
     // Supported Alpha types
@@ -488,7 +499,7 @@ public class DDSTexture {
                                                                     0,
                                                                     0,
                                                                     0xff,
-                                                                    DataType.UNSIGNED_BYTE,
+                                                                    DataType.BYTE,
                                                                     TextureFormat.R)};
 
     /*
@@ -702,7 +713,7 @@ public class DDSTexture {
             }
         } else if (isFlagSet(header.pixelFormat.flags, DDPF_FOURCC)) {
             // interpret the FOURCC flag. Currently only supports DXT1, DXT3, and DXT5
-            type = DataType.UNSIGNED_BYTE;
+            type = DataType.BYTE;
             format = null;
 
             if (header.pixelFormat.fourCC == FOURCC_DXT1) {
@@ -854,21 +865,21 @@ public class DDSTexture {
             }
             return new BufferData(data);
         }
-        case UNSIGNED_INT: {
+        case INT: {
             int[] data = new int[image.length / 4];
             for (int i = 0; i < data.length; i++) {
                 data[i] = bytesToInt(image, i << 2);
             }
             return new BufferData(data);
         }
-        case UNSIGNED_SHORT: {
+        case SHORT: {
             short[] data = new short[image.length / 2];
             for (int i = 0; i < data.length; i++) {
                 data[i] = bytesToShort(image, i << 1);
             }
             return new BufferData(data);
         }
-        case UNSIGNED_BYTE: {
+        case BYTE: {
             return new BufferData(image);
         }
         }

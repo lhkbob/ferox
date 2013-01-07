@@ -190,7 +190,8 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
         int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
         int dstFormat = Utils.getGLDstFormat(h.format, h.type);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
+                                                                                                  false));
 
         switch (h.target) {
         case T_1D:
@@ -199,15 +200,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL11.glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type,
                                   (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL11.glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type,
                                   (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL11.glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type,
                                   (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL11.glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type,
                                   (ShortBuffer) data);
                 break;
@@ -222,15 +223,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                     GL11.glTexImage2D(target, mipmap, dstFormat, width, height, 0,
                                       srcFormat, type, (FloatBuffer) data);
                     break;
-                case UNSIGNED_BYTE:
+                case BYTE:
                     GL11.glTexImage2D(target, mipmap, dstFormat, width, height, 0,
                                       srcFormat, type, (ByteBuffer) data);
                     break;
-                case UNSIGNED_INT:
+                case INT:
                     GL11.glTexImage2D(target, mipmap, dstFormat, width, height, 0,
                                       srcFormat, type, (IntBuffer) data);
                     break;
-                case UNSIGNED_SHORT:
+                case SHORT:
                     GL11.glTexImage2D(target, mipmap, dstFormat, width, height, 0,
                                       srcFormat, type, (ShortBuffer) data);
                     break;
@@ -247,15 +248,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL12.glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0,
                                   srcFormat, type, (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL12.glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0,
                                   srcFormat, type, (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL12.glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0,
                                   srcFormat, type, (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL12.glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0,
                                   srcFormat, type, (ShortBuffer) data);
                 break;
@@ -270,7 +271,8 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                                  int depth, Buffer data) {
         int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
+                                                                                                  false));
 
         switch (h.target) {
         case T_1D:
@@ -279,15 +281,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL11.glTexSubImage1D(target, mipmap, x, width, srcFormat, type,
                                      (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL11.glTexSubImage1D(target, mipmap, x, width, srcFormat, type,
                                      (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL11.glTexSubImage1D(target, mipmap, x, width, srcFormat, type,
                                      (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL11.glTexSubImage1D(target, mipmap, x, width, srcFormat, type,
                                      (ShortBuffer) data);
                 break;
@@ -300,15 +302,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
                                      type, (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
                                      type, (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
                                      type, (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
                                      type, (ShortBuffer) data);
                 break;
@@ -320,15 +322,15 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL12.glTexSubImage3D(target, mipmap, x, y, z, width, height, depth,
                                      srcFormat, type, (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL12.glTexSubImage3D(target, mipmap, x, y, z, width, height, depth,
                                      srcFormat, type, (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL12.glTexSubImage3D(target, mipmap, x, y, z, width, height, depth,
                                      srcFormat, type, (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL12.glTexSubImage3D(target, mipmap, x, y, z, width, height, depth,
                                      srcFormat, type, (ShortBuffer) data);
                 break;

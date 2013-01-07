@@ -132,13 +132,13 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
             case FLOAT:
                 ARBBufferObject.glBufferDataARB(target, (FloatBuffer) data, usage);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 ARBBufferObject.glBufferDataARB(target, (ByteBuffer) data, usage);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 ARBBufferObject.glBufferDataARB(target, (IntBuffer) data, usage);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 ARBBufferObject.glBufferDataARB(target, (ShortBuffer) data, usage);
                 break;
             }
@@ -150,13 +150,13 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
             case FLOAT:
                 GL15.glBufferData(target, (FloatBuffer) data, usage);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL15.glBufferData(target, (ByteBuffer) data, usage);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL15.glBufferData(target, (IntBuffer) data, usage);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL15.glBufferData(target, (ShortBuffer) data, usage);
                 break;
             }
@@ -187,13 +187,13 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
             case FLOAT:
                 ARBBufferObject.glBufferSubDataARB(target, vboOffset, (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 ARBBufferObject.glBufferSubDataARB(target, vboOffset, (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 ARBBufferObject.glBufferSubDataARB(target, vboOffset, (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 ARBBufferObject.glBufferSubDataARB(target, vboOffset, (ShortBuffer) data);
                 break;
             }
@@ -204,13 +204,13 @@ public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferO
             case FLOAT:
                 GL15.glBufferSubData(target, vboOffset, (FloatBuffer) data);
                 break;
-            case UNSIGNED_BYTE:
+            case BYTE:
                 GL15.glBufferSubData(target, vboOffset, (ByteBuffer) data);
                 break;
-            case UNSIGNED_INT:
+            case INT:
                 GL15.glBufferSubData(target, vboOffset, (IntBuffer) data);
                 break;
-            case UNSIGNED_SHORT:
+            case SHORT:
                 GL15.glBufferSubData(target, vboOffset, (ShortBuffer) data);
                 break;
             }
