@@ -618,7 +618,7 @@ public class Frustum {
 
         return result;
     }
-    
+
     /*
      * Update the plane instances returned by getFrustumPlane() to reflect any
      * changes to the frustum's local parameters or orientation. Also update the

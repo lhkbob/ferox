@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-
 /**
  * AmbientLight represents a source of ambient light in a scene. Ambient lights
  * contribute an equal amount of light intensity to every rendered object,

@@ -57,7 +57,12 @@ public class LifeCycleManager {
      * states.
      */
     public static enum Status {
-        WAITING_INIT, STARTING, ACTIVE, STOPPING, WAITING_ON_CHILDREN, STOPPED
+        WAITING_INIT,
+        STARTING,
+        ACTIVE,
+        STOPPING,
+        WAITING_ON_CHILDREN,
+        STOPPED
     }
 
     private final ReentrantReadWriteLock lock;

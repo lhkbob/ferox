@@ -191,10 +191,42 @@ public interface FixedFunctionRenderer extends Renderer {
      * </p>
      */
     public static enum CombineSource {
-        CURR_TEX, PREV_TEX, CONST_COLOR, VERTEX_COLOR, TEX0, TEX1, TEX2, TEX3, TEX4,
-        TEX5, TEX6, TEX7, TEX8, TEX9, TEX10, TEX11, TEX12, TEX13, TEX14, TEX15, TEX16,
-        TEX17, TEX18, TEX19, TEX20, TEX21, TEX22, TEX23, TEX24, TEX25, TEX26, TEX27,
-        TEX28, TEX29, TEX30, TEX31
+        CURR_TEX,
+        PREV_TEX,
+        CONST_COLOR,
+        VERTEX_COLOR,
+        TEX0,
+        TEX1,
+        TEX2,
+        TEX3,
+        TEX4,
+        TEX5,
+        TEX6,
+        TEX7,
+        TEX8,
+        TEX9,
+        TEX10,
+        TEX11,
+        TEX12,
+        TEX13,
+        TEX14,
+        TEX15,
+        TEX16,
+        TEX17,
+        TEX18,
+        TEX19,
+        TEX20,
+        TEX21,
+        TEX22,
+        TEX23,
+        TEX24,
+        TEX25,
+        TEX26,
+        TEX27,
+        TEX28,
+        TEX29,
+        TEX30,
+        TEX31
     }
 
     /**

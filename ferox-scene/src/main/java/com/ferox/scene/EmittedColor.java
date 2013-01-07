@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-
 /**
  * <p>
  * EmittedColor causes the Entity to emit a local light. This can be used for

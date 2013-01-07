@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-
 /**
  * <p>
  * A PointLight is a type of light where light is emitted equally in all

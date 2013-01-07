@@ -47,7 +47,9 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
      * in OpenGL.
      */
     public static enum FogMode {
-        LINEAR, EXP, EXP_SQUARED
+        LINEAR,
+        EXP,
+        EXP_SQUARED
     }
 
     /**
@@ -56,7 +58,10 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
      * EMISSIVE enum is unused, since it's only available for material colors.
      */
     public static enum LightColor {
-        AMBIENT, DIFFUSE, SPECULAR, EMISSIVE
+        AMBIENT,
+        DIFFUSE,
+        SPECULAR,
+        EMISSIVE
     }
 
     /**
@@ -64,11 +69,16 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
      * matrix types, you must set the current mode.
      */
     public static enum MatrixMode {
-        MODELVIEW, PROJECTION, TEXTURE
+        MODELVIEW,
+        PROJECTION,
+        TEXTURE
     }
 
     public static enum VertexTarget {
-        VERTICES, NORMALS, TEXCOORDS, COLORS
+        VERTICES,
+        NORMALS,
+        TEXCOORDS,
+        COLORS
     }
 
     // cached defaults

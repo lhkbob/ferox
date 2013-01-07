@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-
 /**
  * <p>
  * DiffuseColor specifies the color of the diffuse reflection of a material. The

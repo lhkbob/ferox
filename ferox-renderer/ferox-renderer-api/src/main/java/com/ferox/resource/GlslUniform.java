@@ -41,14 +41,27 @@ import com.ferox.renderer.GlslRenderer;
  */
 public class GlslUniform {
     public static enum UniformType {
-        FLOAT(1), FLOAT_VEC2(2), FLOAT_VEC3(3), FLOAT_VEC4(4), FLOAT_MAT2(4),
-        FLOAT_MAT3(9), FLOAT_MAT4(16),
+        FLOAT(1),
+        FLOAT_VEC2(2),
+        FLOAT_VEC3(3),
+        FLOAT_VEC4(4),
+        FLOAT_MAT2(4),
+        FLOAT_MAT3(9),
+        FLOAT_MAT4(16),
 
-        INT(1), INT_VEC2(2), INT_VEC3(3), INT_VEC4(4),
+        INT(1),
+        INT_VEC2(2),
+        INT_VEC3(3),
+        INT_VEC4(4),
 
-        TEXTURE_1D(1), TEXTURE_2D(1), TEXTURE_3D(1), TEXTURE_CUBEMAP(1), SHADOW_MAP(1),
+        TEXTURE_1D(1),
+        TEXTURE_2D(1),
+        TEXTURE_3D(1),
+        TEXTURE_CUBEMAP(1),
+        SHADOW_MAP(1),
 
-        BOOL(1), UNSUPPORTED(0);
+        BOOL(1),
+        UNSUPPORTED(0);
 
         private final int primCount;
 

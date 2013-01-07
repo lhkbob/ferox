@@ -146,7 +146,10 @@ public class Texture extends Resource {
      * describes both minification and magnification.
      */
     public static enum Filter {
-        NEAREST, LINEAR, MIPMAP_NEAREST, MIPMAP_LINEAR
+        NEAREST,
+        LINEAR,
+        MIPMAP_NEAREST,
+        MIPMAP_LINEAR
     }
 
     /**

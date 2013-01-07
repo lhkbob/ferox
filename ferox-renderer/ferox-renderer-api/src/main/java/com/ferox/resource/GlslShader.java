@@ -34,13 +34,23 @@ public class GlslShader extends Resource {
         // FIXME are there more?
         // should I really limit it to an enum, I could just have
         // it be an integer that is parsed that is probably safer
-        V1_20, V1_30, V1_40, V1_50, V3_30, V4_00
+        V1_20,
+        V1_30,
+        V1_40,
+        V1_50,
+        V3_30,
+        V4_00
     }
 
     public static enum AttributeType {
-        FLOAT(1, 1), FLOAT_VEC2(2, 1), FLOAT_VEC3(3, 1), FLOAT_VEC4(4, 1), FLOAT_MAT2(2,
-                                                                                      2),
-        FLOAT_MAT3(3, 3), FLOAT_MAT4(4, 4), UNSUPPORTED(0, 0);
+        FLOAT(1, 1),
+        FLOAT_VEC2(2, 1),
+        FLOAT_VEC3(3, 1),
+        FLOAT_VEC4(4, 1),
+        FLOAT_MAT2(2, 2),
+        FLOAT_MAT3(3, 3),
+        FLOAT_MAT4(4, 4),
+        UNSUPPORTED(0, 0);
 
         private final int row;
         private final int col;
@@ -60,7 +70,9 @@ public class GlslShader extends Resource {
     }
 
     public static enum ShaderType {
-        GEOMETRY, VERTEX, FRAGMENT
+        GEOMETRY,
+        VERTEX,
+        FRAGMENT
     }
 
     private Version version;

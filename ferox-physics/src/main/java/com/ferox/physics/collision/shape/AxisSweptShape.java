@@ -39,7 +39,9 @@ import com.ferox.math.Vector3;
  */
 public abstract class AxisSweptShape extends ConvexShape {
     public static enum Axis {
-        X, Y, Z
+        X,
+        Y,
+        Z
     }
 
     protected final Vector3 inertiaTensorPartial;

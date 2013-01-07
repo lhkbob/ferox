@@ -26,7 +26,6 @@
  */
 package com.ferox.scene;
 
-
 /**
  * <p>
  * SpecularColor adds specular lighting to the material used to render an
