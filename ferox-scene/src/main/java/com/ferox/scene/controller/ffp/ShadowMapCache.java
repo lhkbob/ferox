@@ -51,6 +51,7 @@ import com.ferox.resource.Texture.WrapMode;
 import com.ferox.scene.Light;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
+import com.ferox.scene.Transparent;
 import com.ferox.scene.controller.PVSResult;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
@@ -162,6 +163,14 @@ public class ShadowMapCache {
         Map<GeometryState, Integer> geomState = new HashMap<GeometryState, Integer>();
         Map<IndexBufferState, Integer> renderState = new HashMap<IndexBufferState, Integer>();
         for (Entity e : pvs.getPotentiallyVisibleSet()) {
+            // skip transparent entities, as its somewhat physically plausible that
+            // they'd cast fainter shadows, and with the quality of FFP shadow mapping,
+            // being able to see the shadows the cast immediately underneath them is
+            // very bad looking
+            if (e.get(Transparent.class) != null) {
+                continue;
+            }
+
             e.get(renderable);
             e.get(transform);
 
