@@ -122,8 +122,8 @@ public final class Teapot {
         }
 
         @Override
-        public @Const
-        AxisAlignedBox getBounds() {
+        @Const
+        public AxisAlignedBox getBounds() {
             return bounds;
         }
 

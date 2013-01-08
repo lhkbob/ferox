@@ -230,8 +230,8 @@ public final class Rectangle {
         }
 
         @Override
-        public @Const
-        AxisAlignedBox getBounds() {
+        @Const
+        public AxisAlignedBox getBounds() {
             return bounds;
         }
     }
