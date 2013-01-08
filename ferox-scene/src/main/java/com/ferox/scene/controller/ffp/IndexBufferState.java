@@ -135,10 +135,6 @@ public class IndexBufferState {
 
             if (indices == null) {
                 switch (polyType) {
-                case QUAD_STRIP:
-                    TopologyUtil.inflateQuadStripArray(indexOffset, indexCount,
-                                                       sortedIndicesShared, 0);
-                    break;
                 case TRIANGLE_STRIP:
                     TopologyUtil.inflateTriangleStripArray(indexOffset, indexCount,
                                                            sortedIndicesShared, 0);
@@ -150,10 +146,6 @@ public class IndexBufferState {
                 }
             } else {
                 switch (polyType) {
-                case QUAD_STRIP:
-                    TopologyUtil.inflateQuadStrip(indices, indexOffset, indexCount,
-                                                  sortedIndicesShared, 0);
-                    break;
                 case TRIANGLE_STRIP:
                     TopologyUtil.inflateTriangleStrip(indices, indexOffset, indexCount,
                                                       sortedIndicesShared, 0);

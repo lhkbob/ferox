@@ -395,21 +395,6 @@ public interface Renderer {
             public int getPolygonSize() {
                 return 3;
             }
-        },
-        /**
-         * The first four vertices form a quad, and then every two vertices form
-         * a quad with the previous two vertices.
-         */
-        QUAD_STRIP {
-            @Override
-            public int getPolygonCount(int count) {
-                return Math.max(0, count - 2) >> 1;
-            }
-
-            @Override
-            public int getPolygonSize() {
-                return 4;
-            }
         };
 
         /**

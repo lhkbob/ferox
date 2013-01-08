@@ -166,8 +166,6 @@ public class Utils {
             return GL11.GL_LINES;
         case POINTS:
             return GL11.GL_POINTS;
-        case QUAD_STRIP:
-            return GL11.GL_QUAD_STRIP;
         case QUADS:
             return GL11.GL_QUADS;
         case TRIANGLE_STRIP:
