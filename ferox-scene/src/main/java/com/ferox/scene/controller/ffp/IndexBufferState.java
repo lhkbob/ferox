@@ -129,6 +129,7 @@ public class IndexBufferState {
                                             .getFixedFunctionRenderer();
 
             int inflatedIndexCount = polyType.getPolygonCount(indexCount) * polyType.getPolygonSize();
+            PolygonType inflatedType = polyType;
             synchronized (sortedIndicesShared) {
                 if (sortedIndicesShared.getData().getLength() < inflatedIndexCount) {
                     sortedIndicesShared.setData(new BufferData(new int[inflatedIndexCount]));
@@ -140,6 +141,7 @@ public class IndexBufferState {
                     case TRIANGLE_STRIP:
                         TopologyUtil.inflateTriangleStripArray(indexOffset, indexCount,
                                                                sharedData, 0);
+                        inflatedType = PolygonType.TRIANGLES;
                         break;
                     default:
                         TopologyUtil.inflateSimpleArray(indexOffset, indexCount,
@@ -151,6 +153,7 @@ public class IndexBufferState {
                     case TRIANGLE_STRIP:
                         TopologyUtil.inflateTriangleStrip(indices.getData(), indexOffset,
                                                           indexCount, sharedData, 0);
+                        inflatedType = PolygonType.TRIANGLES;
                         break;
                     default:
                         UnsignedDataView source = indices.getData().getUnsignedView();
@@ -164,9 +167,9 @@ public class IndexBufferState {
                 }
             }
 
-            FaceView view = new FaceView(polyType,
+            FaceView view = new FaceView(inflatedType,
                                          sortedIndicesShared,
-                                         indexCount,
+                                         inflatedIndexCount,
                                          vertices,
                                          modelMatrix);
             for (int i = 0; i < count; i += 16) {
@@ -186,7 +189,7 @@ public class IndexBufferState {
                 access.update(sortedIndicesShared);
                 r.setIndices(sortedIndicesShared);
 
-                r.render(polyType, 0, inflatedIndexCount);
+                r.render(inflatedType, 0, inflatedIndexCount);
             }
 
             // restore modelview matrix for lighting, etc.
