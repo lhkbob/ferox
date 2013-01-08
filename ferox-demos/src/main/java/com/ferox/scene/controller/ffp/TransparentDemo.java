@@ -41,6 +41,7 @@ import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.AmbientLight;
+import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
 import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.PointLight;
@@ -54,8 +55,8 @@ import com.ferox.scene.controller.UpdateWorldBoundsTask;
 import com.ferox.scene.controller.light.ComputeLightGroupTask;
 import com.ferox.scene.controller.light.ComputeShadowFrustumTask;
 import com.ferox.util.ApplicationStub;
-import com.ferox.util.geom.Box;
 import com.ferox.util.geom.Geometry;
+import com.ferox.util.geom.Teapot;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -64,12 +65,12 @@ import com.lhkbob.entreri.task.Job;
 public class TransparentDemo extends ApplicationStub {
     protected static final int BOUNDS = 50;
     protected static final double BOX_SIZE = 1.5;
-    protected static final int NUM_X = 5;
-    protected static final int NUM_Y = 5;
-    protected static final int NUM_Z = 5;
-    protected static final double GAP_X = 1;
-    protected static final double GAP_Y = 1;
-    protected static final double GAP_Z = 1;
+    protected static final int NUM_X = 1;
+    protected static final int NUM_Y = 1;
+    protected static final int NUM_Z = 1;
+    protected static final double GAP_X = 0;
+    protected static final double GAP_Y = 0;
+    protected static final double GAP_Z = 0;
 
     protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1,
                                                                                        -2 * BOUNDS - 1,
@@ -217,7 +218,7 @@ public class TransparentDemo extends ApplicationStub {
         updateCameraOrientation();
 
         // boxes
-        Geometry boxGeom = Box.create(BOX_SIZE);
+        Geometry boxGeom = Teapot.create(BOX_SIZE); //Box.create(BOX_SIZE);
         for (int x = 0; x < NUM_X; x++) {
             for (int y = 0; y < NUM_Y; y++) {
                 for (int z = 0; z < NUM_Z; z++) {
@@ -232,25 +233,25 @@ public class TransparentDemo extends ApplicationStub {
                     box.add(Renderable.class)
                        .getData()
                        .setVertices(boxGeom.getVertices())
-                       .setDrawStyle(DrawStyle.SOLID, DrawStyle.NONE)
+                       .setDrawStyle(DrawStyle.SOLID, DrawStyle.SOLID)
                        .setIndices(boxGeom.getPolygonType(), boxGeom.getIndices(),
                                    boxGeom.getIndexOffset(), boxGeom.getIndexCount())
                        .setLocalBounds(boxGeom.getBounds());
-                    //                    box.add(BlinnPhongMaterial.class).getData()
-                    //                       .setNormals(boxGeom.getNormals());
-                    box.add(DiffuseColor.class)
-                       .getData()
-                       .setColor(new ColorRGB(x / (double) NUM_X,
-                                              y / (double) NUM_Y,
-                                              z / (double) NUM_Z));
+                    box.add(BlinnPhongMaterial.class).getData()
+                       .setNormals(boxGeom.getNormals());
+                    box.add(DiffuseColor.class).getData()
+                    //                       .setColor(new ColorRGB(x / (double) NUM_X,
+                    //                                              y / (double) NUM_Y,
+                    //                                              z / (double) NUM_Z));
+                       .setColor(new ColorRGB(.5, .5, .5));
                     double rand = Math.random();
-                    if (rand < .3) {
-                        box.add(Transparent.class).getData().setOpacity(.5)
-                           .setAdditive(true);
-                    } else if (rand < .6) {
-                        box.add(Transparent.class).getData().setOpacity(.5)
-                           .setAdditive(false);
-                    }
+                    //                    if (rand < .3) {
+                    //                        box.add(Transparent.class).getData().setOpacity(.5)
+                    //                           .setAdditive(true);
+                    //                    } else if (rand < .6) {
+                    box.add(Transparent.class).getData().setOpacity(.5)
+                       .setAdditive(false);
+                    //                    }
 
                     box.get(Transform.class).getData()
                        .setMatrix(new Matrix4().setIdentity().setCol(3, pos));

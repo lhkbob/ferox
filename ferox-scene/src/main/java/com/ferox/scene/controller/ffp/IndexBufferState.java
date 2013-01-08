@@ -129,32 +129,38 @@ public class IndexBufferState {
                                             .getFixedFunctionRenderer();
 
             int inflatedIndexCount = polyType.getPolygonCount(indexCount) * polyType.getPolygonSize();
-            if (sortedIndicesShared.getData().getLength() < inflatedIndexCount) {
-                sortedIndicesShared.setData(new BufferData(new int[inflatedIndexCount]));
-            }
-
-            if (indices == null) {
-                switch (polyType) {
-                case TRIANGLE_STRIP:
-                    TopologyUtil.inflateTriangleStripArray(indexOffset, indexCount,
-                                                           sortedIndicesShared, 0);
-                    break;
-                default:
-                    TopologyUtil.inflateSimpleArray(indexOffset, indexCount,
-                                                    sortedIndicesShared, 0);
-                    break;
+            synchronized (sortedIndicesShared) {
+                if (sortedIndicesShared.getData().getLength() < inflatedIndexCount) {
+                    sortedIndicesShared.setData(new BufferData(new int[inflatedIndexCount]));
                 }
-            } else {
-                switch (polyType) {
-                case TRIANGLE_STRIP:
-                    TopologyUtil.inflateTriangleStrip(indices, indexOffset, indexCount,
-                                                      sortedIndicesShared, 0);
-                    break;
-                default:
-                    System.arraycopy(indices.getData().getArray(), indexOffset,
-                                     sortedIndicesShared.getData().getArray(), 0,
-                                     indexCount);
-                    break;
+                BufferData sharedData = sortedIndicesShared.getData();
+
+                if (indices == null) {
+                    switch (polyType) {
+                    case TRIANGLE_STRIP:
+                        TopologyUtil.inflateTriangleStripArray(indexOffset, indexCount,
+                                                               sharedData, 0);
+                        break;
+                    default:
+                        TopologyUtil.inflateSimpleArray(indexOffset, indexCount,
+                                                        sharedData, 0);
+                        break;
+                    }
+                } else {
+                    switch (polyType) {
+                    case TRIANGLE_STRIP:
+                        TopologyUtil.inflateTriangleStrip(indices.getData(), indexOffset,
+                                                          indexCount, sharedData, 0);
+                        break;
+                    default:
+                        UnsignedDataView source = indices.getData().getUnsignedView();
+                        UnsignedDataView target = sharedData.getUnsignedView();
+
+                        for (int i = 0; i < indexCount; i++) {
+                            target.set(i, source.get(i + indexOffset));
+                        }
+                        break;
+                    }
                 }
             }
 
@@ -170,8 +176,10 @@ public class IndexBufferState {
                 r.setModelViewMatrix(modelMatrix);
 
                 // sort indices within sortedIndicesShared
-                QuickSort.sort(view);
-                sortedIndicesShared.markDirty(0, inflatedIndexCount);
+                synchronized (sortedIndicesShared) {
+                    QuickSort.sort(view);
+                    sortedIndicesShared.markDirty(0, inflatedIndexCount);
+                }
 
                 // clear, update and rebind sorted indices
                 r.setIndices(null);
