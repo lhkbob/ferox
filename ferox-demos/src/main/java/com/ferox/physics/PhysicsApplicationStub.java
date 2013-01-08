@@ -37,21 +37,21 @@ import com.ferox.math.Vector3;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
-import com.ferox.physics.controller.ConstraintSolvingTask;
-import com.ferox.physics.controller.ForcesTask;
-import com.ferox.physics.controller.MotionTask;
-import com.ferox.physics.controller.TemporalSAPCollisionController;
+import com.ferox.physics.task.ConstraintSolvingTask;
+import com.ferox.physics.task.ForcesTask;
+import com.ferox.physics.task.MotionTask;
+import com.ferox.physics.task.TemporalSAPCollisionTask;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
-import com.ferox.scene.controller.BuildVisibilityIndexTask;
-import com.ferox.scene.controller.ComputeCameraFrustumTask;
-import com.ferox.scene.controller.ComputePVSTask;
-import com.ferox.scene.controller.UpdateWorldBoundsTask;
-import com.ferox.scene.controller.ffp.FixedFunctionRenderTask;
-import com.ferox.scene.controller.light.ComputeLightGroupTask;
-import com.ferox.scene.controller.light.ComputeShadowFrustumTask;
+import com.ferox.scene.task.BuildVisibilityIndexTask;
+import com.ferox.scene.task.ComputeCameraFrustumTask;
+import com.ferox.scene.task.ComputePVSTask;
+import com.ferox.scene.task.UpdateWorldBoundsTask;
+import com.ferox.scene.task.ffp.FixedFunctionRenderTask;
+import com.ferox.scene.task.light.ComputeLightGroupTask;
+import com.ferox.scene.task.light.ComputeShadowFrustumTask;
 import com.ferox.util.ApplicationStub;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentIterator;
@@ -210,7 +210,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
                                       //                                                                                               6),
                                       //                                                                          new DefaultCollisionAlgorithmProvider()),
                                       //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
-                                      new TemporalSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
+                                      new TemporalSAPCollisionTask(new DefaultCollisionAlgorithmProvider()),
                                       new ConstraintSolvingTask(), new MotionTask(),
                                       new TransformController());
 
