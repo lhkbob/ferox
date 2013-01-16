@@ -40,9 +40,9 @@ import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Task;
+import com.ferox.resource.geom.Box;
+import com.ferox.resource.geom.Geometry;
 import com.ferox.util.ApplicationStub;
-import com.ferox.util.geom.Box;
-import com.ferox.util.geom.Geometry;
 
 public class LightBlendingTest extends ApplicationStub {
     private Geometry shape;

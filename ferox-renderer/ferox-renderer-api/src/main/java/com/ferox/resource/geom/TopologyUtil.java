@@ -1,4 +1,4 @@
-package com.ferox.util.geom;
+package com.ferox.resource.geom;
 
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;

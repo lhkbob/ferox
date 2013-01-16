@@ -49,10 +49,10 @@ import com.ferox.resource.Resource.Status;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.geom.Box;
+import com.ferox.resource.geom.Geometry;
 import com.ferox.resource.TextureFormat;
 import com.ferox.util.ApplicationStub;
-import com.ferox.util.geom.Box;
-import com.ferox.util.geom.Geometry;
 
 public class GlslRenderTest extends ApplicationStub {
     private static final String VERTEX_SHADER = "uniform mat4 projection;" + "uniform mat4 modelview;" + "uniform vec2 transform;" +

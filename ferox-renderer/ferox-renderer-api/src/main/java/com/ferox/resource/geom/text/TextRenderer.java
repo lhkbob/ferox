@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.util.geom.text;
+package com.ferox.resource.geom.text;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -46,7 +46,7 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Surface;
 import com.ferox.renderer.Task;
 import com.ferox.resource.VertexBufferObject.StorageMode;
-import com.ferox.util.geom.Geometry;
+import com.ferox.resource.geom.Geometry;
 
 public class TextRenderer {
     public static enum Anchor {

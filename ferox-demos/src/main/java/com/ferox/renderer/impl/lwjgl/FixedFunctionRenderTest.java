@@ -47,9 +47,9 @@ import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.Geometry;
+import com.ferox.resource.geom.Sphere;
 import com.ferox.util.ApplicationStub;
-import com.ferox.util.geom.Geometry;
-import com.ferox.util.geom.Sphere;
 
 public class FixedFunctionRenderTest extends ApplicationStub {
     private FixedFunctionPass pass;

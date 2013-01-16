@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.util.texture;
+package com.ferox.resource.texture;
 
 import java.awt.Graphics2D;
 import java.awt.Transparency;
@@ -308,13 +308,13 @@ public class TextureLoader {
      * The image is laid out like so:
      * 
      * <pre>
-     * �----�----�----�----�
+     * ???----???----???----???----???
      * | -- | NZ | -- | -- |
-     * �----�----�----�----�
+     * ???----???----???----???----???
      * | NX | NY | PX | PY |
-     * �----�----�----�----�
+     * ???----???----???----???----???
      * | -- | PZ | -- | -- |
-     * �----�----�----�----�
+     * ???----???----???----???----???
      * </pre>
      * <p>
      * Because of this, the specified image must have an aspect ration of 4/3

@@ -13,9 +13,9 @@ import com.ferox.resource.BufferData;
 import com.ferox.resource.UnsignedDataView;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.geom.TopologyUtil;
 import com.ferox.util.ItemView;
 import com.ferox.util.QuickSort;
-import com.ferox.util.geom.TopologyUtil;
 
 public class IndexBufferState {
     private VertexBufferObject indices;

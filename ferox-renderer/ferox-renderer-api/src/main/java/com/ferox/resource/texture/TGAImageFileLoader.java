@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.util.texture;
+package com.ferox.resource.texture;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,16 +32,16 @@ import java.io.InputStream;
 import com.ferox.resource.Texture;
 
 /**
- * An implementation of ImageFileLoader that relies on DDSTexture to load .dds
+ * An implementation of ImageFileLoader that relies on TGATexture to load .tga
  * files.
  * 
  * @author Michael Ludwig
  */
-public class DDSImageFileLoader implements ImageFileLoader {
+public class TGAImageFileLoader implements ImageFileLoader {
     @Override
     public Texture readImage(InputStream stream) throws IOException {
-        if (DDSTexture.isDDSTexture(stream)) {
-            return DDSTexture.readTexture(stream);
+        if (TGATexture.isTGATexture(stream)) {
+            return TGATexture.readTexture(stream);
         } else {
             return null;
         }

@@ -34,6 +34,7 @@ import com.ferox.physics.dynamics.Gravity;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.Geometry;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.BlinnPhongMaterial;
 import com.ferox.scene.Camera;
@@ -41,7 +42,6 @@ import com.ferox.scene.DiffuseColor;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
-import com.ferox.util.geom.Geometry;
 import com.lhkbob.entreri.Entity;
 
 public class GravityTest extends PhysicsApplicationStub {
@@ -61,12 +61,12 @@ public class GravityTest extends PhysicsApplicationStub {
                                            .75 * BOUNDS, 0, 0, 0, 1));
 
         // shapes
-        Geometry geomShape1 = com.ferox.util.geom.Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
+        Geometry geomShape1 = com.ferox.resource.geom.Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
         com.ferox.physics.collision.Shape physShape1 = new com.ferox.physics.collision.shape.Box(2,
                                                                                                  2,
                                                                                                  2);
 
-        Geometry geomShape2 = com.ferox.util.geom.Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
+        Geometry geomShape2 = com.ferox.resource.geom.Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
         com.ferox.physics.collision.Shape physShape2 = new com.ferox.physics.collision.shape.Box(2,
                                                                                                  2,
                                                                                                  2);

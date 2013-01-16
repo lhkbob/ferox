@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.util.geom.text;
+package com.ferox.resource.geom.text;
 
 import java.awt.font.LineMetrics;
 
@@ -35,7 +35,7 @@ import com.ferox.resource.BufferData;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.VertexBufferObject.StorageMode;
-import com.ferox.util.geom.Geometry;
+import com.ferox.resource.geom.Geometry;
 
 /**
  * <p>

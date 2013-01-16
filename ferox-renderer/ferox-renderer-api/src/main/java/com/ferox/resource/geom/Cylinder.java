@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.util.geom;
+package com.ferox.resource.geom;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;

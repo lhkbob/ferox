@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.util.geom.text;
+package com.ferox.resource.geom.text;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -45,8 +45,8 @@ import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
+import com.ferox.resource.geom.text.RectanglePacker.Rectangle;
 import com.ferox.resource.TextureFormat;
-import com.ferox.util.geom.text.RectanglePacker.Rectangle;
 
 /**
  * <p>

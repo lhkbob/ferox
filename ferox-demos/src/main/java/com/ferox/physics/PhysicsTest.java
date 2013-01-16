@@ -34,6 +34,8 @@ import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.Box;
+import com.ferox.resource.geom.Geometry;
 import com.ferox.scene.AmbientLight;
 import com.ferox.scene.AtmosphericFog;
 import com.ferox.scene.AtmosphericFog.Falloff;
@@ -43,8 +45,6 @@ import com.ferox.scene.DirectionLight;
 import com.ferox.scene.PointLight;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
-import com.ferox.util.geom.Box;
-import com.ferox.util.geom.Geometry;
 import com.lhkbob.entreri.Entity;
 
 public class PhysicsTest extends PhysicsApplicationStub {
