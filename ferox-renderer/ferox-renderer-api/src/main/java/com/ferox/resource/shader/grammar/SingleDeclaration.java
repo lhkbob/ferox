@@ -1,5 +1,5 @@
 package com.ferox.resource.shader.grammar;
 
-public interface SingleDeclaration {
+public interface SingleDeclaration extends Declaration {
 
 }

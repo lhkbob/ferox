@@ -8,6 +8,7 @@ public class AssignmentOperatorExpression implements AssignmentExpression {
         MOD_ASSIGN,
         ADD_ASSIGN,
         SUB_ASSIGN
+        // FIXME insert logical and bitwise assignment operators
     }
 
     private final UnaryExpression lvalue;
