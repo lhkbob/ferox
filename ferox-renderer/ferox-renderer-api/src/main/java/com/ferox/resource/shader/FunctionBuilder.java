@@ -7,5 +7,5 @@ public interface FunctionBuilder {
 
     public FunctionBuilder out(Type type, String name);
 
-    public Function invoke(Statement statement);
+    public Function invoke(Statement... body);
 }
