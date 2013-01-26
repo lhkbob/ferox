@@ -1,4 +1,4 @@
-package com.ferox.resource.shader.simple_grammar;
+package com.ferox.resource.shader;
 
 public enum PrimitiveType implements Type {
     VOID,
@@ -13,7 +13,7 @@ public enum PrimitiveType implements Type {
     BVEC4,
     IVEC2,
     IVEC3,
-    IVEc4,
+    IVEC4,
     MAT2,
     MAT3,
     MAT4,
@@ -22,5 +22,10 @@ public enum PrimitiveType implements Type {
     SAMPLER3D,
     SAMPLERCUBE,
     SAMPLER1DSHADOW,
-    SAMPLER2DSHADOW
+    SAMPLER2DSHADOW;
+
+    @Override
+    public String getTypeIdentifier() {
+        return name().toLowerCase();
+    }
 }

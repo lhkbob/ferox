@@ -1,6 +1,11 @@
 package com.ferox.resource.shader.simple_grammar;
 
-public class UnaryExpression implements Expression {
+import com.ferox.resource.shader.Environment;
+import com.ferox.resource.shader.Expression;
+import com.ferox.resource.shader.ShaderAccumulator;
+import com.ferox.resource.shader.Type;
+
+public class UnaryExpression extends AbstractExpression {
     public static enum UnaryOperator {
         // FIXME other expressions are between the postfix and prefix in terms of precedence
         // is that awkward?
@@ -22,5 +27,23 @@ public class UnaryExpression implements Expression {
     public UnaryExpression(UnaryOperator operator, Expression expression) {
         this.operator = operator;
         this.expression = expression;
+    }
+
+    @Override
+    public Type getType(Environment env) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Environment validate(Environment environment) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void emit(ShaderAccumulator accumulator) {
+        // TODO Auto-generated method stub
+
     }
 }

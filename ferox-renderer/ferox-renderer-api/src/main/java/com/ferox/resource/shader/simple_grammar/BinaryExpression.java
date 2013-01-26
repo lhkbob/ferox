@@ -1,6 +1,11 @@
 package com.ferox.resource.shader.simple_grammar;
 
-public class BinaryExpression implements Expression, LeftAssociative {
+import com.ferox.resource.shader.Environment;
+import com.ferox.resource.shader.Expression;
+import com.ferox.resource.shader.ShaderAccumulator;
+import com.ferox.resource.shader.Type;
+
+public class BinaryExpression extends AbstractExpression implements LeftAssociative {
     public static enum BinaryOperator {
         MULTIPLY,
         DIVIDE,
@@ -29,5 +34,23 @@ public class BinaryExpression implements Expression, LeftAssociative {
         this.left = left;
         this.right = right;
         this.operator = operator;
+    }
+
+    @Override
+    public Type getType(Environment env) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Environment validate(Environment environment) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void emit(ShaderAccumulator accumulator) {
+        // TODO Auto-generated method stub
+
     }
 }

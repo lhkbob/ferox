@@ -1,24 +1,32 @@
 package com.ferox.resource.shader.simple_grammar;
 
-public class Assignment implements Expression, RightAssociative {
-    public static enum AssignmentOperator {
-        EQUAL,
-        MUL_ASSIGN,
-        DIV_ASSIGN,
-        MOD_ASSIGN,
-        ADD_ASSIGN,
-        SUB_ASSIGN
-        // FIXME insert logical and bitwise assignment operators
-    }
+import com.ferox.resource.shader.Environment;
+import com.ferox.resource.shader.Expression;
+import com.ferox.resource.shader.LValue;
+import com.ferox.resource.shader.ShaderAccumulator;
+import com.ferox.resource.shader.Statement;
 
-    private final Expression lvalue;
-    private final AssignmentOperator operator;
+public class Assignment implements Statement, RightAssociative {
+    private final LValue lvalue;
     private final Expression rvalue;
 
-    public Assignment(Expression lvalue, AssignmentOperator operator,
-                                        Expression rvalue) {
+    public Assignment(LValue lvalue, Expression rvalue) {
         this.lvalue = lvalue;
         this.rvalue = rvalue;
-        this.operator = operator;
+    }
+
+    @Override
+    public Environment validate(Environment environment) {
+        environment = lvalue.validate(rvalue.validate(environment));
+        if (!lvalue.getType(environment).equals(rvalue.getType(environment))) {
+            throw new IllegalStateException("Value does not have same type as variable");
+        }
+        return environment;
+    }
+
+    @Override
+    public void emit(ShaderAccumulator accumulator) {
+        // TODO Auto-generated method stub
+
     }
 }
