@@ -3,10 +3,9 @@ package com.ferox.resource.shader.simple_grammar;
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.LValue;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
+import com.ferox.resource.shader.Type;
 
-public class Assignment implements Statement, RightAssociative {
+public class Assignment extends AbstractExpression {
     private final LValue lvalue;
     private final Expression rvalue;
 
@@ -21,12 +20,31 @@ public class Assignment implements Statement, RightAssociative {
         if (!lvalue.getType(environment).equals(rvalue.getType(environment))) {
             throw new IllegalStateException("Value does not have same type as variable");
         }
+        if (rvalue.containsDeclaration()) {
+            throw new IllegalStateException("Value expression cannot contain a declaration");
+        }
         return environment;
     }
 
     @Override
-    public void emit(ShaderAccumulator accumulator) {
-        // TODO Auto-generated method stub
+    public Type getType(Environment env) {
+        return lvalue.getType(env);
+    }
 
+    @Override
+    public String emitExpression() {
+        // we do not need to contain either expression in parentheses because
+        // the assignment expression has the lowest precedence
+        return lvalue.emitExpression() + " = " + rvalue.emitExpression();
+    }
+
+    @Override
+    public boolean containsDeclaration() {
+        return lvalue.containsDeclaration();
+    }
+
+    @Override
+    public int getPrecedence() {
+        return Precedence.ASSIGNMENT_EXPRESSIONS.ordinal();
     }
 }

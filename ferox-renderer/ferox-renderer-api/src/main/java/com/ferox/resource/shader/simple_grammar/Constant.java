@@ -2,7 +2,6 @@ package com.ferox.resource.shader.simple_grammar;
 
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Type;
 
 public class Constant extends AbstractExpression {
@@ -31,12 +30,17 @@ public class Constant extends AbstractExpression {
 
     @Override
     public Environment validate(Environment environment) {
+        // constants are always valid
         return environment;
     }
 
     @Override
-    public void emit(ShaderAccumulator accumulator) {
-        // TODO Auto-generated method stub
+    public String emitExpression() {
+        return value.toString();
+    }
 
+    @Override
+    public int getPrecedence() {
+        return Precedence.PRIMARY_EXPRESSIONS.ordinal();
     }
 }
