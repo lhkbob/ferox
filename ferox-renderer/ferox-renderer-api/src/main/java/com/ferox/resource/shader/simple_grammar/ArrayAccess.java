@@ -4,6 +4,7 @@ import com.ferox.resource.shader.ArrayType;
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.PrimitiveType;
+import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Type;
 
 public class ArrayAccess extends AbstractLValue {
@@ -73,11 +74,11 @@ public class ArrayAccess extends AbstractLValue {
     }
 
     @Override
-    public String emitExpression() {
+    public String emitExpression(ShaderAccumulator shader) {
         if (array.getPrecedence() < getPrecedence()) {
-            return "(" + array.emitExpression() + ")[" + index.emitExpression() + "]";
+            return "(" + array.emitExpression(shader) + ")[" + index.emitExpression(shader) + "]";
         } else {
-            return array.emitExpression() + "[" + index.emitExpression() + "]";
+            return array.emitExpression(shader) + "[" + index.emitExpression(shader) + "]";
         }
     }
 

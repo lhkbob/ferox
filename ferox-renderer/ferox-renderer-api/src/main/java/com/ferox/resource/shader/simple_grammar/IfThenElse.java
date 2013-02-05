@@ -3,6 +3,7 @@ package com.ferox.resource.shader.simple_grammar;
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.IfBuilder;
+import com.ferox.resource.shader.PrimitiveType;
 import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Statement;
 
@@ -19,14 +20,50 @@ public class IfThenElse implements Statement {
 
     @Override
     public Environment validate(Environment environment) {
-        // TODO Auto-generated method stub
-        return null;
+        environment = condition.validate(environment);
+        if (condition.getType(environment).equals(PrimitiveType.BOOL)) {
+            throw new IllegalStateException("If condition expression must evaluate to a boolean");
+        }
+        if (condition.containsDeclaration()) {
+            throw new IllegalStateException("If condition cannot contain a declaration");
+        }
+
+        // validate true block
+        Environment trueScope = environment.newScope(false);
+        for (int i = 0; i < onTrue.length; i++) {
+            trueScope = onTrue[i].validate(trueScope);
+        }
+
+        // validate false block if it exists
+        if (onFalse != null) {
+            Environment falseScope = environment.newScope(false);
+            for (int i = 0; i < onFalse.length; i++) {
+                falseScope = onFalse[i].validate(falseScope);
+            }
+        }
+
+        return environment;
     }
 
     @Override
     public void emit(ShaderAccumulator accumulator) {
-        // TODO Auto-generated method stub
+        accumulator.addLine("if (" + condition.emitExpression(accumulator) + ") {");
+        accumulator.pushIndent();
+        for (int i = 0; i < onTrue.length; i++) {
+            onTrue[i].emit(accumulator);
+        }
+        accumulator.popIndent();
 
+        if (onFalse != null) {
+            accumulator.addLine("} else {");
+            accumulator.pushIndent();
+            for (int i = 0; i < onFalse.length; i++) {
+                onFalse[i].emit(accumulator);
+            }
+            accumulator.popIndent();
+        }
+
+        accumulator.addLine("}");
     }
 
     public static class Builder implements IfBuilder {

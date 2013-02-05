@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.Function;
 import com.ferox.resource.shader.FunctionBuilder;
+import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Statement;
 import com.ferox.resource.shader.Type;
 import com.ferox.resource.shader.simple_grammar.Parameter.ParameterQualifier;
@@ -52,8 +54,60 @@ public class FunctionDefinition implements Function {
     }
 
     @Override
+    public Type[] getParameterTypes() {
+        Type[] paramTypes = new Type[params.length];
+        for (int i = 0; i < params.length; i++) {
+            paramTypes[i] = params[i].getType();
+        }
+        return paramTypes;
+    }
+
+    @Override
     public Type getReturnType() {
         return returnType;
+    }
+
+    @Override
+    public Environment validate(Environment environment) {
+        Environment bodyEnv = environment.functionScope(returnType, paramMap);
+        for (int i = 0; i < body.length; i++) {
+            bodyEnv = body[i].validate(bodyEnv);
+        }
+
+        return bodyEnv;
+    }
+
+    @Override
+    public void emit(ShaderAccumulator accumulator) {
+        StringBuilder header = new StringBuilder();
+        header.append(returnType.getTypeIdentifier(accumulator, ""));
+        header.append(" ");
+        header.append(name);
+        header.append("(");
+
+        for (int i = 0; i < params.length; i++) {
+            if (i > 0) {
+                header.append(", ");
+            }
+            if (params[i].getQualifier() != ParameterQualifier.NONE) {
+                header.append(params[i].getQualifier().name().toLowerCase());
+                header.append(" ");
+            }
+            header.append(params[i].getType().getTypeIdentifier(accumulator,
+                                                                params[i].getName()));
+        }
+
+        header.append(") {");
+
+        accumulator.addLine(header.toString());
+        accumulator.pushIndent();
+
+        for (int i = 0; i < body.length; i++) {
+            body[i].emit(accumulator);
+        }
+
+        accumulator.popIndent();
+        accumulator.addLine("}");
     }
 
     public static class Builder implements FunctionBuilder {

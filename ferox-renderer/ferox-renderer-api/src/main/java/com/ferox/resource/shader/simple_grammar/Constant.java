@@ -2,6 +2,7 @@ package com.ferox.resource.shader.simple_grammar;
 
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.PrimitiveType;
+import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Type;
 
 public class Constant extends AbstractExpression {
@@ -35,7 +36,7 @@ public class Constant extends AbstractExpression {
     }
 
     @Override
-    public String emitExpression() {
+    public String emitExpression(ShaderAccumulator shader) {
         return value.toString();
     }
 

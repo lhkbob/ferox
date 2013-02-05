@@ -3,6 +3,7 @@ package com.ferox.resource.shader.simple_grammar;
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.LValue;
+import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Type;
 
 public class Assignment extends AbstractExpression {
@@ -32,10 +33,10 @@ public class Assignment extends AbstractExpression {
     }
 
     @Override
-    public String emitExpression() {
+    public String emitExpression(ShaderAccumulator shader) {
         // we do not need to contain either expression in parentheses because
         // the assignment expression has the lowest precedence
-        return lvalue.emitExpression() + " = " + rvalue.emitExpression();
+        return lvalue.emitExpression(shader) + " = " + rvalue.emitExpression(shader);
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.PrimitiveType;
+import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Struct;
 import com.ferox.resource.shader.Type;
 
@@ -121,11 +122,11 @@ public class FieldSelection extends AbstractLValue {
     }
 
     @Override
-    public String emitExpression() {
+    public String emitExpression(ShaderAccumulator shader) {
         if (variable.getPrecedence() < getPrecedence()) {
-            return "(" + variable.emitExpression() + ")." + field;
+            return "(" + variable.emitExpression(shader) + ")." + field;
         } else {
-            return variable.emitExpression() + "." + field;
+            return variable.emitExpression(shader) + "." + field;
         }
     }
 

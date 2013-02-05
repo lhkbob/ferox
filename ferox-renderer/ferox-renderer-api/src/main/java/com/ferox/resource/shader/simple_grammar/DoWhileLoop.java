@@ -27,7 +27,7 @@ public class DoWhileLoop implements Statement {
         }
 
         // validate loop body
-        Environment scoped = environment.newScope();
+        Environment scoped = environment.newScope(true);
         for (int i = 0; i < body.length; i++) {
             scoped = body[i].validate(scoped);
         }
@@ -43,7 +43,7 @@ public class DoWhileLoop implements Statement {
             body[i].emit(accumulator);
         }
         accumulator.popIndent();
-        accumulator.addLine("} while (" + condition.emitExpression() + ");");
+        accumulator.addLine("} while (" + condition.emitExpression(accumulator) + ");");
     }
 
     public static class Builder implements DoWhileBuilder {

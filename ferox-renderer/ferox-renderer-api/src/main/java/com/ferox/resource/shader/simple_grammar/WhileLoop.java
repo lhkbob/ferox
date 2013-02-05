@@ -2,6 +2,7 @@ package com.ferox.resource.shader.simple_grammar;
 
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
+import com.ferox.resource.shader.PrimitiveType;
 import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Statement;
 import com.ferox.resource.shader.WhileBuilder;
@@ -17,14 +18,29 @@ public class WhileLoop implements Statement {
 
     @Override
     public Environment validate(Environment environment) {
-        // TODO Auto-generated method stub
-        return null;
+        environment = condition.validate(environment);
+        if (!condition.getType(environment).equals(PrimitiveType.BOOL)) {
+            throw new IllegalStateException("Loop condition expression must evaluate to a boolean");
+        }
+
+        // validate loop body
+        Environment scoped = environment.newScope(true);
+        for (int i = 0; i < body.length; i++) {
+            scoped = body[i].validate(scoped);
+        }
+
+        return environment;
     }
 
     @Override
     public void emit(ShaderAccumulator accumulator) {
-        // TODO Auto-generated method stub
-
+        accumulator.addLine("while (" + condition.emitExpression(accumulator) + ") {");
+        accumulator.pushIndent();
+        for (int i = 0; i < body.length; i++) {
+            body[i].emit(accumulator);
+        }
+        accumulator.popIndent();
+        accumulator.addLine("}");
     }
 
     public static class Builder implements WhileBuilder {

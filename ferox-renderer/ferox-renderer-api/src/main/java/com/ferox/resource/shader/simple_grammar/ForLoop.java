@@ -32,7 +32,7 @@ public class ForLoop implements Statement {
         }
 
         // validate loop body
-        Environment scoped = environment.newScope();
+        Environment scoped = environment.newScope(true);
         for (int i = 0; i < body.length; i++) {
             scoped = body[i].validate(scoped);
         }
@@ -42,7 +42,7 @@ public class ForLoop implements Statement {
 
     @Override
     public void emit(ShaderAccumulator accumulator) {
-        accumulator.addLine("for (" + initStatement.emitExpression() + "; " + condition.emitExpression() + "; " + increment.emitExpression() + ") {");
+        accumulator.addLine("for (" + initStatement.emitExpression(accumulator) + "; " + condition.emitExpression(accumulator) + "; " + increment.emitExpression(accumulator) + ") {");
         accumulator.pushIndent();
         for (int i = 0; i < body.length; i++) {
             body[i].emit(accumulator);

@@ -6,6 +6,7 @@ import java.util.Map;
 import com.ferox.resource.shader.Environment;
 import com.ferox.resource.shader.Expression;
 import com.ferox.resource.shader.PrimitiveType;
+import com.ferox.resource.shader.ShaderAccumulator;
 import com.ferox.resource.shader.Type;
 
 public class BinaryExpression extends AbstractExpression {
@@ -24,7 +25,7 @@ public class BinaryExpression extends AbstractExpression {
         EQUAL("=="),
         NOT_EQUAL("!="),
         LOGICAL_AND("&&"),
-        LOGICAL_XOR("^"),
+        LOGICAL_XOR("^^"),
         LOGICAL_OR("||");
         // FIXME add bitwise AND, XOR, and OR
 
@@ -64,19 +65,22 @@ public class BinaryExpression extends AbstractExpression {
         if (get((PrimitiveType) leftType, operator, (PrimitiveType) rightType) == null) {
             throw new IllegalStateException("Binary operator not supported with left and right expressions");
         }
+        if (left.containsDeclaration() || right.containsDeclaration()) {
+            throw new IllegalStateException("Binary expressions cannot contain declarations");
+        }
 
         return environment;
     }
 
     @Override
-    public String emitExpression() {
+    public String emitExpression(ShaderAccumulator shader) {
         StringBuilder sb = new StringBuilder();
         if (left.getPrecedence() < getPrecedence()) {
             sb.append('(');
-            sb.append(left.emitExpression());
+            sb.append(left.emitExpression(shader));
             sb.append(')');
         } else {
-            sb.append(left.emitExpression());
+            sb.append(left.emitExpression(shader));
         }
 
         sb.append(' ');
@@ -85,8 +89,10 @@ public class BinaryExpression extends AbstractExpression {
 
         if (right.getPrecedence() < getPrecedence()) {
             sb.append('(');
-            sb.append(right.emitExpression());
+            sb.append(right.emitExpression(shader));
             sb.append(')');
+        } else {
+            sb.append(right.emitExpression(shader));
         }
 
         return sb.toString();
@@ -124,7 +130,7 @@ public class BinaryExpression extends AbstractExpression {
         }
     }
 
-    private static final Map<BinaryOperator, Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>>> operatorMap = new HashMap<BinaryExpression.BinaryOperator, Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>>>();
+    private static final Map<BinaryOperator, Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>>> operatorMap = new HashMap<BinaryOperator, Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>>>();
 
     private static void add(PrimitiveType leftType, BinaryOperator op,
                             PrimitiveType rightType, PrimitiveType resultType) {
