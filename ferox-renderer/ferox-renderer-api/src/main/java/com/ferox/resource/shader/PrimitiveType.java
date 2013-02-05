@@ -25,7 +25,7 @@ public enum PrimitiveType implements Type {
     SAMPLER2DSHADOW;
 
     @Override
-    public String getTypeIdentifier() {
-        return name().toLowerCase();
+    public String getTypeIdentifier(ShaderAccumulator accumulator, String varIdentifier) {
+        return name().toLowerCase() + " " + varIdentifier;
     }
 }

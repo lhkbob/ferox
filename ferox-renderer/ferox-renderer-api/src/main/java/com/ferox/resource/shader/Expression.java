@@ -39,5 +39,23 @@ public interface Expression extends Statement {
 
     public LValue array(Expression index);
 
+    public LValue x();
+
+    public LValue y();
+
+    public LValue z();
+
+    public LValue xy();
+
+    public LValue xyz();
+
+    public LValue m(int col, int row);
+
     public Type getType(Environment env);
+
+    public String emitExpression(ShaderAccumulator accumulator);
+
+    public boolean containsDeclaration();
+
+    public int getPrecedence();
 }
