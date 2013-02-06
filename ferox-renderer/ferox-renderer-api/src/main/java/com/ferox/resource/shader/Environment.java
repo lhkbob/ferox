@@ -64,14 +64,13 @@ public class Environment {
         return p;
     }
 
-    public Environment declare(Type type, String name) {
-        Map<String, Type> newState = new HashMap<String, Type>();
-        newState.put(name, type);
-        return new Environment(this,
-                               inFragmentShader,
-                               inLoop,
-                               requiredReturnType,
-                               newState);
+    public boolean declare(Type type, String name) {
+        if (variables.get(name) != null) {
+            return false;
+        } else {
+            variables.put(name, type);
+            return true;
+        }
     }
 
     public Environment functionScope(Type returnType, Map<String, Type> variables) {

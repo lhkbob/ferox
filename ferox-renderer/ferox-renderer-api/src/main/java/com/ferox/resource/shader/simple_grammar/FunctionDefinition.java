@@ -81,7 +81,6 @@ public class FunctionDefinition implements Function {
     public void emit(ShaderAccumulator accumulator) {
         StringBuilder header = new StringBuilder();
         header.append(returnType.getTypeIdentifier(accumulator, ""));
-        header.append(" ");
         header.append(name);
         header.append("(");
 

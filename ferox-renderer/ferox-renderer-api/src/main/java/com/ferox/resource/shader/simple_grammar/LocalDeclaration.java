@@ -20,8 +20,10 @@ public class LocalDeclaration extends AbstractLValue {
 
     @Override
     public Environment validate(Environment environment) {
-        // declarations are always valid, we just need to create a new scope
-        return environment.declare(type, identifier);
+        if (!environment.declare(type, identifier)) {
+            throw new IllegalStateException("Variable already declared at this scope");
+        }
+        return environment;
     }
 
     @Override

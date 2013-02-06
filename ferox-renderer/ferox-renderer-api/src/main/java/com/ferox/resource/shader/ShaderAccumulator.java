@@ -10,4 +10,8 @@ public interface ShaderAccumulator {
     public void accumulateFunction(Function f);
 
     public void accumulateStruct(Struct s);
+
+    public ShaderAccumulator getGlobalDeclarationAccumulator();
+
+    public ShaderAccumulator getMainAccumulator();
 }
