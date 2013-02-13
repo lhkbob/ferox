@@ -125,6 +125,45 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
+     * Set this matrix to be a rotation about the X axis by the given radian
+     * amount.
+     * 
+     * @param radians The rotation amount about the X axis
+     * @return This matrix
+     */
+    public Matrix3 rotateX(double radians) {
+        double sin = Math.sin(radians);
+        double cos = Math.cos(radians);
+        return set(1, 0, 0, 0, cos, -sin, 0, sin, cos);
+    }
+
+    /**
+     * Set this matrix to be a rotation about the Y axis by the given radian
+     * amount.
+     * 
+     * @param radians The rotation amount about the Y axis
+     * @return This matrix
+     */
+    public Matrix3 rotateY(double radians) {
+        double sin = Math.sin(radians);
+        double cos = Math.cos(radians);
+        return set(cos, 0, sin, 0, 1, 0, -sin, 0, cos);
+    }
+
+    /**
+     * Set this matrix to be a rotation about the Z axis by the given radian
+     * amount.
+     * 
+     * @param radians The rotation amount about the Z axis
+     * @return This matrix
+     */
+    public Matrix3 rotateZ(double radians) {
+        double sin = Math.sin(radians);
+        double cos = Math.cos(radians);
+        return set(cos, -sin, 0, sin, cos, 0, 0, 0, 1);
+    }
+
+    /**
      * Compute and return the determinant for this matrix. If this value is 0,
      * then the matrix is not invertible. If it is very close to 0, then the
      * matrix may be ill-formed and inversions, multiplications and linear

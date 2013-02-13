@@ -107,7 +107,8 @@ public class Cylinder {
      * @throws NullPointerException if mode is null
      */
     public static Geometry create(double radius, double height, int res, StorageMode mode) {
-        return create(new Vector3(0, 1, 0), radius, height, res, mode);
+        return create(new Vector3(0, 1, 0), new Vector3(0, 0, 0), radius, height, res,
+                      mode);
     }
 
     /**
@@ -115,6 +116,7 @@ public class Cylinder {
      * resolution and StorageMode.
      * 
      * @param axis The vertical axis of the cylinder
+     * @param origin The point this cylinder is centered about
      * @param radius The radius of the cylinder, in local space
      * @param height The height of the cylinder
      * @param res The resolution of the sphere
@@ -123,9 +125,9 @@ public class Cylinder {
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      * @throws NullPointerException if mode is null
      */
-    public static Geometry create(@Const Vector3 axis, double radius, double height,
-                                  int res, StorageMode mode) {
-        return new CylinderImpl(axis, radius, height, res, mode);
+    public static Geometry create(@Const Vector3 axis, @Const Vector3 origin,
+                                  double radius, double height, int res, StorageMode mode) {
+        return new CylinderImpl(axis, origin, radius, height, res, mode);
     }
 
     private static class CylinderImpl implements Geometry {
@@ -140,8 +142,8 @@ public class Cylinder {
 
         private final AxisAlignedBox bounds;
 
-        public CylinderImpl(@Const Vector3 axis, double radius, double height, int res,
-                            StorageMode mode) {
+        public CylinderImpl(@Const Vector3 axis, @Const Vector3 origin, double radius,
+                            double height, int res, StorageMode mode) {
             if (radius <= 0) {
                 throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
             }
@@ -297,12 +299,15 @@ public class Cylinder {
             Vector3 v = new Vector3().normalize(axis);
             Matrix3 m = new Matrix3();
 
-            if (axis.equals(u)) {
+            if (Math.abs(v.x - 1.0) < 0.0001) {
                 // update it to get the right ortho-normal basis
                 u.set(0, -1, 0);
+            } else if (Math.abs(v.x + 1.0) < 0.0001) {
+                // update it to get the right ortho-normal basis
+                u.set(0, 1, 0);
             } else {
                 // compute orthogonal x-axis in the direction of (1, 0, 0)
-                u.ortho(axis);
+                u.ortho(v).normalize();
             }
 
             m.setCol(0, u);
@@ -314,7 +319,7 @@ public class Cylinder {
             for (int i = 0; i < va.length; i += 8) {
                 // vertex
                 u.set(va, i);
-                u.mul(m, u);
+                u.mul(m, u).add(origin);
                 u.get(va, i);
 
                 // normal

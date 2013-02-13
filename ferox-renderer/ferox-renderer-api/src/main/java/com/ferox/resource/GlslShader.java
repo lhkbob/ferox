@@ -34,6 +34,7 @@ public class GlslShader extends Resource {
         // FIXME are there more?
         // should I really limit it to an enum, I could just have
         // it be an integer that is parsed that is probably safer
+        V1_10,
         V1_20,
         V1_30,
         V1_40,
@@ -76,10 +77,10 @@ public class GlslShader extends Resource {
     }
 
     private Version version;
-    private EnumMap<ShaderType, String> shaders;
+    private final EnumMap<ShaderType, String> shaders;
 
     public GlslShader() {
-        version = Version.V1_20;
+        version = Version.V1_10;
         shaders = new EnumMap<ShaderType, String>(ShaderType.class);
     }
 
@@ -128,6 +129,8 @@ public class GlslShader extends Resource {
                 Version v = null;
 
                 switch (version) {
+                case 110:
+                    throw new IllegalArgumentException("GLSL 1.1 does not use #version");
                 case 120:
                     v = Version.V1_20;
                     break;
@@ -156,6 +159,6 @@ public class GlslShader extends Resource {
             }
         }
 
-        return (detectedVersion == null ? Version.V1_20 : detectedVersion);
+        return (detectedVersion == null ? Version.V1_10 : detectedVersion);
     }
 }
