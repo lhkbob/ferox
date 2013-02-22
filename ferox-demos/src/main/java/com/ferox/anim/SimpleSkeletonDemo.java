@@ -154,6 +154,7 @@ public class SimpleSkeletonDemo extends ApplicationStub {
 
     @Override
     protected void init(OnscreenSurface surface) {
+        //        surface.setVSyncEnabled(true);
         system = new EntitySystem();
 
         renderJob = system.getScheduler()
@@ -175,13 +176,13 @@ public class SimpleSkeletonDemo extends ApplicationStub {
         Entity mainSkeleton = system.addEntity();
         try {
             AcclaimSkeleton skeleton = new AcclaimSkeleton();
-            InputStream in = new FileInputStream("/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/01.asf");
+            InputStream in = new FileInputStream("/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/35.asf");
             skeleton.load(in);
             skeleton.addSkeleton(mainSkeleton);
 
             in.close();
 
-            in = new FileInputStream("/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/01_01.amc");
+            in = new FileInputStream("/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/35_22.amc");
             SkeletonAnimation anim = skeleton.loadAnimation(in, 1 / 120.0);
 
             mainSkeleton.add(Animated.class).getData().setAnimation(anim).setTimeScale(1);
