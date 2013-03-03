@@ -1,7 +1,5 @@
 package com.ferox.scene.task.ffp;
 
-import java.util.Arrays;
-
 import com.ferox.math.Const;
 import com.ferox.math.Functions;
 import com.ferox.math.Matrix4;
@@ -16,6 +14,8 @@ import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.geom.TopologyUtil;
 import com.ferox.util.ItemView;
 import com.ferox.util.QuickSort;
+
+import java.util.Arrays;
 
 public class IndexBufferState {
     private VertexBufferObject indices;
@@ -58,7 +58,8 @@ public class IndexBufferState {
             return false;
         }
         IndexBufferState r = (IndexBufferState) o;
-        return nullEquals(r.indices, indices) && r.indexCount == indexCount && r.indexOffset == indexOffset && r.polyType == polyType;
+        return nullEquals(r.indices, indices) && r.indexCount == indexCount &&
+               r.indexOffset == indexOffset && r.polyType == polyType;
     }
 
     private static boolean nullEquals(Object a, Object b) {
@@ -128,11 +129,13 @@ public class IndexBufferState {
             FixedFunctionRenderer r = access.getCurrentContext()
                                             .getFixedFunctionRenderer();
 
-            int inflatedIndexCount = polyType.getPolygonCount(indexCount) * polyType.getPolygonSize();
+            int inflatedIndexCount =
+                    polyType.getPolygonCount(indexCount) * polyType.getPolygonSize();
             PolygonType inflatedType = polyType;
             synchronized (sortedIndicesShared) {
                 if (sortedIndicesShared.getData().getLength() < inflatedIndexCount) {
-                    sortedIndicesShared.setData(new BufferData(new int[inflatedIndexCount]));
+                    sortedIndicesShared
+                            .setData(new BufferData(new int[inflatedIndexCount]));
                 }
                 BufferData sharedData = sortedIndicesShared.getData();
 
@@ -144,8 +147,9 @@ public class IndexBufferState {
                         inflatedType = PolygonType.TRIANGLES;
                         break;
                     default:
-                        TopologyUtil.inflateSimpleArray(indexOffset, indexCount,
-                                                        sharedData, 0);
+                        TopologyUtil
+                                .inflateSimpleArray(indexOffset, indexCount, sharedData,
+                                                    0);
                         break;
                     }
                 } else {
@@ -167,11 +171,8 @@ public class IndexBufferState {
                 }
             }
 
-            FaceView view = new FaceView(inflatedType,
-                                         sortedIndicesShared,
-                                         inflatedIndexCount,
-                                         vertices,
-                                         modelMatrix);
+            FaceView view = new FaceView(inflatedType, sortedIndicesShared,
+                                         inflatedIndexCount, vertices, modelMatrix);
             for (int i = 0; i < count; i += 16) {
                 // load and multiply the model with the view
                 modelMatrix.set(matrices, i, false);

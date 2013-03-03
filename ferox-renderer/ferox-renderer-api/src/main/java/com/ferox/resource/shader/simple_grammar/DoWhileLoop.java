@@ -1,11 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.DoWhileBuilder;
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
+import com.ferox.resource.shader.*;
 
 public class DoWhileLoop implements Statement {
     private final Statement[] body;
@@ -23,7 +18,8 @@ public class DoWhileLoop implements Statement {
             throw new IllegalStateException("Loop condition must evaluate to a boolean");
         }
         if (condition.containsDeclaration()) {
-            throw new IllegalStateException("Do-while loops do not support declarations in condition expression");
+            throw new IllegalStateException(
+                    "Do-while loops do not support declarations in condition expression");
         }
 
         // validate loop body

@@ -49,7 +49,8 @@ public class GeometryState implements State {
         }
 
         GeometryState ts = (GeometryState) o;
-        return nullEquals(ts.normals, normals) && nullEquals(ts.vertices, vertices) && ts.front == front && ts.back == back;
+        return nullEquals(ts.normals, normals) && nullEquals(ts.vertices, vertices) &&
+               ts.front == front && ts.back == back;
     }
 
     private static boolean nullEquals(Object a, Object b) {

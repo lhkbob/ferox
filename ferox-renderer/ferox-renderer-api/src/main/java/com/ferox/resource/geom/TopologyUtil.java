@@ -5,17 +5,20 @@ import com.ferox.resource.BufferData;
 import com.ferox.resource.UnsignedDataView;
 
 public final class TopologyUtil {
-    private TopologyUtil() {}
+    private TopologyUtil() {
+    }
 
     public static int inflateTriangleStrip(BufferData strips, int stripOffset,
                                            int stripCount, BufferData targetTris,
                                            int triOffset) {
         int triangleCount = PolygonType.TRIANGLE_STRIP.getPolygonCount(stripCount);
         if (targetTris.getLength() - triOffset < triangleCount * 3) {
-            throw new IndexOutOfBoundsException("Target triangle index buffer is not large enough");
+            throw new IndexOutOfBoundsException(
+                    "Target triangle index buffer is not large enough");
         }
         if (stripOffset + stripCount > strips.getLength()) {
-            throw new IndexOutOfBoundsException("Offset and count access invalid indices in source buffer");
+            throw new IndexOutOfBoundsException(
+                    "Offset and count access invalid indices in source buffer");
         }
         if (stripOffset < 0 || stripCount < 0 || triOffset < 0) {
             throw new IllegalArgumentException("Offsets and count must be positive");
@@ -28,8 +31,10 @@ public final class TopologyUtil {
         if (triangleCount >= 1) {
             // first three vertices form a triangle
             target.set(triOffset, source.get(stripOffset)); // set a = 0, writeA = false
-            target.set(triOffset + 1, source.get(stripOffset + 1)); // set b = 1, writeA = true
-            target.set(triOffset + 2, source.get(stripOffset + 2)); // set a = 2, writeA = false
+            target.set(triOffset + 1,
+                       source.get(stripOffset + 1)); // set b = 1, writeA = true
+            target.set(triOffset + 2,
+                       source.get(stripOffset + 2)); // set a = 2, writeA = false
 
             // according to the OpenGL spec, triangle strips form triangles with
             // the A vertex, B vertex, and the current vertex. The current vertex
@@ -60,7 +65,8 @@ public final class TopologyUtil {
                                                 BufferData targetTris, int triOffset) {
         int triangleCount = PolygonType.TRIANGLE_STRIP.getPolygonCount(stripCount);
         if (targetTris.getLength() - triOffset < triangleCount * 3) {
-            throw new IndexOutOfBoundsException("Target triangle index buffer is not large enough");
+            throw new IndexOutOfBoundsException(
+                    "Target triangle index buffer is not large enough");
         }
         if (stripOffset < 0 || stripCount < 0 || triOffset < 0) {
             throw new IllegalArgumentException("Offsets and count must be positive");
@@ -103,7 +109,8 @@ public final class TopologyUtil {
     public static void inflateSimpleArray(int stripOffset, int stripCount,
                                           BufferData target, int targetOffset) {
         if (targetOffset + stripCount > target.getLength()) {
-            throw new IndexOutOfBoundsException("Target triangle index buffer is not large enough");
+            throw new IndexOutOfBoundsException(
+                    "Target triangle index buffer is not large enough");
         }
 
         UnsignedDataView out = target.getUnsignedView();

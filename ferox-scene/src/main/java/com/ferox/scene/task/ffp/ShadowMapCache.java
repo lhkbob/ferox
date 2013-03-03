@@ -26,24 +26,11 @@
  */
 package com.ferox.scene.task.ffp;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.ContextState;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.HardwareAccessLayer;
+import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Surface;
-import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
@@ -57,6 +44,8 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 
+import java.util.*;
+
 public class ShadowMapCache {
     private final TextureSurface shadowMap;
 
@@ -64,12 +53,11 @@ public class ShadowMapCache {
     private Set<Component<? extends Light<?>>> shadowLights;
 
     public ShadowMapCache(Framework framework, int width, int height) {
-        shadowMap = framework.createSurface(new TextureSurfaceOptions().setWidth(width)
-                                                                       .setHeight(height)
-                                                                       .setDepth(1)
-                                                                       .setTarget(Target.T_2D)
-                                                                       .setUseDepthTexture(true)
-                                                                       .setColorBufferFormats());
+        shadowMap = framework.createSurface(
+                new TextureSurfaceOptions().setWidth(width).setHeight(height).setDepth(1)
+                                           .setTarget(Target.T_2D)
+                                           .setUseDepthTexture(true)
+                                           .setColorBufferFormats());
         shadowScenes = new HashMap<Component<? extends Light<?>>, ShadowMapScene>();
 
         Texture sm = shadowMap.getDepthBuffer();
@@ -109,7 +97,8 @@ public class ShadowMapCache {
         }
 
         Surface origSurface = access.getCurrentContext().getSurface();
-        int origLayer = access.getCurrentContext().getSurfaceLayer(); // in case of texture-surface
+        int origLayer = access.getCurrentContext()
+                              .getSurfaceLayer(); // in case of texture-surface
         ContextState<FixedFunctionRenderer> origState = access.getCurrentContext()
                                                               .getFixedFunctionRenderer()
                                                               .getCurrentState();
@@ -206,15 +195,16 @@ public class ShadowMapCache {
 
             StateNode renderNode = geomNode.getChild(renderStateIndex);
             if (renderNode == null) {
-                renderNode = new StateNode(renderLookup.get(renderStateIndex)
-                                                       .newOpaqueRenderState());
+                renderNode = new StateNode(
+                        renderLookup.get(renderStateIndex).newOpaqueRenderState());
                 geomNode.setChild(renderStateIndex, renderNode);
             }
 
             ((RenderState) renderNode.getState()).add(transform.getMatrix());
         }
 
-        Component<? extends Light<?>> source = (Component<? extends Light<?>>) pvs.getSource();
+        Component<? extends Light<?>> source = (Component<? extends Light<?>>) pvs
+                .getSource();
         shadowScenes.put(source, new ShadowMapScene(pvs.getFrustum(), root));
     }
 

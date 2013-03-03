@@ -42,7 +42,8 @@ public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
     @Unmanaged
     private final AxisAlignedBox boundsCache = new AxisAlignedBox();
 
-    private InfluenceRegion() {}
+    private InfluenceRegion() {
+    }
 
     @Const
     @SharedInstance

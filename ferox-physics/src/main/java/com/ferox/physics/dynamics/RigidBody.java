@@ -66,7 +66,8 @@ public class RigidBody extends ComponentData<RigidBody> {
     @Unmanaged
     private final Vector3 temp = new Vector3();
 
-    private RigidBody() {}
+    private RigidBody() {
+    }
 
     @Const
     public Matrix3 getInertiaTensorInverse() {

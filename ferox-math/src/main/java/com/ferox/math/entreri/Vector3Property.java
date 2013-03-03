@@ -26,25 +26,20 @@
  */
 package com.ferox.math.entreri;
 
+import com.ferox.math.Const;
+import com.ferox.math.Vector3;
+import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleDataStore;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.ferox.math.Const;
-import com.ferox.math.Vector3;
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
-
 /**
- * Vector3Property is a caching property that wraps a DoubleProperty as a
- * Vector3.
- * 
+ * Vector3Property is a caching property that wraps a DoubleProperty as a Vector3.
+ *
  * @author Michael Ludwig
  */
 @Factory(Vector3Property.Factory.class)
@@ -61,12 +56,12 @@ public class Vector3Property implements Property {
     }
 
     /**
-     * Get the vector of this property, for the component at the given index,
-     * and store it into <tt>result</tt>. If result is null, a new Vector3 is
-     * created and returned.
-     * 
-     * @param index The component index to retrieve
+     * Get the vector of this property, for the component at the given index, and store it
+     * into <tt>result</tt>. If result is null, a new Vector3 is created and returned.
+     *
+     * @param index  The component index to retrieve
      * @param result The vector to store the data for the requested component
+     *
      * @return result, or a new Vector3 if result was null
      */
     public Vector3 get(int index, Vector3 result) {
@@ -79,11 +74,12 @@ public class Vector3Property implements Property {
     }
 
     /**
-     * Copy the values of <tt>v</tt> into the underlying data of this property,
-     * for the component at the given index.
-     * 
-     * @param v The vector to copy
+     * Copy the values of <tt>v</tt> into the underlying data of this property, for the
+     * component at the given index.
+     *
+     * @param v     The vector to copy
      * @param index The index of the component being modified
+     *
      * @throws NullPointerException if v is null
      */
     public void set(@Const Vector3 v, int index) {
@@ -102,7 +98,7 @@ public class Vector3Property implements Property {
 
     /**
      * Attribute annotation to apply to Vector3Property declarations.
-     * 
+     *
      * @author Michael Ludwig
      */
     @Attribute
@@ -126,10 +122,9 @@ public class Vector3Property implements Property {
     }
 
     /**
-     * Default factory implementation for Vector3Properties, supports the
-     * {@link DefaultVector3} annotation to specify the default vector
-     * coordinates.
-     * 
+     * Default factory implementation for Vector3Properties, supports the {@link
+     * DefaultVector3} annotation to specify the default vector coordinates.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<Vector3Property> {

@@ -26,13 +26,13 @@
  */
 package com.ferox.scene.task.light;
 
-import java.util.List;
-import java.util.Set;
-
 import com.ferox.scene.Light;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Result;
+
+import java.util.List;
+import java.util.Set;
 
 public class LightGroupResult extends Result {
     private final IntProperty groupAssignment;

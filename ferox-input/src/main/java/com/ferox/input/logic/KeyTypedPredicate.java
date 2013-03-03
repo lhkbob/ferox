@@ -29,9 +29,9 @@ package com.ferox.input.logic;
 import com.ferox.input.KeyEvent.KeyCode;
 
 /**
- * KeyTypedPredicate is an advanced Predicate capable of identifying when a key
- * is typed (e.g. pressed and released quickly).
- * 
+ * KeyTypedPredicate is an advanced Predicate capable of identifying when a key is typed
+ * (e.g. pressed and released quickly).
+ *
  * @author Michael Ludwig
  */
 class KeyTypedPredicate implements Predicate {
@@ -45,7 +45,9 @@ class KeyTypedPredicate implements Predicate {
             throw new NullPointerException("KeyCode cannot be null");
         }
         if (typeDuration <= 0) {
-            throw new IllegalArgumentException("Type duration must be a positive number of milliseconds, not: " + typeDuration);
+            throw new IllegalArgumentException(
+                    "Type duration must be a positive number of milliseconds, not: " +
+                    typeDuration);
         }
 
         this.code = code;
@@ -55,13 +57,13 @@ class KeyTypedPredicate implements Predicate {
 
     @Override
     public boolean apply(InputState prev, InputState next) {
-        if (!prev.getKeyboardState().isKeyDown(code) && next.getKeyboardState()
-                                                            .isKeyDown(code)) {
+        if (!prev.getKeyboardState().isKeyDown(code) &&
+            next.getKeyboardState().isKeyDown(code)) {
             // record time of first press
             startTime = next.getTimestamp();
             return false;
-        } else if (prev.getKeyboardState().isKeyDown(code) && !next.getKeyboardState()
-                                                                   .isKeyDown(code)) {
+        } else if (prev.getKeyboardState().isKeyDown(code) &&
+                   !next.getKeyboardState().isKeyDown(code)) {
             // key is released, see if it was fast enough
             long start = startTime;
             startTime = -1;

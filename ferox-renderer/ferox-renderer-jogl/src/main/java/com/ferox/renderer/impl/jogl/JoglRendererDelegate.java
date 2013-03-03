@@ -26,20 +26,10 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.nio.Buffer;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2GL3;
-
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilUpdate;
+import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
@@ -47,10 +37,14 @@ import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2GL3;
+import java.nio.Buffer;
+
 /**
- * JoglRendererDelegate is a concrete implementation of RendererDelegate that
- * uses the JOGL OpenGL binding.
- * 
+ * JoglRendererDelegate is a concrete implementation of RendererDelegate that uses the
+ * JOGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 public class JoglRendererDelegate extends RendererDelegate {
@@ -209,7 +203,8 @@ public class JoglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glStencilTest(Comparison test, int refValue, int mask, boolean isFront) {
+    protected void glStencilTest(Comparison test, int refValue, int mask,
+                                 boolean isFront) {
         if (supportsSeparateStencil) {
             int face = (isFront ? GL.GL_FRONT : GL.GL_BACK);
             getGL().glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue,
@@ -273,7 +268,8 @@ public class JoglRendererDelegate extends RendererDelegate {
             throw new NullPointerException("Clear color cannot be null");
         }
         if (depth < 0f || depth > 1f) {
-            throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
+            throw new IllegalArgumentException(
+                    "Clear depht must be in [0, 1], not: " + depth);
         }
 
         GL2GL3 gl = getGL();

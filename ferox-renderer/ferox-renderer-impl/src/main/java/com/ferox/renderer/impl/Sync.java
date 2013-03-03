@@ -25,34 +25,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * 
+ *
  */
 package com.ferox.renderer.impl;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 /**
- * <p>
- * Sync is an AQS implementation that wraps a Callable and provides the
- * necessary logic needed for a Future to monitor the Sync and wait for the
- * Callable to complete. The Sync provides a {@link #run()} that executes the
- * Callable on the calling Thread. Additionally, it exposes a
- * {@link #set(Object)} method to manually override the result to return, which
- * can be useful in some situations where you don't want to cancel the task but
- * don't want to run the actual Callable.
- * </p>
- * <p>
- * This implementation was extracted from the java.util.concurrent package,
- * where it was originally an inner class within FutureTask.
- * </p>
- * 
- * @author Michael Ludwig
+ * <p/>
+ * Sync is an AQS implementation that wraps a Callable and provides the necessary logic
+ * needed for a Future to monitor the Sync and wait for the Callable to complete. The Sync
+ * provides a {@link #run()} that executes the Callable on the calling Thread.
+ * Additionally, it exposes a {@link #set(Object)} method to manually override the result
+ * to return, which can be useful in some situations where you don't want to cancel the
+ * task but don't want to run the actual Callable.
+ * <p/>
+ * This implementation was extracted from the java.util.concurrent package, where it was
+ * originally an inner class within FutureTask.
+ *
  * @param <V>
+ *
+ * @author Michael Ludwig
  */
 public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     private static final long serialVersionUID = 1L;
@@ -87,7 +81,7 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     }
 
     public boolean cancel(boolean mayInterrupt) {
-        for (;;) {
+        for (; ; ) {
             int s = getState();
             if (completed(s)) {
                 return false;
@@ -118,7 +112,8 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
         return result;
     }
 
-    public V get(long timeout, TimeUnit units) throws InterruptedException, ExecutionException, TimeoutException {
+    public V get(long timeout, TimeUnit units)
+            throws InterruptedException, ExecutionException, TimeoutException {
         if (!tryAcquireSharedNanos(0, units.toNanos(timeout))) {
             throw new TimeoutException();
         }
@@ -149,7 +144,7 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     }
 
     public void set(V v) {
-        for (;;) {
+        for (; ; ) {
             int s = getState();
             if (s == COMPLETED) {
                 return;
@@ -170,7 +165,7 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     }
 
     private void setException(Throwable t) {
-        for (;;) {
+        for (; ; ) {
             int s = getState();
             if (s == COMPLETED) {
                 return;
@@ -204,8 +199,8 @@ public class Sync<V> extends AbstractQueuedSynchronizer implements Runnable {
     }
 
     /**
-     * Implements AQS base release to always signal after setting final done
-     * status by nulling runner thread.
+     * Implements AQS base release to always signal after setting final done status by
+     * nulling runner thread.
      */
     @Override
     protected boolean tryReleaseShared(int ignore) {

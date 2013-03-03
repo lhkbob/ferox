@@ -26,19 +26,6 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.awt.Canvas;
-import java.awt.Frame;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.Drawable;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-
 import com.ferox.input.KeyListener;
 import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
@@ -54,15 +41,27 @@ import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.Drawable;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+
+import java.awt.*;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 
 /**
- * LwjglStaticDisplaySurface is a surface that uses LWJGL's static
- * {@link Display} interface for window management. There can be only one
- * surface active at one time because of the static nature of the Display API.
- * 
+ * LwjglStaticDisplaySurface is a surface that uses LWJGL's static {@link Display}
+ * interface for window management. There can be only one surface active at one time
+ * because of the static nature of the Display API.
+ *
  * @author Michael Ludwig
  */
-public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implements WindowListener {
+public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
+        implements WindowListener {
     // parentFrame and glCanvas are null when Display.setParent() was not used
     private final Frame parentFrame;
     private final Canvas glCanvas;
@@ -87,7 +86,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         super(framework);
 
         if (Display.isCreated()) {
-            throw new SurfaceCreationException("Static LWJGL Display is already in use, cannot create another surface");
+            throw new SurfaceCreationException(
+                    "Static LWJGL Display is already in use, cannot create another surface");
         }
 
         surfaceLock = new Object();
@@ -102,8 +102,10 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         boolean fullscreen = false;
         if (options.getFullscreenMode() != null) {
             // try to configure this as a fullscreen window without an AWT parent
-            DisplayMode bestMode = factory.chooseCompatibleDisplayMode(options.getFullscreenMode());
-            org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(bestMode);
+            DisplayMode bestMode = factory
+                    .chooseCompatibleDisplayMode(options.getFullscreenMode());
+            org.lwjgl.opengl.DisplayMode lwjglMode = factory
+                    .getLWJGLDisplayMode(bestMode);
 
             if (lwjglMode != null) {
                 try {
@@ -147,8 +149,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                     OnscreenSurfaceOptions options = LwjglStaticDisplaySurface.this.options;
                     parentFrame.setResizable(options.isResizable());
                     parentFrame.setUndecorated(options.isUndecorated());
-                    parentFrame.setBounds(options.getX(), options.getY(),
-                                          options.getWidth(), options.getHeight());
+                    parentFrame
+                            .setBounds(options.getX(), options.getY(), options.getWidth(),
+                                       options.getHeight());
 
                     parentFrame.add(glCanvas);
 
@@ -190,14 +193,12 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     }
 
     /**
-     * Start the monitoring threads needed for event pulling and window
-     * management.
+     * Start the monitoring threads needed for event pulling and window management.
      */
     public void initialize() {
         ThreadGroup managedGroup = getFramework().getLifeCycleManager()
-                                                 .getManagedThreadGroup();
-        Thread eventMonitor = new Thread(managedGroup,
-                                         new EventMonitor(),
+                .getManagedThreadGroup();
+        Thread eventMonitor = new Thread(managedGroup, new EventMonitor(),
                                          "lwjgl-event-monitor");
         eventMonitor.setDaemon(true);
         getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
@@ -302,7 +303,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException(
+                    "Cannot call setWindowSize() on a fullscreen surface");
         }
 
         if (parentFrame != null) {
@@ -322,7 +324,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     @Override
     public void setLocation(final int x, final int y) {
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException(
+                    "Cannot call setWindowSize() on a fullscreen surface");
         }
 
         if (parentFrame != null) {
@@ -451,22 +454,28 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     }
 
     @Override
-    public void windowOpened(WindowEvent e) {}
+    public void windowOpened(WindowEvent e) {
+    }
 
     @Override
-    public void windowClosed(WindowEvent e) {}
+    public void windowClosed(WindowEvent e) {
+    }
 
     @Override
-    public void windowIconified(WindowEvent e) {}
+    public void windowIconified(WindowEvent e) {
+    }
 
     @Override
-    public void windowDeiconified(WindowEvent e) {}
+    public void windowDeiconified(WindowEvent e) {
+    }
 
     @Override
-    public void windowActivated(WindowEvent e) {}
+    public void windowActivated(WindowEvent e) {
+    }
 
     @Override
-    public void windowDeactivated(WindowEvent e) {}
+    public void windowDeactivated(WindowEvent e) {
+    }
 
     private void detectOptions() {
         int red, green, blue, alpha, stencil, depth;
@@ -550,9 +559,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
-            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(),
-                                                                fullscreen.getHeight(),
-                                                                format));
+            options = options.setFullscreenMode(
+                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(),
+                                    format));
         }
 
         options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);
@@ -569,10 +578,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                 try {
                     long blockedTime = -System.nanoTime();
                     getFramework().getContextManager()
-                                  .invokeOnContextThread(new InputTask(), false).get();
+                            .invokeOnContextThread(new InputTask(), false).get();
                     getFramework().getContextManager()
-                                  .invokeOnContextThread(new CloseRequestTask(), false)
-                                  .get();
+                            .invokeOnContextThread(new CloseRequestTask(), false).get();
                     blockedTime += System.nanoTime();
 
                     if (blockedTime < 1000000) {

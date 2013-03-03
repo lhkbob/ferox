@@ -26,23 +26,23 @@
  */
 package com.ferox.renderer;
 
-import java.util.EnumSet;
-
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
 
+import java.util.EnumSet;
+
 /**
- * <p>
- * RenderCapabilities holds onto a set of different parameters describing more
- * advanced features that the baseline hardware may not support.
- * <p>
- * Because Ferox was designed to be implemented with an OpenGL system, the
- * capabilities here reflect that and allow for lower-level inspection of the
- * current hardware. Framework implementations are expected to extend
- * RenderCapabilities to provide the correct values for each parameter.
- * 
+ * <p/>
+ * RenderCapabilities holds onto a set of different parameters describing more advanced
+ * features that the baseline hardware may not support.
+ * <p/>
+ * Because Ferox was designed to be implemented with an OpenGL system, the capabilities
+ * here reflect that and allow for lower-level inspection of the current hardware.
+ * Framework implementations are expected to extend RenderCapabilities to provide the
+ * correct values for each parameter.
+ *
  * @author Michael Ludwig
  */
 public class RenderCapabilities {
@@ -99,8 +99,7 @@ public class RenderCapabilities {
     protected int maxColorTargets = 0; //
 
     /**
-     * @return True if the blending operation exposed in {@link Renderer} is
-     *         supported.
+     * @return True if the blending operation exposed in {@link Renderer} is supported.
      */
     public boolean isBlendingSupported() {
         return blendSupported;
@@ -121,8 +120,7 @@ public class RenderCapabilities {
     }
 
     /**
-     * @return True if the COMBINE EnvMode is supported by
-     *         FixedFunctionRenderers
+     * @return True if the COMBINE EnvMode is supported by FixedFunctionRenderers
      */
     public boolean getCombineEnvModeSupport() {
         return hasEnvCombine;
@@ -136,34 +134,32 @@ public class RenderCapabilities {
     }
 
     /**
-     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE
-     *         extension, which improves appearance, or false when it must
-     *         fallback to GL_CLAMP
+     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE extension, which
+     *         improves appearance, or false when it must fallback to GL_CLAMP
      */
     public boolean getClampToEdgeSupport() {
         return hasClampEdge;
     }
 
     /**
-     * @return True if blending can be correctly separated across front and back
-     *         facing polygons.
+     * @return True if blending can be correctly separated across front and back facing
+     *         polygons.
      */
     public boolean getSeparateBlendSupport() {
         return hasSeparateBlend;
     }
 
     /**
-     * @return True if stencil operations can be correctly separated across
-     *         front and back facing polygons.
+     * @return True if stencil operations can be correctly separated across front and back
+     *         facing polygons.
      */
     public boolean getSeparateStencilSupport() {
         return hasSeparateStencil;
     }
 
     /**
-     * Return the maximum side dimension of a Texture with targets of T_1D or
-     * T_2D.
-     * 
+     * Return the maximum side dimension of a Texture with targets of T_1D or T_2D.
+     *
      * @return Maximum size of a 1d or 2d texture
      */
     public int getMaxTextureSize() {
@@ -172,7 +168,7 @@ public class RenderCapabilities {
 
     /**
      * Return the maximum side dimension of a Texture with the target of T_3D.
-     * 
+     *
      * @return Maximum size of a 3d texture
      */
     public int getMaxTexture3DSize() {
@@ -180,9 +176,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Return the maximum side dimension of a face of a Texture with the target
-     * of T_CUBEMAP.
-     * 
+     * Return the maximum side dimension of a face of a Texture with the target of
+     * T_CUBEMAP.
+     *
      * @return Maximum size of a cube map
      */
     public int getMaxTextureCubeMapSize() {
@@ -191,7 +187,7 @@ public class RenderCapabilities {
 
     /**
      * Return the maximum dimension of any Texture used with a TextureSurface.
-     * 
+     *
      * @return Maximum dimension of a TextureSurface
      */
     public int getMaxTextureSurfaceSize() {
@@ -199,10 +195,10 @@ public class RenderCapabilities {
     }
 
     /**
-     * Return the maximum number of color buffers that can be rendered into
-     * simultaneously with a GLSL program when using a TextureSurface. An
-     * OnscreenSurface always has only one color buffer.
-     * 
+     * Return the maximum number of color buffers that can be rendered into simultaneously
+     * with a GLSL program when using a TextureSurface. An OnscreenSurface always has only
+     * one color buffer.
+     *
      * @return Number of color targets allowed for TextureSurfaces
      */
     public int getMaxColorBuffers() {
@@ -210,10 +206,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get max number of textures allowed in the vertex shader stage of a GLSL
-     * program. This will return a number <= 0 if GLSL shaders are not
-     * supported.
-     * 
+     * Get max number of textures allowed in the vertex shader stage of a GLSL program.
+     * This will return a number <= 0 if GLSL shaders are not supported.
+     *
      * @return Number of textures allowed in a vertex shader
      */
     public int getMaxVertexShaderTextures() {
@@ -221,10 +216,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the max number of textures allowed in the fragment shader of GLSL
-     * program. This will return a number <= 0 if GLSL shaders are not
-     * supported.
-     * 
+     * Get the max number of textures allowed in the fragment shader of GLSL program. This
+     * will return a number <= 0 if GLSL shaders are not supported.
+     *
      * @return Number of textures allowed in a fragment shader
      */
     public int getMaxFragmentShaderTextures() {
@@ -232,10 +226,10 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the max number of textures usable by a {@link FixedFunctionRenderer}.
-     * Textures beyond this will be ignored when using a fixed function
-     * renderer, GLSL renderers may support more available textures.
-     * 
+     * Get the max number of textures usable by a {@link FixedFunctionRenderer}. Textures
+     * beyond this will be ignored when using a fixed function renderer, GLSL renderers
+     * may support more available textures.
+     *
      * @return Total number of textures usable in fixed-function
      */
     public int getMaxFixedPipelineTextures() {
@@ -243,10 +237,10 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the max number of textures used by an entire GLSL program. This may
-     * be less than the sum of {@link #getMaxVertexShaderTextures()} and
-     * {@link #getMaxFragmentShaderTextures()}.
-     * 
+     * Get the max number of textures used by an entire GLSL program. This may be less
+     * than the sum of {@link #getMaxVertexShaderTextures()} and {@link
+     * #getMaxFragmentShaderTextures()}.
+     *
      * @return Total number of texture samplers in a GLSL program
      */
     public int getMaxCombinedTextures() {
@@ -254,11 +248,11 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the max supported level of anisotropic filtering for textures. If
-     * anisotropic filtering is not supported, this should return a number <= 0.
-     * A value of 1 in {@link Texture#getAnisotropicFilterLevel()} will be
-     * scaled by the Framework to the returned number.
-     * 
+     * Get the max supported level of anisotropic filtering for textures. If anisotropic
+     * filtering is not supported, this should return a number <= 0. A value of 1 in
+     * {@link Texture#getAnisotropicFilterLevel()} will be scaled by the Framework to the
+     * returned number.
+     *
      * @return Maximum level of anistropic filtering
      */
     public float getMaxAnisotropicLevel() {
@@ -266,9 +260,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Whether or not unclamped floating point textures are supported. If false,
-     * float texture values are clamped to be within 0 to 1.
-     * 
+     * Whether or not unclamped floating point textures are supported. If false, float
+     * texture values are clamped to be within 0 to 1.
+     *
      * @return If full floating point textures can be stored
      */
     public boolean getUnclampedFloatTextureSupport() {
@@ -277,18 +271,17 @@ public class RenderCapabilities {
 
     /**
      * Whether or not non-power of two dimensions are supported for textures.
-     * 
-     * @return If NPOT texturing is available for 1d, 2d, 3d and cube map
-     *         textures
+     *
+     * @return If NPOT texturing is available for 1d, 2d, 3d and cube map textures
      */
     public boolean getNpotTextureSupport() {
         return npotTextures;
     }
 
     /**
-     * Whether or not the S3TC extension is present. This allows for DXT1, DXT3,
-     * and DXT5 texture compression on the graphics card.
-     * 
+     * Whether or not the S3TC extension is present. This allows for DXT1, DXT3, and DXT5
+     * texture compression on the graphics card.
+     *
      * @return If DXT texture compression is supported
      */
     public boolean getS3TextureCompression() {
@@ -296,9 +289,8 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the maximum vertex attributes allowed on each vertex rendered. Should
-     * be >= 0.
-     * 
+     * Get the maximum vertex attributes allowed on each vertex rendered. Should be >= 0.
+     *
      * @return Number of vertex attributes
      */
     public int getMaxVertexAttributes() {
@@ -306,9 +298,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the maximum number of texture coordinates for each vertex. This may
-     * be different then the maximum number of textures.
-     * 
+     * Get the maximum number of texture coordinates for each vertex. This may be
+     * different then the maximum number of textures.
+     *
      * @return Number of texture coordinates
      */
     public int getMaxTextureCoordinates() {
@@ -317,7 +309,7 @@ public class RenderCapabilities {
 
     /**
      * Whether or not vertex buffers are supported.
-     * 
+     *
      * @return True if the RESIDENT_x compile options will be supported
      */
     public boolean getVertexBufferSupport() {
@@ -325,9 +317,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the maximum number of lights that can affect a rendered object at one
-     * time when using a {@link FixedFunctionRenderer}.
-     * 
+     * Get the maximum number of lights that can affect a rendered object at one time when
+     * using a {@link FixedFunctionRenderer}.
+     *
      * @return Total number of simultaneous lights
      */
     public int getMaxActiveLights() {
@@ -335,9 +327,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Whether or not this Framework can provide Renderers that implement
-     * {@link GlslRenderer}.
-     * 
+     * Whether or not this Framework can provide Renderers that implement {@link
+     * GlslRenderer}.
+     *
      * @return True if shaders can be used
      */
     public boolean hasGlslRenderer() {
@@ -345,9 +337,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Whether or not this Framework can provide Renderers that implement
-     * {@link FixedFunctionRenderer}.
-     * 
+     * Whether or not this Framework can provide Renderers that implement {@link
+     * FixedFunctionRenderer}.
+     *
      * @return True if fixed-function pipeline can be used
      */
     public boolean hasFixedFunctionRenderer() {
@@ -355,9 +347,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Whether or not offscreen surfaces can be implemented using frame buffer
-     * objects, which is significantly faster than relying on pbuffers.
-     * 
+     * Whether or not offscreen surfaces can be implemented using frame buffer objects,
+     * which is significantly faster than relying on pbuffers.
+     *
      * @return True if fbos can be used
      */
     public boolean getFboSupport() {
@@ -365,10 +357,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Whether or not pbuffers (different than pixel buffers) are supported for
-     * offscreen surfaces. Pbuffers are slower than fbos but are supported on
-     * more hardware.
-     * 
+     * Whether or not pbuffers (different than pixel buffers) are supported for offscreen
+     * surfaces. Pbuffers are slower than fbos but are supported on more hardware.
+     *
      * @return True if pbuffers can be used
      */
     public boolean getPbufferSupport() {
@@ -376,9 +367,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the vendor returned string that describes the OpenGL drivers
-     * installed on the computer.
-     * 
+     * Get the vendor returned string that describes the OpenGL drivers installed on the
+     * computer.
+     *
      * @return Implementation vendor description
      */
     public String getVendor() {
@@ -387,7 +378,7 @@ public class RenderCapabilities {
 
     /**
      * Get the OpenGL version present on the computer.
-     * 
+     *
      * @return Version to one decimal point
      */
     public float getVersion() {
@@ -395,9 +386,9 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the GLSL shading language available on the computer. If
-     * {@link #hasGlslRenderer()} returns false, this value is null.
-     * 
+     * Get the GLSL shading language available on the computer. If {@link
+     * #hasGlslRenderer()} returns false, this value is null.
+     *
      * @return Version to one decimal point
      */
     public Version getGlslVersion() {
@@ -406,7 +397,7 @@ public class RenderCapabilities {
 
     /**
      * Get the supported types of GLSL shaders available on the computer.
-     * 
+     *
      * @return Set of available shaders
      */
     public EnumSet<ShaderType> getSupportedShaderTypes() {

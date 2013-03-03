@@ -26,23 +26,17 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.util.EnumSet;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
-
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
 import com.ferox.resource.Texture.Target;
 
+import javax.media.opengl.*;
+import java.util.EnumSet;
+
 /**
  * An extension of RenderCapabilities that implements querying OpenGL via JOGL.
- * 
+ *
  * @author Michael Ludwig
  */
 public class JoglRenderCapabilities extends RenderCapabilities {
@@ -55,8 +49,8 @@ public class JoglRenderCapabilities extends RenderCapabilities {
      */
     public static final int FORCE_NO_PBUFFER = 0x2;
     /**
-     * Force the returned RenderCapabilities to report no support for
-     * programmable shaders.
+     * Force the returned RenderCapabilities to report no support for programmable
+     * shaders.
      */
     public static final int FORCE_NO_GLSL = 0x4;
 
@@ -98,7 +92,8 @@ public class JoglRenderCapabilities extends RenderCapabilities {
         version = formatVersion(gl.glGetString(GL.GL_VERSION));
 
         if (version >= 2f & !isSet(FORCE_NO_GLSL)) {
-            float glslVersionNum = formatVersion(gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION));
+            float glslVersionNum = formatVersion(
+                    gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION));
             if (glslVersionNum >= 1f && glslVersionNum < 1.3f) {
                 glslVersion = Version.V1_20;
             } else if (glslVersionNum < 1.4f) {
@@ -124,10 +119,12 @@ public class JoglRenderCapabilities extends RenderCapabilities {
 
         hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
         hasGlslRenderer = glslVersion != null;
-        pbuffersSupported = !isSet(FORCE_NO_PBUFFER) && GLDrawableFactory.getFactory(profile)
-                                                                         .canCreateGLPbuffer(null);
+        pbuffersSupported = !isSet(FORCE_NO_PBUFFER) &&
+                            GLDrawableFactory.getFactory(profile)
+                                             .canCreateGLPbuffer(null);
 
-        fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || gl.isExtensionAvailable("GL_EXT_framebuffer_object"));
+        fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || gl.isExtensionAvailable(
+                "GL_EXT_framebuffer_object"));
         if (fboSupported) {
             gl.glGetIntegerv(GL2ES2.GL_MAX_COLOR_ATTACHMENTS, store, 0);
             maxColorTargets = store[0];
@@ -135,14 +132,17 @@ public class JoglRenderCapabilities extends RenderCapabilities {
             maxColorTargets = 0;
         }
 
-        hasSeparateBlend = version >= 2f || gl.isExtensionAvailable("GL_EXT_blend_equation_separate");
-        hasSeparateStencil = version >= 2f || gl.isExtensionAvailable("GL_EXT_stencil_two_side");
+        hasSeparateBlend = version >= 2f ||
+                           gl.isExtensionAvailable("GL_EXT_blend_equation_separate");
+        hasSeparateStencil =
+                version >= 2f || gl.isExtensionAvailable("GL_EXT_stencil_two_side");
         blendSupported = version >= 1.4f;
 
         gl.glGetIntegerv(GL2ES1.GL_MAX_LIGHTS, store, 0);
         maxActiveLights = store[0];
 
-        vboSupported = version >= 1.5f || gl.isExtensionAvailable("GL_ARB_vertex_buffer_object");
+        vboSupported =
+                version >= 1.5f || gl.isExtensionAvailable("GL_ARB_vertex_buffer_object");
 
         if (hasGlslRenderer) {
             gl.glGetIntegerv(GL2ES2.GL_MAX_VERTEX_ATTRIBS, store, 0);
@@ -151,7 +151,8 @@ public class JoglRenderCapabilities extends RenderCapabilities {
             maxVertexAttributes = 0;
         }
 
-        boolean multiTexture = version >= 1.3f || gl.isExtensionAvailable("GL_ARB_multitexture");
+        boolean multiTexture =
+                version >= 1.3f || gl.isExtensionAvailable("GL_ARB_multitexture");
         if (multiTexture) {
             gl.glGetIntegerv(GL2ES1.GL_MAX_TEXTURE_UNITS, store, 0);
             maxFixedPipelineTextures = store[0];
@@ -175,13 +176,19 @@ public class JoglRenderCapabilities extends RenderCapabilities {
             maxTextureCoordinates = maxFixedPipelineTextures;
         }
 
-        npotTextures = version >= 2f || gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
+        npotTextures = version >= 2f ||
+                       gl.isExtensionAvailable("GL_ARB_texture_non_power_of_two");
         fpTextures = version >= 3f || gl.isExtensionAvailable("GL_ARB_texture_float");
         s3tcTextures = gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc");
 
-        hasDepthTextures = version >= 1.4f || (gl.isExtensionAvailable("GL_ARB_depth_texture") && gl.isExtensionAvailable("GL_ARB_shadow"));
-        hasEnvCombine = version >= 1.3f || (gl.isExtensionAvailable("GL_ARB_texture_env_combine") && gl.isExtensionAvailable("GL_ARB_texture_env_dot3"));
-        hasMirrorRepeat = version >= 1.4f || gl.isExtensionAvailable("GL_ARB_texture_mirrored_repeat");
+        hasDepthTextures = version >= 1.4f ||
+                           (gl.isExtensionAvailable("GL_ARB_depth_texture") &&
+                            gl.isExtensionAvailable("GL_ARB_shadow"));
+        hasEnvCombine = version >= 1.3f ||
+                        (gl.isExtensionAvailable("GL_ARB_texture_env_combine") &&
+                         gl.isExtensionAvailable("GL_ARB_texture_env_dot3"));
+        hasMirrorRepeat = version >= 1.4f ||
+                          gl.isExtensionAvailable("GL_ARB_texture_mirrored_repeat");
         hasClampEdge = version >= 1.2f;
 
         if (gl.isExtensionAvailable("GL_EXT_texture_filter_anisotropic")) {
@@ -191,8 +198,10 @@ public class JoglRenderCapabilities extends RenderCapabilities {
             maxAnisoLevel = 0f;
         }
 
-        boolean hasCubeMaps = version >= 1.3f || gl.isExtensionAvailable("GL_ARB_texture_cube_map");
-        boolean has3dTextures = version >= 1.2f || gl.isExtensionAvailable("GL_EXT_texture_3d");
+        boolean hasCubeMaps =
+                version >= 1.3f || gl.isExtensionAvailable("GL_ARB_texture_cube_map");
+        boolean has3dTextures =
+                version >= 1.2f || gl.isExtensionAvailable("GL_EXT_texture_3d");
         supportedTargets = EnumSet.of(Target.T_1D, Target.T_2D);
         if (hasCubeMaps) {
             supportedTargets.add(Target.T_CUBEMAP);

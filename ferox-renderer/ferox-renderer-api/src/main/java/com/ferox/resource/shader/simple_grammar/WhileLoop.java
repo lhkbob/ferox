@@ -1,11 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
-import com.ferox.resource.shader.WhileBuilder;
+import com.ferox.resource.shader.*;
 
 public class WhileLoop implements Statement {
     private final Expression condition;
@@ -20,7 +15,8 @@ public class WhileLoop implements Statement {
     public Environment validate(Environment environment) {
         environment = condition.validate(environment);
         if (!condition.getType(environment).equals(PrimitiveType.BOOL)) {
-            throw new IllegalStateException("Loop condition expression must evaluate to a boolean");
+            throw new IllegalStateException(
+                    "Loop condition expression must evaluate to a boolean");
         }
 
         // validate loop body

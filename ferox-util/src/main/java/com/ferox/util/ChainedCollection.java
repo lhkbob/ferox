@@ -31,25 +31,26 @@ import java.util.Collection;
 import java.util.Iterator;
 
 /**
- * ChainedCollection is a utility collection that allows you to chain 1+
- * collections together of a common type to act as a single, ordered collection.
- * It is a view over its children collections and updates to them are reflected
- * in it. It's iterator supports removals only if the underlying collections'
- * iterators support removals. Similarly, it is fail-fast only if it's
- * underlying collections are fail-fast.
- * 
- * @author Michael Ludwig.
+ * ChainedCollection is a utility collection that allows you to chain 1+ collections
+ * together of a common type to act as a single, ordered collection. It is a view over its
+ * children collections and updates to them are reflected in it. It's iterator supports
+ * removals only if the underlying collections' iterators support removals. Similarly, it
+ * is fail-fast only if it's underlying collections are fail-fast.
+ *
  * @param <T> The common type of a ChainedCollection's collections
+ *
+ * @author Michael Ludwig.
  */
 public class ChainedCollection<T> extends AbstractCollection<T> {
     private final Collection<? extends T>[] chain;
 
     /**
-     * Create a ChainedCollection chaining <tt>c1</tt> and <tt>c2</tt>. The
-     * elements in c1 will be before the elements in c2.
-     * 
+     * Create a ChainedCollection chaining <tt>c1</tt> and <tt>c2</tt>. The elements in c1
+     * will be before the elements in c2.
+     *
      * @param c1 The first child in the chain
      * @param c2 The second child in the chain
+     *
      * @throws NullPointerException if c1 or c2 are null
      */
     @SuppressWarnings("unchecked")
@@ -57,17 +58,17 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
         if (c1 == null || c2 == null) {
             throw new NullPointerException("Collections cannot be null");
         }
-        chain = new Collection[] {c1, c2};
+        chain = new Collection[] { c1, c2 };
     }
 
     /**
-     * Create a ChainedCollection that chains together all collections currently
-     * within <tt>toChain</tt>. The collections are ordered as they are returned
-     * from <tt>toChain</tt>. This ordering will be consistent across the
-     * ChainedCollection's iterators, although within-child iterators are not
-     * guaranteed.
-     * 
+     * Create a ChainedCollection that chains together all collections currently within
+     * <tt>toChain</tt>. The collections are ordered as they are returned from
+     * <tt>toChain</tt>. This ordering will be consistent across the ChainedCollection's
+     * iterators, although within-child iterators are not guaranteed.
+     *
      * @param toChain The collection of collections to chain
+     *
      * @throws NullPointerException if toChain or any of its elements are null
      */
     @SuppressWarnings("unchecked")

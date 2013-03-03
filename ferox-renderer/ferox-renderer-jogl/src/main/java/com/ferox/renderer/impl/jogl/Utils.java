@@ -26,28 +26,8 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GL3;
-
-import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
-import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
-import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
-import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
-import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
-import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilUpdate;
+import com.ferox.renderer.FixedFunctionRenderer.*;
+import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.ContextManager;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.GlslShader.AttributeType;
@@ -59,18 +39,21 @@ import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
 import com.ferox.resource.TextureFormat;
 
+import javax.media.opengl.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 /**
- * Utils provides conversions for the commonly used enums in Resources and
- * Renderers to their appropriate GL enum values, as well as some other useful
- * utilities.
- * 
+ * Utils provides conversions for the commonly used enums in Resources and Renderers to
+ * their appropriate GL enum values, as well as some other useful utilities.
+ *
  * @author Michael Ludwig
  */
 public class Utils {
     /**
-     * Return the UniformType enum value associated with the returned GL2 enum
-     * for uniform variable type. Returns null if there's no matching
-     * UniformType.
+     * Return the UniformType enum value associated with the returned GL2 enum for uniform
+     * variable type. Returns null if there's no matching UniformType.
      */
     public static UniformType getUniformType(int type) {
         switch (type) {
@@ -118,9 +101,8 @@ public class Utils {
     }
 
     /**
-     * Return the AttributeType enum value associated with the returned GL2 enum
-     * for attribute variable type. Returns null if there's no matching
-     * AttributeType.
+     * Return the AttributeType enum value associated with the returned GL2 enum for
+     * attribute variable type. Returns null if there's no matching AttributeType.
      */
     public static AttributeType getAttributeType(int type) {
         switch (type) {
@@ -159,7 +141,9 @@ public class Utils {
         }
     }
 
-    /** EffectType can't be null. */
+    /**
+     * EffectType can't be null.
+     */
     public static int getGLPolygonConnectivity(PolygonType type) {
         switch (type) {
         case LINES:
@@ -177,7 +161,9 @@ public class Utils {
         return -1;
     }
 
-    /** Test must not be null. */
+    /**
+     * Test must not be null.
+     */
     public static int getGLPixelTest(Comparison test) {
         switch (test) {
         case ALWAYS:
@@ -202,8 +188,8 @@ public class Utils {
     }
 
     /**
-     * Return the gl enum associated with the given filter for minification.
-     * filter must not be null.
+     * Return the gl enum associated with the given filter for minification. filter must
+     * not be null.
      */
     public static int getGLMinFilter(Filter filter) {
         switch (filter) {
@@ -221,8 +207,8 @@ public class Utils {
     }
 
     /**
-     * Return the gl enum associated with the given filter for magnification.
-     * filter must not be null.
+     * Return the gl enum associated with the given filter for magnification. filter must
+     * not be null.
      */
     public static int getGLMagFilter(Filter filter) {
         switch (filter) {
@@ -237,7 +223,9 @@ public class Utils {
         return -1;
     }
 
-    /** Wrap must not be null. */
+    /**
+     * Wrap must not be null.
+     */
     public static int getGLWrapMode(WrapMode wrap) {
         switch (wrap) {
         case CLAMP:
@@ -253,7 +241,9 @@ public class Utils {
         }
     }
 
-    /** Face must be one of the constants in TextureCubeMap (0 - 5). */
+    /**
+     * Face must be one of the constants in TextureCubeMap (0 - 5).
+     */
     public static int getGLCubeFace(int face) {
         switch (face) {
         case Texture.PX:
@@ -273,7 +263,9 @@ public class Utils {
         return -1;
     }
 
-    /** Target must not be null. */
+    /**
+     * Target must not be null.
+     */
     public static int getGLTextureTarget(Target tar) {
         switch (tar) {
         case T_1D:
@@ -290,8 +282,8 @@ public class Utils {
     }
 
     /**
-     * Format must not be null. Returns an enum for the src format in
-     * glTexImage. Returns -1 for compressed formats.
+     * Format must not be null. Returns an enum for the src format in glTexImage. Returns
+     * -1 for compressed formats.
      */
     public static int getGLSrcFormat(TextureFormat format) {
         switch (format) {
@@ -305,7 +297,7 @@ public class Utils {
         case RGBA_8888:
             return GL.GL_RGBA;
 
-            // packed of the BGRA variety (packed type distinguishes them)
+        // packed of the BGRA variety (packed type distinguishes them)
         case ARGB_1555:
         case ARGB_4444:
         case ARGB_8888:
@@ -315,35 +307,35 @@ public class Utils {
         case BGRA_8888:
             return GL.GL_BGRA;
 
-            // packed and unpacked RGB types
+        // packed and unpacked RGB types
         case RGB:
         case RGB_565:
         case RGB_FLOAT:
             return GL.GL_RGB;
 
-            // packed and unpacked BGR types
+        // packed and unpacked BGR types
         case BGR:
             return GL2GL3.GL_BGR;
         case BGR_565:
             return GL.GL_RGB; // type swaps the ordering
 
-            // unpacked RGBA and BGRA types
+        // unpacked RGBA and BGRA types
         case RGBA:
         case RGBA_FLOAT:
             return GL.GL_RGBA;
         case BGRA:
             return GL.GL_BGRA;
 
-            // depth formats
+        // depth formats
         case DEPTH:
             return GL2ES2.GL_DEPTH_COMPONENT;
 
-            // red formats
+        // red formats
         case R:
         case R_FLOAT:
             return GL.GL_ALPHA;
 
-            // RG formats
+        // RG formats
         case RG:
         case RG_FLOAT:
             return GL.GL_LUMINANCE_ALPHA;
@@ -353,8 +345,7 @@ public class Utils {
     }
 
     /**
-     * Format and type can't be null. Returns an enum for the dst format in
-     * glTexImage.
+     * Format and type can't be null. Returns an enum for the dst format in glTexImage.
      */
     public static int getGLDstFormat(TextureFormat format, DataType type) {
         switch (format) {
@@ -365,26 +356,26 @@ public class Utils {
         case BGRA_5551:
             return GL.GL_RGB5_A1;
 
-            // packed RGBA4
+        // packed RGBA4
         case ABGR_4444:
         case ARGB_4444:
         case RGBA_4444:
         case BGRA_4444:
             return GL.GL_RGBA4;
 
-            // packed RGBA8
+        // packed RGBA8
         case ABGR_8888:
         case ARGB_8888:
         case RGBA_8888:
         case BGRA_8888:
             return GL.GL_RGBA8;
 
-            // packed RGB8
+        // packed RGB8
         case RGB_565:
         case BGR_565:
             return GL2GL3.GL_RGB5;
 
-            // unclamped floating point
+        // unclamped floating point
         case RGB_FLOAT:
             return GL.GL_RGB32F;
         case RGBA_FLOAT:
@@ -394,7 +385,7 @@ public class Utils {
         case RG_FLOAT:
             return GL2.GL_LUMINANCE_ALPHA32F;
 
-            // DXT_n compression
+        // DXT_n compression
         case RGB_DXT1:
             return GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
         case RGBA_DXT1:
@@ -404,8 +395,8 @@ public class Utils {
         case RGBA_DXT5:
             return GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 
-            // if we've gotten here, we have a type-less format, and have to
-            // take the type into account
+        // if we've gotten here, we have a type-less format, and have to
+        // take the type into account
         case R:
             if (type == DataType.BYTE) {
                 return GL2.GL_ALPHA8;
@@ -456,9 +447,9 @@ public class Utils {
     }
 
     /**
-     * Format must not be null. Returns an appropriate data type for packed
-     * source format. Returns -1 if it's not a packed type. These are chosen
-     * with the assumption of big-endian byte ordering.
+     * Format must not be null. Returns an appropriate data type for packed source format.
+     * Returns -1 if it's not a packed type. These are chosen with the assumption of
+     * big-endian byte ordering.
      */
     public static int getGLPackedType(TextureFormat format) {
         switch (format) {
@@ -473,7 +464,7 @@ public class Utils {
         case ARGB_8888:
             return GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
 
-            // packed BGRA and RGBA types
+        // packed BGRA and RGBA types
         case BGRA_5551:
         case RGBA_5551:
             return GL.GL_UNSIGNED_SHORT_5_5_5_1;
@@ -484,7 +475,7 @@ public class Utils {
         case RGBA_8888:
             return GL2GL3.GL_UNSIGNED_INT_8_8_8_8;
 
-            // packed BGR and RGB types
+        // packed BGR and RGB types
         case BGR_565:
             return GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV;
         case RGB_565:
@@ -512,7 +503,9 @@ public class Utils {
         return -1;
     }
 
-    /** Func must not be null. */
+    /**
+     * Func must not be null.
+     */
     public static int getGLBlendEquation(BlendFunction func) {
         switch (func) {
         case ADD:
@@ -530,7 +523,9 @@ public class Utils {
         return -1;
     }
 
-    /** Src must not be null. */
+    /**
+     * Src must not be null.
+     */
     public static int getGLBlendFactor(BlendFactor src) {
         switch (src) {
         case ZERO:
@@ -568,7 +563,9 @@ public class Utils {
         }
     }
 
-    /** Op must not be null. */
+    /**
+     * Op must not be null.
+     */
     public static int getGLStencilOp(StencilUpdate op, boolean wrapSupported) {
         switch (op) {
         case DECREMENT:
@@ -593,8 +590,7 @@ public class Utils {
     }
 
     /**
-     * Should not be called with ATTRIBUTE or null, as nothing parallels its
-     * meaning.
+     * Should not be called with ATTRIBUTE or null, as nothing parallels its meaning.
      */
     public static int getGLTexGen(TexCoordSource gen) {
         switch (gen) {
@@ -613,7 +609,9 @@ public class Utils {
         }
     }
 
-    /** Coord must be null */
+    /**
+     * Coord must be null
+     */
     public static int getGLTexCoord(TexCoord coord, boolean forEnable) {
         switch (coord) {
         case Q:
@@ -629,7 +627,9 @@ public class Utils {
         return -1;
     }
 
-    /** Func must not be null. */
+    /**
+     * Func must not be null.
+     */
     public static int getGLCombineFunc(CombineFunction func) {
         switch (func) {
         case ADD:
@@ -653,7 +653,9 @@ public class Utils {
         return -1;
     }
 
-    /** Op must not be null. */
+    /**
+     * Op must not be null.
+     */
     public static int getGLCombineOp(CombineOperand op) {
         switch (op) {
         case ALPHA:
@@ -669,7 +671,9 @@ public class Utils {
         return -1;
     }
 
-    /** Src must not be null. */
+    /**
+     * Src must not be null.
+     */
     public static int getGLCombineSrc(CombineSource src) {
         switch (src) {
         case CONST_COLOR:
@@ -750,11 +754,10 @@ public class Utils {
     }
 
     /**
-     * Utility method to invoke a Runnable on the context-thread of the given
-     * framework. This will throw a runtime exception if a problem occurs. It
-     * works properly if called from the context thread. This should be used
-     * when EventQueue.invokeAndWait() or SwingUtilities.invokeAndWait() would
-     * be used, except that this is thread safe.
+     * Utility method to invoke a Runnable on the context-thread of the given framework.
+     * This will throw a runtime exception if a problem occurs. It works properly if
+     * called from the context thread. This should be used when EventQueue.invokeAndWait()
+     * or SwingUtilities.invokeAndWait() would be used, except that this is thread safe.
      */
     public static void invokeOnContextThread(ContextManager cm, final Runnable r,
                                              boolean block) {

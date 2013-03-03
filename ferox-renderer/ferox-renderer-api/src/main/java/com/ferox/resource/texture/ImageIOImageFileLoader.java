@@ -26,18 +26,17 @@
  */
 package com.ferox.resource.texture;
 
+import com.ferox.resource.Texture;
+
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.imageio.ImageIO;
-
-import com.ferox.resource.Texture;
-
 /**
- * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files
- * (this depends on the ImageIO loaders present on a given system).
- * 
+ * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this
+ * depends on the ImageIO loaders present on a given system).
+ *
  * @author Michael Ludwig
  */
 public class ImageIOImageFileLoader implements ImageFileLoader {

@@ -26,16 +26,12 @@
  */
 package com.ferox.renderer.impl;
 
-import java.util.Arrays;
-
 import com.ferox.math.Vector4;
-import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Renderer.StencilUpdate;
+import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.Surface;
 import com.ferox.resource.VertexBufferObject;
+
+import java.util.Arrays;
 
 public class RendererState {
     public static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
@@ -112,7 +108,7 @@ public class RendererState {
 
         blendEnabled = false;
 
-        colorMask = new boolean[] {true, true, true, true};
+        colorMask = new boolean[] { true, true, true, true };
 
         depthOffsetFactor = 0;
         depthOffsetUnits = 0;

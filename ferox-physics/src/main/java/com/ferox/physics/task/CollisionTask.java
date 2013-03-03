@@ -26,9 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.Collections;
-import java.util.Set;
-
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
@@ -43,6 +40,9 @@ import com.lhkbob.entreri.task.ElapsedTimeResult;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
+
+import java.util.Collections;
+import java.util.Set;
 
 public abstract class CollisionTask implements Task {
     private final CollisionAlgorithmProvider algorithms;
@@ -91,30 +91,27 @@ public abstract class CollisionTask implements Task {
         job.report(new ConstraintResult(frictionGroup));
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void notifyPotentialContact(CollisionBody bodyA, CollisionBody bodyB) {
         // test collision groups and masks
         if (!bodyA.canCollide(bodyB)) {
             return;
         }
         // collisions must have at least one rigid body to act on
-        if (bodyA.getEntity().get(RigidBody.class) == null && bodyB.getEntity()
-                                                                   .get(RigidBody.class) == null) {
+        if (bodyA.getEntity().get(RigidBody.class) == null &&
+            bodyB.getEntity().get(RigidBody.class) == null) {
             return;
         }
 
         // get the appropriate algorithm
-        CollisionAlgorithm algorithm = algorithms.getAlgorithm(bodyA.getShape()
-                                                                    .getClass(),
-                                                               bodyB.getShape()
-                                                                    .getClass());
+        CollisionAlgorithm algorithm = algorithms
+                .getAlgorithm(bodyA.getShape().getClass(), bodyB.getShape().getClass());
 
         if (algorithm != null) {
             // compute closest pair between the two shapes
-            ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(),
-                                                        bodyA.getTransform(),
-                                                        bodyB.getShape(),
-                                                        bodyB.getTransform());
+            ClosestPair pair = algorithm
+                    .getClosestPair(bodyA.getShape(), bodyA.getTransform(),
+                                    bodyB.getShape(), bodyB.getTransform());
 
             if (pair != null && pair.isIntersecting()) {
                 // add to manifold only when there is an intersection

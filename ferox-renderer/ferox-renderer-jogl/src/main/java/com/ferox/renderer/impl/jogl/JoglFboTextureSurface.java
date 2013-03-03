@@ -26,13 +26,6 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.util.Map.Entry;
-import java.util.WeakHashMap;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
@@ -41,12 +34,17 @@ import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.resource.Texture.Target;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2GL3;
+import java.util.Map.Entry;
+import java.util.WeakHashMap;
+
 /**
- * JoglFboTextureSurface is a TextureSurface that uses FBOs to render into
- * textures. Because it uses FBOs it will not have its own JoglContext and is
- * instead attached to a context providing surface each time the surface must be
- * used.
- * 
+ * JoglFboTextureSurface is a TextureSurface that uses FBOs to render into textures.
+ * Because it uses FBOs it will not have its own JoglContext and is instead attached to a
+ * context providing surface each time the surface must be used.
+ *
  * @author Michael Ludwig
  */
 public class JoglFboTextureSurface extends AbstractTextureSurface {
@@ -126,10 +124,12 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
 
         public FrameBufferObject(JoglContext context) {
             if (context == null) {
-                throw new FrameworkException("FramebufferObject's can only be constructed when there's a current context");
+                throw new FrameworkException(
+                        "FramebufferObject's can only be constructed when there's a current context");
             }
             if (!context.getRenderCapabilities().getFboSupport()) {
-                throw new FrameworkException("Current hardware doesn't support the creation of fbos");
+                throw new FrameworkException(
+                        "Current hardware doesn't support the creation of fbos");
             }
 
             GL2GL3 gl = getGL(context);
@@ -144,7 +144,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
             fboId = id[0];
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
 
-            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(0) : Utils.getGLTextureTarget(target));
+            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(0) : Utils
+                    .getGLTextureTarget(target));
             TextureHandle depth = (TextureHandle) getDepthHandle();
             if (depth != null) {
                 // attach the depth texture
@@ -163,7 +164,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
                     destroy();
-                    throw new FrameworkException("Error creating a new FBO, not enough memory for the depth RenderBuffer");
+                    throw new FrameworkException(
+                            "Error creating a new FBO, not enough memory for the depth RenderBuffer");
                 } else {
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
                 }
@@ -229,7 +231,9 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
             context.bindFbo(gl, fboId);
 
             // possibly re-attach the images (in the case of cubemaps or 3d textures)
-            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(target));
+            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
+                                                       : Utils
+                                    .getGLTextureTarget(target));
             if (layer != boundLayer) {
                 if (colorImageIds != null) {
                     for (int i = 0; i < colorImageIds.length; i++) {
@@ -248,14 +252,15 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
 
         public void destroyFBO(JoglContext context) {
             GL2GL3 gl = getGL(context);
-            gl.glDeleteFramebuffers(1, new int[] {fboId}, 0);
+            gl.glDeleteFramebuffers(1, new int[] { fboId }, 0);
             if (renderBufferId != 0) {
-                gl.glDeleteRenderbuffers(1, new int[] {renderBufferId}, 0);
+                gl.glDeleteRenderbuffers(1, new int[] { renderBufferId }, 0);
             }
         }
 
         // Attach the given texture image to the currently bound fbo (on target FRAMEBUFFER)
-        private void attachImage(GL2GL3 gl, int target, int id, int layer, int attachment) {
+        private void attachImage(GL2GL3 gl, int target, int id, int layer,
+                                 int attachment) {
             switch (target) {
             case GL2GL3.GL_TEXTURE_1D:
                 gl.glFramebufferTexture1D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);

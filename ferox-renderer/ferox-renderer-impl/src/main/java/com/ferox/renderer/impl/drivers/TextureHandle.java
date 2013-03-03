@@ -36,9 +36,9 @@ import com.ferox.resource.Texture.WrapMode;
 import com.ferox.resource.TextureFormat;
 
 /**
- * TextureHandle is the handle that represents the persisted state of a Texture,
- * and is used by any {@link AbstractTextureResourceDriver}.
- * 
+ * TextureHandle is the handle that represents the persisted state of a Texture, and is
+ * used by any {@link AbstractTextureResourceDriver}.
+ *
  * @author Michael Ludwig
  */
 public class TextureHandle {

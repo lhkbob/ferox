@@ -30,26 +30,21 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
 /**
- * <p>
- * Matrix3 provides an implementation of a 3-by-3 mathematical matrix with many
- * common operations available from linear algebra. It's 9 components are
- * exposed as public fields for performance reasons. This means vectors are
- * always mutable. The first number in the field name is the row, the second is
- * the column.
- * </p>
- * <p>
- * The {@link Const} annotation can be used the same way that the 'const' token
- * can modify a type in C++. On input, it declares the method will not modify
- * that instance; on output, it declares that the returned instance should not
- * be modified (internal code might still modify it in some controlled manner).
- * </p>
- * <p>
- * In all mathematical functions whose result is a matrix, the Matrix3 calling
- * the method will contain the result. The input matrices will be left
- * unmodified. It is safe for the calling matrix to be any matrix parameter into
- * the function.
- * </p>
- * 
+ * <p/>
+ * Matrix3 provides an implementation of a 3-by-3 mathematical matrix with many common
+ * operations available from linear algebra. It's 9 components are exposed as public
+ * fields for performance reasons. This means vectors are always mutable. The first number
+ * in the field name is the row, the second is the column.
+ * <p/>
+ * The {@link Const} annotation can be used the same way that the 'const' token can modify
+ * a type in C++. On input, it declares the method will not modify that instance; on
+ * output, it declares that the returned instance should not be modified (internal code
+ * might still modify it in some controlled manner).
+ * <p/>
+ * In all mathematical functions whose result is a matrix, the Matrix3 calling the method
+ * will contain the result. The input matrices will be left unmodified. It is safe for the
+ * calling matrix to be any matrix parameter into the function.
+ *
  * @author Michael Ludwig
  */
 public final class Matrix3 implements Cloneable {
@@ -66,8 +61,9 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Create a new matrix that copies the values from <tt>m</tt>.
-     * 
+     *
      * @param m The matrix to copy
+     *
      * @throws NullPointerException if m is null
      */
     public Matrix3(@Const Matrix3 m) {
@@ -76,7 +72,7 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Create a new matrix with the given 9 component values.
-     * 
+     *
      * @param m00
      * @param m01
      * @param m02
@@ -87,8 +83,8 @@ public final class Matrix3 implements Cloneable {
      * @param m21
      * @param m22
      */
-    public Matrix3(double m00, double m01, double m02, double m10, double m11,
-                   double m12, double m20, double m21, double m22) {
+    public Matrix3(double m00, double m01, double m02, double m10, double m11, double m12,
+                   double m20, double m21, double m22) {
         set(m00, m01, m02, m10, m11, m12, m20, m21, m22);
     }
 
@@ -99,10 +95,12 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Compute <code>a + b</code> and store the result in this matrix.
-     * 
+     *
      * @param a The left side of the addition
      * @param b The right side of the addition
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a or b are null
      */
     public Matrix3 add(@Const Matrix3 a, @Const Matrix3 b) {
@@ -113,10 +111,12 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Add the constant to each of a's components and store it in this matrix.
-     * 
+     *
      * @param a The base matrix
      * @param c Constant factor added to each of matrix value
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a is null
      */
     public Matrix3 add(@Const Matrix3 a, double c) {
@@ -125,10 +125,10 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set this matrix to be a rotation about the X axis by the given radian
-     * amount.
-     * 
+     * Set this matrix to be a rotation about the X axis by the given radian amount.
+     *
      * @param radians The rotation amount about the X axis
+     *
      * @return This matrix
      */
     public Matrix3 rotateX(double radians) {
@@ -138,10 +138,10 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set this matrix to be a rotation about the Y axis by the given radian
-     * amount.
-     * 
+     * Set this matrix to be a rotation about the Y axis by the given radian amount.
+     *
      * @param radians The rotation amount about the Y axis
+     *
      * @return This matrix
      */
     public Matrix3 rotateY(double radians) {
@@ -151,10 +151,10 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set this matrix to be a rotation about the Z axis by the given radian
-     * amount.
-     * 
+     * Set this matrix to be a rotation about the Z axis by the given radian amount.
+     *
      * @param radians The rotation amount about the Z axis
+     *
      * @return This matrix
      */
     public Matrix3 rotateZ(double radians) {
@@ -164,11 +164,10 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Compute and return the determinant for this matrix. If this value is 0,
-     * then the matrix is not invertible. If it is very close to 0, then the
-     * matrix may be ill-formed and inversions, multiplications and linear
-     * solving could be inaccurate.
-     * 
+     * Compute and return the determinant for this matrix. If this value is 0, then the
+     * matrix is not invertible. If it is very close to 0, then the matrix may be
+     * ill-formed and inversions, multiplications and linear solving could be inaccurate.
+     *
      * @return The matrix's determinant
      */
     public double determinant() {
@@ -180,12 +179,12 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Compute the inverse of <tt>a</tt> and store the inverted matrix in this
-     * matrix.
-     * 
+     * Compute the inverse of <tt>a</tt> and store the inverted matrix in this matrix.
+     *
      * @param a The matrix whose inverse is computed
+     *
      * @throws NullPointerException if a is null
-     * @throws ArithmeticException if this matrix isn't invertible
+     * @throws ArithmeticException  if this matrix isn't invertible
      */
     public Matrix3 inverse(@Const Matrix3 a) {
         double invDet = a.determinant();
@@ -211,9 +210,9 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Compute and return the length of this matrix. The length of a matrix is
-     * defined as the square root of the sum of the squared matrix values.
-     * 
+     * Compute and return the length of this matrix. The length of a matrix is defined as
+     * the square root of the sum of the squared matrix values.
+     *
      * @return The matrix's length
      */
     public double length() {
@@ -226,10 +225,12 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Compute <code>a X b</code> and store the result in this matrix.
-     * 
+     *
      * @param a The left side of the multiplication
      * @param b The right side of the multiplication
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a or b are null
      */
     public Matrix3 mul(@Const Matrix3 a, @Const Matrix3 b) {
@@ -245,13 +246,15 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Multiply <tt>a</tt> by the diagonal matrix that takes it's three diagonal
-     * entries from <tt>b</tt>, or compute <code>[a] X [m]</code>, where [m] is
-     * all 0s except m00 = b.x, m11 = b.y, and m22 = b.z.
-     * 
+     * Multiply <tt>a</tt> by the diagonal matrix that takes it's three diagonal entries
+     * from <tt>b</tt>, or compute <code>[a] X [m]</code>, where [m] is all 0s except m00
+     * = b.x, m11 = b.y, and m22 = b.z.
+     *
      * @param a The left matrix in the multiplication
      * @param b Vector holding the three diagonal entries of the other matrix
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a or b are null
      */
     public Matrix3 mulDiagonal(@Const Matrix3 a, @Const Vector3 b) {
@@ -260,17 +263,17 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * <p>
-     * Multiply the transpose of <tt>a</tt> by the transpose of <tt>b</tt>, or
-     * compute <code>[a]^T x [b]^T</code> and store it in this matrix.
-     * </p>
-     * <p>
+     * <p/>
+     * Multiply the transpose of <tt>a</tt> by the transpose of <tt>b</tt>, or compute
+     * <code>[a]^T x [b]^T</code> and store it in this matrix.
+     * <p/>
      * Note that <code>[a]^T x [b]^T = ([b] x [a])^T</code>
-     * </p>
-     * 
+     *
      * @param a The left side of the multiplication
      * @param b The right side of the multiplication
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a or b are null
      */
     public Matrix3 mulTransposeBoth(@Const Matrix3 a, @Const Matrix3 b) {
@@ -280,10 +283,12 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Compute <code>[a]^T x [b]</code> and store the result in this matrix.
-     * 
+     *
      * @param a The left side of the multiplication, transposed
      * @param b The right side of the multiplication
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a or b are null
      */
     public Matrix3 mulTransposeLeft(@Const Matrix3 a, @Const Matrix3 b) {
@@ -300,10 +305,12 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Compute <code>[a] x [b]^T</code> and store the result in this matrix.
-     * 
+     *
      * @param a The left side of the multiplication
      * @param b The right side of the multiplication, transposed
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a or b are null
      */
     public Matrix3 mulTransposeRight(@Const Matrix3 a, @Const Matrix3 b) {
@@ -319,12 +326,14 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Scale each of <tt>a</tt>'s values by the scalar and store it in this
-     * matrix. This effectively computes <code>scalar x [a]</code>
-     * 
-     * @param a The matrix to scale
+     * Scale each of <tt>a</tt>'s values by the scalar and store it in this matrix. This
+     * effectively computes <code>scalar x [a]</code>
+     *
+     * @param a      The matrix to scale
      * @param scalar Scale factor applied to each matrix value
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a is null
      */
     public Matrix3 scale(@Const Matrix3 a, double scalar) {
@@ -334,9 +343,9 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Compute the trace of this matrix. The trace is defined as the sum of the
-     * diagonal entries of the matrix.
-     * 
+     * Compute the trace of this matrix. The trace is defined as the sum of the diagonal
+     * entries of the matrix.
+     *
      * @return The matrix's trace
      */
     public double trace() {
@@ -345,9 +354,11 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Transpose <tt>a</tt> and store the result in this matrix.
-     * 
+     *
      * @param a The matrix to transpose
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if a is null
      */
     public Matrix3 transpose(@Const Matrix3 a) {
@@ -355,11 +366,12 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #add(Matrix3, Matrix3)} with the first parameter being this
-     * matrix.
-     * 
+     * As {@link #add(Matrix3, Matrix3)} with the first parameter being this matrix.
+     *
      * @param r
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if r is null
      */
     public Matrix3 add(@Const Matrix3 r) {
@@ -367,10 +379,10 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #add(Matrix3, double)} with the first parameter being this
-     * matrix.
-     * 
+     * As {@link #add(Matrix3, double)} with the first parameter being this matrix.
+     *
      * @param c
+     *
      * @return This matrix
      */
     public Matrix3 add(double c) {
@@ -378,10 +390,11 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Inverse this matrix in place, equivalent to {@link #inverse(Matrix3)}
-     * with the first parameter being this matrix.
-     * 
+     * Inverse this matrix in place, equivalent to {@link #inverse(Matrix3)} with the
+     * first parameter being this matrix.
+     *
      * @return This matrix
+     *
      * @throws ArithmeticException if this matrix isn't invertible
      */
     public Matrix3 inverse() {
@@ -389,11 +402,12 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #mul(Matrix3, Matrix3)} with the first parameter being this
-     * matrix.
-     * 
+     * As {@link #mul(Matrix3, Matrix3)} with the first parameter being this matrix.
+     *
      * @param r
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if r is null
      */
     public Matrix3 mul(@Const Matrix3 r) {
@@ -401,11 +415,13 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #mulDiagonal(Matrix3, Vector3)} with the first parameter being
-     * this matrix.
-     * 
+     * As {@link #mulDiagonal(Matrix3, Vector3)} with the first parameter being this
+     * matrix.
+     *
      * @param diag
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if diag is null
      */
     public Matrix3 mulDiagonal(Vector3 diag) {
@@ -413,11 +429,13 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeBoth(Matrix3, Matrix3)} with the first parameter
-     * being this matrix.
-     * 
+     * As {@link #mulTransposeBoth(Matrix3, Matrix3)} with the first parameter being this
+     * matrix.
+     *
      * @param r
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if r is null
      */
     public Matrix3 mulTransposeBoth(Matrix3 r) {
@@ -425,11 +443,13 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeLeft(Matrix3, Matrix3)} with the first parameter
-     * being this matrix.
-     * 
+     * As {@link #mulTransposeLeft(Matrix3, Matrix3)} with the first parameter being this
+     * matrix.
+     *
      * @param r
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if r is null
      */
     public Matrix3 mulTransposeLeft(Matrix3 r) {
@@ -437,11 +457,13 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeRight(Matrix3, Matrix3)} with the first parameter
-     * being this matrix.
-     * 
+     * As {@link #mulTransposeRight(Matrix3, Matrix3)} with the first parameter being this
+     * matrix.
+     *
      * @param r
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if r is null
      */
     public Matrix3 mulTransposeRight(Matrix3 r) {
@@ -449,10 +471,10 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #scale(Matrix3, double)} with the first parameter being this
-     * matrix.
-     * 
+     * As {@link #scale(Matrix3, double)} with the first parameter being this matrix.
+     *
      * @param scalar
+     *
      * @return This matrix
      */
     public Matrix3 scale(double scalar) {
@@ -460,9 +482,9 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Transpose this matrix in place, equivalent to {@link #transpose(Matrix3)}
-     * with the first parameter being this matrix.
-     * 
+     * Transpose this matrix in place, equivalent to {@link #transpose(Matrix3)} with the
+     * first parameter being this matrix.
+     *
      * @return This matrix
      */
     public Matrix3 transpose() {
@@ -470,13 +492,15 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set this Matrix3 to be the rotation matrix representing the same rotation
-     * stored by <tt>q</tt>.
-     * 
+     * Set this Matrix3 to be the rotation matrix representing the same rotation stored by
+     * <tt>q</tt>.
+     *
      * @param q The quaternion to convert to matrix form
+     *
      * @return This matrix for chaining
+     *
      * @throws NullPointerException if q is null
-     * @throws ArithmeticException if the length of q is 0
+     * @throws ArithmeticException  if the length of q is 0
      */
     public Matrix3 set(@Const Quat4 q) {
         double d = q.lengthSquared();
@@ -496,11 +520,13 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set this matrix to the upper 3x3 matrix stored in <tt>m</tt>. The 4th row
-     * and column of <tt>m</tt> are ignored.
-     * 
+     * Set this matrix to the upper 3x3 matrix stored in <tt>m</tt>. The 4th row and
+     * column of <tt>m</tt> are ignored.
+     *
      * @param m The matrix whose upper 3x3 is copied
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if m is null
      */
     public Matrix3 setUpper(@Const Matrix4 m) {
@@ -508,13 +534,15 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set the matrix component at the given row and column to value. Both row
-     * and col must be in [0, 2].
-     * 
-     * @param row The matrix row, in [0, 2]
-     * @param col The matrix column, in [0, 2]
+     * Set the matrix component at the given row and column to value. Both row and col
+     * must be in [0, 2].
+     *
+     * @param row   The matrix row, in [0, 2]
+     * @param col   The matrix column, in [0, 2]
      * @param value The new value for m[row][col]
+     *
      * @return This matrix
+     *
      * @throws IndexOutOfBoundsException if row or col is invalid
      */
     public Matrix3 set(int row, int col, double value) {
@@ -555,14 +583,16 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set the given matrix column to the three values stored in the vector. The
-     * x component is the value used for the 1st row, the y is the 2nd row, and
-     * the z is the 3rd row.
-     * 
-     * @param col Matrix column to use, in [0, 2]
+     * Set the given matrix column to the three values stored in the vector. The x
+     * component is the value used for the 1st row, the y is the 2nd row, and the z is the
+     * 3rd row.
+     *
+     * @param col    Matrix column to use, in [0, 2]
      * @param values Vector source for the three column values
+     *
      * @return This matrix
-     * @throws NullPointerException if values is null
+     *
+     * @throws NullPointerException      if values is null
      * @throws IndexOutOfBoundsException if col is invalid
      */
     public Matrix3 setCol(int col, @Const Vector3 values) {
@@ -585,14 +615,16 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set the given matrix row to the three values stored in the vector. The x
-     * component is the value used for the 1st column, the y is the 2nd column,
-     * and the z is the 3rd column.
-     * 
-     * @param row Matrix row to use, in [0, 2]
+     * Set the given matrix row to the three values stored in the vector. The x component
+     * is the value used for the 1st column, the y is the 2nd column, and the z is the 3rd
+     * column.
+     *
+     * @param row    Matrix row to use, in [0, 2]
      * @param values Vector source for the three row values
+     *
      * @return This matrix
-     * @throws NullPointerException if values is null
+     *
+     * @throws NullPointerException      if values is null
      * @throws IndexOutOfBoundsException if row is invalid
      */
     public Matrix3 setRow(int row, @Const Vector3 values) {
@@ -615,19 +647,20 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set all nine values of this matrix from the given array values. If
-     * rowMajor is true, each set of three doubles is treated as a row. If it is
-     * false, the values are column major, and each three represents a matrix
-     * column. The values are taken from the values array starting at offset; it
-     * is assumed that the array is long enough.
-     * 
-     * @param values Float source for the new matrix data
-     * @param offset Start index of the double values
+     * Set all nine values of this matrix from the given array values. If rowMajor is
+     * true, each set of three doubles is treated as a row. If it is false, the values are
+     * column major, and each three represents a matrix column. The values are taken from
+     * the values array starting at offset; it is assumed that the array is long enough.
+     *
+     * @param values   Float source for the new matrix data
+     * @param offset   Start index of the double values
      * @param rowMajor True if values is row-major order
+     *
      * @return This matrix
-     * @throws NullPointerException if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 9 values
-     *             starting at offset
+     *
+     * @throws NullPointerException           if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 9 values starting at
+     *                                        offset
      */
     public Matrix3 set(double[] values, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -642,16 +675,17 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #set(double[], int, boolean)} except a float[] is the source of
-     * values.
-     * 
-     * @param values Float source for the new matrix data
-     * @param offset Start index of the double values
+     * As {@link #set(double[], int, boolean)} except a float[] is the source of values.
+     *
+     * @param values   Float source for the new matrix data
+     * @param offset   Start index of the double values
      * @param rowMajor True if values are row-major
+     *
      * @return This matrix
-     * @throws NullPointerException if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements
-     *             starting at offset
+     *
+     * @throws NullPointerException           if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
+     *                                        at offset
      */
     public Matrix3 set(float[] values, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -666,65 +700,65 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #set(double[], int, boolean)} except a FloatBuffer is the
-     * source of values.
-     * 
-     * @param values Float source for the new matrix data
-     * @param offset Start index of the double values
+     * As {@link #set(double[], int, boolean)} except a FloatBuffer is the source of
+     * values.
+     *
+     * @param values   Float source for the new matrix data
+     * @param offset   Start index of the double values
      * @param rowMajor True if values are row-major
+     *
      * @return This matrix
-     * @throws NullPointerException if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements
-     *             starting at offset
+     *
+     * @throws NullPointerException           if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
+     *                                        at offset
      */
     public Matrix3 set(DoubleBuffer values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values.get(offset), values.get(offset + 1),
-                       values.get(offset + 2), values.get(offset + 3),
-                       values.get(offset + 4), values.get(offset + 5),
-                       values.get(offset + 6), values.get(offset + 7),
-                       values.get(offset + 8));
+            return set(values.get(offset), values.get(offset + 1), values.get(offset + 2),
+                       values.get(offset + 3), values.get(offset + 4),
+                       values.get(offset + 5), values.get(offset + 6),
+                       values.get(offset + 7), values.get(offset + 8));
         } else {
-            return set(values.get(offset), values.get(offset + 3),
-                       values.get(offset + 6), values.get(offset + 1),
-                       values.get(offset + 4), values.get(offset + 7),
-                       values.get(offset + 2), values.get(offset + 5),
-                       values.get(offset + 8));
+            return set(values.get(offset), values.get(offset + 3), values.get(offset + 6),
+                       values.get(offset + 1), values.get(offset + 4),
+                       values.get(offset + 7), values.get(offset + 2),
+                       values.get(offset + 5), values.get(offset + 8));
         }
     }
 
     /**
-     * As {@link #set(double[], int, boolean)} except a FloatBuffer is the
-     * source of values.
-     * 
-     * @param values Float source for the new matrix data
-     * @param offset Start index of the double values
+     * As {@link #set(double[], int, boolean)} except a FloatBuffer is the source of
+     * values.
+     *
+     * @param values   Float source for the new matrix data
+     * @param offset   Start index of the double values
      * @param rowMajor True if values are row-major
+     *
      * @return This matrix
-     * @throws NullPointerException if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements
-     *             starting at offset
+     *
+     * @throws NullPointerException           if values is null
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
+     *                                        at offset
      */
     public Matrix3 set(FloatBuffer values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values.get(offset), values.get(offset + 1),
-                       values.get(offset + 2), values.get(offset + 3),
-                       values.get(offset + 4), values.get(offset + 5),
-                       values.get(offset + 6), values.get(offset + 7),
-                       values.get(offset + 8));
+            return set(values.get(offset), values.get(offset + 1), values.get(offset + 2),
+                       values.get(offset + 3), values.get(offset + 4),
+                       values.get(offset + 5), values.get(offset + 6),
+                       values.get(offset + 7), values.get(offset + 8));
         } else {
-            return set(values.get(offset), values.get(offset + 3),
-                       values.get(offset + 6), values.get(offset + 1),
-                       values.get(offset + 4), values.get(offset + 7),
-                       values.get(offset + 2), values.get(offset + 5),
-                       values.get(offset + 8));
+            return set(values.get(offset), values.get(offset + 3), values.get(offset + 6),
+                       values.get(offset + 1), values.get(offset + 4),
+                       values.get(offset + 7), values.get(offset + 2),
+                       values.get(offset + 5), values.get(offset + 8));
         }
     }
 
     /**
-     * Set the nine values of this matrix in bulk. This is equivalent to
-     * assigning each parameter to the matrix's public field of identical name.
-     * 
+     * Set the nine values of this matrix in bulk. This is equivalent to assigning each
+     * parameter to the matrix's public field of identical name.
+     *
      * @param m00 New value for 1st row and 1st column
      * @param m01 New value for 1st row and 2nd column
      * @param m02 New value for 1st row and 3rd column
@@ -734,6 +768,7 @@ public final class Matrix3 implements Cloneable {
      * @param m20 New value for 3rd row and 1st column
      * @param m21 New value for 3rd row and 2nd column
      * @param m22 New value for 3rd row and 3rd column
+     *
      * @return This matrix
      */
     public Matrix3 set(double m00, double m01, double m02, double m10, double m11,
@@ -752,9 +787,11 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Set this matrix to be equal to the given matrix, o.
-     * 
+     *
      * @param o Matrix whose values are copied into this matrix
+     *
      * @return This matrix
+     *
      * @throws NullPointerException if o is null
      */
     public Matrix3 set(@Const Matrix3 o) {
@@ -772,7 +809,7 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Reset this matrix's values so that it represents the identity matrix.
-     * 
+     *
      * @return This matrix
      */
     public Matrix3 setIdentity() {
@@ -780,12 +817,14 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Return the value of the matrix entry at the given row and column. row and
-     * col must both be within [0, 2], where 0 represents the 1st row or column.
-     * 
+     * Return the value of the matrix entry at the given row and column. row and col must
+     * both be within [0, 2], where 0 represents the 1st row or column.
+     *
      * @param row Row to access, in [0, 2]
      * @param col Col to access, in [0, 2]
+     *
      * @return Matrix value at (row, col)
+     *
      * @throws IndexOutOfBoundsException if row or col are invalid
      */
     public double get(int row, int col) {
@@ -825,24 +864,22 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * <p>
-     * Store the entire matrix into an array, starting at offset. If rowMajor is
-     * true, the matrix should stored in row-major order (i.e. every 3 values
-     * constitutes a row). If it is false, then the matrix is stored in
-     * column-major order (every 3 values is a column of the matrix).
-     * </p>
-     * <p>
-     * It is assumed that there is enough space in store, starting at offset to
-     * hold the nine matrix values of this matrix.
-     * </p>
-     * 
-     * @param store Array to hold the nine matrix values.
-     * @param offset First index used to store the matrix data
-     * @param rowMajor True if the matrix values are stored as rows, otherwise
-     *            as columns
-     * @throws NullPointerException if store is null
-     * @throws ArrayIndexOutOfBoundsException if there isn't enough space in
-     *             store to contain the matrix, starting at offset
+     * <p/>
+     * Store the entire matrix into an array, starting at offset. If rowMajor is true, the
+     * matrix should stored in row-major order (i.e. every 3 values constitutes a row). If
+     * it is false, then the matrix is stored in column-major order (every 3 values is a
+     * column of the matrix).
+     * <p/>
+     * It is assumed that there is enough space in store, starting at offset to hold the
+     * nine matrix values of this matrix.
+     *
+     * @param store    Array to hold the nine matrix values.
+     * @param offset   First index used to store the matrix data
+     * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
+     *
+     * @throws NullPointerException           if store is null
+     * @throws ArrayIndexOutOfBoundsException if there isn't enough space in store to
+     *                                        contain the matrix, starting at offset
      */
     public void get(double[] store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -870,13 +907,13 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * As {@link #get(double[], int, boolean)}, but the data is cast to floats.
-     * 
-     * @param store The float[] to hold the row values
-     * @param offset The first index to use in the store
-     * @param rowMajor True if the matrix values are stored as rows, otherwise
-     *            as columns
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
-     *             for the column
+     *
+     * @param store    The float[] to hold the row values
+     * @param offset   The first index to use in the store
+     * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
+     *
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
+     *                                        column
      */
     public void get(float[] store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -903,15 +940,15 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
-     * 
-     * @param store The DoubleBuffer to hold the row values
-     * @param offset The first index to use in the store
-     * @param rowMajor True if the matrix values are stored as rows, otherwise
-     *            as columns
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
-     *             for the column
+     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <tt>offset</tt>
+     * is measured from 0, not the buffer's position.
+     *
+     * @param store    The DoubleBuffer to hold the row values
+     * @param offset   The first index to use in the store
+     * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
+     *
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
+     *                                        column
      */
     public void get(DoubleBuffer store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -938,15 +975,15 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer.
-     * <tt>offset</tt> is measured from 0, not the buffer's position.
-     * 
-     * @param store The FloatBuffer to hold the row values
-     * @param offset The first index to use in the store
-     * @param rowMajor True if the matrix values are stored as rows, otherwise
-     *            as columns
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
-     *             for the column
+     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <tt>offset</tt> is
+     * measured from 0, not the buffer's position.
+     *
+     * @param store    The FloatBuffer to hold the row values
+     * @param offset   The first index to use in the store
+     * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
+     *
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
+     *                                        column
      */
     public void get(FloatBuffer store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -974,9 +1011,11 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Return a new Vector3 that copies the values of the given column.
-     * 
+     *
      * @param col The column to fetch
+     *
      * @return A new vector equaling the given column
+     *
      * @throws IndexOutOfBoundsException if col is not 0, 1 or 2
      */
     public Vector3 getCol(int col) {
@@ -993,9 +1032,11 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Return a new Vector3 that copies the values of the given row.
-     * 
+     *
      * @param row The row to fetch
+     *
      * @return A new vector equaling the given row
+     *
      * @throws IndexOutOfBoundsException if row is not 0, 1, or 2
      */
     public Vector3 getRow(int row) {
@@ -1012,18 +1053,23 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Determine if these two matrices are equal, within an error range of eps.
-     * 
-     * @param e Matrix to check approximate equality to
+     *
+     * @param e   Matrix to check approximate equality to
      * @param eps Error tolerance of each component
-     * @return True if all component values are within eps of the corresponding
-     *         component of e
+     *
+     * @return True if all component values are within eps of the corresponding component
+     *         of e
      */
     public boolean epsilonEquals(@Const Matrix3 e, double eps) {
         if (e == null) {
             return false;
         }
 
-        return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps && Math.abs(m02 - e.m02) <= eps && Math.abs(m10 - e.m10) <= eps && Math.abs(m11 - e.m11) <= eps && Math.abs(m12 - e.m12) <= eps && Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps && Math.abs(m22 - e.m22) <= eps;
+        return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps &&
+               Math.abs(m02 - e.m02) <= eps && Math.abs(m10 - e.m10) <= eps &&
+               Math.abs(m11 - e.m11) <= eps && Math.abs(m12 - e.m12) <= eps &&
+               Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps &&
+               Math.abs(m22 - e.m22) <= eps;
     }
 
     @Override
@@ -1033,7 +1079,9 @@ public final class Matrix3 implements Cloneable {
             return false;
         }
         Matrix3 e = (Matrix3) o;
-        return m00 == e.m00 && m01 == e.m01 && m02 == e.m02 && m10 == e.m10 && m11 == e.m11 && m12 == e.m12 && m20 == e.m20 && m21 == e.m21 && m22 == e.m22;
+        return m00 == e.m00 && m01 == e.m01 && m02 == e.m02 && m10 == e.m10 &&
+               m11 == e.m11 && m12 == e.m12 && m20 == e.m20 && m21 == e.m21 &&
+               m22 == e.m22;
     }
 
     @Override
@@ -1051,11 +1099,13 @@ public final class Matrix3 implements Cloneable {
         result += result * 31 + Double.doubleToLongBits(m21);
         result += result * 31 + Double.doubleToLongBits(m22);
 
-        return (int) (((result & 0xffffffff00000000L) >> 32) ^ (result & 0x00000000ffffffffL));
+        return (int) (((result & 0xffffffff00000000L) >> 32) ^
+                      (result & 0x00000000ffffffffL));
     }
 
     @Override
     public String toString() {
-        return "[[ " + m00 + ", " + m01 + ", " + m02 + " ]\n" + "[ " + m10 + ", " + m11 + ", " + m12 + " ]\n" + "[ " + m20 + ", " + m21 + ", " + m22 + " ]]";
+        return "[[ " + m00 + ", " + m01 + ", " + m02 + " ]\n" + "[ " + m10 + ", " + m11 +
+               ", " + m12 + " ]\n" + "[ " + m20 + ", " + m21 + ", " + m22 + " ]]";
     }
 }

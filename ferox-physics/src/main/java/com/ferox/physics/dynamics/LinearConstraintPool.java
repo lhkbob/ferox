@@ -26,10 +26,10 @@
  */
 package com.ferox.physics.dynamics;
 
-import java.util.Arrays;
-
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
+
+import java.util.Arrays;
 
 public class LinearConstraintPool {
     private int count; // current number of valid constraints in the pool
@@ -223,22 +223,26 @@ public class LinearConstraintPool {
         return i;
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getLinearImpulseA(int i, double impulse) {
         return linearA.set(linearDirAs, i * 3).scale(impulse);
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getLinearImpulseB(int i, double impulse) {
         return linearB.set(linearDirBs, i * 3).scale(impulse);
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getAngularImpulseA(int i, double impulse) {
         return angularA.set(angleDirAs, i * 3).scale(impulse);
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getAngularImpulseB(int i, double impulse) {
         return angularB.set(angleDirBs, i * 3).scale(impulse);
     }
@@ -259,7 +263,9 @@ public class LinearConstraintPool {
 
     public void setStaticLimits(int i, double lower, double upper) {
         if (lower > upper) {
-            throw new IllegalArgumentException("Lower limit (" + lower + ") must be less than upper limit (" + upper + ")");
+            throw new IllegalArgumentException(
+                    "Lower limit (" + lower + ") must be less than upper limit (" +
+                    upper + ")");
         }
         lowerLimits[i] = lower;
         upperLimits[i] = upper;
@@ -271,23 +277,28 @@ public class LinearConstraintPool {
             throw new IllegalStateException("Pool does not have a linked pool");
         }
         if (linkedConstraint < 0 || linkedConstraint > dynamicPool.count || scale <= 0) {
-            throw new IllegalArgumentException("Constraint index (" + linkedConstraint + ") is invalid, or scale (" + scale + ") is not positive");
+            throw new IllegalArgumentException(
+                    "Constraint index (" + linkedConstraint + ") is invalid, or scale (" +
+                    scale + ") is not positive");
         }
         dynamicLimits[i] = linkedConstraint;
         dynamicScaleFactors[i] = scale;
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getConstraintDirection(int i) {
         return direction.set(directions, i * 3);
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getTorqueA(int i) {
         return torqueA.set(torqueAs, i * 3);
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getTorqueB(int i) {
         return torqueB.set(torqueBs, i * 3);
     }

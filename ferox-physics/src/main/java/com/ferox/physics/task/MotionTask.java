@@ -26,10 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
 import com.ferox.math.Matrix4;
@@ -46,6 +42,10 @@ import com.lhkbob.entreri.task.ElapsedTimeResult;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 // FIXME: this can be moved to the beginning, running before other per-collision/rigidbody
 // preparation actions. Thus the new code would look like:
@@ -68,6 +68,7 @@ import com.lhkbob.entreri.task.Task;
 
 public class MotionTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(CollisionBody.class);

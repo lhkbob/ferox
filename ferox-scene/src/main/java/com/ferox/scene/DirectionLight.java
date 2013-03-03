@@ -31,18 +31,16 @@ import com.lhkbob.entreri.property.BooleanProperty;
 import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
 
 /**
- * <p>
- * DirectionLight represents an direction light (or infinite point light), where
- * objects see light coming from the same direction, regardless of their
- * position. An example of a direction light is the sun.
- * </p>
- * <p>
- * DirectionLight should be combined with a {@link Transform} component to
- * specify its orientation. The direction is encoded in the 3rd column of the
- * 4x4 affine matrix. If there is no transform component present on an entity,
- * the direction defaults to the positive z axis.
- * </p>
- * 
+ * <p/>
+ * DirectionLight represents an direction light (or infinite point light), where objects
+ * see light coming from the same direction, regardless of their position. An example of a
+ * direction light is the sun.
+ * <p/>
+ * DirectionLight should be combined with a {@link Transform} component to specify its
+ * orientation. The direction is encoded in the 3rd column of the 4x4 affine matrix. If
+ * there is no transform component present on an entity, the direction defaults to the
+ * positive z axis.
+ *
  * @author Michael Ludwig
  */
 @Requires(Transform.class)
@@ -50,7 +48,8 @@ public final class DirectionLight extends Light<DirectionLight> {
     @DefaultBoolean(false)
     private BooleanProperty shadowCaster;
 
-    private DirectionLight() {}
+    private DirectionLight() {
+    }
 
     /**
      * @return True if this spotlight should cast shadows, defaults to false
@@ -61,8 +60,9 @@ public final class DirectionLight extends Light<DirectionLight> {
 
     /**
      * Set whether or not this spotlight should cast shadows.
-     * 
+     *
      * @param castsShadow True if this light is a shadow caster
+     *
      * @return This component
      */
     public DirectionLight setShadowCaster(boolean castsShadow) {

@@ -32,19 +32,20 @@ import com.ferox.renderer.Task;
 import com.ferox.resource.Resource;
 
 /**
- * DisposeResourceTask is a simple task that provides the behavior for
- * {@link Framework#dispose(Resource)}.
- * 
+ * DisposeResourceTask is a simple task that provides the behavior for {@link
+ * Framework#dispose(Resource)}.
+ *
  * @author Michael Ludwig
  */
 public class DisposeResourceTask implements Task<Void> {
     private final Resource resource;
 
     /**
-     * Create a new DisposeResourceTask that will dispose the provided resource
-     * when it is run.
-     * 
+     * Create a new DisposeResourceTask that will dispose the provided resource when it is
+     * run.
+     *
      * @param resource The resource to dispose
+     *
      * @throws NullPointerException if resource is null
      */
     public DisposeResourceTask(Resource resource) {

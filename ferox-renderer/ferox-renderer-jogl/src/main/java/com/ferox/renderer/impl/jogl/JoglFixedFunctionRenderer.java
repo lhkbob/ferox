@@ -26,8 +26,20 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.nio.FloatBuffer;
-import java.util.EnumSet;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
+import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.impl.*;
+import com.ferox.renderer.impl.FixedFunctionState.FogMode;
+import com.ferox.renderer.impl.FixedFunctionState.LightColor;
+import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
+import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
+import com.ferox.renderer.impl.drivers.TextureHandle;
+import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
+import com.ferox.resource.Texture.Target;
+import com.ferox.resource.VertexBufferObject.StorageMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -36,31 +48,13 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.fixedfunc.GLLightingFunc;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
-
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
-import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
-import com.ferox.renderer.impl.AbstractSurface;
-import com.ferox.renderer.impl.BufferUtil;
-import com.ferox.renderer.impl.FixedFunctionState.FogMode;
-import com.ferox.renderer.impl.FixedFunctionState.LightColor;
-import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
-import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceManager;
-import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import java.nio.FloatBuffer;
+import java.util.EnumSet;
 
 /**
- * JoglFixedFunctionRenderer is a complete implementation of
- * FixedFunctionRenderer that uses a {@link JoglRendererDelegate} for the JOGL
- * OpenGL binding.
- * 
+ * JoglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that
+ * uses a {@link JoglRendererDelegate} for the JOGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
@@ -416,7 +410,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         if (gen == TexCoordSource.ATTRIBUTE) {
             return; // don't need to do anything, it's already disabled
         }
-        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) && !supportedTargets.contains(Target.T_CUBEMAP)) {
+        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) &&
+            !supportedTargets.contains(Target.T_CUBEMAP)) {
             gen = TexCoordSource.OBJECT;
         }
 

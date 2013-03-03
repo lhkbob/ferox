@@ -26,22 +26,17 @@
  */
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.*;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.Surface;
-
 /**
- * AbstractSurface is an abstract class implementing Surface. Its primary
- * purpose is to expose additional functionality needed by the components of
- * {@link AbstractFramework} to implement the framework system easily across
- * many adapters for OpenGL.
- * 
+ * AbstractSurface is an abstract class implementing Surface. Its primary purpose is to
+ * expose additional functionality needed by the components of {@link AbstractFramework}
+ * to implement the framework system easily across many adapters for OpenGL.
+ *
  * @author Michael Ludwig
  */
 public abstract class AbstractSurface implements Surface {
@@ -49,10 +44,11 @@ public abstract class AbstractSurface implements Surface {
     private final AbstractFramework framework;
 
     /**
-     * Create a new AbstractSurface that has yet to be destroyed, that is owned
-     * by the given Framework.
-     * 
+     * Create a new AbstractSurface that has yet to be destroyed, that is owned by the
+     * given Framework.
+     *
      * @param framework The AbstractFramework to be returned by getFramework()
+     *
      * @throws NullPointerException if framework is null
      */
     public AbstractSurface(AbstractFramework framework) {
@@ -65,66 +61,61 @@ public abstract class AbstractSurface implements Surface {
     }
 
     /**
-     * Return the OpenGLContext that must be current in order to render into
-     * this Surface. It can be null to signal that the surface requires any
-     * other context to use (such as when a TextureSurface is backed by an FBO).
-     * 
+     * Return the OpenGLContext that must be current in order to render into this Surface.
+     * It can be null to signal that the surface requires any other context to use (such
+     * as when a TextureSurface is backed by an FBO).
+     *
      * @return The context of this surface
      */
     public abstract OpenGLContext getContext();
 
     /**
-     * Perform actions as needed to flush this surface, as required by
-     * {@link Context#flush()}.
-     * 
+     * Perform actions as needed to flush this surface, as required by {@link
+     * Context#flush()}.
+     *
      * @param context The current context
      */
     public abstract void flush(OpenGLContext context);
 
     /**
-     * <p>
-     * onSurfaceActivate() is a listener method that is invoked by
-     * ContextManager when a surface is activated. The provided context is the
-     * current context on the calling thread and will not be null. The
-     * <tt>layer</tt> argument represents the layer to activate. If the surface
-     * does not use layers (such as an OnscreenSurface or 2D TextureSurface) it
-     * can be ignored. If it is a cubemap TextureSurface, the represents one of
-     * the six faces. If it is a 3D TextureSurface, it represents the depth
-     * plane. It can be assumed that the layer argument is valid.
-     * </p>
-     * <p>
-     * This method can be overridden by subclasses to perform more actions. The
-     * current implementation activates and sets the viewport on any renderers
-     * the context has.
-     * </p>
-     * 
+     * <p/>
+     * onSurfaceActivate() is a listener method that is invoked by ContextManager when a
+     * surface is activated. The provided context is the current context on the calling
+     * thread and will not be null. The <tt>layer</tt> argument represents the layer to
+     * activate. If the surface does not use layers (such as an OnscreenSurface or 2D
+     * TextureSurface) it can be ignored. If it is a cubemap TextureSurface, the
+     * represents one of the six faces. If it is a 3D TextureSurface, it represents the
+     * depth plane. It can be assumed that the layer argument is valid.
+     * <p/>
+     * This method can be overridden by subclasses to perform more actions. The current
+     * implementation activates and sets the viewport on any renderers the context has.
+     *
      * @param context The current context
-     * @param layer The layer to activate if the surface is a TextureSurface of
-     *            an appropriate target
+     * @param layer   The layer to activate if the surface is a TextureSurface of an
+     *                appropriate target
      */
     public void onSurfaceActivate(OpenGLContext context, int layer) {
         RenderCapabilities caps = context.getRenderCapabilities();
         FixedFunctionRenderer ffp = context.getRendererProvider()
                                            .getFixedFunctionRenderer(caps);
         if (ffp instanceof AbstractRenderer) {
-            ((AbstractRenderer) ffp).activate(this, context,
-                                              framework.getResourceManager());
+            ((AbstractRenderer) ffp)
+                    .activate(this, context, framework.getResourceManager());
         }
 
         GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
         if (glsl instanceof AbstractRenderer) {
-            ((AbstractRenderer) glsl).activate(this, context,
-                                               framework.getResourceManager());
+            ((AbstractRenderer) glsl)
+                    .activate(this, context, framework.getResourceManager());
         }
     }
 
     /**
-     * onSurfaceDeactivate() is a listener method that is invoked by
-     * ContextManager when a surface is deactivated. The provided context is the
-     * current context on the calling thread and will not be null. This method
-     * can be overridden by subclasses to perform more actions. The current
-     * implementation resets any renderers the context has.
-     * 
+     * onSurfaceDeactivate() is a listener method that is invoked by ContextManager when a
+     * surface is deactivated. The provided context is the current context on the calling
+     * thread and will not be null. This method can be overridden by subclasses to perform
+     * more actions. The current implementation resets any renderers the context has.
+     *
      * @param context The current context
      */
     public void onSurfaceDeactivate(OpenGLContext context) {
@@ -144,10 +135,9 @@ public abstract class AbstractSurface implements Surface {
     }
 
     /**
-     * Perform the actual destruction of this surface. This will only be called
-     * once and the surface's lock will already be held. If the surface has a
-     * context, this method is responsible for invoking
-     * {@link OpenGLContext#destroy()}.
+     * Perform the actual destruction of this surface. This will only be called once and
+     * the surface's lock will already be held. If the surface has a context, this method
+     * is responsible for invoking {@link OpenGLContext#destroy()}.
      */
     protected abstract void destroyImpl();
 

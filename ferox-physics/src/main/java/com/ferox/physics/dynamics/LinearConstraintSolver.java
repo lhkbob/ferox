@@ -26,10 +26,10 @@
  */
 package com.ferox.physics.dynamics;
 
-import java.util.Random;
-
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
+
+import java.util.Random;
 
 public class LinearConstraintSolver {
     private final Random shuffler;
@@ -70,7 +70,8 @@ public class LinearConstraintSolver {
 
     public void setIterationCount(int numIters) {
         if (numIters <= 0) {
-            throw new IllegalArgumentException("Iteration count must be at least 1, not " + numIters);
+            throw new IllegalArgumentException(
+                    "Iteration count must be at least 1, not " + numIters);
         }
         numIterations = numIters;
     }
@@ -172,18 +173,18 @@ public class LinearConstraintSolver {
             deltaLinearImpulse.get(ba, linear);
             deltaAngularImpulse.get(ba, angular);
 
-            deltaImpulse -= jacobian * (group.getConstraintDirection(constraint)
-                                             .dot(linear) + group.getTorqueA(constraint)
-                                                                 .dot(angular));
+            deltaImpulse -= jacobian *
+                            (group.getConstraintDirection(constraint).dot(linear) +
+                             group.getTorqueA(constraint).dot(angular));
         }
 
         if (bb >= 0) {
             deltaLinearImpulse.get(bb, linear);
             deltaAngularImpulse.get(bb, angular);
 
-            deltaImpulse += jacobian * (group.getConstraintDirection(constraint)
-                                             .dot(linear) + group.getTorqueB(constraint)
-                                                                 .dot(angular));
+            deltaImpulse += jacobian *
+                            (group.getConstraintDirection(constraint).dot(linear) +
+                             group.getTorqueB(constraint).dot(angular));
         }
 
         double applied = group.getAppliedImpulse(constraint);

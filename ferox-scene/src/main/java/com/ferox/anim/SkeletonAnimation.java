@@ -1,14 +1,14 @@
 package com.ferox.anim;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.ferox.math.Matrix3;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Quat4;
 import com.ferox.math.Vector3;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class SkeletonAnimation {
     private final List<KeyFrame> frames;
@@ -60,9 +60,9 @@ public class SkeletonAnimation {
 
             double alpha = 0;
             if (boneStartTarget != boneEndTarget) {
-                alpha = (animationTime - frames.get(boneStartTarget).getFrameTime()) / (frames.get(boneEndTarget)
-                                                                                              .getFrameTime() - frames.get(boneStartTarget)
-                                                                                                                      .getFrameTime());
+                alpha = (animationTime - frames.get(boneStartTarget).getFrameTime()) /
+                        (frames.get(boneEndTarget).getFrameTime() -
+                         frames.get(boneStartTarget).getFrameTime());
             }
 
             Matrix4 aMat = frames.get(boneStartTarget).getBoneTransform(b.getName());
@@ -97,7 +97,8 @@ public class SkeletonAnimation {
     private int getStartFrame(double time) {
         // FIXME do a binary search
         for (int i = 0; i < frames.size() - 1; i++) {
-            if (frames.get(i).getFrameTime() <= time && frames.get(i + 1).getFrameTime() > time) {
+            if (frames.get(i).getFrameTime() <= time &&
+                frames.get(i + 1).getFrameTime() > time) {
                 return i;
             }
         }

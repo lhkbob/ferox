@@ -1,10 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.LValue;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Type;
+import com.ferox.resource.shader.*;
 
 public class Assignment extends AbstractExpression {
     private final LValue lvalue;
@@ -22,7 +18,8 @@ public class Assignment extends AbstractExpression {
             throw new IllegalStateException("Value does not have same type as variable");
         }
         if (rvalue.containsDeclaration()) {
-            throw new IllegalStateException("Value expression cannot contain a declaration");
+            throw new IllegalStateException(
+                    "Value expression cannot contain a declaration");
         }
         return environment;
     }

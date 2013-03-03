@@ -26,36 +26,30 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.nio.FloatBuffer;
-import java.util.EnumSet;
-
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
-import com.ferox.renderer.impl.AbstractSurface;
-import com.ferox.renderer.impl.BufferUtil;
+import com.ferox.renderer.impl.*;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
 import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+
+import java.nio.FloatBuffer;
+import java.util.EnumSet;
 
 /**
- * LwjglFixedFunctionRenderer is a complete implementation of
- * FixedFunctionRenderer that uses a {@link LwjglRendererDelegate} for the LWJGL
- * OpenGL binding.
- * 
+ * LwjglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that
+ * uses a {@link LwjglRendererDelegate} for the LWJGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
@@ -392,7 +386,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         if (gen == TexCoordSource.ATTRIBUTE) {
             return; // don't need to do anything, it's already disabled
         }
-        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) && !supportedTargets.contains(Target.T_CUBEMAP)) {
+        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) &&
+            !supportedTargets.contains(Target.T_CUBEMAP)) {
             gen = TexCoordSource.OBJECT;
         }
 
@@ -485,7 +480,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 GL11.glNormalPointer(GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
+                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, strideBytes,
+                                       vboOffset);
                 break;
             case VERTICES:
                 GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);

@@ -32,11 +32,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Future that wraps an already prepared value, so the task the Future
- * represents has completed.
- * 
- * @author Michael Ludwig
+ * Future that wraps an already prepared value, so the task the Future represents has
+ * completed.
+ *
  * @param <T>
+ *
+ * @author Michael Ludwig
  */
 public class CompletedFuture<T> implements Future<T> {
     private final T value;
@@ -66,7 +67,8 @@ public class CompletedFuture<T> implements Future<T> {
     }
 
     @Override
-    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public T get(long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
         return value;
     }
 }

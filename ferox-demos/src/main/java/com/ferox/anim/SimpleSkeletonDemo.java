@@ -1,9 +1,5 @@
 package com.ferox.anim;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.logic.Action;
 import com.ferox.input.logic.InputManager;
@@ -20,13 +16,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.resource.geom.Cylinder;
 import com.ferox.resource.geom.Geometry;
 import com.ferox.resource.geom.Sphere;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.Camera;
-import com.ferox.scene.DiffuseColor;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.Transform;
+import com.ferox.scene.*;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
 import com.ferox.scene.task.ComputeCameraFrustumTask;
 import com.ferox.scene.task.ComputePVSTask;
@@ -40,6 +30,10 @@ import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.Timers;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class SimpleSkeletonDemo extends ApplicationStub {
     // positive half-circle
@@ -157,32 +151,33 @@ public class SimpleSkeletonDemo extends ApplicationStub {
         //        surface.setVSyncEnabled(true);
         system = new EntitySystem();
 
-        renderJob = system.getScheduler()
-                          .createJob("render",
-                                     Timers.measuredDelta(),
-                                     new SkeletonAnimationTask(),
-                                     new BoneTransformTask(),
-                                     new BoneLinkTask(),
-                                     new UpdateWorldBoundsTask(),
-                                     new ComputeCameraFrustumTask(),
-                                     new ComputeShadowFrustumTask(),
-                                     new BuildVisibilityIndexTask(new QuadTree<Entity>()),
-                                     new ComputePVSTask(),
-                                     new ComputeLightGroupTask(),
-                                     new FixedFunctionRenderTask(surface.getFramework(),
-                                                                 1024,
-                                                                 false));
+        renderJob = system.getScheduler().createJob("render", Timers.measuredDelta(),
+                                                    new SkeletonAnimationTask(),
+                                                    new BoneTransformTask(),
+                                                    new BoneLinkTask(),
+                                                    new UpdateWorldBoundsTask(),
+                                                    new ComputeCameraFrustumTask(),
+                                                    new ComputeShadowFrustumTask(),
+                                                    new BuildVisibilityIndexTask(
+                                                            new QuadTree<Entity>()),
+                                                    new ComputePVSTask(),
+                                                    new ComputeLightGroupTask(),
+                                                    new FixedFunctionRenderTask(
+                                                            surface.getFramework(), 1024,
+                                                            false));
 
         Entity mainSkeleton = system.addEntity();
         try {
             AcclaimSkeleton skeleton = new AcclaimSkeleton();
-            InputStream in = new FileInputStream("/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/35.asf");
+            InputStream in = new FileInputStream(
+                    "/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/35.asf");
             skeleton.load(in);
             skeleton.addSkeleton(mainSkeleton);
 
             in.close();
 
-            in = new FileInputStream("/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/35_22.amc");
+            in = new FileInputStream(
+                    "/Users/michaelludwig/Desktop/U of M/Semesters/Spring 2013/Directed Study/cmu_motions/35_22.amc");
             SkeletonAnimation anim = skeleton.loadAnimation(in, 1 / 120.0);
 
             mainSkeleton.add(Animated.class).getData().setAnimation(anim).setTimeScale(1);
@@ -211,9 +206,7 @@ public class SimpleSkeletonDemo extends ApplicationStub {
             Geometry g = Cylinder.create(offset, offset, .1, offset.length() * 2, 16,
                                          StorageMode.GPU_STATIC);
 
-            boneLink.add(Renderable.class)
-                    .getData()
-                    .setVertices(g.getVertices())
+            boneLink.add(Renderable.class).getData().setVertices(g.getVertices())
                     .setIndices(g.getPolygonType(), g.getIndices(), g.getIndexOffset(),
                                 g.getIndexCount()).setLocalBounds(g.getBounds());
 
@@ -228,9 +221,7 @@ public class SimpleSkeletonDemo extends ApplicationStub {
 
             g = Sphere.create(.3, 16, StorageMode.GPU_STATIC);
 
-            boneLink.add(Renderable.class)
-                    .getData()
-                    .setVertices(g.getVertices())
+            boneLink.add(Renderable.class).getData().setVertices(g.getVertices())
                     .setIndices(g.getPolygonType(), g.getIndices(), g.getIndexOffset(),
                                 g.getIndexCount()).setLocalBounds(g.getBounds());
 
@@ -241,9 +232,8 @@ public class SimpleSkeletonDemo extends ApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.class).getData().setColor(new ColorRGB(1, 1, 1));
-        point.get(Transform.class)
-             .getData()
-             .setMatrix(new Matrix4().setIdentity().setCol(3, new Vector4(10, 10, 10, 1)));
+        point.get(Transform.class).getData().setMatrix(
+                new Matrix4().setIdentity().setCol(3, new Vector4(10, 10, 10, 1)));
 
         Entity ambient = system.addEntity();
         ambient.add(AmbientLight.class).getData().setColor(new ColorRGB(.7, .7, .7));

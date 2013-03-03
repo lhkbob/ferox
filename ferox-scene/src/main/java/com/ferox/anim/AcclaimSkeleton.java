@@ -1,5 +1,11 @@
 package com.ferox.anim;
 
+import com.ferox.math.Matrix3;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
+import com.lhkbob.entreri.Entity;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,12 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.ferox.math.Matrix3;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
-import com.lhkbob.entreri.Entity;
 
 public class AcclaimSkeleton {
     private String name;
@@ -37,7 +37,8 @@ public class AcclaimSkeleton {
         return skeleton;
     }
 
-    public SkeletonAnimation loadAnimation(InputStream acmFile, double frameRate) throws IOException {
+    public SkeletonAnimation loadAnimation(InputStream acmFile, double frameRate)
+            throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(acmFile));
 
         SkeletonAnimation animation = new SkeletonAnimation();
@@ -78,7 +79,9 @@ public class AcclaimSkeleton {
 
                     for (int i = 0; i < dofValues.length; i++) {
                         dofValues[i] = Double.parseDouble(tokens[i + 1]);
-                        if (inDegrees && (root.order[i] == DoF.RX || root.order[i] == DoF.RY || root.order[i] == DoF.RZ)) {
+                        if (inDegrees &&
+                            (root.order[i] == DoF.RX || root.order[i] == DoF.RY ||
+                             root.order[i] == DoF.RZ)) {
                             dofValues[i] = Math.toRadians(dofValues[i]);
                         }
                     }
@@ -87,7 +90,8 @@ public class AcclaimSkeleton {
                 } else {
                     ASFBone bone = getBone(tokens[0]);
                     if (bone == null) {
-                        throw new IOException("Bone with name: " + tokens[0] + " is undefined");
+                        throw new IOException(
+                                "Bone with name: " + tokens[0] + " is undefined");
                     }
 
                     double[] dofValues = new double[bone.motionDoF.length];
@@ -97,22 +101,21 @@ public class AcclaimSkeleton {
 
                     for (int i = 0; i < dofValues.length; i++) {
                         dofValues[i] = Double.parseDouble(tokens[i + 1]);
-                        if (inDegrees && (bone.motionDoF[i] == DoF.RX || bone.motionDoF[i] == DoF.RY || bone.motionDoF[i] == DoF.RZ)) {
+                        if (inDegrees &&
+                            (bone.motionDoF[i] == DoF.RX || bone.motionDoF[i] == DoF.RY ||
+                             bone.motionDoF[i] == DoF.RZ)) {
                             dofValues[i] = Math.toRadians(dofValues[i]);
                         }
                     }
 
                     Matrix4 localBasis = new Matrix4().setIdentity()
                                                       .setUpper(bone.childToParentBasis);
-                    Matrix4 motion = new Matrix4().setIdentity()
-                                                  .setUpper(buildBasis(bone.motionDoF,
-                                                                       dofValues));
-                    Matrix4 translate = new Matrix4().setIdentity()
-                                                     .setCol(3,
-                                                             new Vector4(bone.localDirection.x * bone.length,
-                                                                         bone.localDirection.y * bone.length,
-                                                                         bone.localDirection.z * bone.length,
-                                                                         1));
+                    Matrix4 motion = new Matrix4().setIdentity().setUpper(
+                            buildBasis(bone.motionDoF, dofValues));
+                    Matrix4 translate = new Matrix4().setIdentity().setCol(3, new Vector4(
+                            bone.localDirection.x * bone.length,
+                            bone.localDirection.y * bone.length,
+                            bone.localDirection.z * bone.length, 1));
 
                     localBasis.mul(motion).mul(translate);
                     currentKeyFrame.setBone(bone.name, localBasis);
@@ -174,7 +177,8 @@ public class AcclaimSkeleton {
         bone.childToParentBasis = new Matrix3().mul(inverseParent, boneGlobalBasis);
 
         // this now holds the inverse of the bone's global basis
-        bone.localDirection = new Vector3().mul(boneGlobalBasis.inverse(), bone.direction);
+        bone.localDirection = new Vector3()
+                .mul(boneGlobalBasis.inverse(), bone.direction);
         bone.localDirection.normalize();
 
         List<ASFBone> children = hierarchy.get(bone);
@@ -204,7 +208,7 @@ public class AcclaimSkeleton {
     }
 
     private Matrix3 buildBasis(DoF[] axis, Vector3 values) {
-        return buildBasis(axis, new double[] {values.x, values.y, values.z});
+        return buildBasis(axis, new double[] { values.x, values.y, values.z });
     }
 
     private Matrix4 buildRoot(DoF[] order, double[] values) {
@@ -222,8 +226,8 @@ public class AcclaimSkeleton {
         // Perhaps the site is incorrect, and you just use the order values
         // but construct it using the same axis definition for presetOrientation, etc.?
         // seems plausible
-        root.setUpper(buildBasis(new DoF[] {order[3], order[4], order[5]},
-                                 new double[] {values[3], values[4], values[5]}));
+        root.setUpper(buildBasis(new DoF[] { order[3], order[4], order[5] },
+                                 new double[] { values[3], values[4], values[5] }));
         root.m03 = values[0];
         root.m13 = values[1];
         root.m23 = values[2];
@@ -349,7 +353,8 @@ public class AcclaimSkeleton {
                     if (tokens.length != 2) {
                         throw new IOException("Malformed angle token: " + line);
                     }
-                    if (!tokens[1].equalsIgnoreCase("deg") && !tokens[1].equalsIgnoreCase("rad")) {
+                    if (!tokens[1].equalsIgnoreCase("deg") &&
+                        !tokens[1].equalsIgnoreCase("rad")) {
                         throw new IOException("Invalid angle unit: " + tokens[1]);
                     }
                     anglesInDegrees = tokens[1].equalsIgnoreCase("deg");
@@ -388,7 +393,8 @@ public class AcclaimSkeleton {
                                                       Double.parseDouble(tokens[3]));
                 } else if (tokens[0].equals("orientation")) {
                     if (tokens.length != 4) {
-                        throw new IOException("Badly formed orientation specifier: " + line);
+                        throw new IOException(
+                                "Badly formed orientation specifier: " + line);
                     }
                     root.presetOrientation = new Vector3(Double.parseDouble(tokens[1]),
                                                          Double.parseDouble(tokens[2]),
@@ -404,11 +410,13 @@ public class AcclaimSkeleton {
                         currentBone.name = tokens[1];
                     } else if (tokens[0].equals("direction")) {
                         if (tokens.length != 4) {
-                            throw new IOException("Badly formed direction specifier: " + line);
+                            throw new IOException(
+                                    "Badly formed direction specifier: " + line);
                         }
                         currentBone.direction = new Vector3(Double.parseDouble(tokens[1]),
                                                             Double.parseDouble(tokens[2]),
-                                                            Double.parseDouble(tokens[3]));
+                                                            Double.parseDouble(
+                                                                    tokens[3]));
                         currentBone.direction.normalize();
                     } else if (tokens[0].equals("length")) {
                         if (tokens.length != 2) {
@@ -421,9 +429,10 @@ public class AcclaimSkeleton {
                         }
 
                         currentBone.axis = new DoF[3];
-                        currentBone.axisRotation = new Vector3(Double.parseDouble(tokens[1]),
-                                                               Double.parseDouble(tokens[2]),
-                                                               Double.parseDouble(tokens[3]));
+                        currentBone.axisRotation = new Vector3(
+                                Double.parseDouble(tokens[1]),
+                                Double.parseDouble(tokens[2]),
+                                Double.parseDouble(tokens[3]));
                         toRadians(currentBone.axisRotation, anglesInDegrees);
 
                         String axisOrder = tokens[4].toLowerCase();
@@ -491,13 +500,17 @@ public class AcclaimSkeleton {
 
                             if (minLimits != null) {
                                 if (minLimits.size() != currentBone.motionDoF.length) {
-                                    throw new IOException("Bone does not have same limit count as degrees of freedom");
+                                    throw new IOException(
+                                            "Bone does not have same limit count as degrees of freedom");
                                 }
 
                                 for (int i = 0; i < currentBone.motionDoF.length; i++) {
-                                    if (anglesInDegrees && currentBone.motionDoF[i].isAngle()) {
-                                        currentBone.minLimits[i] = Math.toRadians(minLimits.get(i));
-                                        currentBone.maxLimits[i] = Math.toRadians(maxLimits.get(i));
+                                    if (anglesInDegrees &&
+                                        currentBone.motionDoF[i].isAngle()) {
+                                        currentBone.minLimits[i] = Math
+                                                .toRadians(minLimits.get(i));
+                                        currentBone.maxLimits[i] = Math
+                                                .toRadians(maxLimits.get(i));
                                     } else {
                                         currentBone.minLimits[i] = minLimits.get(i);
                                         currentBone.maxLimits[i] = maxLimits.get(i);
@@ -540,15 +553,18 @@ public class AcclaimSkeleton {
                             throw new IOException("Bad hierarchy definition: " + line);
                         }
 
-                        Object parent = (tokens[0].equals("root") ? root : getBone(tokens[0]));
+                        Object parent = (tokens[0].equals("root") ? root
+                                                                  : getBone(tokens[0]));
                         if (parent == null) {
-                            throw new IOException("Parent bone does not exist: " + tokens[0]);
+                            throw new IOException(
+                                    "Parent bone does not exist: " + tokens[0]);
                         }
                         List<ASFBone> children = new ArrayList<ASFBone>();
                         for (int i = 1; i < tokens.length; i++) {
                             ASFBone child = getBone(tokens[i]);
                             if (child == null) {
-                                throw new IOException("Child bone does not exist: " + tokens[i]);
+                                throw new IOException(
+                                        "Child bone does not exist: " + tokens[i]);
                             }
                             children.add(child);
                         }

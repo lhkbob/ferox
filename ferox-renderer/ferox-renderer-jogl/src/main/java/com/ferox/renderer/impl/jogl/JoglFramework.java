@@ -26,11 +26,11 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.Threading;
-
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.ResourceDriver;
+
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.Threading;
 
 public class JoglFramework extends AbstractFramework {
     private JoglFramework(JoglSurfaceFactory factory, ResourceDriver... drivers) {
@@ -67,7 +67,8 @@ public class JoglFramework extends AbstractFramework {
         if (GLProfile.isAvailable(GLProfile.GL2)) {
             profile = GLProfile.get(GLProfile.GL2);
         } else {
-            throw new RuntimeException("Minimum required GL profile of GL2 is not available");
+            throw new RuntimeException(
+                    "Minimum required GL profile of GL2 is not available");
         }
 
         // Must configure JOGL to let us control the threading

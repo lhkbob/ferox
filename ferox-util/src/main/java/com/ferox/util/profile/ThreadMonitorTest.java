@@ -55,15 +55,17 @@ public class ThreadMonitorTest {
 
             if ((System.currentTimeMillis() - start) > 1000) {
                 System.out.println("-----------------------");
-                System.out.println("Estimated run time: " + ((System.currentTimeMillis() - veryStart) / 1000.0));
+                System.out.println("Estimated run time: " +
+                                   ((System.currentTimeMillis() - veryStart) / 1000.0));
                 for (ThreadMonitor tmon : gmonitor.getAliveThreadMonitors()) {
                     //              double avg = tmon.getCpuTimeStats().avg();  // avg of last polls
                     //              double avg = tmon.getCpuTimeStats().avg(3); // avg of last 3 polls
                     //                   double avg = tmon.getCpuTimeStats().avg(1000); // avg of last 5 polls
                     //                   System.out.println("Alive " + tmon.getId() + ": " + avg);
-                    System.out.println("Alive " + tmon.getName() + ": " + tmon.getTotalCpuTime() + ", " + tmon.getCpuUsageStats()
-                                                                                                              .average() + ", " + tmon.getUserUsageStats()
-                                                                                                                                      .average());
+                    System.out.println(
+                            "Alive " + tmon.getName() + ": " + tmon.getTotalCpuTime() +
+                            ", " + tmon.getCpuUsageStats().average() + ", " +
+                            tmon.getUserUsageStats().average());
                 }
 
                 //               double totalCpu = gmonitor.getAvgCpuTimeStats(1000);

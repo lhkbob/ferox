@@ -1,13 +1,9 @@
 package com.ferox.resource.shader.simple_grammar;
 
+import com.ferox.resource.shader.*;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Type;
 
 public class BinaryExpression extends AbstractExpression {
     public static enum BinaryOperator {
@@ -59,14 +55,18 @@ public class BinaryExpression extends AbstractExpression {
         Type rightType = right.getType(environment);
         Type leftType = left.getType(environment);
 
-        if (!(rightType instanceof PrimitiveType) || !(leftType instanceof PrimitiveType)) {
-            throw new IllegalStateException("Binary expressions only operate on primitive types");
+        if (!(rightType instanceof PrimitiveType) ||
+            !(leftType instanceof PrimitiveType)) {
+            throw new IllegalStateException(
+                    "Binary expressions only operate on primitive types");
         }
         if (get((PrimitiveType) leftType, operator, (PrimitiveType) rightType) == null) {
-            throw new IllegalStateException("Binary operator not supported with left and right expressions");
+            throw new IllegalStateException(
+                    "Binary operator not supported with left and right expressions");
         }
         if (left.containsDeclaration() || right.containsDeclaration()) {
-            throw new IllegalStateException("Binary expressions cannot contain declarations");
+            throw new IllegalStateException(
+                    "Binary expressions cannot contain declarations");
         }
 
         return environment;
@@ -126,7 +126,8 @@ public class BinaryExpression extends AbstractExpression {
         case LOGICAL_XOR:
             return Precedence.LOGICAL_XOR_EXPRESSIONS.ordinal();
         default:
-            throw new UnsupportedOperationException("Unmapped binary operator, no precedence available");
+            throw new UnsupportedOperationException(
+                    "Unmapped binary operator, no precedence available");
         }
     }
 
@@ -134,7 +135,8 @@ public class BinaryExpression extends AbstractExpression {
 
     private static void add(PrimitiveType leftType, BinaryOperator op,
                             PrimitiveType rightType, PrimitiveType resultType) {
-        Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>> typeMap = operatorMap.get(op);
+        Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>> typeMap = operatorMap
+                .get(op);
         if (typeMap == null) {
             typeMap = new HashMap<PrimitiveType, Map<PrimitiveType, PrimitiveType>>();
             operatorMap.put(op, typeMap);
@@ -151,7 +153,8 @@ public class BinaryExpression extends AbstractExpression {
 
     private static PrimitiveType get(PrimitiveType leftType, BinaryOperator op,
                                      PrimitiveType rightType) {
-        Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>> typeMap = operatorMap.get(op);
+        Map<PrimitiveType, Map<PrimitiveType, PrimitiveType>> typeMap = operatorMap
+                .get(op);
         if (typeMap != null) {
             Map<PrimitiveType, PrimitiveType> resMap = typeMap.get(leftType);
             if (resMap != null) {

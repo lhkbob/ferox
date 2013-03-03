@@ -36,15 +36,8 @@ import com.ferox.renderer.OnscreenSurface;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 import com.ferox.resource.geom.Box;
 import com.ferox.resource.geom.Geometry;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.AtmosphericFog;
+import com.ferox.scene.*;
 import com.ferox.scene.AtmosphericFog.Falloff;
-import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.DiffuseColor;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.Transform;
 import com.lhkbob.entreri.Entity;
 
 public class PhysicsTest extends PhysicsApplicationStub {
@@ -71,9 +64,8 @@ public class PhysicsTest extends PhysicsApplicationStub {
         Geometry box = Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
         //        Geometry sphere = Sphere.create(1 + MARGIN, 32, COMPILE_TYPE);
 
-        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(2,
-                                                                                               2,
-                                                                                               2);
+        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(
+                2, 2, 2);
         //        com.ferox.physics.collision.Shape sphereShape = new com.ferox.physics.collision.shape.Sphere(1);
         boxShape.setMargin(MARGIN);
         //        sphereShape.setMargin(MARGIN);
@@ -95,8 +87,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
                     physShape = boxShape;
                     geomShape = box;
-                    color = new ColorRGB(x / (double) NUM_X,
-                                         y / (double) NUM_Y,
+                    color = new ColorRGB(x / (double) NUM_X, y / (double) NUM_Y,
                                          z / (double) NUM_Z);
 
                     double rx = (Math.random() * randXLim - randXLim / 2);
@@ -104,9 +95,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
                     double rz = (Math.random() * randZLim - randZLim / 2);
 
                     Entity e = system.addEntity();
-                    e.add(Renderable.class)
-                     .getData()
-                     .setVertices(geomShape.getVertices())
+                    e.add(Renderable.class).getData().setVertices(geomShape.getVertices())
                      .setLocalBounds(geomShape.getBounds())
                      .setIndices(geomShape.getPolygonType(), geomShape.getIndices(),
                                  geomShape.getIndexOffset(), geomShape.getIndexCount());
@@ -114,38 +103,31 @@ public class PhysicsTest extends PhysicsApplicationStub {
                      .setNormals(geomShape.getNormals());
                     e.add(DiffuseColor.class).getData().setColor(color);
 
-                    e.add(CollisionBody.class)
-                     .getData()
-                     .setShape(physShape)
-                     .setTransform(new Matrix4().setIdentity()
-                                                .setCol(3,
-                                                        new Vector4((SCALE_X + 2 * MARGIN) * x + rx + startX,
-                                                                    (SCALE_Y + 2 * MARGIN) * y + ry + startY,
-                                                                    (SCALE_Z + 2 * MARGIN) * z + rz + startZ,
-                                                                    1)));
+                    e.add(CollisionBody.class).getData().setShape(physShape).setTransform(
+                            new Matrix4().setIdentity().setCol(3, new Vector4(
+                                    (SCALE_X + 2 * MARGIN) * x + rx + startX,
+                                    (SCALE_Y + 2 * MARGIN) * y + ry + startY,
+                                    (SCALE_Z + 2 * MARGIN) * z + rz + startZ, 1)));
                     e.add(RigidBody.class).getData().setMass(1.0);
                 }
             }
         }
 
         // some walls
-        Geometry bottomWall = Box.create(BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN,
-                                         COMPILE_TYPE);
+        Geometry bottomWall = Box
+                .create(BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN, COMPILE_TYPE);
         Entity wall = system.addEntity();
-        wall.add(Renderable.class)
-            .getData()
-            .setVertices(bottomWall.getVertices())
+        wall.add(Renderable.class).getData().setVertices(bottomWall.getVertices())
             .setLocalBounds(bottomWall.getBounds())
             .setIndices(bottomWall.getPolygonType(), bottomWall.getIndices(),
                         bottomWall.getIndexOffset(), bottomWall.getIndexCount());
         wall.add(BlinnPhongMaterial.class).getData().setNormals(bottomWall.getNormals());
         wall.add(DiffuseColor.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
 
-        wall.add(CollisionBody.class)
-            .getData()
+        wall.add(CollisionBody.class).getData()
             .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
-            .setTransform(new Matrix4().setIdentity()
-                                       .setCol(3, new Vector4(0, -.5, 0, 1)));
+            .setTransform(
+                    new Matrix4().setIdentity().setCol(3, new Vector4(0, -.5, 0, 1)));
 
         // fog
         system.addEntity().add(AtmosphericFog.class).getData()
@@ -159,22 +141,28 @@ public class PhysicsTest extends PhysicsApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        point.get(Transform.class)
-             .getData()
-             .setMatrix(new Matrix4().setIdentity().setCol(3,
-                                                           new Vector4(BOUNDS / 2,
-                                                                       BOUNDS / 2,
-                                                                       BOUNDS / 2,
-                                                                       1)));
+        point.get(Transform.class).getData().setMatrix(new Matrix4().setIdentity()
+                                                                    .setCol(3,
+                                                                            new Vector4(
+                                                                                    BOUNDS /
+                                                                                    2,
+                                                                                    BOUNDS /
+                                                                                    2,
+                                                                                    BOUNDS /
+                                                                                    2,
+                                                                                    1)));
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
         inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
            .setShadowCaster(true);
-        inf.get(Transform.class)
-           .getData()
-           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15),
-                                           new Vector3(0, 1, 0)));
+        inf.get(Transform.class).getData().setMatrix(new Matrix4().lookAt(new Vector3(),
+                                                                          new Vector3(15,
+                                                                                      15,
+                                                                                      15),
+                                                                          new Vector3(0,
+                                                                                      1,
+                                                                                      0)));
     }
 
     public static void main(String[] args) {

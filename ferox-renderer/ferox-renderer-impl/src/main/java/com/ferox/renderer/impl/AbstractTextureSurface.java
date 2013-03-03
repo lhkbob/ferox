@@ -38,14 +38,14 @@ import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
 
 /**
- * AbstractTextureSurface is a mostly complete implementation of TextureSurface
- * that is also an AbstractSurface. It handles the creation and updating of the
- * necessary Texture resources for the TextureSurface, based on the input
- * TextureSurfaceOptions.
- * 
+ * AbstractTextureSurface is a mostly complete implementation of TextureSurface that is
+ * also an AbstractSurface. It handles the creation and updating of the necessary Texture
+ * resources for the TextureSurface, based on the input TextureSurfaceOptions.
+ *
  * @author Michael Ludwig
  */
-public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
+public abstract class AbstractTextureSurface extends AbstractSurface
+        implements TextureSurface {
     private volatile int activeLayer;
     private volatile int activeDepth;
 
@@ -207,23 +207,30 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
 
     private static TextureSurfaceOptions validateFormat(TextureSurfaceOptions options,
                                                         RenderCapabilities caps) {
-        int numBuffers = Math.min(caps.getMaxColorBuffers(), options.getNumColorBuffers());
+        int numBuffers = Math
+                .min(caps.getMaxColorBuffers(), options.getNumColorBuffers());
 
         TextureFormat[] formats = new TextureFormat[numBuffers];
         for (int i = 0; i < formats.length; i++) {
             formats[i] = options.getColorBufferFormat(i);
             if (formats[i].isCompressed()) {
-                throw new SurfaceCreationException("Cannot create a TextureSurface using a compressed format: " + formats[i]);
+                throw new SurfaceCreationException(
+                        "Cannot create a TextureSurface using a compressed format: " +
+                        formats[i]);
             }
 
-            if (!caps.getUnclampedFloatTextureSupport() && (formats[i] == TextureFormat.RGB_FLOAT || formats[i] == TextureFormat.RGBA_FLOAT)) {
-                formats[i] = (formats[i] == TextureFormat.RGB_FLOAT ? TextureFormat.RGB : TextureFormat.RGBA);
+            if (!caps.getUnclampedFloatTextureSupport() &&
+                (formats[i] == TextureFormat.RGB_FLOAT ||
+                 formats[i] == TextureFormat.RGBA_FLOAT)) {
+                formats[i] = (formats[i] == TextureFormat.RGB_FLOAT ? TextureFormat.RGB
+                                                                    : TextureFormat.RGBA);
             }
         }
 
         // FIXME: update capabilities to encode support for depth cubemaps
         options = options.setColorBufferFormats(formats);
-        if (options.hasDepthTexture() && (options.getTarget() == Target.T_CUBEMAP || options.getTarget() == Target.T_3D)) {
+        if (options.hasDepthTexture() && (options.getTarget() == Target.T_CUBEMAP ||
+                                          options.getTarget() == Target.T_3D)) {
             options = options.setUseDepthTexture(false);
         }
         if (options.hasDepthTexture() && !caps.getDepthTextureSupport()) {
@@ -303,52 +310,45 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         if (options.getTarget() == Target.T_CUBEMAP) {
             for (int i = 0; i < colorTextures.length; i++) {
                 Mipmap[] mips = new Mipmap[] {
-                                              createMipmap(options.getColorBufferFormat(i),
-                                                           options),
-                                              createMipmap(options.getColorBufferFormat(i),
-                                                           options),
-                                              createMipmap(options.getColorBufferFormat(i),
-                                                           options),
-                                              createMipmap(options.getColorBufferFormat(i),
-                                                           options),
-                                              createMipmap(options.getColorBufferFormat(i),
-                                                           options),
-                                              createMipmap(options.getColorBufferFormat(i),
-                                                           options)};
+                        createMipmap(options.getColorBufferFormat(i), options),
+                        createMipmap(options.getColorBufferFormat(i), options),
+                        createMipmap(options.getColorBufferFormat(i), options),
+                        createMipmap(options.getColorBufferFormat(i), options),
+                        createMipmap(options.getColorBufferFormat(i), options),
+                        createMipmap(options.getColorBufferFormat(i), options)
+                };
                 colorTextures[i] = new OwnedTexture(owner, options.getTarget(), mips);
             }
         } else {
             for (int i = 0; i < colorTextures.length; i++) {
-                colorTextures[i] = new OwnedTexture(owner,
-                                                    options.getTarget(),
-                                                    new Mipmap[] {createMipmap(options.getColorBufferFormat(i),
-                                                                               options)});
+                colorTextures[i] = new OwnedTexture(owner, options.getTarget(),
+                                                    new Mipmap[] {
+                                                            createMipmap(
+                                                                    options.getColorBufferFormat(
+                                                                            i), options)
+                                                    });
             }
         }
 
         return colorTextures;
     }
 
-    private static Mipmap createMipmap(TextureFormat format, TextureSurfaceOptions options) {
+    private static Mipmap createMipmap(TextureFormat format,
+                                       TextureSurfaceOptions options) {
         DataType type = format.getSupportedType();
         if (type == null) {
             type = DataType.FLOAT;
         }
-        return new Mipmap(type,
-                          false,
-                          options.getWidth(),
-                          options.getHeight(),
-                          options.getDepth(),
-                          format);
+        return new Mipmap(type, false, options.getWidth(), options.getHeight(),
+                          options.getDepth(), format);
     }
 
     private static Texture createDepthTexture(AbstractTextureSurface owner,
                                               TextureSurfaceOptions options) {
         if (options.hasDepthTexture()) {
-            return new OwnedTexture(owner,
-                                    options.getTarget(),
-                                    new Mipmap[] {createMipmap(TextureFormat.DEPTH,
-                                                               options)});
+            return new OwnedTexture(owner, options.getTarget(), new Mipmap[] {
+                    createMipmap(TextureFormat.DEPTH, options)
+            });
         } else {
             return null;
         }
@@ -365,13 +365,15 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             for (int i = 0; i < color.length; i++) {
                 if (resourceManager.update(context, color[i]) != Status.READY) {
                     // Something went wrong, so we should fail
-                    throw new SurfaceCreationException("Requested options created an invalid color texture, cannot construct the TextureSurface");
+                    throw new SurfaceCreationException(
+                            "Requested options created an invalid color texture, cannot construct the TextureSurface");
                 }
             }
             if (depth != null) {
                 if (resourceManager.update(context, depth) != Status.READY) {
                     // Fail like before
-                    throw new SurfaceCreationException("Requested options created an unsupported depth texture, cannot construct the TextureSurface");
+                    throw new SurfaceCreationException(
+                            "Requested options created an unsupported depth texture, cannot construct the TextureSurface");
                 }
             }
         } else {
@@ -379,13 +381,15 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             for (int i = 0; i < color.length; i++) {
                 if (framework.update(color[i]) != Status.READY) {
                     // Something went wrong, so we should fail
-                    throw new SurfaceCreationException("Requested options created an invalid color texture, cannot construct the TextureSurface");
+                    throw new SurfaceCreationException(
+                            "Requested options created an invalid color texture, cannot construct the TextureSurface");
                 }
             }
             if (depth != null) {
                 if (framework.update(depth) != Status.READY) {
                     // Fail like before
-                    throw new SurfaceCreationException("Requested options created an unsupported depth texture, cannot construct the TextureSurface");
+                    throw new SurfaceCreationException(
+                            "Requested options created an unsupported depth texture, cannot construct the TextureSurface");
                 }
             }
         }
@@ -400,9 +404,9 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     }
 
     /**
-     * A Texture extension that overrides {@link #getOwner()} to return a
-     * non-null TextureSurface.
-     * 
+     * A Texture extension that overrides {@link #getOwner()} to return a non-null
+     * TextureSurface.
+     *
      * @author Michael Ludwig
      */
     private static class OwnedTexture extends Texture {

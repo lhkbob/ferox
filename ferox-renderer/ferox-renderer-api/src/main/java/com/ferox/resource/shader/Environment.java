@@ -74,19 +74,13 @@ public class Environment {
     }
 
     public Environment functionScope(Type returnType, Map<String, Type> variables) {
-        return new Environment(getRoot(),
-                               inFragmentShader,
-                               false,
-                               returnType,
+        return new Environment(getRoot(), inFragmentShader, false, returnType,
                                new HashMap<String, Type>(variables));
     }
 
     public Environment newScope(boolean forLoop) {
         Map<String, Type> newState = new HashMap<String, Type>();
-        return new Environment(this,
-                               inFragmentShader,
-                               forLoop || inLoop,
-                               requiredReturnType,
-                               newState);
+        return new Environment(this, inFragmentShader, forLoop || inLoop,
+                               requiredReturnType, newState);
     }
 }

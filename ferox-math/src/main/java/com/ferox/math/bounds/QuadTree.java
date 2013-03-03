@@ -26,31 +26,29 @@
  */
 package com.ferox.math.bounds;
 
-import java.util.Arrays;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Functions;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
+import java.util.Arrays;
+
 /**
- * <p>
- * QuadTree is a SpatialIndex implementation that uses a quadtree to efficiently
- * cull areas in the viewing frustum that don't have objects within them. This
- * particular implementation is a fully-allocated quadtree on top of a spatial
- * grid. This means that inserts are almost constant time, and that AABB queries
- * are very fast.
- * </p>
- * <p>
- * The quadtree is extend to three dimensions by having the 2D quadtree defined
- * in the XZ plane, and imposing a minimum and maximum Y value for every object
- * within the quadtree. This means the quadtree is well suited to 3D games that
- * predominantly 2D in their logic (i.e. an RTS).
- * </p>
- * 
- * @author Michael Ludwig
+ * <p/>
+ * QuadTree is a SpatialIndex implementation that uses a quadtree to efficiently cull
+ * areas in the viewing frustum that don't have objects within them. This particular
+ * implementation is a fully-allocated quadtree on top of a spatial grid. This means that
+ * inserts are almost constant time, and that AABB queries are very fast.
+ * <p/>
+ * The quadtree is extend to three dimensions by having the 2D quadtree defined in the XZ
+ * plane, and imposing a minimum and maximum Y value for every object within the quadtree.
+ * This means the quadtree is well suited to 3D games that predominantly 2D in their logic
+ * (i.e. an RTS).
+ *
  * @param <T> The data type stored in the quadtree
+ *
+ * @author Michael Ludwig
  */
 public class QuadTree<T> implements BoundedSpatialIndex<T> {
     private static final int POS_X = 0x1;
@@ -82,54 +80,47 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
     private int queryIdCounter;
 
     /**
-     * Construct a new QuadTree that has X and Z dimensions of 100, and an
-     * estimated object size of 2 units, which allows the tree to have a depth
-     * of 6.
+     * Construct a new QuadTree that has X and Z dimensions of 100, and an estimated
+     * object size of 2 units, which allows the tree to have a depth of 6.
      */
     public QuadTree() {
         this(100, 2.0);
     }
 
     /**
-     * <p>
-     * Construct a new QuadTree that has X and Z dimensions equal to
-     * <tt>sideLength</tt>, and the depth of the tree is controlled by the
-     * estimated object size, <tt>objSize</tt>. <tt>objSize</tt> should be the
-     * approximate dimension of the average object contained in this index. If
-     * it is too big or too small, query performance may suffer.
-     * </p>
-     * <p>
+     * <p/>
+     * Construct a new QuadTree that has X and Z dimensions equal to <tt>sideLength</tt>,
+     * and the depth of the tree is controlled by the estimated object size,
+     * <tt>objSize</tt>. <tt>objSize</tt> should be the approximate dimension of the
+     * average object contained in this index. If it is too big or too small, query
+     * performance may suffer.
+     * <p/>
      * The height of the root bounds is estimated as 20 times the object size.
-     * </p>
-     * 
+     *
      * @param sideLength The side length of the root bounds of the quadtree
-     * @param objSize The estimated object size
+     * @param objSize    The estimated object size
      */
     public QuadTree(double sideLength, double objSize) {
-        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0,
-                                            -10 * objSize,
-                                            -sideLength / 2.0),
-                                new Vector3(sideLength / 2.0,
-                                            10 * objSize,
-                                            sideLength / 2.0)),
+        this(new AxisAlignedBox(
+                new Vector3(-sideLength / 2.0, -10 * objSize, -sideLength / 2.0),
+                new Vector3(sideLength / 2.0, 10 * objSize, sideLength / 2.0)),
              Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
 
     /**
-     * <P>
-     * Construct a new QuadTree with the given root bounds, <tt>aabb</tt> and
-     * tree depth. The depth of the tree and the X and Z dimensions of the root
-     * bounds determine the size the leaf quadtree nodes. If objects are
-     * significantly larger than this, they will be contained in multiple nodes
-     * and it may hurt performance.
-     * </p>
-     * <p>
-     * The root bounds are copied so future changes to <tt>aabb</tt> will not
-     * affect this tree.
-     * </p>
-     * 
-     * @param aabb The root bounds of the tree
+     * <p/>
+     * Construct a new QuadTree with the given root bounds, <tt>aabb</tt> and tree depth.
+     * The depth of the tree and the X and Z dimensions of the root bounds determine the
+     * size the leaf quadtree nodes. If objects are significantly larger than this, they
+     * will be contained in multiple nodes and it may hurt performance.
+     * <p/>
+     * <p/>
+     * The root bounds are copied so future changes to <tt>aabb</tt> will not affect this
+     * tree.
+     *
+     * @param aabb  The root bounds of the tree
      * @param depth The depth of the tree
+     *
      * @throws NullPointerException if aabb is null
      */
     public QuadTree(@Const AxisAlignedBox aabb, int depth) {
@@ -173,8 +164,10 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
 
         rootBounds.set(bounds);
 
-        widthScaleFactor = maxCellDimension / (getFirstDimension(rootBounds.max) - getFirstDimension(rootBounds.min));
-        heightScaleFactor = maxCellDimension / (getSecondDimension(rootBounds.max) - getSecondDimension(rootBounds.min));
+        widthScaleFactor = maxCellDimension / (getFirstDimension(rootBounds.max) -
+                                               getFirstDimension(rootBounds.min));
+        heightScaleFactor = maxCellDimension / (getSecondDimension(rootBounds.max) -
+                                                getSecondDimension(rootBounds.min));
 
         widthOffset = -getFirstDimension(rootBounds.min);
         heightOffset = -getSecondDimension(rootBounds.min);
@@ -331,7 +324,8 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
                     // also update the quad tree to point to this cell
                     qtIndex += getLevelOffset(depth - 1);
                     if (quadtree[qtIndex] != -1) {
-                        throw new IllegalArgumentException("Quadtree leaf should not have any index");
+                        throw new IllegalArgumentException(
+                                "Quadtree leaf should not have any index");
                     }
                     quadtree[qtIndex] = hash;
                 }
@@ -424,7 +418,8 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
                                 minIntersect.set(Math.max(ba.min.x, bb.min.x),
                                                  Math.max(ba.min.y, bb.min.y),
                                                  Math.max(ba.min.z, bb.min.z));
-                                if (hashCellX(minIntersect) != cellX || hashCellY(minIntersect) != cellY) {
+                                if (hashCellX(minIntersect) != cellX ||
+                                    hashCellY(minIntersect) != cellY) {
                                     continue;
                                 }
                                 // report intersection
@@ -496,8 +491,8 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
 
         // start at root quadtree and walk the tree to compute intersections,
         // building in place an aabb for testing.
-        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, f,
-              new PlaneState(), false, callback, new AxisAlignedBox());
+        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, f, new PlaneState(),
+              false, callback, new AxisAlignedBox());
     }
 
     @SuppressWarnings("unchecked")
@@ -537,7 +532,8 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
                 // - this is valid in a single threaded situation
                 if (queryIds[item] != query) {
                     updateBounds(itemBounds, item);
-                    if (insideGuaranteed || f.intersects(itemBounds, planeState) != FrustumIntersection.OUTSIDE) {
+                    if (insideGuaranteed || f.intersects(itemBounds, planeState) !=
+                                            FrustumIntersection.OUTSIDE) {
                         // we have an intersection, invoke the callback
                         callback.process((T) elements[cell.keys[i]], itemBounds);
                     }
@@ -581,44 +577,44 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
     private void toChildBounds(int child, AxisAlignedBox bounds) {
         if (inPositiveX(child)) {
             // new min x is the center of the node
-            setFirstDimension(bounds.min,
-                              (getFirstDimension(bounds.min) + getFirstDimension(bounds.max)) / 2.0);
+            setFirstDimension(bounds.min, (getFirstDimension(bounds.min) +
+                                           getFirstDimension(bounds.max)) / 2.0);
         } else {
             // new max x is the center of the node
-            setFirstDimension(bounds.max,
-                              (getFirstDimension(bounds.min) + getFirstDimension(bounds.max)) / 2.0);
+            setFirstDimension(bounds.max, (getFirstDimension(bounds.min) +
+                                           getFirstDimension(bounds.max)) / 2.0);
         }
 
         if (inPositiveY(child)) {
             // new min y is the center of the node
-            setSecondDimension(bounds.min,
-                               (getSecondDimension(bounds.min) + getSecondDimension(bounds.max)) / 2.0);
+            setSecondDimension(bounds.min, (getSecondDimension(bounds.min) +
+                                            getSecondDimension(bounds.max)) / 2.0);
         } else {
             // new max y is the center of the node
-            setSecondDimension(bounds.max,
-                               (getSecondDimension(bounds.min) + getSecondDimension(bounds.max)) / 2.0);
+            setSecondDimension(bounds.max, (getSecondDimension(bounds.min) +
+                                            getSecondDimension(bounds.max)) / 2.0);
         }
     }
 
     private void restoreParentBounds(int child, AxisAlignedBox bounds) {
         if (inPositiveX(child)) {
             // new min x = min x - distance from min to max = 2 * min - max
-            setFirstDimension(bounds.min,
-                              2 * getFirstDimension(bounds.min) - getFirstDimension(bounds.max));
+            setFirstDimension(bounds.min, 2 * getFirstDimension(bounds.min) -
+                                          getFirstDimension(bounds.max));
         } else {
             // new max x = max x + distance from min to max = 2 * max - min
-            setFirstDimension(bounds.max,
-                              2 * getFirstDimension(bounds.max) - getFirstDimension(bounds.min));
+            setFirstDimension(bounds.max, 2 * getFirstDimension(bounds.max) -
+                                          getFirstDimension(bounds.min));
         }
 
         if (inPositiveY(child)) {
             // new min y = min y - distance from min to max = 2 * min - max
-            setSecondDimension(bounds.min,
-                               2 * getSecondDimension(bounds.min) - getSecondDimension(bounds.max));
+            setSecondDimension(bounds.min, 2 * getSecondDimension(bounds.min) -
+                                           getSecondDimension(bounds.max));
         } else {
             // new max y = max y + distance from min to max = 2 * max - min
-            setSecondDimension(bounds.max,
-                               2 * getSecondDimension(bounds.max) - getSecondDimension(bounds.min));
+            setSecondDimension(bounds.max, 2 * getSecondDimension(bounds.max) -
+                                           getSecondDimension(bounds.min));
         }
     }
 

@@ -26,10 +26,6 @@
  */
 package com.ferox.scene.task.light;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
@@ -49,8 +45,13 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public class ComputeShadowFrustumTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(DirectionLight.class);
@@ -78,7 +79,8 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         if (fr.getSource().getType().equals(Camera.class)) {
             // keep the frustum that has the biggest volume, but most
             // likely there will only be one camera ever
-            if (camera == null || frustumVolume(camera.getFrustum()) < frustumVolume(fr.getFrustum())) {
+            if (camera == null ||
+                frustumVolume(camera.getFrustum()) < frustumVolume(fr.getFrustum())) {
                 camera = fr;
             }
         }
@@ -174,7 +176,8 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         // even if we floor the extents. The solution is apparenty to use a bounding
         // sphere over the 8 points of the view frustum so its size is rotation
         // invariant
-        double worldArea = (v.getFrustumRight() - v.getFrustumLeft()) * (v.getFrustumTop() - v.getFrustumBottom());
+        double worldArea = (v.getFrustumRight() - v.getFrustumLeft()) *
+                           (v.getFrustumTop() - v.getFrustumBottom());
         double worldUnitsPerTexel = worldArea / (1024 * 1024); // FIXME buffer size
 
         extent.min.x = Math.floor(extent.min.x / worldUnitsPerTexel) * worldUnitsPerTexel;
@@ -201,8 +204,8 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         }
 
         // 12 edges
-        int[] e1 = new int[] {0, 0, 0, 1, 1, 2, 2, 3, 4, 4, 5, 6};
-        int[] e2 = new int[] {1, 2, 4, 3, 5, 3, 6, 7, 5, 6, 7, 7};
+        int[] e1 = new int[] { 0, 0, 0, 1, 1, 2, 2, 3, 4, 4, 5, 6 };
+        int[] e2 = new int[] { 1, 2, 4, 3, 5, 3, 6, 7, 5, 6, 7, 7 };
 
         double[] intersections = new double[12 * 4];
         for (int i = 0; i < e1.length; i++) {
@@ -234,10 +237,14 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         for (int i = 0; i < intersections.length; i++) {
             if (Double.isNaN(intersections[i])) {
                 // edge intersection outside of bounds, so fallback to vertex
-                lightExtent.min.z = Math.min(lightExtent.min.z, sceneCorners[e1[i / 4]].z);
-                lightExtent.max.z = Math.max(lightExtent.max.z, sceneCorners[e1[i / 4]].z);
-                lightExtent.min.z = Math.min(lightExtent.min.z, sceneCorners[e2[i / 4]].z);
-                lightExtent.max.z = Math.max(lightExtent.max.z, sceneCorners[e2[i / 4]].z);
+                lightExtent.min.z = Math
+                        .min(lightExtent.min.z, sceneCorners[e1[i / 4]].z);
+                lightExtent.max.z = Math
+                        .max(lightExtent.max.z, sceneCorners[e1[i / 4]].z);
+                lightExtent.min.z = Math
+                        .min(lightExtent.min.z, sceneCorners[e2[i / 4]].z);
+                lightExtent.max.z = Math
+                        .max(lightExtent.max.z, sceneCorners[e2[i / 4]].z);
             } else {
                 lightExtent.min.z = Math.min(lightExtent.min.z, intersections[i]);
                 lightExtent.max.z = Math.max(lightExtent.max.z, intersections[i]);
@@ -245,7 +252,8 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         }
     }
 
-    private double intersection(double ex1, double ey1, double ex2, double ey2, double lx) {
+    private double intersection(double ex1, double ey1, double ex2, double ey2,
+                                double lx) {
         if (lx < Math.min(ex1, ex2) || lx > Math.max(ex1, ex2)) {
             // out of valid intersection range
             return Double.NaN;
@@ -257,12 +265,11 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     }
 
     private AxisAlignedBox computeViewBounds(@Const Matrix4 lightMatrix, Frustum f) {
-        AxisAlignedBox extent = new AxisAlignedBox(new Vector3(Double.POSITIVE_INFINITY,
-                                                               Double.POSITIVE_INFINITY,
-                                                               Double.POSITIVE_INFINITY),
-                                                   new Vector3(Double.NEGATIVE_INFINITY,
-                                                               Double.NEGATIVE_INFINITY,
-                                                               Double.NEGATIVE_INFINITY));
+        AxisAlignedBox extent = new AxisAlignedBox(
+                new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY,
+                            Double.POSITIVE_INFINITY),
+                new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY,
+                            Double.NEGATIVE_INFINITY));
 
         for (int i = 0; i < 8; i++) {
             Vector3 c = new Vector3();
@@ -293,8 +300,8 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     private Frustum computeFrustum(SpotLight light, Transform t) {
         // clamp near and far planes to the falloff distance if possible, 
         // otherwise select a depth range that likely will not cause any problems
-        double near = (light.getFalloffDistance() > 0 ? Math.min(.1 * light.getFalloffDistance(),
-                                                                 .1) : .1);
+        double near = (light.getFalloffDistance() > 0 ? Math
+                .min(.1 * light.getFalloffDistance(), .1) : .1);
         double far = (light.getFalloffDistance() > 0 ? light.getFalloffDistance() : 1000);
         Frustum f = new Frustum(light.getCutoffAngle() * 2, 1.0, near, far);
         f.setOrientation(t.getMatrix());

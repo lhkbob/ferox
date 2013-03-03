@@ -26,55 +26,45 @@
  */
 package com.ferox.math.bounds;
 
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.Const;
-import com.ferox.math.Matrix3;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 
 /**
- * <p>
- * Frustum represents the mathematical construction of a frustum. It is
- * described as a 6 sided convex hull, where at least two planes are parallel to
- * each other. It supports generating frustums that represent perspective
- * projections (a truncated pyramid), or orthographic projections (a rectangular
- * prism).
- * </p>
- * <p>
+ * <p/>
+ * Frustum represents the mathematical construction of a frustum. It is described as a 6
+ * sided convex hull, where at least two planes are parallel to each other. It supports
+ * generating frustums that represent perspective projections (a truncated pyramid), or
+ * orthographic projections (a rectangular prism).
+ * <p/>
  * Each frustum has a direction vector and an up vector. These vectors define an
- * orthonormal basis for the frustum. The two parallel planes of the frustum are
- * specified as distances along the direction vector (near and far). The
- * additional planes are computed based on the locations of the four corners of
- * the near plane intersection.
- * </p>
- * <p>
- * The mapping from world space to frustum space is not as straight-forward as
- * is implied by the above state. Frustum provides the functionality to get the
- * {@link #getProjectionMatrix(Matrix4) project matrix} and
- * {@link #getViewMatrix(Matrix4) modelview matrix} suitable for use in an
- * OpenGL system. The camera within an OpenGL system looks down its local
- * negative z-axis. Thus the provided direction in this Frustum represents the
- * negative z-axis within camera space.
- * </p>
- * 
+ * orthonormal basis for the frustum. The two parallel planes of the frustum are specified
+ * as distances along the direction vector (near and far). The additional planes are
+ * computed based on the locations of the four corners of the near plane intersection.
+ * <p/>
+ * The mapping from world space to frustum space is not as straight-forward as is implied
+ * by the above state. Frustum provides the functionality to get the {@link
+ * #getProjectionMatrix(Matrix4) project matrix} and {@link #getViewMatrix(Matrix4)
+ * modelview matrix} suitable for use in an OpenGL system. The camera within an OpenGL
+ * system looks down its local negative z-axis. Thus the provided direction in this
+ * Frustum represents the negative z-axis within camera space.
+ *
  * @author Michael Ludwig
  */
 public class Frustum {
-    /** Result of a frustum test against a {@link ReadOnlyAxisAlignedBox}. */
+    /**
+     * Result of a frustum test against a {@link ReadOnlyAxisAlignedBox}.
+     */
     public static enum FrustumIntersection {
         /**
          * Returned when a candidate object is fully enclosed by the Frustum.
          */
         INSIDE,
         /**
-         * Returned when a candidate object is completely outside of the
-         * Frustum.
+         * Returned when a candidate object is completely outside of the Frustum.
          */
         OUTSIDE,
         /**
-         * Returned when a candidate object intersects the Frustum but is not
-         * completely contained.
+         * Returned when a candidate object intersects the Frustum but is not completely
+         * contained.
          */
         INTERSECT
     }
@@ -114,10 +104,10 @@ public class Frustum {
     private final Vector3 temp;
 
     /**
-     * Instantiate a new Frustum that's positioned at the origin, looking down
-     * the negative z-axis. The given values are equivalent to those described
-     * in setPerspective() and are used for the initial frustum parameters.
-     * 
+     * Instantiate a new Frustum that's positioned at the origin, looking down the
+     * negative z-axis. The given values are equivalent to those described in
+     * setPerspective() and are used for the initial frustum parameters.
+     *
      * @param fov
      * @param aspect
      * @param znear
@@ -129,12 +119,12 @@ public class Frustum {
     }
 
     /**
-     * Instantiate a new Frustum that's positioned at the origin, looking down
-     * the negative z-axis. The six values are equivalent to those specified in
-     * setFrustum() and are taken as the initial frustum parameters.
-     * 
-     * @param ortho True if the frustum values are for an orthographic
-     *            projection, otherwise it's a perspective projection
+     * Instantiate a new Frustum that's positioned at the origin, looking down the
+     * negative z-axis. The six values are equivalent to those specified in setFrustum()
+     * and are taken as the initial frustum parameters.
+     *
+     * @param ortho True if the frustum values are for an orthographic projection,
+     *              otherwise it's a perspective projection
      * @param fl
      * @param fr
      * @param fb
@@ -164,9 +154,10 @@ public class Frustum {
 
     /**
      * Get the left edge of the near frustum plane.
-     * 
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     *
      * @return The left edge of the near frustum plane
+     *
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public double getFrustumLeft() {
         return frustumLeft;
@@ -174,9 +165,10 @@ public class Frustum {
 
     /**
      * Get the right edge of the near frustum plane.
-     * 
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     *
      * @return The right edge of the near frustum plane
+     *
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public double getFrustumRight() {
         return frustumRight;
@@ -184,9 +176,10 @@ public class Frustum {
 
     /**
      * Get the top edge of the near frustum plane.
-     * 
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     *
      * @return The top edge of the near frustum plane
+     *
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public double getFrustumTop() {
         return frustumTop;
@@ -194,68 +187,71 @@ public class Frustum {
 
     /**
      * Get the bottom edge of the near frustum plane.
-     * 
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     *
      * @return The bottom edge of the near frustum plane
+     *
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public double getFrustumBottom() {
         return frustumBottom;
     }
 
     /**
-     * Get the distance to the near frustum plane from the origin, in camera
-     * coords.
-     * 
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     * Get the distance to the near frustum plane from the origin, in camera coords.
+     *
      * @return The distance to the near frustum plane
+     *
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public double getFrustumNear() {
         return frustumNear;
     }
 
     /**
-     * Get the distance to the far frustum plane from the origin, in camera
-     * coords.
-     * 
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     * Get the distance to the far frustum plane from the origin, in camera coords.
+     *
      * @return The distance to the far frustum plane
+     *
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public double getFrustumFar() {
         return frustumFar;
     }
 
     /**
-     * <p>
-     * Sets the dimensions of the viewing frustum in camera coords. left, right,
-     * bottom, and top specify edges of the rectangular near plane. This plane
-     * is positioned perpendicular to the viewing direction, a distance near
-     * along the direction vector from the view's location.
-     * </p>
-     * <p>
-     * If this Frustum is using orthogonal projection, the frustum is a
-     * rectangular prism extending from this near plane, out to an identically
-     * sized plane, that is distance far away. If not, the far plane is the far
-     * extent of a pyramid with it's point at the location, truncated at the
-     * near plane.
-     * </p>
-     * 
-     * @param ortho True if the Frustum should use an orthographic projection
-     * @param left The left edge of the near frustum plane
-     * @param right The right edge of the near frustum plane
+     * <p/>
+     * Sets the dimensions of the viewing frustum in camera coords. left, right, bottom,
+     * and top specify edges of the rectangular near plane. This plane is positioned
+     * perpendicular to the viewing direction, a distance near along the direction vector
+     * from the view's location.
+     * <p/>
+     * If this Frustum is using orthogonal projection, the frustum is a rectangular prism
+     * extending from this near plane, out to an identically sized plane, that is distance
+     * far away. If not, the far plane is the far extent of a pyramid with it's point at
+     * the location, truncated at the near plane.
+     *
+     * @param ortho  True if the Frustum should use an orthographic projection
+     * @param left   The left edge of the near frustum plane
+     * @param right  The right edge of the near frustum plane
      * @param bottom The bottom edge of the near frustum plane
-     * @param top The top edge of the near frustum plane
-     * @param near The distance to the near frustum plane
-     * @param far The distance to the far frustum plane
-     * @throws IllegalArgumentException if left > right, bottom > top, near >
-     *             far, or near <= 0 when the view isn't orthographic
+     * @param top    The top edge of the near frustum plane
+     * @param near   The distance to the near frustum plane
+     * @param far    The distance to the far frustum plane
+     *
+     * @throws IllegalArgumentException if left > right, bottom > top, near > far, or near
+     *                                  <= 0 when the view isn't orthographic
      */
     public void setFrustum(boolean ortho, double left, double right, double bottom,
                            double top, double near, double far) {
         if (left > right || bottom > top || near > far) {
-            throw new IllegalArgumentException("Frustum values would create an invalid frustum: " + left + " " + right + " x " + bottom + " " + top + " x " + near + " " + far);
+            throw new IllegalArgumentException(
+                    "Frustum values would create an invalid frustum: " + left + " " +
+                    right + " x " + bottom + " " + top + " x " + near + " " + far);
         }
         if (near <= 0 && !ortho) {
-            throw new IllegalArgumentException("Illegal value for near frustum when using perspective projection: " + near);
+            throw new IllegalArgumentException(
+                    "Illegal value for near frustum when using perspective projection: " +
+                    near);
         }
 
         frustumLeft = left;
@@ -271,26 +267,27 @@ public class Frustum {
     }
 
     /**
-     * Set the frustum to be perspective projection with the given field of view
-     * (in degrees). Widths and heights are calculated using the assumed aspect
-     * ration and near and far values. Because perspective transforms only make
-     * sense for non-orthographic projections, it also sets this view to be
-     * non-orthographic.
-     * 
-     * @param fov The field of view
+     * Set the frustum to be perspective projection with the given field of view (in
+     * degrees). Widths and heights are calculated using the assumed aspect ration and
+     * near and far values. Because perspective transforms only make sense for
+     * non-orthographic projections, it also sets this view to be non-orthographic.
+     *
+     * @param fov    The field of view
      * @param aspect The aspect ratio of the view region (width / height)
-     * @param near The distance from the view's location to the near camera
-     *            plane
-     * @param far The distance from the view's location to the far camera plane
-     * @throws IllegalArgumentException if fov is outside of (0, 180], or aspect
-     *             is <= 0, or near > far, or if near <= 0
+     * @param near   The distance from the view's location to the near camera plane
+     * @param far    The distance from the view's location to the far camera plane
+     *
+     * @throws IllegalArgumentException if fov is outside of (0, 180], or aspect is <= 0,
+     *                                  or near > far, or if near <= 0
      */
     public void setPerspective(double fov, double aspect, double near, double far) {
         if (fov <= 0f || fov > 180f) {
-            throw new IllegalArgumentException("Field of view must be in (0, 180], not: " + fov);
+            throw new IllegalArgumentException(
+                    "Field of view must be in (0, 180], not: " + fov);
         }
         if (aspect <= 0) {
-            throw new IllegalArgumentException("Aspect ration must be >= 0, not: " + aspect);
+            throw new IllegalArgumentException(
+                    "Aspect ration must be >= 0, not: " + aspect);
         }
 
         double h = Math.tan(Math.toRadians(fov * .5f)) * near;
@@ -299,16 +296,17 @@ public class Frustum {
     }
 
     /**
-     * Set the frustum to be an orthographic projection that uses the given
-     * boundary edges for the near frustum plane. The near value is set to -1,
-     * and the far value is set to 1.
-     * 
+     * Set the frustum to be an orthographic projection that uses the given boundary edges
+     * for the near frustum plane. The near value is set to -1, and the far value is set
+     * to 1.
+     *
      * @param left
      * @param right
      * @param bottom
      * @param top
-     * @see #setFrustum(boolean, double, double, double, double, double, double)
+     *
      * @throws IllegalArgumentException if left > right or bottom > top
+     * @see #setFrustum(boolean, double, double, double, double, double, double)
      */
     public void setOrtho(double left, double right, double bottom, double top) {
         setFrustum(true, left, right, bottom, top, -1f, 1f);
@@ -316,7 +314,7 @@ public class Frustum {
 
     /**
      * Whether or not this view uses a perspective or orthogonal projection.
-     * 
+     *
      * @return True if the projection matrix is orthographic
      */
     public boolean isOrthogonalProjection() {
@@ -324,56 +322,56 @@ public class Frustum {
     }
 
     /**
-     * <p>
-     * Get the location vector of this view, in world space. The returned vector
-     * is read-only. Modifications to the frustum's view parameters must be done
-     * through {@link #setOrientation(Vector3, Vector3, Vector3)}.
-     * </p>
-     * 
+     * <p/>
+     * Get the location vector of this view, in world space. The returned vector is
+     * read-only. Modifications to the frustum's view parameters must be done through
+     * {@link #setOrientation(Vector3, Vector3, Vector3)}.
+     *
      * @return The location of the view
      */
-    public @Const
+    public
+    @Const
     Vector3 getLocation() {
         return location;
     }
 
     /**
-     * <p>
-     * Get the up vector of this view, in world space. Together up and direction
-     * form a right-handed coordinate system. The returned vector is read-only.
-     * Modifications to the frustum's view parameters must be done through
-     * {@link #setOrientation(Vector3, Vector3, Vector3)}.
-     * </p>
-     * 
+     * <p/>
+     * Get the up vector of this view, in world space. Together up and direction form a
+     * right-handed coordinate system. The returned vector is read-only. Modifications to
+     * the frustum's view parameters must be done through {@link #setOrientation(Vector3,
+     * Vector3, Vector3)}.
+     *
      * @return The up vector of this view
      */
-    public @Const
+    public
+    @Const
     Vector3 getUp() {
         return up;
     }
 
     /**
-     * <p>
-     * Get the direction vector of this frustum, in world space. Together up and
-     * direction form a right-handed coordinate system. The returned vector is
-     * read-only. Modifications to the frustum's view parameters must be done
-     * through {@link #setOrientation(Vector3, Vector3, Vector3)}.
-     * </p>
-     * 
+     * <p/>
+     * Get the direction vector of this frustum, in world space. Together up and direction
+     * form a right-handed coordinate system. The returned vector is read-only.
+     * Modifications to the frustum's view parameters must be done through {@link
+     * #setOrientation(Vector3, Vector3, Vector3)}.
+     *
      * @return The current direction that this frustum is pointing
      */
-    public @Const
+    public
+    @Const
     Vector3 getDirection() {
         return direction;
     }
 
     /**
-     * Compute and return the field of view along the vertical axis that this
-     * Frustum uses. This is meaningless for an orthographic projection, and
-     * returns -1 in that case. Otherwise, an angle in degrees is returned in
-     * the range 0 to 180. This works correctly even when the bottom and top
-     * edges of the Frustum are not centered about its location.
-     * 
+     * Compute and return the field of view along the vertical axis that this Frustum
+     * uses. This is meaningless for an orthographic projection, and returns -1 in that
+     * case. Otherwise, an angle in degrees is returned in the range 0 to 180. This works
+     * correctly even when the bottom and top edges of the Frustum are not centered about
+     * its location.
+     *
      * @return The field of view of this Frustum
      */
     public double getFieldOfView() {
@@ -387,65 +385,62 @@ public class Frustum {
     }
 
     /**
-     * <p>
-     * Return the 4x4 projection matrix that represents the mathematical
-     * projection from the frustum to homogenous device coordinates (essentially
-     * the unit cube).
-     * </p>
-     * <p>
+     * <p/>
+     * Return the 4x4 projection matrix that represents the mathematical projection from
+     * the frustum to homogenous device coordinates (essentially the unit cube).
+     * <p/>
+     * <p/>
      * The returned matrix is read-only and will be updated automatically as the
      * projection of the Frustum changes.
-     * </p>
-     * 
+     *
      * @return The projection matrix
      */
-    public @Const
+    public
+    @Const
     Matrix4 getProjectionMatrix() {
         return projection;
     }
 
     /**
-     * <p>
-     * Return the 'view' transform of this Frustum. The view transform
-     * represents the coordinate space transformation from world space to
-     * camera/frustum space. The local basis of the Frustum is formed by the
-     * left, up and direction vectors of the Frustum. The left vector is
-     * <code>up X
-     * direction</code>, and up and direction are user defined vectors.
-     * </p>
-     * <p>
-     * The returned matrix is read-only and will be updated automatically as
-     * {@link #setOrientation(Vector3, Vector3, Vector3)} is invoked.
-     * </p>
-     * 
+     * <p/>
+     * Return the 'view' transform of this Frustum. The view transform represents the
+     * coordinate space transformation from world space to camera/frustum space. The local
+     * basis of the Frustum is formed by the left, up and direction vectors of the
+     * Frustum. The left vector is <code>up X direction</code>, and up and direction are
+     * user defined vectors.
+     * <p/>
+     * The returned matrix is read-only and will be updated automatically as {@link
+     * #setOrientation(Vector3, Vector3, Vector3)} is invoked.
+     *
      * @return The view matrix
      */
-    public @Const
+    public
+    @Const
     Matrix4 getViewMatrix() {
         return view;
     }
 
     /**
-     * <p>
-     * Copy the given vectors into this Frustum for its location, direction and
-     * up vectors. The orientation is then normalized and orthogonalized, but
-     * the provided vectors are unmodified.
-     * </p>
-     * <p>
-     * Any later changes to the vectors' x, y, and z values will not be
-     * reflected in the frustum planes or view transform, unless this method is
-     * called again.
-     * </p>
-     * 
-     * @param location The new location vector
+     * <p/>
+     * Copy the given vectors into this Frustum for its location, direction and up
+     * vectors. The orientation is then normalized and orthogonalized, but the provided
+     * vectors are unmodified.
+     * <p/>
+     * Any later changes to the vectors' x, y, and z values will not be reflected in the
+     * frustum planes or view transform, unless this method is called again.
+     *
+     * @param location  The new location vector
      * @param direction The new direction vector
-     * @param up The new up vector
+     * @param up        The new up vector
+     *
      * @throws NullPointerException if location, direction or up is null
      */
     public void setOrientation(@Const Vector3 location, @Const Vector3 direction,
                                @Const Vector3 up) {
         if (location == null || direction == null || up == null) {
-            throw new NullPointerException("Orientation vectors cannot be null: " + location + " " + direction + " " + up);
+            throw new NullPointerException(
+                    "Orientation vectors cannot be null: " + location + " " + direction +
+                    " " + up);
         }
 
         this.location.set(location);
@@ -455,12 +450,12 @@ public class Frustum {
     }
 
     /**
-     * Set the orientation of this Frustum based on the affine
-     * <tt>transform</tt>. The 4th column's first 3 values encode the
-     * transformation. The 3rd column holds the direction vector, and the 2nd
-     * column defines the up vector.
-     * 
+     * Set the orientation of this Frustum based on the affine <tt>transform</tt>. The 4th
+     * column's first 3 values encode the transformation. The 3rd column holds the
+     * direction vector, and the 2nd column defines the up vector.
+     *
      * @param transform The new transform of the frustum
+     *
      * @throws NullPointerException if transform is null
      */
     public void setOrientation(@Const Matrix4 transform) {
@@ -475,13 +470,13 @@ public class Frustum {
     }
 
     /**
-     * Set the orientation of this Frustum based on the given location vector
-     * and 3x3 rotation matrix. Together the vector and rotation represent an
-     * affine transform that is treated the same as in
-     * {@link #setOrientation(Matrix4)}.
-     * 
+     * Set the orientation of this Frustum based on the given location vector and 3x3
+     * rotation matrix. Together the vector and rotation represent an affine transform
+     * that is treated the same as in {@link #setOrientation(Matrix4)}.
+     *
      * @param location The location of the frustum
      * @param rotation The rotation of the frustum
+     *
      * @throws NullPointerException if location or rotation are null
      */
     public void setOrientation(@Const Vector3 location, @Const Matrix3 rotation) {
@@ -499,67 +494,61 @@ public class Frustum {
     }
 
     /**
-     * <p>
+     * <p/>
      * Return a plane representing the given plane of the view frustum, in world
-     * coordinates. This plane should not be modified. The returned plane's
-     * normal is configured so that it points into the center of the Frustum.
-     * The returned {@link Vector4} is encoded as a plane as defined in
-     * {@link Plane}; it is also normalized.
-     * </p>
-     * <p>
-     * The returned plane vector is read-only. It will be updated automatically
-     * when the projection or view parameters change.
-     * </p>
-     * 
+     * coordinates. This plane should not be modified. The returned plane's normal is
+     * configured so that it points into the center of the Frustum. The returned {@link
+     * Vector4} is encoded as a plane as defined in {@link Plane}; it is also normalized.
+     * <p/>
+     * <p/>
+     * The returned plane vector is read-only. It will be updated automatically when the
+     * projection or view parameters change.
+     *
      * @param i The requested plane index
+     *
      * @return The ReadOnlyVector4f instance for the requested plane, in world
      *         coordinates
+     *
      * @throws IndexOutOfBoundsException if plane isn't in [0, 5]
      */
-    public @Const
+    public
+    @Const
     Vector4 getFrustumPlane(int i) {
         return worldPlanes[i];
     }
 
     /**
-     * <p>
-     * Compute and return the intersection of the AxisAlignedBox and this
-     * Frustum, <tt>f</tt>. It is assumed that the Frustum and AxisAlignedBox
-     * exist in the same coordinate frame. {@link FrustumIntersection#INSIDE} is
-     * returned when the AxisAlignedBox is fully contained by the Frustum.
-     * {@link FrustumIntersection#INTERSECT} is returned when this box is
-     * partially contained by the Frustum, and
-     * {@link FrustumIntersection#OUTSIDE} is returned when the box has no
-     * intersection with the Frustum.
-     * </p>
-     * <p>
-     * If <tt>OUTSIDE</tt> is returned, it is guaranteed that the objects
-     * enclosed by the bounds do not intersect the Frustum. If <tt>INSIDE</tt>
-     * is returned, any object {@link #contains(AxisAlignedBox) contained} by
-     * the box will also be completely inside the Frustum. When
-     * <tt>INTERSECT</tt> is returned, there is a chance that the true
-     * representation of the objects enclosed by the box will be outside of the
-     * Frustum, but it is unlikely. This can occur when a corner of the box
-     * intersects with the planes of <tt>f</tt>, but the shape does not exist in
-     * that corner.
-     * </p>
-     * <p>
-     * The argument <tt>planeState</tt> can be used to hint to this function
-     * which planes of the Frustum require checking and which do not. When a
-     * hierarchy of bounds is used, the planeState can be used to remove
-     * unnecessary plane comparisons. If <tt>planeState</tt> is null it is
-     * assumed that all planes need to be checked. If <tt>planeState</tt> is not
-     * null, this method will mark any plane that the box is completely inside
-     * of as not requiring a comparison. It is the responsibility of the caller
-     * to save and restore the plane state as needed based on the structure of
-     * the bound hierarchy.
-     * </p>
-     * 
-     * @param bounds The bounds to test for intersection with this frustm
-     * @param planeState An optional PlaneState hint specifying which planes to
-     *            check
-     * @return A FrustumIntersection indicating how the frustum and bounds
-     *         intersect
+     * <p/>
+     * Compute and return the intersection of the AxisAlignedBox and this Frustum,
+     * <tt>f</tt>. It is assumed that the Frustum and AxisAlignedBox exist in the same
+     * coordinate frame. {@link FrustumIntersection#INSIDE} is returned when the
+     * AxisAlignedBox is fully contained by the Frustum. {@link
+     * FrustumIntersection#INTERSECT} is returned when this box is partially contained by
+     * the Frustum, and {@link FrustumIntersection#OUTSIDE} is returned when the box has
+     * no intersection with the Frustum.
+     * <p/>
+     * If <tt>OUTSIDE</tt> is returned, it is guaranteed that the objects enclosed by the
+     * bounds do not intersect the Frustum. If <tt>INSIDE</tt> is returned, any object
+     * {@link #contains(AxisAlignedBox) contained} by the box will also be completely
+     * inside the Frustum. When <tt>INTERSECT</tt> is returned, there is a chance that the
+     * true representation of the objects enclosed by the box will be outside of the
+     * Frustum, but it is unlikely. This can occur when a corner of the box intersects
+     * with the planes of <tt>f</tt>, but the shape does not exist in that corner.
+     * <p/>
+     * The argument <tt>planeState</tt> can be used to hint to this function which planes
+     * of the Frustum require checking and which do not. When a hierarchy of bounds is
+     * used, the planeState can be used to remove unnecessary plane comparisons. If
+     * <tt>planeState</tt> is null it is assumed that all planes need to be checked. If
+     * <tt>planeState</tt> is not null, this method will mark any plane that the box is
+     * completely inside of as not requiring a comparison. It is the responsibility of the
+     * caller to save and restore the plane state as needed based on the structure of the
+     * bound hierarchy.
+     *
+     * @param bounds     The bounds to test for intersection with this frustm
+     * @param planeState An optional PlaneState hint specifying which planes to check
+     *
+     * @return A FrustumIntersection indicating how the frustum and bounds intersect
+     *
      * @throws NullPointerException if bounds is null
      */
     public FrustumIntersection intersects(@Const AxisAlignedBox bounds,
@@ -626,9 +615,11 @@ public class Frustum {
      */
     private void update() {
         // compute the right-handed basis vectors of the frustum
-        Vector3 n = new Vector3().scale(direction.normalize(), -1); // normalizes direction as well
+        Vector3 n = new Vector3()
+                .scale(direction.normalize(), -1); // normalizes direction as well
         Vector3 u = new Vector3().cross(up, n).normalize();
-        Vector3 v = up.cross(n, u).normalize(); // recompute up to properly orthogonal to direction
+        Vector3 v = up.cross(n, u)
+                      .normalize(); // recompute up to properly orthogonal to direction
 
         // view matrix
         view.set(u.x, u.y, u.z, -location.dot(u), v.x, v.y, v.z, -location.dot(v), n.x,
@@ -641,15 +632,14 @@ public class Frustum {
                            0, 2 / (frustumTop - frustumBottom), 0,
                            -(frustumTop + frustumBottom) / (frustumTop - frustumBottom),
                            0, 0, 2 / (frustumNear - frustumFar),
-                           -(frustumFar + frustumNear) / (frustumFar - frustumNear), 0,
-                           0, 0, 1);
+                           -(frustumFar + frustumNear) / (frustumFar - frustumNear), 0, 0,
+                           0, 1);
         } else {
             projection.set(2 * frustumNear / (frustumRight - frustumLeft), 0,
-                           (frustumRight + frustumLeft) / (frustumRight - frustumLeft),
-                           0, 0, 2 * frustumNear / (frustumTop - frustumBottom),
-                           (frustumTop + frustumBottom) / (frustumTop - frustumBottom),
-                           0, 0, 0,
-                           -(frustumFar + frustumNear) / (frustumFar - frustumNear),
+                           (frustumRight + frustumLeft) / (frustumRight - frustumLeft), 0,
+                           0, 2 * frustumNear / (frustumTop - frustumBottom),
+                           (frustumTop + frustumBottom) / (frustumTop - frustumBottom), 0,
+                           0, 0, -(frustumFar + frustumNear) / (frustumFar - frustumNear),
                            -2 * frustumFar * frustumNear / (frustumFar - frustumNear), 0,
                            0, -1, 0);
         }
@@ -712,7 +702,8 @@ public class Frustum {
         p.cross(up, direction);
 
         // LEFT
-        double invHyp = 1 / Math.sqrt(frustumNear * frustumNear + frustumLeft * frustumLeft);
+        double invHyp =
+                1 / Math.sqrt(frustumNear * frustumNear + frustumLeft * frustumLeft);
         n.scale(direction, Math.abs(frustumLeft) / frustumNear).sub(p)
          .scale(frustumNear * invHyp);
         setWorldPlane(LEFT_PLANE, n, location);

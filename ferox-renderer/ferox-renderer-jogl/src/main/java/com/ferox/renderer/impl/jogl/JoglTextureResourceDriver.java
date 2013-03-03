@@ -26,13 +26,6 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.nio.Buffer;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractTextureResourceDriver;
@@ -41,10 +34,16 @@ import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2GL3;
+import java.nio.Buffer;
+
 /**
- * JoglTextureResourceDriver is a concrete ResourceDriver that handles Texture
- * objects and uses the JOGL OpenGL binding.
- * 
+ * JoglTextureResourceDriver is a concrete ResourceDriver that handles Texture objects and
+ * uses the JOGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 // FIXME: I seem to have lost the rules for supported depth targets and compressed targets,
@@ -99,11 +98,12 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
                 gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_COMPARE_FUNC,
                                    Utils.getGLPixelTest(handle.depthTest));
             }
-            if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
+            if (handle.enableDepthCompare == null ||
+                handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
                 handle.enableDepthCompare = tex.isDepthCompareEnabled();
-                gl.glTexParameteri(target,
-                                   GL2ES2.GL_TEXTURE_COMPARE_MODE,
-                                   (handle.enableDepthCompare ? GL2.GL_COMPARE_R_TO_TEXTURE : GL.GL_NONE));
+                gl.glTexParameteri(target, GL2ES2.GL_TEXTURE_COMPARE_MODE,
+                                   (handle.enableDepthCompare
+                                    ? GL2.GL_COMPARE_R_TO_TEXTURE : GL.GL_NONE));
             }
         }
 
@@ -160,7 +160,7 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
 
     @Override
     protected void glDeleteTexture(OpenGLContext context, TextureHandle handle) {
-        getGL(context).glDeleteTextures(1, new int[] {handle.texID}, 0);
+        getGL(context).glDeleteTextures(1, new int[] { handle.texID }, 0);
     }
 
     @Override
@@ -168,16 +168,18 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
                               int mipmap, int width, int height, int depth, int capacity,
                               Buffer data) {
         // note that 1D and 3D targets don't support or expect compressed textures
-        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
+        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
+                                                   : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
         int dstFormat = Utils.getGLDstFormat(h.format, h.type);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
-                                                                                                  false));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format)
+                                              : Utils.getGLType(h.type, false));
 
         switch (h.target) {
         case T_1D:
-            getGL(context).glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat,
-                                        type, data);
+            getGL(context)
+                    .glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type,
+                                  data);
             break;
         case T_2D:
         case T_CUBEMAP:
@@ -187,13 +189,15 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
                                             srcFormat, type, data);
             } else if (data != null) {
                 // compressed
-                getGL(context).glCompressedTexImage2D(target, mipmap, dstFormat, width,
-                                                      height, 0, capacity, data);
+                getGL(context)
+                        .glCompressedTexImage2D(target, mipmap, dstFormat, width, height,
+                                                0, capacity, data);
             }
             break;
         case T_3D:
-            getGL(context).glTexImage3D(target, mipmap, dstFormat, width, height, depth,
-                                        0, srcFormat, type, data);
+            getGL(context)
+                    .glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0,
+                                  srcFormat, type, data);
             break;
         }
     }
@@ -202,20 +206,22 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
     protected void glTexSubImage(OpenGLContext context, TextureHandle h, int layer,
                                  int mipmap, int x, int y, int z, int width, int height,
                                  int depth, Buffer data) {
-        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
+        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
+                                                   : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
-                                                                                                  false));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format)
+                                              : Utils.getGLType(h.type, false));
 
         switch (h.target) {
         case T_1D:
-            getGL(context).glTexSubImage1D(target, mipmap, x, width, srcFormat, type,
-                                           data);
+            getGL(context)
+                    .glTexSubImage1D(target, mipmap, x, width, srcFormat, type, data);
             break;
         case T_2D:
         case T_CUBEMAP:
-            getGL(context).glTexSubImage2D(target, mipmap, x, y, width, height,
-                                           srcFormat, type, data);
+            getGL(context)
+                    .glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat, type,
+                                     data);
             break;
         case T_3D:
             getGL(context).glTexSubImage3D(target, mipmap, x, y, z, width, height, depth,

@@ -32,23 +32,19 @@ import com.ferox.renderer.Renderer;
 import com.ferox.resource.VertexBufferObject;
 
 /**
- * <p>
- * AbstractRenderer is the main super class for renderers used by
- * AbstractFrameworks. It takes a single RendererDelegate that handles the
- * actual implementation of the Renderer interface. It is extended by both
- * {@link AbstractFixedFunctionRenderer} and {@link AbstractGlslRenderer}, which
- * complete the implementations for the respective renderer types. It is
- * recommended that if an OpenGLContext provides both a FixedFunctionRenderer
- * and a GlslRenderer that both use the same RendererDelegate instance since
- * that state is shared by the context.
- * </p>
- * <p>
- * AbstractRenderer adds the
- * {@link #activate(AbstractSurface, OpenGLContext, ResourceManager)} method
- * which is invoked by AbstractSurface when it is activated. This provides a
- * hook for renderers to perform custom initialization of the OpenGL state.
- * </p>
- * 
+ * <p/>
+ * AbstractRenderer is the main super class for renderers used by AbstractFrameworks. It
+ * takes a single RendererDelegate that handles the actual implementation of the Renderer
+ * interface. It is extended by both {@link AbstractFixedFunctionRenderer} and {@link
+ * AbstractGlslRenderer}, which complete the implementations for the respective renderer
+ * types. It is recommended that if an OpenGLContext provides both a FixedFunctionRenderer
+ * and a GlslRenderer that both use the same RendererDelegate instance since that state is
+ * shared by the context.
+ * <p/>
+ * AbstractRenderer adds the {@link #activate(AbstractSurface, OpenGLContext,
+ * ResourceManager)} method which is invoked by AbstractSurface when it is activated. This
+ * provides a hook for renderers to perform custom initialization of the OpenGL state.
+ *
  * @author Michael Ludwig
  */
 public abstract class AbstractRenderer implements Renderer {
@@ -88,12 +84,14 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void setBlendModeAlpha(BlendFunction function, BlendFactor src, BlendFactor dst) {
+    public void setBlendModeAlpha(BlendFunction function, BlendFactor src,
+                                  BlendFactor dst) {
         delegate.setBlendModeAlpha(function, src, dst);
     }
 
     @Override
-    public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
+    public void setBlendModeRgb(BlendFunction function, BlendFactor src,
+                                BlendFactor dst) {
         delegate.setBlendModeRgb(function, src, dst);
     }
 
@@ -103,7 +101,8 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void setColorWriteMask(boolean red, boolean green, boolean blue, boolean alpha) {
+    public void setColorWriteMask(boolean red, boolean green, boolean blue,
+                                  boolean alpha) {
         delegate.setColorWriteMask(red, green, blue, alpha);
     }
 
@@ -202,13 +201,12 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     /**
-     * Notify the renderer that the provided surface has been activated and will
-     * be using this Renderer. The given context is the context for the current
-     * thread and the ResourceManager is the resource manager of the surface's
-     * owning framework.
-     * 
-     * @param active The now active surface
-     * @param context The current context
+     * Notify the renderer that the provided surface has been activated and will be using
+     * this Renderer. The given context is the context for the current thread and the
+     * ResourceManager is the resource manager of the surface's owning framework.
+     *
+     * @param active          The now active surface
+     * @param context         The current context
      * @param resourceManager The ResourceManager to use
      */
     public void activate(AbstractSurface active, OpenGLContext context,

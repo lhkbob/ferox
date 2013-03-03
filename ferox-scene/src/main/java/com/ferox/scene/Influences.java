@@ -26,21 +26,22 @@
  */
 package com.ferox.scene;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.PropertyFactory;
 import com.lhkbob.entreri.property.ObjectProperty;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public final class Influences extends ComponentData<Influences> {
     @Factory(SetFactory.class)
     private ObjectProperty<Set<Entity>> entities;
 
-    private Influences() {}
+    private Influences() {
+    }
 
     public Set<Entity> getInfluencedSet() {
         return Collections.unmodifiableSet(entities.get(getIndex()));
@@ -73,7 +74,8 @@ public final class Influences extends ComponentData<Influences> {
         return set.contains(e);
     }
 
-    private static class SetFactory implements PropertyFactory<ObjectProperty<Set<Entity>>> {
+    private static class SetFactory
+            implements PropertyFactory<ObjectProperty<Set<Entity>>> {
         @Override
         public ObjectProperty<Set<Entity>> create() {
             return new ObjectProperty<Set<Entity>>();

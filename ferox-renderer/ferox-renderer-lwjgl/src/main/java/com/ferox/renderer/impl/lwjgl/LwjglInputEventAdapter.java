@@ -26,21 +26,19 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.Display;
-
 import com.ferox.input.AWTEventAdapter;
 import com.ferox.input.KeyEvent;
 import com.ferox.input.MouseEvent;
 import com.ferox.input.MouseKeyEventDispatcher;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 /**
- * A MouseKeyEventSource that wraps the static {@link Mouse} and
- * {@link Keyboard}, and mimics another MouseKeyEventSource that actually
- * triggers the events. This is purely a helper implementation for mapping the
- * events, much like the {@link AWTEventAdapter}.
- * 
+ * A MouseKeyEventSource that wraps the static {@link Mouse} and {@link Keyboard}, and
+ * mimics another MouseKeyEventSource that actually triggers the events. This is purely a
+ * helper implementation for mapping the events, much like the {@link AWTEventAdapter}.
+ *
  * @author Michael Ludwig
  */
 public class LwjglInputEventAdapter {
@@ -71,54 +69,45 @@ public class LwjglInputEventAdapter {
 
             if (x != lastMouseX || y != lastMouseY) {
                 // push a mouse-moved event
-                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.MOVE,
-                                                        dispatcher.getSource(),
-                                                        x,
-                                                        y,
-                                                        0,
-                                                        MouseEvent.MouseButton.NONE));
+                dispatcher.dispatchEvent(
+                        new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), x, y,
+                                       0, MouseEvent.MouseButton.NONE));
             }
 
             int scrollDelta = Mouse.getEventDWheel();
             if (scrollDelta != 0) {
                 // push a mouse-wheel-scroll event
-                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.SCROLL,
-                                                        dispatcher.getSource(),
-                                                        x,
-                                                        y,
-                                                        0,
-                                                        MouseEvent.MouseButton.NONE));
+                dispatcher.dispatchEvent(
+                        new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), x,
+                                       y, 0, MouseEvent.MouseButton.NONE));
             }
 
             switch (Mouse.getEventButton()) {
             case 0: {
-                MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
-                dispatcher.dispatchEvent(new MouseEvent(type,
-                                                        dispatcher.getSource(),
-                                                        x,
-                                                        y,
-                                                        0,
-                                                        MouseEvent.MouseButton.LEFT));
+                MouseEvent.Type type = (Mouse.getEventButtonState()
+                                        ? MouseEvent.Type.PRESS
+                                        : MouseEvent.Type.RELEASE);
+                dispatcher.dispatchEvent(
+                        new MouseEvent(type, dispatcher.getSource(), x, y, 0,
+                                       MouseEvent.MouseButton.LEFT));
                 break;
             }
             case 1: {
-                MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
-                dispatcher.dispatchEvent(new MouseEvent(type,
-                                                        dispatcher.getSource(),
-                                                        x,
-                                                        y,
-                                                        0,
-                                                        MouseEvent.MouseButton.RIGHT));
+                MouseEvent.Type type = (Mouse.getEventButtonState()
+                                        ? MouseEvent.Type.PRESS
+                                        : MouseEvent.Type.RELEASE);
+                dispatcher.dispatchEvent(
+                        new MouseEvent(type, dispatcher.getSource(), x, y, 0,
+                                       MouseEvent.MouseButton.RIGHT));
                 break;
             }
             case 2: {
-                MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS : MouseEvent.Type.RELEASE);
-                dispatcher.dispatchEvent(new MouseEvent(type,
-                                                        dispatcher.getSource(),
-                                                        x,
-                                                        y,
-                                                        0,
-                                                        MouseEvent.MouseButton.CENTER));
+                MouseEvent.Type type = (Mouse.getEventButtonState()
+                                        ? MouseEvent.Type.PRESS
+                                        : MouseEvent.Type.RELEASE);
+                dispatcher.dispatchEvent(
+                        new MouseEvent(type, dispatcher.getSource(), x, y, 0,
+                                       MouseEvent.MouseButton.CENTER));
                 break;
             }
             default:
@@ -135,12 +124,11 @@ public class LwjglInputEventAdapter {
                 eventChar = KeyEvent.CHAR_UNKNOWN;
             }
 
-            KeyEvent.Type type = (Keyboard.getEventKeyState() ? KeyEvent.Type.PRESS : KeyEvent.Type.RELEASE);
+            KeyEvent.Type type = (Keyboard.getEventKeyState() ? KeyEvent.Type.PRESS
+                                                              : KeyEvent.Type.RELEASE);
 
-            dispatcher.dispatchEvent(new KeyEvent(type,
-                                                  dispatcher.getSource(),
-                                                  keyCode,
-                                                  eventChar));
+            dispatcher.dispatchEvent(
+                    new KeyEvent(type, dispatcher.getSource(), keyCode, eventChar));
         }
     }
 

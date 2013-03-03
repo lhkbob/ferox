@@ -30,25 +30,21 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
 /**
- * <p>
- * Vector4 provides an implementation of a 4-element mathematical vector with
- * many common operations available from linear algebra. It's 4 components are
- * exposed as public fields for performance reasons. This means vectors are
- * always mutable.
- * </p>
- * <p>
- * The {@link Const} annotation can be used the same way that the 'const' token
- * can modify a type in C++. On input, it declares the method will not modify
- * that instance; on output, it declares that the returned instance should not
- * be modified (internal code might still modify it in some controlled manner).
- * </p>
- * <p>
- * In all mathematical functions whose result is a vector, the Vector4 calling
- * the method will contain the result. The input vectors will be left
- * unmodified. It is safe for the calling vector to be any vector parameter into
- * the function.
- * </p>
- * 
+ * <p/>
+ * Vector4 provides an implementation of a 4-element mathematical vector with many common
+ * operations available from linear algebra. It's 4 components are exposed as public
+ * fields for performance reasons. This means vectors are always mutable.
+ * <p/>
+ * <p/>
+ * The {@link Const} annotation can be used the same way that the 'const' token can modify
+ * a type in C++. On input, it declares the method will not modify that instance; on
+ * output, it declares that the returned instance should not be modified (internal code
+ * might still modify it in some controlled manner).
+ * <p/>
+ * In all mathematical functions whose result is a vector, the Vector4 calling the method
+ * will contain the result. The input vectors will be left unmodified. It is safe for the
+ * calling vector to be any vector parameter into the function.
+ *
  * @author Michael Ludwig
  */
 public final class Vector4 implements Cloneable {
@@ -65,9 +61,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Create a new vector that copies the x, y, z, and w values from <tt>v</tt>
-     * .
-     * 
+     * Create a new vector that copies the x, y, z, and w values from <tt>v</tt> .
+     *
      * @param v The vector to copy
      */
     public Vector4(@Const Vector4 v) {
@@ -76,7 +71,7 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Create a new vector with the given x, y, z, and w values.
-     * 
+     *
      * @param x The x value
      * @param y The y value
      * @param z The z value
@@ -95,11 +90,12 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Floor each component of the vector <tt>v</tt> and store them in this
-     * vector.
-     * 
+     * Floor each component of the vector <tt>v</tt> and store them in this vector.
+     *
      * @param v The vector to be floored
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 floor(Vector4 v) {
@@ -108,7 +104,7 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Floor this vector component-wise.
-     * 
+     *
      * @return This vector
      */
     public Vector4 floor() {
@@ -116,11 +112,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the ceiling of each component of the vector <tt>v</tt> and store
-     * them in this vector.
-     * 
+     * Compute the ceiling of each component of the vector <tt>v</tt> and store them in
+     * this vector.
+     *
      * @param v The vector to be ceil'ed
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 ceil(Vector4 v) {
@@ -129,7 +127,7 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Compute the ceiling this vector component-wise.
-     * 
+     *
      * @return This vector
      */
     public Vector4 ceil() {
@@ -137,21 +135,23 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and
-     * store the resultant values of (x, y, z, w) into this vector:
-     * 
+     * Solve the linear system of equations, <code>[m] x [this] = [a]</code> and store the
+     * resultant values of (x, y, z, w) into this vector:
+     * <p/>
      * <pre>
      * m.m00*x + m.m01*y + m.m02*z + m.m03*w = a.x
      * m.m10*x + m.m11*y + m.m12*z + m.m13*w = a.y
      * m.m20*x + m.m21*y + m.m22*z + m.m23*w = a.z
      * m.m30*x + m.m31*y + m.m32*z + m.m33*w = a.w
      * </pre>
-     * 
+     *
      * @param m The matrix describing the coefficients of the 4 equations
-     * @param a The vector constraining the values that solve the linear system
-     *            of equations
+     * @param a The vector constraining the values that solve the linear system of
+     *          equations
+     *
      * @return This vector
-     * @throws ArithmeticException if no solution or an infinite solutions exist
+     *
+     * @throws ArithmeticException  if no solution or an infinite solutions exist
      * @throws NullPointerException if m or a are null
      */
     public Vector4 solve(@Const Matrix4 m, @Const Vector4 a) {
@@ -162,19 +162,19 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * <p>
-     * Compute <code>[b] x [m]</code> and store the resulting 1x4 matrix in this
-     * vector. For sake of multiplication, [b] is considered to be a 1x4 matrix,
-     * where x is the first column, y is the second, z is the third, and w is
-     * the fourth.
-     * </p>
-     * <p>
+     * <p/>
+     * Compute <code>[b] x [m]</code> and store the resulting 1x4 matrix in this vector.
+     * For sake of multiplication, [b] is considered to be a 1x4 matrix, where x is the
+     * first column, y is the second, z is the third, and w is the fourth.
+     * <p/>
+     * <p/>
      * Note that this uses the reverse order of {@link #mul(Matrix4, Vector4)}.
-     * </p>
-     * 
+     *
      * @param b Vector to be interpreted as a 1x4 matrix in the multiplication
      * @param m The matrix in the right side of the multiplication
+     *
      * @return This vector
+     *
      * @throws NullPointerException if m or b are null
      */
     public Vector4 mul(@Const Vector4 b, @Const Matrix4 m) {
@@ -185,14 +185,15 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute <code>[m] x [b]</code> and store the resulting 4x1 matrix in this
-     * vector. For sake of multiplication, [b] is considered to be a 4x1 matrix
-     * where x is the first row, y is the second, z is the third, and w is the
-     * fourth.
-     * 
+     * Compute <code>[m] x [b]</code> and store the resulting 4x1 matrix in this vector.
+     * For sake of multiplication, [b] is considered to be a 4x1 matrix where x is the
+     * first row, y is the second, z is the third, and w is the fourth.
+     *
      * @param m The matrix on the left side of the multiplication
      * @param b The vector to interpret as a 4x1 matrix
+     *
      * @return This vector
+     *
      * @throws NullPointerException if a or b are null
      */
     public Vector4 mul(@Const Matrix4 m, @Const Vector4 b) {
@@ -204,7 +205,7 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Compute the length of this vector.
-     * 
+     *
      * @return Length of this vector
      */
     public double length() {
@@ -212,10 +213,10 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the length of this vector, squared. Often, when only length
-     * comparisons are necessary, the sauared length is useful because its
-     * computation doesn't involve a slow square root operation.
-     * 
+     * Compute the length of this vector, squared. Often, when only length comparisons are
+     * necessary, the sauared length is useful because its computation doesn't involve a
+     * slow square root operation.
+     *
      * @return The squared length of this vector
      */
     public double lengthSquared() {
@@ -223,11 +224,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the distance between this vector and <tt>v</tt>, treating both
-     * vectors as 4D points.
-     * 
+     * Compute the distance between this vector and <tt>v</tt>, treating both vectors as
+     * 4D points.
+     *
      * @param v The other vector
+     *
      * @return The distance between this and v
+     *
      * @throws NullPointerException if v is null
      */
     public double distance(@Const Vector4 v) {
@@ -235,11 +238,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the square of the distance between this and <tt>v</tt>, treating
-     * both vectors as 4D points.
-     * 
+     * Compute the square of the distance between this and <tt>v</tt>, treating both
+     * vectors as 4D points.
+     *
      * @param v The other vector
+     *
      * @return The distance between this and v
+     *
      * @throws NullPointerException if v is null
      */
     public double distanceSquared(@Const Vector4 v) {
@@ -251,11 +256,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute and return the shortest angle between this vector and v. The
-     * returned angle must be in radians.
-     * 
+     * Compute and return the shortest angle between this vector and v. The returned angle
+     * must be in radians.
+     *
      * @param v The other vector involved
+     *
      * @return The smallest angle, in radians, between this and v
+     *
      * @throws NullPointerException if v is null
      */
     public double angle(@Const Vector4 v) {
@@ -263,11 +270,12 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute and return the dot product between this vector and the given
-     * vector, v.
-     * 
+     * Compute and return the dot product between this vector and the given vector, v.
+     *
      * @param v Vector to compute dot product with
+     *
      * @return The dot product between v and this
+     *
      * @throws NullPointerException if v is null
      */
     public double dot(@Const Vector4 v) {
@@ -275,15 +283,16 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute a vector orthogonal to <tt>b</tt> and store the result in this
-     * vector. The orthogonal vector will be in the plane formed by <tt>a</tt>
-     * and <tt>b</tt>, and it will be in the same half-plane as <tt>a</tt>
-     * formed by a line through <tt>b</tt>. This uses the Gram-Schmidt process.
-     * 
-     * @param a The vector that helps form the plane and chooses the result's
-     *            orientation
+     * Compute a vector orthogonal to <tt>b</tt> and store the result in this vector. The
+     * orthogonal vector will be in the plane formed by <tt>a</tt> and <tt>b</tt>, and it
+     * will be in the same half-plane as <tt>a</tt> formed by a line through <tt>b</tt>.
+     * This uses the Gram-Schmidt process.
+     *
+     * @param a The vector that helps form the plane and chooses the result's orientation
      * @param b The vector the result is orthogonal to
+     *
      * @return This vector
+     *
      * @throws NullPointerException if a or b are null
      */
     public Vector4 ortho(@Const Vector4 a, @Const Vector4 b) {
@@ -299,10 +308,12 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Project <tt>a</tt> onto <tt>b</tt> and store the result in this vector.
-     * 
+     *
      * @param a The vector being projected
      * @param b The vector that is projected onto
+     *
      * @return This vector
+     *
      * @throws NullPointerException if a or b are null
      */
     public Vector4 project(@Const Vector4 a, @Const Vector4 b) {
@@ -310,12 +321,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Add <tt>a</tt> and <tt>b</tt> together and store the result in this
-     * vector.
-     * 
+     * Add <tt>a</tt> and <tt>b</tt> together and store the result in this vector.
+     *
      * @param a The left side of the addition
      * @param b The right side of the addition
+     *
      * @return This vector
+     *
      * @throws NullPointerException if a or b are null
      */
     public Vector4 add(@Const Vector4 a, @Const Vector4 b) {
@@ -323,13 +335,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute <code>a + (scalar * b)</code> and store the result in this
-     * vector.
-     * 
-     * @param a The left side of the addition
+     * Compute <code>a + (scalar * b)</code> and store the result in this vector.
+     *
+     * @param a      The left side of the addition
      * @param scalar The scaling factor applied to
-     * @param b The vector to be scaled and then added to a
+     * @param b      The vector to be scaled and then added to a
+     *
      * @return This vector
+     *
      * @throws NullPointerException if a or b are null
      */
     public Vector4 addScaled(@Const Vector4 a, double scalar, @Const Vector4 b) {
@@ -339,10 +352,12 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Compute <code>a - b</code> and store the result in this vector.
-     * 
+     *
      * @param a The left side of the subtraction
      * @param b The right side of the subtraction
+     *
      * @return This vector
+     *
      * @throws NullPointerException if a or b are null
      */
     public Vector4 sub(@Const Vector4 a, @Const Vector4 b) {
@@ -351,10 +366,12 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Scale <tt>v</tt> by <tt>scalar</tt> and store the result in this vector.
-     * 
-     * @param v The vector whose scale is computed
+     *
+     * @param v      The vector whose scale is computed
      * @param scalar The scale factor
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 scale(@Const Vector4 v, double scalar) {
@@ -362,12 +379,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Normalize <tt>v</tt> to be of length 1 and store it in this vector. The
-     * vector can't be normalized if it's length is 0. If it's length is very
-     * close to 0, the results may suffer from loss of precision.
-     * 
+     * Normalize <tt>v</tt> to be of length 1 and store it in this vector. The vector
+     * can't be normalized if it's length is 0. If it's length is very close to 0, the
+     * results may suffer from loss of precision.
+     *
      * @param v The vector to normalize
+     *
      * @return This vector
+     *
      * @throws ArithmeticException if v can't be normalized
      */
     public Vector4 normalize(@Const Vector4 v) {
@@ -379,11 +398,12 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #ortho(Vector4, Vector4)} with the first argument being this
-     * vector.
-     * 
+     * As {@link #ortho(Vector4, Vector4)} with the first argument being this vector.
+     *
      * @param proj
+     *
      * @return This vector
+     *
      * @throws NullPointerException if proj is null
      */
     public Vector4 ortho(@Const Vector4 proj) {
@@ -391,11 +411,12 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #project(Vector4, Vector4)} with the first argument being this
-     * vector.
-     * 
+     * As {@link #project(Vector4, Vector4)} with the first argument being this vector.
+     *
      * @param proj
+     *
      * @return This vector
+     *
      * @throws NullPointerException if proj is null
      */
     public Vector4 project(@Const Vector4 proj) {
@@ -403,11 +424,12 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #add(Vector4, Vector4)} with the first argument being this
-     * vector.
-     * 
+     * As {@link #add(Vector4, Vector4)} with the first argument being this vector.
+     *
      * @param v
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 add(@Const Vector4 v) {
@@ -415,12 +437,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #addScaled(Vector4, double, Vector4)} where the first argument
-     * is the calling Vector4.
-     * 
+     * As {@link #addScaled(Vector4, double, Vector4)} where the first argument is the
+     * calling Vector4.
+     *
      * @param scale Scale factor applied to v
-     * @param v The vector scaled then added to this vector
+     * @param v     The vector scaled then added to this vector
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 addScaled(double scale, @Const Vector4 v) {
@@ -428,11 +452,12 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #sub(Vector4, Vector4)} with the first argument being this
-     * vector.
-     * 
+     * As {@link #sub(Vector4, Vector4)} with the first argument being this vector.
+     *
      * @param v
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 sub(@Const Vector4 v) {
@@ -440,10 +465,10 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #scale(Vector4, double)} with the first argument being this
-     * vector.
-     * 
+     * As {@link #scale(Vector4, double)} with the first argument being this vector.
+     *
      * @param scalar
+     *
      * @return This vector
      */
     public Vector4 scale(double scalar) {
@@ -451,10 +476,11 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Normalize this vector in place, equivalent to {@link #normalize(Vector4)}
-     * with the first argument being this vector.
-     * 
+     * Normalize this vector in place, equivalent to {@link #normalize(Vector4)} with the
+     * first argument being this vector.
+     *
      * @return This vector
+     *
      * @throws ArithmeticException if this vector cannot be normalized
      */
     public Vector4 normalize() {
@@ -462,12 +488,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Set the vector coordinate at index to the given value. index must be one
-     * of 0 (x), 1 (y), 2 (z), or 3 (w).
-     * 
+     * Set the vector coordinate at index to the given value. index must be one of 0 (x),
+     * 1 (y), 2 (z), or 3 (w).
+     *
      * @param index Coordinate to modify
-     * @param val New value for coordinate
+     * @param val   New value for coordinate
+     *
      * @return This vector
+     *
      * @throws IndexOutOfBoundsException if index is invalid
      */
     public Vector4 set(int index, double val) {
@@ -492,9 +520,11 @@ public final class Vector4 implements Cloneable {
 
     /**
      * Set the x, y, z, and w values of this Vector4 to the values held in v.
-     * 
+     *
      * @param v Vector to be copied into this
+     *
      * @return This vector
+     *
      * @throws NullPointerException if v is null
      */
     public Vector4 set(@Const Vector4 v) {
@@ -502,13 +532,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Set the x, y, z, and w values of this Vector4 to the given four
-     * coordinates.
-     * 
+     * Set the x, y, z, and w values of this Vector4 to the given four coordinates.
+     *
      * @param x New x coordinate
      * @param y New y coordinate
      * @param z New z coordinate
      * @param w New w coordinate
+     *
      * @return This vector
      */
     public Vector4 set(double x, double y, double z, double w) {
@@ -520,26 +550,29 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Set the x, y, z and w values of this Vector4 to the four values held
-     * within the vals array, starting at offset.
-     * 
-     * @param vals Array to take 4 component values from
+     * Set the x, y, z and w values of this Vector4 to the four values held within the
+     * vals array, starting at offset.
+     *
+     * @param vals   Array to take 4 component values from
      * @param offset Index of the x coordinate
+     *
      * @return This vector
-     * @throws NullPointerException if vals is null
-     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
-     *             starting at offset
+     *
+     * @throws NullPointerException           if vals is null
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at
+     *                                        offset
      */
     public Vector4 set(double[] vals, int offset) {
         return set(vals[offset], vals[offset + 1], vals[offset + 2], vals[offset + 3]);
     }
 
     /**
-     * As {@link #set(double[], int)} but the values are taken from the float
-     * array instead of a double array.
-     * 
+     * As {@link #set(double[], int)} but the values are taken from the float array
+     * instead of a double array.
+     *
      * @param vals
      * @param offset
+     *
      * @return This vector
      */
     public Vector4 set(float[] vals, int offset) {
@@ -547,14 +580,15 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #set(double[], int)} but the values are taken from the
-     * DoubleBuffer.
-     * 
-     * @param vals The double value source
+     * As {@link #set(double[], int)} but the values are taken from the DoubleBuffer.
+     *
+     * @param vals   The double value source
      * @param offset The index into vals for the x coordinate
+     *
      * @return This vector
-     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
-     *             starting at offset
+     *
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at
+     *                                        offset
      */
     public Vector4 set(DoubleBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2),
@@ -562,14 +596,15 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #set(double[], int)} but the values are taken from the
-     * FloatBuffer
-     * 
-     * @param vals The double value source
+     * As {@link #set(double[], int)} but the values are taken from the FloatBuffer
+     *
+     * @param vals   The double value source
      * @param offset The index into vals for the x coordinate
+     *
      * @return This vector
-     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values
-     *             starting at offset
+     *
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at
+     *                                        offset
      */
     public Vector4 set(FloatBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2),
@@ -577,11 +612,13 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Get the given component from this vector; index must be 0 (x), 1 (y), 2
-     * (z), or 3 (w)
-     * 
+     * Get the given component from this vector; index must be 0 (x), 1 (y), 2 (z), or 3
+     * (w)
+     *
      * @param index The vector component to retrieve
+     *
      * @return The component at the given index
+     *
      * @throws IndexOutOfBoundsException if index is invalid
      */
     public double get(int index) {
@@ -600,16 +637,16 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Store the four component values of this vector into vals, starting at
-     * offset. The components should be placed consecutively, ordered x, y, z,
-     * and w. It is assumed that the array has at least four positions
-     * available, starting at offset.
-     * 
-     * @param vals Array to store this vector in
+     * Store the four component values of this vector into vals, starting at offset. The
+     * components should be placed consecutively, ordered x, y, z, and w. It is assumed
+     * that the array has at least four positions available, starting at offset.
+     *
+     * @param vals   Array to store this vector in
      * @param offset First array index to hold the x value
-     * @throws NullPointerException if vals is null
-     * @throws ArrayIndexOutOfBoundsException if there isn't enough room to
-     *             store this vector at offset
+     *
+     * @throws NullPointerException           if vals is null
+     * @throws ArrayIndexOutOfBoundsException if there isn't enough room to store this
+     *                                        vector at offset
      */
     public void get(double[] vals, int offset) {
         vals[offset] = x;
@@ -619,9 +656,9 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)} except the double coordinates are cast
-     * into floats before storing in the array.
-     * 
+     * As {@link #get(double[], int)} except the double coordinates are cast into floats
+     * before storing in the array.
+     *
      * @param vals
      * @param offset
      */
@@ -633,13 +670,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt>
-     * is measured from 0, not the buffer's position.
-     * 
-     * @param store The DoubleBuffer to hold the row values
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt> is
+     * measured from 0, not the buffer's position.
+     *
+     * @param store  The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
-     *             for the vector
+     *
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
+     *                                        vector
      */
     public void get(DoubleBuffer store, int offset) {
         store.put(offset, x);
@@ -649,13 +687,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt>
-     * is measured from 0, not the buffer's position.
-     * 
-     * @param store The FloatBuffer to hold the row values
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt> is measured
+     * from 0, not the buffer's position.
+     *
+     * @param store  The FloatBuffer to hold the row values
      * @param offset The first index to use in the store
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space
-     *             for the vector
+     *
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
+     *                                        vector
      */
     public void get(FloatBuffer store, int offset) {
         store.put(offset, (float) x);
@@ -678,7 +717,8 @@ public final class Vector4 implements Cloneable {
         result += 31 * result + Double.doubleToLongBits(z);
         result += 31 * result + Double.doubleToLongBits(w);
 
-        return (int) (((result & 0xffffffff00000000L) >> 32) ^ (result & 0x00000000ffffffffL));
+        return (int) (((result & 0xffffffff00000000L) >> 32) ^
+                      (result & 0x00000000ffffffffL));
     }
 
     @Override
@@ -692,13 +732,14 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Determine if these two vectors are equal, within an error range of eps.
-     * Returns false if v is null
-     * 
-     * @param v Vector to check approximate equality to
+     * Determine if these two vectors are equal, within an error range of eps. Returns
+     * false if v is null
+     *
+     * @param v   Vector to check approximate equality to
      * @param eps Error tolerance of each component
-     * @return True if all component values are within eps of the corresponding
-     *         component of v
+     *
+     * @return True if all component values are within eps of the corresponding component
+     *         of v
      */
     public boolean epsilonEquals(@Const Vector4 v, double eps) {
         if (v == null) {

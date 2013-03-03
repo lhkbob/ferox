@@ -26,10 +26,6 @@
  */
 package com.ferox.renderer.impl.drivers;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.UpdateResourceException;
@@ -37,13 +33,16 @@ import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.Resource;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+
 /**
- * Abstract implementation of a ResourceDriver for GlslShaders. This implements
- * all necessary logic to detect changes to the GlslShaders and provides
- * abstract methods that more closely mirror the OpenGL API and implements the
- * driver methods in terms of those. This driver uses {@link GlslShaderHandle}
- * as its resource handle.
- * 
+ * Abstract implementation of a ResourceDriver for GlslShaders. This implements all
+ * necessary logic to detect changes to the GlslShaders and provides abstract methods that
+ * more closely mirror the OpenGL API and implements the driver methods in terms of those.
+ * This driver uses {@link GlslShaderHandle} as its resource handle.
+ *
  * @author Michael Ludwig
  */
 public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver {
@@ -53,14 +52,17 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
     }
 
     @Override
-    public String update(OpenGLContext context, Resource resource, Object handle) throws UpdateResourceException {
+    public String update(OpenGLContext context, Resource resource, Object handle)
+            throws UpdateResourceException {
         GlslShader shader = (GlslShader) resource;
         GlslShaderHandle h = (GlslShaderHandle) handle;
         EnumSet<ShaderType> supported = context.getRenderCapabilities()
                                                .getSupportedShaderTypes();
 
-        if (supported.isEmpty() || context.getRenderCapabilities().getGlslVersion() == null) {
-            throw new UpdateResourceException("GLSL is not supported on current hardware");
+        if (supported.isEmpty() ||
+            context.getRenderCapabilities().getGlslVersion() == null) {
+            throw new UpdateResourceException(
+                    "GLSL is not supported on current hardware");
         }
 
         if (h.programID <= 0) {
@@ -102,7 +104,8 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
                             if (problems == null) {
                                 problems = new ArrayList<String>();
                             }
-                            problems.add("Error compiling " + type + " shader: " + errorLog);
+                            problems.add(
+                                    "Error compiling " + type + " shader: " + errorLog);
                         } else {
                             // No error so update the shader source map so future updates
                             // don't do extra work
@@ -193,29 +196,32 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
     /**
      * Generate a new GLSL program id.
-     * 
+     *
      * @param context
+     *
      * @return
      */
     protected abstract int glCreateProgram(OpenGLContext context);
 
     /**
      * Generate a new GLSL shader id for the given shader type
-     * 
+     *
      * @param context
      * @param type
+     *
      * @return
      */
     protected abstract int glCreateShader(OpenGLContext context, ShaderType type);
 
     /**
-     * Compile the shader of the given id, with the given source code. If there
-     * were compile errors, return a non-null error message. If it was compiled
-     * successfully, return null.
-     * 
+     * Compile the shader of the given id, with the given source code. If there were
+     * compile errors, return a non-null error message. If it was compiled successfully,
+     * return null.
+     *
      * @param context
      * @param shaderId
      * @param code
+     *
      * @return
      */
     protected abstract String glCompileShader(OpenGLContext context, int shaderId,
@@ -223,7 +229,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
     /**
      * Delete a shader with the given shader id.
-     * 
+     *
      * @param context
      * @param id
      */
@@ -231,7 +237,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
     /**
      * Delete a program with the given program id.
-     * 
+     *
      * @param context
      * @param id
      */
@@ -239,7 +245,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
     /**
      * Attach the given shader id to the program id.
-     * 
+     *
      * @param context
      * @param programId
      * @param shaderId
@@ -249,7 +255,7 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
 
     /**
      * Detach the given shader id from the program.
-     * 
+     *
      * @param context
      * @param programId
      * @param shaderId
@@ -258,20 +264,21 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
                                            int shaderId);
 
     /**
-     * Finish linking the given program. This is called after all attached
-     * shaders have been compiled.
-     * 
+     * Finish linking the given program. This is called after all attached shaders have
+     * been compiled.
+     *
      * @param context
      * @param programId
+     *
      * @return
      */
     protected abstract String glLinkProgram(OpenGLContext context, int programId);
 
     /**
-     * Query OpenGL to update the attribute map within the given handle. The map
-     * will already have been cleared. This is only called if the program has
-     * been successfully linked.
-     * 
+     * Query OpenGL to update the attribute map within the given handle. The map will
+     * already have been cleared. This is only called if the program has been successfully
+     * linked.
+     *
      * @param context
      * @param handle
      */
@@ -279,12 +286,13 @@ public abstract class AbstractGlslShaderResourceDriver implements ResourceDriver
                                              GlslShaderHandle handle);
 
     /**
-     * Query OpenGL to update the uniform map within the given handle. The map
-     * will already have been cleared. This is only called if the program has
-     * been successfully linked.
-     * 
+     * Query OpenGL to update the uniform map within the given handle. The map will
+     * already have been cleared. This is only called if the program has been successfully
+     * linked.
+     *
      * @param context
      * @param handle
      */
-    protected abstract void updateUniforms(OpenGLContext context, GlslShaderHandle handle);
+    protected abstract void updateUniforms(OpenGLContext context,
+                                           GlslShaderHandle handle);
 }

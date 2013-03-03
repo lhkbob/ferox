@@ -97,12 +97,14 @@ public class ThreadMonitor {
         double cpuTime = tmxb.getThreadCpuTime(this.tid) / 1000000000.0;
         totalCpuTime = cpuTime < 0 ? 0 : cpuTime;
         cpuTimeHistory.log(totalCpuTime);
-        cpuUsageHistory.log((cpuTimeHistory.previous(0) - cpuTimeHistory.previous(1)) / wallTime * 100.0);
+        cpuUsageHistory.log((cpuTimeHistory.previous(0) - cpuTimeHistory.previous(1)) /
+                            wallTime * 100.0);
 
         double userTime = tmxb.getThreadUserTime(this.tid) / 1000000000.0;
         totalUserTime = userTime < 0 ? 0 : userTime;
         userTimeHistory.log(totalUserTime);
-        userUsageHistory.log((userTimeHistory.previous(0) - userTimeHistory.previous(1)) / wallTime * 100.0);
+        userUsageHistory.log((userTimeHistory.previous(0) - userTimeHistory.previous(1)) /
+                             wallTime * 100.0);
     }
 
     public CyclicBuffer getCpuUsageStats() {

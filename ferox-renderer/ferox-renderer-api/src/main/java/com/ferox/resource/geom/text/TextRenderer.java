@@ -26,6 +26,17 @@
  */
 package com.ferox.resource.geom.text;
 
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector4;
+import com.ferox.math.bounds.Frustum;
+import com.ferox.renderer.*;
+import com.ferox.renderer.Renderer.BlendFactor;
+import com.ferox.renderer.Renderer.BlendFunction;
+import com.ferox.renderer.Renderer.Comparison;
+import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.Geometry;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -33,27 +44,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
 
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector4;
-import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Surface;
-import com.ferox.renderer.Task;
-import com.ferox.resource.VertexBufferObject.StorageMode;
-import com.ferox.resource.geom.Geometry;
-
 public class TextRenderer {
     public static enum Anchor {
         /**
-         * Each String will be justified to the left edge of the screen, and
-         * subsequent strings will flow down the screen from the top left
-         * corner.
+         * Each String will be justified to the left edge of the screen, and subsequent
+         * strings will flow down the screen from the top left corner.
          */
         TOP_LEFT {
             @Override
@@ -62,15 +57,16 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY,
+                                      double prevHeight) {
                 return top(nextHeight, prevY, prevHeight);
             }
         },
         /**
-         * Each String will be justified to the right edge of the screen. Within
-         * a given block of text, the layout will still be left justified if
-         * that block contains new lines. Subsequent string blocks will flow
-         * down the screen from the top right corner.
+         * Each String will be justified to the right edge of the screen. Within a given
+         * block of text, the layout will still be left justified if that block contains
+         * new lines. Subsequent string blocks will flow down the screen from the top
+         * right corner.
          */
         TOP_RIGHT {
             @Override
@@ -79,13 +75,14 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY,
+                                      double prevHeight) {
                 return top(nextHeight, prevY, prevHeight);
             }
         },
         /**
-         * Each String will be justified to the left edge of the screen, and
-         * subsequent string blocks will flow up from the bottom left corner.
+         * Each String will be justified to the left edge of the screen, and subsequent
+         * string blocks will flow up from the bottom left corner.
          */
         BOTTOM_LEFT {
             @Override
@@ -94,15 +91,16 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY,
+                                      double prevHeight) {
                 return bottom(nextHeight, prevY, prevHeight);
             }
         },
         /**
-         * Each String will be justified to the right edge of the screen. Within
-         * a given block of text, the layout will still be left justified if
-         * that block contains new lines. Subsequent string blocks will flow up
-         * the screen from the bottom right corner.
+         * Each String will be justified to the right edge of the screen. Within a given
+         * block of text, the layout will still be left justified if that block contains
+         * new lines. Subsequent string blocks will flow up the screen from the bottom
+         * right corner.
          */
         BOTTOM_RIGHT {
             @Override
@@ -111,7 +109,8 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY,
+                                      double prevHeight) {
                 return bottom(nextHeight, prevY, prevHeight);
             }
         };
@@ -163,9 +162,7 @@ public class TextRenderer {
     public TextRenderer(CharacterSet charSet, ColorRGB textColor, Anchor anchor,
                         String... text) {
         textBlocks = Arrays.asList(text);
-        this.textColor = new Vector4(textColor.red(),
-                                     textColor.green(),
-                                     textColor.blue(),
+        this.textColor = new Vector4(textColor.red(), textColor.green(), textColor.blue(),
                                      1.0);
         this.charSet = charSet;
         this.anchor = anchor;
@@ -176,8 +173,10 @@ public class TextRenderer {
         double prevWidth = 0;
         double prevHeight = 0;
 
-        double prevX = (anchor == Anchor.BOTTOM_RIGHT || anchor == Anchor.TOP_RIGHT ? surface.getWidth() : 0);
-        double prevY = (anchor == Anchor.TOP_LEFT || anchor == Anchor.TOP_RIGHT ? surface.getHeight() : 0);
+        double prevX = (anchor == Anchor.BOTTOM_RIGHT || anchor == Anchor.TOP_RIGHT
+                        ? surface.getWidth() : 0);
+        double prevY = (anchor == Anchor.TOP_LEFT || anchor == Anchor.TOP_RIGHT ? surface
+                .getHeight() : 0);
 
         Text factory = new Text(charSet);
         factory.setWrapWidth(surface.getWidth());
@@ -200,13 +199,8 @@ public class TextRenderer {
         }
 
         // compute a projection matrix spanning the entire surface
-        Frustum ortho = new Frustum(true,
-                                    0,
-                                    surface.getWidth(),
-                                    0,
-                                    surface.getHeight(),
-                                    -1,
-                                    1);
+        Frustum ortho = new Frustum(true, 0, surface.getWidth(), 0, surface.getHeight(),
+                                    -1, 1);
         final Matrix4 projection = ortho.getProjectionMatrix();
 
         return surface.getFramework().queue(new Task<Void>() {

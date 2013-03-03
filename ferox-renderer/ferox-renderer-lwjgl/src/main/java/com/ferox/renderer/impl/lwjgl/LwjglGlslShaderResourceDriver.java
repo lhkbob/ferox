@@ -26,12 +26,6 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractGlslShaderResourceDriver;
@@ -40,11 +34,16 @@ import com.ferox.renderer.impl.drivers.GlslShaderHandle.Attribute;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslUniform;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 /**
- * LwjglGlslShaderResourceDriver is a concrete ResourceDriver that handles
- * GlslShaders using the JOGL OpenGL binding.
- * 
+ * LwjglGlslShaderResourceDriver is a concrete ResourceDriver that handles GlslShaders
+ * using the JOGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriver {
@@ -122,8 +121,8 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
     @Override
     protected void updateAttributes(OpenGLContext context, GlslShaderHandle handle) {
         int numAttrs = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTES);
-        int maxAttributeNameLength = GL20.glGetProgram(handle.programID,
-                                                       GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
+        int maxAttributeNameLength = GL20
+                .glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
         ByteBuffer name = BufferUtil.newByteBuffer(maxAttributeNameLength);
 
         IntBuffer nameLen = BufferUtil.newIntBuffer(1);
@@ -137,8 +136,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             String attrName = new String(bs);
 
             int index = GL20.glGetAttribLocation(handle.programID, attrName);
-            Attribute a = new Attribute(attrName,
-                                        Utils.getAttributeType(type.get(0)),
+            Attribute a = new Attribute(attrName, Utils.getAttributeType(type.get(0)),
                                         index);
 
             handle.attributes.put(attrName, a);
@@ -148,8 +146,8 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
     @Override
     protected void updateUniforms(OpenGLContext context, GlslShaderHandle handle) {
         int numUniforms = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORMS);
-        int maxUniformNameLength = GL20.glGetProgram(handle.programID,
-                                                     GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH);
+        int maxUniformNameLength = GL20
+                .glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH);
         ByteBuffer name = BufferUtil.newByteBuffer(maxUniformNameLength);
 
         IntBuffer nameLen = BufferUtil.newIntBuffer(1);

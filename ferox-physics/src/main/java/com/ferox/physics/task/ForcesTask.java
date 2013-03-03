@@ -26,10 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
 import com.ferox.math.Matrix4;
@@ -48,6 +44,10 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 // FIXME this task should be split into 3 pieces:
 // 1. inertia tensor computer (which must be done before any force can be added to a body)
 // 2. gravity force applier
@@ -64,6 +64,7 @@ import com.lhkbob.entreri.task.Task;
 // cleanliness right now.
 public class ForcesTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(CollisionBody.class);
@@ -149,15 +150,14 @@ public class ForcesTask implements Task, ParallelAware {
 
             // integrate and apply forces to the body's velocity
             Vector3 lv = rigidBody.getVelocity();
-            integrator.integrateLinearAcceleration(force.scale(rigidBody.getTotalForce(),
-                                                               rigidBody.getInverseMass()),
-                                                   dt, lv);
+            integrator.integrateLinearAcceleration(
+                    force.scale(rigidBody.getTotalForce(), rigidBody.getInverseMass()),
+                    dt, lv);
             rigidBody.setVelocity(lv);
 
             Vector3 la = rigidBody.getAngularVelocity();
-            integrator.integrateAngularAcceleration(force.mul(tensor,
-                                                              rigidBody.getTotalTorque()),
-                                                    dt, la);
+            integrator.integrateAngularAcceleration(
+                    force.mul(tensor, rigidBody.getTotalTorque()), dt, la);
             rigidBody.setAngularVelocity(la);
 
             // reset forces

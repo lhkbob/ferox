@@ -36,22 +36,23 @@ import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 
 /**
- * <p>
- * Box contains factory methods for creating 6-sided rectangular prism
- * Geometries.
- * 
+ * <p/>
+ * Box contains factory methods for creating 6-sided rectangular prism Geometries.
+ *
  * @author Michael Ludwig
  */
 public final class Box {
-    private Box() {}
+    private Box() {
+    }
 
     /**
-     * Construct a box centered on its origin, with the given side length. So,
-     * Box(1f) creates a unit cube. Uses StorageMode.IN_MEMORY for its
-     * VertexBufferObjects.
-     * 
+     * Construct a box centered on its origin, with the given side length. So, Box(1f)
+     * creates a unit cube. Uses StorageMode.IN_MEMORY for its VertexBufferObjects.
+     *
      * @param side The side length of the created cube
+     *
      * @return The new geometry
+     *
      * @throws IllegalArgumentException if side is negative
      */
     public static Geometry create(double side) {
@@ -59,29 +60,33 @@ public final class Box {
     }
 
     /**
-     * Construct a new Box with the given minimum and maximum points. These
-     * points are opposite corners of the box. Uses StorageMode.IN_MEMORY for
-     * its VertexBufferObjects.
-     * 
+     * Construct a new Box with the given minimum and maximum points. These points are
+     * opposite corners of the box. Uses StorageMode.IN_MEMORY for its
+     * VertexBufferObjects.
+     *
      * @param min Minimum corner of the box
      * @param max Maximum corner of the box
+     *
      * @return The new geometry
-     * @throws NullPointerException if min or max are null
+     *
+     * @throws NullPointerException     if min or max are null
      * @throws IllegalArgumentException if min has any coordinate less than the
-     *             corresponding coordinate of max
+     *                                  corresponding coordinate of max
      */
     public static Geometry create(@Const Vector3 min, @Const Vector3 max) {
         return create(min, max, StorageMode.IN_MEMORY);
     }
 
     /**
-     * Construct a box centered on its origin, with the given side length. So,
-     * Box(1.0) creates a unit cube.
-     * 
+     * Construct a box centered on its origin, with the given side length. So, Box(1.0)
+     * creates a unit cube.
+     *
      * @param side The side length of the created cube
      * @param mode The storage mode to use for the Box
+     *
      * @return The new geometry
-     * @throws NullPointerException if mode is null
+     *
+     * @throws NullPointerException     if mode is null
      * @throws IllegalArgumentException if side is negative
      */
     public static Geometry create(double side, StorageMode mode) {
@@ -90,15 +95,17 @@ public final class Box {
     }
 
     /**
-     * Construct a box centered on its origin, with the given side lengths along
-     * each local axis.
-     * 
+     * Construct a box centered on its origin, with the given side lengths along each
+     * local axis.
+     *
      * @param xExtent The side length along the x axis
      * @param yExtent The side length along the y axis
      * @param zExtent The side length along the z axis
-     * @param mode The storage mode
+     * @param mode    The storage mode
+     *
      * @return The new geometry
-     * @throws NullPointerException if mode is null
+     *
+     * @throws NullPointerException         if mode is null
      * @throws IllegalMonitorStateException if any dimension is negative
      */
     public static Geometry create(double xExtent, double yExtent, double zExtent,
@@ -108,18 +115,21 @@ public final class Box {
     }
 
     /**
-     * Construct a new Box with the given minimum and maximum points. These
-     * points are opposite corners of the box.
-     * 
-     * @param min Minimum corner of the box
-     * @param max Maximum corner of the box
+     * Construct a new Box with the given minimum and maximum points. These points are
+     * opposite corners of the box.
+     *
+     * @param min  Minimum corner of the box
+     * @param max  Maximum corner of the box
      * @param mode The compile type to use for the Box
+     *
      * @return The new geometry
-     * @throws NullPointerException if min, max or mode are null
+     *
+     * @throws NullPointerException     if min, max or mode are null
      * @throws IllegalArgumentException if min has any coordinate less than the
-     *             corresponding coordinate of max
+     *                                  corresponding coordinate of max
      */
-    public static Geometry create(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
+    public static Geometry create(@Const Vector3 min, @Const Vector3 max,
+                                  StorageMode mode) {
         return new BoxImpl(min, max, mode);
     }
 
@@ -144,7 +154,9 @@ public final class Box {
             }
 
             if (min.x > max.x || min.y > max.y || min.z > max.z) {
-                throw new IllegalArgumentException("Min vertex has coordinate greater than 'max': " + min + " - " + max);
+                throw new IllegalArgumentException(
+                        "Min vertex has coordinate greater than 'max': " + min + " - " +
+                        max);
             }
 
             float maxX = (float) max.x;
@@ -158,7 +170,8 @@ public final class Box {
             float[] va = new float[192]; // 72v + 72n + 48t
 
             // back
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = maxY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -166,7 +179,8 @@ public final class Box {
             va[i++] = -1f; /* t */
             va[i++] = 1f;
             va[i++] = 1f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = maxY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -174,7 +188,8 @@ public final class Box {
             va[i++] = -1f; /* t */
             va[i++] = 0f;
             va[i++] = 1f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = minY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -182,7 +197,8 @@ public final class Box {
             va[i++] = -1f; /* t */
             va[i++] = 0f;
             va[i++] = 0f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = minY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -192,7 +208,8 @@ public final class Box {
             va[i++] = 0f;
 
             // right
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = maxY;
             va[i++] = minZ; /* n */
             va[i++] = 1f;
@@ -200,7 +217,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 1f;
             va[i++] = 1f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = maxY;
             va[i++] = maxZ; /* n */
             va[i++] = 1f;
@@ -208,7 +226,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 1f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = minY;
             va[i++] = maxZ; /* n */
             va[i++] = 1f;
@@ -216,7 +235,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 0f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = minY;
             va[i++] = minZ; /* n */
             va[i++] = 1f;
@@ -226,7 +246,8 @@ public final class Box {
             va[i++] = 0f;
 
             // front
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = maxY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -234,7 +255,8 @@ public final class Box {
             va[i++] = 1f; /* t */
             va[i++] = 1f;
             va[i++] = 1f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = maxY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -242,7 +264,8 @@ public final class Box {
             va[i++] = 1f; /* t */
             va[i++] = 0f;
             va[i++] = 1f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = minY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -250,7 +273,8 @@ public final class Box {
             va[i++] = 1f; /* t */
             va[i++] = 0f;
             va[i++] = 0f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = minY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -260,7 +284,8 @@ public final class Box {
             va[i++] = 0f;
 
             // left
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = maxY;
             va[i++] = maxZ; /* n */
             va[i++] = -1f;
@@ -268,7 +293,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 1f;
             va[i++] = 1f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = maxY;
             va[i++] = minZ; /* n */
             va[i++] = -1f;
@@ -276,7 +302,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 1f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = minY;
             va[i++] = minZ; /* n */
             va[i++] = -1f;
@@ -284,7 +311,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 0f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = minY;
             va[i++] = maxZ; /* n */
             va[i++] = -1f;
@@ -294,7 +322,8 @@ public final class Box {
             va[i++] = 0f;
 
             // top
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = maxY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -302,7 +331,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 1f;
             va[i++] = 1f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = maxY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -310,7 +340,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 1f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = maxY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -318,7 +349,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 0f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = maxY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -328,7 +360,8 @@ public final class Box {
             va[i++] = 0f;
 
             // bottom
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = minY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -336,7 +369,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 1f;
             va[i++] = 1f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = minY;
             va[i++] = minZ; /* n */
             va[i++] = 0f;
@@ -344,7 +378,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 1f;
-            /* v */va[i++] = maxX;
+            /* v */
+            va[i++] = maxX;
             va[i++] = minY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -352,7 +387,8 @@ public final class Box {
             va[i++] = 0f; /* t */
             va[i++] = 0f;
             va[i++] = 0f;
-            /* v */va[i++] = minX;
+            /* v */
+            va[i++] = minX;
             va[i++] = minY;
             va[i++] = maxZ; /* n */
             va[i++] = 0f;
@@ -366,9 +402,8 @@ public final class Box {
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
 
-            bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ), new Vector3(maxX,
-                                                                                   maxY,
-                                                                                   maxZ));
+            bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ),
+                                        new Vector3(maxX, maxY, maxZ));
         }
 
         @Override

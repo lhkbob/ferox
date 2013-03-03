@@ -31,7 +31,7 @@ import com.ferox.math.Vector3;
 
 /**
  * Sphere is a ConvexShape that represents a mathematical sphere.
- * 
+ *
  * @author Michael Ludwig
  */
 public class Sphere extends ConvexShape {
@@ -40,25 +40,28 @@ public class Sphere extends ConvexShape {
 
     /**
      * Create a new Sphere with the initial radius, ignoring the margin.
-     * 
-     * @see #setRadius(double)
+     *
      * @param radius The initial radius
+     *
      * @throws IllegalArgumentException if radius is less than or equal to 0
+     * @see #setRadius(double)
      */
     public Sphere(double radius) {
         setRadius(radius);
     }
 
     /**
-     * Set the radius of the sphere. This does not include the margin that all
-     * shapes are padded with.
-     * 
+     * Set the radius of the sphere. This does not include the margin that all shapes are
+     * padded with.
+     *
      * @param radius The new radius, must be greater than 0
+     *
      * @throws IllegalArgumentException if radius is less than or equal to 0
      */
     public void setRadius(double radius) {
         if (radius <= 0.0) {
-            throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
+            throw new IllegalArgumentException(
+                    "Radius must be greater than 0, not: " + radius);
         }
 
         this.radius = radius;
@@ -68,7 +71,7 @@ public class Sphere extends ConvexShape {
 
     /**
      * Return the current radius of the sphere, excluding the margin.
-     * 
+     *
      * @return The radius of the sphere
      */
     public double getRadius() {

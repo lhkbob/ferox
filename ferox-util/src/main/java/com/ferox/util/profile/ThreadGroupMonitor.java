@@ -26,11 +26,7 @@
  */
 package com.ferox.util.profile;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ThreadGroupMonitor {
     public ThreadGroupMonitor() {
@@ -100,12 +96,12 @@ public class ThreadGroupMonitor {
                     name = t.getName();
                 }
             }
-            aliveId2mon.put(Long.valueOf(newId), new ThreadMonitor(name,
-                                                                   newId,
-                                                                   default_slots));
+            aliveId2mon.put(Long.valueOf(newId),
+                            new ThreadMonitor(name, newId, default_slots));
         }
         for (long deadId : deadIds) {
-            deadId2mon.put(Long.valueOf(deadId), aliveId2mon.remove(Long.valueOf(deadId)));
+            deadId2mon
+                    .put(Long.valueOf(deadId), aliveId2mon.remove(Long.valueOf(deadId)));
         }
 
         for (ThreadMonitor mon : aliveId2mon.values()) {
@@ -167,7 +163,8 @@ public class ThreadGroupMonitor {
         int threadCount;
 
         Thread[] tempThreadArray = new Thread[8];
-        while ((threadCount = this.group.enumerate(tempThreadArray)) == tempThreadArray.length) {
+        while ((threadCount = this.group.enumerate(tempThreadArray)) ==
+               tempThreadArray.length) {
             tempThreadArray = Arrays.copyOf(tempThreadArray, tempThreadArray.length * 2);
         }
 
@@ -188,7 +185,8 @@ public class ThreadGroupMonitor {
         long[] newThreadIds = new long[currThreads.length];
         int newThreadIndex = 0;
 
-        outer: for (int i = 0; i < currThreads.length; i++) {
+        outer:
+        for (int i = 0; i < currThreads.length; i++) {
             for (int k = 0; k < lastThreads.length; k++) {
                 if (currThreads[i] == lastThreads[k]) {
                     continue outer;
@@ -206,7 +204,8 @@ public class ThreadGroupMonitor {
         long[] deadThreadIds = new long[lastThreads.length];
         int deadThreadIndex = 0;
 
-        outer: for (int i = 0; i < lastThreads.length; i++) {
+        outer:
+        for (int i = 0; i < lastThreads.length; i++) {
             for (int k = 0; k < currThreads.length; k++) {
                 if (lastThreads[i] == currThreads[k]) {
                     continue outer;

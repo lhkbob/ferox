@@ -26,23 +26,16 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.Renderer;
-import com.ferox.renderer.Surface;
-import com.ferox.renderer.TextureSurface;
+import com.ferox.renderer.*;
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 import com.ferox.resource.Texture.Target;
 
 /**
- * HardwareAccessLayerImpl is a simple implementation of
- * {@link HardwareAccessLayer} for use with the AbstractFramework. It uses the
- * ContextManager and ResourceManager of the framework to manage the active
- * surfaces and handle resource operations.
- * 
+ * HardwareAccessLayerImpl is a simple implementation of {@link HardwareAccessLayer} for
+ * use with the AbstractFramework. It uses the ContextManager and ResourceManager of the
+ * framework to manage the active surfaces and handle resource operations.
+ *
  * @author Michael Ludwig
  */
 public class HardwareAccessLayerImpl implements HardwareAccessLayer {
@@ -53,8 +46,9 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     /**
      * Create a new HardwareAccessLayerImpl that will use the ContextManager and
      * ResourceManager of the given AbstractFramework
-     * 
+     *
      * @param framework The framework this layer will be used with
+     *
      * @throws NullPointerException if framework is null
      */
     public HardwareAccessLayerImpl(AbstractFramework framework) {
@@ -91,7 +85,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         // Validate the Framework of the surface, we don't check destroyed
         // since that will be handled by the ContextManager
         if (surface != null && framework != surface.getFramework()) {
-            throw new IllegalArgumentException("Surface is not owned by the current Framework");
+            throw new IllegalArgumentException(
+                    "Surface is not owned by the current Framework");
         }
 
         // Since this isn't a TextureSurface, there is no need to validate
@@ -113,7 +108,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             // Validate the Framework of the surface, we don't check destroyed
             // since that will be handled by the ContextManager
             if (framework != surface.getFramework()) {
-                throw new IllegalArgumentException("Surface is not owned by the current Framework");
+                throw new IllegalArgumentException(
+                        "Surface is not owned by the current Framework");
             }
 
             // Validate the layer argument
@@ -131,7 +127,9 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             }
 
             if (layer >= maxLayer || layer < 0) {
-                throw new IllegalArgumentException("Layer is out of range, must be in [0, " + maxLayer + "), not: " + layer);
+                throw new IllegalArgumentException(
+                        "Layer is out of range, must be in [0, " + maxLayer + "), not: " +
+                        layer);
             }
         }
 
@@ -181,13 +179,13 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public GlslRenderer getGlslRenderer() {
             if (selectedRenderer == null) {
                 // need to select a renderer
-                selectedRenderer = context.getRendererProvider()
-                                          .getGlslRenderer(context.getRenderCapabilities());
+                selectedRenderer = context.getRendererProvider().getGlslRenderer(
+                        context.getRenderCapabilities());
 
                 if (selectedRenderer != null) {
                     // have selected a GlslRenderer to use
-                    selectedRenderer.setViewport(0, 0, surface.getWidth(),
-                                                 surface.getHeight());
+                    selectedRenderer
+                            .setViewport(0, 0, surface.getWidth(), surface.getHeight());
                 }
             }
 
@@ -202,13 +200,13 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public FixedFunctionRenderer getFixedFunctionRenderer() {
             if (selectedRenderer == null) {
                 // need to select a renderer
-                selectedRenderer = context.getRendererProvider()
-                                          .getFixedFunctionRenderer(context.getRenderCapabilities());
+                selectedRenderer = context.getRendererProvider().getFixedFunctionRenderer(
+                        context.getRenderCapabilities());
 
                 if (selectedRenderer != null) {
                     // have selected a FixedFunctionRenderer to use
-                    selectedRenderer.setViewport(0, 0, surface.getWidth(),
-                                                 surface.getHeight());
+                    selectedRenderer
+                            .setViewport(0, 0, surface.getWidth(), surface.getHeight());
                 }
             }
 
@@ -233,7 +231,8 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         @Override
         public boolean hasFixedFunctionRenderer() {
             return context.getRendererProvider()
-                          .getFixedFunctionRenderer(context.getRenderCapabilities()) != null;
+                          .getFixedFunctionRenderer(context.getRenderCapabilities()) !=
+                   null;
         }
 
         @Override

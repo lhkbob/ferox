@@ -29,30 +29,23 @@ package com.ferox.renderer.impl;
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilUpdate;
+import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexBufferObject;
 
 /**
- * <p>
- * The RendererDelegate is a utility class that exposes the same methods defined
- * in {@link Renderer}, except that it doesn't have responsibility for
- * implementing render(). The public facing methods correctly track OpenGL
- * state, and when necessary delegate to protected functions whose
- * responsibility is to invoke the actual low-level graphics calls.
- * </p>
- * <p>
- * It is recommended that the RendererDelegate is used with an
- * {@link AbstractFixedFunctionRenderer} or an {@link AbstractGlslRenderer} to
- * create the complete functionality of the different Renderer types.
- * </p>
- * 
+ * <p/>
+ * The RendererDelegate is a utility class that exposes the same methods defined in {@link
+ * Renderer}, except that it doesn't have responsibility for implementing render(). The
+ * public facing methods correctly track OpenGL state, and when necessary delegate to
+ * protected functions whose responsibility is to invoke the actual low-level graphics
+ * calls.
+ * <p/>
+ * It is recommended that the RendererDelegate is used with an {@link
+ * AbstractFixedFunctionRenderer} or an {@link AbstractGlslRenderer} to create the
+ * complete functionality of the different Renderer types.
+ *
  * @author Michael Ludwig
  */
 public abstract class RendererDelegate {
@@ -65,13 +58,12 @@ public abstract class RendererDelegate {
     protected ResourceManager resourceManager;
 
     /**
-     * Notify the renderer that the provided surface has been activated and will
-     * be using this Renderer. The given context is the context for the current
-     * thread and the ResourceManager is the resource manager of the surface's
-     * owning framework.
-     * 
-     * @param active The now active surface
-     * @param context The current context
+     * Notify the renderer that the provided surface has been activated and will be using
+     * this Renderer. The given context is the context for the current thread and the
+     * ResourceManager is the resource manager of the surface's owning framework.
+     *
+     * @param active          The now active surface
+     * @param context         The current context
      * @param resourceManager The ResourceManager to use
      */
     public void activate(AbstractSurface surface, OpenGLContext context,
@@ -124,10 +116,9 @@ public abstract class RendererDelegate {
     }
 
     /**
-     * Perform identical operations to
-     * {@link Renderer#clear(boolean, boolean, boolean, ReadOnlyVector4f, double, int)}
-     * . The color does not need to be clamped because OpenGL performs this for
-     * us.
+     * Perform identical operations to {@link Renderer#clear(boolean, boolean, boolean,
+     * ReadOnlyVector4f, double, int)} . The color does not need to be clamped because
+     * OpenGL performs this for us.
      */
     public abstract void clear(boolean clearColor, boolean clearDepth,
                                boolean clearStencil, @Const Vector4 color, double depth,
@@ -145,8 +136,8 @@ public abstract class RendererDelegate {
     }
 
     /**
-     * Invoke OpenGL calls to set the blend color. The color does not need to be
-     * clamped because OpenGL clamps it for us.
+     * Invoke OpenGL calls to set the blend color. The color does not need to be clamped
+     * because OpenGL clamps it for us.
      */
     protected abstract void glBlendColor(@Const Vector4 color);
 
@@ -155,12 +146,15 @@ public abstract class RendererDelegate {
         setBlendModeRgb(function, src, dst);
     }
 
-    public void setBlendModeAlpha(BlendFunction function, BlendFactor src, BlendFactor dst) {
+    public void setBlendModeAlpha(BlendFunction function, BlendFactor src,
+                                  BlendFactor dst) {
         if (function == null || src == null || dst == null) {
-            throw new NullPointerException("Cannot use null arguments: " + function + ", " + src + ", " + dst);
+            throw new NullPointerException(
+                    "Cannot use null arguments: " + function + ", " + src + ", " + dst);
         }
         if (dst == BlendFactor.SRC_ALPHA_SATURATE) {
-            throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
+            throw new IllegalArgumentException(
+                    "Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
         }
 
         if (state.blendFuncAlpha != function) {
@@ -175,12 +169,15 @@ public abstract class RendererDelegate {
         }
     }
 
-    public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
+    public void setBlendModeRgb(BlendFunction function, BlendFactor src,
+                                BlendFactor dst) {
         if (function == null || src == null || dst == null) {
-            throw new NullPointerException("Cannot use null arguments: " + function + ", " + src + ", " + dst);
+            throw new NullPointerException(
+                    "Cannot use null arguments: " + function + ", " + src + ", " + dst);
         }
         if (dst == BlendFactor.SRC_ALPHA_SATURATE) {
-            throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
+            throw new IllegalArgumentException(
+                    "Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
         }
 
         if (state.blendFuncRgb != function) {
@@ -219,9 +216,11 @@ public abstract class RendererDelegate {
      */
     protected abstract void glEnableBlending(boolean enable);
 
-    public void setColorWriteMask(boolean red, boolean green, boolean blue, boolean alpha) {
+    public void setColorWriteMask(boolean red, boolean green, boolean blue,
+                                  boolean alpha) {
         boolean[] colorMask = state.colorMask;
-        if (colorMask[0] != red || colorMask[1] != green || colorMask[2] != blue || colorMask[3] != alpha) {
+        if (colorMask[0] != red || colorMask[1] != green || colorMask[2] != blue ||
+            colorMask[3] != alpha) {
             colorMask[0] = red;
             colorMask[1] = green;
             colorMask[2] = blue;
@@ -339,7 +338,8 @@ public abstract class RendererDelegate {
         if (test == null) {
             throw new NullPointerException("Stencil test comparison can't be null");
         }
-        if (state.stencilTestFront != test || state.stencilRefFront != refValue || state.stencilTestMaskFront != testMask) {
+        if (state.stencilTestFront != test || state.stencilRefFront != refValue ||
+            state.stencilTestMaskFront != testMask) {
             state.stencilTestFront = test;
             state.stencilRefFront = refValue;
             state.stencilTestMaskFront = testMask;
@@ -351,7 +351,8 @@ public abstract class RendererDelegate {
         if (test == null) {
             throw new NullPointerException("Stencil test comparison can't be null");
         }
-        if (state.stencilTestBack != test || state.stencilRefBack != refValue || state.stencilTestMaskBack != testMask) {
+        if (state.stencilTestBack != test || state.stencilRefBack != refValue ||
+            state.stencilTestMaskBack != testMask) {
             state.stencilTestBack = test;
             state.stencilRefBack = refValue;
             state.stencilTestMaskBack = testMask;
@@ -380,9 +381,12 @@ public abstract class RendererDelegate {
     public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail,
                                      StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null) {
-            throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
+            throw new NullPointerException(
+                    "Cannot have null arguments: " + stencilFail + ", " + depthFail +
+                    ", " + depthPass);
         }
-        if (state.stencilFailBack != stencilFail || state.depthFailBack != depthFail || state.depthPassBack != depthPass) {
+        if (state.stencilFailBack != stencilFail || state.depthFailBack != depthFail ||
+            state.depthPassBack != depthPass) {
             state.stencilFailBack = stencilFail;
             state.depthFailBack = depthFail;
             state.depthPassBack = depthPass;
@@ -393,9 +397,12 @@ public abstract class RendererDelegate {
     public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail,
                                       StencilUpdate depthPass) {
         if (stencilFail == null || depthFail == null || depthPass == null) {
-            throw new NullPointerException("Cannot have null arguments: " + stencilFail + ", " + depthFail + ", " + depthPass);
+            throw new NullPointerException(
+                    "Cannot have null arguments: " + stencilFail + ", " + depthFail +
+                    ", " + depthPass);
         }
-        if (state.stencilFailFront != stencilFail || state.depthFailFront != depthFail || state.depthPassFront != depthPass) {
+        if (state.stencilFailFront != stencilFail || state.depthFailFront != depthFail ||
+            state.depthPassFront != depthPass) {
             state.stencilFailFront = stencilFail;
             state.depthFailFront = depthFail;
             state.depthPassFront = depthPass;
@@ -412,9 +419,12 @@ public abstract class RendererDelegate {
 
     public void setViewport(int x, int y, int width, int height) {
         if (x < 0 || y < 0 || width < 0 || height < 0) {
-            throw new IllegalArgumentException("Invalid arguments, all must be positive: " + x + ", " + y + ", " + width + ", " + height);
+            throw new IllegalArgumentException(
+                    "Invalid arguments, all must be positive: " + x + ", " + y + ", " +
+                    width + ", " + height);
         }
-        if (x != state.viewX || y != state.viewY || width != state.viewWidth || height != state.viewHeight) {
+        if (x != state.viewX || y != state.viewY || width != state.viewWidth ||
+            height != state.viewHeight) {
             state.viewX = x;
             state.viewY = y;
             state.viewWidth = width;
@@ -443,8 +453,8 @@ public abstract class RendererDelegate {
 
             VertexBufferObjectHandle newHandle = null;
             if (indices != null) {
-                newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
-                                                                            indices);
+                newHandle = (VertexBufferObjectHandle) resourceManager
+                        .lock(context, indices);
             }
 
             // check if the actual VBO is of the correct type (must use handle, can't rely
@@ -467,7 +477,8 @@ public abstract class RendererDelegate {
             }
 
             if (failTypeCheck) {
-                throw new IllegalArgumentException("VertexBufferObject cannot have a type of FLOAT");
+                throw new IllegalArgumentException(
+                        "VertexBufferObject cannot have a type of FLOAT");
             }
         }
     }
@@ -477,7 +488,8 @@ public abstract class RendererDelegate {
             throw new NullPointerException("PolygonType cannot be null");
         }
         if (offset < 0 || count < 0) {
-            throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " + count);
+            throw new IllegalArgumentException(
+                    "First and count must be at least 0, not: " + offset + ", " + count);
         }
 
         if (count == 0) {
@@ -489,7 +501,8 @@ public abstract class RendererDelegate {
             // - check if the actual VBO is of the correct size (must use handle can't
             // - rely on the resource reporting the most up-to-date size)
             if ((offset + count) > indexBindingHandle.length) {
-                throw new IllegalArgumentException("Index and count access elements outside of VBO range");
+                throw new IllegalArgumentException(
+                        "Index and count access elements outside of VBO range");
             }
 
             // Element vbo is bound this time (or from a previous rendering)
@@ -515,8 +528,8 @@ public abstract class RendererDelegate {
     protected abstract void glDrawArrays(PolygonType type, int first, int count);
 
     /**
-     * Bind the given resource handle as the element array vbo. If null, unbind
-     * the array vbo.
+     * Bind the given resource handle as the element array vbo. If null, unbind the array
+     * vbo.
      */
     protected abstract void glBindElementVbo(VertexBufferObjectHandle handle);
 }

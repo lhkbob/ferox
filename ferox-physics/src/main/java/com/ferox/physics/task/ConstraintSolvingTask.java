@@ -26,11 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
 import com.ferox.physics.dynamics.LinearConstraintPool;
@@ -43,6 +38,11 @@ import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class ConstraintSolvingTask implements Task, ParallelAware {
     private final LinearConstraintSolver solver;
@@ -69,9 +69,11 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             iterator.addRequired(rigidBody);
 
             deltaLinearImpulse = system.decorate(RigidBody.class,
-                                                 new Vector3Property.Factory(new Vector3()));
+                                                 new Vector3Property.Factory(
+                                                         new Vector3()));
             deltaAngularImpulse = system.decorate(RigidBody.class,
-                                                  new Vector3Property.Factory(new Vector3()));
+                                                  new Vector3Property.Factory(
+                                                          new Vector3()));
 
             solver.setDeltaLinearImpulseProperty(deltaLinearImpulse);
             solver.setDeltaAngularImpulseProperty(deltaAngularImpulse);
@@ -86,7 +88,8 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
         Profiler.push("constraint-solving-task");
 
         Profiler.push("solve-constraints");
-        LinearConstraintPool[] asArray = groups.toArray(new LinearConstraintPool[groups.size()]);
+        LinearConstraintPool[] asArray = groups
+                .toArray(new LinearConstraintPool[groups.size()]);
         solver.solve(asArray);
         Profiler.pop();
 
@@ -118,7 +121,7 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
 
     @Override
     public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>> singleton(RigidBody.class);
+        return Collections.<Class<? extends ComponentData<?>>>singleton(RigidBody.class);
     }
 
     @Override

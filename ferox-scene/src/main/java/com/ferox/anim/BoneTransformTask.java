@@ -1,10 +1,5 @@
 package com.ferox.anim;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.ferox.math.Matrix4;
 import com.ferox.scene.Transform;
 import com.lhkbob.entreri.ComponentData;
@@ -14,8 +9,14 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class BoneTransformTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> set = new HashSet<Class<? extends ComponentData<?>>>();
         set.add(Skeleton.class);

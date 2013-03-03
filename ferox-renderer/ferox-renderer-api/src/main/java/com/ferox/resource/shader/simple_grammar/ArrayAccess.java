@@ -1,11 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.ArrayType;
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Type;
+import com.ferox.resource.shader.*;
 
 public class ArrayAccess extends AbstractLValue {
     private final Expression array;
@@ -19,11 +14,14 @@ public class ArrayAccess extends AbstractLValue {
     @Override
     public Type getType(Environment env) {
         Type type = array.getType(env);
-        if (type.equals(PrimitiveType.BVEC2) || type.equals(PrimitiveType.BVEC3) || type.equals(PrimitiveType.BVEC4)) {
+        if (type.equals(PrimitiveType.BVEC2) || type.equals(PrimitiveType.BVEC3) ||
+            type.equals(PrimitiveType.BVEC4)) {
             return PrimitiveType.BOOL;
-        } else if (type.equals(PrimitiveType.IVEC2) || type.equals(PrimitiveType.IVEC3) || type.equals(PrimitiveType.IVEC4)) {
+        } else if (type.equals(PrimitiveType.IVEC2) || type.equals(PrimitiveType.IVEC3) ||
+                   type.equals(PrimitiveType.IVEC4)) {
             return PrimitiveType.INT;
-        } else if (type.equals(PrimitiveType.VEC2) || type.equals(PrimitiveType.VEC3) || type.equals(PrimitiveType.VEC4)) {
+        } else if (type.equals(PrimitiveType.VEC2) || type.equals(PrimitiveType.VEC3) ||
+                   type.equals(PrimitiveType.VEC4)) {
             return PrimitiveType.FLOAT;
         } else if (type.equals(PrimitiveType.MAT2)) {
             return PrimitiveType.VEC2;
@@ -58,17 +56,21 @@ public class ArrayAccess extends AbstractLValue {
                 // array-accessible primitive types
                 break;
             default:
-                throw new IllegalStateException("Primitive type does not support array access");
+                throw new IllegalStateException(
+                        "Primitive type does not support array access");
             }
         } else if (!(array.getType(environment) instanceof ArrayType)) {
-            throw new IllegalStateException("Expression does not evaluate to an array type");
+            throw new IllegalStateException(
+                    "Expression does not evaluate to an array type");
         }
 
         if (!index.getType(environment).equals(PrimitiveType.INT)) {
-            throw new IllegalStateException("Index expression does not evaluate to an integer type");
+            throw new IllegalStateException(
+                    "Index expression does not evaluate to an integer type");
         }
         if (array.containsDeclaration() || index.containsDeclaration()) {
-            throw new IllegalStateException("Array and index expressions cannot contain variable declarations");
+            throw new IllegalStateException(
+                    "Array and index expressions cannot contain variable declarations");
         }
         return environment;
     }
@@ -76,9 +78,11 @@ public class ArrayAccess extends AbstractLValue {
     @Override
     public String emitExpression(ShaderAccumulator shader) {
         if (array.getPrecedence() < getPrecedence()) {
-            return "(" + array.emitExpression(shader) + ")[" + index.emitExpression(shader) + "]";
+            return "(" + array.emitExpression(shader) + ")[" +
+                   index.emitExpression(shader) + "]";
         } else {
-            return array.emitExpression(shader) + "[" + index.emitExpression(shader) + "]";
+            return array.emitExpression(shader) + "[" + index.emitExpression(shader) +
+                   "]";
         }
     }
 

@@ -1,19 +1,9 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.Function;
-import com.ferox.resource.shader.FunctionBuilder;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
-import com.ferox.resource.shader.Type;
+import com.ferox.resource.shader.*;
 import com.ferox.resource.shader.simple_grammar.Parameter.ParameterQualifier;
+
+import java.util.*;
 
 public class FunctionDefinition implements Function {
     private final String name;
@@ -92,8 +82,8 @@ public class FunctionDefinition implements Function {
                 header.append(params[i].getQualifier().name().toLowerCase());
                 header.append(" ");
             }
-            header.append(params[i].getType().getTypeIdentifier(accumulator,
-                                                                params[i].getName()));
+            header.append(params[i].getType()
+                                   .getTypeIdentifier(accumulator, params[i].getName()));
         }
 
         header.append(") {");
@@ -140,8 +130,7 @@ public class FunctionDefinition implements Function {
 
         @Override
         public Function invoke(Statement... body) {
-            return new FunctionDefinition(name,
-                                          returnType,
+            return new FunctionDefinition(name, returnType,
                                           params.toArray(new Parameter[params.size()]),
                                           body);
         }

@@ -117,7 +117,8 @@ public abstract class ApplicationStub {
         for (int i = 0; i < extra.length; i++) {
             total[i + 1] = extra[i];
         }
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, total);
+        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT,
+                                total);
     }
 
     private TextRenderer formatProfiling(long heap, long maxHeap, CharacterSet charSet) {
@@ -130,9 +131,7 @@ public abstract class ApplicationStub {
         for (int i = 0; i < extra.length; i++) {
             total[i + 1] = extra[i];
         }
-        return new TextRenderer(charSet,
-                                new ColorRGB(1, 1, 1),
-                                Anchor.BOTTOM_RIGHT,
+        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT,
                                 total);
     }
 

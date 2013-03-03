@@ -1,14 +1,10 @@
 package com.ferox.resource.shader.simple_grammar;
 
+import com.ferox.resource.shader.*;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.Function;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Type;
 
 public class BuiltInFunction implements Function {
     private final String name;

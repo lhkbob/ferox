@@ -33,19 +33,19 @@ import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
 
 /**
- * UpdateResourceTask is a simple task that implements the behavior needed for
- * {@link Framework#update(Resource)}.
- * 
+ * UpdateResourceTask is a simple task that implements the behavior needed for {@link
+ * Framework#update(Resource)}.
+ *
  * @author Michael Ludwig
  */
 public class UpdateResourceTask implements Task<Status> {
     private final Resource resource;
 
     /**
-     * Create a new UpdateResourceTask that will update the provided resource
-     * when run.
-     * 
+     * Create a new UpdateResourceTask that will update the provided resource when run.
+     *
      * @param resource The Resource to update
+     *
      * @throws NullPointerException if resource is null
      */
     public UpdateResourceTask(Resource resource) {

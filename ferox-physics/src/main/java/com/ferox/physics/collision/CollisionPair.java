@@ -6,7 +6,8 @@ public class CollisionPair {
     private Component<CollisionBody> a;
     private Component<CollisionBody> b;
 
-    public CollisionPair() {}
+    public CollisionPair() {
+    }
 
     public CollisionPair(Component<CollisionBody> a, Component<CollisionBody> b) {
         set(a, b);

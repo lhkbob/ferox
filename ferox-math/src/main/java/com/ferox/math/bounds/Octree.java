@@ -26,29 +26,27 @@
  */
 package com.ferox.math.bounds;
 
-import java.util.Arrays;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Functions;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
 
+import java.util.Arrays;
+
 /**
- * <p>
- * Octree is a SpatialIndex implementation that uses a octree to efficiently
- * cull areas in the viewing frustum that don't have objects within them. This
- * particular implementation is a fully-allocated octree on top of a spatial
- * grid. This means that inserts are almost constant time, and that AABB queries
- * are very fast.
- * </p>
- * <p>
- * Unless all three dimensions are required to suitably index the space, a
- * {@link QuadTree} will generally perform faster and use less memory.
- * </p>
- * 
- * @author Michael Ludwig
+ * <p/>
+ * Octree is a SpatialIndex implementation that uses a octree to efficiently cull areas in
+ * the viewing frustum that don't have objects within them. This particular implementation
+ * is a fully-allocated octree on top of a spatial grid. This means that inserts are
+ * almost constant time, and that AABB queries are very fast.
+ * <p/>
+ * Unless all three dimensions are required to suitably index the space, a {@link
+ * QuadTree} will generally perform faster and use less memory.
+ *
  * @param <T> The data type stored in the octree
+ *
+ * @author Michael Ludwig
  */
 public class Octree<T> implements BoundedSpatialIndex<T> {
     private static final int POS_X = 0x1;
@@ -83,51 +81,45 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
     private int queryIdCounter;
 
     /**
-     * Construct a new Octree that has X, Y, and Z dimensions of 100, and an
-     * estimated object size of 2 units, which allows the tree to have a depth
-     * of 6.
+     * Construct a new Octree that has X, Y, and Z dimensions of 100, and an estimated
+     * object size of 2 units, which allows the tree to have a depth of 6.
      */
     public Octree() {
         this(100, 2.0);
     }
 
     /**
-     * <p>
+     * <p/>
      * Construct a new Octree that has X, Y, and Z dimensions equal to
-     * <tt>sideLength</tt>, and the depth of the tree is controlled by the
-     * estimated object size, <tt>objSize</tt>. <tt>objSize</tt> should be the
-     * approximate dimension of the average object contained in this index. If
-     * it is too big or too small, query performance may suffer.
-     * </p>
-     * 
+     * <tt>sideLength</tt>, and the depth of the tree is controlled by the estimated
+     * object size, <tt>objSize</tt>. <tt>objSize</tt> should be the approximate dimension
+     * of the average object contained in this index. If it is too big or too small, query
+     * performance may suffer.
+     *
      * @param sideLength The side length of the root bounds of the octree
-     * @param objSize The estimated object size
+     * @param objSize    The estimated object size
      */
     public Octree(double sideLength, double objSize) {
-        this(new AxisAlignedBox(new Vector3(-sideLength / 2.0,
-                                            -sideLength / 2.0,
-                                            -sideLength / 2.0),
-                                new Vector3(sideLength / 2.0,
-                                            sideLength / 2.0,
-                                            sideLength / 2.0)),
+        this(new AxisAlignedBox(
+                new Vector3(-sideLength / 2.0, -sideLength / 2.0, -sideLength / 2.0),
+                new Vector3(sideLength / 2.0, sideLength / 2.0, sideLength / 2.0)),
              Functions.log2((int) Math.ceil(sideLength / objSize)));
     }
 
     /**
-     * <P>
-     * Construct a new Octree with the given root bounds, <tt>aabb</tt> and tree
-     * depth. The depth of the tree and the X, Y, and Z dimensions of the root
-     * bounds determine the size the leaf octree nodes. If objects are
-     * significantly larger than this, they will be contained in multiple nodes
-     * and it may hurt performance.
-     * </p>
-     * <p>
-     * The root bounds are copied so future changes to <tt>aabb</tt> will not
-     * affect this tree.
-     * </p>
-     * 
-     * @param aabb The root bounds of the tree
+     * <p/>
+     * Construct a new Octree with the given root bounds, <tt>aabb</tt> and tree depth.
+     * The depth of the tree and the X, Y, and Z dimensions of the root bounds determine
+     * the size the leaf octree nodes. If objects are significantly larger than this, they
+     * will be contained in multiple nodes and it may hurt performance.
+     * <p/>
+     * <p/>
+     * The root bounds are copied so future changes to <tt>aabb</tt> will not affect this
+     * tree.
+     *
+     * @param aabb  The root bounds of the tree
      * @param depth The depth of the tree
+     *
      * @throws NullPointerException if aabb is null
      */
     public Octree(@Const AxisAlignedBox aabb, int depth) {
@@ -338,7 +330,8 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
                         // also update the quad tree to point to this cell
                         qtIndex += getLevelOffset(depth - 1);
                         if (octree[qtIndex] != -1) {
-                            throw new IllegalArgumentException("Quadtree leaf should not have any index");
+                            throw new IllegalArgumentException(
+                                    "Quadtree leaf should not have any index");
                         }
                         octree[qtIndex] = hash;
                     }
@@ -434,7 +427,9 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
                                     minIntersect.set(Math.max(ba.min.x, bb.min.x),
                                                      Math.max(ba.min.y, bb.min.y),
                                                      Math.max(ba.min.z, bb.min.z));
-                                    if (hashCellX(minIntersect) != cellX || hashCellY(minIntersect) != cellY || hashCellZ(minIntersect) != cellZ) {
+                                    if (hashCellX(minIntersect) != cellX ||
+                                        hashCellY(minIntersect) != cellY ||
+                                        hashCellZ(minIntersect) != cellZ) {
                                         continue;
                                     }
 
@@ -513,8 +508,8 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
 
         // start at root quadtree and walk the tree to compute intersections,
         // building in place an aabb for testing.
-        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, f,
-              new PlaneState(), false, callback, new AxisAlignedBox());
+        query(0, 0, new AxisAlignedBox(rootBounds), ++queryIdCounter, f, new PlaneState(),
+              false, callback, new AxisAlignedBox());
     }
 
     @SuppressWarnings("unchecked")
@@ -554,7 +549,8 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
                 // - this is valid in a single threaded situation
                 if (queryIds[item] != query) {
                     updateBounds(itemBounds, item);
-                    if (insideGuaranteed || f.intersects(itemBounds, planeState) != FrustumIntersection.OUTSIDE) {
+                    if (insideGuaranteed || f.intersects(itemBounds, planeState) !=
+                                            FrustumIntersection.OUTSIDE) {
                         // we have an intersection, invoke the callback
                         callback.process((T) elements[cell.keys[i]], itemBounds);
                     }
@@ -665,7 +661,8 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
     }
 
     protected int hash(int cellX, int cellY, int cellZ) {
-        return cellX + maxCellDimension * cellY + maxCellDimension * maxCellDimension * cellZ;
+        return cellX + maxCellDimension * cellY +
+               maxCellDimension * maxCellDimension * cellZ;
     }
 
     protected int clamp(int discrete) {

@@ -30,12 +30,11 @@ import com.ferox.input.KeyEvent;
 import com.ferox.input.MouseEvent;
 
 /**
- * InputState represents a time-stamped snapshot of both the user's keyboard and
- * mouse.
- * 
+ * InputState represents a time-stamped snapshot of both the user's keyboard and mouse.
+ *
+ * @author Michael Ludwig
  * @see KeyboardState
  * @see MouseState
- * @author Michael Ludwig
  */
 public class InputState {
     private final KeyboardState keyboard;
@@ -44,8 +43,8 @@ public class InputState {
     private final long timestamp; // nanos
 
     /**
-     * Create a new InputState that has the empty or default keyboard and mouse
-     * states. Its timestamp is set to the currently reporting system time.
+     * Create a new InputState that has the empty or default keyboard and mouse states.
+     * Its timestamp is set to the currently reporting system time.
      */
     public InputState() {
         keyboard = new KeyboardState();
@@ -55,11 +54,11 @@ public class InputState {
     }
 
     /**
-     * Create a new InputState that clones the mouse and keyboard states from
-     * the given InputState, but has an updated timestamp to the current system
-     * time.
-     * 
+     * Create a new InputState that clones the mouse and keyboard states from the given
+     * InputState, but has an updated timestamp to the current system time.
+     *
      * @param prev The previous input state
+     *
      * @throws NullPointerException if prev is null
      */
     public InputState(InputState prev) {
@@ -70,12 +69,12 @@ public class InputState {
     }
 
     /**
-     * Create a new InputState that computes the effective state of applying the
-     * given key event to the previous keyboard state, and preserving the
-     * previous mouse state.
-     * 
-     * @param prev The previous input state
+     * Create a new InputState that computes the effective state of applying the given key
+     * event to the previous keyboard state, and preserving the previous mouse state.
+     *
+     * @param prev  The previous input state
      * @param event The key event to apply
+     *
      * @throws NullPointerException if event is null
      */
     public InputState(InputState prev, KeyEvent event) {
@@ -91,12 +90,13 @@ public class InputState {
     }
 
     /**
-     * Create a new InputState that computes the effective state of applying the
-     * given mouse event to the previous mouse state, and preserving the
-     * previous keyboard state.
-     * 
-     * @param prev The previous input state
+     * Create a new InputState that computes the effective state of applying the given
+     * mouse event to the previous mouse state, and preserving the previous keyboard
+     * state.
+     *
+     * @param prev  The previous input state
      * @param event The mouse event to apply
+     *
      * @throws NullPointerException if event is null
      */
     public InputState(InputState prev, MouseEvent event) {
@@ -112,8 +112,7 @@ public class InputState {
     }
 
     /**
-     * @return The time stamp in nanoseconds of the event that produced this
-     *         input state
+     * @return The time stamp in nanoseconds of the event that produced this input state
      */
     public long getTimestamp() {
         return timestamp;

@@ -26,47 +26,42 @@
  */
 package com.ferox.renderer;
 
-import java.util.Map;
-
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Const;
-import com.ferox.math.Matrix3;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslUniform;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 
+import java.util.Map;
+
 public interface GlslRenderer extends Renderer {
     /**
-     * <p>
-     * Get the current state configuration for this GlslRenderer. The returned
-     * instance can be used in {@link #setCurrentState(ContextState)} with any
-     * GlslRenderer created by the same Framework as this renderer. The returned
-     * snapshot must preserve all of the current uniform and attribute values or
-     * bindings.
-     * <p>
-     * Because the shader pipeline maintains a large amount of state, getting
-     * and setting the entire state should be used infrequently.
-     * 
+     * <p/>
+     * Get the current state configuration for this GlslRenderer. The returned instance
+     * can be used in {@link #setCurrentState(ContextState)} with any GlslRenderer created
+     * by the same Framework as this renderer. The returned snapshot must preserve all of
+     * the current uniform and attribute values or bindings.
+     * <p/>
+     * Because the shader pipeline maintains a large amount of state, getting and setting
+     * the entire state should be used infrequently.
+     *
      * @return The current state
      */
     public ContextState<GlslRenderer> getCurrentState();
 
     /**
-     * <p>
+     * <p/>
      * Set the current state of this renderer to equal the given state snapshot.
-     * <tt>state</tt> must have been returned by a prior call to
-     * {@link #getCurrentState()} from a GlslRenderer created by this renderer's
-     * Framework or behavior is undefined.
-     * <p>
-     * Because the shader pipeline maintains a large amount of state, getting
-     * and setting the entire state should be used infrequently.
-     * 
+     * <tt>state</tt> must have been returned by a prior call to {@link
+     * #getCurrentState()} from a GlslRenderer created by this renderer's Framework or
+     * behavior is undefined.
+     * <p/>
+     * Because the shader pipeline maintains a large amount of state, getting and setting
+     * the entire state should be used infrequently.
+     *
      * @param state The state snapshot to update this renderer
+     *
      * @throws NullPointerException if state is null
      */
     public void setCurrentState(ContextState<GlslRenderer> state);

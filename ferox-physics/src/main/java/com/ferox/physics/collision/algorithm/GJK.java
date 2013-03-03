@@ -52,8 +52,9 @@ public class GJK {
         ray.set(simplex.addVertex(guess, true));
         simplex.setWeight(0, 1.0);
 
-        Vector3[] oldSupports = new Vector3[] {new Vector3(ray), new Vector3(ray),
-                                               new Vector3(ray), new Vector3(ray)};
+        Vector3[] oldSupports = new Vector3[] {
+                new Vector3(ray), new Vector3(ray), new Vector3(ray), new Vector3(ray)
+        };
         int lastSupportIndex = 0;
         for (int i = 0; i < GJK_MAX_ITERATIONS; i++) {
             double rayLength = ray.length();

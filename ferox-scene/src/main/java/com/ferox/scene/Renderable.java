@@ -32,9 +32,9 @@ import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.geom.Geometry;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.geom.Geometry;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.SharedInstance;
@@ -44,18 +44,16 @@ import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
- * Renderable is a Component that enables an Entity to be rendered. It provides
- * a {@link Geometry} containing the vertex buffer information needed to render
- * the Entity and {@link DrawStyle DrawStyles} determining how each polygon is
- * rendered. To enable frustum-culling, the Renderable also stores an
- * axis-aligned bounding box that contains the geometry.</p>
- * <p>
- * The Renderable should be combined with a {@link Transform} to place the
- * Entity within a rendered scene. Many additional Components in this package
- * can be used to describe the materials, shaders and textures used to color and
- * light the rendered Entity.
- * </p>
- * 
+ * Renderable is a Component that enables an Entity to be rendered. It provides a {@link
+ * Geometry} containing the vertex buffer information needed to render the Entity and
+ * {@link DrawStyle DrawStyles} determining how each polygon is rendered. To enable
+ * frustum-culling, the Renderable also stores an axis-aligned bounding box that contains
+ * the geometry.
+ * <p/>
+ * The Renderable should be combined with a {@link Transform} to place the Entity within a
+ * rendered scene. Many additional Components in this package can be used to describe the
+ * materials, shaders and textures used to color and light the rendered Entity.
+ *
  * @author Michael Ludwig
  */
 @Requires(Transform.class)
@@ -83,19 +81,22 @@ public final class Renderable extends ComponentData<Renderable> {
     @Unmanaged
     private final AxisAlignedBox worldBoundsCache = new AxisAlignedBox();
 
-    private Renderable() {}
+    private Renderable() {
+    }
 
     /**
-     * Set the vertex attribute that holds the vertex position information for
-     * the Renderable. The way the vertices are combined in 3D primitives
-     * depends on the indices and polygon type configured for the renderable.
-     * See {@link #getIndices()} for more details.
-     * 
+     * Set the vertex attribute that holds the vertex position information for the
+     * Renderable. The way the vertices are combined in 3D primitives depends on the
+     * indices and polygon type configured for the renderable. See {@link #getIndices()}
+     * for more details.
+     *
      * @param vertices The new vertex attribute of vertices
+     *
      * @return This component, for chaining purposes
-     * @throws NullPointerException if vertices is null
-     * @throws IllegalArgumentException if the data type isn't FLOAT or if the
-     *             element size is 1
+     *
+     * @throws NullPointerException     if vertices is null
+     * @throws IllegalArgumentException if the data type isn't FLOAT or if the element
+     *                                  size is 1
      */
     public Renderable setVertices(VertexAttribute vertices) {
         if (vertices == null) {
@@ -105,7 +106,8 @@ public final class Renderable extends ComponentData<Renderable> {
             throw new IllegalArgumentException("Vertices must have a datatype of FLOAT");
         }
         if (vertices.getElementSize() == 1) {
-            throw new IllegalArgumentException("Vertices can only have an element size of 2, 3, or 4");
+            throw new IllegalArgumentException(
+                    "Vertices can only have an element size of 2, 3, or 4");
         }
 
         this.vertices.set(vertices, getIndex());
@@ -127,12 +129,13 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Set the front and back draw styles for polygons rendered by this
-     * Renderable.
-     * 
+     * Set the front and back draw styles for polygons rendered by this Renderable.
+     *
      * @param front The front style
-     * @param back The back style
+     * @param back  The back style
+     *
      * @return This component
+     *
      * @throws NullPointerException if front or back are null
      */
     public Renderable setDrawStyle(DrawStyle front, DrawStyle back) {
@@ -148,15 +151,16 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Convenience function to set the indices of this Renderable to null,
-     * causing it to use implicit array indices. Calling this method with
-     * arguments <tt>first</tt> and <tt>count</tt> is the same as calling
-     * {@link #setIndices(VertexBufferObject, PolygonType)} with a buffer
-     * created as <code>[i for i in range(first, first + count)]</code>.
-     * 
-     * @param type The polygon type to render
+     * Convenience function to set the indices of this Renderable to null, causing it to
+     * use implicit array indices. Calling this method with arguments <tt>first</tt> and
+     * <tt>count</tt> is the same as calling {@link #setIndices(VertexBufferObject,
+     * PolygonType)} with a buffer created as <code>[i for i in range(first, first +
+     * count)]</code>.
+     *
+     * @param type  The polygon type to render
      * @param first The offset into the vertex attributes
      * @param count The number of consecutive vertices to turn into polygons
+     *
      * @return This component, for chaining purposes
      */
     public Renderable setArrayIndices(PolygonType type, int first, int count) {
@@ -165,13 +169,15 @@ public final class Renderable extends ComponentData<Renderable> {
 
     /**
      * Set the indices of this Renderable to <tt>indices</tt> and use the given
-     * PolygonType to construct primitives. The index offset will be 0 and the
-     * index count will the size of the VertexBufferObject.
-     * 
-     * @param type The new polygon type
+     * PolygonType to construct primitives. The index offset will be 0 and the index count
+     * will the size of the VertexBufferObject.
+     *
+     * @param type    The new polygon type
      * @param indices The new indices VBO
+     *
      * @return This component, for chaining purposes
-     * @throws NullPointerException if indices or type are null
+     *
+     * @throws NullPointerException     if indices or type are null
      * @throws IllegalArgumentException if indices data type is FLOAT
      */
     public Renderable setIndices(PolygonType type, VertexBufferObject indices) {
@@ -179,30 +185,30 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * <p>
+     * <p/>
      * Set the indices of this Renderable to <tt>indices</tt> and use the given
-     * PolygonType to construct primitives. The first index used will be at
-     * <tt>first</tt> in the buffer. Then the remaining <tt>count - 1</tt>
-     * indices will be read consecutively from the buffer.
-     * </p>
-     * <p>
-     * If <tt>indices</tt> is null, implicit array indices are used to render
-     * the geometry instead. In this case, <tt>first</tt> represents the first
-     * vertex used, and <tt>count</tt> vertices are consecutively read from the
-     * vertices and other attributes. See {@link #getIndices()}.
-     * </p>
-     * 
-     * @param type The new polygon type
+     * PolygonType to construct primitives. The first index used will be at <tt>first</tt>
+     * in the buffer. Then the remaining <tt>count - 1</tt> indices will be read
+     * consecutively from the buffer.
+     * <p/>
+     * If <tt>indices</tt> is null, implicit array indices are used to render the geometry
+     * instead. In this case, <tt>first</tt> represents the first vertex used, and
+     * <tt>count</tt> vertices are consecutively read from the vertices and other
+     * attributes. See {@link #getIndices()}.
+     *
+     * @param type    The new polygon type
      * @param indices The new indices to use, may be null
-     * @param first The offset into the indices or vertices (if indices is null)
-     * @param count The number of indices or vertices to put together to create
-     *            polygons (this is not the number of polygons)
+     * @param first   The offset into the indices or vertices (if indices is null)
+     * @param count   The number of indices or vertices to put together to create polygons
+     *                (this is not the number of polygons)
+     *
      * @return This component, for chaining purposes
-     * @throws NullPointerException if type is null
-     * @throws IllegalArgumentException if the indices data type is FLOAT
-     * @throws IllegalArgumentException if first or count are less than 0
-     * @throws IndexOutOfBoundsException if (first + count) is larger than the
-     *             size of the indices
+     *
+     * @throws NullPointerException      if type is null
+     * @throws IllegalArgumentException  if the indices data type is FLOAT
+     * @throws IllegalArgumentException  if first or count are less than 0
+     * @throws IndexOutOfBoundsException if (first + count) is larger than the size of the
+     *                                   indices
      */
     public Renderable setIndices(PolygonType type, VertexBufferObject indices, int first,
                                  int count) {
@@ -216,7 +222,8 @@ public final class Renderable extends ComponentData<Renderable> {
             throw new IllegalArgumentException("First and count must be at least 0");
         }
         if (indices != null && (first + count) > indices.getData().getLength()) {
-            throw new IndexOutOfBoundsException("First and count would reference out-of-bounds indices");
+            throw new IndexOutOfBoundsException(
+                    "First and count would reference out-of-bounds indices");
         }
 
         int componentIndex = getIndex();
@@ -231,21 +238,20 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * @return The vertex attribute containing vertex information for the
-     *         geometry. If the entity has a transform, the vertices are
-     *         transformed before being rendered.
+     * @return The vertex attribute containing vertex information for the geometry. If the
+     *         entity has a transform, the vertices are transformed before being
+     *         rendered.
      */
     public VertexAttribute getVertices() {
         return vertices.get(getIndex());
     }
 
     /**
-     * Return the indices used access the vertices of the renderable, and any
-     * other vertex attributes that are associated with this entity from other
-     * components. If the indices are null, the vertices are accessed in order,
-     * starting at 0 (effectively the indices are
-     * <code>[i for i in range(first, first + count)]</code>).
-     * 
+     * Return the indices used access the vertices of the renderable, and any other vertex
+     * attributes that are associated with this entity from other components. If the
+     * indices are null, the vertices are accessed in order, starting at 0 (effectively
+     * the indices are <code>[i for i in range(first, first + count)]</code>).
+     *
      * @return The indices, may be null
      */
     public VertexBufferObject getIndices() {
@@ -253,16 +259,15 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * @return The number of indices to render (even when indices are implicit
-     *         array indices)
+     * @return The number of indices to render (even when indices are implicit array
+     *         indices)
      */
     public int getIndexCount() {
         return indexCount.get(getIndex());
     }
 
     /**
-     * @return The offset into the indices (even if indices are implicit array
-     *         indices)
+     * @return The offset into the indices (even if indices are implicit array indices)
      */
     public int getIndexOffset() {
         return indexOffset.get(getIndex());
@@ -276,10 +281,10 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Return the local bounds of this Renderable. The returned AxisAlignedBox
-     * instance is reused by this Renderable instance so it should be cloned
-     * before changing which Component is referenced.
-     * 
+     * Return the local bounds of this Renderable. The returned AxisAlignedBox instance is
+     * reused by this Renderable instance so it should be cloned before changing which
+     * Component is referenced.
+     *
      * @return A cached local bounds instance
      */
     @Const
@@ -290,12 +295,13 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Set the local bounds of this entity. The bounds should contain the entire
-     * geometry of the Entity, including any modifications dynamic animation
-     * might cause.
-     * 
+     * Set the local bounds of this entity. The bounds should contain the entire geometry
+     * of the Entity, including any modifications dynamic animation might cause.
+     *
      * @param bounds The new local bounds of the entity
+     *
      * @return This component, for chaining purposes
+     *
      * @throws NullPointerException if bounds is null
      */
     public Renderable setLocalBounds(@Const AxisAlignedBox bounds) {
@@ -305,10 +311,10 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Return the world bounds of this Renderable. The returned AxisAlignedBox
-     * instance is reused by this Renderable instance so it should be cloned
-     * before changing which Component is referenced.
-     * 
+     * Return the world bounds of this Renderable. The returned AxisAlignedBox instance is
+     * reused by this Renderable instance so it should be cloned before changing which
+     * Component is referenced.
+     *
      * @return A cached world bounds instance
      */
     @Const
@@ -319,19 +325,20 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Set the world bounds of this entity. The bounds should contain the entire
-     * geometry of the Entity, including any modifications dynamic animation
-     * might cause, in world space. A controller or other processor must use
-     * this method to keep the world bounds in sync with any changes to the
-     * local bounds.
-     * <p>
-     * Note that unlike all other properties of the renderable, setting the
-     * world bounds does not update the version of the component. This is
-     * because the world bounds is dependent on the local bounds (which will
-     * update the version) and the transform (not part of the renderable).
-     * 
+     * Set the world bounds of this entity. The bounds should contain the entire geometry
+     * of the Entity, including any modifications dynamic animation might cause, in world
+     * space. A controller or other processor must use this method to keep the world
+     * bounds in sync with any changes to the local bounds.
+     * <p/>
+     * Note that unlike all other properties of the renderable, setting the world bounds
+     * does not update the version of the component. This is because the world bounds is
+     * dependent on the local bounds (which will update the version) and the transform
+     * (not part of the renderable).
+     *
      * @param bounds The new world bounds of the entity
+     *
      * @return This component, for chaining purposes
+     *
      * @throws NullPointerException if bounds is null
      */
     public Renderable setWorldBounds(@Const AxisAlignedBox bounds) {

@@ -26,15 +26,14 @@
  */
 package com.ferox.resource.texture;
 
+import com.ferox.resource.Texture;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.ferox.resource.Texture;
-
 /**
- * An implementation of ImageFileLoader that relies on DDSTexture to load .dds
- * files.
- * 
+ * An implementation of ImageFileLoader that relies on DDSTexture to load .dds files.
+ *
  * @author Michael Ludwig
  */
 public class DDSImageFileLoader implements ImageFileLoader {

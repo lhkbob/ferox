@@ -26,26 +26,22 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.Context;
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.Surface;
-import com.ferox.renderer.Task;
+import com.ferox.renderer.*;
 
 /**
- * FlushSurfaceTask is a simple task that flushes a surface, for use with
- * {@link Framework#flush(Surface, String)}.
- * 
+ * FlushSurfaceTask is a simple task that flushes a surface, for use with {@link
+ * Framework#flush(Surface, String)}.
+ *
  * @author Michael Ludwig
  */
 public class FlushSurfaceTask implements Task<Void> {
     private final Surface surface;
 
     /**
-     * Create a new FlushSurfaceTask that will flush the given Surface when it
-     * is run.
-     * 
+     * Create a new FlushSurfaceTask that will flush the given Surface when it is run.
+     *
      * @param surface The Surface to flush
+     *
      * @throws NullPointerException if surface is null
      */
     public FlushSurfaceTask(Surface surface) {

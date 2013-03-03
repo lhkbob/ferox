@@ -26,13 +26,6 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.util.EnumSet;
-
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2GL3;
-
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
@@ -44,6 +37,12 @@ import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2GL3;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.util.EnumSet;
 
 public class JoglGlslRenderer extends AbstractGlslRenderer {
     private boolean initialized;

@@ -26,16 +26,7 @@
  */
 package com.ferox.scene.controller.ffp;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
+import com.ferox.math.*;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.entreri.Vector3Property;
 import com.ferox.math.entreri.Vector3Property.DefaultVector3;
@@ -51,15 +42,7 @@ import com.ferox.resource.geom.Box;
 import com.ferox.resource.geom.Geometry;
 import com.ferox.resource.geom.Sphere;
 import com.ferox.resource.geom.Teapot;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.Camera;
-import com.ferox.scene.DiffuseColor;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.InfluenceRegion;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.Transform;
+import com.ferox.scene.*;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
 import com.ferox.scene.task.ComputeCameraFrustumTask;
 import com.ferox.scene.task.ComputePVSTask;
@@ -74,11 +57,12 @@ import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.task.ElapsedTimeResult;
-import com.lhkbob.entreri.task.Job;
-import com.lhkbob.entreri.task.ParallelAware;
-import com.lhkbob.entreri.task.Task;
-import com.lhkbob.entreri.task.Timers;
+import com.lhkbob.entreri.task.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SimpleTest {
     public static final boolean LWJGL = true;
@@ -87,21 +71,21 @@ public class SimpleTest {
 
     public static void main(String[] args) {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
-        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().setWidth(800)
-                                                                                      .setHeight(600)
-                                                                                      .setFullscreenMode(new DisplayMode(1440,
-                                                                                                                         900,
-                                                                                                                         PixelFormat.RGB_24BIT))
-                                                                                      .setResizable(false));
+        OnscreenSurface surface = framework.createSurface(
+                new OnscreenSurfaceOptions().setWidth(800).setHeight(600)
+                                            .setFullscreenMode(new DisplayMode(1440, 900,
+                                                                               PixelFormat.RGB_24BIT))
+                                            .setResizable(false));
         //        surface.setVSyncEnabled(true);
 
         EntitySystem system = new EntitySystem();
 
         Entity camera = system.addEntity();
-        camera.add(Transform.class)
-              .getData()
-              .setMatrix(new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1,
-                                           .9 * BOUNDS, 0, 0, 0, 1));
+        camera.add(Transform.class).getData().setMatrix(new Matrix4()
+                                                                .set(-1, 0, 0, 0, 0, 1, 0,
+                                                                     0, 0, 0, -1,
+                                                                     .9 * BOUNDS, 0, 0, 0,
+                                                                     1));
         camera.add(Camera.class).getData().setSurface(surface).setZDistances(0.1, 1200)
               .setFieldOfView(75);
 
@@ -109,14 +93,11 @@ public class SimpleTest {
         Geometry b2 = Box.create(2f, StorageMode.GPU_STATIC);
         Geometry b3 = Teapot.create(1f, StorageMode.GPU_STATIC);
 
-        ColorRGB c1 = new ColorRGB(Math.random() + 0.2,
-                                   Math.random() + 0.2,
+        ColorRGB c1 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2,
                                    Math.random() + 0.2);
-        ColorRGB c2 = new ColorRGB(Math.random() + 0.2,
-                                   Math.random() + 0.2,
+        ColorRGB c2 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2,
                                    Math.random() + 0.2);
-        ColorRGB c3 = new ColorRGB(Math.random() + 0.2,
-                                   Math.random() + 0.2,
+        ColorRGB c3 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2,
                                    Math.random() + 0.2);
 
         int totalpolys = 0;
@@ -145,9 +126,7 @@ public class SimpleTest {
                              .getPolygonCount(b.getIndexCount() - b.getIndexOffset());
 
             Entity e = system.addEntity();
-            e.add(Renderable.class)
-             .getData()
-             .setVertices(b.getVertices())
+            e.add(Renderable.class).getData().setVertices(b.getVertices())
              .setLocalBounds(b.getBounds())
              .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(),
                          b.getIndexCount());
@@ -155,12 +134,19 @@ public class SimpleTest {
             e.add(BlinnPhongMaterial.class).getData().setNormals(b.getNormals());
             //            }
             e.add(DiffuseColor.class).getData().setColor(c);
-            e.add(Transform.class)
-             .getData()
-             .setMatrix(new Matrix4().set(1, 0, 0, Math.random() * BOUNDS - BOUNDS / 2,
-                                          0, 1, 0, Math.random() * BOUNDS - BOUNDS / 2,
-                                          0, 0, 1, Math.random() * BOUNDS - BOUNDS / 2,
-                                          0, 0, 0, 1));
+            e.add(Transform.class).getData().setMatrix(new Matrix4().set(1, 0, 0,
+                                                                         Math.random() *
+                                                                         BOUNDS -
+                                                                         BOUNDS / 2, 0, 1,
+                                                                         0,
+                                                                         Math.random() *
+                                                                         BOUNDS -
+                                                                         BOUNDS / 2, 0, 0,
+                                                                         1,
+                                                                         Math.random() *
+                                                                         BOUNDS -
+                                                                         BOUNDS / 2, 0, 0,
+                                                                         0, 1));
             e.add(Animation.class);
             totalpolys += polycount;
         }
@@ -175,20 +161,23 @@ public class SimpleTest {
                  .setColor(new ColorRGB(Math.random(), Math.random(), Math.random()));
 
             if (falloff > 0) {
-                light.add(InfluenceRegion.class)
-                     .getData()
-                     .setBounds(new AxisAlignedBox(new Vector3(-falloff,
-                                                               -falloff,
-                                                               -falloff),
-                                                   new Vector3(falloff, falloff, falloff)));
+                light.add(InfluenceRegion.class).getData().setBounds(
+                        new AxisAlignedBox(new Vector3(-falloff, -falloff, -falloff),
+                                           new Vector3(falloff, falloff, falloff)));
             }
-            light.add(Transform.class)
-                 .getData()
-                 .setMatrix(new Matrix4().set(1, 0, 0,
-                                              Math.random() * BOUNDS - BOUNDS / 2, 0, 1,
-                                              0, Math.random() * BOUNDS - BOUNDS / 2, 0,
-                                              0, 1, Math.random() * BOUNDS - BOUNDS / 2,
-                                              0, 0, 0, 1));
+            light.add(Transform.class).getData().setMatrix(new Matrix4().set(1, 0, 0,
+                                                                             Math.random() *
+                                                                             BOUNDS -
+                                                                             BOUNDS / 2,
+                                                                             0, 1, 0,
+                                                                             Math.random() *
+                                                                             BOUNDS -
+                                                                             BOUNDS / 2,
+                                                                             0, 0, 1,
+                                                                             Math.random() *
+                                                                             BOUNDS -
+                                                                             BOUNDS / 2,
+                                                                             0, 0, 0, 1));
         }
         system.addEntity().add(AmbientLight.class).getData()
               .setColor(new ColorRGB(0.2, 0.2, 0.2));
@@ -196,34 +185,33 @@ public class SimpleTest {
         Entity inf = system.addEntity();
         inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
            .setShadowCaster(false);
-        inf.add(Transform.class)
-           .getData()
-           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(.3 * BOUNDS,
-                                                                      .3 * BOUNDS,
-                                                                      .3 * BOUNDS),
-                                           new Vector3(0, 1, 0)));
+        inf.add(Transform.class).getData().setMatrix(new Matrix4().lookAt(new Vector3(),
+                                                                          new Vector3(.3 *
+                                                                                      BOUNDS,
+                                                                                      .3 *
+                                                                                      BOUNDS,
+                                                                                      .3 *
+                                                                                      BOUNDS),
+                                                                          new Vector3(0,
+                                                                                      1,
+                                                                                      0)));
 
-        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-1.5 * BOUNDS / 2,
-                                                                    -1.5 * BOUNDS / 2,
-                                                                    -1.5 * BOUNDS / 2),
-                                                        new Vector3(1.5 * BOUNDS / 2,
-                                                                    1.5 * BOUNDS / 2,
-                                                                    1.5 * BOUNDS / 2));
+        AxisAlignedBox worldBounds = new AxisAlignedBox(
+                new Vector3(-1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2),
+                new Vector3(1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2));
 
-        Job renderJob = system.getScheduler()
-                              .createJob("render",
-                                         Timers.measuredDelta(),
-                                         new AnimationController(),
-                                         new UpdateWorldBoundsTask(),
-                                         new ComputeCameraFrustumTask(),
-                                         new ComputeShadowFrustumTask(),
-                                         new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
-                                                                                           6)),
-                                         new ComputePVSTask(),
-                                         new ComputeLightGroupTask(),
-                                         new FixedFunctionRenderTask(framework,
-                                                                     1024,
-                                                                     false));
+        Job renderJob = system.getScheduler().createJob("render", Timers.measuredDelta(),
+                                                        new AnimationController(),
+                                                        new UpdateWorldBoundsTask(),
+                                                        new ComputeCameraFrustumTask(),
+                                                        new ComputeShadowFrustumTask(),
+                                                        new BuildVisibilityIndexTask(
+                                                                new QuadTree<Entity>(
+                                                                        worldBounds, 6)),
+                                                        new ComputePVSTask(),
+                                                        new ComputeLightGroupTask(),
+                                                        new FixedFunctionRenderTask(
+                                                                framework, 1024, false));
 
         long now = System.nanoTime();
         int numRuns = 0;
@@ -272,7 +260,8 @@ public class SimpleTest {
         }
 
         @Override
-        public void reset(EntitySystem system) {}
+        public void reset(EntitySystem system) {
+        }
 
         @Override
         public Task process(EntitySystem system, Job job) {
@@ -282,7 +271,8 @@ public class SimpleTest {
                 Animation anim = it.next();
                 Vector3 d = anim.getDirection();
 
-                if (anim.getEntity().get(t) && anim.getDirection().lengthSquared() > 0.00001) {
+                if (anim.getEntity().get(t) &&
+                    anim.getDirection().lengthSquared() > 0.00001) {
                     // have a direction, assume its normalized
                     Matrix4 m = t.getMatrix();
 
@@ -323,8 +313,8 @@ public class SimpleTest {
         @Override
         @SuppressWarnings("unchecked")
         public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-            return new HashSet<Class<? extends ComponentData<?>>>(Arrays.asList(Animation.class,
-                                                                                Transform.class));
+            return new HashSet<Class<? extends ComponentData<?>>>(
+                    Arrays.asList(Animation.class, Transform.class));
         }
 
         @Override
@@ -343,7 +333,8 @@ public class SimpleTest {
         @Unmanaged
         private final Vector3 cache = new Vector3();
 
-        private Animation() {}
+        private Animation() {
+        }
 
         public double getLifetime() {
             return life.get(getIndex());
@@ -353,7 +344,8 @@ public class SimpleTest {
             life.set(lt, getIndex());
         }
 
-        public @Const
+        public
+        @Const
         Vector3 getDirection() {
             return cache;
         }

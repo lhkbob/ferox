@@ -26,15 +26,13 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.awt.Canvas;
-import java.awt.Graphics;
+import java.awt.*;
 
 /**
- * <p>
- * PaintDisabledCanvas is a Canvas that completely negates its paint() method
- * and provides a NullGraphics to prevent AWT from attempting any funny
- * business.
- * 
+ * <p/>
+ * PaintDisabledCanvas is a Canvas that completely negates its paint() method and provides
+ * a NullGraphics to prevent AWT from attempting any funny business.
+ *
  * @author Michael Ludwig
  */
 public class PaintDisabledCanvas extends Canvas {

@@ -26,17 +26,6 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLPbuffer;
-import javax.media.opengl.GLProfile;
-
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractFramework;
 import com.ferox.renderer.impl.AbstractTextureSurface;
@@ -47,12 +36,15 @@ import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.*;
+
 /**
- * JoglPbufferTextureSurface is a TextureSurface implementation that relies on
- * pbuffers to render into an offscreen buffer before using the glCopyTexImage
- * command to move the buffer contents into a texture. PBuffers are slower than
- * FBOs so {@link JoglFboTextureSurface} is favored when FBOs are supported.
- * 
+ * JoglPbufferTextureSurface is a TextureSurface implementation that relies on pbuffers to
+ * render into an offscreen buffer before using the glCopyTexImage command to move the
+ * buffer contents into a texture. PBuffers are slower than FBOs so {@link
+ * JoglFboTextureSurface} is favored when FBOs are supported.
+ *
  * @author Michael Ludwig
  */
 public class JoglPbufferTextureSurface extends AbstractTextureSurface {
@@ -63,8 +55,8 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
 
     public JoglPbufferTextureSurface(AbstractFramework framework,
                                      JoglSurfaceFactory creator,
-                                     TextureSurfaceOptions options,
-                                     JoglContext shareWith, RendererProvider provider) {
+                                     TextureSurfaceOptions options, JoglContext shareWith,
+                                     RendererProvider provider) {
         super(framework, options);
 
         Texture[] colorBuffers = new Texture[getNumColorBuffers()];
@@ -94,7 +86,8 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
     @Override
     public void flush(OpenGLContext context) {
         pbuffer.swapBuffers();
-        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0) : null; // will be 1 color target at max
+        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0)
+                                                 : null; // will be 1 color target at max
         Texture depth = getDepthBuffer();
 
         GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
@@ -190,7 +183,9 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             caps.setAlphaBits(0);
         } else {
             TextureFormat format = colors[0].getFormat();
-            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT || format == TextureFormat.DEPTH_FLOAT || format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
+            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT ||
+                format == TextureFormat.DEPTH_FLOAT ||
+                format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
                 caps.setPbufferFloatingPointBuffers(true);
             }
 

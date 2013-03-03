@@ -26,9 +26,6 @@
  */
 package com.ferox.scene.task;
 
-import java.util.Collections;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.SpatialIndex;
@@ -41,6 +38,9 @@ import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class BuildVisibilityIndexTask implements Task, ParallelAware {
     private final SpatialIndex<Entity> index;
@@ -93,7 +93,7 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
 
     @Override
     public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>> singleton(Renderable.class);
+        return Collections.<Class<? extends ComponentData<?>>>singleton(Renderable.class);
     }
 
     @Override

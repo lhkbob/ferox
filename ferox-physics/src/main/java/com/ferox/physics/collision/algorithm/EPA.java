@@ -36,8 +36,8 @@ public class EPA {
     private static final double EPA_ACCURACY = .00001;
     private static final double EPA_PLANE_EPS = .00001;
 
-    private static final int[] I1_MAP = new int[] {1, 2, 0};
-    private static final int[] I2_MAP = new int[] {2, 0, 1};
+    private static final int[] I1_MAP = new int[] { 1, 2, 0 };
+    private static final int[] I2_MAP = new int[] { 2, 0, 1 };
 
     public static int numEPA = 0;
 
@@ -104,12 +104,15 @@ public class EPA {
                 }
 
                 Vector3 t = new Vector3();
-                double w1 = Util.normal(projection, outer.vertices[1], outer.vertices[2],
-                                        t).length();
-                double w2 = Util.normal(projection, outer.vertices[2], outer.vertices[0],
-                                        t).length();
-                double w3 = Util.normal(projection, outer.vertices[0], outer.vertices[1],
-                                        t).length();
+                double w1 = Util
+                        .normal(projection, outer.vertices[1], outer.vertices[2], t)
+                        .length();
+                double w2 = Util
+                        .normal(projection, outer.vertices[2], outer.vertices[0], t)
+                        .length();
+                double w3 = Util
+                        .normal(projection, outer.vertices[0], outer.vertices[1], t)
+                        .length();
 
                 double sum = w1 + w2 + w3;
                 simplex.setWeight(0, w1 / sum);
@@ -168,13 +171,10 @@ public class EPA {
             } else {
                 int e2 = I2_MAP[e];
                 f.pass = pass;
-                if (expand(pass, iw, vw, f.adjacent[e1], f.faceIndices[e1], horizon, hull) && expand(pass,
-                                                                                                     iw,
-                                                                                                     vw,
-                                                                                                     f.adjacent[e2],
-                                                                                                     f.faceIndices[e2],
-                                                                                                     horizon,
-                                                                                                     hull)) {
+                if (expand(pass, iw, vw, f.adjacent[e1], f.faceIndices[e1], horizon,
+                           hull) &&
+                    expand(pass, iw, vw, f.adjacent[e2], f.faceIndices[e2], horizon,
+                           hull)) {
                     f.remove(hull);
                     return true;
                 }
@@ -187,9 +187,11 @@ public class EPA {
     private static double edgeDistance(@Const Vector3 va, @Const Vector3 vb,
                                        @Const Vector3 normal) {
         Vector3 ba = new Vector3().sub(vb, va);
-        Vector3 nab = new Vector3().cross(ba, normal); // outward facing edge normal direction on triangle plane
+        Vector3 nab = new Vector3().cross(ba,
+                                          normal); // outward facing edge normal direction on triangle plane
 
-        double aDotNAB = va.dot(nab); // only care about sign to determine inside/outside, no normalization required
+        double aDotNAB = va
+                .dot(nab); // only care about sign to determine inside/outside, no normalization required
 
         if (aDotNAB < 0) {
             // outside of edge a->b
@@ -205,7 +207,8 @@ public class EPA {
             } else {
                 // pick distance to edge a->b
                 double aDotB = va.dot(vb);
-                double d2 = (va.lengthSquared() * vb.lengthSquared() - aDotB * aDotB) / ba.lengthSquared();
+                double d2 = (va.lengthSquared() * vb.lengthSquared() - aDotB * aDotB) /
+                            ba.lengthSquared();
                 return Math.sqrt(Math.max(d2, 0.0));
             }
         } else {

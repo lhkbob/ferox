@@ -26,35 +26,29 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL14;
-import org.lwjgl.opengl.GL20;
-
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.Renderer.BlendFunction;
-import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.renderer.Renderer.StencilUpdate;
+import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.VertexBufferObject.StorageMode;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.opengl.GL20;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 /**
- * LwjglRendererDelegate is a concrete implementation of RendererDelegate that
- * uses the LWJGL OpenGL binding.
- * 
+ * LwjglRendererDelegate is a concrete implementation of RendererDelegate that uses the
+ * LWJGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 public class LwjglRendererDelegate extends RendererDelegate {
@@ -207,7 +201,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glStencilTest(Comparison test, int refValue, int mask, boolean isFront) {
+    protected void glStencilTest(Comparison test, int refValue, int mask,
+                                 boolean isFront) {
         if (supportsSeparateStencil) {
             int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
             GL20.glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
@@ -268,7 +263,8 @@ public class LwjglRendererDelegate extends RendererDelegate {
             throw new NullPointerException("Clear color cannot be null");
         }
         if (depth < 0f || depth > 1f) {
-            throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
+            throw new IllegalArgumentException(
+                    "Clear depht must be in [0, 1], not: " + depth);
         }
 
         if (!this.clearColor.equals(color)) {

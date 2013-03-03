@@ -40,7 +40,8 @@ public class Box extends ConvexShape {
         setExtents(xExtent, yExtent, zExtent);
     }
 
-    public @Const
+    public
+    @Const
     Vector3 getHalfExtents() {
         return halfExtents;
     }
@@ -51,13 +52,16 @@ public class Box extends ConvexShape {
 
     public void setExtents(double width, double height, double depth) {
         if (width <= 0) {
-            throw new IllegalArgumentException("Invalid width, must be greater than 0, not: " + width);
+            throw new IllegalArgumentException(
+                    "Invalid width, must be greater than 0, not: " + width);
         }
         if (height <= 0) {
-            throw new IllegalArgumentException("Invalid height, must be greater than 0, not: " + height);
+            throw new IllegalArgumentException(
+                    "Invalid height, must be greater than 0, not: " + height);
         }
         if (depth <= 0) {
-            throw new IllegalArgumentException("Invalid depth, must be greater than 0, not: " + depth);
+            throw new IllegalArgumentException(
+                    "Invalid depth, must be greater than 0, not: " + depth);
         }
 
         halfExtents.set(width / 2.0, height / 2.0, depth / 2.0);

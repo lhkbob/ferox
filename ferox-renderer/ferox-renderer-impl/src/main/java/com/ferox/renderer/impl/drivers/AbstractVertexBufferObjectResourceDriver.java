@@ -26,13 +26,6 @@
  */
 package com.ferox.renderer.impl.drivers;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-import java.util.List;
-
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
@@ -44,12 +37,15 @@ import com.ferox.resource.Resource;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 
+import java.nio.*;
+import java.util.List;
+
 /**
- * AbstractVertexBufferObjectResourceDriver is a ResourceDriver for
- * VertexBufferObjects. It implements all necessary logic except for the actual
- * calls to OpenGL, which it exposes as protected abstract methods. It uses a
- * {@link VertexBufferObjectHandle} for its handles.
- * 
+ * AbstractVertexBufferObjectResourceDriver is a ResourceDriver for VertexBufferObjects.
+ * It implements all necessary logic except for the actual calls to OpenGL, which it
+ * exposes as protected abstract methods. It uses a {@link VertexBufferObjectHandle} for
+ * its handles.
+ *
  * @author Michael Ludwig
  */
 public abstract class AbstractVertexBufferObjectResourceDriver implements ResourceDriver {
@@ -59,27 +55,32 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     }
 
     @Override
-    public String update(OpenGLContext context, Resource res, Object handle) throws UpdateResourceException {
+    public String update(OpenGLContext context, Resource res, Object handle)
+            throws UpdateResourceException {
         VertexBufferObject vbo = (VertexBufferObject) res;
         VertexBufferObjectHandle h = (VertexBufferObjectHandle) handle;
 
-        StorageMode newMode = (context.getRenderCapabilities().getVertexBufferSupport() ? vbo.getStorageMode() : StorageMode.IN_MEMORY);
+        StorageMode newMode = (context.getRenderCapabilities().getVertexBufferSupport()
+                               ? vbo.getStorageMode() : StorageMode.IN_MEMORY);
 
-        boolean oldIsGPU = h.mode == StorageMode.GPU_DYNAMIC || h.mode == StorageMode.GPU_STATIC;
-        boolean newIsGPU = newMode == StorageMode.GPU_DYNAMIC || newMode == StorageMode.GPU_STATIC;
+        boolean oldIsGPU =
+                h.mode == StorageMode.GPU_DYNAMIC || h.mode == StorageMode.GPU_STATIC;
+        boolean newIsGPU =
+                newMode == StorageMode.GPU_DYNAMIC || newMode == StorageMode.GPU_STATIC;
         boolean storageModeChange = h.mode != newMode;
 
         boolean isElementBuffer = vbo.getData().getDataType() != DataType.FLOAT;
 
-        if (storageModeChange || vbo.getChangeQueue().isVersionStale(h.lastSyncedVersion)) {
+        if (storageModeChange ||
+            vbo.getChangeQueue().isVersionStale(h.lastSyncedVersion)) {
             if (storageModeChange) {
                 // Do some clean-up depending on the storage mode change
                 if (oldIsGPU && !newIsGPU) {
                     glDeleteBuffer(context, h);
                 }
             }
-            if (storageModeChange || h.lastSyncedKey != vbo.getData().getKey() || vbo.getChangeQueue()
-                                                                                     .hasLostChanges(h.lastSyncedVersion)) {
+            if (storageModeChange || h.lastSyncedKey != vbo.getData().getKey() ||
+                vbo.getChangeQueue().hasLostChanges(h.lastSyncedVersion)) {
                 // Must push the whole buffer
                 if (newIsGPU) {
                     // Operate on an actual VBO
@@ -88,20 +89,21 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                     if (nioData != null || h.lastSyncedKey == null) {
                         if (isElementBuffer) {
                             glBindElementBuffer(context, h);
-                            glElementBufferData(context, nioData, vbo.getData()
-                                                                     .getDataType(),
+                            glElementBufferData(context, nioData,
+                                                vbo.getData().getDataType(),
                                                 vbo.getData().getLength(), newMode);
                             glRestoreElementBuffer(context);
                         } else {
                             glBindArrayBuffer(context, h);
-                            glArrayBufferData(context, nioData, vbo.getData()
-                                                                   .getDataType(),
+                            glArrayBufferData(context, nioData,
+                                              vbo.getData().getDataType(),
                                               vbo.getData().getLength(), newMode);
                             glRestoreArrayBuffer(context);
                         }
                     } // no data and we've allocated data before, so don't change anything
 
-                    h.inmemoryBuffer = (vbo.getStorageMode() == StorageMode.GPU_DYNAMIC ? nioData : null);
+                    h.inmemoryBuffer = (vbo.getStorageMode() == StorageMode.GPU_DYNAMIC
+                                        ? nioData : null);
                 } else {
                     // Storage mode is IN_MEMORY so we want a buffer
                     Buffer nioData = bufferAlloc(vbo.getData(), h.inmemoryBuffer);
@@ -144,12 +146,13 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                             h.inmemoryBuffer.rewind();
                         } else {
                             Buffer nioData;
-                            if (h.mode == StorageMode.GPU_DYNAMIC && h.inmemoryBuffer != null) {
+                            if (h.mode == StorageMode.GPU_DYNAMIC &&
+                                h.inmemoryBuffer != null) {
                                 nioData = h.inmemoryBuffer;
                                 nioData.limit(length).position(0);
                             } else {
-                                nioData = BufferUtil.newBuffer(vbo.getData()
-                                                                  .getDataType(), length);
+                                nioData = BufferUtil
+                                        .newBuffer(vbo.getData().getDataType(), length);
                             }
 
                             bulkPut(vbo.getData(), offset, length, nioData);
@@ -160,9 +163,9 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                                        vbo.getData().getDataType(),
                                                        offset, length);
                             } else {
-                                glArrayBufferSubData(context, nioData, vbo.getData()
-                                                                          .getDataType(),
-                                                     offset, length);
+                                glArrayBufferSubData(context, nioData,
+                                                     vbo.getData().getDataType(), offset,
+                                                     length);
                             }
 
                         }
@@ -207,21 +210,22 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
 
     private Buffer bufferAlloc(BufferData data, Buffer result) {
         if (data.getArray() != null) {
-            if (BufferUtil.getBufferType(data.getDataType()).isInstance(result) && result.capacity() >= data.getLength()) {
+            if (BufferUtil.getBufferType(data.getDataType()).isInstance(result) &&
+                result.capacity() >= data.getLength()) {
                 result.limit(data.getLength()).position(0);
 
                 switch (data.getDataType()) {
                 case FLOAT:
-                    ((FloatBuffer) result).put(data.<float[]> getArray());
+                    ((FloatBuffer) result).put(data.<float[]>getArray());
                     break;
                 case BYTE:
-                    ((ByteBuffer) result).put(data.<byte[]> getArray());
+                    ((ByteBuffer) result).put(data.<byte[]>getArray());
                     break;
                 case INT:
-                    ((IntBuffer) result).put(data.<int[]> getArray());
+                    ((IntBuffer) result).put(data.<int[]>getArray());
                     break;
                 case SHORT:
-                    ((ShortBuffer) result).put(data.<short[]> getArray());
+                    ((ShortBuffer) result).put(data.<short[]>getArray());
                     break;
                 }
 
@@ -258,7 +262,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
 
     /**
      * Delete the VBO stored in the handle's <tt>vboID</tt>
-     * 
+     *
      * @param context
      * @param handle
      */
@@ -266,9 +270,9 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                            VertexBufferObjectHandle handle);
 
     /**
-     * Bind the VBO represented by the handle's <tt>vboID</tt> to the array
-     * buffer target.
-     * 
+     * Bind the VBO represented by the handle's <tt>vboID</tt> to the array buffer
+     * target.
+     *
      * @param context
      * @param handle
      */
@@ -276,9 +280,9 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                               VertexBufferObjectHandle handle);
 
     /**
-     * Bind the VBO represented by the handle's <tt>vboID</tt> to the element
-     * buffer target.
-     * 
+     * Bind the VBO represented by the handle's <tt>vboID</tt> to the element buffer
+     * target.
+     *
      * @param context
      * @param handle
      */
@@ -286,9 +290,8 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                                 VertexBufferObjectHandle handle);
 
     /**
-     * Rebind whatever VBO binding was overridden by the last call to
-     * glBindArrayBuffer.
-     * 
+     * Rebind whatever VBO binding was overridden by the last call to glBindArrayBuffer.
+     *
      * @param context
      */
     protected abstract void glRestoreArrayBuffer(OpenGLContext context);
@@ -296,17 +299,17 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     /**
      * Rebind whatever VBO binding was overridden by the last call to
      * glBindElementBuffer.
-     * 
+     *
      * @param context
      */
     protected abstract void glRestoreElementBuffer(OpenGLContext context);
 
     /**
-     * Invoke glBufferData on the array buffer target. The provided storage mode
-     * will be one of GPU_STATIC or GPU_DYNAMIC. The buffer may be null, which
-     * is why the type and length are provided. If the buffer is not null, its
-     * position and limit are configured correctly.
-     * 
+     * Invoke glBufferData on the array buffer target. The provided storage mode will be
+     * one of GPU_STATIC or GPU_DYNAMIC. The buffer may be null, which is why the type and
+     * length are provided. If the buffer is not null, its position and limit are
+     * configured correctly.
+     *
      * @param context
      * @param buffer
      * @param type
@@ -314,14 +317,15 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
      * @param mode
      */
     protected abstract void glArrayBufferData(OpenGLContext context, Buffer data,
-                                              DataType type, int length, StorageMode mode);
+                                              DataType type, int length,
+                                              StorageMode mode);
 
     /**
-     * Invoke glBufferData on the element buffer target. The provided storage
-     * mode will be one of GPU_STATIC or GPU_DYNAMIC. The buffer may be null,
-     * which is why the type and length are provided. If the buffer is not null,
-     * its position and limit are configured correctly.
-     * 
+     * Invoke glBufferData on the element buffer target. The provided storage mode will be
+     * one of GPU_STATIC or GPU_DYNAMIC. The buffer may be null, which is why the type and
+     * length are provided. If the buffer is not null, its position and limit are
+     * configured correctly.
+     *
      * @param context
      * @param buffer
      * @param type
@@ -333,10 +337,10 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                                 StorageMode mode);
 
     /**
-     * Invoke glBufferSubData on the array buffer target. The buffer will not be
-     * null and its position and limit are configured already. The offset and
-     * length are into the VBO, and are in units of <tt>type</tt>.
-     * 
+     * Invoke glBufferSubData on the array buffer target. The buffer will not be null and
+     * its position and limit are configured already. The offset and length are into the
+     * VBO, and are in units of <tt>type</tt>.
+     *
      * @param context
      * @param data
      * @param type
@@ -347,10 +351,10 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                                  DataType type, int offset, int length);
 
     /**
-     * Invoke glBufferSubData on the element buffer target. The buffer will not
-     * be null and its position and limit are configured already. The offset and
-     * length are into the VBO, and are in units of <tt>type</tt>.
-     * 
+     * Invoke glBufferSubData on the element buffer target. The buffer will not be null
+     * and its position and limit are configured already. The offset and length are into
+     * the VBO, and are in units of <tt>type</tt>.
+     *
      * @param context
      * @param data
      * @param type

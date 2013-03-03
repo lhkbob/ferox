@@ -1,25 +1,16 @@
 package com.ferox.scene.task.ffp;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.Light;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.SpotLight;
-import com.ferox.scene.Transform;
+import com.ferox.scene.*;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class LightGroupState implements State {
     private static final Vector4 BLACK = new Vector4(0.0, 0.0, 0.0, 1.0);
@@ -36,7 +27,8 @@ public class LightGroupState implements State {
         List<LightBatch> states = new ArrayList<LightBatch>();
         List<Component<?>> unassignedAmbientLights = new ArrayList<Component<?>>();
 
-        LightBatch currentState = new LightBatch(maxLights); // always have one state, even if empty
+        LightBatch currentState = new LightBatch(
+                maxLights); // always have one state, even if empty
         states.add(currentState);
 
         int index = 0;
@@ -83,10 +75,12 @@ public class LightGroupState implements State {
 
         // process any ambient lights that need to go into a state group
         if (!unassignedAmbientLights.isEmpty()) {
-            for (int j = 0; j < states.size() && !unassignedAmbientLights.isEmpty(); j++) {
+            for (int j = 0; j < states.size() && !unassignedAmbientLights.isEmpty();
+                 j++) {
                 if (states.get(j).ambientColor == null) {
                     // this state can take an ambient light color
-                    Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
+                    Component<?> light = unassignedAmbientLights
+                            .remove(unassignedAmbientLights.size() - 1);
                     if (light.getEntity().get(al)) {
                         states.get(j).setAmbientLight(al.getColor());
                     }
@@ -96,7 +90,8 @@ public class LightGroupState implements State {
             // if there are still ambient lights, we need one state for
             // each ambient light without any other configuration
             while (!unassignedAmbientLights.isEmpty()) {
-                Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
+                Component<?> light = unassignedAmbientLights
+                        .remove(unassignedAmbientLights.size() - 1);
                 if (light.getEntity().get(al)) {
                     LightBatch state = new LightBatch(0);
                     state.setAmbientLight(al.getColor());
@@ -124,8 +119,8 @@ public class LightGroupState implements State {
 
         if (needsBlending) {
             // update blending state
-            batchEffects = effects.applyBlending(effects.getSourceBlendFactor(),
-                                                 BlendFactor.ONE);
+            batchEffects = effects
+                    .applyBlending(effects.getSourceBlendFactor(), BlendFactor.ONE);
             batchEffects.pushBlending(r);
         }
 
@@ -182,8 +177,10 @@ public class LightGroupState implements State {
                 if (light != null) {
                     // check to see if this light should be used for the current
                     // stage of shadow mapping
-                    boolean ifInSM = effects.isShadowBeingRendered() && light.source == effects.getShadowMappingLight();
-                    boolean notInSM = !effects.isShadowBeingRendered() && !shadowCastingLights.contains(light.source);
+                    boolean ifInSM = effects.isShadowBeingRendered() &&
+                                     light.source == effects.getShadowMappingLight();
+                    boolean notInSM = !effects.isShadowBeingRendered() &&
+                                      !shadowCastingLights.contains(light.source);
 
                     if (ifInSM || notInSM) {
                         // enable and configure the light
@@ -193,15 +190,15 @@ public class LightGroupState implements State {
 
                         if (light.spotlightDirection != null) {
                             // configure additional spotlight parameters
-                            r.setSpotlight(i, light.spotlightDirection, light.cutoffAngle);
+                            r.setSpotlight(i, light.spotlightDirection,
+                                           light.cutoffAngle);
                             if (light.falloff >= 0) {
                                 // the constant 15 was chosen through experimentation, basically
                                 // a value that makes lights seem bright enough but still
                                 // drop off pretty well by the desired radius
-                                r.setLightAttenuation(i,
-                                                      1.0,
-                                                      0.0,
-                                                      (15.0 / (light.falloff * light.falloff)));
+                                r.setLightAttenuation(i, 1.0, 0.0, (15.0 /
+                                                                    (light.falloff *
+                                                                     light.falloff)));
                             } else {
                                 // disable attenuation
                                 r.setLightAttenuation(i, 1.0, 0.0, 0.0);
@@ -240,8 +237,8 @@ public class LightGroupState implements State {
 
         Component<? extends Light<?>> source;
 
-        public void setDirectionLight(Component<? extends Light<?>> light,
-                                      ColorRGB color, Matrix4 transform) {
+        public void setDirectionLight(Component<? extends Light<?>> light, ColorRGB color,
+                                      Matrix4 transform) {
             position = new Vector4(-transform.m02, -transform.m12, -transform.m22, 0.0);
             this.color = convertColor(color);
             spotlightDirection = null;
@@ -262,7 +259,8 @@ public class LightGroupState implements State {
                                   double falloff, Matrix4 transform) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
             this.color = convertColor(color);
-            spotlightDirection = new Vector3(0.0, 0.0, 1.0); // any non-null direction is fine
+            spotlightDirection = new Vector3(0.0, 0.0,
+                                             1.0); // any non-null direction is fine
             this.cutoffAngle = 180.0;
             this.falloff = falloff;
             source = light;

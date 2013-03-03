@@ -22,7 +22,8 @@ public class ArrayType implements Type {
         if (length < 0) {
             return componentType.getTypeIdentifier(accumulator, varIdentifier) + "[]";
         } else {
-            return componentType.getTypeIdentifier(accumulator, varIdentifier) + "[" + length + "]";
+            return componentType.getTypeIdentifier(accumulator, varIdentifier) + "[" +
+                   length + "]";
         }
     }
 }

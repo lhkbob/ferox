@@ -32,7 +32,8 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.Shape;
 
-public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape> implements CollisionAlgorithm<A, B> {
+public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape>
+        implements CollisionAlgorithm<A, B> {
     private static final int MAX_JITTERS = 4;
 
     private final CollisionAlgorithm<A, B> wrapped;
@@ -50,7 +51,8 @@ public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape> imple
     }
 
     @Override
-    public ClosestPair getClosestPair(A shapeA, Matrix4 transA, B shapeB, Matrix4 transB) {
+    public ClosestPair getClosestPair(A shapeA, Matrix4 transA, B shapeB,
+                                      Matrix4 transB) {
         ClosestPair unjittered = wrapped.getClosestPair(shapeA, transA, shapeB, transB);
         if (unjittered != null) {
             // no jittering required to find a solution
@@ -67,16 +69,16 @@ public class JitteringCollisionAlgorithm<A extends Shape, B extends Shape> imple
                 jitteredTransform.m13 += jitter.y;
                 jitteredTransform.m23 += jitter.z;
 
-                ClosestPair jittered = wrapped.getClosestPair(shapeA, jitteredTransform,
-                                                              shapeB, transB);
+                ClosestPair jittered = wrapped
+                        .getClosestPair(shapeA, jitteredTransform, shapeB, transB);
                 if (jittered != null) {
                     // remove any jittering from the two closest points
                     // - since we translated the shape by jitter, the point in a
                     //   moves in the opposite direction of untranslating the shape
                     //   by jitter (which is just adding the jitter)
-                    Vector3 newPointOnA = new Vector3(jittered.getClosestPointOnA()).add(jitter);
-                    return new ClosestPair(newPointOnA,
-                                           jittered.getContactNormal(),
+                    Vector3 newPointOnA = new Vector3(jittered.getClosestPointOnA())
+                            .add(jitter);
+                    return new ClosestPair(newPointOnA, jittered.getContactNormal(),
                                            jittered.getDistance());
                 }
             }

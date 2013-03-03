@@ -12,8 +12,8 @@ import com.ferox.scene.Light;
 import com.lhkbob.entreri.Component;
 
 public class ShadowMapState implements State {
-    private static final Matrix4 bias = new Matrix4().set(.5, 0, 0, .5, 0, .5, 0, .5, 0,
-                                                          0, .5, .5, 0, 0, 0, 1);
+    private static final Matrix4 bias = new Matrix4()
+            .set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1);
 
     private final int shadowMapUnit;
     private final ShadowMapCache shadowMap;
@@ -34,8 +34,8 @@ public class ShadowMapState implements State {
         // configure global state for shadow mapping passes
         r.setDepthOffsetsEnabled(true);
         r.setDepthOffsets(0, -5); // offset depth in opposite direction from SM depth
-        AppliedEffects shadowEffects = effects.applyBlending(BlendFactor.SRC_ALPHA,
-                                                             BlendFactor.ONE);
+        AppliedEffects shadowEffects = effects
+                .applyBlending(BlendFactor.SRC_ALPHA, BlendFactor.ONE);
         shadowEffects.pushBlending(r); // this also sets the depth-mask/test appropriately
 
         // now apply shadow passes
@@ -46,7 +46,8 @@ public class ShadowMapState implements State {
         // restore state (since there won't be multiple shadow-map states
         // together we can do it this way instead of using a reset node like
         // textures and colors, etc)
-        r = access.getCurrentContext().getFixedFunctionRenderer(); // must re-get renderer, though
+        r = access.getCurrentContext()
+                  .getFixedFunctionRenderer(); // must re-get renderer, though
         effects.pushBlending(r);
         r.setDepthOffsetsEnabled(false);
         r.setTexture(shadowMapUnit, null);

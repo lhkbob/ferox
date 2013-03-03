@@ -26,10 +26,6 @@
  */
 package com.ferox.scene.task;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
@@ -41,8 +37,13 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public class UpdateWorldBoundsTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(Renderable.class);

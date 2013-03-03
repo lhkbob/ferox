@@ -26,18 +26,18 @@
  */
 package com.ferox.renderer.impl.drivers;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslUniform;
 
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * GlslShaderHandle is the handle type that represents the persisted state of a
  * GlslShader, and is used by any {@link AbstractGlslShaderResourceDriver}.
- * 
+ *
  * @author Michael Ludwig
  */
 public class GlslShaderHandle {

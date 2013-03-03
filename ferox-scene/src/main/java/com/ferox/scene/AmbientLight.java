@@ -27,13 +27,13 @@
 package com.ferox.scene;
 
 /**
- * AmbientLight represents a source of ambient light in a scene. Ambient lights
- * contribute an equal amount of light intensity to every rendered object,
- * regardless of direction. AmbientLight does not define any initialization
- * parameters.
- * 
+ * AmbientLight represents a source of ambient light in a scene. Ambient lights contribute
+ * an equal amount of light intensity to every rendered object, regardless of direction.
+ * AmbientLight does not define any initialization parameters.
+ *
  * @author Michael Ludwig
  */
 public final class AmbientLight extends Light<AmbientLight> {
-    private AmbientLight() {}
+    private AmbientLight() {
+    }
 }

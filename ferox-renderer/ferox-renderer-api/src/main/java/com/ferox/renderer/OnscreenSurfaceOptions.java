@@ -27,12 +27,12 @@
 package com.ferox.renderer;
 
 /**
- * OnscreenSurfaceOptions represents the set of configurable parameters used to
- * create an OnscreenSurface. These parameters are requests to the Framework and
- * may be ignored, but this is unlikely. Each OnscreenSurfaceOptions instance is
- * immutable, the setters available return new instances that match the calling
- * instance except for the new parameter value.
- * 
+ * OnscreenSurfaceOptions represents the set of configurable parameters used to create an
+ * OnscreenSurface. These parameters are requests to the Framework and may be ignored, but
+ * this is unlikely. Each OnscreenSurfaceOptions instance is immutable, the setters
+ * available return new instances that match the calling instance except for the new
+ * parameter value.
+ *
  * @author Michael Ludwig
  */
 public final class OnscreenSurfaceOptions {
@@ -113,8 +113,7 @@ public final class OnscreenSurfaceOptions {
          */
         NONE,
         /**
-         * Anti-aliasing is performed with a method that doesn't match known
-         * enum values.
+         * Anti-aliasing is performed with a method that doesn't match known enum values.
          */
         UNKNOWN
     }
@@ -135,19 +134,13 @@ public final class OnscreenSurfaceOptions {
     private final StencilFormat stencil;
 
     /**
-     * Create a new OnscreenSurfaceOptions with the following default
-     * parameters:
-     * <ul>
-     * <li>{@link #getDepthFormat()} returns DEPTH_24BIT</li>
-     * <li>{@link #getMultiSampling()} returns NONE</li>
-     * <li>{@link #getStencilFormat()} returns NONE</li>
-     * <li>{@link #isUndecorated()} returns false</li>
-     * <li>{@link #isResizable()} returns false</li>
-     * <li>{@link #getX()} returns 0</li>
-     * <li>{@link #getY()} returns 0</li>
-     * <li>{@link #getWidth()} returns 600</li>
-     * <li>{@link #getHeight()} returns 600</li>
-     * <li>{@link #getFullscreenMode()} returns null</li>
+     * Create a new OnscreenSurfaceOptions with the following default parameters: <ul>
+     * <li>{@link #getDepthFormat()} returns DEPTH_24BIT</li> <li>{@link
+     * #getMultiSampling()} returns NONE</li> <li>{@link #getStencilFormat()} returns
+     * NONE</li> <li>{@link #isUndecorated()} returns false</li> <li>{@link
+     * #isResizable()} returns false</li> <li>{@link #getX()} returns 0</li> <li>{@link
+     * #getY()} returns 0</li> <li>{@link #getWidth()} returns 600</li> <li>{@link
+     * #getHeight()} returns 600</li> <li>{@link #getFullscreenMode()} returns null</li>
      * </ul>
      */
     public OnscreenSurfaceOptions() {
@@ -180,212 +173,145 @@ public final class OnscreenSurfaceOptions {
 
     /**
      * Set the requested initial width of the surface, when it's windowed.
-     * 
+     *
      * @param width The new width
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new width
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         width
+     *
      * @throws IllegalArgumentException if width < 1
      */
     public OnscreenSurfaceOptions setWidth(int width) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
      * Set the requested initial height of the surface, when it's windowed.
-     * 
+     *
      * @param height The new height
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new height
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         height
+     *
      * @throws IllegalArgumentException if height < 1
      */
     public OnscreenSurfaceOptions setHeight(int height) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
-     * Set the requested initial x coordinate of the surface, when it's
-     * windowed.
-     * 
+     * Set the requested initial x coordinate of the surface, when it's windowed.
+     *
      * @param x The new x value
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new x value
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new x
+     *         value
      */
     public OnscreenSurfaceOptions setX(int x) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
-     * Set the requested initial y coordinate of the surface, when it's
-     * windowed.
-     * 
+     * Set the requested initial y coordinate of the surface, when it's windowed.
+     *
      * @param y The new y value
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new y value
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new y
+     *         value
      */
     public OnscreenSurfaceOptions setY(int y) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
      * Set the requested DepthFormat of the surface.
-     * 
+     *
      * @param depth The new DepthFormat
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new format
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         format
+     *
      * @throws NullPointerException if depth is null
      */
     public OnscreenSurfaceOptions setDepthFormat(DepthFormat depth) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
      * Set the requested StencilFormat of the surface.
-     * 
+     *
      * @param stencil The new StencilFormat
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new format
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         format
+     *
      * @throws NullPointerException if stencil is null
      */
     public OnscreenSurfaceOptions setStencilFormat(StencilFormat stencil) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
      * Set the requested MultiSampling of the surface.
-     * 
+     *
      * @param aa The new MultiSampling
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new mode
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         mode
+     *
      * @throws NullPointerException if aa is null
      */
     public OnscreenSurfaceOptions setMultiSampling(MultiSampling aa) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
      * Set the whether or not the surface is undecorated when it's windowed.
-     * 
+     *
      * @param undecorated True if the surface has no window decorations
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new undecorated value
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         undecorated value
      */
     public OnscreenSurfaceOptions setUndecorated(boolean undecorated) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
      * Set the whether or not the surface is user resizable when it's windowed.
-     * 
+     *
      * @param resizable True if the surface cannot be resized
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new resizable value
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         resizable value
      */
     public OnscreenSurfaceOptions setResizable(boolean resizable) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
-     * Set the requested DisplayMode for the surface. If this is null, the
-     * surface will initially be windowed. If it is not null, the surface will
-     * begin in fullscreen mode using a supported DisplayMode that matches the
-     * requested mode as closely as possible
-     * 
+     * Set the requested DisplayMode for the surface. If this is null, the surface will
+     * initially be windowed. If it is not null, the surface will begin in fullscreen mode
+     * using a supported DisplayMode that matches the requested mode as closely as
+     * possible
+     *
      * @param fullMode The new fullscreen DisplayMode or null
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with
-     *         the new DisplayMode
+     *
+     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
+     *         DisplayMode
      */
     public OnscreenSurfaceOptions setFullscreenMode(DisplayMode fullMode) {
-        return new OnscreenSurfaceOptions(depth,
-                                          aa,
-                                          stencil,
-                                          undecorated,
-                                          resizable,
-                                          x,
-                                          y,
-                                          width,
-                                          height,
-                                          fullMode);
+        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
+                                          y, width, height, fullMode);
     }
 
     /**
@@ -417,9 +343,9 @@ public final class OnscreenSurfaceOptions {
     }
 
     /**
-     * @return The requested DisplayMode. If null then the surface will
-     *         initially be windowed, else it will be fullscreen with a
-     *         supported DisplayMode closest to the requested
+     * @return The requested DisplayMode. If null then the surface will initially be
+     *         windowed, else it will be fullscreen with a supported DisplayMode closest
+     *         to the requested
      */
     public DisplayMode getFullscreenMode() {
         return fullMode;

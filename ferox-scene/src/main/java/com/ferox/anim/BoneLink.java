@@ -9,7 +9,8 @@ import com.lhkbob.entreri.property.ObjectProperty;
 public class BoneLink extends ComponentData<BoneLink> {
     private ObjectProperty<Bone> linkedBone;
 
-    private BoneLink() {}
+    private BoneLink() {
+    }
 
     public Bone getLinkedBone() {
         return linkedBone.get(getIndex());

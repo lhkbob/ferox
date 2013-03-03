@@ -38,9 +38,11 @@ public class Gravity extends ComponentData<Gravity> {
     @Unmanaged
     private final Vector3 gravityCache = new Vector3();
 
-    private Gravity() {}
+    private Gravity() {
+    }
 
-    public @Const
+    public
+    @Const
     Vector3 getGravity() {
         return gravityCache;
     }

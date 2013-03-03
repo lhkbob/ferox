@@ -26,25 +26,20 @@
  */
 package com.ferox.math.entreri;
 
+import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
+import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleDataStore;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.ferox.math.Const;
-import com.ferox.math.Matrix3;
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
-
 /**
- * Matrix3Property is a caching property that wraps a DoubleProperty as a
- * Matrix3.
- * 
+ * Matrix3Property is a caching property that wraps a DoubleProperty as a Matrix3.
+ *
  * @author Michael Ludwig
  */
 @Factory(Matrix3Property.Factory.class)
@@ -61,12 +56,12 @@ public class Matrix3Property implements Property {
     }
 
     /**
-     * Get the matrix of this property, for the component at the given index,
-     * and store it into <tt>result</tt>. If result is null, a new Matrix3 is
-     * created and returned.
-     * 
-     * @param index The component index to retrieve
+     * Get the matrix of this property, for the component at the given index, and store it
+     * into <tt>result</tt>. If result is null, a new Matrix3 is created and returned.
+     *
+     * @param index  The component index to retrieve
      * @param result The matrix to store the data for the requested component
+     *
      * @return result, or a new Matrix3 if result was null
      */
     public Matrix3 get(int index, Matrix3 result) {
@@ -79,11 +74,12 @@ public class Matrix3Property implements Property {
     }
 
     /**
-     * Copy the values of <tt>v</tt> into the underlying data of this property,
-     * for the component at the given index.
-     * 
-     * @param v The matrix to copy
+     * Copy the values of <tt>v</tt> into the underlying data of this property, for the
+     * component at the given index.
+     *
+     * @param v     The matrix to copy
      * @param index The index of the component being modified
+     *
      * @throws NullPointerException if v is null
      */
     public void set(Matrix3 v, int index) {
@@ -102,7 +98,7 @@ public class Matrix3Property implements Property {
 
     /**
      * Attribute annotation to apply to Matrix3Property declarations.
-     * 
+     *
      * @author Michael Ludwig
      */
     @Attribute
@@ -156,10 +152,9 @@ public class Matrix3Property implements Property {
     }
 
     /**
-     * Default factory implementation for Matrix3Properties, supports the
-     * {@link DefaultMatrix3} annotation to specify the default matrix
-     * coordinates.
-     * 
+     * Default factory implementation for Matrix3Properties, supports the {@link
+     * DefaultMatrix3} annotation to specify the default matrix coordinates.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<Matrix3Property> {
@@ -169,15 +164,8 @@ public class Matrix3Property implements Property {
             super(attrs);
             if (attrs.hasAttribute(DefaultMatrix3.class)) {
                 DefaultMatrix3 v = attrs.getAttribute(DefaultMatrix3.class);
-                dflt = new Matrix3(v.m00(),
-                                   v.m01(),
-                                   v.m02(),
-                                   v.m10(),
-                                   v.m11(),
-                                   v.m12(),
-                                   v.m20(),
-                                   v.m21(),
-                                   v.m22());
+                dflt = new Matrix3(v.m00(), v.m01(), v.m02(), v.m10(), v.m11(), v.m12(),
+                                   v.m20(), v.m21(), v.m22());
             } else {
                 dflt = new Matrix3();
             }

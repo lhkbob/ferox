@@ -26,10 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Functions;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
@@ -42,6 +38,10 @@ import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.Task;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TemporalSAPCollisionTask extends CollisionTask {
     private final EdgeStore[] edges;
@@ -81,10 +81,10 @@ public class TemporalSAPCollisionTask extends CollisionTask {
             bodyIterator = new ComponentIterator(system).addRequired(bodyA);
 
             for (int i = 0; i < edges.length; i++) {
-                edges[i].maxBodyEdges = system.decorate(CollisionBody.class,
-                                                        new IntProperty.Factory(-1));
-                edges[i].minBodyEdges = system.decorate(CollisionBody.class,
-                                                        new IntProperty.Factory(-1));
+                edges[i].maxBodyEdges = system
+                        .decorate(CollisionBody.class, new IntProperty.Factory(-1));
+                edges[i].minBodyEdges = system
+                        .decorate(CollisionBody.class, new IntProperty.Factory(-1));
             }
         }
 
@@ -123,7 +123,8 @@ public class TemporalSAPCollisionTask extends CollisionTask {
         // and performing narrow-phase collisions on the remaining
         Profiler.push("process-overlaps");
         for (CollisionPair pair : overlappingPairCache) {
-            if (bodyA.set(pair.getBodyA()) && bodyB.set(pair.getBodyB()) && bodyA.isEnabled() && bodyB.isEnabled()) {
+            if (bodyA.set(pair.getBodyA()) && bodyB.set(pair.getBodyB()) &&
+                bodyA.isEnabled() && bodyB.isEnabled()) {
                 // both components are still valid
                 notifyPotentialContact(bodyA, bodyB);
             }
@@ -282,7 +283,8 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                     // previous edge is a maximum so check the bounds for overlap,
                     // and if they do, add an overlap
                     if (updateOverlaps && test2DOverlap(edgeLabels[edge].getIndex(),
-                                                        edgeLabels[prevEdge].getIndex())) {
+                                                        edgeLabels[prevEdge]
+                                                                .getIndex())) {
                         query.set(edgeLabels[edge], edgeLabels[prevEdge]);
                         if (!overlappingPairCache.contains(query)) {
                             // allocate new pair
@@ -326,7 +328,8 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                     // previous edge is a minimum so remove all overlaps between
                     // current and previous bodies
                     if (updateOverlaps && test2DOverlap(edgeLabels[edge].getIndex(),
-                                                        edgeLabels[prevEdge].getIndex())) {
+                                                        edgeLabels[prevEdge]
+                                                                .getIndex())) {
                         query.set(edgeLabels[edge], edgeLabels[prevEdge]);
                         overlappingPairCache.remove(query);
                     }
@@ -366,7 +369,8 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                     // next edge is a maximum so remove any overlaps between
                     // the two bodies
                     if (updateOverlaps && test2DOverlap(edgeLabels[edge].getIndex(),
-                                                        edgeLabels[nextEdge].getIndex())) {
+                                                        edgeLabels[nextEdge]
+                                                                .getIndex())) {
                         query.set(edgeLabels[edge], edgeLabels[nextEdge]);
                         overlappingPairCache.remove(query);
                     }
@@ -406,7 +410,8 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                     // next edge is a minimum so test for overlap and possibly
                     // report the new pair
                     if (updateOverlaps && test2DOverlap(edgeLabels[edge].getIndex(),
-                                                        edgeLabels[nextEdge].getIndex())) {
+                                                        edgeLabels[nextEdge]
+                                                                .getIndex())) {
                         query.set(edgeLabels[edge], edgeLabels[nextEdge]);
                         if (!overlappingPairCache.contains(query)) {
                             // allocate new pair

@@ -34,13 +34,7 @@ import com.ferox.renderer.ContextState;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.impl.FixedFunctionState.FogMode;
-import com.ferox.renderer.impl.FixedFunctionState.LightColor;
-import com.ferox.renderer.impl.FixedFunctionState.LightState;
-import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
-import com.ferox.renderer.impl.FixedFunctionState.TextureState;
-import com.ferox.renderer.impl.FixedFunctionState.VertexState;
-import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
+import com.ferox.renderer.impl.FixedFunctionState.*;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
@@ -50,24 +44,21 @@ import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 
 /**
- * <p>
- * The AbstractFixedFunctionRenderer is an abstract implementation of
- * {@link FixedFunctionRenderer}. It uses a {@link RendererDelegate} to handle
- * implementing the methods exposed by {@link Renderer}. The
- * AbstractFixedFunctionRenderer tracks the current state, and when necessary,
- * delegate to protected abstract methods which have the responsibility of
- * actually making OpenGL calls.
- * </p>
- * <p>
- * It makes a best-effort attempt to preserve the texture and vertex attribute
- * state when resource deadlocks must be resolved. It is possible that a texture
- * must be unbound or will have its data changed based on the actions of another
- * render task.
- * </p>
- * 
+ * <p/>
+ * The AbstractFixedFunctionRenderer is an abstract implementation of {@link
+ * FixedFunctionRenderer}. It uses a {@link RendererDelegate} to handle implementing the
+ * methods exposed by {@link Renderer}. The AbstractFixedFunctionRenderer tracks the
+ * current state, and when necessary, delegate to protected abstract methods which have
+ * the responsibility of actually making OpenGL calls.
+ * <p/>
+ * It makes a best-effort attempt to preserve the texture and vertex attribute state when
+ * resource deadlocks must be resolved. It is possible that a texture must be unbound or
+ * will have its data changed based on the actions of another render task.
+ *
  * @author Michael Ludwig
  */
-public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer implements FixedFunctionRenderer {
+public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
+        implements FixedFunctionRenderer {
     private static final Matrix4 IDENTITY = new Matrix4();
     private static final Vector4 DEFAULT_MAT_D_COLOR = new Vector4(.8, .8, .8, 1);
 
@@ -93,12 +84,13 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     private boolean isModelInverseDirty;
 
     /**
-     * Create an AbstractFixedFunctionRenderer that will use the given
-     * RendererDelegate. If this renderer is used with another GlslRenderer on
-     * the same context, they should share RendererDelegate instances.
-     * 
-     * @param delegate The RendererDelegate that completes the implementations
-     *            Renderer behavior
+     * Create an AbstractFixedFunctionRenderer that will use the given RendererDelegate.
+     * If this renderer is used with another GlslRenderer on the same context, they should
+     * share RendererDelegate instances.
+     *
+     * @param delegate The RendererDelegate that completes the implementations Renderer
+     *                 behavior
+     *
      * @throws NullPointerException if delegate is null
      */
     public AbstractFixedFunctionRenderer(RendererDelegate delegate) {
@@ -121,7 +113,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             defaultState = new FixedFunctionState(delegate.defaultState, state);
 
             textureHandles = new TextureHandle[caps.getMaxFixedPipelineTextures()];
-            texCoordsHandles = new VertexBufferObjectHandle[caps.getMaxTextureCoordinates()];
+            texCoordsHandles = new VertexBufferObjectHandle[caps
+                    .getMaxTextureCoordinates()];
         }
     }
 
@@ -153,7 +146,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             setFogLinear(f.fogStart, f.fogEnd);
             break;
         default:
-            throw new UnsupportedOperationException("Unsupported FogMode value: " + f.fogMode);
+            throw new UnsupportedOperationException(
+                    "Unsupported FogMode value: " + f.fogMode);
         }
         setFogEnabled(f.fogEnabled);
 
@@ -219,26 +213,22 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
         if (f.vertexBinding.vbo == null) {
             setVertices(null);
         } else {
-            setVertices(new VertexAttribute(f.vertexBinding.vbo,
-                                            f.vertexBinding.elementSize,
-                                            f.vertexBinding.offset,
-                                            f.vertexBinding.stride));
+            setVertices(
+                    new VertexAttribute(f.vertexBinding.vbo, f.vertexBinding.elementSize,
+                                        f.vertexBinding.offset, f.vertexBinding.stride));
         }
         if (f.normalBinding.vbo == null) {
             setNormals(null);
         } else {
-            setNormals(new VertexAttribute(f.normalBinding.vbo,
-                                           f.normalBinding.elementSize,
-                                           f.normalBinding.offset,
-                                           f.normalBinding.stride));
+            setNormals(
+                    new VertexAttribute(f.normalBinding.vbo, f.normalBinding.elementSize,
+                                        f.normalBinding.offset, f.normalBinding.stride));
         }
         if (f.colorBinding.vbo == null) {
             setColors(null);
         } else {
-            setColors(new VertexAttribute(f.colorBinding.vbo,
-                                          f.colorBinding.elementSize,
-                                          f.colorBinding.offset,
-                                          f.colorBinding.stride));
+            setColors(new VertexAttribute(f.colorBinding.vbo, f.colorBinding.elementSize,
+                                          f.colorBinding.offset, f.colorBinding.stride));
         }
 
         for (int i = 0; i < f.texBindings.length; i++) {
@@ -246,10 +236,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             if (fv.vbo == null) {
                 setTextureCoordinates(i, null);
             } else {
-                setTextureCoordinates(i, new VertexAttribute(fv.vbo,
-                                                             fv.elementSize,
-                                                             fv.offset,
-                                                             fv.stride));
+                setTextureCoordinates(i, new VertexAttribute(fv.vbo, fv.elementSize,
+                                                             fv.offset, fv.stride));
             }
         }
 
@@ -342,8 +330,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL calls to set the fog color. Don't need to clamp since
-     * OpenGL does that for us.
+     * Invoke OpenGL calls to set the fog color. Don't need to clamp since OpenGL does
+     * that for us.
      */
     protected abstract void glFogColor(@Const Vector4 color);
 
@@ -388,7 +376,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     @Override
     public void setFogLinear(double start, double end) {
         if (end <= start) {
-            throw new IllegalArgumentException("Illegal start/end range: " + start + ", " + end);
+            throw new IllegalArgumentException(
+                    "Illegal start/end range: " + start + ", " + end);
         }
 
         if (state.fogStart != start || state.fogEnd != end) {
@@ -459,8 +448,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL calls to set the light color for the given light. The color
-     * has already been clamped correctly.
+     * Invoke OpenGL calls to set the light color for the given light. The color has
+     * already been clamped correctly.
      */
     protected abstract void glLightColor(int light, LightColor lc, @Const Vector4 color);
 
@@ -504,7 +493,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
             throw new NullPointerException("Spotlight direction can't be null");
         }
         if ((angle < 0f || angle > 90f) && angle != 180f) {
-            throw new IllegalArgumentException("Spotlight angle must be in [0, 90] or be 180, not: " + angle);
+            throw new IllegalArgumentException(
+                    "Spotlight angle must be in [0, 90] or be 180, not: " + angle);
         }
 
         LightState l = state.lights[light];
@@ -533,13 +523,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     public void setLightAttenuation(int light, double constant, double linear,
                                     double quadratic) {
         if (constant < 0f) {
-            throw new IllegalArgumentException("Constant factor must be positive: " + constant);
+            throw new IllegalArgumentException(
+                    "Constant factor must be positive: " + constant);
         }
         if (linear < 0f) {
-            throw new IllegalArgumentException("Linear factor must be positive: " + linear);
+            throw new IllegalArgumentException(
+                    "Linear factor must be positive: " + linear);
         }
         if (quadratic < 0f) {
-            throw new IllegalArgumentException("Quadratic factor must be positive: " + quadratic);
+            throw new IllegalArgumentException(
+                    "Quadratic factor must be positive: " + quadratic);
         }
 
         LightState l = state.lights[light];
@@ -612,7 +605,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     @Override
     public void setLineSize(double width) {
         if (width < 1f) {
-            throw new IllegalArgumentException("Line width must be at least 1, not: " + width);
+            throw new IllegalArgumentException(
+                    "Line width must be at least 1, not: " + width);
         }
         if (state.lineWidth != width) {
             state.lineWidth = width;
@@ -629,7 +623,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec,
                             @Const Vector4 emm) {
         if (amb == null || diff == null || spec == null || emm == null) {
-            throw new NullPointerException("Material colors can't be null: " + amb + ", " + diff + ", " + spec + ", " + emm);
+            throw new NullPointerException(
+                    "Material colors can't be null: " + amb + ", " + diff + ", " + spec +
+                    ", " + emm);
         }
         if (!state.matAmbient.equals(amb)) {
             clamp(amb, 0, 1, state.matAmbient);
@@ -654,15 +650,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL calls to set the material color for the LightColor. The
-     * color has already been clamped correctly.
+     * Invoke OpenGL calls to set the material color for the LightColor. The color has
+     * already been clamped correctly.
      */
     protected abstract void glMaterialColor(LightColor component, @Const Vector4 color);
 
     @Override
     public void setMaterialShininess(double shininess) {
         if (shininess < 0.0 || shininess > 128.0) {
-            throw new IllegalArgumentException("Shininess must be in [0, 128], not: " + shininess);
+            throw new IllegalArgumentException(
+                    "Shininess must be in [0, 128], not: " + shininess);
         }
         if (state.matShininess != shininess) {
             state.matShininess = shininess;
@@ -691,7 +688,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     @Override
     public void setPointSize(double width) {
         if (width < 1.0) {
-            throw new IllegalArgumentException("Point width must be at least 1, not: " + width);
+            throw new IllegalArgumentException(
+                    "Point width must be at least 1, not: " + width);
         }
         if (state.pointWidth != width) {
             state.pointWidth = width;
@@ -789,8 +787,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL calls to set the texture color for the active texture.
-     * OpenGL clamps the values for us.
+     * Invoke OpenGL calls to set the texture color for the active texture. OpenGL clamps
+     * the values for us.
      */
     protected abstract void glTextureColor(@Const Vector4 color);
 
@@ -799,7 +797,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                                      CombineSource src0, CombineOperand op0,
                                      CombineSource src1, CombineOperand op1,
                                      CombineSource src2, CombineOperand op2) {
-        if (function == null || src0 == null || src1 == null || src2 == null || op0 == null || op1 == null || op2 == null) {
+        if (function == null || src0 == null || src1 == null || src2 == null ||
+            op0 == null || op1 == null || op2 == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
 
@@ -842,11 +841,14 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                                        CombineSource src0, CombineOperand op0,
                                        CombineSource src1, CombineOperand op1,
                                        CombineSource src2, CombineOperand op2) {
-        if (function == null || src0 == null || src1 == null || src2 == null || op0 == null || op1 == null || op2 == null) {
+        if (function == null || src0 == null || src1 == null || src2 == null ||
+            op0 == null || op1 == null || op2 == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
-        if (function == CombineFunction.DOT3_RGB || function == CombineFunction.DOT3_RGBA) {
-            throw new IllegalArgumentException("Alpha CombineFunction can't be DOT3_RGB or DOT3_RGBA");
+        if (function == CombineFunction.DOT3_RGB ||
+            function == CombineFunction.DOT3_RGBA) {
+            throw new IllegalArgumentException(
+                    "Alpha CombineFunction can't be DOT3_RGB or DOT3_RGBA");
         }
         checkAlphaCombineOperand(op0);
         checkAlphaCombineOperand(op1);
@@ -1029,8 +1031,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL to set the eye plane for the given coordinate on the active
-     * texture
+     * Invoke OpenGL to set the eye plane for the given coordinate on the active texture
      */
     protected abstract void glTexEyePlane(TexCoord coord, @Const Vector4 plane);
 
@@ -1124,7 +1125,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
     @Override
     public void setColors(VertexAttribute colors) {
-        if (colors != null && colors.getElementSize() != 3 && colors.getElementSize() != 4) {
+        if (colors != null && colors.getElementSize() != 3 &&
+            colors.getElementSize() != 4) {
             throw new IllegalArgumentException("Colors element size must be 3 or 4");
         }
         colorsHandle = setAttribute(state.colorBinding, colorsHandle, colors);
@@ -1148,7 +1150,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
         if (attr != null) {
             // We are setting a new vertex attribute
-            boolean accessDiffers = (state.offset != attr.getOffset() || state.stride != attr.getStride() || state.elementSize != attr.getElementSize());
+            boolean accessDiffers = (state.offset != attr.getOffset() ||
+                                     state.stride != attr.getStride() ||
+                                     state.elementSize != attr.getElementSize());
             if (state.vbo != attr.getVBO() || accessDiffers) {
                 // The attributes will be different so must make a change
                 VertexBufferObject oldVbo = state.vbo;
@@ -1163,8 +1167,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
 
                 if (state.vbo == null) {
                     // Lock the new vbo
-                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager.lock(context,
-                                                                                                         attr.getVBO());
+                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager
+                            .lock(context, attr.getVBO());
                     if (newHandle != null && newHandle.dataType != DataType.FLOAT) {
                         resourceManager.unlock(attr.getVBO());
                         failTypeCheck = true;
@@ -1179,7 +1183,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                 }
 
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
-                if (state.target == VertexTarget.TEXCOORDS && state.slot != activeClientTex) {
+                if (state.target == VertexTarget.TEXCOORDS &&
+                    state.slot != activeClientTex) {
                     // Special case slot handling for texture coordinates (other targets ignore slot)
                     activeClientTex = state.slot;
                     glActiveClientTexture(state.slot);
@@ -1206,14 +1211,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
                 }
 
                 if (failTypeCheck) {
-                    throw new IllegalArgumentException("VertexAttribute type must be FLOAT");
+                    throw new IllegalArgumentException(
+                            "VertexAttribute type must be FLOAT");
                 }
             }
         } else {
             // The attribute is meant to be unbound
             if (state.vbo != null) {
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
-                if (state.target == VertexTarget.TEXCOORDS && state.slot != activeClientTex) {
+                if (state.target == VertexTarget.TEXCOORDS &&
+                    state.slot != activeClientTex) {
                     // Special case slot handling for texture coordinates (other targets ignore slot)
                     activeClientTex = state.slot;
                     glActiveClientTexture(state.slot);
@@ -1263,30 +1270,27 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer imp
     }
 
     /**
-     * Invoke OpenGL commands to change the active texture used by client-side
-     * state.
+     * Invoke OpenGL commands to change the active texture used by client-side state.
      */
     protected abstract void glActiveClientTexture(int unit);
 
     /**
-     * Bind the given resource handle as the array vbo. If null, unbind the
-     * array vbo.
+     * Bind the given resource handle as the array vbo. If null, unbind the array vbo.
      */
     protected abstract void glBindArrayVbo(VertexBufferObjectHandle handle);
 
     /**
-     * Invoke OpenGL commands to set the given attribute pointer. The resource
-     * will have already been bound using glBindArrayVbo. If this is for a
-     * texture coordinate, glActiveClientTexture will already have been called.
+     * Invoke OpenGL commands to set the given attribute pointer. The resource will have
+     * already been bound using glBindArrayVbo. If this is for a texture coordinate,
+     * glActiveClientTexture will already have been called.
      */
     protected abstract void glAttributePointer(VertexTarget target,
                                                VertexBufferObjectHandle handle,
                                                int offset, int stride, int elementSize);
 
     /**
-     * Invoke OpenGL commands to enable the given client attribute pointer. If
-     * this is for a texture coordinate, glActiveClientTexture will have been
-     * called.
+     * Invoke OpenGL commands to enable the given client attribute pointer. If this is for
+     * a texture coordinate, glActiveClientTexture will have been called.
      */
     protected abstract void glEnableAttribute(VertexTarget target, boolean enable);
 }

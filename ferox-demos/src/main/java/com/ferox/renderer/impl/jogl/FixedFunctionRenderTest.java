@@ -31,15 +31,10 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.*;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Surface;
-import com.ferox.renderer.Task;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
@@ -59,7 +54,8 @@ public class FixedFunctionRenderTest extends ApplicationStub {
     }
 
     @Override
-    protected void installInputHandlers(InputManager io) {}
+    protected void installInputHandlers(InputManager io) {
+    }
 
     @Override
     protected void init(OnscreenSurface surface) {
@@ -86,9 +82,7 @@ public class FixedFunctionRenderTest extends ApplicationStub {
 
             shape = Sphere.create(2f, 32, StorageMode.GPU_STATIC);
 
-            f = new Frustum(60f,
-                            surface.getWidth() / (float) surface.getHeight(),
-                            1f,
+            f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f,
                             100f);
             f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f),
                              new Vector3(0f, 1f, 0f));
@@ -111,10 +105,7 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                 }
             }
 
-            Mipmap data = new Mipmap(new BufferData(volumeBuffer),
-                                     width,
-                                     height,
-                                     depth,
+            Mipmap data = new Mipmap(new BufferData(volumeBuffer), width, height, depth,
                                      TextureFormat.RGBA);
             volume = new Texture(Target.T_3D, data);
             volume.setFilter(Filter.NEAREST);
@@ -163,18 +154,21 @@ public class FixedFunctionRenderTest extends ApplicationStub {
                     System.out.println("Rendered count: " + rendered);
 
                     System.out.println("\nvertices status: " + surface.getFramework()
-                                                                      .getStatus(shape.getVertices()
-                                                                                      .getVBO()));
+                                                                      .getStatus(
+                                                                              shape.getVertices()
+                                                                                   .getVBO()));
                     System.out.println("\nnormals status: " + surface.getFramework()
-                                                                     .getStatus(shape.getNormals()
-                                                                                     .getVBO()));
+                                                                     .getStatus(
+                                                                             shape.getNormals()
+                                                                                  .getVBO()));
                     System.out.println("\ntexcoords status: " + surface.getFramework()
-                                                                       .getStatus(shape.getTextureCoordinates()
-                                                                                       .getVBO()));
+                                                                       .getStatus(
+                                                                               shape.getTextureCoordinates()
+                                                                                    .getVBO()));
 
-                    System.out.println("\ntexture status: " + surface.getFramework()
-                                                                     .getStatus(volume) + " " + surface.getFramework()
-                                                                                                       .getStatusMessage(volume));
+                    System.out.println("\ntexture status: " +
+                                       surface.getFramework().getStatus(volume) + " " +
+                                       surface.getFramework().getStatusMessage(volume));
                 }
             }
 

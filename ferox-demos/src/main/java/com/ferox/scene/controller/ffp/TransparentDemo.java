@@ -31,26 +31,14 @@ import com.ferox.input.logic.Action;
 import com.ferox.input.logic.InputManager;
 import com.ferox.input.logic.InputState;
 import com.ferox.input.logic.Predicates;
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.resource.geom.Box;
 import com.ferox.resource.geom.Geometry;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.Camera;
-import com.ferox.scene.DiffuseColor;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.Transform;
-import com.ferox.scene.Transparent;
+import com.ferox.scene.*;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
 import com.ferox.scene.task.ComputeCameraFrustumTask;
 import com.ferox.scene.task.ComputePVSTask;
@@ -74,12 +62,9 @@ public class TransparentDemo extends ApplicationStub {
     protected static final double GAP_Y = 1;
     protected static final double GAP_Z = 1;
 
-    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1,
-                                                                                       -2 * BOUNDS - 1,
-                                                                                       -2 * BOUNDS - 1),
-                                                                           new Vector3(2 * BOUNDS + 1,
-                                                                                       2 * BOUNDS + 1,
-                                                                                       2 * BOUNDS + 1));
+    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(
+            new Vector3(-2 * BOUNDS - 1, -2 * BOUNDS - 1, -2 * BOUNDS - 1),
+            new Vector3(2 * BOUNDS + 1, 2 * BOUNDS + 1, 2 * BOUNDS + 1));
 
     // positive half-circle
     private static final double MAX_THETA = Math.PI;
@@ -195,18 +180,17 @@ public class TransparentDemo extends ApplicationStub {
     @Override
     protected void init(OnscreenSurface surface) {
         // rendering
-        renderJob = system.getScheduler()
-                          .createJob("render",
-                                     new UpdateWorldBoundsTask(),
-                                     new ComputeCameraFrustumTask(),
-                                     new ComputeShadowFrustumTask(),
-                                     new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
-                                                                                       6)),
-                                     new ComputePVSTask(),
-                                     new ComputeLightGroupTask(),
-                                     new FixedFunctionRenderTask(surface.getFramework(),
-                                                                 1024,
-                                                                 false));
+        renderJob = system.getScheduler().createJob("render", new UpdateWorldBoundsTask(),
+                                                    new ComputeCameraFrustumTask(),
+                                                    new ComputeShadowFrustumTask(),
+                                                    new BuildVisibilityIndexTask(
+                                                            new QuadTree<Entity>(
+                                                                    worldBounds, 6)),
+                                                    new ComputePVSTask(),
+                                                    new ComputeLightGroupTask(),
+                                                    new FixedFunctionRenderTask(
+                                                            surface.getFramework(), 1024,
+                                                            false));
 
         surface.setVSyncEnabled(true);
 
@@ -232,20 +216,16 @@ public class TransparentDemo extends ApplicationStub {
 
                     Entity box = system.addEntity();
 
-                    box.add(Renderable.class)
-                       .getData()
-                       .setVertices(boxGeom.getVertices())
+                    box.add(Renderable.class).getData().setVertices(boxGeom.getVertices())
                        .setDrawStyle(DrawStyle.SOLID, DrawStyle.SOLID)
                        .setIndices(boxGeom.getPolygonType(), boxGeom.getIndices(),
                                    boxGeom.getIndexOffset(), boxGeom.getIndexCount())
                        .setLocalBounds(boxGeom.getBounds());
                     box.add(BlinnPhongMaterial.class).getData()
                        .setNormals(boxGeom.getNormals());
-                    box.add(DiffuseColor.class)
-                       .getData()
-                       .setColor(new ColorRGB(x / (double) NUM_X,
-                                              y / (double) NUM_Y,
-                                              z / (double) NUM_Z));
+                    box.add(DiffuseColor.class).getData().setColor(
+                            new ColorRGB(x / (double) NUM_X, y / (double) NUM_Y,
+                                         z / (double) NUM_Z));
                     double rand = Math.random();
                     if (rand < .3) {
                         box.add(Transparent.class).getData().setOpacity(.5)
@@ -268,19 +248,20 @@ public class TransparentDemo extends ApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.class).getData().setColor(new ColorRGB(0.8, 0.8, 0.8));
-        point.get(Transform.class)
-             .getData()
-             .setMatrix(new Matrix4().setIdentity().setCol(3,
-                                                           new Vector4(100, 100, 100, 1)));
+        point.get(Transform.class).getData().setMatrix(
+                new Matrix4().setIdentity().setCol(3, new Vector4(100, 100, 100, 1)));
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
         inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
            .setShadowCaster(true);
-        inf.get(Transform.class)
-           .getData()
-           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15),
-                                           new Vector3(0, 1, 0)));
+        inf.get(Transform.class).getData().setMatrix(new Matrix4().lookAt(new Vector3(),
+                                                                          new Vector3(15,
+                                                                                      15,
+                                                                                      15),
+                                                                          new Vector3(0,
+                                                                                      1,
+                                                                                      0)));
     }
 
     @Override

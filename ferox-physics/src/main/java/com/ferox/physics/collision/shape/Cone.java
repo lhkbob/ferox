@@ -53,7 +53,8 @@ public class Cone extends AxisSweptShape {
 
     public void setHeight(double height) {
         if (height <= 0f) {
-            throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
+            throw new IllegalArgumentException(
+                    "Height must be greater than 0, not: " + height);
         }
         this.halfHeight = height / 2.0;
         update();
@@ -61,7 +62,8 @@ public class Cone extends AxisSweptShape {
 
     public void setBaseRadius(double radius) {
         if (radius <= 0f) {
-            throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
+            throw new IllegalArgumentException(
+                    "Radius must be greater than 0, not: " + radius);
         }
         baseRadius = radius;
         update();
@@ -73,7 +75,8 @@ public class Cone extends AxisSweptShape {
             result = new Vector3();
         }
 
-        double sin = baseRadius / Math.sqrt(baseRadius * baseRadius + 4 * halfHeight * halfHeight);
+        double sin = baseRadius /
+                     Math.sqrt(baseRadius * baseRadius + 4 * halfHeight * halfHeight);
         switch (dominantAxis) {
         case X:
             if (v.x <= v.length() * sin) {
@@ -120,7 +123,8 @@ public class Cone extends AxisSweptShape {
     }
 
     private void update() {
-        double m1 = 4.0 / 10.0 * halfHeight * halfHeight + 3.0 / 20.0 * baseRadius * baseRadius;
+        double m1 = 4.0 / 10.0 * halfHeight * halfHeight +
+                    3.0 / 20.0 * baseRadius * baseRadius;
         double m2 = 3.0 / 10.0 * baseRadius * baseRadius;
 
         switch (dominantAxis) {

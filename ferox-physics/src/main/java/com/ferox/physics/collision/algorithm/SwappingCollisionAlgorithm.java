@@ -34,24 +34,26 @@ import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.Shape;
 
 /**
- * SwappingCollisionAlgorithm is a utility to swap the shape types that a true
- * collision algorithm can handle. For example, there might be a
- * SphereBoxCollisionAlgorithm. This class can be used to automatically create a
- * BoxSphereCollisionAlgorithm.
- * 
- * @author Michael Ludwig
+ * SwappingCollisionAlgorithm is a utility to swap the shape types that a true collision
+ * algorithm can handle. For example, there might be a SphereBoxCollisionAlgorithm. This
+ * class can be used to automatically create a BoxSphereCollisionAlgorithm.
+ *
  * @param <A> The first Shape type
  * @param <B> The second Shape type
+ *
+ * @author Michael Ludwig
  */
-public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape> implements CollisionAlgorithm<A, B> {
+public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape>
+        implements CollisionAlgorithm<A, B> {
     private final CollisionAlgorithm<B, A> delegate;
 
     /**
-     * Create a SwappingCollisionAlgorithm that wraps the given
-     * CollisionAlgorithm. Any call to getClosestPair() on this algorithm will
-     * delegate to <tt>toSwap</tt> except that A and B are swapped.
-     * 
+     * Create a SwappingCollisionAlgorithm that wraps the given CollisionAlgorithm. Any
+     * call to getClosestPair() on this algorithm will delegate to <tt>toSwap</tt> except
+     * that A and B are swapped.
+     *
      * @param toSwap The algorithm to wrap
+     *
      * @throws NullPointerException if toSwap is null
      */
     public SwappingCollisionAlgorithm(CollisionAlgorithm<B, A> toSwap) {

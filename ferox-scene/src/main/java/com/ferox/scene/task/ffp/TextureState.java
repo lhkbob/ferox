@@ -99,7 +99,8 @@ public class TextureState implements State {
         } else {
             // disable emissive texture, but only if we're on a different
             // unit (to prevent overwrite)
-            if (diffuseTextureUnit != emittedTextureUnit && decalTextureUnit != emittedTextureUnit) {
+            if (diffuseTextureUnit != emittedTextureUnit &&
+                decalTextureUnit != emittedTextureUnit) {
                 r.setTexture(emittedTextureUnit, null);
             }
         }
@@ -126,12 +127,12 @@ public class TextureState implements State {
         }
 
         TextureState ts = (TextureState) o;
-        boolean diff = nullEquals(ts.diffuseTexture, diffuseTexture) && nullEquals(ts.diffuseTexCoords,
-                                                                                   diffuseTexCoords);
-        boolean decal = nullEquals(ts.decalTexture, decalTexture) && nullEquals(ts.decalTexCoords,
-                                                                                decalTexCoords);
-        boolean emit = nullEquals(ts.emittedTexture, emittedTexture) && nullEquals(ts.emittedTexCoords,
-                                                                                   emittedTexCoords);
+        boolean diff = nullEquals(ts.diffuseTexture, diffuseTexture) &&
+                       nullEquals(ts.diffuseTexCoords, diffuseTexCoords);
+        boolean decal = nullEquals(ts.decalTexture, decalTexture) &&
+                        nullEquals(ts.decalTexCoords, decalTexCoords);
+        boolean emit = nullEquals(ts.emittedTexture, emittedTexture) &&
+                       nullEquals(ts.emittedTexCoords, emittedTexCoords);
         return diff && decal && emit;
     }
 

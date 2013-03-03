@@ -1,17 +1,11 @@
 package com.ferox.resource.shader.simple_grammar;
 
+import com.ferox.resource.shader.*;
+import com.ferox.resource.shader.simple_grammar.Parameter.ParameterQualifier;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
-import com.ferox.resource.shader.Type;
-import com.ferox.resource.shader.VertexShader;
-import com.ferox.resource.shader.VertexShaderBuilder;
-import com.ferox.resource.shader.simple_grammar.Parameter.ParameterQualifier;
 
 public class VertexShaderImpl implements VertexShader {
     private final Parameter[] uniforms;
@@ -22,7 +16,8 @@ public class VertexShaderImpl implements VertexShader {
     private final Statement[] mainBody;
 
     public VertexShaderImpl(Parameter[] uniforms, Parameter[] constants,
-                            Parameter[] inputs, Parameter[] outputs, Statement[] mainBody) {
+                            Parameter[] inputs, Parameter[] outputs,
+                            Statement[] mainBody) {
         this.uniforms = uniforms;
         this.constants = constants;
         this.inputs = inputs;
@@ -58,8 +53,8 @@ public class VertexShaderImpl implements VertexShader {
         }
 
         // validate main function body using a child scope
-        Environment mainScope = environment.functionScope(PrimitiveType.VOID,
-                                                          new HashMap<String, Type>());
+        Environment mainScope = environment
+                .functionScope(PrimitiveType.VOID, new HashMap<String, Type>());
         for (int i = 0; i < mainBody.length; i++) {
             mainScope = mainBody[i].validate(mainScope);
         }
@@ -74,28 +69,36 @@ public class VertexShaderImpl implements VertexShader {
         for (int i = 0; i < constants.length; i++) {
             globalVars.addLine("const " + constants[i].getType()
                                                       .getTypeIdentifier(globalVars,
-                                                                         constants[i].getName()) + ";");
+                                                                         constants[i]
+                                                                                 .getName()) +
+                               ";");
         }
         globalVars.addLine("");
 
         for (int i = 0; i < uniforms.length; i++) {
             globalVars.addLine("uniform " + uniforms[i].getType()
                                                        .getTypeIdentifier(globalVars,
-                                                                          uniforms[i].getName()) + ";");
+                                                                          uniforms[i]
+                                                                                  .getName()) +
+                               ";");
         }
         globalVars.addLine("");
 
         for (int i = 0; i < inputs.length; i++) {
             globalVars.addLine("attribute " + inputs[i].getType()
                                                        .getTypeIdentifier(globalVars,
-                                                                          inputs[i].getName()) + ";");
+                                                                          inputs[i]
+                                                                                  .getName()) +
+                               ";");
         }
         globalVars.addLine("");
 
         for (int i = 0; i < outputs.length; i++) {
             globalVars.addLine("varying " + outputs[i].getType()
                                                       .getTypeIdentifier(globalVars,
-                                                                         outputs[i].getName()) + ";");
+                                                                         outputs[i]
+                                                                                 .getName()) +
+                               ";");
         }
         globalVars.addLine("");
 
@@ -152,7 +155,8 @@ public class VertexShaderImpl implements VertexShader {
         @Override
         public VertexShader main(Statement... body) {
             return new VertexShaderImpl(uniforms.toArray(new Parameter[uniforms.size()]),
-                                        constants.toArray(new Parameter[constants.size()]),
+                                        constants
+                                                .toArray(new Parameter[constants.size()]),
                                         inputs.toArray(new Parameter[inputs.size()]),
                                         outputs.toArray(new Parameter[outputs.size()]),
                                         body);

@@ -26,45 +26,39 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.ferox.input.logic.InputManager;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.Context;
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.Surface;
-import com.ferox.renderer.Task;
-import com.ferox.resource.BufferData;
-import com.ferox.resource.GlslShader;
+import com.ferox.renderer.*;
+import com.ferox.resource.*;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslUniform;
-import com.ferox.resource.Mipmap;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Filter;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.geom.Box;
 import com.ferox.resource.geom.Geometry;
-import com.ferox.resource.TextureFormat;
 import com.ferox.util.ApplicationStub;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 public class GlslRenderTest extends ApplicationStub {
-    private static final String VERTEX_SHADER = "uniform mat4 projection;" + "uniform mat4 modelview;" + "uniform vec2 transform;" +
+    private static final String VERTEX_SHADER =
+            "uniform mat4 projection;" + "uniform mat4 modelview;" +
+            "uniform vec2 transform;" +
 
-    "attribute vec3 vertex;" + "varying vec3 tcs;" +
+            "attribute vec3 vertex;" + "varying vec3 tcs;" +
 
-    "void main() {" + "   tcs = vec3((vertex.x + transform.x) * transform.y, (vertex.y + transform.x) * transform.y, (vertex.z + transform.x) * transform.y);" + "   gl_Position = projection * modelview * vec4(vertex, 1.0);" + "}";
-    private static final String FRAGMENT_SHADER = "uniform vec4 color;" + "uniform sampler3D texture;" +
+            "void main() {" +
+            "   tcs = vec3((vertex.x + transform.x) * transform.y, (vertex.y + transform.x) * transform.y, (vertex.z + transform.x) * transform.y);" +
+            "   gl_Position = projection * modelview * vec4(vertex, 1.0);" + "}";
+    private static final String FRAGMENT_SHADER =
+            "uniform vec4 color;" + "uniform sampler3D texture;" +
 
-    "varying vec3 tcs;" +
+            "varying vec3 tcs;" +
 
-    "void main() {" + "   gl_FragColor = texture3D(texture, tcs) * color;" + "}";
+            "void main() {" + "   gl_FragColor = texture3D(texture, tcs) * color;" + "}";
 
     private GlslPass pass;
 
@@ -73,7 +67,8 @@ public class GlslRenderTest extends ApplicationStub {
     }
 
     @Override
-    protected void installInputHandlers(InputManager io) {}
+    protected void installInputHandlers(InputManager io) {
+    }
 
     @Override
     protected void init(OnscreenSurface surface) {
@@ -81,7 +76,8 @@ public class GlslRenderTest extends ApplicationStub {
         pass = new GlslPass(surface);
         Status status = framework.update(pass.shader);
         if (status != Status.READY) {
-            System.out.println("Shader: " + status + " " + framework.getStatusMessage(pass.shader));
+            System.out.println(
+                    "Shader: " + status + " " + framework.getStatusMessage(pass.shader));
             framework.destroy();
             System.exit(0);
         }
@@ -116,9 +112,7 @@ public class GlslRenderTest extends ApplicationStub {
             shader.setShader(ShaderType.VERTEX, VERTEX_SHADER);
             shader.setShader(ShaderType.FRAGMENT, FRAGMENT_SHADER);
 
-            f = new Frustum(60f,
-                            surface.getWidth() / (float) surface.getHeight(),
-                            1f,
+            f = new Frustum(60f, surface.getWidth() / (float) surface.getHeight(), 1f,
                             100f);
             f.setOrientation(new Vector3(0f, 3f, 10f), new Vector3(0f, 0f, -1f),
                              new Vector3(0f, 1f, 0f));
@@ -141,10 +135,7 @@ public class GlslRenderTest extends ApplicationStub {
                 }
             }
 
-            Mipmap data = new Mipmap(new BufferData(volumeBuffer),
-                                     width,
-                                     height,
-                                     depth,
+            Mipmap data = new Mipmap(new BufferData(volumeBuffer), width, height, depth,
                                      TextureFormat.RGBA);
             volume = new Texture(Target.T_3D, data);
             volume.setFilter(Filter.NEAREST);
@@ -190,15 +181,17 @@ public class GlslRenderTest extends ApplicationStub {
                     Map<String, GlslUniform> uniforms = g.getUniforms();
                     for (Entry<String, GlslUniform> u : uniforms.entrySet()) {
                         GlslUniform uniform = u.getValue();
-                        System.out.println(uniform.getName() + " " + uniform.getType() + " " + uniform.getLength());
+                        System.out
+                              .println(uniform.getName() + " " + uniform.getType() + " " +
+                                       uniform.getLength());
                     }
 
                     System.out.println("\nattributes:");
                     System.out.println(g.getAttributes());
 
-                    System.out.println("\ntexture status: " + surface.getFramework()
-                                                                     .getStatus(volume) + " " + surface.getFramework()
-                                                                                                       .getStatusMessage(volume));
+                    System.out.println("\ntexture status: " +
+                                       surface.getFramework().getStatus(volume) + " " +
+                                       surface.getFramework().getStatusMessage(volume));
                 }
             }
 

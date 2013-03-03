@@ -70,6 +70,7 @@ public class ColorState implements State {
         }
 
         ColorState ts = (ColorState) o;
-        return ts.diffuse.equals(diffuse) && ts.emitted.equals(emitted) && ts.specular.equals(specular) && shininess == shininess;
+        return ts.diffuse.equals(diffuse) && ts.emitted.equals(emitted) &&
+               ts.specular.equals(specular) && shininess == shininess;
     }
 }

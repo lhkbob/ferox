@@ -26,30 +26,26 @@
  */
 package com.ferox.resource.texture;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.TextureFormat;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
- * <p>
- * The TGATexture class can be used to load in TGA (or Targa) images as
- * Texture2D's.
- * </p>
- * <p>
- * It is recommended to use TextureLoader, since it will delegate to TGATexture
- * when needed.
- * </p>
- * <p>
- * This was based heavily off of the code in
- * com.sun.opengl.util.texture.spi.TGAImage.
- * </p>
- * 
+ * <p/>
+ * The TGATexture class can be used to load in TGA (or Targa) images as Texture2D's.
+ * <p/>
+ * <p/>
+ * It is recommended to use TextureLoader, since it will delegate to TGATexture when
+ * needed.
+ * <p/>
+ * This was based heavily off of the code in com.sun.opengl.util.texture.spi.TGAImage.
+ *
  * @author Michael Ludwig
  */
 @SuppressWarnings("unused")
@@ -59,49 +55,46 @@ public class TGATexture {
     private BufferData data;
 
     /**
-     * <p>
-     * Load in a Targa image from the given stream as a 2D texture. This loader
-     * supports true color and color maps with pixel depths of 16, 24, and 32
-     * bits. The image will be flipped if necessary.
-     * </p>
-     * <p>
-     * It does not support runlength compressed images, black and white images,
-     * or images that go right to left. The tga footer present in newer tga
-     * files is ignored.
-     * </p>
-     * 
+     * <p/>
+     * Load in a Targa image from the given stream as a 2D texture. This loader supports
+     * true color and color maps with pixel depths of 16, 24, and 32 bits. The image will
+     * be flipped if necessary.
+     * <p/>
+     * It does not support runlength compressed images, black and white images, or images
+     * that go right to left. The tga footer present in newer tga files is ignored.
+     *
      * @param stream The InputStream to read the tga texture from
+     *
      * @return The read Texture with a target of T_2D
-     * @throws IOException if there was an IO error or if the tga file is
-     *             invalid or unsupported
+     *
+     * @throws IOException if there was an IO error or if the tga file is invalid or
+     *                     unsupported
      */
     public static Texture readTexture(InputStream stream) throws IOException {
         if (stream == null) {
             throw new IOException("Cannot read from a null stream");
         }
         TGATexture res = new TGATexture(stream);
-        return new Texture(Target.T_2D, new Mipmap(res.data,
-                                                   res.header.width,
-                                                   res.header.height,
-                                                   1,
-                                                   res.format));
+        return new Texture(Target.T_2D,
+                           new Mipmap(res.data, res.header.width, res.header.height, 1,
+                                      res.format));
     }
 
     /**
-     * <p>
-     * Non-destructively read the header from the given stream and determine if
-     * it's a valid header. This checks the different byte offsets against
-     * expected values, and it is assumed that if everything checks out that it
-     * is a valid tga file (we need this assumption since the Targa format
-     * doesn't come with a magic number at the beginning).
-     * </p>
-     * <p>
+     * <p/>
+     * Non-destructively read the header from the given stream and determine if it's a
+     * valid header. This checks the different byte offsets against expected values, and
+     * it is assumed that if everything checks out that it is a valid tga file (we need
+     * this assumption since the Targa format doesn't come with a magic number at the
+     * beginning).
+     * <p/>
      * Returns false if it's invalid or an IOException occurred while checking.
-     * </p>
-     * 
+     *
      * @param stream The InputStream to check format type
-     * @return Whether or not this stream is a tga file, doesn't check if it's
-     *         valid or supported
+     *
+     * @return Whether or not this stream is a tga file, doesn't check if it's valid or
+     *         supported
+     *
      * @throws NullPointerException if stream is null
      */
     public static boolean isTGATexture(InputStream stream) {
@@ -122,7 +115,8 @@ public class TGATexture {
             // must reset the stream no matter what
             try {
                 stream.reset();
-            } catch (IOException e) {}
+            } catch (IOException e) {
+            }
         }
 
         return validateHeader(header) == null;
@@ -183,18 +177,15 @@ public class TGATexture {
      * @author Michael Ludwig
      */
     private static class Header {
-        /* initial TGA image data fields */
-        int idLength; // byte value
+        /* initial TGA image data fields */ int idLength; // byte value
         int colorMapType; // byte value
         int imageType; // byte value
 
-        /* TGA image colour map fields */
-        int firstEntryIndex;
+        /* TGA image colour map fields */ int firstEntryIndex;
         int colorMapLength;
         byte colorMapEntrySize;
 
-        /* TGA image specification fields */
-        int xOrigin;
+        /* TGA image specification fields */ int xOrigin;
         int yOrigin;
         int width;
         int height;
@@ -367,7 +358,8 @@ public class TGATexture {
                 return "Bad number of color map entries: " + h.colorMapLength;
             }
             if (!h.isBlackAndWhite()) {
-                if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24 && h.colorMapEntrySize != 32) {
+                if (h.colorMapEntrySize != 16 && h.colorMapEntrySize != 24 &&
+                    h.colorMapEntrySize != 32) {
                     return "Unsupported color map entry size: " + h.colorMapEntrySize;
                 }
             }
@@ -381,17 +373,20 @@ public class TGATexture {
             switch (h.pixelDepth) {
             case 16:
                 if (h.getAttribsPerPixel() != 1) {
-                    return "Bad attribs pixel count, must be 1 for 16 bit colors: " + h.getAttribsPerPixel();
+                    return "Bad attribs pixel count, must be 1 for 16 bit colors: " +
+                           h.getAttribsPerPixel();
                 }
                 break;
             case 24:
                 if (h.getAttribsPerPixel() != 0) {
-                    return "Bad attribs pixel count, must be 0 for 24 bit colors: " + h.getAttribsPerPixel();
+                    return "Bad attribs pixel count, must be 0 for 24 bit colors: " +
+                           h.getAttribsPerPixel();
                 }
                 break;
             case 32:
                 if (h.getAttribsPerPixel() != 8) {
-                    return "Bad attribs pixel count, must be 8 for 32 bit colors: " + h.getAttribsPerPixel();
+                    return "Bad attribs pixel count, must be 8 for 32 bit colors: " +
+                           h.getAttribsPerPixel();
                 }
                 break;
             default:
@@ -461,8 +456,8 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData,
-                                                                                     index);
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
+                            cm.colorMapData, index);
                 }
             }
         } else {
@@ -475,8 +470,8 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = rawIndices[c];
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData,
-                                                                                     index);
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
+                            cm.colorMapData, index);
                 }
             }
         }

@@ -26,49 +26,29 @@
  */
 package com.ferox.scene.task.light;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.bounds.QueryCallback;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.Camera;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.InfluenceRegion;
-import com.ferox.scene.Influences;
-import com.ferox.scene.Light;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.SpotLight;
-import com.ferox.scene.Transform;
+import com.ferox.scene.*;
 import com.ferox.scene.task.BoundsResult;
 import com.ferox.scene.task.PVSResult;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.*;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.*;
+import java.util.Map.Entry;
+
 public class ComputeLightGroupTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(Influences.class);
@@ -127,15 +107,15 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         Arrays.fill(assignments.getIndexedData(), -1);
     }
 
-    private <T extends Light<T>> void convertToLightSources(T light,
-                                                            EntitySystem system,
+    private <T extends Light<T>> void convertToLightSources(T light, EntitySystem system,
                                                             LightInfluence.Factory<T> factory,
                                                             List<LightSource> globalLights,
                                                             List<LightSource> allLights) {
         ComponentIterator dlt = new ComponentIterator(system).addRequired(light)
                                                              .addOptional(transform)
                                                              .addOptional(influenceSet)
-                                                             .addOptional(influenceRegion);
+                                                             .addOptional(
+                                                                     influenceRegion);
         while (dlt.next()) {
             // we don't take advantage of some light types requiring a transform,
             // because we process ambient lights with this same code
@@ -148,11 +128,10 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 invertBounds = influenceRegion.isNegated();
             }
 
-            LightSource l = new LightSource(allLights.size(),
-                                            light.getComponent(),
+            LightSource l = new LightSource(allLights.size(), light.getComponent(),
                                             factory.create(light, t),
-                                            (influenceSet.isEnabled() ? influenceSet.getInfluencedSet() : null),
-                                            bounds,
+                                            (influenceSet.isEnabled() ? influenceSet
+                                                    .getInfluencedSet() : null), bounds,
                                             invertBounds);
 
             if (bounds != null && !invertBounds) {
@@ -221,11 +200,11 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         List<LightSource> allLights = new ArrayList<LightSource>();
         List<LightSource> globalLights = new ArrayList<LightSource>();
         convertToLightSources(direction, system,
-                              GlobalLightInfluence.<DirectionLight> factory(),
+                              GlobalLightInfluence.<DirectionLight>factory(),
                               globalLights, allLights);
         convertToLightSources(ambient, system,
-                              GlobalLightInfluence.<AmbientLight> factory(),
-                              globalLights, allLights);
+                              GlobalLightInfluence.<AmbientLight>factory(), globalLights,
+                              allLights);
         convertToLightSources(spot, system, SpotLightInfluence.factory(), globalLights,
                               allLights);
         convertToLightSources(point, system, PointLightInfluence.factory(), globalLights,
@@ -271,7 +250,8 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
 
         // convert computed groups into LightGroupResult
         Profiler.push("report");
-        List<Set<Component<? extends Light<?>>>> finalGroups = new ArrayList<Set<Component<? extends Light<?>>>>(groups.size());
+        List<Set<Component<? extends Light<?>>>> finalGroups = new ArrayList<Set<Component<? extends Light<?>>>>(
+                groups.size());
         for (int i = 0; i < groups.size(); i++) {
             // must fill with nulls up to the full size so that the random
             // sets below don't cause index oob exceptions
@@ -281,7 +261,8 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         for (Entry<BitSet, Integer> group : groups.entrySet()) {
             BitSet groupAsBitSet = group.getKey();
             Set<Component<? extends Light<?>>> lightsInGroup = new HashSet<Component<? extends Light<?>>>();
-            for (int i = groupAsBitSet.nextSetBit(0); i >= 0; i = groupAsBitSet.nextSetBit(i + 1)) {
+            for (int i = groupAsBitSet.nextSetBit(0); i >= 0;
+                 i = groupAsBitSet.nextSetBit(i + 1)) {
                 lightsInGroup.add(allLights.get(i).source);
             }
 

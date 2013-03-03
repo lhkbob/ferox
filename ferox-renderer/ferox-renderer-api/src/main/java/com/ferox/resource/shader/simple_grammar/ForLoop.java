@@ -1,11 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
-import com.ferox.resource.shader.WhileBuilder;
+import com.ferox.resource.shader.*;
 
 public class ForLoop implements Statement {
     private final Expression initStatement;
@@ -23,12 +18,15 @@ public class ForLoop implements Statement {
 
     @Override
     public Environment validate(Environment environment) {
-        environment = increment.validate(condition.validate(initStatement.validate(environment)));
+        environment = increment
+                .validate(condition.validate(initStatement.validate(environment)));
         if (!condition.getType(environment).equals(PrimitiveType.BOOL)) {
-            throw new IllegalStateException("Loop condition expression must evaluate to a boolean");
+            throw new IllegalStateException(
+                    "Loop condition expression must evaluate to a boolean");
         }
         if (increment.containsDeclaration()) {
-            throw new IllegalStateException("Increment expression cannot contain a declaration");
+            throw new IllegalStateException(
+                    "Increment expression cannot contain a declaration");
         }
 
         // validate loop body
@@ -42,7 +40,9 @@ public class ForLoop implements Statement {
 
     @Override
     public void emit(ShaderAccumulator accumulator) {
-        accumulator.addLine("for (" + initStatement.emitExpression(accumulator) + "; " + condition.emitExpression(accumulator) + "; " + increment.emitExpression(accumulator) + ") {");
+        accumulator.addLine("for (" + initStatement.emitExpression(accumulator) + "; " +
+                            condition.emitExpression(accumulator) + "; " +
+                            increment.emitExpression(accumulator) + ") {");
         accumulator.pushIndent();
         for (int i = 0; i < body.length; i++) {
             body[i].emit(accumulator);

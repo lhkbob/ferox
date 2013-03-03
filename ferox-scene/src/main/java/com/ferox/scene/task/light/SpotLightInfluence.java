@@ -54,8 +54,7 @@ public class SpotLightInfluence implements LightInfluence {
         return new LightInfluence.Factory<SpotLight>() {
             @Override
             public LightInfluence create(SpotLight light, Matrix4 lightTransform) {
-                return new SpotLightInfluence(lightTransform,
-                                              light.getFalloffDistance(),
+                return new SpotLightInfluence(lightTransform, light.getFalloffDistance(),
                                               light.getCutoffAngle());
             }
         };

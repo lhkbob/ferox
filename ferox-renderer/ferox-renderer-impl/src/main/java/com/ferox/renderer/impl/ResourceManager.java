@@ -26,6 +26,12 @@
  */
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.HardwareAccessLayer;
+import com.ferox.resource.Resource;
+import com.ferox.resource.Resource.Status;
+import com.ferox.resource.Resource.UpdatePolicy;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -35,20 +41,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.resource.Resource;
-import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Resource.UpdatePolicy;
-
 /**
- * ResourceManager is a manager that controls the data linking Resource
- * instances to ResourceHandles created by ResourceDrivers. It also handles the
- * cleanup of all orphaned handles so there are not memory leaks of low-level
- * system resources. When paired with a {@link ContextManager} and a
- * {@link SurfaceFactory}, the majority of requirements for a Framework
- * implementation can be easily fulfilled.
- * 
+ * ResourceManager is a manager that controls the data linking Resource instances to
+ * ResourceHandles created by ResourceDrivers. It also handles the cleanup of all orphaned
+ * handles so there are not memory leaks of low-level system resources. When paired with a
+ * {@link ContextManager} and a {@link SurfaceFactory}, the majority of requirements for a
+ * Framework implementation can be easily fulfilled.
+ *
  * @author Michael Ludwig
  */
 public class ResourceManager {
@@ -63,21 +62,21 @@ public class ResourceManager {
     private final Map<Class<? extends Resource>, ResourceDriver> drivers;
 
     /**
-     * <p>
-     * Create a new ResourceManager that uses the given ContextManager to queue
-     * tasks to dispose of graphics card level data tied to garbage-collected
-     * resources. The provided ResourceDrivers are used to process specific
-     * types of resources. They implicitly define the set of supported resource
-     * types.
-     * 
-     * @param lockOrder A Comparator that imposes an ordering on resources when
-     *            they must be relocked in a consistent manner
-     * @param contextManager The ContextManager used by the ResourceManager (and
-     *            the rest of the framework)
-     * @param drivers A varargs array of resource drivers, cannot have any null
-     *            values
-     * @throws NullPointerException if lockOrder, contextManager or any of the
-     *             drivers are null
+     * <p/>
+     * Create a new ResourceManager that uses the given ContextManager to queue tasks to
+     * dispose of graphics card level data tied to garbage-collected resources. The
+     * provided ResourceDrivers are used to process specific types of resources. They
+     * implicitly define the set of supported resource types.
+     *
+     * @param lockOrder      A Comparator that imposes an ordering on resources when they
+     *                       must be relocked in a consistent manner
+     * @param contextManager The ContextManager used by the ResourceManager (and the rest
+     *                       of the framework)
+     * @param drivers        A varargs array of resource drivers, cannot have any null
+     *                       values
+     *
+     * @throws NullPointerException if lockOrder, contextManager or any of the drivers are
+     *                              null
      */
     public ResourceManager(ContextManager contextManager, ResourceDriver... drivers) {
         if (contextManager == null) {
@@ -105,33 +104,30 @@ public class ResourceManager {
     }
 
     /**
-     * <p>
-     * Complete the initialization of this ResourceManager and start up an inner
-     * thread that handles processing garbage collected resources. This method
-     * ties the ResourceManager to the life cycle enforced by the given
-     * LifeCycleManager. It is required that this method is called by the
-     * ResourceManager's owner in the initialization Runnable passed to
-     * {@link LifeCycleManager#start(Runnable)}. The provided LifeCycleManager
-     * should be the same manager that was used to initialize this
-     * ResourceManager's ContextManager. Because the ResourceManager depends on
-     * the ContextManager, the ContextManager must be initialized first.
-     * <p>
-     * The ResourceManager will automatically terminate its threads when it
-     * detects that the LifeCycleManager is being shutdown. All internal threads
-     * are managed threads so the final destruction task passed to
-     * {@link LifeCycleManager#destroy(Runnable)} will not run until the
-     * ResourceManager's thread terminates.
-     * <p>
-     * The ResourceManager cannot be initialized more than once. It is illegal
-     * to use a LifeCycleManager that has a status other than STARTING (i.e.
-     * within the scope of its initialize() method).
-     * 
-     * @param lifecycle The LifeCycleManager that controls when the
-     *            ResourceManager ends
-     * @throws NullPointerException if lifecycle is null
-     * @throws IllegalStateException if lifecycle doesn't have a status of
-     *             STARTING, or if the ResourceManager has already been
-     *             initialized
+     * <p/>
+     * Complete the initialization of this ResourceManager and start up an inner thread
+     * that handles processing garbage collected resources. This method ties the
+     * ResourceManager to the life cycle enforced by the given LifeCycleManager. It is
+     * required that this method is called by the ResourceManager's owner in the
+     * initialization Runnable passed to {@link LifeCycleManager#start(Runnable)}. The
+     * provided LifeCycleManager should be the same manager that was used to initialize
+     * this ResourceManager's ContextManager. Because the ResourceManager depends on the
+     * ContextManager, the ContextManager must be initialized first.
+     * <p/>
+     * The ResourceManager will automatically terminate its threads when it detects that
+     * the LifeCycleManager is being shutdown. All internal threads are managed threads so
+     * the final destruction task passed to {@link LifeCycleManager#destroy(Runnable)}
+     * will not run until the ResourceManager's thread terminates.
+     * <p/>
+     * The ResourceManager cannot be initialized more than once. It is illegal to use a
+     * LifeCycleManager that has a status other than STARTING (i.e. within the scope of
+     * its initialize() method).
+     *
+     * @param lifecycle The LifeCycleManager that controls when the ResourceManager ends
+     *
+     * @throws NullPointerException  if lifecycle is null
+     * @throws IllegalStateException if lifecycle doesn't have a status of STARTING, or if
+     *                               the ResourceManager has already been initialized
      */
     public void initialize(LifeCycleManager lifecycle) {
         if (lifecycle == null) {
@@ -140,8 +136,11 @@ public class ResourceManager {
 
         // We are assuming that we're in the right threading situation, so this is safe.
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
-        if (lifecycle.getStatus() != com.ferox.renderer.impl.LifeCycleManager.Status.STARTING) {
-            throw new IllegalStateException("LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
+        if (lifecycle.getStatus() !=
+            com.ferox.renderer.impl.LifeCycleManager.Status.STARTING) {
+            throw new IllegalStateException(
+                    "LifeCycleManager must have status STARTING, not: " +
+                    lifecycle.getStatus());
         }
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
@@ -154,20 +153,18 @@ public class ResourceManager {
         }
 
         garbageCollector = new Thread(lifecycleManager.getManagedThreadGroup(),
-                                      new WeakReferenceMonitor(),
-                                      "resource-gc-thread");
+                                      new WeakReferenceMonitor(), "resource-gc-thread");
         garbageCollector.setDaemon(true);
         lifecycleManager.startManagedThread(garbageCollector);
     }
 
     /**
-     * Get an exclusive lock on the resource that prevents it from being
-     * updated, disposed of, or locked via
-     * {@link #lock(OpenGLContext, Resource)}.
-     * 
+     * Get an exclusive lock on the resource that prevents it from being updated, disposed
+     * of, or locked via {@link #lock(OpenGLContext, Resource)}.
+     *
      * @param resource
-     * @return The resource handle for the resource, or null if the lock was
-     *         unsuccessful
+     *
+     * @return The resource handle for the resource, or null if the lock was unsuccessful
      */
     public Object lockExclusively(Resource resource) {
         if (resource == null) {
@@ -187,12 +184,12 @@ public class ResourceManager {
     }
 
     /**
-     * Release the exclusive lock on the given resource after
-     * {@link #lockExclusively(Resource)} returned a non-null handle. After a
-     * call to this method, the locked resource can be locked via
-     * {@link #lock(OpenGLContext, Resource)}, updated, and possibly disposed of
-     * (depending on its disposable status).
-     * 
+     * Release the exclusive lock on the given resource after {@link
+     * #lockExclusively(Resource)} returned a non-null handle. After a call to this
+     * method, the locked resource can be locked via {@link #lock(OpenGLContext,
+     * Resource)}, updated, and possibly disposed of (depending on its disposable
+     * status).
+     *
      * @param resource
      */
     public void unlockExclusively(Resource resource) {
@@ -207,13 +204,14 @@ public class ResourceManager {
     }
 
     /**
-     * Unlock the Resource after it has been unbound. This should not be called
-     * more times than the resource was locked. After a successful call to
-     * {@link #lock(OpenGLContext, Resource)}, this must be called when the
-     * resource is no longer being used. It must not need to be called if the
-     * resource was not bound successfully.
-     * 
+     * Unlock the Resource after it has been unbound. This should not be called more times
+     * than the resource was locked. After a successful call to {@link
+     * #lock(OpenGLContext, Resource)}, this must be called when the resource is no longer
+     * being used. It must not need to be called if the resource was not bound
+     * successfully.
+     *
      * @param resource The resource to unlock
+     *
      * @throws NullPointerException if resource is null
      */
     public void unlock(Resource resource) {
@@ -228,23 +226,25 @@ public class ResourceManager {
     }
 
     /**
-     * <p>
-     * Lock the given Resource, <tt>r</tt> so it can be safely bound on the
-     * given context. This is a shared lock so that it can be locked multiple
-     * times for binding purposes (i.e. to multiple texture units). While a
-     * Resource is bound, it cannot be updated or disposed of.
-     * <p>
-     * This will automatically update the resource if its update policy is
-     * ON_DEMAND. If the resource is not ready, false is returned and the
-     * Renderer should cancel the binding. This can happen if the resource has
-     * an error, is unsupported, or has an update policy of MANUAL.
-     * <p>
-     * It is assumed that the context is current, and that the calling thread is
-     * the context thread of the framework.
-     * 
+     * <p/>
+     * Lock the given Resource, <tt>r</tt> so it can be safely bound on the given context.
+     * This is a shared lock so that it can be locked multiple times for binding purposes
+     * (i.e. to multiple texture units). While a Resource is bound, it cannot be updated
+     * or disposed of.
+     * <p/>
+     * This will automatically update the resource if its update policy is ON_DEMAND. If
+     * the resource is not ready, false is returned and the Renderer should cancel the
+     * binding. This can happen if the resource has an error, is unsupported, or has an
+     * update policy of MANUAL.
+     * <p/>
+     * It is assumed that the context is current, and that the calling thread is the
+     * context thread of the framework.
+     *
      * @param context The current context on the thread
-     * @param r The resource to lock
+     * @param r       The resource to lock
+     *
      * @return The handle for the resource, or null
+     *
      * @throws NullPointerException if context or r are null
      */
     public Object lock(OpenGLContext context, Resource r) {
@@ -286,17 +286,18 @@ public class ResourceManager {
     }
 
     /**
-     * Update the given resource as required by
-     * {@link HardwareAccessLayer#update(Resource)}. This will only update if
-     * the ResourceDriver's for <tt>r</tt> detect that the resource has been
-     * changed. The new status of the resource is returned. The provided context
-     * is assumed to be the context current on the calling thread; if this is
-     * not true then undefined behavior will result.
-     * 
-     * @param <R> The Resource type of r
+     * Update the given resource as required by {@link HardwareAccessLayer#update(Resource)}.
+     * This will only update if the ResourceDriver's for <tt>r</tt> detect that the
+     * resource has been changed. The new status of the resource is returned. The provided
+     * context is assumed to be the context current on the calling thread; if this is not
+     * true then undefined behavior will result.
+     *
+     * @param <R>     The Resource type of r
      * @param context The current context on the calling thread
-     * @param r The resource to update
+     * @param r       The resource to update
+     *
      * @return The new status of r
+     *
      * @throws NullPointerException if context or r are null
      */
     public Status update(OpenGLContext context, Resource r) {
@@ -336,19 +337,18 @@ public class ResourceManager {
     }
 
     /**
-     * Dispose of the given resource as required by
-     * {@link HardwareAccessLayer#dispose(Resource)}. If the resource has no
-     * handle, this does nothing since the resource is already effectively
-     * disposed of. The provided context is assumed to be the context current on
-     * the calling thread; if this is not true then undefined behavior will
-     * result.
-     * 
-     * @param <R> The Resource type of r
+     * Dispose of the given resource as required by {@link HardwareAccessLayer#dispose(Resource)}.
+     * If the resource has no handle, this does nothing since the resource is already
+     * effectively disposed of. The provided context is assumed to be the context current
+     * on the calling thread; if this is not true then undefined behavior will result.
+     *
+     * @param <R>     The Resource type of r
      * @param context The current context on this thread
-     * @param r The resource to dispose of
-     * @throws NullPointerException if context or r are null
-     * @throws IllegalStateException if r cannot be disposed of (see
-     *             {@link #setDisposable(Resource, boolean)}).
+     * @param r       The resource to dispose of
+     *
+     * @throws NullPointerException  if context or r are null
+     * @throws IllegalStateException if r cannot be disposed of (see {@link
+     *                               #setDisposable(Resource, boolean)}).
      */
     public <R extends Resource> void dispose(OpenGLContext context, R r) {
         if (r == null) {
@@ -362,7 +362,8 @@ public class ResourceManager {
         if (data == null) {
             return; // Don't need to dispose
         } else if (!data.disposable) {
-            throw new IllegalStateException("Resource is in use by a Surface and cannot be disposed");
+            throw new IllegalStateException(
+                    "Resource is in use by a Surface and cannot be disposed");
         }
 
         data.lock();
@@ -384,12 +385,13 @@ public class ResourceManager {
     }
 
     /**
-     * Reset the internal tracking of this resource as required by
-     * {@link HardwareAccessLayer#reset(Resource)}. If this resource has no
-     * ResourceHandle, then this request does nothing. This method should only
-     * be called from a ContextManager owned task thread.
-     * 
+     * Reset the internal tracking of this resource as required by {@link
+     * HardwareAccessLayer#reset(Resource)}. If this resource has no ResourceHandle, then
+     * this request does nothing. This method should only be called from a ContextManager
+     * owned task thread.
+     *
      * @param r The resource to reset
+     *
      * @throws NullPointerException if r is null
      */
     public void reset(Resource r) {
@@ -406,21 +408,20 @@ public class ResourceManager {
     }
 
     /**
-     * <p>
-     * Set whether or not the given resource, <tt>r</tt>, is disposable. If it
-     * is not disposable, an exception is thrown when
-     * {@link #dispose(OpenGLContext, Resource)} is invoked. This can be used to
-     * prevent the textures used by a TextureSurface from being disposed of
-     * until the surface is destroyed.
-     * <p>
-     * This does nothing if r is an unsupported resource type. If the resource
-     * is already disposed, this flags it for after the next time it is
-     * initialized.
-     * <p>
+     * <p/>
+     * Set whether or not the given resource, <tt>r</tt>, is disposable. If it is not
+     * disposable, an exception is thrown when {@link #dispose(OpenGLContext, Resource)}
+     * is invoked. This can be used to prevent the textures used by a TextureSurface from
+     * being disposed of until the surface is destroyed.
+     * <p/>
+     * This does nothing if r is an unsupported resource type. If the resource is already
+     * disposed, this flags it for after the next time it is initialized.
+     * <p/>
      * This should only be called from a context thread.
-     * 
-     * @param r The resource to flag as disposable or not
+     *
+     * @param r          The resource to flag as disposable or not
      * @param disposable True if it can be disposed
+     *
      * @throws NullPointerException if r is null
      */
     public void setDisposable(Resource r, boolean disposable) {
@@ -435,14 +436,16 @@ public class ResourceManager {
     }
 
     /**
-     * Return the current status message of the given resource. This functions
-     * identically to {@link Framework#getStatusMessage(Resource)}. This returns
-     * null if the manager's lifecycle has ended. In most cases, the empty
-     * string is returned unless the resource has a status of ERROR (since that
-     * is when the message is most informative).
-     * 
+     * Return the current status message of the given resource. This functions identically
+     * to {@link Framework#getStatusMessage(Resource)}. This returns null if the manager's
+     * lifecycle has ended. In most cases, the empty string is returned unless the
+     * resource has a status of ERROR (since that is when the message is most
+     * informative).
+     *
      * @param r The resource whose status message is queried
+     *
      * @return The status message of r
+     *
      * @throws NullPointerException if r is null
      */
     public String getStatusMessage(Resource r) {
@@ -466,12 +469,14 @@ public class ResourceManager {
     }
 
     /**
-     * Return the current Status of the given resource. This functions
-     * identically to {@link Framework#getStatus(Resource)}. This returns
-     * DISPOSED if the manager's lifecyle has ended.
-     * 
+     * Return the current Status of the given resource. This functions identically to
+     * {@link Framework#getStatus(Resource)}. This returns DISPOSED if the manager's
+     * lifecyle has ended.
+     *
      * @param r The resource whose status is queried
+     *
      * @return The status of r
+     *
      * @throws NullPointerException if r is null
      */
     public Status getStatus(Resource r) {
@@ -551,8 +556,8 @@ public class ResourceManager {
                         // Don't block on this, we just need it to be disposed of in the future
                         // and don't bother accepting during shutdown since the context
                         // is about to be destroyed then anyway.
-                        contextManager.invokeOnContextThread(new DisposeOrphanedHandleTask(data),
-                                                             false);
+                        contextManager.invokeOnContextThread(
+                                new DisposeOrphanedHandleTask(data), false);
                     }
 
                     // Remove it from the collection of current resources
@@ -632,7 +637,8 @@ public class ResourceManager {
 
         public void lock() {
             if (sharedLockCount > 0) {
-                throw new IllegalStateException("Resource is already locked in shared mode, cannot obtain exclusive lock");
+                throw new IllegalStateException(
+                        "Resource is already locked in shared mode, cannot obtain exclusive lock");
             }
             if (exclusiveLock) {
                 throw new IllegalStateException("Resource is already exlusively locked");
@@ -642,21 +648,24 @@ public class ResourceManager {
 
         public void unlock() {
             if (!exclusiveLock) {
-                throw new IllegalStateException("Resource is not exclusively locked, and cannot be unlocked");
+                throw new IllegalStateException(
+                        "Resource is not exclusively locked, and cannot be unlocked");
             }
             exclusiveLock = false;
         }
 
         public void lockShared() {
             if (exclusiveLock) {
-                throw new IllegalStateException("Resource is already exclusively locked, cannot obtain a shared lock");
+                throw new IllegalStateException(
+                        "Resource is already exclusively locked, cannot obtain a shared lock");
             }
             sharedLockCount++;
         }
 
         public void unlockShared() {
             if (sharedLockCount == 0) {
-                throw new IllegalStateException("Resource is not locked in shared mode, and cannot be unlocked");
+                throw new IllegalStateException(
+                        "Resource is not locked in shared mode, and cannot be unlocked");
             }
             sharedLockCount--;
         }

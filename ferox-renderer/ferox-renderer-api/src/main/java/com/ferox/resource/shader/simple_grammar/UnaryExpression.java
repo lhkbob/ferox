@@ -1,21 +1,19 @@
 package com.ferox.resource.shader.simple_grammar;
 
+import com.ferox.resource.shader.*;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Type;
 
 public class UnaryExpression extends AbstractExpression {
     public static enum UnaryOperator {
         POSTFIX_INCREMENT("++"),
         POSTFIX_DECREMENT("--"),
 
-        PREFIX_INCREMENT("++"), // ++
-        PREFIX_DECREMENT("--"), // --
+        PREFIX_INCREMENT("++"),
+        // ++
+        PREFIX_DECREMENT("--"),
+        // --
         NEGATE("-"),
         LOGICAL_NEGATE("!"),
         BIT_INVERT("~"); /* reserved */
@@ -46,21 +44,26 @@ public class UnaryExpression extends AbstractExpression {
 
         Type base = expression.getType(environment);
         if (!(base instanceof PrimitiveType)) {
-            throw new IllegalStateException("Unary operators only support primitive types");
+            throw new IllegalStateException(
+                    "Unary operators only support primitive types");
         }
         if (get((PrimitiveType) base, operator) == null) {
             throw new IllegalStateException("Unary operator not supported on type");
         }
         if (expression.containsDeclaration()) {
-            throw new IllegalStateException("Unary operator cannot operate on expressions containing declarations");
+            throw new IllegalStateException(
+                    "Unary operator cannot operate on expressions containing declarations");
         }
         return environment;
     }
 
     @Override
     public String emitExpression(ShaderAccumulator accumulator) {
-        String expr = (expression.getPrecedence() < getPrecedence() ? "(" + expression.emitExpression(accumulator) + ")" : expression.emitExpression(accumulator));
-        if (operator == UnaryOperator.POSTFIX_DECREMENT || operator == UnaryOperator.POSTFIX_INCREMENT) {
+        String expr = (expression.getPrecedence() < getPrecedence() ? "(" + expression
+                .emitExpression(accumulator) + ")" : expression
+                               .emitExpression(accumulator));
+        if (operator == UnaryOperator.POSTFIX_DECREMENT ||
+            operator == UnaryOperator.POSTFIX_INCREMENT) {
             return expr + operator.symbol;
         } else {
             return operator.symbol + expr;
@@ -80,13 +83,15 @@ public class UnaryExpression extends AbstractExpression {
         case POSTFIX_INCREMENT:
             return Precedence.POSTFIX_EXPRESSIONS.ordinal();
         default:
-            throw new UnsupportedOperationException("Unmapped operator, no associated precedence");
+            throw new UnsupportedOperationException(
+                    "Unmapped operator, no associated precedence");
         }
     }
 
     private static final Map<UnaryOperator, Map<PrimitiveType, PrimitiveType>> operatorMap = new HashMap<UnaryOperator, Map<PrimitiveType, PrimitiveType>>();
 
-    private static void add(PrimitiveType type, UnaryOperator op, PrimitiveType resultType) {
+    private static void add(PrimitiveType type, UnaryOperator op,
+                            PrimitiveType resultType) {
         Map<PrimitiveType, PrimitiveType> typeMap = operatorMap.get(op);
         if (typeMap == null) {
             typeMap = new HashMap<PrimitiveType, PrimitiveType>();

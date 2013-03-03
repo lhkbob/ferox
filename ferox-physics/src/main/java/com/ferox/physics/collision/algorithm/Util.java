@@ -33,7 +33,8 @@ public class Util {
 
     public static double tripleProduct(@Const Vector3 a, @Const Vector3 b,
                                        @Const Vector3 c) {
-        return a.y * b.z * c.x + a.z * b.x * c.y - a.x * b.z * c.y - a.y * b.x * c.z + a.x * b.y * c.z - a.z * b.y * c.x;
+        return a.y * b.z * c.x + a.z * b.x * c.y - a.x * b.z * c.y - a.y * b.x * c.z +
+               a.x * b.y * c.z - a.z * b.y * c.x;
     }
 
     public static Vector3 normal(@Const Vector3 va, @Const Vector3 vb, @Const Vector3 vc,
@@ -52,7 +53,7 @@ public class Util {
         }
 
         // compute the cross-product of e1 and e2
-        return result.set(e1y * e2z - e2y * e1z, e1z * e2x - e2z * e1x,
-                          e1x * e2y - e2x * e1y);
+        return result
+                .set(e1y * e2z - e2y * e1z, e1z * e2x - e2z * e1x, e1x * e2y - e2x * e1y);
     }
 }

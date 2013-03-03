@@ -1,17 +1,9 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Struct;
-import com.ferox.resource.shader.StructBuilder;
-import com.ferox.resource.shader.Type;
+import com.ferox.resource.shader.*;
 import com.ferox.resource.shader.simple_grammar.Parameter.ParameterQualifier;
+
+import java.util.*;
 
 public class StructDefinition implements Struct {
     private final String identifier;
@@ -52,9 +44,10 @@ public class StructDefinition implements Struct {
         accumulator.pushIndent();
 
         for (int i = 0; i < parameters.length; i++) {
-            accumulator.addLine(parameters[i].getType()
-                                             .getTypeIdentifier(accumulator,
-                                                                parameters[i].getName()) + ";");
+            accumulator.addLine(parameters[i].getType().getTypeIdentifier(accumulator,
+                                                                          parameters[i]
+                                                                                  .getName()) +
+                                ";");
         }
 
         accumulator.popIndent();
@@ -87,8 +80,8 @@ public class StructDefinition implements Struct {
 
         @Override
         public Struct build() {
-            return new StructDefinition(identifier,
-                                        parameters.toArray(new Parameter[parameters.size()]));
+            return new StructDefinition(identifier, parameters
+                    .toArray(new Parameter[parameters.size()]));
         }
     }
 }

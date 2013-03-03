@@ -26,14 +26,6 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Drawable;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.Pbuffer;
-import org.lwjgl.opengl.PixelFormat;
-
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurfaceOptions;
@@ -44,13 +36,15 @@ import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.resource.Texture;
 import com.ferox.resource.TextureFormat;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.*;
 
 /**
- * LwjglPbufferTextureSurface is a TextureSurface implementation that relies on
- * pbuffers to render into an offscreen buffer before using the glCopyTexImage
- * command to move the buffer contents into a texture. PBuffers are slower than
- * FBOs so {@link LwjglFboTextureSurface} is favored when FBOs are supported.
- * 
+ * LwjglPbufferTextureSurface is a TextureSurface implementation that relies on pbuffers
+ * to render into an offscreen buffer before using the glCopyTexImage command to move the
+ * buffer contents into a texture. PBuffers are slower than FBOs so {@link
+ * LwjglFboTextureSurface} is favored when FBOs are supported.
+ *
  * @author Michael Ludwig
  */
 public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
@@ -95,7 +89,8 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             throw new FrameworkException("Error flushing Pbuffer", e);
         }
 
-        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0) : null; // will be 1 color target at max
+        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0)
+                                                 : null; // will be 1 color target at max
         Texture depth = getDepthBuffer();
 
         int ct = -1;
@@ -184,7 +179,8 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             pf = pf.withBitsPerPixel(0);
         } else {
             TextureFormat format = colors[0].getFormat();
-            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT || format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
+            if (format == TextureFormat.R_FLOAT || format == TextureFormat.RG_FLOAT ||
+                format == TextureFormat.RGB_FLOAT || format == TextureFormat.RGBA_FLOAT) {
                 pf = pf.withFloatingPoint(true);
             }
 

@@ -1,10 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.Function;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Type;
+import com.ferox.resource.shader.*;
 
 public class FunctionCall extends AbstractExpression {
     private final Function function;

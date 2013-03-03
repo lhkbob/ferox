@@ -35,13 +35,12 @@ import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.Unmanaged;
 
 /**
- * <p>
- * Transform represents an affine transform that transforms an Entity from its
- * local coordinate space into a coordinate space shared by all Entities within
- * a system (i.e. the world). This can be used to place lights, physics objects,
- * or objects to be rendered.
- * </p>
- * 
+ * <p/>
+ * Transform represents an affine transform that transforms an Entity from its local
+ * coordinate space into a coordinate space shared by all Entities within a system (i.e.
+ * the world). This can be used to place lights, physics objects, or objects to be
+ * rendered.
+ *
  * @author Michael Ludwig
  */
 public final class Transform extends ComponentData<Transform> {
@@ -54,13 +53,16 @@ public final class Transform extends ComponentData<Transform> {
     @Unmanaged
     private final Matrix4 cache = new Matrix4();
 
-    private Transform() {}
+    private Transform() {
+    }
 
     /**
      * Copy the given transform matrix into this Transform's matrix.
-     * 
+     *
      * @param m The new affine transform
+     *
      * @return This Transform for chaining purposes
+     *
      * @throws NullPointerException if m is null
      */
     public Transform setMatrix(@Const Matrix4 m) {
@@ -71,10 +73,10 @@ public final class Transform extends ComponentData<Transform> {
     }
 
     /**
-     * Return the matrix of this Transform. The returned Matrix4 instance is
-     * reused by this Transform instance so it should be cloned before changing
-     * which Component is referenced
-     * 
+     * Return the matrix of this Transform. The returned Matrix4 instance is reused by
+     * this Transform instance so it should be cloned before changing which Component is
+     * referenced
+     *
      * @return The current world affine transform matrix
      */
     @Const

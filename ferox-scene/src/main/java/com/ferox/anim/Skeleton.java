@@ -1,15 +1,11 @@
 package com.ferox.anim;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.ferox.scene.Transform;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.ObjectProperty;
+
+import java.util.*;
 
 @Requires(Transform.class)
 public class Skeleton extends ComponentData<Skeleton> {
@@ -21,7 +17,8 @@ public class Skeleton extends ComponentData<Skeleton> {
 
     private ObjectProperty<Bone> root;
 
-    private Skeleton() {}
+    private Skeleton() {
+    }
 
     public Skeleton addBone(Bone bone) {
         Bone old = getBoneMap().put(bone.getName(), bone);

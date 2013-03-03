@@ -32,23 +32,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
- * <p>
- * MouseKeyEventDispatcher is a convenience class that implements the necessary
- * logic to register and unregister listeners as required by the
- * {@link MouseEventSource} and {@link KeyEventSource} interfaces, and dispatch
- * events to those listeners.
- * <p>
- * Event sources can create a MouseKeyEventDispatcher and delegate their
- * interface methods to the dispatcher as appropriate. When their low-level
- * event system or polling produces an event, they can then invoke
- * {@link #dispatchEvent(Event)} to have their dispatcher invoke all listeners
- * on an internal thread.
- * <p>
- * When an event source is destroyed, they must be sure to call
- * {@link #shutdown()} to end the internal dispatch thread.
- * <p>
+ * <p/>
+ * MouseKeyEventDispatcher is a convenience class that implements the necessary logic to
+ * register and unregister listeners as required by the {@link MouseEventSource} and
+ * {@link KeyEventSource} interfaces, and dispatch events to those listeners.
+ * <p/>
+ * Event sources can create a MouseKeyEventDispatcher and delegate their interface methods
+ * to the dispatcher as appropriate. When their low-level event system or polling produces
+ * an event, they can then invoke {@link #dispatchEvent(Event)} to have their dispatcher
+ * invoke all listeners on an internal thread.
+ * <p/>
+ * When an event source is destroyed, they must be sure to call {@link #shutdown()} to end
+ * the internal dispatch thread.
+ * <p/>
  * This class is thread safe.
- * 
+ *
  * @author Michael Ludwig
  */
 public class MouseKeyEventDispatcher {
@@ -60,9 +58,8 @@ public class MouseKeyEventDispatcher {
 
     /**
      * Create a new MouseKeyEventDispatcher.
-     * 
-     * @param source The event source that produced events dispatched by this
-     *            dispatcher
+     *
+     * @param source The event source that produced events dispatched by this dispatcher
      */
     public MouseKeyEventDispatcher(MouseKeyEventSource source) {
         if (source == null) {
@@ -82,9 +79,8 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Function compatible with
-     * {@link KeyEventSource#addKeyListener(KeyListener)}.
-     * 
+     * Function compatible with {@link KeyEventSource#addKeyListener(KeyListener)}.
+     *
      * @param listener The listener to register
      */
     public void addKeyListener(KeyListener listener) {
@@ -95,9 +91,8 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Function compatible with
-     * {@link KeyEventSource#removeKeyListener(KeyListener)}.
-     * 
+     * Function compatible with {@link KeyEventSource#removeKeyListener(KeyListener)}.
+     *
      * @param listener The listener to unregister
      */
     public void removeKeyListener(KeyListener listener) {
@@ -108,9 +103,8 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Function compatible with
-     * {@link MouseEventSource#addMouseListener(MouseListener)}.
-     * 
+     * Function compatible with {@link MouseEventSource#addMouseListener(MouseListener)}.
+     *
      * @param listener The listener to register
      */
     public void addMouseListener(MouseListener listener) {
@@ -121,9 +115,8 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Function compatible with
-     * {@link MouseEventSource#addMouseListener(MouseListener)}.
-     * 
+     * Function compatible with {@link MouseEventSource#addMouseListener(MouseListener)}.
+     *
      * @param listener The listener to unregister
      */
     public void removeMouseListener(MouseListener listener) {
@@ -134,17 +127,18 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Dispatch the given event to all registered listeners that are interested
-     * in the event. This will be invoked on an internal thread managed by this
-     * dispatcher.
-     * 
+     * Dispatch the given event to all registered listeners that are interested in the
+     * event. This will be invoked on an internal thread managed by this dispatcher.
+     *
      * @param e The event to dispatch to listeners
-     * @throws IllegalArgumentException if e's source is not the same source as
-     *             the dispatcher's
+     *
+     * @throws IllegalArgumentException if e's source is not the same source as the
+     *                                  dispatcher's
      */
     public void dispatchEvent(Event e) {
         if (e.getSource() != source) {
-            throw new IllegalArgumentException("Event's source does not match this dispatcher's source");
+            throw new IllegalArgumentException(
+                    "Event's source does not match this dispatcher's source");
         }
 
         try {
@@ -153,7 +147,8 @@ public class MouseKeyEventDispatcher {
             } else if (e instanceof KeyEvent) {
                 executor.submit(new KeyEventTask((KeyEvent) e));
             } else {
-                throw new UnsupportedOperationException("Unsupported type of event: " + e.getClass());
+                throw new UnsupportedOperationException(
+                        "Unsupported type of event: " + e.getClass());
             }
         } catch (RejectedExecutionException ree) {
             // ignore
@@ -161,9 +156,8 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Shutdown the internal thread that processes dispatched events. After this
-     * is invoked, calls to {@link #dispatchEvent(Event)} will perform no
-     * action.
+     * Shutdown the internal thread that processes dispatched events. After this is
+     * invoked, calls to {@link #dispatchEvent(Event)} will perform no action.
      */
     public void shutdown() {
         executor.shutdownNow();

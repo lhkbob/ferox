@@ -1,10 +1,16 @@
 syntax: regexp
-\.project$
+^\.project$
 syntax: regexp
-\.settings$
+^\.classpath$
 syntax: regexp
-\.classpath$
+\.prefs$
 syntax: regexp
-/target$
+^\.settings$
 syntax: regexp
-\.DS_Store$
+^target$
+syntax: regexp
+^\.idea$
+syntax: regexp
+^.*\.iml$
+syntax: regexp
+^.DS_Store$

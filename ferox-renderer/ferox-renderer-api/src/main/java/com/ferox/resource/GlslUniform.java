@@ -29,14 +29,12 @@ package com.ferox.resource;
 import com.ferox.renderer.GlslRenderer;
 
 /**
- * <p>
- * GlslUniform represents a "static" variable that is assigned values from
- * outside the execution of its owning GlslShader. Each GlslShader has a set of
- * active uniforms that become defined after the hardware successfully compiles
- * the shader code. Use a {@link GlslRenderer} to query available GlslUniforms
- * and set uniform values.
- * </p>
- * 
+ * <p/>
+ * GlslUniform represents a "static" variable that is assigned values from outside the
+ * execution of its owning GlslShader. Each GlslShader has a set of active uniforms that
+ * become defined after the hardware successfully compiles the shader code. Use a {@link
+ * GlslRenderer} to query available GlslUniforms and set uniform values.
+ *
  * @author Michael Ludwig
  */
 public class GlslUniform {
@@ -96,9 +94,9 @@ public class GlslUniform {
     }
 
     /**
-     * Get the value type of this uniform. If getLength() > 1, then this is the
-     * component type of the array for the uniform.
-     * 
+     * Get the value type of this uniform. If getLength() > 1, then this is the component
+     * type of the array for the uniform.
+     *
      * @return The type of this uniform
      */
     public UniformType getType() {
@@ -106,9 +104,9 @@ public class GlslUniform {
     }
 
     /**
-     * Return the number of primitives of getType() used by this uniform. If
-     * it's > 1, then the uniform represents an array.
-     * 
+     * Return the number of primitives of getType() used by this uniform. If it's > 1,
+     * then the uniform represents an array.
+     *
      * @return Size of the uniform, in units of getType()
      */
     public int getLength() {
@@ -116,9 +114,9 @@ public class GlslUniform {
     }
 
     /**
-     * Return the name of the uniform as declared in the glsl code of the
-     * uniform's owner.
-     * 
+     * Return the name of the uniform as declared in the glsl code of the uniform's
+     * owner.
+     *
      * @return The name of the uniform
      */
     public String getName() {

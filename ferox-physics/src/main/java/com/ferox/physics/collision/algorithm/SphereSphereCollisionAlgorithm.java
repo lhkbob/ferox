@@ -34,15 +34,16 @@ import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.Sphere;
 
 /**
- * The SphereSphereCollisionAlgorithm is a CollisionAlgorithm optimized to
- * handle collision checks between two spheres.
- * 
+ * The SphereSphereCollisionAlgorithm is a CollisionAlgorithm optimized to handle
+ * collision checks between two spheres.
+ *
  * @author Michael Ludwig
  */
-public class SphereSphereCollisionAlgorithm implements CollisionAlgorithm<Sphere, Sphere> {
+public class SphereSphereCollisionAlgorithm
+        implements CollisionAlgorithm<Sphere, Sphere> {
     @Override
-    public ClosestPair getClosestPair(Sphere shapeA, @Const Matrix4 transA,
-                                      Sphere shapeB, @Const Matrix4 transB) {
+    public ClosestPair getClosestPair(Sphere shapeA, @Const Matrix4 transA, Sphere shapeB,
+                                      @Const Matrix4 transB) {
         Vector3 ca = new Vector3(transA.m03, transA.m13, transA.m23);
         Vector3 cb = new Vector3(transB.m03, transB.m13, transB.m23);
 

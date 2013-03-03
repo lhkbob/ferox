@@ -26,25 +26,20 @@
  */
 package com.ferox.math.entreri;
 
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Const;
+import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleDataStore;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Const;
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
-
 /**
- * ColorRGBProperty is a caching property that wraps a DoubleProperty as a
- * ColorRGB.
- * 
+ * ColorRGBProperty is a caching property that wraps a DoubleProperty as a ColorRGB.
+ *
  * @author Michael Ludwig
  */
 @Factory(ColorRGBProperty.Factory.class)
@@ -61,12 +56,12 @@ public class ColorRGBProperty implements Property {
     }
 
     /**
-     * Get the color of this property, for the component at the given index, and
-     * store it into <tt>result</tt>. If result is null, a new ColorRGB is
-     * created and returned.
-     * 
-     * @param index The component index to retrieve
+     * Get the color of this property, for the component at the given index, and store it
+     * into <tt>result</tt>. If result is null, a new ColorRGB is created and returned.
+     *
+     * @param index  The component index to retrieve
      * @param result The color to store the data for the requested component
+     *
      * @return result, or a new ColorRGB if result was null
      */
     public ColorRGB get(int index, ColorRGB result) {
@@ -79,11 +74,12 @@ public class ColorRGBProperty implements Property {
     }
 
     /**
-     * Copy the values of <tt>v</tt> into the underlying data of this property,
-     * for the component at the given index.
-     * 
-     * @param v The color to copy
+     * Copy the values of <tt>v</tt> into the underlying data of this property, for the
+     * component at the given index.
+     *
+     * @param v     The color to copy
      * @param index The index of the component being modified
+     *
      * @throws NullPointerException if v is null
      */
     public void set(@Const ColorRGB v, int index) {
@@ -102,7 +98,7 @@ public class ColorRGBProperty implements Property {
 
     /**
      * Attribute annotation to apply to ColorRGBProperty declarations.
-     * 
+     *
      * @author Michael Ludwig
      */
     @Attribute
@@ -126,9 +122,9 @@ public class ColorRGBProperty implements Property {
     }
 
     /**
-     * Default factory implementation for ColorRGBProperties, supports the
-     * {@link DefaultColor} annotation to specify the default color.
-     * 
+     * Default factory implementation for ColorRGBProperties, supports the {@link
+     * DefaultColor} annotation to specify the default color.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<ColorRGBProperty> {

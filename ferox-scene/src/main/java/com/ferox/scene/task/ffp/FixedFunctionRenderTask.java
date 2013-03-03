@@ -1,54 +1,17 @@
 package com.ferox.scene.task.ffp;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.Future;
-
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.ColorRGB;
-import com.ferox.math.Functions;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.math.bounds.Frustum.FrustumIntersection;
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.Surface;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Resource.UpdatePolicy;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexAttribute;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.VertexBufferObject.StorageMode;
-import com.ferox.scene.AmbientLight;
-import com.ferox.scene.AtmosphericFog;
-import com.ferox.scene.BlinnPhongMaterial;
-import com.ferox.scene.Camera;
-import com.ferox.scene.DecalColorMap;
-import com.ferox.scene.DiffuseColor;
-import com.ferox.scene.DiffuseColorMap;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.EmittedColor;
-import com.ferox.scene.EmittedColorMap;
-import com.ferox.scene.InfluenceRegion;
-import com.ferox.scene.Light;
-import com.ferox.scene.PointLight;
-import com.ferox.scene.Renderable;
-import com.ferox.scene.SpecularColor;
-import com.ferox.scene.SpecularColorMap;
-import com.ferox.scene.SpotLight;
-import com.ferox.scene.Transform;
-import com.ferox.scene.Transparent;
+import com.ferox.scene.*;
 import com.ferox.scene.task.PVSResult;
 import com.ferox.scene.task.light.LightGroupResult;
 import com.ferox.util.Bag;
@@ -64,8 +27,12 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.*;
+import java.util.concurrent.Future;
+
 public class FixedFunctionRenderTask implements Task, ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(AmbientLight.class);
@@ -134,14 +101,16 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         this(framework, 1024, true);
     }
 
-    public FixedFunctionRenderTask(Framework framework, int shadowMapSize, boolean flush) {
+    public FixedFunctionRenderTask(Framework framework, int shadowMapSize,
+                                   boolean flush) {
         if (framework == null) {
             throw new NullPointerException("Framework cannot be null");
         }
 
         RenderCapabilities caps = framework.getCapabilities();
         if (!caps.hasFixedFunctionRenderer()) {
-            throw new IllegalArgumentException("Framework must support a FixedFunctionRenderer");
+            throw new IllegalArgumentException(
+                    "Framework must support a FixedFunctionRenderer");
         }
 
         this.framework = framework;
@@ -154,7 +123,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         int numTex = caps.getMaxFixedPipelineTextures();
         boolean shadowsRequested = shadowMapSize > 0; // size is positive
-        boolean shadowSupport = ((caps.getFboSupport() || caps.getPbufferSupport()) && numTex > 1 && caps.getDepthTextureSupport());
+        boolean shadowSupport = ((caps.getFboSupport() || caps.getPbufferSupport()) &&
+                                 numTex > 1 && caps.getDepthTextureSupport());
 
         if (shadowsRequested && shadowSupport) {
             // convert size to a power of two
@@ -197,13 +167,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             decalTextureUnit = -1;
         }
 
-        frameA = new Frame(shadowMapA,
-                           diffuseTextureUnit,
-                           decalTextureUnit,
+        frameA = new Frame(shadowMapA, diffuseTextureUnit, decalTextureUnit,
                            emissiveTextureUnit);
-        frameB = new Frame(shadowMapB,
-                           diffuseTextureUnit,
-                           decalTextureUnit,
+        frameB = new Frame(shadowMapB, diffuseTextureUnit, decalTextureUnit,
                            emissiveTextureUnit);
     }
 
@@ -351,7 +317,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 }
 
                 FrustumIntersection fi = frustum.intersects(bounds, null);
-                double boundVolume = (bounds.max.x - bounds.min.x) * (bounds.max.y - bounds.min.y) * (bounds.max.z - bounds.min.z);
+                double boundVolume =
+                        (bounds.max.x - bounds.min.x) * (bounds.max.y - bounds.min.y) *
+                        (bounds.max.z - bounds.min.z);
                 if (influence.isNegated()) {
                     if (fi == FrustumIntersection.INSIDE) {
                         // view is inside negated region
@@ -370,10 +338,10 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             }
 
             // compare
-            if (bestState == null || volume < bestVolume || (Math.abs(volume - bestVolume) < .001 && fog.getColor()
-                                                                                                        .luminance() > bestLuminance)) {
-                bestState = new FogState(fog.getColor(),
-                                         fog.getFalloff(),
+            if (bestState == null || volume < bestVolume ||
+                (Math.abs(volume - bestVolume) < .001 &&
+                 fog.getColor().luminance() > bestLuminance)) {
+                bestState = new FogState(fog.getColor(), fog.getFalloff(),
                                          fog.getOpaqueDistance());
                 bestVolume = volume;
                 bestLuminance = fog.getColor().luminance();
@@ -383,11 +351,11 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         return (bestState == null ? null : new StateNode(bestState));
     }
 
-    private com.ferox.renderer.Task<Void> buildTree(Bag<Entity> pvs,
-                                                    final Frustum camera, Frame frame,
-                                                    final Surface surface) {
+    private com.ferox.renderer.Task<Void> buildTree(Bag<Entity> pvs, final Frustum camera,
+                                                    Frame frame, final Surface surface) {
         // static tree construction that doesn't depend on entities
-        final StateNode root = new StateNode(new CameraState(camera)); // children = (opaque, trans) or fog
+        final StateNode root = new StateNode(
+                new CameraState(camera)); // children = (opaque, trans) or fog
         StateNode fogNode = getFogNode(camera); // children = (opaque, trans) if non-null
         StateNode opaqueNode = new StateNode(TransparentState.OPAQUE);
 
@@ -402,7 +370,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         // lit and unlit state nodes for opaque node
         StateNode litNode = new StateNode(LightingState.LIT); // child = shadowmap state
-        StateNode unlitNode = new StateNode(LightingState.UNLIT); // child = texture states
+        StateNode unlitNode = new StateNode(
+                LightingState.UNLIT); // child = texture states
         StateNode smNode = new StateNode(new ShadowMapState(frame.shadowMap,
                                                             shadowmapTextureUnit)); // children = light groups
 
@@ -413,17 +382,16 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // insert light group nodes
         IntProperty groupAssgn = lightGroups.getAssignmentProperty();
         for (int i = 0; i < lightGroups.getGroupCount(); i++) {
-            smNode.setChild(i,
-                            new StateNode(new LightGroupState(lightGroups.getGroup(i),
-                                                              frame.shadowMap.getShadowCastingLights(),
-                                                              framework.getCapabilities()
-                                                                       .getMaxActiveLights(),
-                                                              directionLight,
-                                                              spotLight,
-                                                              pointLight,
-                                                              ambientLight,
-                                                              transform),
-                                          frame.textureStates.count()));
+            smNode.setChild(i, new StateNode(new LightGroupState(lightGroups.getGroup(i),
+                                                                 frame.shadowMap
+                                                                      .getShadowCastingLights(),
+                                                                 framework
+                                                                         .getCapabilities()
+                                                                         .getMaxActiveLights(),
+                                                                 directionLight,
+                                                                 spotLight, pointLight,
+                                                                 ambientLight, transform),
+                                             frame.textureStates.count()));
         }
 
         // bag to collect transparent entities for sorting
@@ -441,7 +409,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             }
 
             // first node is either the proper light group, or the unlit node
-            StateNode firstNode = (atom.blinnPhongVersion >= 0 ? smNode.getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
+            StateNode firstNode = (atom.blinnPhongVersion >= 0 ? smNode
+                    .getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
             addOpaqueAtom(e, atom, firstNode, frame, groupAssgn);
         }
 
@@ -455,7 +424,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                     Matrix4 m = transform.getMatrix();
                     Matrix4 v = camera.getViewMatrix();
                     // transformed z value is 3rd row of view dotted with 4th col of the model
-                    double cameraDepth = m.m03 * v.m20 + m.m13 * v.m21 + m.m23 * v.m22 + m.m33 + v.m23;
+                    double cameraDepth =
+                            m.m03 * v.m20 + m.m13 * v.m21 + m.m23 * v.m22 + m.m33 + v.m23;
                     return Functions.sortableFloatToIntBits((float) cameraDepth);
                 }
             });
@@ -481,19 +451,22 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 e.get(renderable);
                 atom = frame.atoms.get(renderable.getIndex());
 
-                boolean litUpdate = (nodeIsLit ? atom.blinnPhongVersion < 0 : atom.blinnPhongVersion >= 0);
-                boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending : atom.additiveBlending);
+                boolean litUpdate = (nodeIsLit ? atom.blinnPhongVersion < 0
+                                               : atom.blinnPhongVersion >= 0);
+                boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending
+                                                      : atom.additiveBlending);
                 if (lastNode == null || litUpdate || blendUpdate) {
-                    StateNode blendNode = new StateNode(atom.additiveBlending ? TransparentState.ADDITIVE : TransparentState.NORMAL,
-                                                        1);
+                    StateNode blendNode = new StateNode(
+                            atom.additiveBlending ? TransparentState.ADDITIVE
+                                                  : TransparentState.NORMAL, 1);
                     transparentRoot.addChild(blendNode);
 
                     if (atom.blinnPhongVersion >= 0) {
                         StateNode lit = new StateNode(LightingState.LIT, 1);
                         blendNode.addChild(lit);
-                        StateNode sm = new StateNode(smNode.getChild(groupAssgn.get(renderable.getIndex()))
-                                                           .getState(),
-                                                     1);
+                        StateNode sm = new StateNode(
+                                smNode.getChild(groupAssgn.get(renderable.getIndex()))
+                                      .getState(), 1);
                         lit.addChild(sm);
 
                         lastNode = sm;
@@ -549,24 +522,24 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                     StateNode firstNode, Frame frame,
                                     IntProperty groupAssgn) {
         // texture state
-        StateNode texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
-                                          1);
+        StateNode texNode = new StateNode(
+                frame.textureStates.getState(atom.textureStateIndex), 1);
         firstNode.addChild(texNode);
 
         // geometry state
-        StateNode geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
-                                           1);
+        StateNode geomNode = new StateNode(
+                frame.geometryStates.getState(atom.geometryStateIndex), 1);
         texNode.setChild(0, geomNode);
 
         // color state
-        StateNode colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex),
-                                            1);
+        StateNode colorNode = new StateNode(
+                frame.colorStates.getState(atom.colorStateIndex), 1);
         geomNode.setChild(0, colorNode);
 
         // transparent render state
-        StateNode renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
-                                                               .newTransparentRenderState(vertices,
-                                                                                          frame.sortedIndices));
+        StateNode renderNode = new StateNode(
+                frame.renderStates.getState(atom.renderStateIndex)
+                     .newTransparentRenderState(vertices, frame.sortedIndices));
         colorNode.setChild(0, renderNode);
 
         // now record transform into the state
@@ -588,8 +561,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // geometry state
         StateNode geomNode = texNode.getChild(atom.geometryStateIndex);
         if (geomNode == null) {
-            geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
-                                     frame.colorStates.count());
+            geomNode = new StateNode(
+                    frame.geometryStates.getState(atom.geometryStateIndex),
+                    frame.colorStates.count());
             texNode.setChild(atom.geometryStateIndex, geomNode);
         }
 
@@ -607,7 +581,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             // must clone the geometry since each node accumulates its own
             // packed transforms that must be rendered
             renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
-                                                         .newOpaqueRenderState());
+                                            .newOpaqueRenderState());
             colorNode.setChild(atom.renderStateIndex, renderNode);
         }
 
@@ -620,36 +594,50 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // sync render state and draw state
         int newRenderableVersion = (e.get(renderable) ? renderable.getVersion() : -1);
         if (newRenderableVersion != atom.renderableVersion || atom.renderStateIndex < 0) {
-            atom.renderStateIndex = frame.getRenderState(renderable,
-                                                         atom.renderStateIndex);
+            atom.renderStateIndex = frame
+                    .getRenderState(renderable, atom.renderStateIndex);
         }
 
         // sync geometry state
         int newBlinnPhongVersion = (e.get(blinnPhong) ? blinnPhong.getVersion() : -1);
-        if (atom.blinnPhongVersion != newBlinnPhongVersion || atom.renderableVersion != newRenderableVersion || atom.geometryStateIndex < 0) {
-            atom.geometryStateIndex = frame.getGeometryState(renderable, blinnPhong,
-                                                             atom.geometryStateIndex);
+        if (atom.blinnPhongVersion != newBlinnPhongVersion ||
+            atom.renderableVersion != newRenderableVersion ||
+            atom.geometryStateIndex < 0) {
+            atom.geometryStateIndex = frame
+                    .getGeometryState(renderable, blinnPhong, atom.geometryStateIndex);
         }
 
         // sync texture state
-        int newDiffuseTexVersion = (e.get(diffuseTexture) ? diffuseTexture.getVersion() : -1);
+        int newDiffuseTexVersion = (e.get(diffuseTexture) ? diffuseTexture.getVersion()
+                                                          : -1);
         int newDecalTexVersion = (e.get(decalTexture) ? decalTexture.getVersion() : -1);
-        int newEmittedTexVersion = (e.get(emittedTexture) ? emittedTexture.getVersion() : -1);
-        if (newDiffuseTexVersion != atom.diffuseTextureVersion || newDecalTexVersion != atom.decalTextureVersion || newEmittedTexVersion != atom.emittedTextureVersion || atom.textureStateIndex < 0) {
-            atom.textureStateIndex = frame.getTextureState(diffuseTexture, decalTexture,
-                                                           emittedTexture,
-                                                           atom.textureStateIndex);
+        int newEmittedTexVersion = (e.get(emittedTexture) ? emittedTexture.getVersion()
+                                                          : -1);
+        if (newDiffuseTexVersion != atom.diffuseTextureVersion ||
+            newDecalTexVersion != atom.decalTextureVersion ||
+            newEmittedTexVersion != atom.emittedTextureVersion ||
+            atom.textureStateIndex < 0) {
+            atom.textureStateIndex = frame
+                    .getTextureState(diffuseTexture, decalTexture, emittedTexture,
+                                     atom.textureStateIndex);
         }
 
         // sync color state
         int newTransparentVersion = (e.get(transparent) ? transparent.getVersion() : -1);
-        int newDiffuseColorVersion = (e.get(diffuseColor) ? diffuseColor.getVersion() : -1);
-        int newSpecularColorVersion = (e.get(specularColor) ? specularColor.getVersion() : -1);
-        int newEmittedColorVersion = (e.get(emittedColor) ? emittedColor.getVersion() : -1);
-        if (newTransparentVersion != atom.transparentVersion || newDiffuseColorVersion != atom.diffuseColorVersion || newSpecularColorVersion != atom.specularColorVersion || newEmittedColorVersion != atom.emittedColorVersion || atom.colorStateIndex < 0) {
-            atom.colorStateIndex = frame.getColorState(diffuseColor, specularColor,
-                                                       emittedColor, transparent,
-                                                       blinnPhong, atom.colorStateIndex);
+        int newDiffuseColorVersion = (e.get(diffuseColor) ? diffuseColor.getVersion()
+                                                          : -1);
+        int newSpecularColorVersion = (e.get(specularColor) ? specularColor.getVersion()
+                                                            : -1);
+        int newEmittedColorVersion = (e.get(emittedColor) ? emittedColor.getVersion()
+                                                          : -1);
+        if (newTransparentVersion != atom.transparentVersion ||
+            newDiffuseColorVersion != atom.diffuseColorVersion ||
+            newSpecularColorVersion != atom.specularColorVersion ||
+            newEmittedColorVersion != atom.emittedColorVersion ||
+            atom.colorStateIndex < 0) {
+            atom.colorStateIndex = frame
+                    .getColorState(diffuseColor, specularColor, emittedColor, transparent,
+                                   blinnPhong, atom.colorStateIndex);
         }
 
         atom.additiveBlending = transparent.isEnabled() && transparent.isAdditive();
@@ -723,8 +711,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 emittedCoord = emitted.getTextureCoordinates();
             }
 
-            TextureState state = new TextureState(diffuseTextureUnit,
-                                                  decalTextureUnit,
+            TextureState state = new TextureState(diffuseTextureUnit, decalTextureUnit,
                                                   emissiveTextureUnit);
             state.set(diffuseTex, diffuseCoord, decalTex, decalCoord, emittedTex,
                       emittedCoord);
@@ -736,7 +723,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                              int oldIndex) {
             // we can assume that the renderable is always valid, since
             // we're processing renderable entities
-            VertexAttribute norms = (blinnPhong.isEnabled() ? blinnPhong.getNormals() : null);
+            VertexAttribute norms = (blinnPhong.isEnabled() ? blinnPhong.getNormals()
+                                                            : null);
 
             GeometryState state = new GeometryState();
             state.set(renderable.getVertices(), norms, renderable.getFrontDrawStyle(),
@@ -782,7 +770,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         }
 
         boolean needsReset() {
-            return textureStates.needsReset() || geometryStates.needsReset() || colorStates.needsReset() || renderStates.needsReset();
+            return textureStates.needsReset() || geometryStates.needsReset() ||
+                   colorStates.needsReset() || renderStates.needsReset();
         }
 
         @SuppressWarnings("unchecked")

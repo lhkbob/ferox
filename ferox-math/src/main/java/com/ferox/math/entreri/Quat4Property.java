@@ -26,24 +26,20 @@
  */
 package com.ferox.math.entreri;
 
+import com.ferox.math.Const;
+import com.ferox.math.Quat4;
+import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleDataStore;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.ferox.math.Const;
-import com.ferox.math.Quat4;
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
-
 /**
  * Quat4Property is a caching property that wraps a DoubleProperty as a Quat4.
- * 
+ *
  * @author Michael Ludwig
  */
 @Factory(Quat4Property.Factory.class)
@@ -60,13 +56,13 @@ public class Quat4Property implements Property {
     }
 
     /**
-     * Get the quaternion of this property, for the component at the given
-     * index, and store it into <tt>result</tt>. If result is null, a new Quat4
-     * is created and returned.
-     * 
-     * @param index The component index to retrieve
-     * @param result The quaternion to store the data for the requested
-     *            component
+     * Get the quaternion of this property, for the component at the given index, and
+     * store it into <tt>result</tt>. If result is null, a new Quat4 is created and
+     * returned.
+     *
+     * @param index  The component index to retrieve
+     * @param result The quaternion to store the data for the requested component
+     *
      * @return result, or a new Quat4 if result was null
      */
     public Quat4 get(int index, Quat4 result) {
@@ -79,11 +75,12 @@ public class Quat4Property implements Property {
     }
 
     /**
-     * Copy the values of <tt>v</tt> into the underlying data of this property,
-     * for the component at the given index.
-     * 
-     * @param v The quaternion to copy
+     * Copy the values of <tt>v</tt> into the underlying data of this property, for the
+     * component at the given index.
+     *
+     * @param v     The quaternion to copy
      * @param index The index of the component being modified
+     *
      * @throws NullPointerException if v is null
      */
     public void set(@Const Quat4 v, int index) {
@@ -102,7 +99,7 @@ public class Quat4Property implements Property {
 
     /**
      * Attribute annotation to apply to Quat4Property declarations.
-     * 
+     *
      * @author Michael Ludwig
      */
     @Attribute
@@ -131,10 +128,9 @@ public class Quat4Property implements Property {
     }
 
     /**
-     * Default factory implementation for Quat4Properties, supports the
-     * {@link DefaultQuat4} annotation to specify the default quaternion
-     * coordinates.
-     * 
+     * Default factory implementation for Quat4Properties, supports the {@link
+     * DefaultQuat4} annotation to specify the default quaternion coordinates.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<Quat4Property> {

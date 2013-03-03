@@ -26,18 +26,6 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-
-import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL14;
-
 import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
@@ -46,11 +34,14 @@ import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.resource.Texture;
 import com.ferox.resource.Texture.Target;
 import com.ferox.resource.Texture.WrapMode;
+import org.lwjgl.opengl.*;
+
+import java.nio.*;
 
 /**
- * LwjglTextureResourceDriver is a concrete ResourceDriver that handles Texture
- * objects and uses the JOGL OpenGL binding.
- * 
+ * LwjglTextureResourceDriver is a concrete ResourceDriver that handles Texture objects
+ * and uses the JOGL OpenGL binding.
+ *
  * @author Michael Ludwig
  */
 // FIXME: I seem to have lost the rules for supported depth targets and compressed targets,
@@ -116,11 +107,12 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                 GL11.glTexParameteri(target, GL14.GL_TEXTURE_COMPARE_FUNC,
                                      Utils.getGLPixelTest(handle.depthTest));
             }
-            if (handle.enableDepthCompare == null || handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
+            if (handle.enableDepthCompare == null ||
+                handle.enableDepthCompare != tex.isDepthCompareEnabled()) {
                 handle.enableDepthCompare = tex.isDepthCompareEnabled();
-                GL11.glTexParameteri(target,
-                                     GL14.GL_TEXTURE_COMPARE_MODE,
-                                     (handle.enableDepthCompare ? GL14.GL_COMPARE_R_TO_TEXTURE : GL11.GL_NONE));
+                GL11.glTexParameteri(target, GL14.GL_TEXTURE_COMPARE_MODE,
+                                     (handle.enableDepthCompare
+                                      ? GL14.GL_COMPARE_R_TO_TEXTURE : GL11.GL_NONE));
             }
         }
 
@@ -187,11 +179,12 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
                               int mipmap, int width, int height, int depth, int capacity,
                               Buffer data) {
         // note that 1D and 3D targets don't support or expect compressed textures
-        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
+        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
+                                                   : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
         int dstFormat = Utils.getGLDstFormat(h.format, h.type);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
-                                                                                                  false));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format)
+                                              : Utils.getGLType(h.type, false));
 
         switch (h.target) {
         case T_1D:
@@ -269,10 +262,11 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
     protected void glTexSubImage(OpenGLContext context, TextureHandle h, int layer,
                                  int mipmap, int x, int y, int z, int width, int height,
                                  int depth, Buffer data) {
-        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer) : Utils.getGLTextureTarget(h.target));
+        int target = (h.target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
+                                                   : Utils.getGLTextureTarget(h.target));
         int srcFormat = Utils.getGLSrcFormat(h.format);
-        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format) : Utils.getGLType(h.type,
-                                                                                                  false));
+        int type = (h.format.isPackedFormat() ? Utils.getGLPackedType(h.format)
+                                              : Utils.getGLType(h.type, false));
 
         switch (h.target) {
         case T_1D:
@@ -299,20 +293,20 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
         case T_CUBEMAP:
             switch (h.type) {
             case FLOAT:
-                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
-                                     type, (FloatBuffer) data);
+                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat, type,
+                                     (FloatBuffer) data);
                 break;
             case BYTE:
-                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
-                                     type, (ByteBuffer) data);
+                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat, type,
+                                     (ByteBuffer) data);
                 break;
             case INT:
-                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
-                                     type, (IntBuffer) data);
+                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat, type,
+                                     (IntBuffer) data);
                 break;
             case SHORT:
-                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat,
-                                     type, (ShortBuffer) data);
+                GL11.glTexSubImage2D(target, mipmap, x, y, width, height, srcFormat, type,
+                                     (ShortBuffer) data);
                 break;
             }
             break;

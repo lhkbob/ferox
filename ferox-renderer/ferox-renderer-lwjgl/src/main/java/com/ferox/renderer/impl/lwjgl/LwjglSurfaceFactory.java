@@ -26,37 +26,24 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.ferox.renderer.*;
+import com.ferox.renderer.DisplayMode.PixelFormat;
+import com.ferox.renderer.impl.*;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.Pbuffer;
 
-import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.DisplayMode.PixelFormat;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.FrameworkException;
-import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.SurfaceCreationException;
-import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.AbstractFramework;
-import com.ferox.renderer.impl.AbstractOnscreenSurface;
-import com.ferox.renderer.impl.AbstractTextureSurface;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.RendererProvider;
-import com.ferox.renderer.impl.SurfaceFactory;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * LwjglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL
- * wrapper. It uses {@link LwjglAWTSurface}, {@link LwjglFboTextureSurface},
- * {@link LwjglPbufferTextureSurface} for its surface implementations. It uses
- * the {@link LWJGLFixedFunctionRenderer} and {@link LwjglGlslRenderer} for its
- * renderer implementations.
- * 
+ * LwjglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It
+ * uses {@link LwjglAWTSurface}, {@link LwjglFboTextureSurface}, {@link
+ * LwjglPbufferTextureSurface} for its surface implementations. It uses the {@link
+ * LWJGLFixedFunctionRenderer} and {@link LwjglGlslRenderer} for its renderer
+ * implementations.
+ *
  * @author Michael Ludwig
  */
 public class LwjglSurfaceFactory extends SurfaceFactory {
@@ -70,12 +57,12 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
     /**
-     * Create a new LwjglSurfaceFactory that will use the given profile and
-     * capability bits. The bit mask uses the bit flags defined in
-     * {@link LwjglRenderCapabilities}.
-     * 
+     * Create a new LwjglSurfaceFactory that will use the given profile and capability
+     * bits. The bit mask uses the bit flags defined in {@link LwjglRenderCapabilities}.
+     *
      * @param profile The GLProfile
      * @param capBits The forced capabilities
+     *
      * @throws NullPointerException if profile is null
      */
     public LwjglSurfaceFactory(int capBits) {
@@ -93,8 +80,9 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                 DisplayMode feroxMode = convert(lwjglMode);
                 if (convertMap.containsKey(feroxMode)) {
                     // compare refresh rates and pick the one closest to target
-                    if (Math.abs(TARGET_REFRESH_RATE - lwjglMode.getFrequency()) < Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode)
-                                                                                                                            .getFrequency())) {
+                    if (Math.abs(TARGET_REFRESH_RATE - lwjglMode.getFrequency()) <
+                        Math.abs(TARGET_REFRESH_RATE -
+                                 convertMap.get(feroxMode).getFrequency())) {
                         convertMap.put(feroxMode, lwjglMode);
                     }
                 } else {
@@ -103,8 +91,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                 }
             }
         } catch (LWJGLException e) {
-            throw new FrameworkException("Unable to query available DisplayModes through LWJGL",
-                                         e);
+            throw new FrameworkException(
+                    "Unable to query available DisplayModes through LWJGL", e);
         }
 
         availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
@@ -112,17 +100,19 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     }
 
     /**
-     * Return an LWJGL DisplayMode that exactly matches the given DisplayMode,
-     * or null if there was no exact match.
-     * 
+     * Return an LWJGL DisplayMode that exactly matches the given DisplayMode, or null if
+     * there was no exact match.
+     *
      * @param mode The mode to "convert"
+     *
      * @return The AWT DisplayMode matching mode, or null
      */
     public org.lwjgl.opengl.DisplayMode getLWJGLDisplayMode(DisplayMode mode) {
         return convertMap.get(mode);
     }
 
-    public org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request) {
+    public org.lwjgl.opengl.PixelFormat choosePixelFormat(
+            OnscreenSurfaceOptions request) {
         PixelFormat pf;
         if (request.getFullscreenMode() != null) {
             pf = request.getFullscreenMode().getPixelFormat();
@@ -226,13 +216,12 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         if (framework.getCapabilities().getFboSupport()) {
             return new LwjglFboTextureSurface(framework, this, options);
         } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new LwjglPbufferTextureSurface(framework,
-                                                  this,
-                                                  options,
+            return new LwjglPbufferTextureSurface(framework, this, options,
                                                   (LwjglContext) sharedContext,
                                                   new LwjglRendererProvider());
         } else {
-            throw new SurfaceCreationException("No render-to-texture support on current hardware");
+            throw new SurfaceCreationException(
+                    "No render-to-texture support on current hardware");
         }
     }
 
@@ -240,8 +229,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework,
-                                                                          this,
+        LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework, this,
                                                                           options,
                                                                           (LwjglContext) sharedContext,
                                                                           new LwjglRendererProvider());
@@ -251,18 +239,19 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
+        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 &&
+            (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
             return PbufferShadowContext.create(this, (LwjglContext) sharedContext,
                                                new LwjglRendererProvider());
         } else {
-            throw new FrameworkException("No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
+            throw new FrameworkException(
+                    "No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
         }
     }
 
     /**
-     * @return The capabilities bits this factory was created with, to be passed
-     *         into the constructor of all related
-     *         {@link LwjglRenderCapabilities}
+     * @return The capabilities bits this factory was created with, to be passed into the
+     *         constructor of all related {@link LwjglRenderCapabilities}
      */
     public int getCapabilityForceBits() {
         return capBits;

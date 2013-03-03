@@ -1,11 +1,11 @@
 package com.ferox.anim;
 
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
 
 public class KeyFrame {
     private final double keyTime;

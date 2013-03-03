@@ -1,11 +1,6 @@
 package com.ferox.resource.shader.simple_grammar;
 
-import com.ferox.resource.shader.Environment;
-import com.ferox.resource.shader.Expression;
-import com.ferox.resource.shader.IfBuilder;
-import com.ferox.resource.shader.PrimitiveType;
-import com.ferox.resource.shader.ShaderAccumulator;
-import com.ferox.resource.shader.Statement;
+import com.ferox.resource.shader.*;
 
 public class IfThenElse implements Statement {
     private final Expression condition;
@@ -22,7 +17,8 @@ public class IfThenElse implements Statement {
     public Environment validate(Environment environment) {
         environment = condition.validate(environment);
         if (condition.getType(environment).equals(PrimitiveType.BOOL)) {
-            throw new IllegalStateException("If condition expression must evaluate to a boolean");
+            throw new IllegalStateException(
+                    "If condition expression must evaluate to a boolean");
         }
         if (condition.containsDeclaration()) {
             throw new IllegalStateException("If condition cannot contain a declaration");

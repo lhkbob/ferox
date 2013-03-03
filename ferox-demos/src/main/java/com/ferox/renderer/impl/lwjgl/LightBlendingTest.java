@@ -26,23 +26,19 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import java.util.concurrent.Future;
-
 import com.ferox.input.logic.InputManager;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.renderer.OnscreenSurface;
+import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.Task;
 import com.ferox.resource.geom.Box;
 import com.ferox.resource.geom.Geometry;
 import com.ferox.util.ApplicationStub;
+
+import java.util.concurrent.Future;
 
 public class LightBlendingTest extends ApplicationStub {
     private Geometry shape;
@@ -55,14 +51,13 @@ public class LightBlendingTest extends ApplicationStub {
     }
 
     @Override
-    protected void installInputHandlers(InputManager io) {}
+    protected void installInputHandlers(InputManager io) {
+    }
 
     @Override
     protected void init(OnscreenSurface surface) {
         shape = Box.create(3.0);
-        frustum = new Frustum(60f,
-                              surface.getWidth() / (double) surface.getHeight(),
-                              .1,
+        frustum = new Frustum(60f, surface.getWidth() / (double) surface.getHeight(), .1,
                               100);
         frustum.setOrientation(new Vector3(0, 2, -5), new Vector3(0, 0, 1),
                                new Vector3(0, 1, 0));

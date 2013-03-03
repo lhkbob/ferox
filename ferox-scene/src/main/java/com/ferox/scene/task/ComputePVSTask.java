@@ -26,9 +26,6 @@
  */
 package com.ferox.scene.task;
 
-import java.util.Collections;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.bounds.QueryCallback;
@@ -42,6 +39,9 @@ import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class ComputePVSTask implements Task, ParallelAware {
     // results
@@ -93,11 +93,11 @@ public class ComputePVSTask implements Task, ParallelAware {
         private final Bag<Entity> pvs;
 
         /**
-         * Create a new VisibilityCallback that set each discovered Entity with
-         * a Transform's visibility to true for the given entity,
-         * <tt>camera</tt>.
-         * 
+         * Create a new VisibilityCallback that set each discovered Entity with a
+         * Transform's visibility to true for the given entity, <tt>camera</tt>.
+         *
          * @param camera The Entity that will be flagged as visible
+         *
          * @throws NullPointerException if camera is null
          */
         public VisibilityCallback(EntitySystem system) {
@@ -117,7 +117,7 @@ public class ComputePVSTask implements Task, ParallelAware {
 
     @Override
     public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>> singleton(Renderable.class);
+        return Collections.<Class<? extends ComponentData<?>>>singleton(Renderable.class);
     }
 
     @Override

@@ -1,28 +1,19 @@
 package com.ferox.resource.shader;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
-import com.ferox.resource.shader.simple_grammar.Constant;
-import com.ferox.resource.shader.simple_grammar.DoWhileLoop;
-import com.ferox.resource.shader.simple_grammar.ForLoop;
-import com.ferox.resource.shader.simple_grammar.FunctionDefinition;
-import com.ferox.resource.shader.simple_grammar.IfThenElse;
-import com.ferox.resource.shader.simple_grammar.Jump;
+import com.ferox.resource.shader.simple_grammar.*;
 import com.ferox.resource.shader.simple_grammar.Jump.JumpType;
-import com.ferox.resource.shader.simple_grammar.LocalDeclaration;
-import com.ferox.resource.shader.simple_grammar.StructDefinition;
-import com.ferox.resource.shader.simple_grammar.Variable;
-import com.ferox.resource.shader.simple_grammar.VertexShaderImpl;
-import com.ferox.resource.shader.simple_grammar.WhileLoop;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class ShaderBuilder {
     // FIXME define public static final Function definitions for builtin functions
 
-    private ShaderBuilder() {}
+    private ShaderBuilder() {
+    }
 
     public static VertexShaderBuilder newVertexShader() {
         return new VertexShaderImpl.Builder();

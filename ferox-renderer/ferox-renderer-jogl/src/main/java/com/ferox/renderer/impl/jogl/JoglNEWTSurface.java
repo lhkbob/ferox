@@ -26,14 +26,6 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2GL3;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLDrawableFactory;
-
 import com.ferox.input.KeyListener;
 import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
@@ -52,6 +44,9 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
+
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import javax.media.opengl.*;
 
 public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowListener {
     private final Window window;
@@ -81,7 +76,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         }
 
         if (options.getFullscreenMode() != null) {
-            options = options.setFullscreenMode(factory.chooseCompatibleDisplayMode(options.getFullscreenMode()));
+            options = options.setFullscreenMode(
+                    factory.chooseCompatibleDisplayMode(options.getFullscreenMode()));
         }
 
         DisplayMode fullscreen = options.getFullscreenMode();
@@ -99,15 +95,16 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         window = NewtFactory.createWindow(factory.getScreen(), caps);
         window.setUndecorated(options.isUndecorated());
         window.setSize(options.getWidth(), options.getHeight());
-        window.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
+        window.setDefaultCloseOperation(
+                WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
 
         window.setVisible(true);
         window.requestFocus();
 
         if (options.getFullscreenMode() != null) {
             // make the window fullscreen
-            if (!window.getScreen()
-                       .setCurrentScreenMode(factory.getScreenMode(options.getFullscreenMode()))) {
+            if (!window.getScreen().setCurrentScreenMode(
+                    factory.getScreenMode(options.getFullscreenMode()))) {
                 // not successful
                 options = options.setFullscreenMode(factory.getDefaultDisplayMode());
             }
@@ -204,7 +201,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException(
+                    "Cannot call setWindowSize() on a fullscreen surface");
         }
 
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
@@ -220,7 +218,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     @Override
     public void setLocation(final int x, final int y) {
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException(
+                    "Cannot call setWindowSize() on a fullscreen surface");
         }
 
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
@@ -323,8 +322,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         if (options.getFullscreenMode() != null) {
             // restore original screen mode
-            window.getScreen().setCurrentScreenMode(window.getScreen()
-                                                          .getOriginalScreenMode());
+            window.getScreen()
+                  .setCurrentScreenMode(window.getScreen().getOriginalScreenMode());
         }
 
         window.setVisible(false);
@@ -423,9 +422,9 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
-            options = options.setFullscreenMode(new DisplayMode(fullscreen.getWidth(),
-                                                                fullscreen.getHeight(),
-                                                                format));
+            options = options.setFullscreenMode(
+                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(),
+                                    format));
         }
 
         options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);
@@ -450,20 +449,26 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
      */
 
     @Override
-    public void windowDestroyed(WindowEvent e) {}
+    public void windowDestroyed(WindowEvent e) {
+    }
 
     @Override
-    public void windowResized(WindowEvent e) {}
+    public void windowResized(WindowEvent e) {
+    }
 
     @Override
-    public void windowMoved(WindowEvent e) {}
+    public void windowMoved(WindowEvent e) {
+    }
 
     @Override
-    public void windowGainedFocus(WindowEvent e) {}
+    public void windowGainedFocus(WindowEvent e) {
+    }
 
     @Override
-    public void windowLostFocus(WindowEvent e) {}
+    public void windowLostFocus(WindowEvent e) {
+    }
 
     @Override
-    public void windowRepaint(WindowUpdateEvent e) {}
+    public void windowRepaint(WindowUpdateEvent e) {
+    }
 }

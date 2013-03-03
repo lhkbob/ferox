@@ -71,7 +71,8 @@ public class MinkowskiShape {
 
     public void setAppliedMargins(int num) {
         if (num < 0) {
-            throw new IllegalArgumentException("Applied margin count must be at least 0, not: " + num);
+            throw new IllegalArgumentException(
+                    "Applied margin count must be at least 0, not: " + num);
         }
         numMargins = num;
     }
@@ -85,7 +86,8 @@ public class MinkowskiShape {
         Vector3 b = computePointOnB(simplex);
 
         double scale = 1.0; // no direction flip
-        if (translationA.distanceSquared(b) < translationA.distanceSquared(a) || translationB.distanceSquared(a) < translationB.distanceSquared(b)) {
+        if (translationA.distanceSquared(b) < translationA.distanceSquared(a) ||
+            translationB.distanceSquared(a) < translationB.distanceSquared(b)) {
             // shapes are intersecting, so flip everything
             scale = -1.0;
         }
@@ -111,7 +113,8 @@ public class MinkowskiShape {
             a.addScaled((1 - numMargins) * shapeA.getMargin(), normal);
 
             // compute how the contact depth changes
-            double delta = scale * Math.abs(numMargins - 1) * (shapeA.getMargin() + shapeB.getMargin());
+            double delta = scale * Math.abs(numMargins - 1) *
+                           (shapeA.getMargin() + shapeB.getMargin());
             if ((numMargins == 0 && delta < 0.0) || (numMargins > 1 && delta > 0.0)) {
                 // moving to one margin increases distance
                 distance += delta;
@@ -137,7 +140,8 @@ public class MinkowskiShape {
     private Vector3 computePointOnB(Simplex simplex) {
         Vector3 b = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
-            support(shapeB, rotationB, translationB, simplex.getInput(i), true, pointTemp);
+            support(shapeB, rotationB, translationB, simplex.getInput(i), true,
+                    pointTemp);
             b.add(pointTemp.scale(simplex.getWeight(i)));
         }
         return b;
@@ -154,7 +158,8 @@ public class MinkowskiShape {
 
     private void support(ConvexShape shape, @Const Matrix3 r, @Const Vector3 t,
                          @Const Vector3 d, boolean negate, Vector3 result) {
-        Vector3 transformedDir = (negate ? inSupportTemp.scale(d, -1.0) : inSupportTemp.set(d));
+        Vector3 transformedDir = (negate ? inSupportTemp.scale(d, -1.0)
+                                         : inSupportTemp.set(d));
         transformedDir.mul(transformedDir, r);
 
         shape.computeSupport(transformedDir, result);

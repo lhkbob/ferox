@@ -1,8 +1,8 @@
 package com.ferox.scene.task.ffp;
 
-import java.util.Arrays;
-
 import com.ferox.renderer.HardwareAccessLayer;
+
+import java.util.Arrays;
 
 public class StateNode {
     private final State state;

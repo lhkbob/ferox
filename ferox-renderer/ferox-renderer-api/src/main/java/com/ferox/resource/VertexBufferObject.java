@@ -27,54 +27,48 @@
 package com.ferox.resource;
 
 /**
- * <p>
- * VertexBufferObject is a Resource that represents the concept of a
- * vertex-array in OpenGL. Depending on the {@link StorageMode} of a created
- * VertexBufferObject, the resource's data will live in memory or on the
- * graphics (as an actual VBO).
- * </p>
- * <p>
- * VertexBufferObjects are used to store vertex attributes such as texture
- * coordinates, normals, or vertices and they store the indices accessed when
- * rendering an indexed geometry. The data placed in a vbo is extremely flexible
- * and it is possible to pack multiple attributes into a single resource
- * instance. The type of data, however, will limit how the vbo can be used by
- * the Renderer.
- * </p>
- * <p>
- * If the array contained in the VBO's BufferData is null, it should allocate
- * internal resources as needed but not change any existing data. This functions
- * similarly to the null data handling for {@link Texture}.
- * </p>
- * 
+ * <p/>
+ * VertexBufferObject is a Resource that represents the concept of a vertex-array in
+ * OpenGL. Depending on the {@link StorageMode} of a created VertexBufferObject, the
+ * resource's data will live in memory or on the graphics (as an actual VBO).
+ * <p/>
+ * <p/>
+ * VertexBufferObjects are used to store vertex attributes such as texture coordinates,
+ * normals, or vertices and they store the indices accessed when rendering an indexed
+ * geometry. The data placed in a vbo is extremely flexible and it is possible to pack
+ * multiple attributes into a single resource instance. The type of data, however, will
+ * limit how the vbo can be used by the Renderer.
+ * <p/>
+ * If the array contained in the VBO's BufferData is null, it should allocate internal
+ * resources as needed but not change any existing data. This functions similarly to the
+ * null data handling for {@link Texture}.
+ *
  * @author Michael Ludwig
  */
 public class VertexBufferObject extends Resource {
     /**
-     * StorageMode represents the various ways that a Framework can store a VBO
-     * resource into something that it can use when rendering them. There are
-     * currently three types, each progressing along the spectrum from faster
-     * updates to faster rendering performance.
+     * StorageMode represents the various ways that a Framework can store a VBO resource
+     * into something that it can use when rendering them. There are currently three
+     * types, each progressing along the spectrum from faster updates to faster rendering
+     * performance.
      */
     public static enum StorageMode {
         /**
-         * No data is stored on the graphics card. This means that updates are
-         * generally very fast (although a copy is necessary). Unfortunately
-         * rendering is slower because the data must be resent each render.
+         * No data is stored on the graphics card. This means that updates are generally
+         * very fast (although a copy is necessary). Unfortunately rendering is slower
+         * because the data must be resent each render.
          */
         IN_MEMORY,
         /**
-         * The VBO data is stored on the graphics card in specialized memory
-         * designed to be updated frequently. This means that, although slower
-         * than IN_MEMORY, the updates are faster than GPU_STATIC. Because it's
-         * on the graphics card, rendering times should be faster compared to
-         * IN_MEMORY.
+         * The VBO data is stored on the graphics card in specialized memory designed to
+         * be updated frequently. This means that, although slower than IN_MEMORY, the
+         * updates are faster than GPU_STATIC. Because it's on the graphics card,
+         * rendering times should be faster compared to IN_MEMORY.
          */
         GPU_DYNAMIC,
         /**
-         * VBO data is stored on the graphics card in memory designed for fast
-         * read access. This allows rendering to be the fastest, but updates are
-         * slower.
+         * VBO data is stored on the graphics card in memory designed for fast read
+         * access. This allows rendering to be the fastest, but updates are slower.
          */
         GPU_STATIC
     }
@@ -84,10 +78,11 @@ public class VertexBufferObject extends Resource {
     private final BulkChangeQueue<DataRange> changeQueue;
 
     /**
-     * Create a new VertexBufferObject that uses the given BufferData and a
-     * StorageMode of GPU_STATIC.
-     * 
+     * Create a new VertexBufferObject that uses the given BufferData and a StorageMode of
+     * GPU_STATIC.
+     *
      * @param data The initial BufferData
+     *
      * @throws NullPointerException if data is null
      */
     public VertexBufferObject(BufferData data) {
@@ -95,12 +90,12 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * Create a new VertexBufferObject that uses the given BufferData and the
-     * given StorageMode. The StorageMode cannot change after the vbo is
-     * created.
-     * 
-     * @param data The initial BufferData
+     * Create a new VertexBufferObject that uses the given BufferData and the given
+     * StorageMode. The StorageMode cannot change after the vbo is created.
+     *
+     * @param data        The initial BufferData
      * @param storageMode The StorageMode to use
+     *
      * @throws NullPointerException if any argument is null
      */
     public VertexBufferObject(BufferData data, StorageMode storageMode) {
@@ -121,8 +116,8 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * @return The StorageMode used to store the VertexBufferObject's data after
-     *         its been updated with a framework
+     * @return The StorageMode used to store the VertexBufferObject's data after its been
+     *         updated with a framework
      */
     public synchronized StorageMode getStorageMode() {
         return storageMode;
@@ -130,8 +125,9 @@ public class VertexBufferObject extends Resource {
 
     /**
      * Set the StorageMode for the VertexBufferObject
-     * 
+     *
      * @param mode The new storage mode
+     *
      * @throws NullPointerException if mode is null
      */
     public synchronized void setStorageMode(StorageMode mode) {
@@ -142,13 +138,15 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * Assign the specified BufferData to this VertexBufferObject. Although the
-     * storage mode of a vbo will never change, its length and type can. This
-     * will also clear the change queue of any pushed DataRanges that referred
-     * to the old BufferData, and will queue a dirty range over the new array.
-     * 
+     * Assign the specified BufferData to this VertexBufferObject. Although the storage
+     * mode of a vbo will never change, its length and type can. This will also clear the
+     * change queue of any pushed DataRanges that referred to the old BufferData, and will
+     * queue a dirty range over the new array.
+     *
      * @param data The new BufferData to use
+     *
      * @return The new version reported by the vbo's change queue
+     *
      * @throws NullPointerException if data is null
      */
     public synchronized int setData(BufferData data) {
@@ -162,20 +160,20 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * <p>
-     * Mark the specified region of the buffer data as dirty so that the next
-     * time this VertexBufferObject is updated (manually or automatically), the
-     * range will be updated. The nature of this update depends on the
-     * configured StorageMode.
-     * </p>
-     * <p>
-     * The arguments are not validated against the length of the buffer, so
-     * anyone querying the change queue must check that condition as necessary.
-     * </p>
-     * 
+     * <p/>
+     * Mark the specified region of the buffer data as dirty so that the next time this
+     * VertexBufferObject is updated (manually or automatically), the range will be
+     * updated. The nature of this update depends on the configured StorageMode.
+     * <p/>
+     * <p/>
+     * The arguments are not validated against the length of the buffer, so anyone
+     * querying the change queue must check that condition as necessary.
+     *
      * @param offset The offset into this vbo's BufferData
-     * @param len The length of modified data after offset
+     * @param len    The length of modified data after offset
+     *
      * @return The new version reported by the vbo's change queue
+     *
      * @throws IllegalArgumentException if offset < 0 or len > 1
      */
     public synchronized int markDirty(int offset, int len) {
@@ -183,11 +181,11 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * Return the BulkChangeQueue used to track a small set of edits to the
-     * vbo's buffer data so that Frameworks can quickly determine if an update
-     * must be performed. Reads and modifications of the queue must only perform
-     * within synchronized block of this VertexBufferObject.
-     * 
+     * Return the BulkChangeQueue used to track a small set of edits to the vbo's buffer
+     * data so that Frameworks can quickly determine if an update must be performed. Reads
+     * and modifications of the queue must only perform within synchronized block of this
+     * VertexBufferObject.
+     *
      * @return The vbo's change queue
      */
     public BulkChangeQueue<DataRange> getChangeQueue() {

@@ -26,26 +26,22 @@
  */
 package com.ferox.math.entreri;
 
+import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.Const;
+import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.DoubleDataStore;
+import com.lhkbob.entreri.property.DoubleProperty;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.Const;
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
-import com.lhkbob.entreri.property.DoubleProperty;
-
 /**
  * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a
  * AxisAlginedBox.
- * 
+ *
  * @author Michael Ludwig
  */
 @Factory(AxisAlignedBoxProperty.Factory.class)
@@ -62,12 +58,13 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Get the axis aligned box of this property, for the component at the given
-     * index, and store it into <tt>result</tt>. If result is null, a new
-     * AxisAlignedBox is created and returned.
-     * 
-     * @param index The component index to retrieve
+     * Get the axis aligned box of this property, for the component at the given index,
+     * and store it into <tt>result</tt>. If result is null, a new AxisAlignedBox is
+     * created and returned.
+     *
+     * @param index  The component index to retrieve
      * @param result The box to store the bounds for the requested component
+     *
      * @return result, or a new AxisAlignedBox if result was null
      */
     public AxisAlignedBox get(int index, AxisAlignedBox result) {
@@ -82,11 +79,12 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Copy the state of <tt>b</tt> into the underlying data of this property,
-     * for the component at the given index.
-     * 
-     * @param v The box to copy
+     * Copy the state of <tt>b</tt> into the underlying data of this property, for the
+     * component at the given index.
+     *
+     * @param v     The box to copy
      * @param index The index of the component being modified
+     *
      * @throws NullPointerException if b is null
      */
     public void set(@Const AxisAlignedBox b, int index) {
@@ -105,9 +103,9 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to
-     * specify the minimum coordinate of the box.
-     * 
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to specify
+     * the minimum coordinate of the box.
+     *
      * @author Michael Ludwig
      */
     @Attribute
@@ -131,9 +129,9 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to
-     * specify the maximum coordinate of the box.
-     * 
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to specify
+     * the maximum coordinate of the box.
+     *
      * @author Michael Ludwig
      */
     @Attribute
@@ -157,10 +155,10 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Default factory implementation for AxisAlignedBoxProperties, supports the
-     * {@link DefaultMin} and {@link DefaultMax} annotations to specify the
-     * default bounding box.
-     * 
+     * Default factory implementation for AxisAlignedBoxProperties, supports the {@link
+     * DefaultMin} and {@link DefaultMax} annotations to specify the default bounding
+     * box.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<AxisAlignedBoxProperty> {

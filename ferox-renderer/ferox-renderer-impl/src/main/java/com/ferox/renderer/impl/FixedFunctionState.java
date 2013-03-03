@@ -26,8 +26,6 @@
  */
 package com.ferox.renderer.impl;
 
-import java.util.Arrays;
-
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
@@ -41,10 +39,11 @@ import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.resource.Texture;
 import com.ferox.resource.VertexBufferObject;
 
+import java.util.Arrays;
+
 public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
     /**
-     * FogMode represents the three different eye fog modes that are available
-     * in OpenGL.
+     * FogMode represents the three different eye fog modes that are available in OpenGL.
      */
     public static enum FogMode {
         LINEAR,
@@ -53,9 +52,9 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
     }
 
     /**
-     * When configuring lighting and material colors, OpenGL uses the same
-     * functions to control the different types of color. For light colors, the
-     * EMISSIVE enum is unused, since it's only available for material colors.
+     * When configuring lighting and material colors, OpenGL uses the same functions to
+     * control the different types of color. For light colors, the EMISSIVE enum is
+     * unused, since it's only available for material colors.
      */
     public static enum LightColor {
         AMBIENT,
@@ -65,8 +64,8 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
     }
 
     /**
-     * OpenGL provides only one way to update matrices, and to switch between
-     * matrix types, you must set the current mode.
+     * OpenGL provides only one way to update matrices, and to switch between matrix
+     * types, you must set the current mode.
      */
     public static enum MatrixMode {
         MODELVIEW,
@@ -150,8 +149,8 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
     }
 
     /**
-     * An inner class that contains per-texture unit state. Although it's
-     * accessible to sub-classes, it should be considered read-only because the
+     * An inner class that contains per-texture unit state. Although it's accessible to
+     * sub-classes, it should be considered read-only because the
      * AbstractFixedFunctionRenderer manages the updates to its variables.
      */
     public class TextureState {
@@ -212,15 +211,20 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
             rgbFunc = CombineFunction.MODULATE;
             alphaFunc = CombineFunction.MODULATE;
 
-            opRgb = new CombineOperand[] {CombineOperand.COLOR, CombineOperand.COLOR,
-                                          CombineOperand.ALPHA};
-            opAlpha = new CombineOperand[] {CombineOperand.ALPHA, CombineOperand.ALPHA,
-                                            CombineOperand.ALPHA};
-            srcRgb = new CombineSource[] {CombineSource.CURR_TEX, CombineSource.PREV_TEX,
-                                          CombineSource.CONST_COLOR};
-            srcAlpha = new CombineSource[] {CombineSource.CURR_TEX,
-                                            CombineSource.PREV_TEX,
-                                            CombineSource.CONST_COLOR};
+            opRgb = new CombineOperand[] {
+                    CombineOperand.COLOR, CombineOperand.COLOR, CombineOperand.ALPHA
+            };
+            opAlpha = new CombineOperand[] {
+                    CombineOperand.ALPHA, CombineOperand.ALPHA, CombineOperand.ALPHA
+            };
+            srcRgb = new CombineSource[] {
+                    CombineSource.CURR_TEX, CombineSource.PREV_TEX,
+                    CombineSource.CONST_COLOR
+            };
+            srcAlpha = new CombineSource[] {
+                    CombineSource.CURR_TEX, CombineSource.PREV_TEX,
+                    CombineSource.CONST_COLOR
+            };
         }
 
         public TextureState(TextureState state) {

@@ -26,10 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Functions;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
@@ -45,8 +41,13 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public class SingleAxisSAPCollisionTask extends CollisionTask implements ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(CollisionBody.class);
@@ -259,6 +260,7 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
 
     // returns the index of the median of the three indexed elements
     private static int med3(int[] x, int a, int b, int c) {
-        return (x[a] < x[b] ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a) : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
+        return (x[a] < x[b] ? (x[b] < x[c] ? b : x[a] < x[c] ? c : a)
+                            : (x[b] > x[c] ? b : x[a] > x[c] ? c : a));
     }
 }

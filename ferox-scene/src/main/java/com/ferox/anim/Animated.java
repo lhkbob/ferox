@@ -19,7 +19,8 @@ public class Animated extends ComponentData<Animated> {
     @DefaultBoolean(true)
     private BooleanProperty loop;
 
-    private Animated() {}
+    private Animated() {
+    }
 
     public Animated setLoopPlayback(boolean loop) {
         this.loop.set(loop, getIndex());

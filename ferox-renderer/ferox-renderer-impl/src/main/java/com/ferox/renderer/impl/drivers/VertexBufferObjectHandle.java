@@ -26,17 +26,16 @@
  */
 package com.ferox.renderer.impl.drivers;
 
-import java.nio.Buffer;
-
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.VertexBufferObject;
 import com.ferox.resource.VertexBufferObject.StorageMode;
 
+import java.nio.Buffer;
+
 /**
- * VertexBufferObjectHandle is the handle type that represents the persisted
- * state of a VertexBufferObject, and is used by all
- * {@link AbstractVertexBufferObjectResourceDriver}.
- * 
+ * VertexBufferObjectHandle is the handle type that represents the persisted state of a
+ * VertexBufferObject, and is used by all {@link AbstractVertexBufferObjectResourceDriver}.
+ *
  * @author Michael Ludwig
  */
 public class VertexBufferObjectHandle {

@@ -26,10 +26,6 @@
  */
 package com.ferox.physics.task;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.IntersectionCallback;
@@ -46,8 +42,13 @@ import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public class SpatialIndexCollisionTask extends CollisionTask implements ParallelAware {
     private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+
     static {
         Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
         types.add(CollisionBody.class);
@@ -64,7 +65,7 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
     private ComponentIterator iterator;
 
     public SpatialIndexCollisionTask(SpatialIndex<Entity> index,
-                                           CollisionAlgorithmProvider algorithms) {
+                                     CollisionAlgorithmProvider algorithms) {
         super(algorithms);
         if (index == null) {
             throw new NullPointerException("SpatialIndex cannot be null");

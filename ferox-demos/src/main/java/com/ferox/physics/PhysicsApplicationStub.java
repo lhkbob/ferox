@@ -65,12 +65,9 @@ public class PhysicsApplicationStub extends ApplicationStub {
     protected static final int BOUNDS = 50;
     protected static final double MARGIN = .05;
 
-    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1,
-                                                                                       -2 * BOUNDS - 1,
-                                                                                       -2 * BOUNDS - 1),
-                                                                           new Vector3(2 * BOUNDS + 1,
-                                                                                       2 * BOUNDS + 1,
-                                                                                       2 * BOUNDS + 1));
+    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(
+            new Vector3(-2 * BOUNDS - 1, -2 * BOUNDS - 1, -2 * BOUNDS - 1),
+            new Vector3(2 * BOUNDS + 1, 2 * BOUNDS + 1, 2 * BOUNDS + 1));
 
     // positive half-circle
     private static final double MAX_THETA = Math.PI;
@@ -203,30 +200,29 @@ public class PhysicsApplicationStub extends ApplicationStub {
     protected void init(OnscreenSurface surface) {
         // physics handling
         physicsJob = system.getScheduler()
-                           .createJob("physics",
-                                      Timers.fixedDelta(1 / 60.0),
+                           .createJob("physics", Timers.fixedDelta(1 / 60.0),
                                       new ForcesTask(),
                                       //                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
                                       //                                                                                               6),
                                       //                                                                          new DefaultCollisionAlgorithmProvider()),
                                       //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
-                                      new TemporalSAPCollisionTask(new DefaultCollisionAlgorithmProvider()),
+                                      new TemporalSAPCollisionTask(
+                                              new DefaultCollisionAlgorithmProvider()),
                                       new ConstraintSolvingTask(), new MotionTask(),
                                       new TransformController());
 
         // rendering
-        renderJob = system.getScheduler()
-                          .createJob("render",
-                                     new UpdateWorldBoundsTask(),
-                                     new ComputeCameraFrustumTask(),
-                                     new ComputeShadowFrustumTask(),
-                                     new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds,
-                                                                                       6)),
-                                     new ComputePVSTask(),
-                                     new ComputeLightGroupTask(),
-                                     new FixedFunctionRenderTask(surface.getFramework(),
-                                                                 1024,
-                                                                 false));
+        renderJob = system.getScheduler().createJob("render", new UpdateWorldBoundsTask(),
+                                                    new ComputeCameraFrustumTask(),
+                                                    new ComputeShadowFrustumTask(),
+                                                    new BuildVisibilityIndexTask(
+                                                            new QuadTree<Entity>(
+                                                                    worldBounds, 6)),
+                                                    new ComputePVSTask(),
+                                                    new ComputeLightGroupTask(),
+                                                    new FixedFunctionRenderTask(
+                                                            surface.getFramework(), 1024,
+                                                            false));
 
         surface.setVSyncEnabled(true);
 
