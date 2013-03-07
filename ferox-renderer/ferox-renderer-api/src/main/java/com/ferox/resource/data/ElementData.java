@@ -8,10 +8,10 @@ package com.ferox.resource.data;
  */
 public interface ElementData {
     /**
-     * Get the unsigned integer element index at buffer index <tt>i</tt>. Depending on the
-     * underlying data type of the buffer data, the actual range of values returned may be
-     * less than a full 32-bit unsigned integer. The long return type is to guarantee that
-     * all unsigned integer values can be returned.
+     * Get the unsigned integer element index at buffer index <var>i</var>. Depending on
+     * the underlying data type of the buffer data, the actual range of values returned
+     * may be less than a full 32-bit unsigned integer. The long return type is to
+     * guarantee that all unsigned integer values can be returned.
      *
      * @param i The buffer index
      *
@@ -22,7 +22,7 @@ public interface ElementData {
     public long getElementIndex(int i);
 
     /**
-     * Set the unsigned element index at the buffer index <tt>i</tt>. If the underlying
+     * Set the unsigned element index at the buffer index <var>i</var>. If the underlying
      * data type of the buffer has less precision than 32 bits, the value will be
      * truncated to fit.
      *

@@ -96,8 +96,8 @@ public abstract class BufferData {
 
     /**
      * <p/>
-     * Create a BufferData that will store <tt>length</tt> primitives of the given data
-     * type, <tt>type</tt>. This constructor verifies that the length is at least 0, but
+     * Create a BufferData that will store <var>length</var> primitives of the given data
+     * type, <var>type</var>. This constructor verifies that the length is at least 0, but
      * subclasses may further restrict to be greater.
      *
      * @param type   The data type of this BufferData

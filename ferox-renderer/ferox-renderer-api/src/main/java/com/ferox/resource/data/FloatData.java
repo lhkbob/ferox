@@ -1,32 +1,34 @@
 package com.ferox.resource.data;
 
 /**
- * Created with IntelliJ IDEA. User: michaelludwig Date: 3/7/13 Time: 1:06 AM To change
- * this template use File | Settings | File Templates.
+ * FloatData is a buffer data implementation that stores 32-bit floating point values.
+ * Depending on where the buffer is used, values outside the range [0, 1] may be clamped
+ * by OpenGL or invalid.
+ *
+ * @author Michael Ludwig
  */
 public class FloatData extends BufferData implements TexelData, VertexData {
-    private float[] data;
+    private final float[] data;
 
     /**
      * <p/>
-     * Create a FloatData that will store <tt>length</tt> floats.
+     * Create a FloatData that will store <var>length</var> floats. It will create a new
+     * array of the given length to wrap.
      *
      * @param length The length of the buffer data
      *
-     * @throws IllegalArgumentException if length is less than 0
+     * @throws NegativeArraySizeException if length is less than 0
      */
     public FloatData(int length) {
-        super(DataType.FLOAT, length);
-        data = null;
+        this(new float[length]);
     }
 
     /**
      * <p/>
      * Create a FloatData that wraps the given float[] array. The buffer data's length
-     * will be equal to the length of the array. It will initially point to the given
-     * array instance.
+     * will be equal to the length of the array.
      *
-     * @param data The initial array to wrap
+     * @param data The array to wrap
      *
      * @throws NullPointerException if data is null
      */
@@ -35,18 +37,33 @@ public class FloatData extends BufferData implements TexelData, VertexData {
         this.data = data;
     }
 
+    /**
+     * Get the float[] array that backs this FloatData instance. The returned array will
+     * be non-null and have a length equal to {@link #getLength()}.
+     *
+     * @return The array backing this FloatData instance
+     */
+    public float[] getArray() {
+        return data;
+    }
+
     @Override
     public double getColorComponent(int i) {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        return data[i];
     }
 
     @Override
     public double getCoordinate(int i) {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        return data[i];
     }
 
     @Override
     public void setColorComponent(int i, double value) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        data[i] = (float) value;
+    }
+
+    @Override
+    public void setCoordinate(int i, double value) {
+        data[i] = (float) value;
     }
 }
