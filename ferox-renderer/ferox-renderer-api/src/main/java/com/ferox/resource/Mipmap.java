@@ -71,8 +71,8 @@ public class Mipmap {
 
     /**
      * Create a Mipmap that initially has its levels set to null BufferDatas. It will use
-     * <tt>dataType</tt> to validate any future BufferDatas that may be assigned to the
-     * Mipmap. If <tt>mipmap</tt> is true, then this Mipmap will allocate enough null
+     * <var>dataType</var> to validate any future BufferDatas that may be assigned to the
+     * Mipmap. If <var>mipmap</var> is true, then this Mipmap will allocate enough null
      * levels to be considered "mipmapped", otherwise it will have a single null level.
      * The width, height and depth are the dimensions of the root level. The provided
      * TextureFormat must be compatible with the data type.
@@ -121,7 +121,7 @@ public class Mipmap {
 
     /**
      * Create a Mipmap that has a single level of pixel data that is sourced from
-     * <tt>data</tt>. The provided BufferData must be appropriately sized to hold the
+     * <var>data</var>. The provided BufferData must be appropriately sized to hold the
      * image data for an image with the provided dimensions and TextureFormat. The data
      * type of the Mipmap is derived from the input BufferData. This type must be
      * compatible with the given format. {@link #Mipmap(DataType, boolean, int, int, int,
@@ -146,8 +146,8 @@ public class Mipmap {
 
     /**
      * Create a Mipmap that contains the provided set of mipmap levels, where each level
-     * takes its pixel data from a subsequent element within <tt>levels</tt>. The
-     * <tt>levels</tt> can have a length of 1, in which case the created Mipmap is not
+     * takes its pixel data from a subsequent element within <var>levels</var>. The
+     * <var>levels</var> can have a length of 1, in which case the created Mipmap is not
      * "mipmapped", or it must have a length equal to {@link #getMipmapCount(int, int,
      * int)} when using the provided dimensions. Each provided BufferData must be of the
      * same DataType, which determines the data type of this Mipmap. This data type must
@@ -330,8 +330,8 @@ public class Mipmap {
     /**
      * Compute and return the required number of mipmap levels needed to provide a
      * complete set of mipmaps for the given dimension. A full set would have levels from
-     * <tt>(width, height, depth), (width / 2, height / 2, depth / 2), ... , (1, 1,
-     * 1)</tt>. This is computed as <code>floor(log2(max(width,height,depth))) +
+     * <var>(width, height, depth), (width / 2, height / 2, depth / 2), ... , (1, 1,
+     * 1)</var>. This is computed as <code>floor(log2(max(width,height,depth))) +
      * 1</code>.
      *
      * @param width  The width of the top mipmap level

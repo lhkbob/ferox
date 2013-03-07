@@ -299,7 +299,7 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * <p/>
      * Set the current state of this renderer to equal the given state snapshot.
-     * <tt>state</tt> must have been returned by a prior call to {@link
+     * <var>state</var> must have been returned by a prior call to {@link
      * #getCurrentState()} from a FixedFunctionRenderer created by this renderer's
      * Framework or behavior is undefined.
      * <p/>
@@ -493,7 +493,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p/>
      * Configure the lighting model to use Gauroud shading or non-interpolated vertex
      * colors. When smoothed is true, Gauroud shading is used to simuluate per-pixel
-     * lighting. When <tt>smoothed</tt> is false, vertex colors are not interpolated and
+     * lighting. When <var>smoothed</var> is false, vertex colors are not interpolated and
      * rendered geometry will appear faceted.
      * <p/>
      * Smooth shading is enabled by default.
@@ -570,10 +570,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * light color would make a black contribution since (1, 0, 0, 1) * (0, 1, 0, 1) is
      * (0, 0, 0, 1).
      * <p/>
-     * The colors stored in <tt>amb</tt>, <tt>diff</tt> and <tt>spec</tt> have components
-     * ordered red, green, blue and alpha. The values are clamped to be above 0. Values
-     * higher than 1 cause the light to be outside the standard range and can produce
-     * final colors brighter than white that will be clamped to [0, 1].
+     * The colors stored in <var>amb</var>, <var>diff</var> and <var>spec</var> have
+     * components ordered red, green, blue and alpha. The values are clamped to be above
+     * 0. Values higher than 1 cause the light to be outside the standard range and can
+     * produce final colors brighter than white that will be clamped to [0, 1].
      * <p/>
      * The default colors of the 0th light are a diffuse and specular of (1, 1, 1, 1) and
      * an ambient of (0, 0, 0, 1). All other lights use (0, 0, 0, 1) for all of the
@@ -666,11 +666,11 @@ public interface FixedFunctionRenderer extends Renderer {
      * represents the 'color' of a lit object while the other color values add more subtle
      * shading to it.
      * <p/>
-     * The colors stored in <tt>amb</tt>, <tt>diff</tt>, <tt>spec</tt> and <tt>emm</tt>
-     * have components ordered red, green, blue and alpha. The values for <tt>amb</tt>,
-     * <tt>diff</tt> and <tt>spec</tt> are clamped to be in [0, 1]. The values in
-     * <tt>emm</tt> are clamped to be above 0 and can be outside the standard range just
-     * like light colors.
+     * The colors stored in <var>amb</var>, <var>diff</var>, <var>spec</var> and
+     * <var>emm</var> have components ordered red, green, blue and alpha. The values for
+     * <var>amb</var>, <var>diff</var> and <var>spec</var> are clamped to be in [0, 1].
+     * The values in <var>emm</var> are clamped to be above 0 and can be outside the
+     * standard range just like light colors.
      * <p/>
      * The default ambient color is (0.2, 0.2, 0.2, 1), the diffuse is (0.8, 0.8, 0.8, 1),
      * and the specular and emissive colors are (0, 0, 0, 1).
@@ -741,8 +741,8 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * <p/>
-     * Set the texture coordinate source for all four coordinates to <tt>gen</tt>, for the
-     * given texture unit.
+     * Set the texture coordinate source for all four coordinates to <var>gen</var>, for
+     * the given texture unit.
      * <p/>
      * The default source for every texture unit and coordinate is ATTRIBUTE.
      *
@@ -844,7 +844,7 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * <p/>
-     * Configure how the texture's RGB values for the unit, <tt>text</tt> are combined
+     * Configure how the texture's RGB values for the unit, <var>text</var> are combined
      * with the colors from the previous stages of the pipeline. The {@link
      * CombineFunction function} uses the three inputs produced by each pair of {@link
      * CombineOperand operand} and {@link CombineSource source} to produce a color for the
@@ -874,7 +874,7 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * <p/>
-     * Configure how the texture's alpha value for the unit, <tt>text</tt> is combined
+     * Configure how the texture's alpha value for the unit, <var>text</var> is combined
      * with the alphas from the previous stages of the pipeline. The {@link
      * CombineFunction function} uses the three inputs produced by each pair of {@link
      * CombineOperand operand} and {@link CombineSource source} to produce a color for the
@@ -1033,7 +1033,7 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * <p/>
      * Set the VertexAttribute that is used as a source of texture coordinates on the
-     * texture unit, <tt>tex</tt> when {@link #render(PolygonType, int, int)} or {@link
+     * texture unit, <var>tex</var> when {@link #render(PolygonType, int, int)} or {@link
      * #render(PolygonType, com.ferox.resource.VertexBufferObject, int)} is invoked. The
      * attribute element size can be any value between 1 and 4. If the element size of the
      * attribute doesn't meet the expected coordinate size of the bound texture, a default
@@ -1051,7 +1051,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p/>
      * Every texture unit starst with no attribute bound.
      *
-     * @param tex       The texture unit to bind <tt>texCoords</tt> to
+     * @param tex       The texture unit to bind <var>texCoords</var> to
      * @param texCoords The VertexAttribute holding the texture coordinate data and access
      *                  information
      *

@@ -104,7 +104,7 @@ public interface Framework {
      * If any of the options have unsupported values, the Framework may change them to
      * successfully create a surface.
      * <p/>
-     * If there is already a fullscreen surface and <tt>options</tt> would create a new
+     * If there is already a fullscreen surface and <var>options</var> would create a new
      * fullscreen surface, an exception is thrown. It is possible to have standard
      * windowed surfaces and fullscreen surface, although the windowed surfaces will be
      * hidden until the fullscreen surface is destroyed.
@@ -128,9 +128,9 @@ public interface Framework {
      * will create new textures that can be retrieved by calling the returned surface's
      * {@link TextureSurface#getColorBuffer(int)} and {@link TextureSurface#getDepthBuffer()}.
      * The size and texture format of the {@link Texture textures} used for the
-     * TextureSurface are determined by the provided <tt>options</tt>.
+     * TextureSurface are determined by the provided <var>options</var>.
      * <p/>
-     * If <tt>options</tt> is unsupported, the Framework is permitted to choose options
+     * If <var>options</var> is unsupported, the Framework is permitted to choose options
      * that allow it to create a valid TextureSurface. This includes changing the format
      * or dimensions to fit within hardware limits.
      *

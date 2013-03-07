@@ -154,7 +154,7 @@ public class BufferUtil {
 
     /**
      * Create a new Buffer based on the given {@link DataType} and size. The returned
-     * buffer will have a capacity equal to <tt>size</tt> and the returned buffer type
+     * buffer will have a capacity equal to <var>size</var> and the returned buffer type
      * will equal the Class returned by {@link #getBufferType(DataType)}.
      *
      * @param type The DataType controlling the return type of the Buffer

@@ -59,7 +59,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Create a new Quat4 that copies its values from those in <tt>q</tt>.
+     * Create a new Quat4 that copies its values from those in <var>q</var>.
      *
      * @param q The quaternion to clone
      *
@@ -87,7 +87,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Compute the shortest rotation arc from <tt>a</tt> to <tt>b</tt>, and store the
+     * Compute the shortest rotation arc from <var>a</var> to <var>b</var>, and store the
      * rotation in this quaternion.
      *
      * @param a The starting vector
@@ -170,7 +170,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Multiply <tt>a</tt> by the quaternion implicitly formed by <tt>b</tt>, where b
+     * Multiply <var>a</var> by the quaternion implicitly formed by <var>b</var>, where b
      * holds the first 3 coordinates of the quaternion and its fourth is considered to be
      * 0. The multiplication is stored in this quaternion
      *
@@ -189,7 +189,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Scale the components of <tt>q</tt> by <tt>s</tt> and store them in this
+     * Scale the components of <var>q</var> by <var>s</var> and store them in this
      * quaternion.
      *
      * @param q The quaternion to scale
@@ -204,7 +204,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Normalize the quaternion <tt>a</tt> and store it in this quaternion
+     * Normalize the quaternion <var>a</var> and store it in this quaternion
      *
      * @param a The quaternion being normalized
      *
@@ -238,11 +238,11 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Compute the dot product between this quaternion and <tt>q</tt>.
+     * Compute the dot product between this quaternion and <var>q</var>.
      *
      * @param q The other quaternion involved in the dot product
      *
-     * @return The dot product between this and <tt>q</tt>, which is the same as if both
+     * @return The dot product between this and <var>q</var>, which is the same as if both
      *         were treated as 4-vectors.
      *
      * @throws NullPointerException if q is null
@@ -276,7 +276,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Compute the angle between this quaternion and <tt>q</tt>
+     * Compute the angle between this quaternion and <var>q</var>
      *
      * @param q The other quaternion
      *
@@ -296,7 +296,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Compute the inverse of <tt>q</tt> and store it in this quaternion.
+     * Compute the inverse of <var>q</var> and store it in this quaternion.
      *
      * @param q The quaternion being inverted
      *
@@ -309,10 +309,10 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Perform spherical linear interpolation between <tt>a</tt> and <tt>b</tt> and store
-     * the interpolated quaternion in this quaternion. The parameter <tt>t</tt> should be
-     * in the range <code>[0, 1]</code> where a value of 0 represents <tt>a</tt> and a
-     * value of 1 represents <tt>b</tt>.
+     * Perform spherical linear interpolation between <var>a</var> and <var>b</var> and
+     * store the interpolated quaternion in this quaternion. The parameter <var>t</var>
+     * should be in the range <code>[0, 1]</code> where a value of 0 represents
+     * <var>a</var> and a value of 1 represents <var>b</var>.
      *
      * @param a The initial quaternion
      * @param b The end quaternion
@@ -442,8 +442,8 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Set this quaternion to be the rotation of <tt>angle</tt> radians about the
-     * specified <tt>axis</tt>.
+     * Set this quaternion to be the rotation of <var>angle</var> radians about the
+     * specified <var>axis</var>.
      *
      * @param axis  The axis of rotation, should not be the 0 vector
      * @param angle The angle of rotation, in radians
@@ -459,10 +459,11 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * Set this quaternion to be the rotation described by the Euler angles: <tt>yaw</tt>,
-     * <tt>pitch</tt> and <tt>roll</tt>. Yaw is the rotation around the y-axis, pitch is
-     * the rotation around the x-axis, and roll is the rotation around the z-axis. The
-     * final rotation is formed by rotating first Y, then X and then Z.
+     * Set this quaternion to be the rotation described by the Euler angles:
+     * <var>yaw</var>, <var>pitch</var> and <var>roll</var>. Yaw is the rotation around
+     * the y-axis, pitch is the rotation around the x-axis, and roll is the rotation
+     * around the z-axis. The final rotation is formed by rotating first Y, then X and
+     * then Z.
      *
      * @param yaw   Rotation around the y-axis in radians
      * @param pitch Rotation around the x-axis in radians
@@ -488,8 +489,8 @@ public final class Quat4 implements Cloneable {
 
     /**
      * Set the value of this quaternion to represent the rotation of the given matrix,
-     * <tt>e</tt>. It is assumed that <tt>e</tt> contains a rotation matrix and does not
-     * include scale factors, or other form of 3x3 matrix.
+     * <var>e</var>. It is assumed that <var>e</var> contains a rotation matrix and does
+     * not include scale factors, or other form of 3x3 matrix.
      *
      * @param e The rotation matrix to convert to quaternion form
      *
@@ -713,7 +714,7 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt> is
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <var>offset</var> is
      * measured from 0, not the buffer's position.
      *
      * @param store  The DoubleBuffer to hold the row values
@@ -730,8 +731,8 @@ public final class Quat4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt> is measured
-     * from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <var>offset</var> is
+     * measured from 0, not the buffer's position.
      *
      * @param store  The FloatBuffer to hold the row values
      * @param offset The first index to use in the store

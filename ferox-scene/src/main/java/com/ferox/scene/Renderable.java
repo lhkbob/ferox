@@ -152,8 +152,8 @@ public final class Renderable extends ComponentData<Renderable> {
 
     /**
      * Convenience function to set the indices of this Renderable to null, causing it to
-     * use implicit array indices. Calling this method with arguments <tt>first</tt> and
-     * <tt>count</tt> is the same as calling {@link #setIndices(VertexBufferObject,
+     * use implicit array indices. Calling this method with arguments <var>first</var> and
+     * <var>count</var> is the same as calling {@link #setIndices(VertexBufferObject,
      * PolygonType)} with a buffer created as <code>[i for i in range(first, first +
      * count)]</code>.
      *
@@ -168,7 +168,7 @@ public final class Renderable extends ComponentData<Renderable> {
     }
 
     /**
-     * Set the indices of this Renderable to <tt>indices</tt> and use the given
+     * Set the indices of this Renderable to <var>indices</var> and use the given
      * PolygonType to construct primitives. The index offset will be 0 and the index count
      * will the size of the VertexBufferObject.
      *
@@ -186,14 +186,14 @@ public final class Renderable extends ComponentData<Renderable> {
 
     /**
      * <p/>
-     * Set the indices of this Renderable to <tt>indices</tt> and use the given
-     * PolygonType to construct primitives. The first index used will be at <tt>first</tt>
-     * in the buffer. Then the remaining <tt>count - 1</tt> indices will be read
-     * consecutively from the buffer.
+     * Set the indices of this Renderable to <var>indices</var> and use the given
+     * PolygonType to construct primitives. The first index used will be at
+     * <var>first</var> in the buffer. Then the remaining <var>count - 1</var> indices
+     * will be read consecutively from the buffer.
      * <p/>
-     * If <tt>indices</tt> is null, implicit array indices are used to render the geometry
-     * instead. In this case, <tt>first</tt> represents the first vertex used, and
-     * <tt>count</tt> vertices are consecutively read from the vertices and other
+     * If <var>indices</var> is null, implicit array indices are used to render the
+     * geometry instead. In this case, <var>first</var> represents the first vertex used,
+     * and <var>count</var> vertices are consecutively read from the vertices and other
      * attributes. See {@link #getIndices()}.
      *
      * @param type    The new polygon type

@@ -153,7 +153,7 @@ public class CollisionBody extends ComponentData<CollisionBody> {
     }
 
     /**
-     * Compares the collision groups and masks of this CollisionBody and <tt>other</tt>
+     * Compares the collision groups and masks of this CollisionBody and <var>other</var>
      * and returns true if the two instances are capable of colliding. It is always true
      * that <code>objA.canCollide(objB) == objB.canCollide(objA)</code>.
      *
@@ -304,7 +304,7 @@ public class CollisionBody extends ComponentData<CollisionBody> {
     }
 
     /**
-     * Copy <tt>t</tt> into this Collidable's transform, updating its location and
+     * Copy <var>t</var> into this Collidable's transform, updating its location and
      * orientation. This will also recompute the Collidable's world bounds.
      *
      * @param t The transform to copy

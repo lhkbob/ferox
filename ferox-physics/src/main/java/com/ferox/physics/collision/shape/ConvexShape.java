@@ -54,13 +54,13 @@ public abstract class ConvexShape implements Shape {
     /**
      * <p/>
      * Compute and return the evaluation of this convex shape's support function, on input
-     * <tt>v</tt>. The support should be stored and returned in <tt>result</tt>. If result
-     * is null, a new vector should be created and returned. The support function will not
-     * include the margin.
+     * <var>v</var>. The support should be stored and returned in <var>result</var>. If
+     * result is null, a new vector should be created and returned. The support function
+     * will not include the margin.
      * <p/>
-     * The support of a convex shape is a function <tt>Sc</tt> that maps a vector to a
+     * The support of a convex shape is a function <var>Sc</var> that maps a vector to a
      * point on the shape, such that <code>dot(Sc, v)</code> maximizes <code>dot(x,
-     * v)</code> for all <tt>x</tt> on the shape's surface.
+     * v)</code> for all <var>x</var> on the shape's surface.
      *
      * @param v      The support input
      * @param result A vector to contain the result

@@ -40,8 +40,8 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * <p/>
  * Cylinder contains factory methods for creating approximations of an ideal cylinder with
  * a configurable radius and height. The accuracy of the approximation depends on a
- * parameter termed <tt>resolution</tt>, which represents the number of samples along the
- * circular caps.
+ * parameter termed <var>resolution</var>, which represents the number of samples along
+ * the circular caps.
  *
  * @author Michael Ludwig
  */

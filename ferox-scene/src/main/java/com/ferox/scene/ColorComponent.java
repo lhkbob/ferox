@@ -72,7 +72,7 @@ public abstract class ColorComponent<T extends ColorComponent<T>>
     }
 
     /**
-     * Set the color of this component by copying <tt>color</tt> into this components
+     * Set the color of this component by copying <var>color</var> into this components
      * color object.
      *
      * @param color The new color values

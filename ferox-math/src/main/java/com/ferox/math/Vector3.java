@@ -60,7 +60,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Create a new vector that copies the x, y, and z values from <tt>v</tt>.
+     * Create a new vector that copies the x, y, and z values from <var>v</var>.
      *
      * @param v The vector to copy
      *
@@ -89,7 +89,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Floor each component of the vector <tt>v</tt> and store them in this vector.
+     * Floor each component of the vector <var>v</var> and store them in this vector.
      *
      * @param v The vector to be floored
      *
@@ -111,7 +111,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the ceiling of each component of the vector <tt>v</tt> and store them in
+     * Compute the ceiling of each component of the vector <var>v</var> and store them in
      * this vector.
      *
      * @param v The vector to be ceil'ed
@@ -154,7 +154,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the distance between this vector and <tt>v</tt>, treating both vectors as
+     * Compute the distance between this vector and <var>v</var>, treating both vectors as
      * 3D points.
      *
      * @param v The other vector
@@ -168,7 +168,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the square of the distance between this and <tt>v</tt>, treating both
+     * Compute the square of the distance between this and <var>v</var>, treating both
      * vectors as 3D points.
      *
      * @param v The other vector
@@ -212,10 +212,10 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute a vector orthogonal to <tt>b</tt> and store the result in this vector. The
-     * orthogonal vector will be in the plane formed by <tt>a</tt> and <tt>b</tt>, and it
-     * will be in the same half-plane as <tt>a</tt> formed by a line through <tt>b</tt>.
-     * This uses the Gram-Schmidt process.
+     * Compute a vector orthogonal to <var>b</var> and store the result in this vector.
+     * The orthogonal vector will be in the plane formed by <var>a</var> and <var>b</var>,
+     * and it will be in the same half-plane as <var>a</var> formed by a line through
+     * <var>b</var>. This uses the Gram-Schmidt process.
      *
      * @param a The vector that helps form the plane and chooses the result's orientation
      * @param b The vector the result is orthogonal to
@@ -235,7 +235,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Transform the vector <tt>v</tt> by <tt>q</tt> and store it in this vector.
+     * Transform the vector <var>v</var> by <var>q</var> and store it in this vector.
      *
      * @param v The vector to rotate or transform
      * @param q The quaternion to rotate by
@@ -261,7 +261,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Project <tt>a</tt> onto <tt>b</tt> and store the projected vector in this vector.
+     * Project <var>a</var> onto <var>b</var> and store the projected vector in this
+     * vector.
      *
      * @param a The vector being projected
      * @param b The vector that is projected onto
@@ -346,7 +347,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Normalize <tt>v</tt> to be of length 1 and store it in this vector. The vector
+     * Normalize <var>v</var> to be of length 1 and store it in this vector. The vector
      * can't be normalized if it's length is 0. If it's length is very close to 0, the
      * results may suffer from loss of precision.
      *
@@ -406,8 +407,8 @@ public final class Vector3 implements Cloneable {
 
     /**
      * As {@link #transform(Matrix4, Vector3, double)} where the w-component is set to 1.
-     * Thus, the resulting computation is the transformation of <tt>a</tt> by <tt>m</tt>,
-     * interpreting <tt>a</tt> as a point in space.
+     * Thus, the resulting computation is the transformation of <var>a</var> by
+     * <var>m</var>, interpreting <var>a</var> as a point in space.
      *
      * @param m The transform matrix
      * @param a The point to transform
@@ -422,13 +423,13 @@ public final class Vector3 implements Cloneable {
 
     /**
      * <p/>
-     * Compute <code>[m] x [a']</code> where <tt>[a']</tt> is the 4x1 matrix formed by the
-     * three values of <tt>a</tt> and the specified <tt>w</tt>.
+     * Compute <code>[m] x [a']</code> where <var>[a']</var> is the 4x1 matrix formed by
+     * the three values of <var>a</var> and the specified <var>w</var>.
      * <p/>
-     * Common values of <tt>w</tt> are: <ul> <li><code>w = 0</code> transforms <tt>a</tt>
-     * by the upper 3x3 of <tt>m</tt>, treating <tt>a</tt> as a direction vector.</li>
-     * <li><code>w = 1</code> transforms <tt>a</tt> as if it were a point in 3-space
-     * (assuming m is an affine transform).</li> </ul>
+     * Common values of <var>w</var> are: <ul> <li><code>w = 0</code> transforms
+     * <var>a</var> by the upper 3x3 of <var>m</var>, treating <var>a</var> as a direction
+     * vector.</li> <li><code>w = 1</code> transforms <var>a</var> as if it were a point
+     * in 3-space (assuming m is an affine transform).</li> </ul>
      *
      * @param m The affine transform to transform a with
      * @param a The vector being transformed by m
@@ -446,7 +447,7 @@ public final class Vector3 implements Cloneable {
 
     /**
      * As {@link #transform(Matrix4, Vector3)} where the calling vector is transformed by
-     * the matrix <tt>m</tt>.
+     * the matrix <var>m</var>.
      *
      * @param m The matrix transforming this vector
      *
@@ -680,7 +681,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Set the x, y, and z values of this Vector3 to be equal to <tt>v</tt>
+     * Set the x, y, and z values of this Vector3 to be equal to <var>v</var>
      *
      * @param v Vector to be copied into this
      *
@@ -822,7 +823,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt> is
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <var>offset</var> is
      * measured from 0, not the buffer's position.
      *
      * @param store  The DoubleBuffer to hold the row values
@@ -838,8 +839,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt> is measured
-     * from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <var>offset</var> is
+     * measured from 0, not the buffer's position.
      *
      * @param store  The FloatBuffer to hold the row values
      * @param offset The first index to use in the store

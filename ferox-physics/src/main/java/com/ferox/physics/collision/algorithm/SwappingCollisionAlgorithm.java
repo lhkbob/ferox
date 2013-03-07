@@ -49,8 +49,8 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape>
 
     /**
      * Create a SwappingCollisionAlgorithm that wraps the given CollisionAlgorithm. Any
-     * call to getClosestPair() on this algorithm will delegate to <tt>toSwap</tt> except
-     * that A and B are swapped.
+     * call to getClosestPair() on this algorithm will delegate to <var>toSwap</var>
+     * except that A and B are swapped.
      *
      * @param toSwap The algorithm to wrap
      *

@@ -60,7 +60,7 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Create a new matrix that copies the values from <tt>m</tt>.
+     * Create a new matrix that copies the values from <var>m</var>.
      *
      * @param m The matrix to copy
      *
@@ -179,7 +179,7 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Compute the inverse of <tt>a</tt> and store the inverted matrix in this matrix.
+     * Compute the inverse of <var>a</var> and store the inverted matrix in this matrix.
      *
      * @param a The matrix whose inverse is computed
      *
@@ -246,9 +246,9 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Multiply <tt>a</tt> by the diagonal matrix that takes it's three diagonal entries
-     * from <tt>b</tt>, or compute <code>[a] X [m]</code>, where [m] is all 0s except m00
-     * = b.x, m11 = b.y, and m22 = b.z.
+     * Multiply <var>a</var> by the diagonal matrix that takes it's three diagonal entries
+     * from <var>b</var>, or compute <code>[a] X [m]</code>, where [m] is all 0s except
+     * m00 = b.x, m11 = b.y, and m22 = b.z.
      *
      * @param a The left matrix in the multiplication
      * @param b Vector holding the three diagonal entries of the other matrix
@@ -264,7 +264,7 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * <p/>
-     * Multiply the transpose of <tt>a</tt> by the transpose of <tt>b</tt>, or compute
+     * Multiply the transpose of <var>a</var> by the transpose of <var>b</var>, or compute
      * <code>[a]^T x [b]^T</code> and store it in this matrix.
      * <p/>
      * Note that <code>[a]^T x [b]^T = ([b] x [a])^T</code>
@@ -326,7 +326,7 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Scale each of <tt>a</tt>'s values by the scalar and store it in this matrix. This
+     * Scale each of <var>a</var>'s values by the scalar and store it in this matrix. This
      * effectively computes <code>scalar x [a]</code>
      *
      * @param a      The matrix to scale
@@ -353,7 +353,7 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Transpose <tt>a</tt> and store the result in this matrix.
+     * Transpose <var>a</var> and store the result in this matrix.
      *
      * @param a The matrix to transpose
      *
@@ -493,7 +493,7 @@ public final class Matrix3 implements Cloneable {
 
     /**
      * Set this Matrix3 to be the rotation matrix representing the same rotation stored by
-     * <tt>q</tt>.
+     * <var>q</var>.
      *
      * @param q The quaternion to convert to matrix form
      *
@@ -520,8 +520,8 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * Set this matrix to the upper 3x3 matrix stored in <tt>m</tt>. The 4th row and
-     * column of <tt>m</tt> are ignored.
+     * Set this matrix to the upper 3x3 matrix stored in <var>m</var>. The 4th row and
+     * column of <var>m</var> are ignored.
      *
      * @param m The matrix whose upper 3x3 is copied
      *
@@ -940,7 +940,7 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <tt>offset</tt>
+     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <var>offset</var>
      * is measured from 0, not the buffer's position.
      *
      * @param store    The DoubleBuffer to hold the row values
@@ -975,8 +975,8 @@ public final class Matrix3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <tt>offset</tt> is
-     * measured from 0, not the buffer's position.
+     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <var>offset</var>
+     * is measured from 0, not the buffer's position.
      *
      * @param store    The FloatBuffer to hold the row values
      * @param offset   The first index to use in the store

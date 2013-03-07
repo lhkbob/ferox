@@ -68,7 +68,7 @@ public abstract class AbstractFramework implements Framework {
 
     /**
      * <p/>
-     * Create a new AbstractFramework. The parameter, <tt>numThreads</tt> defines the
+     * Create a new AbstractFramework. The parameter, <var>numThreads</var> defines the
      * number of threads that the framework's ContextManager will use. This constructor
      * will also create an offscreen context that will later be shared with all created
      * surfaces for this framework. The given SurfaceFactory is used to create surfaces

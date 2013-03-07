@@ -57,7 +57,7 @@ public class ColorRGBProperty implements Property {
 
     /**
      * Get the color of this property, for the component at the given index, and store it
-     * into <tt>result</tt>. If result is null, a new ColorRGB is created and returned.
+     * into <var>result</var>. If result is null, a new ColorRGB is created and returned.
      *
      * @param index  The component index to retrieve
      * @param result The color to store the data for the requested component
@@ -74,7 +74,7 @@ public class ColorRGBProperty implements Property {
     }
 
     /**
-     * Copy the values of <tt>v</tt> into the underlying data of this property, for the
+     * Copy the values of <var>v</var> into the underlying data of this property, for the
      * component at the given index.
      *
      * @param v     The color to copy

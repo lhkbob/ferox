@@ -464,9 +464,9 @@ public interface Renderer {
      * Set the Comparison and reference values used when performing the stencil test. This
      * test will only be performed when it is enabled with {@link
      * #setStencilTestEnabled(boolean)}. When the test is enabled, the current stencil
-     * value is bitwise AND'ed with <tt>testMask</tt> and then compared to <tt>(refValue &
-     * testMask)</tt>. Thus <tt>testMask</tt> acts as a bitwise mask to both the current
-     * stencil value and the assigned reference value.
+     * value is bitwise AND'ed with <var>testMask</var> and then compared to
+     * <var>(refValue & testMask)</var>. Thus <var>testMask</var> acts as a bitwise mask
+     * to both the current stencil value and the assigned reference value.
      * <p/>
      * There are two different stencil test configurations available: one for front-facing
      * polygons and one for back-facing polygons. Points and lines are considered to be
@@ -594,7 +594,7 @@ public interface Renderer {
     /**
      * <p/>
      * Set whether or not depth values can be written into the depth buffer once it has
-     * been determined that a pixel should be rendered. If <tt>mask</tt> is true then
+     * been determined that a pixel should be rendered. If <var>mask</var> is true then
      * depth values for rendered pixels will be placed in the depth buffer, otherwise no
      * depth is written.
      * <p/>
@@ -616,14 +616,14 @@ public interface Renderer {
      * offset = factor * m + units * r.
      * </pre>
      * <p/>
-     * <tt>offset</tt> is the value added to the pixel's window depth; <tt>factor</tt> and
-     * <tt>units</tt> are the values specified in this method; <tt>m</tt> is the maximum
-     * depth slope of the polygon that contained the rendered pixel; <tt>r</tt> is the
-     * minimum difference between depth values such that they are distinct once stored in
-     * the depth buffer.
+     * <var>offset</var> is the value added to the pixel's window depth; <var>factor</var>
+     * and <var>units</var> are the values specified in this method; <var>m</var> is the
+     * maximum depth slope of the polygon that contained the rendered pixel; <var>r</var>
+     * is the minimum difference between depth values such that they are distinct once
+     * stored in the depth buffer.
      * <p/>
-     * <tt>m</tt> is computed as the length of the vector <dz/dx, dz/dy>. <tt>r</tt> is
-     * implementation dependent since it depends on the size and format of the depth
+     * <var>m</var> is computed as the length of the vector <dz/dx, dz/dy>. <var>r</var>
+     * is implementation dependent since it depends on the size and format of the depth
      * buffer in use for a Surface.
      * <p/>
      * The starting state is to have both factor and units equal to 0.
@@ -665,8 +665,8 @@ public interface Renderer {
     /**
      * <p/>
      * Set the DrawStyle to be used for front-facing polygons and back-facing polygons.
-     * The <tt>front</tt> DrawStylespecifies how front-facing polygons are rendered, and
-     * <tt>back</tt> specifies how back-facing polygons are rendered.
+     * The <var>front</var> DrawStylespecifies how front-facing polygons are rendered, and
+     * <var>back</var> specifies how back-facing polygons are rendered.
      * <p/>
      * The facing of a polygon is determined by the counter-clockwise ordering of its
      * vertices. When a polygon is rendered, if it's vertices are specified in
@@ -797,8 +797,8 @@ public interface Renderer {
     /**
      * <p/>
      * Set the index buffer that is used when rendering. If the index buffer is not null,
-     * the rendered polygons are described by the index values in <tt>indices</tt> and the
-     * polygon type specified by {@link #render(PolygonType, int, int)}.
+     * the rendered polygons are described by the index values in <var>indices</var> and
+     * the polygon type specified by {@link #render(PolygonType, int, int)}.
      * <p/>
      * The VertexBufferObject might be updated before rendering depending on its update
      * policy. The VertexBufferObject must have an integral data type of INT, SHORT, or
@@ -816,8 +816,8 @@ public interface Renderer {
 
     /**
      * <p/>
-     * Render polygons by iterating through <tt>count</tt> of the configured indices
-     * starting at <tt>offset</tt>. Polygons are formed based on the polygon type
+     * Render polygons by iterating through <var>count</var> of the configured indices
+     * starting at <var>offset</var>. Polygons are formed based on the polygon type
      * provided. If there is a non-null bound index buffer count index values are read and
      * used to access the vertex attributes. If there is no index buffer, vertex
      * attributes are read directly starting at offset.
@@ -852,9 +852,9 @@ public interface Renderer {
 
     /**
      * <p/>
-     * Clear the framebuffers of the current Surface based on <tt>clearColor</tt>,
-     * <tt>clearDepth</tt> and <tt>clearStencil</tt>. The color buffer will be cleared to
-     * (0, 0, 0, 0), the depth will be cleared to 1, and the stencil buffer will be
+     * Clear the framebuffers of the current Surface based on <var>clearColor</var>,
+     * <var>clearDepth</var> and <var>clearStencil</var>. The color buffer will be cleared
+     * to (0, 0, 0, 0), the depth will be cleared to 1, and the stencil buffer will be
      * cleared to 0.
      *
      * @param clearColor   True if the color buffer is cleared
@@ -867,13 +867,13 @@ public interface Renderer {
 
     /**
      * <p/>
-     * Clear the framebuffers of the current Surface based on <tt>clearColor</tt>,
-     * <tt>clearDepth</tt>, and <tt>clearStencil</tt>. If the color buffer is cleared, the
-     * color value written into the buffer is affected by the current color mask state. If
-     * the depth buffer is cleared, the depth value written is affected by the current
-     * depth mask state. If the stencil buffer is cleared, the stencil value written is
-     * affected by the current stencil mask configured for front-facing polygons. Only the
-     * current viewport is affected by the clear operation.
+     * Clear the framebuffers of the current Surface based on <var>clearColor</var>,
+     * <var>clearDepth</var>, and <var>clearStencil</var>. If the color buffer is cleared,
+     * the color value written into the buffer is affected by the current color mask
+     * state. If the depth buffer is cleared, the depth value written is affected by the
+     * current depth mask state. If the stencil buffer is cleared, the stencil value
+     * written is affected by the current stencil mask configured for front-facing
+     * polygons. Only the current viewport is affected by the clear operation.
      * <p/>
      * Like {@link #setBlendColor(Vector4)}, the color holds arbitrary values ordered red,
      * green, blue and alpha. They are clamped to [0, 1] before clearing the color

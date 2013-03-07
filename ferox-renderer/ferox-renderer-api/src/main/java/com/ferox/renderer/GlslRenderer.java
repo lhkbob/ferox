@@ -53,7 +53,7 @@ public interface GlslRenderer extends Renderer {
     /**
      * <p/>
      * Set the current state of this renderer to equal the given state snapshot.
-     * <tt>state</tt> must have been returned by a prior call to {@link
+     * <var>state</var> must have been returned by a prior call to {@link
      * #getCurrentState()} from a GlslRenderer created by this renderer's Framework or
      * behavior is undefined.
      * <p/>

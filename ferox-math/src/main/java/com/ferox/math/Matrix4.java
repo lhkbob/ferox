@@ -93,8 +93,8 @@ public final class Matrix4 implements Cloneable {
      * @param m32
      * @param m33
      *
-     * @see #set(double, double, double, double, double, double, double, double, double, double,
-     *      double, double, double, double, double, double)
+     * @see #set(double, double, double, double, double, double, double, double, double,
+     *      double, double, double, double, double, double, double)
      */
     public Matrix4(double m00, double m01, double m02, double m03, double m10, double m11,
                    double m12, double m13, double m20, double m21, double m22, double m23,
@@ -109,9 +109,9 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Compute an affine transform that translates an object to <tt>from</tt>, and has it
-     * oriented towards the point, <tt>lookAt</tt>. The up axis is the orthogonal vector
-     * closest to <tt>up</tt> that has the above described direction vector.
+     * Compute an affine transform that translates an object to <var>from</var>, and has
+     * it oriented towards the point, <var>lookAt</var>. The up axis is the orthogonal
+     * vector closest to <var>up</var> that has the above described direction vector.
      *
      * @param lookAt The point to look at
      * @param from   The viewing location (e.g. where the camera or object is)
@@ -170,7 +170,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Add <tt>c</tt> to each component of <tt>m</tt> and store the result in this
+     * Add <var>c</var> to each component of <var>m</var> and store the result in this
      * matrix.
      *
      * @param m The matrix in the addition
@@ -212,7 +212,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Compute the inverse of <tt>m</tt> and store it in this matrix.
+     * Compute the inverse of <var>m</var> and store it in this matrix.
      *
      * @param m The matrix to invert
      *
@@ -313,9 +313,9 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Multiply <tt>a</tt> by the diagonal matrix that takes it's four diagonal entries
-     * from <tt>b</tt>, or compute <code>[a] X [m]</code>, where [m] is all 0s except m00
-     * = b.x, m11 = b.y, m22 = b.z and m33 = b.w
+     * Multiply <var>a</var> by the diagonal matrix that takes it's four diagonal entries
+     * from <var>b</var>, or compute <code>[a] X [m]</code>, where [m] is all 0s except
+     * m00 = b.x, m11 = b.y, m22 = b.z and m33 = b.w
      *
      * @param a The left matrix in the multiplication
      * @param b Vector holding the four diagonal entries of the other matrix
@@ -333,7 +333,7 @@ public final class Matrix4 implements Cloneable {
 
     /**
      * <p/>
-     * Multiply the transpose of <tt>a</tt> by the transpose of <tt>b</tt>, or compute
+     * Multiply the transpose of <var>a</var> by the transpose of <var>b</var>, or compute
      * <code>[a]^T x [b]^T</code> and store it in this matrix.
      * <p/>
      * Note that <code>[a]^T x [b]^T = ([b] x [a])^T</code>
@@ -435,7 +435,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Compute the transpose of <tt>m</tt> and store it in this matrix.
+     * Compute the transpose of <var>m</var> and store it in this matrix.
      *
      * @param m The matrix to transpose
      *
@@ -911,8 +911,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Set the upper 3x3 of this matrix to the 9 values stored in <tt>m</tt>. The 4th row
-     * and column of this matrix are not modified.
+     * Set the upper 3x3 of this matrix to the 9 values stored in <var>m</var>. The 4th
+     * row and column of this matrix are not modified.
      *
      * @param m The matrix copied into this matrix's upper 3x3
      *
@@ -1137,7 +1137,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <tt>offset</tt>
+     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <var>offset</var>
      * is measured from 0, not the buffer's position.
      *
      * @param store    The DoubleBuffer to hold the row values
@@ -1186,8 +1186,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <tt>offset</tt> is
-     * measured from 0, not the buffer's position.
+     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <var>offset</var>
+     * is measured from 0, not the buffer's position.
      *
      * @param store    The FloatBuffer to hold the row values
      * @param offset   The first index to use in the store

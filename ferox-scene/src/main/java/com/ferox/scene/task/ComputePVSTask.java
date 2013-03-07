@@ -94,7 +94,7 @@ public class ComputePVSTask implements Task, ParallelAware {
 
         /**
          * Create a new VisibilityCallback that set each discovered Entity with a
-         * Transform's visibility to true for the given entity, <tt>camera</tt>.
+         * Transform's visibility to true for the given entity, <var>camera</var>.
          *
          * @param camera The Entity that will be flagged as visible
          *

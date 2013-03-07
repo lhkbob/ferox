@@ -143,7 +143,7 @@ public class InputManager {
     /**
      * <p/>
      * Begin registering a new action with this InputManager that will be triggered when
-     * <tt>predicate</tt> evaluates to true. The action will not be registered until
+     * <var>predicate</var> evaluates to true. The action will not be registered until
      * {@link ActionBuilder#trigger(Action)} is called on the returned ActionBuilder.
      * <p/>
      * This allows code to read reasonably fluently: <code>manager.on(condition).trigger(action);</code>
@@ -161,7 +161,7 @@ public class InputManager {
     /**
      * Remove or unregister the given action from this manager. If the action was
      * registered with multiple predicates, all occurrences of it will be removed to
-     * guarantee that <tt>trigger</tt> can no longer be invoked as a result of calling
+     * guarantee that <var>trigger</var> can no longer be invoked as a result of calling
      * this manager's {@link #process()} method.
      *
      * @param trigger The trigger to remove

@@ -227,10 +227,10 @@ public class ResourceManager {
 
     /**
      * <p/>
-     * Lock the given Resource, <tt>r</tt> so it can be safely bound on the given context.
-     * This is a shared lock so that it can be locked multiple times for binding purposes
-     * (i.e. to multiple texture units). While a Resource is bound, it cannot be updated
-     * or disposed of.
+     * Lock the given Resource, <var>r</var> so it can be safely bound on the given
+     * context. This is a shared lock so that it can be locked multiple times for binding
+     * purposes (i.e. to multiple texture units). While a Resource is bound, it cannot be
+     * updated or disposed of.
      * <p/>
      * This will automatically update the resource if its update policy is ON_DEMAND. If
      * the resource is not ready, false is returned and the Renderer should cancel the
@@ -287,7 +287,7 @@ public class ResourceManager {
 
     /**
      * Update the given resource as required by {@link HardwareAccessLayer#update(Resource)}.
-     * This will only update if the ResourceDriver's for <tt>r</tt> detect that the
+     * This will only update if the ResourceDriver's for <var>r</var> detect that the
      * resource has been changed. The new status of the resource is returned. The provided
      * context is assumed to be the context current on the calling thread; if this is not
      * true then undefined behavior will result.
@@ -409,7 +409,7 @@ public class ResourceManager {
 
     /**
      * <p/>
-     * Set whether or not the given resource, <tt>r</tt>, is disposable. If it is not
+     * Set whether or not the given resource, <var>r</var>, is disposable. If it is not
      * disposable, an exception is thrown when {@link #dispose(OpenGLContext, Resource)}
      * is invoked. This can be used to prevent the textures used by a TextureSurface from
      * being disposed of until the surface is destroyed.

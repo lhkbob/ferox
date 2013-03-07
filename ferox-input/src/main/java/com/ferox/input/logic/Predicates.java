@@ -129,9 +129,9 @@ public final class Predicates {
 
     /**
      * Return a Predicate that evaluates to true when the key code is pressed and released
-     * in under <tt>delay</tt> milliseconds (i.e. typing that key). This will not evaluate
-     * to true until the key is released. If the release occurs too slowly, it will not
-     * trigger.
+     * in under <var>delay</var> milliseconds (i.e. typing that key). This will not
+     * evaluate to true until the key is released. If the release occurs too slowly, it
+     * will not trigger.
      *
      * @param code  The key that is typed
      * @param delay The maximum delay between press and release, in ms
@@ -237,9 +237,9 @@ public final class Predicates {
 
     /**
      * Return a Predicate that evaluates to true when the mouse button is pressed and
-     * released <tt>numClicks</tt> times in under 150 milliseconds (i.e. multiple clicks).
-     * This will not evaluate to true until the button is released. If the release occurs
-     * too slowly, it will not trigger.
+     * released <var>numClicks</var> times in under 150 milliseconds (i.e. multiple
+     * clicks). This will not evaluate to true until the button is released. If the
+     * release occurs too slowly, it will not trigger.
      *
      * @param button The button that is clicked
      *
@@ -255,7 +255,7 @@ public final class Predicates {
 
     /**
      * Return a Predicate that evaluates to true when the mouse button is pressed and
-     * released <tt>numClicks</tt> times in under <tt>delay</tt> milliseconds (i.e.
+     * released <var>numClicks</var> times in under <var>delay</var> milliseconds (i.e.
      * multiple clicks). This will not evaluate to true until the button is released. If
      * the release occurs too slowly, it will not trigger.
      *
@@ -301,8 +301,9 @@ public final class Predicates {
     /**
      * <p/>
      * Return a Predicate that evaluates to true when the mouse's position changes. If
-     * <tt>allowAnyButton</tt> is true, then the predicate does not depend on the mouse's
-     * button state and will return true regardless of which buttons are held down.
+     * <var>allowAnyButton</var> is true, then the predicate does not depend on the
+     * mouse's button state and will return true regardless of which buttons are held
+     * down.
      * <p/>
      * If it is false, the predicate will only return true when no buttons are held down.
      *

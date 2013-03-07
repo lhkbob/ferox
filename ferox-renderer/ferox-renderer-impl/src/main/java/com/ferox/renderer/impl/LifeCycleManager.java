@@ -107,8 +107,8 @@ public class LifeCycleManager {
      * this is invoked, true is returned. All other invocations return false and do not
      * change the status of the manager.
      * <p/>
-     * <tt>onInit</tt> is invoked only if true will be returned (i.e. the first time this
-     * is called), and should contain framework level code to be performed on
+     * <var>onInit</var> is invoked only if true will be returned (i.e. the first time
+     * this is called), and should contain framework level code to be performed on
      * initialization. Some examples might be to start managed threads or to initialize
      * subcomponents that exist within this managed lifecycle. While the provided Runnable
      * is running, the manager has a status of STARTING. When the Runnable completes, this
@@ -147,20 +147,21 @@ public class LifeCycleManager {
      * invoked once and all future calls do nothing except return false.
      * <p/>
      * If the manager is WAITING_INIT, its status changes directly to STOPPED and does not
-     * run either Runnable. If the status is ACTIVE, it first runs <tt>preDestroy</tt>,
+     * run either Runnable. If the status is ACTIVE, it first runs <var>preDestroy</var>,
      * then changes status changes to STOPPING. The manager then starts a new thread that
-     * will eventually run the code in <tt>onDestroy</tt>. The new thread will first block
-     * until all managed threads have terminated. After the threads have finished,
-     * <tt>onDestroy</tt> is run and the status is changed to STOPPED.
+     * will eventually run the code in <var>onDestroy</var>. The new thread will first
+     * block until all managed threads have terminated. After the threads have finished,
+     * <var>onDestroy</var> is run and the status is changed to STOPPED.
      * <p/>
      * A value of true is returned the first time this is invoked. A value of false is
      * returned if the manager is stopping, has stopped or is starting. Calls to this
      * method while the status is STARTING return false and do nothing.
      * <p/>
      * The provided Runnable must be "trusted" code and should not throw exceptions or the
-     * manager's state will be undefined. <tt>preDestroy</tt> must be thread safe so that
-     * it can be safely called from whatever thread invoked stop(). <tt>postDestroy</tt>
-     * must be safe to call from the shutdown thread that is started by this manager.
+     * manager's state will be undefined. <var>preDestroy</var> must be thread safe so
+     * that it can be safely called from whatever thread invoked stop().
+     * <var>postDestroy</var> must be safe to call from the shutdown thread that is
+     * started by this manager.
      *
      * @param preDestroy  A Runnable executed after the exclusive lock is held, but before
      *                    the state transitions to STOPPING

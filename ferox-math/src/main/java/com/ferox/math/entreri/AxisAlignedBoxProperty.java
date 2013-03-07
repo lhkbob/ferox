@@ -59,7 +59,7 @@ public class AxisAlignedBoxProperty implements Property {
 
     /**
      * Get the axis aligned box of this property, for the component at the given index,
-     * and store it into <tt>result</tt>. If result is null, a new AxisAlignedBox is
+     * and store it into <var>result</var>. If result is null, a new AxisAlignedBox is
      * created and returned.
      *
      * @param index  The component index to retrieve
@@ -79,7 +79,7 @@ public class AxisAlignedBoxProperty implements Property {
     }
 
     /**
-     * Copy the state of <tt>b</tt> into the underlying data of this property, for the
+     * Copy the state of <var>b</var> into the underlying data of this property, for the
      * component at the given index.
      *
      * @param v     The box to copy

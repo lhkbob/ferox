@@ -61,7 +61,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Create a new vector that copies the x, y, z, and w values from <tt>v</tt> .
+     * Create a new vector that copies the x, y, z, and w values from <var>v</var> .
      *
      * @param v The vector to copy
      */
@@ -90,7 +90,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Floor each component of the vector <tt>v</tt> and store them in this vector.
+     * Floor each component of the vector <var>v</var> and store them in this vector.
      *
      * @param v The vector to be floored
      *
@@ -112,7 +112,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the ceiling of each component of the vector <tt>v</tt> and store them in
+     * Compute the ceiling of each component of the vector <var>v</var> and store them in
      * this vector.
      *
      * @param v The vector to be ceil'ed
@@ -224,7 +224,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the distance between this vector and <tt>v</tt>, treating both vectors as
+     * Compute the distance between this vector and <var>v</var>, treating both vectors as
      * 4D points.
      *
      * @param v The other vector
@@ -238,7 +238,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute the square of the distance between this and <tt>v</tt>, treating both
+     * Compute the square of the distance between this and <var>v</var>, treating both
      * vectors as 4D points.
      *
      * @param v The other vector
@@ -283,10 +283,10 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Compute a vector orthogonal to <tt>b</tt> and store the result in this vector. The
-     * orthogonal vector will be in the plane formed by <tt>a</tt> and <tt>b</tt>, and it
-     * will be in the same half-plane as <tt>a</tt> formed by a line through <tt>b</tt>.
-     * This uses the Gram-Schmidt process.
+     * Compute a vector orthogonal to <var>b</var> and store the result in this vector.
+     * The orthogonal vector will be in the plane formed by <var>a</var> and <var>b</var>,
+     * and it will be in the same half-plane as <var>a</var> formed by a line through
+     * <var>b</var>. This uses the Gram-Schmidt process.
      *
      * @param a The vector that helps form the plane and chooses the result's orientation
      * @param b The vector the result is orthogonal to
@@ -307,7 +307,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Project <tt>a</tt> onto <tt>b</tt> and store the result in this vector.
+     * Project <var>a</var> onto <var>b</var> and store the result in this vector.
      *
      * @param a The vector being projected
      * @param b The vector that is projected onto
@@ -321,7 +321,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Add <tt>a</tt> and <tt>b</tt> together and store the result in this vector.
+     * Add <var>a</var> and <var>b</var> together and store the result in this vector.
      *
      * @param a The left side of the addition
      * @param b The right side of the addition
@@ -365,7 +365,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Scale <tt>v</tt> by <tt>scalar</tt> and store the result in this vector.
+     * Scale <var>v</var> by <var>scalar</var> and store the result in this vector.
      *
      * @param v      The vector whose scale is computed
      * @param scalar The scale factor
@@ -379,7 +379,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * Normalize <tt>v</tt> to be of length 1 and store it in this vector. The vector
+     * Normalize <var>v</var> to be of length 1 and store it in this vector. The vector
      * can't be normalized if it's length is 0. If it's length is very close to 0, the
      * results may suffer from loss of precision.
      *
@@ -670,7 +670,7 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt> is
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <var>offset</var> is
      * measured from 0, not the buffer's position.
      *
      * @param store  The DoubleBuffer to hold the row values
@@ -687,8 +687,8 @@ public final class Vector4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt> is measured
-     * from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <var>offset</var> is
+     * measured from 0, not the buffer's position.
      *
      * @param store  The FloatBuffer to hold the row values
      * @param offset The first index to use in the store

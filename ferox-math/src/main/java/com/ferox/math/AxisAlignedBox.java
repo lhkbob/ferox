@@ -70,7 +70,7 @@ public class AxisAlignedBox implements Cloneable {
 
     /**
      * Create a new AxisAlignedBox that uses the given minimum and maximum vectors as its
-     * two control points. Both <tt>min</tt> and <tt>max</tt> will be copied into the
+     * two control points. Both <var>min</var> and <var>max</var> will be copied into the
      * vectors used by the box. It is permissible but not recommended to create an
      * AxisAlignedBox in an inconsistent state.
      *
@@ -85,7 +85,7 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Create a new AxisAlignedBox that is a clone of <tt>aabb</tt>.
+     * Create a new AxisAlignedBox that is a clone of <var>aabb</var>.
      *
      * @param aabb The AxisAlignedBox to copy
      *
@@ -97,10 +97,11 @@ public class AxisAlignedBox implements Cloneable {
 
     /**
      * Create a new AxisAlignedBox that is fitted to the coordinate data stored in
-     * <tt>vertices</tt>. It is assumed that <tt>vertices</tt> holds <tt>numVertices</tt>
-     * 3D vertices, starting at <tt>offset</tt>. The x, y, and z coordinates are
-     * consecutive elements, with <tt>stride</tt> elements between consecutive vertices.
-     * The created AxisAlignedBox will fit the set of vertices as best as possible.
+     * <var>vertices</var>. It is assumed that <var>vertices</var> holds
+     * <var>numVertices</var> 3D vertices, starting at <var>offset</var>. The x, y, and z
+     * coordinates are consecutive elements, with <var>stride</var> elements between
+     * consecutive vertices. The created AxisAlignedBox will fit the set of vertices as
+     * best as possible.
      *
      * @param vertices    A set of 3D vertices representing a shape, either a point cloud
      *                    or something more complex
@@ -171,8 +172,8 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Copy the state of <tt>aabb</tt> into this AxisAlignedBox so that this
-     * AxisAlignedBox is equivalent to <tt>aabb</tt>.
+     * Copy the state of <var>aabb</var> into this AxisAlignedBox so that this
+     * AxisAlignedBox is equivalent to <var>aabb</var>.
      *
      * @param aabb The AxisAlignedBox to clone
      *
@@ -237,9 +238,9 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Return true if this AxisAlignedBox and <tt>other</tt> intersect. It is assumed that
-     * both boxes exist within the same coordinate space. An intersection occurs if any
-     * portion of the two boxes overlap.
+     * Return true if this AxisAlignedBox and <var>other</var> intersect. It is assumed
+     * that both boxes exist within the same coordinate space. An intersection occurs if
+     * any portion of the two boxes overlap.
      *
      * @param other The AxisAlignedBox to test for intersection
      *
@@ -254,7 +255,7 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Return true if <tt>other</tt> is completely contained within the extents of this
+     * Return true if <var>other</var> is completely contained within the extents of this
      * ReadOnlyAxisAlignedBox. It is assumed that both bounds exist within the same
      * coordinate space.
      *
@@ -271,8 +272,8 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Compute the intersection of <tt>a</tt> and <tt>b</tt> and store it in this
-     * AxisAlignedBox. If <tt>a</tt> and <tt>b</tt> do not {@link
+     * Compute the intersection of <var>a</var> and <var>b</var> and store it in this
+     * AxisAlignedBox. If <var>a</var> and <var>b</var> do not {@link
      * #intersects(AxisAlignedBox) intersect}, the computed intersection will be an
      * inconsistent box.
      *
@@ -293,7 +294,7 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Compute the union of <tt>a</tt> and <tt>b</tt> and store the computed bounds in
+     * Compute the union of <var>a</var> and <var>b</var> and store the computed bounds in
      * this AxisAlignedBox.
      *
      * @param a The AxisAlignedBox that is part of the union
@@ -313,13 +314,13 @@ public class AxisAlignedBox implements Cloneable {
 
     /**
      * <p/>
-     * Transform <tt>aabb</tt> by <tt>m</tt> and store the transformed bounds in this
+     * Transform <var>aabb</var> by <var>m</var> and store the transformed bounds in this
      * AxisAlignedBox. This can be used to transform an AxisAlignedBox from one coordinate
      * space to another while preserving the property that whatever was contained by the
      * box in its original space, will be contained by the transformed box after it has
      * been transformed as well.
      * <p/>
-     * For best results, <tt>m</tt> should be an affine transformation.
+     * For best results, <var>m</var> should be an affine transformation.
      *
      * @param aabb The AxisAlignedBox that is transformed
      * @param m    The Matrix4 to act as a transform

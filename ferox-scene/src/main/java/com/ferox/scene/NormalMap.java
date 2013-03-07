@@ -91,8 +91,8 @@ public final class NormalMap extends TextureMap<NormalMap> {
      * and (tangent X normal) create an orthonormal basis representing the 'tangent space'
      * of the geometry at a particular vertex.
      * <p/>
-     * When <tt>tangents</tt> is non-null, it is assumed that the normal vectors encoded
-     * in the texture are in this tangent space. When <tt>tangents</tt> is null, it is
+     * When <var>tangents</var> is non-null, it is assumed that the normal vectors encoded
+     * in the texture are in this tangent space. When <var>tangents</var> is null, it is
      * assumed that the vectors in the texture are in object or model space.
      *
      * @param tangents The new tangent vertex attribute to use

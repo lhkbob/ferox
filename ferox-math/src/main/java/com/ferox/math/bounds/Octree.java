@@ -91,10 +91,10 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
     /**
      * <p/>
      * Construct a new Octree that has X, Y, and Z dimensions equal to
-     * <tt>sideLength</tt>, and the depth of the tree is controlled by the estimated
-     * object size, <tt>objSize</tt>. <tt>objSize</tt> should be the approximate dimension
-     * of the average object contained in this index. If it is too big or too small, query
-     * performance may suffer.
+     * <var>sideLength</var>, and the depth of the tree is controlled by the estimated
+     * object size, <var>objSize</var>. <var>objSize</var> should be the approximate
+     * dimension of the average object contained in this index. If it is too big or too
+     * small, query performance may suffer.
      *
      * @param sideLength The side length of the root bounds of the octree
      * @param objSize    The estimated object size
@@ -108,14 +108,14 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
 
     /**
      * <p/>
-     * Construct a new Octree with the given root bounds, <tt>aabb</tt> and tree depth.
+     * Construct a new Octree with the given root bounds, <var>aabb</var> and tree depth.
      * The depth of the tree and the X, Y, and Z dimensions of the root bounds determine
      * the size the leaf octree nodes. If objects are significantly larger than this, they
      * will be contained in multiple nodes and it may hurt performance.
      * <p/>
      * <p/>
-     * The root bounds are copied so future changes to <tt>aabb</tt> will not affect this
-     * tree.
+     * The root bounds are copied so future changes to <var>aabb</var> will not affect
+     * this tree.
      *
      * @param aabb  The root bounds of the tree
      * @param depth The depth of the tree

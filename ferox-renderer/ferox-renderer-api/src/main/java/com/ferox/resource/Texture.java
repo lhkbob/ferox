@@ -241,12 +241,12 @@ public class Texture extends Resource {
      * arrays the full range of mipmaps is used.
      * <p/>
      * The mipmap layers are interpreted differently depending on the specified target. If
-     * the target is one of T_1D, T_2D, or T_3D, <tt>mipmaps</tt> must have a length of 1
-     * as these targets expect a single layer. If the target is T_CUBEMAP,
-     * <tt>mipmaps</tt> must have a length of 6, one for each face of the cube.
+     * the target is one of T_1D, T_2D, or T_3D, <var>mipmaps</var> must have a length of
+     * 1 as these targets expect a single layer. If the target is T_CUBEMAP,
+     * <var>mipmaps</var> must have a length of 6, one for each face of the cube.
      * <p/>
      * The mipmaps array cannot have any null elements. Additionally, the dimensions,
-     * TextureFormat and DataType of every Mipmap within <tt>mipmaps</tt> must match.
+     * TextureFormat and DataType of every Mipmap within <var>mipmaps</var> must match.
      * Additionally, there are dimension constraints depending on the target: <ul> <li>1D
      * textures must have all mipmaps with a height and depth of 1.</li> <li>2D textures
      * must have a depth of 1.</li> <li>cubemaps must have a depth of 1 and the width and
@@ -459,7 +459,7 @@ public class Texture extends Resource {
     }
 
     /**
-     * Set the S, T, and R coordinate's WrapMode to <tt>wrap</tt>.
+     * Set the S, T, and R coordinate's WrapMode to <var>wrap</var>.
      *
      * @param wrap The new WrapMode for every coordinate
      *
@@ -470,8 +470,8 @@ public class Texture extends Resource {
     }
 
     /**
-     * Set the S, T and R coordinate's WrapMode to <tt>s</tt>, <tt>t</tt>, <tt>r</tt>,
-     * respectively.
+     * Set the S, T and R coordinate's WrapMode to <var>s</var>, <var>t</var>,
+     * <var>r</var>, respectively.
      *
      * @param s The new WrapMode for the S coordinate
      * @param t The new WrapMode for the T coordinate
@@ -742,7 +742,7 @@ public class Texture extends Resource {
     }
 
     /**
-     * Mark the specified mipmap <tt>level</tt> dirty within the given <tt>layer</tt>.
+     * Mark the specified mipmap <var>level</var> dirty within the given <var>layer</var>.
      * This is a convenience for invoking {@link #markDirty(MipmapRegion, int, int)} with
      * an MipmapRegion that spans from (0,0,0) to the dimensions of the requested level.
      *
@@ -761,10 +761,10 @@ public class Texture extends Resource {
     }
 
     /**
-     * Mark every mipmap level dirty for the given <tt>layer</tt> of the Texture. This can
-     * be used to mark a single face of a cube map dirty for example. This is a
+     * Mark every mipmap level dirty for the given <var>layer</var> of the Texture. This
+     * can be used to mark a single face of a cube map dirty for example. This is a
      * convenience for invoking {@link #markDirty(int, int)} for every mipmap level within
-     * the given <tt>layer</tt>
+     * the given <var>layer</var>
      *
      * @param layer The layer to mark completely dirty
      *

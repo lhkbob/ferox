@@ -78,7 +78,7 @@ public abstract class AxisSweptShape extends ConvexShape {
     }
 
     /**
-     * Return the sign of component of <tt>v</tt> matching the shape's dominant axis.
+     * Return the sign of component of <var>v</var> matching the shape's dominant axis.
      * Thus, if the dominant axis was Z, it returns 1 of <code>v.getZ()</code> is
      * positive, and -1 if not.
      *
@@ -102,7 +102,7 @@ public abstract class AxisSweptShape extends ConvexShape {
     }
 
     /**
-     * Evaluate the "sigma" function of <tt>v</tt>. This is the same as the projected
+     * Evaluate the "sigma" function of <var>v</var>. This is the same as the projected
      * distance of v to the dominant axis.
      *
      * @param v The input vector evaluated by the sigma function

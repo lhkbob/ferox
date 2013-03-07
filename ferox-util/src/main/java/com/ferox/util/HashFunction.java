@@ -44,10 +44,10 @@ public interface HashFunction<E> {
     };
 
     /**
-     * Compute and return the hash code for the given <tt>value</tt>. If <tt>value</tt> is
-     * null, return 0. The rules for this function are that if two instances are equal,
-     * with respect to the fields used to generate the hash, the returned hashes must be
-     * equivalent. Non-equal inputs can generate the same hash.
+     * Compute and return the hash code for the given <var>value</var>. If
+     * <var>value</var> is null, return 0. The rules for this function are that if two
+     * instances are equal, with respect to the fields used to generate the hash, the
+     * returned hashes must be equivalent. Non-equal inputs can generate the same hash.
      *
      * @param value The value to hash
      *

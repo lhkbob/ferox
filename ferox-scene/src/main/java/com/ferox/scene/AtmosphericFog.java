@@ -155,8 +155,8 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
     }
 
     /**
-     * Copy <tt>color</tt> into this AtmosphericFog's color instance. The color represents
-     * the color of the fog when fully opaque.
+     * Copy <var>color</var> into this AtmosphericFog's color instance. The color
+     * represents the color of the fog when fully opaque.
      *
      * @param color The new fog color
      *

@@ -43,7 +43,7 @@ public class Plane {
     private static final float ROOT_2_OVER_2 = .7071067811865f;
 
     /**
-     * Interpret <tt>plane</tt> as a plane within the 3D coordinate space. The plane is
+     * Interpret <var>plane</var> as a plane within the 3D coordinate space. The plane is
      * normalized by dividing all four coordinates by the magnitude of the planes normal
      * vector. The plane is normalized in place.
      *
@@ -56,8 +56,8 @@ public class Plane {
     }
 
     /**
-     * Compute the signed distance between the plane stored in <tt>plane</tt> and the
-     * given <tt>point</tt>. The Vector4 storing the plane is stored as described above.
+     * Compute the signed distance between the plane stored in <var>plane</var> and the
+     * given <var>point</var>. The Vector4 storing the plane is stored as described above.
      * If the returned distance is less than 0, the point is "behind" the plane, if it is
      * 0 it lies on the plane, and if it is positive, the point lies in front of the
      * plane. In front of and behind depend on the direction which the normal of the plane
@@ -75,8 +75,8 @@ public class Plane {
     }
 
     /**
-     * Compute the signed distance between <tt>plane</tt> and <tt>point</tt>. If
-     * <tt>assumeNormalized</tt> is false, this functions identically to {@link
+     * Compute the signed distance between <var>plane</var> and <var>point</var>. If
+     * <var>assumeNormalized</var> is false, this functions identically to {@link
      * #getSignedDistance(Vector4, Vector3)}. If it is true, this still returns the signed
      * distance but assumes that the given plane has already been normalized via {@link
      * #normalize(Vector4)}. This avoids a square root and division but can return

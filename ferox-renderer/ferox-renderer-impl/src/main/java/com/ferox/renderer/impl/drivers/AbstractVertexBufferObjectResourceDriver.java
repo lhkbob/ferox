@@ -261,7 +261,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     }
 
     /**
-     * Delete the VBO stored in the handle's <tt>vboID</tt>
+     * Delete the VBO stored in the handle's <var>vboID</var>
      *
      * @param context
      * @param handle
@@ -270,7 +270,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                            VertexBufferObjectHandle handle);
 
     /**
-     * Bind the VBO represented by the handle's <tt>vboID</tt> to the array buffer
+     * Bind the VBO represented by the handle's <var>vboID</var> to the array buffer
      * target.
      *
      * @param context
@@ -280,7 +280,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
                                               VertexBufferObjectHandle handle);
 
     /**
-     * Bind the VBO represented by the handle's <tt>vboID</tt> to the element buffer
+     * Bind the VBO represented by the handle's <var>vboID</var> to the element buffer
      * target.
      *
      * @param context
@@ -339,7 +339,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     /**
      * Invoke glBufferSubData on the array buffer target. The buffer will not be null and
      * its position and limit are configured already. The offset and length are into the
-     * VBO, and are in units of <tt>type</tt>.
+     * VBO, and are in units of <var>type</var>.
      *
      * @param context
      * @param data
@@ -353,7 +353,7 @@ public abstract class AbstractVertexBufferObjectResourceDriver implements Resour
     /**
      * Invoke glBufferSubData on the element buffer target. The buffer will not be null
      * and its position and limit are configured already. The offset and length are into
-     * the VBO, and are in units of <tt>type</tt>.
+     * the VBO, and are in units of <var>type</var>.
      *
      * @param context
      * @param data

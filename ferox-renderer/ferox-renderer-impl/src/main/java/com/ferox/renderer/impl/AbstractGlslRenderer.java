@@ -1103,8 +1103,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     /**
-     * Bind the given texture provided by the ResourceHandle. If the <tt>handle</tt> is
-     * null, unbind the texture currently bound to the given target. <tt>tex</tt>
+     * Bind the given texture provided by the ResourceHandle. If the <var>handle</var> is
+     * null, unbind the texture currently bound to the given target. <var>tex</var>
      * represents the texture unit to bind or unbind the texture on, which starts at 0. If
      * the handle is not null, its target will equal the provided target.
      */

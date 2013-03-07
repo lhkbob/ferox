@@ -76,9 +76,9 @@ public abstract class Light<T extends Light<T>> extends ComponentData<T> {
     }
 
     /**
-     * Set the color of this Light. The color values in <tt>color</tt> are copied into an
-     * internal instance, so any future changes to <tt>color</tt> will not affect this
-     * Component.
+     * Set the color of this Light. The color values in <var>color</var> are copied into
+     * an internal instance, so any future changes to <var>color</var> will not affect
+     * this Component.
      *
      * @param color The new color
      *

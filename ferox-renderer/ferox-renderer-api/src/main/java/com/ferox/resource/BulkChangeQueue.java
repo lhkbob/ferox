@@ -106,7 +106,7 @@ public class BulkChangeQueue<T> {
     /**
      * <p/>
      * Return a list of changes that were pushed after the given version,
-     * <tt>lastKnownVersion</tt>. This may not return every pushed change if so many
+     * <var>lastKnownVersion</var>. This may not return every pushed change if so many
      * changes have been pushed that older changes were pushed off the queue, even if
      * those discarded changes were pushed after the last known version. Use {@link
      * #hasLostChanges(int)} to determine if this is the case.
@@ -157,7 +157,7 @@ public class BulkChangeQueue<T> {
     }
 
     /**
-     * Return true if so many changes have been pushed since <tt>lastKnownVersion</tt>
+     * Return true if so many changes have been pushed since <var>lastKnownVersion</var>
      * that some of the unprocessed changes have been discarded.
      *
      * @param lastKnownVersion The last processed version, use -1 if the queue has not

@@ -450,8 +450,8 @@ public class Frustum {
     }
 
     /**
-     * Set the orientation of this Frustum based on the affine <tt>transform</tt>. The 4th
-     * column's first 3 values encode the transformation. The 3rd column holds the
+     * Set the orientation of this Frustum based on the affine <var>transform</var>. The
+     * 4th column's first 3 values encode the transformation. The 3rd column holds the
      * direction vector, and the 2nd column defines the up vector.
      *
      * @param transform The new transform of the frustum
@@ -520,26 +520,27 @@ public class Frustum {
     /**
      * <p/>
      * Compute and return the intersection of the AxisAlignedBox and this Frustum,
-     * <tt>f</tt>. It is assumed that the Frustum and AxisAlignedBox exist in the same
+     * <var>f</var>. It is assumed that the Frustum and AxisAlignedBox exist in the same
      * coordinate frame. {@link FrustumIntersection#INSIDE} is returned when the
      * AxisAlignedBox is fully contained by the Frustum. {@link
      * FrustumIntersection#INTERSECT} is returned when this box is partially contained by
      * the Frustum, and {@link FrustumIntersection#OUTSIDE} is returned when the box has
      * no intersection with the Frustum.
      * <p/>
-     * If <tt>OUTSIDE</tt> is returned, it is guaranteed that the objects enclosed by the
-     * bounds do not intersect the Frustum. If <tt>INSIDE</tt> is returned, any object
-     * {@link #contains(AxisAlignedBox) contained} by the box will also be completely
-     * inside the Frustum. When <tt>INTERSECT</tt> is returned, there is a chance that the
-     * true representation of the objects enclosed by the box will be outside of the
-     * Frustum, but it is unlikely. This can occur when a corner of the box intersects
-     * with the planes of <tt>f</tt>, but the shape does not exist in that corner.
+     * If <var>OUTSIDE</var> is returned, it is guaranteed that the objects enclosed by
+     * the bounds do not intersect the Frustum. If <var>INSIDE</var> is returned, any
+     * object {@link #contains(AxisAlignedBox) contained} by the box will also be
+     * completely inside the Frustum. When <var>INTERSECT</var> is returned, there is a
+     * chance that the true representation of the objects enclosed by the box will be
+     * outside of the Frustum, but it is unlikely. This can occur when a corner of the box
+     * intersects with the planes of <var>f</var>, but the shape does not exist in that
+     * corner.
      * <p/>
-     * The argument <tt>planeState</tt> can be used to hint to this function which planes
-     * of the Frustum require checking and which do not. When a hierarchy of bounds is
-     * used, the planeState can be used to remove unnecessary plane comparisons. If
-     * <tt>planeState</tt> is null it is assumed that all planes need to be checked. If
-     * <tt>planeState</tt> is not null, this method will mark any plane that the box is
+     * The argument <var>planeState</var> can be used to hint to this function which
+     * planes of the Frustum require checking and which do not. When a hierarchy of bounds
+     * is used, the planeState can be used to remove unnecessary plane comparisons. If
+     * <var>planeState</var> is null it is assumed that all planes need to be checked. If
+     * <var>planeState</var> is not null, this method will mark any plane that the box is
      * completely inside of as not requiring a comparison. It is the responsibility of the
      * caller to save and restore the plane state as needed based on the structure of the
      * bound hierarchy.

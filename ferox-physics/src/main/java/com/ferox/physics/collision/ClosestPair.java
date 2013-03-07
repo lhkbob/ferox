@@ -45,10 +45,10 @@ public class ClosestPair {
     private final double distance;
 
     /**
-     * Create a new ClosestPair. <tt>pointOnA</tt> represents the point on the first
+     * Create a new ClosestPair. <var>pointOnA</var> represents the point on the first
      * object's surface. The point on the second object's surface is reconstructed from
-     * <tt>pointOnA</tt>, the <tt>contactNormal</tt>, and the distance along the normal.
-     * It is assumed that the contact normal has already been normalized.
+     * <var>pointOnA</var>, the <var>contactNormal</var>, and the distance along the
+     * normal. It is assumed that the contact normal has already been normalized.
      *
      * @param pointOnA      The closest point on the A's surface
      * @param contactNormal The normal from pointOnA to the point on B's surface,

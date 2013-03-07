@@ -81,7 +81,7 @@ public abstract class AbstractSurface implements Surface {
      * <p/>
      * onSurfaceActivate() is a listener method that is invoked by ContextManager when a
      * surface is activated. The provided context is the current context on the calling
-     * thread and will not be null. The <tt>layer</tt> argument represents the layer to
+     * thread and will not be null. The <var>layer</var> argument represents the layer to
      * activate. If the surface does not use layers (such as an OnscreenSurface or 2D
      * TextureSurface) it can be ignored. If it is a cubemap TextureSurface, the
      * represents one of the six faces. If it is a 3D TextureSurface, it represents the

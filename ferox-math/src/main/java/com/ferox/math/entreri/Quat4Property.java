@@ -57,7 +57,7 @@ public class Quat4Property implements Property {
 
     /**
      * Get the quaternion of this property, for the component at the given index, and
-     * store it into <tt>result</tt>. If result is null, a new Quat4 is created and
+     * store it into <var>result</var>. If result is null, a new Quat4 is created and
      * returned.
      *
      * @param index  The component index to retrieve
@@ -75,7 +75,7 @@ public class Quat4Property implements Property {
     }
 
     /**
-     * Copy the values of <tt>v</tt> into the underlying data of this property, for the
+     * Copy the values of <var>v</var> into the underlying data of this property, for the
      * component at the given index.
      *
      * @param v     The quaternion to copy

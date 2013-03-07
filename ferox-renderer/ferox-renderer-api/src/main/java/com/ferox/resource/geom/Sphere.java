@@ -39,7 +39,7 @@ import com.ferox.resource.VertexBufferObject.StorageMode;
  * <p/>
  * Sphere contains factory methods for creating approximations of a mathematical sphere
  * with a configurable radius. The accuracy of the approximation depends on a parameter
- * termed <tt>resolution</tt>.
+ * termed <var>resolution</var>.
  * <p/>
  * The approximated sphere is constructed by rotating a number of circles in the XY-plane
  * about the Y-axis. The number of rotations equals the resolution of the sphere. Each

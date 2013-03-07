@@ -259,8 +259,8 @@ public class LwjglContext extends OpenGLContext {
     }
 
     /**
-     * Bind a texture image to the current active texture. <tt>target</tt> must be one of
-     * GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
+     * Bind a texture image to the current active texture. <var>target</var> must be one
+     * of GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
      *
      * @param gl     The GL to use
      * @param target The valid OpenGL texture target enum for texture image

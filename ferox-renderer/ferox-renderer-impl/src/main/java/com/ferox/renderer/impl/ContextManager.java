@@ -222,8 +222,8 @@ public class ContextManager {
      * ContextManager. This assumes the surface is owned by the Framework owning this
      * ContextManager (if this assumption is broken, undefined results will occur).
      * <p/>
-     * If <tt>surface</tt> is already destroyed, the current surface is deactivated and a
-     * null context is returned.
+     * If <var>surface</var> is already destroyed, the current surface is deactivated and
+     * a null context is returned.
      *
      * @param surface The AbstractSurface to activate
      * @param layer   The layer to activate, will be passed directly to {@link

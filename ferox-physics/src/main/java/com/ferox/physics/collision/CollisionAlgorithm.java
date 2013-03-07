@@ -42,19 +42,19 @@ import com.ferox.math.Matrix4;
 public interface CollisionAlgorithm<A extends Shape, B extends Shape> {
     /**
      * <p/>
-     * Compute the closest pair of points in world space between <tt>shapeA</tt> and
-     * <tt>shapeB</tt>. If the implementation cannot determine a closest pair, it should
+     * Compute the closest pair of points in world space between <var>shapeA</var> and
+     * <var>shapeB</var>. If the implementation cannot determine a closest pair, it should
      * return null to indicate that the input was ill-conditioned. When a non-null {@link
      * ClosestPair} is returned, it means the two Collidables are either guaranteed
      * separated or intersecting.
      * <p/>
      * If the pair's reported distance is negative, it means the two objects are
      * intersecting. {@link ClosestPair#getClosestPointOnA()} will return the point on the
-     * surface of <tt>shapeA</tt> and {@link ClosestPair#getClosestPointOnB()} will return
-     * the point on the surface of <tt>shapeB</tt>. The contact normal between the two
-     * objects will be from A to B (which is also why negative distance implies
+     * surface of <var>shapeA</var> and {@link ClosestPair#getClosestPointOnB()} will
+     * return the point on the surface of <var>shapeB</var>. The contact normal between
+     * the two objects will be from A to B (which is also why negative distance implies
      * intersection). The surface points and contact normal are in world space, as
-     * determined by <tt>transA</tt> and <tt>transB</tt>.
+     * determined by <var>transA</var> and <var>transB</var>.
      *
      * @param shapeA The Shape of the first object in the collision
      * @param transA The transform that represents the world-space orientation of shapeA

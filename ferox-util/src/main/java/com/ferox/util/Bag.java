@@ -273,8 +273,8 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Clear this Bag of all elements. If <tt>fast</tt> is true, then the size is reset to
-     * 0 without clearing any internal references. They will be overwritten as elements
+     * Clear this Bag of all elements. If <var>fast</var> is true, then the size is reset
+     * to 0 without clearing any internal references. They will be overwritten as elements
      * are re-added into the Bag, but otherwise cannot be garbage collected. Fast clearing
      * is useful when needing a collection that can be re-filled repeatedly and quickly.
      *

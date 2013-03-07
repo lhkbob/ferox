@@ -45,8 +45,8 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
     private final Collection<? extends T>[] chain;
 
     /**
-     * Create a ChainedCollection chaining <tt>c1</tt> and <tt>c2</tt>. The elements in c1
-     * will be before the elements in c2.
+     * Create a ChainedCollection chaining <var>c1</var> and <var>c2</var>. The elements
+     * in c1 will be before the elements in c2.
      *
      * @param c1 The first child in the chain
      * @param c2 The second child in the chain
@@ -63,8 +63,8 @@ public class ChainedCollection<T> extends AbstractCollection<T> {
 
     /**
      * Create a ChainedCollection that chains together all collections currently within
-     * <tt>toChain</tt>. The collections are ordered as they are returned from
-     * <tt>toChain</tt>. This ordering will be consistent across the ChainedCollection's
+     * <var>toChain</var>. The collections are ordered as they are returned from
+     * <var>toChain</var>. This ordering will be consistent across the ChainedCollection's
      * iterators, although within-child iterators are not guaranteed.
      *
      * @param toChain The collection of collections to chain

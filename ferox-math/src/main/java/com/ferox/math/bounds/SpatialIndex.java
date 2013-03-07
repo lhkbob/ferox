@@ -55,19 +55,19 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
 public interface SpatialIndex<T> {
     /**
      * <p/>
-     * Add <tt>item</tt> to this SpatialIndex using the given <tt>bounds</tt> to represent
-     * the extents of the item. If the item is already in the index, the item may be
-     * reported multiple times in queries.
+     * Add <var>item</var> to this SpatialIndex using the given <var>bounds</var> to
+     * represent the extents of the item. If the item is already in the index, the item
+     * may be reported multiple times in queries.
      * <p/>
      * Some implementations of SpatialIndex may have constraints on their spatial
-     * dimensions. If <tt>bounds</tt> is unable to fit within these constraints, a false
+     * dimensions. If <var>bounds</var> is unable to fit within these constraints, a false
      * is returned and the item was not added to the hierarchy.
      * <p/>
      * Implementations must copy the provided bounds so that any subsequent changes to the
      * bounds instance to do not affect the index.
      *
      * @param item   The item to add
-     * @param bounds The extends of <tt>item</tt>
+     * @param bounds The extends of <var>item</var>
      *
      * @return True if the item was added to the index, false otherwise
      *
@@ -76,7 +76,7 @@ public interface SpatialIndex<T> {
     public boolean add(T item, @Const AxisAlignedBox bounds);
 
     /**
-     * Remove <tt>item</tt> from this hierarchy so that the given item will no longer be
+     * Remove <var>item</var> from this hierarchy so that the given item will no longer be
      * returned in queries on the SpatialIndex. False is returned if the index was not
      * modified (i.e. the item was not in this collection).
      *
@@ -89,7 +89,7 @@ public interface SpatialIndex<T> {
     public boolean remove(T item);
 
     /**
-     * Empty this SpatialIndex so that it no longer contains any items. If <tt>fast</tt>
+     * Empty this SpatialIndex so that it no longer contains any items. If <var>fast</var>
      * is true, the index is not required to remove references to old items. This can be
      * more efficient if the index will be re-filled and the old references will be
      * overwritten. However, this may also prevent items from being garbage collected if
@@ -109,7 +109,7 @@ public interface SpatialIndex<T> {
      * <p/>
      * Query this SpatialIndex for all previously added items that have their provided
      * bounds {@link AxisAlignedBox#intersects(AxisAlignedBox) intersecting} with
-     * <tt>volume</tt>.
+     * <var>volume</var>.
      * <p/>
      * The provided QueryCallback has its {@link QueryCallback#process(Object)} invoked
      * for each intersecting item. An item will be passed to the callback once per query.
@@ -125,7 +125,7 @@ public interface SpatialIndex<T> {
      * <p/>
      * Query this SpatialIndex for all previously added items that have their provided
      * bounds {@link Frustum#intersects(AxisAlignedBox, PlaneState) intersecting} with
-     * <tt>frustum</tt>. An item's bounds intersects with the Frustum if its
+     * <var>frustum</var>. An item's bounds intersects with the Frustum if its
      * FrustumIntersection is not {@link FrustumIntersection#OUTSIDE}.
      * <p/>
      * The provided QueryCallback has its {@link QueryCallback#process(Object)} invoked

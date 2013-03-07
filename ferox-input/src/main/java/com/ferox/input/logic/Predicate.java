@@ -41,8 +41,8 @@ package com.ferox.input.logic;
  */
 public interface Predicate {
     /**
-     * Return true if the state transition represented by <tt>prev</tt> and <tt>next</tt>
-     * match the internal rules of this predicate.
+     * Return true if the state transition represented by <var>prev</var> and
+     * <var>next</var> match the internal rules of this predicate.
      *
      * @param prev The previous state
      * @param next The next state

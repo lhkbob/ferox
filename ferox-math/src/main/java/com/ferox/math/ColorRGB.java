@@ -71,7 +71,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Create a new ColorRGB that copies the color values from <tt>color</tt> initially.
+     * Create a new ColorRGB that copies the color values from <var>color</var>
+     * initially.
      *
      * @param color The color to copy
      *
@@ -133,8 +134,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Compute a brighter version of <tt>color</tt>, adjusted by the given brightness
-     * <tt>factor</tt> and store it in this color. The <tt>factor</tt> represents the
+     * Compute a brighter version of <var>color</var>, adjusted by the given brightness
+     * <var>factor</var> and store it in this color. The <var>factor</var> represents the
      * fraction to scale each component by. This uses the HDR color values, so the
      * brighter color might extend into high dynamic range values (i.e. if you brightened
      * white).
@@ -190,7 +191,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Compute a darker version of <tt>color</tt>. The <tt>factor</tt> represents the
+     * Compute a darker version of <var>color</var>. The <var>factor</var> represents the
      * fraction to scale each component by. This uses the HDR color values, so it might be
      * possible for the darkened color to be equal in the low dynamic range.
      *
@@ -213,7 +214,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Copy the color values from <tt>color</tt> into this color.
+     * Copy the color values from <var>color</var> into this color.
      *
      * @param color The color to copy
      *
@@ -241,9 +242,10 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Set the red component value to <tt>blue</tt>. This value can be greater than 1 and
-     * will be unclamped for {@link #redHDR()}, but will be clamped to below 1 for {@link
-     * #red()}. Values below 0 will always be clamped to 0, regardless of dynamic range.
+     * Set the red component value to <var>blue</var>. This value can be greater than 1
+     * and will be unclamped for {@link #redHDR()}, but will be clamped to below 1 for
+     * {@link #red()}. Values below 0 will always be clamped to 0, regardless of dynamic
+     * range.
      *
      * @param red The new red color value
      *
@@ -254,7 +256,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Set the green component value to <tt>blue</tt>. This value can be greater than 1
+     * Set the green component value to <var>blue</var>. This value can be greater than 1
      * and will be unclamped for {@link #greenHDR()}, but will be clamped to below 1 for
      * {@link #green()}. Values below 0 will always be clamped to 0, regardless of dynamic
      * range.
@@ -268,9 +270,10 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Set the blue component value to <tt>blue</tt>. This value can be greater than 1 and
-     * will be unclamped for {@link #blueHDR()}, but will be clamped to below 1 for {@link
-     * #blue()}. Values below 0 will always be clamped to 0, regardless of dynamic range.
+     * Set the blue component value to <var>blue</var>. This value can be greater than 1
+     * and will be unclamped for {@link #blueHDR()}, but will be clamped to below 1 for
+     * {@link #blue()}. Values below 0 will always be clamped to 0, regardless of dynamic
+     * range.
      *
      * @param blue The new blue color value
      *
@@ -287,7 +290,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Set the component at <tt>index</tt> to the given value. This value can be greater
+     * Set the component at <var>index</var> to the given value. This value can be greater
      * than 1 and will be returned unclamped the HDR functions, but will be clamped to
      * below 1 for LDR values. Values below 0 will always be clamped to 0, regardless of
      * dynamic range.
@@ -310,7 +313,7 @@ public final class ColorRGB implements Cloneable {
 
     /**
      * Set this color to the red, green, and blue color values taken from the given array,
-     * starting at <tt>offset</tt>. The values can be LDR or HDR, just as in {@link
+     * starting at <var>offset</var>. The values can be LDR or HDR, just as in {@link
      * #set(float, float, float)}. This assumes that there are at least three elements
      * left in the array, starting at offset.
      *
@@ -440,7 +443,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Get the clamped color value for <tt>component</tt>. Red is 0, green is 1 and blue
+     * Get the clamped color value for <var>component</var>. Red is 0, green is 1 and blue
      * is 2. The value will be in [0, 1].
      *
      * @param component The color component to look up
@@ -462,8 +465,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Get the unclamped color value for <tt>component</tt>. Red is 0, green is 1 and blue
-     * is 2.
+     * Get the unclamped color value for <var>component</var>. Red is 0, green is 1 and
+     * blue is 2.
      *
      * @param component The color component to look up
      *
@@ -484,8 +487,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Copy the clamped color values of this color into <tt>vals</tt> starting at
-     * <tt>offset</tt>. It is assumed that vals has 3 indices starting at offset. The
+     * Copy the clamped color values of this color into <var>vals</var> starting at
+     * <var>offset</var>. It is assumed that vals has 3 indices starting at offset. The
      * color values will be in [0, 1].
      *
      * @param vals   The destination array
@@ -513,7 +516,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer. <tt>offset</tt> is
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <var>offset</var> is
      * measured from 0, not the buffer's position.
      *
      * @param store  The DoubleBuffer to hold the row values
@@ -529,7 +532,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * As {@link #getHDR(double[], int)}, but with a DoubleBuffer. <tt>offset</tt> is
+     * As {@link #getHDR(double[], int)}, but with a DoubleBuffer. <var>offset</var> is
      * measured from 0, not the buffer's position.
      *
      * @param store  The DoubleBuffer to hold the row values
@@ -545,8 +548,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer. <tt>offset</tt> is measured
-     * from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <var>offset</var> is
+     * measured from 0, not the buffer's position.
      *
      * @param store  The FloatBuffer to hold the row values
      * @param offset The first index to use in the store
@@ -561,7 +564,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * As {@link #getHDR(double[], int)}, but with a FloatBuffer. <tt>offset</tt> is
+     * As {@link #getHDR(double[], int)}, but with a FloatBuffer. <var>offset</var> is
      * measured from 0, not the buffer's position.
      *
      * @param store  The FloatBuffer to hold the row values
@@ -577,8 +580,8 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Copy the HDR color values of this color into <tt>vals</tt> starting at
-     * <tt>offset</tt>. It is assumed that vals has 3 indices starting at offset.
+     * Copy the HDR color values of this color into <var>vals</var> starting at
+     * <var>offset</var>. It is assumed that vals has 3 indices starting at offset.
      *
      * @param vals   The destination array
      * @param offset The offset into vals
@@ -606,7 +609,7 @@ public final class ColorRGB implements Cloneable {
     }
 
     /**
-     * Determine if the two colors are equal. If <tt>asHDR</tt> is true, the HDR color
+     * Determine if the two colors are equal. If <var>asHDR</var> is true, the HDR color
      * values are compared. If it is false, the color values are first clamped to [0, 1]
      * and then compared.
      *

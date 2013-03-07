@@ -46,10 +46,10 @@ import com.ferox.renderer.Renderer;
  * array indices.
  * <p/>
  * <p/>
- * Thus, to get the <tt>jth</tt> component of the <tt>ith</tt> attribute, the array index
- * is computed as <code>offset + (elementSize + stride) * i + j</code>. <tt>i</tt> is an
- * index value suitable for use with an index buffer used in rendering. <tt>j</tt> is a
- * component index ranging from 0 to <code>elementSize - 1</code>.
+ * Thus, to get the <var>jth</var> component of the <var>ith</var> attribute, the array
+ * index is computed as <code>offset + (elementSize + stride) * i + j</code>. <var>i</var>
+ * is an index value suitable for use with an index buffer used in rendering. <var>j</var>
+ * is a component index ranging from 0 to <code>elementSize - 1</code>.
  *
  * @author Michael Ludwig
  */
