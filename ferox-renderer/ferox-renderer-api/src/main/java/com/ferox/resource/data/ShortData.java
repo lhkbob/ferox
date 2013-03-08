@@ -11,7 +11,7 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public class ShortData extends BufferData implements VertexData {
+public class ShortData extends AbstractData<short[]> implements VertexData<short[]> {
     private static final double OFFSET = (double) Short.MIN_VALUE;
     private static final double SCALE = 65535.0;
 
@@ -88,7 +88,8 @@ public class ShortData extends BufferData implements VertexData {
      *
      * @return Non-null array with a length equal to {@link #getLength()}
      */
-    public short[] getArray() {
+    @Override
+    public short[] get() {
         return data;
     }
 

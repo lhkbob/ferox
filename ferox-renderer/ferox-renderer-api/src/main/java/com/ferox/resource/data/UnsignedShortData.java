@@ -11,7 +11,8 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public class UnsignedShortData extends BufferData implements TexelData, ElementData {
+public class UnsignedShortData extends AbstractData<short[]>
+        implements TexelData<short[]>, ElementData<short[]> {
     private static final double SCALE = 65535.0;
 
     private short[] data;
@@ -46,7 +47,8 @@ public class UnsignedShortData extends BufferData implements TexelData, ElementD
      *
      * @return Non-null array with a length equal to {@link #getLength()}
      */
-    public short[] getArray() {
+    @Override
+    public short[] get() {
         return data;
     }
 

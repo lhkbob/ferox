@@ -11,7 +11,8 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public class UnsignedByteData extends BufferData implements TexelData, ElementData {
+public class UnsignedByteData extends AbstractData<byte[]>
+        implements TexelData<byte[]>, ElementData<byte[]> {
     private byte[] data;
 
     /**
@@ -44,7 +45,8 @@ public class UnsignedByteData extends BufferData implements TexelData, ElementDa
      *
      * @return Non-null array with a length equal to {@link #getLength()}
      */
-    public byte[] getArray() {
+    @Override
+    public byte[] get() {
         return data;
     }
 

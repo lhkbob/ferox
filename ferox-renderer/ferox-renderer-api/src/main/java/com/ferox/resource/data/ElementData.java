@@ -6,7 +6,7 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public interface ElementData {
+public interface ElementData<T> extends OpenGLData<T> {
     /**
      * Get the unsigned integer element index at buffer index <var>i</var>. Depending on
      * the underlying data type of the buffer data, the actual range of values returned

@@ -11,7 +11,7 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public class ByteData extends BufferData implements VertexData {
+public class ByteData extends AbstractData<byte[]> implements VertexData<byte[]> {
     private final boolean normalized;
     private final byte[] data;
 
@@ -85,7 +85,8 @@ public class ByteData extends BufferData implements VertexData {
      *
      * @return Non-null array with a length equal to {@link #getLength()}
      */
-    public byte[] getArray() {
+    @Override
+    public byte[] get() {
         return data;
     }
 

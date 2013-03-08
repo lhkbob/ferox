@@ -12,7 +12,7 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public class IntData extends BufferData implements VertexData {
+public class IntData extends AbstractData<int[]> implements VertexData<int[]> {
     private static final double OFFSET = (double) Integer.MIN_VALUE;
     private static final double SCALE = 4294967295.0;
 
@@ -89,7 +89,8 @@ public class IntData extends BufferData implements VertexData {
      *
      * @return Non-null array with a length equal to {@link #getLength()}
      */
-    public int[] getArray() {
+    @Override
+    public int[] get() {
         return data;
     }
 

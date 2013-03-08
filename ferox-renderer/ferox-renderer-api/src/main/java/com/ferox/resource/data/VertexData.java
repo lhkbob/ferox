@@ -6,7 +6,7 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public interface VertexData {
+public interface VertexData<T> extends OpenGLData<T> {
     /**
      * Get the coordinate value at buffer index <var>i</var>. If the underlying data is
      * already floating point, the value is returned as is. If the data is an integer

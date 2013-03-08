@@ -7,7 +7,8 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public class FloatData extends BufferData implements TexelData, VertexData {
+public class FloatData extends AbstractData<float[]>
+        implements TexelData<float[]>, VertexData<float[]> {
     private final float[] data;
 
     /**
@@ -43,7 +44,8 @@ public class FloatData extends BufferData implements TexelData, VertexData {
      *
      * @return The array backing this FloatData instance
      */
-    public float[] getArray() {
+    @Override
+    public float[] get() {
         return data;
     }
 

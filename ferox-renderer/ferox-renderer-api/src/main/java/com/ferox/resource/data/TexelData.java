@@ -6,7 +6,7 @@ package com.ferox.resource.data;
  *
  * @author Michael Ludwig
  */
-public interface TexelData {
+public interface TexelData<T> extends OpenGLData<T> {
     /**
      * Get the color component value at buffer index <var>i</var>. If the underlying data
      * is already floating point, the value is returned as is. If the data is an integer
