@@ -2,52 +2,63 @@ package com.ferox.resource.data;
 
 /**
  * <p/>
- * BufferData represents a block of primitive memory that can be pushed to the GPU to
- * store texture data, vertex data, or more. Each BufferData instance has a fixed length.
+ * OpenGLData represents a block of primitive memory that can be pushed to the GPU to
+ * store texture data, vertex data, or more. Each OpenGLData instance has a fixed length
+ * and backing data store.
  * <p/>
- * BufferData's store their data in Java primitive arrays. Depending on the data type,
- * different array types must be used. The concrete subclasses of BufferData will expose
- * methods to interact with the arrays.
+ * The backing data store depends on the specific OpenGL implementation. The classes
+ * provided use primitive arrays but this interface is also compatible with NIO buffers.
+ * Framework implementations may have optimized code paths for using the existing data
+ * types.
  * <p/>
- * BufferData is not thread safe, it is assumed that mutations of a BufferData object will
- * be done within the synchronization block of whatever resource owns it.
+ * OpenGLData instances are not thread safe, it is assumed that mutations of an OpenGLData
+ * object will be done within the synchronization block of whatever resource owns it.
+ *
+ * @param <T> The data type that the OpenGLData instance wraps
  *
  * @author Michael Ludwig
  */
-// FIXME fix references to BufferData
 public interface OpenGLData<T> {
+    /**
+     * Get the underlying data wrapped by this OpenGLData instance. This will always
+     * return the same array, buffer, etc. for a given OpenGLData object. Its length,
+     * however represented, will equal {@link #getLength()}.
+     *
+     * @return The underlying data for this instance
+     */
     public T get();
 
     /**
-     * Get the length of this BufferData. All arrays stored by this buffer data will have
-     * this length. This allows BufferData to describe an effective block of memory but
-     * have the actual array instance change as needed.
+     * Get the length of this OpenGLData. This will be a constant value for a given
+     * instance. The length is the number of primitives held by the data, and not the
+     * number of bytes.
      *
-     * @return The size of this BufferData
+     * @return The number of primitives stored in this data instance
      */
-    public int length();
+    public int getLength();
 
     /**
-     * Get the data type of this BufferData. After creation, the data type cannot be
-     * changed. This allows the BufferData to describe the data type stored in its
-     * effective memory block but have the actual array instance change as needed.
+     * Get the data type of this OpenGLData. This will be a constant value for a given
+     * instance. The data type determines the underlying Java primitive, but OpenGLData
+     * implementations may interpret that data differently (such as signed versus unsigned
+     * integers).
      *
-     * @return The data type of this BufferData
+     * @return The data type of this OpenGLData
      */
-    public DataType type();
+    public DataType getType();
 
     /**
      * <p/>
      * Get a simple object whose identity mirrors the reference identity of this
-     * BufferData object. The relationship <code>(buffer1 == buffer2) == (buffer1.getKey()
-     * == buffer2.getKey())</code> will always be true. If two keys are the same instance,
-     * the producing BufferData objects are the same instance.
+     * OpenGLData object. The relationship {@code (data1 == data2) == (data1.getKey() ==
+     * data2.getKey())} will always be true. If two keys are the same instance, the
+     * producing BufferData objects are the same instance.
      * <p/>
      * This is primarily intended for Framework implementations, so they can store the
-     * identify of a BufferData used by a resource without preventing the BufferData from
+     * identify of a OpenGLData used by a resource without preventing the OpenGLData from
      * being garbage collected.
      *
      * @return An identity key for this data instance
      */
-    public Object key();
+    public Object getKey();
 }

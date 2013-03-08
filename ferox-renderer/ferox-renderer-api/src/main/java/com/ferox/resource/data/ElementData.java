@@ -1,8 +1,14 @@
 package com.ferox.resource.data;
 
 /**
- * ElementData is an interface {@link BufferData} implementations can implement if they
- * are capable of containing unsigned integer data for element buffers.
+ * ElementData is a sub-interface of {@link OpenGLData} that declares the underlying
+ * primitive data is compatible with the data types OpenGL expects for vertex attribute
+ * data.
+ * <p/>
+ * OpenGL requires element data to be unsigned integers of various precisions (e.g. bytes,
+ * shorts, ints, etc).
+ *
+ * @param <T> The primitive data type
  *
  * @author Michael Ludwig
  */

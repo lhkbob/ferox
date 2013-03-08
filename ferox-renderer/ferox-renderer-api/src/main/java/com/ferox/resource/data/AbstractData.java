@@ -26,24 +26,15 @@
  */
 package com.ferox.resource.data;
 
-
-// FIXME move BufferData to an interface that exposes length, type, and a parameterized
-// data source.  DataType should be a separate source file. AbstractBufferData can
-// be the superclass of the various types.  Then have BufferObject<T extends BufferData>
-// with subclasses ElementBufferObject, VertexBufferObject that restrict T to ElementData
-// and VertexData. Texture takes T extends TexelData, but we should split them into
-// TextureCubeMap, Texture1D, Texture2D, Texture3D, Texture1DArray, Texture2DArray.
-// I think we can get rid of the Mipmap type and just move that logic into each
-// texture type.  CubeMap will expose getters/setters for data on each face.
-//
-// I am still not sure if I want to pack 1D/2D arrays together or have separate buffers
-// for each index. Separate makes for a cleaner interface difference between
-// 2D/3D textures respectively but is not how OpenGL expects the data so I'd have to
-// pack them together.
-//
-// Textures should start empty and be built up
+/**
+ * AbstractData is an abstract implementation of OpenGLData that provides implementations
+ * for the common and trivial methods defined in that interface.
+ *
+ * @param <T> The data type wrapped by the OpenGLData class
+ *
+ * @author Michael Ludwig
+ */
 public abstract class AbstractData<T> implements OpenGLData<T> {
-
     private final DataType type;
     private final int length;
 
@@ -54,11 +45,12 @@ public abstract class AbstractData<T> implements OpenGLData<T> {
 
     /**
      * <p/>
-     * Create a BufferData that will store <var>length</var> primitives of the given data
-     * type, <var>type</var>. This constructor verifies that the length is at least 0, but
-     * subclasses may further restrict to be greater.
+     * Create an AbstractData that will store <var>length</var> primitives of the given
+     * data type, <var>type</var>. This constructor verifies that the length is at least 0
+     * and it is assumed subclasses will properly allocate their data store to that
+     * length.
      *
-     * @param type   The data type of this BufferData
+     * @param type   The data type of this AbstractData
      * @param length The length of the buffer data
      *
      * @throws NullPointerException     if type is null
@@ -78,17 +70,17 @@ public abstract class AbstractData<T> implements OpenGLData<T> {
     }
 
     @Override
-    public Object key() {
+    public Object getKey() {
         return key;
     }
 
     @Override
-    public int length() {
+    public int getLength() {
         return length;
     }
 
     @Override
-    public DataType type() {
+    public DataType getType() {
         return type;
     }
 }

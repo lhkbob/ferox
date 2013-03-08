@@ -1,8 +1,15 @@
 package com.ferox.resource.data;
 
 /**
- * VertexData is an interface {@link BufferData} implementations can implement if they are
- * capable of containing vector data for vertex attributes.
+ * VertexData is a sub-interface of {@link OpenGLData} that declares the underlying
+ * primitive data is compatible with the data types OpenGL expects for vertex attribute
+ * data.
+ * <p/>
+ * OpenGL can interpret floating-point values and signed integer values for vertex
+ * attributes. Depending on how the vertex data is to be used, the integral types may be
+ * normalized to the range [-1, 1].
+ *
+ * @param <T> The primitive data type
  *
  * @author Michael Ludwig
  */

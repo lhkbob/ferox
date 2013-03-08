@@ -1,8 +1,17 @@
 package com.ferox.resource.data;
 
 /**
- * TexelData is an interface {@link BufferData} implementations can implement if they are
- * capable of containing color data for textures.
+ * TexelData is a sub-interface of {@link OpenGLData} that declares the underlying
+ * primitive data is compatible with the data types OpenGL expects for texture color data.
+ * OpenGL supports many different data types for textures but the common element is there
+ * is some mechanism for converting values to the floating-point range [0, 1].
+ * <p/>
+ * Floating-point primitives are taken as-is or clamped, depending on if the hardware
+ * supports arbitrary float values. Integer types are interpreted as unsigned values and
+ * normalized by dividing them by the maximum representable unsigned number based on the
+ * primitive's byte size.
+ *
+ * @param <T> The primitive data type
  *
  * @author Michael Ludwig
  */
