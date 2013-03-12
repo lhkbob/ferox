@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.resource;
+package com.ferox.resource.texture;
 
 /**
  * <p/>
@@ -33,7 +33,7 @@ package com.ferox.resource;
  * origin to be the lower left corner of the image. The x axis represents the horizontal
  * direction of the image and extends to the right. Similarly, the y axis represents the
  * vertical axis and extends upward. The z axis extends outward. This configuration is
- * identical to the layout of the image data within a {@link Texture}.
+ * identical to the layout of the image data within a {@link com.ferox.resource.texture.Texture}.
  * <p/>
  * The offsets and dimensions of an MipmapRegion can be assumed to form a region within
  * the space described above. However, for performance reasons, the region does not
@@ -50,7 +50,7 @@ package com.ferox.resource;
  */
 public class MipmapRegion {
     private final int x, y, z, width, height, depth;
-    private final int layer, mipmapLevel;
+    private final int image, mipmapLevel;
 
     /**
      * <p/>
@@ -58,8 +58,8 @@ public class MipmapRegion {
      * (width, height, and depth). Each dimension given must be at least 1. Thus if an
      * MipmapRegion is desired to have fewer than 3 dimensions, specify a dimension of 1.
      *
-     * @param layer  The layer specifying the potential set of mipmaps
-     * @param mipmap The mipmap within the specified layer that is modified
+     * @param image  The image specifying the potential set of mipmaps
+     * @param mipmap The mipmap within the specified image that is modified
      * @param x      X offset
      * @param y      Y offset
      * @param z      Z offset
@@ -70,7 +70,7 @@ public class MipmapRegion {
      * @throws IllegalArgumentException if width, height, depth < 1, or any other argument
      *                                  is less than 0
      */
-    public MipmapRegion(int layer, int mipmap, int x, int y, int z, int width, int height,
+    public MipmapRegion(int image, int mipmap, int x, int y, int z, int width, int height,
                         int depth) {
         if (width < 1 || height < 1 || depth < 1) {
             throw new IllegalArgumentException("Cannot have dimensions less than 1");
@@ -78,7 +78,7 @@ public class MipmapRegion {
         if (x < 0 || y < 0 || z < 0) {
             throw new IllegalArgumentException("Offsets must be at least 0");
         }
-        if (layer < 0) {
+        if (image < 0) {
             throw new IllegalArgumentException("Layer must be at least 0");
         }
         if (mipmap < 0) {
@@ -92,23 +92,23 @@ public class MipmapRegion {
         this.height = height;
         this.depth = depth;
         this.mipmapLevel = mipmap;
-        this.layer = layer;
+        this.image = image;
     }
 
     /**
-     * Return the layer that selects the set of mipmaps from which the mipmap at {@link
+     * Return the image that selects the set of mipmaps from which the mipmap at {@link
      * #getMipmapLevel()} is selected. The selected mipmap is the data marked dirty by the
      * offsets and dimensions contained in this MipmapRegion.
      *
-     * @return The texture layer
+     * @return The texture image
      */
-    public int getLayer() {
-        return layer;
+    public int getImage() {
+        return image;
     }
 
     /**
-     * Return the mipmap level used to select a mipmap from the layer specifed by {@link
-     * #getLayer()}. The selected mipmap is the data marked dirty by the offsets and
+     * Return the mipmap level used to select a mipmap from the image specifed by {@link
+     * #getImage()}. The selected mipmap is the data marked dirty by the offsets and
      * dimensions contained in this MipmapRegion.
      *
      * @return The mipmap level modified by this region

@@ -35,8 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p/>
  * An abstract class that represents some type of data stored on the graphics card. A
  * resource is fairly abstract so there many things can be represented (assuming there are
- * hardware capabilities supporting it). Some examples include {@link Texture}, {@link
- * VertexBufferObject}, and {@link GlslShader}.
+ * hardware capabilities supporting it). Some examples include {@link
+ * com.ferox.resource.texture.Texture}, {@link com.ferox.resource.geom.VertexBufferObject},
+ * and {@link GlslShader}.
  * <p/>
  * A Resource cannot be used until its been updated by a Framework. There are different
  * ways that a Resource can be updated, some of which are automatic. See {@link

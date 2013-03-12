@@ -29,8 +29,6 @@ package com.ferox.resource.geom;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.renderer.Renderer.PolygonType;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
 
 /**
  * <p/>

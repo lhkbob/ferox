@@ -32,9 +32,7 @@ import com.ferox.math.Matrix3;
 import com.ferox.math.Vector3;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.VertexBufferObject.StorageMode;
 
 /**
  * <p/>

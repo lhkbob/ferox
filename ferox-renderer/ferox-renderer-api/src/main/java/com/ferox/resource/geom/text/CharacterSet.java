@@ -28,9 +28,9 @@ package com.ferox.resource.geom.text;
 
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.TextureFormat;
+import com.ferox.resource.texture.Texture;
+import com.ferox.resource.texture.Texture.Target;
+import com.ferox.resource.texture.TextureFormat;
 import com.ferox.resource.geom.text.RectanglePacker.Rectangle;
 
 import java.awt.*;

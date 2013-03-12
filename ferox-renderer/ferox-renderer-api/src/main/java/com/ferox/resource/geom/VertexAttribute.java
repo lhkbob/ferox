@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.resource;
+package com.ferox.resource.geom;
 
 import com.ferox.renderer.Renderer;
 
@@ -176,9 +176,7 @@ public class VertexAttribute {
     }
 
     /**
-     * @return The VertexBufferObject holding the vertex attribute data. Use {@link
-     *         BufferData#getDataType()} to determine the array type stored by the
-     *         BufferData.
+     * @return The VertexBufferObject holding the vertex attribute data.
      */
     public VertexBufferObject getVBO() {
         return buffer;

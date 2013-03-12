@@ -26,8 +26,6 @@
  */
 package com.ferox.resource.texture;
 
-import com.ferox.resource.Texture;
-
 import java.io.IOException;
 import java.io.InputStream;
 

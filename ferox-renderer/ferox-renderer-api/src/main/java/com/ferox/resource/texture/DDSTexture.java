@@ -29,9 +29,7 @@ package com.ferox.resource.texture;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Mipmap;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.TextureFormat;
+import com.ferox.resource.texture.Texture.Target;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

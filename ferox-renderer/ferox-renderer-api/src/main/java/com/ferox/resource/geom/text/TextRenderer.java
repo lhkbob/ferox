@@ -34,7 +34,7 @@ import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.VertexBufferObject.StorageMode;
 import com.ferox.resource.geom.Geometry;
 
 import java.util.Arrays;

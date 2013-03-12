@@ -24,28 +24,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.resource;
+package com.ferox.resource.geom;
+
+import com.ferox.resource.BulkChangeQueue;
+import com.ferox.resource.Resource;
+import com.ferox.resource.data.OpenGLData;
 
 /**
  * <p/>
- * VertexBufferObject is a Resource that represents the concept of a vertex-array in
- * OpenGL. Depending on the {@link StorageMode} of a created VertexBufferObject, the
- * resource's data will live in memory or on the graphics (as an actual VBO).
+ * BufferObject is a Resource that represents the concept of a buffer object in OpenGL.
+ * Depending on the {@link StorageMode} of a created buffer object, the resource's data
+ * will live in memory or on the graphics (as an actual VBO).
  * <p/>
- * <p/>
- * VertexBufferObjects are used to store vertex attributes such as texture coordinates,
- * normals, or vertices and they store the indices accessed when rendering an indexed
- * geometry. The data placed in a vbo is extremely flexible and it is possible to pack
- * multiple attributes into a single resource instance. The type of data, however, will
- * limit how the vbo can be used by the Renderer.
- * <p/>
- * If the array contained in the VBO's BufferData is null, it should allocate internal
- * resources as needed but not change any existing data. This functions similarly to the
- * null data handling for {@link Texture}.
+ * The buffer object model in OpenGL is very generic and is simply a way to store a block
+ * of bytes on the GPU. Subclasses of BufferObject restrict the use cases to circumstances
+ * such as vertex attribute data or element indices.
+ *
+ * @param <T> The specific type of OpenGLData required for the buffer object
  *
  * @author Michael Ludwig
  */
-public class VertexBufferObject extends Resource {
+public abstract class BufferObject<T extends OpenGLData<?>> extends Resource {
     /**
      * StorageMode represents the various ways that a Framework can store a VBO resource
      * into something that it can use when rendering them. There are currently three
@@ -73,32 +72,32 @@ public class VertexBufferObject extends Resource {
         GPU_STATIC
     }
 
-    private BufferData data;
+    private T data;
     private StorageMode storageMode;
     private final BulkChangeQueue<DataRange> changeQueue;
 
     /**
-     * Create a new VertexBufferObject that uses the given BufferData and a StorageMode of
+     * Create a new VertexBufferObject that uses the given data and a StorageMode of
      * GPU_STATIC.
      *
      * @param data The initial BufferData
      *
      * @throws NullPointerException if data is null
      */
-    public VertexBufferObject(BufferData data) {
+    public BufferObject(T data) {
         this(data, StorageMode.GPU_STATIC);
     }
 
     /**
-     * Create a new VertexBufferObject that uses the given BufferData and the given
-     * StorageMode. The StorageMode cannot change after the vbo is created.
+     * Create a new VertexBufferObject that uses the given data and StorageMode. The
+     * StorageMode cannot change after the vbo is created.
      *
      * @param data        The initial BufferData
      * @param storageMode The StorageMode to use
      *
      * @throws NullPointerException if any argument is null
      */
-    public VertexBufferObject(BufferData data, StorageMode storageMode) {
+    public BufferObject(T data, StorageMode storageMode) {
         if (storageMode == null) {
             throw new NullPointerException("StorageMode cannot be null");
         }
@@ -109,9 +108,9 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * @return The underlying BufferData for this VertexBufferObject
+     * @return The underlying OpenGLData for this VertexBufferObject
      */
-    public synchronized BufferData getData() {
+    public synchronized T getData() {
         return data;
     }
 
@@ -138,18 +137,21 @@ public class VertexBufferObject extends Resource {
     }
 
     /**
-     * Assign the specified BufferData to this VertexBufferObject. Although the storage
-     * mode of a vbo will never change, its length and type can. This will also clear the
-     * change queue of any pushed DataRanges that referred to the old BufferData, and will
-     * queue a dirty range over the new array.
+     * Assign the specified data to this VertexBufferObject. Although the storage mode of
+     * a vbo will never change, its length and type can as the OpenGL data instance
+     * changes.
+     * <p/>
+     * This will also clear the change queue of any pushed DataRanges that referred to the
+     * old data, and will queue a dirty range over the new array.
      *
-     * @param data The new BufferData to use
+     * @param data The new data to use
      *
      * @return The new version reported by the vbo's change queue
      *
      * @throws NullPointerException if data is null
      */
-    public synchronized int setData(BufferData data) {
+    public synchronized int setData(T data) {
+        // FIXME make nullable to be consistent with texture resources
         if (data == null) {
             throw new NullPointerException("BufferData cannot be null");
         }
@@ -162,9 +164,8 @@ public class VertexBufferObject extends Resource {
     /**
      * <p/>
      * Mark the specified region of the buffer data as dirty so that the next time this
-     * VertexBufferObject is updated (manually or automatically), the range will be
-     * updated. The nature of this update depends on the configured StorageMode.
-     * <p/>
+     * BufferObject is updated (manually or automatically), that range will be updated by
+     * the Frmaework. The nature of this update depends on the configured StorageMode.
      * <p/>
      * The arguments are not validated against the length of the buffer, so anyone
      * querying the change queue must check that condition as necessary.
@@ -184,7 +185,7 @@ public class VertexBufferObject extends Resource {
      * Return the BulkChangeQueue used to track a small set of edits to the vbo's buffer
      * data so that Frameworks can quickly determine if an update must be performed. Reads
      * and modifications of the queue must only perform within synchronized block of this
-     * VertexBufferObject.
+     * BufferObject.
      *
      * @return The vbo's change queue
      */

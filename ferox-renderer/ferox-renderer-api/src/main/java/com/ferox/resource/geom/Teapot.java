@@ -30,9 +30,7 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.resource.geom.VertexBufferObject.StorageMode;
 
 import java.util.Arrays;
 

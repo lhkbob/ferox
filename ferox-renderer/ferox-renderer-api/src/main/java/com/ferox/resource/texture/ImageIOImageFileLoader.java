@@ -26,8 +26,6 @@
  */
 package com.ferox.resource.texture;
 
-import com.ferox.resource.Texture;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
