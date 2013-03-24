@@ -1,5 +1,7 @@
 package com.ferox.resource.data;
 
+import com.ferox.resource.texture.TextureFormat;
+
 /**
  * UnsignedShortData is a buffer data implementation that stores data in short[] arrays.
  * Although Java treats shorts as 2's complement signed values, the short patterns in
@@ -13,8 +15,6 @@ package com.ferox.resource.data;
  */
 public class UnsignedShortData extends AbstractData<short[]>
         implements TexelData<short[]>, ElementData<short[]> {
-    private static final double SCALE = 65535.0;
-
     private short[] data;
 
     /**
@@ -54,21 +54,115 @@ public class UnsignedShortData extends AbstractData<short[]>
 
     @Override
     public long getElementIndex(int i) {
-        return (0xffff & data[i]);
+        return DataUtil.unsignedShortToLong(data[i]);
     }
 
     @Override
     public void setElementIndex(int i, long value) {
-        data[i] = (short) value;
+        data[i] = DataUtil.longToUnsignedShort(value);
     }
 
     @Override
-    public double getColorComponent(int i) {
-        return (0xffff & data[i]) / SCALE;
+    public double getFloatComponent(int texelIndex, int component, TextureFormat format) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed and treat the integers as normalized floats
+        case R:
+        case RG:
+        case RGB:
+        case RGBA:
+        case BGR:
+        case BGRA:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            return DataUtil.normalizeUnsignedShort(data[dataIndex]);
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an float component for " +
+                    format);
+        }
     }
 
     @Override
-    public void setColorComponent(int i, double value) {
-        data[i] = (short) (value * SCALE);
+    public void setFloatComponent(int texelIndex, int component, TextureFormat format,
+                                  double value) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed and treat the integers as normalized floats
+        case R:
+        case RG:
+        case RGB:
+        case RGBA:
+        case BGR:
+        case BGRA:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            data[dataIndex] = DataUtil.unnormalizeUnsignedShort(value);
+            break;
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an float component for " +
+                    format);
+        }
+    }
+
+    @Override
+    public long getIntegerComponent(int texelIndex, int component, TextureFormat format) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed so they follow the same access pattern
+        case R_UINT:
+        case RG_UINT:
+        case RGB_UINT:
+        case RGBA_UINT:
+        case BGR_UINT:
+        case BGRA_UINT:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            return DataUtil.unsignedShortToLong(data[dataIndex]);
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an integer component for " +
+                    format);
+        }
+    }
+
+    @Override
+    public void setIntegerComponent(int texelIndex, int component, TextureFormat format,
+                                    long value) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed so they follow the same access pattern
+        case R_UINT:
+        case RG_UINT:
+        case RGB_UINT:
+        case RGBA_UINT:
+        case BGR_UINT:
+        case BGRA_UINT:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            data[dataIndex] = DataUtil.longToUnsignedShort(value);
+            break;
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an integer component for " +
+                    format);
+        }
     }
 }

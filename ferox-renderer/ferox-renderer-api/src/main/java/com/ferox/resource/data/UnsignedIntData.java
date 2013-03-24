@@ -1,5 +1,7 @@
 package com.ferox.resource.data;
 
+import com.ferox.resource.texture.TextureFormat;
+
 /**
  * UnsignedIntData is a buffer data implementation that stores data in int[] arrays.
  * Although Java treats ints as 2's complement signed values, the int patterns in these
@@ -13,8 +15,6 @@ package com.ferox.resource.data;
  */
 public class UnsignedIntData extends AbstractData<int[]>
         implements TexelData<int[]>, ElementData<int[]> {
-    private static final double SCALE = 4294967295.0;
-
     private int[] data;
 
     /**
@@ -54,22 +54,173 @@ public class UnsignedIntData extends AbstractData<int[]>
 
     @Override
     public long getElementIndex(int i) {
-        return (0xffffffffL & (long) data[i]);
+        return DataUtil.unsignedIntToLong(data[i]);
     }
 
     @Override
     public void setElementIndex(int i, long value) {
-        data[i] = (int) value;
+        data[i] = DataUtil.longToUnsignedInt(value);
     }
 
     @Override
-    public double getColorComponent(int i) {
-        return (0xffffffffL & (long) data[i]) / SCALE;
+    public double getFloatComponent(int texelIndex, int component, TextureFormat format) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed and treat the integers as normalized floats
+        case R:
+        case RG:
+        case RGB:
+        case RGBA:
+        case BGR:
+        case BGRA:
+        case DEPTH:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            return DataUtil.normalizeUnsignedInt(data[dataIndex]);
+        // for the packed floats, we know the component argument is [0, 1, 2]
+        case RGB_PACKED_FLOAT:
+            if (component == 0) {
+                return DataUtil.getPackedFloatR(data[texelIndex]);
+            } else if (component == 1) {
+                return DataUtil.getPackedFloatG(data[texelIndex]);
+            } else {
+                return DataUtil.getPackedFloatB(data[texelIndex]);
+            }
+            // the component index is the same as the byte word to access
+        case ARGB_PACKED_INT:
+            byte word = DataUtil.getWord(data[texelIndex], component);
+            return DataUtil.normalizeUnsignedByte(word);
+        // only the depth component is a float value
+        case DEPTH_STENCIL:
+            if (component != 0) {
+                throw new IllegalArgumentException(
+                        "Component 0 (DEPTH) is the only float component in DEPTH_STENCIL");
+            }
+            return DataUtil.getDepth(data[texelIndex]);
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an float component for " +
+                    format);
+        }
     }
 
     @Override
-    public void setColorComponent(int i, double value) {
-        long discrete = (long) (value * SCALE);
-        data[i] = (int) discrete;
+    public void setFloatComponent(int texelIndex, int component, TextureFormat format,
+                                  double value) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed and treat the integers as normalized floats
+        case R:
+        case RG:
+        case RGB:
+        case RGBA:
+        case BGR:
+        case BGRA:
+        case DEPTH:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            data[dataIndex] = DataUtil.unnormalizeUnsignedInt(value);
+            break;
+        // for the packed floats, we know the component argument is [0, 1, 2]
+        case RGB_PACKED_FLOAT:
+            if (component == 0) {
+                data[texelIndex] = DataUtil.setPackedFloatR(data[texelIndex], value);
+            } else if (component == 1) {
+                data[texelIndex] = DataUtil.setPackedFloatG(data[texelIndex], value);
+            } else {
+                data[texelIndex] = DataUtil.setPackedFloatB(data[texelIndex], value);
+            }
+            break;
+        // the component index is the same as the byte word to access
+        case ARGB_PACKED_INT:
+            byte word = DataUtil.unnormalizeUnsignedByte(value);
+            data[texelIndex] = DataUtil.setWord(data[texelIndex], component, word);
+            break;
+        // only the depth component is a float value
+        case DEPTH_STENCIL:
+            if (component != 0) {
+                throw new IllegalArgumentException(
+                        "Component 0 (DEPTH) is the only float component in DEPTH_STENCIL");
+            }
+            data[texelIndex] = DataUtil.setDepth(data[texelIndex], value);
+            break;
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an float component for " +
+                    format);
+        }
+    }
+
+    @Override
+    public long getIntegerComponent(int texelIndex, int component, TextureFormat format) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed so they follow the same access pattern
+        case R_UINT:
+        case RG_UINT:
+        case RGB_UINT:
+        case RGBA_UINT:
+        case BGR_UINT:
+        case BGRA_UINT:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            return DataUtil.unsignedIntToLong(data[dataIndex]);
+        case DEPTH_STENCIL:
+            if (component != 1) {
+                throw new IllegalArgumentException(
+                        "Component 1 (STENCIL) is the only integer component in DEPTH_STENCIL");
+            }
+            return DataUtil.getStencil(data[texelIndex]);
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an integer component for " +
+                    format);
+        }
+    }
+
+    @Override
+    public void setIntegerComponent(int texelIndex, int component, TextureFormat format,
+                                    long value) {
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+
+        switch (format) {
+        // the formats listed below support the integer data type
+        // none of them are packed so they follow the same access pattern
+        case R_UINT:
+        case RG_UINT:
+        case RGB_UINT:
+        case RGBA_UINT:
+        case BGR_UINT:
+        case BGRA_UINT:
+            int dataIndex = texelIndex * format.getComponentCount() + component;
+            data[dataIndex] = DataUtil.longToUnsignedInt(value);
+            break;
+        case DEPTH_STENCIL:
+            if (component != 1) {
+                throw new IllegalArgumentException(
+                        "Component 1 (STENCIL) is the only integer component in DEPTH_STENCIL");
+            }
+            data[texelIndex] = DataUtil.setStencil(data[texelIndex], (byte) value);
+            break;
+        default:
+            throw new IllegalArgumentException(
+                    "Component " + component + " is not an integer component for " +
+                    format);
+        }
     }
 }

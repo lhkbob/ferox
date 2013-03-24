@@ -1,5 +1,7 @@
 package com.ferox.resource.data;
 
+import com.ferox.resource.texture.TextureFormat;
+
 /**
  * FloatData is a buffer data implementation that stores 32-bit floating point values.
  * Depending on where the buffer is used, values outside the range [0, 1] may be clamped
@@ -50,22 +52,54 @@ public class FloatData extends AbstractData<float[]>
     }
 
     @Override
-    public double getColorComponent(int i) {
-        return data[i];
-    }
-
-    @Override
     public double getCoordinate(int i) {
         return data[i];
     }
 
     @Override
-    public void setColorComponent(int i, double value) {
+    public void setCoordinate(int i, double value) {
         data[i] = (float) value;
     }
 
     @Override
-    public void setCoordinate(int i, double value) {
-        data[i] = (float) value;
+    public double getFloatComponent(int texelIndex, int component, TextureFormat format) {
+        // All TextureFormats that support FLOATS have every single component as a float component
+        if (!format.getSupportedTypes().contains(DataType.FLOAT)) {
+            throw new IllegalArgumentException("Component is not a float component");
+        }
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+        int dataIndex = texelIndex * format.getComponentCount() + component;
+        return data[dataIndex];
+    }
+
+    @Override
+    public void setFloatComponent(int texelIndex, int component, TextureFormat format,
+                                  double value) {
+        // All TextureFormats that support FLOATS have every single component as a float component
+        if (!format.getSupportedTypes().contains(DataType.FLOAT)) {
+            throw new IllegalArgumentException("Component is not a float component");
+        }
+        if (component < 0 || component >= format.getComponentCount()) {
+            throw new IllegalArgumentException(
+                    "Invalid component for format " + format + ": " + component);
+        }
+        int dataIndex = texelIndex * format.getComponentCount() + component;
+        data[dataIndex] = (float) value;
+    }
+
+    @Override
+    public long getIntegerComponent(int texelIndex, int component, TextureFormat format) {
+        throw new UnsupportedOperationException(
+                "FloatData cannot store integer components");
+    }
+
+    @Override
+    public void setIntegerComponent(int texelIndex, int component, TextureFormat format,
+                                    long value) {
+        throw new UnsupportedOperationException(
+                "FloatData cannot store integer components");
     }
 }

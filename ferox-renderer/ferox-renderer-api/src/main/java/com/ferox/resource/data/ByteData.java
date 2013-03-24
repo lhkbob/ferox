@@ -92,18 +92,17 @@ public class ByteData extends AbstractData<byte[]> implements VertexData<byte[]>
 
     @Override
     public double getCoordinate(int i) {
-        int value = data[i];
         if (normalized) {
-            return 2.0 * (value + 128.0) / 255.0 - 1.0;
+            return DataUtil.normalizeByte(data[i]);
         } else {
-            return value;
+            return data[i];
         }
     }
 
     @Override
     public void setCoordinate(int i, double value) {
         if (normalized) {
-            data[i] = (byte) ((value + 1.0) * 255.0 / 2.0 - 128.0);
+            data[i] = DataUtil.unnormalizeByte(value);
         } else {
             data[i] = (byte) value;
         }

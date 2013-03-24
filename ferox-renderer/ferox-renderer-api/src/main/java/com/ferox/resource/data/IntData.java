@@ -96,18 +96,17 @@ public class IntData extends AbstractData<int[]> implements VertexData<int[]> {
 
     @Override
     public double getCoordinate(int i) {
-        int value = data[i];
         if (normalized) {
-            return 2.0 * (value - OFFSET) / SCALE - 1.0;
+            return DataUtil.normalizeInt(data[i]);
         } else {
-            return value;
+            return data[i];
         }
     }
 
     @Override
     public void setCoordinate(int i, double value) {
         if (normalized) {
-            data[i] = (int) ((value + 1.0) * SCALE / 2.0 + OFFSET);
+            data[i] = DataUtil.unnormalizeInt(value);
         } else {
             data[i] = (int) value;
         }

@@ -95,18 +95,17 @@ public class ShortData extends AbstractData<short[]> implements VertexData<short
 
     @Override
     public double getCoordinate(int i) {
-        short value = data[i];
         if (normalized) {
-            return 2.0 * (value - OFFSET) / SCALE - 1.0;
+            return DataUtil.unnormalizeShort(data[i]);
         } else {
-            return value;
+            return data[i];
         }
     }
 
     @Override
     public void setCoordinate(int i, double value) {
         if (normalized) {
-            data[i] = (short) ((value + 1.0) * SCALE / 2.0 + OFFSET);
+            data[i] = DataUtil.unnormalizeShort(value);
         } else {
             data[i] = (short) value;
         }
