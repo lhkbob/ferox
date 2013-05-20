@@ -50,8 +50,8 @@ public interface IntersectionCallback<T> {
      * it's merely the order stored within the index.
      * <p/>
      * The AxisAlignedBox instances provided may be reused for future invocations of
-     * {@link #process(Object, AxisAlignedBox, Object, AxisAlignedBox)}, so they should be
-     * cloned if their state is needed outside of the scope of the method call.
+     * process(), so they should be cloned if their state is needed outside of the scope
+     * of the method call.
      *
      * @param a       The first item in the pair
      * @param boundsA The bounds of the first item

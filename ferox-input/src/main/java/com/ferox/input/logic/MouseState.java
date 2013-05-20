@@ -88,10 +88,11 @@ public class MouseState {
             buttonsDown.remove(event.getButton());
         }
 
+        int oldScrollCount = (prev != null ? prev.scrollCount : 0);
         if (event.getEventType() == Type.SCROLL) {
-            scrollCount = prev.scrollCount + event.getScrollDelta();
+            scrollCount = oldScrollCount + event.getScrollDelta();
         } else {
-            scrollCount = prev.scrollCount;
+            scrollCount = oldScrollCount;
         }
     }
 

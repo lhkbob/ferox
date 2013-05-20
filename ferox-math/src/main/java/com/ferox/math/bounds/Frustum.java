@@ -42,16 +42,16 @@ import com.ferox.math.*;
  * <p/>
  * The mapping from world space to frustum space is not as straight-forward as is implied
  * by the above state. Frustum provides the functionality to get the {@link
- * #getProjectionMatrix(Matrix4) project matrix} and {@link #getViewMatrix(Matrix4)
- * modelview matrix} suitable for use in an OpenGL system. The camera within an OpenGL
- * system looks down its local negative z-axis. Thus the provided direction in this
- * Frustum represents the negative z-axis within camera space.
+ * #getProjectionMatrix() project matrix} and {@link #getViewMatrix() modelview matrix}
+ * suitable for use in an OpenGL system. The camera within an OpenGL system looks down its
+ * local negative z-axis. Thus the provided direction in this Frustum represents the
+ * negative z-axis within camera space.
  *
  * @author Michael Ludwig
  */
 public class Frustum {
     /**
-     * Result of a frustum test against a {@link ReadOnlyAxisAlignedBox}.
+     * Result of a frustum test against a {@link AxisAlignedBox}.
      */
     public static enum FrustumIntersection {
         /**
@@ -529,9 +529,9 @@ public class Frustum {
      * <p/>
      * If <var>OUTSIDE</var> is returned, it is guaranteed that the objects enclosed by
      * the bounds do not intersect the Frustum. If <var>INSIDE</var> is returned, any
-     * object {@link #contains(AxisAlignedBox) contained} by the box will also be
-     * completely inside the Frustum. When <var>INTERSECT</var> is returned, there is a
-     * chance that the true representation of the objects enclosed by the box will be
+     * object {@link AxisAlignedBox#contains(AxisAlignedBox) contained} by the box will
+     * also be completely inside the Frustum. When <var>INTERSECT</var> is returned, there
+     * is a chance that the true representation of the objects enclosed by the box will be
      * outside of the Frustum, but it is unlikely. This can occur when a corner of the box
      * intersects with the planes of <var>f</var>, but the shape does not exist in that
      * corner.

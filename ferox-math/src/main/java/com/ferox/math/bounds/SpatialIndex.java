@@ -111,8 +111,9 @@ public interface SpatialIndex<T> {
      * bounds {@link AxisAlignedBox#intersects(AxisAlignedBox) intersecting} with
      * <var>volume</var>.
      * <p/>
-     * The provided QueryCallback has its {@link QueryCallback#process(Object)} invoked
-     * for each intersecting item. An item will be passed to the callback once per query.
+     * The provided QueryCallback has its {@link QueryCallback#process(Object,
+     * AxisAlignedBox)} invoked for each intersecting item. An item will be passed to the
+     * callback once per query.
      *
      * @param volume   The volume representing the spatial query
      * @param callback A QueryCallback to run on each item within the query
@@ -128,10 +129,11 @@ public interface SpatialIndex<T> {
      * <var>frustum</var>. An item's bounds intersects with the Frustum if its
      * FrustumIntersection is not {@link FrustumIntersection#OUTSIDE}.
      * <p/>
-     * The provided QueryCallback has its {@link QueryCallback#process(Object)} invoked
-     * for each intersecting item. An item will be passed to the callback once per query.
+     * The provided QueryCallback has its {@link QueryCallback#process(Object,
+     * AxisAlignedBox)} invoked for each intersecting item. An item will be passed to the
+     * callback once per query.
      *
-     * @param frustum  The frustum representing the spatial query
+     * @param f        The frustum representing the spatial query
      * @param callback A QueryCallback to run on each item within the query
      *
      * @throws NullPointerException if frustum or callback is null

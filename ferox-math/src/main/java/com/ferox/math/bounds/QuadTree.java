@@ -318,7 +318,7 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
                 cell = spatialHash[hash];
                 if (cell == null) {
                     int qtIndex = getQuadLeafFromCell(x, y);
-                    cell = new Cell(this, qtIndex);
+                    cell = new Cell(qtIndex);
                     spatialHash[hash] = cell;
 
                     // also update the quad tree to point to this cell
@@ -329,7 +329,7 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
                     }
                     quadtree[qtIndex] = hash;
                 }
-                cell.add(this, itemIndex, bounds);
+                cell.add(this, itemIndex);
             }
         }
         return true;
@@ -748,14 +748,14 @@ public class QuadTree<T> implements BoundedSpatialIndex<T> {
         // this cell, because the leaves don't store count information
         private final int quadTreeIndex;
 
-        private Cell(QuadTree<?> tree, int quadLeaf) {
+        private Cell(int quadLeaf) {
             quadTreeIndex = quadLeaf;
             keys = new int[INCREMENT];
             size = 0;
             lifetime = 0;
         }
 
-        public void add(QuadTree<?> tree, int item, @Const AxisAlignedBox bounds) {
+        public void add(QuadTree<?> tree, int item) {
             if (size == keys.length - 1) {
                 // increase size
                 keys = Arrays.copyOf(keys, keys.length + INCREMENT);

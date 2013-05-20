@@ -175,8 +175,7 @@ public final class Quat4 implements Cloneable {
      * 0. The multiplication is stored in this quaternion
      *
      * @param a The left side of the multiplication
-     * @param v The first three coordinates of the implicit quaternion, for the right side
-     *          of the multiplication
+     * @param b The right side of the multiplication
      *
      * @return This quaternion
      *
@@ -700,7 +699,7 @@ public final class Quat4 implements Cloneable {
      * As {@link #get(double[], int)}, but with a float[]. The double values are cast to
      * floats in order to store them.
      *
-     * @param store  The float[] to hold the row values
+     * @param vals   The float[] to hold the row values
      * @param offset The first index to use in the store
      *
      * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the

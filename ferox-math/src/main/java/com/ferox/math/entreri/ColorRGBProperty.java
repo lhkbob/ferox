@@ -28,14 +28,13 @@ package com.ferox.math.entreri;
 
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
-import com.lhkbob.entreri.*;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
+import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 
 /**
  * ColorRGBProperty is a caching property that wraps a DoubleProperty as a ColorRGB.
@@ -43,57 +42,58 @@ import java.lang.annotation.Target;
  * @author Michael Ludwig
  */
 @Factory(ColorRGBProperty.Factory.class)
-public class ColorRGBProperty implements Property {
+public class ColorRGBProperty implements ShareableProperty<ColorRGB> {
     private static final int REQUIRED_ELEMENTS = 3;
 
-    private DoubleDataStore data;
+    private double[] data;
 
     /**
      * Create a new ColorRGBProperty.
      */
     public ColorRGBProperty() {
-        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
+        data = new double[REQUIRED_ELEMENTS];
     }
 
-    /**
-     * Get the color of this property, for the component at the given index, and store it
-     * into <var>result</var>. If result is null, a new ColorRGB is created and returned.
-     *
-     * @param index  The component index to retrieve
-     * @param result The color to store the data for the requested component
-     *
-     * @return result, or a new ColorRGB if result was null
-     */
-    public ColorRGB get(int index, ColorRGB result) {
-        if (result == null) {
-            result = new ColorRGB();
+    @Override
+    public void get(int index, ColorRGB result) {
+        result.set(data, index * REQUIRED_ELEMENTS);
+    }
+
+    public void set(int index, @Const ColorRGB v) {
+        v.getHDR(data, index * REQUIRED_ELEMENTS);
+    }
+
+    public ColorRGB get(int index) {
+        ColorRGB c = new ColorRGB();
+        get(index, c);
+        return c;
+    }
+
+    @Override
+    public ColorRGB createShareableInstance() {
+        return new ColorRGB();
+    }
+
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size * REQUIRED_ELEMENTS);
+    }
+
+    @Override
+    public int getCapacity() {
+        return data.length / REQUIRED_ELEMENTS;
+    }
+
+    @Override
+    public void swap(int indexA, int indexB) {
+        int ia = indexA * REQUIRED_ELEMENTS;
+        int ib = indexB * REQUIRED_ELEMENTS;
+
+        for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
+            double t = data[ia + i];
+            data[ia + i] = data[ib + i];
+            data[ib + i] = t;
         }
-
-        result.set(data.getArray(), index * REQUIRED_ELEMENTS);
-        return result;
-    }
-
-    /**
-     * Copy the values of <var>v</var> into the underlying data of this property, for the
-     * component at the given index.
-     *
-     * @param v     The color to copy
-     * @param index The index of the component being modified
-     *
-     * @throws NullPointerException if v is null
-     */
-    public void set(@Const ColorRGB v, int index) {
-        v.getHDR(data.getArray(), index * REQUIRED_ELEMENTS);
-    }
-
-    @Override
-    public IndexedDataStore getDataStore() {
-        return data;
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        data = (DoubleDataStore) store;
     }
 
     /**
@@ -127,22 +127,26 @@ public class ColorRGBProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<ColorRGBProperty> {
+    public static class Factory implements PropertyFactory<ColorRGBProperty> {
         private final ColorRGB dflt;
+        private final boolean disableClone;
 
         public Factory(Attributes attrs) {
-            super(attrs);
             if (attrs.hasAttribute(DefaultColor.class)) {
                 DefaultColor v = attrs.getAttribute(DefaultColor.class);
                 dflt = new ColorRGB(v.red(), v.green(), v.blue());
             } else {
                 dflt = new ColorRGB();
             }
+
+            disableClone = attrs.hasAttribute(Clone.class) &&
+                           attrs.getAttribute(Clone.class).value() ==
+                           Clone.Policy.DISABLE;
         }
 
         public Factory(@Const ColorRGB v) {
-            super(null);
             dflt = new ColorRGB(v);
+            disableClone = false;
         }
 
         @Override
@@ -152,7 +156,20 @@ public class ColorRGBProperty implements Property {
 
         @Override
         public void setDefaultValue(ColorRGBProperty property, int index) {
-            property.set(dflt, index);
+            property.set(index, dflt);
+        }
+
+        @Override
+        public void clone(ColorRGBProperty src, int srcIndex, ColorRGBProperty dst,
+                          int dstIndex) {
+            if (disableClone) {
+                setDefaultValue(dst, dstIndex);
+            } else {
+                int ia = srcIndex * REQUIRED_ELEMENTS;
+                int ib = dstIndex * REQUIRED_ELEMENTS;
+
+                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
+            }
         }
     }
 }

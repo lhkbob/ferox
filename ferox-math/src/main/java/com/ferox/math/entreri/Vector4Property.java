@@ -28,14 +28,13 @@ package com.ferox.math.entreri;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
-import com.lhkbob.entreri.*;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
+import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 
 /**
  * Vector4Property is a caching property that wraps a DoubleProperty as a Vector4.
@@ -43,57 +42,58 @@ import java.lang.annotation.Target;
  * @author Michael Ludwig
  */
 @Factory(Vector4Property.Factory.class)
-public class Vector4Property implements Property {
+public class Vector4Property implements ShareableProperty<Vector4> {
     private static final int REQUIRED_ELEMENTS = 4;
 
-    private DoubleDataStore data;
+    private double[] data;
 
     /**
      * Create a new Vector4Property.
      */
     public Vector4Property() {
-        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
+        data = new double[REQUIRED_ELEMENTS];
     }
 
-    /**
-     * Get the vector of this property, for the component at the given index, and store it
-     * into <var>result</var>. If result is null, a new Vector3 is created and returned.
-     *
-     * @param index  The component index to retrieve
-     * @param result The vector to store the data for the requested component
-     *
-     * @return result, or a new Vector4 if result was null
-     */
-    public Vector4 get(int index, Vector4 result) {
-        if (result == null) {
-            result = new Vector4();
+    @Override
+    public void get(int index, Vector4 result) {
+        result.set(data, index * REQUIRED_ELEMENTS);
+    }
+
+    public void set(int index, @Const Vector4 v) {
+        v.get(data, index * REQUIRED_ELEMENTS);
+    }
+
+    public Vector4 get(int index) {
+        Vector4 v = new Vector4();
+        get(index, v);
+        return v;
+    }
+
+    @Override
+    public Vector4 createShareableInstance() {
+        return new Vector4();
+    }
+
+    @Override
+    public int getCapacity() {
+        return data.length / REQUIRED_ELEMENTS;
+    }
+
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size * REQUIRED_ELEMENTS);
+    }
+
+    @Override
+    public void swap(int indexA, int indexB) {
+        int ia = indexA * REQUIRED_ELEMENTS;
+        int ib = indexB * REQUIRED_ELEMENTS;
+
+        for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
+            double t = data[ia + i];
+            data[ia + i] = data[ib + i];
+            data[ib + i] = t;
         }
-
-        result.set(data.getArray(), index * REQUIRED_ELEMENTS);
-        return result;
-    }
-
-    /**
-     * Copy the values of <var>v</var> into the underlying data of this property, for the
-     * component at the given index.
-     *
-     * @param v     The vector to copy
-     * @param index The index of the component being modified
-     *
-     * @throws NullPointerException if v is null
-     */
-    public void set(@Const Vector4 v, int index) {
-        v.get(data.getArray(), index * REQUIRED_ELEMENTS);
-    }
-
-    @Override
-    public IndexedDataStore getDataStore() {
-        return data;
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        data = (DoubleDataStore) store;
     }
 
     /**
@@ -132,22 +132,26 @@ public class Vector4Property implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<Vector4Property> {
+    public static class Factory implements PropertyFactory<Vector4Property> {
         private final Vector4 dflt;
+        private final boolean disableClone;
 
         public Factory(Attributes attrs) {
-            super(attrs);
             if (attrs.hasAttribute(DefaultVector4.class)) {
                 DefaultVector4 v = attrs.getAttribute(DefaultVector4.class);
                 dflt = new Vector4(v.x(), v.y(), v.z(), v.w());
             } else {
                 dflt = new Vector4();
             }
+
+            disableClone = attrs.hasAttribute(Clone.class) &&
+                           attrs.getAttribute(Clone.class).value() ==
+                           Clone.Policy.DISABLE;
         }
 
         public Factory(@Const Vector4 v) {
-            super(null);
             dflt = new Vector4(v);
+            disableClone = false;
         }
 
         @Override
@@ -157,7 +161,20 @@ public class Vector4Property implements Property {
 
         @Override
         public void setDefaultValue(Vector4Property property, int index) {
-            property.set(dflt, index);
+            property.set(index, dflt);
+        }
+
+        @Override
+        public void clone(Vector4Property src, int srcIndex, Vector4Property dst,
+                          int dstIndex) {
+            if (disableClone) {
+                setDefaultValue(dst, dstIndex);
+            } else {
+                int ia = srcIndex * REQUIRED_ELEMENTS;
+                int ib = dstIndex * REQUIRED_ELEMENTS;
+
+                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
+            }
         }
     }
 }

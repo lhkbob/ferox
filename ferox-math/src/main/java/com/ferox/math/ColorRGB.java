@@ -77,7 +77,7 @@ public final class ColorRGB implements Cloneable {
      * @param color The color to copy
      *
      * @throws NullPointerException if color is null
-     * @see #set(ReadOnlyColor3f)
+     * @see #set(ColorRGB)
      */
     public ColorRGB(@Const ColorRGB color) {
         this();
@@ -92,7 +92,7 @@ public final class ColorRGB implements Cloneable {
      * @param green The green value
      * @param blue  The blue value
      *
-     * @see #set(float, float, float)
+     * @see #set(double, double, double)
      */
     public ColorRGB(double red, double green, double blue) {
         this();
@@ -149,15 +149,15 @@ public final class ColorRGB implements Cloneable {
      * @throws NullPointerException     if color is null
      */
     public ColorRGB brighter(@Const ColorRGB color, double factor) {
-        if (factor < 1f) {
+        if (factor < 1.0) {
             throw new IllegalArgumentException(
                     "Brightening factor must be at least 1, not: " + factor);
         }
 
         double minBrightness = factor / (255 * factor - 255);
-        double r = redHDR();
-        double g = greenHDR();
-        double b = blueHDR();
+        double r = color.redHDR();
+        double g = color.greenHDR();
+        double b = color.blueHDR();
 
         // if the color is black, then the brighter color must be a gray
         if (r == 0 && g == 0 && b == 0) {
@@ -204,13 +204,14 @@ public final class ColorRGB implements Cloneable {
      * @throws NullPointerException     if color is null
      */
     public ColorRGB darker(@Const ColorRGB color, double factor) {
-        if (factor <= 0f || factor > 1f) {
+        if (factor <= 0.0 || factor > 1.0) {
             throw new IllegalArgumentException(
                     "Darkening factor must be in the range (0, 1], not: " + factor);
         }
 
-        return set(Math.max(0, factor * redHDR()), Math.max(0, factor * greenHDR()),
-                   Math.max(0, factor * blueHDR()));
+        return set(Math.max(0, factor * color.redHDR()),
+                   Math.max(0, factor * color.greenHDR()),
+                   Math.max(0, factor * color.blueHDR()));
     }
 
     /**
@@ -228,8 +229,8 @@ public final class ColorRGB implements Cloneable {
 
     /**
      * Set this color to use the given red, green and blue values. This is equivalent to
-     * calling {@link #red(float)}, {@link #green(float)}, and {@link #blue(float)} with
-     * their appropriate values.
+     * calling {@link #red(double)}, {@link #green(double)}, and {@link #blue(double)}
+     * with their appropriate values.
      *
      * @param red   The new red value
      * @param green The new green value
@@ -314,7 +315,7 @@ public final class ColorRGB implements Cloneable {
     /**
      * Set this color to the red, green, and blue color values taken from the given array,
      * starting at <var>offset</var>. The values can be LDR or HDR, just as in {@link
-     * #set(float, float, float)}. This assumes that there are at least three elements
+     * #set(double, double, double)}. This assumes that there are at least three elements
      * left in the array, starting at offset.
      *
      * @param values The array to take color values from
@@ -332,10 +333,13 @@ public final class ColorRGB implements Cloneable {
     /**
      * As {@link #set(double[], int)} but the values are taken from the float[].
      *
-     * @param values
-     * @param offset
+     * @param values The array to take color values from
+     * @param offset The offset into values to take the first component from
      *
      * @return This color
+     *
+     * @throws ArrayIndexOutOfBoundsException if values does not have enough elements to
+     *                                        take 3 color values from
      */
     public ColorRGB set(float[] values, int offset) {
         return set(values[offset], values[offset + 1], values[offset + 2]);
@@ -498,7 +502,7 @@ public final class ColorRGB implements Cloneable {
      *                                        the color
      */
     public void get(double[] vals, int offset) {
-        vals[offset + 0] = red();
+        vals[offset] = red();
         vals[offset + 1] = green();
         vals[offset + 2] = blue();
     }
@@ -506,11 +510,11 @@ public final class ColorRGB implements Cloneable {
     /**
      * As {@link #get(double[], int)} but the values are cast into floats.
      *
-     * @param vals
-     * @param offset
+     * @param vals   The destination array
+     * @param offset The offset into vals
      */
     public void get(float[] vals, int offset) {
-        vals[offset + 0] = (float) red();
+        vals[offset] = (float) red();
         vals[offset + 1] = (float) green();
         vals[offset + 2] = (float) blue();
     }
@@ -590,7 +594,7 @@ public final class ColorRGB implements Cloneable {
      *                                        the color
      */
     public void getHDR(double[] vals, int offset) {
-        vals[offset + 0] = redHDR();
+        vals[offset] = redHDR();
         vals[offset + 1] = greenHDR();
         vals[offset + 2] = blueHDR();
     }
@@ -599,11 +603,11 @@ public final class ColorRGB implements Cloneable {
      * As {@link #getHDR(double[], int)} except the values are cast to floats to store in
      * the array.
      *
-     * @param vals
-     * @param offset
+     * @param vals   The destination array
+     * @param offset THe offset into vals
      */
     public void getHDR(float[] vals, int offset) {
-        vals[offset + 0] = (float) redHDR();
+        vals[offset] = (float) redHDR();
         vals[offset + 1] = (float) greenHDR();
         vals[offset + 2] = (float) blueHDR();
     }
@@ -636,10 +640,7 @@ public final class ColorRGB implements Cloneable {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof ColorRGB)) {
-            return false;
-        }
-        return equals((ColorRGB) o, true);
+        return o instanceof ColorRGB && equals((ColorRGB) o, true);
     }
 
     @Override

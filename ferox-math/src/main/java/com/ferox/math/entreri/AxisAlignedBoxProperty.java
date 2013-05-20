@@ -28,15 +28,13 @@ package com.ferox.math.entreri;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
-import com.lhkbob.entreri.*;
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.DoubleDataStore;
-import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 
 /**
  * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a
@@ -45,61 +43,61 @@ import java.lang.annotation.Target;
  * @author Michael Ludwig
  */
 @Factory(AxisAlignedBoxProperty.Factory.class)
-public class AxisAlignedBoxProperty implements Property {
+public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox> {
     private static final int REQUIRED_ELEMENTS = 6;
+    private static final int OFFSET = 3;
 
-    private DoubleDataStore data;
+    private double[] data;
 
     /**
      * Create a new AxisAlignedBoxProperty.
      */
     public AxisAlignedBoxProperty() {
-        data = new DoubleDataStore(REQUIRED_ELEMENTS, new double[REQUIRED_ELEMENTS]);
+        data = new double[REQUIRED_ELEMENTS];
     }
 
-    /**
-     * Get the axis aligned box of this property, for the component at the given index,
-     * and store it into <var>result</var>. If result is null, a new AxisAlignedBox is
-     * created and returned.
-     *
-     * @param index  The component index to retrieve
-     * @param result The box to store the bounds for the requested component
-     *
-     * @return result, or a new AxisAlignedBox if result was null
-     */
-    public AxisAlignedBox get(int index, AxisAlignedBox result) {
-        if (result == null) {
-            result = new AxisAlignedBox();
+    @Override
+    public void get(int index, AxisAlignedBox result) {
+        result.min.set(data, index * REQUIRED_ELEMENTS);
+        result.max.set(data, index * REQUIRED_ELEMENTS + OFFSET);
+    }
+
+    public void set(int index, @Const AxisAlignedBox b) {
+        b.min.get(data, index * REQUIRED_ELEMENTS);
+        b.max.get(data, index * REQUIRED_ELEMENTS + OFFSET);
+    }
+
+    public AxisAlignedBox get(int index) {
+        AxisAlignedBox a = new AxisAlignedBox();
+        get(index, a);
+        return a;
+    }
+
+    @Override
+    public AxisAlignedBox createShareableInstance() {
+        return new AxisAlignedBox();
+    }
+
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size * REQUIRED_ELEMENTS);
+    }
+
+    @Override
+    public int getCapacity() {
+        return data.length / REQUIRED_ELEMENTS;
+    }
+
+    @Override
+    public void swap(int indexA, int indexB) {
+        int ia = indexA * REQUIRED_ELEMENTS;
+        int ib = indexB * REQUIRED_ELEMENTS;
+
+        for (int i = 0; i < REQUIRED_ELEMENTS; i++) {
+            double t = data[ia + i];
+            data[ia + i] = data[ib + i];
+            data[ib + i] = t;
         }
-
-        result.min.set(data.getArray(), index * REQUIRED_ELEMENTS);
-        result.max.set(data.getArray(), index * REQUIRED_ELEMENTS + 3);
-
-        return result;
-    }
-
-    /**
-     * Copy the state of <var>b</var> into the underlying data of this property, for the
-     * component at the given index.
-     *
-     * @param v     The box to copy
-     * @param index The index of the component being modified
-     *
-     * @throws NullPointerException if b is null
-     */
-    public void set(@Const AxisAlignedBox b, int index) {
-        b.min.get(data.getArray(), index * REQUIRED_ELEMENTS);
-        b.max.get(data.getArray(), index * REQUIRED_ELEMENTS + 3);
-    }
-
-    @Override
-    public IndexedDataStore getDataStore() {
-        return data;
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        data = (DoubleDataStore) store;
     }
 
     /**
@@ -161,11 +159,11 @@ public class AxisAlignedBoxProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<AxisAlignedBoxProperty> {
+    public static class Factory implements PropertyFactory<AxisAlignedBoxProperty> {
         private final AxisAlignedBox dflt;
+        private final boolean disableClone;
 
         public Factory(Attributes attrs) {
-            super(attrs);
             dflt = new AxisAlignedBox();
 
             if (attrs.hasAttribute(DefaultMin.class)) {
@@ -177,11 +175,15 @@ public class AxisAlignedBoxProperty implements Property {
                 DefaultMax max = attrs.getAttribute(DefaultMax.class);
                 dflt.min.set(max.x(), max.y(), max.z());
             }
+
+            disableClone = attrs.hasAttribute(Clone.class) &&
+                           attrs.getAttribute(Clone.class).value() ==
+                           Clone.Policy.DISABLE;
         }
 
         public Factory(@Const AxisAlignedBox v) {
-            super(null);
             dflt = new AxisAlignedBox(v);
+            disableClone = false;
         }
 
         @Override
@@ -191,7 +193,20 @@ public class AxisAlignedBoxProperty implements Property {
 
         @Override
         public void setDefaultValue(AxisAlignedBoxProperty property, int index) {
-            property.set(dflt, index);
+            property.set(index, dflt);
+        }
+
+        @Override
+        public void clone(AxisAlignedBoxProperty src, int srcIndex,
+                          AxisAlignedBoxProperty dst, int dstIndex) {
+            if (disableClone) {
+                setDefaultValue(dst, dstIndex);
+            } else {
+                int ia = srcIndex * REQUIRED_ELEMENTS;
+                int ib = dstIndex * REQUIRED_ELEMENTS;
+
+                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
+            }
         }
     }
 }

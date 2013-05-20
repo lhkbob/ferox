@@ -883,7 +883,7 @@ public final class Matrix3 implements Cloneable {
      */
     public void get(double[] store, int offset, boolean rowMajor) {
         if (rowMajor) {
-            store[offset + 0] = m00;
+            store[offset] = m00;
             store[offset + 1] = m01;
             store[offset + 2] = m02;
             store[offset + 3] = m10;
@@ -893,7 +893,7 @@ public final class Matrix3 implements Cloneable {
             store[offset + 7] = m21;
             store[offset + 8] = m22;
         } else {
-            store[offset + 0] = m00;
+            store[offset] = m00;
             store[offset + 1] = m10;
             store[offset + 2] = m20;
             store[offset + 3] = m01;
@@ -917,7 +917,7 @@ public final class Matrix3 implements Cloneable {
      */
     public void get(float[] store, int offset, boolean rowMajor) {
         if (rowMajor) {
-            store[offset + 0] = (float) m00;
+            store[offset] = (float) m00;
             store[offset + 1] = (float) m01;
             store[offset + 2] = (float) m02;
             store[offset + 3] = (float) m10;
@@ -927,7 +927,7 @@ public final class Matrix3 implements Cloneable {
             store[offset + 7] = (float) m21;
             store[offset + 8] = (float) m22;
         } else {
-            store[offset + 0] = (float) m00;
+            store[offset] = (float) m00;
             store[offset + 1] = (float) m10;
             store[offset + 2] = (float) m20;
             store[offset + 3] = (float) m01;
@@ -952,7 +952,7 @@ public final class Matrix3 implements Cloneable {
      */
     public void get(DoubleBuffer store, int offset, boolean rowMajor) {
         if (rowMajor) {
-            store.put(offset + 0, m00);
+            store.put(offset, m00);
             store.put(offset + 1, m01);
             store.put(offset + 2, m02);
             store.put(offset + 3, m10);
@@ -962,7 +962,7 @@ public final class Matrix3 implements Cloneable {
             store.put(offset + 7, m21);
             store.put(offset + 8, m22);
         } else {
-            store.put(offset + 0, m00);
+            store.put(offset, m00);
             store.put(offset + 1, m10);
             store.put(offset + 2, m20);
             store.put(offset + 3, m01);
@@ -987,7 +987,7 @@ public final class Matrix3 implements Cloneable {
      */
     public void get(FloatBuffer store, int offset, boolean rowMajor) {
         if (rowMajor) {
-            store.put(offset + 0, (float) m00);
+            store.put(offset, (float) m00);
             store.put(offset + 1, (float) m01);
             store.put(offset + 2, (float) m02);
             store.put(offset + 3, (float) m10);
@@ -997,7 +997,7 @@ public final class Matrix3 implements Cloneable {
             store.put(offset + 7, (float) m21);
             store.put(offset + 8, (float) m22);
         } else {
-            store.put(offset + 0, (float) m00);
+            store.put(offset, (float) m00);
             store.put(offset + 1, (float) m10);
             store.put(offset + 2, (float) m20);
             store.put(offset + 3, (float) m01);
@@ -1061,15 +1061,12 @@ public final class Matrix3 implements Cloneable {
      *         of e
      */
     public boolean epsilonEquals(@Const Matrix3 e, double eps) {
-        if (e == null) {
-            return false;
-        }
+        return e != null && Math.abs(m00 - e.m00) <= eps &&
+               Math.abs(m01 - e.m01) <= eps && Math.abs(m02 - e.m02) <= eps &&
+               Math.abs(m10 - e.m10) <= eps && Math.abs(m11 - e.m11) <= eps &&
+               Math.abs(m12 - e.m12) <= eps && Math.abs(m20 - e.m20) <= eps &&
+               Math.abs(m21 - e.m21) <= eps && Math.abs(m22 - e.m22) <= eps;
 
-        return Math.abs(m00 - e.m00) <= eps && Math.abs(m01 - e.m01) <= eps &&
-               Math.abs(m02 - e.m02) <= eps && Math.abs(m10 - e.m10) <= eps &&
-               Math.abs(m11 - e.m11) <= eps && Math.abs(m12 - e.m12) <= eps &&
-               Math.abs(m20 - e.m20) <= eps && Math.abs(m21 - e.m21) <= eps &&
-               Math.abs(m22 - e.m22) <= eps;
     }
 
     @Override

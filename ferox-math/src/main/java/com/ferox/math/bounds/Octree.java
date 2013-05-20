@@ -324,7 +324,7 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
                     cell = spatialHash[hash];
                     if (cell == null) {
                         int qtIndex = getQuadLeafFromCell(x, y, z);
-                        cell = new Cell(this, qtIndex);
+                        cell = new Cell(qtIndex);
                         spatialHash[hash] = cell;
 
                         // also update the quad tree to point to this cell
@@ -335,7 +335,7 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
                         }
                         octree[qtIndex] = hash;
                     }
-                    cell.add(this, itemIndex, bounds);
+                    cell.add(this, itemIndex);
                 }
             }
         }
@@ -779,14 +779,14 @@ public class Octree<T> implements BoundedSpatialIndex<T> {
         // this cell, because the leaves don't store count information
         private final int octreeIndex;
 
-        private Cell(Octree<?> tree, int octLeaf) {
+        private Cell(int octLeaf) {
             octreeIndex = octLeaf;
             keys = new int[INCREMENT];
             size = 0;
             lifetime = 0;
         }
 
-        public void add(Octree<?> tree, int item, @Const AxisAlignedBox bounds) {
+        public void add(Octree<?> tree, int item) {
             if (size == keys.length - 1) {
                 // increase size
                 keys = Arrays.copyOf(keys, keys.length + INCREMENT);
