@@ -26,7 +26,7 @@ public class Texture1D extends SingleImageTexture {
     }
 
     @Override
-    public int getLayerCount() {
+    public int getRenderTargetCount() {
         return 1;
     }
 }

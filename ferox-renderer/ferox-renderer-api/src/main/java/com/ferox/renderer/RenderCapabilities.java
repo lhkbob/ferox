@@ -28,8 +28,8 @@ package com.ferox.renderer;
 
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
+import com.ferox.resource.texture.Texture;
+import com.ferox.resource.texture.Texture.Target;
 
 import java.util.EnumSet;
 

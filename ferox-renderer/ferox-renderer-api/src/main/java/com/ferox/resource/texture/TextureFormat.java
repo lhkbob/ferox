@@ -27,7 +27,7 @@
 package com.ferox.resource.texture;
 
 
-import com.ferox.resource.data.DataType;
+import com.ferox.resource.DataType;
 
 import java.util.Collections;
 import java.util.EnumSet;

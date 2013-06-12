@@ -1,5 +1,7 @@
 package com.ferox.resource.data;
 
+import com.ferox.resource.DataType;
+
 /**
  * ShortData is a buffer data implementation that stores signed short values in a short[]
  * array. Because it is signed data, its only usable as vertex data. {@link

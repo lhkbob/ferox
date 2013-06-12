@@ -83,7 +83,7 @@ public final class DataUtil {
     }
 
     public static int unnormalizeInt(double v) {
-        return (int) (MAX_UNSIGNED_INT * v - 1.0) / 2.0);
+        return (int) ((MAX_UNSIGNED_INT * v - 1.0) / 2.0);
     }
 
     public static byte getWord(int value, int word) {

@@ -29,9 +29,9 @@ package com.ferox.renderer;
 import com.ferox.math.*;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.AttributeType;
-import com.ferox.resource.GlslUniform;
-import com.ferox.resource.Texture;
-import com.ferox.resource.VertexAttribute;
+import com.ferox.resource.Uniform;
+import com.ferox.resource.geom.VertexAttribute;
+import com.ferox.resource.texture.Texture;
 
 import java.util.Map;
 
@@ -76,7 +76,7 @@ public interface GlslRenderer extends Renderer {
 
     public Map<String, AttributeType> getAttributes();
 
-    public Map<String, GlslUniform> getUniforms();
+    public Map<String, Uniform> getUniforms();
 
     public void bindAttribute(String glslAttrName, VertexAttribute attr);
 

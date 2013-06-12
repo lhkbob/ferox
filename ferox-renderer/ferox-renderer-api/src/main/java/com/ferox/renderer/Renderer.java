@@ -28,7 +28,7 @@ package com.ferox.renderer;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
-import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.geom.ElementBufferObject;
 
 /**
  * <p/>
@@ -812,7 +812,7 @@ public interface Renderer {
      *
      * @throws IllegalArgumentException if indices is not null and has a type of FLOAT
      */
-    public void setIndices(VertexBufferObject indices);
+    public void setIndices(ElementBufferObject indices);
 
     /**
      * <p/>

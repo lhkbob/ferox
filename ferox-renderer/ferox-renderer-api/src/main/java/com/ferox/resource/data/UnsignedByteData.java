@@ -1,5 +1,6 @@
 package com.ferox.resource.data;
 
+import com.ferox.resource.DataType;
 import com.ferox.resource.texture.TextureFormat;
 
 /**

@@ -28,7 +28,7 @@ package com.ferox.renderer;
 
 import com.ferox.resource.Resource;
 import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Texture;
+import com.ferox.resource.texture.Texture;
 
 import java.util.concurrent.Future;
 
@@ -94,6 +94,11 @@ public interface Framework {
      * @return The current fullscreen surface, or null
      */
     public OnscreenSurface getFullscreenSurface();
+
+    // FIXME get rid of the clauses saying frameworks can modify the options to create
+    // a successful surface. It's all or nothing at this point, makes the implementation
+    // easier and fallback code is easier because the application knows what each failure
+    // was, instead of having to dig into the returned surface and check what changed
 
     /**
      * <p/>

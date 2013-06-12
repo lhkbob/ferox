@@ -30,9 +30,9 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
-import com.ferox.resource.Texture;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
+import com.ferox.resource.geom.VertexAttribute;
+import com.ferox.resource.geom.VertexBufferObject;
+import com.ferox.resource.texture.Texture;
 
 /**
  * <p/>
@@ -981,8 +981,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p/>
      * Set the VertexAttribute that is used as a source of normal vectors when {@link
      * #render(PolygonType, int, int)} or {@link #render(PolygonType,
-     * com.ferox.resource.VertexBufferObject, int)} is invoked. The attribute type must be
-     * FLOAT. The attribute must have an element size of 3.
+     * com.ferox.resource.geom.VertexBufferObject, int)} is invoked. The attribute type
+     * must be FLOAT. The attribute must have an element size of 3.
      * <p/>
      * This updates the currently bound normal attribute. The bound attribute will remain
      * unchanged after rendering until this method is called again. A normals attribute is
@@ -1034,11 +1034,11 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p/>
      * Set the VertexAttribute that is used as a source of texture coordinates on the
      * texture unit, <var>tex</var> when {@link #render(PolygonType, int, int)} or {@link
-     * #render(PolygonType, com.ferox.resource.VertexBufferObject, int)} is invoked. The
-     * attribute element size can be any value between 1 and 4. If the element size of the
-     * attribute doesn't meet the expected coordinate size of the bound texture, a default
-     * is used for the missing components. The 2nd and 3rd components default to 0 and the
-     * 4th defaults to 1. The attribute type must be FLOAT.
+     * #render(PolygonType, com.ferox.resource.geom.VertexBufferObject, int)} is invoked.
+     * The attribute element size can be any value between 1 and 4. If the element size of
+     * the attribute doesn't meet the expected coordinate size of the bound texture, a
+     * default is used for the missing components. The 2nd and 3rd components default to 0
+     * and the 4th defaults to 1. The attribute type must be FLOAT.
      * <p/>
      * This updates the currently bound texture coordinate attribute for the given texture
      * unit. The bound attribute will remain unchanged after rendering until this method

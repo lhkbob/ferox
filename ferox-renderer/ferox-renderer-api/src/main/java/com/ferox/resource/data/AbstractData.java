@@ -26,6 +26,8 @@
  */
 package com.ferox.resource.data;
 
+import com.ferox.resource.DataType;
+
 /**
  * AbstractData is an abstract implementation of OpenGLData that provides implementations
  * for the common and trivial methods defined in that interface.

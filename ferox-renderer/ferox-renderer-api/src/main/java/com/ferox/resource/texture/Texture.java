@@ -297,8 +297,8 @@ public abstract class Texture extends Resource {
      * <p/>
      * By default the base and max level are set to 0, so textures are not mipmapped.
      *
-     * @param base The lowest valid mipmap level, across all layers
-     * @param max  The highest valid mipmap level, across all layers
+     * @param base The lowest valid mipmap level, across all images
+     * @param max  The highest valid mipmap level, across all images
      *
      * @throws IllegalArgumentException if base < 0, if max >= # mipmaps, or if base >
      *                                  max
@@ -347,17 +347,17 @@ public abstract class Texture extends Resource {
 
     /**
      * <p/>
-     * Return the number of 2D layers in this Texture object that can be used for
-     * render-to-texture effects with a TextureSurface.
+     * Return the number targets in the texture that can be rendered into with a
+     * TextureSurface.
      * <p/>
-     * Depending on the type of texture, a layer has different interpretations. It does
+     * Depending on the type of texture, a target has different interpretations. It does
      * not necessarily have a one-to-one correspondence with the number of separate images
-     * in the texture. As an example, a cube map has 6 images and 6 layers while a 3D map
-     * has 1 image and <var>depth</var> layers.
+     * in the texture. As an example, a cube map has 6 images and 6 targets while a 3D map
+     * has 1 image and <var>depth</var> targets.
      *
-     * @return The number of selectable layers for rendering into
+     * @return The number of selectable targets for rendering into
      */
-    public abstract int getLayerCount();
+    public abstract int getRenderTargetCount();
 
     /**
      * Return the number of separate mipmappable images in the Texture object. A
@@ -428,11 +428,11 @@ public abstract class Texture extends Resource {
 
     /**
      * Mark the specified image region as dirty within the image. It is permitted to
-     * specify dimensions, layer or mipmap level that do not exist in the image. Those
+     * specify dimensions, target or mipmap level that do not exist in the image. Those
      * parts of the region that extend past valid areas of the image should be silently
      * ignored by Frameworks processing the change queue.
      *
-     * @param region The MipmapRegion representing the dirty pixels in layer and level
+     * @param region The MipmapRegion representing the dirty pixels in target and level
      *
      * @return The new version of the texture's change queue
      *
@@ -469,7 +469,7 @@ public abstract class Texture extends Resource {
      * Mark every mipmap level dirty for the given <var>image</var> of the Texture. This
      * can be used to mark a single face of a cube map dirty for example. This is a
      * convenience for invoking {@link #markDirty(int, int)} for every mipmap level within
-     * the given <var>layer</var>
+     * the given <var>target</var>
      *
      * @param image The image to mark completely dirty
      *

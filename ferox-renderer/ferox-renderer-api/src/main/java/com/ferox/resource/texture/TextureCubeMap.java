@@ -317,7 +317,7 @@ public class TextureCubeMap extends Texture {
     }
 
     @Override
-    public int getLayerCount() {
+    public int getRenderTargetCount() {
         return 6;
     }
 

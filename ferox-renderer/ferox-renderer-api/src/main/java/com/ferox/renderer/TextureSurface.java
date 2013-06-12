@@ -26,8 +26,7 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
+import com.ferox.resource.texture.Texture;
 
 /**
  * <p/>
@@ -66,29 +65,17 @@ import com.ferox.resource.Texture.Target;
  */
 public interface TextureSurface extends Surface {
     /**
-     * @return The depth of the Textures of this TextureSurface
-     */
-    public int getDepth();
-
-    /**
-     * @return The number of layers present in each of the Textures of this
+     * @return The number of render targets present in each of the Textures of this
      *         TextureSurface
      */
-    public int getNumLayers();
+    public int getRenderTargetCount();
 
     /**
-     * @return The active layer that is rendered into unless the TextureSurface is
+     * @return The active target that is rendered into unless the TextureSurface is
      *         activated with {@link HardwareAccessLayer#setActiveSurface(TextureSurface,
      *         int)}
      */
-    public int getActiveLayer();
-
-    /**
-     * @return The active depth plane that is rendered into unless the TextureSurface is
-     *         activated with {@link HardwareAccessLayer#setActiveSurface(TextureSurface,
-     *         int)}
-     */
-    public int getActiveDepthPlane();
+    public int getRenderTarget();
 
     /**
      * @return The options used to create this Surface. Any changes to the returned
@@ -99,31 +86,15 @@ public interface TextureSurface extends Surface {
 
     /**
      * Set the active, or default, Mipmap layer that is rendered into when {@link
-     * Framework#queue(Surface, RenderPass)} is used, instead of the queue action that
-     * allows the depth plane and layer to be overridden. The layer must be between 0 and
-     * the number of layers present in this surface's textures. Because every target
-     * except T_CUBEMAP has only one layer, this is meaningful only when a TextureSurface
-     * is rendering into a cube map.
+     * HardwareAccessLayer#setActiveSurface(Surface)}. The layer must be between 0 and the
+     * number of render targets present in this surface's textures.
      *
-     * @param layer The new default layer that's rendered into
+     * @param target The new default target that's rendered into
      *
-     * @throws IllegalArgumentException if layer < 0 or layer >= maximum layers present
+     * @throws IllegalArgumentException if target < 0 or target >= maximum targets
+     *                                  present
      */
-    public void setActiveLayer(int layer);
-
-    /**
-     * Set the active, or default, depth plane that is rendered into when {@link
-     * Framework#queue(Surface, RenderPass)} is used, instead of the queue action that
-     * allows the depth plane and layer to be overridden. The depth value must be between
-     * 0 and the maximum depth of the texture's within this TextureSurface. Because every
-     * target except T_3D has a max depth of 1, this is meaningful only when a
-     * TextureSurface is rendering into a 3D texture.
-     *
-     * @param depth The new default depth plane that's to be rendered into
-     *
-     * @throws IllegalArgumentException if depth < 0 or depth >= max allowed depth
-     */
-    public void setActiveDepthPlane(int depth);
+    public void setRenderTarget(int target);
 
     /**
      * Get the Texture handle for the given color buffer. A texture will exist if target
@@ -135,7 +106,7 @@ public interface TextureSurface extends Surface {
      *
      * @return The Texture associated with buffer
      *
-     * @throws IndexOutOfBoundsException if buffer < 0 or >= {@link #getNumColorBuffers()}
+     * @throws IndexOutOfBoundsException if buffer < 0 or >= {@link #getColorBufferCount()}
      */
     public Texture getColorBuffer(int buffer);
 
@@ -146,7 +117,7 @@ public interface TextureSurface extends Surface {
      *
      * @return The number of color buffers (and thus Textures storing color data)
      */
-    public int getNumColorBuffers();
+    public int getColorBufferCount();
 
     /**
      * Return the Texture image that stores the depth information that is rendered into
@@ -160,10 +131,10 @@ public interface TextureSurface extends Surface {
     public Texture getDepthBuffer();
 
     /**
-     * Return the texture target that every Texture used with this TextureSurface will
-     * be.
+     * Return the texture class that every color buffer Texture from this surface is an
+     * instance of.
      *
-     * @return The Target used for all Textures in this surface
+     * @return The texture class linked with this surface
      */
-    public Target getTarget();
+    public Class<? extends Texture> getTarget();
 }

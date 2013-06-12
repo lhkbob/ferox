@@ -30,7 +30,7 @@ public class Texture3D extends SingleImageTexture {
     }
 
     @Override
-    public int getLayerCount() {
+    public int getRenderTargetCount() {
         return getDepth();
     }
 }

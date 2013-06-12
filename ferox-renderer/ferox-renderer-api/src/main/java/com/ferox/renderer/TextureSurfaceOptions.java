@@ -26,8 +26,8 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.TextureFormat;
+import com.ferox.resource.texture.Texture.Target;
+import com.ferox.resource.texture.TextureFormat;
 
 import java.util.Arrays;
 
@@ -40,6 +40,9 @@ import java.util.Arrays;
  *
  * @author Michael Ludwig
  */
+// FIXME update these to take textures instead of  getting the formats. because
+// the dimensions of the texture are fixed size, and so is the format, we can
+// allocate the texture surface easily
 public final class TextureSurfaceOptions {
     private final Target textureTarget;
 
@@ -50,8 +53,7 @@ public final class TextureSurfaceOptions {
     private final TextureFormat[] colorTargetFormats;
     private final boolean useDepthTexture;
 
-    private final int activeLayer;
-    private final int activeDepthPlane;
+    private final int activeTarget;
 
     /**
      * Create a new TextureSurfaceOptions with the initial values: <ul> <li>{@link

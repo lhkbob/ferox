@@ -91,7 +91,7 @@ public class Texture1DArray extends Texture {
     }
 
     @Override
-    public int getLayerCount() {
+    public int getRenderTargetCount() {
         return data.length;
     }
 
