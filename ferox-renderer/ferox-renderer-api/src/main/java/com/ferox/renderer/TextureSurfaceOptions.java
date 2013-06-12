@@ -26,8 +26,8 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.resource.texture.Texture.Target;
-import com.ferox.resource.texture.TextureFormat;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.TextureFormat;
 
 import java.util.Arrays;
 

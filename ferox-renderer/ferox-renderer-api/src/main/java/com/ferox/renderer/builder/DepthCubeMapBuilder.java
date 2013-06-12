@@ -1,6 +1,6 @@
-package com.ferox.resource.builder;
+package com.ferox.renderer.builder;
 
-import com.ferox.resource.DepthCubeMap;
+import com.ferox.renderer.DepthCubeMap;
 
 /**
  *
