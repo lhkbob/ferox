@@ -26,8 +26,6 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.resource.texture.Texture;
-
 /**
  * <p/>
  * A TextureSurface represents a surface that renders its content directly into multiple,
@@ -57,7 +55,7 @@ import com.ferox.resource.texture.Texture;
  * possible to assign new Buffer image data to these levels, subsequent renderings into
  * the TextureSurface will overwrite the data. Texture parameters are still updateable.
  * The textures cannot be disposed of by the Framework until the TextureSurface has been
- * destroyed (an exception is thrown by {@link HardwareAccessLayer#dispose(com.ferox.resource.Resource)}).
+ * destroyed (an exception is thrown by {@link HardwareAccessLayer#dispose(Resource)}).
  * The textures are still usable after the surface has been destroyed, they will just no
  * longer be rendered into by the TextureSurface.
  *

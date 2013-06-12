@@ -30,8 +30,6 @@ import com.ferox.math.*;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.Uniform;
-import com.ferox.resource.geom.VertexAttribute;
-import com.ferox.resource.texture.Texture;
 
 import java.util.Map;
 

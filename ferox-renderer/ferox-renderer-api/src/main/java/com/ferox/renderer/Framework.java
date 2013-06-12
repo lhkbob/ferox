@@ -26,9 +26,7 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.resource.Resource;
-import com.ferox.resource.Resource.Status;
-import com.ferox.resource.texture.Texture;
+import com.ferox.renderer.builder.*;
 
 import java.util.concurrent.Future;
 
@@ -62,7 +60,7 @@ import java.util.concurrent.Future;
  *
  * @author Michael Ludwig
  */
-public interface Framework {
+public interface Framework extends Destructible {
     /**
      * Return an array of available DisplayModes that can be used when creating fullscreen
      * surfaces with {@link #createSurface(OnscreenSurfaceOptions)}. The returned array
@@ -150,27 +148,6 @@ public interface Framework {
 
     /**
      * <p/>
-     * Destroy all remaining Surfaces and cancel any pending Tasks. Any running tasks are
-     * also canceled and interrupted. This will block until any running tasks that did not
-     * respond to interruption have completed.
-     * <p/>
-     * All internal resource data will be disposed of so it is not necessary to manually
-     * dispose of every resource before calling this method.
-     * <p/>
-     * This method will block until the Framework has been completely destroyed. The
-     * Framework will act 'destroyed' to any other thread the moment this method is
-     * invoked, however. Calling destroy() on an already destroyed Framework does
-     * nothing.
-     */
-    public void destroy();
-
-    /**
-     * @return True if the Framework has been destroyed
-     */
-    public boolean isDestroyed();
-
-    /**
-     * <p/>
      * Queue the given Task to be run as soon as possible by internal threads managed by
      * the Framework. The Framework must support receiving tasks from multiple threads
      * safely. Ordering of queued tasks across multiple threads depends on the scheduling
@@ -192,26 +169,6 @@ public interface Framework {
 
     /**
      * <p/>
-     * Convenience method to queue a Task that will update the given resource by calling
-     * {@link Context#update(Resource)}. It is not recommended to use this method if
-     * resources are being updated and disposed of with custom Tasks.
-     * <p/>
-     * This method does nothing if the Framework has been destroyed. Since the Framework's
-     * destruction implies no resources can be used, this is not a problem. This will
-     * unblock and return if the Framework is destroyed while waiting for the update to
-     * complete.
-     *
-     * @param resource The resource to update
-     *
-     * @return The new Status for the resource, as would be returned by {@link
-     *         #getStatus(Resource)}
-     *
-     * @throws NullPointerException if resource is null
-     */
-    public Status update(Resource resource);
-
-    /**
-     * <p/>
      * Convenience method to queue a Task that will dispose the given resource by calling
      * {@link Context#dispose(Resource)}. It is not recommended to use this method if
      * resources are being updated and disposed of with custom Tasks.
@@ -225,7 +182,7 @@ public interface Framework {
      *
      * @throws NullPointerException if resource is null
      */
-    public void dispose(Resource resource);
+    public void destroy(Resource resource);
 
     /**
      * <p/>
@@ -261,41 +218,27 @@ public interface Framework {
      */
     public void sync();
 
-    /**
-     * <p/>
-     * Get the current status of the given resource. Return UNSUPPORTED if the Framework
-     * cannot support the given Resource type. If the resource's update policy is
-     * ON_DEMAND, this will NOT automatically update the resource if needed. The automatic
-     * updates only occur when the resource is used by a Renderer.
-     * <p/>
-     * If ERROR is returned, the resource will be ignored when rendering. This will return
-     * DISPOSED if the Framework has been destroyed.
-     *
-     * @param resource The Resource whose status is requested
-     *
-     * @return The Status of resource
-     *
-     * @throws NullPointerException if resource is null
-     */
-    public Status getStatus(Resource resource);
+    public VertexBufferBuilder newVertexBuffer();
 
-    /**
-     * <p/>
-     * Get an implementation and hardware-specific status message that is more informative
-     * about the given resources's status. A null message is returned if the Framework has
-     * been destroyed.
-     * <p/>
-     * If a Framework is not destroyed but has no message, the empty string should be
-     * returned so that the null return value is unique.
-     *
-     * @param resource The Resource whose status message is requested
-     *
-     * @return The status message for resource
-     *
-     * @throws NullPointerException if resource is null
-     * @throws FrameworkException   if the Framework has been destroyed
-     */
-    public String getStatusMessage(Resource resource);
+    public ElementBufferBuilder newElementBuffer();
+
+    public ShaderBuilder newShader();
+
+    public Texture1DBuilder newTexture1D();
+
+    public Texture2DBuilder newTexture2D();
+
+    public TextureCubeMapBuilder newTextureCubeMap();
+
+    public Texture3DBuilder newTexture3D();
+
+    public Texture1DArrayBuilder newTexture1DArray();
+
+    public Texture2DArrayBuilder newTexture2DArray();
+
+    public DepthMap2DBuilder newDepthMap2D();
+
+    public DepthCubeMapBuilder newDepthCubeMap();
 
     /**
      * Get the capabilities of this Framework. This is allowed to return null after the
