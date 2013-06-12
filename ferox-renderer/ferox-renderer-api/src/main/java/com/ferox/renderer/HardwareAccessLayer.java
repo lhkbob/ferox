@@ -26,10 +26,9 @@
  */
 package com.ferox.renderer;
 
+import com.ferox.renderer.Resource.Status;
+import com.ferox.renderer.Resource.UpdatePolicy;
 import com.ferox.resource.BufferData;
-import com.ferox.resource.Resource;
-import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Resource.UpdatePolicy;
 
 /**
  * The HardwareAccessLayer is the direct interface Tasks use to access graphics hardware.
