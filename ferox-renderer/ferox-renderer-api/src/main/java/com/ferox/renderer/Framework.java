@@ -79,6 +79,12 @@ public interface Framework extends Destructible {
      */
     public DisplayMode getDefaultDisplayMode();
 
+    // FIXME these should be defensive copies, and are ordered in increasing bit size
+    public int[] getAvailableDepthBufferSizes();
+
+    public int[] getAvailableStencilBufferSizes();
+
+    public int[] getAvailableSamples();
 
     /**
      * <p/>
