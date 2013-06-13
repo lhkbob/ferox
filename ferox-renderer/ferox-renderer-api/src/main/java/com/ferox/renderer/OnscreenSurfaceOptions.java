@@ -36,88 +36,6 @@ package com.ferox.renderer;
  * @author Michael Ludwig
  */
 public final class OnscreenSurfaceOptions {
-    /**
-     * The format for the depth component of the surface fragment.
-     */
-    public static enum DepthFormat {
-        /**
-         * Use 16 bits to store depth information.
-         */
-        DEPTH_16BIT,
-        /**
-         * Use 24 bits to store depth information.
-         */
-        DEPTH_24BIT,
-        /**
-         * Use 32 bits to store depth information.
-         */
-        DEPTH_32BIT,
-        /**
-         * There should be no depth buffer.
-         */
-        NONE,
-        /**
-         * Depth buffer exists but doesn't match specified enum values
-         */
-        UNKNOWN
-    }
-
-    /**
-     * The format for the stencil buffer of the surface.
-     */
-    public static enum StencilFormat {
-        /**
-         * Use 16 bits for each fragment.
-         */
-        STENCIL_16BIT,
-        /**
-         * Use 8 bits for each fragment.
-         */
-        STENCIL_8BIT,
-        /**
-         * Use 4 bits for each fragment.
-         */
-        STENCIL_4BIT,
-        /**
-         * Use only 1 bit for each fragment.
-         */
-        STENCIL_1BIT,
-        /**
-         * There shouldn't be any stencil buffer.
-         */
-        NONE,
-        /**
-         * Stencil buffer exists but doesn't match specified enum values
-         */
-        UNKNOWN
-    }
-
-    /**
-     * The type of per-pixel anti-aliasing to apply to the surface.
-     */
-    public static enum MultiSampling {
-        /**
-         * Two samples per-pixel multisampling.
-         */
-        TWO_X,
-        /**
-         * Four samples per-pixel multisampling.
-         */
-        FOUR_X,
-        /**
-         * Eight samples per-pixel multisampling.
-         */
-        EIGHT_X,
-        /**
-         * No fullscreen anti-aliasing is performed.
-         */
-        NONE,
-        /**
-         * Anti-aliasing is performed with a method that doesn't match known enum values.
-         */
-        UNKNOWN
-    }
-
     private final boolean undecorated;
     private final boolean resizable;
 
@@ -129,35 +47,17 @@ public final class OnscreenSurfaceOptions {
 
     private final DisplayMode fullMode;
 
-    private final DepthFormat depth;
-    private final MultiSampling aa;
-    private final StencilFormat stencil;
+    private final int depthBits;
+    private final int msaa;
+    private final int stencilBits;
 
-    /**
-     * Create a new OnscreenSurfaceOptions with the following default parameters: <ul>
-     * <li>{@link #getDepthFormat()} returns DEPTH_24BIT</li> <li>{@link
-     * #getMultiSampling()} returns NONE</li> <li>{@link #getStencilFormat()} returns
-     * NONE</li> <li>{@link #isUndecorated()} returns false</li> <li>{@link
-     * #isResizable()} returns false</li> <li>{@link #getX()} returns 0</li> <li>{@link
-     * #getY()} returns 0</li> <li>{@link #getWidth()} returns 600</li> <li>{@link
-     * #getHeight()} returns 600</li> <li>{@link #getFullscreenMode()} returns null</li>
-     * </ul>
-     */
     public OnscreenSurfaceOptions() {
-        this(DepthFormat.DEPTH_24BIT, MultiSampling.NONE, StencilFormat.NONE, false,
-             false, 0, 0, 600, 600, null);
+        this(24, 0, 0, false, false, 0, 0, 600, 600, null);
     }
 
-    private OnscreenSurfaceOptions(DepthFormat d, MultiSampling a, StencilFormat s,
+    private OnscreenSurfaceOptions(int depthBits, int msaa, int stencilBits,
                                    boolean undecorated, boolean resizable, int x, int y,
-                                   int width, int height, DisplayMode ff) {
-        if (d == null || a == null || s == null) {
-            throw new NullPointerException("Format options cannot be null");
-        }
-        if (width < 1 || height < 1) {
-            throw new IllegalArgumentException("Window dimensions must be at least 1");
-        }
-
+                                   int width, int height, DisplayMode fullMode) {
         this.undecorated = undecorated;
         this.resizable = resizable;
         this.width = width;
@@ -165,153 +65,50 @@ public final class OnscreenSurfaceOptions {
         this.x = x;
         this.y = y;
 
-        fullMode = ff;
-        depth = d;
-        aa = a;
-        stencil = s;
+        this.fullMode = fullMode;
+        this.depthBits = depthBits;
+        this.msaa = msaa;
+        this.stencilBits = stencilBits;
     }
 
-    /**
-     * Set the requested initial width of the surface, when it's windowed.
-     *
-     * @param width The new width
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         width
-     *
-     * @throws IllegalArgumentException if width < 1
-     */
-    public OnscreenSurfaceOptions setWidth(int width) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions windowed(int width, int height) {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated,
+                                          resizable, x, y, width, height, null);
     }
 
-    /**
-     * Set the requested initial height of the surface, when it's windowed.
-     *
-     * @param height The new height
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         height
-     *
-     * @throws IllegalArgumentException if height < 1
-     */
-    public OnscreenSurfaceOptions setHeight(int height) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions locatedAt(int x, int y) {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated,
+                                          resizable, x, y, width, height, null);
     }
 
-    /**
-     * Set the requested initial x coordinate of the surface, when it's windowed.
-     *
-     * @param x The new x value
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new x
-     *         value
-     */
-    public OnscreenSurfaceOptions setX(int x) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions fullScreen(DisplayMode mode) {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, true, false, 0, 0,
+                                          mode.getWidth(), mode.getHeight(), mode);
     }
 
-    /**
-     * Set the requested initial y coordinate of the surface, when it's windowed.
-     *
-     * @param y The new y value
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new y
-     *         value
-     */
-    public OnscreenSurfaceOptions setY(int y) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions withDepthBuffer(int depthBits) {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated,
+                                          resizable, x, y, width, height, fullMode);
     }
 
-    /**
-     * Set the requested DepthFormat of the surface.
-     *
-     * @param depth The new DepthFormat
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         format
-     *
-     * @throws NullPointerException if depth is null
-     */
-    public OnscreenSurfaceOptions setDepthFormat(DepthFormat depth) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions withStencilBuffer(int stencilBits) {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated,
+                                          resizable, x, y, width, height, fullMode);
     }
 
-    /**
-     * Set the requested StencilFormat of the surface.
-     *
-     * @param stencil The new StencilFormat
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         format
-     *
-     * @throws NullPointerException if stencil is null
-     */
-    public OnscreenSurfaceOptions setStencilFormat(StencilFormat stencil) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions antiAliased(int samples) {
+        return new OnscreenSurfaceOptions(depthBits, samples, stencilBits, undecorated,
+                                          resizable, x, y, width, height, fullMode);
     }
 
-    /**
-     * Set the requested MultiSampling of the surface.
-     *
-     * @param aa The new MultiSampling
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         mode
-     *
-     * @throws NullPointerException if aa is null
-     */
-    public OnscreenSurfaceOptions setMultiSampling(MultiSampling aa) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions undecorated() {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, true, resizable,
+                                          x, y, width, height, fullMode);
     }
 
-    /**
-     * Set the whether or not the surface is undecorated when it's windowed.
-     *
-     * @param undecorated True if the surface has no window decorations
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         undecorated value
-     */
-    public OnscreenSurfaceOptions setUndecorated(boolean undecorated) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
-    }
-
-    /**
-     * Set the whether or not the surface is user resizable when it's windowed.
-     *
-     * @param resizable True if the surface cannot be resized
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         resizable value
-     */
-    public OnscreenSurfaceOptions setResizable(boolean resizable) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
-    }
-
-    /**
-     * Set the requested DisplayMode for the surface. If this is null, the surface will
-     * initially be windowed. If it is not null, the surface will begin in fullscreen mode
-     * using a supported DisplayMode that matches the requested mode as closely as
-     * possible
-     *
-     * @param fullMode The new fullscreen DisplayMode or null
-     *
-     * @return A new OnscreenSurfaceOptions equivalent to this one, except with the new
-     *         DisplayMode
-     */
-    public OnscreenSurfaceOptions setFullscreenMode(DisplayMode fullMode) {
-        return new OnscreenSurfaceOptions(depth, aa, stencil, undecorated, resizable, x,
-                                          y, width, height, fullMode);
+    public OnscreenSurfaceOptions resizable() {
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated,
+                                          false, x, y, width, height, fullMode);
     }
 
     /**
@@ -351,25 +148,16 @@ public final class OnscreenSurfaceOptions {
         return fullMode;
     }
 
-    /**
-     * @return The requested DepthFormat for the depth buffer
-     */
-    public DepthFormat getDepthFormat() {
-        return depth;
+    public int getDepthBufferBits() {
+        return depthBits;
     }
 
-    /**
-     * @return The requested StencilFormat for the stencil buffer
-     */
-    public StencilFormat getStencilFormat() {
-        return stencil;
+    public int getStencilBufferBits() {
+        return stencilBits;
     }
 
-    /**
-     * @return The requested MultiSampling for the buffers
-     */
-    public MultiSampling getMultiSampling() {
-        return aa;
+    public int getSampleCount() {
+        return msaa;
     }
 
     /**

@@ -110,13 +110,4 @@ public interface Context {
      * @return The Surface for this context
      */
     public Surface getSurface();
-
-    /**
-     * Get the active surface layer that this Context applies to. This is only meaningful
-     * if the surface is a TextureSurface and was activated using {@link
-     * HardwareAccessLayer#setActiveSurface(TextureSurface, int)}.
-     *
-     * @return The active layer of this context's surface
-     */
-    public int getSurfaceLayer();
 }

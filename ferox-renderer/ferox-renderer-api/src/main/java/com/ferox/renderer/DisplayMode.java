@@ -27,78 +27,48 @@
 package com.ferox.renderer;
 
 /**
- * DisplayMode is an immutable object describing screen dimensions and bit depth for a
- * monitor display.
+ * DisplayMode is an immutable object describing screen dimensions, color bit depth and
+ * refresh rate for a monitor display.
  *
  * @author Michael Ludwig
  */
 public class DisplayMode {
-    /**
-     * The format for the color pixels of the surface. It is likely that the float options
-     * are only available for texture surfaces. PixelFormat is defined and stored in
-     * DisplayMode instead of OnscreenSurfaceOptions because the pixel format is
-     * determined by the display mode chosen by the user. Depth and stencil buffers are
-     * more flexible.
-     */
-    public static enum PixelFormat {
-        /**
-         * Pixel format does not match one of the other schemes in this enum.
-         */
-        UNKNOWN(-1),
-        /**
-         * Red, green, and blue pixels will be packed together in a 5/6/5 bit scheme.
-         */
-        RGB_16BIT(16),
-        /**
-         * Red, green, and blue pixels are packed in a 8/8/8 bit scheme.
-         */
-        RGB_24BIT(24),
-        /**
-         * Red, green, blue, and alpha pixels are packed in a 8/8/8/8 scheme.
-         */
-        RGBA_32BIT(32);
-
-        private final int bitdepth;
-
-        private PixelFormat(int bitdepth) {
-            this.bitdepth = bitdepth;
-        }
-
-        /**
-         * @return The bitdepth of the PixelFormat
-         */
-        public int getBitDepth() {
-            return bitdepth;
-        }
-    }
-
     private final int width;
     private final int height;
 
-    private final PixelFormat pixelFormat;
+    private final int bitDepth;
+    private final int refreshRate;
 
     /**
-     * Create a new DisplayMode with the given screen dimensions, measured in pixels, and
-     * the given pixel format.
+     * Create a new DisplayMode with the given screen dimensions, color bit depth, and
+     * refresh rate. This may not be valid for the current hardware. The only DisplayModes
+     * that are guaranteed valid come from {@link com.ferox.renderer.Framework#getAvailableDisplayModes()}
      *
      * @param width       The screen width
      * @param height      The screen height
-     * @param pixelFormat The PixelFormat
+     * @param bitDepth    The color bit depth
+     * @param refreshRate The refresh rate
      *
-     * @throws IllegalArgumentException if width or height is less than 1
-     * @throws NullPointerException     if pixelFormat is null
+     * @throws IllegalArgumentException if any argument is less than 1
      */
-    public DisplayMode(int width, int height, PixelFormat pixelFormat) {
+    public DisplayMode(int width, int height, int bitDepth, int refreshRate) {
         if (width < 1 || height < 1) {
             throw new IllegalArgumentException(
                     "Invalid dimensions: " + width + ", " + height);
         }
-        if (pixelFormat == null) {
-            throw new NullPointerException("PixelFormat cannot be null");
+        if (bitDepth < 1) {
+            throw new IllegalArgumentException(
+                    "Bit depth must be at least 1: " + bitDepth);
         }
+        if (refreshRate < 1) {
+            throw new IllegalArgumentException(
+                    "Refresh rate must be at least 1: " + refreshRate);
+        }
+
         this.width = width;
         this.height = height;
-        this.pixelFormat = pixelFormat;
+        this.bitDepth = bitDepth;
+        this.refreshRate = refreshRate;
     }
 
     /**
@@ -119,13 +89,12 @@ public class DisplayMode {
         return height;
     }
 
-    /**
-     * Get the PixelFormat supported by this display mode.
-     *
-     * @return The PixelFormat
-     */
-    public PixelFormat getPixelFormat() {
-        return pixelFormat;
+    public int getBitDepth() {
+        return bitDepth;
+    }
+
+    public int getRefreshRate() {
+        return refreshRate;
     }
 
     @Override
@@ -133,7 +102,8 @@ public class DisplayMode {
         final int prime = 31;
         int result = 17;
         result = prime * result + height;
-        result = prime * result + pixelFormat.hashCode();
+        result = prime * result + bitDepth;
+        result = prime * result + refreshRate;
         result = prime * result + width;
         return result;
     }
@@ -144,11 +114,13 @@ public class DisplayMode {
             return false;
         }
         DisplayMode d = (DisplayMode) o;
-        return d.width == width && d.height == height || d.pixelFormat == pixelFormat;
+        return d.width == width && d.height == height && d.bitDepth == bitDepth &&
+               d.refreshRate == refreshRate;
     }
 
     @Override
     public String toString() {
-        return "[DisplayMode: " + width + "x" + height + ", " + pixelFormat + "]";
+        return "[DisplayMode: " + width + "x" + height + ", " + bitDepth + "-bit, " +
+               refreshRate + " Hz]";
     }
 }

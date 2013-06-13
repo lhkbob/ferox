@@ -1,42 +1,54 @@
 package com.ferox.renderer;
 
 /**
- * <p/>
  * DataType represents the supported set of primitive data types that can be transfered to
- * the GPU. Depending on how the data is to be used, some types might be invalid (e.g. a
- * VBO for indices cannot use FLOAT).
- * <p/>
- * For the integral types, signed and unsigned data can be stored using the same data
- * type. The most significant bit that stores sign information in Java is treated by the
- * GPU like any other bit when an unsigned type is required.
+ * the GPU. The type system leveraged by GPUs is more extensive than what is available in
+ * Java. To account for this, common data interpretations are specified in this enum to
+ * map from Java's primitives to the majority of types needed. If the GPU requires a more
+ * complex type, the {@link DataType#INT_BIT_FIELD} value represents arbitrary 32-bit
+ * patterns.
  *
  * @author Michael Ludwig
  */
 public enum DataType {
-    FLOAT(4, true, true),
-    HALF_FLOAT(2, true, true),
-    INT(4, false, true),
-    UNSIGNED_INT(4, false, false),
-    NORMALIZED_INT(4, true, true),
-    UNSIGNED_NORMALIZED_INT(4, true, false),
-    SHORT(2, false, true),
-    UNSIGNED_SHORT(2, false, false),
-    NORMALIZED_SHORT(2, true, true),
-    UNSIGNED_NORMALIZED_SHORT(2, true, false),
-    BYTE(1, false, true),
-    UNSIGNED_BYTE(1, false, false),
-    NORMALIZED_BYTE(1, true, true),
-    UNSIGNED_NORMALIZED_BYTE(1, true, false),
-    BIT_FIELD(4, false, false);
+    FLOAT(4, float.class, true, true),
+    HALF_FLOAT(2, short.class, true, true),
+    INT(4, int.class, false, true),
+    UNSIGNED_INT(4, int.class, false, false),
+    NORMALIZED_INT(4, int.class, true, true),
+    UNSIGNED_NORMALIZED_INT(4, int.class, true, false),
+    SHORT(2, short.class, false, true),
+    UNSIGNED_SHORT(2, short.class, false, false),
+    NORMALIZED_SHORT(2, short.class, true, true),
+    UNSIGNED_NORMALIZED_SHORT(2, short.class, true, false),
+    BYTE(1, byte.class, false, true),
+    UNSIGNED_BYTE(1, byte.class, false, false),
+    NORMALIZED_BYTE(1, byte.class, true, true),
+    UNSIGNED_NORMALIZED_BYTE(1, byte.class, true, false),
+    INT_BIT_FIELD(4, int.class, false, false);
 
     private final int byteCount;
     private final boolean decimal;
     private final boolean signed;
+    private final Class<?> primitive;
 
-    private DataType(int byteCount, boolean decimal, boolean signed) {
+    private DataType(int byteCount, Class<?> primitive, boolean decimal, boolean signed) {
         this.byteCount = byteCount;
         this.decimal = decimal;
         this.signed = signed;
+        this.primitive = primitive;
+    }
+
+    /**
+     * Get the Java primitive type that holds the data. This will be the class
+     * representing {@code float}, {@code byte}, {@code short}, {@code int}. The actual
+     * interpretation of the bits in the Java primitive may be different depending on how
+     * the type is defined.
+     *
+     * @return The java primitive for this more complex data type
+     */
+    public Class<?> getJavaPrimitive() {
+        return primitive;
     }
 
     /**

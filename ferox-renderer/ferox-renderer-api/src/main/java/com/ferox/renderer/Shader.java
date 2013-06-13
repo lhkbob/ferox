@@ -6,6 +6,9 @@ import java.util.Map;
  *
  */
 public interface Shader {
+    // FIXME will it be worth it to support indexable attributes and uniforms instead
+    // of requiring a map lookup everytime? Also, I should merge attribute and uniform
+    // types and just specify that certain types aren't supported in every spot
     public enum Attribute {
         FLOAT(1, 1),
         FLOAT_VEC2(2, 1),

@@ -79,6 +79,7 @@ public interface Framework extends Destructible {
      */
     public DisplayMode getDefaultDisplayMode();
 
+
     /**
      * <p/>
      * Return the current exclusive fullscreen surface. There can only be one fullscreen

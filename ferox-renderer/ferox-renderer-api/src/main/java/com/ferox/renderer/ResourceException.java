@@ -26,11 +26,27 @@
  */
 package com.ferox.renderer;
 
+/**
+ * An exception that should be thrown when there is a problem creating a Resource.
+ *
+ * @author Michael Ludwig
+ */
+public class ResourceException extends FrameworkException {
+    private static final long serialVersionUID = 1L;
 
-public interface TextureSurface extends Surface {
-    public Sampler.BaseFormat getDepthRenderBufferFormat();
+    public ResourceException() {
+        super();
+    }
 
-    public Sampler.RenderTarget getDepthBuffer();
+    public ResourceException(String arg0) {
+        super(arg0);
+    }
 
-    public Sampler.RenderTarget getColorBuffer(int buffer);
+    public ResourceException(Throwable arg0) {
+        super(arg0);
+    }
+
+    public ResourceException(String arg0, Throwable arg1) {
+        super(arg0, arg1);
+    }
 }

@@ -22,6 +22,10 @@ public interface Sampler {
         COMPRESSED_RGBA
     }
 
+    public static interface RenderTarget {
+        public Sampler getSampler();
+    }
+
     public boolean isInterpolated();
 
     public int getWidth();
@@ -29,9 +33,6 @@ public interface Sampler {
     public int getHeight();
 
     public int getDepth();
-
-    // FIXME this might change
-    public int getRenderTargets();
 
     public WrapMode getWrapMode();
 

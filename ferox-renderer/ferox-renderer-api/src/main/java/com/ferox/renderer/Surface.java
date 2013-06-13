@@ -64,4 +64,8 @@ public interface Surface extends Destructible {
      * @return The Framework that created this surface, will not be null
      */
     public Framework getFramework();
+
+    public int getDepthBufferBits();
+
+    public int getStencilBufferBits();
 }

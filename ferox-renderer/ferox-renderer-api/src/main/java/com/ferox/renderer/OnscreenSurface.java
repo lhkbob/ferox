@@ -38,15 +38,11 @@ import com.ferox.input.MouseKeyEventSource;
  * @author Michael Ludwig
  */
 public interface OnscreenSurface extends Surface, MouseKeyEventSource {
-    /**
-     * Get the OnscreenSurfaceOptions that configure this surface. These may not exactly
-     * match the options passed into {@link Framework#createSurface(OnscreenSurfaceOptions)}
-     * if they had to be changed to meet hardware support. The returned options can be
-     * queried to determine if the window is resizable, undecorated, or fullscreen.
-     *
-     * @return The options used to create this Surface.
-     */
-    public OnscreenSurfaceOptions getOptions();
+    public int getColorBufferBits();
+
+    public int getMultiSamples();
+
+    public boolean isFullscreen();
 
     /**
      * Return true if the surface should have its update rate limited to the refresh rate
@@ -68,9 +64,8 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     public void setVSyncEnabled(boolean enable);
 
     /**
-     * Get the title string that appears in the window frame if isUndecorated() returns
-     * false. It may also be used in a dock, system tray or other OS UI element to
-     * represent the window.
+     * Get the title string that appears in the window frame is undecorated. It may also
+     * be used in a dock, system tray or other OS UI element to represent the window.
      *
      * @return The title displayed for this window element by the OS
      */
@@ -108,7 +103,6 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
      * including a frame), while getWidth/Height() return the size of the actual drawable
      * area of the surface.
      * <p/>
-     * <p/>
      * Fullscreen windows cannot be resized, so an exception is thrown if this is
      * attempted on a fullscreen window.
      *
@@ -141,14 +135,14 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
      *
      * @return True if the window can be closed by the user
      */
-    public boolean isClosable();
+    public boolean isCloseable();
 
     /**
      * Set whether or not a user is allowed to close the window via a close button in the
      * window's frame or decorations. When a user closes a window manually, the surface is
      * destroyed just as if {@link #destroy()} had been called.
      *
-     * @param userClosable True if the user can close the window
+     * @param userCloseable True if the user can close the window
      */
-    public void setClosable(boolean userClosable);
+    public void setCloseable(boolean userCloseable);
 }
