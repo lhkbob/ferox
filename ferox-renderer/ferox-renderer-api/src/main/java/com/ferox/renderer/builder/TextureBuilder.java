@@ -30,6 +30,12 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
 
         public I from(float[] data);
 
+        public I from(byte[] data);
+
+        public I from(short[] data);
+
+        public I from(int[] data);
+
         public I fromHalfFloats(short[] data);
     }
 

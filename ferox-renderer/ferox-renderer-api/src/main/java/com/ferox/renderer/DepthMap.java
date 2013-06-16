@@ -21,5 +21,11 @@ public interface DepthMap extends Sampler {
      */
     public Renderer.Comparison getDepthComparison();
 
-    // FIXME how do we specify the "border depth"?
+    /**
+     * Get the depth value used when texture coordinates sample the border of the depth
+     * map.
+     *
+     * @return The depth value
+     */
+    public double getBorderDepth();
 }

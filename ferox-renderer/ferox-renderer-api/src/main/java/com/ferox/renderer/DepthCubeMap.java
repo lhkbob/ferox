@@ -5,7 +5,8 @@ package com.ferox.renderer;
  * and optionally stencil data. Each face can be used as a depth/stencil render target for
  * render-to-texture with a {@link TextureSurface}. All six images have the same width and
  * height so they represent the six faces of a cube. Shaders can refer to a DepthCubeMap
- * in the GLSL code with the 'samplerCubeShadow' uniform type.
+ * in the GLSL code with the 'samplerCubeShadow' uniform type when the depth comparison is
+ * not null. If the comparison is null, 'samplerCube' should be used instead.
  *
  * @author Michael Ludwig
  * @see TextureCubeMap
