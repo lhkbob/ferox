@@ -10,17 +10,7 @@ public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder> {
 
     public DepthMap2DBuilder height(int h);
 
-    public DepthImageBuilder depth();
+    public SingleImageBuilder<DepthMap2D, DepthData> depth();
 
-    public DepthStencilImageBuilder depthStencil();
-
-    public static interface DepthImageBuilder
-            extends SingleImageBuilder<DepthMap2D, DepthData<DepthImageBuilder>> {
-
-    }
-
-    public static interface DepthStencilImageBuilder extends
-                                                     SingleImageBuilder<DepthMap2D, DepthStencilData<DepthStencilImageBuilder>> {
-
-    }
+    public SingleImageBuilder<DepthMap2D, DepthStencilData> depthStencil();
 }

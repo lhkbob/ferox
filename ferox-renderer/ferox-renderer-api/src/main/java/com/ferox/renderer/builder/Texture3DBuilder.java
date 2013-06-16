@@ -12,45 +12,17 @@ public interface Texture3DBuilder extends TextureBuilder<Texture3DBuilder> {
 
     public Texture3DBuilder depth(int depth);
 
-    public RImageBuilder r();
+    public SingleImageBuilder<Texture3D, BasicColorData> r();
 
-    public RGImageBuilder rg();
+    public SingleImageBuilder<Texture3D, BasicColorData> rg();
 
-    public RGBImageBuilder rgb();
+    public SingleImageBuilder<Texture3D, RGBData> rgb();
 
-    public BGRImageBuilder bgr();
+    public SingleImageBuilder<Texture3D, BasicColorData> bgr();
 
-    public RGBAImageBuilder rgba();
+    public SingleImageBuilder<Texture3D, BasicColorData> rgba();
 
-    public BGRAImageBuilder bgra();
+    public SingleImageBuilder<Texture3D, BasicColorData> bgra();
 
-    public ARGBImageBuilder argb();
-
-    public static interface RImageBuilder extends
-                                          SingleImageBuilder<Texture3D, TextureBuilder.BasicColorData<RImageBuilder>> {
-    }
-
-    public static interface RGImageBuilder extends
-                                           SingleImageBuilder<Texture3D, TextureBuilder.BasicColorData<RGImageBuilder>> {
-    }
-
-    public static interface RGBImageBuilder extends
-                                            SingleImageBuilder<Texture3D, TextureBuilder.RGBData<RGBImageBuilder>> {
-    }
-
-    public static interface BGRImageBuilder extends
-                                            SingleImageBuilder<Texture3D, TextureBuilder.BasicColorData<BGRImageBuilder>> {
-    }
-
-    public static interface RGBAImageBuilder extends
-                                             SingleImageBuilder<Texture3D, TextureBuilder.BasicColorData<RGBAImageBuilder>> {
-    }
-
-    public static interface BGRAImageBuilder extends
-                                             SingleImageBuilder<Texture3D, TextureBuilder.BasicColorData<BGRAImageBuilder>> {
-    }
-
-    public static interface ARGBImageBuilder extends
-                                             SingleImageBuilder<Texture3D, TextureBuilder.ARGBData<ARGBImageBuilder>> {
-    }
+    public SingleImageBuilder<Texture3D, ARGBData> argb();
 }

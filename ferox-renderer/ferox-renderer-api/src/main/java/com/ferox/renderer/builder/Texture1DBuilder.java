@@ -8,45 +8,17 @@ import com.ferox.renderer.Texture1D;
 public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public Texture1DBuilder length(int length);
 
-    public RImageBuilder r();
+    public SingleImageBuilder<Texture1D, BasicColorData> r();
 
-    public RGImageBuilder rg();
+    public SingleImageBuilder<Texture1D, BasicColorData> rg();
 
-    public RGBImageBuilder rgb();
+    public SingleImageBuilder<Texture1D, RGBData> rgb();
 
-    public BGRImageBuilder bgr();
+    public SingleImageBuilder<Texture1D, BasicColorData> bgr();
 
-    public RGBAImageBuilder rgba();
+    public SingleImageBuilder<Texture1D, BasicColorData> rgba();
 
-    public BGRAImageBuilder bgra();
+    public SingleImageBuilder<Texture1D, BasicColorData> bgra();
 
-    public ARGBImageBuilder argb();
-
-    public static interface RImageBuilder extends
-                                          SingleImageBuilder<Texture1D, TextureBuilder.BasicColorData<RImageBuilder>> {
-    }
-
-    public static interface RGImageBuilder extends
-                                           SingleImageBuilder<Texture1D, TextureBuilder.BasicColorData<RGImageBuilder>> {
-    }
-
-    public static interface RGBImageBuilder extends
-                                            SingleImageBuilder<Texture1D, TextureBuilder.RGBData<RGBImageBuilder>> {
-    }
-
-    public static interface BGRImageBuilder extends
-                                            SingleImageBuilder<Texture1D, TextureBuilder.BasicColorData<BGRImageBuilder>> {
-    }
-
-    public static interface RGBAImageBuilder extends
-                                             SingleImageBuilder<Texture1D, TextureBuilder.BasicColorData<RGBAImageBuilder>> {
-    }
-
-    public static interface BGRAImageBuilder extends
-                                             SingleImageBuilder<Texture1D, TextureBuilder.BasicColorData<BGRAImageBuilder>> {
-    }
-
-    public static interface ARGBImageBuilder extends
-                                             SingleImageBuilder<Texture1D, TextureBuilder.ARGBData<ARGBImageBuilder>> {
-    }
+    public SingleImageBuilder<Texture1D, ARGBData> argb();
 }

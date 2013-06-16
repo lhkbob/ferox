@@ -10,15 +10,15 @@ public interface DepthMapBuilder<B extends DepthMapBuilder<B>> extends SamplerBu
 
     public B borderDepth(double depth);
 
-    public static interface DepthData<I> {
-        public I from(float[] data);
+    public static interface DepthData {
+        public void from(float[] data);
 
-        public I fromUnsignedNormalized(int[] data);
+        public void fromUnsignedNormalized(int[] data);
 
-        public I fromUnsignedNormalized(short[] data);
+        public void fromUnsignedNormalized(short[] data);
     }
 
-    public static interface DepthStencilData<I> {
-        public I fromBits(int[] data);
+    public static interface DepthStencilData {
+        public void fromBits(int[] data);
     }
 }

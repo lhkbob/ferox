@@ -15,49 +15,49 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
 
     public T borderColor(@Const Vector4 color);
 
-    public static interface BasicColorData<I> {
-        public I fromUnsignedNormalized(byte[] data);
+    public static interface BasicColorData {
+        public void fromUnsignedNormalized(byte[] data);
 
-        public I fromUnsignedNormalized(short[] data);
+        public void fromUnsignedNormalized(short[] data);
 
-        public I fromUnsignedNormalized(int[] data);
+        public void fromUnsignedNormalized(int[] data);
 
-        public I fromUnsigned(byte[] data);
+        public void fromUnsigned(byte[] data);
 
-        public I fromUnsigned(short[] data);
+        public void fromUnsigned(short[] data);
 
-        public I fromUnsigned(int[] data);
+        public void fromUnsigned(int[] data);
 
-        public I from(float[] data);
+        public void from(float[] data);
 
-        public I from(byte[] data);
+        public void from(byte[] data);
 
-        public I from(short[] data);
+        public void from(short[] data);
 
-        public I from(int[] data);
+        public void from(int[] data);
 
-        public I fromHalfFloats(short[] data);
+        public void fromHalfFloats(short[] data);
     }
 
-    public static interface RGBData<I> extends BasicColorData<I> {
-        public I fromPackedFloats(int[] data);
+    public static interface RGBData extends BasicColorData {
+        public void fromPackedFloats(int[] data);
     }
 
-    public static interface CompressedRGBData<I> extends RGBData<I> {
-        public I fromDXT1(byte[] data);
+    public static interface CompressedRGBData extends RGBData {
+        public void fromDXT1(byte[] data);
     }
 
-    public static interface CompressedRGBAData<I> extends BasicColorData<I> {
-        public I fromDXT1(byte[] data);
+    public static interface CompressedRGBAData extends BasicColorData {
+        public void fromDXT1(byte[] data);
 
-        public I fromDXT3(byte[] data);
+        public void fromDXT3(byte[] data);
 
-        public I fromDXT5(byte[] data);
+        public void fromDXT5(byte[] data);
     }
 
-    public static interface ARGBData<I> {
-        public I from(byte[] data);
+    public static interface ARGBData {
+        public void from(byte[] data);
 
-        public I fromPackedBytes(int[] data);
+        public void fromPackedBytes(int[] data);
     }
 }

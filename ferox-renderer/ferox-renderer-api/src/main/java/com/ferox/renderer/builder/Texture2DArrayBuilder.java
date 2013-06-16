@@ -12,45 +12,17 @@ public interface Texture2DArrayBuilder extends TextureBuilder<Texture2DArrayBuil
 
     public Texture2DArrayBuilder imageCount(int length);
 
-    public RImageBuilder r();
+    public ArrayImageBuilder<Texture2DArray, BasicColorData> r();
 
-    public RGImageBuilder rg();
+    public ArrayImageBuilder<Texture2DArray, BasicColorData> rg();
 
-    public RGBImageBuilder rgb();
+    public ArrayImageBuilder<Texture2DArray, RGBData> rgb();
 
-    public BGRImageBuilder bgr();
+    public ArrayImageBuilder<Texture2DArray, BasicColorData> bgr();
 
-    public RGBAImageBuilder rgba();
+    public ArrayImageBuilder<Texture2DArray, BasicColorData> rgba();
 
-    public BGRAImageBuilder bgra();
+    public ArrayImageBuilder<Texture2DArray, BasicColorData> bgra();
 
-    public ARGBImageBuilder argb();
-
-    public static interface RImageBuilder extends
-                                          ArrayImageBuilder<Texture2DArray, TextureBuilder.BasicColorData<RImageBuilder>> {
-    }
-
-    public static interface RGImageBuilder extends
-                                           ArrayImageBuilder<Texture2DArray, TextureBuilder.BasicColorData<RGImageBuilder>> {
-    }
-
-    public static interface RGBImageBuilder extends
-                                            ArrayImageBuilder<Texture2DArray, TextureBuilder.RGBData<RGBImageBuilder>> {
-    }
-
-    public static interface BGRImageBuilder extends
-                                            ArrayImageBuilder<Texture2DArray, TextureBuilder.BasicColorData<BGRImageBuilder>> {
-    }
-
-    public static interface RGBAImageBuilder extends
-                                             ArrayImageBuilder<Texture2DArray, TextureBuilder.BasicColorData<RGBAImageBuilder>> {
-    }
-
-    public static interface BGRAImageBuilder extends
-                                             ArrayImageBuilder<Texture2DArray, TextureBuilder.BasicColorData<BGRAImageBuilder>> {
-    }
-
-    public static interface ARGBImageBuilder extends
-                                             ArrayImageBuilder<Texture2DArray, TextureBuilder.ARGBData<ARGBImageBuilder>> {
-    }
+    public ArrayImageBuilder<Texture2DArray, ARGBData> argb();
 }
