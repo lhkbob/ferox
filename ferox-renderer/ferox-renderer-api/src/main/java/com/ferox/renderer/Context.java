@@ -31,8 +31,8 @@ package com.ferox.renderer;
  * Surface. It also controls when the rendered contents of the Surface are flushed to
  * their final destination (e.g. visible window or texture). When executing Tasks, a
  * HardwareAccessLayer is provided; the HardwareAccessLayer provides Contexts by calling
- * its setActiveSurface() methods. Within a Task, only a single context can be active at
- * one time. Multiple contexts can be used in one Task, although old contexts will be
+ * its setActiveSurface() methods. Within a Task, only a single context can be active at a
+ * time. Multiple contexts can be used in one Task, although old contexts will be
  * invalidated when setActiveSurface() is called again.
  *
  * @author Michael Ludwig
@@ -56,7 +56,7 @@ public interface Context {
      * Return a GlslRenderer to render into the surface that is currently in use. This
      * will return null if the Context cannot support a GlslRenderer. Tasks can only use
      * one renderer per returned Context. The Surface that provided this context must be
-     * re-activated to reset the context to get at a different renderer if needed.
+     * re-activated to get at a different renderer type.
      * <p/>
      * A GlslRenderer and FixedFunctionRenderer cannot be used at the same time. If this
      * is called after a call to {@link #getFixedFunctionRenderer()} on the same context,
@@ -72,9 +72,8 @@ public interface Context {
      * <p/>
      * Return a FixedFunctionRenderer to render into the surface that is currently in use.
      * This will return null if the Context cannot support a FixedFunctionRenderer. Tasks
-     * can only use a one renderer per returned Context. The Surface that provided this
-     * context must be re-activated to reset the context to get at a different renderer if
-     * needed.
+     * can only use one renderer per returned Context. The Surface that provided this
+     * context must be re-activated to to get a different renderer type.
      * <p/>
      * A FixedFunctionRenderer and GlslRenderer cannot be used at the same time. If this
      * is called after a call to {@link #getGlslRenderer()} on the same context, an
@@ -96,16 +95,15 @@ public interface Context {
      * rendered into directly. This method should be called regardless of type of surface
      * because Tasks cannot know before hand what flushing will do.
      * <p/>
-     * If rendering is done across in multiple tasks, a flush only needs to be performed
-     * in the last pass. Alternatively, {@link Framework#flush(Surface)} can be used as a
+     * If rendering is done over multiple tasks, a flush only needs to be performed in the
+     * last pass. Alternatively, {@link Framework#flush(Surface)} can be used as a
      * convenience.
      */
     public void flush();
 
     /**
      * Get the Surface that was the argument to {@link HardwareAccessLayer#setActiveSurface(Surface)}
-     * or {@link HardwareAccessLayer#setActiveSurface(TextureSurface, int)} that initially
-     * produced this Context.
+     * and other setActiveSurface() methods that produced this Context.
      *
      * @return The Surface for this context
      */

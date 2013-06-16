@@ -29,7 +29,6 @@ package com.ferox.renderer;
 import com.ferox.input.MouseKeyEventSource;
 
 /**
- * <p/>
  * A renderable Surface that has a visible element, either because it's a window or it's
  * fullscreen. Multiple windowed OnscreenSurfaces can be used at the same time. Like
  * {@link Surface}, all methods exposed by OnscreenSurface have no defined return value
@@ -38,10 +37,21 @@ import com.ferox.input.MouseKeyEventSource;
  * @author Michael Ludwig
  */
 public interface OnscreenSurface extends Surface, MouseKeyEventSource {
-    public int getColorBufferBits();
+    /**
+     * @return The display mode of the surface, which is either the default display mode
+     *         for windowed surfaces, or the activated fullscreen mode
+     */
+    public DisplayMode getDisplayMode();
 
+    /**
+     * @return The number of MSAA samples used in the surface, or 0 if MSAA is disabled
+     *         for the surface
+     */
     public int getMultiSamples();
 
+    /**
+     * @return True if this OnscreenSurface is the active fullscreen surface
+     */
     public boolean isFullscreen();
 
     /**

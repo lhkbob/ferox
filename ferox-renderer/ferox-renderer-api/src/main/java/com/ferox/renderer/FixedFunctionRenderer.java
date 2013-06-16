@@ -314,8 +314,8 @@ public interface FixedFunctionRenderer extends Renderer {
      * Set whether or not eye-space fogging is enabled. If this is enabled, each rendered
      * pixel's color value is blended with the configured fog color (at the time of the
      * rendering) based on the fog equation. The fog equation can be linear, set with
-     * {@link #setFogLinear(float, float)}, or exponential, set with {@link
-     * #setFogExponential(float, boolean)}.
+     * {@link #setFogLinear(double, double)}, or exponential, set with {@link
+     * #setFogExponential(double, boolean)}.
      * <p/>
      * The default state starts with fog disabled.
      *
@@ -359,7 +359,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p/>
      * Set the fog to use an exponential blending factor with the given density function.
      * Fog will be rendered using an exponential equation until {@link
-     * #setFogLinear(float, float)} is called, which sets it to use linear fog instead.
+     * #setFogLinear(double, double)} is called, which sets it to use linear fog instead.
      * <p/>
      * The fog blend factor is computed two different ways, depending on squared. If
      * squared is true, then it is e^(-density * c), else it is e^(-(density * c)^2),
@@ -684,6 +684,57 @@ public interface FixedFunctionRenderer extends Renderer {
                             @Const Vector4 emm);
 
     /**
+     * Set just the diffuse material color, leaving the other color properties unchanged.
+     * The default diffuse color is (0.8, 0.8, 0.8, 1).
+     *
+     * @param diff The diffuse color, or solid color when lighting is disabled
+     *
+     * @throws NullPointerException if diff is null
+     * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4,
+     *      com.ferox.math.Vector4, com.ferox.math.Vector4)
+     */
+    public void setMaterialDiffuse(@Const Vector4 diff);
+
+    /**
+     * Set just the ambient material color, leaving the other color properties unchanged.
+     * The default ambient color is (0.2, 0.2, 0.2, 1). This color is ignored when
+     * lighting is disabled.
+     *
+     * @param amb The ambient color of the material
+     *
+     * @throws NullPointerException if amb is null
+     * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4,
+     *      com.ferox.math.Vector4, com.ferox.math.Vector4)
+     */
+    public void setMaterialAmbient(@Const Vector4 amb);
+
+    /**
+     * Set just the specular material color, leaving the other color properties unchanged.
+     * The default specular color is (0.0, 0.0, 0.0, 1). This color is ignored when
+     * lighting is disabled.
+     *
+     * @param spec The specular color of the material
+     *
+     * @throws NullPointerException if spec is null
+     * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4,
+     *      com.ferox.math.Vector4, com.ferox.math.Vector4)
+     */
+    public void setMaterialSpecular(@Const Vector4 spec);
+
+    /**
+     * Set just the emitted light of the material, leaving the other color properties
+     * unchanged. The default emitted color is (0.0, 0.0, 0.0, 1). This color is ignored
+     * when lighting is disabled.
+     *
+     * @param emm The emitted color of the material
+     *
+     * @throws NullPointerException if emm is null
+     * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4,
+     *      com.ferox.math.Vector4, com.ferox.math.Vector4)
+     */
+    public void setMaterialEmissive(@Const Vector4 emm);
+
+    /**
      * <p/>
      * Set the material shininess to use when lighting is enabled. This shininess acts as
      * an exponent on the specular intensity, and can be used to increase or dampen the
@@ -730,7 +781,6 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param color The new constant texture color for the unit
      *
      * @throws NullPointerException      if color is null
-     * @throws IllegalArgumentException  if tex is less than 0
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */
@@ -747,7 +797,6 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param gen The TexCoordSource for all four coordinates
      *
      * @throws NullPointerException      if gen is null
-     * @throws IllegalArgumentException  if tex is less than 0
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      * @see #setTextureCoordGeneration(int, TexCoord, TexCoordSource)
@@ -768,7 +817,6 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param gen   The new texture coordinate source
      *
      * @throws NullPointerException      if coord or gen are null
-     * @throws IllegalArgumentException  if tex is less than 0
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */
@@ -790,11 +838,26 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param plane The object plane that's used for this unit and coordinate
      *
      * @throws NullPointerException      if coord or plane are null
-     * @throws IllegalArgumentException  if tex is less than 0
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */
     public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane);
+
+    /**
+     * Set the object plane for S coordinate to the first row of the matrix {@code
+     * planes}, the plane for T to the second row, the plane for R to the third row, and
+     * the plane for Q to the fourth row.
+     *
+     * @param tex    The texture unit
+     * @param planes The matrix holding the 4 plane equations in row-order
+     *
+     * @throws NullPointerException      if planes is null
+     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
+     *                                   provided index, or if tex is less than 0
+     * @see #setTextureObjectPlane(int, com.ferox.renderer.FixedFunctionRenderer.TexCoord,
+     *      com.ferox.math.Vector4)
+     */
+    public void setTextureObjectPlanes(int tex, @Const Matrix4 planes);
 
     /**
      * <p/>
@@ -814,11 +877,26 @@ public interface FixedFunctionRenderer extends Renderer {
      *              multiplication
      *
      * @throws NullPointerException      if coord or plane are null
-     * @throws IllegalArgumentException  if tex is less than 0
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */
     public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane);
+
+    /**
+     * Set the eue plane for S coordinate to the first row of the matrix {@code planes},
+     * the plane for T to the second row, the plane for R to the third row, and the plane
+     * for Q to the fourth row.
+     *
+     * @param tex    The texture unit
+     * @param planes The matrix holding the 4 plane equations in row-order
+     *
+     * @throws NullPointerException      if planes is null
+     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
+     *                                   provided index, or if tex is less than 0
+     * @see #setTextureEyePlane(int, com.ferox.renderer.FixedFunctionRenderer.TexCoord,
+     *      com.ferox.math.Vector4)
+     */
+    public void setTextureEyePlanes(int tex, @Const Matrix4 planes);
 
     /**
      * <p/>
@@ -833,7 +911,6 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param matrix The texture coordinate transform matrix
      *
      * @throws NullPointerException      if matrix is null
-     * @throws IllegalArgumentException  if tex is less than 0
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */
@@ -953,10 +1030,11 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * <p/>
      * Set the VertexAttribute that is used as the source of vertex positions when {@link
-     * #render(PolygonType, int, int)} or {@link #render(PolygonType, VertexBufferObject,
-     * int)} is invoked. The attribute must be of type FLOAT. The attribute can have an
-     * element size of 2, 3 or 4. If the 4th component is not provided, it defaults to 1.
-     * If the 3rd component is not provided, it defaults to 0.
+     * #render(PolygonType, int, int)} is invoked. The vertex buffer's data type must
+     * store decimal data. The attribute can have an element size of 2, 3 or 4. If the 4th
+     * component is not provided, it defaults to 1. If the 3rd component is not provided,
+     * it defaults to 0. The vertex elements will be accessed linearly if no indices are
+     * bound, or by the indices in the last bound element buffer.
      * <p/>
      * This updates the currently bound vertex position attribute. The bound attribute
      * will remain unchanged after rendering until this method is called again. Rendering
@@ -969,17 +1047,18 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param vertices The VertexAttribute holding the position data and access
      *                 information
      *
-     * @throws IllegalArgumentException if vertices' buffer data type is not FLOAT or if
-     *                                  its element size is 1
+     * @throws IllegalArgumentException if vertices' element size is 1 or does not hold
+     *                                  decimal data
      */
     public void setVertices(VertexAttribute vertices);
 
     /**
      * <p/>
      * Set the VertexAttribute that is used as a source of normal vectors when {@link
-     * #render(PolygonType, int, int)} or {@link #render(PolygonType,
-     * com.ferox.renderer.geom.VertexBufferObject, int)} is invoked. The attribute type
-     * must be FLOAT. The attribute must have an element size of 3.
+     * #render(PolygonType, int, int)} is invoked. The vertex buffer's data type must
+     * store decimal data. The attribute must have an element size of 3. The normal
+     * elements will be accessed linearly if no indices are bound, or by the indices in
+     * the last bound element buffer.
      * <p/>
      * This updates the currently bound normal attribute. The bound attribute will remain
      * unchanged after rendering until this method is called again. A normals attribute is
@@ -993,25 +1072,26 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param normals The VertexAttribute holding the normal vector data and access
      *                information
      *
-     * @throws IllegalArgumentException if normals element size is not 3 or if its type is
-     *                                  not FLOAT
+     * @throws IllegalArgumentException if normals' element size is not 3 or does not hold
+     *                                  decimal data
      */
     public void setNormals(VertexAttribute normals);
 
     /**
      * <p/>
      * Set the VertexAttribute that provides per-vertex colors when {@link
-     * #render(PolygonType, int, int)} or {@link #render(PolygonType, VertexBufferObject,
-     * int, int)} is invoked. The attribute data type must be FLOAT and its element size
-     * equal to 3 or 4. Values are assumed to be between 0 and 1 to properly represent
-     * packed RGB colors. The first primitive in a vertex's element is the red, the second
-     * is green, and the third is blue. If the element size is 4, the fourth value is the
-     * alpha, otherwise the alpha is set to 1.
+     * #render(PolygonType, int, int)} is invoked. The vertex buffer's data type must
+     * store decimal data, and the attribute's element size equal to 3 or 4. Values are
+     * assumed to be between 0 and 1 to properly represent packed RGB colors. The first
+     * primitive in a vertex's element is the red, the second is green, and the third is
+     * blue. If the element size is 4, the fourth value is the alpha, otherwise the alpha
+     * is set to 1.
      * <p/>
-     * This will replace the diffuse color that specified in {@link #setMaterial(Vector4,
-     * Vector4, Vector4, Vector4)}. The ambient, specular, and emissive colors still
-     * affect the final rendering, but the diffuse color will be taken from this
-     * attribute.
+     * This will replace the diffuse color that is specified in {@link
+     * #setMaterial(Vector4, Vector4, Vector4, Vector4)} or {@link
+     * #setMaterialDiffuse(com.ferox.math.Vector4)}. The ambient, specular, and emissive
+     * colors still affect the final rendering, but the diffuse color will be taken from
+     * this attribute.
      * <p/>
      * This updates the currently bound color attribute. The bound attribute will remain
      * unchanged after rendering until this method is called again. If a null attribute is
@@ -1022,20 +1102,20 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @param colors The VertexAttribute holding the color vector data
      *
-     * @throws IllegalArgumentException if colors element size is not 3 or 4, or if its
-     *                                  type is not FLOAT
+     * @throws IllegalArgumentException if colors element size is not 3 or 4, or if it
+     *                                  does not hold decimal data
      */
     public void setColors(VertexAttribute colors);
 
     /**
      * <p/>
      * Set the VertexAttribute that is used as a source of texture coordinates on the
-     * texture unit, <var>tex</var> when {@link #render(PolygonType, int, int)} or {@link
-     * #render(PolygonType, com.ferox.renderer.geom.VertexBufferObject, int)} is invoked.
-     * The attribute element size can be any value between 1 and 4. If the element size of
-     * the attribute doesn't meet the expected coordinate size of the bound texture, a
-     * default is used for the missing components. The 2nd and 3rd components default to 0
-     * and the 4th defaults to 1. The attribute type must be FLOAT.
+     * texture unit, <var>tex</var> when {@link #render(PolygonType, int, int)}  is
+     * invoked. The attribute element size can be any value between 1 and 4. If the
+     * element size of the attribute doesn't meet the expected coordinate size of the
+     * bound texture, a default is used for the missing components. The 2nd and 3rd
+     * components default to 0 and the 4th defaults to 1. The vertex buffer's data type
+     * must hold decimal data.
      * <p/>
      * This updates the currently bound texture coordinate attribute for the given texture
      * unit. The bound attribute will remain unchanged after rendering until this method
@@ -1046,13 +1126,13 @@ public interface FixedFunctionRenderer extends Renderer {
      * attribute can be unbound from the texture unit if a null VertexAttribute is
      * provided.
      * <p/>
-     * Every texture unit starst with no attribute bound.
+     * Every texture unit initially has no attribute bound.
      *
      * @param tex       The texture unit to bind <var>texCoords</var> to
      * @param texCoords The VertexAttribute holding the texture coordinate data and access
      *                  information
      *
-     * @throws IllegalArgumentException  if texCoords' data type is not FLOAT
+     * @throws IllegalArgumentException  if texCoords' data type is not a decimal type
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */

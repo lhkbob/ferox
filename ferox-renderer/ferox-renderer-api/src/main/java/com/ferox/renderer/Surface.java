@@ -42,8 +42,7 @@ package com.ferox.renderer;
 public interface Surface extends Destructible {
     /**
      * Return the width of the actual drawable area of the surface (doesn't include any
-     * border or frame). This is allowed to return any value after the surface has been
-     * destroyed.
+     * border or frame).
      *
      * @return The width of the drawable area
      */
@@ -51,8 +50,7 @@ public interface Surface extends Destructible {
 
     /**
      * Return the height of the actual drawable area of the surface (doesn't include any
-     * border or frame). This is allowed to return any value after the surface has been
-     * destroyed.
+     * border or frame).
      *
      * @return The height of the drawable area
      */
@@ -65,7 +63,21 @@ public interface Surface extends Destructible {
      */
     public Framework getFramework();
 
+    /**
+     * Get the number of bits allocated per-pixel to the depth buffer for the surface. If
+     * 0 is returned, the surface does not have a depth buffer and any rendering
+     * operations depending on the depth test will be ignored.
+     *
+     * @return The depth buffer size
+     */
     public int getDepthBufferBits();
 
+    /**
+     * Get the number of bits allocated per-pixel to the stencil buffer for the surface.
+     * If 0 is returned, the surface does not have a stencil buffer and any rendering
+     * operations depending on the stencil test will be ignored.
+     *
+     * @return The stencil buffer size
+     */
     public int getStencilBufferBits();
 }

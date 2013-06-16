@@ -33,7 +33,7 @@ package com.ferox.renderer;
  * {@link Renderer renderers} and allows for manual updating and disposing of {@link
  * Resource resources}.
  * <p/>
- * Tasks are executed using {@link Framework#queue(Task, String)}.
+ * Tasks are executed using {@link Framework#invoke(Task)}.
  *
  * @param <T>
  *

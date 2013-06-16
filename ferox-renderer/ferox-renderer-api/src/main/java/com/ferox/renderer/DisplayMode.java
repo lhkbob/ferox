@@ -28,7 +28,8 @@ package com.ferox.renderer;
 
 /**
  * DisplayMode is an immutable object describing screen dimensions, color bit depth and
- * refresh rate for a monitor display.
+ * refresh rate for a monitor display. This class provides a common-sense implementation
+ * of {@link #equals(Object)} and {@link #hashCode()}.
  *
  * @author Michael Ludwig
  */
@@ -89,10 +90,16 @@ public class DisplayMode {
         return height;
     }
 
+    /**
+     * @return The number of bits representing color in each pixel
+     */
     public int getBitDepth() {
         return bitDepth;
     }
 
+    /**
+     * @return The refresh rate of the monitor
+     */
     public int getRefreshRate() {
         return refreshRate;
     }

@@ -192,7 +192,7 @@ public class VertexAttribute {
      * <p/>
      * This can be used to prevent illegal index access.
      *
-     * @return The maximum number of vertices storable in this attribute's buffer
+     * @return The maximum number of vertices storeable in this attribute's buffer
      */
     public int getMaximumNumVertices() {
         return (buffer.getLength() - offset) / (elementSize + stride);

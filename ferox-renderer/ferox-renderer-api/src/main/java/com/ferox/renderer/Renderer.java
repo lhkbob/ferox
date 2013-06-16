@@ -405,9 +405,9 @@ public interface Renderer {
      * pipeline that can update the stencil buffer.
      * <p/>
      * This method configures both the front and back set of StencilOps to use the same
-     * set of three. Use {@link #setStencilUpdateOpsFront(Renderer.StencilUpdate,
+     * set of three. Use {@link #setStencilUpdateFront(Renderer.StencilUpdate,
      * Renderer.StencilUpdate, Renderer.StencilUpdate)} and {@link
-     * #setStencilUpdateOpsBack(Renderer.StencilUpdate, Renderer.StencilUpdate,
+     * #setStencilUpdateBack(Renderer.StencilUpdate, Renderer.StencilUpdate,
      * Renderer.StencilUpdate)} to configure the different sets independently.
      * <p/>
      * The starting state of the Renderer is all three stages for front and back facing
@@ -647,7 +647,7 @@ public interface Renderer {
      *
      * @param enable True if depth offsets should be enabled
      *
-     * @see #setDepthOffsets(float, float)
+     * @see #setDepthOffsets(double, double)
      */
     public void setDepthOffsetsEnabled(boolean enable);
 
@@ -819,7 +819,7 @@ public interface Renderer {
      * starting at <var>offset</var>. Polygons are formed based on the polygon type
      * provided. If there is a non-null bound index buffer count index values are read and
      * used to access the vertex attributes. If there is no index buffer, vertex
-     * attributes are read directly starting at offset.
+     * attributes are read linearly starting at offset.
      * <p/>
      * The Renderer interface does not provide a mechanism to configure the active set of
      * vertex attributes needed to form the actual vertices. Specifying vertex attributes
@@ -829,7 +829,7 @@ public interface Renderer {
      * will support more rendering methods, such as rendering multiple instances.
      *
      * @param polyType The type of polygon to render
-     * @param first    The index of the first vertex to render
+     * @param offset   The index of the first vertex to render
      * @param count    The number of vertices to render
      *
      * @return The number of polygons rendered
@@ -860,7 +860,7 @@ public interface Renderer {
      * @param clearDepth   True if the depth buffer is cleared
      * @param clearStencil True if the stencil buffer is cleared
      *
-     * @see #clear(boolean, boolean, boolean, Vector4, float, int)
+     * @see #clear(boolean, boolean, boolean, Vector4, double, int)
      */
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil);
 
@@ -905,7 +905,7 @@ public interface Renderer {
      * <p/>
      * When a Surface is first activated, the viewport is set to span the entire content
      * of the Surface. When a Surface is {@link #clear(boolean, boolean, boolean, Vector4,
-     * float, int) cleared} it uses the current viewport, and only clears the content
+     * double, int) cleared} it uses the current viewport, and only clears the content
      * within it.
      *
      * @param x      The x coordinate of the new viewport

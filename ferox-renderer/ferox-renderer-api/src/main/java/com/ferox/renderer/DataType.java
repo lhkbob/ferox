@@ -1,9 +1,9 @@
 package com.ferox.renderer;
 
 /**
- * DataType represents the supported set of primitive data types that can be transfered to
- * the GPU. The type system leveraged by GPUs is more extensive than what is available in
- * Java. To account for this, common data interpretations are specified in this enum to
+ * DataType represents the supported set of primitive data types that can be transferred
+ * to the GPU. The type system leveraged by GPUs is more extensive than what is available
+ * in Java. To account for this, common data interpretations are specified in this enum to
  * map from Java's primitives to the majority of types needed. If the GPU requires a more
  * complex type, the {@link DataType#INT_BIT_FIELD} value represents arbitrary 32-bit
  * patterns.
@@ -11,20 +11,84 @@ package com.ferox.renderer;
  * @author Michael Ludwig
  */
 public enum DataType {
+    /**
+     * The 4 bytes are treated as the IEEE floating point standard, e.g. the same as
+     * Java.
+     */
     FLOAT(4, float.class, true, true),
+    /**
+     * The 2 bytes are treated as the OpenGL 16-bit half-float with 1 bit for sign, 5 bits
+     * for exponent, and 10 bits for a mantissa.
+     */
     HALF_FLOAT(2, short.class, true, true),
+    /**
+     * The 4 bytes are treated as the standard two's-complement signed 32-bit integer,
+     * e.g. the same as Java.
+     */
     INT(4, int.class, false, true),
+    /**
+     * The 4 bytes are treated as a one's-complement 32-bit unsigned integer. The sign-bit
+     * in the Java representation is treated as the most significant bit instead of a
+     * sign.
+     */
     UNSIGNED_INT(4, int.class, false, false),
+    /**
+     * The 4 bytes are evaluated identically to INT, and then normalized to the decimal
+     * range [-1.0, 1.0].
+     */
     NORMALIZED_INT(4, int.class, true, true),
+    /**
+     * The 4 bytes are evaluated identically to UNSIGNED_INT, and then normalized to the
+     * decimal range [0.0, 1.0].
+     */
     UNSIGNED_NORMALIZED_INT(4, int.class, true, false),
+    /**
+     * The 2 bytes are evaluated as the standard two's-complement signed 16-bit integer,
+     * e.g. the same as Java.
+     */
     SHORT(2, short.class, false, true),
+    /**
+     * The 2 bytes are evaluated as a one's complement 16-bit unsigned integer. The
+     * sign-bit in the Java representation is treated as the most significant bit.
+     */
     UNSIGNED_SHORT(2, short.class, false, false),
+    /**
+     * The 2 bytes are evaluated identically to SHORT, and then normalized to the decimal
+     * range [-1.0, 1.0].
+     */
     NORMALIZED_SHORT(2, short.class, true, true),
+    /**
+     * The 2 bytes are evaluated identically to UNSIGNED_SHORT, and then normalized to the
+     * decimal range [0.0, 1.0].
+     */
     UNSIGNED_NORMALIZED_SHORT(2, short.class, true, false),
+    /**
+     * The single byte is evaluated as the standard two's-complement signed 8-bit integer,
+     * e.g. the same as Java.
+     */
     BYTE(1, byte.class, false, true),
+    /**
+     * The single byte is evaluated as a one's complement 8-bit unsigned integer. The
+     * sign-bit in the Java representation is treated as the most significant bit.
+     */
     UNSIGNED_BYTE(1, byte.class, false, false),
+    /**
+     * The single byte is evaluated identically to BYTE, and then normalized to the
+     * decimal range [-1.0, 1.0].
+     */
     NORMALIZED_BYTE(1, byte.class, true, true),
+    /**
+     * The single byte is evaluated identically to UNSIGNED_BYTE, and then normalized to
+     * the decimal range [0.0, 1.0].
+     */
     UNSIGNED_NORMALIZED_BYTE(1, byte.class, true, false),
+    /**
+     * The 4 bytes are interpreted in a context-specific manner. The 32-bit Java int is
+     * merely a vehicle to deliver those bits to OpenGL. This is most common with packed
+     * texture formats such as DEPTH_STENCIL where 24 bits are the depth, and 8 are the
+     * stencil; another example is the ARGB texture format with 8 bits per component
+     * packed into a single integer.
+     */
     INT_BIT_FIELD(4, int.class, false, false);
 
     private final int byteCount;

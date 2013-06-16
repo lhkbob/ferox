@@ -26,34 +26,34 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslShader.Version;
-
-import java.util.EnumSet;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * <p/>
- * RenderCapabilities holds onto a set of different parameters describing more advanced
- * features that the baseline hardware may not support.
+ * Capabilities holds onto a set of different parameters describing more advanced features
+ * that the baseline hardware may not support.
  * <p/>
  * Because Ferox was designed to be implemented with an OpenGL system, the capabilities
  * here reflect that and allow for lower-level inspection of the current hardware.
- * Framework implementations are expected to extend RenderCapabilities to provide the
- * correct values for each parameter.
+ * Framework implementations are expected to extend Capabilities to provide the correct
+ * values for each parameter. Capabilities instances returned from {@link
+ * com.ferox.renderer.Framework#getCapabilities()} can be considered immutable.
  *
  * @author Michael Ludwig
  */
-public class RenderCapabilities {
+public abstract class Capabilities {
     // texture properties
-    protected int maxVertexShaderTextures = 0; //
-    protected int maxFragmentShaderTextures = 0; //
-    protected int maxFixedPipelineTextures = 0; //
-    protected int maxCombinedTextures = 0; //
+    protected int maxVertexShaderTextures = -1; //
+    protected int maxFragmentShaderTextures = -1; //
+    protected int maxFixedPipelineTextures = -1; //
+    protected int maxCombinedTextures = -1; //
 
     protected float maxAnisoLevel = 0f; //
 
     protected boolean hasDepthTextures = false; //
+    protected boolean hasDepthStencilTextures = false; //
     protected boolean hasEnvCombine = false; //
     protected boolean hasMirrorRepeat = false; //
     protected boolean hasClampEdge = false; //
@@ -69,7 +69,7 @@ public class RenderCapabilities {
     protected boolean npotTextures = false; //
     protected boolean s3tcTextures = false; //
 
-    protected EnumSet<Target> supportedTargets = EnumSet.noneOf(Target.class); //
+    protected Set<Class<? extends Sampler>> supportedTargets = Collections.emptySet(); //
 
     // geometry properties
     protected int maxVertexAttributes = 0; //
@@ -86,16 +86,78 @@ public class RenderCapabilities {
 
     // glsl
     protected boolean hasGlslRenderer = false; //
-    protected EnumSet<ShaderType> supportedShaders = EnumSet.noneOf(ShaderType.class);
-    protected Version glslVersion;
+    protected boolean geometryShaderSupport = false; //
+    protected int glslVersion;
 
     protected String vendor = ""; //
-    protected float version = 0f; //
+    protected int majorVersion = 0;
+    protected int minorVersion = 0;
 
     // frame properties
     protected boolean fboSupported = false; //
     protected boolean pbuffersSupported = false; //
     protected int maxColorTargets = 0; //
+    protected int[] depthBufferSizes = new int[1]; //
+    protected int[] stencilBufferSizes = new int[1]; //
+    protected int[] msaaSamples = new int[1]; //
+
+    protected DisplayMode[] availableModes = new DisplayMode[0]; //
+
+    protected boolean supportsMultipleOnscreenSurfaces;
+
+    /**
+     * @return True if multiple non-fullscreen onscreen surfaces can exist at the same
+     *         time with this framework
+     */
+    public boolean getMultipleOnscreenSurfaceSupport() {
+        return supportsMultipleOnscreenSurfaces;
+    }
+
+    /**
+     * Return an array of available DisplayModes that can be used when creating fullscreen
+     * surfaces with {@link Framework#createSurface(OnscreenSurfaceOptions)}. A defensive
+     * array copy is returned, with no particular ordering. If the returned array is
+     * empty, fullscreen surfaces are not supported.
+     *
+     * @return All available display modes on the system
+     */
+    public DisplayMode[] getAvailableDisplayModes() {
+        return Arrays.copyOf(availableModes, availableModes.length);
+    }
+
+    /**
+     * Return an array of the depth buffer bit sizes that are supported on this hardware.
+     * The returned array is ordered from least to greatest bit size and is a defensive
+     * copy. The array will always contain the value 0 for no depth buffer support.
+     *
+     * @return Supported depth buffer sizes
+     */
+    public int[] getAvailableDepthBufferSizes() {
+        return Arrays.copyOf(depthBufferSizes, depthBufferSizes.length);
+    }
+
+    /**
+     * Return an array of the stencil buffer bit sizes that are supported on this
+     * hardware. The returned array is ordered from least to greatest bit size and is a
+     * defensive copy. The array will always at least contain the value 0 for no stencil
+     * buffer support.
+     *
+     * @return Supported stencil buffer sizes
+     */
+    public int[] getAvailableStencilBufferSizes() {
+        return Arrays.copyOf(stencilBufferSizes, stencilBufferSizes.length);
+    }
+
+    /**
+     * Return an array of the sample counts that are supported on this hardware when using
+     * MSAA. The returned array is ordered from least to greatest bit size and is a
+     * defensive copy. The array will always contain the value 0 for no MSAA support.
+     *
+     * @return Supported MSAA sample counts
+     */
+    public int[] getAvailableSamples() {
+        return Arrays.copyOf(msaaSamples, msaaSamples.length);
+    }
 
     /**
      * @return True if the blending operation exposed in {@link Renderer} is supported.
@@ -105,17 +167,24 @@ public class RenderCapabilities {
     }
 
     /**
-     * @return The set of supported texture Targets on this hardware.
+     * @return The set of supported sampler interfaces on this hardware.
      */
-    public EnumSet<Target> getSupportedTextureTargets() {
+    public Set<Class<? extends Sampler>> getSupportedTextureTargets() {
         return supportedTargets;
     }
 
     /**
-     * @return True if the DEPTH TextureFormat is supported
+     * @return True if the DEPTH BaseFormat is supported
      */
     public boolean getDepthTextureSupport() {
         return hasDepthTextures;
+    }
+
+    /**
+     * @return True if the DEPTH_STENCIL BaseFormat is supported
+     */
+    public boolean getDepthStencilTextureSupport() {
+        return hasDepthStencilTextures;
     }
 
     /**
@@ -157,7 +226,7 @@ public class RenderCapabilities {
     }
 
     /**
-     * Return the maximum side dimension of a Texture with targets of T_1D or T_2D.
+     * Return the maximum side dimension of a Texture1D, Texture2D, or DepthMap2D.
      *
      * @return Maximum size of a 1d or 2d texture
      */
@@ -166,7 +235,7 @@ public class RenderCapabilities {
     }
 
     /**
-     * Return the maximum side dimension of a Texture with the target of T_3D.
+     * Return the maximum side dimension of a Texture3D.
      *
      * @return Maximum size of a 3d texture
      */
@@ -175,8 +244,7 @@ public class RenderCapabilities {
     }
 
     /**
-     * Return the maximum side dimension of a face of a Texture with the target of
-     * T_CUBEMAP.
+     * Return the maximum side dimension of a face of a TextureCubeMap or a DepthCubeMap.
      *
      * @return Maximum size of a cube map
      */
@@ -195,8 +263,7 @@ public class RenderCapabilities {
 
     /**
      * Return the maximum number of color buffers that can be rendered into simultaneously
-     * with a GLSL program when using a TextureSurface. An OnscreenSurface always has only
-     * one color buffer.
+     * with a GLSL program when using a TextureSurface.
      *
      * @return Number of color targets allowed for TextureSurfaces
      */
@@ -249,8 +316,8 @@ public class RenderCapabilities {
     /**
      * Get the max supported level of anisotropic filtering for textures. If anisotropic
      * filtering is not supported, this should return a number <= 0. A value of 1 in
-     * {@link Texture#getAnisotropicFilterLevel()} will be scaled by the Framework to the
-     * returned number.
+     * {@link com.ferox.renderer.Texture#getAnisotropicFiltering()} will be scaled by the
+     * Framework to the returned number.
      *
      * @return Maximum level of anistropic filtering
      */
@@ -273,7 +340,7 @@ public class RenderCapabilities {
      *
      * @return If NPOT texturing is available for 1d, 2d, 3d and cube map textures
      */
-    public boolean getNpotTextureSupport() {
+    public boolean getNPOTTextureSupport() {
         return npotTextures;
     }
 
@@ -288,7 +355,7 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the maximum vertex attributes allowed on each vertex rendered. Should be >= 0.
+     * Get the maximum vertex attributes allowed on each vertex rendered.
      *
      * @return Number of vertex attributes
      */
@@ -307,9 +374,10 @@ public class RenderCapabilities {
     }
 
     /**
-     * Whether or not vertex buffers are supported.
+     * Whether or not vertex and element buffers stored directly on the GPU are
+     * supported.
      *
-     * @return True if the RESIDENT_x compile options will be supported
+     * @return True if non-dynamic buffers can be cached to the GPU
      */
     public boolean getVertexBufferSupport() {
         return vboSupported;
@@ -351,7 +419,7 @@ public class RenderCapabilities {
      *
      * @return True if fbos can be used
      */
-    public boolean getFboSupport() {
+    public boolean getFBOSupport() {
         return fboSupported;
     }
 
@@ -361,7 +429,7 @@ public class RenderCapabilities {
      *
      * @return True if pbuffers can be used
      */
-    public boolean getPbufferSupport() {
+    public boolean getPBufferSupport() {
         return pbuffersSupported;
     }
 
@@ -376,30 +444,36 @@ public class RenderCapabilities {
     }
 
     /**
-     * Get the OpenGL version present on the computer.
-     *
-     * @return Version to one decimal point
+     * @return The OpenGL major version present on the computer
      */
-    public float getVersion() {
-        return version;
+    public int getMajorVersion() {
+        return majorVersion;
+    }
+
+    /**
+     * @return The OpenGL minor version present on the computer
+     */
+    public int getMinorVersion() {
+        return minorVersion;
     }
 
     /**
      * Get the GLSL shading language available on the computer. If {@link
-     * #hasGlslRenderer()} returns false, this value is null.
+     * #hasGlslRenderer()} returns false, this value is undefined. The reported version is
+     * the integer value used in the #version declaration in source code. Example: for
+     * GLSL 1.4 the returned value is 140, for 3.3 it is 330.
      *
-     * @return Version to one decimal point
+     * @return Version in integer form
      */
-    public Version getGlslVersion() {
+    public int getGlslVersion() {
         return glslVersion;
     }
 
     /**
-     * Get the supported types of GLSL shaders available on the computer.
-     *
-     * @return Set of available shaders
+     * @return True if the GlslRenderer can support shaders with a geometry shader.
+     *         Shaders always support vertex and fragment shaders.
      */
-    public EnumSet<ShaderType> getSupportedShaderTypes() {
-        return supportedShaders;
+    public boolean hasGeometryShaderSupport() {
+        return geometryShaderSupport;
     }
 }
