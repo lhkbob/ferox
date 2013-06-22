@@ -10,10 +10,15 @@ package com.ferox.renderer;
  * With each of these subtypes of sampler, there are a number of ways to describe the
  * image data from 1D, 2D, and 3D images, to six-side cubemaps to the newer texture
  * arrays.
+ * <p/>
+ * When a Sampler object is refreshed via {@link #refresh()}, the current state of the
+ * primitive array instances that were used to initially define the sampler are pushed to
+ * the GPU. Thus, animated textures are supported by maintaining a reference to the
+ * original image arrays and mutating their contents, followed by a refresh.
  *
  * @author Michael Ludwig
  */
-public interface Sampler {
+public interface Sampler extends Resource {
     /**
      * WrapMode defines thee behavior applied to texture coordinates that lie outside the
      * standard [0, 1] interval.

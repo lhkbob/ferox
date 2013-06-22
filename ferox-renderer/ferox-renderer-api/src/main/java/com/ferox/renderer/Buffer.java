@@ -6,6 +6,13 @@ package com.ferox.renderer;
  * e.g. as signed or unsigned ints, floats, etc. Depending on how a buffer is used,
  * different data types are valid. The usage of a buffer is encoded in the type system
  * where {@link VertexBuffer} or {@link ElementBuffer} are used as appropriate.
+ * <p/>
+ * When a Buffer object is refreshed by {@link #refresh()}, the contents of the original
+ * primitive array that defined its data are pushed to the GPU. To animate buffers, you
+ * should maintain the reference to the original data and mutate as necessary, and
+ * refresh() when ready. If a buffer is to be refreshed every frame or multiple times per
+ * frame, {@link com.ferox.renderer.builder.BufferBuilder#dynamic()} should be called when
+ * constructing the buffer.
  *
  * @author Michael Ludwig
  */

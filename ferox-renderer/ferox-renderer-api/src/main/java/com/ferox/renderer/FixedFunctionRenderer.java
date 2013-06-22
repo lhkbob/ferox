@@ -765,7 +765,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws IndexOutOfBoundsException if the hardware does not support a texture at the
      *                                   provided index, or if tex is less than 0
      */
-    public void setTexture(int tex, Texture image);
+    public void setTexture(int tex, Sampler image);
 
     /**
      * <p/>
