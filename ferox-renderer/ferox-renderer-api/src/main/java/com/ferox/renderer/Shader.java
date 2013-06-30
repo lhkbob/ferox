@@ -230,17 +230,7 @@ public interface Shader extends Resource {
     public int getGLSLVersion();
 
     /**
-     * @return True if the final program contains a custom vertex stage
-     */
-    public boolean hasVertexShader();
-
-    /**
      * @return True if the final program contains a custom geometry stage
      */
     public boolean hasGeometryShader();
-
-    /**
-     * @return True if the final program contains a custom fragment stage
-     */
-    public boolean hasFragmentShader();
 }
