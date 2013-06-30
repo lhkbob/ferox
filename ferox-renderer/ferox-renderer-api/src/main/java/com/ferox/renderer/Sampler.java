@@ -50,13 +50,13 @@ public interface Sampler extends Resource {
     }
 
     /**
-     * BaseFormat describes the basic internal texture formats supported by OpenGL. They
+     * TexelFormat describes the basic internal texture formats supported by OpenGL. They
      * come in two flavors, either holding color data or depth data and correspond to the
      * two high-level subtypes of Sampler. The exact representation of the components
      * within the pixel also depend on the data type of the sampler. In some cases the
      * components can be packed into a single primitive element.
      */
-    public static enum BaseFormat {
+    public static enum TexelFormat {
         /**
          * The sampler has a single component per pixel that stores depth data. This will
          * only ever be used by samplers that extend {@link DepthMap}.
@@ -197,11 +197,11 @@ public interface Sampler extends Resource {
     public int getMaxMipmap();
 
     /**
-     * @return The base format of pixels for this sampler
+     * @return The texel format of pixels for this sampler
      *
      * @see #getDataType()
      */
-    public BaseFormat getFormat();
+    public TexelFormat getFormat();
 
     /**
      * Get the data type holding the components of the sampler. If the type is

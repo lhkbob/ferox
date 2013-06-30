@@ -40,7 +40,7 @@ public final class TextureSurfaceOptions {
     private final int width;
     private final int height;
 
-    private final Sampler.BaseFormat depthRenderBuffer;
+    private final Sampler.TexelFormat depthRenderBuffer;
 
     private final Sampler.RenderTarget[] colorTargets;
     private final Sampler.RenderTarget depthStencilTarget;
@@ -54,7 +54,7 @@ public final class TextureSurfaceOptions {
     }
 
     private TextureSurfaceOptions(int width, int height,
-                                  Sampler.BaseFormat depthRenderBuffer,
+                                  Sampler.TexelFormat depthRenderBuffer,
                                   Sampler.RenderTarget[] colorTargets,
                                   Sampler.RenderTarget depthStencilTarget) {
         this.width = width;
@@ -118,7 +118,7 @@ public final class TextureSurfaceOptions {
      * @return The new options instance configured to use a depth renderbuffer
      */
     public TextureSurfaceOptions useDepthRenderBuffer() {
-        return new TextureSurfaceOptions(width, height, Sampler.BaseFormat.DEPTH,
+        return new TextureSurfaceOptions(width, height, Sampler.TexelFormat.DEPTH,
                                          colorTargets, null);
     }
 
@@ -129,7 +129,7 @@ public final class TextureSurfaceOptions {
      * @return The new options instance configured to use a depth+stencil renderbuffer
      */
     public TextureSurfaceOptions useDepthAndStencilRenderBuffer() {
-        return new TextureSurfaceOptions(width, height, Sampler.BaseFormat.DEPTH_STENCIL,
+        return new TextureSurfaceOptions(width, height, Sampler.TexelFormat.DEPTH_STENCIL,
                                          colorTargets, null);
     }
 
@@ -165,7 +165,7 @@ public final class TextureSurfaceOptions {
      *
      * @return The base format, one of DEPTH, DEPTH_STENCIL or null
      */
-    public Sampler.BaseFormat getDepthRenderBufferFormat() {
+    public Sampler.TexelFormat getDepthRenderBufferFormat() {
         return depthRenderBuffer;
     }
 

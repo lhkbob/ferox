@@ -23,7 +23,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public Texture1DBuilder length(int length);
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#R}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#R}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -34,7 +34,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public SingleImageBuilder<Texture1D, BasicColorData> r();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RG}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -45,7 +45,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public SingleImageBuilder<Texture1D, BasicColorData> rg();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGB}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -56,7 +56,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public SingleImageBuilder<Texture1D, RGBData> rgb();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGB}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
      * OpenGL will interpret the components in the order B, G, R instead of R, G, B within
      * the data arrays for each image. The returned image builder can be used to specify
      * some or all mipmap levels and then build the final image.
@@ -68,7 +68,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public SingleImageBuilder<Texture1D, BasicColorData> bgr();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGBA}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -79,7 +79,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public SingleImageBuilder<Texture1D, BasicColorData> rgba();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGBA}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
      * OpenGL will interpret the components in the order B, G, R, A instead of R, G, B, A
      * within the data arrays for each image. The returned image builder can be used to
      * specify some or all mipmap levels and then build the final image.
@@ -91,7 +91,7 @@ public interface Texture1DBuilder extends TextureBuilder<Texture1DBuilder> {
     public SingleImageBuilder<Texture1D, BasicColorData> bgra();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGBA}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
      * OpenGL will interpret the components in the order A, R, G, B instead of R, G, B, A
      * within the data arrays for each image. The returned image builder can be used to
      * specify some or all mipmap levels and then build the final image.

@@ -24,7 +24,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public TextureCubeMapBuilder side(int side);
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#R}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#R}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -35,7 +35,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> r();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RG}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -46,10 +46,10 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> rg();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGB}
-     * or {@link com.ferox.renderer.Sampler.BaseFormat#COMPRESSED_RGB}. The returned image
-     * builder can be used to specify some or all mipmap levels and then build the final
-     * image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}
+     * or {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGB}. The returned
+     * image builder can be used to specify some or all mipmap levels and then build the
+     * final image.
      *
      * @return The final image builder
      *
@@ -58,7 +58,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, CompressedRGBData> rgb();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGB}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
      * OpenGL will interpret the components in the order B, G, R instead of R, G, B within
      * the data arrays for each image. The returned image builder can be used to specify
      * some or all mipmap levels and then build the final image.
@@ -70,8 +70,8 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> bgr();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGBA}
-     * or {@link com.ferox.renderer.Sampler.BaseFormat#COMPRESSED_RGBA}. The returned
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}
+     * or {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGBA}. The returned
      * image builder can be used to specify some or all mipmap levels and then build the
      * final image.
      *
@@ -82,7 +82,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, CompressedRGBAData> rgba();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGBA}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
      * OpenGL will interpret the components in the order B, G, R, A instead of R, G, B, A
      * within the data arrays for each image. The returned image builder can be used to
      * specify some or all mipmap levels and then build the final image.
@@ -94,7 +94,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> bgra();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#RGBA}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
      * OpenGL will interpret the components in the order A, R, G, B instead of R, G, B, A
      * within the data arrays for each image. The returned image builder can be used to
      * specify some or all mipmap levels and then build the final image.

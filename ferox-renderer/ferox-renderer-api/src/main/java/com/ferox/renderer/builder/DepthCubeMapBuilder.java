@@ -24,7 +24,7 @@ public interface DepthCubeMapBuilder extends DepthMapBuilder<DepthCubeMapBuilder
     public DepthCubeMapBuilder side(int side);
 
     /**
-     * Configure the sampler to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#DEPTH}.
+     * Configure the sampler to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *
@@ -35,7 +35,7 @@ public interface DepthCubeMapBuilder extends DepthMapBuilder<DepthCubeMapBuilder
     public CubeImageBuilder<DepthCubeMap, DepthData> depth();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.BaseFormat#DEPTH_STENCIL}.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH_STENCIL}.
      * The returned image builder can be used to specify some or all mipmap levels and
      * then build the final image.
      *

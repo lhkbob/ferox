@@ -50,7 +50,7 @@ public interface TextureSurface extends Surface {
      *
      * @return The depth/stencil renderbuffer format of the surface
      */
-    public Sampler.BaseFormat getDepthRenderBufferFormat();
+    public Sampler.TexelFormat getDepthRenderBufferFormat();
 
     /**
      * @return The last configured depth render target, or null if no target was
