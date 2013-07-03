@@ -26,16 +26,16 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.Resource.Status;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.TextureSurfaceOptions;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.Mipmap;
-import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.TextureFormat;
 
 /**
  * AbstractTextureSurface is a mostly complete implementation of TextureSurface that is
@@ -57,14 +57,14 @@ public abstract class AbstractTextureSurface extends AbstractSurface
     private final Object[] colorLocks;
     private Object depthLock;
 
-    public AbstractTextureSurface(AbstractFramework framework,
+    public AbstractTextureSurface(FrameworkImpl framework,
                                   TextureSurfaceOptions options) {
         super(framework);
         if (options == null) {
             options = new TextureSurfaceOptions();
         }
 
-        RenderCapabilities caps = framework.getCapabilities();
+        Capabilities caps = framework.getCapabilities();
         options = validateFormat(options, caps);
         options = validateDimensions(options, caps);
 
@@ -206,7 +206,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface
      */
 
     private static TextureSurfaceOptions validateFormat(TextureSurfaceOptions options,
-                                                        RenderCapabilities caps) {
+                                                        Capabilities caps) {
         int numBuffers = Math
                 .min(caps.getMaxColorBuffers(), options.getNumColorBuffers());
 
@@ -240,7 +240,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface
     }
 
     private static TextureSurfaceOptions validateDimensions(TextureSurfaceOptions options,
-                                                            RenderCapabilities caps) {
+                                                            Capabilities caps) {
         // set unneeded dimensions to expected values for target
         switch (options.getTarget()) {
         case T_1D:
@@ -355,7 +355,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface
     }
 
     private static void updateTextures(Texture[] color, Texture depth,
-                                       AbstractFramework framework) {
+                                       FrameworkImpl framework) {
         ContextManager contextManager = framework.getContextManager();
         if (contextManager.isContextThread()) {
             // Don't use the Framework methods since then we'll deadblock

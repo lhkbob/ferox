@@ -26,9 +26,9 @@
  */
 package com.ferox.renderer.impl.drivers;
 
+import com.ferox.renderer.geom.VertexBufferObject;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.VertexBufferObject.StorageMode;
 
 import java.nio.Buffer;
 

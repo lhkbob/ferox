@@ -26,16 +26,16 @@
  */
 package com.ferox.renderer.impl.drivers;
 
+import com.ferox.renderer.Resource;
+import com.ferox.renderer.geom.DataRange;
+import com.ferox.renderer.geom.VertexBufferObject;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.UpdateResourceException;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.DataRange;
-import com.ferox.resource.Resource;
-import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.VertexBufferObject.StorageMode;
 
 import java.nio.*;
 import java.util.List;

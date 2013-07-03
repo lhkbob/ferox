@@ -39,8 +39,9 @@ import java.util.concurrent.*;
  * common case where a single surface is rendered into repeatedly.
  * <p/>
  * A newly constructed ContextManager is not ready to use until its {@link
- * #initialize(LifeCycleManager)} is called. The ContextManager is expected to live within
- * the life cycle of its owning Framework (as enforced by the LifeCycleManager).
+ * #initialize(LifeCycleManager, SurfaceFactory)} is called. The ContextManager is
+ * expected to live within the life cycle of its owning Framework (as enforced by the
+ * LifeCycleManager).
  *
  * @author Michael Ludwig
  */
@@ -60,9 +61,8 @@ public class ContextManager {
      * LifeCycleManager#start(Runnable)}.
      * <p/>
      * The ContextManager will automatically terminate its threads when it detects that
-     * the LifeCycleManager is being shutdown. All internal threads are managed threads so
-     * the final destruction code passed to {@link LifeCycleManager#destroy(Runnable)}
-     * will not run until the ContextManager stops processing tasks.
+     * the LifeCycleManager is being shutdown. It will continue running tasks until the
+     * manager is fully stopped.
      * <p/>
      * The ContextManager cannot be initialized more than once. It is illegal to use a
      * LifeCycleManager that has a status other than STARTING (i.e. within the scope of
@@ -103,9 +103,9 @@ public class ContextManager {
 
         thread = new ContextThread(lifecycle.getManagedThreadGroup(), "gpu-task-thread");
 
-        // Must start a managed thread, but we can't use the convenience method
-        // because the ContextManager uses a special subclass of Thread
-        lifecycle.startManagedThread(thread);
+        // Start the managed thread as a high priority thread so that it can run
+        // while the other threads terminate (and potentially queue tasks)
+        lifecycle.startManagedThread(thread, true); //
 
         // Very first task must be to allocate the shared context
         try {
@@ -165,22 +165,21 @@ public class ContextManager {
         try {
             Status status = lifecycleManager.getStatus();
             if (!lifecycleManager.isStopped() ||
-                (acceptOnShutdown && status == Status.STOPPING)) {
+                (acceptOnShutdown && status == Status.STOPPING_LOW_PRIORITY)) {
                 if (isContextThread()) {
                     // don't queue and run the task right away
                     sync.run();
                 } else {
-                    boolean queued = false;
-                    while (!queued) {
-                        queued = thread.tasks.offerLast(sync);
-
+                    // this is written like this to guard against interrupts
+                    boolean queued;
+                    do {
                         try {
-                            if (!queued) {
-                                Thread.sleep(1);
-                            }
+                            queued = thread.tasks
+                                           .offerLast(sync, 5, TimeUnit.MILLISECONDS);
                         } catch (InterruptedException ie) {
+                            queued = false;
                         }
-                    }
+                    } while (!queued);
                 }
             } else {
                 // LifecycleManager is shutting down or already has been, so cancel it
@@ -213,7 +212,7 @@ public class ContextManager {
      * <p/>
      * An activated surface that has its own context will continue to have its context
      * current on the thread after the task completes until a new surface is activated
-     * with its own context, or {@link forceRelease(AbstractSurface)} method is called.
+     * with its own context, or {@link #forceRelease(AbstractSurface)} method is called.
      * <p/>
      * Passing in a null Surface will deactivate the currently active surface, and the
      * layer parameter is ignored.
@@ -227,12 +226,18 @@ public class ContextManager {
      *
      * @param surface The AbstractSurface to activate
      * @param layer   The layer to activate, will be passed directly to {@link
-     *                AbstractSurface#onSurfaceActivate(int)}
+     *                AbstractSurface#onSurfaceActivate(OpenGLContext, int)}
      *
      * @return The OpenGLContext that is current after this surface has been activated
      *
      * @throws IllegalStateException if {@link #isContextThread()} returns false
      */
+    // FIXME how do we specify the render targets? Is that a later part of the
+    // surface activation specific to the texture surfaces? e.g. it's something
+    // the hardware access layer is concerned with and not the context manager?
+    //
+    // This seems reasonable; we can also move surface activation/deactivation there?
+    // or at least move renderer resetting to the hardware access layer
     public OpenGLContext setActiveSurface(AbstractSurface surface, int layer) {
         // Further validation is handled in the ContextThread after the lock is made
         Thread current = Thread.currentThread();
@@ -417,9 +422,9 @@ public class ContextManager {
 
         @Override
         public void run() {
-            // loop until we hit WAITING_ON_CHILDREN, so that we still process
-            // tasks while in the STOPPING stage
-            while (lifecycleManager.getStatus().compareTo(Status.WAITING_ON_CHILDREN) <
+            // loop until we hit STOPPING_HIGH_PRIORITY, so that we still process tasks while in that stage
+            // transition to STOPPED until all children are done
+            while (lifecycleManager.getStatus().compareTo(Status.STOPPING_HIGH_PRIORITY) <
                    0) {
                 // Grab a single task from the queue and run it
                 // Unlocking a surface is handled by pushing a special task

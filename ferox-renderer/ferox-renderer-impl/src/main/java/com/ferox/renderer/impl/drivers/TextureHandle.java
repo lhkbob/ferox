@@ -28,12 +28,12 @@ package com.ferox.renderer.impl.drivers;
 
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer.Comparison;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Filter;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.Texture.WrapMode;
+import com.ferox.renderer.texture.TextureFormat;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Filter;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.Texture.WrapMode;
-import com.ferox.resource.TextureFormat;
 
 /**
  * TextureHandle is the handle that represents the persisted state of a Texture, and is

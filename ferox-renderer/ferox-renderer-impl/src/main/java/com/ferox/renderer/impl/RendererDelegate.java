@@ -30,9 +30,9 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.Renderer.*;
+import com.ferox.renderer.geom.VertexBufferObject;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.VertexBufferObject;
 
 /**
  * <p/>
@@ -43,7 +43,7 @@ import com.ferox.resource.VertexBufferObject;
  * calls.
  * <p/>
  * It is recommended that the RendererDelegate is used with an {@link
- * AbstractFixedFunctionRenderer} or an {@link AbstractGlslRenderer} to create the
+ * AbstractFixedFunctionRenderer} or an {@link AbstractGlslRenderer} to compose the
  * complete functionality of the different Renderer types.
  *
  * @author Michael Ludwig
@@ -62,7 +62,7 @@ public abstract class RendererDelegate {
      * this Renderer. The given context is the context for the current thread and the
      * ResourceManager is the resource manager of the surface's owning framework.
      *
-     * @param active          The now active surface
+     * @param surface         The now active surface
      * @param context         The current context
      * @param resourceManager The ResourceManager to use
      */
@@ -117,8 +117,8 @@ public abstract class RendererDelegate {
 
     /**
      * Perform identical operations to {@link Renderer#clear(boolean, boolean, boolean,
-     * ReadOnlyVector4f, double, int)} . The color does not need to be clamped because
-     * OpenGL performs this for us.
+     * Vector4, double, int)} . The color does not need to be clamped because OpenGL
+     * performs this for us.
      */
     public abstract void clear(boolean clearColor, boolean clearDepth,
                                boolean clearStencil, @Const Vector4 color, double depth,

@@ -34,14 +34,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * AbstractSurface is an abstract class implementing Surface. Its primary purpose is to
- * expose additional functionality needed by the components of {@link AbstractFramework}
- * to implement the framework system easily across many adapters for OpenGL.
+ * expose additional functionality needed by the components of {@link FrameworkImpl} to
+ * implement the framework system easily across many adapters for OpenGL.
  *
  * @author Michael Ludwig
  */
 public abstract class AbstractSurface implements Surface {
     private final AtomicBoolean destroyed;
-    private final AbstractFramework framework;
+    private final FrameworkImpl framework;
 
     /**
      * Create a new AbstractSurface that has yet to be destroyed, that is owned by the
@@ -51,7 +51,7 @@ public abstract class AbstractSurface implements Surface {
      *
      * @throws NullPointerException if framework is null
      */
-    public AbstractSurface(AbstractFramework framework) {
+    public AbstractSurface(FrameworkImpl framework) {
         if (framework == null) {
             throw new NullPointerException("Framework cannot be null");
         }
@@ -95,7 +95,7 @@ public abstract class AbstractSurface implements Surface {
      *                appropriate target
      */
     public void onSurfaceActivate(OpenGLContext context, int layer) {
-        RenderCapabilities caps = context.getRenderCapabilities();
+        Capabilities caps = context.getRenderCapabilities();
         FixedFunctionRenderer ffp = context.getRendererProvider()
                                            .getFixedFunctionRenderer(caps);
         if (ffp instanceof AbstractRenderer) {
@@ -121,7 +121,7 @@ public abstract class AbstractSurface implements Surface {
     public void onSurfaceDeactivate(OpenGLContext context) {
         // Reset the renderers so that the next task sees a clean slate
         // and any locked resources get released
-        RenderCapabilities caps = context.getRenderCapabilities();
+        Capabilities caps = context.getRenderCapabilities();
         FixedFunctionRenderer ffp = context.getRendererProvider()
                                            .getFixedFunctionRenderer(caps);
         if (ffp != null) {
@@ -159,10 +159,9 @@ public abstract class AbstractSurface implements Surface {
                                 }
                             }, true);
         } else {
-            System.out.println("Destroy already completed");
             // If we've already been destroyed, use a completed future so
             // it's seen as completed
-            return new CompletedFuture<Void>(null);
+            return new CompletedFuture<>(null);
         }
     }
 
@@ -172,7 +171,7 @@ public abstract class AbstractSurface implements Surface {
     }
 
     @Override
-    public AbstractFramework getFramework() {
+    public FrameworkImpl getFramework() {
         return framework;
     }
 }

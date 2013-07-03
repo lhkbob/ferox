@@ -36,8 +36,8 @@ import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.resource.Texture;
-import com.ferox.resource.VertexBufferObject;
+import com.ferox.renderer.geom.VertexBufferObject;
+import com.ferox.renderer.texture.Texture;
 
 import java.util.Arrays;
 

@@ -26,8 +26,8 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.resource.BufferData;
-import com.ferox.resource.BufferData.DataType;
+
+import com.ferox.renderer.DataType;
 
 import java.nio.*;
 
@@ -169,10 +169,20 @@ public class BufferUtil {
         case FLOAT:
             return newFloatBuffer(size);
         case BYTE:
+        case NORMALIZED_BYTE:
+        case UNSIGNED_BYTE:
+        case UNSIGNED_NORMALIZED_BYTE:
             return newByteBuffer(size);
         case INT:
+        case NORMALIZED_INT:
+        case UNSIGNED_INT:
+        case UNSIGNED_NORMALIZED_INT:
+        case INT_BIT_FIELD:
             return newIntBuffer(size);
         case SHORT:
+        case NORMALIZED_SHORT:
+        case UNSIGNED_SHORT:
+        case UNSIGNED_NORMALIZED_SHORT:
             return newShortBuffer(size);
         default:
             throw new IllegalArgumentException();
@@ -180,41 +190,35 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new Buffer that matches the DataType of the provided BufferData. The
-     * created buffer will have a capacity matching the size of the BufferData. If the
-     * BufferData has a non-null array, the buffer will have the array copied into it. The
-     * returned buffer's position will be 0 and its limit will be at its capacity.
+     * Create a new Buffer from the primitive array. The array instance must be a {@code
+     * int[]}, {@code short[]}, {@code byte[]}, or {@code float[]}. The exact
+     * interpretation of the primitives is irrelevant.
      *
-     * @param data The BufferData to clone into an NIO buffer
+     * @param array The primitive to clone into an NIO buffer
      *
      * @return A new direct Buffer
      *
      * @throws NullPointerException if data is null
      */
-    public static Buffer newBuffer(BufferData data) {
-        switch (data.getDataType()) {
-        case FLOAT:
-            float[] fd = data.getArray();
-            return (fd == null ? newFloatBuffer(data.getLength()) : newFloatBuffer(fd));
-        case BYTE:
-            byte[] bd = data.getArray();
-            return (bd == null ? newByteBuffer(data.getLength()) : newByteBuffer(bd));
-        case SHORT:
-            short[] sd = data.getArray();
-            return (sd == null ? newShortBuffer(data.getLength()) : newShortBuffer(sd));
-        case INT:
-            int[] id = data.getArray();
-            return (id == null ? newIntBuffer(data.getLength()) : newIntBuffer(id));
-        default:
-            throw new IllegalArgumentException();
+    public static Buffer newBuffer(Object array) {
+        if (array instanceof float[]) {
+            return newFloatBuffer((float[]) array);
+        } else if (array instanceof int[]) {
+            return newIntBuffer((int[]) array);
+        } else if (array instanceof short[]) {
+            return newShortBuffer((short[]) array);
+        } else if (array instanceof byte[]) {
+            return newByteBuffer((byte[]) array);
+        } else {
+            throw new IllegalArgumentException("Unsupported array type: " + array);
         }
     }
 
     /**
-     * Return the Class of Buffer that will be created by {@link #newBuffer(BufferData)}
-     * and {@link #newBuffer(DataType, int)} based on the given DataType. A DataType of
-     * FLOAT creates FloatBuffers; a DataType of BYTE creates ByteBuffers; a type of INT
-     * creates IntBuffers; and a type of SHORT creates ShortBuffers.
+     * Return the Class of Buffer that will be created by {@link #newBuffer(DataType,
+     * int)} based on the given DataType. A DataType of FLOAT creates FloatBuffers; a
+     * DataType of BYTE creates ByteBuffers; a type of INT creates IntBuffers; and a type
+     * of SHORT creates ShortBuffers.
      *
      * @param type The DataType
      *
@@ -227,10 +231,20 @@ public class BufferUtil {
         case FLOAT:
             return FloatBuffer.class;
         case BYTE:
+        case NORMALIZED_BYTE:
+        case UNSIGNED_BYTE:
+        case UNSIGNED_NORMALIZED_BYTE:
             return ByteBuffer.class;
         case INT:
+        case NORMALIZED_INT:
+        case UNSIGNED_INT:
+        case UNSIGNED_NORMALIZED_INT:
+        case INT_BIT_FIELD:
             return IntBuffer.class;
         case SHORT:
+        case NORMALIZED_SHORT:
+        case UNSIGNED_SHORT:
+        case UNSIGNED_NORMALIZED_SHORT:
             return ShortBuffer.class;
         }
 

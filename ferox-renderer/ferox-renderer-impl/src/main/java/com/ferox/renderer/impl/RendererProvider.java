@@ -26,10 +26,10 @@
  */
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.Context;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.RenderCapabilities;
 
 /**
  * RendererProvider provides Renderer implementations for {@link OpenGLContext
@@ -51,7 +51,7 @@ public interface RendererProvider {
      *
      * @throws NullPointerException if caps is null
      */
-    public FixedFunctionRenderer getFixedFunctionRenderer(RenderCapabilities caps);
+    public FixedFunctionRenderer getFixedFunctionRenderer(Capabilities caps);
 
     /**
      * Return the GlslRenderer to use. This does not need to worry about whether or not a
@@ -64,5 +64,5 @@ public interface RendererProvider {
      *
      * @throws NullPointerException if caps is null
      */
-    public GlslRenderer getGlslRenderer(RenderCapabilities caps);
+    public GlslRenderer getGlslRenderer(Capabilities caps);
 }

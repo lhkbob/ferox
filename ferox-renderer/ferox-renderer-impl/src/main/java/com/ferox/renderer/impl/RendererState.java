@@ -29,7 +29,7 @@ package com.ferox.renderer.impl;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.Surface;
-import com.ferox.resource.VertexBufferObject;
+import com.ferox.renderer.geom.VertexBufferObject;
 
 import java.util.Arrays;
 

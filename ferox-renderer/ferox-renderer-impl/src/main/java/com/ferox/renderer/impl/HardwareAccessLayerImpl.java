@@ -27,9 +27,8 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.renderer.*;
-import com.ferox.resource.Resource;
-import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Texture.Target;
+import com.ferox.renderer.Resource.Status;
+import com.ferox.renderer.texture.Texture.Target;
 
 /**
  * HardwareAccessLayerImpl is a simple implementation of {@link HardwareAccessLayer} for
@@ -39,7 +38,7 @@ import com.ferox.resource.Texture.Target;
  * @author Michael Ludwig
  */
 public class HardwareAccessLayerImpl implements HardwareAccessLayer {
-    private final AbstractFramework framework;
+    private final FrameworkImpl framework;
 
     private ContextImpl currentContext;
 
@@ -51,7 +50,7 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
      *
      * @throws NullPointerException if framework is null
      */
-    public HardwareAccessLayerImpl(AbstractFramework framework) {
+    public HardwareAccessLayerImpl(FrameworkImpl framework) {
         if (framework == null) {
             throw new NullPointerException("Framework cannot be null");
         }

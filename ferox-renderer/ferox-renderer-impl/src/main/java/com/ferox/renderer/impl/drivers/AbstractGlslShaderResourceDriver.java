@@ -26,12 +26,12 @@
  */
 package com.ferox.renderer.impl.drivers;
 
+import com.ferox.renderer.Resource;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.UpdateResourceException;
 import com.ferox.resource.GlslShader;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.Resource;
 
 import java.util.ArrayList;
 import java.util.EnumSet;

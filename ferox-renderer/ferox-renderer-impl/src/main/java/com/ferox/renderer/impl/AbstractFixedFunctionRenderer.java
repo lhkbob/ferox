@@ -30,18 +30,12 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.ContextState;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.*;
+import com.ferox.renderer.geom.VertexBufferObject;
 import com.ferox.renderer.impl.FixedFunctionState.*;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
+import com.ferox.renderer.texture.Texture.Target;
 
 /**
  * <p/>
@@ -106,7 +100,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         if (state == null) {
             // init state
-            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            Capabilities caps = surface.getFramework().getCapabilities();
             state = new FixedFunctionState(caps.getMaxActiveLights(),
                                            caps.getMaxFixedPipelineTextures(),
                                            caps.getMaxTextureCoordinates());

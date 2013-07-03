@@ -28,7 +28,6 @@ package com.ferox.renderer.impl.drivers;
 
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslUniform;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -45,9 +44,9 @@ public class GlslShaderHandle {
         public final String name;
         public final int index;
 
-        public final GlslUniform uniform;
+        public final com.ferox.resource.Uniform uniform;
 
-        public Uniform(GlslUniform uniform, int index) {
+        public Uniform(com.ferox.resource.Uniform uniform, int index) {
             this.uniform = uniform;
             this.index = index;
             this.name = uniform.getName();

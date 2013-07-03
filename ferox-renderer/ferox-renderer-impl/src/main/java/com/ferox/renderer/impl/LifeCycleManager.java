@@ -28,7 +28,10 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.Framework;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -56,14 +59,21 @@ public class LifeCycleManager {
         WAITING_INIT,
         STARTING,
         ACTIVE,
-        STOPPING,
-        WAITING_ON_CHILDREN,
+        STOPPING_LOW_PRIORITY,
+        STOPPING_HIGH_PRIORITY,
         STOPPED
     }
 
+    /**
+     * We need to prevent the LifeCycleManager from being collected before its time is
+     * due. Created managers are added to this at start() and removed at stop().
+     */
+    private static final ConcurrentSkipListSet<LifeCycleManager> STRONG_REFERENCES = new ConcurrentSkipListSet<>();
+
     private final ReentrantReadWriteLock lock;
     private final ThreadGroup managedThreadGroup;
-    private final CopyOnWriteArrayList<Thread> managedThreads;
+    private final CopyOnWriteArrayList<Thread> lowManagedThreads;
+    private final CopyOnWriteArrayList<Thread> highManagedThreads;
 
     private volatile Status status;
 
@@ -82,7 +92,8 @@ public class LifeCycleManager {
         }
 
         managedThreadGroup = new ThreadGroup(groupName);
-        managedThreads = new CopyOnWriteArrayList<Thread>();
+        lowManagedThreads = new CopyOnWriteArrayList<>();
+        highManagedThreads = new CopyOnWriteArrayList<>();
 
         status = Status.WAITING_INIT;
         lock = new ReentrantReadWriteLock();
@@ -96,8 +107,7 @@ public class LifeCycleManager {
      */
     public boolean isStopped() {
         Status status = this.status;
-        return status == Status.STOPPING || status == Status.STOPPED ||
-               status == Status.WAITING_ON_CHILDREN;
+        return status.compareTo(Status.ACTIVE) > 0;
     }
 
     /**
@@ -133,6 +143,9 @@ public class LifeCycleManager {
             if (onInit != null) {
                 onInit.run();
             }
+
+            // record the instance only when we've guaranteed that startup occurs successfully
+            STRONG_REFERENCES.add(this);
             status = Status.ACTIVE;
             return true;
         } finally {
@@ -147,61 +160,51 @@ public class LifeCycleManager {
      * invoked once and all future calls do nothing except return false.
      * <p/>
      * If the manager is WAITING_INIT, its status changes directly to STOPPED and does not
-     * run either Runnable. If the status is ACTIVE, it first runs <var>preDestroy</var>,
-     * then changes status changes to STOPPING. The manager then starts a new thread that
-     * will eventually run the code in <var>onDestroy</var>. The new thread will first
-     * block until all managed threads have terminated. After the threads have finished,
-     * <var>onDestroy</var> is run and the status is changed to STOPPED.
+     * run either Runnable. If the status is ACTIVE, it first changes its status changes
+     * to STOPPING. The manager then starts a new thread that will eventually run the code
+     * in <var>onDestroy</var>. The new thread will first block until all managed threads
+     * have terminated. After the threads have finished, <var>onDestroy</var> is run and
+     * the status is changed to STOPPED.
      * <p/>
      * A value of true is returned the first time this is invoked. A value of false is
      * returned if the manager is stopping, has stopped or is starting. Calls to this
      * method while the status is STARTING return false and do nothing.
      * <p/>
      * The provided Runnable must be "trusted" code and should not throw exceptions or the
-     * manager's state will be undefined. <var>preDestroy</var> must be thread safe so
-     * that it can be safely called from whatever thread invoked stop().
-     * <var>postDestroy</var> must be safe to call from the shutdown thread that is
-     * started by this manager.
+     * manager's state will be undefined. <var>postDestroy</var> must be safe to call from
+     * the shutdown thread that is started by this manager.
      *
-     * @param preDestroy  A Runnable executed after the exclusive lock is held, but before
-     *                    the state transitions to STOPPING
-     * @param postDestroy A Runnable executed after status changes to STOPPED
+     * @param postDestroy A Runnable executed after status changes to STOPPED, or null to
+     *                    not run any additional code
      *
-     * @return True if the manager will transition to STOPPING or STOPPED and false
-     *         otherwise
-     *
-     * @throws NullPointerException if either runnable is null
+     * @return A Future that completes when all managed threads have stopped and
+     *         postDestroy has been invoked and returned. Null is returned if the
      */
-    public boolean stop(Runnable preDestroy, Runnable postDestroy) {
+    public Future<Void> stop(final Runnable postDestroy) {
         lock.writeLock().lock();
         try {
             // Cannot destroy if actively being started, destroyed or has already been destroyed
             if (status != Status.WAITING_INIT && status != Status.ACTIVE) {
-                return false;
+                return new CompletedFuture<>(null);
             }
 
             if (status == Status.WAITING_INIT) {
                 // never initialized
                 status = Status.STOPPED;
-                return true;
+                return new CompletedFuture<>(null);
             } else {
                 // status must be ACTIVE, so start a shutdown thread
-                status = Status.STOPPING;
+                status = Status.STOPPING_LOW_PRIORITY;
 
-                // invoke this task while STOPPING, but before we block on children
-                if (preDestroy != null) {
-                    preDestroy.run();
-                }
-
-                // Send an interrupt to all managed threads
-                status = Status.WAITING_ON_CHILDREN;
+                // Send an interrupt to all managed threads in the low priority
                 // - we can't just interrupt the group because some impl's use AWT
                 //   which then inherits this group and gets fussy when we send
                 //   interrupts out.
-                for (Thread m : managedThreads) {
+                for (Thread m : lowManagedThreads) {
                     m.interrupt();
                 }
 
+                // configure the primary shutdown thread
                 ThreadGroup shutdownOwner = Thread.currentThread().getThreadGroup();
                 while (managedThreadGroup.parentOf(shutdownOwner)) {
                     // The shutdown thread joins on threads within the managedThreads group,
@@ -209,12 +212,21 @@ public class LifeCycleManager {
                     shutdownOwner = shutdownOwner.getParent();
                 }
 
-                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(postDestroy),
+                Sync<Void> toInvoke = new Sync<>(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        if (postDestroy != null) {
+                            postDestroy.run();
+                        }
+                        return null;
+                    }
+                });
+                Thread shutdown = new Thread(shutdownOwner, new ShutdownTask(toInvoke),
                                              "lifecycle-shutdown-thread");
                 shutdown.setDaemon(false); // Don't let the JVM die until this is finished
                 shutdown.start();
 
-                return true;
+                return new FutureSync<>(toInvoke);
             }
         } finally {
             lock.writeLock().unlock();
@@ -242,9 +254,9 @@ public class LifeCycleManager {
 
     /**
      * Return the ThreadGroup that all managed threads must be part of. If {@link
-     * #startManagedThread(Thread)} is used, the created thread must have the returned
-     * group as an ancestor or direct parent. The returned group has the name provided in
-     * the constructor.
+     * #startManagedThread(Thread, boolean)} is used, the created thread must have the
+     * returned group as an ancestor or direct parent. The returned group has the name
+     * provided in the constructor.
      *
      * @return The LifeCycleManager's managed thread group
      */
@@ -261,7 +273,7 @@ public class LifeCycleManager {
      * has had its {@link Thread#start()} method invoked.
      * <p/>
      * A managed thread implies that the thread is responsible for terminating when the
-     * LifeCycleManager has its {@link #stop(Runnable)}. This does not need to be
+     * LifeCycleManager has its {@link #stop(Runnable)} called. This does not need to be
      * immediate but should be as-soon-as-possible. The LifeCycleManager will interrupt
      * all managed threads in case they are asleep or blocking on some task.
      * <p/>
@@ -270,15 +282,16 @@ public class LifeCycleManager {
      * from STOPPING to STOPPED until they have all terminated, giving them a way to
      * automatically finish their current task.
      * <p/>
-     * The provided thread should not have been started or an exception is thrown. An
+     * The provided thread must not be already started or an exception is thrown. An
      * exception is thrown if the thread's ThreadGroup is not a child of the group
      * returned by {@link #getManagedThreadGroup()}.
      *
-     * @param thread The thread to start
+     * @param thread       The thread to start
+     * @param highPriority True if the thread is allowed to run past STOPPING_LOW_PRIORITY
      *
      * @return True if the thread becomes managed and has been started
      */
-    public boolean startManagedThread(Thread thread) {
+    public boolean startManagedThread(Thread thread, boolean highPriority) {
         if (thread == null) {
             throw new NullPointerException("Thread cannot be null");
         }
@@ -290,14 +303,17 @@ public class LifeCycleManager {
         lock.readLock().lock();
         try {
             // Cannot start a thread if the lifecycle is ending or hasn't started
-            if (status == Status.STOPPED || status == Status.STOPPING ||
-                status == Status.WAITING_INIT) {
+            if (status != Status.ACTIVE && status != Status.STARTING) {
                 return false;
             }
 
             // It is okay to start a thread while active, or starting
             thread.start();
-            managedThreads.add(thread);
+            if (highPriority) {
+                highManagedThreads.add(thread);
+            } else {
+                lowManagedThreads.add(thread);
+            }
             return true;
         } finally {
             lock.readLock().unlock();
@@ -317,27 +333,42 @@ public class LifeCycleManager {
 
         @Override
         public void run() {
-            // This iteration does not need to worry about changes to the thread-list
-            // since the shutdown task is only started after the status is set to STOPPING
-            // at which point no threads can be added to the managed group.
+            // We don't need to lock here since this is the only place where STOPPING -> STOPPED
+            // and there will only ever be one shutdown thread.
+
             boolean loop;
             do {
                 loop = false;
-                for (Thread managed : managedThreads) {
-                    while (managed.isAlive()) {
-                        try {
-                            managed.join();
-                        } catch (InterruptedException e) {
-                            // remember that this thread may not be dead, so loop again
-                            loop = true;
-                        }
+                // The low priority threads have already been interrupted so this
+                // should hopefully not block for very long
+                for (Thread managed : lowManagedThreads) {
+                    try {
+                        managed.join();
+                    } catch (InterruptedException e) {
+                        // remember that this thread may not be dead, so loop again
+                        loop = true;
                     }
                 }
             } while (loop);
 
-            // We don't need to lock here since this is the only place where STOPPING -> STOPPED
-            // and there will only ever be one shutdown thread.
+            // Now block on high priority threads and send an interrupt
+            status = Status.STOPPING_HIGH_PRIORITY;
+            for (Thread m : highManagedThreads) {
+                m.interrupt();
+            }
+            do {
+                loop = false;
+                for (Thread managed : highManagedThreads) {
+                    try {
+                        managed.join();
+                    } catch (InterruptedException e) {
+                        loop = true;
+                    }
+                }
+            } while (loop);
+
             status = Status.STOPPED;
+            STRONG_REFERENCES.remove(LifeCycleManager.this);
 
             postStop.run();
         }

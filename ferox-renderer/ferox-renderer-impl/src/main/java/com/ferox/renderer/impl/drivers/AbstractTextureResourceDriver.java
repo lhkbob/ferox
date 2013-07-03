@@ -26,22 +26,25 @@
  */
 package com.ferox.renderer.impl.drivers;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.Resource;
 import com.ferox.renderer.TextureSurface;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.ResourceDriver;
 import com.ferox.renderer.impl.UpdateResourceException;
-import com.ferox.resource.*;
+import com.ferox.renderer.texture.MipmapRegion;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.TextureFormat;
 
 import java.nio.Buffer;
 import java.util.*;
 
 /**
  * AbstractTextureResourceDriver is an almost complete ResourceDriver implementation for
- * the {@link Texture} resource type. Implementations are only required to implement the
- * actual OpenGL calls necessary to transfer the texture data, etc. This ResourceDriver
- * uses {@link TextureHandle} as its resource handle.
+ * the {@link com.ferox.renderer.texture.Texture} resource type. Implementations are only
+ * required to implement the actual OpenGL calls necessary to transfer the texture data,
+ * etc. This ResourceDriver uses {@link TextureHandle} as its resource handle.
  *
  * @author Michael Ludwig
  */
@@ -125,7 +128,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
                     "unchecked") Map<Integer, List<MipmapRegion>>[] changes = new Map[h.lastSyncedKeys.length];
             for (MipmapRegion edit : tex.getChangeQueue()
                                         .getChangesSince(h.lastSyncedVersion)) {
-                int layer = edit.getLayer();
+                int layer = edit.getImage();
                 int mipmap = edit.getMipmapLevel();
 
                 if (layer >= changes.length) {
@@ -293,7 +296,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
             }
         }
 
-        RenderCapabilities caps = context.getRenderCapabilities();
+        Capabilities caps = context.getRenderCapabilities();
         if (!caps.getDepthTextureSupport() && tex.getFormat() == TextureFormat.DEPTH) {
             throw new UpdateResourceException("Depth textures are not supported");
         }
@@ -437,7 +440,7 @@ public abstract class AbstractTextureResourceDriver implements ResourceDriver {
         // as actually sending a subimage to the gfx card
         //  - it would modify the unpack region to change the x/y offset to 0
         //  - have to fill the buffer manually from the array
-        glTexSubImage(context, handle, dirty.getLayer(), dirty.getMipmapLevel(), x, y, z,
+        glTexSubImage(context, handle, dirty.getImage(), dirty.getMipmapLevel(), x, y, z,
                       w, h, d, nioData);
     }
 

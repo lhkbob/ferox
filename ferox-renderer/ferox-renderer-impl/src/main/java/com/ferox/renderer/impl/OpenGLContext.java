@@ -26,7 +26,8 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.impl.resources.BufferImpl;
 
 /**
  * OpenGLContext is a wrapper around an OpenGL context that has been created by some
@@ -38,29 +39,11 @@ import com.ferox.renderer.RenderCapabilities;
  *
  * @author Michael Ludwig
  */
-public abstract class OpenGLContext {
-    private final RendererProvider rendererProvider;
-
-    /**
-     * Create a new OpenGLContext that will use the given RendererProvider.
-     *
-     * @param provider The RendererProvider to use when the context has been activated
-     *
-     * @throws NullPointerException if provider is null
-     */
-    public OpenGLContext(RendererProvider provider) {
-        if (provider == null) {
-            throw new NullPointerException("RendererProvider cannot be null");
-        }
-        rendererProvider = provider;
-    }
-
+public interface OpenGLContext {
     /**
      * @return The RendererProvider for this context
      */
-    public RendererProvider getRendererProvider() {
-        return rendererProvider;
-    }
+    public RendererProvider getRendererProvider();
 
     /**
      * <p/>
@@ -73,7 +56,7 @@ public abstract class OpenGLContext {
      *
      * @return A new RenderCapabilities
      */
-    public abstract RenderCapabilities getRenderCapabilities();
+    public Capabilities getRenderCapabilities();
 
     /**
      * Destroy this context. If the context is not shared with any other un-destroyed
@@ -82,7 +65,7 @@ public abstract class OpenGLContext {
      * AbstractSurface#destroyImpl()}) and the context should not be current on any
      * thread.
      */
-    public abstract void destroy();
+    public void destroy();
 
     /**
      * Make the context current on the calling thread. This must be called in a
@@ -90,7 +73,7 @@ public abstract class OpenGLContext {
      * should be used instead. It is assumed that the context is not current on any other
      * thread, and there is no other context already current on this thread.
      */
-    public abstract void makeCurrent();
+    public void makeCurrent();
 
     /**
      * Release this context from the calling thread. It is assumed that the context is
@@ -98,5 +81,23 @@ public abstract class OpenGLContext {
      * usually be left up to {@link ContextManager} to manage (so use {@link
      * ContextManager#forceRelease(AbstractSurface)} instead).
      */
-    public abstract void release();
+    public void release();
+
+    // FIXME move state tracking out of the renderers into the context, then the
+    // renderers will just update that state as necessary
+    public FixedFunctionState getCurrentFixedFunctionState();
+
+    public ShaderOnlyState getCurrentShaderState();
+
+    public BufferImpl.BufferHandle getArrayVBO();
+
+    public BufferImpl.BufferHandle getElementVBO();
+
+    public void bindArrayVBO(BufferImpl.BufferHandle vbo);
+
+    public void bindElementVBO(BufferImpl.BufferHandle vbo);
+
+    public void deleteVBO(BufferImpl.BufferHandle vbo);
+
+    // FIXME add additional resource methods as well
 }

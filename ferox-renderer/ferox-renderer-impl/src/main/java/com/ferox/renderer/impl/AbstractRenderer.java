@@ -29,7 +29,7 @@ package com.ferox.renderer.impl;
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer;
-import com.ferox.resource.VertexBufferObject;
+import com.ferox.renderer.geom.VertexBufferObject;
 
 /**
  * <p/>

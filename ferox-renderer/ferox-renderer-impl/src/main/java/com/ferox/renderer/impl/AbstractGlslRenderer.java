@@ -27,19 +27,16 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.math.*;
-import com.ferox.renderer.ContextState;
-import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.RenderCapabilities;
-import com.ferox.renderer.Renderer;
+import com.ferox.renderer.*;
+import com.ferox.renderer.geom.VertexBufferObject;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Attribute;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.*;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.TextureFormat;
 import com.ferox.resource.GlslShader.AttributeType;
-import com.ferox.resource.GlslUniform.UniformType;
-import com.ferox.resource.Texture.Target;
+import com.ferox.resource.Uniform.UniformType;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -126,7 +123,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     protected class UniformBinding {
-        public final Uniform uniform;
+        public final GlslShaderHandle.Uniform uniform;
 
         public final FloatBuffer floatValues;
         public final IntBuffer intValues;
@@ -134,7 +131,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         public boolean valuesValid;
         public boolean isTextureBinding;
 
-        public UniformBinding(Uniform uniform, UniformBinding old) {
+        public UniformBinding(GlslShaderHandle.Uniform uniform, UniformBinding old) {
             this.uniform = uniform;
 
             floatValues = old.floatValues;
@@ -143,7 +140,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             isTextureBinding = old.isTextureBinding;
         }
 
-        public UniformBinding(Uniform uniform) {
+        public UniformBinding(GlslShaderHandle.Uniform uniform) {
             this.uniform = uniform;
             isTextureBinding = false;
             valuesValid = false;
@@ -240,7 +237,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         super.activate(surface, context, manager);
 
         if (textureBindings == null) {
-            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            Capabilities caps = surface.getFramework().getCapabilities();
             int numTextures = Math.max(caps.getMaxVertexShaderTextures(),
                                        caps.getMaxFragmentShaderTextures());
             textureBindings = new TextureBinding[numTextures];
@@ -320,7 +317,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
 
                 // fill in the uniform bindings
                 uniformBindings = new HashMap<String, UniformBinding>();
-                for (Entry<String, Uniform> u : shaderHandle.uniforms.entrySet()) {
+                for (Entry<String, GlslShaderHandle.Uniform> u : shaderHandle.uniforms
+                                                                             .entrySet()) {
                     uniformBindings.put(u.getKey(), new UniformBinding(u.getValue()));
                 }
             } else {
@@ -358,13 +356,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     @Override
-    public Map<String, GlslUniform> getUniforms() {
+    public Map<String, Uniform> getUniforms() {
         if (shader == null) {
             return Collections.emptyMap();
         }
 
-        Uniform uniform;
-        Map<String, GlslUniform> uniforms = new HashMap<String, GlslUniform>();
+        GlslShaderHandle.Uniform uniform;
+        Map<String, Uniform> uniforms = new HashMap<String, Uniform>();
         for (Entry<String, UniformBinding> u : uniformBindings.entrySet()) {
             uniform = u.getValue().uniform;
             uniforms.put(uniform.name, uniform.uniform);
@@ -662,7 +660,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
      * Set the given uniform's values. The uniform could have any of the FLOAT_ types and
      * could possibly be an array. The buffer will have been rewound already.
      */
-    protected abstract void glUniform(Uniform u, FloatBuffer values, int count);
+    protected abstract void glUniform(GlslShaderHandle.Uniform u, FloatBuffer values,
+                                      int count);
 
     @Override
     public void setUniform(String name, float v1, float v2, float v3) {
@@ -778,7 +777,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             return; // ignore unsupported uniforms
         }
 
-        GlslUniform uniform = u.uniform.uniform;
+        Uniform uniform = u.uniform.uniform;
         int primitiveCount = uniform.getType().getPrimitiveCount();
         if (vals.length % primitiveCount != 0) {
             throw new IllegalArgumentException(
@@ -826,7 +825,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
      * Set the given uniform's values. The uniform could have any of the INT_ types, the
      * BOOL type or any of the texture sampler types, and could possibly be an array.
      */
-    protected abstract void glUniform(Uniform u, IntBuffer values, int count);
+    protected abstract void glUniform(GlslShaderHandle.Uniform u, IntBuffer values,
+                                      int count);
 
     @Override
     public void setUniform(String name, int v1, int v2) {
@@ -895,7 +895,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             return; // ignore unsupported uniforms
         }
 
-        GlslUniform uniform = u.uniform.uniform;
+        Uniform uniform = u.uniform.uniform;
         int primitiveCount = uniform.getType().getPrimitiveCount();
         if (vals.length % primitiveCount != 0) {
             throw new IllegalArgumentException(
@@ -947,7 +947,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             return; // ignore unsupported uniforms
         }
 
-        GlslUniform uniform = u.uniform.uniform;
+        Uniform uniform = u.uniform.uniform;
         if (uniform.getLength() != vals.length) {
             throw new IllegalArgumentException("Number of elements ( " + vals.length +
                                                ") does not equal the length of uniform " +
