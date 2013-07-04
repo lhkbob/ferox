@@ -52,8 +52,8 @@ public abstract class AbstractBuilder<T extends Resource, H extends ResourceHand
             if (e.getCause() instanceof ResourceException) {
                 throw ((ResourceException) e.getCause());
             } else {
-                throw new ResourceException("Exception while building resource",
-                                            e.getCause());
+                throw new ResourceException(
+                        "Unexpected exception while building resource", e.getCause());
             }
         }
     }

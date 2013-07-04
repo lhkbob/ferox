@@ -97,7 +97,5 @@ public interface OpenGLContext {
 
     public void bindElementVBO(BufferImpl.BufferHandle vbo);
 
-    public void deleteVBO(BufferImpl.BufferHandle vbo);
-
     // FIXME add additional resource methods as well
 }

@@ -28,6 +28,7 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.*;
+import com.ferox.renderer.impl.resources.ResourceFactory;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -36,9 +37,8 @@ import java.util.concurrent.Future;
 
 /**
  * FrameworkImpl is an implementation of Framework that delegates all OpenGL specific
- * operations to a {@link ResourceManager}, {@link ContextManager} and {@link
- * SurfaceFactory}. Concrete implementations must provide {@link ResourceDriver
- * ResourceDrivers} for a ResourceManager and an implementation of SurfaceFactory.
+ * operations to a {@link ResourceFactory}, {@link ContextManager} and {@link
+ * SurfaceFactory}.
  *
  * @author Michael Ludwig
  */
@@ -52,31 +52,27 @@ public class FrameworkImpl implements Framework {
 
     /**
      * <p/>
-     * Create a new FrameworkImpl. The parameter, <var>numThreads</var> defines the number
-     * of threads that the framework's ContextManager will use. This constructor will also
-     * create an offscreen context that will later be shared with all created surfaces for
-     * this framework. The given SurfaceFactory is used to create surfaces for the
-     * Framework. The list of drivers are given directly to a {@link ResourceManager}.
-     * <p/>
-     * After constructing an AbstractFramework, {@link #initialize()} must be invoked
-     * before it can be used.
+     * Create a new FrameworkImpl. After constructing an FrameworkImpl, {@link
+     * #initialize()} must be invoked before it can be used.
      *
-     * @param surfaceFactory The SurfaceFactory used to create surfaces
-     * @param drivers        A varargs array of ResourceDrivers that handle the low-level
-     *                       graphics work for resources
+     * @param surfaceFactory  The SurfaceFactory used to create surfaces
+     * @param resourceFactory The ResourceFactory that will create resource
+     *                        implementations for the framework
      *
-     * @throws NullPointerException if surfaceFactory or any driver is null
+     * @throws NullPointerException if surfaceFactory or resourceFactory is null
      */
-    public FrameworkImpl(SurfaceFactory surfaceFactory, ResourceDriver... drivers) {
+    public FrameworkImpl(SurfaceFactory surfaceFactory, ResourceFactory resourceFactory) {
         if (surfaceFactory == null) {
             throw new NullPointerException("SurfaceFactory cannot be null");
         }
+        if (resourceFactory == null) {
+            throw new NullPointerException("ResourceFactory cannot be null");
+        }
 
         ContextManager contextManager = new ContextManager();
-        ResourceManager resourceManager = new ResourceManager(contextManager, drivers);
         impl = new ManagedFramework(surfaceFactory,
                                     new LifeCycleManager(getClass().getSimpleName()),
-                                    new DestructibleManager(), resourceManager,
+                                    new DestructibleManager(), resourceFactory,
                                     contextManager);
 
         fullscreenLock = new Object();
@@ -96,7 +92,6 @@ public class FrameworkImpl implements Framework {
                 // Start up the context manager and resource manager
                 impl.contextManager
                     .initialize(impl.lifecycleManager, impl.surfaceFactory);
-                impl.resourceManager.initialize(impl.lifecycleManager);
                 impl.destructibleManager.initialize(impl.lifecycleManager);
 
                 // register this framework to be auto-destroyed
@@ -262,10 +257,9 @@ public class FrameworkImpl implements Framework {
     }
 
     /**
-     * @return The ResourceManager that handles the updates and disposals of all known
-     *         resources
+     * @return The ResourceFactory that handles resource creation and refreshing
      */
-    public ResourceManager getResourceManager() {
+    public ResourceFactory getResourceFactory() {
         return impl.resourceManager;
     }
 
@@ -390,13 +384,13 @@ public class FrameworkImpl implements Framework {
 
         private final LifeCycleManager lifecycleManager;
         private final DestructibleManager destructibleManager;
-        private final ResourceManager resourceManager;
+        private final ResourceFactory resourceManager;
         private final ContextManager contextManager;
 
         public ManagedFramework(SurfaceFactory surfaceFactory,
                                 LifeCycleManager lifecycleManager,
                                 DestructibleManager destructibleManager,
-                                ResourceManager resourceManager,
+                                ResourceFactory resourceManager,
                                 ContextManager contextManager) {
             this.surfaceFactory = surfaceFactory;
             this.lifecycleManager = lifecycleManager;

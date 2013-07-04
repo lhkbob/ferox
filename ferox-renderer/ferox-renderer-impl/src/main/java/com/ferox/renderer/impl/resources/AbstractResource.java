@@ -2,7 +2,6 @@ package com.ferox.renderer.impl.resources;
 
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.Resource;
-import com.ferox.renderer.impl.CompletedFuture;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
@@ -36,21 +35,16 @@ public abstract class AbstractResource<T extends ResourceHandle> implements Reso
     @Override
     public Future<Void> refresh() {
         final FrameworkImpl f = handle.getFramework();
-        if (f != null) {
-            return f.getContextManager().invokeOnContextThread(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    OpenGLContext ctx = f.getContextManager().ensureContext();
-                    refreshImpl(ctx);
-                    return null;
-                }
-            }, false);
-        } else {
-            return new CompletedFuture<>(null);
-        }
+        return f.getContextManager().invokeOnContextThread(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                OpenGLContext ctx = f.getContextManager().ensureContext();
+                f.getResourceFactory().refresh(ctx, AbstractResource.this);
+                return null;
+            }
+        }, false);
     }
 
-    public abstract void refreshImpl(OpenGLContext context);
 
     @Override
     public Future<Void> destroy() {

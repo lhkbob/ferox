@@ -1,9 +1,9 @@
 package com.ferox.renderer.impl.resources;
 
 import com.ferox.renderer.DataType;
-import com.ferox.renderer.ElementBuffer;
 import com.ferox.renderer.ResourceException;
-import com.ferox.renderer.builder.ElementBufferBuilder;
+import com.ferox.renderer.VertexBuffer;
+import com.ferox.renderer.builder.VertexBufferBuilder;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
@@ -11,45 +11,77 @@ import com.ferox.renderer.impl.OpenGLContext;
 /**
  *
  */
-public abstract class ElementBufferBuilderImpl
-        extends AbstractBuilder<ElementBuffer, BufferImpl.BufferHandle>
-        implements ElementBufferBuilder {
+public abstract class AbstractVertexBufferBuilder
+        extends AbstractBuilder<VertexBuffer, BufferImpl.BufferHandle>
+        implements VertexBufferBuilder {
     protected Object array;
     protected int length;
     protected DataType type;
 
     protected boolean dynamic;
 
-    public ElementBufferBuilderImpl(FrameworkImpl framework) {
+    public AbstractVertexBufferBuilder(FrameworkImpl framework) {
         super(framework);
     }
 
     @Override
-    public ElementBufferBuilder fromUnsigned(int[] data) {
+    public VertexBufferBuilder from(float[] data) {
         array = data;
         length = data.length;
-        type = DataType.UNSIGNED_NORMALIZED_INT;
+        type = DataType.FLOAT;
         return this;
     }
 
     @Override
-    public ElementBufferBuilder fromUnsigned(short[] data) {
+    public VertexBufferBuilder fromNormalized(int[] data) {
         array = data;
         length = data.length;
-        type = DataType.UNSIGNED_NORMALIZED_SHORT;
+        type = DataType.NORMALIZED_INT;
         return this;
     }
 
     @Override
-    public ElementBufferBuilder fromUnsigned(byte[] data) {
+    public VertexBufferBuilder fromNormalized(short[] data) {
         array = data;
         length = data.length;
-        type = DataType.UNSIGNED_NORMALIZED_BYTE;
+        type = DataType.NORMALIZED_SHORT;
         return this;
     }
 
     @Override
-    public ElementBufferBuilder dynamic() {
+    public VertexBufferBuilder fromNormalized(byte[] data) {
+        array = data;
+        length = data.length;
+        type = DataType.NORMALIZED_BYTE;
+        return this;
+    }
+
+    @Override
+    public VertexBufferBuilder from(int[] data) {
+        array = data;
+        length = data.length;
+        type = DataType.INT;
+        return this;
+    }
+
+    @Override
+    public VertexBufferBuilder from(short[] data) {
+        array = data;
+        length = data.length;
+        type = DataType.SHORT;
+        return this;
+    }
+
+    @Override
+    public VertexBufferBuilder from(byte[] data) {
+        array = data;
+        length = data.length;
+        type = DataType.BYTE;
+        return this;
+    }
+
+    @Override
+    public VertexBufferBuilder dynamic() {
         dynamic = true;
         return this;
     }
@@ -61,7 +93,7 @@ public abstract class ElementBufferBuilderImpl
                     "VertexBuffers aren't supported by current hardware");
         }
         if (array == null) {
-            throw new ResourceException("Data array must not be specified");
+            throw new ResourceException("Data array must be specified");
         }
     }
 
@@ -79,9 +111,14 @@ public abstract class ElementBufferBuilderImpl
     @Override
     protected void pushToGPU(OpenGLContext ctx, BufferImpl.BufferHandle handle) {
         if (handle.vboID > 0) {
-            ctx.bindElementVBO(handle);
+            ctx.bindArrayVBO(handle);
             pushBufferData(ctx, BufferUtil.newBuffer(array));
         } // else I don't have any more work to do for this type of vbo
+    }
+
+    @Override
+    protected VertexBuffer wrap(BufferImpl.BufferHandle handle) {
+        return new BufferImpl(handle, type, length, array);
     }
 
     protected abstract int generateNewBufferID(OpenGLContext ctx);

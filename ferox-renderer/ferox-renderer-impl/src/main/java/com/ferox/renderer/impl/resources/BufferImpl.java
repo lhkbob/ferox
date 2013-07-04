@@ -1,15 +1,16 @@
 package com.ferox.renderer.impl.resources;
 
-import com.ferox.renderer.Buffer;
 import com.ferox.renderer.DataType;
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.VertexBuffer;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
 /**
  *
  */
-public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandle>
-        implements Buffer {
+public class BufferImpl extends AbstractResource<BufferImpl.BufferHandle>
+        implements VertexBuffer, ElementBuffer {
     private final int length;
     private final DataType type;
     private final Object dataArray;
@@ -61,7 +62,7 @@ public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandl
                 if (context.getElementVBO() == this) {
                     context.bindElementVBO(null);
                 }
-                context.deleteVBO(this);
+                getFramework().getResourceFactory().deleteVBO(context, this);
             }
         }
     }
