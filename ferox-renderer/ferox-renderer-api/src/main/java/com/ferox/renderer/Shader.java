@@ -205,16 +205,18 @@ public interface Shader extends Resource {
      * New versions support defining custom output variables, in which case the mapping
      * must have been specified by {@link com.ferox.renderer.builder.ShaderBuilder#bindColorBuffer(String,
      * int)}. If not defined manually, the mapping will be assigned when the shader is
-     * compiled.
+     * compiled. However, to query that assigned binding, the builder must be informed of
+     * the variable with a call to {@link com.ferox.renderer.builder.ShaderBuilder#requestBinding(String...)}
      * <p/>
-     * The reserved 'gl_FragColor' always will be mapped to the 0th color buffer if it's
-     * in use. The reserved 'gl_FragData[n]' will be mapped to the nth color buffer if
-     * used.
+     * The reserved 'gl_FragColor' will always return {@code 0}. The reserved
+     * 'gl_FragData[n]' will always return {@code n}.
      *
      * @param outVariableName The output variable name
      *
-     * @return The color buffer the output is stored into
+     * @return The color buffer the output is stored into, or -1 if no mapping is found
+     *         for that variable
      */
+    //
     public int getColorBuffer(String outVariableName);
 
     /**

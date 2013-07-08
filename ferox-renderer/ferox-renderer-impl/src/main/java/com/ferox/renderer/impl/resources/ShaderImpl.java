@@ -60,19 +60,12 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
 
     @Override
     public int getColorBuffer(String outVariableName) {
-        // FIXME is it more efficient to store the reserved buffer mappings into the map
-        // if that is what is being used by the shader?
-        // if they are put in the map, is the builder that is responsible for this?
-        // it might happen naturally with OpenGL's APIs anyways
         Integer mappedBuffer = bufferMap.get(outVariableName);
         if (mappedBuffer != null) {
             return mappedBuffer;
-        } else if (outVariableName.startsWith("gl_FragData[")) {
-            return Integer.parseInt(
-                    outVariableName.substring(12, outVariableName.length() - 1));
         } else {
-            // assume it's gl_FragColor or fallback to default 0th buffer
-            return 0;
+            // -1 is flag for unknown output variable
+            return -1;
         }
     }
 

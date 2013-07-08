@@ -68,8 +68,29 @@ public interface ShaderBuilder extends Builder<Shader> {
      *
      * @return This builder
      *
-     * @throws IllegalArgumentException if the variable name is a reserved output name
-     * @throws NullPointerException     if variableName is null
+     * @throws NullPointerException if variableName is null
      */
     public ShaderBuilder bindColorBuffer(String variableName, int buffer);
+
+    /**
+     * Inform the builder of additional user-defined varying output variables in the
+     * fragment shader that should have their OpenGL assigned binding queried. This is
+     * necessary because OpenGL does not provide a way to query the available output names
+     * (unlike uniforms and vertex attributes).
+     * <p/>
+     * This method can also be used when the variable is assigned a color buffer
+     * explicitly within the fragment GLSL code but that index needs to be available from
+     * Java as well.  Multiple calls to this method do not overwrite previously requested
+     * bindings.
+     * <p/>
+     * If the any variable name is not declared in the fragment shader, a build exception
+     * will be thrown later
+     *
+     * @param variableNames The user-defined output variables
+     *
+     * @return This builder
+     *
+     * @throws NullPointerException if any variable name is null
+     */
+    public ShaderBuilder requestBinding(String... variableNames);
 }

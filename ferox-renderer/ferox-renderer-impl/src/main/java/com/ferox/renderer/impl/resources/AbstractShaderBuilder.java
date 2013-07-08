@@ -6,9 +6,7 @@ import com.ferox.renderer.builder.ShaderBuilder;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +17,6 @@ public abstract class AbstractShaderBuilder
         extends AbstractBuilder<Shader, ShaderImpl.ShaderHandle>
         implements ShaderBuilder {
     private static final Pattern VERSION = Pattern.compile("#VERSION (\\d+)[\\s]+.*");
-    private static final Pattern CR_LF = Pattern.compile("\r\n");
 
     private String vertexCode;
     private String fragmentCode;
@@ -57,7 +54,18 @@ public abstract class AbstractShaderBuilder
 
     @Override
     public ShaderBuilder bindColorBuffer(String variableName, int buffer) {
+        if (variableName == null) {
+            throw new NullPointerException("Name cannot be null");
+        }
         mappedBuffers.put(variableName, buffer);
+        return this;
+    }
+
+    @Override
+    public ShaderBuilder requestBinding(String... variableNames) {
+        for (String name : variableNames) {
+            bindColorBuffer(name, -1);
+        }
         return this;
     }
 
@@ -100,6 +108,7 @@ public abstract class AbstractShaderBuilder
 
         // the only validation performed on buffer mappings at this point is that
         // the reserved output names gl_FragColor and gl_FragData[n] are not specified
+        Set<Integer> assignedBuffers = new HashSet<>();
         for (String output : mappedBuffers.keySet()) {
             if (output.equals("gl_FragColor")) {
                 throw new ResourceException(
@@ -108,7 +117,20 @@ public abstract class AbstractShaderBuilder
                 throw new ResourceException(
                         "Cannot specify color buffer for gl_FragData[n], it is implicit");
             }
+
+            Integer buffer = mappedBuffers.get(output);
+            if (buffer >= framework.getCapabilities().getMaxColorBuffers()) {
+                throw new ResourceException(
+                        "Current hardware cannot support a color buffer = " + buffer);
+            }
+            if (buffer >= 0 && assignedBuffers.contains(buffer)) {
+                throw new ResourceException(
+                        "Multiple output variables mapped to the same color buffer");
+            }
+            assignedBuffers.add(buffer);
         }
+
+        detectedShaderVersion = vertexVersion;
     }
 
     @Override
@@ -121,11 +143,10 @@ public abstract class AbstractShaderBuilder
 
     @Override
     protected void pushToGPU(OpenGLContext ctx, ShaderImpl.ShaderHandle handle) {
-        // FIXME clean source code line endings to just be LF
-        compileShader(ctx, handle.vertexShaderID, vertexCode);
-        compileShader(ctx, handle.fragmentShaderID, fragmentCode);
+        compileShader(ctx, handle.vertexShaderID, cleanSourceCode(vertexCode));
+        compileShader(ctx, handle.fragmentShaderID, cleanSourceCode(fragmentCode));
         if (geometryCode != null) {
-            compileShader(ctx, handle.geometryShaderID, geometryCode);
+            compileShader(ctx, handle.geometryShaderID, cleanSourceCode(geometryCode));
         }
 
         attachShader(ctx, handle.programID, handle.vertexShaderID);
@@ -134,9 +155,32 @@ public abstract class AbstractShaderBuilder
             attachShader(ctx, handle.programID, handle.geometryShaderID);
         }
 
+        // bind explicit varying outs before we link
+        for (Map.Entry<String, Integer> binding : mappedBuffers.entrySet()) {
+            if (binding.getValue() >= 0) {
+                bindFragmentLocation(ctx, handle.programID, binding.getKey(),
+                                     binding.getValue());
+            }
+        }
+
         linkProgram(ctx, handle.programID);
 
-        // FIXME get uniforms and attributes, and configure or extract color buffer mapping
+        // query linked program state
+        detectedUniforms = getUniforms(ctx, handle.programID);
+        detectedAttributes = getAttributes(ctx, handle.programID);
+
+        detectedBufferMapping = new HashMap<>();
+        for (String variable : mappedBuffers.keySet()) {
+            int location = getFragmentLocation(ctx, handle.programID, variable);
+            if (location >= 0) {
+                detectedBufferMapping.put(variable, location);
+            }
+        }
+        // add default variables to the map as well
+        detectedBufferMapping.put("gl_FragColor", 0);
+        for (int i = 0; i < framework.getCapabilities().getMaxColorBuffers(); i++) {
+            detectedBufferMapping.put("gl_FragData[" + i + "]", i);
+        }
     }
 
     @Override
@@ -161,8 +205,17 @@ public abstract class AbstractShaderBuilder
 
     protected abstract void linkProgram(OpenGLContext context, int programID);
 
-    // FIXME add methods to query uniforms, and attributes
-    // FIXME add methods to configure color buffer bindings
+    protected abstract List<Shader.Uniform> getUniforms(OpenGLContext context,
+                                                        int programID);
+
+    protected abstract List<Shader.Attribute> getAttributes(OpenGLContext context,
+                                                            int programID);
+
+    protected abstract void bindFragmentLocation(OpenGLContext context, int programID,
+                                                 String variable, int buffer);
+
+    protected abstract int getFragmentLocation(OpenGLContext context, int programID,
+                                               String variable);
 
     private int extractShaderVersion(String code) {
         Matcher m = VERSION.matcher(code);
@@ -173,5 +226,9 @@ public abstract class AbstractShaderBuilder
             // if there was actually a syntax error, etc. the compiler should detect that
             return 110;
         }
+    }
+
+    private String cleanSourceCode(String code) {
+        return code.replaceAll("\r\n", "\n");
     }
 }
