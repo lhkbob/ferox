@@ -84,7 +84,19 @@ public abstract class AbstractElementBufferBuilder
         } // else I don't have any more work to do for this type of vbo
     }
 
+    @Override
+    protected ElementBuffer wrap(BufferImpl.BufferHandle handle) {
+        return new ElementBufferImpl(handle, type, length, array);
+    }
+
     protected abstract int generateNewBufferID(OpenGLContext ctx);
 
     protected abstract void pushBufferData(OpenGLContext ctx, java.nio.Buffer buffer);
+
+    private static class ElementBufferImpl extends BufferImpl implements ElementBuffer {
+        public ElementBufferImpl(BufferHandle handle, DataType type, int length,
+                                 Object dataArray) {
+            super(handle, type, length, dataArray);
+        }
+    }
 }

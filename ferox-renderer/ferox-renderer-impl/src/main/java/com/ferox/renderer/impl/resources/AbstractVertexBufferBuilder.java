@@ -88,6 +88,7 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     protected void validate() {
+        // FIXME should we just fallback to forcing dynamic buffers?
         if (!framework.getCapabilities().getVertexBufferSupport()) {
             throw new ResourceException(
                     "VertexBuffers aren't supported by current hardware");
@@ -118,10 +119,18 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     protected VertexBuffer wrap(BufferImpl.BufferHandle handle) {
-        return new BufferImpl(handle, type, length, array);
+        return new VertexBufferImpl(handle, type, length, array);
     }
 
     protected abstract int generateNewBufferID(OpenGLContext ctx);
 
     protected abstract void pushBufferData(OpenGLContext ctx, java.nio.Buffer buffer);
+
+    private static class VertexBufferImpl extends BufferImpl implements VertexBuffer {
+
+        public VertexBufferImpl(BufferHandle handle, DataType type, int length,
+                                Object dataArray) {
+            super(handle, type, length, dataArray);
+        }
+    }
 }
