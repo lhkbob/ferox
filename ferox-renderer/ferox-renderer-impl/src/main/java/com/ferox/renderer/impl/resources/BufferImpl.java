@@ -1,16 +1,15 @@
 package com.ferox.renderer.impl.resources;
 
+import com.ferox.renderer.Buffer;
 import com.ferox.renderer.DataType;
-import com.ferox.renderer.ElementBuffer;
-import com.ferox.renderer.VertexBuffer;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
 /**
  *
  */
-public class BufferImpl extends AbstractResource<BufferImpl.BufferHandle>
-        implements VertexBuffer, ElementBuffer {
+public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandle>
+        implements Buffer {
     private final int length;
     private final DataType type;
     private final Object dataArray;
@@ -56,10 +55,10 @@ public class BufferImpl extends AbstractResource<BufferImpl.BufferHandle>
         protected void destroyImpl(OpenGLContext context) {
             if (vboID > 0) {
                 // only one of these if's should be true at a time, but let's play it safe
-                if (context.getArrayVBO() == this) {
+                if (context.getCurrentSharedState().arrayVBO == this) {
                     context.bindArrayVBO(null);
                 }
-                if (context.getElementVBO() == this) {
+                if (context.getCurrentSharedState().elementVBO == this) {
                     context.bindElementVBO(null);
                 }
                 getFramework().getResourceFactory().deleteVBO(context, this);
