@@ -25,9 +25,9 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
     public T anisotropy(double v);
 
     /**
-     * Configure the border color for the created texture. If the texture uses the
-     * unclamped FLOAT or HALF_FLOAT data type, then the HDR values will be used,
-     * otherwise the LDR values are used. The alpha value is 1.
+     * Configure the border color for the created texture. The HDR values are passed to
+     * OpenGL where they may or may not be clamped depending on the texture format
+     * selected.
      *
      * @param color The border color
      *
