@@ -20,5 +20,7 @@ public interface ResourceFactory {
 
     public void deleteShader(OpenGLContext context, ShaderImpl.ShaderHandle shader);
 
+    public void deleteTexture(OpenGLContext context, TextureImpl.TextureHandle texture);
+
     public void refresh(OpenGLContext context, AbstractResource<?> resource);
 }
