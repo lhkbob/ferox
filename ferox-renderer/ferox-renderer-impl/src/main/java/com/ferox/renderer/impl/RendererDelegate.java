@@ -28,11 +28,10 @@ package com.ferox.renderer.impl;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
+import com.ferox.renderer.ElementBuffer;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.Renderer.*;
-import com.ferox.renderer.geom.VertexBufferObject;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.BufferData.DataType;
+import com.ferox.renderer.impl.resources.BufferImpl;
 
 /**
  * <p/>
@@ -49,43 +48,39 @@ import com.ferox.resource.BufferData.DataType;
  * @author Michael Ludwig
  */
 public abstract class RendererDelegate {
-    protected RendererState state;
-    protected RendererState defaultState;
-
-    protected VertexBufferObjectHandle indexBindingHandle;
+    protected SharedState state;
+    protected SharedState defaultState;
 
     protected OpenGLContext context;
-    protected ResourceManager resourceManager;
 
     /**
      * Notify the renderer that the provided surface has been activated and will be using
      * this Renderer. The given context is the context for the current thread and the
      * ResourceManager is the resource manager of the surface's owning framework.
      *
-     * @param surface         The now active surface
-     * @param context         The current context
-     * @param resourceManager The ResourceManager to use
+     * @param surface The now active surface
+     * @param context The current context
      */
-    public void activate(AbstractSurface surface, OpenGLContext context,
-                         ResourceManager resourceManager) {
+    public void activate(AbstractSurface surface, OpenGLContext context) {
         this.context = context;
-        this.resourceManager = resourceManager;
 
-        if (state == null) {
+        if (defaultState == null) {
             // init state
-            defaultState = new RendererState(surface);
-            state = new RendererState(defaultState);
+            defaultState = new SharedState(surface);
         }
 
         defaultState.viewWidth = surface.getWidth();
         defaultState.viewHeight = surface.getHeight();
+
+        // get reference to current state
+        state = context.getCurrentSharedState();
     }
 
-    public RendererState getCurrentState() {
-        return new RendererState(state);
+    public SharedState getCurrentState() {
+        return new SharedState(state);
     }
 
-    public void setCurrentState(RendererState state) {
+    public void setCurrentState(SharedState state) {
         setBlendColor(state.blendColor);
         setBlendModeRgb(state.blendFuncRgb, state.blendSrcRgb, state.blendDstRgb);
         setBlendModeAlpha(state.blendFuncAlpha, state.blendSrcAlpha, state.blendDstAlpha);
@@ -112,7 +107,7 @@ public abstract class RendererDelegate {
         setStencilTestEnabled(state.stencilEnabled);
 
         setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
-        setIndices(state.indices);
+        setIndicesHandle(state.elementVBO);
     }
 
     /**
@@ -438,48 +433,18 @@ public abstract class RendererDelegate {
      */
     protected abstract void glViewport(int x, int y, int width, int height);
 
-    public void setIndices(VertexBufferObject indices) {
-        if (state.indices != indices) {
+    public void setIndices(ElementBuffer indices) {
+        if (indices == null) {
+            setIndicesHandle(null);
+        } else {
+            setIndicesHandle(((BufferImpl) indices).getHandle());
+        }
+    }
+
+    private void setIndicesHandle(BufferImpl.BufferHandle indices) {
+        if (state.elementVBO != indices) {
             // Must bind a new element vbo
-            boolean hadOldIndices = state.indices != null;
-            boolean failTypeCheck = false;
-
-            if (hadOldIndices) {
-                // Unlock old vbo first
-                resourceManager.unlock(state.indices);
-                state.indices = null;
-                indexBindingHandle = null;
-            }
-
-            VertexBufferObjectHandle newHandle = null;
-            if (indices != null) {
-                newHandle = (VertexBufferObjectHandle) resourceManager
-                        .lock(context, indices);
-            }
-
-            // check if the actual VBO is of the correct type (must use handle, can't rely
-            // on the resource reporting the most up-to-date type)
-            if (newHandle != null && newHandle.dataType == DataType.FLOAT) {
-                failTypeCheck = true;
-                resourceManager.unlock(indices);
-                newHandle = null;
-            }
-
-            // Handle actual binding of the vbo
-            if (newHandle != null) {
-                state.indices = indices;
-                indexBindingHandle = newHandle;
-                glBindElementVbo(newHandle);
-            } else if (hadOldIndices) {
-                // Since we can't bind the new vbo, make sure the old
-                // one is unbound since we've already unlocked it
-                glBindElementVbo(null);
-            }
-
-            if (failTypeCheck) {
-                throw new IllegalArgumentException(
-                        "VertexBufferObject cannot have a type of FLOAT");
-            }
+            context.bindElementVBO(indices);
         }
     }
 
@@ -492,21 +457,9 @@ public abstract class RendererDelegate {
                     "First and count must be at least 0, not: " + offset + ", " + count);
         }
 
-        if (count == 0) {
-            return 0; // shortcut
-        }
-
-        if (state.indices != null) {
-            // use glDrawElements
-            // - check if the actual VBO is of the correct size (must use handle can't
-            // - rely on the resource reporting the most up-to-date size)
-            if ((offset + count) > indexBindingHandle.length) {
-                throw new IllegalArgumentException(
-                        "Index and count access elements outside of VBO range");
-            }
-
+        if (state.elementVBO != null) {
             // Element vbo is bound this time (or from a previous rendering)
-            glDrawElements(polyType, indexBindingHandle, offset, count);
+            glDrawElements(polyType, context.getBoundElementVBO(), offset, count);
         } else {
             // use glDrawArrays
             glDrawArrays(polyType, offset, count);
@@ -519,17 +472,11 @@ public abstract class RendererDelegate {
      * Perform the glDrawElements rendering command. The inputs will be valid.
      */
     protected abstract void glDrawElements(PolygonType type,
-                                           VertexBufferObjectHandle handle, int offset,
+                                           BufferImpl.BufferHandle handle, int offset,
                                            int count);
 
     /**
      * Perform the glDrawArrays rendering command. The inputs will be valid.
      */
     protected abstract void glDrawArrays(PolygonType type, int first, int count);
-
-    /**
-     * Bind the given resource handle as the element array vbo. If null, unbind the array
-     * vbo.
-     */
-    protected abstract void glBindElementVbo(VertexBufferObjectHandle handle);
 }

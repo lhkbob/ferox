@@ -174,17 +174,17 @@ public class FrameworkImpl implements Framework {
 
     @Override
     public VertexBufferBuilder newVertexBuffer() {
-        return null;
+        return impl.resourceManager.newVertexBufferBuilder(this);
     }
 
     @Override
     public ElementBufferBuilder newElementBuffer() {
-        return null;
+        return impl.resourceManager.newElementBufferBuilder(this);
     }
 
     @Override
     public ShaderBuilder newShader() {
-        return null;
+        return impl.resourceManager.newShaderBuilder(this);
     }
 
     @Override

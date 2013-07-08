@@ -28,8 +28,8 @@ package com.ferox.renderer.impl;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
+import com.ferox.renderer.ElementBuffer;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.geom.VertexBufferObject;
 
 /**
  * <p/>
@@ -41,9 +41,9 @@ import com.ferox.renderer.geom.VertexBufferObject;
  * and a GlslRenderer that both use the same RendererDelegate instance since that state is
  * shared by the context.
  * <p/>
- * AbstractRenderer adds the {@link #activate(AbstractSurface, OpenGLContext,
- * ResourceManager)} method which is invoked by AbstractSurface when it is activated. This
- * provides a hook for renderers to perform custom initialization of the OpenGL state.
+ * AbstractRenderer adds the {@link #activate(AbstractSurface, OpenGLContext)} method
+ * which is invoked by AbstractSurface when it is activated. This provides a hook for
+ * renderers to perform custom initialization of the OpenGL state.
  *
  * @author Michael Ludwig
  */
@@ -53,7 +53,6 @@ public abstract class AbstractRenderer implements Renderer {
     protected final RendererDelegate delegate;
 
     protected OpenGLContext context;
-    protected ResourceManager resourceManager;
 
     public AbstractRenderer(RendererDelegate delegate) {
         if (delegate == null) {
@@ -191,7 +190,7 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     @Override
-    public void setIndices(VertexBufferObject indices) {
+    public void setIndices(ElementBuffer indices) {
         delegate.setIndices(indices);
     }
 
@@ -205,15 +204,11 @@ public abstract class AbstractRenderer implements Renderer {
      * this Renderer. The given context is the context for the current thread and the
      * ResourceManager is the resource manager of the surface's owning framework.
      *
-     * @param active          The now active surface
-     * @param context         The current context
-     * @param resourceManager The ResourceManager to use
+     * @param active  The now active surface
+     * @param context The current context
      */
-    public void activate(AbstractSurface active, OpenGLContext context,
-                         ResourceManager resourceManager) {
-        delegate.activate(active, context, resourceManager);
-
+    public void activate(AbstractSurface active, OpenGLContext context) {
+        delegate.activate(active, context);
         this.context = context;
-        this.resourceManager = resourceManager;
     }
 }

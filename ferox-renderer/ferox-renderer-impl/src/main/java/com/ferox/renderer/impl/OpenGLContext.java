@@ -28,6 +28,8 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.ShaderImpl;
+import com.ferox.renderer.impl.resources.TextureImpl;
 
 /**
  * OpenGLContext is a wrapper around an OpenGL context that has been created by some
@@ -83,19 +85,17 @@ public interface OpenGLContext {
      */
     public void release();
 
-    // FIXME move state tracking out of the renderers into the context, then the
-    // renderers will just update that state as necessary
     public FixedFunctionState getCurrentFixedFunctionState();
 
     public ShaderOnlyState getCurrentShaderState();
 
-    public BufferImpl.BufferHandle getArrayVBO();
-
-    public BufferImpl.BufferHandle getElementVBO();
+    public SharedState getCurrentSharedState();
 
     public void bindArrayVBO(BufferImpl.BufferHandle vbo);
 
     public void bindElementVBO(BufferImpl.BufferHandle vbo);
 
-    // FIXME add additional resource methods as well
+    public void bindShader(ShaderImpl.ShaderHandle shader);
+
+    public void bindTexture(int textureUnit, TextureImpl.TextureHandle texture);
 }

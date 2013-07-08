@@ -29,11 +29,13 @@ package com.ferox.renderer.impl;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.Surface;
-import com.ferox.renderer.geom.VertexBufferObject;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.ShaderImpl;
+import com.ferox.renderer.impl.resources.TextureImpl;
 
 import java.util.Arrays;
 
-public class RendererState {
+public class SharedState {
     public static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
 
     // blending
@@ -83,8 +85,14 @@ public class RendererState {
 
     public boolean stencilEnabled;
 
-    // rendering
-    public VertexBufferObject indices;
+    // bindable resources
+    public BufferImpl.BufferHandle elementVBO;
+    public BufferImpl.BufferHandle arrayVBO;
+
+    public final TextureImpl.TextureHandle[] textures;
+    public ShaderImpl.ShaderHandle shader;
+
+    public int activeTexture;
 
     // stencil mask
     public int stencilMaskFront;
@@ -96,7 +104,7 @@ public class RendererState {
     public int viewWidth;
     public int viewHeight;
 
-    public RendererState(Surface surface) {
+    public SharedState(Surface surface) {
         blendColor = new Vector4(DEFAULT_BLEND_COLOR);
         blendFuncRgb = BlendFunction.ADD;
         blendFuncAlpha = BlendFunction.ADD;
@@ -144,10 +152,15 @@ public class RendererState {
         viewWidth = surface.getWidth();
         viewHeight = surface.getHeight();
 
-        indices = null;
+        elementVBO = null;
+        arrayVBO = null;
+        shader = null;
+        textures = new TextureImpl.TextureHandle[surface.getFramework().getCapabilities()
+                                                        .getMaxCombinedTextures()];
+        activeTexture = 0;
     }
 
-    public RendererState(RendererState toClone) {
+    public SharedState(SharedState toClone) {
         blendColor = new Vector4(toClone.blendColor);
         blendFuncRgb = toClone.blendFuncRgb;
         blendFuncAlpha = toClone.blendFuncAlpha;
@@ -195,6 +208,10 @@ public class RendererState {
         viewWidth = toClone.viewWidth;
         viewHeight = toClone.viewHeight;
 
-        indices = toClone.indices;
+        elementVBO = toClone.elementVBO;
+        arrayVBO = toClone.arrayVBO;
+        shader = toClone.shader;
+        textures = Arrays.copyOf(toClone.textures, toClone.textures.length);
+        activeTexture = toClone.activeTexture;
     }
 }

@@ -29,19 +29,16 @@ package com.ferox.renderer.impl;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.ContextState;
-import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.geom.VertexBufferObject;
-import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.impl.resources.BufferImpl;
 
 import java.util.Arrays;
 
-public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
+public class FixedFunctionState {
     /**
      * FogMode represents the three different eye fog modes that are available in OpenGL.
      */
@@ -100,7 +97,7 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
      * sub-classes, it should be considered read-only because the
      * AbstractFixedFunctionRenderer manages the updates to its variables.
      */
-    public class LightState {
+    public static class LightState {
         // post-transform by current modelview matrix
         public final Vector4 position;
         public final Vector3 spotlightDirection;
@@ -153,10 +150,8 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
      * sub-classes, it should be considered read-only because the
      * AbstractFixedFunctionRenderer manages the updates to its variables.
      */
-    public class TextureState {
+    public static class TextureState {
         public final int unit;
-
-        public Texture texture;
 
         public TexCoordSource tcS;
         public TexCoordSource tcT;
@@ -189,8 +184,6 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
 
         public TextureState(int unit) {
             this.unit = unit;
-
-            texture = null;
 
             tcS = tcT = tcR = tcQ = TexCoordSource.ATTRIBUTE;
 
@@ -229,7 +222,6 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
 
         public TextureState(TextureState state) {
             unit = state.unit;
-            texture = state.texture;
             tcS = state.tcS;
             tcT = state.tcT;
             tcR = state.tcR;
@@ -253,12 +245,12 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
         }
     }
 
-    public class VertexState {
+    public static class VertexState {
         // Used to handle relocking/unlocking
         public final VertexTarget target;
         public final int slot;
 
-        public VertexBufferObject vbo;
+        public BufferImpl.BufferHandle vbo;
 
         public int offset;
         public int stride;
@@ -332,16 +324,14 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
     public final VertexState colorBinding;
     public final VertexState[] texBindings;
 
+    public int activeClientTexture;
+
     // matrix
     public MatrixMode matrixMode = MatrixMode.MODELVIEW;
     public final Matrix4 modelView;
     public final Matrix4 projection;
 
-    public final RendererState sharedState;
-
     public FixedFunctionState(int numLights, int numTextures, int numTextureUnits) {
-        this.sharedState = null;
-
         alphaTest = Comparison.ALWAYS;
         alphaRefValue = 1;
 
@@ -382,6 +372,7 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
         for (int i = 0; i < numTextures; i++) {
             textures[i] = new TextureState(i);
         }
+        activeClientTexture = 0;
 
         vertexBinding = new VertexState(VertexTarget.VERTICES, 0);
         normalBinding = new VertexState(VertexTarget.NORMALS, 0);
@@ -396,8 +387,7 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
         projection = new Matrix4().setIdentity();
     }
 
-    public FixedFunctionState(RendererState sharedState, FixedFunctionState toClone) {
-        this.sharedState = sharedState;
+    public FixedFunctionState(FixedFunctionState toClone) {
         alphaTest = toClone.alphaTest;
         alphaRefValue = toClone.alphaRefValue;
         fogColor = new Vector4(toClone.fogColor);
@@ -431,6 +421,7 @@ public class FixedFunctionState implements ContextState<FixedFunctionRenderer> {
         for (int i = 0; i < textures.length; i++) {
             textures[i] = new TextureState(toClone.textures[i]);
         }
+        activeClientTexture = toClone.activeClientTexture;
 
         vertexBinding = new VertexState(toClone.vertexBinding);
         normalBinding = new VertexState(toClone.normalBinding);

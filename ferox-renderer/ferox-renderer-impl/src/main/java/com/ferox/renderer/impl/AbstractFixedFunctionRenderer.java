@@ -31,11 +31,9 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.*;
-import com.ferox.renderer.geom.VertexBufferObject;
 import com.ferox.renderer.impl.FixedFunctionState.*;
-import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.TextureImpl;
 
 /**
  * <p/>
@@ -59,20 +57,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     protected FixedFunctionState state;
     protected FixedFunctionState defaultState;
 
-    // private handles tracking the actual resource locks of current state
-    private VertexBufferObjectHandle verticesHandle;
-    private VertexBufferObjectHandle normalsHandle;
-    private VertexBufferObjectHandle colorsHandle;
-    private VertexBufferObjectHandle[] texCoordsHandles;
-
-    private TextureHandle[] textureHandles;
-
-    // hidden state that is used to minimize opengl calls
-    private VertexBufferObject arrayVboBinding;
-    private int activeArrayVbos;
-    private int activeClientTex;
-    private int activeTex;
-
     private boolean isModelViewDirty;
     private final Matrix4 inverseModelView; // needed for eye-plane texture coordinates
     private boolean isModelInverseDirty;
@@ -94,39 +78,45 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context,
-                         ResourceManager resourceManager) {
-        super.activate(surface, context, resourceManager);
+    public void activate(AbstractSurface surface, OpenGLContext context) {
+        super.activate(surface, context);
 
-        if (state == null) {
+        if (defaultState == null) {
             // init state
             Capabilities caps = surface.getFramework().getCapabilities();
-            state = new FixedFunctionState(caps.getMaxActiveLights(),
-                                           caps.getMaxFixedPipelineTextures(),
-                                           caps.getMaxTextureCoordinates());
-            defaultState = new FixedFunctionState(delegate.defaultState, state);
-
-            textureHandles = new TextureHandle[caps.getMaxFixedPipelineTextures()];
-            texCoordsHandles = new VertexBufferObjectHandle[caps
-                    .getMaxTextureCoordinates()];
+            defaultState = new FixedFunctionState(caps.getMaxActiveLights(),
+                                                  caps.getMaxFixedPipelineTextures(),
+                                                  caps.getMaxTextureCoordinates());
         }
+
+        // get temporary reference to context's state that we modify
+        state = context.getCurrentFixedFunctionState();
+
+        // ensure there's no shader in use
+        context.bindShader(null);
     }
 
     @Override
     public void reset() {
         // this also takes care of setting the delegate's default state
-        setCurrentState(defaultState);
+        setCurrentState(defaultState, delegate.defaultState);
     }
 
     @Override
     public ContextState<FixedFunctionRenderer> getCurrentState() {
-        return new FixedFunctionState(delegate.getCurrentState(), state);
+        // clone the current state
+        FixedFunctionState ffp = new FixedFunctionState(state);
+        SharedState shared = new SharedState(delegate.state);
+        return new FFPState(ffp, shared);
     }
 
     @Override
     public void setCurrentState(ContextState<FixedFunctionRenderer> state) {
-        FixedFunctionState f = (FixedFunctionState) state;
+        FFPState s = (FFPState) state;
+        setCurrentState(s.ffpState, s.sharedState);
+    }
 
+    private void setCurrentState(FixedFunctionState f, SharedState shared) {
         setAlphaTest(f.alphaTest, f.alphaRefValue);
         setFogColor(f.fogColor);
         switch (f.fogMode) {
@@ -176,7 +166,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         for (int i = 0; i < f.textures.length; i++) {
             TextureState tf = f.textures[i];
-            setTexture(i, tf.texture);
+            setTextureHandle(i, shared.textures[i]);
 
             setTextureColor(i, tf.color);
 
@@ -205,33 +195,31 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
 
         if (f.vertexBinding.vbo == null) {
-            setVertices(null);
+            setAttribute(state.vertexBinding, null, 0, 0, 0);
         } else {
-            setVertices(
-                    new VertexAttribute(f.vertexBinding.vbo, f.vertexBinding.elementSize,
-                                        f.vertexBinding.offset, f.vertexBinding.stride));
+            setAttribute(state.vertexBinding, f.vertexBinding.vbo, f.vertexBinding.offset,
+                         f.vertexBinding.stride, f.vertexBinding.elementSize);
         }
         if (f.normalBinding.vbo == null) {
-            setNormals(null);
+            setAttribute(state.normalBinding, null, 0, 0, 0);
         } else {
-            setNormals(
-                    new VertexAttribute(f.normalBinding.vbo, f.normalBinding.elementSize,
-                                        f.normalBinding.offset, f.normalBinding.stride));
+            setAttribute(state.normalBinding, f.normalBinding.vbo, f.normalBinding.offset,
+                         f.normalBinding.stride, f.normalBinding.elementSize);
         }
         if (f.colorBinding.vbo == null) {
-            setColors(null);
+            setAttribute(state.colorBinding, null, 0, 0, 0);
         } else {
-            setColors(new VertexAttribute(f.colorBinding.vbo, f.colorBinding.elementSize,
-                                          f.colorBinding.offset, f.colorBinding.stride));
+            setAttribute(state.colorBinding, f.colorBinding.vbo, f.colorBinding.offset,
+                         f.colorBinding.stride, f.colorBinding.elementSize);
         }
 
         for (int i = 0; i < f.texBindings.length; i++) {
             VertexState fv = f.texBindings[i];
             if (fv.vbo == null) {
-                setTextureCoordinates(i, null);
+                setAttribute(state.texBindings[i], null, 0, 0, 0);
             } else {
-                setTextureCoordinates(i, new VertexAttribute(fv.vbo, fv.elementSize,
-                                                             fv.offset, fv.stride));
+                setAttribute(state.texBindings[i], fv.vbo, fv.offset, fv.stride,
+                             fv.elementSize);
             }
         }
 
@@ -239,7 +227,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         setModelViewMatrix(f.modelView);
 
         // set shared state
-        delegate.setCurrentState(f.sharedState);
+        delegate.setCurrentState(shared);
     }
 
     @Override
@@ -710,61 +698,36 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     protected abstract void glEnablePolyAntiAliasing(boolean enable);
 
     @Override
-    public void setTexture(int tex, Texture image) {
-        TextureState t = state.textures[tex];
-        if (t.texture != image) {
-            // Release current texture if need-be
-            Target oldTarget = null;
-            if (t.texture != null) {
-                resourceManager.unlock(t.texture);
-                oldTarget = textureHandles[tex].target;
-                t.texture = null;
-                textureHandles[tex] = null;
-            }
+    public void setTexture(int tex, Sampler image) {
+        if (image == null) {
+            setTextureHandle(tex, null);
+        } else {
+            setTextureHandle(tex, ((TextureImpl) image).getHandle());
+        }
+    }
 
-            // Lock new texture if needed
-            TextureHandle newHandle = null;
-            Target newTarget = null;
-            if (image != null) {
-                newHandle = (TextureHandle) resourceManager.lock(context, image);
-                if (newHandle != null) {
-                    newTarget = newHandle.target;
+    private void setTextureHandle(int tex, TextureImpl.TextureHandle image) {
+        TextureImpl.TextureHandle oldImage = delegate.state.textures[tex];
 
-                    t.texture = image;
-                    textureHandles[tex] = newHandle;
-                }
-            }
-
+        if (delegate.state.textures[tex] != image) {
             // Update the active texture unit
             setTextureUnit(tex);
 
-            if (oldTarget != null && oldTarget != newTarget) {
-                // Unbind old texture and disable old target
-                glEnableTexture(oldTarget, false);
-                glBindTexture(oldTarget, null);
+            if (oldImage != null && (image == null || oldImage.target != image.target)) {
+                glEnableTexture(oldImage.target, false);
+            }
+            if (image != null && (oldImage == null || oldImage.target != image.target)) {
+                glEnableTexture(image.target, true);
             }
 
-            if (newHandle != null) {
-                // Enable new target (old target was already disabled if needed)
-                if (newTarget != oldTarget) {
-                    glEnableTexture(newTarget, true);
-                }
-
-                // Bind new texture
-                glBindTexture(newTarget, newHandle);
-            }
+            context.bindTexture(tex, image);
         }
     }
 
     /**
-     * Invoke OpenGL calls to bind a Texture to the active texture
-     */
-    protected abstract void glBindTexture(Target target, TextureHandle image);
-
-    /**
      * Invoke OpenGL to enable the active texture unit
      */
-    protected abstract void glEnableTexture(Target target, boolean enable);
+    protected abstract void glEnableTexture(TextureImpl.Target target, boolean enable);
 
     @Override
     public void setTextureColor(int tex, @Const Vector4 color) {
@@ -1090,8 +1053,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     }
 
     private void setTextureUnit(int unit) {
-        if (unit != activeTex) {
-            activeTex = unit;
+        if (unit != delegate.state.activeTexture) {
+            delegate.state.activeTexture = unit;
             glActiveTexture(unit);
         }
     }
@@ -1101,12 +1064,21 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
      */
     protected abstract void glActiveTexture(int unit);
 
+    // FIXME data type checking and pass through to the attribute pointer calls
     @Override
     public void setVertices(VertexAttribute vertices) {
         if (vertices != null && vertices.getElementSize() == 1) {
             throw new IllegalArgumentException("Vertices element size cannot be 1");
         }
-        verticesHandle = setAttribute(state.vertexBinding, verticesHandle, vertices);
+
+        if (vertices == null) {
+            setAttribute(state.vertexBinding, null, 0, 0, 0);
+        } else {
+            setAttribute(state.vertexBinding,
+                         ((BufferImpl) vertices.getVBO()).getHandle(),
+                         vertices.getOffset(), vertices.getStride(),
+                         vertices.getElementSize());
+        }
     }
 
     @Override
@@ -1114,7 +1086,14 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if (normals != null && normals.getElementSize() != 3) {
             throw new IllegalArgumentException("Normals element size must be 3");
         }
-        normalsHandle = setAttribute(state.normalBinding, normalsHandle, normals);
+
+        if (normals == null) {
+            setAttribute(state.normalBinding, null, 0, 0, 0);
+        } else {
+            setAttribute(state.normalBinding, ((BufferImpl) normals.getVBO()).getHandle(),
+                         normals.getOffset(), normals.getStride(),
+                         normals.getElementSize());
+        }
     }
 
     @Override
@@ -1123,142 +1102,77 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             colors.getElementSize() != 4) {
             throw new IllegalArgumentException("Colors element size must be 3 or 4");
         }
-        colorsHandle = setAttribute(state.colorBinding, colorsHandle, colors);
-        if (colorsHandle == null) {
+
+        if (colors == null) {
+            setAttribute(state.colorBinding, null, 0, 0, 0);
             // per-vertex coloring is disabled, so make sure we have a predictable diffuse color
             glMaterialColor(LightColor.DIFFUSE, DEFAULT_MAT_D_COLOR);
             state.matDiffuse.set(DEFAULT_MAT_D_COLOR);
+        } else {
+            setAttribute(state.colorBinding, ((BufferImpl) colors.getVBO()).getHandle(),
+                         colors.getOffset(), colors.getStride(), colors.getElementSize());
         }
     }
 
     @Override
     public void setTextureCoordinates(int tex, VertexAttribute texCoords) {
-        texCoordsHandles[tex] = setAttribute(state.texBindings[tex],
-                                             texCoordsHandles[tex], texCoords);
+        if (texCoords == null) {
+            setAttribute(state.texBindings[tex], null, 0, 0, 0);
+        } else {
+            setAttribute(state.texBindings[tex],
+                         ((BufferImpl) texCoords.getVBO()).getHandle(),
+                         texCoords.getOffset(), texCoords.getStride(),
+                         texCoords.getElementSize());
+        }
     }
 
-    private VertexBufferObjectHandle setAttribute(VertexState state,
-                                                  VertexBufferObjectHandle currentHandle,
-                                                  VertexAttribute attr) {
-        VertexBufferObjectHandle handle = currentHandle;
-
-        if (attr != null) {
+    private void setAttribute(VertexState vertex, BufferImpl.BufferHandle vbo, int offset,
+                              int stride, int elementSize) {
+        if (vbo != null) {
             // We are setting a new vertex attribute
-            boolean accessDiffers = (state.offset != attr.getOffset() ||
-                                     state.stride != attr.getStride() ||
-                                     state.elementSize != attr.getElementSize());
-            if (state.vbo != attr.getVBO() || accessDiffers) {
+            boolean accessDiffers = (vertex.offset != offset ||
+                                     vertex.stride != stride ||
+                                     vertex.elementSize != elementSize);
+            if (vertex.vbo != vbo || accessDiffers) {
                 // The attributes will be different so must make a change
-                VertexBufferObject oldVbo = state.vbo;
-                boolean failTypeCheck = false;
-
-                if (state.vbo != null && oldVbo != attr.getVBO()) {
-                    // Unlock the old one
-                    resourceManager.unlock(oldVbo);
-                    state.vbo = null;
-                    handle = null;
-                }
-
-                if (state.vbo == null) {
-                    // Lock the new vbo
-                    VertexBufferObjectHandle newHandle = (VertexBufferObjectHandle) resourceManager
-                            .lock(context, attr.getVBO());
-                    if (newHandle != null && newHandle.dataType != DataType.FLOAT) {
-                        resourceManager.unlock(attr.getVBO());
-                        failTypeCheck = true;
-
-                        state.vbo = null;
-                        handle = null;
-                    } else {
-                        // VBO is ready
-                        state.vbo = attr.getVBO();
-                        handle = newHandle;
-                    }
-                }
 
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
-                if (state.target == VertexTarget.TEXCOORDS &&
-                    state.slot != activeClientTex) {
+                if (vertex.target == VertexTarget.TEXCOORDS &&
+                    vertex.slot != state.activeClientTexture) {
                     // Special case slot handling for texture coordinates (other targets ignore slot)
-                    activeClientTex = state.slot;
-                    glActiveClientTexture(state.slot);
+                    state.activeClientTexture = vertex.slot;
+                    glActiveClientTexture(vertex.slot);
                 }
 
-                if (state.vbo != null) {
-                    // At this point, state.vbo is the new VBO (or possibly old VBO)
-                    state.elementSize = attr.getElementSize();
-                    state.offset = attr.getOffset();
-                    state.stride = attr.getStride();
-
-                    bindArrayVbo(attr.getVBO(), handle, oldVbo);
-
-                    if (oldVbo == null) {
-                        glEnableAttribute(state.target, true);
-                    }
-                    glAttributePointer(state.target, handle, state.offset, state.stride,
-                                       state.elementSize);
-                } else if (oldVbo != null) {
-                    // Since there was an old vbo we need to clean some things up
-                    // which weren't cleaned up when we unlocked the old vbo
-                    glEnableAttribute(state.target, false);
-                    unbindArrayVboMaybe(oldVbo);
+                if (vertex.vbo == null) {
+                    // enable the attribute
+                    glEnableAttribute(vertex.target, true);
                 }
 
-                if (failTypeCheck) {
-                    throw new IllegalArgumentException(
-                            "VertexAttribute type must be FLOAT");
+                vertex.vbo = vbo;
+                vertex.elementSize = elementSize;
+                vertex.offset = offset;
+                vertex.stride = stride;
+
+                if (vbo != delegate.state.arrayVBO) {
+                    context.bindArrayVBO(vbo);
                 }
+                glAttributePointer(vertex.target, vbo, offset, stride, elementSize);
             }
         } else {
             // The attribute is meant to be unbound
-            if (state.vbo != null) {
+            if (vertex.vbo != null) {
                 // Make sure OpenGL is operating on the correct unit for subsequent commands
-                if (state.target == VertexTarget.TEXCOORDS &&
-                    state.slot != activeClientTex) {
+                if (vertex.target == VertexTarget.TEXCOORDS &&
+                    vertex.slot != state.activeClientTexture) {
                     // Special case slot handling for texture coordinates (other targets ignore slot)
-                    activeClientTex = state.slot;
-                    glActiveClientTexture(state.slot);
+                    state.activeClientTexture = vertex.slot;
+                    glActiveClientTexture(vertex.slot);
                 }
 
                 // Disable the attribute
-                glEnableAttribute(state.target, false);
-                // Possibly unbind it from the array vbo
-                unbindArrayVboMaybe(state.vbo);
-
-                // Unlock it
-                resourceManager.unlock(state.vbo);
-                state.vbo = null;
-                handle = null;
-            }
-        }
-
-        return handle;
-    }
-
-    private void bindArrayVbo(VertexBufferObject vbo, VertexBufferObjectHandle handle,
-                              VertexBufferObject oldVboOnSlot) {
-        if (vbo != arrayVboBinding) {
-            glBindArrayVbo(handle);
-            activeArrayVbos = 0;
-            arrayVboBinding = vbo;
-
-            // If we're binding the vbo, then the last vbo on the slot doesn't matter
-            // since it wasn't counted in the activeArrayVbos counter
-            oldVboOnSlot = null;
-        }
-
-        // Only update the count if the new vbo isn't replacing the same vbo in the same slot
-        if (oldVboOnSlot != vbo) {
-            activeArrayVbos++;
-        }
-    }
-
-    private void unbindArrayVboMaybe(VertexBufferObject vbo) {
-        if (vbo == arrayVboBinding) {
-            activeArrayVbos--;
-            if (activeArrayVbos == 0) {
-                glBindArrayVbo(null);
-                arrayVboBinding = null;
+                glEnableAttribute(vertex.target, false);
+                vertex.vbo = null;
             }
         }
     }
@@ -1269,22 +1183,27 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     protected abstract void glActiveClientTexture(int unit);
 
     /**
-     * Bind the given resource handle as the array vbo. If null, unbind the array vbo.
-     */
-    protected abstract void glBindArrayVbo(VertexBufferObjectHandle handle);
-
-    /**
      * Invoke OpenGL commands to set the given attribute pointer. The resource will have
      * already been bound using glBindArrayVbo. If this is for a texture coordinate,
      * glActiveClientTexture will already have been called.
      */
     protected abstract void glAttributePointer(VertexTarget target,
-                                               VertexBufferObjectHandle handle,
-                                               int offset, int stride, int elementSize);
+                                               BufferImpl.BufferHandle handle, int offset,
+                                               int stride, int elementSize);
 
     /**
      * Invoke OpenGL commands to enable the given client attribute pointer. If this is for
      * a texture coordinate, glActiveClientTexture will have been called.
      */
     protected abstract void glEnableAttribute(VertexTarget target, boolean enable);
+
+    private static class FFPState implements ContextState<FixedFunctionRenderer> {
+        private final SharedState sharedState;
+        private final FixedFunctionState ffpState;
+
+        public FFPState(FixedFunctionState ffp, SharedState shared) {
+            ffpState = ffp;
+            sharedState = shared;
+        }
+    }
 }
