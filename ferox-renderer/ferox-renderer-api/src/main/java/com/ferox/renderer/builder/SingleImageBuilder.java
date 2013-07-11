@@ -32,9 +32,9 @@ public interface SingleImageBuilder<T extends Sampler, M> extends Builder<T> {
      * images. Any unspecified images outside that range will not be allocated or sampled
      * on the GPU.
      * <p/>
-     * If no images are specified, the base and max mipmap levels are set to 0, and the
-     * sampler will have a single image allocated with undefined data. This is most useful
-     * when creating textures to use with a {@link com.ferox.renderer.TextureSurface}
+     * When creating an image for use with a TextureSurface, the data type must still be
+     * selected even though there's no image data to provide. The proper way to do this is
+     * to invoke one of the {@code fromX()} methods and pass in a null array.
      *
      * @param level The mipmap level whose image data will be specified with the returned
      *              instance

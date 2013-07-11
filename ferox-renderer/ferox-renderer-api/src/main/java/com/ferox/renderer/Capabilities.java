@@ -64,6 +64,8 @@ public abstract class Capabilities {
     protected int maxTexture3DSize = 0; //
     protected int maxRenderbufferSize = 0; //
 
+    protected int maxArrayImages = 0; //
+
     // type of supported textures
     protected boolean fpTextures = false; //
     protected boolean npotTextures = false; //
@@ -171,6 +173,13 @@ public abstract class Capabilities {
      */
     public Set<Class<? extends Sampler>> getSupportedTextureTargets() {
         return supportedTargets;
+    }
+
+    /**
+     * @return Maximum number of images in a 1D or 2D texture array
+     */
+    public int getMaxTextureArrayImages() {
+        return maxArrayImages;
     }
 
     /**

@@ -198,7 +198,7 @@ public class BufferUtil {
      *
      * @return A new direct Buffer
      *
-     * @throws NullPointerException if data is null
+     * @throws IllegalArgumentException if the array isn't an expected buffer array type
      */
     public static Buffer newBuffer(Object array) {
         if (array instanceof float[]) {
@@ -209,6 +209,30 @@ public class BufferUtil {
             return newShortBuffer((short[]) array);
         } else if (array instanceof byte[]) {
             return newByteBuffer((byte[]) array);
+        } else {
+            throw new IllegalArgumentException("Unsupported array type: " + array);
+        }
+    }
+
+    /**
+     * Get the length of the primitive array. The instance must be one of the array types
+     * supported by {@link #newBuffer(Object)}.
+     *
+     * @param array The primitive array
+     *
+     * @return The length of the array
+     *
+     * @throws IllegalArgumentException if the array isn't an expected buffer array type
+     */
+    public static int getArrayLength(Object array) {
+        if (array instanceof float[]) {
+            return ((float[]) array).length;
+        } else if (array instanceof int[]) {
+            return ((int[]) array).length;
+        } else if (array instanceof short[]) {
+            return ((short[]) array).length;
+        } else if (array instanceof byte[]) {
+            return ((byte[]) array).length;
         } else {
             throw new IllegalArgumentException("Unsupported array type: " + array);
         }

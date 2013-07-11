@@ -150,7 +150,8 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
     public TextureImpl(TextureHandle handle, FullFormat format, int width, int height,
                        int depth, Vector4 borderColor, double anisotropicFiltering,
                        Renderer.Comparison depthComparison, boolean interpolated,
-                       WrapMode wrapMode, Object[][] dataArrays) {
+                       WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
+                       int maxMipmap) {
         super(handle);
 
         this.format = format;
@@ -164,29 +165,9 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         this.wrapMode = wrapMode;
 
         this.dataArrays = dataArrays;
-        int base = -1;
-        int max = -1;
+        this.baseMipmap = baseMipmap;
+        this.maxMipmap = maxMipmap;
 
-        for (int i = 0; i < dataArrays[0].length; i++) {
-            if (dataArrays[0][i] != null) {
-                base = i;
-                break;
-            }
-        }
-        for (int i = dataArrays[0].length - 1; i >= 0; i--) {
-            if (dataArrays[0][i] != null) {
-                max = i;
-                break;
-            }
-        }
-
-        if (base < 0 || max < 0) {
-            baseMipmap = 0;
-            maxMipmap = 0;
-        } else {
-            baseMipmap = base;
-            maxMipmap = max;
-        }
     }
 
     public Renderer.Comparison getDepthComparison() {

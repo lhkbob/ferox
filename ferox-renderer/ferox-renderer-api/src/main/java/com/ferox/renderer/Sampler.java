@@ -15,6 +15,10 @@ package com.ferox.renderer;
  * primitive array instances that were used to initially define the sampler are pushed to
  * the GPU. Thus, animated textures are supported by maintaining a reference to the
  * original image arrays and mutating their contents, followed by a refresh.
+ * <p/>
+ * Across all Samplers, an image (theoretically with three dimensions) has each row of
+ * pixel data arranged from left to right. Rows are stacked from bottom to top to form a
+ * 2D image. Multiple 2D images (if present) are stacked from back to front.
  *
  * @author Michael Ludwig
  */
@@ -61,53 +65,66 @@ public interface Sampler extends Resource {
          * The sampler has a single component per pixel that stores depth data. This will
          * only ever be used by samplers that extend {@link DepthMap}.
          */
-        DEPTH,
+        DEPTH(1),
         /**
          * The sampler has two components per pixel, holding depth and stencil
          * information. In this case, the sampler can provide a stencil buffer when doing
          * render-to-texture. This will only ever be used by samplers that extend {@link
          * DepthMap}.
          */
-        DEPTH_STENCIL,
+        DEPTH_STENCIL(2),
         /**
          * The sampler provides only the red component values per pixel. When used in a
          * shader, the green and blue components default to 0 and the alpha defaults to 1.
          * On older hardware, the old LUMINANCE OpenGL format may be used to approximate
          * support. This will only ever be used by samplers that extend {@link Texture}.
          */
-        R,
+        R(1),
         /**
          * The sampler provides the red and green component values. When used in a shader,
          * the blue component defaults to 0 and alpha to 1. On older hardware, the old
          * LUMINANCE_ALPHA OpenGL format may be used to approximate support. This will
          * only ever be used by samplers that extend {@link Texture}.
          */
-        RG,
+        RG(2),
         /**
          * The sampler provides red, green, and blue component values. The alpha value
          * defaults to 1. This will only ever be used by samplers that extend {@link
          * Texture}.
          */
-        RGB,
+        RGB(3),
         /**
          * The sampler provides values for all four color components. This will only be
          * used by samplers that extend {@link Texture}.
          */
-        RGBA,
+        RGBA(4),
         /**
          * The sampler provides RGB components and a default alpha 1 but the internal data
          * is compressed in a manner supported by the hardware. Compressed formats cannot
          * be used as render targets for a TextureSurface and exceptions will be thrown if
          * attempted. This will only be used by samplers that extend {@link Texture}.
          */
-        COMPRESSED_RGB,
+        COMPRESSED_RGB(3),
         /**
          * The sampler provides RGBA component data but the internal data is compressed in
          * a manner supported by the hardware. Compressed formats cannot be used as render
          * targets for a TextureSurface and exceptions will be thrown if attempted. This
          * will only be used by samplers that extend {@link Texture}.
          */
-        COMPRESSED_RGBA
+        COMPRESSED_RGBA(4);
+
+        private int componentCount;
+
+        private TexelFormat(int count) {
+            componentCount = count;
+        }
+
+        /**
+         * @return The number of components specified by each texel
+         */
+        public int getComponentCount() {
+            return componentCount;
+        }
     }
 
     /**
