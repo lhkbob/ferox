@@ -24,7 +24,7 @@ public interface Shader extends Resource {
         FLOAT(1, 1),
         INT(1, 1),
         UINT(1, 1),
-        BOOL(1, 1),
+        BOOL(1, -1),
 
         MAT2(2, 2),
         MAT3(3, 3),
@@ -38,34 +38,34 @@ public interface Shader extends Resource {
         IVEC4(4, 1),
         UVEC2(2, 1),
         UVEC3(3, 1),
-        UVEC4(4, 1),
-        BVEC2(2, 1),
-        BVEC3(3, 1),
-        BVEC4(4, 1),
+        UVEC4(4, -1),
+        BVEC2(2, -1),
+        BVEC3(3, -1),
+        BVEC4(4, -1),
 
-        SAMPLER_1D(-1, -1),
-        SAMPLER_2D(-1, -1),
-        SAMPLER_3D(-1, -1),
-        SAMPLER_CUBE(-1, -1),
-        SAMPLER_1D_SHADOW(-1, -1),
-        SAMPLER_2D_SHADOW(-1, -1),
-        SAMPLER_CUBE_SHADOW(-1, -1),
-        SAMPLER_1D_ARRAY(-1, -1),
-        SAMPLER_2D_ARRAY(-1, -1),
+        SAMPLER_1D(1, -1),
+        SAMPLER_2D(1, -1),
+        SAMPLER_3D(1, -1),
+        SAMPLER_CUBE(1, -1),
+        SAMPLER_1D_SHADOW(1, -1),
+        SAMPLER_2D_SHADOW(1, -1),
+        SAMPLER_CUBE_SHADOW(1, -1),
+        SAMPLER_1D_ARRAY(1, -1),
+        SAMPLER_2D_ARRAY(1, -1),
 
-        USAMPLER_1D(-1, -1),
-        USAMPLER_2D(-1, -1),
-        USAMPLER_3D(-1, -1),
-        USAMPLER_CUBE(-1, -1),
-        USAMPLER_1D_ARRAY(-1, -1),
-        USAMPLER_2D_ARRAY(-1, -1),
+        USAMPLER_1D(1, -1),
+        USAMPLER_2D(1, -1),
+        USAMPLER_3D(1, -1),
+        USAMPLER_CUBE(1, -1),
+        USAMPLER_1D_ARRAY(1, -1),
+        USAMPLER_2D_ARRAY(1, -1),
 
-        ISAMPLER_1D(-1, -1),
-        ISAMPLER_2D(-1, -1),
-        ISAMPLER_3D(-1, -1),
-        ISAMPLER_CUBE(-1, -1),
-        ISAMPLER_1D_ARRAY(-1, -1),
-        ISAMPLER_2D_ARRAY(-1, -1);
+        ISAMPLER_1D(1, -1),
+        ISAMPLER_2D(1, -1),
+        ISAMPLER_3D(1, -1),
+        ISAMPLER_CUBE(1, -1),
+        ISAMPLER_1D_ARRAY(1, -1),
+        ISAMPLER_2D_ARRAY(1, -1);
 
         private final int row;
         private final int col;
@@ -76,8 +76,7 @@ public interface Shader extends Resource {
         }
 
         /**
-         * @return Get the number of primitives required for the vertex attribute, returns
-         *         -1 if the type is only available as a uniform
+         * @return Get the number of components in a row.
          */
         public int getRowCount() {
             return row;
@@ -85,7 +84,8 @@ public interface Shader extends Resource {
 
         /**
          * @return Get the number of vertex attributes required to hold the complete data.
-         *         Each column of a matrix gets its own vertex attribute.
+         *         Each column of a matrix gets its own vertex attribute. Returns -1 if
+         *         the type is only available as a uniform
          */
         public int getColumnCount() {
             return col;
@@ -95,7 +95,7 @@ public interface Shader extends Resource {
          * @return The total number of primitives required for a single value
          */
         public int getPrimitiveCount() {
-            return row * col;
+            return Math.abs(row * col);
         }
     }
 
@@ -173,7 +173,7 @@ public interface Shader extends Resource {
     /**
      * @return All uniforms used in the shader, ordered by their compiled index
      */
-    public List<Uniform> getUniforms();
+    public List<? extends Uniform> getUniforms();
 
     /**
      * Get the uniform object for the variable with the given {@code name}. This will
@@ -188,7 +188,7 @@ public interface Shader extends Resource {
     /**
      * @return All vertex attributes used by the shader, ordered by their compiled index
      */
-    public List<Attribute> getAttributes();
+    public List<? extends Attribute> getAttributes();
 
     /**
      * Get the attribute object for the variable with the given {@code name}. This will

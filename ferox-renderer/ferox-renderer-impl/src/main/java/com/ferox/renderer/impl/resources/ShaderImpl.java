@@ -1,9 +1,12 @@
 package com.ferox.renderer.impl.resources;
 
 import com.ferox.renderer.Shader;
+import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +17,12 @@ import java.util.Map;
 public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
         implements Shader {
     private final int glslVersion;
-    private final List<Uniform> uniforms;
-    private final List<Attribute> attributes;
+    private final List<UniformImpl> uniforms;
+    private final List<AttributeImpl> attributes;
     private final Map<String, Integer> bufferMap;
 
-    public ShaderImpl(ShaderHandle handle, int glslVersion, List<Uniform> uniforms,
-                      List<Attribute> attributes, Map<String, Integer> bufferMap) {
+    public ShaderImpl(ShaderHandle handle, int glslVersion, List<UniformImpl> uniforms,
+                      List<AttributeImpl> attributes, Map<String, Integer> bufferMap) {
         super(handle);
         this.glslVersion = glslVersion;
 
@@ -29,7 +32,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
     }
 
     @Override
-    public List<Uniform> getUniforms() {
+    public List<? extends Uniform> getUniforms() {
         return uniforms;
     }
 
@@ -44,7 +47,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
     }
 
     @Override
-    public List<Attribute> getAttributes() {
+    public List<? extends Attribute> getAttributes() {
         return attributes;
     }
 
@@ -85,11 +88,37 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
         private final int index;
         private final int length;
 
+        public final FloatBuffer floatValues; // non-null for float types only
+        public final IntBuffer intValues; // non-null for int and sampler types only
+
+        // for samplers, the intValues holds a unique pre-assigned texture unit
+        // reserved for any sampler assigned to the uniform
+        public TextureImpl.TextureHandle texture;
+
+        public boolean initialized;
+
         public UniformImpl(VariableType type, int length, String name, int index) {
             this.type = type;
             this.length = length;
             this.name = name;
             this.index = index;
+
+            int bufferSize = type.getPrimitiveCount() * length;
+            if (type == VariableType.FLOAT || type == VariableType.VEC2 ||
+                type == VariableType.VEC3 || type == VariableType.VEC4 ||
+                type == VariableType.MAT2 || type == VariableType.MAT3 ||
+                type == VariableType.MAT4) {
+                // only floating point types
+                floatValues = BufferUtil.newFloatBuffer(bufferSize);
+                intValues = null;
+            } else {
+                // all other types are stored as ints
+                floatValues = null;
+                intValues = BufferUtil.newIntBuffer(bufferSize);
+            }
+
+            texture = null;
+            initialized = false;
         }
 
         @Override
