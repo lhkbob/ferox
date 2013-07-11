@@ -36,12 +36,18 @@ public abstract class AbstractShaderBuilder
 
     @Override
     public ShaderBuilder withVertexShader(String code) {
+        if (code == null) {
+            throw new NullPointerException("Vertex shader code cannot be null");
+        }
         vertexCode = code;
         return this;
     }
 
     @Override
     public ShaderBuilder withFragmentShader(String code) {
+        if (code == null) {
+            throw new NullPointerException("Fragment shader code cannot be null");
+        }
         fragmentCode = code;
         return this;
     }
@@ -56,6 +62,13 @@ public abstract class AbstractShaderBuilder
     public ShaderBuilder bindColorBuffer(String variableName, int buffer) {
         if (variableName == null) {
             throw new NullPointerException("Name cannot be null");
+        }
+        if (variableName.equals("gl_FragColor")) {
+            throw new IllegalArgumentException(
+                    "Cannot specify color buffer for gl_FragColor, it is implicit");
+        } else if (variableName.startsWith("gl_FragData[")) {
+            throw new IllegalArgumentException(
+                    "Cannot specify color buffer for gl_FragData[n], it is implicit");
         }
         mappedBuffers.put(variableName, buffer);
         return this;
@@ -110,14 +123,6 @@ public abstract class AbstractShaderBuilder
         // the reserved output names gl_FragColor and gl_FragData[n] are not specified
         Set<Integer> assignedBuffers = new HashSet<>();
         for (String output : mappedBuffers.keySet()) {
-            if (output.equals("gl_FragColor")) {
-                throw new ResourceException(
-                        "Cannot specify color buffer for gl_FragColor, it is implicit");
-            } else if (output.startsWith("gl_FragData[")) {
-                throw new ResourceException(
-                        "Cannot specify color buffer for gl_FragData[n], it is implicit");
-            }
-
             Integer buffer = mappedBuffers.get(output);
             if (buffer >= framework.getCapabilities().getMaxColorBuffers()) {
                 throw new ResourceException(

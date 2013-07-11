@@ -26,6 +26,9 @@ public abstract class AbstractElementBufferBuilder
 
     @Override
     public ElementBufferBuilder fromUnsigned(int[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.UNSIGNED_NORMALIZED_INT;
@@ -34,6 +37,9 @@ public abstract class AbstractElementBufferBuilder
 
     @Override
     public ElementBufferBuilder fromUnsigned(short[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.UNSIGNED_NORMALIZED_SHORT;
@@ -42,6 +48,9 @@ public abstract class AbstractElementBufferBuilder
 
     @Override
     public ElementBufferBuilder fromUnsigned(byte[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.UNSIGNED_NORMALIZED_BYTE;

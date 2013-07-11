@@ -26,6 +26,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder from(float[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.FLOAT;
@@ -34,6 +37,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder fromNormalized(int[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.NORMALIZED_INT;
@@ -42,6 +48,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder fromNormalized(short[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.NORMALIZED_SHORT;
@@ -50,6 +59,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder fromNormalized(byte[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.NORMALIZED_BYTE;
@@ -58,6 +70,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder from(int[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.INT;
@@ -66,6 +81,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder from(short[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.SHORT;
@@ -74,6 +92,9 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     public VertexBufferBuilder from(byte[] data) {
+        if (data == null) {
+            throw new NullPointerException("Data array cannot be null");
+        }
         array = data;
         length = data.length;
         type = DataType.BYTE;
