@@ -6,11 +6,11 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.resource.BufferData;
-import com.ferox.resource.Resource.UpdatePolicy;
-import com.ferox.resource.Texture;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.renderer.Resource.UpdatePolicy;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.VertexAttribute;
+import com.ferox.renderer.geom.VertexBufferObject;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.scene.*;
 import com.ferox.scene.task.PVSResult;
 import com.ferox.scene.task.light.LightGroupResult;
@@ -107,7 +107,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             throw new NullPointerException("Framework cannot be null");
         }
 
-        RenderCapabilities caps = framework.getCapabilities();
+        Capabilities caps = framework.getCapabilities();
         if (!caps.hasFixedFunctionRenderer()) {
             throw new IllegalArgumentException(
                     "Framework must support a FixedFunctionRenderer");

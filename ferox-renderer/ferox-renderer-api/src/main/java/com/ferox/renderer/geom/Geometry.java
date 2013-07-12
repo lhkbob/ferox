@@ -28,6 +28,7 @@ package com.ferox.renderer.geom;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
+import com.ferox.renderer.ElementBuffer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
 
@@ -46,9 +47,8 @@ public interface Geometry {
      *
      * @return The bounds of the geometry in its local coordinate system
      */
-    public
     @Const
-    AxisAlignedBox getBounds();
+    public AxisAlignedBox getBounds();
 
     /**
      * Return the polygon type that determines how consecutive vertex elements or indices
@@ -72,7 +72,7 @@ public interface Geometry {
      * @return The indices of the geometry, must have a data type that is not FLOAT if not
      *         null
      */
-    public VertexBufferObject getIndices();
+    public ElementBuffer getIndices();
 
     /**
      * Return the offset into the indices before the first index is read. If {@link

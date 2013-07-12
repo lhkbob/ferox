@@ -26,10 +26,10 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.ResourceDriver;
 
-public class LwjglFramework extends AbstractFramework {
+public class LwjglFramework extends FrameworkImpl {
     private LwjglFramework(LwjglSurfaceFactory factory, ResourceDriver... drivers) {
         super(factory, drivers);
     }

@@ -30,7 +30,7 @@ import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractVertexBufferObjectResourceDriver;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;

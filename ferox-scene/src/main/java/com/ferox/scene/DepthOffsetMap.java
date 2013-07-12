@@ -26,8 +26,8 @@
  */
 package com.ferox.scene;
 
-import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.TextureFormat;
 
 /**
  * <p/>
@@ -50,7 +50,7 @@ public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
 
     @Override
     protected void validate(Texture tex) {
-        if (tex.getFormat().getNumComponents() != 1) {
+        if (tex.getFormat().getComponentCount() != 1) {
             throw new IllegalArgumentException(
                     "Cannot specify a depth map that has more than one component: " +
                     tex.getFormat());

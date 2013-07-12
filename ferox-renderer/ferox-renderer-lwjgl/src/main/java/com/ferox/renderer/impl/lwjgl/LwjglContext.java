@@ -26,11 +26,11 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FrameworkException;
-import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
-import com.ferox.resource.Resource;
+import com.ferox.renderer.Resource;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.*;
 
@@ -46,7 +46,7 @@ public class LwjglContext extends OpenGLContext {
     private final LwjglSurfaceFactory creator;
     private final Drawable context;
 
-    private RenderCapabilities cachedCaps;
+    private Capabilities cachedCaps;
 
     // cleanup
     private List<Runnable> cleanupTasks;
@@ -94,7 +94,7 @@ public class LwjglContext extends OpenGLContext {
 
     private void initializedMaybe() {
         if (!stateInitialized) {
-            RenderCapabilities caps = getRenderCapabilities();
+            Capabilities caps = getRenderCapabilities();
 
             int ffp = caps.getMaxFixedPipelineTextures();
             int frag = caps.getMaxFragmentShaderTextures();
@@ -312,7 +312,7 @@ public class LwjglContext extends OpenGLContext {
     }
 
     @Override
-    public RenderCapabilities getRenderCapabilities() {
+    public Capabilities getRenderCapabilities() {
         if (cachedCaps == null) {
             cachedCaps = new LwjglRenderCapabilities(creator.getCapabilityForceBits());
         }

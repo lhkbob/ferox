@@ -27,14 +27,14 @@
 package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.TextureFormat;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.*;
@@ -53,7 +53,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
 
     private int activeLayerForFrame;
 
-    public JoglPbufferTextureSurface(AbstractFramework framework,
+    public JoglPbufferTextureSurface(FrameworkImpl framework,
                                      JoglSurfaceFactory creator,
                                      TextureSurfaceOptions options, JoglContext shareWith,
                                      RendererProvider provider) {

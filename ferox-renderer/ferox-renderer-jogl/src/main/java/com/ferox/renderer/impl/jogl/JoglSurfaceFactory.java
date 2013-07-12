@@ -254,7 +254,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     }
 
     @Override
-    public AbstractTextureSurface createTextureSurface(AbstractFramework framework,
+    public AbstractTextureSurface createTextureSurface(FrameworkImpl framework,
                                                        TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
         if (framework.getCapabilities().getFboSupport()) {
@@ -270,7 +270,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     }
 
     @Override
-    public AbstractOnscreenSurface createOnscreenSurface(AbstractFramework framework,
+    public AbstractOnscreenSurface createOnscreenSurface(FrameworkImpl framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
         return new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext,
@@ -321,7 +321,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         private JoglRendererDelegate sharedDelegate;
 
         @Override
-        public FixedFunctionRenderer getFixedFunctionRenderer(RenderCapabilities caps) {
+        public FixedFunctionRenderer getFixedFunctionRenderer(Capabilities caps) {
             if (ffp == null) {
                 if (caps.hasFixedFunctionRenderer()) {
                     if (sharedDelegate == null) {
@@ -335,7 +335,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         }
 
         @Override
-        public GlslRenderer getGlslRenderer(RenderCapabilities caps) {
+        public GlslRenderer getGlslRenderer(Capabilities caps) {
             if (glsl == null) {
                 if (caps.hasGlslRenderer()) {
                     if (sharedDelegate == null) {

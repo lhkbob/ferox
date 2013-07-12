@@ -133,7 +133,7 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
      * @author Michael Ludwig
      */
     @Attribute
-    @Target(ElementType.FIELD)
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultMax {
         /**

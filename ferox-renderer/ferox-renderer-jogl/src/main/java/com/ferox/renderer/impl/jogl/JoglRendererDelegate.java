@@ -28,14 +28,14 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
 import com.ferox.renderer.impl.ResourceManager;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
@@ -245,7 +245,7 @@ public class JoglRendererDelegate extends RendererDelegate {
 
         if (!initialized) {
             // grab capabilities
-            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            Capabilities caps = surface.getFramework().getCapabilities();
             supportsBlending = caps.isBlendingSupported();
             supportsSeparateBlending = caps.getSeparateBlendSupport();
             supportsSeparateStencil = caps.getSeparateStencilSupport();

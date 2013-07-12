@@ -102,7 +102,7 @@ public class ColorRGBProperty implements ShareableProperty<ColorRGB> {
      * @author Michael Ludwig
      */
     @Attribute
-    @Target(ElementType.FIELD)
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultColor {
         /**

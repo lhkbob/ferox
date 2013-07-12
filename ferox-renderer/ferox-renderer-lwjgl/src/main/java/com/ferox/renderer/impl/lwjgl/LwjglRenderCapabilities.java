@@ -26,10 +26,10 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
-import com.ferox.resource.Texture.Target;
+import com.ferox.renderer.texture.Texture.Target;
 import org.lwjgl.opengl.*;
 
 import java.util.EnumSet;
@@ -39,7 +39,7 @@ import java.util.EnumSet;
  *
  * @author Michael Ludwig
  */
-public class LwjglRenderCapabilities extends RenderCapabilities {
+public class LwjglRenderCapabilities extends Capabilities {
     /**
      * Force the returned RenderCapabilities to report no support for fbos.
      */

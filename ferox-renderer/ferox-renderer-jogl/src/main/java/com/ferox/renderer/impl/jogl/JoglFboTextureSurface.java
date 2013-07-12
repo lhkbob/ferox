@@ -28,11 +28,11 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.Texture.Target;
+import com.ferox.renderer.texture.Texture.Target;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -52,7 +52,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
     // makes it sound as though fbo's aren't shared
     private final WeakHashMap<JoglContext, FrameBufferObject> fbos;
 
-    public JoglFboTextureSurface(AbstractFramework framework, JoglSurfaceFactory creator,
+    public JoglFboTextureSurface(FrameworkImpl framework, JoglSurfaceFactory creator,
                                  TextureSurfaceOptions options) {
         super(framework, options);
         fbos = new WeakHashMap<JoglContext, FrameBufferObject>();

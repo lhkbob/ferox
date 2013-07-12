@@ -26,13 +26,13 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractTextureResourceDriver;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.Texture.WrapMode;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.Texture.WrapMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -60,7 +60,7 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
     @Override
     protected void glTextureParameters(OpenGLContext context, Texture tex,
                                        TextureHandle handle) {
-        RenderCapabilities caps = context.getRenderCapabilities();
+        Capabilities caps = context.getRenderCapabilities();
         GL2GL3 gl = getGL(context);
         int target = Utils.getGLTextureTarget(handle.target);
 
@@ -127,7 +127,7 @@ public class JoglTextureResourceDriver extends AbstractTextureResourceDriver {
         }
     }
 
-    private int getWrapMode(WrapMode mode, RenderCapabilities caps) {
+    private int getWrapMode(WrapMode mode, Capabilities caps) {
         if (!caps.getClampToEdgeSupport() && mode == WrapMode.CLAMP) {
             return GL2.GL_CLAMP;
         }

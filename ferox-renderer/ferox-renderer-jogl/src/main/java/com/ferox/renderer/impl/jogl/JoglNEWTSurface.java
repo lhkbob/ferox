@@ -35,7 +35,7 @@ import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
@@ -65,7 +65,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     private boolean vsyncNeedsUpdate;
     private boolean closable;
 
-    public JoglNEWTSurface(AbstractFramework framework, final JoglSurfaceFactory factory,
+    public JoglNEWTSurface(FrameworkImpl framework, final JoglSurfaceFactory factory,
                            OnscreenSurfaceOptions options, JoglContext shareWith,
                            RendererProvider provider) {
         super(framework);

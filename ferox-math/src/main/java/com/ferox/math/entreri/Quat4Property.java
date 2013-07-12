@@ -102,7 +102,7 @@ public class Quat4Property implements ShareableProperty<Quat4> {
      * @author Michael Ludwig
      */
     @Attribute
-    @Target(ElementType.FIELD)
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultQuat4 {
         /**

@@ -31,13 +31,14 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
-import com.ferox.resource.*;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.Resource.Status;
-import com.ferox.resource.Texture.Filter;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.geom.Box;
-import com.ferox.resource.geom.Geometry;
+import com.ferox.renderer.Resource.Status;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Filter;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.geom.Box;
+import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.texture.TextureFormat;
 import com.ferox.util.ApplicationStub;
 
 import java.util.Map;
@@ -178,9 +179,9 @@ public class GlslRenderTest extends ApplicationStub {
                     System.out.println(shaderStatus + " " + shaderMsg);
 
                     System.out.println("uniforms:");
-                    Map<String, GlslUniform> uniforms = g.getUniforms();
-                    for (Entry<String, GlslUniform> u : uniforms.entrySet()) {
-                        GlslUniform uniform = u.getValue();
+                    Map<String, Uniform> uniforms = g.getUniforms();
+                    for (Entry<String, Uniform> u : uniforms.entrySet()) {
+                        Uniform uniform = u.getValue();
                         System.out
                               .println(uniform.getName() + " " + uniform.getType() + " " +
                                        uniform.getLength());

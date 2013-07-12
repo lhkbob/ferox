@@ -26,11 +26,11 @@
  */
 package com.ferox.renderer.impl.jogl;
 
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FrameworkException;
-import com.ferox.renderer.RenderCapabilities;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
-import com.ferox.resource.Resource;
+import com.ferox.renderer.Resource;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
@@ -47,7 +47,7 @@ public class JoglContext extends OpenGLContext {
     private final JoglSurfaceFactory creator;
     private final GLContext context;
 
-    private RenderCapabilities cachedCaps;
+    private Capabilities cachedCaps;
 
     // cleanup
     private List<Runnable> cleanupTasks;
@@ -91,7 +91,7 @@ public class JoglContext extends OpenGLContext {
 
     private void initializedMaybe() {
         if (!stateInitialized) {
-            RenderCapabilities caps = getRenderCapabilities();
+            Capabilities caps = getRenderCapabilities();
 
             int ffp = caps.getMaxFixedPipelineTextures();
             int frag = caps.getMaxFragmentShaderTextures();
@@ -286,7 +286,7 @@ public class JoglContext extends OpenGLContext {
     }
 
     @Override
-    public RenderCapabilities getRenderCapabilities() {
+    public Capabilities getRenderCapabilities() {
         if (cachedCaps == null) {
             cachedCaps = new JoglRenderCapabilities(context.getGL(),
                                                     creator.getGLProfile(),

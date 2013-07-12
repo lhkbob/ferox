@@ -26,13 +26,13 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.ResourceDriver;
 
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.Threading;
 
-public class JoglFramework extends AbstractFramework {
+public class JoglFramework extends FrameworkImpl {
     private JoglFramework(JoglSurfaceFactory factory, ResourceDriver... drivers) {
         super(factory, drivers);
     }

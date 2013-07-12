@@ -37,13 +37,13 @@ import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.Mipmap;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Filter;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.VertexBufferObject.StorageMode;
-import com.ferox.resource.geom.Geometry;
-import com.ferox.resource.geom.Sphere;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Filter;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.TextureFormat;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
+import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.geom.Sphere;
 import com.ferox.util.ApplicationStub;
 
 public class FixedFunctionRenderTest extends ApplicationStub {

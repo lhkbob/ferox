@@ -30,7 +30,7 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.impl.*;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
 import com.ferox.renderer.impl.FixedFunctionState.LightColor;
@@ -38,8 +38,8 @@ import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
@@ -82,7 +82,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
         if (!initialized) {
             // detect caps
-            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            Capabilities caps = surface.getFramework().getCapabilities();
             supportsMultitexture = caps.getMaxFixedPipelineTextures() > 1;
             supportsCombine = caps.getCombineEnvModeSupport();
             supportedTargets = caps.getSupportedTextureTargets();

@@ -7,7 +7,7 @@ import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.resource.Texture;
+import com.ferox.renderer.texture.Texture;
 import com.ferox.scene.Light;
 import com.lhkbob.entreri.Component;
 

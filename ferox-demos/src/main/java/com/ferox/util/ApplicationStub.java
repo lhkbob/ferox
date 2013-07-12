@@ -35,9 +35,9 @@ import com.ferox.math.ColorRGB;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.resource.geom.text.CharacterSet;
-import com.ferox.resource.geom.text.TextRenderer;
-import com.ferox.resource.geom.text.TextRenderer.Anchor;
+import com.ferox.renderer.geom.text.CharacterSet;
+import com.ferox.renderer.geom.text.TextRenderer;
+import com.ferox.renderer.geom.text.TextRenderer.Anchor;
 
 public abstract class ApplicationStub {
     private final Framework framework;

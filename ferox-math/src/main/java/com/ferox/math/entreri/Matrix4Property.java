@@ -103,7 +103,7 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
      * @author Michael Ludwig
      */
     @Attribute
-    @Target(ElementType.FIELD)
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultMatrix4 {
         /**

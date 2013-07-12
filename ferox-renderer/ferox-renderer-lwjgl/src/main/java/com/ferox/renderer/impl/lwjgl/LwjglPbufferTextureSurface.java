@@ -29,13 +29,13 @@ package com.ferox.renderer.impl.lwjgl;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.TextureFormat;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.*;
 
@@ -53,7 +53,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
 
     private int activeLayerForFrame;
 
-    public LwjglPbufferTextureSurface(AbstractFramework framework,
+    public LwjglPbufferTextureSurface(FrameworkImpl framework,
                                       LwjglSurfaceFactory creator,
                                       TextureSurfaceOptions options,
                                       LwjglContext shareWith, RendererProvider provider) {

@@ -26,14 +26,14 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractTextureResourceDriver;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.Texture.WrapMode;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.Texture.WrapMode;
 import org.lwjgl.opengl.*;
 
 import java.nio.*;
@@ -61,7 +61,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
     @Override
     protected void glTextureParameters(OpenGLContext context, Texture tex,
                                        TextureHandle handle) {
-        RenderCapabilities caps = context.getRenderCapabilities();
+        Capabilities caps = context.getRenderCapabilities();
         int target = Utils.getGLTextureTarget(handle.target);
 
         // filter
@@ -138,7 +138,7 @@ public class LwjglTextureResourceDriver extends AbstractTextureResourceDriver {
         }
     }
 
-    private int getWrapMode(WrapMode mode, RenderCapabilities caps) {
+    private int getWrapMode(WrapMode mode, Capabilities caps) {
         if (!caps.getClampToEdgeSupport() && mode == WrapMode.CLAMP) {
             return GL11.GL_CLAMP;
         }

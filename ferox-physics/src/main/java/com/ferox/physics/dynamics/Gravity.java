@@ -29,32 +29,12 @@ package com.ferox.physics.dynamics;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property;
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.Unmanaged;
+import com.lhkbob.entreri.Component;
 
-public class Gravity extends ComponentData<Gravity> {
-    private Vector3Property gravity;
-
-    @Unmanaged
-    private final Vector3 gravityCache = new Vector3();
-
-    private Gravity() {
-    }
-
-    public
+public interface Gravity extends Component {
     @Const
-    Vector3 getGravity() {
-        return gravityCache;
-    }
+    @Vector3Property.DefaultVector3(x = 0.0, y = -9.8, z = 0.0)
+    public Vector3 getGravity();
 
-    public Gravity setGravity(@Const Vector3 gravity) {
-        gravityCache.set(gravity);
-        this.gravity.set(gravity, getIndex());
-        return this;
-    }
-
-    @Override
-    protected void onSet(int index) {
-        gravity.get(index, gravityCache);
-    }
+    public Gravity setGravity(@Const Vector3 gravity);
 }

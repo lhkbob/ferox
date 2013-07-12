@@ -31,9 +31,8 @@ import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractGlslShaderResourceDriver;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Attribute;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslUniform;
+import com.ferox.resource.Uniform;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
@@ -160,13 +159,13 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             name.get(bs, 0, bs.length).position(0);
             String uniformName = new String(bs);
 
-            GlslUniform u = new GlslUniform(uniformName,
+            Uniform u = new Uniform(uniformName,
                                             Utils.getUniformType(type.get(0)),
                                             len.get(0));
 
             // get uniform location
             int location = GL20.glGetUniformLocation(handle.programID, uniformName);
-            handle.uniforms.put(uniformName, new Uniform(u, location));
+            handle.uniforms.put(uniformName, new GlslShaderHandle.Uniform(u, location));
         }
     }
 }

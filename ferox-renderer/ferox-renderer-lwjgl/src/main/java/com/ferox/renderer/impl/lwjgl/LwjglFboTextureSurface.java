@@ -28,12 +28,12 @@ package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.Texture.Target;
+import com.ferox.renderer.Texture.Target;
 import org.lwjgl.opengl.*;
 
 import java.nio.IntBuffer;
@@ -54,7 +54,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
 
     private final boolean useEXT;
 
-    public LwjglFboTextureSurface(AbstractFramework framework,
+    public LwjglFboTextureSurface(FrameworkImpl framework,
                                   LwjglSurfaceFactory creator,
                                   TextureSurfaceOptions options) {
         super(framework, options);

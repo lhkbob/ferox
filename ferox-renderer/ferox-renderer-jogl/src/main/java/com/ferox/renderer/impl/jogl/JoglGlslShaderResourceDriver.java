@@ -30,9 +30,8 @@ import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractGlslShaderResourceDriver;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Attribute;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslUniform;
+import com.ferox.resource.Uniform;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -181,13 +180,13 @@ public class JoglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriv
             gl.glGetActiveUniform(handle.programID, i, maxUniformNameLength, nameLen, 0,
                                   len, 0, type, 0, name, 0);
             String uniformName = new String(name, 0, nameLen[0]);
-            GlslUniform u = new GlslUniform(uniformName, Utils.getUniformType(type[0]),
+            Uniform u = new Uniform(uniformName, Utils.getUniformType(type[0]),
                                             len[0]);
 
             // get uniform location
             int location = gl.glGetUniformLocation(handle.programID, uniformName);
 
-            handle.uniforms.put(uniformName, new Uniform(u, location));
+            handle.uniforms.put(uniformName, new GlslShaderHandle.Uniform(u, location));
         }
     }
 

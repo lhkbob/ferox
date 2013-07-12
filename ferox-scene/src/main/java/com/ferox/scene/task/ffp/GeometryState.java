@@ -3,7 +3,7 @@ package com.ferox.scene.task.ffp;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.resource.VertexAttribute;
+import com.ferox.renderer.VertexAttribute;
 
 public class GeometryState implements State {
     private VertexAttribute vertices;

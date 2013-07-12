@@ -31,12 +31,12 @@ import com.ferox.renderer.Renderer.*;
 import com.ferox.resource.BufferData.DataType;
 import com.ferox.resource.GlslShader.AttributeType;
 import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslUniform.UniformType;
-import com.ferox.resource.Texture;
-import com.ferox.resource.Texture.Filter;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.Texture.WrapMode;
-import com.ferox.resource.TextureFormat;
+import com.ferox.resource.Uniform.UniformType;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.Texture.Filter;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.texture.Texture.WrapMode;
+import com.ferox.renderer.texture.TextureFormat;
 import org.lwjgl.opengl.*;
 
 import java.awt.EventQueue;

@@ -42,7 +42,7 @@ modules are as follows:
 
 * `ferox-input` - A keyboard and mouse event abstraction that can wrap AWT's
   event system, or poll-based systems (such as LWJGL's Keyboard and Mouse).
-  It provides a logic and trigger layer on top of these events.
+  It provides a logic and trigger image on top of these events.
 * `ferox-math` - A 3D vector math library, and implementations of spatial 
   indices, such as octrees and quadtrees. Contains optional property definitions
   to use the math types within Entreri components.

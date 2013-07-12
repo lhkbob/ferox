@@ -32,6 +32,7 @@ import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Matrix3Property;
 import com.ferox.math.entreri.Vector3Property;
 import com.ferox.physics.collision.CollisionBody;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.Unmanaged;
@@ -39,139 +40,69 @@ import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 @Requires(CollisionBody.class)
-public class RigidBody extends ComponentData<RigidBody> {
+public interface RigidBody extends Component {
+    @Const
+    public Matrix3 getInertiaTensorInverse();
+
+    public RigidBody setInertiaTensorInverse(@Const Matrix3 tensorInverse);
+
+    public RigidBody setForce(@Const Vector3 f);
+
+    public RigidBody setTorque(@Const Vector3 t);
+
+    public RigidBody setVelocity(@Const Vector3 vel);
+
+    public RigidBody setAngularVelocity(@Const Vector3 angVel);
+
+    public RigidBody setMass(double mass);
+
     @DefaultDouble(1.0)
-    private DoubleProperty inverseMass;
-
-    private Matrix3Property inertiaTensorWorldInverse;
-
-    private Vector3Property velocity;
-    private Vector3Property angularVelocity;
-
-    private Vector3Property totalForce;
-    private Vector3Property totalTorque;
-
-    // This got pretty ugly pretty fast
-    @Unmanaged
-    private final Vector3 velocityCache = new Vector3();
-    @Unmanaged
-    private final Vector3 angularVelocityCache = new Vector3();
-    @Unmanaged
-    private final Vector3 forceCache = new Vector3();
-    @Unmanaged
-    private final Vector3 torqueCache = new Vector3();
-    @Unmanaged
-    private final Matrix3 tensorCache = new Matrix3();
-
-    @Unmanaged
-    private final Vector3 temp = new Vector3();
-
-    private RigidBody() {
-    }
+    public double getMass();
 
     @Const
-    public Matrix3 getInertiaTensorInverse() {
-        inertiaTensorWorldInverse.get(getIndex(), tensorCache);
-        return tensorCache;
-    }
+    public Vector3 getVelocity();
 
-    public RigidBody setInertiaTensorInverse(@Const Matrix3 tensorInverse) {
-        inertiaTensorWorldInverse.set(tensorInverse, getIndex());
-        return this;
-    }
+    @Const
+    public Vector3 getAngularVelocity();
 
-    public RigidBody addForce(@Const Vector3 force, @Const Vector3 relPos) {
-        totalForce.set(getTotalForce().add(force), getIndex());
+    @Const
+    public Vector3 getTotalForce();
 
-        if (relPos != null) {
-            totalTorque.set(getTotalTorque().add(temp.cross(relPos, force)), getIndex());
+    @Const
+    public Vector3 getTotalTorque();
+
+    public static class Utils {
+        public RigidBody addForce(@Const Vector3 force, @Const Vector3 relPos) {
+            totalForce.set(getTotalForce().add(force), getIndex());
+
+            if (relPos != null) {
+                totalTorque.set(getTotalTorque().add(temp.cross(relPos, force)), getIndex());
+            }
+
+            return this;
         }
 
-        return this;
-    }
+        public RigidBody addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
+            velocity.set(getVelocity().addScaled(getInverseMass(), impulse), getIndex());
 
-    public RigidBody addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
-        velocity.set(getVelocity().addScaled(getInverseMass(), impulse), getIndex());
+            if (relPos != null) {
+                temp.cross(relPos, impulse);
+                temp.mul(getInertiaTensorInverse(), temp);
 
-        if (relPos != null) {
-            temp.cross(relPos, impulse);
-            temp.mul(getInertiaTensorInverse(), temp);
+                angularVelocity.set(getAngularVelocity().add(temp), getIndex());
+            }
 
-            angularVelocity.set(getAngularVelocity().add(temp), getIndex());
+            return this;
         }
 
-        return this;
-    }
+        public RigidBody clearForces() {
+            forceCache.set(0.0, 0.0, 0.0);
+            torqueCache.set(0.0, 0.0, 0.0);
 
-    public RigidBody setForce(@Const Vector3 f) {
-        totalForce.set(f, getIndex());
-        return this;
-    }
+            totalForce.set(forceCache, getIndex());
+            totalTorque.set(torqueCache, getIndex());
 
-    public RigidBody setTorque(@Const Vector3 t) {
-        totalTorque.set(t, getIndex());
-        return this;
-    }
-
-    public RigidBody setVelocity(@Const Vector3 vel) {
-        velocity.set(vel, getIndex());
-
-        return this;
-    }
-
-    public RigidBody setAngularVelocity(@Const Vector3 angVel) {
-        angularVelocity.set(angVel, getIndex());
-
-        return this;
-    }
-
-    public RigidBody clearForces() {
-        forceCache.set(0.0, 0.0, 0.0);
-        torqueCache.set(0.0, 0.0, 0.0);
-
-        totalForce.set(forceCache, getIndex());
-        totalTorque.set(torqueCache, getIndex());
-
-        return this;
-    }
-
-    public RigidBody setMass(double mass) {
-        if (mass <= 0.0) {
-            throw new IllegalArgumentException("Mass must be positive");
+            return this;
         }
-        inverseMass.set(1.0 / mass, getIndex());
-        return this;
-    }
-
-    public double getMass() {
-        return 1.0 / inverseMass.get(getIndex());
-    }
-
-    public double getInverseMass() {
-        return inverseMass.get(getIndex());
-    }
-
-    @Const
-    public Vector3 getVelocity() {
-        velocity.get(getIndex(), velocityCache);
-        return velocityCache;
-    }
-
-    @Const
-    public Vector3 getAngularVelocity() {
-        angularVelocity.get(getIndex(), angularVelocityCache);
-        return angularVelocityCache;
-    }
-
-    @Const
-    public Vector3 getTotalForce() {
-        totalForce.get(getIndex(), forceCache);
-        return forceCache;
-    }
-
-    @Const
-    public Vector3 getTotalTorque() {
-        totalTorque.get(getIndex(), torqueCache);
-        return torqueCache;
     }
 }

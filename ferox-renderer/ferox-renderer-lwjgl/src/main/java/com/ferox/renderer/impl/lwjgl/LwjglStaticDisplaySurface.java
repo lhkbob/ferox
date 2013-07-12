@@ -37,7 +37,7 @@ import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.SurfaceCreationException;
-import com.ferox.renderer.impl.AbstractFramework;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
@@ -79,7 +79,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
     private boolean vsyncNeedsUpdate;
     private boolean closable;
 
-    public LwjglStaticDisplaySurface(AbstractFramework framework,
+    public LwjglStaticDisplaySurface(FrameworkImpl framework,
                                      LwjglSurfaceFactory factory,
                                      OnscreenSurfaceOptions options,
                                      LwjglContext shareWith, RendererProvider provider) {

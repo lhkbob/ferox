@@ -27,7 +27,7 @@
 package com.ferox.scene;
 
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.VertexAttribute;
+import com.ferox.renderer.VertexAttribute;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.property.ObjectProperty;
 

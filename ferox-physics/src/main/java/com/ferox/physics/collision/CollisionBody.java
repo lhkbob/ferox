@@ -32,6 +32,7 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.AxisAlignedBoxProperty;
 import com.ferox.math.entreri.Matrix4Property;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Unmanaged;
 import com.lhkbob.entreri.property.DoubleProperty;
@@ -58,41 +59,7 @@ import com.lhkbob.entreri.property.ObjectProperty;
  *
  * @author Michael Ludwig
  */
-public class CollisionBody extends ComponentData<CollisionBody> {
-    /**
-     * Internally CollisionBody stores the groups inside a single long, so group ids are
-     * limited to be between 0 and 63.
-     */
-    public static final int MAX_GROUPS = 64;
-
-    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
-                    m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
-                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
-    private Matrix4Property worldTransform;
-
-    private AxisAlignedBoxProperty worldBounds;
-    private ObjectProperty<Shape> shape;
-
-    @DefaultDouble(0.0)
-    private DoubleProperty restitution;
-
-    @DefaultDouble(0.5)
-    private DoubleProperty friction;
-
-    @DefaultLong(1)
-    private LongProperty collisionGroups;
-
-    @DefaultLong(1)
-    private LongProperty collisionMask;
-
-    @Unmanaged
-    private final AxisAlignedBox boundsCache = new AxisAlignedBox();
-    @Unmanaged
-    private final Matrix4 transformCache = new Matrix4();
-
-    private CollisionBody() {
-    }
-
+public interface CollisionBody extends Component {
     /**
      * Return the friction coefficient for the surface of this CollisionBody. This is a
      * pseudo-physical value combining both static and kinetic friction. A value of 0
@@ -100,9 +67,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *
      * @return The current friction coefficient
      */
-    public double getFriction() {
-        return friction.get(getIndex());
-    }
+    @DefaultDouble(0.5)
+    public double getFriction();
 
     /**
      * Set the friction coefficient. See {@link #getFriction()} for more details.
@@ -111,16 +77,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *
      * @return This instance
      *
-     * @throws IllegalArgumentException if friction is less than 0
      */
-    public CollisionBody setFriction(double friction) {
-        if (friction < 0.0) {
-            throw new IllegalArgumentException(
-                    "Friction coefficient must be at least 0, not: " + friction);
-        }
-        this.friction.set(friction, getIndex());
-        return this;
-    }
+    public CollisionBody setFriction(double friction);
 
     /**
      * Get the restitution coefficient of this CollisionBody. Restitution is an
@@ -129,9 +87,8 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *
      * @return The current restitution coefficient
      */
-    public double getRestitution() {
-        return restitution.get(getIndex());
-    }
+    @DefaultDouble(0.0)
+    public double getRestitution();
 
     /**
      * Set the new restitution coefficient. See {@link #getRestitution()} for more
@@ -143,127 +100,7 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *
      * @throws IllegalArgumentException if restitution is less than 0
      */
-    public CollisionBody setRestitution(double restitution) {
-        if (restitution < 0.0) {
-            throw new IllegalArgumentException(
-                    "Restitution coefficient must be at least 0, not: " + restitution);
-        }
-        this.restitution.set(restitution, getIndex());
-        return this;
-    }
-
-    /**
-     * Compares the collision groups and masks of this CollisionBody and <var>other</var>
-     * and returns true if the two instances are capable of colliding. It is always true
-     * that <code>objA.canCollide(objB) == objB.canCollide(objA)</code>.
-     *
-     * @param other The other CollisionBody to check
-     *
-     * @return True if the pair can collide
-     *
-     * @throws NullPointerException if other is null
-     */
-    public boolean canCollide(CollisionBody other) {
-        if (other == null) {
-            throw new NullPointerException("Collidable cannot be null");
-        }
-
-        return isSet(collisionGroups.get(getIndex()),
-                     other.collisionMask.get(other.getIndex())) ||
-               isSet(other.collisionGroups.get(other.getIndex()),
-                     collisionMask.get(getIndex()));
-    }
-
-    private static boolean isSet(long groups, long mask) {
-        return (groups & mask) != 0;
-    }
-
-    private static long set(long groups, long group, boolean set) {
-        if (set) {
-            return groups | group;
-        } else {
-            return groups & ~group;
-        }
-    }
-
-    /**
-     * Check if this CollisionBody is the member of the given integer group. All
-     * CollisionBodies are in group 0 by default.
-     *
-     * @param group The group, must be at least 0
-     *
-     * @return True if the CollisionBody is in the group
-     *
-     * @throws IndexOutOfBoundsException if the group is negative or greater than
-     *                                   MAX_GROUPS
-     */
-    public boolean isMemberOfGroup(int group) {
-        if (group < 0 || group >= MAX_GROUPS) {
-            throw new IndexOutOfBoundsException(
-                    "Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
-        }
-        long groups = collisionGroups.get(getIndex());
-        return isSet(groups, 1 << group);
-    }
-
-    /**
-     * Check if this CollisionBody is allowed to collide with specified group.
-     *
-     * @param group The group to check
-     *
-     * @return True if the CollisionBody can collide with the group
-     *
-     * @throws IndexOutOfBoundsException if the group is negative or greater than
-     *                                   MAX_GROUPS
-     */
-    public boolean canCollideWithGroup(int group) {
-        if (group < 0 || group >= MAX_GROUPS) {
-            throw new IndexOutOfBoundsException(
-                    "Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
-        }
-        long mask = collisionMask.get(getIndex());
-        return isSet(1 << group, mask);
-    }
-
-    /**
-     * Set whether or not this CollisionBody is the member of the provided group.
-     *
-     * @param group  The group that this CollisionBody is added to or removed from
-     * @param member True if the CollisionBody should be a member
-     *
-     * @return This component
-     *
-     * @throws IndexOutOfBoundsException if group is negative or greater than MAX_GROUPS
-     */
-    public CollisionBody setMemberOfGroup(int group, boolean member) {
-        if (group < 0 || group >= MAX_GROUPS) {
-            throw new IndexOutOfBoundsException(
-                    "Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
-        }
-        collisionGroups.set(set(collisionGroups.get(getIndex()), 1 << group, member),
-                            getIndex());
-        return this;
-    }
-
-    /**
-     * Set whether or not this CollisionBody can collide with the provided group.
-     *
-     * @param group  The group that this CollisionBody can collide against
-     * @param member True if the CollisionBody should collide with the group
-     *
-     * @return This component
-     *
-     * @throws IndexOutOfBoundsException if group is negative or greater than MAX_GROUPS
-     */
-    public CollisionBody setCollidesWithGroup(int group, boolean collide) {
-        if (group < 0 || group >= MAX_GROUPS) {
-            throw new IndexOutOfBoundsException(
-                    "Group must be in range [0, " + MAX_GROUPS + "), but was " + group);
-        }
-        collisionMask
-                .set(set(collisionMask.get(getIndex()), 1 << group, collide), getIndex());
-        return this;
-    }
+    public CollisionBody setRestitution(double restitution);
 
     /**
      * Return the matrix instance holding this Collidable's world transform.
@@ -271,10 +108,10 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @return The world transform of the Collidable
      */
     @Const
-    public Matrix4 getTransform() {
-        worldTransform.get(getIndex(), transformCache);
-        return transformCache;
-    }
+    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
+                    m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
+                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
+    public Matrix4 getTransform();
 
     /**
      * Assign a new Shape to use for this Collidable.
@@ -285,23 +122,14 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *
      * @throws NullPointerException if shape is null
      */
-    public CollisionBody setShape(Shape shape) {
-        if (shape == null) {
-            throw new NullPointerException("Shape cannot be null");
-        }
-        this.shape.set(shape, getIndex());
-        updateBounds();
-        return this;
-    }
+    public CollisionBody setShape(Shape shape);
 
     /**
      * Return the current Shape of this Collidable.
      *
      * @return The shape of this Collidable
      */
-    public Shape getShape() {
-        return shape.get(getIndex());
-    }
+    public Shape getShape();
 
     /**
      * Copy <var>t</var> into this Collidable's transform, updating its location and
@@ -313,11 +141,7 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      *
      * @throws NullPointerException if t is null
      */
-    public CollisionBody setTransform(@Const Matrix4 t) {
-        worldTransform.set(t, getIndex());
-        updateBounds();
-        return this;
-    }
+    public CollisionBody setTransform(@Const Matrix4 t);
 
     /**
      * Return the current world bounds of this CollisionBody. This is computed based off
@@ -326,19 +150,21 @@ public class CollisionBody extends ComponentData<CollisionBody> {
      * @return The world bounds of this CollisionBody
      */
     @Const
-    public AxisAlignedBox getWorldBounds() {
-        worldBounds.get(getIndex(), boundsCache);
-        return boundsCache;
-    }
+    public AxisAlignedBox getWorldBounds();
 
-    private void updateBounds() {
-        Shape shape = getShape();
-        if (shape != null) {
-            // do the if check just to be nice, if someone calls the
-            // setTransform() before setShape(), we really don't want to throw
-            // a weird exception
-            boundsCache.transform(shape.getBounds(), getTransform());
-            worldBounds.set(boundsCache, getIndex());
+    public CollisionBody setWorldBounds(@Const AxisAlignedBox bounds);
+
+    public static class Utils {
+        // FIXME this is so simple, we just might move it into a task
+        private void updateBounds() {
+            Shape shape = getShape();
+            if (shape != null) {
+                // do the if check just to be nice, if someone calls the
+                // setTransform() before setShape(), we really don't want to throw
+                // a weird exception
+                boundsCache.transform(shape.getBounds(), getTransform());
+                worldBounds.set(boundsCache, getIndex());
+            }
         }
     }
 }

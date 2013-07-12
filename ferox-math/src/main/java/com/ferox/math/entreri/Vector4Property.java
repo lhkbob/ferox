@@ -102,7 +102,7 @@ public class Vector4Property implements ShareableProperty<Vector4> {
      * @author Michael Ludwig
      */
     @Attribute
-    @Target(ElementType.FIELD)
+    @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultVector4 {
         /**

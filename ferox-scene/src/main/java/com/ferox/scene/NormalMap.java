@@ -27,9 +27,9 @@
 package com.ferox.scene;
 
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Texture;
-import com.ferox.resource.TextureFormat;
-import com.ferox.resource.VertexAttribute;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.texture.TextureFormat;
+import com.ferox.renderer.VertexAttribute;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -120,7 +120,7 @@ public final class NormalMap extends TextureMap<NormalMap> {
 
     @Override
     protected void validate(Texture tex) {
-        if (tex.getFormat().getNumComponents() != 3) {
+        if (tex.getFormat().getComponentCount() != 3) {
             throw new IllegalArgumentException(
                     "Normal map must use a texture format with 3 components, not: " +
                     tex.getFormat());

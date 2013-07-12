@@ -5,8 +5,8 @@ import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
 import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
 import com.ferox.renderer.HardwareAccessLayer;
-import com.ferox.resource.Texture;
-import com.ferox.resource.VertexAttribute;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.VertexAttribute;
 
 public class TextureState implements State {
     private final int diffuseTextureUnit;

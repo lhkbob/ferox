@@ -34,8 +34,8 @@ import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.resource.geom.Box;
-import com.ferox.resource.geom.Geometry;
+import com.ferox.renderer.geom.Box;
+import com.ferox.renderer.geom.Geometry;
 import com.ferox.util.ApplicationStub;
 
 import java.util.concurrent.Future;

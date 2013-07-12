@@ -26,10 +26,10 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
-import com.ferox.resource.Texture.Target;
+import com.ferox.renderer.texture.Texture.Target;
 
 import javax.media.opengl.*;
 import java.util.EnumSet;
@@ -39,7 +39,7 @@ import java.util.EnumSet;
  *
  * @author Michael Ludwig
  */
-public class JoglRenderCapabilities extends RenderCapabilities {
+public class JoglRenderCapabilities extends Capabilities {
     /**
      * Force the returned RenderCapabilities to report no support for fbos.
      */

@@ -26,7 +26,7 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.RenderCapabilities;
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
@@ -35,8 +35,8 @@ import com.ferox.renderer.impl.drivers.GlslShaderHandle;
 import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.resource.Texture.Target;
-import com.ferox.resource.VertexBufferObject.StorageMode;
+import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
@@ -66,7 +66,7 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
 
         if (!initialized) {
             // detect caps
-            RenderCapabilities caps = surface.getFramework().getCapabilities();
+            Capabilities caps = surface.getFramework().getCapabilities();
             supportedTargets = caps.getSupportedTextureTargets();
 
             initialized = true;

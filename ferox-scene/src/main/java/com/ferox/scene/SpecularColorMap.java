@@ -26,7 +26,7 @@
  */
 package com.ferox.scene;
 
-import com.ferox.resource.Texture;
+import com.ferox.renderer.texture.Texture;
 
 /**
  * <p/>

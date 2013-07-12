@@ -9,9 +9,9 @@ import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.UnsignedDataView;
-import com.ferox.resource.VertexAttribute;
-import com.ferox.resource.VertexBufferObject;
-import com.ferox.resource.geom.TopologyUtil;
+import com.ferox.renderer.VertexAttribute;
+import com.ferox.renderer.geom.VertexBufferObject;
+import com.ferox.renderer.geom.TopologyUtil;
 import com.ferox.util.ItemView;
 import com.ferox.util.QuickSort;
 
